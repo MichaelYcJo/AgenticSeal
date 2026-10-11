@@ -1,5 +1,10 @@
 # 1791384155-a-round-record-cell-has-one-reader — overview
 
+📋 implement applied
+· spec:     this item's `spec.md` (J1–J5, S1–S14, §*Data & interfaces*), `plan.md`, `questions.md`; `docs/round-record-spec.md` §*`Pass` has to be checked*, §*The depth in `New units`*, §*A fix of a fix*, §*What `close` derives*; `docs/review-chain-spec.md` §*The reopening — one, and then the run is capped*; the owner's review in #834's `handoff.md` §*Review of the run*
+· evidence: `seal/ledger/1791384155-a-round-record-cell-has-one-reader.md` — rows H1, H3–H6, `Corrected ·` N9, C3, A8, S7, B1, F9, R11, R3, and the `Re-read ·` rows each phase owed; sibling fragments' rows re-stamped in place where this work drifted them, and #860's `Corrected · A1` corrected in place
+· verified: executed per phase (`phases/phase-N.md`); the full suite is the sealer's
+
 ## Why this work exists
 
 Five judgments about a round record were each read by two to four scripts
@@ -37,9 +42,19 @@ release seal cannot give one cell two meanings.
 | Item | Who must answer |
 |---|---|
 | The full suite, the repository-wide lint and the typecheck at this branch's head | the sealer, after the review rounds settle |
+| The suite's `gh.cmd` stub and the check running `gh` at the path `which` found, on Windows: read and pinned by an in-process case, never run on Windows here | CI's Windows shards at the pull request |
 
 ## Not done
 
+- **Nothing was left out under the owner's review of 2026-10-08.** Every
+  reader this work added or changed reads a format a writer in this
+  repository owns — the round record's cells, the verdict words, `close`'s
+  prefix and joins, the field and box shapes `new` writes — or observes a
+  tool's own answer (`gh pr view --json isDraft`, git's ancestry). None
+  predicts a format nothing owns, so no phase had a part to set aside.
+- `docs/round-record-spec.md` ends at 1,000 lines and
+  `docs/review-chain-spec.md` at 999, at the ceiling (`questions.md` W1). The
+  next edit to either cuts it at a heading.
 - The release branch carries 33 drifted ledger rows on four coordinates no
   phase of this work edits — `agents/warden.md#"## Report"` (8),
   `templates/config.md#"# Repository config"` (14),
@@ -54,3 +69,11 @@ release seal cannot give one cell two meanings.
 - *Inferred during implementation:* a deferral's home loses `HOME_MARKS`, not
   `EMPHASIS`, and a bare `deferred` reads its home from the third cell
   through the same grammar.
+- *Inferred during implementation:* the suite's own `gh` answers draft for
+  every case, the state a review round runs in (`tests/conftest.py`,
+  `CONTRIBUTING.md` §*Running the checks*).
+- *Inferred during implementation:* a doubled field row fails on every
+  record, not on the last alone; `--sealing` reaches the direct
+  `broad-gate.md` home as well as the last round record.
+- `spec.md` §*Data & interfaces* gained a row naming what the build added
+  beside the proposed names, with their classes (`questions.md` W3).

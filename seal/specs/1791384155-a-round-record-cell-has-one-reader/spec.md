@@ -326,6 +326,7 @@ docstring of each states its class):
 | fields, pass_boxes | the field table and the `Pass` line | owned |
 | the second source in `pull_request_state` | `gh pr view --json isDraft` | observed; absent or failing → unknown |
 | `--sealing` | a flag on `main` | owned; printed in the state line |
+| *As built (phase 7):* `deferred_parts` beside the two above; `facts_at_head` beside the walks; `doubled_fields` over `fields`; `pull_request_from_gh` as the second source; `sealing_excuses` as the flag's one effect | as the row above each names | the same class as that row; checked against the code at c71b6fbb. #835's registry had not landed on `origin/release/v0.21.0`, so this table stays here for it (`questions.md` W3) |
 
 **Removed:** `broad_gate.py`'s deferred_home, HOME_TOKEN, HOME_END and
 draft_env; `round_record.py`'s location_units, LOCATION_UNIT_RE,

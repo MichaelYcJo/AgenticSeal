@@ -3,6 +3,8 @@
 Authority for the rows of `seal/specs/<work-item-id>/rounds/round-N.md` as the
 pull-request check reads them, one section per row, and for
 `skills/code-review/scripts/round_record.py`, the generator that writes them.
+The check is the one reader of every cell: the generator, the broad gate's
+panel and the release seal read a cell through `chain_check.py` (#866).
 What sends a work item's records to this check is
 `docs/the-review-and-parity-arms.md` §*The declaration, and where the check
 went instead*. The rows the review run's bound rests on — the floor, `Needs a fix`
