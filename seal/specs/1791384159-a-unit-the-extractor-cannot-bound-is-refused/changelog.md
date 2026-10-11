@@ -26,7 +26,11 @@
   Python cannot parse reads `BROKEN` naming that Python's version and the
   error's line, where it used to be read by the guessing rule.
   `--migrate` leaves an old `path:line` row in such a file with the same
-  sentence as its reason.
+  sentence as its reason. The anchor it names keeps a `--map` prefix the row
+  wrote. A quoted line that is no longer in its file says to quote the line
+  as it reads now. A quoted claim inside a unit is no longer grown through
+  the lines indented below it: in a `.py` file it is the statement Python's
+  parser gives for the quoted line, and anywhere else it is that line.
 
   **What an installer sees on upgrade.** The commit hook reads the new rule
   at the next commit after the plugin updates; the CI copy under `tools/`
@@ -36,7 +40,12 @@
   bounded right. The repair is one edit per row — quote a line of the unit
   (`path#"<the line>"@00000000`), then run `evidence-check --reverify`, which
   fills the hash; under `Ledger frozen from` the repair is the `Corrected ·`
-  row `--reverify` names. A row citing a decorated `.pyi` stub reads
-  `DRIFTED` once, because the parser takes the decorators into the span: read
-  it again, then `--reverify`. Every `.py` and `.md` row keeps its hash and
-  its verdict.
+  row `--reverify` names. A row citing a `.pyi` stub that is decorated, or
+  whose signature runs over several lines, reads `DRIFTED` once, because the
+  parser takes the whole definition into the span. A row with a quoted claim
+  (`path#unit>"a line"`) reads `DRIFTED` once where its claim grew through
+  lines indented below the quoted one: in a `.py` file the claim is now the
+  statement the parser gives for that line, and in a file no parser reads it
+  is the quoted line alone. For each, read the row again, then
+  `--reverify`. Every `.md` row, and every `.py` row without a quoted claim,
+  keeps its hash and its verdict.

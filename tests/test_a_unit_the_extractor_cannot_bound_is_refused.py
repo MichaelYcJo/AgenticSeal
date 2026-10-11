@@ -647,8 +647,13 @@ def test_the_changelog_fragment_tells_an_installer_what_to_run():
         "`.md` reads `BROKEN` with the remedy on its line",
         "then run `evidence-check --reverify`",
         "`Corrected ·` row `--reverify` names",
-        "decorated `.pyi` stub reads `DRIFTED` once",
-        "Every `.py` and `.md` row keeps its hash and its verdict",
+        "stub that is decorated, or whose signature runs over several lines, "
+        "reads `DRIFTED` once",
+        "A row with a quoted claim",
+        "Every `.md` row, and every `.py` row without a quoted claim, keeps its "
+        "hash and its verdict",
     ):
         assert said in changed, said
     assert "every other row keeps its hash" not in changed
+    # Round 2: a `.py` claim row can move, so the promise no longer covers it.
+    assert "Every `.py` and `.md` row keeps its hash" not in changed

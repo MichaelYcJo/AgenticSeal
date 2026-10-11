@@ -395,7 +395,7 @@ this rule, one there was checked. Now it is not, and nothing says so.
 | a symbol in `.py` or `.pyi` | the whole `def`/`class` span, **decorators included** — a decorator carries behaviour |
 | a symbol in any other file | none — refused, with the quoted-line anchor written out |
 | a markdown heading path | down to the next heading at its level or above, which is what a reader means by a section |
-| a minor anchor | the statement it names, capped so a claim cannot quietly grow to a whole unit |
+| a minor anchor | in `.py`, the statement it names — for a quoted line, the innermost statement `ast` gives that holds it; in a file no parser reads, the line it quotes and nothing below it; in markdown, the quoted line and the lines deeper than it, capped so a claim cannot quietly grow to a whole unit |
 | any other quoted line | the contiguous run of non-blank lines it sits in — a paragraph, a table, a block of code. **A quoted line hashes the paragraph it is in and is never a function**: a unit with blank lines inside it is cited one quote per paragraph |
 
 **The heading rule is markdown-only.** `#` opens a comment in Python, shell and
