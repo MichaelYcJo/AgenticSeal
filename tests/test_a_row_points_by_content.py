@@ -325,18 +325,19 @@ def test_an_edit_below_a_separator_that_looks_like_a_heading_drifts(repo):
     assert r.returncode == 1 and 'DRIFTED  docs/a.md#"## Real"' in r.stdout, r.stdout
 
 
-def test_an_edit_below_a_form_feed_in_a_generic_unit_drifts(repo):
-    """The declaration rule ends a block at the first line indented no deeper
-    than the name, and the text after a form feed began a line at column 0."""
+def test_an_edit_below_a_form_feed_in_a_quoted_paragraph_drifts(repo):
+    """A quoted line's paragraph is numbered and sliced on GFM's lines, so
+    the text after a form feed is the same line, not a new one at column 0.
+    (A bare symbol here was the declaration rule's until #870; the quoted
+    line is the anchor a `.js` file takes now.)"""
+    anchor = '"function unit(x) {"'
     r = reverified_then_edited(
-        repo, "src/a.js", "unit", JS_FF, JS_FF.replace("return y;", "return y + 1;")
+        repo, "src/a.js", anchor, JS_FF, JS_FF.replace("return y;", "return y + 1;")
     )
-    assert r.returncode == 1 and "DRIFTED  src/a.js#unit" in r.stdout, r.stdout
+    assert r.returncode == 1 and f"DRIFTED  src/a.js#{anchor}" in r.stdout, r.stdout
 
 
-@pytest.mark.parametrize(
-    "rel, body", [("src/ff.py", PY_FF), ("src/a.js", JS_FF)], ids=["python", "generic"]
-)
+@pytest.mark.parametrize("rel, body", [("src/ff.py", PY_FF)], ids=["python"])
 def test_a_renamed_unit_below_a_form_feed_heals(repo, rel, body):
     """The rename heal reconstructs the recorded hash from every unit's
     region, so it has to slice those regions from the lines the units were
@@ -349,32 +350,23 @@ def test_a_renamed_unit_below_a_form_feed_heals(repo, rel, body):
     assert check.returncode == 0 and "1 ok" in check.stdout, check.stdout
 
 
-def test_two_units_of_one_name_below_a_form_feed_are_told_apart(repo):
-    """Two declarations of one name are told apart by the row's own recorded
-    hash, and that comparison slices each place from the same lines."""
+def test_two_quoted_paragraphs_of_one_line_below_a_form_feed_are_told_apart(repo):
+    """Two paragraphs holding one quoted line are told apart by the row's own
+    recorded hash, and that comparison slices each place from the same
+    lines."""
     body = JS_FF + "\nfunction unit(x) {\n  return 0;\n}\n"
+    anchor = '"function unit(x) {"'
     (repo / "src" / "a.js").write_text(body, encoding="utf-8")
-    places = ec.resolve("src/a.js", "unit", body)
+    places = ec.resolve("src/a.js", anchor, body)
     assert len(places) == 2, places
     a, b = places[0]
     want = ec.content_hash(ec.gfm_lines(body)[a - 1 : b])
     (repo / "seal" / "ledger" / "f.md").write_text(
-        f"| C1 | `src/a.js#unit@{want}` | read | 2026-09-01 | n |\n", encoding="utf-8"
+        f"| C1 | `src/a.js#{anchor}@{want}` | read | 2026-09-01 | n |\n",
+        encoding="utf-8",
     )
     r = run(["."], str(repo))
     assert r.returncode == 0 and "1 ok" in r.stdout, r.stdout
-
-
-def test_the_hash_named_for_an_unsure_place_is_the_lines_own(repo):
-    """A place the declaration rule is unsure of is printed with its hash, to
-    record by hand; that hash has to be of the line the place names."""
-    body = f"let x = 1; // a{FORM_FEED}b\nunit(y)\n"
-    (repo / "src" / "a.js").write_text(body, encoding="utf-8")
-    (repo / "seal" / "ledger" / "f.md").write_text(
-        "| C1 | `src/a.js#unit@deadbeef` | read | 2026-09-01 | n |\n", encoding="utf-8"
-    )
-    r = run(["."], str(repo))
-    assert f"2-2@{ec.content_hash(['unit(y)'])}" in r.stdout, r.stdout
 
 
 def test_migrate_below_a_form_feed_writes_the_hash_the_check_reads(repo):
@@ -479,39 +471,16 @@ BRACE = (
 )
 
 
-def test_the_major_unit_resolves_without_a_parser(repo):
-    """`ast` exists for `.py` only, and a project adopting this skill is mostly
-    code that is not Python. Falling back to text anchors there would hand
-    those projects the brittle version of this design.
-
-    The rule needs no parser and no dependency: the name followed by `(`, `{`
-    or `:`, then the bracket walk to the line where every bracket opened
-    since the declaration has closed, the closing line itself left out
-    (#870). These spans are the ones the indentation rule gave a one-line
-    signature, kept so a row it bounded right keeps its hash.
-    """
-    assert ec.resolve("svc.ts", "handler", BRACE) == [(3, 8)]
-    assert ec.resolve("svc.ts", "Box", BRACE) == [(11, 14)]
-    assert ec.resolve("svc.ts", "open", BRACE) == [(12, 13)]
-
-
-def test_a_unit_the_generic_rule_cannot_find_is_broken(repo):
-    """Loud and honest beats a per-language parser nobody maintains."""
-    assert ec.resolve("svc.ts", "missing", BRACE) == []
+def test_a_brace_language_unit_drifts_on_a_change_inside_its_paragraph(repo):
+    """Outside `.py` and `.md` a unit is cited by a quoted line, whose region
+    is the paragraph it sits in (#870): `handler` holds no blank line, so its
+    signature line hashes the whole function, closing brace included."""
+    anchor = '"export function handler(input: string): number {"'
+    assert ec.resolve("svc.ts", anchor, BRACE) == [(3, 9)]
     (repo / "svc.ts").write_text(BRACE, encoding="utf-8")
+    h = ec.content_hash(BRACE.splitlines()[2:9])
     (repo / "seal" / "ledger" / "f.md").write_text(
-        "# frag\n\n| CLAUSE | `svc.ts#missing@00000000` |\n", encoding="utf-8"
-    )
-    r = run(["."], str(repo))
-    assert "BROKEN" in r.stdout and "locator not found" in r.stdout, r.stdout
-    assert r.returncode == 2
-
-
-def test_a_brace_language_unit_drifts_on_a_change_inside_it(repo):
-    (repo / "svc.ts").write_text(BRACE, encoding="utf-8")
-    h = ec.content_hash(BRACE.splitlines()[2:8])
-    (repo / "seal" / "ledger" / "f.md").write_text(
-        f"# frag\n\n| CLAUSE | `svc.ts#handler@{h}` |\n", encoding="utf-8"
+        f"# frag\n\n| CLAUSE | `svc.ts#{anchor}@{h}` |\n", encoding="utf-8"
     )
     assert "1 ok" in run(["."], str(repo)).stdout
     (repo / "svc.ts").write_text(BRACE.replace("y > 3", "y > 4"), encoding="utf-8")
@@ -666,40 +635,11 @@ def test_text_regions_reads_a_heading_on_the_lines_it_is_shown():
     assert ec.text_regions(lines, "## A2", True, shown) == [(5, 7)]
 
 
-def test_the_generic_rule_needs_a_declaration_not_a_mention(repo):
-    """`handler(x)` called somewhere is not `handler`'s declaration.
-
-    Found by mutation: dropping the `(`/`{`/`:` requirement left every brace
-    case green, because no fixture mentioned a name away from its declaration.
-    """
-    text = (
-        "// handler is described here\n"
-        "const r = handler(1);\n"
-        "\n"
-        "function handler(x) {\n"
-        "  return x;\n"
-        "}\n"
-    )
-    # `const r = handler(1);` is a CALL: what precedes the name contains `=`,
-    # so it is not a declaration line. The region stops AT the closing brace
-    # rather than including it — a line of nothing but closers carries no
-    # claim (#870).
-    assert ec.resolve("svc.js", "handler", text) == [(4, 5)]
-    plain = "// handler is described here\n\nfunction handler(x) {\n  return x;\n}\n"
-    assert ec.resolve("svc.js", "handler", plain) == [(3, 4)], (
-        "a bare mention in a comment was read as a declaration"
-    )
-
-
 def test_a_constant_is_a_unit_too(repo):
     """A module-level constant has no `def` to hang on, and citing one is
-    common — this plugin's own ledger cites three. Without `=` in the
-    declaration rule every constant in every adopting project falls to a
-    literal text anchor, which is the brittle form the rule exists to avoid.
-
-    The colon is stricter than the other delimiters for the reason measured
-    here: `if review not in REVIEW_ANSWERS:` ends in a colon and is a USE, so
-    a colon only declares when the name opens the line.
+    common — this plugin's own ledger cites three. `ast` spans the whole
+    assignment statement, and `if review not in REVIEW_ANSWERS:` is a use it
+    never confuses with the constant.
     """
     text = (
         "OTHER = 0\n"
@@ -713,15 +653,8 @@ def test_a_constant_is_a_unit_too(repo):
         "    if review not in REVIEW_ANSWERS:\n"
         "        return None\n"
     )
-    # (3, 6), closing paren included: since round 4's 🔴 2 a parsing `.py`
-    # never falls to the generic rule, and `ast` spans the whole assignment
-    # statement. The generic rule still stops before the paren — that half of
-    # the pin lives in the `.ts` fixture above.
+    # (3, 6), closing paren included: `ast` spans the whole statement.
     assert ec.resolve("r.py", "REVIEW_ANSWERS", text) == [(3, 6)]
-    # A YAML key is the same shape, and there the colon DOES declare.
-    assert ec.resolve("c.yml", "jobs", "name: x\njobs:\n  a: 1\n  b: 2\nz: 3\n") == [
-        (2, 4)
-    ]
 
 
 def test_a_repeated_heading_is_disambiguated_by_its_parent(repo):
@@ -2201,35 +2134,6 @@ def test_the_checker_asks_git_for_nothing(repo):
 # --- round 4: the resolution and heal fixes ---------------------------------
 
 
-def test_a_call_after_a_statement_keyword_is_not_a_declaration(repo):
-    """`return render(y);` is the commonest shape in every brace language, and
-    the rule read it as a second declaration of `render` — an ordinary
-    one-declaration-one-call file was `BROKEN locator is ambiguous`, exit 2
-    (round 4, 🔴 1). The existing mention pin covered `const r = handler(1);`,
-    where the `=` already blocks the match; a statement keyword carries none.
-    """
-    text = (
-        "function render(x) {\n"
-        "  return x;\n"
-        "}\n"
-        "\n"
-        "function page(y) {\n"
-        "  return render(y);\n"
-        "}\n"
-    )
-    assert ec.resolve("app.js", "render", text) == [(1, 2)]
-    for kw in ("return", "throw", "yield", "await", "if", "while", "case", "not"):
-        lines = ["function render(x) {", "  return x;", "}", "", f"{kw} render(y);"]
-        assert ec.generic_units(lines, "render", "brace", "js") == (
-            [(1, 2)],
-            False,
-        ), kw
-    # Declaration modifiers are NOT statement keywords: nothing here narrows
-    # what `export async function f(` and friends already match.
-    decl = ["export async function render(x) {", "  return x;", "}"]
-    assert ec.generic_units(decl, "render", "brace", "js") == ([(1, 2)], False)
-
-
 def test_a_gone_symbol_in_a_parsing_python_file_is_broken_with_the_hint(repo):
     """`.py` fell back to the generic text rule whenever `ast` found no
     symbol — including when the parse SUCCEEDED and the unit is simply gone.
@@ -2589,38 +2493,21 @@ def test_write_atomic_keeps_a_plain_ledgers_mode(tmp_path):
         )
 
 
-def test_a_declaration_whose_modifier_is_a_keyword_elsewhere_still_resolves(repo):
-    """C# `public new void Render(int x)` and Swift `case loading(String)` are
-    declarations whose modifiers are statement keywords in another language.
-    The blocklist refused both — real code, BROKEN, exit 2 (round 5, 🔴 C).
-    It may now only NARROW a set of candidates, never empty it."""
-    cs = ["public new void Render(int x) {", "  return;", "}"]
-    assert ec.generic_units(cs, "Render", "brace", "cs") == ([(1, 2)], True)
-    swift = ["enum State {", "  case loading(String)", "}"]
-    assert ec.generic_units(swift, "loading", "brace", "swift") == ([(2, 2)], True)
-    # The second half of the tuple is the whole point: these two survived only
-    # because nothing unblocked did, and the consumers have to know that.
-
-
-def test_a_bare_call_statement_is_not_a_declaration(repo):
-    """`render(1);` has nothing before the name, so no keyword blocked it and
-    the fix for round 4's 🔴 1 left it reading as a second declaration —
-    output identical to the pre-fix code (round 5, 🔴 C)."""
-    text = "function render(x) {\n  return x;\n}\n\nrender(1);\n"
-    assert ec.resolve("app.js", "render", text) == [(1, 2)]
+# Two definitions of one name, which `ast` reports as two places: the second
+# shadows the first at run time, and a ledger row may cite either. (These were
+# a C# overload until #870; `.cs` has no bounding rule now.)
+TWO_RENDERS = "def render(x):\n    log(x)\n\n\ndef render(s):\n    send(s)\n"
 
 
 def test_the_recorded_hash_breaks_a_tie_between_two_places(repo):
-    """Two real declarations of one name — an overload — is a tie no keyword
-    list can break. The row's own recorded content breaks it: the place that
-    reconstructs the hash is the row's unit (questions.md §Q3)."""
-    text = (
-        "void render(int x) {\n  log(x);\n}\n\nvoid render(string s) {\n  send(s);\n}\n"
-    )
-    (repo / "src" / "app.cs").write_text(text, encoding="utf-8")
-    h = ec.content_hash(["void render(int x) {", "  log(x);"])
+    """Two places for one name is a tie the name cannot break. The row's own
+    recorded content breaks it: the place that reconstructs the hash is the
+    row's unit (questions.md §Q3)."""
+    (repo / "src" / "app.py").write_text(TWO_RENDERS, encoding="utf-8")
+    assert ec.resolve("src/app.py", "render", TWO_RENDERS) == [(1, 2), (5, 6)]
+    h = ec.content_hash(["def render(x):", "    log(x)"])
     (repo / "seal" / "ledger" / "f.md").write_text(
-        f"# frag\n\n| CLAUSE | `src/app.cs#render@{h}` |\n", encoding="utf-8"
+        f"# frag\n\n| CLAUSE | `src/app.py#render@{h}` |\n", encoding="utf-8"
     )
     r = run(["."], str(repo))
     assert "1 ok" in r.stdout and r.returncode == 0, r.stdout
@@ -2629,12 +2516,9 @@ def test_the_recorded_hash_breaks_a_tie_between_two_places(repo):
 def test_a_tie_no_place_reconstructs_is_still_broken(repo):
     """The tie-break rests on the row's own evidence and nothing else: where
     no place holds the recorded content, the ambiguity is real and loud."""
-    text = (
-        "void render(int x) {\n  log(x);\n}\n\nvoid render(string s) {\n  send(s);\n}\n"
-    )
-    (repo / "src" / "app.cs").write_text(text, encoding="utf-8")
+    (repo / "src" / "app.py").write_text(TWO_RENDERS, encoding="utf-8")
     (repo / "seal" / "ledger" / "f.md").write_text(
-        "# frag\n\n| CLAUSE | `src/app.cs#render@00000000` |\n", encoding="utf-8"
+        "# frag\n\n| CLAUSE | `src/app.py#render@00000000` |\n", encoding="utf-8"
     )
     r = run(["."], str(repo))
     assert "ambiguous" in r.stdout and r.returncode == 2, r.stdout
@@ -2794,74 +2678,6 @@ def test_a_mapped_prefix_still_reaches_its_own_checkout(repo, tmp_path):
 # --- round 6: the uncertainty leaves the classifier -------------------------
 
 
-def test_a_moved_brace_language_unit_is_broken_with_the_hint(repo):
-    """Round 4's 🔴 2 for every file that is not `.py`.
-
-    `return render(y);` left behind by a move was resurrected by the
-    declaration rule when nothing unblocked survived, so the row read DRIFTED,
-    `--reverify` anchored it onto the call site, and every later check said
-    `1 ok` for ever (round 6, 🔴 J). The answer `ast` already gives Python: the
-    unit is GONE, so BROKEN with the destination named.
-    """
-    app = repo / "src" / "app.js"
-    app.write_text(
-        "function render(x) {\n"
-        "  return x;\n"
-        "}\n"
-        "\n"
-        "function page(y) {\n"
-        "  return render(y);\n"
-        "}\n",
-        encoding="utf-8",
-    )
-    write_row(repo, "src/app.js", "render")
-    app.write_text("function page(y) {\n  return render(y);\n}\n", encoding="utf-8")
-    (repo / "src" / "other.js").write_text(
-        "function render(x) {\n  return x;\n}\n", encoding="utf-8"
-    )
-
-    r = run(["."], str(repo))
-    assert "identical content at src/other.js#render (moved?)" in r.stdout, r.stdout
-    assert r.returncode == 2, r.stdout
-
-    rr = run(["--reverify", "."], str(repo))
-    assert "src/other.js#render" in rr.stdout, rr.stdout
-    assert run(["."], str(repo)).returncode == 0, "the healed row is not OK"
-
-
-def test_reverify_refuses_a_place_the_declaration_rule_resurrected(repo):
-    """`--reverify` is the side that MAKES the hash, so it cannot use one to
-    tell a declaration from a call. Where the only place is a resurrected
-    candidate and the scan proves no destination, it writes nothing and says
-    so (round 6, 🔴 J)."""
-    app = repo / "src" / "app.js"
-    app.write_text(
-        "function render(x) {\n"
-        "  return x;\n"
-        "}\n"
-        "\n"
-        "function page(y) {\n"
-        "  return render(y);\n"
-        "}\n",
-        encoding="utf-8",
-    )
-    write_row(repo, "src/app.js", "render")
-    ledger = repo / "seal" / "ledger" / "f.md"
-    before = ledger.read_text(encoding="utf-8")
-    app.write_text("function page(y) {\n  return render(y);\n}\n", encoding="utf-8")
-    # Moved AND edited, so nothing reconstructs and no destination is provable.
-    (repo / "src" / "other.js").write_text(
-        "function render(x) {\n  return x + 1;\n}\n", encoding="utf-8"
-    )
-
-    rr = run(["--reverify", "."], str(repo))
-    assert "0 rows re-verified" in rr.stdout, rr.stdout
-    assert ledger.read_text(encoding="utf-8") == before, (
-        "reverify anchored the row onto a call site"
-    )
-    assert "declaration rule" in rr.stdout, rr.stdout
-
-
 def test_reverify_says_something_about_a_row_the_check_called_broken(repo):
     """A person told *go look* runs the heal command and used to get silence
     (round 6, 🟢)."""
@@ -2939,103 +2755,9 @@ def test_the_two_commands_that_must_know_ask_for_the_flag(repo):
 
 # --- round 7: the last pass -------------------------------------------------
 
-# A declaration whose modifiers are statement keywords elsewhere. `new` is C#'s
-# and it is in STATEMENT_WORDS, so the rule blocks this line and puts it back
-# only because nothing unblocked survives.
+# A C# unit, which no rule bounds since #870: a bare symbol here is refused,
+# and the check still owes `--reverify` a line about it.
 BLOCKED_CS = "public new void Render(int x) {\n  log(x);\n}\n"
-
-
-def test_generic_units_reports_nothing_rather_than_a_resurrection(repo):
-    """`(blocked, True)` was returned even when `blocked` was empty, so a file
-    with no candidate at all was reported as having a resurrected one — a
-    sentence the consumers then acted on (round 7, 🟡 N)."""
-    assert ec.generic_units(["a = 1", "b = 2"], "missing", "block") == ([], False)
-
-
-def test_a_moved_unit_in_a_semicolonless_file_is_broken_with_its_destination(repo):
-    """Swift, Kotlin, Go, Ruby and Lua end no statement with a semicolon, so
-    the structural call guard never fired for them and a `render(y)` left
-    behind by a move read as the unit — 🔴 J for every language the semicolon
-    rule missed (round 7, 🔴 L).
-
-    The marking widens structurally rather than by vocabulary: nothing before
-    the name, an opening paren, and a span of one line is a call everywhere.
-    """
-    app = repo / "src" / "app.kt"
-    app.write_text(
-        "fun render(x: Int): Int {\n"
-        "  return x\n"
-        "}\n"
-        "\n"
-        "fun page(y: Int): Int {\n"
-        "  render(y)\n"
-        "}\n",
-        encoding="utf-8",
-    )
-    write_row(repo, "src/app.kt", "render")
-    app.write_text("fun page(y: Int): Int {\n  render(y)\n}\n", encoding="utf-8")
-    (repo / "src" / "other.kt").write_text(
-        "fun render(x: Int): Int {\n  return x\n}\n", encoding="utf-8"
-    )
-
-    r = run(["."], str(repo))
-    assert "identical content at src/other.kt#render (moved?)" in r.stdout, r.stdout
-    assert r.returncode == 2, r.stdout
-    rr = run(["--reverify", "."], str(repo))
-    assert "src/other.kt#render" in rr.stdout, rr.stdout
-    assert run(["."], str(repo)).returncode == 0, "the healed row is not OK"
-
-
-def test_a_multi_line_declaration_with_a_bare_name_is_still_sure(repo):
-    """The widening is bounded by the SPAN, and the bound is what carries it.
-
-    A class method in shorthand is the case that needs it: `render() {` has
-    nothing before the name and an opening paren, exactly like a call, and
-    only the block it opens tells them apart. Without the one-line bound
-    every one of those would be a place the rule is unsure of. (This was a
-    shell function until #870: shell has no bounding rule now, and the
-    property is the same in a brace language.)
-    """
-    method = "class View {\n  render() {\n    return 1;\n  }\n}\n"
-    assert ec.generic_units(method.splitlines(), "render", "brace", "js") == (
-        [(2, 3)],
-        False,
-    )
-    keyworded = "function render(x) {\n  return x;\n}\n"
-    assert ec.generic_units(keyworded.splitlines(), "render", "brace", "js") == (
-        [(1, 2)],
-        False,
-    )
-    # And the one-liner it is meant to catch, in the same file shape.
-    assert ec.generic_units(["render(y)"], "render", "brace", "js") == ([(1, 1)], True)
-
-
-def test_a_blocked_declaration_can_be_recorded_by_hand(repo):
-    """A `.cs` unit the rule is unsure of could not be put in a ledger at all:
-    `--reverify` refused it and the check answered `locator not found` while
-    the unit sat at lines 1-2 (round 7, 🔴 M).
-
-    The refusal stays and the prescription becomes performable — the check
-    names the place and the hash to record.
-    """
-    (repo / "src" / "a.cs").write_text(BLOCKED_CS, encoding="utf-8")
-    ledger = repo / "seal" / "ledger" / "f.md"
-    ledger.write_text(
-        "# frag\n\n| CLAUSE | `src/a.cs#Render@00000000` |\n", encoding="utf-8"
-    )
-
-    want = ec.content_hash(BLOCKED_CS.splitlines()[0:2])
-    r = run(["."], str(repo))
-    assert "locator not found" not in r.stdout, r.stdout
-    assert "1-2" in r.stdout and want in r.stdout, r.stdout
-    assert r.returncode == 2, r.stdout
-
-    # The prescription, carried out.
-    ledger.write_text(
-        f"# frag\n\n| CLAUSE | `src/a.cs#Render@{want}` |\n", encoding="utf-8"
-    )
-    ok = run(["."], str(repo))
-    assert "1 ok" in ok.stdout and ok.returncode == 0, ok.stdout
 
 
 def test_an_ordinary_new_row_is_still_anchored_by_reverify(repo):
@@ -3051,60 +2773,14 @@ def test_an_ordinary_new_row_is_still_anchored_by_reverify(repo):
     assert run(["."], str(repo)).returncode == 0, "the filled row is not OK"
 
 
-def test_an_unchanged_blocked_row_is_not_re_anchored(repo):
-    """`--reverify` printed `#Render -> #Render (identical content)` and
-    counted a row for a row where nothing had changed (round 7, 🟢)."""
-    (repo / "src" / "a.cs").write_text(BLOCKED_CS, encoding="utf-8")
-    want = ec.content_hash(BLOCKED_CS.splitlines()[0:2])
-    ledger = repo / "seal" / "ledger" / "f.md"
-    ledger.write_text(
-        f"# frag\n\n| CLAUSE | `src/a.cs#Render@{want}` |\n", encoding="utf-8"
-    )
-    before = ledger.read_text(encoding="utf-8")
-    rr = run(["--reverify", "."], str(repo))
-    assert "0 rows re-verified" in rr.stdout, rr.stdout
-    assert "->" not in rr.stdout, rr.stdout
-    assert ledger.read_text(encoding="utf-8") == before
-
-
-def test_migrate_answers_an_unsure_place_the_way_reverify_does(repo):
-    """One placement question, two commands, two answers: `--reverify` refused
-    a place the rule is unsure of while `--migrate` anchored a row onto it
-    without a word (round 7, 🔴 M).
-
-    Unproven, `--migrate` now leaves the row and names the hash to record.
-    """
-    (repo / "src" / "a.cs").write_text(BLOCKED_CS, encoding="utf-8")
-    ledger = repo / "seal" / "ledger" / "f.md"
-    ledger.write_text(
-        "# frag\n\n| CLAUSE | `src/a.cs:1-2` | 2026-08-31 |\n", encoding="utf-8"
-    )
-    before = ledger.read_text(encoding="utf-8")
-    want = ec.content_hash(BLOCKED_CS.splitlines()[0:2])
-
-    m = run(["--migrate", "."], str(repo))
-    assert "0 rows migrated · 1 left" in m.stdout, m.stdout
-    assert want in m.stdout, m.stdout
-    assert ledger.read_text(encoding="utf-8") == before, (
-        "an unsure place was anchored anyway"
-    )
-
-
 def test_reverify_never_contradicts_the_checks_verdict(repo):
-    """Three sentences this command printed, none of them true: it called a row
-    ambiguous that the check resolves to `1 ok`, it reported a resurrection for
-    a row with no candidate at all, and it dropped the claim from the
-    coordinate so two claim rows on one unit read alike (round 7, 🟡 N)."""
-    # (a) a blocked row the check calls OK — silence, and no phantom.
-    (repo / "src" / "a.cs").write_text(BLOCKED_CS, encoding="utf-8")
-    want = ec.content_hash(BLOCKED_CS.splitlines()[0:2])
+    """Sentences this command printed that were not true: it reported a
+    resurrection for a row with no candidate at all, and it dropped the claim
+    from the coordinate so two claim rows on one unit read alike (round 7,
+    🟡 N). (Its third, a row called ambiguous that the check read `1 ok`,
+    was about a place the declaration rule was unsure of, which #870
+    removed.)"""
     ledger = repo / "seal" / "ledger" / "f.md"
-    ledger.write_text(
-        f"# frag\n\n| CLAUSE | `src/a.cs#Render@{want}` |\n", encoding="utf-8"
-    )
-    assert "1 ok" in run(["."], str(repo)).stdout
-    assert "ambiguous" not in run(["--reverify", "."], str(repo)).stdout
-
     # (b) a row with no place at all is not reported as a resurrection.
     ledger.write_text(
         "# frag\n\n| CLAUSE | `src/service.py#gone@00000000` |\n", encoding="utf-8"
@@ -3165,80 +2841,23 @@ def test_every_row_the_check_flags_gets_a_line_from_reverify(repo):
         assert coord in healed, f"{coord} got no line:\n{healed}"
 
 
-def test_migrate_still_anchors_an_unsure_place_the_stamp_vouches_for(tmp_path):
-    """The exception that keeps a `.cs` ledger migratable at all.
-
-    `proved` says the cited lines have not moved since the person wrote the
-    row, which is evidence about THAT place — the thing `--reverify` never has
-    and the reason the two commands can differ here without disagreeing.
-    """
-    top = tmp_path / "repo"
-    (top / "src").mkdir(parents=True)
-    (top / "seal" / "ledger").mkdir(parents=True)
-    (top / "src" / "a.cs").write_text(BLOCKED_CS, encoding="utf-8")
-    git(top, "init", "-q")
-    git(top, "config", "user.email", "t@example.com")
-    git(top, "config", "user.name", "t")
-    git(top, "add", "-A")
-    git(top, "commit", "-qm", "base")
-    sha = git(top, "rev-parse", "HEAD").stdout.strip()
-
-    ledger = top / "seal" / "ledger" / "f.md"
-    ledger.write_text(
-        f"# frag\n\n| CLAUSE | `src/a.cs:1-2` | 2026-08-31 `{sha}` |\n",
-        encoding="utf-8",
-    )
-    m = run(["--migrate", "."], str(top))
-    assert "1 row migrated · 0 left" in m.stdout, m.stdout
-    assert "#Render@" in ledger.read_text(encoding="utf-8"), ledger.read_text(
-        encoding="utf-8"
-    )
-    assert run(["."], str(top)).returncode == 0, "the migrated row is not OK"
-
-
 # --- round 8: a claim row is decided at the minor level, never the major ----
-
-
-def _cs(repo, body):
-    """A `.cs` file, so the generic declaration rule answers rather than `ast`."""
-    (repo / "src" / "a.cs").write_text(body, encoding="utf-8")
-
-
-def test_a_stale_claim_on_an_unsure_place_drifts_rather_than_breaking(repo):
-    """`docs/the-evidence-ledger.md`: *an anchor degrades to DRIFTED, never to
-    BROKEN. Only the major level can be broken.*
-
-    The existing widening case uses `.py`, where `ast` is certain and the
-    resurrection path is never reached, so it could not see this. Here `new`
-    is a statement keyword elsewhere, so the declaration rule is unsure of the
-    only place it finds — and round 7's fix then called the unit GONE on the
-    strength of a hash that was never the unit's (round 8, 🔴 A)."""
-    _cs(repo, "public new void Render(int x) {\n    var a = x + 1;\n}\n")
-    (repo / "seal" / "ledger" / "f.md").write_text(
-        '# frag\n\n| C | `src/a.cs#Render>"var a = x + 1;"@00000000` |\n',
-        encoding="utf-8",
-    )
-    r = run(["."], repo)
-    assert r.returncode == 1, r.stdout
-    assert "DRIFTED" in r.stdout and "re-verify" in r.stdout, r.stdout
-    assert "BROKEN" not in r.stdout, r.stdout
 
 
 def test_two_units_sharing_one_claim_line_stay_ambiguous(repo):
     """A claim row's `want` is the MINOR region's hash, and two unrelated units
     can hold one identical line. Breaking the tie with it anchors the row to
     whichever came first and reports `1 ok` — the silent pass §Q3 refused
-    (round 8, 🔴 B)."""
-    _cs(
-        repo,
-        "public void Render(int x) {\n    var a = x + 1;\n}\n"
-        "\n"
-        "public void Render(string s) {\n    var a = x + 1;\n}\n",
+    (round 8, 🔴 B). (A C# overload until #870; two Python definitions of
+    one name are the instance a parser still gives.)"""
+    (repo / "src" / "a.py").write_text(
+        "def render(x):\n    a = x + 1\n\n\ndef render(s):\n    a = x + 1\n",
+        encoding="utf-8",
     )
-    body = (repo / "src" / "a.cs").read_text(encoding="utf-8")
+    body = (repo / "src" / "a.py").read_text(encoding="utf-8")
     h = ec.content_hash(body.splitlines()[1:2])
     (repo / "seal" / "ledger" / "f.md").write_text(
-        f'# frag\n\n| C | `src/a.cs#Render>"var a = x + 1;"@{h}` |\n',
+        f'# frag\n\n| C | `src/a.py#render>"a = x + 1"@{h}` |\n',
         encoding="utf-8",
     )
     r = run(["."], repo)

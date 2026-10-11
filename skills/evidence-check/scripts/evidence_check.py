@@ -593,7 +593,10 @@ def text_regions(lines, anchor, markdown=False, shown=None):
     A markdown heading owns everything down to the next heading at its level or
     above, which is what a reader means by a section. Anything else owns the
     contiguous run of non-blank lines it sits in — a paragraph, a table, a
-    block of code.
+    block of code. **A quoted line is a paragraph and never a function** (#870):
+    nothing here reads the language, so a unit with no blank line inside it
+    is hashed whole by one quote, and a unit with blank lines is cited one
+    quote per paragraph.
 
     **The heading rule is markdown-only.** `#` opens a comment in Python, shell
     and YAML, and reading one as a heading made a 23-line comment block resolve
@@ -679,56 +682,26 @@ def heading_path(lines, parts):
 # suffix on their own.
 AST_SUFFIXES = frozenset([".py", ".pyi"])
 HEADING_SUFFIXES = frozenset([".md"])
-BLOCK_SUFFIXES = frozenset([".yml", ".yaml"])
-# The bracket walk's day-one list, each suffix with the family whose string
-# and comment forms the lexer blanks for it (`brace_lexed`, Q1 of #870). A
-# language joins only with its forms written down there and a case for each.
-BRACE_FAMILY = {
-    ".ts": "js",
-    ".tsx": "js",
-    ".js": "js",
-    ".jsx": "js",
-    ".mjs": "js",
-    ".cjs": "js",
-    ".c": "c",
-    ".h": "c",
-    ".cc": "cpp",
-    ".cpp": "cpp",
-    ".hpp": "cpp",
-    ".cs": "cs",
-    ".java": "java",
-    ".kt": "kotlin",
-    ".kts": "kotlin",
-    ".swift": "swift",
-    ".go": "go",
-    ".rs": "rust",
-}
-BRACE_SUFFIXES = frozenset(BRACE_FAMILY)
 
 
 def bounding_rule(path):
-    """The rule that bounds a unit in PATH: "ast", "heading", "brace",
-    "block", or None where no rule does (#870).
+    """The rule that bounds a unit in PATH: "ast", "heading", or None where
+    no rule does (#870).
 
-    The input class of each, in #835's words: "ast" is OBSERVED, the
-    running interpreter's own parse; "heading" is an OWNED locator over a
-    person's document; "block" is OBSERVED, YAML's block structure being its
-    indentation; "brace" is a GUESS over an allow-listed language family,
-    and it refuses what it cannot balance or lex. None is the refusal: a
-    bare symbol in a file no rule bounds is BROKEN with the quoted-line
-    remedy on its line, never read through a rule written for another
-    language. A quoted locator needs no rule outside markdown — the run of
-    non-blank lines it sits in is a structure the file itself shows.
+    A unit is bounded only where a real parser decides its extent. In #835's
+    words, "ast" is OBSERVED, the running interpreter's own parse, and
+    "heading" is an OWNED locator over a person's document, read by
+    CommonMark's heading rule (#867). None is the refusal: a bare symbol in
+    any other file is BROKEN with the quoted-line anchor's shape on its line,
+    never read through a rule that imitates a language's grammar without its
+    parser. A quoted locator needs no rule — the run of non-blank lines it
+    sits in is a structure the file itself shows.
     """
     suffix = os.path.splitext(path)[1]
     if suffix in AST_SUFFIXES:
         return "ast"
     if suffix in HEADING_SUFFIXES:
         return "heading"
-    if suffix in BRACE_SUFFIXES:
-        return "brace"
-    if suffix in BLOCK_SUFFIXES:
-        return "block"
     return None
 
 
@@ -756,7 +729,11 @@ def unbounded(path, rule, text):
         )
     suffix = os.path.splitext(path)[1]
     named = f"`{suffix}`" if suffix else "a file with no suffix"
-    return f"no bounding rule for {named}; {remedy}"
+    return (
+        f"no bounding rule for {named}; {remedy}: "
+        f'`{path}#"<a line of the unit>"@00000000`, whose region is the '
+        "paragraph that line sits in, and `--reverify` fills the hash"
+    )
 
 
 class Resolution(tuple):
@@ -792,10 +769,9 @@ def resolve(path, locator, text):
     set and they were put back; a consumer that acts on such a place — the
     check deciding OK, `--reverify` deciding to write — has to know that, and
     calls `resolve_unit` instead. **Nothing inside this module calls it any
-    more** — `file_units` reaches `generic_units` directly — so the wrapper
-    survives for the cases that assert places and for anything importing this
-    module. Its docstring named `file_units` for one round after that stopped
-    being true (round 7, 🟢).
+    more**, so the wrapper survives for the cases that assert places and for
+    anything importing this module. Its docstring named `file_units` for one
+    round after that stopped being true (round 7, 🟢).
     """
     return resolve_unit(path, locator, text)[0]
 
@@ -810,14 +786,14 @@ def resolve_unit(path, locator, text):
     file the running interpreter cannot parse used to fall through to the
     text rule, which hashed lines 1-3 of a five-line `def f(` whose
     parameters ran over three lines and left the body out; a suffix no rule
-    names was read by the rule for brace languages. Both now come back with
-    no places and the reason, which `judge` prints as BROKEN with the
-    quoted-line remedy on the line.
+    names was read by an indentation rule, and then by a bracket walk over a
+    hand-written lexer, each imitating a grammar without its parser. Both
+    now come back with no places and the reason, which `judge` prints as
+    BROKEN with the quoted-line anchor's shape on the line.
 
-    Its input class is the rule's, in #835's words: OBSERVED for `ast` and
-    YAML's block structure, an OWNED locator for a markdown heading path and
-    for a quoted line, and a GUESS for the bracket walk, which is why the
-    walk refuses whatever it cannot balance or lex rather than answering.
+    Its input class is the rule's, in #835's words: OBSERVED for `ast`, and
+    an OWNED locator for a markdown heading path and for a quoted line,
+    whose region is the paragraph it sits in (`text_regions`).
 
     Round 4's 🔴 1, round 5's 🔴 C and round 6's 🔴 J are three attempts at one
     rule, and the two failure modes are the same ambiguity: without the
@@ -869,502 +845,7 @@ def resolve_unit(path, locator, text):
         # instead of BROKEN-with-hint, and --reverify anchored the row to the
         # call permanently (round 4, 🔴 2).
         return Resolution(spans.get(locator, []))
-    if rule in ("brace", "block"):
-        return generic_units(lines, locator, rule, brace_family(path))
     return Resolution([], False, unbounded(path, rule, text))
-
-
-def brace_family(path):
-    """The lexer family of a path the bracket walk bounds, or None."""
-    return BRACE_FAMILY.get(os.path.splitext(path)[1])
-
-
-# One string, char or comment form the bracket walk blanks (`brace_lexed`).
-# CLOSE ends it; ESCAPE, where there is one, takes the next character with
-# it; a form that is not MULTILINE ends at the end of its line or is
-# unterminated; HOLE opens code inside it until HOLE_CLOSE at the hole's own
-# depth (`${…}`, `\(…)`, C#'s `{…}`); DOUBLED are the two-character runs that
-# stand for one character of content (`""`, `{{`, `}}`).
-StringForm = collections.namedtuple(
-    "StringForm",
-    ("close", "escape", "multiline", "hole", "hole_close", "doubled"),
-    defaults=(None, False, None, None, ()),
-)
-
-_PLAIN = StringForm('"', "\\")
-_CHAR = StringForm("'", "\\")
-_JS_SINGLE = StringForm("'", "\\")
-_JS_TEMPLATE = StringForm("`", "\\", True, "${", "}")
-_GO_RAW = StringForm("`", None, True)
-_JAVA_BLOCK = StringForm('"""', "\\", True)
-_KT_PLAIN = StringForm('"', "\\", False, "${", "}")
-_KT_RAW = StringForm('"""', None, True, "${", "}")
-_SWIFT_PLAIN = StringForm('"', "\\", False, "\\(", ")")
-_SWIFT_BLOCK = StringForm('"""', "\\", True, "\\(", ")")
-_RUST_PLAIN = StringForm('"', "\\", True)
-_CS_VERBATIM = StringForm('"', None, True, None, None, ('""',))
-_CS_INTERP = StringForm('"', "\\", False, "{", "}", ("{{", "}}"))
-_CS_VERBATIM_INTERP = StringForm('"', None, True, "{", "}", ('""', "{{", "}}"))
-
-_RUST_CHAR = re.compile(r"'(?:[^\\'\n]|\\(?:x[0-9a-fA-F]{2}|u\{[0-9a-fA-F]{1,6}\}|.))'")
-_RUST_RAW = re.compile(r'[bc]?r(#*)"')
-_SWIFT_RAW = re.compile(r'(#+)("""|")')
-_CS_STRING = re.compile(r'(\$+@?|@\$+|@)?("{3,}|")')
-_CPP_RAW = re.compile(r'"([^()\\\s"]{0,16})\(')
-_CPP_RAW_PREFIXES = frozenset(["R", "u8R", "uR", "UR", "LR"])
-# Families whose block comments nest: `/* /* */ */` is one comment there.
-_NESTED_COMMENTS = frozenset(["rust", "swift", "kotlin"])
-_UNLEXABLE = "unlexable"
-
-
-def _word_before(line, i):
-    j = i
-    while j > 0 and (line[j - 1].isalnum() or line[j - 1] == "_"):
-        j -= 1
-    return line[j:i]
-
-
-def _literal_at(family, line, i):
-    """(form, length) for a string or char literal opening at I in FAMILY,
-    `(None, length)` for characters that open nothing but must be stepped
-    over whole (a Rust char literal, a lifetime, a digit separator), or
-    `(_UNLEXABLE, 0)` for a form the walk names and cannot read.
-
-    Q1 of #870, one row per family, each the forms of that language's own
-    grammar:
-
-      js      "…" '…' single-line; `…` multi-line with ${…} holes
-      c       "…" '…' single-line; ' after a number is a C23 digit separator
-      cpp     c's, and R"d(…)d" raw strings with their u8/u/U/L prefixes
-      java    "…" '…' single-line; \"\"\"…\"\"\" text blocks
-      cs      "…" '…'; @"…" verbatim; $"…" with {…} holes; $@"…" both;
-              \"\"\"…\"\"\" raw, whose holes are read as content
-      kotlin  "…" with ${…} holes; \"\"\"…\"\"\" raw with ${…} holes; '…'
-      swift   "…" and \"\"\"…\"\"\" with \\(…) holes; #"…"# raw; no char form
-      go      "…" '…' single-line; `…` raw, multi-line
-      rust    "…" multi-line; r#"…"# raw with b/c prefixes; 'x' chars, and a
-              ' that opens none is a lifetime
-    """
-    ch = line[i]
-    if family == "rust":
-        if ch == "'":
-            m = _RUST_CHAR.match(line, i)
-            return None, (m.end() - i if m else 1)
-        if ch in "bcr" and not _word_before(line, i):
-            m = _RUST_RAW.match(line, i)
-            if m:
-                return StringForm('"' + m.group(1), None, True), m.end() - i
-        if ch == '"':
-            return _RUST_PLAIN, 1
-        return None, 0
-    if family == "swift":
-        if ch == "#":
-            m = _SWIFT_RAW.match(line, i)
-            if m:
-                quotes, hashes = m.group(2), m.group(1)
-                return StringForm(quotes + hashes, None, True), m.end() - i
-            return None, 0
-        if ch == '"':
-            if line.startswith('"""', i):
-                return _SWIFT_BLOCK, 3
-            return _SWIFT_PLAIN, 1
-        return None, 0
-    if family == "cs" and ch in '$@"':
-        m = _CS_STRING.match(line, i)
-        if not m:
-            return None, 0
-        prefix, quotes = m.group(1) or "", m.group(2)
-        if len(quotes) >= 3:
-            return StringForm(quotes, None, True), m.end() - i
-        if "$" in prefix and "@" in prefix:
-            return _CS_VERBATIM_INTERP, m.end() - i
-        if "@" in prefix:
-            return _CS_VERBATIM, m.end() - i
-        if "$" in prefix:
-            return _CS_INTERP, m.end() - i
-        return _PLAIN, 1
-    if ch == "`":
-        if family == "js":
-            return _JS_TEMPLATE, 1
-        if family == "go":
-            return _GO_RAW, 1
-        return None, 0
-    if ch == '"':
-        if family == "cpp" and _word_before(line, i) in _CPP_RAW_PREFIXES:
-            m = _CPP_RAW.match(line, i)
-            if not m:
-                return _UNLEXABLE, 0
-            return StringForm(")" + m.group(1) + '"', None, True), m.end() - i
-        if family == "java" and line.startswith('"""', i):
-            return _JAVA_BLOCK, 3
-        if family == "kotlin":
-            if line.startswith('"""', i):
-                return _KT_RAW, 3
-            return _KT_PLAIN, 1
-        return _PLAIN, 1
-    if ch == "'":
-        if family == "js":
-            return _JS_SINGLE, 1
-        word = _word_before(line, i)
-        if family in ("c", "cpp") and word[:1].isdigit():
-            return None, 1  # 1'000'000: a digit separator, not a char
-        return _CHAR, 1
-    return None, 0
-
-
-@functools.cache
-def brace_lexed(lines, family):
-    """For each of LINES (a tuple), `(brackets, closers_only, error)`: the
-    brackets the line holds outside every string, char and comment form of
-    FAMILY, in order; whether the line, so read, holds nothing but closing
-    brackets, `;` and `,`; and None, or the sentence saying the line sits in
-    a form that never ends or one the walk cannot read.
-
-    **Stored once per distinct text**, as `parsed_spans` is: a file many
-    rows cite is lexed once, and every caller reads the same tuple.
-    """
-    pairs = {"(": ")", "[": "]", "{": "}"}
-    # The frames: ("code", hole_close, depth, line) for code, top level or a
-    # hole; ("comment", level, line); ("string", form, line).
-    stack = [("code", None, 0, 0)]
-    out = []
-    errors = {}
-    unreadable = None
-
-    for n, line in enumerate(lines):
-        if unreadable is not None:
-            errors[n] = f"line {unreadable + 1} holds a raw string the walk cannot read"
-            out.append(["", False])
-            continue
-        brackets, residue = [], []
-        i = 0
-        while i < len(line):
-            frame = stack[-1]
-            kind = frame[0]
-            if kind == "comment":
-                if family in _NESTED_COMMENTS and line.startswith("/*", i):
-                    stack[-1] = ("comment", frame[1] + 1, frame[2])
-                    i += 2
-                elif line.startswith("*/", i):
-                    if frame[1] == 1:
-                        stack.pop()
-                    else:
-                        stack[-1] = ("comment", frame[1] - 1, frame[2])
-                    i += 2
-                else:
-                    i += 1
-                continue
-            if kind == "string":
-                form = frame[1]
-                double = next((d for d in form.doubled if line.startswith(d, i)), None)
-                if double:
-                    i += len(double)
-                elif form.hole and line.startswith(form.hole, i):
-                    stack.append(("code", form.hole_close, 0, n))
-                    i += len(form.hole)
-                elif form.escape and line[i] == form.escape:
-                    i += 2
-                elif line.startswith(form.close, i):
-                    stack.pop()
-                    i += len(form.close)
-                else:
-                    i += 1
-                continue
-            ch = line[i]
-            if line.startswith("//", i):
-                break
-            if line.startswith("/*", i):
-                stack.append(("comment", 1, n))
-                i += 2
-                continue
-            form, length = _literal_at(family, line, i)
-            if form == _UNLEXABLE:
-                # Nothing below a form the walk cannot read can be read
-                # either: where it ends is exactly what is unknown.
-                unreadable = n
-                break
-            if form is not None:
-                stack.append(("string", form, n))
-                residue.append("S")
-                i += length
-                continue
-            if length:
-                residue.append("S")
-                i += length
-                continue
-            if ch in pairs:
-                brackets.append(ch)
-                if kind == "code" and frame[1] is not None:
-                    stack[-1] = ("code", frame[1], frame[2] + 1, frame[3])
-            elif ch in ")]}":
-                if kind == "code" and frame[1] == ch and frame[2] == 0:
-                    stack.pop()  # the hole closes, and its string resumes
-                    i += 1
-                    continue
-                brackets.append(ch)
-                if kind == "code" and frame[1] is not None:
-                    stack[-1] = ("code", frame[1], frame[2] - 1, frame[3])
-            residue.append(ch)
-            i += 1
-        # A form that does not run past its line ends there: a string the
-        # line never closes is unterminated (a trailing escape continues it).
-        for depth, frame in enumerate(stack):
-            if frame[0] == "string" and not frame[1].multiline:
-                if not (
-                    line.endswith(frame[1].escape or "\0") and depth == len(stack) - 1
-                ):
-                    errors.setdefault(
-                        n,
-                        f"line {n + 1} opens a string or char literal it never closes",
-                    )
-                    del stack[depth:]
-                break
-        if unreadable == n:
-            errors[n] = f"line {n + 1} holds a raw string the walk cannot read"
-        text = "".join(residue).strip()
-        closers = bool(text) and not text.strip(")]};, \t")
-        out.append(["".join(brackets), closers])
-
-    if len(stack) > 1 and unreadable is None:
-        opened = stack[1][-1]
-        for n in range(opened, len(lines)):
-            errors.setdefault(
-                n, f"a string or comment opened at line {opened + 1} never ends"
-            )
-    return tuple((b, c, errors.get(n)) for n, (b, c) in enumerate(out))
-
-
-def brace_span(lines, i, family):
-    """`((start, end), None)` for the unit declared on LINES[I], 1-based and
-    inclusive, or `(None, why)` where the bracket walk cannot bound it.
-
-    The unit ends at the first line whose end has every bracket opened since
-    the declaration closed, and whose next non-blank line is neither deeper
-    than the declaration nor an opening `{` (#870). That one sentence bounds
-    a Prettier signature whose `(` stays open over its parameter lines (#848),
-    an Allman `{` on the line after a signature that closed its parentheses,
-    a constant whose value continues on deeper lines, and a one-line
-    signature exactly as the indentation rule did. **The last line is left
-    out of the span when it holds nothing but closing brackets, `;` and `,`**:
-    a closer carries no claim, and leaving it out keeps the hash of every row
-    the indentation rule bounded right.
-    """
-    lexed = brace_lexed(tuple(lines), family)
-    pairs = {")": "(", "]": "[", "}": "{"}
-    indent = len(lines[i]) - len(lines[i].lstrip())
-    stack = []
-    j = i
-    while j < len(lines):
-        brackets, _closers, error = lexed[j]
-        if error:
-            return None, error
-        for b in brackets:
-            if b in "([{":
-                stack.append((b, j))
-            elif not stack:
-                return None, f"line {j + 1} closes a `{b}` nobody opened"
-            else:
-                opened, at = stack.pop()
-                if pairs[b] != opened:
-                    return None, (
-                        f"line {j + 1} closes the `{opened}` of line {at + 1} with `{b}`"
-                    )
-        if not stack:
-            k = j + 1
-            while k < len(lines) and not lines[k].strip():
-                k += 1
-            if k == len(lines):
-                break
-            nxt = lines[k]
-            deeper = len(nxt) - len(nxt.lstrip()) > indent
-            if not deeper and not nxt.lstrip().startswith("{"):
-                break
-        j += 1
-    else:
-        opened, at = stack[0]
-        return None, f"the `{opened}` of line {at + 1} is never closed"
-    end = j
-    if end > i and lexed[end][1]:
-        end -= 1
-    while end > i and not lines[end].strip():
-        end -= 1
-    return (i + 1, end + 1), None
-
-
-def block_span(lines, i):
-    """`(start, end)` 1-based for the YAML key on LINES[I]: the line and
-    every following line deeper than it — YAML's block structure IS its
-    indentation, so this rule reads the file's own structure — plus a
-    compact sequence, the `- ` items YAML lets a key's value start at the
-    key's own indent (`on:` / `- push`). The indentation rule stopped at the
-    first item and left the key's value out of the hash (#870)."""
-    indent = len(lines[i]) - len(lines[i].lstrip())
-    j = i + 1
-    while j < len(lines):
-        nxt = lines[j]
-        if nxt.strip() and (len(nxt) - len(nxt.lstrip())) <= indent:
-            item = nxt.lstrip()
-            at_own_indent = len(nxt) - len(item) == indent
-            if not (at_own_indent and (item.rstrip() == "-" or item.startswith("- "))):
-                break
-        j += 1
-    while j > i + 1 and not lines[j - 1].strip():
-        j -= 1
-    return i + 1, j
-
-
-def declaration_opener(name):
-    """The one spelling of what may open a declaration of NAME, a regex
-    source (#870, inventory E18): keywords and modifiers, the name, then
-    `(`, `{`, `=` or `:`. `generic_units` asks it for one escaped name and
-    `file_units` for `\\w+`; the two used to spell it each."""
-    return re.compile(
-        r"^(?P<pre>[\w\s*&]*?)\b(?P<name>" + name + r")\s*(?P<delim>[({=]|:)"
-    )
-
-
-def opens_declaration(m):
-    """False for a match of `declaration_opener` that is a use: a colon only
-    declares where nothing precedes the name (`if v not in NAME:`)."""
-    return bool(m) and not (m.group("delim") == ":" and m.group("pre").strip())
-
-
-# Words that BEGIN a statement and can be followed directly by a call —
-# `return render(y);`, `await render(y)`, `if render(x):`. Any of them in the
-# text before the name makes the line a use rather than a declaration —
-# but only where a candidate without one survives, because the same words are
-# declaration modifiers in other languages (`public new void Render(int x)`,
-# `case loading(String)`), and refusing those made real code BROKEN
-# (round 5, 🔴 C). The list may NARROW a set of candidates and may never empty
-# it; a tie it cannot break is broken by the row's own recorded hash in
-# `check_ledger`, which is why being wrong here is no longer expensive.
-STATEMENT_WORDS = frozenset(
-    [
-        "return",
-        "raise",
-        "throw",
-        "yield",
-        "await",
-        "assert",
-        "case",
-        "match",
-        "if",
-        "elif",
-        "while",
-        "with",
-        "switch",
-        "do",
-        "else",
-        "new",
-        "not",
-        "and",
-        "or",
-        "in",
-        "of",
-        "until",
-        "unless",
-        "when",
-    ]
-)
-
-
-def generic_units(lines, name, rule, family=None):
-    """[(start, end)] for `name`'s declaration block, without any parser.
-
-    The `ast` path exists for `.py` only, and a project adopting this skill is
-    mostly code that is not Python. Falling back to text anchors there would
-    hand those projects the brittle version of this design, so the major level
-    has a rule that needs no parser and no dependency.
-
-    A declaration is the name followed by `(`, `{`, `:` or `=`
-    (`declaration_opener`). Where the unit ENDS is RULE's, which the caller
-    takes from `bounding_rule` and this never infers (#870): "brace" is the
-    bracket walk over FAMILY's lexed text (`brace_span`), a GUESS over an
-    allow-listed language family that refuses what it cannot balance or lex;
-    "block" is YAML's own block structure, OBSERVED (`block_span`). The
-    indentation rule they replace ended a brace-language unit at the first
-    line a formatter put back at the declaration's indent, which for a
-    Prettier signature was its `): number {` line, with the body outside the
-    hash (#848).
-
-    `=` is in that list because a module-level constant is a unit too, and a
-    common one to cite — this plugin's own ledger cites three. Without it every
-    constant in every adopting project falls to a literal text anchor, which is
-    the brittle form this rule exists to avoid. A multi-line value comes along,
-    since its continuation lines are indented past the name.
-
-    It is coarser than a parser and that is the trade. Where it cannot find a
-    unit the answer is BROKEN and a person looks; where it finds one it cannot
-    bound, the answer is a refusal naming why, and never a span.
-    """
-    out = []
-    # What may sit before the name on a declaration line: keywords and
-    # modifiers, nothing else. `x = f(` is already blocked because `=` cannot
-    # appear in `pre`; `if v not in NAME:` is why the colon is stricter still.
-    # Statement keywords are blocked by name: `return render(y);` is the
-    # commonest shape in every brace language, and reading it as a second
-    # declaration made a one-declaration-one-call file BROKEN-ambiguous
-    # (round 4, 🔴 1). The list names the USES because declaration modifiers
-    # (`export`, `static`, `async`, `def`, ...) are unbounded across
-    # languages, and a wrong entry here fails loud — a declaration whose
-    # modifier matched would report BROKEN — never silent.
-    blocked = []
-    opener = declaration_opener(re.escape(name))
-    for i, line in enumerate(lines):
-        m = opener.match(line)
-        if not opens_declaration(m):
-            continue  # no match, or `if v not in NAME:`, a use
-        pre, delim = m.group("pre"), m.group("delim")
-        if not pre.strip() and delim == "(" and line.rstrip().endswith(";"):
-            # `render(1);` — nothing before the name, so no keyword blocks it,
-            # and the line TERMINATES, so it opens no block. That is a call
-            # statement in every brace language (round 5, 🔴 C). Structural
-            # rather than a vocabulary guess, which is why this one may empty
-            # the set where the keyword list may not: a declaration with
-            # nothing before its name does not end at a semicolon.
-            continue
-        if rule == "brace":
-            span, why = brace_span(lines, i, family)
-        else:
-            span, why = block_span(lines, i), None
-        pre_words = pre.replace("*", " ").replace("&", " ").split()
-        # Nothing before the name, an opening paren, and a span of ONE line is
-        # a call in every language — Swift, Kotlin and Go end no statement
-        # with a semicolon, so the structural guard above never
-        # reached them and `render(y)` left behind by a move read as the unit
-        # (round 7, 🔴 L). Marked rather than dropped, because a one-line
-        # declaration has the same shape and the recorded hash tells them
-        # apart. The span is what bounds this: `function f(x) {` opens a block
-        # and stays a declaration the rule is sure of.
-        bare_one_liner = (
-            not pre.strip() and delim == "(" and span is not None and span[0] == span[1]
-        )
-        target = (
-            blocked
-            if (STATEMENT_WORDS.intersection(pre_words) or bare_one_liner)
-            else out
-        )
-        target.append(
-            span if span is not None else (None, f"declared on line {i + 1}: {why}")
-        )
-    # A keyword-prefixed candidate is dropped only where another survives, and
-    # the caller is told when that resurrection is the only reason there is an
-    # answer at all. Round 6's 🔴 J: those candidates include pure call
-    # statements, not only the C#/Swift declarations the resurrection was
-    # written for, so a consumer that cannot tell them apart must be able to
-    # ask.
-    chosen, resurrected = (out, False) if out else (blocked, bool(blocked))
-    refused = [why for start, why in chosen if start is None]
-    if refused:
-        # One candidate the walk cannot bound refuses the answer: a span
-        # beside it would be a choice among places nobody bounded.
-        return Resolution(
-            [],
-            False,
-            f"the bracket walk cannot bound `{name}` ({refused[0]}); "
-            "anchor a quoted line instead",
-        )
-    return Resolution(chosen, resurrected)
 
 
 def name_statements(text, region, name):
@@ -1490,10 +971,10 @@ def file_units(rel, body):
     """[(spelling, (start, end), unsure)] — every unit in one file, resolvable
     ones only, each saying whether the declaration rule is sure of it.
 
-    Bounded by `bounding_rule`'s rule for REL, whose input class each unit
-    carries: OBSERVED (`ast`, YAML), OWNED (markdown headings) or a GUESS that
-    refuses (the bracket walk). A file no rule bounds yields no units, so the
-    rename scan and `--migrate` name nothing there (#870).
+    Bounded by `bounding_rule`'s rule for REL: OBSERVED for `ast`, OWNED for
+    markdown headings. A file no rule bounds yields no units, so the rename
+    scan names no destination there and `--migrate` names the quoted-line
+    remedy instead (#870).
 
     The flag exists for `--migrate`, which writes an anchor: a place the rule
     is unsure of is not one to anchor a row onto without other evidence. The
@@ -1525,21 +1006,6 @@ def file_units(rel, body):
             name = '"' + line.strip().replace("|", "\\|").replace('"', '\\"') + '"'
             seen.setdefault(name, []).append((i + 1, j))
         units = [(n, p[0], False) for n, p in seen.items() if len(p) == 1]
-    elif rule in ("brace", "block"):
-        # `generic_units`' own opener, asked for any name (#870): a second
-        # spelling here could list a name the rule then cannot find. Which
-        # match declares is `generic_units`' judgment, so it is not made here.
-        opener = declaration_opener(r"\w+")
-        names = set()
-        for line in lines:
-            m = opener.match(line)
-            if m:
-                names.add(m.group("name"))
-        family = brace_family(rel)
-        for name in sorted(names):
-            found, resurrected = generic_units(lines, name, rule, family)
-            if len(found) == 1:
-                units.append((name, found[0], resurrected))
     return units
 
 
@@ -3434,6 +2900,14 @@ def migrate(ledgers, root, maps=None, default_repo=None):
                 body = read(os.path.join(repo, rel))
                 if body is None:
                     left.append((m.group(0), "file not found"))
+                    failed = True
+                    continue
+                rule = bounding_rule(rel)
+                if rule is None or (rule == "ast" and py_spans(body) is None):
+                    # No unit here is bounded, so none can contain the range;
+                    # the reason a person reads is the refusal, which names
+                    # the anchor to write instead (#870, round 1's ⬜ 5).
+                    left.append((m.group(0), unbounded(rel, rule, body)))
                     failed = True
                     continue
                 lines = gfm_lines(body)
