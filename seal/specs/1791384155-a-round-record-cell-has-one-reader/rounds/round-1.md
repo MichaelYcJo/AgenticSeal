@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 890 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `b10835ff3b06f2b0418fba4e38dfb4c7d6940347..092808fe7017db9f0fac8f3f0c3633e3aeafbaed`, 2 commits |
 | Contract changes | none |
 | New units | UNSEEN_SAYS (depth 1); event_payload_present (depth 1); DEFERRED_HEAD_RE (depth 1); test_a_pull_request_nobody_observed_is_unknown_not_ready (depth 1); test_a_run_that_cannot_see_a_pull_request_is_not_judged_as_a_ready_one (depth 1); generate_under (depth 1); test_with_no_pull_request_to_see_new_does_not_fail_the_record_it_wrote (depth 1) |
