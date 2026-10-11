@@ -64,9 +64,9 @@ and through pytest itself.
 left to the reader. A repository that writes the condition as a keyword
 cannot name that test in a row at all.
 
-## 🟡 2 — a mark is missed where `unit_kinds` finds the test and `never_fails` does not
+## 🟡 2 — a mark is missed where `unit_kinds` finds the test and `never_fails` does not · NAME NOT IN TREE
 
-`never_fails` looks the test up among the direct children of the module
+`never_fails` looks the test up among the direct children of the module · NAME NOT IN TREE
 and class bodies (`evidence_check.py:2413`). `unit_kinds`, which
 `collected` and `named_unit` read, also walks into `if`, `try` and `with`
 bodies at the same qualified name. So a test defined under a module-level
@@ -86,7 +86,7 @@ nothing. These shapes are rare. They are inside that promise, though,
 and each one is an `OK` for a claim nothing holds, which is round 1's
 🟡 2 again in a spelling it did not name.
 
-The fix belongs in the lookup and not in a list of shapes. `never_fails`
+The fix belongs in the lookup and not in a list of shapes. `never_fails` · NAME NOT IN TREE
 should find the node by the same walk `unit_kinds` uses, so the two
 readers cannot disagree about where a test is.
 
@@ -176,7 +176,7 @@ the suite.
 
 - `unconditional` reads an `xfail`'s condition only positionally, until
   🟡 1 is closed.
-- `never_fails` and `unit_kinds` find a test by two different walks,
+- `never_fails` and `unit_kinds` find a test by two different walks, · NAME NOT IN TREE
   until 🟡 2 is closed.
 
 ## Verdicts
@@ -184,7 +184,7 @@ the suite.
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
 | 🟡 1 | An `xfail` given its condition as `condition=`, or made `strict=True`, reads as one that cannot fail: `MALFORMED`, `--strict` exit 2, on a test pytest runs and fails | `skills/evidence-check/scripts/evidence_check.py:2387` | open | executed, marks probe: three spellings `MALFORMED`, each run and failed by pytest; docs line 251 leaves a conditional `xfail` to the reader |
-| 🟡 2 | `never_fails` finds the test only among direct children, while `unit_kinds` walks into `if`/`try`/`with`; a skip on a test under a module `if`, and a `pytestmark` extended by `+=`, read `OK` | `skills/evidence-check/scripts/evidence_check.py:2413` | open | executed, marks probe: both `OK`, both skipped by pytest; inside the promise at docs line 249 |
+| 🟡 2 | `never_fails` finds the test only among direct children, while `unit_kinds` walks into `if`/`try`/`with`; a skip on a test under a module `if`, and a `pytestmark` extended by `+=`, read `OK` | `skills/evidence-check/scripts/evidence_check.py:2413` | open | executed, marks probe: both `OK`, both skipped by pytest; inside the promise at docs line 249 · NAME NOT IN TREE |
 | ⬜ 3 | The docs say an `OK` test "can fail" and that the suite answers whether pytest collects it; the checker reads neither, and nothing answers the second | `docs/the-evidence-ledger.md:256` | open | read; the behaviour is right and the sentence over-promises; the second half is the orchestrator's directed wording |
 | 🟢 | round 1's blocking finding 1 is closed — a released test row re-pointed by a `Corrected ·` row reads clean, and in-place `--reverify` no longer names it | `skills/evidence-check/scripts/evidence_check.py:1692` | confirmed | executed: its two cases red before c40b625e and green at the head; supersede probe: a live row outside the family is still read, a re-read-only family still `BROKEN` |
 | 🟢 | round 1's finding 2 is closed for every shape it named — non-test file, conftest, class with `__init__`, unconditional skip and xfail on the test, class or module | `skills/evidence-check/scripts/evidence_check.py:2343` | confirmed | executed: 22 parametrised cases red before c40b625e and green at the head; marks probe over ten spellings |
@@ -409,7 +409,7 @@ Files opened in this round, in the clone at `d5642a07` unless named:
 `seal/ledger/` (grep only); in `evidence_check.py`: `ANCHOR_RE`,
 `PACT_ANCHOR_RE`, `OLD_COORD_RE`, `check_ledger`, `ledger_table_rows`,
 `grounds_cells`, `malformed_rows`, `node_tokens`, `unit_kinds`,
-`named_unit`, `collected`, `unconditional`, `never_fails`, `node_finding`,
+`named_unit`, `collected`, `unconditional`, `never_fails`, `node_finding`, · NAME NOT IN TREE
 `held_by_tests`, `cell_index`, `family_view`, `left_alone`, the
 `reverify` loop, `place`; `tests/test_a_ledger_row_is_held_by_its_test.py`
 lines 1-140; `bin/test`; `.github/scripts/run_tests.py` (its venv lines);

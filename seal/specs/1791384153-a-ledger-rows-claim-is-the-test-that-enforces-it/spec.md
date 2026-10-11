@@ -243,7 +243,7 @@ spelling); *xfailed* or *xpassed in the recorded suite* where they say so (an
 `xfail` mark, conditional or not, leaves the suite green whatever the code
 does, and a non-strict `xpass` is that mark on a test that happened to
 pass); *failed* or *error in the recorded suite* where they say so, which the
-suite arm already fails. In every case the remedy is the one `NOT_A_TEST`
+suite arm already fails. In every case the remedy is the one `NOT_A_TEST` · NAME NOT IN TREE
 gives today: name a test that holds the claim, or write `path#anchor@hash`
 where none does. The categories are pytest's own words, asked of
 `pytest_report_teststatus` by the recorder the way pytest's terminal reporter
@@ -284,7 +284,7 @@ test*. In `tests/test_a_ledger_row_is_held_by_its_test.py`:
 `test_a_test_the_suite_does_not_collect_holds_nothing`, · NAME NOT IN TREE
 `test_a_test_that_cannot_fail_holds_nothing`, · NAME NOT IN TREE
 `test_a_conditional_mark_is_left_to_the_reader`, the `NEVER` constant, the · NAME NOT IN TREE
-name-prefix cases of `test_a_unit_pytest_does_not_collect_is_no_test` (a
+name-prefix cases of `test_a_unit_pytest_does_not_collect_is_no_test` (a · NAME NOT IN TREE
 `def` not named `test…` and a class not named `Test…` now resolve; its
 constant case stays, as BROKEN), and the pins of every sentence D7's rewrite
 removes. Round 2's paste-ready `level`, `LEVEL_NODES` and the `unconditional` · NAME NOT IN TREE

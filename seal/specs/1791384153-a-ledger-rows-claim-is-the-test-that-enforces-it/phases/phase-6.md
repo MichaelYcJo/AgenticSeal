@@ -32,8 +32,8 @@ words the missing-unit detail already uses.
 holds the six shapes the old reader refused — a `def` not named `test…`, a
 class not named `Test…`, a method of such a class, a function in
 `tests/helpers.py`, one in `tests/conftest.py`, a method of a class with an
-`__init__` — each OK with no record. `test_a_unit_pytest_does_not_collect_is_no_test`
-keeps its name for this phase and holds the constant alone, as BROKEN; its
+`__init__` — each OK with no record. The case named
+test_a_unit_pytest_does_not_collect_is_no_test keeps its name for this phase and holds the constant alone, as BROKEN; its
 name and the documents that cite it are phase 9's, so that the documents
 change in one range, as `plan.md` §*The reframe's order* asks.
 

@@ -56,7 +56,7 @@ list in `spec.md` §*The seam* names `malformed_rows`, `malformed_remedy`,
 and `held_by_tests`. `malformed_remedy` is not changed: it is the remedy for
 a coordinate that does not parse, which is plainly a coordinate attempt, and
 the two forms are named instead in the *cites no coordinate* remedy and in
-the new `MIXED_ROW` and `NOT_A_TEST` sentences. Phase 5 reads the drift of
+the new `MIXED_ROW` and NOT_A_TEST sentences. Phase 5 reads the drift of
 `reverify`'s rows on top of the frame's list.
 
 **No new function is named `test…`.** The frame's text calls the reader of
