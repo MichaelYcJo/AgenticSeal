@@ -296,7 +296,7 @@ def test_the_survivor_sweep_reads_a_refused_anchor_as_not_resolving():
 # --- S8: one suffix table, three answers -----------------------------------
 
 
-def test_the_four_dispatches_read_one_table_of_three_answers():
+def test_the_four_dispatches_read_one_table():
     """S8. Four units tested the suffix on their own (inventory E16), so a
     language added in one was missing in three. The table answers "ast",
     "heading" or None and nothing else."""
@@ -489,7 +489,7 @@ def test_the_policy_paragraph_names_the_cases_that_enforce_it():
     assert len(enforced) == 1, paragraph
 
 
-def test_the_changelog_fragment_has_no_release_heading():
+def test_the_changelog_fragment_tells_an_installer_what_to_run():
     """S12's shape: the fragment is gathered into the release's notes, so it
     holds no `## ` line."""
     text = open(FRAGMENT, encoding="utf-8").read()

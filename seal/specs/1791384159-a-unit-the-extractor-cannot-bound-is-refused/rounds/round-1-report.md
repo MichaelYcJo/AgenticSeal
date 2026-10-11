@@ -87,7 +87,7 @@ resolves `on` to 1–2, so `pull_request` is outside the hash. Commented-out
 steps at a key's indent are common in workflow files. The same stop already
 cut a key's deeper value at a column-0 comment under the old rule, and the
 fix covers both. Executed in the clone: 1–4, and
-`test_this_repositorys_bare_yaml_rows_keep_their_spans` stays green. Only a
+`test_this_repositorys_bare_yaml_rows_keep_their_spans` · NAME NOT IN TREE stays green. Only a
 comment no deeper than the key is skipped, so a deeper trailing comment keeps
 its place in the span and no existing row's hash moves.
 

@@ -13,7 +13,7 @@ literals; the forms per language from Q1), memoised per text; the depth walk
 with the Allman clause and the deeper-continuation clause; the closer-only
 last line left out; imbalance and an unterminated literal refused; the
 day-one list; `file_units` on `generic_units`'s opener; the shell-shaped
-fixture of `test_a_multi_line_declaration_with_a_bare_name_is_still_sure`
+fixture of `test_a_multi_line_declaration_with_a_bare_name_is_still_sure` · NAME NOT IN TREE
 re-fixtured in a brace language; #848's reproduction as a case. Cases S1,
 S2, S3, S4, S9 red, then green.
 
@@ -68,4 +68,4 @@ survived mutation, because `generic_units` re-judged every name it listed.
 | The indentation loop in `generic_units` for brace languages | `brace_span`; YAML's half is `block_span`, unchanged until phase 3 |
 | The opener's second spelling in `file_units` (inventory E18) | `declaration_opener`, asked for `\w+` there and for one escaped name in `generic_units`; S9's case |
 | The colon test's copy in `file_units` | `opens_declaration`, called by `generic_units` |
-| The shell fixture of `test_a_multi_line_declaration_with_a_bare_name_is_still_sure` | a TypeScript class method, the same property |
+| The shell fixture of `test_a_multi_line_declaration_with_a_bare_name_is_still_sure` · NAME NOT IN TREE | a TypeScript class method, the same property |
