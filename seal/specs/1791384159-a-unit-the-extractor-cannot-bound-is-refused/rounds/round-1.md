@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 889 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `32ab429d2e6637d801e59c950f065d8b6522ef53..32ab429d2e6637d801e59c950f065d8b6522ef53`, 0 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (the walk ignores the lexer's string and comment state, reproducing #848 through a regex), 🟡 2 (a comment ends a YAML key's compact items), 🟡 3 (the installer paragraph and policy sentence promise unchanged verdicts that change) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,12 +25,12 @@ Round 1 of the build at 8ca2b57a, against fb86a834, the release branch the build
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | The walk ends or starts a unit from brackets alone and ignores the lexer's string and comment state: a declaration inside a phantom comment (a regex holding `/*` or a backtick) is bounded by indentation, which reproduces #848, and a multi-line string with column-0 content ends its constant on the first line | `skills/evidence-check/scripts/evidence_check.py:1137` | open | executed: #848's function after `/^\/*/` resolves 3–4 of 3–7; Go, JS and Java string constants resolve to their first line; the fix in the clone refuses the first and bounds the second, 262 passed |
-| 🟡 2 | A comment at a YAML key's indent ends the key, so compact items after it are outside the hash | `skills/evidence-check/scripts/evidence_check.py:1194` | open | executed: `on` with a comment between items resolves 1–2 of 1–4; the fix gives 1–4 and keeps this repository's bare YAML spans |
-| 🟡 3 | The installer paragraph and the policy sentence promise every other row keeps its verdict, while unlexed forms (JSX apostrophe, regex quote or bracket), a call-shaped candidate, `.pyi` decorators and YAML compact items change it | `seal/specs/1791384159-a-unit-the-extractor-cannot-bound-is-refused/changelog.md:36` | open | executed old against new for each instance; the false sentence is pinned in the changelog case |
-| ⬜ 4 | A refused call-shaped candidate is described as "declared on line N" | `skills/evidence-check/scripts/evidence_check.py:1348` | open | read; the refusal of a bounded `render` names the call's line as a declaration |
-| ⬜ 5 | `--migrate` leaves a row in a suffix no rule bounds with "no single unit contains", naming no remedy | `skills/evidence-check/scripts/evidence_check.py:3476` | open | read |
-| ⬜ 6 | `.mts`, `.cts`, `.cxx`, `.hh`, `.hxx` and upper-case suffixes are refused although the changelog names their languages | `skills/evidence-check/scripts/evidence_check.py:686` | open | read; `spec.md` fixed the list, so the owner answers |
+| 🟡 1 | The walk ends or starts a unit from brackets alone and ignores the lexer's string and comment state: a declaration inside a phantom comment (a regex holding `/*` or a backtick) is bounded by indentation, which reproduces #848, and a multi-line string with column-0 content ends its constant on the first line | `skills/evidence-check/scripts/evidence_check.py:1137` | deferred the frame | the frame — the owner reframed the item on 2026-10-12 against 0.21.0's theme: a nine-family lexer is a guessing reader; the redesign forces a format instead (`chore/834-…` handoff §*Review of the run*); executed: #848's function after `/^\/*/` resolves 3–4 of 3–7; Go, JS and Java string constants resolve to their first line; the fix in the clone refuses the first and bounds the second, 262 passed |
+| 🟡 2 | A comment at a YAML key's indent ends the key, so compact items after it are outside the hash | `skills/evidence-check/scripts/evidence_check.py:1194` | deferred the frame | the frame — the owner reframed the item on 2026-10-12 against 0.21.0's theme: a nine-family lexer is a guessing reader; the redesign forces a format instead (`chore/834-…` handoff §*Review of the run*); executed: `on` with a comment between items resolves 1–2 of 1–4; the fix gives 1–4 and keeps this repository's bare YAML spans |
+| 🟡 3 | The installer paragraph and the policy sentence promise every other row keeps its verdict, while unlexed forms (JSX apostrophe, regex quote or bracket), a call-shaped candidate, `.pyi` decorators and YAML compact items change it | `seal/specs/1791384159-a-unit-the-extractor-cannot-bound-is-refused/changelog.md:36` | deferred the frame | the frame — the owner reframed the item on 2026-10-12 against 0.21.0's theme: a nine-family lexer is a guessing reader; the redesign forces a format instead (`chore/834-…` handoff §*Review of the run*); executed old against new for each instance; the false sentence is pinned in the changelog case |
+| ⬜ 4 | A refused call-shaped candidate is described as "declared on line N" | `skills/evidence-check/scripts/evidence_check.py:1348` | deferred the frame | the frame — the owner reframed the item on 2026-10-12 against 0.21.0's theme: a nine-family lexer is a guessing reader; the redesign forces a format instead (`chore/834-…` handoff §*Review of the run*); read; the refusal of a bounded `render` names the call's line as a declaration |
+| ⬜ 5 | `--migrate` leaves a row in a suffix no rule bounds with "no single unit contains", naming no remedy | `skills/evidence-check/scripts/evidence_check.py:3476` | deferred the frame | the frame — the owner reframed the item on 2026-10-12 against 0.21.0's theme: a nine-family lexer is a guessing reader; the redesign forces a format instead (`chore/834-…` handoff §*Review of the run*); read |
+| ⬜ 6 | `.mts`, `.cts`, `.cxx`, `.hh`, `.hxx` and upper-case suffixes are refused although the changelog names their languages | `skills/evidence-check/scripts/evidence_check.py:686` | deferred the frame | the frame — the owner reframed the item on 2026-10-12 against 0.21.0's theme: a nine-family lexer is a guessing reader; the redesign forces a format instead (`chore/834-…` handoff §*Review of the run*); read; `spec.md` fixed the list, so the owner answers |
 | ❓ | Old and new checker `--strict` over this tree byte-identical (Q2) | `seal/specs/1791384159-a-unit-the-extractor-cannot-bound-is-refused/questions.md` | ❓ out of verified scope | not re-run in this round; the CI `ledger` job reads `pass`; the sealer answers it through `broad-gate` |
 
 ## Paste-ready fixes
