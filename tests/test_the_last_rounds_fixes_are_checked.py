@@ -165,10 +165,11 @@ def record(sha, checked_by, verdict="fixed", finding="🟢 1", passed=True):
     )
 
 
-def run(repo, draft=None):
+def run(repo, draft=None, gh="ready"):
     # No payload means a ready pull request here, and the `gh` the check then
-    # asks (#866) says so (round 1's 🟡 2).
-    env = gh_answers(dict(os.environ), "ready")
+    # asks (#866) says so (round 1's 🟡 2); `gh="unknown"` is a pull request
+    # nobody observed (round 2's 🟡 2).
+    env = gh_answers(dict(os.environ), gh)
     env.pop("GITHUB_EVENT_PATH", None)
     env.pop("GITHUB_HEAD_REF", None)
     if draft is not None:
@@ -821,13 +822,21 @@ def test_pass_beside_nobody_prints_on_a_draft_and_names_what_re_arms_it(repo):
         item=STRICT_ITEM,
         round1=lambda sha: record(sha, "nobody — the run ended here"),
     )
-    code, out = run(repo, draft=True)
-    assert code == 0, out
-    assert "spawn one verifying round at the diff of these fixes" in out, out
-    assert (
-        "Pressing *Ready for review* fires `ready_for_review`, re-runs this "
-        "check, and fails the pull request if the cell still says `nobody`"
-    ) in out, out
+    # A draft, and a pull request nobody observed (#866 round 2's 🟡 2): the
+    # notice is worded for both.
+    for kwargs in ({"draft": True}, {"gh": "unknown"}):
+        code, out = run(repo, **kwargs)
+        assert code == 0, (kwargs, out)
+        assert "spawn one verifying round at the diff of these fixes" in out, out
+        assert (
+            "the state a pull request not marked ready, or none seen, is in "
+            "between `close` ticking `Pass`"
+        ) in out, out
+        assert "It prints because neither is a request to merge" in out, out
+        assert (
+            "Pressing *Ready for review* fires `ready_for_review`, re-runs this "
+            "check, and fails the pull request if the cell still says `nobody`"
+        ) in out, out
 
 
 def test_pass_beside_nobody_still_fails_a_ready_pull_request(repo):

@@ -2718,10 +2718,11 @@ def checked_by(reader, routing, root, rel, siblings, last=False, strict=True):
                     rel,
                     0,
                     f"`Pass` is checked beside `{CHECKED_BY}: {cell.strip()}` "
-                    "on the last record — the state a draft is in between "
-                    "`close` ticking `Pass` and the verifying round's record "
-                    "committing. It prints because a draft is not a request "
-                    "to merge. It is still owed: spawn one verifying round at "
+                    "on the last record — the state a pull request not marked "
+                    "ready, or none seen, is in between `close` ticking "
+                    "`Pass` and the verifying round's record committing. It "
+                    "prints because neither is a request to merge. It is "
+                    "still owed: spawn one verifying round at "
                     "the diff of these fixes, and this cell names it. "
                     "Pressing *Ready for review* fires `ready_for_review`, "
                     "re-runs this check, and fails the pull request if the "
@@ -5092,9 +5093,10 @@ def carried_notes(reader, root, records, strict=True):
                     (
                         rel,
                         line,
-                        f"{said}. It prints because a draft is not a request "
-                        "to merge; pressing *Ready for review* re-runs this "
-                        "check and fails the pull request if it is still open",
+                        f"{said}. It prints because a pull request not marked "
+                        "ready, or none seen, is not a request to merge; "
+                        "pressing *Ready for review* re-runs this check and "
+                        "fails the pull request if it is still open",
                     )
                 )
     return errors, notices
@@ -5953,7 +5955,8 @@ def main(argv=None):
                         0,
                         f"declares `{routing.CHAIN}` and "
                         f"{item}/{routing.ROUNDS_DIR}/ holds no `round-N.md` "
-                        "— which is the state a draft pull request opens in: "
+                        "— which is the state a pull request not marked "
+                        "ready, or none seen, opens in: "
                         "the rounds run against it, so the record cannot "
                         "exist yet. It is still owed, and pressing *Ready "
                         "for review* fires `ready_for_review`, re-runs this "

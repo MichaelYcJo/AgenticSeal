@@ -310,6 +310,11 @@ def test_a_pull_request_nobody_observed_is_unknown_not_ready(repo):
     ), head
     assert "holds no `round-N.md`" in out, out
     assert "judged as a ready pull request (" not in out, out
+    # The notice says why it prints in words true of an unseen state as of
+    # a draft (round 2's 🟡 2).
+    assert (
+        "which is the state a pull request not marked ready, or none seen, opens in"
+    ) in out, out
 
 
 @pytest.mark.parametrize("kwargs", UNKNOWN_SHAPES, ids=UNKNOWN_IDS)

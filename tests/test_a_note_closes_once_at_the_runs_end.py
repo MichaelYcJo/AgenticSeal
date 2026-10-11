@@ -239,8 +239,9 @@ def declared_at(repo, item):
 
 def run_main(repo, draft):
     # No payload means a ready pull request here, and the `gh` the check then
-    # asks (#866) says so (round 1's 🟡 2).
-    env = gh_answers(dict(os.environ), "ready")
+    # asks (#866) says so (round 1's 🟡 2). `draft=None` is a pull request
+    # nobody observed: no payload, and a `gh` that finds none (round 2's 🟡 2).
+    env = gh_answers(dict(os.environ), "unknown" if draft is None else "ready")
     env.pop("GITHUB_HEAD_REF", None)
     env.pop("GITHUB_EVENT_PATH", None)
     # The annotation form, so a line says whether it is an error or a notice;
@@ -261,12 +262,16 @@ def run_main(repo, draft):
     return r.returncode, r.stdout + r.stderr
 
 
-@pytest.mark.parametrize("draft", [False, True], ids=["ready", "draft"])
+@pytest.mark.parametrize(
+    "draft", [False, True, None], ids=["ready", "draft", "none seen"]
+)
 def test_chain_check_reports_an_open_note_once_per_work_item(scratch, draft):
     """The arms run from `main`, once per work item, after the per-record
     walk: an error line at a ready pull request and a notice line on a
-    draft, each naming the record that holds the note. Seen red with the
-    call removed from `main`: no line carried the note."""
+    draft or where no pull request was seen, each naming the record that
+    holds the note, and the notice says why it prints in words true of both
+    (#866 round 2's 🟡 2). Seen red with the call removed from `main`: no
+    line carried the note."""
     head = declared_at(scratch, AT_THE_CUTOFF)
     committed(
         scratch,
@@ -277,10 +282,15 @@ def test_chain_check_reports_an_open_note_once_per_work_item(scratch, draft):
         },
     )
     _code, out = run_main(scratch, draft)
-    level = "notice" if draft else "error"
+    level = "error" if draft is False else "notice"
     lines = [ln for ln in out.splitlines() if f"{NOTE} 3 is still open" in ln]
     assert len(lines) == 1, out
     assert lines[0].startswith(f"::{level} ") and "round-1.md" in lines[0], lines
+    if level == "notice":
+        assert (
+            "It prints because a pull request not marked ready, or none seen, "
+            "is not a request to merge"
+        ) in lines[0], lines
 
 
 # --- `notes`: the run's notes, closed once at its end ---------------------------
