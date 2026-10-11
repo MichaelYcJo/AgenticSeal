@@ -8,90 +8,134 @@ Approved 2026-10-08 by the repository owner, when `smith` was spawned.
 
 ## Summary
 
-Replace one guess with a table of rules that each refuse what they do not
-recognise. Brace languages are bounded by a bracket walk that ends at balance
-and refuses imbalance; YAML keeps its indentation rule, stated as YAML's own
-structure, with the compact sequence added; Python is `ast` or a refusal, never
-the text rule; every other suffix refuses a bare symbol and names the
-quoted-line anchor as the way. The closing line of a brace unit stays out of
-the span, so a row the old rule bounded right keeps its hash and the only
-`DRIFTED` an installer meets on upgrade is a body the old span left out.
+Bound a unit only where a real parser decides its extent — Python's own `ast`
+for `.py` and `.pyi`, CommonMark's heading rule for `.md` — and everywhere
+else require the format the checker already has: a quoted line, whose region
+is the paragraph it sits in. The bracket walk and its nine-family lexer, the
+YAML block rule, the declaration opener, the statement words and the
+resurrection flag leave the tree, and every sentence that described them goes
+with them. #848 is answered by the row quoting a line of the function, which
+hashes the whole function where no blank line divides it, and says on the
+row what it covers where one does. This repository's own fourteen bare YAML
+rows are brought to the format in this branch, and an installer's bare
+symbols outside the two parsers read `BROKEN` once with the remedy on the
+line.
+
+The first plan (phases 1–4) replaced the indentation rule with the walk. The
+owner's review of 2026-10-12 judged the walk a new guessing reader against
+0.21.0's theme (`spec.md` §*Why this work item was reframed*), and this plan
+replaces phases 2–3's deliverables while keeping phase 1's table and refusal
+and phase 4's records as the base the redesign edits.
 
 ## Technical context
 
-All coordinates at 5623d728 (0.20.0 as shipped), re-read in the worktree.
+All coordinates at 64e7b0a6 (this branch's head after round 1 closed), read
+2026-10-12.
 
-- `skills/evidence-check/scripts/evidence_check.py#resolve_unit` (L614–674):
-  the quoted arm, the `.py` arm with the `SyntaxError` fall-through at L657–666
-  ("The fallback survives only for the file ast cannot read at all"), and the
-  default `return generic_units(lines, locator)`.
-- `#generic_units` + `STATEMENT_WORDS` (L677–790): the opener regex at L743
-  `^(?P<pre>[\w\s*&]*?)\b<name>\s*(?P<delim>[({=]|:)`, the indentation loop
-  at L759–765, the `bare_one_liner` and resurrection logic after it. The loop
-  is the only part that changes; everything from `pre_words` down is kept.
-- `#py_spans`/`#parsed_spans` (L442–514): `None` for a `SyntaxError`, memoised
-  per text with `functools.cache`; the memo shape the lexed stream copies.
-- `#minor_region` (L869), `#file_units` (L912, the opener copy at L943),
-  `#content_matches` (L1000, `markdown = rel.endswith(".md")`): the other three
-  suffix dispatches.
-- `#judge` (L1669–1831): `places, resurrected = resolve_unit(...)` at L1739;
-  the `locator not found` branch at L1778–1810 is where the refusal's line
-  goes, before the rename scan, because a refused unit is not a moved one.
-- `.github/scripts/rider_check.py#region_lines` (L470–500): unpacks the
-  two-tuple, answers "the anchor resolves to nothing in this file".
-- `skills/code-review/scripts/survivor_check.py` `resolves` (L1262–1264):
-  `bool(loaded.resolve_unit(*anchor, text)[0])`.
-- `hooks/evidence-advisor.py` (L112): imports the checker by path at every
-  commit, so an installer's plugin update changes the reading at once.
-- `skills/evidence-check/SKILL.md` §*Resolving a unit without a parser*
-  (L87–136), §*What the region is* (L403–422), §*Known limits* (L680–755,
-  the closing-brace bullet at L746–748).
-- Tests that pin the old bound: `tests/test_a_row_points_by_content.py`
-  `test_the_major_unit_resolves_without_a_parser` (L482, docstring states the
-  indentation rule), `test_a_bare_mention…` (L643, "stops AT the closing
-  brace"), `test_a_multi_line_declaration_with_a_bare_name_is_still_sure`
-  (L2942, a shell-function fixture reached through `generic_units` directly).
-- Probe executed 2026-10-07 on Python 3.13.5, deleted after: the spans in
-  `spec.md` §*Scope*'s first paragraph and S7's three repository coordinates.
+- `skills/evidence-check/scripts/evidence_check.py#text_regions` (L590–631):
+  the quoted-line region, the contiguous run of non-blank lines, whitespace
+  normalised on match. Unchanged by this work; the format it already is.
+- `#AST_SUFFIXES`, `#HEADING_SUFFIXES`, `#BLOCK_SUFFIXES`, `#BRACE_FAMILY`,
+  `#BRACE_SUFFIXES` (L680–706); `#bounding_rule` (L709–732), four answers
+  today; `#unbounded` (L735–759), the refusal sentences; `#Resolution`
+  (L762–784), the pair plus `refused`; `#resolve_unit` (L803–874), the
+  `"brace"`/`"block"` arm at L872; `#brace_family` (L877).
+- The lexer, walk and block rule, L879–1214: `StringForm` and the forms
+  (L879–917), `_literal_at` (L927), `brace_lexed` (L1016), `brace_span`
+  (L1137), `block_span` (L1194). `declaration_opener` (L1216),
+  `opens_declaration` (L1226), `STATEMENT_WORDS` (L1241), `generic_units`
+  (L1271–1367). All of it leaves.
+- The resurrection's consumers: `file_units`' third field (L1490–1542,
+  `rule in ("brace", "block")` at L1529); `judge`'s
+  `resurrected or len(places) > 1` branch and the `unsure` detail
+  (L2336–2385); `migrate`'s `unsure and not proved` branch (L3468–3490);
+  `reverify_into` at L4912; `.github/scripts/rider_check.py#region_lines`
+  (L505–510) and the module docstring's paragraph (L88). `resolve` (L787)
+  returns `resolve_unit(...)[0]`.
+- `#minor_region` (L1446), `#content_matches` (L1590): read `bounding_rule`;
+  unchanged except that the rename scan finds no units outside the two rules.
+- `skills/evidence-check/SKILL.md`: §*A coordinate names content* (L19–45,
+  the Major row's "otherwise the declaration rule below"), §*Resolving a unit
+  without a parser* (L87–167), §*Verdicts and what to do* (L295–312, the
+  `BROKEN` row), §*What the region is* (L434–453), §*Known limits*
+  (L722–806: the unsure-place bullet, the eighteen-suffix bullet, the upgrade
+  bullet), §*Migrating a pre-anchor ledger* (L808–840).
+- `docs/the-evidence-ledger.md` §*What the checker refuses, and what it says
+  while refusing*, the paragraph this work item wrote (L268–291) with its
+  `Enforced by:` line.
+- The tests: `tests/test_a_unit_the_extractor_cannot_bound_is_refused.py`
+  (698 lines; the refusal cases L82–266 stay, the walk, lexer and YAML cases
+  L295–647 go, the document cases L649–698 are rewritten);
+  `tests/test_a_row_points_by_content.py` (26 mentions of the text rule);
+  `tests/test_a_released_row_is_read_again_in_a_fragment.py` (21, around
+  L3343–3420 and L3862–3946, `.go` and `.cs` fixtures the rule was unsure of);
+  `tests/test_a_signer_records_a_pact_change.py` (13, L2242–2320);
+  `tests/test_the_fixes_name_their_surface.py` (one comment, L1037).
+- This repository's rows, measured 2026-10-12 (`spec.md` *In* 8): 14 bare
+  YAML rows, 7 in `seal/ledger/1791384162-the-macos-test-leg-runs-in-shards.md`
+  and 7 released; `.github/workflows/test.yml` `pytest:` at L32 with no blank
+  line to L145 and `ledger:` at L163 to L181; `publish-release.yml` `jobs:` at
+  L46, `publish:` L47, blank at L61 and L70, `seal:` L71 to L138. Released
+  rows citing units that leave: `seal/releases/0.4.0.md` L51 and L67; this
+  item's fragment rows U1–U8 and its `Corrected ·` row for 0.4.0 L17; #867's
+  fragment `Re-read ·` rows at L76, L78, L79 citing `resolve_unit`,
+  `generic_units` and `file_units` at their 2026-10-08 hashes.
+- `seal/config.md`: `Ledger frozen from | 1790993141`; no `Record language`
+  row, so the records are English.
 
-**The failure scenario of the chosen approach, in six months.** A string or
-comment form the lexer does not blank in an allow-listed language — a Rust
-`r#"…"#`, a C++ `R"(…)"`, a Swift `"""` — carries a brace that re-balances by
-accident, and the walk ends the unit early or late without a word. The bound
-on it: the list is an allow-list with a case per form, so the next such form
-is one row and one case, never a second reading; and an imbalance that does
-not re-balance is a refusal, which is loud. The second scenario: a formatter
-puts the opening `{` on a line of its own with a deeper indent (GNU style),
-which the "next non-blank line opens with `{`" clause still reads. The third:
-somebody adds a language to the list without its forms, which Q1 is written
-to refuse.
+**The failure scenario of the chosen approach, in six months.** A row quotes
+the signature line of a function whose body has a blank line in it, the body
+below the blank line is rewritten, and the row reads `ok`. The bound on it:
+the row says on its face which paragraph it covers, the skill says a quoted
+line is a paragraph and never a function, and the remedy is one more
+coordinate in the same cell; what the walk did in the same case was read
+`ok` with nothing on the row to say so. The second scenario: a quoted line
+is reworded and the row reads `BROKEN` where a symbol anchor would have read
+`DRIFTED`; the cost is a ledger edit, which is the cost the format trades for
+never guessing an extent. The third: the quoted line comes to occur twice,
+and the recorded hash breaks the tie as it does today; where the row's
+content is in neither or both, `BROKEN` names the places.
 
 ## Alternatives considered
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| **#848's own fix** — a line that is only a closing paren continuing the declaration (`): T {`, `) {`, `] = {`) does not end the block | Allman `{` on its own line is still cut; a multi-line generic `>(` or a `}` of an object-type parameter at the declaration's indent still ends it; every new formatter shape is a new clause. That is the reader-of-more-shapes family #834's table shows did not converge | refused |
-| **A per-language parser** (tree-sitter or one grammar per language) | `evidence-ci` vendors the checker as one stdlib file into a consumer's `tools/`; a parser is a dependency to vendor and a grammar per language to version, and the row that cites the parser's answer is only as stable as that grammar | refused |
-| **Refuse every bare symbol outside `.py` and `.md`** (the narrowest promise) | Honest, and every TypeScript, Go, Java or Kotlin repository that adopted the skill loses symbol anchors entirely and falls to quoted lines, the brittle form the rule exists to avoid; #848's reporter loses the one anchor the issue is about; this repository's seven bare YAML rows go `BROKEN` | refused |
-| **The bracket walk, and include the closing line in the span** | Every brace-language row in every installer's ledger drifts once on upgrade, right ones and wrong ones in one wave, so the installer runs `--reverify` over all of them and the rows that were `ok` over an unread body are re-stamped unread. Leaving the closer out makes every `DRIFTED` in the wave a real one | refused |
-| **Keep the Python `SyntaxError` fall-through** (Python is an indentation language, so the guess is usually right) | A multi-line `def f(` / `    a,` / `):` leaves the body out exactly as #848 does (executed: lines 1–3 of 5), silently, on every interpreter older than the file's syntax | refused |
-| **The bracket walk for an allow-list of brace languages, the block rule for YAML, `ast` or refusal for Python, a refusal elsewhere, closer line left out** | the six-month scenario above | **chosen** |
+| **#848's own fix** — a line that is only a closing paren continuing the declaration does not end the block | Allman `{` on its own line is still cut; every new formatter shape is a new clause. The reader-of-more-shapes family #834's table shows did not converge | refused (first frame) |
+| **The bracket walk over an allow-list of brace languages, with a lexer per family** — phases 2–4 as built | Round 1 found three more shapes inside the nine families: a regex or template that opens a phantom comment puts a declaration back under the indentation rule (#848 again, silent), a column-0 multi-line string ends its constant on line one, and the release note's "every other row keeps its verdict" was false for four kinds. Each is one more clause in a lexer that imitates nine grammars, and the next form it does not know is silent. The owner judged it a guessing reader against 0.21.0's theme | **refused by the owner's review of 2026-10-12**; removed by phase 5 |
+| **Keep YAML's block rule, declared a guess** | Round 1's 🟡 2: a comment at the key's indent ends the key. Block scalars, multi-line flow collections, document markers and aliases are the next shapes, and the standard library has no YAML parser to replace the imitation with | refused; `questions.md` Q5 is where the owner overturns it |
+| **A per-language parser** (tree-sitter, PyYAML, one grammar per language) | `evidence-ci` vendors the checker as one stdlib file into a consumer's `tools/`; a parser is a dependency to vendor and a grammar per language to version | refused |
+| **A two-quote range anchor** `path#"from"…"to"`, so one coordinate covers a unit with blank lines | A new grammar in `ANCHOR_RE`, the one reader #867 just unified, bought for compactness: the cell already holds several coordinates, and nothing has measured how many rows need more than one | refused for now; weigh after a measured count |
+| **`--migrate` writes a quoted-line anchor for a row it leaves** | Which line stands for the claim is the author's choice, and the migrator's proof is the stamp, not the content | refused; it names the remedy and leaves the row |
+| **Keep the resurrection flag with a constant `False`** | A field no code can set is read by `judge`, `--reverify`, `--migrate` and `rider_check.py` as a fact about the place; the branches it guards are unreachable and the sentences they print are promises about a rule that is gone | refused; `questions.md` Q6 |
+| **`ast` for `.py`/`.pyi`, the heading path for `.md`, a quoted line everywhere else, the guessing readers and the flag removed, this repository's rows brought to the format** | the six-month scenarios above | **chosen** |
 
 ## Phases
 
 Vertical slices — each phase ends with something runnable and verified. The
-narrow check for every phase is the slice of
-`tests/test_a_row_points_by_content.py` it touches plus the cases it plants;
-no phase runs the suite, the repository-wide lint or the typecheck
-(agent-contract §2). Each new case is shown red first and the hand-back says
-how (§15).
+narrow check for every phase is the slice of the tests it touches plus the
+cases it plants; no phase runs the suite, the repository-wide lint or the
+typecheck (agent-contract §2). Each new case is shown red first and the
+hand-back says how (§15). Phases 1–4 are closed and keep their commits; the
+redesign starts at phase 5 and edits what they built.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | **The table and the refusal.** `bounding_rule(path)`; the four suffix dispatches read it; `resolve_unit` carries a refusal reason in one reading (Q4) and the three callers unpack it; `.py` that will not parse and a suffix with no rule are `BROKEN` with the reason and the quoted-line remedy on the line; `--reverify` prints and writes nothing. Brace suffixes and YAML still go through today's `generic_units` in this phase. Cases S5, S6, S8, S10 red then green | the cases; the `resolve_unit`/`judge` slice of `tests/test_a_row_points_by_content.py`; `tests/test_a_rider_reaches_its_file.py` | cfcd630d |
-| 2 | **The bracket walk.** The lexer (comments, strings, template literals, char literals; forms per language from Q1) memoised per text; the depth walk with the Allman clause and the deeper-continuation clause; the closer-only last line left out; imbalance and an unterminated literal refused; the day-one list; `file_units` on `generic_units`'s opener; the shell-shaped fixture of `test_a_multi_line_declaration_with_a_bare_name_is_still_sure` re-fixtured in a brace language, keeping the property it pins; #848's reproduction as a case. Cases S1, S2, S3, S4, S9 red then green | the cases; the `generic_units`/`file_units`/`content_matches` slice | 0011e870 |
-| 3 | **YAML as a declared block rule.** `"block"` for `.yml`/`.yaml` with the compact-sequence item at the key's indent; the three repository coordinates in S7 keep their spans; `bin/evidence-check --strict .` on the branch shows no `BROKEN` and no `DRIFTED` that `main` does not show (Q2 measured here). Case S7 red then green | the case; the executed `--strict .` output, quoted in `phases/phase-3.md` | a2bc18ec |
-| 4 | **The documents and the records.** `SKILL.md`'s three sections and the `BROKEN` verdict row; the `docs/the-evidence-ledger.md` paragraph with `Enforced by:`; the docstrings' input class in #835's three words; `changelog.md` with the installer paragraph; `seal/ledger/<work-item-id>.md` rows for the new clauses; the sentences *In* 5 removes are gone. Cases S11, S12 | the hygiene tests the brief names; `tests/test_a_record_states_what_the_tree_has.py`; `tests/test_the_fixes_name_their_surface.py` | 951b0a1d |
+| 1 | **The table and the refusal.** `bounding_rule(path)`; the four suffix dispatches read it; `resolve_unit` carries a refusal reason in one reading and the callers unpack it; `.py` that will not parse and a suffix with no rule are `BROKEN` with the reason and the quoted-line remedy; `--reverify` prints and writes nothing. Cases S5, S6, S7, S8 of the first frame | the cases; the `resolve_unit`/`judge` slice; `tests/test_a_rider_reaches_its_file.py` | cfcd630d |
+| 2 | **The bracket walk.** The lexer per family, the depth walk, the closer-only last line left out, imbalance refused, the day-one list, `file_units` on `generic_units`'s opener. **Superseded: phase 5 removes it** | the cases of the first frame | 0011e870 |
+| 3 | **YAML as a declared block rule.** `"block"` for `.yml`/`.yaml` with the compact sequence. **Superseded: phase 5 removes it, and phase 7 re-anchors the rows it bounded** | the cases of the first frame; `--strict .` byte-identical | a2bc18ec |
+| 4 | **The documents and the records** of the first design. **Superseded: phase 8 rewrites them** | the hygiene tests | 951b0a1d |
+| 5 | **The format, and the guessing reader leaves.** `bounding_rule` answers `"ast"`, `"heading"` or `None`; `resolve_unit`'s `"brace"`/`"block"` arm goes; `unbounded` adds the anchor's shape to the refusal; `--migrate`'s left reason for such a file reads the refusal (S13); `BRACE_FAMILY`, `BRACE_SUFFIXES`, `BLOCK_SUFFIXES`, `brace_family`, the `StringForm` forms, `_literal_at`, `brace_lexed`, `brace_span`, `block_span`, `declaration_opener`, `opens_declaration`, `STATEMENT_WORDS` and `generic_units` are deleted with the cases that pinned them (`tests/test_a_unit_the_extractor_cannot_bound_is_refused.py` L295–647 and the walk cases of `tests/test_a_row_points_by_content.py`); `text_regions`' docstring states the paragraph rule. Cases S1, S2, S3, S4 (the `.rb` half), S8, S9, S13 red then green. The CI `ledger` job is red from this phase to phase 7, which is the known state the frame accepts, because the rows it refuses are repaired there with the reading they are owed | the cases; the `resolve_unit`/`judge`/`migrate` slice of `tests/test_a_row_points_by_content.py`; `tests/test_a_rider_reaches_its_file.py` | |
+| 6 | **Nothing is unsure any more.** `Resolution` takes Q6's shape and every unpacking site reads it in one commit; `judge`'s resurrection branch, `--reverify`'s and `--migrate`'s unsure branches, `file_units`' third field and `rider_check.py#region_lines`' refusal go; the cases of `tests/test_a_released_row_is_read_again_in_a_fragment.py`, `tests/test_a_signer_records_a_pact_change.py` and `tests/test_a_row_points_by_content.py` that reached their property through an unsure `.go`/`.cs` place are judged per Q7, re-fixtured or deleted, each named in `phases/phase-6.md`. Case S7 widened to the word `resurrected` | the cases; the three modules' slices; `bin/mutation-check` over `judge`'s and `migrate`'s changed units | |
+| 7 | **This repository's ledgers are brought to the format.** #864's seven fragment rows re-anchored in place (`test.yml#"pytest:"`); one `Corrected ·` row per released family whose newest member still carries a refused coordinate (0.15.5 S7 → `"ledger:"`; 0.20.0's W3 correction → `"publish:"` and `"seal:"`; 0.20.0 S1 → `"pytest:"`), with the claim unchanged; `Corrected ·` rows with the citation alone for 0.4.0 L51 and L67; this item's own fragment rewritten — U1 narrowed to three answers, U2 to the two refusals, U3 kept, U4–U7 removed, U8 deferred to phase 8, the 0.4.0 L17 `Corrected ·` row restated for the three rules that remain; `--reverify --into` for every released row a changed unit drifted, read first. S4's repository half and S10: `bin/evidence-check --strict .` 0 `BROKEN`, 0 `DRIFTED` against `origin/release/v0.21.0`, quoted in `phases/phase-7.md`; `survivor-check` and `correction-check` over the range | the executed `--strict .` output; `tests/test_a_record_states_what_the_tree_has.py`; `correction-check` | |
+| 8 | **The documents say what the code does.** `SKILL.md`'s six sections, `docs/the-evidence-ledger.md`'s paragraph with `Enforced by:` naming S1 and S3, `rider_check.py`'s docstring, the docstrings of `bounding_rule`, `resolve_unit`, `file_units`; `changelog.md` rewritten with the installer paragraph of `spec.md`; the fragment's U8 row; `overview.md` brought to the redesign. Cases S11, S12 | `tests/test_a_record_states_what_the_tree_has.py`; `tests/test_the_fixes_name_their_surface.py`; the eight guard modules the spawn names | |
+
+**The names this plan and `spec.md` give to what phase 5 deletes stop being
+in the tree when it lands.** The records arm reads every record of an
+unshipped work item (`SKILL.md` §*Verdicts and what to do*, the `NOT-IN-TREE`
+row), so from phase 5 on each line of this directory that names a deleted
+unit — here, in `spec.md` *In* 5, in the round 1 records — is marked
+` · NAME NOT IN TREE` rather than reworded: the frame says what left, and the
+marker says it is known to have left.
 
 This table is also where the work records how far it got. There is no separate
 task list: a list of tasks is mutable progress, and a stale one asserts a state
@@ -126,41 +170,53 @@ commit in it for a rebase to orphan.
 ## Seams with the sibling frames
 
 - **#867** (`seal/config.md` rows, the coordinate grammar, markdown headings
-  — `evidence_check.py#heading_level`, `#ANCHOR_RE`, `#frozen_from`). This
-  item does not touch those units. Shared units: `file_units`'s `.md` arm
-  calls `heading_level`, and `resolve_unit`'s quoted arm calls
-  `heading_path`; if #867 moves either, the arm follows the move, and the
-  suffix table here is the one place the `.md` dispatch lives after phase 1.
-  Whichever lands second rebases; no cell of the table is #867's.
-- **#836** (a row's claim is the test that enforces it). The row grammar,
-  `ANCHOR_RE` and `Verdict` are unchanged here; what #836 may change is what
-  a row's evidence is. The seam is `judge`'s `BROKEN` detail text: if #836
-  gives a row a test node id beside its code anchor, the anchor's bound is
-  still this item's, and a refusal still reads `BROKEN` on that anchor.
-- **#835** (a reader declares its input class). The table in `spec.md` *In*
-  1 is written in #835's three words so its registry can read it; this item
-  does not write the registry.
-- Nothing shared with #866, #869, #868, #860, #858, #864, #837.
+  — `evidence_check.py#heading_level`, `#markdown_lines`, `#ANCHOR_RE`). Landed;
+  the `.md` arm of `resolve_unit` and `file_units` calls them and this work
+  does not touch them. #867's fragment carries `Re-read ·` rows for 0.4.0's
+  L17, L51 and L67 at the 2026-10-08 hashes of `resolve_unit`,
+  `generic_units` and `file_units`; phase 7's `Corrected ·` rows supersede
+  those families, and `--reverify --into` names what is owed.
+- **#864** (the macOS shards). Landed; its fragment holds seven of the bare
+  YAML rows, re-anchored in place by phase 7 as a fragment row is.
+- **#836** (a row's claim is the test that enforces it; being reframed). The
+  row grammar, `ANCHOR_RE` and `Verdict` are unchanged here. The seam is
+  `judge`'s `BROKEN` detail text; a refusal still reads `BROKEN` on the
+  anchor whatever #836 puts beside it.
+- **#835** (a reader declares its input class). The table in `spec.md` *In* 1
+  is written in #835's three words; this item does not write the registry.
+- **#888** (the opener's shapes). Moot once phase 5 lands; the caller may
+  close it.
+- Nothing shared with #866, #868, #869, #860, #858, #837.
 
 ## What this removes
 
-The indentation bound for brace languages; the opener's second spelling at
-`file_units`; the `SyntaxError` fall-through and its comment; three of four
-suffix dispatches; the three sentences `spec.md` *In* 5 names. What it adds is
-one lexer and one walk, both behind an allow-list that refuses what it does
-not name, and one table.
+The bracket walk and its nine-family lexer, the YAML block rule, the
+declaration opener, the statement words and the one-line-call guard, the
+resurrection flag with every branch it guarded in `judge`, `--reverify`,
+`--migrate`, `file_units` and `rider_check.py`, the cases that pinned each,
+and every sentence in `SKILL.md`, `docs/the-evidence-ledger.md` and the
+docstrings that described a rule bounding a unit without that language's
+parser. What it adds is one sentence in `unbounded`, one in `text_regions`'
+docstring, one in `--migrate`'s left reason, and the cases that pin them.
+Measured 2026-10-12: the code that leaves is about 490 lines of
+`evidence_check.py` (L879–1367) plus the consumer branches, against roughly a
+dozen lines added.
 
 ## Operational impact
 
 - **Every installer**, at the next plugin update (the commit hook) and at the
-  next `/specseal:evidence-ci` re-run (the CI copy): rows citing a
-  brace-language unit whose body the old span left out read `DRIFTED` once;
-  rows citing a bare symbol in a suffix with no rule, or in a `.py` the
-  interpreter cannot parse, read `BROKEN` with the remedy; everything else
-  keeps its hash. The changelog fragment says so and says what to run. Under
-  a freeze a released `BROKEN` row takes the `Corrected ·` repair the policy
-  already names.
-- **This repository**: no row changes verdict (Q2 measures it in phase 3).
+  next `/specseal:evidence-ci` re-run (the CI copy): every row citing a bare
+  symbol in a file that is not `.py`, `.pyi` or `.md` reads `BROKEN` with the
+  refusal and the anchor's shape on its line, rows the old rule bounded right
+  included; the repair is one quoted line per row and `--reverify`, or under a
+  freeze the `Corrected ·` row `--reverify` names. A decorated `.pyi` stub
+  reads `DRIFTED` once. Every `.py` and `.md` row keeps its hash and its
+  verdict. The changelog fragment says so and says what to run.
+- **This repository**: 14 rows change verdict and are repaired in phase 7;
+  the released rows that described the text rule take `Corrected ·` rows;
+  `--strict .` is clean again at phase 7's close (Q2).
+- **The draft pull request's CI `ledger` job** is red between phase 5 and
+  phase 7. The broad gate runs once, after the rounds settle.
 - No new dependency, no new env var, no migration, no change to
   `templates/evidence-check.yml` or to the vendored-copy test.
 - The release carrying this is 0.21.0, already a minor.
