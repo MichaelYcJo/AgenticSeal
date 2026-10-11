@@ -966,11 +966,11 @@ Enforced by: skills/code-review/scripts/chain_check.py::section_end, tests/test_
 <!-- specs/1789621028-nothing-reads-a-record-against-the-tree -->
 **A record is read against the tree, not only against itself.** The
 `Fix range` row states a range and a commit count, and the check compares
-both against what the repository actually holds — the job `evidence-check`
-already does for the ledger over content anchors, and the records were left
-out of. In the same class: `close` does not prefix a `Grounds` cell it has
-already prefixed, for any of the three verdict words, because all three reach
-the same line and all three join rather than overwrite.
+both against what the repository holds. In the same class: `close` does not
+prefix a `Grounds` cell it has already prefixed, for any of the three verdict
+words, and the check counts `close`'s prefixes only at the head of the cell
+(`chain_check.close_prefixes`). A field row or a `Pass` box written twice
+fails at the pull request, as `close` and `seal` refuse it (#866).
 Enforced by: tests/test_chain_check_at_the_pull_request.py::test_a_fix_range_the_tree_contradicts_is_named
 
 <!-- specs/1789455558-the-record-chain-disagrees-with-itself-in-five-places -->

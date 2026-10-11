@@ -3088,6 +3088,98 @@ def test_a_second_close_prefix_naming_another_commit_is_still_two(repo):
     assert "64f36ee" in out and "1575d77" in out, out
 
 
+@pytest.mark.parametrize(
+    "grounds, doubled",
+    [
+        # #866 S11: prose quoting an earlier close is prose, not a close.
+        (
+            "fixed at 1575d77; the reviewer wrote: fixed at 64f36ee held in round 1",
+            False,
+        ),
+        ("the reviewer wrote: fixed at 1575d77 held in round 1", False),
+        # A prefix after the reviewer's grounds began is the reviewer's.
+        ("fixed at 1575d77; executed; fixed at 64f36ee was a guess", False),
+        # The writer's own shape, a re-close joined in front: still two.
+        ("fixed at 64f36ee; fixed at 1575d77 — note; executed", True),
+        ("fixed at 64f36ee — widened; fixed at 1575d77; executed", True),
+    ],
+)
+def test_a_doubled_close_is_read_at_the_head_of_the_cell(repo, grounds, doubled):
+    """#866 S11. `close_prefixes` reads the `fixed at <hex>` segments at the
+    head of the Grounds cell, where `close` writes them joined by `; `, and
+    stops at the first segment that is not one; the whole-cell search counted
+    a reviewer's sentence quoting an earlier close. Red against it."""
+    write(repo, f"{ITEM}/routing.md", declaration())
+    sha = commit(repo, "declare")
+    write(
+        repo,
+        f"{ROUNDS}/round-1.md",
+        record(sha, passed=True, verdict="fixed", grounds=grounds),
+    )
+    commit(repo, "round 1")
+    code, out = run(repo)
+    assert (DOUBLED_SENTENCE in out) is doubled, out
+    assert code == (1 if doubled else 0), out
+
+
+def test_close_prefixes_is_the_writers_shape():
+    """#866: the commits come back in the order `close` joined them."""
+    check = load_by_path(CHECK, "specseal_chain_check_for_prefixes")
+    assert check.close_prefixes("fixed at 64f36ee — n; fixed at `1575d77`; x") == [
+        "64f36ee",
+        "1575d77",
+    ]
+    assert check.close_prefixes("answered; fixed at 1575d77") == []
+    assert check.close_prefixes("") == []
+
+
+def test_a_label_read_twice_answers_nothing_and_a_second_box_is_no_box():
+    """#866 S12's reader half: `field` answers None for a label it holds
+    twice and `pass_checked` None for two boxes, where both took the first;
+    `fields` and `pass_boxes` say how many there are."""
+    check = load_by_path(CHECK, "specseal_chain_check_for_counts")
+    rows = [["Needs a fix", "no"], ["Needs a fix", "yes — x"], ["Ran by", "a on b"]]
+    assert check.fields(rows, "Needs a fix") == ["no", "yes — x"]
+    assert check.field(rows, "Needs a fix") is None
+    assert check.field(rows, "Ran by") == "a on b"
+    assert check.field(rows, "PR") is None
+    lines = ["- [x] Pass", "text", "- [ ] Pass"]
+    assert check.pass_boxes(lines) == [(0, True), (2, False)]
+    assert check.pass_checked(lines) is None
+    assert check.pass_checked(lines[:2]) is True
+
+
+@pytest.mark.parametrize(
+    "extra_row, boxes, said",
+    [
+        (
+            "| Fixes checked by | nobody — the run ended here |\n",
+            1,
+            "`| Fixes checked by |` 2 times",
+        ),
+        ("", 2, "2 `Pass` boxes"),
+    ],
+    ids=["a row twice", "two boxes"],
+)
+def test_a_duplicated_row_or_box_fails_the_record(repo, extra_row, boxes, said):
+    """#866 S12. `field` took the first `| label |` row and `pass_checked`
+    the first box, silently, while the generator refused anything but one.
+    At the pull request a record carrying either twice now fails, naming the
+    label or the box and the count; one of each is unchanged (the cases
+    above). Red against first-wins."""
+    write(repo, f"{ITEM}/routing.md", declaration())
+    sha = commit(repo, "declare")
+    text = record(sha, passed=True, verdict="answered")
+    text = text.replace("| Fixes checked by |", extra_row + "| Fixes checked by |", 1)
+    if boxes == 2:
+        text = text.replace("- [x] Pass\n", "- [x] Pass\n- [x] Pass\n", 1)
+    write(repo, f"{ROUNDS}/round-1.md", text)
+    commit(repo, "round 1")
+    code, out = run(repo, draft=False)
+    assert code == 1, out
+    assert said in out, out
+
+
 def test_the_records_in_this_repository_carry_no_doubled_grounds():
     """This repository's own records at exit 0, which is a DISCLOSURE.
 

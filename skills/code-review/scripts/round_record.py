@@ -4625,8 +4625,10 @@ def close(args):
         # of the record is still half-repaired.
         #
         # Nothing has reached disk when this raises: `write_record` runs after
-        # this loop, so `raw`'s earlier rows are in memory only.
-        if old and (old.startswith(grounds) or chain.CLOSE_PREFIX_RE.match(old)):
+        # this loop, so `raw`'s earlier rows are in memory only. The second
+        # arm is `chain.close_prefixes`, the reader the check's
+        # `doubled_grounds` counts with (#866).
+        if old and (old.startswith(grounds) or chain.close_prefixes(old)):
             raise Refused(
                 f"finding {number}'s `Grounds` cell already carries a close "
                 f"prefix -- {old[:60]!r} -- so this row was closed once "
@@ -4705,7 +4707,7 @@ def close(args):
     checker, _surface = landing_values(
         [w for n, w in zip(rows, words, strict=True) if n not in notes_open]
     )
-    boxes = [i for i, ln in enumerate(lines) if chain.PASS_RE.match(ln)]
+    boxes = [i for i, _checked in chain.pass_boxes(lines)]
     if len(boxes) != 1:
         raise Refused(f"the record has {len(boxes)} `Pass` boxes and needs one")
     raw[boxes[0]] = f"- [{' ' if still_open else 'x'}] Pass"
@@ -5046,7 +5048,7 @@ def notes(args):
                 grounds = value + (f" {DASH} {note}" if note else "")
             # `close`'s guard, for `close`'s reason: a cell already carrying
             # these grounds, or a close-prefix, was closed once already.
-            if old and (old.startswith(grounds) or chain.CLOSE_PREFIX_RE.match(old)):
+            if old and (old.startswith(grounds) or chain.close_prefixes(old)):
                 raise Refused(
                     f"round-{k}'s {chain.NOTE} {n} has a `Grounds` cell that "
                     f"already carries a closing -- {old[:60]!r} -- so this row "
@@ -5067,7 +5069,7 @@ def notes(args):
             )
             for i, _c in keyed.values()
         ]
-        boxes = [i for i, ln in enumerate(lines) if chain.PASS_RE.match(ln)]
+        boxes = [i for i, _checked in chain.pass_boxes(lines)]
         if len(boxes) != 1:
             raise Refused(
                 f"round-{k}.md has {len(boxes)} `Pass` boxes and needs one; no "
@@ -5393,7 +5395,7 @@ def seal(args):
         raw, lines = reader.gfm_lines(text), reader.readable(text)
         rows = chain.table_rows(reader, lines)
 
-    boxes = [m for ln in lines for m in [chain.PASS_RE.match(ln)] if m]
+    boxes = chain.pass_boxes(lines)
     if n is not None and len(boxes) != 1:
         raise Refused(
             f"round-{n}.md has {len(boxes)} `Pass` boxes and needs one; no cell "
@@ -5420,7 +5422,7 @@ def seal(args):
                 f"it: `{NOTES_COMMAND}`. {chain.NOTES_OWNER}; no cell was "
                 "written"
             )
-    if n is not None and boxes[0].group(1) == " ":
+    if n is not None and not boxes[0][1]:
         raise Refused(
             f"round-{n}.md's `Pass` is unchecked — a finding in its verdict "
             "table is still open, and the broad gate seals a review that has "
@@ -5507,19 +5509,18 @@ def seal(args):
             "sealer's mark names a commit this repository holds — the tree "
             "the run was taken over; no cell was written"
         )
-    for sha in chain.SHA_RE.findall(chain.field(rows, chain.TARGET) or ""):
-        reviewed = chain.resolves_to(root, sha)
-        if reviewed is None or reviewed == ran_at:
-            continue
-        if chain.is_ancestor(root, ran_at, reviewed):
-            raise Refused(
-                f"--broad-gate names `{named[0]}`, and round-{n}.md's "
-                f"`{chain.TARGET}` names `{sha}`, which descends from it. The "
-                "run was spent BEFORE the round it is meant to seal — "
-                "everything that round reviewed after that commit went "
-                "through no broad gate (`CLAUDE.md` §*Verification Scope*). "
-                "Run it again at the tree as it stands; no cell was written"
-            )
+    # The comparison the check's `broad_gate` arm makes, through the same
+    # function (#866): a premature run is refused here before it is written.
+    shape, sha = chain.gate_before_review(root, ran_at, chain.field(rows, chain.TARGET))
+    if shape == chain.PREMATURE:
+        raise Refused(
+            f"--broad-gate names `{named[0]}`, and round-{n}.md's "
+            f"`{chain.TARGET}` names `{sha}`, which descends from it. The "
+            "run was spent BEFORE the round it is meant to seal — "
+            "everything that round reviewed after that commit went "
+            "through no broad gate (`CLAUDE.md` §*Verification Scope*). "
+            "Run it again at the tree as it stands; no cell was written"
+        )
 
     # ONE ENTRY PER RUN, NEWEST FIRST (#174). A run the cell already holds is
     # kept behind the new one as `earlier run`, because a second broad run --

@@ -1375,12 +1375,28 @@ def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
     return ("draft" if draft else "ready"), "`gh pr view --json isDraft`"
 
 
+def fields(rows, label):
+    """The value of every `| label | value |` row, in the order they stand
+    (#866). One reader of how many times a record carries a label, for
+    `field` here and for the duplicate refusal (`doubled_fields`)."""
+    return [
+        cells[1].strip()
+        for cells in rows
+        if len(cells) >= 2 and cells[0].strip() == label
+    ]
+
+
 def field(rows, label):
-    """The value of a `| label | value |` row, or None."""
-    for cells in rows:
-        if len(cells) >= 2 and cells[0].strip() == label:
-            return cells[1].strip()
-    return None
+    """The value of the one `| label | value |` row, or None — where the row
+    is absent, and where it stands more than once (#866).
+
+    It used to take the first row and say nothing about a second, while the
+    generator refused anything but one (`round_record.py#field_index`). The
+    strict reading wins at both ends: a doubled label answers nothing here,
+    and `doubled_fields` names it as an error, so every arm that reads the
+    cell sees one answer and the record is told why."""
+    found = fields(rows, label)
+    return found[0] if len(found) == 1 else None
 
 
 _heading_reader = None
@@ -2271,6 +2287,34 @@ def fix_range(reader, root, rel):
     return [], []
 
 
+# What joins one close's grounds to the next, as `round_record.py close`
+# writes a re-close in front of the cell it already holds.
+CLOSE_JOIN = "; "
+
+
+def close_prefixes(cell):
+    """The commits of the `fixed at <hex>` segments at the head of a Grounds
+    CELL, in the order `close` joined them (#866).
+
+    `close` writes `fixed at <sha>[ — <note>]` and joins it in front of what
+    the cell held with `CLOSE_JOIN`, so its prefixes are the leading
+    segments that each begin `CLOSE_PREFIX_RE`; the first segment that does
+    not ends them, and prose after it is prose. `doubled_grounds` used to
+    search the whole cell, so a reviewer's grounds quoting *fixed at abc1234
+    in round 1* counted as a close. One reader for that refusal (two or
+    more) and for `close`'s own guard against a re-close (one or more).
+    A note holding `CLOSE_JOIN` ends the run early, so such a cell can read
+    as fewer closes than it holds — the permissive side, stated.
+    """
+    found = []
+    for segment in cell.split(CLOSE_JOIN):
+        head = CLOSE_PREFIX_RE.match(segment.strip())
+        if head is None:
+            break
+        found.append(head.group(1))
+    return found
+
+
 def doubled_grounds(reader, root, rel):
     """(errors, notices) — a `Grounds` cell carrying `close`'s prefix twice.
 
@@ -2327,7 +2371,7 @@ def doubled_grounds(reader, root, rel):
     for line_no, seen in rows:
         if len(seen) <= grounds:
             continue
-        found = CLOSE_PREFIX_RE.findall(seen[grounds])
+        found = close_prefixes(seen[grounds])
         if len(found) < 2:
             continue
         what = seen[0].strip() or f"the row at line {line_no}"
@@ -2469,18 +2513,33 @@ def item_began(rel):
     return item_began_at("/".join(parts[:-2]))
 
 
+def pass_boxes(lines):
+    """[(index, checked)] for every `Pass` box in LINES, in order (#866).
+
+    One reader of the box for `pass_checked`, `check_round`'s duplicate
+    refusal and the generator's `close`, `notes` and `seal`, which refuse a
+    record with anything but one box."""
+    return [
+        (i, m.group(1).lower() == "x")
+        for i, line in enumerate(lines)
+        for m in [PASS_RE.match(line)]
+        if m
+    ]
+
+
 def pass_checked(lines):
-    """True, False, or None when the record carries no `Pass` checkbox.
+    """True, False, or None when the record carries no `Pass` checkbox, or
+    more than one.
 
     One reader, not two. `check_round` asks whether the box is checked and so
     does the refusal for `Pass` beside `nobody`; a second scan of the same
-    lines is how two readers of one record start disagreeing about it.
+    lines is how two readers of one record start disagreeing about it. A
+    second box used to be ignored here — the first one won — while the
+    generator refused it; it answers None now, and `check_round` names the
+    count (#866).
     """
-    for line in lines:
-        m = PASS_RE.match(line)
-        if m:
-            return m.group(1).lower() == "x"
-    return None
+    boxes = pass_boxes(lines)
+    return boxes[0][1] if len(boxes) == 1 else None
 
 
 def nobody_reason(value):
@@ -4343,6 +4402,37 @@ DIRECT_GATE_EXCUSED = (
     f"instead — the cell had no home to be written to, so failing them would "
     "be red on history nobody can fix"
 )
+PREMATURE, DIVERGENT = "premature", "divergent"
+
+
+def gate_before_review(root, ran_at, target):
+    """(`premature` | `divergent` | None, the `Target SHA` word it is about)
+    for a broad-gate run at commit RAN_AT against a record's TARGET cell
+    (#866).
+
+    `premature`: a reviewed commit descends from the run, so the run was
+    spent before the round it seals. `divergent`: a reviewed commit is
+    neither the run's commit, an ancestor of it nor a descendant — a line
+    that makes no claim either way. None: every reviewed commit this
+    repository can see is the run's commit or an ancestor of it. Equal is
+    not premature, and a commit the repository cannot see is passed over.
+    Premature wins over divergent wherever a cell names both. One function
+    for this check's `broad_gate` arm (premature fails, divergent prints)
+    and `round_record.py seal` (premature refused), which walked the same
+    ancestry in two loops."""
+    divergent = None
+    for sha in SHA_RE.findall(target or ""):
+        reviewed = resolves_to(root, sha)
+        if reviewed is None or reviewed == ran_at:
+            continue
+        if is_ancestor(root, reviewed, ran_at):
+            continue
+        if is_ancestor(root, ran_at, reviewed):
+            return PREMATURE, sha
+        divergent = sha
+    return (DIVERGENT, divergent) if divergent else (None, None)
+
+
 # The one parameter of this check a caller passes to say WHO it is (#866).
 # The broad gate's chain arm runs before `round_record.py seal` writes the
 # `Broad gate` cell it would judge, so that cell honestly reads `not yet` at
@@ -4531,41 +4621,34 @@ def broad_gate(
             # gets. `spec.md`'s three shapes are `not yet`, premature, and at
             # or after; a commit on a line the branch never descended from is
             # none of them, and it makes no claim about this round either way.
-            divergent = None
-            for sha in SHA_RE.findall(field(rows, TARGET) or ""):
-                reviewed = resolves_to(root, sha)
-                if reviewed is None or reviewed == ran_at:
-                    continue
-                if is_ancestor(root, reviewed, ran_at):
-                    continue
-                if is_ancestor(root, ran_at, reviewed):
-                    message = (
-                        f"`{BROAD_GATE}` names `{named[0]}`, and this "
-                        f"round's `{TARGET}` names `{sha}`, which descends "
-                        "from it. The full-suite run was spent BEFORE the "
-                        "round it was meant to seal, so everything the round "
-                        "reviewed after that commit — its own fixes included "
-                        "— went through no broad gate at all. A broad run "
-                        "with an edit after it was spent, not banked. Spawn "
-                        "the `sealer` again now that the rounds have settled: "
-                        "`broad-gate --base <base> --record <item>` re-takes "
-                        "the run at the tree as it stands and writes the new "
-                        "SHA into this cell"
-                    )
-                    break
-                divergent = sha
-            else:
-                if divergent is None:
-                    return [], []
+            # The comparison is `gate_before_review`'s, which `seal` asks too.
+            shape, sha = gate_before_review(root, ran_at, field(rows, TARGET))
+            if shape == PREMATURE:
+                message = (
+                    f"`{BROAD_GATE}` names `{named[0]}`, and this "
+                    f"round's `{TARGET}` names `{sha}`, which descends "
+                    "from it. The full-suite run was spent BEFORE the "
+                    "round it was meant to seal, so everything the round "
+                    "reviewed after that commit — its own fixes included "
+                    "— went through no broad gate at all. A broad run "
+                    "with an edit after it was spent, not banked. Spawn "
+                    "the `sealer` again now that the rounds have settled: "
+                    "`broad-gate --base <base> --record <item>` re-takes "
+                    "the run at the tree as it stands and writes the new "
+                    "SHA into this cell"
+                )
+            elif shape == DIVERGENT:
                 fatal = False
                 message = (
                     f"`{BROAD_GATE}` names `{named[0]}`, and this round's "
-                    f"`{TARGET}` names `{divergent}` — the gate commit is "
+                    f"`{TARGET}` names `{sha}` — the gate commit is "
                     "neither that commit nor a descendant of it, so it sits "
                     "on a different line of history and makes no claim about "
                     "this round. Reported rather than failed: a divergent "
                     "commit is not evidence either way"
                 )
+            else:
+                return [], []
 
     if message is None:
         return [], []
@@ -5374,6 +5457,58 @@ def direct_seal(reader, routing, root, item, rel, strict):
     return [(rel, 0, message)], []
 
 
+# The labels of a round record's field table that this check reads (#866):
+# a record carrying one of them twice answers nothing for it (`field`), and
+# `doubled_fields` says so.
+FIELD_LABELS = (
+    TARGET,
+    PR_FIELD,
+    CHECKED_BY,
+    FIX_RANGE,
+    CONTRACT,
+    NEW_UNITS,
+    FIX_OF_A_FIX,
+    NEEDS,
+    FLOOR,
+    RAN_BY,
+    BROAD_GATE,
+    WRITTEN_LATE,
+)
+
+
+def doubled_fields(reader, root, rel):
+    """(errors, notices) for a record that carries a field's row more than
+    once (#866).
+
+    `field` took the first row and said nothing about the second, while the
+    generator refused anything but one; the strict reading wins at both ends.
+    The row the check reads answers None, so every arm reading it reports it
+    absent — this names the real cause, with the count, on every record.
+    No cutoff: a doubled row is present and malformed, which is the author's
+    to repair whenever the record was written (`fix_surface` draws the same
+    line), and no committed record carried one when this landed.
+    """
+    text = read_record(root, rel)
+    if text is None:
+        return [], []
+    rows = table_rows(reader, reader.readable(text))
+    errors = []
+    for label in FIELD_LABELS:
+        count = len(fields(rows, label))
+        if count > 1:
+            errors.append(
+                (
+                    rel,
+                    0,
+                    f"the record carries `| {label} |` {count} times — a row "
+                    "read twice answers nothing, so every arm that reads it "
+                    "takes it as absent. Keep the one the round wrote and "
+                    "delete the others",
+                )
+            )
+    return errors, []
+
+
 def check_round(reader, root, rel, strict=True, refs=None):
     """(errors,) for one round record — the reachability and the Pass claim.
 
@@ -5436,6 +5571,20 @@ def check_round(reader, root, rel, strict=True, refs=None):
             )
 
     checked = pass_checked(lines)
+    boxes = len(pass_boxes(lines))
+    if boxes > 1:
+        # #866: the first box used to win silently while the generator
+        # refused a second; the strict reading wins at both ends.
+        errors.append(
+            (
+                rel,
+                0,
+                f"the record carries {boxes} `Pass` boxes — which one says "
+                "whether the round passed is not something a reader can "
+                "tell. Keep the one the round wrote and delete the others",
+            )
+        )
+        return errors
     if checked is None:
         errors.append(
             (
@@ -5912,6 +6061,11 @@ def main(argv=None):
             double_errors, double_notices = doubled_grounds(reader, root, record)
             errors.extend(double_errors)
             notices.extend(double_notices)
+            # EVERY record too, and with no cutoff for the same reason: a
+            # field row written twice is present and malformed (#866).
+            row_errors, row_notices = doubled_fields(reader, root, record)
+            errors.extend(row_errors)
+            notices.extend(row_notices)
             # EVERY record too, and for the reason the other four are: WHEN a
             # record was written is a fact about that round. The last one is
             # the least likely to be late, since nothing follows it to
