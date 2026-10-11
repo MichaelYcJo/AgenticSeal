@@ -476,14 +476,13 @@ os.environ["GH_ENTERPRISE_TOKEN"] = NOT_A_GH_TOKEN
 
 # `chain_check.py` asks `gh pr view --json isDraft` where no event payload
 # exists (#866), and every run of it the generator and the broad gate make in
-# this suite is such a run. Logged out, a live `gh` cannot answer, so each
-# would be judged as READY -- where `round_record.py` used to hand the check a
-# DRAFT payload for every run `gh` could not answer. The suite's pull request
-# is a draft instead, the state a review round runs in: a stub named `gh`,
-# first on PATH from import, answers that one question and passes every other
-# call to the `gh` that was on PATH, so `gh auth token` and the `PR` cell's
-# question reach it as they did. A case about another answer puts its own
-# stub first (`gh_answers`).
+# this suite is such a run. A stub named `gh`, first on PATH from import,
+# answers that one question and passes every other call to the `gh` that was
+# on PATH, so `gh auth token` and the `PR` cell's question reach it as they
+# did. Its default is the answer a branch with no pull request gets — exit 1,
+# which the check reads as UNKNOWN and does not judge as a ready pull request
+# (round 1's 🟡 2 of #866). A case that means a draft or a ready pull request
+# says so (`gh_answers`).
 # A child that imports this file again -- an xdist worker, a probe that runs
 # it -- inherits a PATH that already holds a parent's stubs, so the real `gh`
 # is looked for past every one of them.
@@ -557,7 +556,7 @@ def gh_answers(env, state):
     return {**env, "PATH": os.pathsep.join([GH_STUB_DIRS[state], *parts])}
 
 
-os.environ["PATH"] = gh_answers(dict(os.environ), "draft")["PATH"]
+os.environ["PATH"] = gh_answers(dict(os.environ), "unknown")["PATH"]
 
 
 # The worktree guard reads the routing answer out of the session's transcript

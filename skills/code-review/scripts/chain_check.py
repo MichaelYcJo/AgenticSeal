@@ -1276,19 +1276,25 @@ def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
     in here, and the payload writers left.
 
     `unknown` is a payload that cannot answer, or no payload and no `gh` that
-    can, and it is judged as a READY pull request. That direction is the
-    whole decision:
+    can, and the two are judged differently (`main`, round 1's 🟡 1 of #866):
 
-      judged as draft   `no pull-request context` becomes the quietest way
-                        past this check that exists, quieter than
-                        `[no-review]`, which at least stays in the command
-      judged as ready   a local mid-round run exits 1, which is the true
-                        answer -- the rounds have not finished
+      a payload that   judged as a READY pull request. A payload exists
+      cannot answer    where GitHub ran the workflow, so one that will not
+                       parse or names no boolean draft is a harness fault,
+                       and reading it as a draft would make that fault the
+                       quietest way past this check
+      no payload, and  read as UNKNOWN and not judged as a ready pull
+      no `gh` answer   request. Nobody observed a pull request: before the
+                       draft opens, on a route that stops before one, with
+                       no `gh`. Judging that as ready was a guess, and it
+                       failed a correct mid-run record on every round. The
+                       reader that decides is CI, which always has
+                       GitHub's payload
 
-    A `--draft` flag was considered for the local case and rejected for the
-    first reason: an override anyone can type is the same hole with a name.
-    What the unknown state must not do is pass in SILENCE, so the verdict
-    below prints which state was assumed and why, naming every source tried.
+    A `--draft` flag was considered for the local case and rejected: an
+    override anyone can type is the same hole with a name. What the unknown
+    state must not do is pass in SILENCE, so the line above the verdict
+    prints which state was read and every source tried.
 
     `which` and `run` are parameters so a case can stand in for `gh`; ROOT
     None asks nothing, for a caller with no repository to ask about.
@@ -1325,6 +1331,18 @@ def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
 GH_DRAFT = ["gh", "pr", "view", "--json", "isDraft"]
 GH_TIMEOUT = 30
 NO_PAYLOAD = "no pull-request event payload"
+# The state line for a pull request nobody observed (round 1's 🟡 1 of #866).
+UNSEEN_SAYS = (
+    "the pull request's state is unknown, and it is not judged as a ready "
+    "pull request; CI judges it from GitHub's payload"
+)
+
+
+def event_payload_present():
+    """True where `GITHUB_EVENT_PATH` names a file: the run GitHub started,
+    whose payload is the answer whatever it says (`pull_request_state`)."""
+    path = os.environ.get("GITHUB_EVENT_PATH")
+    return bool(path) and os.path.exists(path)
 
 
 def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
@@ -1886,6 +1904,10 @@ HOME_END = f" {DASH} "
 HOME_MARKS = re.compile(r"`|\*+|(?<!\w)_+|_+(?!\w)")
 # A home that names an issue and nothing else.
 ISSUE_RE = re.compile(r"#(\d+)")
+# The verdict word at the head of a deferral cell as written: any marker or
+# emphasis before it and emphasis after it, so the note behind the home can
+# be cut from the cell as written and keep its marks (round 1's 🟡 4).
+DEFERRED_HEAD_RE = re.compile(r"^\W*?[*_`]*" + DEFERRED + r"[*_`]*", re.IGNORECASE)
 
 
 def deferred_parts(cell):
@@ -1903,11 +1925,12 @@ def deferred_parts(cell):
       the word    matched by `verdict_of`, and only a cell it calls
                   `deferred` has a home -- a bare `deferred`, or the word and
                   a separator, is `deferred (no home)` and answers None
-      the home    what follows the word and its `SEPARATORS`, after
-                  `HOME_MARKS` and a trailing stop come off, up to the first
-                  `HOME_END` or the end of the cell, in the case it was
-                  written in
-      the note    what follows that `HOME_END`, or ""
+      the home    what follows the word and its `SEPARATORS` up to the first
+                  `HOME_END` or the end of the cell, with `HOME_MARKS` and a
+                  trailing stop taken off, in the case it was written in
+      the note    what follows that `HOME_END`, as written: the marks are
+                  the home's to lose and never the note's, because `close`
+                  writes the note into a Grounds cell (round 1's 🟡 4)
 
     Nothing searches the home for an issue or a path: `deferred to #664` has
     the home `to #664`, which names no issue (`issue_of`), and that is what
@@ -1916,14 +1939,13 @@ def deferred_parts(cell):
     """
     if verdict_of([cell], 0) != DEFERRED:
         return None, ""
-    s = HOME_MARKS.sub("", cell).strip().rstrip(".").strip()
-    head = MARKER.sub("", s)
-    if head:
-        s = head
-    if not s.lower().startswith(DEFERRED):
+    cell = cell.strip()
+    head = DEFERRED_HEAD_RE.match(cell)
+    if head is None:
         return None, ""
-    home, _cut, note = s[len(DEFERRED) :].strip(SEPARATORS).partition(HOME_END)
-    home = home.strip()
+    rest = cell[head.end() :].strip(SEPARATORS)
+    home, _cut, note = rest.partition(HOME_END)
+    home = HOME_MARKS.sub("", home).strip().rstrip(".").strip()
     return (home or None), (note.strip() if home else "")
 
 
@@ -2570,7 +2592,8 @@ def checked_by(reader, routing, root, rel, siblings, last=False, strict=True):
     an earlier record `Pass` says nothing about the whole review, so a checked
     box there is not the claim this refuses.
 
-    `strict` is false only for a draft pull request, and it reaches ONE
+    `strict` is false for a draft pull request, and for one nobody observed
+    (no payload and no `gh` answer, #866), and it reaches ONE
     refusal here: that same pair (#598 instance 4). Between `close` ticking
     `Pass` and the verifying round's record committing, `nobody — <why>` is
     the honest cell, since no later round exists yet to name, and the
@@ -2578,8 +2601,8 @@ def checked_by(reader, routing, root, rel, siblings, last=False, strict=True):
     pair refusable is the `Pass` half, and `Pass` is what a draft is excused,
     so in a draft it prints and names what re-arms it. Every other refusal
     below is a checker the record does not have, which is wrong at every
-    stage, and none of them reads `strict`. `unknown` is judged as ready, as
-    it is everywhere `strict` is read.
+    stage, and none of them reads `strict`. A payload that cannot answer is
+    judged as ready, as it is everywhere `strict` is read.
 
     EVERY record, where `Pass` is read on the last one alone, and the two
     scopes are different for a reason that is not symmetry. `Pass` is a
@@ -4551,8 +4574,8 @@ def broad_gate(
     same "no claim" `check_round` makes for a record the pull request does
     not touch.
 
-    `strict` is false only for a draft pull request, and this is the third
-    thing it excuses. The reason is the one the other two have: the broad
+    `strict` is false for a draft pull request and for one nobody observed
+    (#866), and this is the third thing it excuses. The reason is the one the other two have: the broad
     gate runs once, AFTER the rounds settle, so a draft whose cell reads `not
     yet` is telling the truth.
     """
@@ -4574,8 +4597,10 @@ def broad_gate(
             + " on the last round record, and this is a ready pull request. "
             "The one full-suite run this design turns on has not happened, "
             "and the row is the only place it is recorded — nothing else in "
-            "the repository knows whether it ran. The rounds have settled, so "
-            "spawn the `sealer` with the base and the work item: it runs "
+            "the repository knows whether it ran. Once the rounds have "
+            "settled, spawn the `sealer` with the base and the work item; "
+            "while one is still running, the pull request belongs in draft. "
+            "The sealer runs "
             "`broad-gate --base <base> --record <item>`, and on a green run "
             "that fills this cell for you. Until then, this pull request is a "
             "request to merge a branch nobody has run the suite over"
@@ -5516,8 +5541,9 @@ def check_round(reader, root, rel, strict=True, refs=None):
     record, this one included, and a function called on the last record alone
     is the wrong place for a question every round has its own answer to.
 
-    `strict` is false only for a draft pull request, where an unchecked
-    `Pass` is the honest state of a review still running. In `Fixes checked
+    `strict` is false for a draft pull request, where an unchecked `Pass`
+    is the honest state of a review still running, and for one nobody
+    observed (no payload and no `gh` answer, #866). In `Fixes checked
     by` it reaches one refusal, the `Pass`-beside-`nobody` pair `checked_by`
     reads, because that pair's refusable half is `Pass`. A record naming a
     checker it does not have is wrong at every stage of a run, where an
@@ -5705,10 +5731,19 @@ def main(argv=None):
     )
 
     state, where = pull_request_state(root)
-    strict = state != "draft"
+    # Unknown with no payload at all is a state nobody observed (round 1's
+    # 🟡 1 of #866): it reads as unknown and is NOT judged as a ready pull
+    # request. Unknown beside a payload that cannot answer stays ready.
+    unseen = state == "unknown" and not event_payload_present()
+    strict = state != "draft" and not unseen
     print(
-        f"chain-check: judged as a {'draft' if state == 'draft' else 'ready'} "
-        f"pull request ({where})" + (f"; {SEALING_SAYS}" if args.sealing else "")
+        (
+            f"chain-check: {UNSEEN_SAYS} ({where})"
+            if unseen
+            else f"chain-check: judged as a "
+            f"{'draft' if state == 'draft' else 'ready'} pull request ({where})"
+        )
+        + (f"; {SEALING_SAYS}" if args.sealing else "")
     )
 
     # Before the early return, so a pull request that declares nothing still
@@ -5902,10 +5937,13 @@ def main(argv=None):
             # request is not a request to merge.
             #
             # What keeps it a stage rather than an escape is `strict` itself.
-            # `pull_request_state` has THREE answers, and `unknown` -- no
-            # payload, one that will not parse, one whose `draft` is a string
-            # -- is judged as ready, so a harness that stops writing the flag
-            # cannot turn this into a way past the record. The record is still
+            # `pull_request_state` has THREE answers, and `unknown` from a
+            # payload -- one that will not parse, one whose `draft` is a
+            # string -- is judged as ready, so a harness that stops writing
+            # the flag cannot turn this into a way past the record. With no
+            # payload and no `gh` answer nobody observed a pull request, and
+            # that unknown is not judged as ready (#866): CI, which decides,
+            # always has the payload. The record is still
             # owed either way, and the notice names what re-arms the check
             # rather than reading as a permanent exemption.
             if not strict:

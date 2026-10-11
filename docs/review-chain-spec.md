@@ -652,11 +652,11 @@ disclosure teaches people to write none — the reasoning `unverified_check.py`
 already runs on. On the run's LAST record beside a checked `Pass` it does
 fail, for a work item begun on or after the cutoff, because that pair is the
 review claiming to have passed rather than disclosing anything. It fails at a
-ready pull request, and wherever the state cannot be read. In a draft it
-prints, because the draft is where the pair stands between `close` and the
-verifying round's record, and *Ready for review* re-runs the check. The refusal
-table under `docs/round-record-spec.md` §`Fixes checked by` holds both halves
-and what each costs.
+ready pull request, and where a payload cannot answer. In a draft, or where no
+pull request was seen, it prints: the pair stands there between `close` and
+the verifying round's record, and *Ready for review* re-runs the check.
+The refusal table under `docs/round-record-spec.md` §`Fixes checked by` holds
+both halves and what each costs.
 
 The field records the state. What keeps `nobody` rare rather than routine is
 the verifying round, which is the run's own shape and sits with the bound

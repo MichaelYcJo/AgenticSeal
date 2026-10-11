@@ -23,19 +23,19 @@ finished, and neither is a state to ask for a merge in.
 |---|---|
 | ready | fails. The review did not finish, and the pull request says it did |
 | draft | passes. A draft is not a request to merge, and a review still running has to have somewhere to be |
-| not visible to the check at all, and `gh` cannot say | judged as **ready** |
+| a payload that cannot answer | judged as **ready**, a harness fault |
+| no payload, and `gh` cannot say | **unknown**: not judged as ready |
 
-That last row is the decision, and it is deliberately the strict one. The
-state comes from the event payload the code host writes, and where there is
-none (a run by hand, the generator, the broad gate) from
-`gh pr view --json isDraft`. Read as a draft, "no pull-request context" would
-be the quietest way past this check, quieter than `[no-review]`; an override
-flag was rejected for the same reason, and the generator hands the check no
-draft payload either. The one excuse a caller carries is the broad gate's
-`--sealing`: the `Broad gate` cell that run writes prints and does not fail.
+The state comes from the event payload the code host writes, and where there
+is none (a run by hand, the generator, the broad gate) from
+`gh pr view --json isDraft`. With neither, nobody observed a pull request, so
+the check reads unknown rather than guessing ready (#866): CI, which decides,
+always has the payload. An override flag was rejected, and the generator hands
+the check no draft payload. The one excuse a caller carries is the broad
+gate's `--sealing`: the `Broad gate` cell that run writes prints, not fails.
 
 What it must not do is pass in silence, so the check prints which state it
-assumed and every source it tried, on every run.
+read and every source it tried, on every run.
 
 **What it still cannot see** is whether the review was any good. A checked
 `Pass` is a claim made by whoever wrote the round record. What is refused is
@@ -62,7 +62,7 @@ which is wrong at every stage of a run.
 | `round-N` naming a record git does not carry | **fails** — a claim git contradicts |
 | `no fixes to check`, with no verdict cell closing on a fix | passes |
 | `no fixes to check` beside a verdict cell reading a fix word | **fails** — a contradiction inside one file, the shape already refused for `Pass` beside an open 🔴 |
-| `nobody — <why>` | prints on every run. **Fails** beside a checked `Pass` on the run's last record, for a work item begun on or after the cutoff below, at a ready pull request and wherever the state cannot be read. In a draft that pair prints, names the verifying round, and says *Ready for review* re-runs the check and fails if the cell still says `nobody`. Passes everywhere else |
+| `nobody — <why>` | prints on every run. **Fails** beside a checked `Pass` on the run's last record, for a work item begun on or after the cutoff below, at a ready pull request and where a payload cannot answer. In a draft, or where no pull request was seen, that pair prints, names the verifying round, and says *Ready for review* re-runs the check and fails if the cell still says `nobody`. Passes everywhere else |
 | `nobody` with nothing after it | **fails.** The reason is what makes the state readable; without it the cell records that something is missing and not what |
 | anything else, `the session that wrote them` included | **fails**, naming the three values. Read loosely, a session's own name would pass as an answer, and that is precisely the state this field exists to refuse — the direction `CLOSED_WORDS` already takes for a verdict cell |
 

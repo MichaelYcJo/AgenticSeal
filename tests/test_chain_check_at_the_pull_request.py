@@ -160,15 +160,15 @@ def record(
 
 
 def run(
-    repo, draft=None, payload=None, branch=None, worktree=False, gh="unknown", extra=()
+    repo, draft=None, payload=None, branch=None, worktree=False, gh="ready", extra=()
 ):
     """`draft=True/False` writes the event payload GitHub hands a workflow.
 
     `None` is the local run: no payload, so the check asks `gh` (#866), and
-    `gh` names the answer the suite's stub gives — `unknown` by default, a
-    `gh` that finds no pull request for the branch, so the check cannot see
-    one at all. That state is judged strictly on purpose — see
-    `pull_request_state`. `extra` is passed after the arguments, for a flag.
+    `gh` names the answer the suite's stub gives — `ready` by default, the
+    state these cases judge a record in where they write no payload. A case
+    about a pull request nobody can see passes `gh="unknown"` (round 1's
+    🟡 2). `extra` is passed after the arguments, for a flag.
 
     `payload` writes the file verbatim, for the shapes `draft=` cannot say: a
     payload that will not parse, one with no pull request in it, and one whose
@@ -269,25 +269,47 @@ def test_a_ready_pull_request_still_has_no_way_past_the_record(repo):
     assert "holds no `round-N.md`" in out
 
 
-# The four shapes of `unknown`, in ONE place because both arms that `strict`
-# excuses are held to them and a second literal is how the two drift apart.
-# `pull_request_state` has three answers, and `unknown` is judged as READY —
-# otherwise `no pull-request context` becomes the quietest way past this check
-# that exists. The string case is the one where a truthy read would have
-# inverted the answer, and `"draft": "false"` inverting it is a defect this
-# function has already had once.
+# The shapes of a PAYLOAD that cannot answer, in ONE place because both arms
+# that `strict` excuses are held to them and a second literal is how the two
+# drift apart. A payload that exists and cannot answer is judged as READY —
+# otherwise a harness fault becomes the quietest way past this check that
+# exists. The string case is the one where a truthy read would have inverted
+# the answer, and `"draft": "false"` inverting it is a defect this function
+# has already had once. No payload at all with no `gh` answer is not among
+# them since #866's round 1: nobody observed a pull request there, and it is
+# read as unknown (`test_a_pull_request_nobody_observed_is_unknown_not_ready`).
 #
 # Round 1's 🟡 4: the gate arm carried two of the four, and the two it was
 # missing are the two `phases/phase-1.md` calls dangerous. Both arms consume
 # one `strict` today, which is what kept that from being a 🔴 — and the arms
 # stopping to share it is exactly what this work item did to the other one.
 UNKNOWN_SHAPES = [
-    {},
     {"payload": "{not json"},
     {"payload": json.dumps({"repository": {}})},
     {"payload": json.dumps({"pull_request": {"draft": "true"}})},
 ]
-UNKNOWN_IDS = ["no payload", "unparseable", "no pull request", "a string draft"]
+UNKNOWN_IDS = ["unparseable", "no pull request", "a string draft"]
+
+
+def test_a_pull_request_nobody_observed_is_unknown_not_ready(repo):
+    """Round 1's 🟡 1 of #866. No payload, and a `gh` that finds no pull
+    request for the branch: nobody observed one, before the draft opens, on a
+    route that stops before one, or with no `gh`. That state is read as
+    unknown and NOT judged as a ready pull request — the ready-only refusals
+    (an empty `rounds/` here) print as on a draft — and the line names it and
+    every source tried. CI, which decides, always has GitHub's payload."""
+    write(repo, f"{ITEM}/routing.md", declaration())
+    commit(repo, "declare")
+    code, out = run(repo, gh="unknown")
+    assert code == 0, out
+    head = out.split("\n", 1)[0]
+    assert head.startswith(
+        "chain-check: the pull request's state is unknown, and it is not "
+        "judged as a ready pull request; CI judges it from GitHub's payload "
+        "(no pull-request event payload, and `gh pr view` exited 1"
+    ), head
+    assert "holds no `round-N.md`" in out, out
+    assert "judged as a ready pull request (" not in out, out
 
 
 @pytest.mark.parametrize("kwargs", UNKNOWN_SHAPES, ids=UNKNOWN_IDS)
@@ -891,20 +913,22 @@ def test_an_unchecked_pass_passes_on_a_draft_pull_request(repo):
     assert "draft" in out
 
 
-def test_a_run_that_cannot_see_a_pull_request_is_judged_as_a_ready_one(repo):
-    """The unknown is judged strictly, and the reason is printed.
-
-    Treating it as a draft would make `no pull-request context` the quietest
-    way past this check that exists — quieter than `[no-review]`, which at
-    least stays in the command. Passing in silence is the one outcome ruled
-    out, so the verdict says which state it assumed and why."""
+def test_a_run_that_cannot_see_a_pull_request_is_not_judged_as_a_ready_one(repo):
+    """Round 1's 🟡 1 of #866: a run with no payload and no `gh` answer saw no
+    pull request, so an unchecked `Pass` mid-run is not refused as it is on
+    a ready one — and the state is printed, never passed in silence. The
+    same record under a `gh` that says ready fails, as before."""
     write(repo, f"{ITEM}/routing.md", declaration())
     sha = commit(repo, "declare")
     write(repo, f"{ROUNDS}/round-1.md", record(sha, passed=False, verdict="open"))
     commit(repo, "round 1")
+    code, out = run(repo, gh="unknown")
+    assert code == 0, out
+    assert "the pull request's state is unknown" in out, out
+    assert "no pull-request event payload" in out
     code, out = run(repo)
     assert code == 1, out
-    assert "no pull-request event payload" in out
+    assert "`Pass` is not checked" in out, out
 
 
 def test_a_checked_pass_beside_an_open_NON_blocking_finding_passes(repo):
@@ -2179,25 +2203,27 @@ def test_an_unknown_state_is_held_to_the_broad_gate_too(repo, kwargs):
 
 @pytest.mark.parametrize(
     "gh, state, code",
-    [("draft", "draft", 0), ("ready", "ready", 1), ("unknown", "ready", 1)],
+    [("draft", "draft", 0), ("ready", "ready", 1), ("unknown", None, 0)],
 )
 def test_with_no_payload_the_check_asks_gh_and_says_so(repo, gh, state, code):
     """#866 S7, through the real script and a `gh` on PATH. No payload, and
     `gh pr view --json isDraft` answers: a draft is judged as one and names
     `gh` as its source; a ready one is ready; a `gh` that exits non-zero —
-    what a branch with no pull request gets — is `unknown`, judged as ready
-    and naming what was tried. The record's `Broad gate` reads `not yet`, so
-    the exit says which state the arm was judged in. Red against the reader
-    before #866, which never asked."""
+    what a branch with no pull request gets — is `unknown`, read as unknown
+    and not judged as ready (round 1's 🟡 1), naming what was tried. The
+    record's `Broad gate` reads `not yet`, so the exit says which state the
+    arm was judged in. Red against the reader before #866, which never
+    asked."""
     gated(repo, GATE_FROM, gate="not yet")
     got, out = run(repo, gh=gh)
     assert got == code, out
     head = out.split("\n", 1)[0]
-    assert head.startswith(f"chain-check: judged as a {state} pull request ("), head
     if gh == "unknown":
+        assert head.startswith("chain-check: the pull request's state is unknown"), head
         assert "no pull-request event payload, and `gh pr view` exited 1" in head
         assert "no pull requests found" in head, head
     else:
+        assert head.startswith(f"chain-check: judged as a {state} pull request ("), head
         assert head.endswith("(`gh pr view --json isDraft`)"), head
 
 
@@ -3751,6 +3777,15 @@ def test_a_record_carrying_the_row_is_read_and_one_without_it_prints(repo):
             "the run is capped; two spellings",
             854,
         ),
+        # The note keeps its marks: `close` writes it into a Grounds cell
+        # (round 1's 🟡 4).
+        (
+            "deferred #854 — the `_helper` in **x**.",
+            "#854",
+            "the `_helper` in **x**.",
+            854,
+        ),
+        ("deferred #854 — see __init__.py", "#854", "see __init__.py", 854),
         ("deferred seal/follow-up.md", "seal/follow-up.md", "", None),
         ("deferred `seal/follow-up.md`", "seal/follow-up.md", "", None),
         # A file name keeps its underscores, which `EMPHASIS` would take.

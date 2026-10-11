@@ -24,7 +24,8 @@ release seal cannot give one cell two meanings.
 | The release seal's S10 fixture | spec silent / `**deferred** #13, #14` became two cells | changed | `#13, #14` is not a home `issue_of` reads as an issue, and keeping the case's three issues needs one per cell |
 | `landings`' flag | J3 names only `depth_two` as the wide reader's caller / `landings` reached `path_forms` through it with `paths_only=True` | `landings` calls `path_forms` directly | the flag chose between two readers, and one of them left |
 | A comment in `evidence_check.py` | spec silent / it named one of the five patterns as a second reader of the same shape | reworded | §12: the sentence was false once the pattern left |
-| The suite's pull request | spec silent; J4 says the population with no payload and no `gh` that answers now exits 1 / the suite is that population (logged out, #510), 176 cases failed | a stub `gh` in `tests/conftest.py` answers draft for every case, `gh_answers` picks another | the generator assumed draft for the suite before; a case about ready or unknown now says so, and no case reaches a live `gh` for the question |
+| The suite's pull request | spec silent; J4 says the population with no payload and no `gh` that answers now exits 1 / the suite is that population (logged out, #510), 176 cases failed | a stub `gh` in `tests/conftest.py`; since round 1's fix pass its default is the *unknown* answer, and a case that means a draft or a ready pull request says so with `gh_answers` (ten helpers that meant ready now say ready) | no case reaches a live `gh` for the question, and no case is moved to a state its name does not state (round 1's 🟡 2) |
+| An unseen pull request (round 1's 🟡 1) | J4 and the policy table: no payload and no `gh` answer is `unknown`, judged as **ready**, and `new`/`close` exit 1 / read as unknown, not judged as ready, the line naming every source tried; a payload that cannot answer stays ready | unknown | the orchestrator's direction for round 1, against the owner's review of the run (observe, do not predict): ready was a guess about a state nobody observed, and it failed a correct mid-run record before the draft opens, on a `stop before the pull request` route and with no `gh`. CI always has GitHub's payload and decides; `docs/round-record-spec.md` §*`Pass` has to be checked* says so. The route's own reading is `questions.md` Q1 |
 | How `gh` is run | J4: "the exact call pull_request_is_ready makes today" / the path `shutil.which` found, not the bare name | the found path | a `gh.cmd` on Windows is found by `which` and not by a process call naming `gh` |
 | `--sealing`'s reach | J4: "the `Broad gate` arm of the last record" / also the direct `broad-gate.md` home | both homes | the gate writes the cell into whichever home `seal` uses, and the draft payload excused both before |
 | The environment-leak case (W2) | a failure to re-pin / the judgment's source | the source | under `--sealing` the leaked payload fails nothing; the kept output still shows which pull request judged the fixture |
@@ -69,9 +70,14 @@ release seal cannot give one cell two meanings.
 - *Inferred during implementation:* a deferral's home loses `HOME_MARKS`, not
   `EMPHASIS`, and a bare `deferred` reads its home from the third cell
   through the same grammar.
-- *Inferred during implementation:* the suite's own `gh` answers draft for
-  every case, the state a review round runs in (`tests/conftest.py`,
-  `CONTRIBUTING.md` §*Running the checks*).
+- *Inferred during implementation, revised at round 1:* the suite's own `gh`
+  finds no pull request by default, which the check reads as unknown, and a
+  case that means a draft or a ready pull request says so
+  (`tests/conftest.py`, `CONTRIBUTING.md` §*Running the checks*).
+- *Revised at round 1, from the orchestrator's direction:* no payload and no
+  `gh` answer is unknown and not judged as ready; a payload that cannot
+  answer stays ready (`docs/round-record-spec.md` §*`Pass` has to be
+  checked*).
 - *Inferred during implementation:* a doubled field row fails on every
   record, not on the last alone; `--sealing` reaches the direct
   `broad-gate.md` home as well as the last round record.

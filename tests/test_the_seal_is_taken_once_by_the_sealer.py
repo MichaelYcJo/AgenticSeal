@@ -4322,6 +4322,10 @@ def test_rounds_says_capped_and_counts_what_was_deferred(tmp_path, text, rows):
         # panel used to read these as not capped, because they begin `*`.
         ("**yes — 🟡 1, the wording**", "3 · capped"),
         ("`yes` — 🟡 1, the wording", "3 · capped"),
+        # Invisible characters come off before the word is read, as the gate
+        # reads the cell (`chain_check.record_facts`, round 1's 🟡 3).
+        ("​yes — 🟡 1, the wording", "3 · capped"),
+        ("﻿yes — 🟡 1, the wording", "3 · capped"),
         # A cell the check cannot read answers nothing: the panel used to
         # read the first two as capped.
         ("yes", None),
@@ -4337,8 +4341,8 @@ def test_the_panels_capped_is_the_gates_reopening(tmp_path, needs, head):
     through `chain_check.says_reopened`. True draws `capped`, False draws the
     count alone over the deferral row, and None — a cell the check refuses —
     is a record that cannot answer, which prints `<R>` with no row beneath."""
-    chain = check_module()
-    reopened = chain.says_reopened(needs)
+    chain, reader = check_module(), reader_module()
+    reopened = chain.says_reopened(reader.visible(needs).strip())
     rows = rounds_of(tmp_path, capped_record(needs=needs))
     if head is None:
         assert reopened is None, needs
@@ -9962,7 +9966,7 @@ def test_a_runners_event_payload_is_what_judges_the_fixture(
         return (keep / "chain.txt").read_text(encoding="utf-8")
 
     cleared = chain_text(tmp_path / "cleared")
-    assert "judged as a draft pull request (`gh pr view" in cleared, cleared
+    assert "no pull-request event payload, and `gh pr view`" in cleared, cleared
     monkeypatch.setenv("GITHUB_EVENT_PATH", payload)
     leaked = chain_text(tmp_path / "leaked")
     assert f"judged as a ready pull request ({payload})" in leaked, leaked

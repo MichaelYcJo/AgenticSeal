@@ -2935,7 +2935,14 @@ def rounds_rows(item, record):
     found, col, _header, _errors = chain.verdict_table(
         reader, record.lines, os.path.basename(record.path)
     )
-    reopened = chain.says_reopened(needs) if needs is not None else None
+    # The string the gate hands it (`chain_check.record_facts`): invisible
+    # characters off first, so the panel and the gate read one cell one way
+    # (round 1's 🟡 3).
+    reopened = (
+        chain.says_reopened(reader.visible(needs).strip())
+        if needs is not None
+        else None
+    )
     if reopened is None or col < 0:
         return [("rounds", head)]
     if reopened:

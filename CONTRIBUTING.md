@@ -223,8 +223,9 @@ passing because you happen to be logged in and failing only on CI after the
 branch was sealed (#510). A case that needs `gh` stubs it. One question is
 stubbed for every case: `chain_check.py` asks `gh pr view --json isDraft`
 where no event payload exists (#866), so the conftest puts a `gh` first on
-PATH that answers *draft* — the state a review round runs in — and passes
-every other call to the `gh` behind it; `gh_answers` picks another answer.
+PATH that finds no pull request — which the check reads as *unknown*, not as
+ready — and passes every other call to the `gh` behind it. A case that means
+a draft or a ready pull request says so with `gh_answers`.
 
 Two steps of the hygiene workflow ship to user repositories as well, as
 `templates/hygiene.yml`: the unverified-rows tally and the chain check, run

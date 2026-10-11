@@ -166,9 +166,9 @@ def record(sha, checked_by, verdict="fixed", finding="🟢 1", passed=True):
 
 
 def run(repo, draft=None):
-    # No payload is a ready pull request here: the `gh` the check then asks
-    # (#866) finds none for the branch.
-    env = gh_answers(dict(os.environ), "unknown")
+    # No payload means a ready pull request here, and the `gh` the check then
+    # asks (#866) says so (round 1's 🟡 2).
+    env = gh_answers(dict(os.environ), "ready")
     env.pop("GITHUB_EVENT_PATH", None)
     env.pop("GITHUB_HEAD_REF", None)
     if draft is not None:

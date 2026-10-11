@@ -2737,14 +2737,12 @@ def run_check(root, baseline):
 
     The check reads the pull request's state itself (#866): the event payload
     where GitHub wrote one, else `gh pr view --json isDraft` in ROOT, else
-    `unknown`, judged as READY and printed with what was tried
-    (`chain_check.pull_request_state`). This writes nothing into the
-    environment. It used to hand the check a DRAFT payload whenever `gh` was
-    absent, failed or said draft, so on a machine without `gh` every local
-    run was a draft — the override `docs/round-record-spec.md` §*`Pass` has
-    to be checked* rejects, without the name. There, now, `new`, `close` and
-    `seal` exit 1 on the record they just wrote, and the line above the
-    verdict says which state was assumed and why.
+    `unknown`, which it reads as unknown, does not judge as a ready pull
+    request, and prints with every source tried
+    (`chain_check.pull_request_state`, round 1's 🟡 1). This writes nothing
+    into the environment. It used to hand the check a DRAFT payload whenever
+    `gh` was absent, failed or said draft; a `gh` that says ready is now read
+    as ready, and the check's exit is this command's.
     """
     return chain.main(["--worktree", "--baseline", baseline, "--root", root])
 

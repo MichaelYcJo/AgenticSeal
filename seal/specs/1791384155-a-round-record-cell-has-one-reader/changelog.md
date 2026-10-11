@@ -1,17 +1,20 @@
 ### Changed
 
-- **A run with no pull-request payload is no longer told it is a draft
+- **The chain check observes a pull request's state and never assumes one
   (#866).** `round-record new`, `close` and `seal` used to hand the chain
   check a draft payload whenever `gh` was absent, failed or said draft, and
   the broad gate did the same for its chain arm; on a machine without `gh`
   every local run was a draft, which excused the unchecked `Pass`, the empty
-  `rounds/` and `nobody` beside `Pass`. The check now reads the payload where
-  GitHub wrote one, else asks `gh pr view --json isDraft` itself, else judges
-  the pull request ready and prints every source it tried. Where no payload
-  exists and no `gh` can answer, those three commands now exit 1 on the
-  record they just wrote. The broad gate's chain arm passes `--sealing`
-  instead, which excuses only the last record's `Broad gate` cell — the one
-  that run is about to write — and says so on the state line.
+  `rounds/` and `nobody` beside `Pass` even where `gh` said the pull request
+  was ready. The check now reads the payload where GitHub wrote one, else asks
+  `gh pr view --json isDraft` itself; where neither answers, nobody observed
+  a pull request, so it reads the state as unknown, does not judge it as a
+  ready pull request, and prints every source it tried. A record `new`,
+  `close` or `seal` just wrote mid-run is not failed for it, and CI, which
+  always has GitHub's payload, decides. The broad gate's chain arm passes
+  `--sealing` instead of a draft payload, which excuses only the last
+  record's `Broad gate` cell — the one that run is about to write — and says
+  so on the state line.
 
 ### Fixed
 
