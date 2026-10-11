@@ -604,7 +604,7 @@ def test_a_heading_quoted_in_a_closed_fence_opens_no_section(repo):
     text = "## A\n\nintro\n\n```markdown\n## B\n```\n\nmore\n\n## B\n\nreal\n"
     assert ec.resolve("d.md", '"## B"', text) == [(11, 13)]
     assert ec.resolve("d.md", '"## A"', text) == [(1, 10)]
-    units = {name: place for name, place, _unsure in ec.file_units("d.md", text)}
+    units = dict(ec.file_units("d.md", text))
     assert units['"## B"'] == (11, 13), units
 
 
@@ -750,7 +750,7 @@ def test_reverify_names_a_claim_two_places_hold_as_the_check_does(repo):
     `handler`, and at e6d5a055, which worded the tie its own way."""
     twice = SERVICE + "\n\ndef handler(x):\n    y = x + 1\n    return y * 2\n"
     (repo / "src" / "service.py").write_text(twice, encoding="utf-8")
-    places, _ = ec.resolve_unit("src/service.py", "handler", twice)
+    places = ec.resolve_unit("src/service.py", "handler", twice).places
     assert len(places) == 2, places
     (inside,) = ec.minor_region("src/service.py", twice, places[0], '"y = x"')
     h = ec.content_hash(ec.gfm_lines(twice)[inside[0] - 1 : inside[1]])
@@ -2717,18 +2717,19 @@ def test_default_repo_cannot_reach_outside_its_own_checkout(repo, tmp_path):
 
 
 def test_the_two_commands_that_must_know_ask_for_the_flag(repo):
-    """`resolve` keeps returning a plain list so its thirty call sites and
-    `file_units` stay correct, and `resolve_unit` carries the resurrection
-    flag beside the places. That split is only safe while the two consumers
-    that must act on the flag actually ask for it — a later edit reaching for
-    the shorter name would drop the fact silently, which is the whole failure
-    round 6 found (round 6, 🔴 J).
+    """`resolve` keeps returning a plain list for its thirty call sites, and
+    `resolve_unit` carries the refusal's reason beside the places (#870; it
+    carried a resurrection flag there until #870 removed the rule that set
+    it). That split is only safe while the consumer that prints a verdict
+    asks for the fuller answer — a later edit reaching for the shorter name
+    would drop the reason silently, which is the failure round 6 found for
+    the flag (round 6, 🔴 J).
 
     `check_text` and not `check_ledger`: the anchor loop moved out of
     `check_ledger` into `check_text` when the records arm was added (#190), so
     a stamp in a record is resolved by the same code as a row in a ledger.
     `check_ledger` is now that call plus `old_format_rows`, and the consumer
-    that has to act on the flag is the loop, wherever it lives. Since #715
+    that has to act on the answer is the loop, wherever it lives. Since #715
     the loop's body is `classify`, one occurrence at a time, because the
     reader of a released row's family grades each reading by it too. Since
     #824 `classify` is `judge`'s finding, `judge` is the reader, and
@@ -2746,7 +2747,7 @@ def test_the_two_commands_that_must_know_ask_for_the_flag(repo):
                 if inner.func.id in ("resolve", "resolve_unit", "judge"):
                     calls.setdefault(node.name, set()).add(inner.func.id)
     assert calls.get("judge") == {"resolve_unit"}, (
-        f"judge does not ask for the resurrection flag: {calls.get('judge')}"
+        f"judge does not ask for the refusal: {calls.get('judge')}"
     )
     assert calls.get("reverify") == {"judge"}, (
         f"reverify reads a place by itself: {calls.get('reverify')}"

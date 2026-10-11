@@ -736,50 +736,44 @@ def unbounded(path, rule, text):
     )
 
 
-class Resolution(tuple):
-    """`resolve_unit`'s one reading of a coordinate (#870).
+class Resolution:
+    """`resolve_unit`'s one reading of a coordinate (#870): `places`, the
+    `[(start, end)]` the locator resolves to, and `refused`, None or the
+    sentence saying why no unit in the file can be bounded.
 
-    It unpacks as the `(places, resurrected)` pair every caller has always
-    read, and carries `refused` beside them: None, or the sentence saying why
-    no unit in the file can be bounded. A refused reading has no places, so a
-    caller that never asks for the reason still reads nothing there rather
-    than a span nobody bounded; one that prints a verdict asks for it, and
-    that is one reading of the coordinate rather than a second call (#809).
+    A refused reading has no places, so a caller that never asks for the
+    reason still reads nothing there rather than a span nobody bounded; one
+    that prints a verdict asks for it, and that is one reading of the
+    coordinate rather than a second call (#809). It is no tuple: a field
+    beside `places` that no code can set would be read by its callers as a
+    fact about the place, which is how the resurrection flag outlived the
+    rule that set it until #870 took both out.
     """
 
-    def __new__(cls, places, resurrected=False, refused=None):
-        self = super().__new__(cls, (places, resurrected))
+    __slots__ = ("places", "refused")
+
+    def __init__(self, places, refused=None):
+        self.places = places
         self.refused = refused
-        return self
 
-    @property
-    def places(self):
-        return self[0]
-
-    @property
-    def resurrected(self):
-        return self[1]
+    def __repr__(self):
+        return f"Resolution({self.places!r}, refused={self.refused!r})"
 
 
 def resolve(path, locator, text):
     """[(start, end)] for the LOCATOR — empty for none, several for ambiguous.
 
-    **This discards how sure the answer is.** For a file the generic rule
-    reads, some places survive only because the keyword blocklist emptied the
-    set and they were put back; a consumer that acts on such a place — the
-    check deciding OK, `--reverify` deciding to write — has to know that, and
-    calls `resolve_unit` instead. **Nothing inside this module calls it any
-    more**, so the wrapper survives for the cases that assert places and for
-    anything importing this module. Its docstring named `file_units` for one
-    round after that stopped being true (round 7, 🟢).
+    It drops the refusal's reason, so a consumer that prints a verdict calls
+    `resolve_unit` instead. **Nothing inside this module calls it any more**,
+    so the wrapper survives for the cases that assert places and for anything
+    importing this module.
     """
-    return resolve_unit(path, locator, text)[0]
+    return resolve_unit(path, locator, text).places
 
 
 def resolve_unit(path, locator, text):
-    """`Resolution([(start, end)], resurrected, refused)` — the places,
-    whether they survived only because the declaration rule put
-    keyword-blocked candidates back, and why no unit could be bounded.
+    """`Resolution(places, refused)` — the places the locator resolves to,
+    and why no unit could be bounded, or None.
 
     **A unit no rule can bound is refused, never guessed at** (#870). Which
     rule bounds PATH is `bounding_rule`'s answer and nobody else's. A `.py`
@@ -794,17 +788,6 @@ def resolve_unit(path, locator, text):
     Its input class is the rule's, in #835's words: OBSERVED for `ast`, and
     an OWNED locator for a markdown heading path and for a quoted line,
     whose region is the paragraph it sits in (`text_regions`).
-
-    Round 4's 🔴 1, round 5's 🔴 C and round 6's 🔴 J are three attempts at one
-    rule, and the two failure modes are the same ambiguity: without the
-    resurrection a C# `public new void Render(int x)` reads BROKEN, with it a
-    `return render(y);` left behind by a move reads as the unit. No keyword
-    list separates them, so the uncertainty is carried OUT of here instead of
-    being argued about in here — `check_ledger` answers a resurrected place
-    that does not reconstruct the recorded hash with BROKEN and the repo-wide
-    scan, which is what `ast` already gives `.py`, and `--reverify` refuses to
-    write onto one at all. The classifier is then allowed to stay wrong,
-    because being wrong stops being expensive.
 
     **A coordinate's job is to put a reader in the right logic, not to pin a
     line.** So the address is the enclosing unit: the function for code, the
@@ -838,14 +821,14 @@ def resolve_unit(path, locator, text):
     if rule == "ast":
         spans = py_spans(text)
         if spans is None:
-            return Resolution([], False, unbounded(path, rule, text))
+            return Resolution([], unbounded(path, rule, text))
         # The parse succeeded, so ast's answer is the whole answer: a symbol
         # it cannot find is GONE. Falling back to the text rule here read a
         # leftover call site as the unit — a moved function reported DRIFTED
         # instead of BROKEN-with-hint, and --reverify anchored the row to the
         # call permanently (round 4, 🔴 2).
         return Resolution(spans.get(locator, []))
-    return Resolution([], False, unbounded(path, rule, text))
+    return Resolution([], unbounded(path, rule, text))
 
 
 def name_statements(text, region, name):
@@ -968,26 +951,20 @@ SCAN_SIZE_CAP = 256 * 1024
 
 
 def file_units(rel, body):
-    """[(spelling, (start, end), unsure)] — every unit in one file, resolvable
-    ones only, each saying whether the declaration rule is sure of it.
+    """[(spelling, (start, end))] — every unit in one file, resolvable ones
+    only.
 
     Bounded by `bounding_rule`'s rule for REL: OBSERVED for `ast`, OWNED for
     markdown headings. A file no rule bounds yields no units, so the rename
     scan names no destination there and `--migrate` names the quoted-line
     remedy instead (#870).
-
-    The flag exists for `--migrate`, which writes an anchor: a place the rule
-    is unsure of is not one to anchor a row onto without other evidence. The
-    destination scan below deliberately keeps them, because there the evidence
-    is reconstruction against the row's recorded hash.
     """
-    lines = gfm_lines(body)
     units = []
     rule = bounding_rule(rel)
     if rule == "ast":
         for name, places in (py_spans(body) or {}).items():
             if len(places) == 1:
-                units.append((name, places[0], False))
+                units.append((name, places[0]))
     elif rule == "heading":
         # Headings read where a renderer shows one (#867); a quoted heading
         # in a closed fence is a blank line here and no unit.
@@ -1005,7 +982,7 @@ def file_units(rel, body):
                 j += 1
             name = '"' + line.strip().replace("|", "\\|").replace('"', '\\"') + '"'
             seen.setdefault(name, []).append((i + 1, j))
-        units = [(n, p[0], False) for n, p in seen.items() if len(p) == 1]
+        units = [(n, p[0]) for n, p in seen.items() if len(p) == 1]
     return units
 
 
@@ -1087,7 +1064,7 @@ def content_matches(repo, rel, locator, want, cache):
         if body is None:
             continue
         lines = gfm_lines(body)
-        for name, (a, b), _unsure in file_units(path, body):
+        for name, (a, b) in file_units(path, body):
             region = lines[a - 1 : b]
             if markdown:
                 region = [old_name, *region[1:]]
@@ -1799,31 +1776,18 @@ def judge(m, root, maps, default_repo, scan_cache):
         # bounded, and a hint pointing elsewhere would send the reader past
         # the one fix that works — the anchor the line names (#870).
         return found("BROKEN", unit.refused)
-    places, resurrected = unit
-    unsure, hit = [], []
-    if places and (resurrected or len(places) > 1):
-        # The row's OWN recorded content decides, in both directions. With
-        # several places it breaks the tie (questions.md §Q3). With one
-        # place the declaration rule is not sure of, it is the only thing
-        # that can say whether the row's unit is still there — and where
-        # nothing reconstructs, the unit is GONE, which is the answer
-        # `ast` already gives `.py` (round 6, 🔴 J). Two places
-        # reconstructing one hash are identical spans, so the choice
-        # between them is not a choice — at the MAJOR level. A claim
-        # row's `want` is the hash of the minor region, which two
-        # unrelated units can share by holding one identical line, so
-        # neither move is licensed there: the tie stands, and an unsure
-        # place stays DRIFTED rather than being called gone.
-        # `docs/the-evidence-ledger.md` §*A row is a content anchor* is the
-        # rule — *an anchor degrades to DRIFTED, never to BROKEN.
-        # Only the major level can be BROKEN* (round 8, 🔴 A and 🔴 B).
+    places = unit.places
+    hit = []
+    if len(places) > 1:
+        # The row's OWN recorded content breaks a tie (questions.md §Q3).
+        # Two places reconstructing one hash are identical spans, so the
+        # choice between them is not a choice — at the MAJOR level. A claim
+        # row's `want` is the hash of the minor region, which two unrelated
+        # units can share by holding one identical line, so no move is
+        # licensed there and the tie stands (round 8, 🔴 B).
         hit = [p for p in places if recorded_here(rel, body, p, want, claim)]
         if hit and (len(hit) == 1 or not claim):
             places = hit[:1]
-        elif resurrected and not claim:
-            # Kept, not discarded: the place is what the person needs to
-            # see, and its hash is what they need to record (round 7, 🔴 M).
-            unsure, places = places, []
     if len(places) > 1:
         at = ", ".join(f"{a}-{b}" for a, b in places)
         # HIT is non-empty here only for a claim's tie: a row with no claim
@@ -1838,20 +1802,6 @@ def judge(m, root, maps, default_repo, scan_cache):
         )
     if not places:
         detail = "locator not found"
-        if unsure:
-            # `locator not found` was a lie — the place was found and the
-            # rule is unsure of it. Saying which lines and what they hash
-            # to is what makes Known limits' *record it by hand* an act
-            # somebody can actually carry out (round 7, 🔴 M).
-            at = "; ".join(
-                f"{a}-{b}@{content_hash(gfm_lines(body)[a - 1 : b])}" for a, b in unsure
-            )
-            detail = (
-                "the declaration rule is unsure of the only place"
-                f"{'' if len(unsure) == 1 else 's'} it found, and none holds "
-                f"the recorded content — {at}; record one by hand if it is "
-                "still the unit"
-            )
         scan = scan_cache.setdefault(repo, {})
         hashes, names, capped = content_matches(repo, rel, locator, want, scan)
         if len(hashes) == 1:
@@ -2939,36 +2889,18 @@ def migrate(ledgers, root, maps=None, default_repo=None):
                 while e > s and not lines[e - 1].strip():
                     e -= 1
                 best = None
-                for name, (a, b), unsure in file_units(rel, body):
+                for name, (a, b) in file_units(rel, body):
                     if (
                         a <= s
                         and e <= b
                         and (best is None or b - a < best[2] - best[1])
                     ):
-                        best = (name, a, b, unsure)
+                        best = (name, a, b)
                 if best is None:
                     left.append((m.group(0), f"no single unit contains {s}-{e}"))
                     failed = True
                     continue
-                name, a, b, unsure = best
-                if unsure and not proved:
-                    # One placement question, two commands: `--reverify` refuses
-                    # a place the rule is unsure of, and this used to anchor a
-                    # row onto one without a word (round 7, 🔴 M). `proved` is
-                    # the exception rather than a softening — it says the cited
-                    # lines have not moved since the person wrote them, which is
-                    # evidence about THIS place that `--reverify` never has.
-                    left.append(
-                        (
-                            m.group(0),
-                            f"the declaration rule is unsure of {name} ({a}-{b}) "
-                            "and the stamp cannot vouch for the cited lines — "
-                            f"record {content_hash(lines[a - 1 : b])} by hand if "
-                            "it is still the unit",
-                        )
-                    )
-                    failed = True
-                    continue
+                name, a, b = best
                 spliced.append(line[at : m.start()])
                 spliced.append(f"{raw}#{name}@{content_hash(lines[a - 1 : b])}")
                 at = m.end()
@@ -4383,8 +4315,8 @@ def reverify_into(
         ledgers, view_paths, root, maps, default_repo
     )
     # Each drifted coordinate's hash is `judge`'s, the reading `--strict`
-    # graded it by, so a claim on a place the declaration rule is unsure of
-    # takes its statement's hash here as it does in place (#809).
+    # graded it by, so a claim takes its statement's hash here as it does in
+    # place (#809).
     scan = {}
     today = (today or datetime.date.today()).isoformat()
     # A fragment is named for its work item, so the row can say whose

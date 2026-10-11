@@ -267,6 +267,21 @@ def test_every_caller_reads_the_refusal_from_resolve_unit_and_derives_none():
         assert ".refused" in source, f"{name} drops the refusal"
 
 
+def test_no_reader_of_a_resurrection_flag_is_left():
+    """S7, widened. Once no text rule exists, nothing can resurrect a place,
+    and a field nothing sets is read by nobody honestly: `resolve_unit`'s
+    answer is no tuple to unpack a second field from, and no script names
+    the flag."""
+    unit = ec.resolve_unit("ok.py", "f", "def f():\n    pass\n")
+    assert not isinstance(unit, tuple), type(unit)
+    assert unit.places == [(1, 2)] and unit.refused is None
+    with pytest.raises(TypeError):
+        _places, _ = unit
+    for path in (SCRIPT, RIDER, SURVIVOR):
+        assert "resurrected" not in open(path, encoding="utf-8").read(), path
+    assert [len(u) for u in ec.file_units("a.py", "def f():\n    pass\n")] == [2]
+
+
 def test_a_citation_of_a_released_row_by_a_bare_symbol_is_refused(tmp_path):
     """`read_citation` is the fourth caller: a citing row's first coordinate
     names a section of a released ledger file. A bare symbol there names no
