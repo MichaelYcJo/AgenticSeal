@@ -28,9 +28,14 @@
   `MALFORMED` otherwise, naming what the run did: not run, skipped, xfailed,
   xpassed, failed or error. Nothing about a test is predicted from its file,
   so a test pytest never collected, or a mark in any spelling, is simply a
-  line that is not `passed`. A test the sealing machine skips — a `skipif`
-  true there — refuses the seal there; hash that row, or seal where the test
-  runs. A preflight runs no suite and reads test rows for existence alone.
+  line that is not `passed`; a report pytest calls passed with no xfail
+  expected of it is a pass whatever word a plugin counts it under (a passed
+  subtest), and a case id holding `::` belongs to its function. A test the
+  sealing machine skips — a `skipif` true there — refuses the seal there;
+  hash that row, or seal where the test runs. A preflight runs no suite and
+  reads test rows for existence alone, and where the row loads no recorder
+  the gate says on its own output that test rows were read for existence
+  alone.
 
 ### Changed
 

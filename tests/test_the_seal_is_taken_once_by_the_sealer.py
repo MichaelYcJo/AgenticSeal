@@ -3927,6 +3927,26 @@ def test_the_ledger_arm_reads_the_run_it_seals(repo, node, held):
         assert "ledger" in out.stdout and "exit 2" in out.stdout, out.stdout
 
 
+def test_a_seal_over_existence_alone_says_so(repo):
+    """Round 3 of #836, 🟡 3: a row that replaces `PYTEST_ADDOPTS` leaves no
+    session under the key, so the ledger arm reads test rows for existence
+    alone. The run still seals, and the checker's line reaches the person
+    reading it. Red before the fix: the line was only in the kept
+    `ledger.txt`."""
+    write(
+        repo,
+        "seal/ledger/1799000000-a-sealed-work-item.md",
+        "| T1 · the claim | `tests/test_one.py::test_one` | seen red, then "
+        "green | 2026-10-08 | |\n",
+    )
+    commit(repo, "a ledger row held by a test")
+    out = run_gate(set_row(repo, f"PYTEST_ADDOPTS=-q {SUITE_ROW}"))
+    assert out.returncode == 0, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
+    assert (
+        "broad-gate: ledger: test rows were read for existence alone: no session under"
+    ) in out.stderr, out.stderr
+
+
 def test_a_failing_ledger_ends_with_its_total_line(tmp_path):
     """A4's second half. `evidence-check` prints its `total:` line LAST and the
     failure form quotes a check's first eight lines, so a ledger refused for

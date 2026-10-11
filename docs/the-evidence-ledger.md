@@ -262,7 +262,11 @@ are pytest's own, which its recorder asked of it, so a test pytest never
 collected and a mark in any spelling are each a line that is not `passed`,
 or no line. Where no record is handed over — CI's `ledger` job, a preflight,
 the post-commit advisor, a vendored copy — test rows are read for existence
-alone, and the run says so in one line beside its totals. A test row is
+alone, and the run says so in one line beside its totals; a gate whose row
+loaded no recorder reads the same way and prints that line on its own
+output. The run that is sealed decides a skipped test: a `skipif` true on
+the sealing machine reads *skipped* and holds nothing there, so that row is
+hashed instead, or the seal is taken where the test runs. A test row is
 never `DRIFTED`: there is no hash. `--reverify` writes nothing on it and
 dates nothing, and names on a `LEFT` line one whose test is gone or that the
 record refuses. A node id is read in the Code grounds cell and nowhere else:

@@ -2331,10 +2331,12 @@ def named_unit(text, names):
 # (`--suite-record`, `--suite-key`); every other caller hands none, and test
 # rows are then read for existence alone, which one line says.
 #
-# Four fields of a `test` line are read -- `path`, `nodeid`, `when` and
-# `category` -- so a field the recorder adds changes nothing here. `category`
-# is the word pytest's own summary counts the report under, which the recorder
-# asks of pytest: this matches the words and derives no rule of pytest's. A
+# Five fields of a `test` line are read -- `path`, `nodeid`, `category`,
+# `outcome` and whether it carries `wasxfail` -- so a field the recorder adds
+# changes nothing here. `category` is the word pytest's own summary counts the
+# report under, which the recorder asks of pytest; a report whose `outcome` is
+# `passed` with no `wasxfail` is a pass whatever its word. This matches the
+# words and derives no rule of pytest's. A
 # second reader of one format beside `broad_gate.py#read_record`, because this
 # file ships alone through `evidence-ci` and that one reduces a run to files.
 SUITE_RECORD_OPTION = "--suite-record"
@@ -2352,7 +2354,6 @@ NODES_READ = []
 # The order a test's categories are named in, worst first; another word a
 # plugin writes is named after these.
 OBSERVED_ORDER = ("failed", "error", "xpassed", "xfailed", "skipped")
-PARAMETRISED_RE = re.compile(r"\[.*\]\Z")
 
 
 def record_name(path, root):
@@ -2375,9 +2376,9 @@ def suite_record(directory, key, root):
     or None where no file carried it or DIRECTORY cannot be listed.
 
     PATH is the line's `path` named by `record_name`, never rebuilt from the
-    node id; NAMES the node id's parts after its first `::`, with a
-    parametrise suffix `[...]` stripped from the last. A line that does not
-    parse as an object, or lacks a field, is passed over."""
+    node id; NAMES the node id's parts after its first `::`, cut at the first
+    `[` that begins a case id, which pytest writes verbatim. A line that does
+    not parse as an object, or lacks a field, is passed over."""
     try:
         names = sorted(os.listdir(directory))
     except OSError:
@@ -2413,8 +2414,17 @@ def suite_record(directory, key, root):
                 continue
             if not isinstance(category, str):
                 continue
-            parts = nodeid.split(NODE_SEP)[1:]
-            parts[-1] = PARAMETRISED_RE.sub("", parts[-1])
+            # pytest's own outcome says the report passed and no xfail was
+            # expected of it: a plugin's word for it (`subtests passed`,
+            # which pytest 9 counts under `-q` and not without it) is a pass
+            # (round 3, 🟡 2). An `xpassed` carries `wasxfail` and stays.
+            if value.get("outcome") == "passed" and "wasxfail" not in value:
+                category = "passed" if category else ""
+            # A case id is written verbatim, `::` included, and no name of a
+            # def or class holds `[`: the first `[` after the file begins the
+            # id, so it is cut before the names split (round 3, 🔴 1).
+            qualified = nodeid.partition(NODE_SEP)[2].partition("[")[0]
+            parts = qualified.split(NODE_SEP)
             place_key = (record_name(path, root), tuple(parts))
             record.setdefault(place_key, set()).add(category)
     return record if keyed else None

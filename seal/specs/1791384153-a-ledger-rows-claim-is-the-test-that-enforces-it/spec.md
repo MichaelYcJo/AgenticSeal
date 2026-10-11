@@ -269,8 +269,9 @@ gate* rule 3 names the ways), or the directory cannot be listed — the
 checker reads as given no record and the line names the key: the strict
 reading of an absent record would refuse every test row of a repository
 whose row never ran the recorder, which is a refusal about the row and not
-about any claim, and the gate's own `new?` already tells the sealer that row
-is unmeasured. `--reverify` and `--reverify --into` take the same options and
+about any claim; the gate prints the checker's line on its own output, so
+the sealer is told the row is unmeasured (corrected in round 3's fix pass,
+⬜ 7: the gate's `new?` says so only on a failing run). `--reverify` and `--reverify --into` take the same options and
 name a row the record refuses on a `LEFT` line, as they name one whose test
 is gone today; they write nothing on it and date nothing. The record is read
 once per run and reaches `node_finding`'s three callers — `held_by_tests`,
@@ -362,7 +363,8 @@ Each is named rather than closed, with what the checker says there.
   `env -i`, a replaced `PYTEST_ADDOPTS`). Such a row's run leaves no
   `session` line under the key, the checker reads as given no record, and
   its line names the key. The seal is then over existence only, and the
-  gate's own `new?` wording already tells the sealer the row is unmeasured.
+  gate repeats that line on its own output, so the sealer is told the row is
+  unmeasured on a passing run too (corrected in round 3's fix pass, ⬜ 7).
 - **Where one runner of the row loaded the recorder and another did not**, a
   test only the other ran owns no line and reads *not run*. The remedy is
   the row's, as rule 3 says; the finding is honest about this run.

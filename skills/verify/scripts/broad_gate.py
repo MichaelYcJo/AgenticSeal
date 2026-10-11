@@ -230,6 +230,10 @@ EVIDENCE = os.path.join(
 # spelled as `evidence_check.py#SUITE_RECORD_OPTION` and `#SUITE_KEY_OPTION`.
 EVIDENCE_RECORD = "--suite-record"
 EVIDENCE_KEY = "--suite-key"
+# How `evidence_check.py#existence_line` begins: the ledger arm read test rows
+# for existence alone, which the gate repeats on its own output (round 3 of
+# #836, 🟡 3).
+EXISTENCE_ALONE = "test rows were read for existence alone"
 CORRECTION = os.path.join(
     PLUGIN, "skills", "evidence-check", "scripts", "correction_check.py"
 )
@@ -3569,6 +3573,16 @@ def gate(args, console_wants_letters, terminal=False):
     checks[LEDGER] = run(
         LEDGER, [py, EVIDENCE, "--strict", *observed, root], root, keep
     )
+    # A row that left no session under the key leaves the arm reading test
+    # rows for existence alone, and the panel's `ok` cannot say so: the
+    # checker's own line goes beside the command line (round 3, 🟡 3).
+    # Found by its own start rather than by splitting the output into lines,
+    # which `OUT_OF_CLASS` would owe a reason for: the checker prints it once.
+    said = "\n" + checks[LEDGER].text
+    at = said.find("\n" + EXISTENCE_ALONE)
+    if head is not None and at >= 0:
+        line = said[at + 1 :].partition("\n")[0]
+        sys.stderr.write(f"broad-gate: {LEDGER}: {line}\n")
     checks[UNVERIFIED_NAME] = run(
         UNVERIFIED_NAME,
         [py, UNVERIFIED, "--baseline", base.commit, specs],

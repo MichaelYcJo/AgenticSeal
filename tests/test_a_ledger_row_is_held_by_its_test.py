@@ -716,12 +716,37 @@ MODULE_SKIP = (
     "def test_x():\n"
     "    assert True\n"
 )
+# A case id is written verbatim into the node id, `::` included (round 3).
+IDS = (
+    "import pytest\n"
+    "\n"
+    "@pytest.mark.parametrize('v', [1, 2], ids=['ok', 'tests/x.py::y'])\n"
+    "def test_mixed(v):\n"
+    "    assert v == 1\n"
+    "\n"
+    "@pytest.mark.parametrize('v', [1], ids=['a::b'])\n"
+    "def test_colon(v):\n"
+    "    assert v == 1\n"
+)
+# Subtests that all pass; pytest 9 reports each under `subtests passed`
+# under `-q` (round 3). Below pytest 9 a `subTest` writes no report of its own.
+SUBTESTS = (
+    "import unittest\n"
+    "\n"
+    "class TestSub(unittest.TestCase):\n"
+    "    def test_each(self):\n"
+    "        for i in range(2):\n"
+    "            with self.subTest(i=i):\n"
+    "                self.assertTrue(True)\n"
+)
 PLANTED = {
     "test_observed.py": OBSERVED,
     "test_spellings.py": SPELLINGS,
     "test_under_if.py": UNDER_IF,
     "test_augmented.py": AUGMENTED,
     "test_module_skip.py": MODULE_SKIP,
+    "test_ids.py": IDS,
+    "test_subtests.py": SUBTESTS,
     "helpers.py": "def check():\n    assert True\n",
 }
 
@@ -755,6 +780,10 @@ def record_suite(project, records):
             "no:cacheprovider",
             "-p",
             "no:xdist",
+            # The verbosity a row commonly carries, and this repository's
+            # (`bin/test -q`): on pytest 9 it is what makes a passed subtest
+            # a counted report (round 3, 🟡 2).
+            "-q",
             "tests",
         ],
         cwd=str(project),
@@ -921,6 +950,37 @@ def test_a_class_and_a_parametrised_function_own_their_lines(suite, script, node
         ], out.stdout
 
 
+@pytest.mark.parametrize(
+    "node, seen",
+    [
+        ("tests/test_ids.py::test_mixed", "failed"),
+        ("tests/test_ids.py::test_colon", None),
+    ],
+    ids=["a failing case whose id holds ::", "every case id holds ::"],
+)
+def test_a_case_id_holding_the_separator_is_its_functions(suite, script, node, seen):
+    """Round 3, 🔴 1: pytest writes a case id verbatim, so `::` inside the
+    brackets is no separator. Red before the fix: the failing case was read
+    as another unit's and the row held; the passing one read *not run*."""
+    out = observe(suite, script, [held(f"`{node}`")])
+    if seen is None:
+        assert out.returncode == 0, out.stdout + out.stderr
+        assert findings(out.stdout) == [], out.stdout
+    else:
+        assert findings(out.stdout) == [
+            ("MALFORMED", node, f"{seen} in the recorded suite{UNHELD}")
+        ], out.stdout
+
+
+def test_a_test_whose_subtests_all_passed_is_held(suite, script):
+    """Round 3, 🟡 2: a report pytest's own outcome calls passed, with no
+    xfail expected of it, is a pass whatever word a plugin counts it under.
+    Red before the fix on pytest 9: MALFORMED, *subtests passed*."""
+    out = observe(suite, script, [held("`tests/test_subtests.py::TestSub`")])
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert findings(out.stdout) == [], out.stdout
+
+
 def test_another_files_test_of_the_same_name_is_not_this_rows(suite, script):
     """S18's last clause: `TestA::test_b` and `TestB::test_b` share a name, and
     a row naming `TestB::test_b` owns only TestB's line; a file pytest never
@@ -1063,7 +1123,9 @@ def test_reverify_names_what_the_record_refuses_and_writes_nothing(suite):
     path = fragment(project, [held(f"`{node}`")])
     before = path.read_bytes()
     record = ["--suite-record", str(records), "--suite-key", SUITE_KEY]
-    out = run(["--reverify", "--checked", "2026-10-12", *record, "."], project)
+    # A date every timezone has reached: `--checked` refuses a date after the
+    # local one, and a CI runner on UTC was still on the 11th (round 3, ⬜ 4).
+    out = run(["--reverify", "--checked", "2026-10-08", *record, "."], project)
     assert out.returncode == 1, out.stdout + out.stderr
     assert path.read_bytes() == before
     left = f"  LEFT  {node}  MALFORMED — skipped in the recorded suite{UNHELD}"
@@ -1076,7 +1138,7 @@ def test_reverify_names_what_the_record_refuses_and_writes_nothing(suite):
     )
     try:
         out = run(
-            ["--reverify", "--into", FRAGMENT, "--checked", "2026-10-12", *record, "."],
+            ["--reverify", "--into", FRAGMENT, "--checked", "2026-10-08", *record, "."],
             project,
         )
     finally:
@@ -1164,7 +1226,18 @@ def prose(rel):
         (
             "docs/the-evidence-ledger.md",
             "test rows are read for existence alone, and the run says so in one "
-            "line beside its totals.",
+            "line beside its totals;",
+        ),
+        # Round 3, 🟡 3 and ⬜ 6.
+        (
+            "docs/the-evidence-ledger.md",
+            "a gate whose row loaded no recorder reads the same way and prints "
+            "that line on its own output.",
+        ),
+        (
+            "docs/the-evidence-ledger.md",
+            "The run that is sealed decides a skipped test: a `skipif` true on the "
+            "sealing machine reads *skipped* and holds nothing there",
         ),
         (
             "skills/evidence-check/SKILL.md",
