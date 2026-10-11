@@ -44,3 +44,18 @@ and are excused below.
 | `tests/test_the_fixes_close_the_record.py` | Measured 2026-09-14, and the rider's stated consequence does not hold at this site. | a dated measurement, true of the code it measured; the docstring's last sentence, added here, says where the home is read since #866 |
 | `.test_durations` | test_one_thing_named_is_not_two[Opus 5] | timing data for pytest-split, not prose |
 | `.test_durations` | test_an_untracked_file_under_a_work_item_is_work_in_progress | the same data; the ids of the two removed home cases stay in it until the next `--store-durations` run |
+
+Round 1's fix pass (`survivor-check --range b10835ff..HEAD`, 2026-10-12)
+named nine more. Two test docstrings that still said an unseen pull request
+is ready, or that the suite's `gh` answers draft, were corrected; the rest
+are true where they stand:
+
+| Path | Quote | Grounds |
+|---|---|---|
+| `tests/test_chain_check_at_the_pull_request.py` | and it says which state it assumed. | a payload-shape case's message: for a payload that cannot answer the check does judge ready, and says so |
+| `tests/test_chain_check_at_the_pull_request.py` | silence is the one outcome | the same case's message, true of every state |
+| `seal/specs/1791384155-a-round-record-cell-has-one-reader/spec.md` | There `new` and `close` exit 1 on the record they just wrote | the frame's J4 as the framer wrote it; round 1's fix pass diverged from it on the orchestrator's direction, and `overview.md`'s *An unseen pull request* row records both sides |
+| `skills/code-review/orchestration.md` | On a draft that pair prints and names the verifying round | true: a draft still prints the pair; a pull request nobody observed also prints it, which this sentence does not deny |
+| `seal/specs/1790550713-what-the-last-rounds-deferred/questions.md` | No row needs a person, and none blocks the build. | another work item's record, a different subject sharing the sentence this item's `questions.md` replaced |
+| `seal/specs/1790815612-the-reading-segments-batch-again-and-the-opening-lives-in-a-file/questions.md` | No row needs a person, and none blocks the build. | the same |
+| `seal/specs/1790835050-the-delegated-note-compares-what-it-prints/questions.md` | No row needs a person, and none blocks the build. | the same |

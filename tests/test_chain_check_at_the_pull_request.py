@@ -316,12 +316,14 @@ def test_a_pull_request_nobody_observed_is_unknown_not_ready(repo):
 def test_an_unknown_state_is_not_a_draft_at_this_arm_either(repo, kwargs):
     """The trap #296 opens, and the one thing that must not follow from it.
 
-    `pull_request_state` has three answers, not two, and `unknown` is judged
-    as READY — otherwise `no pull-request context` becomes the quietest way
-    past this check that exists. The draft path above must inherit that
-    direction rather than re-deciding it: a harness that stops writing
-    `draft` into the payload would otherwise turn the fix for #296 into a way
-    past the round record itself.
+    `pull_request_state` has three answers, not two, and an `unknown` read
+    from a payload that cannot answer is judged as READY — otherwise a
+    harness fault becomes the quietest way past this check that exists. The
+    draft path above must inherit that direction rather than re-deciding it:
+    a harness that stops writing `draft` into the payload would otherwise
+    turn the fix for #296 into a way past the round record itself. (No
+    payload at all is a pull request nobody observed, and reads as unknown
+    since #866's round 1.)
     """
     write(repo, f"{ITEM}/routing.md", declaration())
     commit(repo, "declare")

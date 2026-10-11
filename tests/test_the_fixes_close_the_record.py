@@ -276,10 +276,10 @@ def test_pass_is_ticked_when_nothing_is_open_and_the_gate_is_the_flag(repo):
     record, which is the state that makes the verifying round mandatory.
     The exit is the check's; the record stands.
 
-    The check reads a draft here — the suite's `gh` answers draft (#866),
-    the state a review round runs in — so since #598 the pair prints there
-    rather than failing, and the line names the verifying round. At a ready
-    pull request the same run exits 1."""
+    The check sees no pull request here — the suite's `gh` finds none, which
+    it reads as unknown and not as ready (#866) — so, as in a draft since
+    #598, the pair prints rather than failing, and the line names the
+    verifying round. At a ready pull request the same run exits 1."""
     a = round_one(repo)
     write(repo, "mod.py", MOD_CHANGED)
     b = commit(repo, "fix")
