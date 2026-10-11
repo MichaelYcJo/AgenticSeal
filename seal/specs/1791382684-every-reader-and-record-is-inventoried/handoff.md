@@ -19,9 +19,9 @@ the review chain, and one has not started.
 | #867 | 1791384156 | #882 | **merged** 56ade5c8 | — |
 | #869, #852, #853 | 1791384158 | #880 | **merged** b6c81a83 | — |
 | #860, #805 | 1791384160 | #878 | **merged** ad447367, after a reframe at round 3 | — |
-| #836 | 1791384153 | #887 (draft) | round 2 recorded at da1a0cd3: 🟡 1, 🟡 2, `Fix of a fix: first`, one reopening left | **on hold** — see §*Review of the run*; do not spawn the fix pass until the owner decides |
-| #870, #848 | 1791384159 | #889 (draft) | round 1 recorded at 8b0d4d7a: 🟡 1–3 | **on hold** — see §*Review of the run* |
-| #868, #856 | 1791384157 | #881 (draft, `chain: reframed`) | reframed after round 3; the redesign's round 5 closed at 11b6ed14 (2 fixed, 2 answered) | **on hold** — see §*Review of the run*; the next record would be round 6, which ends the run |
+| #836 | 1791384153 | #887 (draft) | round 2 recorded at da1a0cd3: 🟡 1, 🟡 2, `Fix of a fix: first`, one reopening left | **reframe** (owner, 2026-10-12): the collection half, against the pytest recorder's record; the test-row half stands |
+| #870, #848 | 1791384159 | #889 (draft) | round 1 recorded at 8b0d4d7a: 🟡 1–3 | **reframe** (owner, 2026-10-12): force a format; bound only where a real parser exists |
+| #868, #856 | 1791384157 | #881 (draft, `chain: reframed`) | reframed after round 3; the redesign's round 5 closed at 11b6ed14 (2 fixed, 2 answered) | **reframe** (owner, 2026-10-12): observe the act (git's `reference-transaction` hook), not the command |
 | #866 | 1791384155 | none yet | phases 1–4 closed; phase 5 stopped mid-edit and committed as an unverified `wip:` | finish phase 5 (or revert the wip), build 6–7, then the draft PR and round 1 — its branch's `handoff.md` |
 | #835 | 1791384152 | none | framed; not started | builds **last**, after #836, #870, #866, #868 land |
 | #834 (its own build) | 1791382684 | none | the inventory only | after #835 |
@@ -49,8 +49,8 @@ in the milestone).
 0.21.0's theme was to break the guess → record → re-tag loop: #834's inventory
 gives every reader one of three fates, which are observe, force a format, or
 delete. The owner read the run against that theme and judged that much of the
-open work patches over the problem and makes new ones. **The three open chains
-below are on hold until the owner decides their direction.** Every finding
+open work patches over the problem and makes new ones. **The owner has since decided to reframe all three inside 0.21.0** (§*What
+the owner decided*). Every finding
 round so far has found the next case of the same class, and another fix pass
 would add one more layer of the same patch.
 
@@ -112,16 +112,23 @@ docstring says so.
 The fix for these is one hand-back command and a pinned plugin version per
 run, not longer prompts.
 
-### What the owner decides next
+### What the owner decided (2026-10-12)
 
-1. For #868, #870 and #836's collection half, choose one:
-   - reframe against the observation-based direction above inside 0.21.0;
-   - or drop them from 0.21.0.
-2. Whether 0.21.0 ships as the six merged items plus #866, #835 and #834's
-   build.
-3. #836 Q1. The owner leaned towards (c), a tool-assisted bulk migration,
-   after seeing the 360/55 count. The timing is open: release preparation or
-   0.22.0. Weigh it against the ledger-premise question above.
+1. **Reframe #868, #870 and #836's collection half inside 0.21.0**, against
+   the observation-based direction above.
+   - Each goes back to its framer with its round records as input, the way
+     `skills/code-review/orchestration.md` §*A fix of a fix twice sends the
+     work item back to its framer* runs a reframe.
+   - Each framer is also given this section: the owner's reason is the theme,
+     not a fix-of-a-fix count.
+   - The open findings of each chain's last record close `deferred the
+     frame`, and each PR takes `chain: reframed`.
+2. **0.21.0 ships as the six merged items plus #866, #835 and #834's build**,
+   with the three reframed items once they land.
+3. **#836 Q1 stays at (a) for now.** A bulk migration of the released rows
+   that already cite a test needs #836's test rows, and #836 is being
+   reframed. Decide (c) and its timing after #836 lands. Weigh it then against
+   the ledger-premise question above.
 
 ## How a chain is run, as this run learned it
 
