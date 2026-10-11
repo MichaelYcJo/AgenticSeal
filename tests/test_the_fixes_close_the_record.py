@@ -276,10 +276,10 @@ def test_pass_is_ticked_when_nothing_is_open_and_the_gate_is_the_flag(repo):
     record, which is the state that makes the verifying round mandatory.
     The exit is the check's; the record stands.
 
-    The check is told `draft`, as `round_record.run_check` tells it on every
-    local run unless `gh` says the pull request is ready, so since #598 the
-    pair prints there rather than failing, and the line names the verifying
-    round. At a ready pull request the same run exits 1."""
+    The check reads a draft here — the suite's `gh` answers draft (#866),
+    the state a review round runs in — so since #598 the pair prints there
+    rather than failing, and the line names the verifying round. At a ready
+    pull request the same run exits 1."""
     a = round_one(repo)
     write(repo, "mod.py", MOD_CHANGED)
     b = commit(repo, "fix")
@@ -758,7 +758,9 @@ def test_the_empty_span_repair_did_not_widen_the_shared_separators():
     arrives as `deferred seal/follow-up.md`. The rider is right about WHERE
     the repair goes and its reason is not the one it gives. Recorded rather
     than quietly corrected, because the other two callers are a real cost and
-    nothing here measured them.
+    nothing here measured them. Since #866 the home reaches no
+    `SEPARATORS` strip in `fix_table` at all: `chain.deferred_parts` reads
+    it, and its `HOME_MARKS` takes the backticks off first.
     """
     generator = generator_module()
     assert "`" not in generator.chain.SEPARATORS, (
