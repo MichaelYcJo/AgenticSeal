@@ -282,6 +282,19 @@ def test_no_reader_of_a_resurrection_flag_is_left():
     assert [len(u) for u in ec.file_units("a.py", "def f():\n    pass\n")] == [2]
 
 
+def test_two_identical_places_are_one_place_for_a_row_with_no_claim(repo):
+    """`judge` lost its resurrection branch and kept the tie-break: two
+    places that both reconstruct the recorded hash are identical spans, so
+    choosing between them is no choice at the major level, and the row reads
+    OK rather than ambiguous."""
+    twins = "def render(x):\n    log(x)\n\n\ndef render(x):\n    log(x)\n"
+    (repo / "src" / "app.py").write_text(twins, encoding="utf-8")
+    h = ec.content_hash(["def render(x):", "    log(x)"])
+    cite(repo, f"src/app.py#render@{h}")
+    r = run(["."], str(repo))
+    assert r.returncode == 0 and "1 ok" in r.stdout, r.stdout
+
+
 def test_a_citation_of_a_released_row_by_a_bare_symbol_is_refused(tmp_path):
     """`read_citation` is the fourth caller: a citing row's first coordinate
     names a section of a released ledger file. A bare symbol there names no
