@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 887 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `7ba58d77b549cca351bb7d94dba646c8858795bf..e41d3c271abb5c968f3664055c35c8fe9c9b7a1a`, 1 commit |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | second — 🟡 1 at skills/evidence-check/scripts/evidence_check.py#suite_record, a unit round-3's fixes changed; the fix passes stop here and the work item goes back to its framer |
 | Needs a fix | yes — 🟡 1 (a skipped or xfailed subtest holds its row at pytest 9's default verbosity) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,9 +25,9 @@ Verifying round 4 of round 3's fixes: fa199d96..1cc634a7 plus the table and the 
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | A skipped or xfailed subtest is written `""` at pytest 9's default verbosity and holds its row; under `-q` or `-v` the same subtest is refused | `skills/evidence-check/scripts/evidence_check.py:2421` | open | executed on pytest 9.1.1 at three verbosities (table above); the proposed case is 4 red at the head and 8 green with the fix, and the module passed 140 with it; this tree's row is `-q` and no cited test uses subtests |
-| ⬜ 2 | T26 claims *a preflight prints none* and *red with its guard removed*; its one cited case never runs a preflight and stays green under either guard mutation | `seal/ledger/1791384153-a-ledger-rows-claim-is-the-test-that-enforces-it.md:23` | open | executed: both mutations in the clone, the cited case passed each time, and the module's 15 preflight cases passed with the `head` guard removed; the behaviour is right by reading; a correction to the run's paperwork, outside `Needs a fix` |
-| ⬜ 3 | The line the gate repeats ends *`broad-gate` hands this check the sealed run's record*, which names neither the cause nor the remedy when the gate is the one printing it | `skills/verify/scripts/broad_gate.py:3585` | open | read; the line comes from `evidence_check.py#existence_line` |
+| 🟡 1 | A skipped or xfailed subtest is written `""` at pytest 9's default verbosity and holds its row; under `-q` or `-v` the same subtest is refused | `skills/evidence-check/scripts/evidence_check.py:2421` | deferred #891 | #891 — the run ends at this record (capped, and a second fix of a fix by the generator's count, which carries round 2's `first` across the owner-directed reframe). The orchestrating session takes the capped exit rather than a third frame: rounds 3 and 4 confirmed the redesign's direction, and this finding is one default-verbosity subtest case that no row in this repository meets; executed on pytest 9.1.1 at three verbosities (table above); the proposed case is 4 red at the head and 8 green with the fix, and the module passed 140 with it; this tree's row is `-q` and no cited test uses subtests |
+| ⬜ 2 | T26 claims *a preflight prints none* and *red with its guard removed*; its one cited case never runs a preflight and stays green under either guard mutation | `seal/ledger/1791384153-a-ledger-rows-claim-is-the-test-that-enforces-it.md:23` | answered | corrected at e41d3c27: T26 claims only the half its case holds; executed: both mutations in the clone, the cited case passed each time, and the module's 15 preflight cases passed with the `head` guard removed; the behaviour is right by reading; a correction to the run's paperwork, outside `Needs a fix` |
+| ⬜ 3 | The line the gate repeats ends *`broad-gate` hands this check the sealed run's record*, which names neither the cause nor the remedy when the gate is the one printing it | `skills/verify/scripts/broad_gate.py:3585` | deferred #891 | #891 — the gate's repeated line names neither cause nor fix; carried with 🟡 1; read; the line comes from `evidence_check.py#existence_line` |
 | 🟢 | round 3's blocking finding 1 is closed — a case id holding `::` or `[` belongs to its function | `skills/evidence-check/scripts/evidence_check.py:2426` | confirmed | executed: the two cases red at fa199d96 and green at the head; a probe with ids `a[b`, `x]::y[z`, `[[::]]` and `q[::r` read as expected; the 66-token record sealed with checker exit 0 |
 | 🟢 | round 3's finding 2 is closed in the direction it named — a test whose subtests all passed is held under `-q` | `skills/evidence-check/scripts/evidence_check.py:2421` | confirmed | executed: the case red at fa199d96 and green at the head; failing subtests stay refused at every verbosity; the other direction is 🟡 1 |
 | 🟢 | round 3's finding 3 is closed — the gate repeats the checker's existence line on its own output | `skills/verify/scripts/broad_gate.py:3583` | confirmed | executed: the case red at fa199d96 and green at the head; read: the search by line head cannot miss or double-print |
