@@ -6,6 +6,7 @@ the gate. -->
 
 Approved 2026-10-08 by the repository owner, when `smith` was spawned.
 Approved 2026-10-08 by the orchestrating session under the owner's `automation` answer, for the redesign after round 3, when `smith` was spawned; `questions.md` P1 is built on its default (yes).
+Approved 2026-10-12 by the orchestrating session under the owner's `automation` answer and the owner's reframe decision, for the redesign after round 5, when `smith` was spawned; `questions.md` P2 is built on its default (delete) and is flagged to the owner, since it reverses the owner's confirmed (c) for #856.
 
 <!-- The line above is the record that the gate happened. Fill it in at the
 spawn: reading this plan and spawning the builder IS the approval, so nothing
