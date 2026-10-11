@@ -60,83 +60,6 @@ reading yields (§*Which tree*) as one of three shapes, from its words alone:
   whose git is not all listed, behind a redirection or a zsh precommand
   word, or in a command that would not split into words.
 
-**A brace expansion is unrecognised (#856).** bash and zsh make other
-words of `{main,feature/x}`, `--ro{,}` and `{1..3}` before git runs, so `git
-rebase {main,feature/x}` is `git rebase main feature/x` to git, `git rebase
---ro{,} feature/x` is `--root`, and `git stash {branch,} x` takes a branch:
-the words the frozen reading read are not git's, and the question this
-section asks has no answer for them. And bash makes `git` itself of a brace
-as readily: `{git,} switch x`, `{env,} git switch x` and `2>&1 {git,} switch
-x` all run `git switch x`. A word holding an unquoted brace expansion, in any
-segment, makes that segment an unrecognised shape, whatever its command word
-is and whatever bash would make of the brace. A brace expansion is read off
-the command's text, not its words, so that it errs toward stopping: each
-quoted span (`'…'`, `"…"`, `$'…'`, `$"…"`) and each escape stands in as one
-space, and then a `{`, later a `,` or a `..`, and later a `}` is a brace,
-with no word boundary and no nesting read. A segment is the brace shape where
-its words, joined, hold one, and a brace the text holds and no one segment's
-words hold (a brace group holding a comma) is the command's, judged in the
-session's own tree. One exception is kept: a `${` whose span holds no brace,
-`,` or `..` is a parameter expansion (`${HOME}`, `${x:- }`). So a signed
-sequence `{+1..3}`, a nested brace, quoted whitespace inside the braces,
-`\${a,b}` (`$a $b` to bash), `$''{g..g}it` (`git` to bash and zsh, the `$`
-of a quote is no parameter expansion) and `{git,$(: x)}` (`git` to bash,
-whitespace inside a substitution is no word boundary) all stop (rounds 4 and
-5 of work item 1791384157). What stays silent does so by the shell's quoting
-and that one exception, not by a list of spellings: a quoted or escaped
-brace, a heredoc body, `${HOME}`, and braces with no `,` or `..` before a
-later `}` (`{}`, `{a}`, `find`'s `{}`, `@{-1}..HEAD`). Some forms bash
-expands nothing in stop on purpose, because the test reads no word boundary
-and no nesting: a case-modifying `${a,}`, unquoted braces bash makes two
-words of (`echo {a, b}`), a brace group holding a comma (`{ echo x,y; }`),
-a parameter expansion holding a `..` (`${r%..*}`) and a reflog range across
-two braces (`git diff HEAD@{1}..HEAD@{0}`). That is a stop where the tree
-matters; a brace the test missed was a silent switch. A command the
-splitter could not close is read for such a brace in its raw text too. Its
-plain spelling is the words
-written out as the shell would make them, or the braces quoted where they are
-meant literally. The quoting is read off the command's text, because the
-frozen splitter has taken the quotes off the words, so `git commit -m
-'{a,b}'` and `echo '{a,b}'` stay silent. In a segment the frozen reading
-reads as git, a switch and a creation keep their own rules. Nothing about a
-brace is read beyond that: not what bash makes of it, and not where it
-stands. Three review rounds of work item 1791384157 each read one more
-position (the command word's alternatives, every word up to the command
-word, a runner's operand) and each found the next spelling bash builds `git`
-from, so the guard stops on the brace instead, as on every shape it does not
-recognise. Expanding the braces in the guard was the other answer, and it is
-not taken: it would be a shell prediction, the family that did not converge
-on one (#834).
-
-A brace segment is judged in the tree the walk places it in and in every
-tree a `-C <dir>` word pair among its words names, each pair alone and the
-pairs composed in order as git composes them, from the placed directory. So
-`{git,} -C W switch x` and `git {,} -C W switch x` stop where either the
-session's tree or `W` matters, and `{git,} -C .. -C W switch x` where `../W`
-does: which word bash makes the command or the subcommand of is what the
-guard does not read, and more trees is the stopping direction. A `git -C`
-value or a `cd` operand holding a brace is read as one word, so that segment
-is placed in a directory that does not exist and falls back to the session's
-own tree, as §*Which tree* says.
-
-Three costs are named. A command holding a quoted brace in one segment and
-an unquoted one in another stops on both, because the quoting is the
-command's. A brace in an assignment word before a command (`A={a,b} ls`),
-which neither bash nor zsh expands, stops too, because the rule reads no
-position. A brace in an argument of a command that is not git (`cat {a,b}`)
-stops where the tree matters: under the press it is a `deny` the model
-rewrites as `cat a b`, and otherwise one `ask`. Of 33,287 distinct command
-and directory pairs recorded by 2026-10-08, the rule stops 42: 41 a command
-that is not git, and one a git segment, `git add` of a path holding
-`{plan,questions}`, which the owner's rule (c) stopped before the rule was
-widened. Eight of the 42 are round 5's reading: seven brace groups holding a
-comma, judged as the command's, and one parameter expansion holding a `..`;
-the round 4 reading stops the other 34 and nothing the round 5 reading lets
-through. Two stop on a brace in an assignment word alone, and one holds a
-quoted brace beside an unquoted one. Counted tree-blind by the method
-`phases/phase-7.md` of work item 1791384157 writes down, corrected in rounds
-4 and 5.
-
 A creation is §B's and is read as it was.
 
 **The stop for an unrecognised shape.** It is taken only where one of the
@@ -195,11 +118,8 @@ stops ask no person anything; without it each is one `ask`. Over the
 31,193 distinct command and directory pairs this repository's runs recorded
 before 2026-10-03, the shapes stop 315 tree-blind, 55 of them pairs the
 guard before #826 did not stop at its most cautious, and they let through
-none it stopped (work item 1791270162, `phases/phase-3.md`). The brace
-shape adds 42 of 33,287 pairs recorded by 2026-10-08, 41 a brace in a
-command that is not git and one a git segment, as the brace paragraph above
-says.
-Enforced by: tests/test_worktree_guard.py::test_a_listed_shape_is_silent_in_every_tree_and_spawns_nothing, tests/test_worktree_guard.py::test_an_unrecognised_shape_stops_where_the_tree_matters, tests/test_worktree_guard.py::test_the_same_shapes_are_silent_in_a_clean_single_stream_tree, tests/test_the_guard_asks_once_per_session.py::test_under_the_press_the_stop_is_a_deny_to_the_model, tests/test_the_guard_asks_once_per_session.py::test_the_consent_record_is_not_the_press, tests/test_guard_resolves_the_tree_it_judges.py::test_no_redirection_makes_a_moving_verb_listed_wherever_it_stands, tests/test_guard_resolves_the_tree_it_judges.py::test_a_shape_in_a_clean_tree_takes_no_stop_from_one_in_a_dirty_tree, tests/test_worktree_guard.py::test_no_approval_runs_a_line_past_an_active_tree, tests/test_worktree_guard.py::test_a_rebase_naming_a_branch_is_unrecognised, tests/test_worktree_guard.py::test_no_listed_form_moves_head_under_git, tests/test_worktree_guard.py::test_the_stop_names_each_tree_that_matters_in_both_languages, tests/test_worktree_guard.py::test_a_cut_group_is_judged_in_the_tree_its_own_c_names, tests/test_worktree_guard.py::test_a_brace_expansion_in_a_git_word_is_unrecognised, tests/test_worktree_guard.py::test_a_quoted_brace_in_a_git_word_stays_listed, tests/test_worktree_guard.py::test_the_brace_stop_reads_in_korean, tests/test_worktree_guard.py::test_a_brace_that_makes_the_command_word_is_unrecognised, tests/test_worktree_guard.py::test_a_brace_in_any_word_is_the_brace_shape, tests/test_worktree_guard.py::test_a_brace_command_word_is_judged_in_the_tree_its_c_names, tests/test_worktree_guard.py::test_a_c_a_brace_hides_is_the_named_limit, tests/test_worktree_guard.py::test_a_quoted_brace_beside_an_unquoted_one_stops_on_both, tests/test_worktree_guard.py::test_a_brace_segment_composes_its_c_values_as_git_does, tests/test_worktree_guard.py::test_what_the_shell_does_not_expand_stays_silent, tests/test_worktree_guard.py::test_a_brace_in_a_command_that_will_not_split_stops
+none it stopped (work item 1791270162, `phases/phase-3.md`).
+Enforced by: tests/test_worktree_guard.py::test_a_listed_shape_is_silent_in_every_tree_and_spawns_nothing, tests/test_worktree_guard.py::test_an_unrecognised_shape_stops_where_the_tree_matters, tests/test_worktree_guard.py::test_the_same_shapes_are_silent_in_a_clean_single_stream_tree, tests/test_the_guard_asks_once_per_session.py::test_under_the_press_the_stop_is_a_deny_to_the_model, tests/test_the_guard_asks_once_per_session.py::test_the_consent_record_is_not_the_press, tests/test_guard_resolves_the_tree_it_judges.py::test_no_redirection_makes_a_moving_verb_listed_wherever_it_stands, tests/test_guard_resolves_the_tree_it_judges.py::test_a_shape_in_a_clean_tree_takes_no_stop_from_one_in_a_dirty_tree, tests/test_worktree_guard.py::test_no_approval_runs_a_line_past_an_active_tree, tests/test_worktree_guard.py::test_a_rebase_naming_a_branch_is_unrecognised, tests/test_worktree_guard.py::test_no_listed_form_moves_head_under_git, tests/test_worktree_guard.py::test_the_stop_names_each_tree_that_matters_in_both_languages, tests/test_worktree_guard.py::test_a_cut_group_is_judged_in_the_tree_its_own_c_names
 
 ### B. Worktree creation (`git worktree add`, or Agent/Task `isolation: "worktree"`)
 
@@ -877,6 +797,20 @@ at one prompt against a wrong allow breaking another session's tree.
   before its tree has moved (M1), and a hook after a creation cannot undo all
   of it (P6), so §A and §B read the command's text on every git, through the
   frozen reading §*Which tree* describes.
+- A word the shell builds before git runs — a brace expansion, a
+  substitution that spells `git`, a here-string or heredoc handed to a
+  shell, a git spelled past the splitter (`g""it` in a line it cannot
+  close) — is not read, so `git rebase {main,feature/x}`, `git rebase
+  --ro{,} feature/x`, `git stash {branch,} y` and `git worktree {add,} ../wt
+  f` are listed and silent in every tree, though bash makes the first three
+  switch HEAD and the fourth add a worktree (#856), and the class is decided
+  in #886. The guard reads the words the frozen reading splits, and the
+  shell makes this word afterwards. A brace reader was built for #856 in
+  work item 1791384157 and taken out in the same release: every reading of
+  it imitated bash, and five review rounds each found the next spelling it
+  missed. `test_a_shell_built_word_is_the_named_limit` and the braced half
+  of `test_no_listed_form_moves_head_under_git` in
+  `tests/test_worktree_guard.py` pin the limit as a fact.
 - A switch into the worktree the same command creates is judged against the
   session's own tree: `git worktree add ../x -b x && cd ../x && git switch y`
   meets that tree's switch verdict, because `../x` does not exist yet when the
@@ -915,10 +849,9 @@ at one prompt against a wrong allow breaking another session's tree.
   how `rebase`'s branch-naming form was found. A form no row's case runs is
   still a reading.
 - A creation only a hidden spelling holds (`git 2>&1 worktree add …`, `git
-  worktree 2>/dev/null add …`, and since #856 `git worktree {add,} ../wt f`,
-  whose `add` only bash's brace expansion makes) is an unrecognised shape, so
-  in a clean tree nobody else is in it says nothing and §B never reads it, as
-  at 0.16.0 before #678. The consent writer files nothing for it either.
+  worktree 2>/dev/null add …`) is an unrecognised shape, so in a clean tree
+  nobody else is in it says nothing and §B never reads it, as at 0.16.0
+  before #678. The consent writer files nothing for it either.
 - A `rebase` is listed, and detaches HEAD while it runs: a session switching
   in the same tree during that window meets a detached HEAD rather than the
   branch. The guard judges the command before it runs and reads no window.
@@ -933,11 +866,7 @@ at one prompt against a wrong allow breaking another session's tree.
   tree its segment names, the one it was typed from: its own `-C` and `cd`
   are not read. `sh -c 'git -C W switch x'` with `W` dirty and the
   session's tree clean says nothing, as it did before #826. Only a git the
-  wider reading reads as a segment of its own has its `-C` composed, and a
-  brace segment's `-C <dir>` word pairs are read, but not a `-C` the
-  brace makes: a `-C` a string hides is not read, and so is a `-C` a brace
-  hides in a segment that is not git (`{git,} {-C,} W switch x`), which is
-  judged where the walk places it.
+  wider reading reads as a segment of its own has its `-C` composed.
 - Where `hooks/cmdline.py` did not load, or the reader that glues an `&`
   cut back raises, a git the cut split is judged in the tree the part before
   the cut names: `git -C W worktree 2>&1 add …` is judged in `W`, and `2>&1

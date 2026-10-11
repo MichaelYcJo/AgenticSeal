@@ -171,7 +171,10 @@ Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_the_text_
 No git refuses a branch switch before its tree has moved: on 2.34–2.43 a
 switch reaches `reference-transaction` with no line at all, and on 2.50.1 the
 line arrives after the tree and index already hold the new branch (phase 1's
-M1). A worktree creation can be judged after git made it, in `post-checkout`,
+M1). A branch-naming rebase reaches `reference-transaction` the same way a
+switch does: on 2.50.1 its line names the branch after the tree already holds
+it (`git rebase main other`, executed by the second reframe of work item
+1791384157). A worktree creation can be judged after git made it, in `post-checkout`,
 but only taken back there, and round 1 of #692 found what a take-back cannot
 undo: `worktree add -B` resets an existing branch first, `--no-checkout` and
 `--orphan` run no `post-checkout`, and a `--lock`ed tree survives one

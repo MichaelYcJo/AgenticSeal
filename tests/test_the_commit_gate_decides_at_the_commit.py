@@ -1603,6 +1603,9 @@ def test_the_policy_names_the_one_session_reader():
         # Round 1 of work item 1791384157, yellow 4.
         "it reads `CLAUDE_PID` only where the hook's own "
         "`CLAUDE_CODE_SESSION_ID` is the session it records",
+        # S27 of its second reframe, red against `52c72bbe`'s text.
+        "A branch-naming rebase reaches `reference-transaction` the same way a "
+        "switch does",
     ):
         assert sentence in text, sentence
 
