@@ -3886,6 +3886,47 @@ def test_the_ledger_carries_its_three_counts_on_one_row():
     assert ("ledger", "exit 0") in bare, bare
 
 
+SKIPPED_TEST = (
+    "import pytest\n\n\n@pytest.mark.skip\ndef test_skipped():\n    assert True\n"
+)
+
+
+@pytest.mark.parametrize(
+    "node, held",
+    [
+        ("tests/test_one.py::test_one", True),
+        ("tests/test_skipped.py::test_skipped", False),
+    ],
+)
+def test_the_ledger_arm_reads_the_run_it_seals(repo, node, held):
+    """S21 of #836, over a planted repository. A ledger row held by a test is
+    read against the head run's pytest record: a row naming a test the row
+    skipped fails the ledger arm, naming what was observed, and the run is
+    NOT SEALED; a row naming a test that passed leaves the arm clean."""
+    write(repo, "tests/test_skipped.py", SKIPPED_TEST)
+    write(
+        repo,
+        "seal/ledger/1799000000-a-sealed-work-item.md",
+        f"| T1 · the claim | `{node}` | seen red, then green | 2026-10-12 | |\n",
+    )
+    commit(repo, "a ledger row held by a test")
+    out = run_gate(repo)
+    ledger = (repo.parent / "out" / "ledger.txt").read_text(encoding="utf-8")
+    if held:
+        assert "MALFORMED" not in ledger, ledger
+        assert "read for existence alone" not in ledger, ledger
+        assert not [
+            line
+            for line in out.stdout.splitlines()
+            if line.strip().startswith("ledger ") and "exit 2" in line
+        ], out.stdout
+    else:
+        assert out.returncode == 1, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
+        assert "NOT SEALED" in out.stdout, out.stdout
+        assert f"MALFORMED {node}  skipped in the recorded suite" in ledger, ledger
+        assert "ledger" in out.stdout and "exit 2" in out.stdout, out.stdout
+
+
 def test_a_failing_ledger_ends_with_its_total_line(tmp_path):
     """A4's second half. `evidence-check` prints its `total:` line LAST and the
     failure form quotes a check's first eight lines, so a ledger refused for

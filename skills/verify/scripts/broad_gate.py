@@ -23,7 +23,11 @@ What it does, in order, from the repository root:
      reads as — the whole command wrapped in backticks or in `$(…)`, or
      ending in a single `&`. No refusal names a command to write: the row is
      a person's, and the message says where they answer it
-  2. `evidence-check --strict .`       the ledger's rows still anchor
+  2. `evidence-check --strict .`       the ledger's rows still anchor; and,
+     where step 1 ran the suite, `--suite-record` and `--suite-key` hand it
+     that run's pytest record, so a row held by a test is held only where
+     the test was seen passing in it (#836). A preflight runs no suite and
+     hands none, and the check reads test rows for existence alone
   3. `unverified-check --baseline <base> seal/specs/`
   4. `chain_check.py --baseline <base>`   judged as a DRAFT pull request,
      because the cell this run is about to write still reads `not yet`
@@ -222,6 +226,10 @@ UNVERIFIED = os.path.join(HERE, "unverified_check.py")
 EVIDENCE = os.path.join(
     PLUGIN, "skills", "evidence-check", "scripts", "evidence_check.py"
 )
+# The two options that hand the ledger arm the sealed run's record (#836),
+# spelled as `evidence_check.py#SUITE_RECORD_OPTION` and `#SUITE_KEY_OPTION`.
+EVIDENCE_RECORD = "--suite-record"
+EVIDENCE_KEY = "--suite-key"
 CORRECTION = os.path.join(
     PLUGIN, "skills", "evidence-check", "scripts", "correction_check.py"
 )
@@ -3550,7 +3558,17 @@ def gate(args, console_wants_letters, terminal=False):
             SUITE, command, root, keep, shell=True, env=recording_env(keep, head_key)
         )
         head = read_record(records_dir(keep), head_key, root)
-    checks[LEDGER] = run(LEDGER, [py, EVIDENCE, "--strict", root], root, keep)
+    # The ledger arm reads the run it seals (#836): a test row is held only
+    # where the head run's record saw its test pass. No suite ran on a
+    # preflight, so it hands no record and the arm reads existence.
+    observed = (
+        []
+        if head is None
+        else [EVIDENCE_RECORD, records_dir(keep), EVIDENCE_KEY, head_key]
+    )
+    checks[LEDGER] = run(
+        LEDGER, [py, EVIDENCE, "--strict", *observed, root], root, keep
+    )
     checks[UNVERIFIED_NAME] = run(
         UNVERIFIED_NAME,
         [py, UNVERIFIED, "--baseline", base.commit, specs],
