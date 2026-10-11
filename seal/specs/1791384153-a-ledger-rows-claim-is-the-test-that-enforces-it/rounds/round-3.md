@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 887 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-4 |
 | Fix range | `fa199d969cf56b57cda09e5793c258f5d9f80a2f..1cc634a7bfc26df55036654427c5868d2eaac20c`, 2 commits |
 | Contract changes | none |
 | New units | EXISTENCE_ALONE (depth 1); IDS (depth 1); SUBTESTS (depth 1); test_a_case_id_holding_the_separator_is_its_functions (depth 1); test_a_test_whose_subtests_all_passed_is_held (depth 1); test_a_seal_over_existence_alone_says_so (depth 1) |
