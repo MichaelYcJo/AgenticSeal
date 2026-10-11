@@ -7,6 +7,46 @@ has no `Record language` row). Every coordinate below was opened by the
 framer at 5623d728 (0.20.0 as shipped) unless it says otherwise; every count
 is labelled with how it was taken. -->
 
+## Reframed after round 2 — the collection half observes
+
+The repository owner's decision of 2026-10-12
+(`seal/specs/1791382684-every-reader-and-record-is-inventoried/handoff.md`
+§*Review of the run* and §*What the owner decided*, read on branch
+`chore/834-every-reader-and-record-is-inventoried`): 0.21.0's theme is that
+a reader observes, forces a format, or is deleted, and the half of this item
+that read a test file to predict whether pytest would collect a test and
+whether it could fail was a guessing reader patched round by round.
+`collected`, `unconditional` and `never_fails` in `evidence_check.py` each · NAME NOT IN TREE
+learned a spelling per round — round 1: a non-test file, `conftest.py`, a
+class with `__init__`, an unconditional `skip` or `xfail`, `pytestmark`;
+round 2: `xfail(condition=…)`, `strict=True`, a mark under an `if`,
+`pytestmark +=`, a module-level `pytest.skip` — and the owner judged the
+list a cover-up. It is not a fix-of-a-fix count: round 2's `Fix of a fix`
+reads `first`. That half is redesigned here. **The test-row half — D1,
+D3–D6, S1–S3, S5–S14 — predicts nothing and stands as built in phases 1–5.**
+
+What moves, and where the rest of this file says it:
+
+- **D2 is rewritten.** The static checker keeps only what reading a file
+  establishes for certain: the file is there and a `def` or `class` of that
+  qualified name is defined in it once. Every name-reading and mark-reading
+  unit leaves (D11).
+- **D9 and D10 are new.** Whether a cited test ran, and how it ended, is
+  read off the record #869's pytest recorder writes during the sealed run
+  (`skills/verify/scripts/pytest_record/specseal_pytest_record.py`), and the
+  broad gate's ledger arm hands that record to the checker. Nothing about a
+  test is predicted from its file any more.
+- **§*What the observation cannot see*** names where no record exists — CI's
+  `ledger` job, a preflight, a vendored copy — and what the checker says
+  there.
+- Round 2's three findings are closed `deferred the frame` at ec48b584 and
+  are answered by D9: each named spelling is now a line of the record, or no
+  line, and no case names a spelling.
+
+Every coordinate this section and D9–D11 add was opened by the framer at
+ec48b584 (the branch's head at the reframe); the rest of the file keeps its
+5623d728 readings, which phases 1–5 built against.
+
 ## Grounding
 
 | Policy clause | What it fixes for this work |
@@ -19,6 +59,11 @@ is labelled with how it was taken. -->
 | `CLAUDE.md` §*The goal a design is chosen against — verification that runs unattended* | A row held by a test is verified by the suite with nobody at the keyboard. A hashed row is verified by a person re-reading the claim, and #834 part 7 measured that reading at 84 % of the rows landed since 0.18.0. Between the two forms, this goal decides |
 | `skills/agent-contract/SKILL.md` §12, §14, §15 | Each defect is fixed across its class; every changed sentence a person reads is pinned in the same commit; every new case is seen red before it is committed |
 | #834's inventory, part 7 (`seal/specs/1791382684-every-reader-and-record-is-inventoried/inventory/7-records.md`, read on the `chore/834-…` branch) and the framer brief's three rules | The input is owned (pytest's own node-id spelling), the unknown is refused (a mixed row, a name no test runner collects, a method not spelled the way pytest spells it), and what goes is named (D6: `fold_check.py`'s own `ast.walk` resolver) |
+| `skills/verify/scripts/pytest_record/specseal_pytest_record.py`, its module docstring §*What it writes*, and `#Recorder.pytest_runtest_logreport`, `#Recorder.category_of` (reframe) | The record's format is this plugin's own: one JSON Lines file per pytest process, a `session` line carrying the run's `key`, and a `test` line per report carrying `nodeid`, `when`, `path` — absolute, the node's own, never rebuilt from a node id — and `category`, the word pytest's own summary counts the report under: `passed`, `failed`, `skipped`, `xfailed`, `xpassed`, `error`, `""` for a report pytest counts nowhere (a passed setup or teardown). D9 reads those fields and no other, and derives no rule of pytest's: it matches the words pytest wrote |
+| `skills/verify/scripts/broad_gate.py#recording_env`, `#read_record`, `#record_path`, and `#main` — `head = read_record(records_dir(keep), head_key, root)` followed by `checks[LEDGER] = run(LEDGER, [py, EVIDENCE, "--strict", root], …)` (reframe) | The gate holds the head run's record directory and key at the moment the ledger arm runs, and a preflight runs no suite (`head` is None). D10 hands both to the arm, and the gate's order does not change. `record_path` is how a recorded path is named against the worktree — `realpath` on both sides, relative, `/`-spelled — and D9 names a path the same way |
+| `templates/config.md` §*Broad gate*, rule 3 (read, not edited: 57 coordinates cite the section) (reframe) | Which rows load the recorder and which do not (`tox`, `nox`, `env -i`, a replaced `PYTEST_ADDOPTS`), and what a row that does not earns: no record, `new?`. D10's *no keyed session* rule is that case for the ledger arm |
+| `.github/workflows/test.yml`, the `ledger` job and its comment *This job is the LENIENT reader, and it is not the one that decides* (reframe) | CI's ledger job runs without a pytest run, leniently, by the owner's answer of 2026-09-26; the reader that decides is the gate. So the observation decides in the gate, and CI's job reads existence as it does today (§*What the observation cannot see*; `questions.md` Q7 is whether CI should observe too) |
+| `seal/specs/1791382684-…/handoff.md` §*What the owner decided*, items 1 and 3 (reframe) | The reframe is the owner's, against the theme; Q1 stays at (a) until this item lands |
 
 ## What the inventory measured, re-read for this frame
 
@@ -62,7 +107,8 @@ command beside it, at 5623d728. None was executed as a test.
 
 ## Scope
 
-**In.** Eight decisions, each from the tree.
+**In.** Eleven decisions, each from the tree. D2 is as the reframe rewrote
+it; D9–D11 are the reframe's.
 
 **D1. A second row form: the claim is held by a test.** A ledger row's Code
 grounds cell may hold, instead of coordinates, one or more test node ids in
@@ -75,19 +121,28 @@ seen red (`skills/agent-contract/SKILL.md` §15), and Checked holds the date
 it was seen red then green. The row's claim is the test passing. A hashed
 row is still written for a claim no test holds.
 
-**D2. What the checker reads of such a row, and what it says.** Each node id
-is resolved through `evidence_check.py#resolve_unit`'s Python branch: the
-path is a `.py` file in a checkout the run reads, and the name — the parts
-after the path, joined with `.`, which is the qualified name `py_spans`
-already keys on — is a `def` or `class` there. It is **OK** when it resolves
-to one unit whose name pytest collects by default (a function beginning
-`test`, a class beginning `Test`); **BROKEN** when the file or the unit is
-not there, naming which, and for a method written bare (`path::test_b` where
-`test_b` lives only inside a class) saying that a method is spelled
-`path::Class::method`; **MALFORMED** when the token parses but names a unit
-no test runner collects, with a remedy naming the two forms. It is never
-DRIFTED: there is no hash. A resolved node id counts among `ok` on the
-totals line; nothing new is printed there.
+**D2. What the static checker reads of such a row, and what it says
+(rewritten at the reframe).** Each node id is resolved through
+`evidence_check.py#named_unit`: the path is a `.py` file in a checkout the
+run reads, and the names after the path, joined with `.`, are the qualified
+name `unit_kinds` keys on. It is **OK** when a `def` or `class` of that name
+is defined in that file once; **BROKEN** when the file or the unit is not
+there, naming which — a constant of that name is no `def` or `class` and is
+told so — and for a method written bare (`path::test_b` where `test_b` lives
+only inside a class) saying that a method is written `path::Class::method`,
+and when the name is defined more than once; **MALFORMED** when the token
+does not parse as a node id, with a remedy naming the two forms. It is never
+DRIFTED: there is no hash. **That is all reading the file establishes for
+certain, and it is all the static reader says.** Whether the unit is a test,
+whether pytest collects it, whether a mark keeps it from running or from
+failing — none of it is read off the file: each is a prediction of pytest,
+and a predicting reader learns a new spelling every round (the reframe
+section lists the ones this one learned). The sealed run's record answers
+every one of them by observation (D9). So a `def helper` in
+`tests/helpers.py`, a `conftest.py` function and a method of a class with an
+`__init__` each resolve here, and are refused there, where the record shows
+they did not run. A resolved node id counts among `ok` on the totals line;
+nothing new is printed there.
 
 **D3. Where it is read: the Code grounds cell, and nowhere else.** The node
 ids are read per row through `grounds_cells`, the one table walk, never over
@@ -162,6 +217,91 @@ two skill sections — 2, 3, 1, 0, 6, 2, 4 and 2 claim rows at 5623d728, the
 bookkeeping rows citing them on top) get, per row, the `Corrected ·` test
 row or the `Re-read ·` row of D5, chosen by reading (`questions.md` Q3).
 
+**D9. Whether a cited test ran, and how it ended, is read off the sealed
+run's record — never predicted from the file.** Given a record — a directory
+of the recorder's `*.jsonl` files and the key of one run (D10) — the checker
+reads, from every file whose first line is a `session` line carrying that
+key, each `test` line's `path`, `nodeid`, `when` and `category`, and nothing
+else of the record. A cited unit's lines are the lines whose `path` names the
+cited file — `realpath` made relative to the root and spelled with `/`, as
+`broad_gate.py#record_path` names a file — and whose node id's parts after
+the first `::`, with a parametrise suffix `[…]` stripped from the last, begin
+with the cited parts: `tests/test_x.py::test_y` owns `test_y` and
+`test_y[case]`, `tests/test_x.py::TestA` owns `TestA::test_b`, and one prefix
+rule covers a class and a parametrised function. Never a path rebuilt from a
+node id and a rootdir: pytest makes the node id from the path by a rule
+#825's five rounds could not enumerate, and the recorder writes the path for
+exactly that reason. The cited test is **held** where at least one of its
+lines carries the category `passed` and no line carries any other non-empty
+category (`""` is a passed setup or teardown); the row is OK. Otherwise it is
+**MALFORMED**, and the detail names the observation: *not run in the
+recorded suite* where it owns no line — a unit pytest did not collect (a
+`def helper`, a `conftest.py`, a class with `__init__`, a module skipped at
+collection), or a `-k` or a shard that left it out; *skipped in the recorded
+suite* where its lines say `skipped` (a `skip`, a true `skipif`, in any
+spelling); *xfailed* or *xpassed in the recorded suite* where they say so (an
+`xfail` mark, conditional or not, leaves the suite green whatever the code
+does, and a non-strict `xpass` is that mark on a test that happened to
+pass); *failed* or *error in the recorded suite* where they say so, which the
+suite arm already fails. In every case the remedy is the one `NOT_A_TEST`
+gives today: name a test that holds the claim, or write `path#anchor@hash`
+where none does. The categories are pytest's own words, asked of
+`pytest_report_teststatus` by the recorder the way pytest's terminal reporter
+asks it; the checker matches them and derives none. A unit that is not a
+test, or a mark in a spelling nobody has met, needs no new case: it is a line
+that is not `passed`, or no line.
+
+**D10. The broad gate's ledger arm hands the checker the head run's record;
+everywhere else the checker reads existence and says so.** `evidence-check`
+gains two options, a record directory and a run key — `--suite-record DIR
+--suite-key KEY` in this file's spelling; the build may choose the words —
+and `broad_gate.py#main` passes `records_dir(keep)` and `head_key` on
+`checks[LEDGER]` wherever it ran the suite, which is every run but a
+preflight. The checker then reads every test row of every ledger it reads
+against that record (D9). Given no record — the CI `ledger` job, a preflight,
+the post-commit advisor, a vendored copy whose repository hands it none, a
+`--reverify` typed by hand — the test rows are read by D2 alone, and the run
+prints one line, once, where it prints its totals, saying that its test rows
+were read for existence and no suite record was given; a ledger with no test
+row prints no such line. Given a directory and key under which no `session`
+line is found — the row loaded no recorder (`templates/config.md` §*Broad
+gate* rule 3 names the ways), or the directory cannot be listed — the
+checker reads as given no record and the line names the key: the strict
+reading of an absent record would refuse every test row of a repository
+whose row never ran the recorder, which is a refusal about the row and not
+about any claim, and the gate's own `new?` already tells the sealer that row
+is unmeasured. `--reverify` and `--reverify --into` take the same options and
+name a row the record refuses on a `LEFT` line, as they name one whose test
+is gone today; they write nothing on it and date nothing. The record is read
+once per run and reaches `node_finding`'s three callers — `held_by_tests`,
+`family_view`'s member loop, and `reverify_into` through `held_by_tests`;
+how it is threaded is `questions.md` Q6, the work's.
+
+**D11. What leaves the tree.** In `evidence_check.py`: `collected`,
+`TEST_FILE_RE`, `never_fails`, `unconditional`, `NEVER_FAILS`, `NEVER_RUNS`, · NAME NOT IN TREE
+the two calls in `node_finding` and its detail *a `def` that reads as a
+test*. In `tests/test_a_ledger_row_is_held_by_its_test.py`:
+`test_a_test_the_suite_does_not_collect_holds_nothing`, · NAME NOT IN TREE
+`test_a_test_that_cannot_fail_holds_nothing`, · NAME NOT IN TREE
+`test_a_conditional_mark_is_left_to_the_reader`, the `NEVER` constant, the · NAME NOT IN TREE
+name-prefix cases of `test_a_unit_pytest_does_not_collect_is_no_test` (a
+`def` not named `test…` and a class not named `Test…` now resolve; its
+constant case stays, as BROKEN), and the pins of every sentence D7's rewrite
+removes. Round 2's paste-ready `level`, `LEVEL_NODES` and the `unconditional` · NAME NOT IN TREE
+rewrite are never written. In the documents: every sentence saying what
+*reads as a test without running pytest* and every sentence about marks —
+`docs/the-evidence-ledger.md` §*A claim held by a test*, statements 1 and 2;
+`skills/evidence-check/SKILL.md` §*Verdicts and what to do*, the test-row
+paragraph; `templates/ledger.md` §*A row held by a test*, its last two
+sentences; the matching sentences of `changelog.md`. In this item's
+fragment: T15 whole, and T4's clause about a unit pytest does not collect by
+default. Nothing released cites any of these — all were added by this branch
+in phases 1–5 and round 1's fix (read at ec48b584: `grep` over
+`seal/releases/*.md`, `seal/ledger.md` and `seal/ledger/*.md` finds no
+coordinate `#<name>@` naming any of the six) — so their removal owes
+no `Corrected ·` row, and `survivor-check` over the range is what shows the
+removed sentences stand nowhere else.
+
 **Out, each with its grounds.**
 
 | Cut | Grounds |
@@ -176,6 +316,14 @@ row or the `Re-read ·` row of D5, chosen by reading (`questions.md` Q3).
 | `correction_check.py`, `settle.py`, `rider_check.py`, `survivor_check.py`, `fold_ledger.py` | None reads a node id; a `Corrected ·` row holding one is to each of them what one holding prose is. The coordinate grammar copies in the first three are #867's |
 | The totals line gaining a word (`N held by tests`) | A new word on a line two wrappers and the CI job read is a change to what a gate prints with no reader asking for it; `grep -c '::'` over the ledgers is the count |
 | `hooks/evidence-advisor.py` | It prints the checker's output. Whether it carries a repair sentence of its own that must learn the form is `questions.md` Q4, the work's |
+| *(reframe)* CI's `ledger` job, or the ubuntu pytest leg, reading its own record | The job is the lenient reader by the owner's answer of 2026-09-26 (`test.yml`'s comment above it), so an observation there could warn and never decide; the deciding reader is the gate, which has the record. Handing the ubuntu leg's record to a step is one more shape in a job branch protection reads. `questions.md` Q7, a person's, default *no*; it does not block the build |
+| *(reframe)* A new verdict word for a test the run did not hold, or a word on the totals line | `exit_code`, `classify`, the two wrappers and the CI job read the verdict words. MALFORMED already means *the grounds cell cites nothing that holds*, is graded 1 leniently and 2 under `--strict`, and is the word round 1's fix used for this meaning; the detail names the observation |
+| *(reframe)* One shared reader of the recorder's format — the checker loading `broad_gate.py#read_record` | The checker ships alone (`evidence-ci` vendors it without the gate), and `read_record` reduces a run to files where D9 needs node ids. The second reader reads four fields of a format this plugin owns and its recorder's docstring defines, and S19 runs the real recorder so that both readers are read against one record |
+| *(reframe)* `skipped` or `xfailed` read as OK, *left to the reader* | Round 1's 🟡 2 by another door: a test the sealing machine skips holds nothing on it, and an `xfail` leaves the suite green whatever the code does. A claim the sealed run did not verify is unverified; the row is hashed instead, or the seal is taken where the test runs |
+| *(reframe)* Keeping the `test…` / `Test…` name prefix, or `test_*.py`, as a static default | The prefix was a prediction of `python_functions`' default, the same class as the marks, and the record makes it needless: a repository that names its tests otherwise has them in the record, and a `test_` function pytest deselected is not. The earlier row refusing to read pytest's configuration stands, now with no default to read either · NAME NOT IN TREE |
+| *(reframe)* The gate writing a digest of the record for the checker | A third format for one observation; the record is already a format this plugin owns, and a digest is a second place its meaning is defined |
+| *(reframe)* `evidence-ci` vendoring the recorder beside the checker | A consuming repository that wants the observation loads the recorder in its own test job and hands the record to the step; whether `evidence-ci` should copy the recorder for it widens that skill with no asker yet. `skills/evidence-ci/SKILL.md` §*Updating later* says what the vendored step reads without one |
+| *(reframe)* `templates/config.md` §*Broad gate*, `.github/scripts/release_seal.py`, `publish-release.yml` | 57 coordinates cite the config section; the gate's own docstring (item 2 of its list) and `skills/evidence-check/SKILL.md` carry the sentence instead. The release job runs the suite with the recorder for the seal's counts, and running the checker against that record there is the CI question above |
 
 ## What drifting means after this work
 
@@ -187,16 +335,51 @@ or non-test row as OK.
 
 | | A hashed row (today's form, unchanged) | A row held by a test (D1) |
 |---|---|---|
-| OK | every coordinate's hash matches its unit, or a newer reading in its family holds it | every node id resolves to one test |
+| OK | every coordinate's hash matches its unit, or a newer reading in its family holds it | every node id resolves to one `def` or `class` (D2), and — given the sealed run's record — each was seen `passed` and nothing else (D9) |
 | DRIFTED | a cited unit changed; a person re-reads the claim | never — there is no hash |
-| BROKEN | a unit or file is gone; a `Corrected ·` row re-points or retires | a test or file is gone, or a method is spelled bare; a `Corrected ·` row re-points |
-| MALFORMED | a coordinate nothing parses, or a grounds cell citing nothing | a node id naming a unit no test runner collects, or a row mixing the two forms |
-| The claim turning false | found by a person re-reading after a drift, or by a review round | found by the suite: the test is red. The prose may lag the test, as an `Enforced by:` sentence may; review reads it |
+| BROKEN | a unit or file is gone; a `Corrected ·` row re-points or retires | a test or file is gone, a method is spelled bare, or the name is defined twice; a `Corrected ·` row re-points |
+| MALFORMED | a coordinate nothing parses, or a grounds cell citing nothing | a token that is no node id, a row mixing the two forms, or — given the record — a test the run did not hold: not run, skipped, xfailed, xpassed, failed, each named as observed |
+| The claim turning false | found by a person re-reading after a drift, or by a review round | found by the suite: the test is red, and the ledger arm names the row from the record in the same gate run. The prose may lag the test, as an `Enforced by:` sentence may; review reads it |
+| No record — CI's `ledger` job, a preflight, the advisor, a vendored copy, a row that loaded no recorder | unchanged | read for existence (D2); one line says the test rows were read with no suite record (D10) |
 | `--reverify` | re-stamps a drifted hash; `--checked` dates the row | writes nothing, dates nothing; leaves a BROKEN node id named |
 | `--reverify --into` under the freeze | writes a `Re-read ·` row per drifted released row | writes none for a superseded family; its summary names the `Corrected ·` test row as the other repair |
 | The fold | moves the row whole | moves the row whole |
 | A consuming repository with no node id in its ledger | every finding identical before and after (S11) | — |
 | A consuming repository whose vendored copy predates this | — | reads a test row as MALFORMED, *cites no coordinate*; `skills/evidence-ci/SKILL.md` says to update the copy first |
+
+## What the observation cannot see
+
+Each is named rather than closed, with what the checker says there.
+
+- **Where no pytest ran, nothing is observed.** CI's `ledger` job, the
+  post-commit advisor, a preflight, a vendored copy whose repository hands it
+  no record, and a `--reverify` typed by hand read a test row for existence
+  (D2) and print one line saying so. The reader that decides — the gate —
+  always has the record of the run it seals, and that is where the
+  observation decides. Whether CI should observe too is `questions.md` Q7.
+- **A row that does not load the recorder observes nothing either.**
+  `templates/config.md` §*Broad gate* rule 3 names the shapes (`tox`, `nox`,
+  `env -i`, a replaced `PYTEST_ADDOPTS`). Such a row's run leaves no
+  `session` line under the key, the checker reads as given no record, and
+  its line names the key. The seal is then over existence only, and the
+  gate's own `new?` wording already tells the sealer the row is unmeasured.
+- **Where one runner of the row loaded the recorder and another did not**, a
+  test only the other ran owns no line and reads *not run*. The remedy is
+  the row's, as rule 3 says; the finding is honest about this run.
+- **A test the sealing machine skips holds nothing there.** A `skipif` true
+  on the sealer's platform reads *skipped*; the row is hashed instead, or the
+  seal is taken where the test runs. That is the strict reading, chosen on
+  purpose (the Out table's fourth reframe row).
+- **A run that stopped part-way** leaves tests unrun. The suite arm already
+  fails such a run (`broad_gate.py#RAN_TO_ITS_END`, the `end` line's
+  `stopped`), and the ledger arm's *not run* findings are a second reading of
+  one stop, not a second stop.
+- **A `passed` line for a test that asserts something weaker than the row's
+  prose** is the limit the first frame named (`plan.md` §*Failure scenario*),
+  and nothing here changes it: review reads the test.
+- **The record is the head run's, and the ledger arm reads the same tree.**
+  The gate runs both in `root`, and nothing between them edits a file; a
+  record from another tree is another key, which the reader passes over.
 
 ## User scenarios & acceptance *(mandatory)*
 
@@ -208,7 +391,7 @@ names the module by its purpose; the build names the file.
 | S1 | A test row resolves | Given a fragment row whose grounds hold one backticked node id naming a top-level `test_` function that exists, when `evidence-check` runs, then the row is OK, counted among `ok`, exit 0 | the new module, red against the unfixed checker, which names the row MALFORMED *cites no coordinate* |
 | S2 | A renamed test breaks the row | Given S1 with the function renamed, then the finding is BROKEN naming the file and the missing name, exit 2 | the new module |
 | S3 | A method is spelled pytest's way | Given a node id `path::TestA::test_b` for a method, then it resolves; given `path::test_b` for the same method, then BROKEN, and the detail says a method is written `path::Class::method` | the new module |
-| S4 | A unit no test runner collects | Given a node id naming a `def helper`, then MALFORMED with a remedy naming the case and the hashed form | the new module |
+| S4 | *(rewritten at the reframe)* A unit that exists resolves; a kind that is no `def` or `class` does not | Given a node id naming a `def helper` in `tests/helpers.py`, a `conftest.py` function, or a method of a class with an `__init__`, with no record given, then OK; given one naming a module constant, then BROKEN, *no def or class named*; given a name defined twice, then BROKEN | the new module, the collection cases rewritten (D11), the OK cases red against the checker at ec48b584 |
 | S5 | A mixed row is refused | Given a grounds cell holding a node id and a `path#unit@hash`, then MALFORMED naming both forms; given a `Corrected ·` row holding its citation and a node id, then not | the new module |
 | S6 | A node id outside the grounds cell is prose | Given `path::name` in Verified behavior or Notes beside a hashed grounds cell, then no finding about it | the new module, over a fixture copying one of the 16 existing shapes |
 | S7 | A migrated released row never drifts again | Given a released row citing a unit, a `Corrected ·` row in a fragment with the citation and a node id, and an edit to that unit, when `evidence-check --strict` and `--reverify --into` run, then no finding names the released row and no `Re-read ·` row is written; the correcting row is OK | `tests/test_a_released_row_is_read_again_in_a_fragment.py`, red when the superseding is removed from `family_view` |
@@ -219,6 +402,15 @@ names the module by its purpose; the build names the file.
 | S12 | The vendored copy reads it alone | Given the checker copied alone into `tools/`, then S1–S5 hold there | `tests/test_evidence_check.py`'s `vendored_copy` fixture |
 | S13 | The documents state it and are pinned | Given the new section, then its `Enforced by:` lines name S1–S9's cases and `fold-check` is green; given `templates/ledger.md`, then both forms are shown; given `skills/evidence-ci/SKILL.md`, then the update sentence is there | `fold-check`; a pin per changed sentence |
 | S14 | This item's ledger is the first | Given the fragment, then every row of it is a test row or a citing row; `evidence-check --strict .` is 0 drifted at the head; every released row an edit drifted has a citing row | `evidence-check --strict .`, executed by the build and the sealer |
+| S15 | *(reframe)* A test seen passing is held | Given a record the real recorder wrote for a planted suite in which `tests/test_x.py::test_y` passed, and a row naming it, when `evidence-check --strict` runs with the record directory and key, then the row is OK, exit 0, and no existence line is printed | the new module, running `pytest -p specseal_pytest_record` over the planted suite with the recorder's two variables set, as `tests/test_the_recorder_writes_what_its_process_ran.py` already drives it; red against ec48b584, whose checker knows no such options |
+| S16 | *(reframe)* A test the run did not hold is refused by what was observed | Given the same with the test skipped, xfailed, xpassed (non-strict), failed, erroring in setup, or absent from the record (a `def helper`, a module-level `pytest.skip`, a class with `__init__`), then MALFORMED, exit 2 under `--strict`, the detail naming the observation — *not run* / *skipped* / *xfailed* / *xpassed* / *failed* / *error in the recorded suite* — and the remedy | the new module, one case per category, each red against the phase-6 checker, which reads OK for every one |
+| S17 | *(reframe)* Round 2's spellings are the record's finding, and no case names a spelling | Given `xfail(condition=False)` on a passing test, `xfail(strict=True)` on a passing test, a skip mark under a module `if`, `pytestmark +=`, `skipif(True)`, each recorded, then the verdict is what pytest did: the conditional xfail that ran and passed is OK, the strict xfail that passed reads `failed`, the skipped ones `skipped`; the checker's source holds no mark name | the new module, parametrised over round 1's and round 2's spellings; `grep -c 'xfail\|skip' evidence_check.py` is 0 outside the detail words |
+| S18 | *(reframe)* A class and a parametrised function own their lines | Given a row naming `tests/test_x.py::TestA` whose methods all passed, then OK; one method skipped, then MALFORMED *skipped*; given `::test_y` with `test_y[a]` passed and `test_y[b]` failed, then MALFORMED *failed*; given a record line of another file's `test_y`, then it is not this row's | the new module |
+| S19 | *(reframe)* The path is the record's, never rebuilt | Given a pytest rootdir that is `tests/` (an ini file there), so the record's node id is `test_x.py::test_y`, and a row naming `tests/test_x.py::test_y`, then the match holds through the line's `path`; given `broad_gate.py#read_record` over the same record, then it names the same file | the new module, the real recorder, both readers over one record |
+| S20 | *(reframe)* No record is existence, and says so once | Given test rows and no record options, then every D2 verdict as today and one line saying the test rows were read for existence; given a directory under which no `session` line carries the key, then the same line naming the key; given a ledger with no test row, then no line | the new module, pinned on the sentence; `tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py` green unchanged |
+| S21 | *(reframe)* The gate hands the arm the record | Given `broad_gate.py#main` after the suite ran, then `checks[LEDGER]`'s argv carries the record directory and the head key; given `--preflight`, then it carries neither; given a planted repository whose test row names a test its row skips, then the ledger arm comes back failed and the run is NOT SEALED | the gate's module that reads `checks[LEDGER]`'s call site (`tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py` names it), red with the two items missing; one gate run over the planted repository |
+| S22 | *(reframe)* `--reverify` names what the record refuses and writes nothing | Given a test row and a record in which its test was skipped, when `--reverify` and `--reverify --into` run with the record options, then a `LEFT` line names the row with the observation, the row's text and date are unchanged, exit 1 | the new module |
+| S23 | *(reframe)* The documents state the observation and are pinned | Given §*A claim held by a test*, then statements 1 and 2 say what the static reader establishes and what the record answers, and no sentence in the five documents says what *reads as a test* or names a mark; `templates/ledger.md`, the two skill sections and the gate's docstring item 2 say the same; `fold-check` is green; the removed sentences stand nowhere (`survivor-check`) | `fold-check`; a pin per changed sentence, red with the sentence removed; `survivor-check --range origin/release/v0.21.0...HEAD` exit 0 |
 
 ## Data & interfaces
 
@@ -234,6 +426,26 @@ names the module by its purpose; the build names the file.
   that writes a `Re-read ·` row, pinned.
 - **`fold_check.py`** gains a loader constant for `evidence_check.py` beside
   its three existing ones and loses the body of its resolver.
+- **The record (reframe).** Two options on `evidence-check`, a directory and
+  a key. The reader opens every `*.jsonl` directly under the directory, keeps
+  those whose first line parses as an object whose `key` equals the key, and
+  reads of each later line with `"kind": "test"` the fields `path`, `nodeid`,
+  `when` and `category`; a line that does not parse is passed over, as
+  `read_record` passes it over. Its answer is `{(relative path, names):
+  {category, …}}`, or None where no file carried the key. Four fields and no
+  other, so a field the recorder adds changes nothing here.
+- **The match (reframe).** A key is (`path` named as `record_path` names it,
+  the node id's parts after the first `::` with `[…]` stripped from the
+  last). A cited `(path, names)` owns every key whose path is equal and whose
+  names begin with the cited names.
+- **The held rule (reframe).** The union of the owned keys' categories, less
+  `""`, is exactly `{"passed"}`.
+- **The words (reframe).** `not run in the recorded suite`, `<category> in
+  the recorded suite`, each followed by the `TEST_FORM` remedy; and one line,
+  printed once beside the totals, where test rows were read with no record,
+  naming the key where one was given and found empty. Each is pinned (§14).
+- **`broad_gate.py#main` (reframe)**: two more argv items on `checks[LEDGER]`
+  where `head is not None`; item 2 of the module docstring's list says so.
 
 ## The seam with the sibling frames
 
@@ -255,6 +467,14 @@ names the module by its purpose; the build names the file.
   change:** `resolve_unit`, `py_spans`, `grounds_cells`, `family_view`,
   `judge`, `classify`, `exit_code`. `fold_check.py`: `target_problem` and a
   loader constant.
+- **At the reframe (ec48b584), the units phases 6–9 change:** `node_finding`
+  (two calls leave, the record arrives), `held_by_tests`, the call in
+  `family_view`'s member loop, the call in `reverify_into`, `main` (two
+  options), and one new reader with its constants; `check_ledger`,
+  `ledger_families` and `reverify` carry the record through only if Q6's
+  answer threads it as a parameter. **Units that leave:** D11.
+  `broad_gate.py#main`: one call. #870's `generic_units` and the non-Python
+  arms are still never reached by a node id.
 
 ## Judgments the tree answered
 
@@ -275,9 +495,31 @@ Listed so nobody reopens them; each is overturnable by opening what is named.
    `evidence_check.py`'s, because `evidence-ci` ships it alone and
    `fold_check.py` already loads its readers — D6.
 
+At the reframe, from the tree:
+
+8. *Where is the observation read?* In the gate's ledger arm, which holds
+   the head run's record at the moment it runs — D10. Not `evidence-check`
+   reading *the newest* record: which run is newest is an inference, and the
+   gate keys each run fresh so that a reader passes every other key over
+   (`broad_gate.py#record_key`). Not the sealer: it judges nothing
+   (`agents/sealer.md`).
+9. *What does the static checker keep?* Existence of a `def` or `class`,
+   once — D2. The name prefix was a prediction of the same class as the
+   marks — the Out table.
+10. *Which word for a test the run did not hold?* MALFORMED, the observation
+    in the detail — the Out table.
+11. *Is a skipped or xfailed test held?* No — the Out table and §*What the
+    observation cannot see*.
+12. *One reader of the record or two?* Two, because the checker ships alone;
+    S19 reads one record with both — the Out table.
+13. *What of a record with no session under the key?* No record, and the
+    one line names the key — D10.
+14. *Does CI observe?* Not in this item; `questions.md` Q7 puts it to the
+    owner with the default *no*.
+
 ## Open questions → questions.md
 
-Four rows: one a person's (the bulk pass, which does not block the build),
-two measurements, one the work's.
+Seven rows. Q1–Q4 are answered. The reframe adds one measurement (Q5), one
+the work's (Q6) and one a person's (Q7, which does not block the build).
 
 Framed 2026-10-07 by framer, before the build.

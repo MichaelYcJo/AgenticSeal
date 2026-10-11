@@ -18,6 +18,19 @@ feature branch. `fold_check.py`'s own resolver of `Enforced by:` targets is
 removed in favour of the ledger's. `spec.md` holds the decisions D1–D8 and
 the fourteen scenarios; this file holds the order they are built in.
 
+**Reframed 2026-10-12, after round 2, by the repository owner's decision**
+(`spec.md` §*Reframed after round 2*). Phases 1–5 stand with their commits.
+The half of phase 1 and round 1's fix that read a test file to predict what
+pytest would collect and whether it could fail — `collected`, `never_fails`, · NAME NOT IN TREE
+`unconditional` — is redesigned in phases 6–9: the static checker keeps only
+that the file and the `def` or `class` exist (D2), the sealed run's pytest
+record says whether each cited test ran and passed (D9), and the broad
+gate's ledger arm hands that record to the checker (D10). A test row the
+run did not hold is MALFORMED with the observation in its detail, and no
+case anywhere names a `skip` or `xfail` spelling. Where no record exists the
+checker reads existence and says so once. `spec.md` D9–D11 and S15–S23 hold
+the decisions and the cases; this file holds the order.
+
 ## Technical context
 
 Coordinates at 5623d728, all `read` by the framer.
@@ -58,6 +71,56 @@ Coordinates at 5623d728, all `read` by the framer.
   `#heading_path` (:567) ends a section at the next heading of its level or
   higher, so a section inserted between two changes neither region.
 
+Coordinates at ec48b584, `read` by the framer at the reframe.
+
+- `skills/verify/scripts/pytest_record/specseal_pytest_record.py`: the module
+  docstring §*What it writes* defines the record; `#Recorder.pytest_runtest_logreport`
+  (:296) writes one `test` line per report with `nodeid`, `when`, `outcome`,
+  `path` and `category`; `#Recorder.category_of` (:312) asks
+  `pytest_report_teststatus` as the terminal reporter does and writes `""`
+  for a report pytest counts nowhere; `#pytest_configure` (:398) claims the
+  key for the first session of the process.
+- `skills/verify/scripts/broad_gate.py#recording_env` (:1878) hands a run
+  the recorder; `#read_record` (:2014) keeps only files whose first line
+  carries the key, and reduces a run to files; `#record_path` (:1949) is how
+  a recorded path is named against the worktree; `#main` makes `head_key`
+  (:3546), runs the suite under it and reads `head` (:3549–3552), then runs
+  `checks[LEDGER]` (:3553) with `[py, EVIDENCE, "--strict", root]`. A
+  preflight leaves `head` None. `#RAN_TO_ITS_END` (:2006) is where a stopped
+  session is already judged.
+- `skills/evidence-check/scripts/evidence_check.py#node_finding` (:2424)
+  calls `collected` (:2332) and `never_fails` (:2390) after `named_unit` · NAME NOT IN TREE
+  (:2308); `#held_by_tests` (:2479) is one caller, `#family_view`'s member
+  loop (:3062) the second, `#reverify_into` through `held_by_tests` (:3894)
+  the third. `#main` (:6177) is the argparse. `#unit_kinds` (:2300) records a
+  kind per qualified name — `def`, `class`, `constant` — which is what D2's
+  existence rule reads.
+- `tests/test_a_ledger_row_is_held_by_its_test.py` :550–666 are the three
+  collection cases D11 removes; :706–786 the document pins, five of which
+  pin sentences D7's rewrite removes.
+- `tests/test_the_recorder_writes_what_its_process_ran.py` drives the real
+  recorder over planted suites; phase 7's cases do the same, so the
+  checker's reader is read against a record the recorder wrote and never
+  only against a hand-written fixture.
+- `tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py` :17
+  names `broad_gate.py`'s ledger call site as the place `--strict` is pinned;
+  phase 8's pin of the two new argv items goes beside it or in the gate's
+  own module.
+- `.github/workflows/test.yml` :163–181: the `ledger` job runs
+  `evidence_check.py .` leniently, with no pytest run before it, and its
+  comment (:147–162) holds the owner's rule that it is not the reader that
+  decides.
+
+**Failure scenario of the reframed approach, in six months.** A test row
+cites a test whose module the repository's broad row skips on the sealing
+machine — a Windows-only module sealed on macOS. Every lenient run reads the
+row OK for existence; the gate reads *skipped in the recorded suite* and
+refuses the seal, and the sealer reports a refusal that is about a platform
+rather than about a claim. That is the strict reading chosen on purpose
+(`spec.md`'s Out table), and its cost is one hashed row or one seal taken
+where the test runs. The quiet failure stays the first frame's: a `passed`
+line for a test that asserts less than the row's prose says.
+
 **Failure scenario of the chosen approach, in six months.** A test is
 reworded to assert something weaker and its row's prose still describes the
 stronger claim; nothing in the tree notices, because nothing holds the prose
@@ -80,6 +143,17 @@ file. The other direction — a test deleted — is BROKEN at the next run.
 | Any `def` or `class` accepted as the enforcer, as `fold-check` accepts | A row naming a unit that exists is a claim nothing checks, the state *cites no coordinate* already refuses | refused; the ledger accepts a test, `fold-check` keeps its wider acceptance |
 | A mixed row allowed, its hashes graded as today | A row reads as migrated while still owing re-reads | refused |
 | Editing §*A released row is read again…* to carry the rule | 9 released rows cite that section and would drift for prose | refused; a new section is inserted after it |
+| *(reframe)* The static checker reads the sealed run's record for whether a cited test ran and passed (chosen) | A test the sealing machine skips refuses the seal there, and a row that loads no recorder is read for existence only; both are named in `spec.md` §*What the observation cannot see* | taken |
+| *(reframe)* Keeping the test file's marks and names as a static prediction, with round 2's `level`/`LEVEL_NODES` fix | Each round found another spelling (two rounds, nine spellings); a module-level `pytest.skip`, a `skipif` whose condition is true, a conftest's `pytest.skip`, a `-k` and a `--deselect` are each unreadable from the file. The owner judged the list a cover-up · NAME NOT IN TREE | refused |
+| *(reframe)* `evidence-check` reading the newest record under the kept output when one is present | Which run's record is newest is an inference from a file's `mtime`: the gate keys each run fresh so a reader passes every other key over (`record_key`), and *newest* reads by position where #825 ended reading by position | refused |
+| *(reframe)* The sealer reading the record and judging the test rows itself | `agents/sealer.md`: the sealer runs the gate and judges nothing; a judgment there is a second reader of the ledger with no record of its own | refused |
+| *(reframe)* The gate reading the ledger's node ids itself against `RunRecord` | The gate parses no ledger, and `RunRecord` holds files; the checker is the one reader of a ledger row, and a second one is #834's refused copy | refused |
+| *(reframe)* Keeping the `test…` / `Test…` prefix and the `test_*.py` name as a static default, dropping only the marks | The prefix is a prediction of `python_functions`' default: it refuses a row the record would hold in a repository with other names, and holds one the record would refuse — a `test_` function pytest deselected or never collected · NAME NOT IN TREE | refused |
+| *(reframe)* A new verdict word (`UNHELD`) for a test the run did not hold, or a word on the totals line | `exit_code`, `classify`, two wrappers and the CI job read the verdict words; MALFORMED already means *cites nothing that holds* and is what round 1's fix used for this meaning. The observation goes in the detail | refused |
+| *(reframe)* `skipped` and `xfailed` as OK, *left to the reader* | Round 1's 🟡 2 by another door: a test the sealing machine skips holds nothing there, and an `xfail` leaves the suite green whatever the code does | refused |
+| *(reframe)* The gate writing a digest of the record for the checker | A third format for one observation, with its meaning defined in a second place; the record is already a format this plugin owns | refused |
+| *(reframe)* One shared reader of the record, the checker loading `broad_gate.py#read_record` | The checker ships alone through `evidence-ci`, and `read_record` reduces a run to files where the ledger needs node ids. The second reader reads four fields, and S19 reads one record with both | refused |
+| *(reframe)* A lenient ledger step in CI's ubuntu pytest leg, reading that leg's record | CI's `ledger` job is the lenient reader by the owner's rule, so the step could warn and never decide; whether a warning at the pull request is worth one more step in a job branch protection reads is the owner's. The build runs either way | deferred to `questions.md` Q7, default *no* |
 
 ## Phases
 
@@ -94,11 +168,24 @@ scenarios call it *the new module*.
 | 3 | One resolver: `fold_check.py#target_problem` loads `evidence_check.py` through `load` and asks it; the `ast.walk` branch is removed; S10's method spelling; the pins in `tests/test_a_folded_statement_names_what_enforces_it.py` updated in the same commit; the 451 targets under `docs/` measured green by `fold-check` | that module red with the old resolver restored; `fold-check` over the tree green | 4b5eef0c |
 | 4 | The documents (D7): the new section in `docs/the-evidence-ledger.md` with `Enforced by:` lines naming phases 1–3's cases, `templates/ledger.md`'s two forms, the two sections of `skills/evidence-check/SKILL.md`, and `skills/evidence-ci/SKILL.md` §*Updating later*; a pin per changed sentence; the text hygiene modules green | `fold-check`; the pins red with the sentence removed; `tests/test_docs_line_wrap.py` and the five text hygiene modules green | aae8f2bd |
 | 5 | This item's records (D8): the fragment's test rows for S1–S13, the citing rows for every released row phases 1–4 drifted — per row the `Corrected ·` test row or the `Re-read ·` row, chosen by reading (Q3) — `changelog.md`, and `overview.md` | `evidence-check --strict .` 0 drifted, exit 0, executed and its output in `phases/phase-5.md` | 124cd1a6 |
+| 6 | *(reframe)* The static reader keeps existence (D2, D11): `collected`, `TEST_FILE_RE`, `never_fails`, `unconditional`, `NEVER_FAILS`, `NEVER_RUNS` and `node_finding`'s two calls leave `evidence_check.py`; a `def` or `class` defined once is OK, a constant and a name defined twice BROKEN; the three collection cases and `NEVER` leave the new module, the name-prefix cases of `test_a_unit_pytest_does_not_collect_is_no_test` become S4's OK cases, the constant case stays; `fold-check` stays green, since `named_unit` is untouched. S4 | the new module, S4's OK cases red against ec48b584 and every remaining case green; `bin/mutation-check` over `node_finding` with the module as its cases · NAME NOT IN TREE | |
+| 7 | *(reframe)* The record reader (D9, and D10's checker half): the two options on `main`; a reader of the recorder's `test` lines keyed by the `session` line; the match by `record_path` and names prefix with `[…]` stripped; the held rule; the MALFORMED details naming the observation; the one existence line; `--reverify` and `--into` `LEFT` lines; the record threaded to `node_finding`'s three callers the way Q6 answers. S15–S20, S22, each over a record the real recorder wrote (`pytest -p specseal_pytest_record` with the recorder's two variables set, over a planted suite, as `tests/test_the_recorder_writes_what_its_process_ran.py` drives it) | the new module, red against the phase-6 checker (the options unknown; then each verdict OK where the record says otherwise); `tests/test_the_recorder_writes_what_its_process_ran.py` and `tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py` green unchanged; S17's `grep` over the checker's source for a mark name | |
+| 8 | *(reframe)* The gate hands over the record (D10's gate half): `broad_gate.py#main` adds the record directory and `head_key` to `checks[LEDGER]` where the suite ran, and neither on a preflight; item 2 of the module docstring's list says what the arm now reads. S21 | the module that pins `checks[LEDGER]`'s argv, red with the two items missing; one `broad-gate` run over a planted repository whose test row names a test its row skips, NOT SEALED with the ledger arm named | |
+| 9 | *(reframe)* The documents and this item's records (D7, D8, D11, S23): statements 1 and 2 of `docs/the-evidence-ledger.md` §*A claim held by a test* rewritten, their `Enforced by:` lines naming phases 6–8's cases; the test-row paragraph of `skills/evidence-check/SKILL.md` §*Verdicts and what to do*; `templates/ledger.md` §*A row held by a test*; `skills/evidence-ci/SKILL.md` §*Updating later* (the vendored step reads existence; the observation needs the recorder in the repository's own test job); the pins, five removed and the new sentences' added; `changelog.md` rewritten for what ships now; the fragment's T4 and T15 rewritten and rows for S15–S22 added; `--reverify --into` for every released row phases 6–8 drift (`node_finding`'s and `main`'s families at least); `overview.md`'s divergence rows for the reframe and its Not done | `fold-check` exit 0; each pin red with its sentence removed; `evidence-check --strict .` exit 0 at the head, executed and its output in `phases/phase-9.md`; `survivor-check --range origin/release/v0.21.0...HEAD --exempt …` exit 0 over the removed sentences; the eight guard modules green | |
 
 **Order, and why.** Phase 1 before 2 because S7's `Corrected ·` row holds a
 node id the reader must accept first. Phase 3 after 1 because it imports
 what 1 writes. Phase 4 after 3 because its `Enforced by:` lines name cases
 that must exist. Phase 5 last because it reads the hashes phases 1–4 leave.
+
+**The reframe's order.** Phase 6 before 7 because 7's OK rule is 6's
+existence rule plus the record, and 6's removals are what make 7's cases
+red for the right reason (OK where the record says otherwise, not MALFORMED
+by a mark). Phase 8 after 7 because the gate passes options the checker must
+already accept, and a gate run over a planted repository is 8's own case.
+Phase 9 last because its `Enforced by:` lines name 6–8's cases and its
+`--strict` run reads the hashes they leave. The documents are not touched
+before 9, so that `survivor-check` reads one range.
 
 **Sequencing with the siblings.** #867 and #870 edit `evidence_check.py`;
 `spec.md` §*The seam* names the units this item changes and the ones it
@@ -152,3 +239,25 @@ commit in it for a rebase to orphan.
   verdict is a refusal a person reads at exit 1 or 2.
 - **Failure direction: blocks more**, on rows that do not exist in any
   ledger today (measured: no Code grounds cell holds a `path::name` token).
+
+At the reframe:
+
+- **`evidence-check` gains two options**; a caller that passes neither sees
+  the D2 verdicts and one more line where a ledger holds test rows. The
+  post-commit advisor and CI's `ledger` job print that line on every run
+  over this repository, whose fragment holds test rows; it is one line, and
+  it is what keeps an existence-only OK from reading as an observed one.
+- **The gate's ledger arm refuses a seal where a cited test did not pass in
+  the sealed run** — not run, skipped, xfailed, xpassed, failed — including a
+  `skipif` true on the sealer's machine. Failure direction: blocks more.
+  Prompt budget: zero.
+- **What a gate prints changes in three places**, each pinned: the MALFORMED
+  detail for a test the record refuses, the existence line, and the
+  `LEFT` line of `--reverify` for such a row. The `MALFORMED` detail for a
+  unit *pytest does not collect by default* and for a mark leave.
+- **A consuming repository's vendored copy reads existence**; the observation
+  needs the recorder in its own test job and the record handed to the step,
+  which `skills/evidence-ci/SKILL.md` §*Updating later* says and
+  `evidence-ci` does not set up (the Out table).
+- **No new dependency, no new environment variable**: the recorder's two
+  variables and its `-p` are the gate's already.
