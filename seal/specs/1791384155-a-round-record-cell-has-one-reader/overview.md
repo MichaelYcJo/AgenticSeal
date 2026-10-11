@@ -23,6 +23,10 @@ release seal cannot give one cell two meanings.
 | How `gh` is run | J4: "the exact call pull_request_is_ready makes today" / the path `shutil.which` found, not the bare name | the found path | a `gh.cmd` on Windows is found by `which` and not by a process call naming `gh` |
 | `--sealing`'s reach | J4: "the `Broad gate` arm of the last record" / also the direct `broad-gate.md` home | both homes | the gate writes the cell into whichever home `seal` uses, and the draft payload excused both before |
 | The environment-leak case (W2) | a failure to re-pin / the judgment's source | the source | under `--sealing` the leaked payload fails nothing; the kept output still shows which pull request judged the fixture |
+| S10's red | S10: "red with either caller's old loop restored" / red against breaks of `floor_walks` | `floor_walks` | the old loops agreed by construction, so restoring one moves no answer; a break of the shared walk moves both |
+| `cut_runs`' answer | J5: "the `Fix of a fix` counts in round order → the runs" / the indices a run is cut after | indices | `current_run` also names the `second` that stopped the run before |
+| The gate's per-record readers of the reopening and of a fix | spec silent / removed with the loops | removed | no caller was left; four released rows re-pointed by `Corrected ·` rows |
+| Phase 5's commit | a phase closes on its own commit / e682fe84 is the orchestrator's `wip:` commit of the staged phase, made at the machine move | closed there, not rewritten | the orchestrator asked that the `wip:` commit stay; the resumed session re-ran the phase's modules, lint, the chain check and `evidence-check` on it |
 | The panel's ASCII | spec silent / the home is ASCII-encoded in `rounds_rows`, not in the reader | in the panel | the letter twin maps only the owner's characters; the gate and the release seal want the home as written |
 
 ## Not verified
