@@ -23,7 +23,7 @@ the review chain, and one has not started.
 | #870, #848 | 1791384159 | #889 (draft) | round 1 recorded at 8b0d4d7a: 🟡 1–3 | **reframe** (owner, 2026-10-12): force a format; bound only where a real parser exists |
 | #868, #856 | 1791384157 | #881 (draft, `chain: reframed`) | reframed after round 3; the redesign's round 5 closed at 11b6ed14 (2 fixed, 2 answered) | **reframe** (owner, 2026-10-12): observe the act (git's `reference-transaction` hook), not the command |
 | #866 | 1791384155 | none yet | phases 1–4 closed; phase 5 stopped mid-edit and committed as an unverified `wip:` | finish phase 5 (or revert the wip), build 6–7, then the draft PR and round 1 — its branch's `handoff.md` |
-| #835 | 1791384152 | none | framed; not started | builds **last**, after #836, #870, #866, #868 land |
+| #835 | 1791384152 | none | framed 2026-10-07; a framer (Fable) refreshes the design on 2026-10-12 against the review: a K1 call-list misses readers silently | builds **last**. **After every sibling lands, run the #835 framer again on `model: fable`** against the landed tree to fix the population and census, then the smith |
 | #834 (its own build) | 1791382684 | none | the inventory only | after #835 |
 
 `release/v0.21.0` is at ad447367. Not framed for 0.21.0: #844 (a docstring
