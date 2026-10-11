@@ -204,31 +204,54 @@ def test_a_method_spelled_bare_is_named_with_its_spelling(repo, script):
 
 
 @pytest.mark.parametrize(
-    "name, kind",
+    "rel, text, node",
     [
-        ("helper", "def"),
-        ("Holder", "class"),
-        ("Holder::test_d", "def"),
-        ("CONSTANT", "constant"),
+        (TESTS, HELD, "helper"),
+        (TESTS, HELD, "Holder"),
+        (TESTS, HELD, "Holder::test_d"),
+        ("tests/helpers.py", "def check():\n    assert True\n", "check"),
+        ("tests/conftest.py", "def test_x():\n    assert True\n", "test_x"),
+        (
+            "tests/test_init.py",
+            "class TestI:\n    def __init__(self):\n        pass\n\n"
+            "    def test_x(self):\n        assert True\n",
+            "TestI::test_x",
+        ),
+    ],
+    ids=[
+        "a def not named test",
+        "a class not named Test",
+        "a method of such a class",
+        "a helper module",
+        "conftest",
+        "a class with __init__",
     ],
 )
-def test_a_unit_pytest_does_not_collect_is_no_test(repo, script, name, kind):
-    """S4. A unit that merely exists holds nothing, which is what *cites no
-    coordinate* refuses: MALFORMED, exit 1 leniently and 2 under `--strict`."""
-    fragment(repo, [held(f"`{TESTS}::{name}`")])
+def test_a_unit_that_exists_resolves_without_a_record(repo, script, rel, text, node):
+    """S4, rewritten at the reframe. With no record handed over, the static
+    reader says what reading the file establishes and nothing more: a `def`
+    or `class` of that name, defined once. Whether pytest collects it is the
+    record's to say. Red against ec48b584, which read each as no test."""
+    (repo / rel).write_text(text, encoding="utf-8")
+    fragment(repo, [held(f"`{rel}::{node}`")])
+    out = run(["--strict", "."], repo, script)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert findings(out.stdout) == [], out.stdout
+
+
+def test_a_unit_pytest_does_not_collect_is_no_test(repo, script):
+    """S4's other half: a constant is no `def` or `class`, so the name the row
+    cites is not there to hold anything — BROKEN, told what the name is."""
+    fragment(repo, [held(f"`{TESTS}::CONSTANT`")])
     out = run(["."], repo, script)
-    assert out.returncode == 1, out.stdout
+    assert out.returncode == 2, out.stdout
     assert findings(out.stdout) == [
         (
-            "MALFORMED",
-            f"{TESTS}::{name}",
-            f"a {kind} pytest does not collect by default, so nothing holds the "
-            "claim — name it in Code grounds as pytest spells it, "
-            "`tests/test_x.py::test_y`, or `tests/test_x.py::TestA::test_b` for a "
-            "method; or, where no test holds it, write `path#anchor@hash`",
+            "BROKEN",
+            f"{TESTS}::CONSTANT",
+            f"no def or class named CONSTANT in {TESTS} — it is a constant",
         )
     ], out.stdout
-    assert run(["--strict", "."], repo, script).returncode == 2
 
 
 @pytest.mark.parametrize(
@@ -545,125 +568,6 @@ def test_a_corrections_own_gone_test_is_still_broken(repo):
     assert [(s, c) for s, c, _ in findings(out.stdout)] == [
         ("BROKEN", f"{TESTS}::test_renamed")
     ], out.stdout
-
-
-@pytest.mark.parametrize(
-    "rel, text, node",
-    [
-        ("tests/helpers.py", "def test_x():\n    assert True\n", "test_x"),
-        ("tests/conftest.py", "def test_x():\n    assert True\n", "test_x"),
-        (
-            "tests/test_init.py",
-            "class TestI:\n    def __init__(self):\n        pass\n\n"
-            "    def test_x(self):\n        assert True\n",
-            "TestI::test_x",
-        ),
-    ],
-    ids=["not a test file", "conftest", "class with __init__"],
-)
-def test_a_test_the_suite_does_not_collect_holds_nothing(repo, script, rel, text, node):
-    """Round 1, 🟡 2 (a): a statically readable test is in a `test_*.py` or
-    `*_test.py` file, and its class has no `__init__`."""
-    (repo / rel).write_text(text, encoding="utf-8")
-    fragment(repo, [held(f"`{rel}::{node}`")])
-    out = run(["--strict", "."], repo, script)
-    assert out.returncode == 2, out.stdout + out.stderr
-    ((status, coord, detail),) = findings(out.stdout)
-    assert (status, coord) == ("MALFORMED", f"{rel}::{node}"), out.stdout
-    assert "pytest does not collect by default" in detail, detail
-
-
-NEVER = (
-    "is marked to be skipped or to fail unconditionally, so the suite stays "
-    "green whatever the code does and nothing holds the claim"
-)
-
-
-@pytest.mark.parametrize(
-    "text, node",
-    [
-        (
-            "import pytest\n\n@pytest.mark.skip\ndef test_x():\n    assert False\n",
-            "test_x",
-        ),
-        (
-            "import pytest\n\n@pytest.mark.skip(reason='later')\n"
-            "def test_x():\n    assert False\n",
-            "test_x",
-        ),
-        (
-            "import pytest\n\n@pytest.mark.xfail\ndef test_x():\n    assert False\n",
-            "test_x",
-        ),
-        (
-            "import pytest\n\n@pytest.mark.xfail(reason='known')\n"
-            "def test_x():\n    assert False\n",
-            "test_x",
-        ),
-        (
-            "import pytest\npytestmark = pytest.mark.skip\n\n"
-            "def test_x():\n    assert False\n",
-            "test_x",
-        ),
-        (
-            "import pytest\npytestmark = [pytest.mark.slow, pytest.mark.skip]\n\n"
-            "def test_x():\n    assert False\n",
-            "test_x",
-        ),
-        (
-            "import pytest\n\n@pytest.mark.skip\nclass TestS:\n"
-            "    def test_x(self):\n        assert False\n",
-            "TestS::test_x",
-        ),
-        (
-            "import pytest\n\nclass TestS:\n    pytestmark = pytest.mark.xfail\n\n"
-            "    def test_x(self):\n        assert False\n",
-            "TestS::test_x",
-        ),
-    ],
-    ids=[
-        "skip",
-        "skip with a reason",
-        "xfail",
-        "xfail with a reason",
-        "module pytestmark",
-        "module pytestmark list",
-        "class decorator",
-        "class pytestmark",
-    ],
-)
-def test_a_test_that_cannot_fail_holds_nothing(repo, script, text, node):
-    """Round 1, 🟡 2 (b): a test carrying an unconditional `skip` or `xfail`
-    mark, on itself, a class around it or its module, leaves the suite green
-    whatever the code does."""
-    (repo / "tests" / "test_never.py").write_text(text, encoding="utf-8")
-    fragment(repo, [held(f"`tests/test_never.py::{node}`")])
-    out = run(["--strict", "."], repo, script)
-    assert out.returncode == 2, out.stdout + out.stderr
-    ((status, coord, detail),) = findings(out.stdout)
-    assert (status, coord) == ("MALFORMED", f"tests/test_never.py::{node}")
-    assert detail.startswith(f"{NEVER} — name it in Code grounds"), detail
-
-
-@pytest.mark.parametrize(
-    "text",
-    [
-        "import sys\nimport pytest\n\n@pytest.mark.skipif(sys.platform == 'x', "
-        "reason='x')\ndef test_x():\n    assert True\n",
-        "import sys\nimport pytest\n\n@pytest.mark.xfail(sys.platform == 'x', "
-        "reason='x')\ndef test_x():\n    assert True\n",
-        "import pytest\n\n@pytest.mark.slow\ndef test_x():\n    assert True\n",
-    ],
-    ids=["skipif", "xfail with a condition", "another mark"],
-)
-def test_a_conditional_mark_is_left_to_the_reader(repo, text):
-    """Round 1, 🟡 2: `skipif`, and an `xfail` given a condition, run where
-    the condition is false; whether that is here is the suite's to say."""
-    (repo / "tests" / "test_maybe.py").write_text(text, encoding="utf-8")
-    fragment(repo, [held("`tests/test_maybe.py::test_x`")])
-    out = run(["--strict", "."], repo)
-    assert out.returncode == 0, out.stdout + out.stderr
-    assert findings(out.stdout) == [], out.stdout
 
 
 def test_a_coordinate_quoting_a_scope_is_no_test(repo, script):

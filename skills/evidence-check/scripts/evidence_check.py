@@ -22,12 +22,11 @@ sees (#585).
 
 A row may name instead the tests that hold its claim, as pytest spells them
 (`tests/test_x.py::test_y`), in its Code grounds cell and nowhere else
-(#836). Such a row has no hash and never drifts: each test is OK where it
-is one unit that reads as a test without running pytest and carries no
-unconditional skip or xfail mark, BROKEN where its file or unit is gone, and
-MALFORMED where it is no test, cannot fail, or shares the cell with a code
-coordinate. Whether pytest collects it and whether it passes are the
-suite's to say.
+(#836). Such a row has no hash and never drifts: each test is OK where a
+`def` or `class` of that name is defined in its file once, BROKEN where its
+file or unit is gone, and MALFORMED where it shares the cell with a code
+coordinate. That is all reading the file establishes; whether the test ran
+and passed is read off the sealed run's record where one is handed over.
 
 **A coordinate names a place by content, never by position.** A line number
 moves for edits that have nothing to do with the claim, so a coordinate made of
@@ -2244,10 +2243,6 @@ MIXED_ROW = (
     "keep the test where it holds the claim and move the coordinates out, or "
     "keep the coordinates and move the test to Verified behavior"
 )
-NOT_A_TEST = (
-    "pytest does not collect by default, so nothing holds the claim — "
-    f"{TEST_FORM}; or, where no test holds it, write `path#anchor@hash`"
-)
 
 
 def node_tokens(cell):
@@ -2325,109 +2320,18 @@ def named_unit(text, names):
     return kinds.get(".".join(names), ())
 
 
-# pytest's default test-file names; a `conftest.py` is never collected from.
-TEST_FILE_RE = re.compile(r"test_[^/]*\.py|[^/]*_test\.py")
-
-
-def collected(names, kinds, path):
-    """Whether what NAMES name in the file PATH is a test by what can be read
-    without running pytest: a file named `test_*.py` or `*_test.py`, a
-    function named `test...` or a class named `Test...`, at the top level or
-    inside classes named `Test...`, none of them with an `__init__`. KINDS is
-    `unit_kinds` of the file.
-
-    **That is all `OK` says** (round 1, 🟡 2). Whether pytest collects the
-    test under a repository's own configuration, and whether it passes, are
-    the suite's answers; deriving more of pytest's collection rules here
-    would be a list nobody finishes."""
-    if not TEST_FILE_RE.fullmatch(path.rsplit("/", 1)[-1]):
-        return False
-    for depth in range(1, len(names) + 1):
-        outer = ".".join(names[:depth])
-        if kinds.get(outer) == ("class",) and outer + ".__init__" in kinds:
-            return False
-    for depth in range(1, len(names)):
-        if not names[depth - 1].startswith("Test") or kinds.get(
-            ".".join(names[:depth])
-        ) != ("class",):
-            return False
-    own, last = kinds.get(".".join(names), ()), names[-1]
-    return (own == ("def",) and last.startswith("test")) or (
-        own == ("class",) and last.startswith("Test")
-    )
-
-
-# The marks that leave the suite green whatever the code does. `skipif` and
-# an `xfail` given a condition run where the condition is false, and are left
-# to the reader.
-NEVER_FAILS = ("skip", "xfail")
-NEVER_RUNS = (
-    "is marked to be skipped or to fail unconditionally, so the suite stays "
-    "green whatever the code does and nothing holds the claim"
-)
-
-
-def unconditional(mark):
-    """Whether the expression MARK is `pytest.mark.skip` or `pytest.mark.xfail`
-    applied with no condition, or a list or tuple holding one: `skip` takes
-    none, and `xfail` takes one as its first positional argument."""
-    if isinstance(mark, (ast.List, ast.Tuple)):
-        return any(unconditional(element) for element in mark.elts)
-    call = isinstance(mark, ast.Call)
-    target = mark.func if call else mark
-    name = (
-        target.attr
-        if isinstance(target, ast.Attribute)
-        else target.id
-        if isinstance(target, ast.Name)
-        else None
-    )
-    if name == "skip":
-        return True
-    return name == "xfail" and not (call and mark.args)
-
-
-def never_fails(text, names):
-    """Whether the test NAMES name in the Python TEXT, a class around it, or
-    its module carries an unconditional skip or xfail mark (round 1, 🟡 2):
-    as a decorator, or in a `pytestmark` assigned in the module or the class."""
-
-    def marked(body):
-        for node in body:
-            targets = (
-                node.targets
-                if isinstance(node, ast.Assign)
-                else [node.target]
-                if isinstance(node, ast.AnnAssign)
-                else []
-            )
-            if any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in targets):
-                if node.value is not None and unconditional(node.value):
-                    return True
-        return False
-
-    scope = ast.parse(text).body
-    if marked(scope):
-        return True
-    for name in names:
-        node = next((n for n in scope if getattr(n, "name", None) == name), None)
-        if node is None:
-            return False
-        if any(unconditional(d) for d in node.decorator_list):
-            return True
-        scope = node.body
-        if isinstance(node, ast.ClassDef) and marked(scope):
-            return True
-    return False
-
-
 def node_finding(token, root, maps, default_repo=None):
     """`(status, token, detail)` for one test a Code grounds cell names: OK
-    where it is one unit that reads as a test (`collected`) and carries no
-    unconditional skip or xfail (`never_fails`), BROKEN where its file or its
-    unit is not there, and MALFORMED where it does not parse as a node id,
-    names a unit that is not a test, or names one that cannot fail. Never
-    DRIFTED: there is no hash."""
+    where a `def` or `class` of that qualified name is defined in its file
+    once, BROKEN where the file or the unit is not there, the name is no `def`
+    or `class`, or it is defined more than once, and MALFORMED where the token
+    does not parse as a node id. Never DRIFTED: there is no hash.
+
+    **That is all reading the file establishes, and all this says** (the
+    reframe after round 2). Whether the unit is a test, whether pytest
+    collects it and whether a mark keeps it from running or from failing are
+    predictions of pytest; the sealed run's record answers each of them by
+    observation, where a caller hands one over."""
     m = NODE_ID_RE.fullmatch(token)
     if m is None:
         return ("MALFORMED", token, f"does not parse as a test — {TEST_FORM}")
@@ -2464,16 +2368,14 @@ def node_finding(token, root, maps, default_repo=None):
             f"{'.'.join(names)} is defined {len(own)} times in {path}; a test "
             "is defined once",
         )
-    if not collected(names, kinds, path):
-        return ("MALFORMED", token, f"a {own[0]} {NOT_A_TEST}")
-    if never_fails(body, names):
+    if own[0] not in ("def", "class"):
         return (
-            "MALFORMED",
+            "BROKEN",
             token,
-            f"{NEVER_RUNS} — {TEST_FORM}; or, where no test holds it, write "
-            "`path#anchor@hash`",
+            f"no def or class named {NODE_SEP.join(names)} in {path} — it is a "
+            f"{own[0]}",
         )
-    return ("OK", token, f"a {own[0]} that reads as a test")
+    return ("OK", token, f"a {own[0]} defined once")
 
 
 def held_by_tests(text, root, maps, default_repo=None, unread=()):
