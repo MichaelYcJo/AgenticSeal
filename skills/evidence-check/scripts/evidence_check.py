@@ -124,6 +124,7 @@ import glob
 import hashlib
 import html
 import importlib.util
+import json
 import os
 import re
 import stat
@@ -2320,6 +2321,147 @@ def named_unit(text, names):
     return kinds.get(".".join(names), ())
 
 
+# --- the sealed run's record (#836, the reframe after round 2) ----------------
+#
+# Whether a cited test ran, and how it ended, is read off the record the broad
+# gate's pytest recorder writes during the run it seals
+# (`skills/verify/scripts/pytest_record/specseal_pytest_record.py`, its
+# docstring §*What it writes*), never predicted from the test's file. The gate
+# hands this check the record's directory and the run's key on its ledger arm
+# (`--suite-record`, `--suite-key`); every other caller hands none, and test
+# rows are then read for existence alone, which one line says.
+#
+# Four fields of a `test` line are read -- `path`, `nodeid`, `when` and
+# `category` -- so a field the recorder adds changes nothing here. `category`
+# is the word pytest's own summary counts the report under, which the recorder
+# asks of pytest: this matches the words and derives no rule of pytest's. A
+# second reader of one format beside `broad_gate.py#read_record`, because this
+# file ships alone through `evidence-ci` and that one reduces a run to files.
+SUITE_RECORD_OPTION = "--suite-record"
+SUITE_KEY_OPTION = "--suite-key"
+# What `main` hands `node_finding`: RECORD, `{(path, names): {category}}` or
+# None where no record was read; KEY and DIRECTORY as given, or None. Set once
+# per run, before any ledger is read, so the three callers of `node_finding`
+# -- `held_by_tests`, `family_view`'s member loop, and `reverify` through
+# `held_by_tests` -- read one record and none of them carries it
+# (`questions.md` Q6 of work item 1791384153).
+SUITE_RECORD = types.SimpleNamespace(record=None, key=None, directory=None)
+# Every test token `node_finding` read in this process, so `main` prints the
+# existence line only where a ledger held a test row.
+NODES_READ = []
+# The order a test's categories are named in, worst first; another word a
+# plugin writes is named after these.
+OBSERVED_ORDER = ("failed", "error", "xpassed", "xfailed", "skipped")
+PARAMETRISED_RE = re.compile(r"\[.*\]\Z")
+
+
+def record_name(path, root):
+    """PATH as the record's reader names a file: its `realpath` made relative
+    to ROOT's, with `/`, or its `realpath` where it is not under ROOT --
+    `broad_gate.py#record_path`'s rule, so both readers name one file one way."""
+    real = os.path.realpath(path)
+    try:
+        rel = os.path.relpath(real, os.path.realpath(root))
+    except ValueError:
+        return real
+    if rel.split(os.sep)[0] == os.pardir:
+        return real
+    return rel.replace(os.sep, "/")
+
+
+def suite_record(directory, key, root):
+    """`{(path, names): {category}}` for every `test` line of every `*.jsonl`
+    directly under DIRECTORY whose first line is a `session` line carrying KEY,
+    or None where no file carried it or DIRECTORY cannot be listed.
+
+    PATH is the line's `path` named by `record_name`, never rebuilt from the
+    node id; NAMES the node id's parts after its first `::`, with a
+    parametrise suffix `[...]` stripped from the last. A line that does not
+    parse as an object, or lacks a field, is passed over."""
+    try:
+        names = sorted(os.listdir(directory))
+    except OSError:
+        return None
+    record, keyed = {}, False
+    for name in names:
+        if not name.endswith(".jsonl"):
+            continue
+        try:
+            with open(
+                os.path.join(directory, name), encoding="utf-8", errors="replace"
+            ) as handle:
+                text = handle.read()
+        except OSError:
+            continue
+        lines = []
+        for line in gfm_lines(text):
+            try:
+                value = json.loads(line) if line.strip() else None
+            except ValueError:
+                continue
+            if isinstance(value, dict):
+                lines.append(value)
+        if not lines or lines[0].get("kind") != "session" or lines[0].get("key") != key:
+            continue
+        keyed = True
+        for value in lines[1:]:
+            path, nodeid = value.get("path"), value.get("nodeid")
+            category = value.get("category")
+            if value.get("kind") != "test" or not isinstance(path, str):
+                continue
+            if not isinstance(nodeid, str) or NODE_SEP not in nodeid:
+                continue
+            if not isinstance(category, str):
+                continue
+            parts = nodeid.split(NODE_SEP)[1:]
+            parts[-1] = PARAMETRISED_RE.sub("", parts[-1])
+            place_key = (record_name(path, root), tuple(parts))
+            record.setdefault(place_key, set()).add(category)
+    return record if keyed else None
+
+
+def observed(record, path, names):
+    """None where the test PATH and NAMES cite was held in RECORD -- among the
+    categories of every line it owns, less `""` (a passed setup or teardown),
+    `passed` and nothing else -- else the words naming what was observed. A
+    cited unit owns every line of its file whose names begin with its own, so
+    a class owns its methods and a function its parametrised cases."""
+    cited, owned, categories = tuple(names), False, set()
+    for (where, parts), words in record.items():
+        if where == path and parts[: len(cited)] == cited:
+            owned = True
+            categories |= words
+    if not owned:
+        return "not run in the recorded suite"
+    others = categories - {"", "passed"}
+    if "passed" in categories and not others:
+        return None
+    ranked = sorted(
+        others,
+        key=lambda w: (OBSERVED_ORDER.index(w) if w in OBSERVED_ORDER else 99, w),
+    )
+    return f"{', '.join(ranked) or 'no outcome'} in the recorded suite"
+
+
+def existence_line():
+    """The one line a check prints where it read test rows with no record, or
+    None where it read none or had one."""
+    if not NODES_READ or SUITE_RECORD.record is not None:
+        return None
+    if SUITE_RECORD.key is None:
+        why = "no suite record was given"
+    else:
+        why = (
+            f"no session under {SUITE_RECORD.directory} carries the key "
+            f"{SUITE_RECORD.key}"
+        )
+    return (
+        f"test rows were read for existence alone: {why}, so whether each cited "
+        "test ran and passed was not read — `broad-gate` hands this check the "
+        "sealed run's record"
+    )
+
+
 def node_finding(token, root, maps, default_repo=None):
     """`(status, token, detail)` for one test a Code grounds cell names: OK
     where a `def` or `class` of that qualified name is defined in its file
@@ -2331,7 +2473,10 @@ def node_finding(token, root, maps, default_repo=None):
     reframe after round 2). Whether the unit is a test, whether pytest
     collects it and whether a mark keeps it from running or from failing are
     predictions of pytest; the sealed run's record answers each of them by
-    observation, where a caller hands one over."""
+    observation, where a caller hands one over: given `SUITE_RECORD`, a unit
+    that exists is OK only where the run held it (`observed`), and MALFORMED
+    with the observation in the detail where it did not."""
+    NODES_READ.append(token)
     m = NODE_ID_RE.fullmatch(token)
     if m is None:
         return ("MALFORMED", token, f"does not parse as a test — {TEST_FORM}")
@@ -2375,7 +2520,19 @@ def node_finding(token, root, maps, default_repo=None):
             f"no def or class named {NODE_SEP.join(names)} in {path} — it is a "
             f"{own[0]}",
         )
-    return ("OK", token, f"a {own[0]} defined once")
+    if SUITE_RECORD.record is None:
+        return ("OK", token, f"a {own[0]} defined once")
+    seen = observed(
+        SUITE_RECORD.record, record_name(os.path.join(repo, rel), root), names
+    )
+    if seen is not None:
+        return (
+            "MALFORMED",
+            token,
+            f"{seen}, so nothing holds the claim — {TEST_FORM}; or, where no test "
+            "holds it, write `path#anchor@hash`",
+        )
+    return ("OK", token, f"a {own[0]} seen passing in the recorded suite")
 
 
 def held_by_tests(text, root, maps, default_repo=None, unread=()):
@@ -6118,7 +6275,38 @@ def main():
         "fragment (seal/ledger/<work-item-id>.md) for every released row with "
         "a drifted coordinate, instead of editing the released file",
     )
+    ap.add_argument(
+        SUITE_RECORD_OPTION,
+        metavar="DIR",
+        help="with --suite-key: the directory of the sealed run's pytest "
+        "records; a test row is held only where its test was seen passing there",
+    )
+    ap.add_argument(
+        SUITE_KEY_OPTION,
+        metavar="KEY",
+        help="with --suite-record: the key of the run whose record is read",
+    )
     args = ap.parse_args()
+
+    # The record is one run's, so a directory without its key, or a key
+    # without its directory, names none; refused before anything is read.
+    if (args.suite_record is None) != (args.suite_key is None):
+        sys.stderr.write(
+            f"evidence_check: `{SUITE_RECORD_OPTION}` and `{SUITE_KEY_OPTION}` "
+            "name one run's record together — pass both or neither\n"
+        )
+        return 2
+    SUITE_RECORD.key, SUITE_RECORD.directory, SUITE_RECORD.record = (
+        args.suite_key,
+        args.suite_record,
+        None,
+    )
+    if args.suite_record is not None:
+        SUITE_RECORD.record = suite_record(
+            os.path.abspath(args.suite_record),
+            args.suite_key,
+            os.path.abspath(args.root),
+        )
 
     # `--into` dates every row it writes, so it is refused without the date
     # and without the command it belongs to, before anything is read (#715).
@@ -6440,6 +6628,11 @@ def main():
         f"{totals['OLD-FORMAT']} old-format · {totals['MALFORMED']} malformed"
         f" · {totals['OVERFLOW']} overflow"
     )
+    # Test rows read with no record are read for existence alone, and a run
+    # says so once, so an existence OK never reads as an observed one (#836).
+    note = existence_line()
+    if note:
+        print(note)
 
     # The second arm. A ledger row is a claim about the tree that something
     # reads; a RECORD states the same kind of thing and nothing reads it

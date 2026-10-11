@@ -23,6 +23,7 @@ spec.md` holds the decisions. No fixture here runs git.
 """
 
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -595,6 +596,494 @@ def test_a_pact_anchor_quoting_a_scope_is_no_test(repo):
     out = run(["--strict", "."], repo)
     assert out.returncode == 0, out.stdout + out.stderr
     assert findings(out.stdout) == [], out.stdout
+
+
+# --- the reframe: the sealed run's record (S15 to S20, S22) --------------------
+#
+# Every case here reads a record the real recorder wrote: pytest runs over a
+# planted suite with `-p specseal_pytest_record` and the recorder's two
+# variables, as `tests/test_the_recorder_writes_what_its_process_ran.py`
+# drives it. A hand-written record would hold the reader to this file's idea
+# of the format rather than to the recorder's.
+
+RECORDER_DIR = os.path.join(ROOT, "skills", "verify", "scripts", "pytest_record")
+SUITE_KEY = "head-0123456789abcdef"
+OBSERVED = (
+    "import pytest\n"
+    "\n"
+    "@pytest.fixture\n"
+    "def broken():\n"
+    "    raise RuntimeError('setup')\n"
+    "\n"
+    "def test_pass():\n"
+    "    assert True\n"
+    "\n"
+    "@pytest.mark.skip\n"
+    "def test_skip():\n"
+    "    pass\n"
+    "\n"
+    "@pytest.mark.xfail\n"
+    "def test_xfail():\n"
+    "    assert False\n"
+    "\n"
+    "@pytest.mark.xfail\n"
+    "def test_xpass():\n"
+    "    assert True\n"
+    "\n"
+    "def test_fail():\n"
+    "    assert False\n"
+    "\n"
+    "def test_error(broken):\n"
+    "    pass\n"
+    "\n"
+    "@pytest.mark.parametrize('v', [1, 2])\n"
+    "def test_param(v):\n"
+    "    assert v == 1\n"
+    "\n"
+    "@pytest.mark.parametrize('v', [1, 2])\n"
+    "def test_cases(v):\n"
+    "    assert v\n"
+    "\n"
+    "def helper():\n"
+    "    return 1\n"
+    "\n"
+    "class TestA:\n"
+    "    def test_b(self):\n"
+    "        assert True\n"
+    "\n"
+    "    def test_c(self):\n"
+    "        assert True\n"
+    "\n"
+    "class TestB:\n"
+    "    def test_b(self):\n"
+    "        assert True\n"
+    "\n"
+    "    @pytest.mark.skip\n"
+    "    def test_c(self):\n"
+    "        pass\n"
+    "\n"
+    "class TestI:\n"
+    "    def __init__(self):\n"
+    "        pass\n"
+    "\n"
+    "    def test_x(self):\n"
+    "        assert True\n"
+)
+# Round 1's and round 2's spellings (S17): what the record says is what pytest
+# did, and this module names a spelling only to plant it.
+SPELLINGS = (
+    "import pytest\n"
+    "\n"
+    "@pytest.mark.xfail(condition=False, reason='never')\n"
+    "def test_conditional_xfail():\n"
+    "    assert True\n"
+    "\n"
+    "@pytest.mark.xfail(strict=True)\n"
+    "def test_strict_xfail():\n"
+    "    assert True\n"
+    "\n"
+    "@pytest.mark.skipif(True, reason='always')\n"
+    "def test_skipif_true():\n"
+    "    assert True\n"
+    "\n"
+    "@pytest.mark.skipif(False, reason='never')\n"
+    "def test_skipif_false():\n"
+    "    assert True\n"
+)
+UNDER_IF = (
+    "import pytest\n"
+    "\n"
+    "if True:\n"
+    "    pytestmark = pytest.mark.skip\n"
+    "\n"
+    "def test_x():\n"
+    "    assert True\n"
+)
+AUGMENTED = (
+    "import pytest\n"
+    "\n"
+    "pytestmark = [pytest.mark.slow]\n"
+    "pytestmark += [pytest.mark.skip]\n"
+    "\n"
+    "def test_x():\n"
+    "    assert True\n"
+)
+MODULE_SKIP = (
+    "import pytest\n"
+    "\n"
+    "pytest.skip('module', allow_module_level=True)\n"
+    "\n"
+    "def test_x():\n"
+    "    assert True\n"
+)
+PLANTED = {
+    "test_observed.py": OBSERVED,
+    "test_spellings.py": SPELLINGS,
+    "test_under_if.py": UNDER_IF,
+    "test_augmented.py": AUGMENTED,
+    "test_module_skip.py": MODULE_SKIP,
+    "helpers.py": "def check():\n    assert True\n",
+}
+
+
+def recording_env(records):
+    """The environment the gate hands a run it measures, built on this
+    process's own with the recorder's variables cleared first, so an outer
+    gate's run of this suite does not leak into the case."""
+    env = dict(os.environ)
+    for name in ("SPECSEAL_RECORD_KEY", "SPECSEAL_RECORD_DIR", "PYTEST_ADDOPTS"):
+        env.pop(name, None)
+    env["PYTHONPATH"] = os.pathsep.join(
+        p for p in (RECORDER_DIR, env.get("PYTHONPATH")) if p
+    )
+    env["PYTEST_ADDOPTS"] = "-p specseal_pytest_record"
+    env["SPECSEAL_RECORD_KEY"] = SUITE_KEY
+    env["SPECSEAL_RECORD_DIR"] = str(records)
+    return env
+
+
+def record_suite(project, records):
+    """Run pytest over PROJECT's `tests/` with the recorder loaded, as the gate
+    runs a row it measures; the record lands under RECORDS."""
+    records.mkdir(exist_ok=True)
+    return subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-p",
+            "no:cacheprovider",
+            "-p",
+            "no:xdist",
+            "tests",
+        ],
+        cwd=str(project),
+        env=recording_env(records),
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=240,
+    )
+
+
+@pytest.fixture(scope="module")
+def suite(tmp_path_factory):
+    """One planted project and the record its one pytest run wrote: every
+    case below writes its own fragment into it."""
+    base = tmp_path_factory.mktemp("suite")
+    project = base / "proj"
+    (project / "tests").mkdir(parents=True)
+    for name, text in PLANTED.items():
+        (project / "tests" / name).write_text(text, encoding="utf-8")
+    records = base / "records"
+    done = record_suite(project, records)
+    assert done.returncode == 1, done.stdout + done.stderr
+    return project, records
+
+
+def observe(suite, script, rows):
+    project, records = suite
+    fragment(project, rows)
+    return run(
+        ["--strict", "--suite-record", str(records), "--suite-key", SUITE_KEY, "."],
+        project,
+        script,
+    )
+
+
+def test_the_recorder_writes_a_passed_setup_under_no_category(suite):
+    """`questions.md` Q5, measured: a passed setup and teardown are written
+    with the category `""`, and only the call `passed`, on the build this
+    suite runs; the held rule (`passed` and nothing else, less `""`) rests on
+    it. `phases/phase-7.md` records the same on pytest 7.4.4."""
+    record = ec.suite_record(str(suite[1]), SUITE_KEY, str(suite[0]))
+    assert record[("tests/test_observed.py", ("test_pass",))] == {"", "passed"}
+
+
+def test_a_test_seen_passing_is_held(suite, script):
+    """S15. Red against the phase-6 checker, which knows neither option."""
+    out = observe(suite, script, [held("`tests/test_observed.py::test_pass`")])
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert findings(out.stdout) == [], out.stdout
+    assert "read for existence alone" not in out.stdout, out.stdout
+
+
+UNHELD = (
+    ", so nothing holds the claim — name it in Code grounds as pytest spells it, "
+    "`tests/test_x.py::test_y`, or `tests/test_x.py::TestA::test_b` for a method; "
+    "or, where no test holds it, write `path#anchor@hash`"
+)
+
+
+@pytest.mark.parametrize(
+    "node, seen",
+    [
+        ("tests/test_observed.py::test_skip", "skipped"),
+        ("tests/test_observed.py::test_xfail", "xfailed"),
+        ("tests/test_observed.py::test_xpass", "xpassed"),
+        ("tests/test_observed.py::test_fail", "failed"),
+        ("tests/test_observed.py::test_error", "error"),
+        ("tests/test_observed.py::helper", "not run"),
+        ("tests/test_observed.py::TestI::test_x", "not run"),
+        ("tests/test_module_skip.py::test_x", "not run"),
+        ("tests/helpers.py::check", "not run"),
+    ],
+    ids=[
+        "skipped",
+        "xfailed",
+        "xpassed",
+        "failed",
+        "error in setup",
+        "a helper",
+        "a class with __init__",
+        "a module skipped at collection",
+        "a module pytest does not collect",
+    ],
+)
+def test_a_test_the_run_did_not_hold_is_refused_by_what_was_observed(
+    suite, script, node, seen
+):
+    """S16. Each red against the phase-6 checker, which read every one OK."""
+    out = observe(suite, script, [held(f"`{node}`")])
+    assert out.returncode == 2, out.stdout + out.stderr
+    assert findings(out.stdout) == [
+        ("MALFORMED", node, f"{seen} in the recorded suite{UNHELD}")
+    ], out.stdout
+
+
+@pytest.mark.parametrize(
+    "node, seen",
+    [
+        ("tests/test_spellings.py::test_conditional_xfail", None),
+        ("tests/test_spellings.py::test_strict_xfail", "failed"),
+        ("tests/test_spellings.py::test_skipif_true", "skipped"),
+        ("tests/test_spellings.py::test_skipif_false", None),
+        ("tests/test_under_if.py::test_x", "skipped"),
+        ("tests/test_augmented.py::test_x", "skipped"),
+    ],
+    ids=[
+        "xfail with condition=False",
+        "xfail strict, passing",
+        "skipif true",
+        "skipif false",
+        "a mark under a module if",
+        "pytestmark +=",
+    ],
+)
+def test_round_twos_spellings_are_what_pytest_did(suite, script, node, seen):
+    """S17. The verdict is the record's: the xfail whose condition was false
+    ran and passed, the strict xfail that passed failed, the skipped ones were
+    skipped. Not one of them needed a line of the checker."""
+    out = observe(suite, script, [held(f"`{node}`")])
+    if seen is None:
+        assert out.returncode == 0, out.stdout + out.stderr
+        assert findings(out.stdout) == [], out.stdout
+    else:
+        assert findings(out.stdout) == [
+            ("MALFORMED", node, f"{seen} in the recorded suite{UNHELD}")
+        ], out.stdout
+
+
+def test_the_checker_names_no_mark():
+    """S17's other half: no mark's name is in the checker's source outside the
+    words a detail prints, so no spelling is predicted from a file."""
+    with open(SCRIPT, encoding="utf-8") as handle:
+        source = handle.read()
+    for word in ("pytestmark", "skipif", "mark.skip", "mark.xfail", "allow_module"):
+        assert word not in source, word
+
+
+@pytest.mark.parametrize(
+    "node, seen",
+    [
+        ("tests/test_observed.py::TestA", None),
+        ("tests/test_observed.py::TestB", "skipped"),
+        ("tests/test_observed.py::test_cases", None),
+        ("tests/test_observed.py::test_param", "failed"),
+    ],
+    ids=[
+        "a class all passed",
+        "a class one skipped",
+        "cases all passed",
+        "a case failed",
+    ],
+)
+def test_a_class_and_a_parametrised_function_own_their_lines(suite, script, node, seen):
+    """S18. A cited unit owns every line whose names begin with its own: a
+    class its methods, a function its parametrised cases."""
+    out = observe(suite, script, [held(f"`{node}`")])
+    if seen is None:
+        assert out.returncode == 0, out.stdout + out.stderr
+        assert findings(out.stdout) == [], out.stdout
+    else:
+        assert findings(out.stdout) == [
+            ("MALFORMED", node, f"{seen} in the recorded suite{UNHELD}")
+        ], out.stdout
+
+
+def test_another_files_test_of_the_same_name_is_not_this_rows(suite, script):
+    """S18's last clause: `TestA::test_b` and `TestB::test_b` share a name, and
+    a row naming `TestB::test_b` owns only TestB's line; a file pytest never
+    collected owns no line of another file's `check`."""
+    out = observe(
+        suite,
+        script,
+        [
+            held("`tests/test_observed.py::TestB::test_b`"),
+            held("`tests/test_observed.py::TestB::test_c`", "R2 · the skipped one"),
+        ],
+    )
+    assert findings(out.stdout) == [
+        (
+            "MALFORMED",
+            "tests/test_observed.py::TestB::test_c",
+            f"skipped in the recorded suite{UNHELD}",
+        )
+    ], out.stdout
+
+
+def test_the_path_is_the_records_never_rebuilt_from_the_node_id(tmp_path, script):
+    """S19. pytest's rootdir is `tests/`, so the record's node id is
+    `test_x.py::test_y`; the row's `tests/test_x.py::test_y` matches through
+    the line's `path`, and the gate's own reader names the same file."""
+    project = tmp_path / "proj"
+    (project / "tests").mkdir(parents=True)
+    (project / "tests" / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
+    (project / "tests" / "test_x.py").write_text(
+        "def test_y():\n    assert True\n", encoding="utf-8"
+    )
+    records = tmp_path / "records"
+    done = record_suite(project, records)
+    assert done.returncode == 0, done.stdout + done.stderr
+    nodeids = [
+        json.loads(line).get("nodeid")
+        for name in os.listdir(records)
+        for line in (records / name).read_text(encoding="utf-8").splitlines()
+    ]
+    assert "test_x.py::test_y" in nodeids, nodeids
+    fragment(project, [held("`tests/test_x.py::test_y`")])
+    out = run(
+        ["--strict", "--suite-record", str(records), "--suite-key", SUITE_KEY, "."],
+        project,
+        script,
+    )
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert findings(out.stdout) == [], out.stdout
+    spec = importlib.util.spec_from_file_location(
+        "specseal_broad_gate_for_held_rows",
+        os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py"),
+    )
+    gate = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gate)
+    assert set(gate.read_record(str(records), SUITE_KEY, str(project)).collected) == {
+        "tests/test_x.py"
+    }
+    assert list(ec.suite_record(str(records), SUITE_KEY, str(project))) == [
+        ("tests/test_x.py", ("test_y",))
+    ]
+
+
+EXISTENCE = (
+    "test rows were read for existence alone: no suite record was given, so "
+    "whether each cited test ran and passed was not read — `broad-gate` hands "
+    "this check the sealed run's record"
+)
+
+
+def test_no_record_is_existence_and_says_so_once(repo, script):
+    """S20. With no record the test rows are read by existence alone, and one
+    line, printed once beside the totals, says so."""
+    fragment(
+        repo,
+        [
+            held(f"`{TESTS}::test_holds`"),
+            held(f"`{TESTS}::TestA::test_b`", "R2 · another"),
+        ],
+    )
+    out = run(["--strict", "."], repo, script)
+    assert out.returncode == 0, out.stdout + out.stderr
+    lines = out.stdout.splitlines()
+    assert lines.count(EXISTENCE) == 1, out.stdout
+    assert lines[lines.index(EXISTENCE) - 1].startswith("total: 2 ok"), out.stdout
+
+
+def test_a_record_with_no_session_under_the_key_names_the_key(repo, script, tmp_path):
+    """S20: a directory under which no session carries the key is read as no
+    record, and the line names the key, not a refusal of every row."""
+    empty = tmp_path / "records"
+    empty.mkdir()
+    (empty / "other.jsonl").write_text(
+        '{"kind": "session", "key": "head-another"}\n', encoding="utf-8"
+    )
+    fragment(repo, [held(f"`{TESTS}::test_holds`")])
+    out = run(
+        ["--strict", "--suite-record", str(empty), "--suite-key", SUITE_KEY, "."],
+        repo,
+        script,
+    )
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert (
+        f"test rows were read for existence alone: no session under {empty} "
+        f"carries the key {SUITE_KEY}, so whether each cited test ran and passed "
+        "was not read — `broad-gate` hands this check the sealed run's record"
+    ) in out.stdout.splitlines(), out.stdout
+
+
+def test_a_ledger_with_no_test_row_prints_no_existence_line(repo, script):
+    """S20's last clause: the line is about test rows, so a ledger of hashed
+    rows prints none."""
+    fragment(
+        repo,
+        [
+            f"| P1 | `src/service.py#handler@{handler_hash(repo)}` | read | 2026-10-12 | |"
+        ],
+    )
+    out = run(["--strict", "."], repo, script)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert "read for existence alone" not in out.stdout, out.stdout
+
+
+def test_a_directory_without_its_key_is_refused(repo):
+    """The record is one run's: a directory alone, or a key alone, names
+    none, and the run is refused before anything is read."""
+    out = run(["--suite-record", str(repo), "."], repo)
+    assert out.returncode == 2, out.stdout
+    assert (
+        "`--suite-record` and `--suite-key` name one run's record together — pass "
+        "both or neither"
+    ) in out.stderr, out.stderr
+
+
+def test_reverify_names_what_the_record_refuses_and_writes_nothing(suite):
+    """S22. `--reverify`, and `--reverify --into` under the freeze, name a test
+    row the record refuses on a `LEFT` line with the observation, write
+    nothing on it and exit 1."""
+    project, records = suite
+    node = "tests/test_observed.py::test_skip"
+    path = fragment(project, [held(f"`{node}`")])
+    before = path.read_bytes()
+    record = ["--suite-record", str(records), "--suite-key", SUITE_KEY]
+    out = run(["--reverify", "--checked", "2026-10-12", *record, "."], project)
+    assert out.returncode == 1, out.stdout + out.stderr
+    assert path.read_bytes() == before
+    left = f"  LEFT  {node}  MALFORMED — skipped in the recorded suite{UNHELD}"
+    assert left in out.stdout.splitlines(), out.stdout
+    config = project / "seal" / "config.md"
+    config.write_text(
+        "# Repository config\n\n| Item | Value |\n|---|---|\n"
+        "| Ledger frozen from | 1 |\n",
+        encoding="utf-8",
+    )
+    try:
+        out = run(
+            ["--reverify", "--into", FRAGMENT, "--checked", "2026-10-12", *record, "."],
+            project,
+        )
+    finally:
+        config.unlink()
+    assert out.returncode == 1, out.stdout + out.stderr
+    assert path.read_bytes() == before
+    assert left in out.stdout.splitlines(), out.stdout
 
 
 # --- S13 -----------------------------------------------------------------------
