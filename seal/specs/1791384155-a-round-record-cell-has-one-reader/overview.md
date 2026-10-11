@@ -27,6 +27,9 @@ release seal cannot give one cell two meanings.
 | `cut_runs`' answer | J5: "the `Fix of a fix` counts in round order → the runs" / the indices a run is cut after | indices | `current_run` also names the `second` that stopped the run before |
 | The gate's per-record readers of the reopening and of a fix | spec silent / removed with the loops | removed | no caller was left; four released rows re-pointed by `Corrected ·` rows |
 | Phase 5's commit | a phase closes on its own commit / e682fe84 is the orchestrator's `wip:` commit of the staged phase, made at the machine move | closed there, not rewritten | the orchestrator asked that the `wip:` commit stay; the resumed session re-ran the phase's modules, lint, the chain check and `evidence-check` on it |
+| Where a doubled field row fails | J5: "the duplicate error in `check_round`" / `doubled_fields` on every record; the box in `check_round` | every record | `check_round` reads the last record alone, and an earlier record's doubled row would reach its arms as an absent row |
+| `field_index` | J5: under one count with `field` / its own line walk, same one-row rule | kept | it needs the line index it replaces, which the table rows cannot give |
+| The document sentence | phase 6: "by replacement of the sentence that says the first wins where one does" / no such sentence existed; §*What `close` derives* gained one sentence in place of two clauses | that paragraph | the doubled-close paragraph is where the record's duplicates were already spoken of, and the document is at 998 of 1,000 lines |
 | The panel's ASCII | spec silent / the home is ASCII-encoded in `rounds_rows`, not in the reader | in the panel | the letter twin maps only the owner's characters; the gate and the release seal want the home as written |
 
 ## Not verified
