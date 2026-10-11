@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 889 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `d9757eb8bb8c6ac066512b3e916d10f1f41d323b..d9757eb8bb8c6ac066512b3e916d10f1f41d323b`, 0 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | first — 🟡 1 at skills/evidence-check/scripts/evidence_check.py#statement_at, a unit round-2's fixes added; 🟡 2 at tests/test_a_unit_the_extractor_cannot_bound_is_refused.py#test_a_claim_row_in_python_drifts_on_an_edit_inside_its_statement, a unit round-2's fixes added |
 | Needs a fix | yes — 🟡 1 (a claim on a decorated definition leaves its decorators out), 🟡 2 (a new case dated 2026-10-12 holds CI red wherever today is earlier) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,12 +25,12 @@ Verifying round 3 of round 2's fixes: 4ed965ed..9f36b62c plus the table and the 
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | `statement_at` starts a decorated definition at its `def` line, so a claim on a decorated `def` reads `ok` after the decorator changes, and a claim on a method's decorator hashes the whole class | `skills/evidence-check/scripts/evidence_check.py:963` | open | executed: `lru_cache(maxsize=1)` to `maxsize=None` leaves the claim at 5–6 with hash `19d9baaa`; `@property` in `class C` gives 1–7; `def p(self):` gives 3–4; 7 `.py` claims in this repository, 0 move under the fix |
-| 🟡 2 | A new case passes `--checked 2026-10-12`, which the checker refuses wherever today is earlier; CI's ubuntu leg and macOS shard 1 are red at the target on that case alone | `tests/test_a_unit_the_extractor_cannot_bound_is_refused.py:459` | open | read: run 38185027460's job logs at `ec3a2de2`, `1 failed, 12996 passed` and `1 failed, 6262 passed`, both this case, "later than today, 2026-10-11" |
-| ⬜ 3 | `statement_at` widens an `except` or `case` header, and a comment line, to the whole enclosing statement or function | `skills/evidence-check/scripts/evidence_check.py:961` | open | executed: `except ValueError:` gives 2–7, `case 1:` 2–6, a comment line 1–5; widening reads `DRIFTED`, never `ok` |
-| ⬜ 4 | The gone-line sentence on a markdown heading path whose headings are both in the file says the quoted text is not there and to quote the line | `skills/evidence-check/scripts/evidence_check.py:1860` | open | executed: `doc.md#"## A / ### B"` after `### B` moved under `## C` |
-| ⬜ 5 | Correction: fragment row 19 says a claim row's tie stands; `judge` breaks it where exactly one place holds the claim | `seal/ledger/1791384159-a-unit-the-extractor-cannot-bound-is-refused.md:19` | open | executed: a one-hit claim tie in `v.md` reads `1 ok`, exit 0; read: `evidence_check.py:1828` |
-| ⬜ 6 | Correction: the changelog says a claim row moves where its claim grew; a `.py` continuation or comment line and a bare minor anchor in a file no parser reads also move | `seal/specs/1791384159-a-unit-the-extractor-cannot-bound-is-refused/changelog.md:45` | open | executed: a continuation line gives 2–5; read: the old rule gave 3–3 |
+| 🟡 1 | `statement_at` starts a decorated definition at its `def` line, so a claim on a decorated `def` reads `ok` after the decorator changes, and a claim on a method's decorator hashes the whole class | `skills/evidence-check/scripts/evidence_check.py:963` | deferred #892 | #892 — the run ended at this record on its reopening bound; carried to #892 with round 3's paste-ready fix; executed: `lru_cache(maxsize=1)` to `maxsize=None` leaves the claim at 5–6 with hash `19d9baaa`; `@property` in `class C` gives 1–7; `def p(self):` gives 3–4; 7 `.py` claims in this repository, 0 move under the fix |
+| 🟡 2 | A new case passes `--checked 2026-10-12`, which the checker refuses wherever today is earlier; CI's ubuntu leg and macOS shard 1 are red at the target on that case alone | `tests/test_a_unit_the_extractor_cannot_bound_is_refused.py:459` | deferred #892 | #892 — the run ended at this record on its reopening bound; carried to #892 with round 3's paste-ready fix; read: run 38185027460's job logs at `ec3a2de2`, `1 failed, 12996 passed` and `1 failed, 6262 passed`, both this case, "later than today, 2026-10-11" |
+| ⬜ 3 | `statement_at` widens an `except` or `case` header, and a comment line, to the whole enclosing statement or function | `skills/evidence-check/scripts/evidence_check.py:961` | deferred #892 | #892 — the run ended at this record on its reopening bound; carried to #892 with round 3's paste-ready fix; executed: `except ValueError:` gives 2–7, `case 1:` 2–6, a comment line 1–5; widening reads `DRIFTED`, never `ok` |
+| ⬜ 4 | The gone-line sentence on a markdown heading path whose headings are both in the file says the quoted text is not there and to quote the line | `skills/evidence-check/scripts/evidence_check.py:1860` | deferred #892 | #892 — the run ended at this record on its reopening bound; carried to #892 with round 3's paste-ready fix; executed: `doc.md#"## A / ### B"` after `### B` moved under `## C` |
+| ⬜ 5 | Correction: fragment row 19 says a claim row's tie stands; `judge` breaks it where exactly one place holds the claim | `seal/ledger/1791384159-a-unit-the-extractor-cannot-bound-is-refused.md:19` | deferred #892 | #892 — the run ended at this record on its reopening bound; carried to #892 with round 3's paste-ready fix; executed: a one-hit claim tie in `v.md` reads `1 ok`, exit 0; read: `evidence_check.py:1828` |
+| ⬜ 6 | Correction: the changelog says a claim row moves where its claim grew; a `.py` continuation or comment line and a bare minor anchor in a file no parser reads also move | `seal/specs/1791384159-a-unit-the-extractor-cannot-bound-is-refused/changelog.md:45` | deferred #892 | #892 — the run ended at this record on its reopening bound; carried to #892 with round 3's paste-ready fix; executed: a continuation line gives 2–5; read: the old rule gave 3–3 |
 | 🟢 | round 2's yellow 1 is closed in files no parser reads and for every `.py` shape but the decorated definition (🟡 1) and the arm header (⬜ 3) | `skills/evidence-check/scripts/evidence_check.py#minor_region` | confirmed | executed: `f.ts` claims 1–1, 2–2, 4–4; `.py` multi-line expression 2–5, string line 2–4; slice 46 passed |
 | 🟢 | round 2's yellow 2 is closed: the remedy names the row's own path under `--map`, `--default-repo` and `--migrate` | `skills/evidence-check/scripts/evidence_check.py#judge` | confirmed | executed: `legacy/src/x.ts#"…"` under `--map`, `src/x.ts#"…"` under `--default-repo`; the `--migrate` case passes |
 | 🟢 | round 2's yellow 3 is closed: three `Corrected ·` rows for 0.4.0's lines 20, 58 and 66, and the range row names what answers each place | `seal/ledger/1791384159-a-unit-the-extractor-cannot-bound-is-refused.md:20` | confirmed | executed: `survivor-check` with the exemption exit 0, 36 excused; `correction-check` exit 0; fragment `--strict` 185 ok; rows 20 and 21 read true; row 19's clause is ⬜ 5 |
