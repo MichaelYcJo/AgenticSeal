@@ -494,17 +494,38 @@ def flat(path):
     return " ".join(open(path, encoding="utf-8").read().split())
 
 
+def module_docstring(path):
+    return ast.get_docstring(ast.parse(open(path, encoding="utf-8").read())) or ""
+
+
 def test_the_skill_no_longer_describes_the_indentation_rule():
-    """S11. Three sentences described the rule this work removed; a reader
-    who met them would expect a body-less span to be right."""
-    skill = flat(SKILL)
-    for gone in (
-        "lands on the closing brace in a brace language",
-        "a language-aware rule for what closes a block is the per-language "
-        "parser this deliberately does not have",
-        "| a symbol elsewhere |",
-    ):
-        assert gone not in skill, gone
+    """S11. Every sentence that described a rule bounding a unit without that
+    language's parser left with the rule; a reader who met one would expect
+    a span the checker no longer computes. The skill says what the region of
+    a quoted line is instead."""
+    texts = {
+        "SKILL.md": flat(SKILL),
+        "the-evidence-ledger.md": flat(POLICY),
+        "rider_check.py": " ".join(module_docstring(RIDER).split()),
+    }
+    for where, text in texts.items():
+        for gone in (
+            "bracket walk",
+            "block rule",
+            "declaration rule",
+            "resurrect",
+            "how sure it is",
+            "lands on the closing brace in a brace language",
+            "| a symbol elsewhere |",
+        ):
+            assert gone not in text.lower(), (where, gone)
+    skill = texts["SKILL.md"]
+    assert "A quoted line hashes the paragraph it is in and is never a function" in (
+        skill
+    ), "the region table lost the paragraph rule"
+    assert "a unit with blank lines inside it is cited one quote per paragraph" in (
+        skill
+    )
 
 
 def test_the_policy_paragraph_names_the_cases_that_enforce_it():
@@ -515,11 +536,32 @@ def test_the_policy_paragraph_names_the_cases_that_enforce_it():
         line for line in paragraph.splitlines() if line.startswith("Enforced by:")
     ]
     assert len(enforced) == 1, paragraph
+    for case in (
+        "test_848_is_answered_by_a_quoted_line_that_hashes_the_function",
+        "test_a_bare_symbol_outside_the_two_parsers_is_refused_with_the_shape",
+    ):
+        assert (
+            f"test_a_unit_the_extractor_cannot_bound_is_refused.py::{case}"
+            in (enforced[0])
+        ), case
 
 
 def test_the_changelog_fragment_tells_an_installer_what_to_run():
-    """S12's shape: the fragment is gathered into the release's notes, so it
-    holds no `## ` line."""
+    """S12. The fragment is gathered into the release's notes, so it holds no
+    `## ` line, and its `### Changed` entry says what an installer meets on
+    upgrade and what each asks of them — and promises no verdict that
+    changes, which the first design's fragment did (round 1's 🟡 3)."""
     text = open(FRAGMENT, encoding="utf-8").read()
     assert not [line for line in text.splitlines() if line.startswith("## ")]
-    assert "### Changed" in text
+    changed = " ".join(text.split("### Changed", 1)[1].split())
+    for said in (
+        "What an installer sees on upgrade",
+        "every row citing a bare symbol in a file that is not `.py`, `.pyi` or "
+        "`.md` reads `BROKEN` with the remedy on its line",
+        "then run `evidence-check --reverify`",
+        "`Corrected ·` row `--reverify` names",
+        "decorated `.pyi` stub reads `DRIFTED` once",
+        "Every `.py` and `.md` row keeps its hash and its verdict",
+    ):
+        assert said in changed, said
+    assert "every other row keeps its hash" not in changed

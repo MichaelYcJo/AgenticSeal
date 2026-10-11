@@ -271,23 +271,25 @@ still leaves the ledger only with its code.
 Enforced by: tests/test_a_row_points_by_content.py::test_rows_citing_one_file_cost_one_parse, tests/test_a_row_points_by_content.py::test_a_file_edited_between_two_reads_gets_its_new_spans
 
 <!-- specs/1791384159-a-unit-the-extractor-cannot-bound-is-refused -->
-**A unit no rule can bound is refused, and never hashed over a span that
-leaves its body out.** Which rule bounds a unit is decided once, by the
-file's suffix: `ast` for Python, the heading path for markdown, a bracket
-walk over an allow-list of brace languages, YAML's own block structure, and
-nothing for any other suffix. A rule that meets a unit it cannot bound — a
-Python file the running interpreter cannot parse, brackets that do not
-balance, a string that never ends, a suffix with no rule — answers `BROKEN`,
-says why on the line, and names a quoted-line anchor as the way on. The
-indentation rule this replaces bounded a multi-line TypeScript signature at
-the line that opened its body, so a rewrite of the body read `ok` and
-`--reverify` had nothing to notice (#848). A guess that reads more shapes
-would keep reading `ok` over code nobody re-read on the next shape it did
-not know; a refusal with the remedy on its line costs one edit to the row.
-The walk leaves a last line of nothing but closers out of the span, so a row
-the old rule bounded right keeps its hash and the only `DRIFTED` an
-installer meets on upgrade is a body the old span left out.
-Enforced by: tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_a_prettier_signature_keeps_its_body_in_the_span, tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_a_bare_symbol_in_a_suffix_no_rule_names_is_refused_with_the_remedy, tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_a_python_file_that_will_not_parse_is_refused_naming_the_interpreter
+**A unit is bounded only where a real parser decides its extent, and a
+quoted line is the format everywhere else.** A bare symbol is read by
+Python's own `ast` in a `.py` or `.pyi` file and by the heading path in a
+`.md` file, and by nothing in any other: there it is `BROKEN`, with the
+reason and the quoted-line anchor's shape written on the line. A Python file
+the running interpreter cannot parse is refused the same way, naming the
+interpreter. A quoted line's region is the paragraph it sits in, which the
+file itself shows and no grammar decides, so a function with no blank line
+inside it is hashed whole by one quote, and a row resting on several
+paragraphs quotes one line of each. The rules this replaces read someone
+else's text without that language's parser: an indentation rule bounded a
+multi-line TypeScript signature at the line that opened its body, so a
+rewrite of the body read `ok` and `--reverify` had nothing to notice (#848),
+and the bracket-matching lexer that followed was misled the same way by a
+regex literal. A reader of more shapes reads `ok` over code nobody re-read
+on the next shape it does not know; a refusal with the remedy on its line
+costs one edit to the row, and the quoted line says on the row what it
+covers.
+Enforced by: tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_848_is_answered_by_a_quoted_line_that_hashes_the_function, tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_a_bare_symbol_outside_the_two_parsers_is_refused_with_the_shape, tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_a_python_file_that_will_not_parse_is_refused_naming_the_interpreter
 
 ## A correction a merge dropped
 
