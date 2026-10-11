@@ -6,7 +6,7 @@ the target is round 1's fix range `2f0d14b3..acc52a6a` (six commits) and
 the close at `e0c5a191`. Reviewed in a `--no-local` clone at the target SHA.
 
 Carried from round 1 as coordinates, not re-derived: where the brace rule
-lives (`hooks/worktree-guard.py#_BRACE`, `_unquoted_brace`), where the lease
+lives (`hooks/worktree-guard.py#_BRACE`, `_unquoted_brace`; NAME NOT IN TREE since phase 11), where the lease
 writer reads its pid (`hooks/session-lease.py`), and the CI log that showed
 the Windows failure at `test_no_listed_form_moves_head_under_git`. Every
 verdict below is this round's own.
@@ -74,7 +74,7 @@ which is the ❓ row below.
 
 **White 5 — closed, as answered.** Read: round 1 executed that bash makes
 `git rebase main 'feature x'` of the quoted-space brace, which git refuses.
-Nothing in round 1's fixes touched `_BRACE`.
+Nothing in round 1's fixes touched `_BRACE` (NAME NOT IN TREE since phase 11).
 
 **White 6 — closed.** Read: `hooks/tokens.py:45` now names ANSI-C quoting as
 where the splitter and bash disagree, in both directions, and the example
@@ -85,7 +85,7 @@ matches how a POSIX shlex closes a single quote at the backslash.
 `hooks/worktree-guard.py:2292` (`_brace_spells_git`, with `_ONE_BRACE` at `:2289`). NAME NOT IN TREE since the reframe.
 
 `_ONE_BRACE` takes one comma brace with no brace in the text around it. NAME NOT IN TREE since the reframe.
-`_BRACE`, which decides that the command holds a brace at all, accepts
+`_BRACE` (NAME NOT IN TREE since phase 11), which decides that the command holds a brace at all, accepts
 more: a sequence, a brace inside a brace, and a brace beside `${…}`. A word
 that `_BRACE` sees and `_ONE_BRACE` cannot read returns `False`, so the segment is no git and stops nothing. NAME NOT IN TREE since the reframe.
 
@@ -186,13 +186,13 @@ all four Windows pytest jobs passed at the target.
 ## Regression tests to plant
 
 - `tests/test_worktree_guard.py`: the four 🟡 1 commands as parameters of
-  `test_a_brace_that_makes_the_command_word_is_unrecognised`. Seen red at
+  `test_a_brace_that_makes_the_command_word_is_unrecognised` (NAME NOT IN TREE since phase 11). Seen red at
   the target.
 - `tests/test_worktree_guard.py`: the 🟡 2 case in the paste-ready block.
   Seen red at the target.
 - `tests/test_guard_resolves_the_tree_it_judges.py`: pin the new
   `docs/worktree-guard-spec.md` sentence in
-  `test_the_guard_policy_names_the_brace_shape_and_its_costs` (§14).
+  `test_the_guard_policy_names_the_brace_shape_and_its_costs` (§14; NAME NOT IN TREE since phase 11).
 
 ## Facts for the evidence ledger
 
@@ -214,7 +214,7 @@ all four Windows pytest jobs passed at the target.
 | 🟢 | round 1's blocking finding 2 is closed — survivor-check passes in the release job | `seal/specs/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way/survivors.md` | confirmed | executed: 11 places without exemption, each opened, none a live present-tense sentence; the release job passed |
 | 🟢 | round 1's yellow 3 is closed for `{git,}` and `{,git}` | `hooks/worktree-guard.py:2282` | confirmed | executed: both stop in an ACTIVE tree, `cat {.gitignore,README.md}` silent; the class continues in 🟡 1 and 🟡 2 |
 | 🟢 | round 1's yellow 4 is closed for an environment naming another session or none | `hooks/session-lease.py:98` | confirmed | executed: the hook as a process records the walk's pid in both |
-| 🟢 | round 1's white 5 stays answered | `hooks/worktree-guard.py:2007` | confirmed | read: round 1's executed grounds; `_BRACE` untouched by the fix range |
+| 🟢 | round 1's white 5 stays answered | `hooks/worktree-guard.py:2007` | confirmed | read: round 1's executed grounds; `_BRACE` (NAME NOT IN TREE since phase 11) untouched by the fix range |
 | 🟢 | round 1's white 6 is closed | `hooks/tokens.py:45` | confirmed | read: the docstring names ANSI-C quoting in both directions |
 | 🟢 | round 1's question on the Windows branches of In 1's adapter, In 2's lease route and the stub is answered | `hooks/worktree_consent.py:419` | confirmed | executed, read from `gh pr checks 881`: all four Windows pytest jobs passed at the target |
 | ❓ | Whether a hook process sees `CLAUDE_CODE_SESSION_ID`, on which the yellow 4 change's extension-host and nested cases turn | `hooks/session-lease.py:98` | ❓ out of verified scope | no hook's environment can be printed without changing the installed configuration; the repository owner answers |
@@ -225,7 +225,7 @@ all four Windows pytest jobs passed at the target.
 |---|---|
 | `bin/test` on the eight guard modules named in the spawn, in the clone at the target | exit 0, 435 passed |
 | bash `set -- <command>; printf '[%s]'` and the guard's `_segment_finding` over 26 brace commands | four spellings run `git switch x` in bash and return no finding; listed in 🟡 1 |
-| the 🟡 1 parameters added to `test_a_brace_that_makes_the_command_word_is_unrecognised`, at the target | exit 1, 4 failed, 5 passed |
+| the 🟡 1 parameters added to `test_a_brace_that_makes_the_command_word_is_unrecognised` (NAME NOT IN TREE since phase 11), at the target | exit 1, 4 failed, 5 passed |
 | the same with the 🟡 1 fix, `-k "brace or no_listed_form"` | exit 0, 25 passed |
 | a placement probe through the module's `verdict` helper, session tree clean, `W` dirty, at the target | exit 1, 2 failed (silent), the control passed (ask) |
 | the same with the 🟡 2 fix | exit 0, 3 passed |

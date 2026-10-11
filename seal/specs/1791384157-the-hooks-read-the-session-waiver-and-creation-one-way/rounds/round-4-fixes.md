@@ -20,11 +20,11 @@ alone and the pairs composed in order from the placed directory. `git {,} -C
 W`, `git {--no-pager,} -C W`, `{git,} -C .. -C W` and `git {,} -C .. -C W`
 were each red first.
 
-🟡 2: no spelling was added to a list. `_BRACE` reads an unquoted `{` with a
+🟡 2: no spelling was added to a list. `_BRACE` (NAME NOT IN TREE since phase 11) reads an unquoted `{` with a
 `,` or a `..` before a later `}` in the same word, whatever lies between; a
 `$` directly before the `{` is the one exception, and an escaped `\$` is not
 one. The silent forms stay silent through quoting, word boundaries and that
-`${`, each pinned in `test_what_the_shell_does_not_expand_stays_silent`.
+`${`, each pinned in `test_what_the_shell_does_not_expand_stays_silent` (NAME NOT IN TREE since phase 11).
 `bin/mutation-check` on unquoted whitespace inside the braces SURVIVED until
 `echo {c, d}` was pinned; red after.
 

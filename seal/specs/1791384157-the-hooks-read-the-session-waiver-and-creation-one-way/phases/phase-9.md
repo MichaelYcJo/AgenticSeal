@@ -27,11 +27,11 @@ built on its default, **yes**, under `Automation | yes`.
 **The rule is one line, and the guard reads nothing more about a brace.**
 `_segment_finding` stops a segment the frozen reading reads as no git where
 the command holds an unquoted brace expansion and a word of the segment
-holds one (`_BRACE`), the same test `_git_finding` makes for a git segment.
+holds one (`_BRACE`, NAME NOT IN TREE since phase 11), the same test `_git_finding` makes for a git segment.
 The three removed units and the brace branch of `_finding_tree` went with
 nothing to replace them.
 
-**W3: one finding, several trees.** `_finding_trees` answers
+**W3: one finding, several trees.** `_finding_trees` (NAME NOT IN TREE since phase 11) answers
 `_finding_tree`'s one tree, and for a non-git brace segment also every
 `-C <dir>` word pair's tree, composed onto the directory `place` puts the
 segment in. `main` looks each tree up once, as it already did, and the
@@ -39,19 +39,19 @@ finding is listed once, so the reason names the shape once. A glued
 `-C<dir>` is not read, because `cmdline_base.parse_git` does not read it
 for a git segment either (`_git_options` takes `-C` as its own word). The
 union is the stopping direction; a `-C` a brace hides (`{git,} {-C,} W
-switch x`) is not read, pinned by `test_a_c_a_brace_hides_is_the_named_limit`.
+switch x`) is not read, pinned by `test_a_c_a_brace_hides_is_the_named_limit` (NAME NOT IN TREE since phase 11).
 
-**W4: which cases changed.** `test_a_brace_in_no_git_word_stays_silent` is
-rewritten as `test_a_brace_in_any_word_is_the_brace_shape`, its parameters
+**W4: which cases changed.** Every case this paragraph names left the tree in phase 11. `test_a_brace_in_no_git_word_stays_silent` (NAME NOT IN TREE since phase 9) is
+rewritten as `test_a_brace_in_any_word_is_the_brace_shape` (NAME NOT IN TREE since phase 11), its parameters
 kept and three added (`A={a,b} ls`, `A={{a,b},c} ls`, the `for` loop), and
 it asserts an `ask`, a `deny` in an ACTIVE tree and under the press, and
-silence in a clean tree. `test_a_brace_that_makes_the_command_word_is_unrecognised`
+silence in a clean tree. `test_a_brace_that_makes_the_command_word_is_unrecognised` (NAME NOT IN TREE since phase 11)
 keeps its name and gains round 3's thirteen.
-`test_a_brace_command_word_is_judged_in_the_tree_its_c_names` keeps its
+`test_a_brace_command_word_is_judged_in_the_tree_its_c_names` (NAME NOT IN TREE since phase 11) keeps its
 name, gains the `S`-dirty direction and the runner and `&`-cut forms.
-`test_a_quoted_brace_in_a_git_word_stays_listed` gains S19's three. Two
-cases are new: `test_a_c_a_brace_hides_is_the_named_limit` and
-`test_a_quoted_brace_beside_an_unquoted_one_stops_on_both`. §A's
+`test_a_quoted_brace_in_a_git_word_stays_listed` (NAME NOT IN TREE since phase 11) gains S19's three. Two
+cases are new: `test_a_c_a_brace_hides_is_the_named_limit` (NAME NOT IN TREE since phase 11) and
+`test_a_quoted_brace_beside_an_unquoted_one_stops_on_both` (NAME NOT IN TREE since phase 11). §A's
 `Enforced by:` line names each.
 
 **How each case was seen red.** Executed against the hooks of a8f86f44 (the
@@ -86,6 +86,6 @@ those records changed.
 | Removed item | Where it must land |
 |---|---|
 | `hooks/worktree-guard.py#_brace_command_at`, `#_brace_spells_git` and `#_ONE_BRACE` — NAME NOT IN TREE, removed here | `hooks/worktree-guard.py#_segment_finding`'s one test; nothing reads what a brace spells or where it stands |
-| `_finding_tree`'s brace branch, which parsed the words after a brace word as git | `hooks/worktree-guard.py#_finding_trees`, the union |
+| `_finding_tree`'s brace branch, which parsed the words after a brace word as git | `hooks/worktree-guard.py#_finding_trees`, the union — NAME NOT IN TREE since phase 11 |
 | `test_a_brace_in_no_git_word_stays_silent` — NAME NOT IN TREE, renamed here | `test_a_brace_in_any_word_is_the_brace_shape`, its claim inverted |
 | §A's command-word sentences and the 34,633 figure | §A's reframed paragraph, its three costs and phase 7's figure with its method |

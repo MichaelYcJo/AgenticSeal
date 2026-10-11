@@ -59,5 +59,5 @@ HEAD, and the worktree form adds a worktree, so `BRACED` asserts all four.
 
 | Removed item | Where it must land |
 |---|---|
-| the inline quoted-span regex in `hooks/tokens.py#is_plain` | `hooks/tokens.py#QUOTED_SPANS`, read by `is_plain` and the guard's `_unquoted_brace` |
+| the inline quoted-span regex in `hooks/tokens.py#is_plain` | `hooks/tokens.py#QUOTED_SPANS`, read by `is_plain` and the guard's `_unquoted_brace` (NAME NOT IN TREE since phase 11) |
 | `_rebase_names_a_branch`'s phrase "read off the words bash hands git" | its docstring now says the words are read once their redirections are off; a `Corrected ·` row for released row R1 in phase 6 |

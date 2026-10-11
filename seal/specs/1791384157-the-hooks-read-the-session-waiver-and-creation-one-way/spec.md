@@ -387,7 +387,7 @@ records.
   `_segment_finding(tokens)`, `shape_of(tokens)`, `_merged_findings(items)`,
   `_command_findings(text, clean, depth)`, `_first_finding_in(body, depth)`
   and `_finding_tree(tokens, wheres, cwd)` as they stood at 5623d728 in
-  shape; `_described` without a `brace` kind; no `_BRACE`, no
+  shape; `_described` without a `brace` kind; no `_BRACE` (NAME NOT IN TREE), no
   `_unquoted_brace`, no `_finding_trees` — NAME NOT IN TREE once phase 11 closes.
 - `hooks/commit-review-gate.py`: `git` → `gate.git`; `has_marker` →
   `tokens.given`; `changed_paths` answers `None` on a failed diff.

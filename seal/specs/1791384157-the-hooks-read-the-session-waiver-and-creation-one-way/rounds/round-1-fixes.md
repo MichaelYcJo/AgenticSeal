@@ -11,7 +11,7 @@ The fix pass for `rounds/round-1.md`, written by smith on Opus 5.5. Fix range
 | 🔴 2 | fixed | 89bca43f, 151a0ad0 |
 | 🟡 3 | fixed | e60d35da |
 | 🟡 4 | fixed | cd7027df |
-| ⬜ 5 | answered | No spelling of this kind switches a branch: bash makes `git rebase main 'feature x'` of `git rebase {main,'feature x'}`, which git refuses, as the report executed. Changing `_BRACE`'s word test would add a rule for a shape with no consequence, so it is left, and the report's entry is where the next reader of `_BRACE` finds the gap |
+| ⬜ 5 | answered | No spelling of this kind switches a branch: bash makes `git rebase main 'feature x'` of `git rebase {main,'feature x'}`, which git refuses, as the report executed. Changing `_BRACE`'s (NAME NOT IN TREE since phase 11) word test would add a rule for a shape with no consequence, so it is left, and the report's entry is where the next reader of `_BRACE` finds the gap |
 | ⬜ 6 | fixed | aee5615a |
 
 🔴 1: the guard's half of the braced forms now runs on every platform, and

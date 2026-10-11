@@ -34,7 +34,7 @@ Verifying round 2 of round 1's fixes: 2f0d14b3..acc52a6a (6 commits) plus the cl
 | 🟢 | round 1's blocking finding 2 is closed — survivor-check passes in the release job | `seal/specs/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way/survivors.md` | confirmed | executed: 11 places without exemption, each opened, none a live present-tense sentence; the release job passed |
 | 🟢 | round 1's yellow 3 is closed for `{git,}` and `{,git}` | `hooks/worktree-guard.py:2282` | confirmed | executed: both stop in an ACTIVE tree, `cat {.gitignore,README.md}` silent; the class continues in 🟡 1 and 🟡 2 |
 | 🟢 | round 1's yellow 4 is closed for an environment naming another session or none | `hooks/session-lease.py:98` | confirmed | executed: the hook as a process records the walk's pid in both |
-| 🟢 | round 1's white 5 stays answered | `hooks/worktree-guard.py:2007` | confirmed | read: round 1's executed grounds; `_BRACE` untouched by the fix range |
+| 🟢 | round 1's white 5 stays answered | `hooks/worktree-guard.py:2007` | confirmed | read: round 1's executed grounds; `_BRACE` (NAME NOT IN TREE since phase 11) untouched by the fix range |
 | 🟢 | round 1's white 6 is closed | `hooks/tokens.py:45` | confirmed | read: the docstring names ANSI-C quoting in both directions |
 | 🟢 | round 1's question on the Windows branches of In 1's adapter, In 2's lease route and the stub is answered | `hooks/worktree_consent.py:419` | confirmed | executed, read from `gh pr checks 881`: all four Windows pytest jobs passed at the target |
 | ❓ | Whether a hook process sees `CLAUDE_CODE_SESSION_ID`, on which the yellow 4 change's extension-host and nested cases turn | `hooks/session-lease.py:98` | ❓ out of verified scope | no hook's environment can be printed without changing the installed configuration; the repository owner answers |
@@ -139,7 +139,7 @@ nearest ancestor whose name is `claude`. That is the
 |---|---|
 | `bin/test` on the eight guard modules named in the spawn, in the clone at the target | exit 0, 435 passed |
 | bash `set -- <command>; printf '[%s]'` and the guard's `_segment_finding` over 26 brace commands | four spellings run `git switch x` in bash and return no finding; listed in 🟡 1 |
-| the 🟡 1 parameters added to `test_a_brace_that_makes_the_command_word_is_unrecognised`, at the target | exit 1, 4 failed, 5 passed |
+| the 🟡 1 parameters added to `test_a_brace_that_makes_the_command_word_is_unrecognised` (NAME NOT IN TREE since phase 11), at the target | exit 1, 4 failed, 5 passed |
 | the same with the 🟡 1 fix, `-k "brace or no_listed_form"` | exit 0, 25 passed |
 | a placement probe through the module's `verdict` helper, session tree clean, `W` dirty, at the target | exit 1, 2 failed (silent), the control passed (ask) |
 | the same with the 🟡 2 fix | exit 0, 3 passed |

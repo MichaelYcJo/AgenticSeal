@@ -10,7 +10,7 @@ first finding round. Reviewed by specseal:warden on Opus 5.5.
 The redesign of the brace rule after round 3 stopped on a second fix of a
 fix: phases 7–10, built on `spec.md` In 5, In 6, Out and S17–S24. Round 3's
 six findings were deferred to the frame and are the redesign's agenda. The
-spawn asked five things: whether `_BRACE` matches what bash expands and what
+spawn asked five things: whether `_BRACE` (NAME NOT IN TREE since phase 11) matches what bash expands and what
 it must leave alone; whether any brace bash expands is still read past
 (rounds 1–3's shapes, `$'…'` quoting, here-strings); whether the `-C` union
 can miss the tree git runs in; whether the 31-pair over-stop was measured by
@@ -43,7 +43,7 @@ own: the definition of a brace, the trees, and the price.
 
 ## 🟡 1 — the `-C` union misses the tree git runs in
 
-`hooks/worktree-guard.py:2485` (`hooks/worktree-guard.py#_finding_trees`).
+`hooks/worktree-guard.py:2485` (`hooks/worktree-guard.py#_finding_trees`, NAME NOT IN TREE since phase 11).
 
 The union is applied only where `parse_git` reads the segment as no git, and
 each `-C` pair is composed alone onto the placed directory. git does
@@ -78,7 +78,7 @@ Fix: apply the union to every brace finding and add each running
 composition of the `-C` values. Applied in the clone, the three guard modules
 pass (400) and the three new parameters are red against the target's hook.
 
-## 🟡 2 — `_BRACE` refuses two brace expansions bash performs
+## 🟡 2 — `_BRACE` (NAME NOT IN TREE since phase 11) refuses two brace expansions bash performs
 
 `hooks/worktree-guard.py:2007`.
 
@@ -101,7 +101,7 @@ holds whitespace the shell quoted (`{"a b",c}`) reaches the word test with
 the quotes gone, and `[^{}\s]` refuses it. No spelling built from it was
 found that makes `git`, so it is named here and not counted.
 
-What `_BRACE` leaves alone is right. Executed, dirty tree, each silent:
+What `_BRACE` (NAME NOT IN TREE since phase 11) leaves alone is right. Executed, dirty tree, each silent:
 `echo ${HOME}`, `echo {}`, `echo {a}`, `echo a{b}c`, `find . -name x -exec
 echo {} \;`, `awk '{print}' f.txt`, a JSON argument in single quotes, `jq '{a:
 .b, c: .d}' x.json`, `printf '%s' "${a,}"`, `echo "${x:-{a,b}}"`, `git log -g
@@ -147,7 +147,7 @@ Fix: write the git share, and the pin that holds the sentence.
 and bash runs `git switch feature/x`. ANSI-C quoting makes the plain-quote
 readers disagree with bash (`hooks/tokens.py` names this disagreement): the
 splitter cannot close the command, and `QUOTED_SPANS` reads the brace as
-quoted, so `_unquoted_brace` is false. The untokenizable arm then asks only
+quoted, so `_unquoted_brace` (NAME NOT IN TREE since phase 11) is false. The untokenizable arm then asks only
 `_holds_git`, and `{g..g}it` holds no bare `git`. The same command with
 `{git,}` denies, through that arm.
 
@@ -199,7 +199,7 @@ keeps the exemption and the sentence.
 
 | Question | Answer |
 |---|---|
-| Does `_BRACE` match bash? | No in two forms (🟡 2); everything listed above as left alone is left alone |
+| Does `_BRACE` (NAME NOT IN TREE since phase 11) match bash? | No in two forms (🟡 2); everything listed above as left alone is left alone |
 | Is any brace still read past? | Rounds 1–3's shapes: none. `$'…'`: one, behind the untokenizable arm (⬜ 4). Here-strings: `bash <<< '{git,} switch feature/x'` is silent, and so is `bash <<< 'git switch feature/x'` with no brace, at `5623d728` too, so a here-string handed to a shell is unread whatever it holds (Deferred). `cat <<< {a,b}` stops although bash does not expand a here-string word, which is cost 3's direction |
 | Can the `-C` union miss? | Yes, two ways (🟡 1). `-C ~/W` and `cd W && {git,} …` are read |
 | Was 31 measured by phase 1's method? | The method is phase 1's; the git split it reports is not what the method gives (🟡 3) |
@@ -210,7 +210,7 @@ keeps the exemption and the sentence.
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
 | 🟡 1 | The `-C` union misses the tree git runs in: a git segment whose brace stands before its `-C` (`git {,} -C W switch feature/x`), and `-C` values git composes (`{git,} -C .. -C W switch feature/x`) | `hooks/worktree-guard.py:2485` | open | executed: both silent with the session's tree clean and `W` ACTIVE; bash hands git `-C W …` and `-C .. -C W …`; the brace-free `git -C .. -C W switch feature/x` denies naming `W`; the fix makes all three new parameters deny, 400 passed |
-| 🟡 2 | `_BRACE` refuses a signed sequence endpoint (`git rebase main{+1..2}`) and a brace after an escaped `$` (`\${a,b}`), both expanded by bash | `hooks/worktree-guard.py:2007` | open | executed: bash 3.2.57 prints `1 2 3` for `{+1..3}` and `$a $b` for `\${a,b}`; `git rebase main{+1..2}` silent in an ACTIVE tree at the target; the fix stops both, 33 corpus pairs before and after |
+| 🟡 2 | `_BRACE` (NAME NOT IN TREE since phase 11) refuses a signed sequence endpoint (`git rebase main{+1..2}`) and a brace after an escaped `$` (`\${a,b}`), both expanded by bash | `hooks/worktree-guard.py:2007` | open | executed: bash 3.2.57 prints `1 2 3` for `{+1..3}` and `$a $b` for `\${a,b}`; `git rebase main{+1..2}` silent in an ACTIVE tree at the target; the fix stops both, 33 corpus pairs before and after |
 | 🟡 3 | §A says every pair the rule stops is a command that is not git; one is a git segment, `git add <dir>/{plan,questions}.md` | `docs/worktree-guard-spec.md:106` | open | executed: phase 7's method through the guard's own functions: 33 of 32,641, one git; the hooks at `a8f86f44` stop that pair alone; self-check 19 of 19 and 0 of 6; the pin at `tests/test_guard_resolves_the_tree_it_judges.py:855` holds the false sentence |
 | ⬜ 4 | An unquoted brace in a command the splitter cannot close (ANSI-C `$'\''`) is read only for a bare `git`: `{g..g}it switch feature/x` there is silent | `hooks/worktree-guard.py:2409` | open | executed: silent in an ACTIVE tree, bash runs `git switch feature/x`; `{git,}` in its place denies; the brace-free `g""it` twin is silent at `5623d728` too, so the class is deferred and only the brace line is proposed |
 | ⬜ 5 | The false git share is copied into ledger row S22, the changelog fragment, `questions.md` M2, M4, P1 and phase 7 | `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md:86` | open | a correction of the run's paperwork, following 🟡 3 |
@@ -392,7 +392,7 @@ the brace paragraph above says.
         found.append(Finding("untokenizable", " ".join(text.split())))
 ```
 
-Needs a fix: yes — 🟡 1 (the `-C` union misses the tree git runs in), 🟡 2 (`_BRACE` refuses a signed sequence and a brace after an escaped `$`), 🟡 3 (§A and its pin say no stopped pair is git)
+Needs a fix: yes — 🟡 1 (the `-C` union misses the tree git runs in), 🟡 2 (`_BRACE`, NAME NOT IN TREE since phase 11, refuses a signed sequence and a brace after an escaped `$`), 🟡 3 (§A and its pin say no stopped pair is git)
 Loses a record or crashes: no
 
 The broad gate has not come due: this round leaves three findings needing a

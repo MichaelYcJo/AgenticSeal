@@ -1,16 +1,17 @@
 # 1791384157-the-hooks-read-the-session-waiver-and-creation-one-way — overview
 
 📋 implement applied
-· spec:     `spec.md` In 1–6 and S1–S24 with the reframe after round 3, `plan.md` phases 1–10 and Alternatives, `questions.md` (#856 = (c), P1, M1–M5, W1–W4); `docs/worktree-guard-spec.md` §A, §*Creation consent*, §*Which tree*, §*Known limits*; `docs/the-commit-gate-inside-git.md` §*The commit gate inside git*; `docs/commit-review-gate-spec.md` §*commit-review-gate (PreToolUse, Bash)*; `docs/the-review-and-parity-arms.md` §*Parity arm*; agent contract §12, §13, §15
-· evidence: `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md`: rows for S1–S24 and the round fixes (S3a, S5a, S11a, S11b, S11c, S11d, S11e, S13a, S20a, S24a), 7 `Corrected ·` rows (W7, G3, W1, W3, W4, T1, M1) and 52 `Re-read ·` rows written by `evidence-check --reverify --into`
-· verified: executed — the corpus probes of phases 1 and 7, M5 under bash and zsh, every new case red before its code or its mutation, `bin/mutation-check` on each new unit, the modules each phase names, the 45 modules touching a changed hook, the eight suite-wide guard modules, `bin/evidence-check . --strict` and `bin/correction-check`; read — the Windows branches, and whether a hook process sees `CLAUDE_PID`; not run — the full suite, which is the sealer's
+· spec:     `spec.md` In 1–6 and S1–S29 with the reframe after round 3 and the second after round 5, `plan.md` phases 1–12 and Alternatives, `questions.md` (#856 = (c), P1 withdrawn, P2, P3, M1–M5, W1–W5); `docs/worktree-guard-spec.md` §A, §*Creation consent*, §*Which tree*, §*Known limits*; `docs/the-commit-gate-inside-git.md` §*The commit gate inside git*; `docs/commit-review-gate-spec.md` §*commit-review-gate (PreToolUse, Bash)*; `docs/the-review-and-parity-arms.md` §*Parity arm*; agent contract §12, §13, §15
+· evidence: `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md`: rows for S1, S3–S10, S14, S15a, S15c, S15d, S23 and S25–S28 and the round fixes S3a, S5a and S13a, 7 `Corrected ·` rows (W7, G3, W1, W3, W4, T1, M1) and 53 `Re-read ·` rows written by `evidence-check --reverify --into`; phase 12 retired the brace rows (S11–S13, S11a–S11e, S15b, S17–S22, S20a, S24, S24a) with the reader they described
+· verified: executed — phase 11's inverted half and new cases red at `52c72bbe` and green after, S28 on git 2.50.1, the corpus probes of phases 1 and 7, M5 under bash and zsh, every new case red before its code or its mutation, `bin/mutation-check` on each new unit, the modules each phase names, the 45 modules touching a changed hook, the eight suite-wide guard modules, `bin/evidence-check . --strict` and `bin/correction-check`; read — the Windows branches, and whether a hook process sees `CLAUDE_PID`; not run — the full suite, which is the sealer's
 
 ## Why this work exists
 
 Four facts every gate depends on were read in more than one place and the
-readings disagreed (#868), and a brace expansion switched a branch silently
-where another session was working (#856); each fact now has one reader that
-refuses what it does not recognise.
+readings disagreed (#868); each now has one reader that refuses what it
+does not recognise. A brace expansion switched a branch silently where
+another session was working (#856); after five rounds of reading it and two
+reframes, the guard names it as a limit beside #886's shapes instead.
 
 ## Where spec and implementation diverged
 
@@ -30,6 +31,11 @@ refuses what it does not recognise.
 | Which brace segments take the union of trees (round 4) | `spec.md` S20: a segment the frozen reading reads as no git takes the `-C` union; one it reads as git is placed with its own `-C` composed. Round 4 found `git {,} -C W switch x`, where the frozen reading takes the brace word for the subcommand and never sees the `-C` after it, and `{git,} -C .. -C W switch x`, where git runs in `../W` and the union held `..` and `./W` | Every brace segment takes the union, each `-C` alone and the values composed in order | The orchestrator's direction for round 4's yellow 1; the union only adds trees, which is the stopping direction |
 | What the brace test reads (round 5) | Round 4's reading: an unquoted `{` with a `,` or a `..` before a later `}` in the same word, never after a `$`, on the text with quoted spans deleted and on each word. Round 5 found `$''{g..g}it`, where the deleted quote put a `$` against the `{`, and `{git,$(: x)}`, which the splitter cut at the substitution's whitespace; bash makes `git` of both | The orchestrator's direction for round 5: the command's text, each quoted span and escape as one space, a `{`, a `,` or `..` and a `}` in order with no word boundary or nesting read, and one exception, a `${` holding no brace, `,` or `..`; a segment's words joined; a brace no one segment holds is the command's | Named over-stops in §A and pinned: `${a,}`, `echo {a, b}`, a brace group holding a comma, `${r%..*}`, a reflog range. 42 of 33,287 recorded pairs, eight more than round 4's reading over the same corpus |
 | What a brace is (round 4) | `spec.md` In 5: `{…,…}` with no whitespace inside, or `{x..y}`, never after `$`. Round 4 found signed sequences, `\${a,b}` and quoted whitespace that bash expands and that reading missed | Read to err toward stopping: an unquoted `{` with a `,` or a `..` before a later `}` in the same word; silence only from quoting, word boundaries and a bare `${`, each must-not-stop form pinned | The orchestrator's direction for round 4's yellow 2; a wrong stop is one prompt, a missed brace is a silent switch |
+| The brace rows above (phase 11) | Phases 9 and 10 and rounds 4 and 5 chose each brace reading in the rows above | Every one of them left the tree in phase 11, on `questions.md` P2's default, delete; the rows stay as what was decided then | The second reframe: `reference-transaction` sees a switch only after the tree moved, so observing the act cannot refuse it, and a format with no imitation stops 2,486 of 33,526 pairs (`spec.md` In 5) |
+| The hidden-spelling bullet (phase 11) | `spec.md` S27: "the hidden-spelling bullet keeps its `{add,}` example" | The bullet reads as at 0.20.0; the new limit bullet names `git worktree {add,} ../wt f` | The bullet says such a creation is an unrecognised shape. With the reader gone it is listed, so keeping the example would state what the tree no longer does |
+| `_rebase_names_a_branch`'s docstring (phase 11) | `spec.md` In 5: it stays "as phase 3 corrected it" (S14) | Its last clause rewritten: a word the shell builds is the limit the comment above `Finding` names; phase 3's `_plain_words` sentence stands | The clause said a brace segment "is unrecognised before this is asked", which phase 11 made false |
+| The inverted half's red at `52c72bbe` (phase 11) | `spec.md` S26: the inverted assertion red at 52c72bbe, "the guard stops the four there" | The half asks `shape_of` and `main` in an ACTIVE tree, with `monkeypatch` and `capsys` added to the case | `shape_of` alone read all four as listed at `52c72bbe`, because only `main` passed the brace read there; asking `main` is what makes the half red there |
+| What else left with the brace cases (phase 11) | `spec.md` In 6 lists thirteen cases and three constants | `_two_trees` (NAME NOT IN TREE since phase 11), the helper only those cases used, went too | A helper with no caller is a unit nothing reads |
 
 ## Not verified
 
@@ -54,6 +60,11 @@ refuses what it does not recognise.
   string fed to a shell by a here-string or a heredoc, a git spelling that
   avoids the bare word in a command the splitter cannot close (`g""it`), and
   `--git-dir` or `--work-tree` naming another tree. Each is filed as #886.
+- #856 closes as a named limit, not a stop: `git rebase {main,feature/x}`,
+  `git rebase --ro{,} feature/x`, `git stash {branch,} y` and `git worktree
+  {add,} ../wt f` are listed and silent in every tree, as at 0.20.0, and
+  §*Known limits* names the class once. The brace joins #886 by the
+  orchestrating session's comment there, which is not this branch's act.
 
 ## Fed back into the spec
 
@@ -66,9 +77,10 @@ Inferred during implementation, for a planner to overturn:
   guard, so `hooks/tokens.py` stays outside the frozen reader's importers.
 - A `git diff HEAD` on a branch with no commit is a failure the parity arm
   asks about, like any other (In 4).
-- A brace segment's union of trees, git or not, carries one finding and
-  several trees (`_finding_trees`), each `-C` alone and the `-C` values
-  composed in order; a glued `-C<dir>` is not read, as the frozen reader
-  does not read it for a git segment (`questions.md` W3).
-- `questions.md` P1 is built on its default, **yes**, under `Automation |
-  yes`; the owner's answer is still open, and a *no* reopens the frame.
+- Retracted in phase 11: a brace segment's union of trees, git or not,
+  carried one finding and several trees (`_finding_trees`, NAME NOT IN TREE since phase 11), each `-C` alone and the `-C` values
+  composed in order (`questions.md` W3). It left with the reader.
+- `questions.md` P1 is withdrawn by the second reframe. P2 is built on its
+  default, **delete**, under `Automation | yes`, and is flagged to the
+  owner, since it reverses the owner's confirmed (c) for #856; a *format*
+  answer replaces the deletion with the character test In 5 counts.

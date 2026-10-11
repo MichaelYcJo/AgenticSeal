@@ -43,7 +43,7 @@ pass removes the heredoc body, and the second, reading the `<<` again with no
 body after it, drops the rest of the line, `git add` with it. The corrected
 count reads the command once and each substitution body once, as step 2
 says, over the corpus as it stood when round 4 ran it and the rule as round
-4 left it (`_BRACE` read to err toward stopping). Phase 1's M2 missed the
+4 left it (`_BRACE` read to err toward stopping; NAME NOT IN TREE since phase 11). Phase 1's M2 missed the
 same pair; the probe that ran it is deleted, so whether by the same second
 pass is not established.
 
@@ -65,31 +65,32 @@ figure that replaces them, so the next count can be compared with it.
    heredoc bodies out), and each substitution body of it
    (`cmdline.substitution_bodies`), each read again through
    `_judgment_text`.
-3. A text counts only where `_unquoted_brace` finds a brace expansion
+3. A text counts only where `_unquoted_brace` (NAME NOT IN TREE since phase 11) finds a brace expansion
    outside its quoted spans and escapes (`tokens.QUOTED_SPANS`).
 4. Each segment of such a text, through the guard's own tokenizer
    (`_tokenize_with_separators`), stops where `_segment_finding` gives it
    the brace finding, which since round 5 is where its words, joined, hold a
-   match of `_BRACE`; a cut group stops where `_merged_findings` gives it
+   match of `_BRACE` (NAME NOT IN TREE since phase 11); a cut group stops where `_merged_findings` gives it
    one; and since round 5 a text whose brace no one segment's words hold
    stops as a whole, as `main` takes it. The segment is a git segment where
    `parse_git` reads it as one. A text the splitter could not close and that
-   holds a match of `_BRACE` stops too, counted apart where nothing else
+   holds a match of `_BRACE` (NAME NOT IN TREE since phase 11) stops too, counted apart where nothing else
    stopped it.
 5. Counted apart: pairs whose stopping segment holds the brace only in
    assignment words before its command (`NAME=…{…}…`), and pairs whose
-   quoted spans hold a match of `_BRACE` beside the unquoted one.
+   quoted spans hold a match of `_BRACE` (NAME NOT IN TREE since phase 11) beside the unquoted one.
 6. The self-check first, over the same function: every form below under
    *must stop* stops, and none under *must not stop* does. The lists are
    the parameters of the guard's own cases at the commit counted from, so
-   the next count can be run against the same forms: must stop is
-   `BRACE_SHAPES` and the parameters of
-   `test_a_brace_that_makes_the_command_word_is_unrecognised`,
-   `test_a_brace_in_any_word_is_the_brace_shape` and
-   `test_a_brace_in_a_body_or_a_cut_group_is_unrecognised`, with the command
-   of `test_a_brace_in_a_command_that_will_not_split_stops`; must not stop
-   is the parameters of `test_what_the_shell_does_not_expand_stays_silent`
-   and `test_a_quoted_brace_in_a_git_word_stays_listed`, all in
+   the next count can be run against the same forms. The cases left the
+   tree in phase 11, so each name below is NAME NOT IN TREE since then: must stop is
+   `BRACE_SHAPES` (NAME NOT IN TREE since phase 11) and the parameters of
+   `test_a_brace_that_makes_the_command_word_is_unrecognised` (NAME NOT IN TREE since phase 11),
+   `test_a_brace_in_any_word_is_the_brace_shape` (NAME NOT IN TREE since phase 11) and
+   `test_a_brace_in_a_body_or_a_cut_group_is_unrecognised` (NAME NOT IN TREE since phase 11), with the command
+   of `test_a_brace_in_a_command_that_will_not_split_stops` (NAME NOT IN TREE since phase 11); must not stop
+   is the parameters of `test_what_the_shell_does_not_expand_stays_silent` (NAME NOT IN TREE since phase 11)
+   and `test_a_quoted_brace_in_a_git_word_stays_listed` (NAME NOT IN TREE since phase 11), all in
    `tests/test_worktree_guard.py`.
 
 No git was run against the corpus, and the tree of no pair was read.

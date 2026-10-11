@@ -297,7 +297,7 @@ a word after it (`{,} git switch x`, `{env,} git switch x`), so
 `{echo,printf} x` says nothing; and a brace the guard cannot take apart
 ```
 
-### Regression cases — `tests/test_worktree_guard.py`, added to the parameters of `test_a_brace_that_makes_the_command_word_is_unrecognised`
+### Regression cases — `tests/test_worktree_guard.py`, added to the parameters of `test_a_brace_that_makes_the_command_word_is_unrecognised` (NAME NOT IN TREE since phase 11)
 
 ```python
         # Round 3 of work item 1791384157: the boundary bash reads, not the
@@ -314,7 +314,7 @@ a word after it (`{,} git switch x`, `{env,} git switch x`), so
         "2>&1 {git,} switch feature/x",
 ```
 
-### Regression cases — `tests/test_worktree_guard.py`, added to the parameters of `test_a_brace_command_word_is_judged_in_the_tree_its_c_names`
+### Regression cases — `tests/test_worktree_guard.py`, added to the parameters of `test_a_brace_command_word_is_judged_in_the_tree_its_c_names` (NAME NOT IN TREE since phase 11)
 
 ```python
         "timeout 5 {{git,}} -C {w} switch feature/x",

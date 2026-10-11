@@ -97,7 +97,7 @@ helpers): `{git,} rebase main feature/x` and `{,git} switch feature/x` are
 feature/x` and `git switch feature/x` of them (executed:
 `printf '[%s]' {,git} x` prints `[git][x]`).
 
-**Cause, read**: `_unquoted_brace` reads the brace, but `_git_finding` is
+**Cause, read**: `_unquoted_brace` (NAME NOT IN TREE since phase 11) reads the brace, but `_git_finding` is
 asked only where `parse_git` reads the segment as git. A brace that makes the
 command word makes a segment the frozen reading reads as no git at all, so
 `_segment_finding` falls through to `_hidden_in`, which does not know the
@@ -151,12 +151,12 @@ wherever it gives both.
 
 ## ⬜ 5 — A quoted space inside a brace hides it from the word-level test
 
-**Executed**: `git rebase {main,'feature x'}` has `_unquoted_brace` True, but
-the frozen word is `{main,feature x}`, which `_BRACE` refuses because of the
+**Executed**: `git rebase {main,'feature x'}` has `_unquoted_brace` (NAME NOT IN TREE since phase 11) True, but
+the frozen word is `{main,feature x}`, which `_BRACE` (NAME NOT IN TREE since phase 11) refuses because of the
 space, so the segment reads `listed`. bash makes `git rebase main 'feature
 x'` of it, which git refuses, and no spelling of this kind that switches a
 branch was found. The word-level test could ask the regex of the word with
-its whitespace taken out. Recorded so the next reader of `_BRACE` knows the
+its whitespace taken out. Recorded so the next reader of `_BRACE` (NAME NOT IN TREE since phase 11) knows the
 gap is there.
 
 ## ⬜ 6 — shlex and bash disagree on `$'…\'…'`, in both directions
@@ -219,7 +219,7 @@ would make the docstring true.
 | 🔴 2 | survivor-check exits 1 on 12 places in the release job; one is a false present-tense sentence, eleven are history | `tests/test_worktree_guard.py:729` | open | executed: reproduced at the target SHA, and exit 0 with the fix below |
 | 🟡 3 | A brace that makes the command word (`{git,} switch x`) is silent in an ACTIVE tree | `hooks/worktree-guard.py:2270` | open | executed: guard verdict probe, and the fix probed red then green |
 | 🟡 4 | The lease writer trusts `CLAUDE_PID` without tying it to the session it records, so a nested session would record the outer pid | `hooks/session-lease.py:91` | open | read: conditional on M1's open hook half; the base walked to the inner process |
-| ⬜ 5 | A quoted space inside a brace hides it from the word-level `_BRACE` test | `hooks/worktree-guard.py:2007` | open | executed: no switching spelling of this kind found |
+| ⬜ 5 | A quoted space inside a brace hides it from the word-level `_BRACE` (NAME NOT IN TREE since phase 11) test | `hooks/worktree-guard.py:2007` | open | executed: no switching spelling of this kind found |
 | ⬜ 6 | shlex and bash disagree on `$'…\'…'`; a typed waiver after one is now refused, and the docstring's claim about unclosed quotes is false there | `hooks/tokens.py:33` | open | executed: base and head probes; the grant direction is pre-existing |
 | ❓ | Whether a hook process the harness spawns sees `CLAUDE_PID` (M1, the hook half) | `hooks/hooksession.py:68` | ❓ out of verified scope | no hook's environment can be printed without changing the installed configuration; the repository owner answers |
 | ❓ | The Windows branches of In 1's adapter, In 2's lease route and the stub without `CLAUDECODE` | `hooks/worktree_consent.py:419` | ❓ out of verified scope | read only; the CI Windows leg answers once 🔴 1 is fixed |
@@ -234,7 +234,7 @@ would make the docstring true.
 | the same with the docstring fix and the `survivors.md` below, `--exempt` | exit 0, 12 excused |
 | `bin/test` on the eight suite-wide guard modules, in the clone | exit 0, 435 passed |
 | `bin/test tests/test_worktree_guard.py tests/test_chain_hooks_hardening.py tests/test_lease_liveness.py -k "brace or no_listed_form or hardening or parity or lease or pid or claude or diff"` | exit 0, 122 passed |
-| a token and brace probe over `tokens.given`, `has_token`, `has_marker`, `_unquoted_brace` and the frozen tokens, at the head | the results quoted in ⬜ 5, ⬜ 6 and 🟡 3 |
+| a token and brace probe over `tokens.given`, `has_token`, `has_marker`, `_unquoted_brace` (NAME NOT IN TREE since phase 11) and the frozen tokens, at the head | the results quoted in ⬜ 5, ⬜ 6 and 🟡 3 |
 | the same consent reads over `git archive 5623d728 hooks` | the base guard and the base substring fallback read the `$'…'` tokens too |
 | bash: `printf '[%s]'` over `{git,} rebase main feature/x`, `{,git} x`, `git rebase main{,}` | `[git][rebase][main][feature/x]`, `[git][x]`, `[git][rebase][main][main]` |
 | a guard verdict probe through the module's `verdict` and `in_state` helpers, ACTIVE and dirty | both command-word braces silent; `git rebase {main,feature/x}` and the `$'…'` line stop |
@@ -329,7 +329,7 @@ def _segment_finding(tokens, braced=False):
 ```
 
 `tests/test_worktree_guard.py`, beside
-`test_a_brace_expansion_in_a_git_word_is_unrecognised`:
+`test_a_brace_expansion_in_a_git_word_is_unrecognised` (NAME NOT IN TREE since phase 11):
 
 ```python
 @pytest.mark.parametrize(
