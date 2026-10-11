@@ -59,3 +59,10 @@ are true where they stand:
 | `seal/specs/1790550713-what-the-last-rounds-deferred/questions.md` | No row needs a person, and none blocks the build. | another work item's record, a different subject sharing the sentence this item's `questions.md` replaced |
 | `seal/specs/1790815612-the-reading-segments-batch-again-and-the-opening-lives-in-a-file/questions.md` | No row needs a person, and none blocks the build. | the same |
 | `seal/specs/1790835050-the-delegated-note-compares-what-it-prints/questions.md` | No row needs a person, and none blocks the build. | the same |
+
+Round 2's fix pass (`survivor-check --range ff88f31d..HEAD`, 2026-10-12)
+named one more:
+
+| Path | Quote | Grounds |
+|---|---|---|
+| `seal/releases/0.9.5.md` | which is the state a draft pull request opens in | a released row's coordinate (G1's narrowed locator), frozen by `Ledger frozen from`; G1 is superseded by this item's `Corrected · G1`, whose coordinates are the ones checked |
