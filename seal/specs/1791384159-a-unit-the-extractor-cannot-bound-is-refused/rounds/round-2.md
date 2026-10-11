@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 889 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-3 |
 | Fix range | `4ed965ed21a2751a8fb7c3971469df5d0a797802..9f36b62c995358bfb3905a99af2bd02a5ae6b93f`, 5 commits |
 | Contract changes | resolve_unit → region_lines, plan.md, post-review-check.md, phase-6.md, round-1-report.md, round-1.md, round-2-report.md, round-2.md, spec.md, removed_ledger_rows, resolve, judge, read_citation, pytest |
 | New units | statement_at (depth 1); test_a_claim_in_a_file_no_parser_reads_is_its_line (depth 1); BLACK (depth 1); test_a_claim_in_python_is_the_statement_ast_gives (depth 1); test_a_claim_row_in_python_drifts_on_an_edit_inside_its_statement (depth 1); test_a_mapped_row_is_told_its_own_path (depth 1); test_a_quoted_line_that_is_gone_says_to_quote_it_as_it_reads_now (depth 1) |
