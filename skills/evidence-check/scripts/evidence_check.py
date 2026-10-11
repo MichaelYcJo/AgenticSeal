@@ -771,9 +771,13 @@ def resolve(path, locator, text):
     return resolve_unit(path, locator, text).places
 
 
-def resolve_unit(path, locator, text):
+def resolve_unit(path, locator, text, shown=None):
     """`Resolution(places, refused)` — the places the locator resolves to,
     and why no unit could be bounded, or None.
+
+    SHOWN is the path the row itself writes, where it differs from PATH:
+    the refusal's remedy is the edit to make, so it is written on the row's
+    own path, `--map` prefix included (round 2 of #870).
 
     **A unit no rule can bound is refused, never guessed at** (#870). Which
     rule bounds PATH is `bounding_rule`'s answer and nobody else's. A `.py`
@@ -821,14 +825,14 @@ def resolve_unit(path, locator, text):
     if rule == "ast":
         spans = py_spans(text)
         if spans is None:
-            return Resolution([], unbounded(path, rule, text))
+            return Resolution([], unbounded(shown or path, rule, text))
         # The parse succeeded, so ast's answer is the whole answer: a symbol
         # it cannot find is GONE. Falling back to the text rule here read a
         # leftover call site as the unit — a moved function reported DRIFTED
         # instead of BROKEN-with-hint, and --reverify anchored the row to the
         # call permanently (round 4, 🔴 2).
         return Resolution(spans.get(locator, []))
-    return Resolution([], unbounded(path, rule, text))
+    return Resolution([], unbounded(shown or path, rule, text))
 
 
 def name_statements(text, region, name):
@@ -918,15 +922,48 @@ def minor_region(path, text, region, minor):
     bookkeeping this design exists to remove.
 
     Ambiguity widens for the same reason: several matches is not a place.
+
+    **A quoted claim is bounded by the parser, or is its own line** (round 2
+    of #870). `literal_statements` grows a hit through the lines deeper than
+    it, which is the indentation guess #870 removed at the major level, and
+    it ended a claim on #848's signature line before the body. In `.py` the
+    claim is the innermost statement `ast` gives for the quoted line
+    (`statement_at`); in a file no parser reads it is the line itself, as is
+    a bare minor anchor there. Markdown keeps the literal rule: what follows
+    a line deeper there is the line's own list item, which the format shows.
     """
     lines = gfm_lines(text)
+    rule = bounding_rule(path)
     if minor.startswith('"'):
         found = literal_statements(lines, region, unescape(minor[1:-1]))
-    elif bounding_rule(path) == "ast":
+        if rule == "ast":
+            found = [statement_at(text, region, a) for a, _b in found]
+    elif rule == "ast":
         found = name_statements(text, region, minor)
     else:
         found = literal_statements(lines, region, minor)
+    if rule is None:
+        found = [(a, a) for a, _b in found]
     return found if len(found) == 1 else []
+
+
+def statement_at(text, region, line):
+    """`(start, end)` of the innermost statement `ast` gives that holds LINE
+    inside REGION, or `(line, line)` where none does (round 2 of #870)."""
+    lo, hi = region
+    best = (line, line)
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return best
+    size = None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.stmt):
+            continue
+        a, b = node.lineno, node.end_lineno or node.lineno
+        if lo <= a <= line <= b <= hi and (size is None or b - a < size):
+            best, size = (a, b), b - a
+    return best
 
 
 def recorded_here(rel, body, place, want, claim):
@@ -1769,7 +1806,9 @@ def judge(m, root, maps, default_repo, scan_cache):
             detail += f" (repo-wide scan skipped: over {SCAN_FILE_CAP} files)"
         return found("BROKEN", detail, dest=destination(repo, rel, hashes))
 
-    unit = resolve_unit(rel, locator, body)
+    # The remedy is written on the row's own path, `--map` prefix included,
+    # so a row copied from it still cites the checkout it named (round 2).
+    unit = resolve_unit(rel, locator, body, shown=raw_path)
     if unit.refused:
         # Before the repo-wide scan, because a refused unit was never found
         # and so cannot have moved: no unit in a file of this kind is
@@ -1818,6 +1857,13 @@ def judge(m, root, maps, default_repo, scan_cache):
             # A labelled fact, never the word "renamed": the content
             # differs, so the checker does not know that.
             detail += f" — same name at {names[0][0]} (content differs)"
+        elif locator.startswith('"'):
+            # A quoted line has no name to find elsewhere, and outside `.py`
+            # and `.md` no file yields units to reconstruct it from, so the
+            # line names the one repair there is (round 2's ⬜ 4).
+            detail += (
+                " — the quoted text is not in the file; quote the line as it reads now"
+            )
         if capped:
             detail += f" (repo-wide scan skipped: over {SCAN_FILE_CAP} files)"
         return found("BROKEN", detail, dest=destination(repo, rel, hashes))
@@ -2327,7 +2373,7 @@ def read_citation(cite, verb, root, maps, default_repo, load):
     if entry is None:
         return found("BROKEN", "the released file it names is not there")
     _, body, lines, rows = entry
-    section = resolve_unit(rel, cite.group("locator"), body)
+    section = resolve_unit(rel, cite.group("locator"), body, cite.group("path"))
     if section.refused:
         return found("BROKEN", section.refused)
     places = section.places
@@ -2857,7 +2903,7 @@ def migrate(ledgers, root, maps=None, default_repo=None):
                     # No unit here is bounded, so none can contain the range;
                     # the reason a person reads is the refusal, which names
                     # the anchor to write instead (#870, round 1's ⬜ 5).
-                    left.append((m.group(0), unbounded(rel, rule, body)))
+                    left.append((m.group(0), unbounded(raw, rule, body)))
                     failed = True
                     continue
                 lines = gfm_lines(body)

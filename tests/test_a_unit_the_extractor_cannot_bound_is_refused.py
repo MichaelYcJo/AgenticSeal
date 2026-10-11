@@ -415,6 +415,93 @@ def test_a_quoted_line_resolves_in_any_file():
     assert end - start > 10, place
 
 
+# --- round 2: a claim is bounded by the parser, or is its own line ---------
+
+
+def test_a_claim_in_a_file_no_parser_reads_is_its_line():
+    """Round 2's 🟡 1. A quoted claim was grown through every following line
+    deeper than it, in every file: an indentation guess at the claim level,
+    which ended a claim on #848's signature line at line 2. In a file no
+    parser reads, a claim is the line it quotes, and the row says so on its
+    face; a bare minor anchor there is a literal and the same."""
+    claim = '"export function multiLine("'
+    (region,) = ec.resolve_unit("f.ts", claim, MULTI_LINE).places
+    assert region == (1, 5)
+    assert ec.minor_region("f.ts", MULTI_LINE, region, claim) == [(1, 1)]
+    assert ec.minor_region("f.ts", MULTI_LINE, region, '"opts: {"') == [(2, 2)]
+    assert ec.minor_region("f.ts", MULTI_LINE, region, "return") == [(4, 4)]
+
+
+BLACK = "def f(\n    a,\n):\n    if a:\n        b = 1\n        c = 2\n    return a\n"
+
+
+def test_a_claim_in_python_is_the_statement_ast_gives():
+    """Round 2's 🟡 1 in `.py`: the indentation guess ended a claim on a
+    Black-formatted `def f(` at line 2, before its `):`. `ast` decides the
+    statement a quoted line sits in, so the claim is the innermost statement
+    holding that line: the whole definition for its first line, the `if`
+    block for its header, and a line alone where it is a statement of its
+    own."""
+    (region,) = ec.resolve_unit("b.py", "f", BLACK).places
+    assert region == (1, 7)
+    assert ec.minor_region("b.py", BLACK, region, '"def f("') == [(1, 7)]
+    assert ec.minor_region("b.py", BLACK, region, '"if a:"') == [(4, 6)]
+    assert ec.minor_region("b.py", BLACK, region, '"b = 1"') == [(5, 5)]
+    assert ec.minor_region("b.py", BLACK, region, '"return a"') == [(7, 7)]
+
+
+def test_a_claim_row_in_python_drifts_on_an_edit_inside_its_statement(repo):
+    """The command half: a claim on the `if` header hashes the block `ast`
+    gives, so an edit to the block's last line reads DRIFTED at 4-6."""
+    (repo / "src" / "b.py").write_text(BLACK, encoding="utf-8")
+    cite(repo, 'src/b.py#f>"if a:"@00000000')
+    ledger = "seal/ledger/f.md"
+    fill = ["--reverify", "--checked", "2026-10-12", "--ledger", ledger, "."]
+    assert run(fill, str(repo)).returncode == 0
+    assert run(["--strict", "--ledger", ledger, "."], str(repo)).returncode == 0
+    edited = BLACK.replace("c = 2", "c = 3")
+    (repo / "src" / "b.py").write_text(edited, encoding="utf-8")
+    r = run(["--strict", "--ledger", ledger, "."], str(repo))
+    assert r.returncode != 0 and "content changed at 4-6" in r.stdout, r.stdout
+
+
+# --- round 2: the remedy is written on the row's own path ------------------
+
+
+def test_a_mapped_row_is_told_its_own_path(repo, tmp_path):
+    """Round 2's 🟡 2. The shape is the edit to make, so it carries the
+    `--map` prefix: written on the path inside the mapped checkout, the
+    copied row would cite ROOT."""
+    other = tmp_path / "orig"
+    (other / "src").mkdir(parents=True)
+    (other / "src" / "x.ts").write_text("export function f() {\n}\n", encoding="utf-8")
+    cite(repo, "legacy/src/x.ts#f@00000000")
+    r = run(["--strict", "--map", f"legacy={other}", "."], str(repo))
+    assert no_rule("legacy/src/x.ts", "`.ts`") in r.stdout, r.stdout
+    ledger = repo / "seal" / "ledger" / "f.md"
+    ledger.write_text(
+        "| C1 | `legacy/src/x.ts:1-2` | read | 2026-09-01 | n |\n", encoding="utf-8"
+    )
+    _migrated, left, _unproven = ec.migrate(
+        [str(ledger)], str(repo), {"legacy": str(other)}
+    )
+    assert dict(left)["legacy/src/x.ts:1-2"] == no_rule("legacy/src/x.ts", "`.ts`")
+
+
+def test_a_quoted_line_that_is_gone_says_to_quote_it_as_it_reads_now(repo):
+    """Round 2's ⬜ 4. A reworded quoted line read `locator not found` and
+    nothing else; no rename scan reads a file no parser reads, so the line
+    says what to do."""
+    (repo / "src" / "f.ts").write_text(MULTI_LINE, encoding="utf-8")
+    cite(repo, 'src/f.ts#"export function gone("@00000000')
+    r = run(["."], str(repo))
+    assert r.returncode == 2, r.stdout
+    assert (
+        'src/f.ts#"export function gone("  locator not found — the quoted text '
+        "is not in the file; quote the line as it reads now"
+    ) in r.stdout, r.stdout
+
+
 # --- S9: the guessing reader is gone ---------------------------------------
 
 GONE = (
