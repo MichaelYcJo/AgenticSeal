@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 8 |
-| Commit | (the record commit's parent; `plan.md`'s Status cell names it) |
+| Commit | bc84fa95 |
 | Ran by | smith on Opus 5.5 |
 
 ## What this phase was asked
