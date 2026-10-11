@@ -10,8 +10,8 @@
 
 The reframe after round 2 (`spec.md` §*Reframed after round 2*, D2, D11):
 the static reader of a test row keeps only existence. The units that read a
-test file to predict pytest — `collected`, `TEST_FILE_RE`, `never_fails`,
-`unconditional`, `NEVER_FAILS`, `NEVER_RUNS` — and `node_finding`'s two
+test file to predict pytest — collected, TEST_FILE_RE, never_fails,
+unconditional, NEVER_FAILS, NEVER_RUNS — and `node_finding`'s two
 calls leave `evidence_check.py`; a `def` or `class` defined once is OK, a
 constant and a name defined twice are BROKEN. The three collection cases
 and `NEVER` leave the new module, and S4's name-prefix cases become OK
@@ -20,8 +20,8 @@ the merge at df42a36c, so no merge was owed before this phase.
 
 ## What this phase found
 
-**`NOT_A_TEST` left too**, beside the six units `spec.md` D11 lists: once
-`collected` was gone it had no caller, and its sentence (*pytest does not
+**NOT_A_TEST left too**, beside the six units `spec.md` D11 lists: once
+collected was gone it had no caller, and its sentence (*pytest does not
 collect by default*) is the prediction the reframe removes.
 
 **A constant's BROKEN detail says what the name is**: *no def or class
@@ -59,5 +59,5 @@ Executed, output read: the new module, 66 passed; `uvx ruff check` and
 
 | Removed item | Where it must land |
 |---|---|
-| `evidence_check.py#collected`, `TEST_FILE_RE`, `never_fails`, `unconditional`, `NEVER_FAILS`, `NEVER_RUNS`, `NOT_A_TEST` | the sealed run's record, read in phase 7 (`spec.md` D9) |
+| in `evidence_check.py`: collected, TEST_FILE_RE, never_fails, unconditional, NEVER_FAILS, NEVER_RUNS, NOT_A_TEST | the sealed run's record, read in phase 7 (`spec.md` D9) |
 | three collection cases and `NEVER` in `tests/test_a_ledger_row_is_held_by_its_test.py` | phase 7's cases over a record the real recorder wrote (S15–S18) |
