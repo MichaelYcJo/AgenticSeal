@@ -39,5 +39,8 @@ and are excused below.
 | `.github/scripts/release_completeness_check.py` | a session running this by hand has no such commit and gets | a different subject sharing *a session running … by hand* |
 | `skills/verify/scripts/broad_gate.py` | no pull request to read. | the milestone step's sentence, a different subject |
 | `tests/test_a_release_cannot_ship_an_untrue_milestone.py` | A session running this outside CI has no pull request | a different subject |
+| `seal/releases/0.15.4.md` | tells the check | released row A4's notes, true of 0.15.4's generator; A4's claim — the draft excuse reaches the `Pass`-beside-`nobody` pair — still holds, and the suite now reaches a draft through its `gh` stub |
+| `seal/specs/1790550713-what-the-last-rounds-deferred/spec.md` | Item 1, the Pass-beside-nobody class. | a released work item's spec, history; retired by `settle`, not edited |
+| `tests/test_the_fixes_close_the_record.py` | Measured 2026-09-14, and the rider's stated consequence does not hold at this site. | a dated measurement, true of the code it measured; the docstring's last sentence, added here, says where the home is read since #866 |
 | `.test_durations` | test_one_thing_named_is_not_two[Opus 5] | timing data for pytest-split, not prose |
 | `.test_durations` | test_an_untracked_file_under_a_work_item_is_work_in_progress | the same data; the ids of the two removed home cases stay in it until the next `--store-durations` run |
