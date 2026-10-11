@@ -33,10 +33,12 @@ cannot be red against the base. Each was shown to watch the rule instead:
 suffixes, S8's three answers, S9, S13 and S1's refusal half) were 27 red
 against the merge head 1e05daa3 and green after.
 
-**The refusal carries the path the row named.** "no bounding rule for `.ts`;
-anchor a quoted line instead: `src/f.ts#"<a line of the unit>"@00000000`,
-whose region is the paragraph that line sits in, and `--reverify` fills the
-hash" — so the line on a `--strict` run is the edit to make, written out.
+**The refusal carries the path the row named.** After "no bounding rule for
+`.ts`; anchor a quoted line instead:" it writes the row's own path, a `#`, a
+placeholder quoted line and a zero hash, then says the region is the
+paragraph that line sits in and that `--reverify` fills the hash — so the
+line on a `--strict` run is the edit to make, written out. (The sentence is
+pinned whole by `no_rule` in the work item's test module.)
 
 **`--migrate` names the Python refusal too.** S13 asks for a file no rule
 bounds; a `.py` the interpreter cannot parse is the same case for the same
