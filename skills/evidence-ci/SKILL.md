@@ -99,5 +99,9 @@ than a silent swap.
 Code grounds cell names a test, `tests/test_x.py::test_y`, is read by an
 `evidence_check.py` that carries `held_by_tests` (#836); an older vendored copy
 reads it as `MALFORMED`, *cites no coordinate*, and the step fails under
-`--strict`. The step reads whether the test is there; whether it passes is
-your own test job's answer, so both belong in the same workflow.
+`--strict`. The vendored step reads whether the test is there, and says in
+one line that it read the test rows for existence alone. Whether the test
+ran and passed is read off a pytest record: a repository that wants the
+step to read it loads `specseal_pytest_record` in its own test job and hands
+the step that run's directory and key with `--suite-record` and
+`--suite-key`; this command sets neither up.

@@ -278,19 +278,20 @@ branch had touched.
 **A row held by a test takes three of these, and never `DRIFTED`** (#836).
 Where the Code grounds cell names tests as pytest spells a node id —
 `tests/test_x.py::test_y`, `tests/test_x.py::TestA::test_b` for a method —
-each is `OK` where it reads as a test without running pytest (a file named
-`test_*.py` or `*_test.py`, a function named `test…` or a class named
-`Test…`, at the top level or inside such a class, no class with an
-`__init__`) and carries no unconditional `skip` or `xfail` mark; `BROKEN`
-where its file or unit is gone, or the unit is defined twice, and a method
-written bare is told its spelling; `MALFORMED` where the token is no node
-id, names a unit that is no test, names one that cannot fail, or shares the
-cell with a code coordinate. Write the test where it holds the claim, and
-`path#anchor@hash` where none does. `OK` is what reading the file can tell:
-whether pytest collects the test under your configuration, and whether it
-passes, are the suite's answers. A node id outside the Code grounds cell, or
-inside a coordinate's quoted locator, is prose. A superseded row's tests are
-not read again, as its hashes are not. `docs/the-evidence-ledger.md` §*A
+each is `BROKEN` where its file or unit is gone, where the name is a constant
+rather than a `def` or `class`, or where it is defined twice, and a method
+written bare is told its spelling; `MALFORMED` where the token is no node id
+or shares the cell with a code coordinate. Otherwise it depends on the run's
+record. Given `--suite-record DIR --suite-key KEY`, which `broad-gate` hands
+its ledger arm for the run it seals, a test is `OK` only where every line
+the pytest recorder wrote for it says `passed`, and `MALFORMED` otherwise,
+the detail naming what was observed — *not run*, *skipped*, *xfailed*,
+*xpassed*, *failed* or *error in the recorded suite*. Given no record, a
+test that exists is `OK`, and one line beside the totals says the test rows
+were read for existence alone. Write the test where it holds the claim, and
+`path#anchor@hash` where none does. A node id outside the Code grounds cell,
+or inside a coordinate's quoted locator, is prose. A superseded row's tests
+are not read again, as its hashes are not. `docs/the-evidence-ledger.md` §*A
 claim held by a test* is the rule.
 
 **An ambiguous MAJOR unit is BROKEN, loudly, and never a measurement.** With
@@ -313,8 +314,8 @@ renaming its hash would hide the one row somebody has to look at. A
 the run exits 1. An `OVERFLOW` row gets the same `LEFT` line, naming the
 ledger and the line because this command prints no heading per ledger, and
 the run exits 1. A row held by a test has no hash to rewrite: the run writes
-nothing on it and dates nothing, names one whose test is gone or is no test on
-a `LEFT` line, and exits 1 for it (#836). A run of `--into` that writes a
+nothing on it and dates nothing, names one whose test is gone, or that the
+record it was given refuses, on a `LEFT` line, and exits 1 for it (#836). A run of `--into` that writes a
 `Re-read ·` row says once, after its count, that a claim a test holds can move
 onto it instead: a `Corrected ·` row citing the released row and naming that
 test, and no code coordinate, retires the row's hashes for good. It writes no

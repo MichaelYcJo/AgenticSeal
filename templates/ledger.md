@@ -67,10 +67,10 @@ The second names the tests that hold the claim, as pytest spells a node id —
 `tests/test_x.py::TestA::test_b` for a method. It has no hash, so no edit
 drifts it: `evidence-check` reads that each test is there, and the suite reads
 that it passes. Write it wherever a test holds the claim, and the first form
-where none does. A test is what reads as one without running pytest: a
-function named `test…` or a class named `Test…` in a `test_*.py` or
-`*_test.py` file, under no unconditional `skip` or `xfail` mark. Whether
-pytest collects it and whether it passes are the suite's to say.
+where none does. Read alone, a row is held where the named `def` or `class`
+exists once; `broad-gate` holds it only where the run it seals recorded the
+test passing, and refuses it where the run skipped, xfailed, failed or never
+ran it.
 
 ## Scope decisions
 

@@ -240,7 +240,7 @@ def test_a_unit_that_exists_resolves_without_a_record(repo, script, rel, text, n
     assert findings(out.stdout) == [], out.stdout
 
 
-def test_a_unit_pytest_does_not_collect_is_no_test(repo, script):
+def test_a_constant_names_no_def_or_class(repo, script):
     """S4's other half: a constant is no `def` or `class`, so the name the row
     cites is not there to hold anything — BROKEN, told what the name is."""
     fragment(repo, [held(f"`{TESTS}::CONSTANT`")])
@@ -1106,8 +1106,8 @@ def prose(rel):
         ),
         (
             "docs/the-evidence-ledger.md",
-            "**The checker reads that the test is there, and the suite reads that "
-            "it passes.**",
+            "**The checker reads that the test is there, and the sealed run's record "
+            "says whether it passed.**",
         ),
         ("docs/the-evidence-ledger.md", "**A row is one form or the other.**"),
         (
@@ -1144,32 +1144,53 @@ def prose(rel):
             "skills/evidence-ci/SKILL.md",
             "an older vendored copy reads it as `MALFORMED`, *cites no coordinate*",
         ),
-        # Round 1, 🟡 2 (a) and (b), and 🔴 1.
-        (
-            "docs/the-evidence-ledger.md",
-            "`OK` says what reading the file can tell and no more: whether pytest "
-            "collects the test under the repository's own configuration, and "
-            "whether it passes, are the suite's answers, not the ledger's.",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "A test under an unconditional `skip` or `xfail` mark, on itself, a "
-            "class around it or its module, holds nothing",
-        ),
+        # Round 1, 🔴 1.
         (
             "docs/the-evidence-ledger.md",
             "the superseded row's tests are not read again, as its hashes are not.",
         ),
+        # The reframe after round 2 (S23).
+        (
+            "docs/the-evidence-ledger.md",
+            "Reading the row's file establishes one thing for certain, and the "
+            "checker reads that alone: a `def` or `class` of the cited name is "
+            "defined in the cited file once.",
+        ),
+        (
+            "docs/the-evidence-ledger.md",
+            "a test row is `OK` there only where every line the record holds for "
+            "the cited test says `passed`",
+        ),
+        (
+            "docs/the-evidence-ledger.md",
+            "test rows are read for existence alone, and the run says so in one "
+            "line beside its totals.",
+        ),
         (
             "skills/evidence-check/SKILL.md",
-            "`OK` is what reading the file can tell: whether pytest collects the "
-            "test under your configuration, and whether it passes, are the suite's "
-            "answers.",
+            "a test is `OK` only where every line the pytest recorder wrote for it "
+            "says `passed`, and `MALFORMED` otherwise",
+        ),
+        (
+            "skills/evidence-check/SKILL.md",
+            "Given no record, a test that exists is `OK`, and one line beside the "
+            "totals says the test rows were read for existence alone.",
         ),
         (
             "templates/ledger.md",
-            "under no unconditional `skip` or `xfail` mark. Whether pytest collects "
-            "it and whether it passes are the suite's to say.",
+            "`broad-gate` holds it only where the run it seals recorded the test "
+            "passing",
+        ),
+        (
+            "skills/evidence-ci/SKILL.md",
+            "loads `specseal_pytest_record` in its own test job and hands the step "
+            "that run's directory and key with `--suite-record` and `--suite-key`",
+        ),
+        (
+            "skills/verify/scripts/broad_gate.py",
+            "`--suite-record` and `--suite-key` hand it that run's pytest record, "
+            "so a row held by a test is held only where the test was seen passing "
+            "in it (#836).",
         ),
     ],
 )
