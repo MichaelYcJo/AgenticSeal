@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #902 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-3 |
 | Fix range | `dc3501c4fb2ebe064a1dac7f27e20bbf547b3e8c..e88a460c3d08afd3bfce8034227ce8216218f530`, 4 commits |
 | Contract changes | test_a_clone_this_session_already_split_is_named_the_split → round-2-report.md, round-2.md |
 | New units | none |
