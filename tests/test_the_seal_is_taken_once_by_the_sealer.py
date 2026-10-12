@@ -3932,7 +3932,9 @@ def test_a_seal_over_existence_alone_says_so(repo):
     session under the key, so the ledger arm reads test rows for existence
     alone. The run still seals, and the checker's line reaches the person
     reading it. Red before the fix: the line was only in the kept
-    `ledger.txt`."""
+    `ledger.txt`. The row sets the variable with a POSIX prefix, which
+    `cmd.exe` reads as a command name."""
+    posix_row_shell_or_skip()
     write(
         repo,
         "seal/ledger/1799000000-a-sealed-work-item.md",
