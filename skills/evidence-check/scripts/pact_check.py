@@ -255,7 +255,7 @@ def near_miss(said, name):
     takes the mark in, so without this the token names another pact and
     nobody reads it (round 1 of PR #749, yellow 4).
 
-    Reads: guess — prose tokens starting `pact:`; unknown refused
+    Reads: guess — one mentioned pact name against the derived one, one `.`, `_` or `-` longer; unknown passed
     """
     said = said.lower()
     return len(said) == len(name) + 1 and said.startswith(name) and said[-1] in "._-"

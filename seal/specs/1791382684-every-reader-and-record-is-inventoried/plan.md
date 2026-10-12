@@ -56,13 +56,23 @@ Note`.
 - `Unit` → units. Every backticked name in the cell, its head before any
   `.`, matched against the names `reader_registry.population()` gives for
   that file. A name that is no top-level unit (a constant, a nested function,
-  a method) matches nothing. **Corrected after round 1 (🟡 1, ⬜ 6):** only
-  the unit whose body does the reading the row describes takes the row's
-  `What it reads` as its prose. Every other unit the row names is read on its
-  own code: it keeps the row's class and direction where its code bears them
-  out, and its prose says what that unit reads; a unit that cannot be read
-  that way stays on the census. Phase 2 gave every named unit the row's
-  prose, and round 1 found 32 lines describing another unit; phase 4 and any
+  a method) matches nothing. **Corrected after rounds 1 and 2 (🟡 1, ⬜ 6;
+  ⬜ 4):** a unit takes the row's `What it reads` as its prose only where its
+  own body, or a unit of the same file its body calls, makes every read that
+  cell names: the K1 call, the `open`, the `git` or `gh` command, the AST
+  walk. Being named first in the cell does not make a unit that one, and
+  where no one unit makes all the reads, none does. Every other unit the row
+  names is read on its own body: its prose says what that body reads, its
+  class is the class of that, and its direction is what that body does with
+  an input it does not understand — `refused` where it raises or stops,
+  `passed` where it hands back a default for its caller to judge, `mixed`
+  where it does both. A unit that cannot be read that way stays on the
+  census. A test of whether a file this plugin writes exists is `observed`,
+  whatever the row's `Class` cell says (round 1 ⬜ 4): part 1 row 114, the
+  guard's `already_asked`, says `owned`, and its body is `os.path.exists` on
+  its marker. Phase 2 gave every named unit the row's prose; rounds 1 and 2
+  found 46 lines describing another unit, and the round-2 fix pass read every
+  unit three enumerations selected (`rounds/round-2-fixes.md`). Phase 4 and any
   later rerun apply this rule instead.
 - Stale or not. `reader_registry.unit_hash` over the file at HEAD against the
   same over `git show 5623d728:<path>`; a unit the base lacks is stale too.

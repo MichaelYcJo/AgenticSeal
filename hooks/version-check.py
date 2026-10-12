@@ -62,9 +62,7 @@ TAG = re.compile(r"refs/tags/v(\d+)\.(\d+)\.(\d+)$")
 def parse(text):
     """(major, minor, patch) or None. Anything unrecognised is not a version.
 
-    Reads: owned — `$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json` `version`, `repository`; unknown passed
-
-    What it reads, continued: `v?X.Y.Z`
+    Reads: owned — the `version` string `running` takes from `plugin.json`, matched as `v?X.Y.Z`; unknown passed
     """
     m = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", (text or "").strip())
     return tuple(int(g) for g in m.groups()) if m else None

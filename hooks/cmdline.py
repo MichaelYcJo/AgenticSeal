@@ -883,9 +883,9 @@ _NAME_TAIL = _NAME_HEAD | frozenset("0123456789")
 def _name_at(text, i):
     """(name, index past it) for a shell name starting at `i`, else (None, i).
 
-    Reads: guess — `$NAME` and `${NAME}` inside an operand; unknown refused
+    Reads: guess — the shell name starting at one index of an operand; unknown passed
 
-    Refused: an unfilled `$` stays, and `EXPANDS` then makes the target `Unresolved`
+    Passed: no name there gives (None, i), and the caller keeps the `$` as written.
     """
     if i < len(text) and text[i] in _NAME_HEAD:
         j = i + 1
@@ -1869,9 +1869,9 @@ _ENV_LONG = {long: value for _short, long, value in ENV_OPTIONS if long}
 def _env_long(name, abbreviated):
     """The long option NAME spells in `ENV_OPTIONS`, or None.
 
-    Reads: guess — `env`/`genv` words, read under both the GNU and the BSD getopt grammar; unknown passed
+    Reads: guess — one `--` option name after `env`, exact or a GNU getopt prefix of one name; unknown passed
 
-    Passed: an unknown letter is taken as getopt failing, so no string.
+    Passed: a name that is no `_ENV_LONG` option, or a prefix of two, gives None.
 
     Exactly, or, where ABBREVIATED, as the one long name it is a prefix of,
     which is GNU getopt's rule; `--` alone is no prefix.
@@ -2524,7 +2524,8 @@ def _cd_target(tokens):
 
     Reads: guess — a `cd` segment; unknown refused
 
-    Refused: unknown gives `Unresolved`
+    Refused: a destination this process cannot compute is kind "unknown", which the
+    walk reads as `Unresolved`.
 
     `kind` is "path" when the destination is written out, "home" for a bare
     `cd`, "previous" for `cd -`, and "unknown" when the shell would arrive

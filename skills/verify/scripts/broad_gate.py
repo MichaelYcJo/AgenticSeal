@@ -1480,7 +1480,7 @@ def not_as_written(home, command):
 class Check:
     """One check's name, exit code, output text and where the output is.
 
-    Reads: observed — subprocess exit code of each arm; unknown refused
+    Reads: observed — one check's exit code and output, as `run` recorded them; unknown refused
     """
 
     def __init__(self, name, code, text, path):

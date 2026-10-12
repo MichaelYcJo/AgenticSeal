@@ -2835,7 +2835,7 @@ LOOKUP_LIMIT = 200
 def run_gh(args):
     """`gh` with `args`, as `(exit code, stdout, stderr)`.
 
-    Reads: observed — `gh issue list --json number,state` exit code and JSON; unknown mixed
+    Reads: observed — `gh <args>`: its exit code, stdout and stderr; unknown mixed
 
     The one place this module touches a network, and the seam every case
     below replaces. The exit code is read straight off the subprocess

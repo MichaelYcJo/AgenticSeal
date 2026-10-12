@@ -1126,7 +1126,7 @@ def shape_pattern(shape):
     """A committed path shape as a regex: `**/` is any run of directories,
     none included, and `*` stays inside one directory.
 
-    Reads: owned — committed path vs four ledger globs; unknown passed
+    Reads: owned — one of the `LEDGER_SHAPES` path globs, `**/` and `*`; unknown passed
     """
     out = re.escape(shape).replace(r"\*\*/", "(?:[^/]+/)*").replace(r"\*", "[^/]*")
     return out

@@ -777,10 +777,9 @@ def parse_range(root, spec):
 def merges(root, a, b):
     """Every merge commit in `a..b`, oldest last as git lists them.
 
-    Reads: observed — `rev-list --merges`, `rev-parse ^@`; unknown mixed
+    Reads: observed — `rev-list --merges a..b`; unknown refused
 
-    Mixed: a `merges` failure is refused; a `parents` failure gives [] and is not
-    judged.
+    Refused: a walk git cannot make raises `Refused`.
     """
     out = git(root, "rev-list", "--merges", f"{a}..{b}")
     if out is None:
@@ -789,10 +788,9 @@ def merges(root, a, b):
 
 
 def parents(root, rev):
-    """Reads: observed — `rev-list --merges`, `rev-parse ^@`; unknown mixed
+    """Reads: observed — `rev-parse <rev>^@`; unknown passed
 
-    Mixed: a `merges` failure is refused; a `parents` failure gives [] and is not
-    judged.
+    Passed: a failure gives [], so the merge has no merge base and is listed as unjudged.
     """
     out = git(root, "rev-parse", f"{rev}^@")
     return out.split() if out else []

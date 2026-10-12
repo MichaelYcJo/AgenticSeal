@@ -24,5 +24,4 @@ row below was read at the branch's head.
 | `skills/code-review/scripts/chain_check.py` | What it reads, continued: `for-each-ref --contains refs/remotes/pull/` | `reachable`'s paragraph: it calls `is_ancestor` and then `carried_by_a_pull_head`, so both reads are its own |
 | `skills/code-review/scripts/chain_check.py` | Reads: owned — `FIX_RANGE_RE` ends resolved | `last_round_end`'s line, the row's lead: it takes the range's ends and, where the row says `none`, the last `Target SHA` |
 | `skills/verify/scripts/deferral_check.py` | Reads: guess — presence of six fixed CI paths + runner words | `inspect`'s line, the row's lead: it reads runner words out of the files `other_ci_files` finds |
-| `skills/verify/scripts/unverified_check.py` | Reads: owned — one exact `## Not verified`, exact header, 2-cell rows, ✅ prefix | `parse_section`'s line, the row's lead: it reads exactly that shape |
 | `skills/verify/scripts/unverified_check.py` | Reads: guess — one exact `## Not verified`, exact header, 2-cell rows, ✅ prefix | `check_text`'s line: its strict reading is this shape, and its loose base reading makes it `guess`, `mixed` (phase 2's hand-read decision) |

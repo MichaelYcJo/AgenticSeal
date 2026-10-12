@@ -412,7 +412,10 @@ def round_number(name):
 def _ordered(where):
     """`round-N.md` under `where`, lowest round first, or [] when unreadable.
 
-    Reads: owned — `listdir(item/rounds)` and `listdir(item)` filtered by #87; unknown passed
+    Reads: owned — `listdir(where)` filtered by #87; unknown mixed
+
+    Mixed: a directory that will not list gives []; a `rounds` that is a file raises
+    `NotADirectoryError` for the caller to name.
 
     Filtered BEFORE the sort, not after. Both callers below hand this a
     directory that holds other things -- the work item's own directory holds
@@ -445,7 +448,7 @@ def _ordered(where):
 def rounds(item):
     """Every round record in a work item's `rounds/`, lowest round first.
 
-    Reads: owned — `listdir(item/rounds)` and `listdir(item)` filtered by #87; unknown passed
+    Reads: owned — `listdir(item/rounds)` through `_ordered`, filtered by #87; unknown passed
 
     Numerically, not by name, for the reason `round_number` gives.
 
@@ -523,7 +526,7 @@ def rounds_unreadable(item):
 def stray_rounds(item):
     """`round-N.md` left at the work item's own directory, lowest round first.
 
-    Reads: owned — `listdir(item/rounds)` and `listdir(item)` filtered by #87; unknown passed
+    Reads: owned — `listdir(item)` through `_ordered`, filtered by #87; unknown passed
 
     These are records nothing reads. `rounds()` looks one level down and a
     reader that merely found nothing would report the same silence as a work

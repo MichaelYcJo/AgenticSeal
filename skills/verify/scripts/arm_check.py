@@ -405,7 +405,7 @@ def _refuse_unknown(tree: ast.AST, filename: str) -> None:
 def _members(test: ast.expr) -> list[ast.expr]:
     """The top-level members of a boolean test.
 
-    Reads: observed — ast shapes (`BoolOp`, `Tuple`, `MatchOr`, guards); unknown refused
+    Reads: observed — one boolean test's AST: a `BoolOp`'s values, else the test alone; unknown passed
 
     Top-level, not flattened: `a and (b or c)` is two members. Flattening
     recursively gives `gh_segments` seven arms where the hand count gives

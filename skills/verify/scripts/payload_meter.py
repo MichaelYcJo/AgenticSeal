@@ -553,7 +553,7 @@ def calibration_of(transcript, baseline_agent):
 
 
 def _ratio_from_baseline(baseline_data, name):
-    """Reads: owned — an earlier `--json` output; unknown mixed"""
+    """Reads: owned — one name's `bytes_per_token` in an earlier `--json` output; unknown passed"""
     ratios = (baseline_data or {}).get("ratios") or {}
     entry = ratios.get(name)
     if isinstance(entry, dict) and isinstance(
@@ -570,7 +570,7 @@ def _spawn_of(entry):
     the file it was lent from — so `from` counts only where `tokens` says the
     entry is a measurement.
 
-    Reads: owned — an earlier `--json` output; unknown mixed
+    Reads: owned — one `ratios` entry of an earlier `--json` output: `spawn`, else `from`; unknown passed
     """
     if not isinstance(entry, dict):
         return None
@@ -603,7 +603,7 @@ def _same_spawn_over_other_bytes(baseline_data, name, spawn_file, seen_bytes):
     smallest spawn for `name` is that very spawn and the tree's bytes differ
     from them — or None when the two agree or the baseline knows nothing.
 
-    Reads: owned — an earlier `--json` output; unknown mixed
+    Reads: owned — one name's `ratios` entry in an earlier `--json` output: spawn, `over_bytes`; unknown passed
     """
     entry = ((baseline_data or {}).get("ratios") or {}).get(name)
     if _spawn_of(entry) != spawn_file:

@@ -3419,7 +3419,7 @@ def touched(root, a, b):
 def parse_module(text):
     """`ast.Module`, or None for text that is not Python.
 
-    Reads: observed — Python AST at both ends; unknown passed
+    Reads: observed — one module's text, through `ast.parse`; unknown passed
     """
     if text is None:
         return None
@@ -3433,7 +3433,7 @@ def signature(args):
     """A unit's parameters: names in order, whether each has a default, and
     the `*args` / `**kwargs` names — what a call site can be wrong about.
 
-    Reads: observed — Python AST at both ends; unknown passed
+    Reads: observed — one function's `ast.arguments` node; unknown passed
     """
     positional = args.posonlyargs + args.args
     padding = [False] * (len(positional) - len(args.defaults))
@@ -3454,7 +3454,7 @@ def return_arities(node):
     bare `return`, n for a tuple of n elements, 1 for anything else. A
     nested def, class or lambda is somebody else's returns.
 
-    Reads: observed — Python AST at both ends; unknown passed
+    Reads: observed — the `return` statements of one function's AST; unknown passed
     """
     found, stack = set(), list(node.body)
     while stack:
@@ -3565,7 +3565,7 @@ def top_units(module):
 def enclosing_unit(units, line):
     """The top-level unit whose lines hold `line`, or None at module level.
 
-    Reads: observed — Python AST at both ends; unknown passed
+    Reads: observed — the line spans `top_units` read from a module's AST; unknown passed
     """
     for name, (_, first, last) in units.items():
         if first <= line <= (last or first):

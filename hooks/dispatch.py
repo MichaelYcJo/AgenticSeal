@@ -446,9 +446,7 @@ def read_record(path):
 def flat(value):
     """A record's field as one line of text, or "" where it is not a string.
 
-    Reads: owned — a `specseal-gate-failure/<session>/<gate>.pending` JSON; unknown passed
-
-    What it reads, continued: its group, phase, error and message.
+    Reads: owned — one field of a `.pending` record, as `describe` hands it; unknown passed
 
     Passed: a value that is not a string gives "".
     """

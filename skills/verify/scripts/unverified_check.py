@@ -764,7 +764,7 @@ def headings(lines):
 def parse_section(body, offset, strict_header=True):
     """(open, closed, errors) for the body lines of one section.
 
-    Reads: owned — one exact `## Not verified`, exact header, 2-cell rows, ✅ prefix; unknown refused
+    Reads: guess — one section's body lines: the `Item` header (exact under `strict_header`), 2-cell rows, ✅ prefix; unknown refused
 
     `offset` is the file line number of body[0], so every error carries a
     coordinate the author can open."""
@@ -879,7 +879,7 @@ def check_file(path):
 def sections(lines, heading):
     """Where the section starts, under the matcher this read was given.
 
-    Reads: owned — a file's headings: the exact `## Not verified` first, else the matcher given; unknown refused
+    Reads: owned — a file's headings: a string heading matched exactly, or `## Not verified` first, else the pattern; unknown refused
 
     The canonical heading always wins when the file has one. Without that, a
     base revision holding both `## Not verified` and a heading that merely

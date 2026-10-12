@@ -749,7 +749,7 @@ def shell_probe(name):
 def symlink_or_skip(target, link):
     """`os.symlink(target, link)`, or skip the test where it is not permitted.
 
-    Reads: observed — the OSError raised by the attempted `os.symlink` / `os.mkfifo`; unknown passed
+    Reads: observed — the OSError raised by the attempted `os.symlink`; unknown passed
 
     Passed: skip.
 
@@ -809,7 +809,7 @@ def ps_names_the_parent_or_skip(limit):
 def fifo_or_skip(path):
     """`os.mkfifo(path)`, or skip the test where it is not available.
 
-    Reads: observed — the OSError raised by the attempted `os.symlink` / `os.mkfifo`; unknown passed
+    Reads: observed — whether `os.mkfifo` exists, and the OSError its attempt raises; unknown passed
 
     Passed: skip.
 

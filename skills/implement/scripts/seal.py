@@ -290,7 +290,7 @@ normalise_remote = repo_config.normalise_remote
 def resolve(cwd):
     """(repository root, root in force, shared path, local path, mode).
 
-    Reads: observed — `optin.repo_root`, `home_paths`, `home_at`, `SCRATCH`; unknown refused
+    Reads: observed — the repository root and its two `seal/` homes, through `optin`; unknown refused
 
     Every path comes from `optin`: `home_at` says which root is in force and
     `home_paths` says where each mode's root would be, so nothing here spells
