@@ -85,18 +85,17 @@ always did. Direction, not site: within one direction the sites are mutually
 exclusive on tree state, while one budget for the whole guard let a creation
 question spend the answer a later switch needed.
 
-Under the press -- this session's person pressed `automation` on the routing
-question -- nobody is there to put the two options to, so the switch
+Under the press -- this session's person pressed `automation` on the
+routing question -- nobody is there to put the two options to, so the switch
 direction's two sites deny on every attempt. Where a creation in the
 switch's clone is consented -- by that answer in the clone it was given in,
 or by this session's record in a clone it already created a worktree in --
 the reason names the way on that needs nobody: split into a worktree and
-work there by path. A switch into
-another clone is refused naming no split, because the creation rows there
-would put it to a person. The reason names no question tool and no token,
-and no marker is written, because no question was put (#896). In the clone
-the press was given in, the creation direction's two sites never run under
-the press: consent is read first.
+work there by path. A switch into another clone is refused naming no split,
+because the creation rows there would put it to a person. The reason names
+no question tool and no token, and no marker is written, because no question
+was put (#896). In the clone the press was given in, the creation
+direction's two sites never run under the press: consent is read first.
 
 Creation consent is a SECOND session-scoped record and deliberately not part
 of that budget: `<git-common-dir>/specseal-worktree-consent/<session-id>`,

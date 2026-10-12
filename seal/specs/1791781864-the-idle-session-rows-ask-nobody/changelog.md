@@ -14,9 +14,8 @@
      the way on that needs nobody: split into a worktree with `git worktree
      add` and work there by path with `git -C`. A switch into another clone
      is refused without one, because a split there would be put to the
-     person. It names no question tool and
-     no `[shared-tree-ok]`, and says that re-issuing the switch unchanged
-     meets the same refusal.
+     person. It names no question tool and no `[shared-tree-ok]`, and says
+     that re-issuing the switch unchanged meets the same refusal.
   2. Without the press nothing changes: the person sees the same two
      options and the same prompt after them, word for word.
   3. On Windows, where sessions can never be counted, every `git switch`
