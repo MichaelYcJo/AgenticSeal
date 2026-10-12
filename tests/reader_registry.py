@@ -62,7 +62,8 @@ GRAMMAR = (
 # the name to that module, so a repository's own `load` or `run` never reads
 # as the library's. Nothing here says a call does NOT read: `ast.walk` matches
 # `walk`, and a `nothing` beside it is refused, which costs a truthful class
-# word, where a table read as complete for a module let `os.open` pass.
+# word, where a table read as complete for a module let `os.open` pass: that
+# was the build's `K1_MODULES` receiver rule, which round 1 of #835 removed.
 
 K1_METHODS = frozenset(
     {
