@@ -1870,7 +1870,7 @@ def dirty_deny(lang, lead):
             "`git commit` and `git stash` are on this guard's list of commands "
             "that leave the branch where it is, so each passes it when issued "
             "alone. Which of them fits this switch, and what to run after it, is "
-            "yours to decide, and git's own output reports what each one did.\n"
+            "yours to decide.\n"
             "\n"
             "Re-issuing this command unchanged meets this same refusal."
         )
@@ -1887,8 +1887,7 @@ def dirty_deny(lang, lead):
         "switch <branch>` 처럼 한 줄에 쓰면 같은 거부를 받습니다. `git commit` 과 "
         "`git stash` 는 이 guard 가 브랜치를 그대로 두는 명령으로 꼽는 목록에 "
         "있어, 따로 실행하면 이 guard 를 통과합니다. 이 전환에 어느 쪽이 맞는지, "
-        "그 뒤에 무엇을 실행할지는 직접 정하고, 각 명령이 한 일은 git 의 출력이 "
-        "알려 줍니다.\n"
+        "그 뒤에 무엇을 실행할지는 직접 정하세요.\n"
         "\n"
         "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
     )

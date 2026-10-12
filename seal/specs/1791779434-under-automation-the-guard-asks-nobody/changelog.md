@@ -11,7 +11,7 @@
      model. The refusal lists the changes and says the guard stops a switch
      while they are present. It names `git commit` and `git stash` as
      commands that pass the guard when run on their own, and leaves which
-     one fits, and what comes after, to the model and to git's own output.
+     one fits, and what comes after, to the model.
      It says nothing about what any kind of switch does with the changes,
      and it is the same text for every kind. Re-issuing the switch unchanged
      meets the same refusal, so the model is told to act rather than retry.

@@ -40,7 +40,7 @@ press sentence, and says the row stops a switch while uncommitted tracked
 changes are present and says nothing once none are. It names `git commit`
 and `git stash` as commands on `LEAVES_THE_TREE`, each of which passes the
 guard when issued alone, and leaves to the model which of them fits the
-switch and what follows, which git's own output reports. Each is a command of
+switch and what follows. Each is a command of
 its own, because the guard reads the tree before a line runs, so `git stash
 && git switch x` meets this same row. It names no question tool, and says
 re-issuing the command unchanged meets the same refusal. The text is one
