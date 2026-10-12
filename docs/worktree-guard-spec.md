@@ -50,7 +50,7 @@ no switch option. Without the press the row is the `ask` it was, word for
 word, and `[shared-tree-ok]` reaches neither reader: a dirty tree under the
 token meets the same `deny` with the token's lead.
 
-**Why the reason predicts nothing.** The guard reads three facts here: the
+**Why the row's own sentences predict nothing.** The guard reads three facts here: the
 changes (`git status`), that the command asks for a switch, and the press.
 What a given switch form does with the changes, where a commit lands, and
 whether a stash restores cleanly are not among them. The first text of this
