@@ -31,10 +31,102 @@ were executed are marked as executed in their row, and every other row is
 `read`. The row counts are each part's own. A parse of the `Class` column
 reads 1,381 of the 1,467 reader rows; the rest wrap or quote a pipe.
 
-**Out.** No code changes here. The table's permanent home under `docs/`, and the
-check that reads it as a registry, are decided by #835's frame (its rule 1 says
-the table becomes the registry the test reads). The build of this item waits
-for that frame and then moves the table into the home it names.
+**Out of the inventory.** No code changes in the inventory itself. The table's
+permanent home, and the check that reads it as a registry, were decided by
+#835's frame and have landed (dae101ab on `release/v0.21.0`): the registry is
+the code, each unit's `Reads:` line, and `docs/the-reader-registry.md` holds
+the rule. The build of this item is the backfill §*The build* frames below.
+
+## The build — the inventory's classes move into the code
+
+Framed 2026-10-12 against 57e2bc13 (this branch with `release/v0.21.0` at
+dae101ab merged in). Every count below was executed by the framer's probe at
+that tree unless it says `read`; `plan.md` §*Technical context* states the
+mapping so phase 1 can reproduce it.
+
+### What the build writes
+
+`docs/the-reader-registry.md` §*The four classes and the line that declares
+one* owns the grammar, and #835's spec §*What #834's build does with this
+frame* says what moves: for an inventory row whose unit is in the population,
+the row's `Class` and `Unknown` become the unit's docstring line
+
+```
+Reads: <class> — <the row's What it reads cell, on one line>; unknown <direction>
+```
+
+and the unit's census line leaves `tests/undeclared_readers.txt`. The class
+word is the first word of the row's `Class` cell and the direction word the
+first word of its `Unknown` cell; what the `Unknown` cell says in parentheses
+after that word goes in the paragraph under the line, because the direction
+word has to be the line's last word. The line sits after the docstring's
+summary line and a blank line, as #835's own units carry it; a unit with no
+docstring gets one holding the line. The other columns — `Decides`,
+`Duplicates`, `Note` — move nowhere; they stay in `inventory/` as the reading
+of a moment.
+
+### Which units, measured
+
+The six reader parts hold 1,467 rows. At 57e2bc13:
+
+| Rows | Count | Fate |
+|---|---|---|
+| inside `tests/test_*.py` (part 6) | 760 | out of the population by #835's file-name rule; nothing to write |
+| on `bin/` and the workflows (part 5) | 10 | no AST; out |
+| naming no population unit — a constant, a nested function, a method, a unit since removed | 23 | nothing to write; a constant's reader is rowed under its own unit where one exists |
+| naming exactly one population unit | 508 | the unit's line |
+| naming several units (`a` + `b` + `c`) | 166 | each named unit gets the row's line |
+
+Those rows name **912 distinct units** of the 1,607 in the population (1,584
+on the census). The build writes a line only where the row still describes
+the code:
+
+| Units | Count | Fate |
+|---|---|---|
+| unchanged since 5623d728, one class, the rows agree | **759** | the backfill set; how much of it this release writes is `questions.md` Q1 |
+| unchanged, but the rows for the unit name two classes (6) or two directions (1) | 7 | the weakest wins, by the registry's own rule: `guess` over the others, `mixed` over a single direction |
+| unchanged, and the `Class` cell starts with no class word | 23 | the smith reads the cell: a cell naming a class in other words gets that class, a cell naming none leaves the unit on the census |
+| changed since 5623d728 (hash moved), 3 of them already declared by #835 | 123 | **stay on the census.** The row is a reading of code that is gone; a fresh reading is a judgment no row grounds, and these are the units the siblings rewrote on purpose — `evidence_check.py` (22), `round_record.py` (16), `chain_check.py` (16), `broad_gate.py` (8), `commitgate.py` (8). They declare when next touched, which is the rule's own transition |
+
+The 759 split `guess` 275, `owned` 256, `observed` 228, across 57 files; 43 of
+them are in `hooks/worktree-guard.py`, which #894 and #896 are rewriting
+(`plan.md` §*Phases*, phase 4).
+
+### What a line costs under the ledger freeze
+
+A `Reads:` line moves the unit's hash. Under `Ledger frozen from`, every
+released row anchored on that unit then owes a `Re-read ·` row in this item's
+fragment, and every live-fragment row is re-stamped in place
+(`docs/the-evidence-ledger.md` §*A released row is read again in the branch's
+fragment*). Counted at 57e2bc13 over `seal/ledger.md` and
+`seal/releases/*.md` (released) and `seal/ledger/*.md` (live), whole-unit
+anchors only — a `>` anchor hashes its own statement and a docstring line
+does not move it (4 released, 2 live):
+
+| Set | Units | Cited by a ledger | `Re-read ·` rows owed | Live rows re-stamped |
+|---|---|---|---|---|
+| (a) all 759 | 759 | 514 | **687** (1,093 anchors) | 24 (35 anchors) |
+| (b) the 275 `guess` units only | 275 | 180 | 247 (388) | 14 (15) |
+| (c) the units no ledger row cites | 245 | 0 released, 1 live | **0** | 1 |
+| the whole census, #835 Q7's (b) | 1,584 | 1,035 | 1,337 (2,384) | 413 (687) |
+| the 123 stale units, were they read afresh | 123 | 116 | 501 (610) | 357 (468) |
+
+For scale: the whole 0.21.0 run wrote 360 `Re-read ·` rows across nine
+fragments, and the run's review called that cost structural
+(`handoff.md` §*The ledger's re-read cost is structural*, read). (a) would
+write 1.9 times that in one fragment, for a change that cannot falsify a
+claim — a docstring line changes no behaviour — and `--checked` on each row
+asserts somebody read it (`seal/follow-up.md`'s row on the unread re-stamp).
+The frame's default is (c), and Q1 puts the choice to the owner once.
+
+### The inventory's fate
+
+`inventory/` stays in this directory. It is the reading the tables above rest
+on, not a process record: `settle.py#PROCESS_DIRS` names `rounds` and
+`phases`, so `settle --retire-process` leaves it, and `settle --retire` takes
+the whole directory when the item folds after its release, after which it is
+read at the release tag (`git show v0.21.0:seal/specs/1791382684-…/inventory/`).
+Nothing in the build moves or edits it.
 
 ## What the table says
 
@@ -117,10 +209,23 @@ Each is its own issue in milestone `release: 0.21.0`. The three drafted on
 | A reader asks what a reader reads | Given the inventory, when they look up a unit, then its row gives file, unit, what it reads, class, unknown input and copies | open `inventory/<part>.md` |
 | A reader asks what keeps costing | Given part 8, when they sort by family, then the issues and reopenings per family are counted with their numbers | `inventory/8-evidence.md` §*Counts by family* |
 | A decision cites its ground | Given an issue from the table above, when it is opened, then it names the part and row it rests on | the issue bodies |
+| A rowed unit declares what its row said | Given a unit in the backfill set the build wrote, when its docstring is opened, then its `Reads:` line carries the row's class and direction, and the row's `What it reads` as the prose | `grep -n "Reads:" <file>` beside the row in `inventory/<part>.md` |
+| The census shrinks by exactly the units written | Given the build's last commit, when `tests/test_a_reader_declares_its_input_class.py` runs, then it passes, and the census lost one line per unit that gained a line and no other | `bin/test tests/test_a_reader_declares_its_input_class.py`; `git diff --stat origin/release/v0.21.0 -- tests/undeclared_readers.txt` |
+| A stale row writes nothing | Given a unit whose hash at HEAD differs from its hash at 5623d728, when the build ends, then it carries no `Reads:` line from the inventory and its census line stands | phase 1's listing against the diff |
+| The ledger says what the lines cost | Given Q1's answer, when `evidence-check .` runs at the build's head, then it reports no drifted released row, and the fragment holds exactly the `Re-read ·` rows the answer's set owes | `bin/evidence-check .`; `grep -c "^| Re-read" seal/ledger/1791382684-every-reader-and-record-is-inventoried.md` |
 
 ## Data & interfaces
 
 None. The table is a record. Its schema is the column set each part states at
-its head.
+its head. The `Reads:` line's grammar is `docs/the-reader-registry.md`'s, and
+the build adds no word to it.
 
-Framed 2026-10-07 by the session, before the build.
+## Removes
+
+nothing — the build adds docstring lines and removes census lines, which is the shrinking `docs/the-reader-registry.md` §*The census* defines; no unit, heading, rule sentence or test pin leaves the tree.
+
+The inventory was framed 2026-10-07 by the session; the build above was framed
+by the framer, which is the `Planning` row `routing.md` has carried since
+2026-10-12.
+
+Framed 2026-10-12 by framer, before the build.
