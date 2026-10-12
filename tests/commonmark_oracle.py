@@ -178,7 +178,12 @@ def commonmark_lines(text):
 
 
 def _hidden_commonmark(lines):
-    """{CommonMark line index: kind} for LINES, CommonMark's own lines."""
+    """{CommonMark line index: kind} for LINES, CommonMark's own lines.
+
+    Reads: observed — markdown-it-py's `commonmark`+table token stream; unknown passed
+
+    What it reads, continued: the fence, code_block and html_block tokens with a `map`.
+    """
     count = len(lines)
     out = {}
     for token in _PARSER.parse("\n".join(lines)):
@@ -268,7 +273,10 @@ def hidden(lines):
 
 
 def hidden_lines(lines):
-    """The indices alone."""
+    """The indices alone.
+
+    Reads: observed — the `str.splitlines` pieces of the text, mapped onto CommonMark lines; unknown passed
+    """
     return set(hidden(lines))
 
 

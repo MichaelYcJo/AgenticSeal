@@ -290,6 +290,8 @@ normalise_remote = repo_config.normalise_remote
 def resolve(cwd):
     """(repository root, root in force, shared path, local path, mode).
 
+    Reads: observed — `optin.repo_root`, `home_paths`, `home_at`, `SCRATCH`; unknown refused
+
     Every path comes from `optin`: `home_at` says which root is in force and
     `home_paths` says where each mode's root would be, so nothing here spells
     `<repo>/seal` or `.git/seal` for itself.
@@ -665,6 +667,7 @@ def inside(repo, path):
 
 
 def no_root(repo, shared, local):
+    """Reads: observed — `optin.repo_root`, `home_paths`, `home_at`, `SCRATCH`; unknown refused"""
     if not repo:
         print("not inside a git repository — seal works on a clone")
         return 1
@@ -716,6 +719,10 @@ def write_state(repo, manifest):
 
 
 def read_state(repo):
+    """Reads: owned — its own JSON state file; unknown passed
+
+    Passed: malformed reads as "no export yet".
+    """
     path = state_path(repo)
     if not path or not os.path.isfile(path):
         return None
@@ -871,6 +878,8 @@ def blocked_path(into, archive):
 def read_manifest(archive, path):
     """The manifest, or (None, message).
 
+    Reads: owned — `manifest.json`, `format`; unknown refused
+
     Never raises for a manifest this command cannot make sense of. It can
     still raise for a manifest whose DATA does not read — a bad CRC leaves
     `archive.read` as `BadZipFile`, which is not one of the three this
@@ -939,6 +948,10 @@ def place(destination, data):
 
 def destination_root(repo, home, shared, local, into):
     """(root to write into, message). Names it; `write_members` creates it.
+
+    Reads: observed — both roots exist? `--into`; unknown refused
+
+    Refused: both roots.
 
     With no `--into`, the root in force wins; with none in force, local — the
     direction that puts nothing in the tree. Guessing shared would write this
@@ -1688,6 +1701,10 @@ def indexed(line, moved=False):
 def tracked(repo, rel):
     """True when git tracks anything under REL.
 
+    Reads: observed — `git ls-files -z`; unknown passed
+
+    Passed: a failure is False, so `rm` is skipped.
+
     `git rm -r --cached` on a pathspec matching no index entry exits 128
     (measured 2026-09-03), so the step is skipped rather than run and
     excused — which is also what makes a second run of a stopped switch
@@ -1767,6 +1784,10 @@ def other_worktrees(repo):
 def plugin_version():
     """The installed plugin's version, or "".
 
+    Reads: owned — `.claude-plugin/plugin.json`; unknown refused
+
+    Refused: no workflow written.
+
     Read from beside this script rather than from `CLAUDE_PLUGIN_ROOT`: this
     file IS in the plugin, and an environment variable is one more thing that
     can be unset in the shell a person happens to be in.
@@ -1784,6 +1805,8 @@ def plugin_version():
 
 def plugin_workflow():
     """The exact bytes `install_workflow` writes, or "" when it could not.
+
+    Reads: observed — the template's `PLACEHOLDER`; `git add` exit code; unknown refused
 
     One reader for two questions — what to write, and whether a file already
     there is the one this plugin would have written. `remove_workflow` asks
@@ -2055,6 +2078,8 @@ def both_roots(shared, local):
 
 def gitlinks_under_root(repo):
     """(submodule entries under the root, why they could not be read).
+
+    Reads: observed — `git ls-files --stage` lines starting `160000`; unknown refused
 
     Entries is None when the question could not be answered. `git()` reads
     every failure as "", so asking through it would answer "no submodule" for

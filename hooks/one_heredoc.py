@@ -98,6 +98,12 @@ def _match(command):
 def reduce(command):
     """The command with its one heredoc body taken out, or None.
 
+    Reads: owned — the whole command: the first line by regex fullmatch; unknown refused
+
+    What it reads, continued: the body by exact line equality.
+
+    Refused: None, so the caller reads the command as written.
+
     None means the command is not the one shape this module admits, and the
     caller reads the command as written. A string means it is, and nothing
     below the caller is asked where a body is: the reduced text has none.

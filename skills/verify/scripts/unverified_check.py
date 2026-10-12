@@ -209,6 +209,8 @@ def gfm_lines(text, keepends=False):
 def split_row(line):
     """Cells of one markdown table row, or None if the line is not a row.
 
+    Reads: owned — a table line split at each `|` that no backslash escapes; unknown passed
+
     `\\|` inside a cell is an escaped pipe, not a column break."""
     s = line.strip()
     if not s.startswith("|"):
@@ -230,6 +232,8 @@ def is_header(cells):
 def visible(s):
     """`s` without characters that take no space on screen.
 
+    Reads: owned — one exact `## Not verified`, exact header, 2-cell rows, ✅ prefix; unknown refused
+
     Many keyboards emit U+2705 followed by U+FE0F, and a zero-width space
     pastes in from anywhere. Either one makes `| \u2705 | done |` survive a
     plain `.strip()` while looking exactly like a bare check mark, which is
@@ -239,6 +243,8 @@ def visible(s):
 
 def comment_scan(lines):
     """`(the line began outside a comment, its text outside comments)`, each.
+
+    Reads: owned — `<!--`/`-->` across lines; unknown passed
 
     One scanner, because two readers of this file want two different things
     out of the same walk and a second copy of the walk is what
@@ -425,7 +431,10 @@ def fence_spans(lines):
 
 def closed_fence_lines(lines):
     """The indices of `lines` inside a fenced block that CLOSES, delimiters
-    included — the lines a reader of something a line holds may skip."""
+    included — the lines a reader of something a line holds may skip.
+
+    Reads: owned — fence spans; unknown passed
+    """
     lines = list(lines)
     return {
         n
@@ -755,6 +764,8 @@ def headings(lines):
 def parse_section(body, offset, strict_header=True):
     """(open, closed, errors) for the body lines of one section.
 
+    Reads: owned — one exact `## Not verified`, exact header, 2-cell rows, ✅ prefix; unknown refused
+
     `offset` is the file line number of body[0], so every error carries a
     coordinate the author can open."""
     errors, open_rows, closed_rows = [], [], []
@@ -868,6 +879,8 @@ def check_file(path):
 def sections(lines, heading):
     """Where the section starts, under the matcher this read was given.
 
+    Reads: owned — one exact `## Not verified`, exact header, 2-cell rows, ✅ prefix; unknown refused
+
     The canonical heading always wins when the file has one. Without that, a
     base revision holding both `## Not verified` and a heading that merely
     mentions the phrase would be counted differently from the working tree,
@@ -880,6 +893,11 @@ def sections(lines, heading):
 
 def check_text(text, heading=HEADING, strict_header=True):
     """The reader. One of it, for the working tree and for a base revision.
+
+    Reads: guess — one exact `## Not verified`, exact header, 2-cell rows, ✅ prefix; unknown mixed
+
+    What it reads, continued: base revision: any `##`/`###` heading containing "not
+    verified", header starting `Item`
 
     There used to be two, and while both existed every property added to one
     had to be added to the other by hand. Four pairs drifted apart across
@@ -1380,6 +1398,8 @@ def tree_at(root, ref, directory):
     """Repo-relative paths under `directory` at `ref`; the disk when `ref` is
     None. `directory` is `/`-joined, and so is every path returned.
 
+    Reads: owned — tree at base, no `spec.md`, no open rows; unknown mixed
+
     Public because `survivor_check.py` asks it whether a directory is gone at
     the right end of its range, which keeps that module's own path-listing
     call sites at the count its case holds them to."""
@@ -1564,6 +1584,7 @@ def work_item_of(rel):
 
 
 def show(root, ref, rel):
+    """Reads: observed — `git show <base>:<rel>` exit code; unknown passed"""
     r = subprocess.run(
         ["git", "-C", root, "show", f"{ref}:{rel}"],
         capture_output=True,
@@ -1574,7 +1595,10 @@ def show(root, ref, rel):
 
 
 def annotate(kind, path, line, message):
-    """A GitHub annotation in CI, a plain line anywhere else."""
+    """A GitHub annotation in CI, a plain line anywhere else.
+
+    Reads: observed — env `GITHUB_ACTIONS`; unknown passed
+    """
     if os.environ.get("GITHUB_ACTIONS"):
         # An annotation is matched against the diff by path, and GitHub spells
         # those the way git does. Every caller passes `display_path` output,

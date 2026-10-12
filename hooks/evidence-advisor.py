@@ -85,6 +85,10 @@ WRAPPERS = {"command", "env", "nohup", "time", "sudo"}
 def commits_in(command):
     """True when some segment's command word is git with a commit subcommand.
 
+    Reads: guess — same quote-blind split; after a `git` command word; unknown passed
+
+    What it reads, continued: ANY later token `== "commit"`
+
     Word-level like the other post hooks, so `echo "git commit"` in prose does
     not fire. Over-matching is cheap here anyway: the advisory prints only
     when the ledger is actually broken, and then the line is true whatever

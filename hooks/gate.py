@@ -104,7 +104,12 @@ def lines(out):
 
 
 def read_mark(cwd, git_dir, name):
-    """Contents of a <git-dir> mark file, or "" when absent/unreadable."""
+    """Contents of a <git-dir> mark file, or "" when absent/unreadable.
+
+    Reads: owned — the contents of `<git-dir>/specseal-reviewed` and `specseal-parity`; unknown refused
+
+    Refused: unreadable gives "", which is not HEAD, so the arm stands.
+    """
     if not git_dir:
         return ""
     path = os.path.join(cwd or ".", git_dir, name)

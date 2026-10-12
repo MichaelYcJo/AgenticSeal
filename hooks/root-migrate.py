@@ -144,6 +144,7 @@ def checker():
 
 
 def attempted(root):
+    """Reads: owned — `~/.claude/specseal/root-migrated` lines; unknown passed"""
     try:
         with open(MARKER, encoding="utf-8") as f:
             return root in f.read().splitlines()

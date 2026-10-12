@@ -103,7 +103,10 @@ BELOW_FLOOR = (
 
 
 def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it."""
+    """The sentence for an interpreter under the floor, or None above it.
+
+    Reads: observed — `sys.version_info`; unknown refused
+    """
     version = tuple(sys.version_info[:3]) if version is None else tuple(version)
     if version[:2] >= FLOOR:
         return None

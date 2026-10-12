@@ -96,6 +96,8 @@ def git(args, cwd):
 def git_dir(cwd):
     """The git dir holding this tree's markers, or "" when there is no repo.
 
+    Reads: observed — `git rev-parse --git-dir` joined onto cwd; unknown passed
+
     Asked of git rather than built as `<repo-root>/.git`. In a linked worktree
     that path is a FILE pointing at `<main>/.git/worktrees/<name>`, so every
     write beneath it raises and `already_asked` reads the failure as "already
@@ -113,6 +115,8 @@ def git_dir(cwd):
 def already_asked(cwd, session):
     """True if this session already got the question here; records it if not.
 
+    Reads: observed — marker file existence; unknown passed
+
     A failure to write means the marker cannot be trusted, so the caller is
     told the question was already asked — one missed question beats a loop
     the user cannot escape."""
@@ -125,7 +129,7 @@ def already_asked(cwd, session):
     # from prose, and an existing marker is never overwritten because of the
     # `os.path.exists` return below -- so this is a stray write, not a
     # bypass. `hooks/commit-review-gate.py:already_asked` guards its own id
-    # and is the shape to copy. Verified 2026-10-04 against already_asked@d2d3c5a1.
+    # and is the shape to copy. Verified 2026-10-12 against already_asked@c1671625.
     path = os.path.join(gd, MARKER_DIR, str(session))
     if os.path.exists(path):
         return True
@@ -152,6 +156,7 @@ def decide(decision, reason):
 
 
 def main():
+    """Reads: observed — payload `tool_input.skill == "code-review"` (exact), `cwd`, `session_id`; unknown passed"""
     try:
         event = json.load(sys.stdin)
         skill = (event.get("tool_input") or {}).get("skill")

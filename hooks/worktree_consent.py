@@ -141,6 +141,12 @@ def consent_path(top: str, session: str) -> str:
 def granted(top: str, session: str) -> bool:
     """True when this session already created a worktree in this clone.
 
+    Reads: owned — `<git-common-dir>/specseal-worktree-consent/<session>`; unknown refused
+
+    What it reads, continued: `optin.git_common_dir` (outside this part)
+
+    Refused: "" means no consent.
+
     `isfile`, not `exists`: the record is a file, and a path that is a
     directory is not one. An unreadable path answers False, which is the
     direction a guard reads as "ask".
@@ -260,13 +266,28 @@ def _routing_answer(result):
 
 
 def _content(entry):
+    """Reads: guess — transcript lines filtered by substring first; `type`; unknown refused
+
+    What it reads, continued: tool_use `id` and `name`, `isSidechain is False`,
+    `tool_result.tool_use_id`, the entry's `cwd` mapped to its clone.
+
+    Refused: every miss gives False.
+    """
     message = entry.get("message")
     content = message.get("content") if isinstance(message, dict) else None
     return content if isinstance(content, list) else []
 
 
 def _clone_of(cwd) -> str:
-    """The common git directory of the clone `cwd` sits in, real-pathed, or ""."""
+    """The common git directory of the clone `cwd` sits in, real-pathed, or "".
+
+    Reads: guess — transcript lines filtered by substring first; `type`; unknown refused
+
+    What it reads, continued: tool_use `id` and `name`, `isSidechain is False`,
+    `tool_result.tool_use_id`, the entry's `cwd` mapped to its clone.
+
+    Refused: every miss gives False.
+    """
     common = optin.git_common_dir(optin.repo_root(cwd)) if isinstance(cwd, str) else ""
     return os.path.realpath(common) if common else ""
 

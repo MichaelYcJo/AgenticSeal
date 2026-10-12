@@ -12,6 +12,7 @@ import console
 
 
 def main():
+    """Reads: observed — same four payload fields; unknown passed"""
     try:
         payload = json.load(sys.stdin)
     except Exception:

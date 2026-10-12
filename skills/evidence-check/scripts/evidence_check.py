@@ -330,6 +330,12 @@ def shared_reader():
     """The shared reader's module where this is the plugin's own copy, and
     None where it is not.
 
+    Reads: observed — whether sibling files exist; unknown mixed
+
+    What it reads, continued: `unverified_check.py`, `SKILL.md`, `hooks/*.py`.
+
+    Mixed: absent switches to the vendored copy; present but broken raises.
+
     The plugin's copy is told apart the way `seal_home` tells it: the reader
     file AND this skill's `SKILL.md` beside it. A reader that is there and
     will not load raises, because a plugin whose shared reader is broken has
@@ -847,6 +853,10 @@ def resolve_unit(path, locator, text, shown=None):
 def name_statements(text, region, name):
     """[(start, end)] for the innermost statements in `region` referencing `name`.
 
+    Reads: observed — `.py` minor anchor, through `ast`; unknown passed
+
+    Passed: SyntaxError gives [], which widens to DRIFTED.
+
     The minor level is resolved by what a statement REFERENCES — the call it
     makes, the name it assigns, the exception it handles — rather than by the
     characters of its line. Renaming a local on that line then changes nothing;
@@ -889,6 +899,10 @@ def name_statements(text, region, name):
 
 def literal_statements(lines, region, literal):
     """[(start, end)] for lines in `region` containing `literal` — last resort.
+
+    Reads: guess — a literal inside a region; special case for a `| ` table row; unknown passed
+
+    Passed: 0 or many matches widens.
 
     For a claim about a bare `return`, a constant or a literal, where there is
     no referenced name to identify the place by.
@@ -2639,7 +2653,12 @@ SEAL_PREFIX = "seal/"
 
 
 def citing_verb(cells):
-    """`Re-read`, `Corrected`, or None: what a row's first cell opens with."""
+    """`Re-read`, `Corrected`, or None: what a row's first cell opens with.
+
+    Reads: owned — first cell's prefix, `Re-read · ` or `Corrected · `; unknown passed
+
+    Passed: any other prefix is an ordinary row.
+    """
     first = cells[0] if cells else ""
     for verb in CITING_VERBS:
         if first.startswith(verb + CITING_SEPARATOR):
@@ -2667,7 +2686,12 @@ def ledger_kind(root, path):
 
 def cell_index(header, cells, name):
     """The index of column NAME in a row, or -1: the header's column, or the
-    ledger row's under no header, which is every fragment and release row."""
+    ledger row's under no header, which is every fragment and release row.
+
+    Reads: owned — header named `Code grounds`, or `LEDGER_COLUMNS` position; unknown passed
+
+    Passed: a renamed column takes the table out of the check.
+    """
     if header is None:
         index = LEDGER_COLUMNS.index(name)
     else:
@@ -3409,7 +3433,12 @@ def checked_refusal(value, reverifying, migrating, today):
 def calendar_date(text):
     """Whether TEXT, a `CHECKED_RE` match, is a date the calendar has: a
     `2026-13-45` would otherwise outrank every reading after it when
-    `family_view` orders readings by date (round 2, ⬜ 13)."""
+    `family_view` orders readings by date (round 2, ⬜ 13).
+
+    Reads: owned — `Checked` or `Date` header, or cell 4 of a 5-cell row; unknown passed
+
+    Passed: no calendar date sorts as "", oldest.
+    """
     try:
         datetime.date.fromisoformat(text)
     except ValueError:
@@ -5756,7 +5785,12 @@ HEADING_MARKUP_RES = (
 
 def github_slug(text):
     """TEXT's anchor: entities decoded, lower-cased, every character but a
-    letter, digit, `_`, `-` or space dropped, each space a `-`."""
+    letter, digit, `_`, `-` or space dropped, each space a `-`.
+
+    Reads: guess — a `.md` file's headings; unknown passed
+
+    Passed: both slug variants accepted.
+    """
     return re.sub(r"[^\w\- ]", "", html.unescape(text).lower()).replace(" ", "-")
 
 

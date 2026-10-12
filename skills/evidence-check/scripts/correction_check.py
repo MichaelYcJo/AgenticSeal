@@ -266,7 +266,10 @@ CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
 
 
 def load_config(path=CONFIG_READER):
-    """`hooks/config.py` as a module, or a sentence and exit 2."""
+    """`hooks/config.py` as a module, or a sentence and exit 2.
+
+    Reads: observed — presence of sibling modules; unknown refused
+    """
     if not os.path.isfile(path):
         sys.stderr.write(
             f"correction-check: cannot read {path}, and it is what reads the "
@@ -709,6 +712,10 @@ class Refused(Exception):
 def git(root, *args):
     """Text output, or None if the command failed.
 
+    Reads: observed — git stdout and exit code; unknown passed
+
+    Passed: None.
+
     None rather than `""` on failure, because the two are different facts: a
     file this commit does not carry and a git call that did not run read the
     same way once both are the empty string, and the second one silently
@@ -735,6 +742,8 @@ def resolves(root, rev):
 
 def parse_range(root, spec):
     """`A..B` or `A...B` into two resolved commits.
+
+    Reads: owned — `A..B` / `A...B` from the CLI; unknown refused
 
     `A...B` is what a pull request's own comparison is spelled with and what
     the CI leg passes, so it is resolved to its merge base here rather than
@@ -763,7 +772,13 @@ def parse_range(root, spec):
 
 
 def merges(root, a, b):
-    """Every merge commit in `a..b`, oldest last as git lists them."""
+    """Every merge commit in `a..b`, oldest last as git lists them.
+
+    Reads: observed — `rev-list --merges`, `rev-parse ^@`; unknown mixed
+
+    Mixed: a `merges` failure is refused; a `parents` failure gives [] and is not
+    judged.
+    """
     out = git(root, "rev-list", "--merges", f"{a}..{b}")
     if out is None:
         raise Refused(f"cannot walk {a[:7]}..{b[:7]} in {root}")
@@ -771,6 +786,11 @@ def merges(root, a, b):
 
 
 def parents(root, rev):
+    """Reads: observed — `rev-list --merges`, `rev-parse ^@`; unknown mixed
+
+    Mixed: a `merges` failure is refused; a `parents` failure gives [] and is not
+    judged.
+    """
     out = git(root, "rev-parse", f"{rev}^@")
     return out.split() if out else []
 
@@ -795,6 +815,11 @@ def ledger_listing(root, revs):
 
 def read_blobs(root, pairs):
     """`{(rev, path): text}` for the pairs that exist and decode as text.
+
+    Reads: observed — `git cat-file --batch` stream; unknown mixed
+
+    Mixed: an unknown header is skipped or stops the parse; what is missed is printed as
+    not judged.
 
     One `git cat-file --batch` for every blob the walk needs rather than one
     `git show` per file per commit. The shared ledger here runs to about a

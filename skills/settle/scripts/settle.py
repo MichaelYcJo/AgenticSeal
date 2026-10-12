@@ -148,6 +148,8 @@ BELOW_FLOOR = (
 def below_floor(version=None, executable=None):
     """The sentence for an interpreter under the floor, or None above it.
 
+    Reads: observed — `sys.version_info`; unknown refused
+
     Both numbers are in the sentence. A floor with no found version tells the
     reader what is wanted and not whether they have it -- and the reader
     whose `python3` is secretly 3.9 is exactly the one who does not know what
@@ -259,7 +261,10 @@ def load(path, name):
 
 
 def work_items(root):
-    """Every work item id with a directory under `seal/specs/`, in id order."""
+    """Every work item id with a directory under `seal/specs/`, in id order.
+
+    Reads: observed — `os.listdir(seal/specs)`; unknown passed
+    """
     top = under(root, SPECS)
     if not os.path.isdir(top):
         return []
@@ -270,6 +275,10 @@ def work_items(root):
 
 def released(root, ref):
     """Work item ids whose directory is present at `ref`, or None if it is not.
+
+    Reads: observed — `git ls-tree -r --name-only <ref>` (no `-z`); unknown refused
+
+    Refused: a ref that does not resolve.
 
     A work item is released when the branch the release merges to holds its
     directory, which is a question only git can answer. None is returned for
@@ -316,7 +325,12 @@ def open_rows(text):
 
 
 def open_items(root):
-    """{work item id: open row count} for every one the guard is holding."""
+    """{work item id: open row count} for every one the guard is holding.
+
+    Reads: owned — `evidence-todo.md` via `unverified_check.todo_open_rows`; unknown mixed
+
+    Mixed: a non-UTF-8 todo file raises a traceback.
+    """
     out = {}
     for path in sorted(
         glob.glob(os.path.join(under(root, SPECS), "*", "evidence-todo.md"))

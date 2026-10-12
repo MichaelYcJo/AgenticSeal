@@ -184,6 +184,10 @@ def gh_segments(command):
 
 
 def main():
+    """Reads: observed — payload `tool_name`, `tool_input.command`, `cwd`; unknown passed
+
+    What it reads, continued: routing item/rounds/strays.
+    """
     try:
         payload = json.load(sys.stdin)
     except Exception:

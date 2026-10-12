@@ -72,7 +72,12 @@ QUOTED_SPANS = re.compile(r"\\.|'[^']*'|\"(?:\\.|[^\"\\])*\"")
 
 def words(command):
     """Every bare word of `command`, comments included; () for one that does
-    not split."""
+    not split.
+
+    Reads: guess — the command through shlex with `punctuation_chars=";&|<>"`, comments kept; unknown refused
+
+    Refused: a ValueError gives `()`
+    """
     lexer = shlex.shlex(command or "", posix=True, punctuation_chars=";&|<>")
     lexer.commenters = ""
     lexer.whitespace_split = True
@@ -150,6 +155,10 @@ def given(command, fallback=None):
 
 
 def _empties_the_environment(word, after):
+    """Reads: guess — bare words; unknown refused
+
+    Refused: a command that does not split gives True.
+    """
     if word.strip("(").rsplit("/", 1)[-1] != "env":
         return False
     return after in ("-", "--ignore-environment") or (

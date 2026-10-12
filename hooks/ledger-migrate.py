@@ -99,6 +99,7 @@ def ledgers(root, home=None):
 
 
 def attempted(root):
+    """Reads: owned — `~/.claude/specseal/ledger-migrated`, `root in lines`; unknown passed"""
     try:
         with open(MARKER, encoding="utf-8") as f:
             return root in f.read().splitlines()

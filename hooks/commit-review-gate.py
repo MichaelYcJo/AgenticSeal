@@ -491,7 +491,10 @@ def commit_targets(cwd, invocations, root_of=None):
 
 
 def is_git_commit(command):
-    """True when some segment actually invokes `git commit`."""
+    """True when some segment actually invokes `git commit`.
+
+    Reads: guess — the command; unknown refused
+    """
     found, clean = commit_invocations(command)
     if found:
         return True
@@ -525,6 +528,10 @@ ALL_OPTS = {"-a", "--all"}
 
 def commit_shape(tokens):
     """(commits_all, pathspecs) for one `git commit` invocation.
+
+    Reads: guess — the args after a predicted `git commit`; unknown passed
+
+    Passed: an unlisted option that takes a value has that value read as a pathspec.
 
     `-a` commits every tracked modification, and a trailing pathspec commits
     those paths — neither passes through the index, so a staged-only view of
@@ -675,6 +682,10 @@ def has_marker(command, marker):
 
 def already_asked(cwd, git_dir, session):
     """True when this session was already offered the question in this repo.
+
+    Reads: owned — whether `<git-dir>/specseal-commit-choice/<session>` exists; unknown passed
+
+    Passed: unwritable counts as already asked, so it asks.
 
     Records it when it was not. A marker that cannot be written counts as
     already asked: one missed question beats a deny the session cannot get

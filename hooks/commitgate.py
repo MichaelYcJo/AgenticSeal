@@ -90,7 +90,12 @@ def waived(cwd, session):
 
 def pressed(top, session):
     """True when the session's person pressed `automation`. Every way of not
-    reading it is False, the answer from before it was read."""
+    reading it is False, the answer from before it was read.
+
+    Reads: guess — wc `automation_answered`; unknown refused
+
+    Refused: any exception gives False.
+    """
     try:
         import worktree_consent
 
@@ -134,7 +139,15 @@ SEQUENCER = (
 
 
 def _process(pid):
-    """(parent pid, command name) of process `pid`; (None, "") unreadable."""
+    """(parent pid, command name) of process `pid`; (None, "") unreadable.
+
+    Reads: observed — sequencer files under `rev-parse --absolute-git-dir`; unknown refused
+
+    What it reads, continued: `ps -o ppid=,comm=` of the parent and grandparent; whether
+    comm is "git".
+
+    Refused: anything unreadable means the commit is judged.
+    """
     try:
         out = subprocess.run(
             ["ps", "-o", "ppid=,comm=", "-p", str(pid)],

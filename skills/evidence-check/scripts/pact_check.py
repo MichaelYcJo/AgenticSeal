@@ -230,7 +230,10 @@ EXIT_TWO = frozenset({BROKEN, ONE_SIDED, REFUSED, UNREADABLE})
 
 
 def load(path, name):
-    """A sibling module by path, or a sentence and exit 2."""
+    """A sibling module by path, or a sentence and exit 2.
+
+    Reads: observed — presence of sibling modules; unknown refused
+    """
     if not os.path.isfile(path):
         sys.stderr.write(
             f"pact-check: cannot read {shown(path, home_dir=os.path.expanduser('~'))}, "
@@ -250,13 +253,21 @@ def near_miss(said, name):
     `.`, `-` or `_` -- standing where an anchor's `/` went missing or just
     before it, as in `pact:orders-api."## A"@1a2b3c4d`: the name pattern
     takes the mark in, so without this the token names another pact and
-    nobody reads it (round 1 of PR #749, yellow 4)."""
+    nobody reads it (round 1 of PR #749, yellow 4).
+
+    Reads: guess — prose tokens starting `pact:`; unknown refused
+    """
     said = said.lower()
     return len(said) == len(name) + 1 and said.startswith(name) and said[-1] in "._-"
 
 
 def git(root, *args):
-    """Git's stdout in ROOT, or None where git refused."""
+    """Git's stdout in ROOT, or None where git refused.
+
+    Reads: observed — git stdout; file text (strict); unknown passed
+
+    Passed: None.
+    """
     try:
         done = subprocess.run(
             ["git", "-C", root, *args],
@@ -271,7 +282,12 @@ def git(root, *args):
 
 
 def read(path):
-    """The file's text, or None for one that will not read."""
+    """The file's text, or None for one that will not read.
+
+    Reads: observed — git stdout; file text (strict); unknown passed
+
+    Passed: None.
+    """
     try:
         with open(path, encoding="utf-8") as handle:
             return handle.read()
@@ -280,7 +296,12 @@ def read(path):
 
 
 def origin(root):
-    """ROOT's origin remote URL as written, or ""."""
+    """ROOT's origin remote URL as written, or "".
+
+    Reads: guess — `git remote get-url origin`; unknown passed
+
+    Passed: "" gives no name, which is then refused at L518.
+    """
     return (git(root, "remote", "get-url", "origin") or "").strip()
 
 

@@ -72,6 +72,8 @@ FOREIGN = (
 def say_once(common, session, kind):
     """True the first time this session reaches `kind` in this clone.
 
+    Reads: observed — marker existence `<common>/specseal-git-hooks/<session>.<kind>`; unknown passed
+
     No session id, or a record that cannot be written, says nothing: a message
     repeated on every Bash call is worse than one missed.
     """
@@ -184,6 +186,10 @@ def install(cwd, session=""):
 
 
 def main():
+    """Reads: observed — payload `tool_name` in (None, Bash), `cwd`, `session_id`; unknown passed
+
+    What it reads, continued: env `SPECSEAL_HOOK_INSTALL`
+    """
     try:
         payload = json.load(sys.stdin)
     except Exception:

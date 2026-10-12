@@ -92,7 +92,13 @@ def toplevel(cwd):
 
 def load_stamp():
     """`seal_stamp.py`, or None where it cannot be imported — its own floor
-    refuses an interpreter under 3.12 with `SystemExit` at import."""
+    refuses an interpreter under 3.12 with `SystemExit` at import.
+
+    Reads: owned — the values JSON under `<common>/specseal-stamp/<session>/`; unknown passed
+
+    What it reads, continued: through `seal_stamp.read_values`, `label` and
+    `stamp`.
+    """
     try:
         spec = importlib.util.spec_from_file_location(
             "specseal_seal_stamp_for_the_stop_hook", STAMP

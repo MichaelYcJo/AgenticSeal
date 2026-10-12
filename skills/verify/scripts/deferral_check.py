@@ -89,6 +89,8 @@ KNOWN_LIMITS = (
 def read_events(text):
     """Event names from a GitHub workflow's `on:` block.
 
+    Reads: guess — another repo's workflow `on:` by regex (three forms); unknown passed
+
     Three forms in the wild: `on: push`, `on: [push, pull_request]`, and a
     block of indented `event:` keys. Anything else lands as an empty set,
     which is reported as unknown rather than as absent.
@@ -119,7 +121,10 @@ def read_events(text):
 
 
 def runners_in(text, kind):
-    """Command lines in `text` that run `kind`, deduped, in file order."""
+    """Command lines in `text` that run `kind`, deduped, in file order.
+
+    Reads: guess — any non-comment line matching a runner word; unknown mixed
+    """
     found = []
     for line in text.splitlines():
         stripped = line.strip().lstrip("-").strip()
@@ -146,7 +151,10 @@ def workflow_files(root):
 
 
 def other_ci_files(root):
-    """CI systems whose config is a single known path."""
+    """CI systems whose config is a single known path.
+
+    Reads: guess — presence of six fixed CI paths + runner words; unknown passed
+    """
     out = []
     for rel in (
         ".gitlab-ci.yml",
@@ -178,7 +186,12 @@ def read(path):
 
 
 def inspect(root, kind):
-    """(verdict, lines) for one kind. Verdict is the exit-code decision."""
+    """(verdict, lines) for one kind. Verdict is the exit-code decision.
+
+    Reads: guess — presence of six fixed CI paths + runner words; unknown passed
+
+    What it reads, continued: `.pre-commit-config.yaml` + runner words.
+    """
     resolving, wrong_trigger, local_only = [], [], []
 
     for path in workflow_files(root):

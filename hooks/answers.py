@@ -53,6 +53,7 @@ OVERRIDE = "SPECSEAL_ANSWERS"
 
 
 def root_dir():
+    """Reads: observed — env `SPECSEAL_ANSWERS`; unknown passed"""
     return os.environ.get(OVERRIDE) or os.path.join(
         os.path.expanduser("~"), ".claude", "specseal", "answers"
     )
@@ -112,6 +113,7 @@ def clear(session, call, root=None):
 
 
 def _prune(session, root, now):
+    """Reads: observed — mtime of each call dir; unknown passed"""
     d = directory(session, root)
     try:
         names = os.listdir(d) if d else []
@@ -155,6 +157,11 @@ _OTHER = re.compile(r"[^A-Za-z0-9]")
 
 
 def _squash(text):
+    """Reads: guess — a stored command text or an ancestor's `ps args=` string; unknown refused
+
+    Both are reduced to letters and digits after a three-digit octal escape
+    is dropped, so two renderings of one command compare equal.
+    """
     return _OTHER.sub("", _ESCAPE.sub("", text or ""))
 
 
