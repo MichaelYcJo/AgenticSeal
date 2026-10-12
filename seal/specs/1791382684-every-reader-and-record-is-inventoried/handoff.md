@@ -8,10 +8,18 @@ what its next step is.
 
 ## Where the run stands
 
-Ten of the eleven work items are squashed into `release/v0.21.0` (2026-10-12).
-#835 is being framed again against the landed tree, and #834's own build
-follows it. Each sibling landed one at a time: the next merged the release
-branch in, re-read what drifted, and was sealed again before it landed.
+Updated 2026-10-12 evening, KST, when the owner stopped for the day. Eleven
+work items are squashed into `release/v0.21.0` (at dae101ab, #835 the last).
+Three remain: #894 and #896, added by the owner on 2026-10-12 after the guard
+asked yes/no under `automation`, and #834's own build. Each landed item came in
+one at a time: the next merged the release branch in, re-read what drifted, and
+was sealed again before it landed.
+
+**A new session starts by pressing `automation` again.** The installed guard
+(0.20.0) reads the press only from the session's own transcript, so a new
+session or a `/clear` must put routing question 1 through `AskUserQuestion`
+and have the owner click `automation`. Without that click, every unrecognised
+git shape asks the owner yes/no (#894 documents this).
 
 | Issue(s) | Work item | PR | State | Next step |
 |---|---|---|---|---|
@@ -25,12 +33,16 @@ branch in, re-read what drifted, and was sealed again before it landed.
 | #868, #856 | 1791384157 | #881 | **merged** 9afc90aa; reframed twice (the brace reader deleted, a named limit), capped at round 6, deferred #893 | the owner's P2: round 6 found `git rebase main other` from a diverged `main` refusable at `reference-transaction`, which narrows delete's ground (#893) |
 | #870, #848 | 1791384159 | #889 | **merged** be464c06; reframed (the lexer deleted, bound only where a parser exists), capped at round 3, deferred #892 | — |
 | #866 | 1791384155 | #890 | **merged** c38f97d7; capped at round 3 with nothing to fix | — |
-| #835 | 1791384152 | none | framed 2026-10-07; refreshed 2026-10-12 (62c27416); the Fable framer runs again against the landed tree at c38f97d7 | approve `plan.md`, then the smith |
-| #834 (its own build) | 1791382684 | none | the inventory only | after #835 |
+| #835 | 1791384152 | #895 | **merged** dae101ab; capped at round 3; sealed 63580c62 after two seal failures (two suite guards, then one Windows-only case) | — |
+| #894 | 1791779434 | #897 (draft) | reframed after round 3 (the deny states only facts about the guard), capped at round 6 with nothing to fix and four ⬜ notes; release merged in at 1762901d; `main`'s `Reads:` line at 35c0cade | see its `handoff.md` |
+| #896 | 1791781864 | none | phases 1–2 built at 33ff3dd9; phase 3 (the shared docs) waits for #894 to land | see its `handoff.md` |
+| #834 (its own build) | 1791382684 | none | framed by the Fable framer (5326a0ee, 75c7091a, 0f97351c); Q1 answered (c) by the owner: lines for the 245 units no ledger row cites, zero re-reads; `plan.md` approved at d00d1c67 | spawn the smith for phases 1–3; phase 4 (`hooks/worktree-guard.py`) after #894 and #896 land |
 
-`release/v0.21.0` is at c38f97d7. Not framed for 0.21.0: #844 (a docstring
-reflow) and #857 (the stamp's mark waits on the owner's design; it is still
-in the milestone).
+`release/v0.21.0` is at dae101ab. Moved on 2026-10-12 to the new milestone
+`release: 0.21.1`, because they are not in 0.21.0's scope: #844, #857, #871,
+#872, #873 and #874. The owner asked whether the next number is 0.21.1; the
+release workflow takes it from the commit prefixes, so it is 0.21.1 only if
+nothing after 0.21.0 is a `feat:`.
 
 ## Decisions the owner made (2026-10-08)
 
@@ -205,6 +217,14 @@ written down.
 - #893: a tokens comment and the rebase sentence say more than the guard and
   git do (#868's round 6); the second bears on the owner's P2.
 
+- #894, #896: the guard asked the owner yes/no under `automation`; both are
+  0.21.0 items now.
+- #898: `mutation-check` reports `red` when the mutant does not compile.
+- #899: `round-record new` drops a hand-added `NAME NOT IN TREE` marker from a
+  carried coordinate. Until it is fixed, re-add the markers after `new` (#894's
+  rounds 5 and 6 needed it, on the two cases its reframe removed).
+- #900: the guard's index-residue note says its commands clean the tree.
+
 Filed earlier by the frames: #871, #872, #873, #874.
 
 ## Starting on a new machine
@@ -223,11 +243,11 @@ Filed earlier by the frames: #871, #872, #873, #874.
    `--post` exits 0 even when the post fails, so read its last line.
 6. Keep the machine awake on an unattended run (`caffeinate -i`).
 
-## After all eleven land
+## After all fourteen land
 
 The release preparation follows `docs/release-checklist.md` §*2. Gather,
 fold, bump*:
-- gather the eleven `changelog.md` fragments and fold the ledger fragments;
+- gather the fourteen `changelog.md` fragments and fold the ledger fragments;
 - retire the process records with `settle --retire-process`;
 - bump the version;
 - open the release PR into `main`, which takes a merge commit.
