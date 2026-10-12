@@ -1961,6 +1961,36 @@ def test_under_the_press_the_dirty_row_is_a_deny_to_the_model(
         assert option_words(text) == [], text
 
 
+def test_the_deny_carries_the_note_the_ask_carries(monkeypatch, capsys, projects, repo):
+    """S1's last clause: the deny's one sentence about what git does is the
+    index-residue note, line for line the attended `ask`'s. Round 6, note 4:
+    no case under the press had a force-staged path, so the note could
+    leave the deny with every case green. Seen red through `mutation-check`
+    with `{note}` taken out of the deny's English text."""
+    dirty(repo)
+    (repo / ".gitignore").write_text("ign.txt\n", encoding="utf-8")
+    (repo / "ign.txt").write_text("x\n", encoding="utf-8")
+    git_in(repo, "add", "-f", "ign.txt")
+
+    write_transcript(projects, "me", ask_entries(repo))
+    decision, deny = decide(monkeypatch, capsys, repo, "git switch feature/x")
+    write_transcript(projects, "me", [])
+    attended, ask = decide(monkeypatch, capsys, repo, "git switch feature/x")
+    assert (decision, attended) == ("deny", "ask"), (deny, ask)
+
+    head = "Index-only residue invisible in the working tree:"
+    assert head in ask.split("\n"), ask
+    assert head in deny.split("\n"), deny
+
+    def note(text):
+        lines = text.split("\n")
+        first = lines.index(head)
+        last = max(i for i, x in enumerate(lines) if "restore --staged" in x)
+        return lines[first : last + 1]
+
+    assert note(deny) == note(ask), (deny, ask)
+
+
 def test_the_token_does_not_reach_the_dirty_row_under_the_press_either(
     monkeypatch, capsys, projects, repo
 ):
@@ -2110,6 +2140,23 @@ def test_the_press_is_read_from_the_sessions_own_root(
     write_transcript(projects, "me", ask_entries(other))
     decision, reason = decide(monkeypatch, capsys, repo, command)
     assert decision == "ask" and "Confirm to proceed" in reason, reason
+
+    # Round 6, note 3: the Korean half, issued from another repository. Seen
+    # red through `mutation-check` with a Korean clause appended only where
+    # the command word carries `git -C`, which every other case let through.
+    write_transcript(projects, "me", ask_entries(repo))
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_894_w2_ko")
+    monkeypatch.setattr(wko.worktree_consent, "PROJECTS_ROOT", str(projects))
+    decision, ko = verdict_in(
+        wko, monkeypatch, capsys, repo, command, ([], [], True), "me"
+    )
+    want_ko = (
+        dirty_deny("ko", SINGLE["ko"])
+        .replace("`git ", f"`{at} ")
+        .replace("&& git ", f"&& {at} ")
+    )
+    assert (decision, ko) == ("deny", want_ko), ko
 
 
 def test_a_compound_stash_and_switch_meets_the_deny(
