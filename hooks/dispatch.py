@@ -427,14 +427,7 @@ def record(group, failures, body):
 def read_record(path):
     """A record's body, or {} where it cannot be read -- an older or newer
     plugin may have written it. The gate's name is in the file's name, so an
-    unreadable body still yields a line.
-
-    Reads: owned — a `specseal-gate-failure/<session>/<gate>.pending` JSON; unknown passed
-
-    What it reads, continued: its group, phase, error and message.
-
-    Passed: `{}`, so the line comes from the file name.
-    """
+    unreadable body still yields a line."""
     try:
         with open(path, encoding="utf-8") as handle:
             body = json.load(handle)
@@ -444,12 +437,7 @@ def read_record(path):
 
 
 def flat(value):
-    """A record's field as one line of text, or "" where it is not a string.
-
-    Reads: owned — one field of a `.pending` record, as `describe` hands it; unknown passed
-
-    Passed: a value that is not a string gives "".
-    """
+    """A record's field as one line of text, or "" where it is not a string."""
     return " ".join(value.split()) if isinstance(value, str) else ""
 
 

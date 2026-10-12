@@ -102,16 +102,12 @@ def code_lines(text):
 
 
 def _indent(line):
-    """Reads: guess — one workflow line's leading spaces, by which `workflow_steps` splits steps; unknown passed"""
     return len(line) - len(line.lstrip(" "))
 
 
 def _unquote(value):
     """A YAML scalar with its matching quotes off, as `broad_gate.py#unquote`
-    reads a step's name.
-
-    Reads: guess — a step's `name:` scalar, its matching quotes taken off; unknown passed
-    """
+    reads a step's name."""
     for mark in ('"', "'"):
         if len(value) >= 2 and value.startswith(mark) and value.endswith(mark):
             return value[1:-1]
@@ -233,11 +229,6 @@ def build_tracked_tree(d, files, deleted=()):
 def git_listing(root, *args, check=False):
     """The paths `git <args>` names under `root`, whitespace-split.
 
-    Reads: observed — stdout of `git -C <root> <args>` (the callers pass `ls-files`/`ls-tree`); unknown mixed
-
-    Mixed: a path holding a space splits into two missing paths, which `on_disk` then
-    declines.
-
     One spelling of a block six helpers had copied (round 1 ⬜ 8). `-C <root>`
     rather than `cwd=`, so the path the command acts on is written out.
 
@@ -349,11 +340,6 @@ def committed_round_records_on_disk(root):
 def cutoff_item_is_traceable(root, reader, cutoff):
     """`(ok, how)` for "the work item a cutoff constant names can be found".
 
-    Reads: owned — the names under `seal/specs/`, then `unverified_check.folded_items`; unknown refused
-
-    What it reads, continued: (the `<!-- specs/<id> -->` marker on a live line at the
-    top level of `docs/`)
-
     Several rules in this suite are keyed to the id of the work item that
     wrote them, and each pins that the id names a real work item rather than
     a typo — a constant with a digit wrong excuses exactly the records it was
@@ -393,13 +379,6 @@ def cutoff_item_is_traceable(root, reader, cutoff):
 def gathered_entry(root, work_item_id):
     """The text a release file under `changelog/` carries for a work item
     whose fragment was gathered, or None when no marker for it is there.
-
-    Reads: owned — `changelog/X.Y.Z.md` files, by a three-number version name; unknown passed
-
-    What it reads, continued: the body from the `<!-- specs/<id> -->` line to
-    the next heading or marker.
-
-    Passed: None goes back to the caller.
 
     A changelog fragment moves once, the way a ledger fragment does:
     `gather_changelog.py` writes `<!-- specs/<id> -->` above the fragment's
@@ -677,12 +656,7 @@ def run_hook(filename, payload, env=None):
 
 
 def decision_of(stdout):
-    """'silent' when a hook allowed by staying quiet, else its decision.
-
-    Reads: owned — a hook's stdout as JSON: `hookSpecificOutput.permissionDecision`; unknown refused
-
-    Refused: stdout that is not JSON raises.
-    """
+    """'silent' when a hook allowed by staying quiet, else its decision."""
     if not stdout.strip():
         return "silent"
     return json.loads(stdout)["hookSpecificOutput"]["permissionDecision"]
@@ -690,10 +664,6 @@ def decision_of(stdout):
 
 def fired(stdout):
     """True when a gate stopped the call at all.
-
-    Reads: owned — a hook's stdout as JSON: `hookSpecificOutput.permissionDecision`; unknown refused
-
-    Refused: stdout that is not JSON raises.
 
     A gate with two ways on denies the FIRST time a session meets it in a
     repository — spending the reason on the question — and asks on every
@@ -748,10 +718,6 @@ def shell_probe(name):
 
 def symlink_or_skip(target, link):
     """`os.symlink(target, link)`, or skip the test where it is not permitted.
-
-    Reads: observed — the OSError raised by the attempted `os.symlink`; unknown passed
-
-    Passed: skip.
 
     Windows needs SeCreateSymbolicLinkPrivilege -- Developer Mode, or an
     elevated shell. A GitHub `windows-latest` runner has it and an ordinary
@@ -809,10 +775,6 @@ def ps_names_the_parent_or_skip(limit):
 def fifo_or_skip(path):
     """`os.mkfifo(path)`, or skip the test where it is not available.
 
-    Reads: observed — whether `os.mkfifo` exists, and the OSError its attempt raises; unknown passed
-
-    Passed: skip.
-
     Asked by attempting the call, for the reason `symlink_or_skip` gives:
     `os.mkfifo` does not exist on Windows at all, and on a POSIX filesystem
     that has no named pipes it raises. Nothing is inferred from the platform.
@@ -836,10 +798,6 @@ def posix_row_shell_or_skip():
     """Skip unless the shell behind `shell=True` here separates commands with
     `;` and substitutes `$(…)` — the two things a `Broad gate` row's fixture
     can be ABOUT.
-
-    Reads: observed — the stdout of `echo one; echo $(echo two)` under `shell=True`; unknown passed
-
-    Passed: skip.
 
     `broad_gate.run` hands the row to `subprocess(shell=True)`, which is
     `/bin/sh` on POSIX and `%COMSPEC%` — normally `cmd.exe` — on Windows.

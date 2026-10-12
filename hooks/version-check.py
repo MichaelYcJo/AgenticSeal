@@ -60,10 +60,7 @@ TAG = re.compile(r"refs/tags/v(\d+)\.(\d+)\.(\d+)$")
 
 
 def parse(text):
-    """(major, minor, patch) or None. Anything unrecognised is not a version.
-
-    Reads: owned — the `version` string `running` takes from `plugin.json`, matched as `v?X.Y.Z`; unknown passed
-    """
+    """(major, minor, patch) or None. Anything unrecognised is not a version."""
     m = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", (text or "").strip())
     return tuple(int(g) for g in m.groups()) if m else None
 
@@ -85,8 +82,6 @@ def running():
 
 def due():
     """True if a day has passed; stamps the marker so the next session skips.
-
-    Reads: observed — the marker's mtime; unknown passed
 
     Stamped before the lookup, not after, so a hanging network call cannot
     make every session retry it. A lookup that then fails hands the day back
@@ -123,8 +118,6 @@ def retry_soon():
 def latest(repo):
     """Newest vX.Y.Z tag on the remote, () when it has none, None when the
     lookup itself failed. Never raises.
-
-    Reads: observed — `git ls-remote --tags <repo>` lines, `refs/tags/vX.Y.Z$`; unknown passed
 
     The caller needs the last two apart. A remote with no tags is an answer
     and holds the throttle for the day; a lookup that never completed is a
@@ -168,7 +161,6 @@ def notice(have, want):
 
 
 def main():
-    """Reads: observed — marker mtime; payload `cwd`; unknown passed"""
     try:
         event = json.load(sys.stdin) or {}
         cwd = event.get("cwd")

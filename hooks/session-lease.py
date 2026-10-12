@@ -46,7 +46,6 @@ import hooksession
 
 
 def git_dir(path):
-    """Reads: observed — `git rev-parse --absolute-git-dir`; unknown passed"""
     try:
         r = subprocess.run(
             ["git", "rev-parse", "--absolute-git-dir"],

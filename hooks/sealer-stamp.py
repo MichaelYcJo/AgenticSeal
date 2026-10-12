@@ -92,12 +92,7 @@ def toplevel(cwd):
 
 def load_stamp():
     """`seal_stamp.py`, or None where it cannot be imported — its own floor
-    refuses an interpreter under 3.12 with `SystemExit` at import.
-
-    Reads: owned — `seal_stamp.py` beside this hook, loaded by path; unknown passed
-
-    Passed: any exception, `SystemExit` included, gives None, so nothing is drawn.
-    """
+    refuses an interpreter under 3.12 with `SystemExit` at import."""
     try:
         spec = importlib.util.spec_from_file_location(
             "specseal_seal_stamp_for_the_stop_hook", STAMP

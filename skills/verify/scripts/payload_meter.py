@@ -101,10 +101,7 @@ BELOW_FLOOR = (
 
 
 def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it.
-
-    Reads: observed — `sys.version_info`; unknown refused
-    """
+    """The sentence for an interpreter under the floor, or None above it."""
     version = tuple(sys.version_info[:3]) if version is None else tuple(version)
     if version[:2] >= FLOOR:
         return None
@@ -219,8 +216,6 @@ def _shown(path):
 
 def frontmatter(text):
     """The `name:` and `skills:` an agent definition's frontmatter declares.
-
-    Reads: guess — agent file YAML frontmatter by regex: `name:`, `skills:` block / flow forms; unknown passed
 
     `skills:` is read in every spelling YAML gives the same list: a block
     sequence, indented or not, and the flow form on one line — `[a, b]` or
@@ -339,12 +334,7 @@ def file_row(root, rel, display, share, sections):
 
 def composition(root, home, name, definition, sections):
     """The rows of one agent's payload, in the order the harness lays them
-    out: the definition, each skill, then the harness's `CLAUDE.md` pair.
-
-    Reads: guess — `skills/<s>/SKILL.md`, `~/.claude/skills/<s>/SKILL.md` shadow; unknown passed
-
-    What it reads, continued: CLAUDE.md pair.
-    """
+    out: the definition, each skill, then the harness's `CLAUDE.md` pair."""
     _name, skills = frontmatter(read(os.path.join(root, definition))[1])
     rows = [file_row(root, definition, definition, "agent", sections)]
     for skill in skills:
@@ -372,7 +362,6 @@ def composition(root, home, name, definition, sections):
 
 
 def agents_in(root, only=()):
-    """Reads: guess — `agents/*.md`, each `name` through `frontmatter`, else the filename; unknown passed"""
     directory = os.path.join(root, "agents")
     found = {}
     if not os.path.isdir(directory):
@@ -421,10 +410,7 @@ def _text_of(content):
 def spawns_in(transcript, helpers):
     """Every `Agent` call in a main transcript, paired with the `agentId` its
     result carried. A call whose result carries none (a type the harness
-    did not know, for one) is returned under `unread` with why.
-
-    Reads: guess — `agentId: <hex>` in the `Agent` tool result's text; unknown mixed
-    """
+    did not know, for one) is returned under `unread` with why."""
     pending, spawned, unread = {}, [], []
     for row in _rows(transcript):
         message = row.get("message")
@@ -463,10 +449,7 @@ def spawns_in(transcript, helpers):
 def first_prefix(path, helpers):
     """The whole prefix a subagent paid for: `input_tokens` plus both cache
     columns of its FIRST assistant message. Later messages carry the
-    conversation as well and are not the payload.
-
-    Reads: guess — first assistant `usage` sum; unknown passed
-    """
+    conversation as well and are not the payload."""
     for row in _rows(path):
         message = row.get("message")
         if not isinstance(message, dict) or message.get("role") != "assistant":
@@ -489,8 +472,6 @@ def short_name(subagent_type):
 
 def calibration_of(transcript, baseline_agent):
     """Measured prefixes per agent from one main transcript's spawns.
-
-    Reads: guess — `agent-<id>.jsonl` names; `short_name` rsplit `:`; unknown refused
 
     Several spawns of one agent take the SMALLEST prefix: a first message
     holds the payload plus the spawn prompt, and the prompt only adds.
@@ -553,7 +534,6 @@ def calibration_of(transcript, baseline_agent):
 
 
 def _ratio_from_baseline(baseline_data, name):
-    """Reads: owned — one name's `bytes_per_token` in an earlier `--json` output; unknown passed"""
     ratios = (baseline_data or {}).get("ratios") or {}
     entry = ratios.get(name)
     if isinstance(entry, dict) and isinstance(
@@ -568,10 +548,7 @@ def _spawn_of(entry):
     shape the entry has. `spawn` is read first; a derived entry written before
     that key existed names the spawn in `from`, and a lent entry's `from` is
     the file it was lent from — so `from` counts only where `tokens` says the
-    entry is a measurement.
-
-    Reads: owned — one `ratios` entry of an earlier `--json` output: `spawn`, else `from`; unknown passed
-    """
+    entry is a measurement."""
     if not isinstance(entry, dict):
         return None
     spawn = entry.get("spawn")
@@ -601,10 +578,7 @@ def _carried(entry):
 def _same_spawn_over_other_bytes(baseline_data, name, spawn_file, seen_bytes):
     """The bytes the baseline's ratio was measured over, when this run's
     smallest spawn for `name` is that very spawn and the tree's bytes differ
-    from them — or None when the two agree or the baseline knows nothing.
-
-    Reads: owned — one name's `ratios` entry in an earlier `--json` output: spawn, `over_bytes`; unknown passed
-    """
+    from them — or None when the two agree or the baseline knows nothing."""
     entry = ((baseline_data or {}).get("ratios") or {}).get(name)
     if _spawn_of(entry) != spawn_file:
         return None
@@ -757,10 +731,7 @@ def measure(
 
 def delta_against(now, before):
     """Per agent, per file: what changed since the earlier run. Files and
-    agents that appeared or disappeared are named rather than diffed.
-
-    Reads: owned — `basis` string `startswith("measured")`; unknown passed
-    """
+    agents that appeared or disappeared are named rather than diffed."""
     out = {}
     before_agents = before.get("agents") or {}
     for name, agent in now["agents"].items():

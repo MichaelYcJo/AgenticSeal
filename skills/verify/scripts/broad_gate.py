@@ -196,10 +196,7 @@ BELOW_FLOOR = (
 
 
 def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it.
-
-    Reads: observed — `sys.version_info`; unknown refused
-    """
+    """The sentence for an interpreter under the floor, or None above it."""
     version = tuple(sys.version_info[:3]) if version is None else tuple(version)
     if version[:2] >= FLOOR:
         return None
@@ -409,7 +406,6 @@ def git(root, *args):
 
 
 def repo_root(start):
-    """Reads: observed — `git rev-parse --show-toplevel`; unknown refused"""
     out = git(start, "rev-parse", "--show-toplevel")
     return os.path.normpath(out.strip()) if out and out.strip() else None
 
@@ -695,13 +691,7 @@ def moved_line(root, base):
 
 
 def short_commit(root, rev):
-    """`rev`'s short commit hash, or None where it names no commit.
-
-    Reads: observed — `rev-parse --short <rev>^{commit}`; unknown passed
-
-    Passed: a failed git and a rev naming no commit both give None, and `resolve_base`
-    tries its next step.
-    """
+    """`rev`'s short commit hash, or None where it names no commit."""
     out = git(root, "rev-parse", "--short", f"{rev}^{{commit}}")
     return out.strip() if out and out.strip() else None
 
@@ -807,10 +797,7 @@ def resolve_base(root, given):
 def seal_home(root):
     """`<root>/seal/` where it exists, else `<git-common-dir>/seal/`, else
     None — the two places every `seal/…` path in this plugin resolves to
-    (`agent-contract` §16), read in that order.
-
-    Reads: observed — `isdir(<root>/seal)`, `rev-parse --git-common-dir`; unknown refused
-    """
+    (`agent-contract` §16), read in that order."""
     shared = os.path.join(root, SEAL_DIR)
     if os.path.isdir(shared):
         return shared
@@ -866,8 +853,6 @@ def refusal(home):
     """(refused, below, stopper) for the root's config — the one reader's
     answer about every line it will not take as a row, passed through.
 
-    Reads: owned — `hooks/config.py#refusal` (refused, below, stopper); unknown refused
-
     Every way of not having one lands on `([], [], None)`: no file, a file
     that will not read, a table with no refused line at all.
     """
@@ -905,10 +890,7 @@ def rows_read(home):
 
 
 def names_this_row(line):
-    """Whether a refused line's first cell is this gate's row.
-
-    Reads: guess — first cell, up to the first `|`, of a line the table reader refused; unknown refused
-    """
+    """Whether a refused line's first cell is this gate's row."""
     first = FIRST_CELL.match(line.strip())
     return bool(first and first.group(1).strip() == ROW)
 
@@ -1478,10 +1460,7 @@ def not_as_written(home, command):
 
 
 class Check:
-    """One check's name, exit code, output text and where the output is.
-
-    Reads: observed — one check's exit code and output, as `run` recorded them; unknown refused
-    """
+    """One check's name, exit code, output text and where the output is."""
 
     def __init__(self, name, code, text, path):
         self.name, self.code, self.text, self.path = name, code, text, path
@@ -1847,7 +1826,6 @@ def command_names_backslashed(command, is_directory):
 
 
 def exemptions(home):
-    """Reads: owned — glob `seal/specs/*/survivors.md`; unknown passed"""
     return sorted(glob.glob(os.path.join(home, SPECS, "*", SURVIVORS)))
 
 
@@ -2406,10 +2384,7 @@ STEP_RE = re.compile(r"^\s*-\s+name:\s*(\S.*?)\s*$")
 
 
 def unquote(value):
-    """A YAML scalar with its matching quotes off, if it wore any.
-
-    Reads: guess — one YAML scalar from a `hygiene.yml` step's `- name:` line; unknown passed
-    """
+    """A YAML scalar with its matching quotes off, if it wore any."""
     for mark in ('"', "'"):
         if len(value) >= 2 and value.startswith(mark) and value.endswith(mark):
             return value[1:-1]
@@ -2868,7 +2843,6 @@ def ledger_total(text):
 
 
 def round_count(item):
-    """Reads: owned — filenames `rounds/round-N.md`; unknown passed"""
     try:
         names = os.listdir(os.path.join(item, "rounds"))
     except OSError:

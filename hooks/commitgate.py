@@ -90,12 +90,7 @@ def waived(cwd, session):
 
 def pressed(top, session):
     """True when the session's person pressed `automation`. Every way of not
-    reading it is False, the answer from before it was read.
-
-    Reads: guess — the transcript's routing answer, through `automation_answered`; unknown refused
-
-    Refused: any exception gives False.
-    """
+    reading it is False, the answer from before it was read."""
     try:
         import worktree_consent
 
@@ -139,12 +134,7 @@ SEQUENCER = (
 
 
 def _process(pid):
-    """(parent pid, command name) of process `pid`; (None, "") unreadable.
-
-    Reads: observed — `ps -o ppid=,comm=` of one process; unknown refused
-
-    Refused: anything unreadable means the commit is judged.
-    """
+    """(parent pid, command name) of process `pid`; (None, "") unreadable."""
     try:
         out = subprocess.run(
             ["ps", "-o", "ppid=,comm=", "-p", str(pid)],

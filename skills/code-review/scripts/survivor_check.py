@@ -441,10 +441,7 @@ def git(root, *args):
 
 
 def resolves(root, rev):
-    """The full oid `rev` names, or None.
-
-    Reads: observed — `git rev-parse --verify -q <rev>^{commit}`; unknown refused
-    """
+    """The full oid `rev` names, or None."""
     out = git(root, "rev-parse", "--verify", "-q", rev + "^{commit}")
     if out is None:
         return None
@@ -454,11 +451,6 @@ def resolves(root, rev):
 
 def parse_range(root, spec):
     """`A..B` or `A...B` into two resolved commits.
-
-    Reads: observed — `A..B` / `A...B` from the CLI, each end resolved by git; unknown mixed
-
-    Mixed: no separator, or an end that does not resolve, is refused; a failing
-    `merge-base` keeps the left end for `...`.
 
     Both spellings are accepted and mean the same thing here, because what is
     read is the two endpoints and never the walk between them. `A...B` is what
@@ -487,10 +479,7 @@ def parse_range(root, spec):
 
 
 def tracked(root, rev):
-    """Every path in the tree at `rev`.
-
-    Reads: observed — `git ls-tree -r --name-only -z <rev>`; unknown refused
-    """
+    """Every path in the tree at `rev`."""
     out = git(root, "ls-tree", "-r", "--name-only", "-z", rev)
     if out is None:
         raise Refused(f"cannot list the tree at {rev[:7]} in {root}")
@@ -1124,10 +1113,7 @@ LEDGER_SHAPES = (
 
 def shape_pattern(shape):
     """A committed path shape as a regex: `**/` is any run of directories,
-    none included, and `*` stays inside one directory.
-
-    Reads: owned — one of the `LEDGER_SHAPES` path globs, `**/` and `*`; unknown passed
-    """
+    none included, and `*` stays inside one directory."""
     out = re.escape(shape).replace(r"\*\*/", "(?:[^/]+/)*").replace(r"\*", "[^/]*")
     return out
 

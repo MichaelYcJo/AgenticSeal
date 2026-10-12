@@ -71,10 +71,7 @@ PLUGIN_ROOT = os.path.dirname(HERE)
 
 
 def plugin_version(root=PLUGIN_ROOT):
-    """The version in `<root>/.claude-plugin/plugin.json`, or "" unreadable.
-
-    Reads: owned — `plugin.json` `version`; unknown passed
-    """
+    """The version in `<root>/.claude-plugin/plugin.json`, or "" unreadable."""
     try:
         with open(
             os.path.join(root, ".claude-plugin", "plugin.json"), encoding="utf-8"
@@ -163,8 +160,6 @@ def stub_text(hook, root=PLUGIN_ROOT, version=None):
 def read_stub(path):
     """(ours, version, target) for the hook file at `path`, or None if absent.
 
-    Reads: owned — first 4096 bytes; line 2 `startswith(MARKER)`; `h='…'` line un-quoted; unknown refused
-
     `ours` is whether the marker line is there; `target` is the entry point the
     stub runs, "" when it cannot be read back.
     """
@@ -203,8 +198,6 @@ def _git(top, *args):
 
 def hooks_path_setting(top):
     """`core.hooksPath` as git reads it for `top`, or "" when it is unset.
-
-    Reads: observed — `git config --get core.hooksPath`; unknown passed
 
     Set at any level -- the repository, the person's global config, the
     system's -- it moves every hook git runs there, so a stub under the common

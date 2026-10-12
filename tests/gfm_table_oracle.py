@@ -38,12 +38,7 @@ from cmarkgfm.cmark import Options
 
 
 class _Tables(html.parser.HTMLParser):
-    """Every `<table>` in rendered HTML, as `(header cells, body rows)`.
-
-    Reads: observed — cmark-gfm HTML output (raw HTML omitted); unknown passed
-
-    What it reads, continued: read back with `html.parser`: th/td text per `<table>`
-    """
+    """Every `<table>` in rendered HTML, as `(header cells, body rows)`."""
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -101,12 +96,7 @@ def tables(text):
 
 def rows_under(text, header):
     """The body rows of the first table whose header cells are HEADER, or
-    None where cmark-gfm renders no such table.
-
-    Reads: owned — `tables()` output, matching on an exact header-cell tuple; unknown passed
-
-    Passed: None.
-    """
+    None where cmark-gfm renders no such table."""
     for head, rows in tables(text):
         if head == tuple(header):
             return rows

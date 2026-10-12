@@ -680,11 +680,6 @@ def open_hider(reader, text):
 def opens_at(reader, lines, blank):
     """The 1-based line the still-open hider opens on, or 0 for none.
 
-    Reads: owned — a report, a round paragraph or a record, through the reader; unknown refused
-
-    What it reads, continued: the reader's `strip_comments` and
-    `blank_fences`, with a sentinel line.
-
     Asked of the reader's own pass over each prefix rather than by a second
     implementation of where a marker sits: the shortest prefix `blank`
     leaves open is the one whose last line opened it. A second reading of
@@ -866,8 +861,6 @@ def split_cells(line, spans=False, limit=None, comments=False):
 def raw_cells(line, spans=False, limit=None):
     """`split_cells` as a line of the RAW report has to be read.
 
-    Reads: guess — reviewer report row: plain, code-span capped, plain capped; unknown passed
-
     One place rather than a flag at each call site, and the difference is
     whether the rule can be observed. `table_body` counts a row's columns on
     `strip_comments(report)` and `copied_row` is handed `raw`, so a `|`
@@ -997,8 +990,6 @@ def git(root, *args):
 def pull_request_cell(root, given, which=shutil.which, run=subprocess.run):
     """The `PR` cell: the flag, else `gh`'s answer, else `not yet opened`.
 
-    Reads: observed — `gh pr view --json number,url`; unknown passed
-
     `gh pr view --json number,url` on the current branch. The number goes
     first so `chain_check.PR_RE` finds it before the digits in the URL.
     `which` and `run` are parameters so a case can stand in for a `gh` that
@@ -1030,10 +1021,7 @@ def pull_request_cell(root, given, which=shutil.which, run=subprocess.run):
 
 
 def default_baseline(root):
-    """The upstream of the current branch, else `origin/main`.
-
-    Reads: observed — `rev-parse --abbrev-ref --symbolic-full-name @{u}`; unknown passed
-    """
+    """The upstream of the current branch, else `origin/main`."""
     upstream = git(root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
     return upstream.strip() if upstream and upstream.strip() else "origin/main"
 
@@ -1184,8 +1172,6 @@ def table_body(reader, lines, heading, header, required):
 
 def table_of(reader, raw, lines, heading, header, required):
     """The rows under `heading`, header and separator first, pipes escaped.
-
-    Reads: owned — sections; header tuple exact; separator / repeated-header rows; unknown refused
 
     Each row is re-serialised from `raw` rather than copied from it, so a
     `|` the reviewer wrote inside a cell reaches the record as text instead
@@ -1516,10 +1502,7 @@ def terminal_value(reader, lines, label):
 
 
 def verdict_words(reader, rows):
-    """The normalized verdict of each body row of a copied verdict table.
-
-    Reads: owned — copied verdict rows via `split_row` → `verdict_of`; unknown refused
-    """
+    """The normalized verdict of each body row of a copied verdict table."""
     col = VERDICT_HEADER.index(chain.VERDICT_COLUMN)
     words = []
     for line in rows[2:]:
@@ -1568,10 +1551,7 @@ def landing_values(words):
 
 
 def earlier_records(routing, rounds, n):
-    """[(K, path)] for every `round-K.md` on disk with K < n, lowest first.
-
-    Reads: owned — `os.listdir(rounds)` + `routing.round_number`; unknown passed
-    """
+    """[(K, path)] for every `round-K.md` on disk with K < n, lowest first."""
     try:
         names = os.listdir(rounds)
     except OSError:
@@ -3417,10 +3397,7 @@ def touched(root, a, b):
 
 
 def parse_module(text):
-    """`ast.Module`, or None for text that is not Python.
-
-    Reads: observed — one module's text, through `ast.parse`; unknown passed
-    """
+    """`ast.Module`, or None for text that is not Python."""
     if text is None:
         return None
     try:
@@ -3431,10 +3408,7 @@ def parse_module(text):
 
 def signature(args):
     """A unit's parameters: names in order, whether each has a default, and
-    the `*args` / `**kwargs` names — what a call site can be wrong about.
-
-    Reads: observed — one function's `ast.arguments` node; unknown passed
-    """
+    the `*args` / `**kwargs` names — what a call site can be wrong about."""
     positional = args.posonlyargs + args.args
     padding = [False] * (len(positional) - len(args.defaults))
     defaults = padding + [True] * len(args.defaults)
@@ -3452,10 +3426,7 @@ def signature(args):
 def return_arities(node):
     """The set of arities the unit's own `return` statements have — 0 for a
     bare `return`, n for a tuple of n elements, 1 for anything else. A
-    nested def, class or lambda is somebody else's returns.
-
-    Reads: observed — the `return` statements of one function's AST; unknown passed
-    """
+    nested def, class or lambda is somebody else's returns."""
     found, stack = set(), list(node.body)
     while stack:
         n = stack.pop()
@@ -3563,10 +3534,7 @@ def top_units(module):
 
 
 def enclosing_unit(units, line):
-    """The top-level unit whose lines hold `line`, or None at module level.
-
-    Reads: observed — the line spans `top_units` read from a module's AST; unknown passed
-    """
+    """The top-level unit whose lines hold `line`, or None at module level."""
     for name, (_, first, last) in units.items():
         if first <= line <= (last or first):
             return name
@@ -3613,7 +3581,6 @@ def measure(reader, root, a, b, paths):
 
 
 def under_tests(path):
-    """Reads: guess — a path's directories, for one named `tests`; unknown passed"""
     return TESTS_DIR in path.split("/")[:-1]
 
 
@@ -3638,8 +3605,6 @@ def decorated_as(node, name):
 
 def collected(base):
     """True when pytest's default `python_files` patterns import this file.
-
-    Reads: guess — file names, decorators vs pytest's default collection rules; unknown passed
 
     Collection is two rules and the arm below used to ask only one of them:
     `python_files = test_*.py *_test.py` decides which FILE becomes a test
@@ -4106,12 +4071,7 @@ def verdict_rows(reader, lines):
 
 def units_named_earlier(reader, earlier):
     """{unit: K} for every entry of every earlier record's `New units` row,
-    the lowest round first, in the entry grammar the checker reads.
-
-    Reads: owned — earlier `New units` cells: split `;`, strip depth/arrow; unknown passed
-
-    What it reads, continued: `EMPHASIS` stripped everywhere.
-    """
+    the lowest round first, in the entry grammar the checker reads."""
     named = {}
     for k, path in earlier:
         text = read_text(path, f"earlier record round-{k}.md")
@@ -4142,7 +4102,7 @@ def units_named_earlier(reader, earlier):
             # the ENDS of the entry rather than everywhere in it, and it needs
             # the corpus measured for records this newly reaches. The answerer
             # is the repository owner.
-            # Verified 2026-10-12 against units_named_earlier@5a83a8fb.
+            # Verified 2026-09-15 against units_named_earlier@9165d624.
             name = chain.EMPHASIS.sub("", entry).strip()
             if name and name not in named:
                 named[name] = k
@@ -4163,8 +4123,6 @@ def tracked_at(root, a):
 
 def resolve_path(rel, tracked):
     """The tracked path a Location's path names, or None.
-
-    Reads: guess — Location path vs tracked set: exact, `./`, unique `/`-suffix; unknown passed
 
     Exact first, then `./`-stripped, then the one tracked path ending in
     `/<rel>` — a basename or a nested tail. Two candidates resolve to

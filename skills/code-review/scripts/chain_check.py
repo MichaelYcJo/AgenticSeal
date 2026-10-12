@@ -1033,8 +1033,6 @@ REGULAR = ("100644", "100755")
 def tracked_files(root, item):
     """Filenames git carries directly in `item` as regular files.
 
-    Reads: observed — `git ls-tree -z HEAD -- <dir>/` modes; unknown passed
-
     `os.listdir` was the rule here, and it answered a question git had not
     been asked. Everything else in this check comes from git -- the
     declarations from `git diff`, the ancestry from `merge-base` -- so two
@@ -1069,8 +1067,6 @@ def tracked_files(root, item):
 
 def worktree_files(root, item):
     """Filenames the working tree holds directly in `item` as regular files.
-
-    Reads: observed — `os.listdir`, `isfile`, `islink`; unknown passed
 
     `tracked_files`'s twin for `WORKTREE`, with the same allow-list drawn the
     filesystem's way: a symbolic link is refused there by mode and here by
@@ -1162,8 +1158,6 @@ def config_at_head(root, rel, config):
 def round_records(routing, root, item):
     """`seal/specs/<id>/rounds/round-*.md` git actually carries, highest round last.
 
-    Reads: owned — names via `routing.round_number`; unknown passed
-
     `rounds/` rather than the work item's own directory: `round-N` is the one
     member of the SDD set that is plural and unbounded, and the structure
     should say which member grows. `tracked_files` is asked for the
@@ -1206,8 +1200,6 @@ def round_records(routing, root, item):
 def rounds_unreadable(routing, root, item):
     """True when git carries `rounds` as a BLOB rather than a tree.
 
-    Reads: observed — `ls-tree -z` entry type of `rounds`; unknown refused
-
     The filesystem twin is `hooks/routing.py:rounds_unreadable`, and round 2
     found it shipped without this one: the hook named the state and the pull
     request check did not, so one repository was told two different things
@@ -1239,8 +1231,6 @@ def rounds_unreadable(routing, root, item):
 
 def stray_records(routing, root, item):
     """`round-N.md` git carries at the work item's TOP level, lowest first.
-
-    Reads: owned — `round-N.md` at the item's top level; unknown refused
 
     Records nothing reads. The flat location is where every record in every
     repository sat before `rounds/`, and no fallback ships: a permanent dual
@@ -1490,8 +1480,6 @@ def table_rows(reader, lines):
 def tracked_declarations(root, routing):
     """(path, parsed) for every `seal/specs/<id>/routing.md` git carries at HEAD.
 
-    Reads: owned — `ls-tree -r -z HEAD` `routing.md` + `routing.parse`; unknown passed
-
     `routing.declarations` walks the working tree, which is right where it is
     called from -- a hook fires before the commit, and an uncommitted
     declaration is what the author just wrote. It is wrong here for the same
@@ -1631,7 +1619,6 @@ def nothing_declared(root, routing, branch):
 
 
 def is_ancestor(root, sha, ref):
-    """Reads: observed — `merge-base --is-ancestor` exit; unknown refused"""
     r = subprocess.run(
         ["git", "-C", root, "merge-base", "--is-ancestor", sha, ref],
         capture_output=True,
@@ -1643,8 +1630,6 @@ def is_ancestor(root, sha, ref):
 
 def target_refs(reader, root, declared):
     """Refs a round's Target SHA is allowed to be an ancestor of.
-
-    Reads: owned — `Branch` row → `refs/remotes/origin/<b>`, `refs/heads/<b>` that resolve; unknown passed
 
     HEAD, and the branch the declaration names -- BOTH forms of it, remote and
     local, each kept only if it resolves. Round 1 measured why neither shortcut
@@ -1679,8 +1664,6 @@ def target_refs(reader, root, declared):
 def declared_pull_head(reader, root, rows):
     """`[refs/remotes/pull/<N>/head]` for the number a record's `PR` row names.
 
-    Reads: guess — the `| PR |` cell, its first run of digits anywhere, `#` optional; unknown passed
-
     The row is already in `templates/sdd-round.md`, and this gives it a second
     job rather than asking anyone to write something new: where it names a
     number, the reviewed commit has one exact place to be, and the failure
@@ -1698,8 +1681,6 @@ def declared_pull_head(reader, root, rows):
 
 def carried_by_a_pull_head(root, sha):
     """The `refs/pull/<N>/head` carrying `sha`, or None.
-
-    Reads: observed — `for-each-ref --contains <sha> refs/remotes/pull/`, exit and first line; unknown refused
 
     The fallback that needs nothing written. One `for-each-ref`, so the cost
     does not grow with a ref per call, and it is narrower than "any ref that
@@ -1734,12 +1715,7 @@ def carried_by_a_pull_head(root, sha):
 
 
 def reachable(root, sha, refs):
-    """(True, ref) for the first ref `sha` is an ancestor of, else (False, None).
-
-    Reads: observed — `merge-base --is-ancestor` exit; unknown refused
-
-    What it reads, continued: `for-each-ref --contains refs/remotes/pull/`
-    """
+    """(True, ref) for the first ref `sha` is an ancestor of, else (False, None)."""
     for ref in refs:
         if is_ancestor(root, sha, ref):
             return True, ref
@@ -2441,8 +2417,6 @@ def doubled_grounds(reader, root, rel):
 def resolves_to(root, sha):
     """The full commit `sha` names in this repository, or None.
 
-    Reads: observed — `rev-parse --verify --quiet <sha>^{commit}`; unknown passed
-
     None is *this repository cannot see it*, which after a squash is the
     ordinary state of a reviewed commit rather than a fault. Everything built
     on this treats None as "no claim", the way `check_round` already does for
@@ -2459,8 +2433,6 @@ def resolves_to(root, sha):
 
 def target_shas(reader, root, rel):
     """Every SHA in one record's `Target SHA` row, in the order written.
-
-    Reads: owned — every whole word of 7 to 40 hex digits in the `Target SHA` row; unknown passed
 
     The row may name two — `templates/sdd-round.md` says so for a HEAD that
     moved mid-review — and the order is what makes them usable: the first is
@@ -2594,8 +2566,6 @@ def pass_checked(lines):
 
 def nobody_reason(value):
     """The reason after `nobody`, `""` when none was given, or None.
-
-    Reads: owned — one `Fixes checked by` cell: `nobody`, then a separator or nothing; unknown refused
 
     None means the cell is not a `nobody` at all — `nobodys` is a word this
     does not recognise, and recognising it would be the tolerant read the
@@ -2911,8 +2881,6 @@ def says_not_yet(value):
 
 def yes_or_no(value):
     """(`no`, reason), (`yes`, reason), or (None, "") for a `no`/`yes` cell.
-
-    Reads: owned — `no` / `yes` + separator + reason; unknown refused
 
     Two rows are written in this vocabulary and both are the reviewer's own
     line copied into a cell: `Loses a record or crashes` and `Needs a fix`.
@@ -3418,8 +3386,6 @@ def runner_problem(value):
 def ran_by(reader, root, rel):
     """(errors, notices) for one record's `Ran by` row.
 
-    Reads: guess — `Ran by` cell: `unknown — why`, else any `X on Y`; unknown passed
-
     Read on EVERY record, like `checked_by` and `fix_surface` and for the
     same reason: every round was run by something, and a work item whose
     rounds ran under different runners is exactly the comparison the row
@@ -3622,8 +3588,6 @@ def restored_from(root, fork, rel):
 def commissioned_fixes(reader, root, rel):
     """[(line, what, sha, full sha)] -- commits this record's verdicts name as
     fixes, resolved in this repository.
-
-    Reads: guess — hex-shaped words in a FIX-word verdict cell, resolved; unknown passed
 
     Only cells whose verdict is a FIX word. `answered`, `withdrawn` and `not a
     defect` close a finding and produce no code, so there is no fix for the
@@ -4938,8 +4902,6 @@ def behaviour_path(routing, path):
 def range_ends(reader, root, rel):
     """(a, b), the full commits of a record's `Fix range`, or None.
 
-    Reads: owned — the `Fix range` cell through `FIX_RANGE_RE`, both ends resolved; unknown passed
-
     None wherever the row is absent, says `none`, will not parse, or names
     an end this repository cannot see. `fix_range` reports each of those
     states; this only asks which commits a range holds, through the same
@@ -4958,8 +4920,6 @@ def range_ends(reader, root, rel):
 
 def last_round_end(reader, root, rel):
     """The commit the last round's work ends at, or None.
-
-    Reads: owned — `FIX_RANGE_RE` ends resolved; else `none` + last Target; unknown passed
 
     Its `Fix range`'s second end where the range resolves, and its newest
     `Target SHA` where the row says `none`: a round that commissioned no

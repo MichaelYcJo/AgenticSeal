@@ -41,11 +41,6 @@ CONFIG_FILES = ("ruff.toml", ".ruff.toml")
 def uses_ruff(path):
     """True when a project that owns `path` has configured ruff.
 
-    Reads: guess — `ruff.toml`/`.ruff.toml` exists; unknown passed
-
-    What it reads, continued: substring `"[tool.ruff"` in `pyproject.toml` text; stops
-    at `.git`
-
     Walks from the file's directory to the filesystem root, stopping at a
     repository boundary so a parent checkout's settings cannot speak for a
     nested one. `pyproject.toml` counts only with a `[tool.ruff]` table —
@@ -73,7 +68,6 @@ def uses_ruff(path):
 
 
 def resolve_runner():
-    """Reads: observed — `shutil.which`, `uv run ruff --version` exit code; unknown passed"""
     if shutil.which("uv"):
         probe = subprocess.run(
             ["uv", "run", "ruff", "--version"], capture_output=True, timeout=30
@@ -88,10 +82,6 @@ def resolve_runner():
 
 
 def main():
-    """Reads: observed — `argv[1]` or payload `tool_input.file_path`; `.py` suffix; unknown passed
-
-    What it reads, continued: env `SPECSEAL_LINT`
-    """
     file = sys.argv[1] if len(sys.argv) > 1 else ""
     if not file and not sys.stdin.isatty():
         try:

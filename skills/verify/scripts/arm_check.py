@@ -405,8 +405,6 @@ def _refuse_unknown(tree: ast.AST, filename: str) -> None:
 def _members(test: ast.expr) -> list[ast.expr]:
     """The top-level members of a boolean test.
 
-    Reads: observed — one boolean test's AST: a `BoolOp`'s values, else the test alone; unknown passed
-
     Top-level, not flattened: `a and (b or c)` is two members. Flattening
     recursively gives `gh_segments` seven arms where the hand count gives
     five, so the rule and this walk would stop being comparable.
@@ -445,10 +443,7 @@ def _group_of(
 
 
 def _node_arms(node: ast.AST, scope: str, source: str) -> list[Arm]:
-    """The arms one node carries, or [] when it carries none.
-
-    Reads: observed — ast shapes (`BoolOp`, `Tuple`, `MatchOr`, guards); unknown refused
-    """
+    """The arms one node carries, or [] when it carries none."""
     shape = type(node).__name__
     if shape not in ARM_SHAPES:
         return []

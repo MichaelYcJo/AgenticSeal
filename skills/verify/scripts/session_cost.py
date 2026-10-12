@@ -2786,7 +2786,6 @@ def newest(directory):
     # "no transcript found" for a directory that is right there. Measured.
     # `hooks/worktree-guard.py` `project_slug` states the same rule; the two
     # trees do not import each other, so this names it rather than sharing it.
-    """Reads: guess — `~/.claude/projects/<slug>` with `[^A-Za-z0-9-]`→`-`, newest mtime; unknown passed"""
     slug = re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
     root = os.path.join(PROJECTS, slug)
     if not os.path.isdir(root):
@@ -2834,8 +2833,6 @@ LOOKUP_LIMIT = 200
 
 def run_gh(args):
     """`gh` with `args`, as `(exit code, stdout, stderr)`.
-
-    Reads: observed — `gh <args>`: its exit code, stdout and stderr; unknown mixed
 
     The one place this module touches a network, and the seam every case
     below replaces. The exit code is read straight off the subprocess

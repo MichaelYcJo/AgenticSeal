@@ -284,8 +284,6 @@ def parse(text):
 def current_branch(cwd):
     """The checked-out branch, or "" when detached or unreadable.
 
-    Reads: observed — `git rev-parse --abbrev-ref HEAD`; `HEAD` → ""; unknown refused
-
     A detached HEAD matches no declaration, so the gate asks. That is the
     correct direction: nothing on a detached HEAD is the work item a branch
     was declared for.
@@ -353,8 +351,6 @@ def declarations(root):
 def for_branch(root, branch):
     """The one declaration that applies here, or None.
 
-    Reads: owned — parsed `branch` == current branch, exactly one; unknown refused
-
     Two declarations naming the same branch is not an answer, so it reads as
     none. Declarations accumulate over a repository's life and a branch-less
     match would let the first work item ever declared silence the gate for
@@ -412,11 +408,6 @@ def round_number(name):
 def _ordered(where):
     """`round-N.md` under `where`, lowest round first, or [] when unreadable.
 
-    Reads: owned — `listdir(where)` filtered by #87; unknown mixed
-
-    Mixed: a directory that will not list gives []; a `rounds` that is a file raises
-    `NotADirectoryError` for the caller to name.
-
     Filtered BEFORE the sort, not after. Both callers below hand this a
     directory that holds other things -- the work item's own directory holds
     `routing.md` and the rest of the SDD set, and `rounds/` holds whatever a
@@ -447,8 +438,6 @@ def _ordered(where):
 
 def rounds(item):
     """Every round record in a work item's `rounds/`, lowest round first.
-
-    Reads: owned — `listdir(item/rounds)` through `_ordered`, filtered by #87; unknown passed
 
     Numerically, not by name, for the reason `round_number` gives.
 
@@ -485,8 +474,6 @@ def rounds(item):
 
 def rounds_unreadable(item):
     """True when `rounds` exists beside the work item and is not a directory.
-
-    Reads: observed — islink / exists-not-dir / listdir failure of `rounds`; unknown refused
 
     Told apart from "no records" because the two need opposite answers: one
     is 28 of this repository's 35 work items and must stay quiet, the other
@@ -525,8 +512,6 @@ def rounds_unreadable(item):
 
 def stray_rounds(item):
     """`round-N.md` left at the work item's own directory, lowest round first.
-
-    Reads: owned — `listdir(item)` through `_ordered`, filtered by #87; unknown passed
 
     These are records nothing reads. `rounds()` looks one level down and a
     reader that merely found nothing would report the same silence as a work

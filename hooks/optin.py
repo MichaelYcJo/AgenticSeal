@@ -47,17 +47,14 @@ SCRATCH = "specseal-scratch"
 
 
 def repo_root(cwd):
-    """The repository root containing cwd, or "" when there is none.
-
-    Reads: observed — `git rev-parse --show-toplevel`; unknown passed
-    """
+    """The repository root containing cwd, or "" when there is none."""
     # RIDER: every caller of this module resolves the root again. Counted with
     # a logging `git` on PATH: one gated command costs five `git` calls per
     # target and three of them are `rev-parse --show-toplevel` -- the commit
     # gate's own `root_of`, then `opted_in` and `parity_config` below. Fixing
     # it means passing the root in or memoising here, and three gates import
     # this module, so it is a change to all of them at once.
-    # Verified 2026-10-12 against repo_root@50cb8e17.
+    # Verified 2026-08-31 against repo_root@0d131b0f.
     if not cwd or not os.path.isdir(cwd):
         return ""
     try:
@@ -219,10 +216,7 @@ def opted_in(cwd):
 
 
 def parity_config(cwd):
-    """Path to the migration config, or "" when there is none.
-
-    Reads: owned — isfile `<home>/parity.md`; unknown passed
-    """
+    """Path to the migration config, or "" when there is none."""
     root = home(cwd)
     if not root:
         return ""

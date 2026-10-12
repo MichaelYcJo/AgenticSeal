@@ -297,10 +297,6 @@ def _closes(command, i):
 def _heredoc_word(command, i):
     """(delimiter, index after it) for the word a `<<` redirect names.
 
-    Reads: guess — the text after `<<`; unknown passed
-
-    Passed: empty delimiter, so no body opens.
-
     The delimiter may be quoted (`<<'EOF'`, `<<"EOF"`) or bare, and quoting is
     what decides whether the SHELL expands the body — which this reader does
     not care about, because it drops the body either way. What it does decide
@@ -333,11 +329,6 @@ def _heredoc_word(command, i):
 
 def drop_heredoc_bodies(command: str) -> str:
     """`command` with heredoc BODIES removed, quotes and comments respected.
-
-    Reads: guess — raw command: `<<`, `<<-`, `<<<`, `$((`, `$[`, `((`, `${`, newlines; unknown mixed
-
-    Mixed: an unterminated body runs to the end of the input; an unbalanced `${` hides a
-    `((` region (fails open, as `_heredoc_split`'s comment on an unbalanced `${` says)
 
     A heredoc body is data. The shell feeds it to a command on stdin and never
     executes it, so a JUDGMENT read has to drop it — the same rule, and the
@@ -381,11 +372,6 @@ def drop_heredoc_bodies(command: str) -> str:
 
 def heredoc_bodies(command: str) -> list:
     """The text of every heredoc body `drop_heredoc_bodies` removes, in order.
-
-    Reads: guess — raw command: `<<`, `<<-`, `<<<`, `$((`, `$[`, `((`, `${`, newlines; unknown mixed
-
-    Mixed: an unterminated body runs to the end of the input; an unbalanced `${` hides a
-    `((` region (fails open, as `_heredoc_split`'s comment on an unbalanced `${` says)
 
     Same reach and the same blind spots — two on one line come back in
     delimiter order, one inside quotes or a subshell is invisible here exactly
@@ -609,13 +595,6 @@ def _heredoc_split(command: str):
 def split_segments(command):
     """Split into pipeline/list segments while respecting quotes.
 
-    Reads: guess — the command through shlex with `punctuation_chars=";|&"`; unknown mixed
-
-    What it reads, continued: an unquoted newline becomes ` ; `; backslash-newline.
-
-    Mixed: an unclosed quote returns the segments read so far with clean=False, and each
-    caller chooses what that means.
-
     A regex split on `;`/`&&`/newline breaks inside quoted strings, so the
     heredoc commit form Claude Code itself uses (`git commit -m "$(cat
     <<'EOF' ...)"`) fell apart mid-quote and slipped past the commit gate.
@@ -639,13 +618,6 @@ def split_segments(command):
 
 def split_segments_with_separators(command):
     """The same split, keeping the operator that joined each segment.
-
-    Reads: guess — the command through shlex with `punctuation_chars=";|&"`; unknown mixed
-
-    What it reads, continued: an unquoted newline becomes ` ; `; backslash-newline.
-
-    Mixed: an unclosed quote returns the segments read so far with clean=False, and each
-    caller chooses what that means.
 
     Returns ([(separator, tokens), ...], parsed_cleanly). `separator` is the
     operator that joined this segment to the one before it, "" for the first.
@@ -881,12 +853,7 @@ _NAME_TAIL = _NAME_HEAD | frozenset("0123456789")
 # carrying quote provenance out of the splitter, which changes how every
 # argument in every command tokenizes. Pinned by test so it stays a decision.
 def _name_at(text, i):
-    """(name, index past it) for a shell name starting at `i`, else (None, i).
-
-    Reads: guess — the shell name starting at one index of an operand; unknown passed
-
-    Passed: no name there gives (None, i), and the caller keeps the `$` as written.
-    """
+    """(name, index past it) for a shell name starting at `i`, else (None, i)."""
     if i < len(text) and text[i] in _NAME_HEAD:
         j = i + 1
         while j < len(text) and text[j] in _NAME_TAIL:
@@ -1869,10 +1836,6 @@ _ENV_LONG = {long: value for _short, long, value in ENV_OPTIONS if long}
 def _env_long(name, abbreviated):
     """The long option NAME spells in `ENV_OPTIONS`, or None.
 
-    Reads: guess — one `--` option name after `env`, exact or a GNU getopt prefix of one name; unknown passed
-
-    Passed: a name that is no `_ENV_LONG` option, or a prefix of two, gives None.
-
     Exactly, or, where ABBREVIATED, as the one long name it is a prefix of,
     which is GNU getopt's rule; `--` alone is no prefix.
     """
@@ -2176,13 +2139,7 @@ def _behind_a_runner(toks):
 
 
 def _expands(word):
-    """True when WORD's first token is a command word the shell expands.
-
-    Reads: guess — a string handed to a shell; unknown refused
-
-    Refused: a first word holding an `EXPANDS` character counts as expanding, so the commit
-    gate stops.
-    """
+    """True when WORD's first token is a command word the shell expands."""
     if not word or word[0] in RESERVED or word[0] == "[":
         return False
     return any(ch in word[0] for ch in EXPANDS)
@@ -2496,8 +2453,6 @@ class Unresolved(str):
 def strip_subshell(tokens):
     """(tokens, opened) with a leading subshell opener taken off the word.
 
-    Reads: guess — a leading `(`, `((`, `{`; unknown passed
-
     A shell ends a word at `(` and `)`; shlex here is told only about `;`, `|`
     and `&`, so `(cd /tmp/x && git commit)` arrives as `(cd` … `commit)` and
     BOTH readers missed it — the `cd` was not a `cd` and the `git` was not a
@@ -2521,11 +2476,6 @@ def strip_subshell(tokens):
 
 def _cd_target(tokens):
     """(kind, operand) when this segment is a `cd`, else None.
-
-    Reads: guess — a `cd` segment; unknown refused
-
-    Refused: a destination this process cannot compute is kind "unknown", which the
-    walk reads as `Unresolved`.
 
     `kind` is "path" when the destination is written out, "home" for a bare
     `cd`, "previous" for `cd -`, and "unknown" when the shell would arrive
@@ -2558,10 +2508,6 @@ def _dedup(states):
     """States in order, keeping a readable directory apart from an unreadable
     one that happens to spell the same path.
 
-    Reads: guess — the (directory, previous) states the walk built from the segments; unknown refused
-
-    Refused: an `Unresolved` state is kept apart from a readable one that spells the same path.
-
     Which branch a shell arrived by is not part of the identity any more: the
     two live in separate lists, so a state cannot be in both at once.
     """
@@ -2576,10 +2522,6 @@ def _dedup(states):
 
 def _directories(states):
     """The distinct directories in `states`, in order.
-
-    Reads: guess — the (directory, previous) states the walk built from the segments; unknown refused
-
-    Refused: an `Unresolved` directory is kept apart from a readable one that spells the same path.
 
     Two shells that arrived at one directory by different routes are one
     candidate, not two: `cd N || cd B` reaches B from both branches and
@@ -2650,10 +2592,6 @@ def _capped(states, parked):
 def _step(here, operand):
     """`here` after a `cd` to `operand`, as `git -C` would resolve it.
 
-    Reads: guess — a `cd` operand and the directory the shell stood in; unknown refused
-
-    Refused: an unreadable start stays `Unresolved`
-
     The same `apply_chdir` a `-C` value goes through, which is what carries
     the Windows path handling: the guard doubles backslashes before the
     splitter sees them and `normpath` (`ntpath` there) collapses what is left,
@@ -2666,12 +2604,7 @@ def _step(here, operand):
 
 
 def _land(here, prev, target):
-    """Where a `cd` puts a shell that was in `here`, having come from `prev`.
-
-    Reads: guess — the cd kind and operand, and the previous directory; unknown refused
-
-    Refused: an unreadable start stays `Unresolved`
-    """
+    """Where a `cd` puts a shell that was in `here`, having come from `prev`."""
     kind, operand = target
     if kind == "unknown":
         return Unresolved(apply_chdir(here, [operand or "."]))
@@ -2701,10 +2634,6 @@ def _land(here, prev, target):
 
 def compose(base, chdirs):
     """`apply_chdir`, keeping an unreadable base unreadable.
-
-    Reads: guess — `-C` and cd path text; unknown passed
-
-    Passed: any text is joined and normpath'd.
 
     A `git -C sub` inside a directory the reader could not identify still
     lands somewhere it cannot identify. An absolute `-C` does not depend on
@@ -3152,10 +3081,6 @@ def adds_a_worktree(tokens) -> bool:
 
 def apply_chdir(cwd: str, chdirs) -> str:
     """The directory a git invocation actually operates in.
-
-    Reads: guess — `-C` and cd path text; unknown passed
-
-    Passed: any text is joined and normpath'd.
 
     `git -C <path>` moves git without moving the shell, and repeats compose --
     each value is relative to the one before it. A guard that resolves the

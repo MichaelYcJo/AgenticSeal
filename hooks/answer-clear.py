@@ -12,7 +12,6 @@ import console
 
 
 def main():
-    """Reads: observed — payload `tool_name`, `tool_input.command`, `tool_use_id`, `session_id`; unknown passed"""
     try:
         payload = json.load(sys.stdin)
     except Exception:

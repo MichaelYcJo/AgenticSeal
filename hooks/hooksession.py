@@ -145,12 +145,7 @@ def call_args(start=None, depth=20):
 
 
 def lease_dirs(common):
-    """Every `specseal-leases` directory of the clone at `common`.
-
-    Reads: observed — the `specseal-leases` directories under the common dir and `worktrees/*/`; unknown passed
-
-    Passed: a `worktrees` directory that will not list reads as none.
-    """
+    """Every `specseal-leases` directory of the clone at `common`."""
     found = [os.path.join(common, LEASES)]
     worktrees = os.path.join(common, "worktrees")
     try:
