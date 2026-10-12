@@ -8,3 +8,10 @@
   same judgment is copied — beside 35 record mechanisms with what each cost
   since 0.18.0, and the 63 issues since 0.18.0 by family. The decisions it
   led to are their own issues in this release.
+
+- **The reader registry says where a `Reads:` line's direction word is read
+  (#834).** `docs/the-reader-registry.md` now defines the direction as where
+  an input the unit does not understand ends, read through to the decision
+  its value feeds, so a helper's direction is read at its callers rather than
+  on its own body. This is the inventory's meaning, which #835 adopted, and
+  the reading a declaration on a helper had kept getting wrong.
