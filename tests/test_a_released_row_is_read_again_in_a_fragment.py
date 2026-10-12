@@ -869,8 +869,11 @@ def test_a_removes_row_that_is_not_an_id_is_refused_in_the_freezes_shape(repo):
     )
     out = run(["."], repo)
     assert out.returncode == 2, out.stdout + out.stderr
+    # The path is `display_name`'s, `seal\config.md` on Windows, so the line
+    # is compared with `/` throughout, as #867's freeze cases compare theirs.
     line = next(x for x in out.stdout.splitlines() if "REFUSED" in x)
-    assert line.replace(os.sep, "/").split()[:2] == ["REFUSED", "seal/config.md"]
+    line = line.replace(os.sep, "/")
+    assert line.split()[:2] == ["REFUSED", "seal/config.md"]
     assert line.endswith(
         "the `Removes from` row of seal/config.md holds `17x`, which is not a "
         "work-item id — write the epoch prefix of the first work item the "
