@@ -26,7 +26,9 @@ A) Branch switching (Bash: `git switch`, and every git shape not known to
   - cannot tell (process inspection unusable)       -> the same CHOICE
   - tracked changes present (dirty)                 -> ask the user first; this
     one really is yes/no (the branch is the same either way, and the only
-    question is whether the uncommitted changes ride along)
+    question is whether the uncommitted changes ride along). Where the person
+    pressed `automation`, a `deny` to the model instead, naming commit-first
+    and the stash sequence each as a command of its own (#894)
   - otherwise (single work stream, clean)           -> allow the plain switch
 
   A command that also creates a worktree is judged by these rows, whichever of
@@ -3264,6 +3266,71 @@ def main():
                 "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
             )
         )
+        # Two readers, as the unrecognised-shape stop has (#894). Where this
+        # session's person pressed `automation`, nobody is at the keyboard to
+        # answer the yes/no below, and the answer they would give -- commit
+        # first -- is not one of its two buttons. So the model gets the turn:
+        # a `deny` naming the ways on that need nobody, each a command of its
+        # own, because this guard reads the tree before a line runs and a
+        # `git stash && git switch x` meets this same row. The press is read
+        # by the reader the stop uses, from the session's own root, and only
+        # here: the stop exits before the ladder whenever it fires, so one
+        # command never reads the transcript twice (W2 of work item
+        # 1791779434). A detached HEAD is named as a check the model runs,
+        # not read here: one more git spawn per dirty switch for a sentence
+        # the model can test itself (W1).
+        if automation_pressed(repo_paths(cwd)[0], session_id, transcript_path):
+            respond(
+                "deny",
+                tr(
+                    f"{lead}, so the switch itself may go ahead — but there are "
+                    f"{len(entries)} uncommitted tracked changes, and they would "
+                    f"follow it onto the target branch:\n{listing}\n{note}\n"
+                    "This session's person pressed `automation` on the routing "
+                    "question, so this guard puts no question to them, and none "
+                    "is to be put to them in its place.\n\n"
+                    "The ways on, none of which needs a person. Issue each "
+                    "command on its own: this guard reads the tree before a "
+                    f"command runs, so `{git} stash && {git} switch <branch>` on "
+                    "one line meets this same refusal.\n"
+                    f"  1. Commit the changes here first (`{git} commit …`), then "
+                    "re-issue the switch. On a branch a `routing.md` declares, "
+                    "the commit gate is silent for that commit, and a feature "
+                    "branch squashes at the merge. Where HEAD is detached "
+                    f"(`{git} branch --show-current` prints nothing), the commit "
+                    f"lands on no branch: name it with `{git} branch <name>` "
+                    "before the switch, or take way 2.\n"
+                    f"  2. `{git} stash`, then the switch, then `{git} stash "
+                    "pop`. The pop applies the changes to whatever is checked "
+                    "out when it runs: after the switch it carries them onto "
+                    "the target branch, and after a switch back it returns them "
+                    "here.\n\n"
+                    "Re-issuing this command unchanged meets this same refusal.",
+                    f"{lead} 전환 자체는 진행할 수 있지만, 커밋되지 않은 변경 "
+                    f"{len(entries)}건이 있고 전환하면 이 변경이 대상 브랜치로 "
+                    f"따라갑니다:\n{listing}\n{note}\n"
+                    "이 세션의 사용자가 라우팅 질문에서 `automation` 을 "
+                    "눌렀습니다. 그래서 이 guard 는 사용자에게 아무것도 묻지 "
+                    "않으며, 다른 방법으로 대신 물어서도 안 됩니다.\n\n"
+                    "사람이 없어도 되는 길은 아래 둘입니다. 명령은 하나씩 따로 "
+                    "실행하세요. 이 guard 는 명령이 실행되기 전에 트리를 "
+                    f"읽으므로, `{git} stash && {git} switch <branch>` 처럼 한 "
+                    "줄에 쓰면 같은 거부를 받습니다.\n"
+                    f"  1. 먼저 여기서 변경을 커밋하고(`{git} commit …`) 전환을 "
+                    "다시 실행합니다. `routing.md` 가 선언한 브랜치에서는 커밋 "
+                    "게이트가 이 커밋을 막지 않고, 기능 브랜치는 병합할 때 "
+                    "squash 됩니다. HEAD 가 분리되어 있으면"
+                    f"(`{git} branch --show-current` 가 아무것도 출력하지 "
+                    "않으면) 커밋이 어느 브랜치에도 남지 않습니다. 전환 전에 "
+                    f"`{git} branch <name>` 으로 이름을 붙이거나 2번을 "
+                    "택하세요.\n"
+                    f"  2. `{git} stash`, 전환, `{git} stash pop` 을 차례로 "
+                    "실행합니다. pop 은 실행하는 시점에 체크아웃되어 있는 곳에 "
+                    "변경을 적용합니다. 전환 뒤에 실행하면 변경이 대상 브랜치로 "
+                    "가고, 다시 돌아온 뒤에 실행하면 이 브랜치로 돌아옵니다.\n\n"
+                    "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
+                ),
+            )
         respond(
             "ask",
             (

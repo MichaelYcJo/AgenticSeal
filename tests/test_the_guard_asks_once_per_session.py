@@ -1788,14 +1788,16 @@ def test_under_the_press_the_stop_is_a_deny_to_the_model(
 
 
 def test_the_plain_retry_meets_todays_rows(monkeypatch, capsys, projects, repo):
-    """S6. The deny's rewrite reaches the ladder, which asks the person about
-    the changes in a dirty tree, press or none, and denies with the worktree
-    steer where another session is ACTIVE."""
+    """S6 of work item 1791779434, which rewrote 1791270162's S6. The deny's
+    rewrite reaches the ladder. Under the press the tracked-changes row is a
+    deny to the model too, so neither issue reaches a person; where another
+    session is ACTIVE both are the deny with the worktree steer, as before.
+    Seen red at `c38f97d7`: the plain retry was the person's `ask`."""
     write_transcript(projects, "me", ask_entries(repo))
     dirty(repo)
     assert decide(monkeypatch, capsys, repo, "git checkout feature/x")[0] == "deny"
     decision, reason = decide(monkeypatch, capsys, repo, "git switch feature/x")
-    assert decision == "ask" and "uncommitted tracked changes" in reason, reason
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
     assert STOP not in reason, reason
 
     (repo / "f.txt").write_text("one\ntwo\nthree\n", encoding="utf-8")
@@ -1819,3 +1821,211 @@ def test_the_consent_record_is_not_the_press(monkeypatch, capsys, projects, repo
     dirty(repo)
     decision, reason = decide(monkeypatch, capsys, repo, "git checkout feature/x")
     assert decision == "ask" and STOP in reason, reason
+
+
+# --- #894: under the press, the tracked-changes row asks nobody -------------
+#
+# Work item 1791779434. The row of `docs/worktree-guard-spec.md` §A that the
+# 0.21.0 run met with nobody at the keyboard: a `git switch` over one modified
+# tracked file put a yes/no to the owner in a run routed `automation`. Under
+# the press it is a deny to the model naming the ways on that need nobody;
+# attended it is the `ask` it was (`tests/test_worktree_guard.py`, S2).
+
+SINGLE = {"en": "Single-stream tree", "ko": "이 트리는 단건 작업이라"}
+TOKEN = {
+    "en": "[shared-tree-ok] carries the user's answer to switch in this shared tree",
+    "ko": "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
+}
+
+
+def dirty_deny(lang, lead):
+    """W1: the deny's one text for `dirty(repo)`, issued from inside the tree."""
+    if lang == "en":
+        return (
+            f"{lead}, so the switch itself may go ahead — but there are 1 "
+            "uncommitted tracked changes, and they would follow it onto the "
+            "target branch:\n"
+            "     M  f.txt\n"
+            "\n"
+            "This session's person pressed `automation` on the routing question, "
+            "so this guard puts no question to them, and none is to be put to "
+            "them in its place.\n"
+            "\n"
+            "The ways on, none of which needs a person. Issue each command on "
+            "its own: this guard reads the tree before a command runs, so `git "
+            "stash && git switch <branch>` on one line meets this same refusal.\n"
+            "  1. Commit the changes here first (`git commit …`), then re-issue "
+            "the switch. On a branch a `routing.md` declares, the commit gate is "
+            "silent for that commit, and a feature branch squashes at the merge. "
+            "Where HEAD is detached (`git branch --show-current` prints nothing), "
+            "the commit lands on no branch: name it with `git branch <name>` "
+            "before the switch, or take way 2.\n"
+            "  2. `git stash`, then the switch, then `git stash pop`. The pop "
+            "applies the changes to whatever is checked out when it runs: after "
+            "the switch it carries them onto the target branch, and after a "
+            "switch back it returns them here.\n"
+            "\n"
+            "Re-issuing this command unchanged meets this same refusal."
+        )
+    return (
+        f"{lead} 전환 자체는 진행할 수 있지만, 커밋되지 않은 변경 1건이 있고 "
+        "전환하면 이 변경이 대상 브랜치로 따라갑니다:\n"
+        "     M  f.txt\n"
+        "\n"
+        "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+        "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 물어서도 "
+        "안 됩니다.\n"
+        "\n"
+        "사람이 없어도 되는 길은 아래 둘입니다. 명령은 하나씩 따로 실행하세요. "
+        "이 guard 는 명령이 실행되기 전에 트리를 읽으므로, `git stash && git "
+        "switch <branch>` 처럼 한 줄에 쓰면 같은 거부를 받습니다.\n"
+        "  1. 먼저 여기서 변경을 커밋하고(`git commit …`) 전환을 다시 "
+        "실행합니다. `routing.md` 가 선언한 브랜치에서는 커밋 게이트가 이 커밋을 "
+        "막지 않고, 기능 브랜치는 병합할 때 squash 됩니다. HEAD 가 분리되어 "
+        "있으면(`git branch --show-current` 가 아무것도 출력하지 않으면) 커밋이 "
+        "어느 브랜치에도 남지 않습니다. 전환 전에 `git branch <name>` 으로 이름을 "
+        "붙이거나 2번을 택하세요.\n"
+        "  2. `git stash`, 전환, `git stash pop` 을 차례로 실행합니다. pop 은 "
+        "실행하는 시점에 체크아웃되어 있는 곳에 변경을 적용합니다. 전환 뒤에 "
+        "실행하면 변경이 대상 브랜치로 가고, 다시 돌아온 뒤에 실행하면 이 "
+        "브랜치로 돌아옵니다.\n"
+        "\n"
+        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
+    )
+
+
+def verdict_in(module, monkeypatch, capsys, repo, command, sessions, session_id):
+    """`decide` for a module loaded under another language."""
+    monkeypatch.setattr(module, "sessions_in_tree", lambda top, own="": sessions)
+    monkeypatch.setattr(
+        module,
+        "load_input",
+        lambda: {
+            "tool_name": "Bash",
+            "session_id": session_id,
+            "tool_input": {"command": command},
+            "cwd": str(repo),
+        },
+    )
+    try:
+        module.main()
+    except SystemExit:
+        pass
+    d = json.loads(capsys.readouterr().out)["hookSpecificOutput"]
+    return d["permissionDecision"], d["permissionDecisionReason"]
+
+
+def test_under_the_press_the_dirty_row_is_a_deny_to_the_model(
+    monkeypatch, capsys, projects, repo
+):
+    """S1. The whole text is pinned in both languages: the changes listed,
+    commit-first and the stash sequence each as a command of its own, what
+    `pop` applies to, the detached-HEAD check, the re-issue sentence, and no
+    question tool. Seen red at `c38f97d7`: the row answered `ask`."""
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+    decision, reason = decide(monkeypatch, capsys, repo, "git switch feature/x")
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
+    assert "AskUserQuestion" not in reason, reason
+
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_894_ko")
+    monkeypatch.setattr(wko.worktree_consent, "PROJECTS_ROOT", str(projects))
+    decision, reason = verdict_in(
+        wko, monkeypatch, capsys, repo, "git switch feature/x", ([], [], True), "me"
+    )
+    assert (decision, reason) == ("deny", dirty_deny("ko", SINGLE["ko"])), reason
+    assert "AskUserQuestion" not in reason, reason
+
+
+def test_the_token_does_not_reach_the_dirty_row_under_the_press_either(
+    monkeypatch, capsys, projects, repo
+):
+    """S3. `[shared-tree-ok]` stands the two choice rows aside and answers
+    nothing about the changes, so a dirty tree reaches the same deny with the
+    token's lead, in both languages. Seen red at `c38f97d7`: `ask`."""
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_894_token_ko")
+    monkeypatch.setattr(wko.worktree_consent, "PROJECTS_ROOT", str(projects))
+    command = "git switch other  # [shared-tree-ok]"
+    for sessions in (([], IDLE, True), ([], [], False)):
+        decision, reason = decide(monkeypatch, capsys, repo, command, sessions)
+        assert (decision, reason) == ("deny", dirty_deny("en", TOKEN["en"])), reason
+        assert reason.splitlines()[0].startswith("[shared-tree-ok] carries"), reason
+        decision, reason = verdict_in(
+            wko, monkeypatch, capsys, repo, command, sessions, "me"
+        )
+        assert (decision, reason) == ("deny", dirty_deny("ko", TOKEN["ko"])), reason
+
+
+def git_in(repo, *args):
+    """git run between two issues, as the shell would after a silent guard."""
+    r = subprocess.run(
+        ["git", "-C", str(repo), *args],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    assert r.returncode == 0, (args, r.stdout, r.stderr)
+    return r.stdout.strip()
+
+
+def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
+    """S4, run rather than read (`agent-contract` §13). Each way on the deny
+    names, issued as the commands it says, passes the guard at every issue,
+    and git leaves the change where the deny said it would."""
+    write_transcript(projects, "me", ask_entries(repo))
+    here = git_in(repo, "branch", "--show-current")
+
+    dirty(repo)
+    for command in ("git commit -am x", "git switch feature/x"):
+        assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
+        git_in(repo, *command.split()[1:])
+    assert git_in(repo, "branch", "--show-current") == "feature/x"
+    assert git_in(repo, "status", "--porcelain") == ""
+    assert git_in(repo, "show", f"{here}:f.txt") == "changed"
+
+    git_in(repo, "switch", "-q", here)
+    git_in(repo, "reset", "-q", "--hard", "HEAD~1")
+    dirty(repo)
+    for command in ("git stash", "git switch feature/x", "git stash pop"):
+        assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
+        git_in(repo, *command.split()[1:])
+    assert git_in(repo, "branch", "--show-current") == "feature/x"
+    assert git_in(repo, "status", "--porcelain") == "M f.txt"
+
+
+def test_a_compound_stash_and_switch_meets_the_deny(
+    monkeypatch, capsys, projects, repo
+):
+    """S5. The guard reads the tree before the line runs, so the stash in
+    front of the switch has not run yet: the deny, with the text that says to
+    issue them apart, rather than a way on that loops. Seen red at
+    `c38f97d7`: `ask`."""
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+    decision, reason = decide(
+        monkeypatch, capsys, repo, "git stash && git switch feature/x"
+    )
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
+    assert "Issue each command on its own" in reason, reason
+
+
+def test_a_creation_on_the_dirty_line_is_stopped_with_it(
+    monkeypatch, capsys, projects, repo
+):
+    """S7. The press is consent for the creation, which is silent for a
+    compound, and the switch behind it meets the deny: the whole line stops,
+    so the creation does not run and nothing is recorded for it. Seen red at
+    `c38f97d7`: `ask`, whose approval would have run both."""
+    write_transcript(projects, "me", ask_entries(repo))
+    assert not consent_dir(repo).exists()
+    dirty(repo)
+    decision, reason = decide(
+        monkeypatch, capsys, repo, "git switch feature/x && git worktree add ../wt f"
+    )
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
+    assert not (consent_dir(repo) / "me").exists()
+    assert not (repo.parent / "wt").exists()
