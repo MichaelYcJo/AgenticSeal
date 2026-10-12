@@ -29,8 +29,9 @@ What it does, in order, from the repository root:
      the test was seen passing in it (#836). A preflight runs no suite and
      hands none, and the check reads test rows for existence alone
   3. `unverified-check --baseline <base> seal/specs/`
-  4. `chain_check.py --baseline <base>`   judged as a DRAFT pull request,
-     because the cell this run is about to write still reads `not yet`
+  4. `chain_check.py --baseline <base> --sealing`   judged by the pull
+     request's state as the check reads it, with the `Broad gate` cell this
+     run is about to write excused, because it still reads `not yet`
   5. `survivor-check --range <base>...HEAD`, with every
      `seal/specs/*/survivors.md` as `--exempt`
   6. `correction_check.py --range <base>...HEAD`   no merge on this branch
@@ -239,6 +240,9 @@ CORRECTION = os.path.join(
 )
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
 CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py")
+# `chain_check.SEALING`, the flag the chain arm passes (#866). Spelled here
+# because the arm runs the check as a process; a case holds the two equal.
+CHAIN_SEALING = "--sealing"
 SURVIVOR = os.path.join(PLUGIN, "skills", "code-review", "scripts", "survivor_check.py")
 RECORD = os.path.join(PLUGIN, "skills", "code-review", "scripts", "round_record.py")
 # The branch → work item key the preflight's ask reads (#702).
@@ -1821,27 +1825,6 @@ def command_names_backslashed(command, is_directory):
     return "".join(out)
 
 
-def draft_env(keep):
-    """The environment `chain_check.py` runs under: a draft pull-request
-    payload, unless the caller's environment already carries one.
-
-    The gate runs BEFORE `seal` writes the cell, so at this moment the last
-    record honestly reads `not yet` — and `chain_check.py` judged as READY
-    fails that cell as the run that never happened. Judged as a draft it
-    excuses exactly that and nothing else, the way `round_record.run_check`
-    already does for a record being generated. Inside a workflow the payload
-    GitHub wrote is the authority and is left alone.
-    """
-    env = dict(os.environ)
-    if env.get("GITHUB_EVENT_PATH"):
-        return env
-    payload = os.path.join(keep, "draft-event.json")
-    with open(payload, "w", encoding="utf-8") as handle:
-        json.dump({"pull_request": {"draft": True}}, handle)
-    env["GITHUB_EVENT_PATH"] = payload
-    return env
-
-
 def exemptions(home):
     return sorted(glob.glob(os.path.join(home, SPECS, "*", SURVIVORS)))
 
@@ -2921,65 +2904,27 @@ def sealed_record(item, root):
     return Record(path, rows, lines, generator.chain, reader)
 
 
-# What a home looks like inside a deferral's prose: an issue, or a file — a
-# path whose last part carries an extension, so `CI/CD`, `and/or` and
-# `stdout/stderr` stay words and an issue after them is still found (round 2
-# of #666).
-HOME_TOKEN = re.compile(r"#\d+|[\w-][\w.-]*(?:/[\w.-]+)*\.[A-Za-z]\w+\b")
-# Where a home written as words ends: a spaced dash, or a sentence's stop.
-HOME_END = re.compile(rf" [{chr(0x2014)}{chr(0x2013)}-] |\. ")
-
-
-def deferred_home(chain, cell):
-    """The home a `deferred <home>` verdict cell names, or None.
-
-    `chain_check.verdict_of` hands back the bare word for a homed deferral —
-    it answers *is this closed*, and the home is not part of that answer — so
-    the home is read here off the same cell, after `MARKER` and up to the
-    same separators (`SEPARATORS`), and only for a row `verdict_of` already
-    called `deferred`. The marks are taken off by a narrower pattern than
-    `chain_check.EMPHASIS`, which removes every `_`: code spans, asterisks,
-    and an underscore only at a word's edge, so `tests/test_x.py` keeps its
-    name (round 2's 🟡 2 of #666). Written inline, as `suite_counts` writes
-    its clock, because `re` caches it.
-
-    **An issue or a path anywhere in what follows is the home** (round 1's
-    🟡 2 of #666): the tree writes `deferred — issue #97 already holds…` and a
-    person types `deferred to #664` or `deferred → #664`, and the first word
-    after `deferred` was `issue`, `to` and `→`. Where there is neither, the
-    words up to the first spaced dash or full stop are the home, so `phase 9
-    of this branch` prints whole rather than as `phase`. What is returned is
-    ASCII, because the letter twin exists for a console that is not UTF-8:
-    leading punctuation goes (`MARKER`), and anything else outside ASCII
-    reads `?`, the way such a console would print it."""
-    marks = re.sub(r"`|\*+|(?<!\w)_+|_+(?!\w)", "", cell)
-    s = chain.MARKER.sub("", marks.strip())
-    if not s.lower().startswith(chain.DEFERRED):
-        return None
-    rest = s[len(chain.DEFERRED) :].strip(chain.SEPARATORS)
-    found = HOME_TOKEN.search(rest)
-    if found:
-        home = found.group(0)
-    else:
-        words = chain.MARKER.sub("", rest)
-        home = HOME_END.split(words, maxsplit=1)[0] if words else ""
-    home = home.rstrip(".,;:)")
-    return home.encode("ascii", "replace").decode("ascii") or None
-
-
 def rounds_rows(item, record):
     """The `rounds` row and, where it has one, the row beneath it (#666).
 
     `<R>` is the count of round records, as before. ` · capped` is appended
-    where the last record's `Needs a fix` begins `yes`: `seal` has already
-    refused an unchecked `Pass`, so that is a record whose every finding
-    closed while the reviewer's own answer still says the round needed a fix
-    — the shape `skills/verify/SKILL.md` §*The broad gate* defines a run
-    that ended at the cap by. The row beneath counts the verdict rows
+    where the last record's `Needs a fix` says the run reopened as
+    `chain_check.says_reopened` reads it (#866): `seal` has already refused
+    an unchecked `Pass`, so that is a record whose every finding closed while
+    the reviewer's own answer still says the round needed a fix — the shape
+    `skills/verify/SKILL.md` §*The broad gate* defines a run that ended at
+    the cap by. The panel is that cell's third reader and has no reading of
+    its own: a cell `says_reopened` answers None for — `yes` alone, a word
+    outside the vocabulary, an empty cell — is a record that cannot answer,
+    and prints `<R>` alone like the shapes below. The row beneath counts the verdict rows
     `chain_check.verdict_of` calls `deferred` or `deferred (no home)` and
     lists the distinct homes after `→`, in table order, a homeless deferral
     counted and naming none. The two were ` . ` and `->` until #832 (`SEP`,
-    `ARROW`).
+    `ARROW`). A home is `chain_check.deferred_home`'s answer (#866): what
+    stands after the word up to the first ` — `, as `close` writes it, so a
+    home written as prose prints as that prose. It reaches the panel as
+    ASCII, anything outside it reading `?`, because the letter twin maps only
+    the owner's characters and a home is somebody's text.
 
     Read off the table regardless of `capped`, because the two come apart in
     this tree: measured 2026-10-01 over every work item whose last record has
@@ -2989,7 +2934,8 @@ def rounds_rows(item, record):
 
     **`<R>` alone wherever the record cannot answer both questions** — a
     record that cannot be read, a `broad-gate.md` home, a record with no
-    `Needs a fix` row, and one with no readable `## Verdicts` table. Half an
+    `Needs a fix` row or one `says_reopened` cannot read, and one with no
+    readable `## Verdicts` table. Half an
     answer there would be a `capped` with no count beside it, or a count
     with nothing saying whether the run was capped, and neither is a shape
     `seal` leaves on a record it accepted (`spec.md` S4)."""
@@ -3001,15 +2947,24 @@ def rounds_rows(item, record):
     found, col, _header, _errors = chain.verdict_table(
         reader, record.lines, os.path.basename(record.path)
     )
-    if needs is None or col < 0:
+    # The string the gate hands it (`chain_check.record_facts`): invisible
+    # characters off first, so the panel and the gate read one cell one way
+    # (round 1's 🟡 3).
+    reopened = (
+        chain.says_reopened(reader.visible(needs).strip())
+        if needs is not None
+        else None
+    )
+    if reopened is None or col < 0:
         return [("rounds", head)]
-    if reader.visible(needs).strip().lower().startswith("yes"):
+    if reopened:
         head += f"{SEP}capped"
     count, homes = 0, []
     for _line, seen in found:
         word = chain.verdict_of(seen, col)
         if word == chain.DEFERRED:
-            home = deferred_home(chain, seen[col])
+            home = chain.deferred_home(seen[col])
+            home = home.encode("ascii", "replace").decode("ascii") if home else None
             if home and home not in homes:
                 homes.append(home)
         elif word != f"{chain.DEFERRED} {chain.NO_HOME}":
@@ -3589,12 +3544,16 @@ def gate(args, console_wants_letters, terminal=False):
         root,
         keep,
     )
+    # `--sealing` (#866): this run writes the last record's `Broad gate` cell
+    # after it seals, so that cell still reads `not yet` here, and the flag
+    # excuses that one arm in the check's own words. The pull request's state
+    # is the check's to read -- the payload, else `gh` -- and nothing is
+    # written into the environment for it.
     checks[CHAIN_NAME] = run(
         CHAIN_NAME,
-        [py, CHAIN, "--baseline", base.commit, "--root", root],
+        [py, CHAIN, "--baseline", base.commit, "--root", root, CHAIN_SEALING],
         root,
         keep,
-        env=draft_env(keep),
     )
     if SURVIVORS_NAME not in skipped:
         survivor_args = [

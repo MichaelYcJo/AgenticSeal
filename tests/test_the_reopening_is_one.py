@@ -26,7 +26,11 @@ import subprocess
 import sys
 
 import pytest
-from conftest import committed_round_records_on_disk, cutoff_item_is_traceable
+from conftest import (
+    committed_round_records_on_disk,
+    cutoff_item_is_traceable,
+    gh_answers,
+)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CHECK = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
@@ -213,7 +217,9 @@ def reopening(sha, reader, floor="no"):
 
 
 def run(repo):
-    env = dict(os.environ)
+    # The local run judged as a ready pull request: no payload, and a `gh`
+    # that says ready (#866, round 1's 🟡 2).
+    env = gh_answers(dict(os.environ), "ready")
     env.pop("GITHUB_EVENT_PATH", None)
     env.pop("GITHUB_HEAD_REF", None)
     r = subprocess.run(

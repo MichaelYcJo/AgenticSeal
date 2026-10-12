@@ -3,6 +3,8 @@
 Authority for the rows of `seal/specs/<work-item-id>/rounds/round-N.md` as the
 pull-request check reads them, one section per row, and for
 `skills/code-review/scripts/round_record.py`, the generator that writes them.
+The check is the one reader of every cell: the generator, the broad gate's
+panel and the release seal read a cell through `chain_check.py` (#866).
 What sends a work item's records to this check is
 `docs/the-review-and-parity-arms.md` §*The declaration, and where the check
 went instead*. The rows the review run's bound rests on — the floor, `Needs a fix`
@@ -21,19 +23,19 @@ finished, and neither is a state to ask for a merge in.
 |---|---|
 | ready | fails. The review did not finish, and the pull request says it did |
 | draft | passes. A draft is not a request to merge, and a review still running has to have somewhere to be |
-| not visible to the check at all | judged as **ready** |
+| a payload that cannot answer | judged as **ready**, a harness fault |
+| no payload, and `gh` cannot say | **unknown**: not judged as ready |
 
-That last row is the decision, and it is deliberately the strict one. The
-draft state is read from the event payload the code host writes to disk, so a
-run outside a pull-request event — a session running the check by hand — has
-no pull request to read. Judged as a draft, "no pull-request context" would
-become the quietest way past this check that exists, quieter than
-`[no-review]`, which at least stays in the command where history keeps it. An
-override flag was considered for the same case and rejected for the same
-reason: an escape anyone can type is the same hole with a name.
+The state comes from the event payload the code host writes, and where there
+is none (a run by hand, the generator, the broad gate) from
+`gh pr view --json isDraft`. With neither, nobody observed a pull request, so
+the check reads unknown rather than guessing ready (#866): CI, which decides,
+always has the payload. An override flag was rejected, and the generator hands
+the check no draft payload. The one excuse a caller carries is the broad
+gate's `--sealing`: the `Broad gate` cell that run writes prints, not fails.
 
 What it must not do is pass in silence, so the check prints which state it
-assumed and where it read that from, on every run.
+read and every source it tried, on every run.
 
 **What it still cannot see** is whether the review was any good. A checked
 `Pass` is a claim made by whoever wrote the round record. What is refused is
@@ -60,7 +62,7 @@ which is wrong at every stage of a run.
 | `round-N` naming a record git does not carry | **fails** — a claim git contradicts |
 | `no fixes to check`, with no verdict cell closing on a fix | passes |
 | `no fixes to check` beside a verdict cell reading a fix word | **fails** — a contradiction inside one file, the shape already refused for `Pass` beside an open 🔴 |
-| `nobody — <why>` | prints on every run. **Fails** beside a checked `Pass` on the run's last record, for a work item begun on or after the cutoff below, at a ready pull request and wherever the state cannot be read. In a draft that pair prints, names the verifying round, and says *Ready for review* re-runs the check and fails if the cell still says `nobody`. Passes everywhere else |
+| `nobody — <why>` | prints on every run. **Fails** beside a checked `Pass` on the run's last record, for a work item begun on or after the cutoff below, at a ready pull request and where a payload cannot answer. In a draft, or where no pull request was seen, that pair prints, names the verifying round, and says *Ready for review* re-runs the check and fails if the cell still says `nobody`. Passes everywhere else |
 | `nobody` with nothing after it | **fails.** The reason is what makes the state readable; without it the cell records that something is missing and not what |
 | anything else, `the session that wrote them` included | **fails**, naming the three values. Read loosely, a session's own name would pass as an answer, and that is precisely the state this field exists to refuse — the direction `CLOSED_WORDS` already takes for a verdict cell |
 
@@ -660,10 +662,10 @@ reading the `New units` surface is what looks at it. The declaration is per
 finding as well as per entry: a finding whose coordinates sit at two depths
 — one inside a unit an earlier round's fixes created, another not — is
 written as two findings, so each verdict carries one depth and the fix of
-one does not refuse the units the other's fix adds. `round_record.py close`
-keys its refusal on the finding's `Location` and names the finding whose
-fix added the unit, so a reviewer who did not split reads which finding to
-split next round (#366).
+one does not refuse the units the other's fix adds. `close` keys its refusal
+on the finding's `Location`, read as §*A fix of a fix* reads it (a name with
+no `.py` path places nothing), and names the finding whose fix added the
+unit, so a reviewer who did not split reads which finding to split (#366).
 
 One limit is recorded rather than parsed away, the mirror of the arrow's above:
 the comma that marks a crowded entry is found by substring, so a comma anywhere
@@ -966,11 +968,11 @@ Enforced by: skills/code-review/scripts/chain_check.py::section_end, tests/test_
 <!-- specs/1789621028-nothing-reads-a-record-against-the-tree -->
 **A record is read against the tree, not only against itself.** The
 `Fix range` row states a range and a commit count, and the check compares
-both against what the repository actually holds — the job `evidence-check`
-already does for the ledger over content anchors, and the records were left
-out of. In the same class: `close` does not prefix a `Grounds` cell it has
-already prefixed, for any of the three verdict words, because all three reach
-the same line and all three join rather than overwrite.
+both against what the repository holds. In the same class: `close` does not
+prefix a `Grounds` cell it has already prefixed, for any of the three verdict
+words, and the check counts `close`'s prefixes only at the head of the cell
+(`chain_check.close_prefixes`). A field row or a `Pass` box written twice
+fails at the pull request, as `close` and `seal` refuse it (#866).
 Enforced by: tests/test_chain_check_at_the_pull_request.py::test_a_fix_range_the_tree_contradicts_is_named
 
 <!-- specs/1789455558-the-record-chain-disagrees-with-itself-in-five-places -->
