@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #901 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `310572382dc440cac61b27df9ce0fd1f05a32a8b..310572382dc440cac61b27df9ce0fd1f05a32a8b`, 0 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | second — 🟡 1 at hooks/cmdline.py#_name_at, a unit round-2's fixes changed; the fix passes stop here and the work item goes back to its framer |
 | Needs a fix | yes — 🟡 1 (`_name_at`'s line and paragraph describe one caller of eight, in a unit round 2's fix wrote), 🟡 2 (`_expands`, `cell_index`, `shared_reader` still carry a line false of their body) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,9 +25,9 @@ Round 3 of #834's build, the last round of the run, target fe527020. Round 2 spe
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | `_name_at`'s line and paragraph, rewritten by round 2's fix, describe `_substitute`, one of its eight callers; the other seven skip the word and involve no `$` | `hooks/cmdline.py#_name_at` | open | eight call sites read in `hooks/cmdline.py`: `_substitute`, `_forget` ×3, `_unseen` ×2, `_bind`; the row says `refused` and the fix moved it to `passed` on ⬜ 3's rule |
-| 🟡 2 | three units round 2's enumerations selected still carry a line false of their body: `_expands` (the lead's prose), `cell_index` (one column of two, and `mixed`, not `passed`), `shared_reader` (`hooks/*.py`, another unit's read) | `skills/evidence-check/scripts/evidence_check.py#cell_index` | open | `cell_index` called for `NOTES` in `family_view`, and -1 there emits `MALFORMED`; `held_by_tests` alone skips; `shared_reader` tests `READER` and `SKILL.md` only; `_expands` is handed `command_word(toks)[0]` or `[t]`, a token list |
-| ⬜ 3 | `plan.md`'s corrected rule defines the direction word by whether a body raises, not by where the unknown ends, as the `Unknown` cells, `spec.md` and the plan's *Class and direction* bullet do; thirteen written lines and `_name_at` now disagree, and phase 4 would write `passed` on the guard's `_cut_unread` | `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md` | open | correction to the run's paperwork; part 1 rows 57 and 124, part 6's rule for presence pins, `spec.md` §*The build*; `_cut_unread` returns `Finding("unread", …)` |
+| 🟡 1 | `_name_at`'s line and paragraph, rewritten by round 2's fix, describe `_substitute`, one of its eight callers; the other seven skip the word and involve no `$` | `hooks/cmdline.py#_name_at` | deferred the frame | the frame — the second fix of a fix itself, in `_name_at`; the framer redesigns how a `Reads:` line is derived for a unit; eight call sites read in `hooks/cmdline.py`: `_substitute`, `_forget` ×3, `_unseen` ×2, `_bind`; the row says `refused` and the fix moved it to `passed` on ⬜ 3's rule |
+| 🟡 2 | three units round 2's enumerations selected still carry a line false of their body: `_expands` (the lead's prose), `cell_index` (one column of two, and `mixed`, not `passed`), `shared_reader` (`hooks/*.py`, another unit's read) | `skills/evidence-check/scripts/evidence_check.py#cell_index` | deferred the frame | the frame — three more lines the enumerations selected and the fix pass kept, still false of their bodies; the same redesign decides them; `cell_index` called for `NOTES` in `family_view`, and -1 there emits `MALFORMED`; `held_by_tests` alone skips; `shared_reader` tests `READER` and `SKILL.md` only; `_expands` is handed `command_word(toks)[0]` or `[t]`, a token list |
+| ⬜ 3 | `plan.md`'s corrected rule defines the direction word by whether a body raises, not by where the unknown ends, as the `Unknown` cells, `spec.md` and the plan's *Class and direction* bullet do; thirteen written lines and `_name_at` now disagree, and phase 4 would write `passed` on the guard's `_cut_unread` | `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md` | deferred the frame | the frame — `plan.md`'s direction rule disagrees with the inventory's `Unknown` meaning; the framer decides which definition the build uses; correction to the run's paperwork; part 1 rows 57 and 124, part 6's rule for presence pins, `spec.md` §*The build*; `_cut_unread` returns `Finding("unread", …)` |
 | 🟢 | round 2's finding 1 is closed for the thirteen units it named and for ten of the eleven the enumerations corrected; the eleventh, `_name_at`, is this round's 1, and the class is this round's 2 | `skills/evidence-check/scripts/correction_check.py:780` | confirmed | each read at fe527020 with its callers: `merges`, `parents`, `_members`, `_env_long`, `parse` (only `running` calls it), `rounds`, `stray_rounds`, `symlink_or_skip`, `fifo_or_skip`, `enclosing_unit`, `shape_pattern`, `run_gh`, `parse_section`; `_cd_target`, `near_miss`, `resolve`, `Check`, `parse_module`, `signature`, `return_arities` and the three `payload_meter` helpers |
 | 🟢 | round 2's finding 2 is closed — `merges` `refused`, `parents` `passed`, `_ordered` `mixed`, `parse_section` `guess` | `hooks/routing.py:415` | confirmed | `merges` raises `Refused`; the `parents` caller lists an empty result as unjudged; `_ordered` re-raises `NotADirectoryError` and gives [] on any other `OSError`; `rounds` catches it |
 | 🟢 | round 2's finding 3 is closed — `sections` and `flat` each say what their own body reads | `skills/verify/scripts/unverified_check.py:882` | confirmed | `sections`' string arm matches exactly and its pattern arm falls back after `## Not verified`; `describe` hands `flat` one field at a time |
