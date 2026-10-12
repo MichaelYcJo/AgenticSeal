@@ -19,7 +19,7 @@ actually live on the tree.
 | ACTIVE session present | deny — steer to a worktree. One destination, so no choice to offer |
 | only IDLE sessions | **choice** — switch here, or split into a worktree; each session listed with its last-activity age, because forgotten tabs are the user's call |
 | detection unusable (can't see even our own process) | **choice** — same two. A blanket deny locked out extension hosts entirely |
-| single stream, tracked changes present | ask — the changes follow the switch. Genuinely yes/no: the destination branch is the same either way, and what is being asked is whether the uncommitted changes ride along |
+| single stream, tracked changes present | ask — the changes follow the switch. Genuinely yes/no: the destination branch is the same either way, and what is being asked is whether the uncommitted changes ride along. Where the person pressed `automation`, a deny to the model instead, naming the ways on that need nobody — see *The tracked-changes row has two readers too* |
 | single stream, clean | allow silently |
 
 `[shared-tree-ok]` in the command turns the two **choice** rows silent — see
@@ -27,6 +27,49 @@ actually live on the tree.
 states as well, and there its reason opens with the token carrying the user's
 answer rather than with *Single-stream tree*, because nothing was counted as
 single-stream.
+
+**The tracked-changes row has two readers too (#894).** Where the session's
+person pressed `automation` on the routing question, the row is a `deny` to
+the model, because nobody is at the keyboard to answer it, and the answer the
+person would give, commit first, is not one of its two buttons. The press is
+read by the reader the unrecognised-shape stop uses, against the root of the
+session's own directory, never against the tree the switch names. The reason
+states what the guard read and what the guard is. Its one sentence about what
+git does is the index-residue note it shares with the `ask`, word for word. It
+opens with the same lead and lists the changes as the `ask` does, carries the
+press sentence, and says the row stops a switch while uncommitted tracked
+changes are present and says nothing once none are. It names `git commit`
+and `git stash` as commands on `LEAVES_THE_TREE`, each of which passes the
+guard when issued alone, and leaves to the model which of them fits the
+switch and what follows. Each is a command of
+its own, because the guard reads the tree before a line runs, so `git stash
+&& git switch x` meets this same row. It names no question tool, and says
+re-issuing the command unchanged meets the same refusal. The text is one
+string for every switch form, from a branch or a detached HEAD, and it names
+no switch option. Without the press the row is the `ask` it was, word for
+word, and `[shared-tree-ok]` reaches neither reader: a dirty tree under the
+token meets the same `deny` with the token's lead.
+
+**Why the row's own sentences predict nothing.** The guard reads three facts here: the
+changes (`git status`), that the command asks for a switch, and the press.
+What a given switch form does with the changes, where a commit lands, and
+whether a stash restores cleanly are not among them. The first text of this
+row named a way on per form, and three review rounds of work item 1791779434
+each found the next form it was wrong for: `-c`, then `--orphan` and the
+discarding forms, then a detached HEAD and a target branch that changed a
+listed file. Over sixteen setups the text was right in fourteen, and nothing
+the guard reads tells those from the other two. That is a prediction from
+text, the class this repository judges not to converge (§*Known limits*, the
+brace reader), so each sentence of the row's own about what git does was taken
+out rather than corrected again. The index-residue note it shares with the
+`ask` stays as the `ask` has it. A form found later is a row in the case that
+pins one text for every form, never a sentence here.
+
+**The failure direction.** A verdict moves from `ask` to `deny` in one state
+and nowhere else, and the reader that decides it is the stop's, unchanged. A
+wrong deny costs the model a turn. Under the press this row puts no question
+to a person, where it put one per dirty switch; attended it puts the same one.
+Enforced by: tests/test_the_guard_asks_once_per_session.py::test_under_the_press_the_dirty_row_is_a_deny_to_the_model, tests/test_the_guard_asks_once_per_session.py::test_the_token_does_not_reach_the_dirty_row_under_the_press_either, tests/test_the_guard_asks_once_per_session.py::test_a_compound_stash_and_switch_meets_the_deny, tests/test_the_guard_asks_once_per_session.py::test_the_plain_retry_meets_todays_rows, tests/test_the_guard_asks_once_per_session.py::test_the_ways_on_pass_the_guard, tests/test_the_guard_asks_once_per_session.py::test_a_creation_on_the_dirty_line_is_stopped_with_it, tests/test_the_guard_asks_once_per_session.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_the_guard_asks_once_per_session.py::test_one_text_for_every_switch_form, tests/test_worktree_guard.py::test_the_dirty_tree_row_names_what_was_measured
 
 A command that also creates a worktree is judged by this table whichever of the
 two is written first, with the creation judged inside it — see §Creation
@@ -80,7 +123,8 @@ the other session ends.
 The stop has two readers. Where the session's person pressed `automation` on
 the routing question, it is a `deny` to the model, which rewrites in the
 plain spelling and meets the rows above on the retry, and no person is
-asked. Otherwise it is an `ask` with the same text, except in a tree another
+asked. In a dirty tree that retry meets the tracked-changes row, which under
+the press is a `deny` as well, so neither issue reaches a person. Otherwise it is an `ask` with the same text, except in a tree another
 session is ACTIVE in: row 1 denies a branch-form `checkout` there with
 nobody asked, so the stop is a `deny` whoever is at the keyboard. On the
 `ask` path a creation on the same line is judged first, because approving
@@ -889,6 +933,31 @@ at one prompt against a wrong allow breaking another session's tree.
   (#692's Windows pass, CI run 36978391812). And every unrecognised shape
   stops there, in every tree: a `deny` to the model under the press, an
   `ask` otherwise. Read from the code, not run on Windows.
+- The `automation` press is this session's, on this machine. It is read from
+  this session's own main transcript (§*Creation consent*, rule 1), which the
+  harness writes on the machine the session runs on, and a subagent reaches
+  it through its parent's id. A run resumed in a new session (a `/clear`, a
+  new `claude` start, another machine) has no press until question 1 is put
+  through `AskUserQuestion` again, and until then every stop that reads it is
+  the person's `ask` (`skills/implement/orchestration.md` §*Orchestrator: how
+  the work is routed — two questions, one call, one file*). Nothing that
+  survives a machine move can stand in for it. The consent record and the
+  choice markers sit under the git directory, which does not travel, and
+  everything that travels is in the tree, which the model writes, so
+  `routing.md` is not read. What keeps the press is what keeps the
+  session's id: `claude --resume` and compaction both go on writing the
+  same transcript the press already sits in, and the section named above
+  holds the reading that showed it. Measured in #894: a release run resumed
+  on another machine with the answer typed, and the guard asked the owner
+  twice in a run routed `automation`; replayed up to the first of those
+  stops, the reader found no press in that session.
+- Under the press the two **choice** rows of §A, only IDLE sessions and
+  detection unusable, still reach a person: the first attempt is a `deny`
+  whose reason says to call `AskUserQuestion`, and every attempt after it is
+  an `ask`. What needs nobody there, a split into a worktree or the model
+  pressing `[shared-tree-ok]` on its own judgment, is the owner's to name
+  (work item 1791779434, `questions.md` P1). On Windows every switch takes
+  the second of them.
 - Transcript activity is per-project, not per-pid: one working session marks
   every session of that project active. Conservative by design.
 - tty atime also refreshes on in-turn stdin reads (a session listening for
