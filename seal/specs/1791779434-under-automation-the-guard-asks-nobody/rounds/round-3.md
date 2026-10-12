@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 897 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `d450c303a97348ca7d7851a49f49ce8a6257a58b..d450c303a97348ca7d7851a49f49ce8a6257a58b`, 0 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | second — 🟡 1 at hooks/worktree-guard.py#main, a unit round-2's fixes changed; 🟡 2 at hooks/worktree-guard.py#main, a unit round-2's fixes changed; the fix passes stop here and the work item goes back to its framer |
 | Needs a fix | yes — 🟡 1 (under a detached HEAD the deny still offers way 2 to `--orphan`, which conflicts) and 🟡 2 (way 2 promises a carry that stops on a conflict where the target branch changed a listed file) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -31,8 +31,8 @@ Round 3 of #894 (PR #897), verifying round 2's fixes at c67fc2e5..1ac03f4d (`rou
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | Under a detached HEAD the deny's way 1 still offers way 2, without excluding `--orphan`, and there the pop ends `DU f.txt` with the stash kept | `hooks/worktree-guard.py:3307` | open | Executed: from a detached HEAD, stash, `--orphan` switch and pop are each silent at the guard; the pop exits 1 with `DU f.txt` and the stash kept. Read: the offer predates the range, and 04f450ea's sentence three lines up sends `--orphan` to way 1 |
-| 🟡 2 | Way 2 says the pop carries the changes onto the target branch; where that branch changed a listed file, the pop stops on a conflict and keeps the stash, where git's own switch refuses | `hooks/worktree-guard.py:3310` | open | Executed: `feature/x` changes `f.txt`; stash and switch are silent and succeed; the pop exits 1 with `UU f.txt` on `feature/x` and the stash kept. Read: text from c68fa49b, outside the range |
+| 🟡 1 | Under a detached HEAD the deny's way 1 still offers way 2, without excluding `--orphan`, and there the pop ends `DU f.txt` with the stash kept | `hooks/worktree-guard.py:3307` | deferred the frame | the frame — the second fix of a fix, in the deny's way 1 text: on a detached HEAD it still offers way 2 without excluding `--orphan`; the framer redesigns what the deny prescribes; Executed: from a detached HEAD, stash, `--orphan` switch and pop are each silent at the guard; the pop exits 1 with `DU f.txt` and the stash kept. Read: the offer predates the range, and 04f450ea's sentence three lines up sends `--orphan` to way 1 |
+| 🟡 2 | Way 2 says the pop carries the changes onto the target branch; where that branch changed a listed file, the pop stops on a conflict and keeps the stash, where git's own switch refuses | `hooks/worktree-guard.py:3310` | deferred the frame | the frame — the second fix of a fix, in the deny's way 2 text: a target branch that changed the same file makes the pop stop in a conflict; the framer redesigns what the deny prescribes; Executed: `feature/x` changes `f.txt`; stash and switch are silent and succeed; the pop exits 1 with `UU f.txt` on `feature/x` and the stash kept. Read: text from c68fa49b, outside the range |
 | 🟢 | round 2's first finding is closed — `--orphan` is sent to way 1 in both languages, and way 1 succeeds from a branch | `hooks/worktree-guard.py:3300` | confirmed | Executed: deny under the press, commit then `--orphan` switch silent at the guard, change on the old branch, tree clean; the new case fails against `c67fc2e5`'s hook and passes at the target |
 | 🟢 | round 2's second finding is closed — the premise says a switch that keeps the changes carries them, in both languages and the policy | `hooks/worktree-guard.py:3287` | confirmed | Executed: the new case covers `--discard-changes`, `-f` and `--orphan`, fails against `c67fc2e5`'s hook and passes at the target. Read: the Korean premise carries the same condition |
 | 🟢 | round 2's note 3 is closed — W9's re-read row is back at `main@08a308fb`, and every other change to the fragment is a hash move | `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md:31` | confirmed | Read: word diff shows only `main` and §Decision matrix hashes changed. Executed: `evidence-check --strict` 0 drifted |
