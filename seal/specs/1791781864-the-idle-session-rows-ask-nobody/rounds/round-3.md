@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #902 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `ae982e7baf1dcdd01097718f6a97d073a8eafe9b..d40e523fb1c50dbe3db0a15cd3e4dcb53f99d10f`, 2 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,7 +25,7 @@ Round 3 of #896, the last round of the run, target a2d7b4a2. Round 2 spent the o
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| ⬜ 1 | three prose lines the run wrote break short: the policy's *Under the press* paragraph at line 624, which round 2's note 4 was answered as rewrapped, the guard's module docstring, and changelog item 1 | `docs/worktree-guard-spec.md:624` | open | read; enumerated over the branch's added prose lines; also `hooks/worktree-guard.py:94` and the item's `changelog.md:17` |
+| ⬜ 1 | three prose lines the run wrote break short: the policy's *Under the press* paragraph at line 624, which round 2's note 4 was answered as rewrapped, the guard's module docstring, and changelog item 1 | `docs/worktree-guard-spec.md:624` | answered | corrected at 65e8479c — rewrapped `docs/worktree-guard-spec.md` §*Choice sites* *Under the press*, the guard's module docstring *Under the press* paragraph and changelog item 1. No word changed, which `git diff -w --word-diff` confirms by printing no changed word. d40e523f re-stamped the two ledger rows the rewrap drifted, S13 and the T2 re-read, after reading them; read; enumerated over the branch's added prose lines; also `hooks/worktree-guard.py:94` and the item's `changelog.md:17` |
 | 🟢 | round 2's yellow 1 is closed — the record clone's reason names the record as the consent, and the own clone's names the press | `hooks/worktree-guard.py:3155` | confirmed | executed (probe 1): head against `dc3501c4` identical in four states; in the record clone only the why-sentence differs; the named creations get `allow` naming the record. Both mutations of the why-branch turned cases red |
 | 🟢 | round 2's yellow 2 is closed — every consent sentence in the branch diff says what holds | `hooks/worktree-guard.py:27` | confirmed | read: 92 matching added lines in 14 files, enumerated and classed; §*Unknowns* is incomplete but true |
 | 🟢 | round 2's note 3 is answered as stated | `hooks/worktree-guard.py:3198` | confirmed | read: the other-clone text hedges and is untouched by the fix range; nobody is asked |
