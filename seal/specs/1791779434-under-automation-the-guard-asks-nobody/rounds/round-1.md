@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 897 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `190b457ef1fd3cad070975eac4b1bc5c07cdd0f9..2022f615507048d7461cf751c2116d20e34a0d2a`, 6 commits |
 | Contract changes | none |
 | New units | test_a_creating_switch_under_the_press_takes_the_stash_way (depth 1) |
