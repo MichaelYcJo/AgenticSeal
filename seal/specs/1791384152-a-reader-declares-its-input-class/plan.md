@@ -9,7 +9,7 @@ again the same day against the tree every sibling left (`release/v0.21.0` at
 c38f97d7, merged here as 4ba84e19): every count, line number and seam below
 is read at 4ba84e19, and the seams describe landed code. -->
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-12 by the repository owner, when `smith` was spawned.
 
 ## Summary
 
