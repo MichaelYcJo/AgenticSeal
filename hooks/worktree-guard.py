@@ -1442,7 +1442,16 @@ def already_asked(top: str, session: str, scope: str) -> bool:
 
 
 def choose(
-    top, session_id, scope, situation, question, options, fallback, before_ask=None
+    top,
+    session_id,
+    scope,
+    situation,
+    question,
+    options,
+    fallback,
+    before_ask=None,
+    pressed=False,
+    unattended="",
 ):
     """Deny once and hand the user the two options; ask on every attempt after.
 
@@ -1473,7 +1482,23 @@ def choose(
     is what keeps the deny branch intact: the first attempt still puts the
     switch's two options, naming the sessions it found, and only the branch
     that would have let the command through yields.
+
+    **`pressed` is a third verdict, and it is taken before the other two.**
+    Where this session's person pressed `automation` on the routing
+    question, nobody is at the keyboard: the deny's instruction would put a
+    question to them one step removed, and the `ask` after it would put one
+    directly, on every attempt. So the site denies on every attempt with
+    SITUATION and then UNATTENDED, the caller's text naming the way on that
+    needs nobody (#896). It returns before `already_asked`, so no marker is
+    written: the marker records that the question was put, and none was. A
+    session whose person later answers `per axis` in the same clone -- the
+    last answer stands -- then meets the first-attempt deny an attended
+    session meets. `before_ask` is not run, because the deny stops the whole
+    line. Only the switch direction passes it: the creation direction reads
+    consent, the press included, before any of its rows.
     """
+    if pressed:
+        respond("deny", situation.rstrip("\n") + "\n\n" + unattended)
     if session_id and not already_asked(top, session_id, scope):
         lines = [
             situation.rstrip("\n"),
@@ -3025,21 +3050,67 @@ def main():
     # over the dirty-tree question (which asks something else entirely).
     shared_ok = has_token(command, "[shared-tree-ok]")
 
-    steer = tr(
+    # The split, as commands. Shared by the steer every attended row hands
+    # back and by the deny rows 1-b and 2 give under the press, which name it
+    # as the one way on that needs nobody.
+    split = tr(
         f"  # check an existing branch out into a worktree\n"
         f"  {git} worktree add {wt_root}/<branch> <branch>\n\n"
         f"  # or create a new branch off the latest origin/main\n"
         f"  {git} fetch origin\n"
-        f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n\n"
-        "Then work in that folder from a separate Claude Code session. "
-        "`git worktree list` shows worktrees.",
+        f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n\n",
         f"  # 기존 브랜치를 worktree로 꺼내기\n"
         f"  {git} worktree add {wt_root}/<branch> <branch>\n\n"
         f"  # 새 브랜치를 최신 origin/main 기준으로 생성 (저장소 정책)\n"
         f"  {git} fetch origin\n"
-        f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n\n"
+        f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n\n",
+    )
+    steer = split + tr(
+        "Then work in that folder from a separate Claude Code session. "
+        "`git worktree list` shows worktrees.",
         "그런 다음 그 폴더에서 별도의 Claude Code 세션으로 작업하세요. "
         "worktree 목록은 `git worktree list`.",
+    )
+
+    # What rows 1-b and 2 say after their situation where this session's
+    # person pressed `automation` (#896). Nobody is at the keyboard to pick
+    # between the two options, and the model may not pick the shared tree in
+    # their place: that is the call those rows exist to hand a person, and
+    # the token that carries it is written by whoever issues the command
+    # (`docs/worktree-guard-spec.md` §*Choice sites*), so it is not named.
+    # The split needs nobody: the press is consent, read before every
+    # creation row, so the plain `git worktree add` passes, and a session
+    # works in the new tree by path, as this repository's own automation runs
+    # do. A worktree already on the branch is named too, because on Windows
+    # every switch is row 2, a linked worktree's included.
+    unattended = (
+        tr(
+            "This session's person pressed `automation` on the routing "
+            "question, so this guard puts no question to them, and none is to "
+            "be put to them in its place.\n\n"
+            "The way on that needs nobody is to split into a worktree. That "
+            "answer already consents to creating one, so these commands pass "
+            "as written:\n\n",
+            "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+            "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 "
+            "물어서도 안 됩니다.\n\n"
+            "사람이 없어도 되는 길은 worktree 로 분리하는 것입니다. 그 답이 "
+            "worktree 생성에 이미 동의했으므로, 아래 명령은 쓰인 그대로 "
+            "통과합니다.\n\n",
+        )
+        + split
+        + tr(
+            "Then work in that tree by path from this session: "
+            f"`git -C {wt_root}/<name> …` for git, and an absolute path for "
+            "every edit. A branch already checked out in a worktree needs no "
+            "switch: work in that worktree.\n\n"
+            "Re-issuing this command unchanged meets this same refusal.",
+            "그런 다음 이 세션에서 그 트리를 경로로 지정해 작업하세요. git 은 "
+            f"`git -C {wt_root}/<name> …` 로, 파일 편집은 절대 경로로 합니다. "
+            "이미 어느 worktree 에 체크아웃된 브랜치라면 전환할 필요 없이 그 "
+            "worktree 에서 작업하세요.\n\n"
+            "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
+        )
     )
 
     switch_or_split = (
@@ -3151,6 +3222,12 @@ def main():
             )
             + steer,
             before_ask=judge_the_creation,
+            # Read here and in row 2 only, and `choose` ends the command
+            # either way, so a switch reads the transcript once at most (W2
+            # of work item 1791781864). The session's own root, as the stop's
+            # reading is.
+            pressed=automation_pressed(repo_paths(cwd)[0], session_id, transcript_path),
+            unattended=unattended,
         )
 
     # 2) 세션 감지 자체가 불가능하면 사용자에게 확인. deny 였으나 확장 호스트처럼
@@ -3188,6 +3265,8 @@ def main():
             )
             + steer,
             before_ask=judge_the_creation,
+            pressed=automation_pressed(repo_paths(cwd)[0], session_id, transcript_path),
+            unattended=unattended,
         )
 
     # A creation later in the same command has not been judged yet, and this is
@@ -3203,6 +3282,9 @@ def main():
     # so reaching this line at all was a property of the FIRST attempt. Those
     # two hand their fallback `judge_the_creation` above, which is why they
     # still keep their deny and no longer keep the creation from being judged.
+    # Under the `automation` press they deny on every attempt instead (#896),
+    # which stops a creation on the line with the switch, so neither of them
+    # reaches here or calls `judge_the_creation` there.
     # `choose`'s docstring holds the measurement; this line is what the two
     # rows below, and a session that never met either `choose`, still reach.
     #

@@ -142,6 +142,232 @@ def test_switch_active_session_denies(monkeypatch, capsys, repo):
     assert "VS Code" in reason  # host app attribution shown
 
 
+# S5 of work item 1791781864: the switch ladder's two choice rows as
+# `c38f97d7` printed them for IDLE and for detection unusable, attempt 1 and
+# attempt 2, in both languages. Without the `automation` press they move
+# nowhere; `tests/test_the_idle_session_rows_ask_nobody.py` holds the press.
+ATTENDED_CHOICE = {
+    ("en", "idle", 1): (
+        "deny",
+        (
+            "Other Claude sessions may exist in this tree, but none of them "
+            "can be shown to be working: no input or transcript for "
+            "{idle_min}+ minutes, or a lease whose owning session cannot be "
+            "identified.\n"
+            "    pid 222 (Terminal terminal)  /tree\n"
+            "        terminal in/out 6.7h ago · transcript activity 1.5h ago\n"
+            "\n"
+            "Do not choose for the user. Ask with the AskUserQuestion tool, "
+            "offering exactly these two options:\n"
+            "\n"
+            "  No session here can be shown to be working — switch in this "
+            "shared tree, or split into a worktree?\n"
+            '    1. "Switch in this shared tree" — right when those are '
+            "forgotten tabs or sessions that have already ended. Re-issue the "
+            "SAME command with the token appended (`… # [shared-tree-ok]`); it "
+            "carries this answer, so the switch goes straight through.\n"
+            '    2. "Split into a worktree" — keeps the branch of a session '
+            "that IS still working. Run `git worktree add {wt_root}/<branch> "
+            "<branch>  # [worktree-ok]` for a branch that already exists, or "
+            "`git worktree add {wt_root}/<name> -b <branch> origin/main  # "
+            "[worktree-ok]` for a new one, then work there from a separate "
+            "session. The token carries this answer, so creating it is "
+            "confirmed rather than questioned again.\n"
+            "\n"
+            "Then run what they picked. Re-issuing this command before they "
+            "answer reaches the ordinary confirmation prompt instead."
+        ),
+    ),
+    ("en", "idle", 2): (
+        "ask",
+        (
+            "Other Claude sessions may exist in this tree, but none of them "
+            "can be shown to be working: no input or transcript for "
+            "{idle_min}+ minutes, or a lease whose owning session cannot be "
+            "identified.\n"
+            "    pid 222 (Terminal terminal)  /tree\n"
+            "        terminal in/out 6.7h ago · transcript activity 1.5h ago\n"
+            "\n"
+            "Your call:\n"
+            "  · Approve — switch branches in this shared tree (right when "
+            "those are forgotten tabs or sessions that have already ended).\n"
+            "  · Deny — the switch is cancelled; split into a worktree instead "
+            "so a session that IS still working keeps its branch:\n"
+            "\n"
+            "  # check an existing branch out into a worktree\n"
+            "  git worktree add {wt_root}/<branch> <branch>\n"
+            "\n"
+            "  # or create a new branch off the latest origin/main\n"
+            "  git fetch origin\n"
+            "  git worktree add {wt_root}/<name> -b <branch> origin/main\n"
+            "\n"
+            "Then work in that folder from a separate Claude Code session. "
+            "`git worktree list` shows worktrees."
+        ),
+    ),
+    ("en", "unusable", 1): (
+        "deny",
+        (
+            "Cannot determine whether other sessions are working in this tree "
+            "(process inspection unavailable in this environment).\n"
+            "\n"
+            "Do not choose for the user. Ask with the AskUserQuestion tool, "
+            "offering exactly these two options:\n"
+            "\n"
+            "  No verdict is possible here — switch in this shared tree, or "
+            "split into a worktree?\n"
+            '    1. "Switch in this shared tree" — right when those are '
+            "forgotten tabs or sessions that have already ended. Re-issue the "
+            "SAME command with the token appended (`… # [shared-tree-ok]`); it "
+            "carries this answer, so the switch goes straight through.\n"
+            '    2. "Split into a worktree" — keeps the branch of a session '
+            "that IS still working. Run `git worktree add {wt_root}/<branch> "
+            "<branch>  # [worktree-ok]` for a branch that already exists, or "
+            "`git worktree add {wt_root}/<name> -b <branch> origin/main  # "
+            "[worktree-ok]` for a new one, then work there from a separate "
+            "session. The token carries this answer, so creating it is "
+            "confirmed rather than questioned again.\n"
+            "\n"
+            "Then run what they picked. Re-issuing this command before they "
+            "answer reaches the ordinary confirmation prompt instead."
+        ),
+    ),
+    ("en", "unusable", 2): (
+        "ask",
+        (
+            "Cannot determine whether other sessions are working in this tree "
+            "(process inspection unavailable in this environment).\n"
+            "Your call:\n"
+            "  · Approve — switch branches in this shared tree (safe when no "
+            "other session is active here).\n"
+            "  · Deny — the switch is cancelled; split into a worktree instead "
+            "so any concurrent session keeps its branch:\n"
+            "\n"
+            "  # check an existing branch out into a worktree\n"
+            "  git worktree add {wt_root}/<branch> <branch>\n"
+            "\n"
+            "  # or create a new branch off the latest origin/main\n"
+            "  git fetch origin\n"
+            "  git worktree add {wt_root}/<name> -b <branch> origin/main\n"
+            "\n"
+            "Then work in that folder from a separate Claude Code session. "
+            "`git worktree list` shows worktrees."
+        ),
+    ),
+    ("ko", "idle", 1): (
+        "deny",
+        (
+            "이 트리에 다른 Claude 세션이 있을 수 있으나, 작업 중임을 확인할 수 "
+            "있는 것은 없습니다 — {idle_min}분 이상 활동(키 입력·작업 기록)이 "
+            "없거나, lease 를 남긴 세션이 누구인지 확인되지 않습니다.\n"
+            "    pid 222 (Terminal 터미널)  /tree\n"
+            "        터미널 입력/출력 6.7시간 전 · 작업 기록(트랜스크립트) 1.5시간 전\n"
+            "\n"
+            "사용자 대신 고르지 마세요. AskUserQuestion 툴로 아래 두 선택지를 "
+            "그대로 물어보세요:\n"
+            "\n"
+            "  작업 중임이 확인되는 세션이 없습니다 — 이 공용 트리에서 전환할까요, "
+            "worktree 로 분리할까요?\n"
+            '    1. "이 공용 트리에서 전환한다" — 잊힌 탭이거나 이미 끝난 세션이면 '
+            "이쪽이 맞습니다. 같은 명령 뒤에 토큰을 붙여(`… # [shared-tree-ok]`) "
+            "다시 실행하세요. 이 토큰이 지금 고른 답을 담고 있어 전환이 그대로 "
+            "통과합니다.\n"
+            '    2. "worktree 로 분리한다" — 아직 작업 중인 세션의 브랜치를 '
+            "보존합니다. 이미 있는 브랜치면 `git worktree add {wt_root}/<branch> "
+            "<branch>  # [worktree-ok]`, 새로 만들 브랜치면 `git worktree add "
+            "{wt_root}/<name> -b <branch> origin/main  # [worktree-ok]` 를 "
+            "실행하고, 그 폴더에서 별도 세션으로 작업하세요. 이 토큰이 지금 고른 "
+            "답을 담고 있어 생성할 때 다시 묻지 않고 확인만 받습니다.\n"
+            "\n"
+            "고른 쪽을 실행하세요. 답을 받기 전에 같은 명령을 다시 내면 일반 "
+            "확인창이 뜹니다."
+        ),
+    ),
+    ("ko", "idle", 2): (
+        "ask",
+        (
+            "이 트리에 다른 Claude 세션이 있을 수 있으나, 작업 중임을 확인할 수 "
+            "있는 것은 없습니다 — {idle_min}분 이상 활동(키 입력·작업 기록)이 "
+            "없거나, lease 를 남긴 세션이 누구인지 확인되지 않습니다.\n"
+            "    pid 222 (Terminal 터미널)  /tree\n"
+            "        터미널 입력/출력 6.7시간 전 · 작업 기록(트랜스크립트) 1.5시간 전\n"
+            "\n"
+            "선택해 주세요:\n"
+            "  · 승인 — 이 공용 트리에서 그대로 브랜치를 전환합니다(잊힌 탭이거나 "
+            "이미 끝난 세션이면 이쪽이 맞습니다).\n"
+            "  · 거부 — 전환을 취소하고 worktree 로 분리해, 아직 작업 중인 세션의 "
+            "브랜치를 보존합니다:\n"
+            "\n"
+            "  # 기존 브랜치를 worktree로 꺼내기\n"
+            "  git worktree add {wt_root}/<branch> <branch>\n"
+            "\n"
+            "  # 새 브랜치를 최신 origin/main 기준으로 생성 (저장소 정책)\n"
+            "  git fetch origin\n"
+            "  git worktree add {wt_root}/<name> -b <branch> origin/main\n"
+            "\n"
+            "그런 다음 그 폴더에서 별도의 Claude Code 세션으로 작업하세요. "
+            "worktree 목록은 `git worktree list`."
+        ),
+    ),
+    ("ko", "unusable", 1): (
+        "deny",
+        (
+            "이 트리에서 다른 세션이 작업 중인지 확인할 수 없습니다(이 환경에서는 "
+            "프로세스 조회가 불가능합니다).\n"
+            "\n"
+            "사용자 대신 고르지 마세요. AskUserQuestion 툴로 아래 두 선택지를 "
+            "그대로 물어보세요:\n"
+            "\n"
+            "  여기서는 자동 판정이 불가능합니다 — 이 공용 트리에서 전환할까요, "
+            "worktree 로 분리할까요?\n"
+            '    1. "이 공용 트리에서 전환한다" — 잊힌 탭이거나 이미 끝난 세션이면 '
+            "이쪽이 맞습니다. 같은 명령 뒤에 토큰을 붙여(`… # [shared-tree-ok]`) "
+            "다시 실행하세요. 이 토큰이 지금 고른 답을 담고 있어 전환이 그대로 "
+            "통과합니다.\n"
+            '    2. "worktree 로 분리한다" — 아직 작업 중인 세션의 브랜치를 '
+            "보존합니다. 이미 있는 브랜치면 `git worktree add {wt_root}/<branch> "
+            "<branch>  # [worktree-ok]`, 새로 만들 브랜치면 `git worktree add "
+            "{wt_root}/<name> -b <branch> origin/main  # [worktree-ok]` 를 "
+            "실행하고, 그 폴더에서 별도 세션으로 작업하세요. 이 토큰이 지금 고른 "
+            "답을 담고 있어 생성할 때 다시 묻지 않고 확인만 받습니다.\n"
+            "\n"
+            "고른 쪽을 실행하세요. 답을 받기 전에 같은 명령을 다시 내면 일반 "
+            "확인창이 뜹니다."
+        ),
+    ),
+    ("ko", "unusable", 2): (
+        "ask",
+        (
+            "이 트리에서 다른 세션이 작업 중인지 확인할 수 없습니다(이 환경에서는 "
+            "프로세스 조회가 불가능합니다).\n"
+            "선택해 주세요:\n"
+            "  · 승인 — 이 공용 트리에서 그대로 브랜치를 전환합니다(다른 활성 "
+            "세션이 없다면 안전합니다).\n"
+            "  · 거부 — 전환을 취소하고 worktree 로 분리해, 동시 세션의 브랜치를 "
+            "보존합니다:\n"
+            "\n"
+            "  # 기존 브랜치를 worktree로 꺼내기\n"
+            "  git worktree add {wt_root}/<branch> <branch>\n"
+            "\n"
+            "  # 새 브랜치를 최신 origin/main 기준으로 생성 (저장소 정책)\n"
+            "  git fetch origin\n"
+            "  git worktree add {wt_root}/<name> -b <branch> origin/main\n"
+            "\n"
+            "그런 다음 그 폴더에서 별도의 Claude Code 세션으로 작업하세요. "
+            "worktree 목록은 `git worktree list`."
+        ),
+    ),
+}
+
+
+def attended(module, lang, state, attempt, repo):
+    """(decision, reason) as `c38f97d7` gave it for a switch in REPO."""
+    decision, text = ATTENDED_CHOICE[lang, state, attempt]
+    return decision, text.format(
+        idle_min=module.IDLE_MIN, wt_root=module.repo_paths(str(repo))[1]
+    )
+
+
 def test_switch_idle_sessions_offer_both_ways_on(monkeypatch, capsys, repo):
     decision, reason = decide(
         monkeypatch, capsys, repo, "git switch feature/x", sessions=([], IDLE, True)
@@ -150,6 +376,7 @@ def test_switch_idle_sessions_offer_both_ways_on(monkeypatch, capsys, repo):
     assert "terminal in/out" in reason  # disaggregated signals, English default
     assert "AskUserQuestion" in reason
     assert "[shared-tree-ok]" in reason and "worktree" in reason
+    assert (decision, reason) == attended(wg, "en", "idle", 1, repo)  # S5
 
 
 # --- #896 In 1: an unidentified session's line states what was measured ----
@@ -271,6 +498,7 @@ def test_the_second_attempt_gets_the_plain_prompt(monkeypatch, capsys, repo):
     )
     assert decision == "ask"
     assert "Approve" in reason and "Deny" in reason
+    assert (decision, reason) == attended(wg, "en", "idle", 2, repo)  # S5
 
 
 def test_a_second_session_is_offered_the_choice_too(monkeypatch, capsys, repo):
@@ -606,12 +834,31 @@ def test_switch_unreliable_detection_offers_both_ways_on(monkeypatch, capsys, re
         monkeypatch, capsys, repo, "git switch feature/x", sessions=([], [], False)
     )
     assert decision == "deny" and "AskUserQuestion" in reason
-    assert (
-        decide(
-            monkeypatch, capsys, repo, "git switch feature/x", sessions=([], [], False)
-        )[0]
-        == "ask"
+    assert (decision, reason) == attended(wg, "en", "unusable", 1, repo)  # S5
+    again = decide(
+        monkeypatch, capsys, repo, "git switch feature/x", sessions=([], [], False)
     )
+    assert again[0] == "ask"
+    assert again == attended(wg, "en", "unusable", 2, repo)  # S5
+
+
+def test_the_attended_choice_rows_are_the_bases_in_korean(monkeypatch, capsys, repo):
+    """S5 of work item 1791781864, the Korean half: both rows, both attempts,
+    as `c38f97d7` printed them, with no `automation` press anywhere."""
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_896_s5_ko")
+    for state, sessions in (("idle", ([], IDLE, True)), ("unusable", ([], [], False))):
+        for attempt in (1, 2):
+            got = said(
+                wko,
+                monkeypatch,
+                capsys,
+                repo,
+                "git switch feature/x",
+                sessions,
+                f"s5-{state}",
+            )
+            assert got == attended(wko, "ko", state, attempt, repo), (state, got)
 
 
 def test_worktree_add_single_denies(monkeypatch, capsys, repo):
