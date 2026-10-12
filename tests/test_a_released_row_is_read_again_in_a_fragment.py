@@ -72,7 +72,7 @@ def run(args, cwd):
 def unit_hash(repo, rel, locator):
     """What `rel#locator` holds now, as the checker hashes it."""
     text = (repo / rel).read_text(encoding="utf-8")
-    places, _ = ec.resolve_unit(rel, locator, text)
+    places = ec.resolve_unit(rel, locator, text).places
     assert len(places) == 1, places
     a, b = places[0]
     return ec.content_hash(ec.gfm_lines(text)[a - 1 : b])
@@ -1036,7 +1036,7 @@ def test_into_re_reads_a_claimed_coordinate_at_its_minor_region(repo):
     """A coordinate narrowed by a claim records the hash of the statement
     it names, and the citing row carries that hash, not the unit's."""
     text = (repo / "src" / "service.py").read_text(encoding="utf-8")
-    places, _ = ec.resolve_unit("src/service.py", "handler", text)
+    places = ec.resolve_unit("src/service.py", "handler", text).places
     (inside,) = ec.minor_region("src/service.py", text, places[0], '"return y"')
     lines = ec.gfm_lines(text)
     old = ec.content_hash(lines[inside[0] - 1 : inside[1]])
@@ -1704,7 +1704,7 @@ def test_a_family_rooted_in_a_fragment_is_owed_no_released_re_read(repo):
         ],
     )
     text = (repo / "src" / "service.py").read_text(encoding="utf-8")
-    places, _ = ec.resolve_unit("src/service.py", "other", text)
+    places = ec.resolve_unit("src/service.py", "other", text).places
     (inside,) = ec.minor_region("src/service.py", text, places[0], '"x * 2"')
     stated = ec.content_hash(ec.gfm_lines(text)[inside[0] - 1 : inside[1]])
     fragment(
@@ -2336,7 +2336,7 @@ def test_a_correction_whose_anchored_statement_is_gone_is_named_only_released(
         ],
     )
     text = (repo / "src" / "service.py").read_text(encoding="utf-8")
-    places, _ = ec.resolve_unit("src/service.py", "other", text)
+    places = ec.resolve_unit("src/service.py", "other", text).places
     (inside,) = ec.minor_region("src/service.py", text, places[0], '"x * 2"')
     stated = ec.content_hash(ec.gfm_lines(text)[inside[0] - 1 : inside[1]])
     where = placed(
@@ -3265,7 +3265,7 @@ def test_a_held_coordinate_with_two_places_is_left_alone(repo):
     a = fragment(repo, [re_read_of(r, h1, "2026-02-01")], name=A_ITEM)
     (repo / "src" / "service.py").write_text(TWICE, encoding="utf-8")
     text = TWICE
-    places, _ = ec.resolve_unit("src/service.py", "handler", text)
+    places = ec.resolve_unit("src/service.py", "handler", text).places
     assert len(places) == 2, places
     a_, b_ = places[0]
     held = ec.content_hash(ec.gfm_lines(text)[a_ - 1 : b_])
@@ -3305,7 +3305,7 @@ def test_a_held_coordinate_with_two_places_on_a_dated_row_is_left_and_named(
         [re_read_of(r, h1, "2026-02-01", extra=f", `src/service.py#other@{o0}`")],
         name=A_ITEM,
     )
-    places, _ = ec.resolve_unit("src/service.py", "handler", TWICE)
+    places = ec.resolve_unit("src/service.py", "handler", TWICE).places
     x, y = places[0]
     held = ec.content_hash(ec.gfm_lines(TWICE)[x - 1 : y])
     b = fragment(repo, [re_read_of(r, held, "2026-03-01")], name=B_ITEM)
@@ -3350,7 +3350,7 @@ def test_a_held_coordinate_one_of_whose_places_holds_it_rides_a_dated_row_silent
             f"| R1 · handler adds one | `src/service.py#handler@{h0}` | read | 2026-01-01 | |"
         ],
     )
-    places, _ = ec.resolve_unit("src/service.py", "handler", TWICE)
+    places = ec.resolve_unit("src/service.py", "handler", TWICE).places
     x, y = places[0]
     held = ec.content_hash(ec.gfm_lines(TWICE)[x - 1 : y])
     a = fragment(
@@ -3369,98 +3369,6 @@ def test_a_held_coordinate_one_of_whose_places_holds_it_rides_a_dated_row_silent
     assert run(["--strict", "."], repo).returncode == 0
 
 
-LEFT_BEHIND = (
-    "func main() {\n    return handler(1)\n}\n\nfunc other(x) {\n    return x * 2\n}\n"
-)
-
-
-@pytest.mark.parametrize(
-    "destination", ["one", "one, renamed", "none"], ids=lambda d: d
-)
-def test_a_held_coordinate_with_an_unsure_place_on_a_dated_row_heals_to_its_destination(
-    repo, capsys, destination
-):
-    """#808, round 3 of #785's review, yellow 1. B holds `handler` in
-    `src/lib.go` through the one place the declaration rule is unsure of, the
-    call a move left behind; A records the unit itself, which now lives in
-    `src/moved.go`, and carries `other`, which drifted. Dated for `other`, A
-    becomes the newest reading of `handler`, and the run reads it as the
-    ordinary path reads such a coordinate: it heals A onto the one
-    destination that reconstructs A's hash, and `--strict` reads the tree
-    clean; with no destination it is left, in the check's own words, with
-    its BROKEN part. Where the unit was renamed as it moved, the hash
-    follows the name and MOVES gets the move. Red at 0de15c70, which named
-    the first two `left` with BROKEN parts, and dropped the last's
-    wording."""
-    lib, dest = "src/lib.go", "src/moved.go"
-    (repo / "src" / "lib.go").write_text(LEFT_BEHIND, encoding="utf-8")
-    unit = "func handler(x) {\n    y := x + 2\n    return y\n}\n"
-    (repo / "src" / "moved.go").write_text(unit, encoding="utf-8")
-    places, unsure = ec.resolve_unit(lib, "handler", LEFT_BEHIND)
-    assert unsure and len(places) == 1, places
-    x, y = places[0]
-    held = ec.content_hash(ec.gfm_lines(LEFT_BEHIND)[x - 1 : y])
-    a_at = unit_hash(repo, dest, "handler")
-    name = "handler"
-    if destination == "none":
-        (repo / "src" / "moved.go").unlink()
-    elif destination == "one, renamed":
-        name = "total"
-        (repo / "src" / "moved.go").write_text(
-            unit.replace("func handler(", "func total("), encoding="utf-8"
-        )
-    o0 = unit_hash(repo, lib, "other")
-    (r,) = released(
-        repo,
-        [
-            f"| R1 · handler adds one | `{lib}#handler@{line_hash('    return handler(0)')}` "
-            "| read | 2026-01-01 | |"
-        ],
-    )
-    cite = citation(r, "R1 · handler adds one")
-    a = fragment(
-        repo,
-        [
-            f"| Re-read · R1 · handler adds one | `{cite}`, `{lib}#handler@{a_at}`, "
-            f"`{lib}#other@{o0}` | read | 2026-02-01 | Re-read 2026-02-01 |"
-        ],
-        name=A_ITEM,
-    )
-    b = fragment(
-        repo,
-        [
-            f"| Re-read · R1 · handler adds one | `{cite}`, `{lib}#handler@{held}` "
-            "| read | 2026-03-01 | Re-read 2026-03-01 |"
-        ],
-        name=B_ITEM,
-    )
-    (repo / "src" / "lib.go").write_text(
-        LEFT_BEHIND.replace("x * 2", "x * 3"), encoding="utf-8"
-    )
-    moves = []
-    ec.reverify([str(a), str(b)], str(repo), {}, None, "2026-04-01", moves)
-    out = capsys.readouterr().out
-    broken = [m for m in moves if m[2] == f"{lib}#handler" and m[4] is None]
-    if destination != "none":
-        assert f"{lib}#handler -> {dest}#{name}  (identical content)" in out, out
-        assert broken == [], moves
-        now = unit_hash(repo, dest, name)
-        assert f"`{dest}#{name}@{now}`" in a.read_text(encoding="utf-8")
-        moved = [m[3:] for m in moves if m[2] == f"{lib}#handler"]
-        assert moved == ([] if now == a_at else [(a_at, now)]), moves
-        assert run(["--strict", "."], repo).returncode == 0
-    else:
-        # The check's own sentence, which names the place and its hash so a
-        # person can record it by hand (#824).
-        (said,) = [s for s in out.splitlines() if s.startswith(f"  {lib}#handler  ")]
-        assert said.startswith(
-            f"  {lib}#handler  the declaration rule is unsure of the only place it "
-            "found, and none holds the recorded content — "
-        ), said
-        assert said.endswith("; record one by hand if it is still the unit — left")
-        assert len(broken) == 1, moves
-
-
 THRICE = (
     SERVICE
     + "\n\ndef handler(x):\n    y = x + 1\n    return y * 2\n"
@@ -3477,7 +3385,7 @@ def test_a_held_claim_two_places_tie_on_a_dated_row_is_left_and_named(repo, caps
     names it `left` in the check's terms and hands MOVES the BROKEN part.
     Red at 0de15c70, which read the tie as unchanged and said nothing."""
     claim = 'src/service.py#handler>"y = x"'
-    places, _ = ec.resolve_unit("src/service.py", "handler", THRICE)
+    places = ec.resolve_unit("src/service.py", "handler", THRICE).places
     assert len(places) == 3, places
 
     def minor(n):
@@ -3638,7 +3546,7 @@ def a_correction_whose_statement_is_gone(repo):
         ],
     )
     text = (repo / "src" / "service.py").read_text(encoding="utf-8")
-    places, _ = ec.resolve_unit("src/service.py", "other", text)
+    places = ec.resolve_unit("src/service.py", "other", text).places
     (inside,) = ec.minor_region("src/service.py", text, places[0], '"x * 2"')
     stated = ec.content_hash(ec.gfm_lines(text)[inside[0] - 1 : inside[1]])
     where = placed(
@@ -3896,42 +3804,11 @@ def test_an_older_reading_outside_the_narrowing_names_no_ledger_remedy(repo):
 #
 # `judge` is the one reading of a coordinate: `--strict` prints its finding,
 # `--reverify` acts on it, and `--into` writes its hash. A claim on a place the
-# declaration rule is unsure of is what the readings disagreed about (#809).
+# declaration rule was unsure of is what the readings disagreed about (#809);
+# #870 removed that rule, and the cases below keep the claim's tie and its gone
+# statement on three Python definitions of one name, which `ast` still gives.
 
-UNSURE_CS = "public new void Render(int x) {\n    var a = x + 2;\n}\n"
-UNSURE_CLAIM = 'src/a.cs#Render>"var a"'
-
-
-def unsure_claim(repo, body=UNSURE_CS):
-    """Write `src/a.cs` holding BODY, whose `Render` the declaration rule is
-    unsure of (`new` is a statement word elsewhere), and return the hash of
-    the statement `UNSURE_CLAIM` quotes, as the check hashes it."""
-    (repo / "src" / "a.cs").write_text(body, encoding="utf-8")
-    places, unsure = ec.resolve_unit("src/a.cs", "Render", body)
-    assert unsure and len(places) == 1, places
-    (inside,) = ec.minor_region("src/a.cs", body, places[0], '"var a"')
-    return ec.content_hash(ec.gfm_lines(body)[inside[0] - 1 : inside[1]])
-
-
-def test_into_re_reads_a_claim_on_an_unsure_place_at_its_statement(repo):
-    """S3a, the `--into` arm (#809, cell C8). `--strict` calls a stale claim
-    on a place the declaration rule is unsure of DRIFTED; `--into` writes a
-    `Re-read ·` row carrying the statement's hash, and the tree reads clean.
-    Red at e6d5a055, which left the row with *no one place to hash*."""
-    now = unsure_claim(repo)
-    released(
-        repo,
-        [f"| R1 · render adds two | `{UNSURE_CLAIM}@0000beef` | read | 2026-01-01 | |"],
-    )
-    frozen(repo, "0")
-    check = run(["--strict", "."], repo)
-    assert f"DRIFTED  {UNSURE_CLAIM}  content changed" in check.stdout, check.stdout
-    assert "BROKEN" not in check.stdout, check.stdout
-    fix = run(["--reverify", "--into", INTO, "--checked", "2026-03-01", "."], repo)
-    assert fix.returncode == 0, fix.stdout
-    assert f"`{UNSURE_CLAIM}@{now}`" in (repo / INTO).read_text(encoding="utf-8")
-    assert "no one place to hash" not in fix.stdout, fix.stdout
-    assert run(["--strict", "."], repo).returncode == 0
+CLAIM = 'src/a.py#render>"a ="'
 
 
 def the_checks_detail(out, coord):
@@ -3942,87 +3819,61 @@ def the_checks_detail(out, coord):
     return said[0].split(f" {coord}  ", 1)[1]
 
 
-def test_reverify_restamps_a_claim_on_an_unsure_place_at_its_statement(repo, capsys):
-    """S3a in place (#809, cell C8). The check calls the claim DRIFTED, and
-    `--reverify` re-stamps it at its statement's hash and hands MOVES the
-    move; nothing records BROKEN. Red at e6d5a055, which left the row as
-    *only a place the declaration rule is unsure of*."""
-    now = unsure_claim(repo)
-    f = fragment(
-        repo,
-        [f"| F1 · render adds two | `{UNSURE_CLAIM}@0000beef` | read | 2026-01-01 | |"],
-    )
-    moves = []
-    ec.reverify([str(f)], str(repo), {}, None, "2026-03-01", moves)
-    out = capsys.readouterr().out
-    assert f"`{UNSURE_CLAIM}@{now}`" in f.read_text(encoding="utf-8"), out
-    assert [m[2:] for m in moves] == [(UNSURE_CLAIM, "0000beef", now)], moves
-    assert "left" not in out, out
-    assert run(["--strict", "."], repo).returncode == 0
-
-
-THREE_UNSURE = (
-    "public new void Render(int x) {\n    var a = x + 1;\n}\n\n"
-    "public new void Render(string s) {\n    var a = x + 1;\n}\n\n"
-    "public new void Render(long n) {\n    var a = n + 9;\n}\n"
+THREE_DEFS = (
+    "def render(x):\n    a = x + 1\n\n\n"
+    "def render(s):\n    a = x + 1\n\n\n"
+    "def render(n):\n    a = n + 9\n"
 )
 
 
 @pytest.mark.parametrize("holding", ["two hold it", "none holds it"])
-def test_reverify_names_a_tie_among_unsure_places_as_the_check_does(
-    repo, capsys, holding
-):
-    """S3b (#809's comment, cells CU and CU0). A claim over three places the
-    declaration rule is unsure of, two holding its recorded content or none:
-    the check calls it BROKEN, ambiguous, and `--reverify`'s `left` line is
-    the check's sentence followed by ` — left`; MOVES gets the BROKEN part.
-    Red at e6d5a055, which said *only a place the declaration rule is unsure
-    of*."""
-    (repo / "src" / "a.cs").write_text(THREE_UNSURE, encoding="utf-8")
-    places, unsure = ec.resolve_unit("src/a.cs", "Render", THREE_UNSURE)
-    assert unsure and len(places) == 3, places
-    recorded = (
-        line_hash("    var a = x + 1;") if holding == "two hold it" else "0000beef"
-    )
+def test_reverify_names_a_claims_tie_as_the_check_does(repo, capsys, holding):
+    """S3b (#809's comment, cells CU and CU0). A claim over three places, two
+    holding its recorded content or none: the check calls it BROKEN,
+    ambiguous, and `--reverify`'s `left` line is the check's sentence
+    followed by ` — left`; MOVES gets the BROKEN part."""
+    (repo / "src" / "a.py").write_text(THREE_DEFS, encoding="utf-8")
+    places = ec.resolve_unit("src/a.py", "render", THREE_DEFS).places
+    assert len(places) == 3, places
+    recorded = line_hash("    a = x + 1") if holding == "two hold it" else "0000beef"
     f = fragment(
         repo,
-        [f"| F1 · render adds | `{UNSURE_CLAIM}@{recorded}` | read | 2026-01-01 | |"],
+        [f"| F1 · render adds | `{CLAIM}@{recorded}` | read | 2026-01-01 | |"],
     )
     check = run(["--strict", "."], repo)
-    detail = the_checks_detail(check.stdout, UNSURE_CLAIM)
+    detail = the_checks_detail(check.stdout, CLAIM)
     assert detail.startswith("locator is ambiguous — 3 places: "), detail
     held = "2 hold the recorded content" if recorded != "0000beef" else "none holds"
     assert held in detail, detail
     moves = []
     ec.reverify([str(f)], str(repo), {}, None, "2026-03-01", moves)
     out = capsys.readouterr().out
-    assert f"  {UNSURE_CLAIM}  {detail} — left" in out.splitlines(), out
-    assert [m[2:] for m in moves] == [(UNSURE_CLAIM, recorded, None)], moves
+    assert f"  {CLAIM}  {detail} — left" in out.splitlines(), out
+    assert [m[2:] for m in moves] == [(CLAIM, recorded, None)], moves
 
 
 def test_reverify_leaves_a_claim_whose_statement_is_gone_in_the_checks_words(
     repo, capsys
 ):
-    """S3c. S3a's row with the quoted statement deleted: the check says
+    """S3c. A claim row whose quoted statement was deleted: the check says
     DRIFTED, *the anchored statement is gone*, and `--reverify` leaves the
     row with that sentence and hands MOVES the BROKEN part, the pact's word
-    for *left by the re-read*. Green at e6d5a055 for the verdicts, red for
-    the words."""
-    body = "public new void Render(int x) {\n    return;\n}\n"
-    (repo / "src" / "a.cs").write_text(body, encoding="utf-8")
-    assert ec.resolve_unit("src/a.cs", "Render", body)[1]
+    for *left by the re-read*."""
+    body = "def render(x):\n    return\n"
+    (repo / "src" / "a.py").write_text(body, encoding="utf-8")
+    assert ec.resolve_unit("src/a.py", "render", body).places == [(1, 2)]
     f = fragment(
         repo,
-        [f"| F1 · render adds two | `{UNSURE_CLAIM}@0000beef` | read | 2026-01-01 | |"],
+        [f"| F1 · render adds two | `{CLAIM}@0000beef` | read | 2026-01-01 | |"],
     )
     check = run(["--strict", "."], repo)
-    detail = the_checks_detail(check.stdout, UNSURE_CLAIM)
-    assert detail.startswith("the anchored statement is gone from Render"), detail
+    detail = the_checks_detail(check.stdout, CLAIM)
+    assert detail.startswith("the anchored statement is gone from render"), detail
     moves = []
     ec.reverify([str(f)], str(repo), {}, None, "2026-03-01", moves)
     out = capsys.readouterr().out
-    assert f"  {UNSURE_CLAIM}  {detail} — left" in out.splitlines(), out
-    assert [m[2:] for m in moves] == [(UNSURE_CLAIM, "0000beef", None)], moves
+    assert f"  {CLAIM}  {detail} — left" in out.splitlines(), out
+    assert [m[2:] for m in moves] == [(CLAIM, "0000beef", None)], moves
 
 
 # --- every coordinate judged once, one write (#824, closing #806) ------------
@@ -4217,7 +4068,7 @@ def test_a_re_point_is_judged_against_the_section_the_run_writes(repo):
         section=moved,
     )
     text = (repo / "seal/releases/0.3.0.md").read_text(encoding="utf-8")
-    (place,) = ec.resolve_unit("seal/releases/0.3.0.md", f'"{moved}"', text)[0]
+    (place,) = ec.resolve_unit("seal/releases/0.3.0.md", f'"{moved}"', text).places
     section = ec.content_hash(ec.gfm_lines(text)[place[0] - 1 : place[1]])
     coord = f'seal/releases/0.2.0.md#"{moved}"'
     f = fragment(

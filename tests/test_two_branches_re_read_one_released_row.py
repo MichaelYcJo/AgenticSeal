@@ -61,7 +61,7 @@ def unit_hash(root, rel, name):
     ec = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(ec)
     text = (root / rel).read_text(encoding="utf-8")
-    ((a, b),), _ = ec.resolve_unit(rel, name, text)
+    ((a, b),) = ec.resolve_unit(rel, name, text).places
     return ec.content_hash(ec.gfm_lines(text)[a - 1 : b])
 
 

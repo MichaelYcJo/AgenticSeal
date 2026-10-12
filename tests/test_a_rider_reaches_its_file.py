@@ -235,8 +235,8 @@ def test_every_rider_stamp_resolves_and_reproduces_its_hash():
     recorded. DRIFTED is it resolving to content that changed — the rider
     firing at whoever edited the unit without answering the comment in it,
     which is the arrival `seal/follow-up.md` moved riders to their coordinates
-    to get. BROKEN is it resolving to nothing, to several places, or only by
-    resurrection."""
+    to get. BROKEN is it resolving to nothing or to several places, or the
+    checker refusing it because no rule bounds a unit in that file (#870)."""
     ok, drifted, problems = riders.check(ROOT, checker=CHECKER)
     assert not problems, "\n".join(f"{s} {w}: {why}" for w, s, why in problems)
     assert ok and not drifted

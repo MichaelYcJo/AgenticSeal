@@ -9,7 +9,8 @@ of the form
 
 and classifies each:
 
-  BROKEN   the anchor is not in the file, or is in it more than once
+  BROKEN   the anchor is not in the file, or is in it more than once, or
+           no rule can bound a unit in that file (#870)
   DRIFTED  the anchor is there and the content under it has changed
   OK       the anchor is there and the content is what the row recorded
   EXTERNAL path not in this repo and no --map given — cannot judge here
@@ -472,10 +473,13 @@ def py_spans(text):
     local, not a unit, and is not collected.
 
     None rather than `{}` for a SyntaxError, because the two callers diverge
-    on exactly that: a file that cannot be parsed falls back to the generic
-    text rule, while a file that parses and simply lacks the symbol is
-    BROKEN. Conflating the two anchored rows to leftover call sites, and
-    `--reverify` then made the wrong anchor permanent (round 4, 🔴 2).
+    on exactly that: a file that cannot be parsed is refused with the
+    interpreter's version and the error's line on it (#870), while a file
+    that parses and simply lacks the symbol is BROKEN with the repo-wide
+    scan. The refusal used to be a fall-back to the generic text rule, which
+    hashed a multi-line `def` without its body; conflating the two before
+    that anchored rows to leftover call sites, and `--reverify` then made the
+    wrong anchor permanent (round 4, 🔴 2).
 
     **One parse per distinct text, for the life of the process** (#519). The
     ledger cites one file from many rows, and parsing it once per row was
@@ -598,7 +602,10 @@ def text_regions(lines, anchor, markdown=False, shown=None):
     A markdown heading owns everything down to the next heading at its level or
     above, which is what a reader means by a section. Anything else owns the
     contiguous run of non-blank lines it sits in — a paragraph, a table, a
-    block of code.
+    block of code. **A quoted line is a paragraph and never a function** (#870):
+    nothing here reads the language, so a unit with no blank line inside it
+    is hashed whole by one quote, and a unit with blank lines is cited one
+    quote per paragraph.
 
     **The heading rule is markdown-only.** `#` opens a comment in Python, shell
     and YAML, and reading one as a heading made a 23-line comment block resolve
@@ -678,36 +685,122 @@ def heading_path(lines, parts):
     return regions
 
 
+# The suffixes each bounding rule reads (#870). `bounding_rule` is the one
+# place a path's suffix decides how a unit in it is bounded; `resolve_unit`,
+# `minor_region`, `file_units` and `content_matches` each used to test the
+# suffix on their own.
+AST_SUFFIXES = frozenset([".py", ".pyi"])
+HEADING_SUFFIXES = frozenset([".md"])
+
+
+def bounding_rule(path):
+    """The rule that bounds a unit in PATH: "ast", "heading", or None where
+    no rule does (#870).
+
+    A unit is bounded only where a real parser decides its extent. In #835's
+    words, "ast" is OBSERVED, the running interpreter's own parse, and
+    "heading" is an OWNED locator over a person's document, read by
+    CommonMark's heading rule (#867). None is the refusal: a bare symbol in
+    any other file is BROKEN with the quoted-line anchor's shape on its line,
+    never read through a rule that imitates a language's grammar without its
+    parser. A quoted locator needs no rule — the run of non-blank lines it
+    sits in is a structure the file itself shows.
+    """
+    suffix = os.path.splitext(path)[1]
+    if suffix in AST_SUFFIXES:
+        return "ast"
+    if suffix in HEADING_SUFFIXES:
+        return "heading"
+    return None
+
+
+def unbounded(path, rule, text):
+    """The sentence a refused bare-symbol locator in PATH reads, naming why
+    no unit can be bounded and the anchor to write instead (#870)."""
+    remedy = "anchor a quoted line instead"
+    if rule == "ast":
+        try:
+            ast.parse(text)
+        except SyntaxError as err:
+            why = err.msg + (f" at line {err.lineno}" if err.lineno else "")
+        else:  # asked only of a text `py_spans` already refused
+            why = "it did not parse"
+        version = ".".join(str(n) for n in sys.version_info[:3])
+        return (
+            f"Python {version} cannot parse this file ({why}), so no unit in it "
+            "is bounded and none is guessed at — run the checker on the Python "
+            f"the file is written for, or {remedy}"
+        )
+    if rule == "heading":
+        return (
+            "a markdown unit is a heading, and a bare symbol names none — "
+            'anchor its heading path instead, `"## <heading>"`'
+        )
+    suffix = os.path.splitext(path)[1]
+    named = f"`{suffix}`" if suffix else "a file with no suffix"
+    return (
+        f"no bounding rule for {named}; {remedy}: "
+        f'`{path}#"<a line of the unit>"@00000000`, whose region is the '
+        "paragraph that line sits in, and `--reverify` fills the hash"
+    )
+
+
+class Resolution:
+    """`resolve_unit`'s one reading of a coordinate (#870): `places`, the
+    `[(start, end)]` the locator resolves to, and `refused`, None or the
+    sentence saying why no unit in the file can be bounded.
+
+    A refused reading has no places, so a caller that never asks for the
+    reason still reads nothing there rather than a span nobody bounded; one
+    that prints a verdict asks for it, and that is one reading of the
+    coordinate rather than a second call (#809). It is no tuple: a field
+    beside `places` that no code can set would be read by its callers as a
+    fact about the place, which is how the resurrection flag outlived the
+    rule that set it until #870 took both out.
+    """
+
+    __slots__ = ("places", "refused")
+
+    def __init__(self, places, refused=None):
+        self.places = places
+        self.refused = refused
+
+    def __repr__(self):
+        return f"Resolution({self.places!r}, refused={self.refused!r})"
+
+
 def resolve(path, locator, text):
     """[(start, end)] for the LOCATOR — empty for none, several for ambiguous.
 
-    **This discards how sure the answer is.** For a file the generic rule
-    reads, some places survive only because the keyword blocklist emptied the
-    set and they were put back; a consumer that acts on such a place — the
-    check deciding OK, `--reverify` deciding to write — has to know that, and
-    calls `resolve_unit` instead. **Nothing inside this module calls it any
-    more** — `file_units` reaches `generic_units` directly — so the wrapper
-    survives for the cases that assert places and for anything importing this
-    module. Its docstring named `file_units` for one round after that stopped
-    being true (round 7, 🟢).
+    It drops the refusal's reason, so a consumer that prints a verdict calls
+    `resolve_unit` instead. **Nothing inside this module calls it any more**,
+    so the wrapper survives for the cases that assert places and for anything
+    importing this module.
     """
-    return resolve_unit(path, locator, text)[0]
+    return resolve_unit(path, locator, text).places
 
 
-def resolve_unit(path, locator, text):
-    """([(start, end)], resurrected) — the places, and whether they survived
-    only because the declaration rule put keyword-blocked candidates back.
+def resolve_unit(path, locator, text, shown=None):
+    """`Resolution(places, refused)` — the places the locator resolves to,
+    and why no unit could be bounded, or None.
 
-    Round 4's 🔴 1, round 5's 🔴 C and round 6's 🔴 J are three attempts at one
-    rule, and the two failure modes are the same ambiguity: without the
-    resurrection a C# `public new void Render(int x)` reads BROKEN, with it a
-    `return render(y);` left behind by a move reads as the unit. No keyword
-    list separates them, so the uncertainty is carried OUT of here instead of
-    being argued about in here — `check_ledger` answers a resurrected place
-    that does not reconstruct the recorded hash with BROKEN and the repo-wide
-    scan, which is what `ast` already gives `.py`, and `--reverify` refuses to
-    write onto one at all. The classifier is then allowed to stay wrong,
-    because being wrong stops being expensive.
+    SHOWN is the path the row itself writes, where it differs from PATH:
+    the refusal's remedy is the edit to make, so it is written on the row's
+    own path, `--map` prefix included (round 2 of #870).
+
+    **A unit no rule can bound is refused, never guessed at** (#870). Which
+    rule bounds PATH is `bounding_rule`'s answer and nobody else's. A `.py`
+    file the running interpreter cannot parse used to fall through to the
+    text rule, which hashed lines 1-3 of a five-line `def f(` whose
+    parameters ran over three lines and left the body out; a suffix no rule
+    names was read by an indentation rule, and then by a bracket walk over a
+    hand-written lexer, each imitating a grammar without its parser. Both
+    now come back with no places and the reason, which `judge` prints as
+    BROKEN with the quoted-line anchor's shape on the line.
+
+    Its input class is the rule's, in #835's words: OBSERVED for `ast`, and
+    an OWNED locator for a markdown heading path and for a quoted line,
+    whose region is the paragraph it sits in (`text_regions`).
 
     **A coordinate's job is to put a reader in the right logic, not to pin a
     line.** So the address is the enclosing unit: the function for code, the
@@ -727,153 +820,28 @@ def resolve_unit(path, locator, text):
     still says re-read this; it just stops saying go fix the ledger.
     """
     lines = gfm_lines(text)
-    markdown = path.endswith(".md")
+    rule = bounding_rule(path)
     if locator.startswith('"'):
         body = unescape(locator[1:-1])
-        if markdown:
+        if rule == "heading":
             # A heading is read where a renderer shows one (#867).
             shown = markdown_lines(text)
             parts = [p for p in body.split(HEADING_SEP) if p.strip()]
             if parts and heading_level(parts[0].strip()) is not None:
-                return heading_path(shown, parts), False
-            return text_regions(lines, body, markdown, shown), False
-        return text_regions(lines, body, markdown), False
-    if path.endswith(".py"):
+                return Resolution(heading_path(shown, parts))
+            return Resolution(text_regions(lines, body, True, shown))
+        return Resolution(text_regions(lines, body))
+    if rule == "ast":
         spans = py_spans(text)
-        if spans is not None:
-            # The parse succeeded, so ast's answer is the whole answer: a
-            # symbol it cannot find is GONE. Falling back to the text rule
-            # here read a leftover call site as the unit — a moved function
-            # reported DRIFTED instead of BROKEN-with-hint, and --reverify
-            # anchored the row to the call permanently (round 4, 🔴 2). The
-            # fallback survives only for the file ast cannot read at all.
-            return spans.get(locator, []), False
-    return generic_units(lines, locator)
-
-
-# Words that BEGIN a statement and can be followed directly by a call —
-# `return render(y);`, `await render(y)`, `if render(x):`. Any of them in the
-# text before the name makes the line a use rather than a declaration —
-# but only where a candidate without one survives, because the same words are
-# declaration modifiers in other languages (`public new void Render(int x)`,
-# `case loading(String)`), and refusing those made real code BROKEN
-# (round 5, 🔴 C). The list may NARROW a set of candidates and may never empty
-# it; a tie it cannot break is broken by the row's own recorded hash in
-# `check_ledger`, which is why being wrong here is no longer expensive.
-STATEMENT_WORDS = frozenset(
-    [
-        "return",
-        "raise",
-        "throw",
-        "yield",
-        "await",
-        "assert",
-        "case",
-        "match",
-        "if",
-        "elif",
-        "while",
-        "with",
-        "switch",
-        "do",
-        "else",
-        "new",
-        "not",
-        "and",
-        "or",
-        "in",
-        "of",
-        "until",
-        "unless",
-        "when",
-    ]
-)
-
-
-def generic_units(lines, name):
-    """[(start, end)] for `name`'s declaration block, without any parser.
-
-    The `ast` path exists for `.py` only, and a project adopting this skill is
-    mostly code that is not Python. Falling back to text anchors there would
-    hand those projects the brittle version of this design, so the major level
-    has a rule that needs no parser and no dependency.
-
-    A declaration is the name followed by `(`, `{`, `:` or `=`. The block runs
-    to the next line at the same or lower indentation, which closes a suite in
-    an indentation language and lands on the closing brace in a brace
-    language, because that brace sits at the declaration's own indent.
-
-    `=` is in that list because a module-level constant is a unit too, and a
-    common one to cite — this plugin's own ledger cites three. Without it every
-    constant in every adopting project falls to a literal text anchor, which is
-    the brittle form this rule exists to avoid. A multi-line value comes along,
-    since its continuation lines are indented past the name.
-
-    It is coarser than a parser and that is the trade. Where it cannot resolve
-    a unit the answer is BROKEN and a person looks — loud and honest beats a
-    per-language parser nobody maintains.
-    """
-    out = []
-    # What may sit before the name on a declaration line: keywords and
-    # modifiers, nothing else. `x = f(` is already blocked because `=` cannot
-    # appear in `pre`; `if v not in NAME:` is why the colon is stricter still.
-    # Statement keywords are blocked by name: `return render(y);` is the
-    # commonest shape in every brace language, and reading it as a second
-    # declaration made a one-declaration-one-call file BROKEN-ambiguous
-    # (round 4, 🔴 1). The list names the USES because declaration modifiers
-    # (`export`, `static`, `async`, `def`, ...) are unbounded across
-    # languages, and a wrong entry here fails loud — a declaration whose
-    # modifier matched would report BROKEN — never silent.
-    blocked = []
-    esc = re.escape(name)
-    opener = re.compile(r"^(?P<pre>[\w\s*&]*?)\b" + esc + r"\s*(?P<delim>[({=]|:)")
-    for i, line in enumerate(lines):
-        m = opener.match(line)
-        if not m:
-            continue
-        pre, delim = m.group("pre"), m.group("delim")
-        if delim == ":" and pre.strip():
-            continue  # `if v not in NAME:` is a use, not a declaration
-        if not pre.strip() and delim == "(" and line.rstrip().endswith(";"):
-            # `render(1);` — nothing before the name, so no keyword blocks it,
-            # and the line TERMINATES, so it opens no block. That is a call
-            # statement in every brace language (round 5, 🔴 C). Structural
-            # rather than a vocabulary guess, which is why this one may empty
-            # the set where the keyword list may not: a declaration with
-            # nothing before its name does not end at a semicolon.
-            continue
-        indent = len(line) - len(line.lstrip())
-        j = i + 1
-        while j < len(lines):
-            nxt = lines[j]
-            if nxt.strip() and (len(nxt) - len(nxt.lstrip())) <= indent:
-                break
-            j += 1
-        while j > i + 1 and not lines[j - 1].strip():
-            j -= 1
-        pre_words = pre.replace("*", " ").replace("&", " ").split()
-        # Nothing before the name, an opening paren, and a span of ONE line is
-        # a call in every language — Swift, Kotlin, Go, Ruby and Lua end no
-        # statement with a semicolon, so the structural guard above never
-        # reached them and `render(y)` left behind by a move read as the unit
-        # (round 7, 🔴 L). Marked rather than dropped, because a one-line
-        # declaration has the same shape and the recorded hash tells them
-        # apart. The span is what bounds this: `function f(x) {` opens a block
-        # and stays a declaration the rule is sure of.
-        bare_one_liner = not pre.strip() and delim == "(" and j == i + 1
-        target = (
-            blocked
-            if (STATEMENT_WORDS.intersection(pre_words) or bare_one_liner)
-            else out
-        )
-        target.append((i + 1, j))
-    # A keyword-prefixed candidate is dropped only where another survives, and
-    # the caller is told when that resurrection is the only reason there is an
-    # answer at all. Round 6's 🔴 J: those candidates include pure call
-    # statements, not only the C#/Swift declarations the resurrection was
-    # written for, so a consumer that cannot tell them apart must be able to
-    # ask.
-    return (out, False) if out else (blocked, bool(blocked))
+        if spans is None:
+            return Resolution([], unbounded(shown or path, rule, text))
+        # The parse succeeded, so ast's answer is the whole answer: a symbol
+        # it cannot find is GONE. Falling back to the text rule here read a
+        # leftover call site as the unit — a moved function reported DRIFTED
+        # instead of BROKEN-with-hint, and --reverify anchored the row to the
+        # call permanently (round 4, 🔴 2).
+        return Resolution(spans.get(locator, []))
+    return Resolution([], unbounded(shown or path, rule, text))
 
 
 def name_statements(text, region, name):
@@ -963,15 +931,48 @@ def minor_region(path, text, region, minor):
     bookkeeping this design exists to remove.
 
     Ambiguity widens for the same reason: several matches is not a place.
+
+    **A quoted claim is bounded by the parser, or is its own line** (round 2
+    of #870). `literal_statements` grows a hit through the lines deeper than
+    it, which is the indentation guess #870 removed at the major level, and
+    it ended a claim on #848's signature line before the body. In `.py` the
+    claim is the innermost statement `ast` gives for the quoted line
+    (`statement_at`); in a file no parser reads it is the line itself, as is
+    a bare minor anchor there. Markdown keeps the literal rule: what follows
+    a line deeper there is the line's own list item, which the format shows.
     """
     lines = gfm_lines(text)
+    rule = bounding_rule(path)
     if minor.startswith('"'):
         found = literal_statements(lines, region, unescape(minor[1:-1]))
-    elif path.endswith(".py"):
+        if rule == "ast":
+            found = [statement_at(text, region, a) for a, _b in found]
+    elif rule == "ast":
         found = name_statements(text, region, minor)
     else:
         found = literal_statements(lines, region, minor)
+    if rule is None:
+        found = [(a, a) for a, _b in found]
     return found if len(found) == 1 else []
+
+
+def statement_at(text, region, line):
+    """`(start, end)` of the innermost statement `ast` gives that holds LINE
+    inside REGION, or `(line, line)` where none does (round 2 of #870)."""
+    lo, hi = region
+    best = (line, line)
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return best
+    size = None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.stmt):
+            continue
+        a, b = node.lineno, node.end_lineno or node.lineno
+        if lo <= a <= line <= b <= hi and (size is None or b - a < size):
+            best, size = (a, b), b - a
+    return best
 
 
 def recorded_here(rel, body, place, want, claim):
@@ -996,21 +997,21 @@ SCAN_SIZE_CAP = 256 * 1024
 
 
 def file_units(rel, body):
-    """[(spelling, (start, end), unsure)] — every unit in one file, resolvable
-    ones only, each saying whether the declaration rule is sure of it.
+    """[(spelling, (start, end))] — every unit in one file, resolvable ones
+    only.
 
-    The flag exists for `--migrate`, which writes an anchor: a place the rule
-    is unsure of is not one to anchor a row onto without other evidence. The
-    destination scan below deliberately keeps them, because there the evidence
-    is reconstruction against the row's recorded hash.
+    Bounded by `bounding_rule`'s rule for REL: OBSERVED for `ast`, OWNED for
+    markdown headings. A file no rule bounds yields no units, so the rename
+    scan names no destination there and `--migrate` names the quoted-line
+    remedy instead (#870).
     """
-    lines = gfm_lines(body)
     units = []
-    if rel.endswith(".py"):
+    rule = bounding_rule(rel)
+    if rule == "ast":
         for name, places in (py_spans(body) or {}).items():
             if len(places) == 1:
-                units.append((name, places[0], False))
-    elif rel.endswith(".md"):
+                units.append((name, places[0]))
+    elif rule == "heading":
         # Headings read where a renderer shows one (#867); a quoted heading
         # in a closed fence is a blank line here and no unit.
         seen = {}
@@ -1027,18 +1028,7 @@ def file_units(rel, body):
                 j += 1
             name = '"' + line.strip().replace("|", "\\|").replace('"', '\\"') + '"'
             seen.setdefault(name, []).append((i + 1, j))
-        units = [(n, p[0], False) for n, p in seen.items() if len(p) == 1]
-    else:
-        opener = re.compile(r"^([\w\s*&]*?)\b(\w+)\s*([({=]|:)")
-        names = set()
-        for line in lines:
-            m = opener.match(line)
-            if m and not (m.group(3) == ":" and m.group(1).strip()):
-                names.add(m.group(2))
-        for name in sorted(names):
-            found, resurrected = generic_units(lines, name)
-            if len(found) == 1:
-                units.append((name, found[0], resurrected))
+        units = [(n, p[0]) for n, p in seen.items() if len(p) == 1]
     return units
 
 
@@ -1101,7 +1091,7 @@ def content_matches(repo, rel, locator, want, cache):
     separately: `main`, `resolve` and `check` collide across files as a
     matter of course, so a name alone must never fix anything.
     """
-    markdown = rel.endswith(".md")
+    markdown = bounding_rule(rel) == "heading"
     old_name = unescape(locator[1:-1]) if locator.startswith('"') else locator
     old_last = old_name.rsplit(".", 1)[-1]
     if markdown:
@@ -1120,7 +1110,7 @@ def content_matches(repo, rel, locator, want, cache):
         if body is None:
             continue
         lines = gfm_lines(body)
-        for name, (a, b), _unsure in file_units(path, body):
+        for name, (a, b) in file_units(path, body):
             region = lines[a - 1 : b]
             if markdown:
                 region = [old_name, *region[1:]]
@@ -1828,31 +1818,27 @@ def judge(m, root, maps, default_repo, scan_cache):
             detail += f" (repo-wide scan skipped: over {SCAN_FILE_CAP} files)"
         return found("BROKEN", detail, dest=destination(repo, rel, hashes))
 
-    places, resurrected = resolve_unit(rel, locator, body)
-    unsure, hit = [], []
-    if places and (resurrected or len(places) > 1):
-        # The row's OWN recorded content decides, in both directions. With
-        # several places it breaks the tie (questions.md §Q3). With one
-        # place the declaration rule is not sure of, it is the only thing
-        # that can say whether the row's unit is still there — and where
-        # nothing reconstructs, the unit is GONE, which is the answer
-        # `ast` already gives `.py` (round 6, 🔴 J). Two places
-        # reconstructing one hash are identical spans, so the choice
-        # between them is not a choice — at the MAJOR level. A claim
-        # row's `want` is the hash of the minor region, which two
-        # unrelated units can share by holding one identical line, so
-        # neither move is licensed there: the tie stands, and an unsure
-        # place stays DRIFTED rather than being called gone.
-        # `docs/the-evidence-ledger.md` §*A row is a content anchor* is the
-        # rule — *an anchor degrades to DRIFTED, never to BROKEN.
-        # Only the major level can be BROKEN* (round 8, 🔴 A and 🔴 B).
+    # The remedy is written on the row's own path, `--map` prefix included,
+    # so a row copied from it still cites the checkout it named (round 2).
+    unit = resolve_unit(rel, locator, body, shown=raw_path)
+    if unit.refused:
+        # Before the repo-wide scan, because a refused unit was never found
+        # and so cannot have moved: no unit in a file of this kind is
+        # bounded, and a hint pointing elsewhere would send the reader past
+        # the one fix that works — the anchor the line names (#870).
+        return found("BROKEN", unit.refused)
+    places = unit.places
+    hit = []
+    if len(places) > 1:
+        # The row's OWN recorded content breaks a tie (questions.md §Q3).
+        # Two places reconstructing one hash are identical spans, so the
+        # choice between them is not a choice — at the MAJOR level. A claim
+        # row's `want` is the hash of the minor region, which two unrelated
+        # units can share by holding one identical line, so no move is
+        # licensed there and the tie stands (round 8, 🔴 B).
         hit = [p for p in places if recorded_here(rel, body, p, want, claim)]
         if hit and (len(hit) == 1 or not claim):
             places = hit[:1]
-        elif resurrected and not claim:
-            # Kept, not discarded: the place is what the person needs to
-            # see, and its hash is what they need to record (round 7, 🔴 M).
-            unsure, places = places, []
     if len(places) > 1:
         at = ", ".join(f"{a}-{b}" for a, b in places)
         # HIT is non-empty here only for a claim's tie: a row with no claim
@@ -1867,20 +1853,6 @@ def judge(m, root, maps, default_repo, scan_cache):
         )
     if not places:
         detail = "locator not found"
-        if unsure:
-            # `locator not found` was a lie — the place was found and the
-            # rule is unsure of it. Saying which lines and what they hash
-            # to is what makes Known limits' *record it by hand* an act
-            # somebody can actually carry out (round 7, 🔴 M).
-            at = "; ".join(
-                f"{a}-{b}@{content_hash(gfm_lines(body)[a - 1 : b])}" for a, b in unsure
-            )
-            detail = (
-                "the declaration rule is unsure of the only place"
-                f"{'' if len(unsure) == 1 else 's'} it found, and none holds "
-                f"the recorded content — {at}; record one by hand if it is "
-                "still the unit"
-            )
         scan = scan_cache.setdefault(repo, {})
         hashes, names, capped = content_matches(repo, rel, locator, want, scan)
         if len(hashes) == 1:
@@ -1897,6 +1869,13 @@ def judge(m, root, maps, default_repo, scan_cache):
             # A labelled fact, never the word "renamed": the content
             # differs, so the checker does not know that.
             detail += f" — same name at {names[0][0]} (content differs)"
+        elif locator.startswith('"'):
+            # A quoted line has no name to find elsewhere, and outside `.py`
+            # and `.md` no file yields units to reconstruct it from, so the
+            # line names the one repair there is (round 2's ⬜ 4).
+            detail += (
+                " — the quoted text is not in the file; quote the line as it reads now"
+            )
         if capped:
             detail += f" (repo-wide scan skipped: over {SCAN_FILE_CAP} files)"
         return found("BROKEN", detail, dest=destination(repo, rel, hashes))
@@ -2767,7 +2746,10 @@ def read_citation(cite, verb, root, maps, default_repo, load):
     if entry is None:
         return found("BROKEN", "the released file it names is not there")
     _, body, lines, rows = entry
-    places, _ = resolve_unit(rel, cite.group("locator"), body)
+    section = resolve_unit(rel, cite.group("locator"), body, cite.group("path"))
+    if section.refused:
+        return found("BROKEN", section.refused)
+    places = section.places
     if len(places) != 1:
         return found(
             "BROKEN",
@@ -3295,6 +3277,14 @@ def migrate(ledgers, root, maps=None, default_repo=None):
                     left.append((m.group(0), "file not found"))
                     failed = True
                     continue
+                rule = bounding_rule(rel)
+                if rule is None or (rule == "ast" and py_spans(body) is None):
+                    # No unit here is bounded, so none can contain the range;
+                    # the reason a person reads is the refusal, which names
+                    # the anchor to write instead (#870, round 1's ⬜ 5).
+                    left.append((m.group(0), unbounded(raw, rule, body)))
+                    failed = True
+                    continue
                 lines = gfm_lines(body)
                 if e > len(lines):
                     left.append((m.group(0), f"line past EOF ({len(lines)} lines)"))
@@ -3324,36 +3314,18 @@ def migrate(ledgers, root, maps=None, default_repo=None):
                 while e > s and not lines[e - 1].strip():
                     e -= 1
                 best = None
-                for name, (a, b), unsure in file_units(rel, body):
+                for name, (a, b) in file_units(rel, body):
                     if (
                         a <= s
                         and e <= b
                         and (best is None or b - a < best[2] - best[1])
                     ):
-                        best = (name, a, b, unsure)
+                        best = (name, a, b)
                 if best is None:
                     left.append((m.group(0), f"no single unit contains {s}-{e}"))
                     failed = True
                     continue
-                name, a, b, unsure = best
-                if unsure and not proved:
-                    # One placement question, two commands: `--reverify` refuses
-                    # a place the rule is unsure of, and this used to anchor a
-                    # row onto one without a word (round 7, 🔴 M). `proved` is
-                    # the exception rather than a softening — it says the cited
-                    # lines have not moved since the person wrote them, which is
-                    # evidence about THIS place that `--reverify` never has.
-                    left.append(
-                        (
-                            m.group(0),
-                            f"the declaration rule is unsure of {name} ({a}-{b}) "
-                            "and the stamp cannot vouch for the cited lines — "
-                            f"record {content_hash(lines[a - 1 : b])} by hand if "
-                            "it is still the unit",
-                        )
-                    )
-                    failed = True
-                    continue
+                name, a, b = best
                 spliced.append(line[at : m.start()])
                 spliced.append(f"{raw}#{name}@{content_hash(lines[a - 1 : b])}")
                 at = m.end()
@@ -4795,8 +4767,8 @@ def reverify_into(
         ledgers, view_paths, root, maps, default_repo
     )
     # Each drifted coordinate's hash is `judge`'s, the reading `--strict`
-    # graded it by, so a claim on a place the declaration rule is unsure of
-    # takes its statement's hash here as it does in place (#809).
+    # graded it by, so a claim takes its statement's hash here as it does in
+    # place (#809).
     scan = {}
     today = (today or datetime.date.today()).isoformat()
     # A fragment is named for its work item, so the row can say whose
