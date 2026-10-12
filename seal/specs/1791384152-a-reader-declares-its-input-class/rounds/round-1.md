@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 895 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `8f3d912e195fc850c9109228ec38713bea64811e..f21f151fe83279cf6be05cf7bdedc909f8f568ca`, 6 commits |
 | Contract changes | none |
 | New units | test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone (depth 1) |
