@@ -152,6 +152,111 @@ def test_switch_idle_sessions_offer_both_ways_on(monkeypatch, capsys, repo):
     assert "[shared-tree-ok]" in reason and "worktree" in reason
 
 
+# --- #896 In 1: an unidentified session's line states what was measured ----
+#
+# Work item 1791781864. The measured entry: a lease alive, quiet past
+# IDLE_MIN, and no pid the process scan reported, which `fresh_leases` puts in
+# its unattributable list at 282 minutes old. Beside it, the active list's
+# unidentified kind: fresh transcript activity no process can be pinned on.
+LEASED = (
+    None,
+    "/Users/x/work/feature  [lease: 5924d73a… pid 87946 alive, quiet]",
+    None,
+    282.0,
+    None,
+)
+WRITING = (None, "/Users/x/work/feature", None, 1.0, None)
+CLAUSES = ("working on this tree right now", "지금 이 트리에서 작업 중")
+MEASURED = {
+    "en": {
+        LEASED: "        lease declaration 4.7h ago",
+        WRITING: "        transcript activity 1m ago",
+    },
+    "ko": {
+        LEASED: "        lease 선언 4.7시간 전",
+        WRITING: "        작업 기록(트랜스크립트) 1분 전",
+    },
+}
+
+
+def said(module, monkeypatch, capsys, repo, command, sessions, session_id):
+    """`main()`'s decision and reason, for MODULE loaded in either language."""
+    monkeypatch.setattr(module, "sessions_in_tree", lambda top, own="": sessions)
+    monkeypatch.setattr(
+        module,
+        "load_input",
+        lambda: {
+            "tool_name": "Bash",
+            "session_id": session_id,
+            "tool_input": {"command": command},
+            "cwd": str(repo),
+        },
+    )
+    try:
+        module.main()
+    except SystemExit:
+        pass
+    d = json.loads(capsys.readouterr().out)["hookSpecificOutput"]
+    return d["permissionDecision"], d["permissionDecisionReason"]
+
+
+def test_an_unidentified_sessions_line_prints_its_kind_and_age(
+    monkeypatch, capsys, repo
+):
+    """S1. The line is the measurement and stops there: the kind and the age,
+    both languages, under the idle header and under the ACTIVE one. Seen red
+    at `c38f97d7`: each line ended with the clause."""
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_896_s1_ko")
+    for lang, module in (("en", wg), ("ko", wko)):
+        for entry, sessions in (
+            (LEASED, ([], [LEASED], True)),
+            (WRITING, ([WRITING], [], True)),
+        ):
+            decision, reason = said(
+                module,
+                monkeypatch,
+                capsys,
+                repo,
+                "git switch feature/x",
+                sessions,
+                f"s1-{lang}-{entry[3]}",
+            )
+            assert decision == "deny", (lang, reason)
+            assert MEASURED[lang][entry] in reason.splitlines(), (lang, reason)
+            assert not any(clause in reason for clause in CLAUSES), (lang, reason)
+
+
+def test_no_site_says_an_unidentified_session_is_working_now(monkeypatch, capsys, repo):
+    """S2. One function prints the line at six sites, and the clause is gone
+    from the function, so from every one of them: the creation ladder's
+    ACTIVE and only-idle rows, the stop's busy and idle descriptions, and the
+    switch ladder's ACTIVE row and row 1-b. Each site is shown printing the
+    entry, so a site that printed nothing could not pass. Seen red at
+    `c38f97d7`: every site carried the clause, and the source held both."""
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_896_s2_ko")
+    busy, idle = ([WRITING], [], True), ([], [LEASED], True)
+    sites = (
+        ("git worktree add ../wt f", busy, WRITING),
+        ("git worktree add ../wt f", idle, LEASED),
+        ("git checkout feature/x", busy, WRITING),
+        ("git checkout feature/x", idle, LEASED),
+        ("git switch feature/x", busy, WRITING),
+        ("git switch feature/x", idle, LEASED),
+    )
+    for lang, module in (("en", wg), ("ko", wko)):
+        for n, (command, sessions, entry) in enumerate(sites):
+            _, reason = said(
+                module, monkeypatch, capsys, repo, command, sessions, f"s2-{lang}-{n}"
+            )
+            assert MEASURED[lang][entry] in reason.splitlines(), (lang, n, reason)
+            assert not any(clause in reason for clause in CLAUSES), (lang, n, reason)
+    with open(wg.__file__, encoding="utf-8") as f:
+        source = f.read()
+    assert not any(clause in source for clause in CLAUSES)
+
+
 def test_the_second_attempt_gets_the_plain_prompt(monkeypatch, capsys, repo):
     """The deny fires once per session per repo. Without that, a session whose
     answer the guard cannot read off the command would be stuck denying."""

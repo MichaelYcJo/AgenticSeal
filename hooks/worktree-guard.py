@@ -1182,7 +1182,16 @@ def fmt_sessions(entries):
     """Per-session line with DISAGGREGATED signals and host app. "마지막 활동
     1분 전" alone proved undiagnosable in practice — the reader could not tell
     a keystroke from an autonomous turn's transcript write, and app guesses
-    made from sibling MCP processes misattributed a VS Code tab to Cursor."""
+    made from sibling MCP processes misattributed a VS Code tab to Cursor.
+
+    An unidentified entry -- a lease, or transcript activity no process can
+    be pinned on -- prints its kind and its age and stops there. It used to
+    end with a clause saying the session was at work on this tree at that
+    moment, at any age: under the idle header that contradicted the header
+    one line up, a lease 4.7 hours old included, and under the ACTIVE header
+    it restated the header's judgment as if it were a third signal (#896).
+    Which list an entry sits in is the header's to say, every caller prints
+    one, and this function cannot tell which list it was handed."""
     lines = []
     for p, d, tty_idle, tr_idle, app in entries:
         if p is None:
@@ -1194,9 +1203,9 @@ def fmt_sessions(entries):
             lines.append(
                 tr(
                     f"    (unidentified session — extension panel or a session in another cwd)  {d}\n"
-                    f"        {kind} {_age(tr_idle)} — working on this tree right now",
+                    f"        {kind} {_age(tr_idle)}",
                     f"    (프로세스 미확인 세션 — VS Code 확장 패널·다른 cwd 의 세션 등)  {d}\n"
-                    f"        {kind} {_age(tr_idle)} — 지금 이 트리에서 작업 중",
+                    f"        {kind} {_age(tr_idle)}",
                 )
             )
             continue
