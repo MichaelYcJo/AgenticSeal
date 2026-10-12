@@ -32,9 +32,10 @@ byte-identical to the base after this work.
 false of the deny's own text. Phase 1 wrote a way on per switch form —
 commit for this one, stash for that one, name the branch on a detached HEAD
 — and rounds 1, 2 and 3 each found the form the text had not named
-(`spec.md` §*Why the deny predicts nothing*). Round 3's two findings were the
-run's second fix of a fix in `hooks/worktree-guard.py#main`, which stops the
-fix passes and sends the item here. Phases 1 and 2 keep their commits.
+(`spec.md` §*Why the deny's own sentences predict nothing*). Round 3's two
+findings were the run's second fix of a fix in
+`hooks/worktree-guard.py#main`, which stops the fix passes and sends the
+item here. Phases 1 and 2 keep their commits.
 Phases 3 and 4 replace the deny's text with one that states what the guard
 read — changes present, a switch asked, the press — and names `git commit`
 and `git stash` as listed shapes that pass it alone, promising no outcome

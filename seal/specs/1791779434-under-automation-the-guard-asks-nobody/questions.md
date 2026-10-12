@@ -43,7 +43,8 @@ Listed so nobody reopens them. Each one's grounds are in `spec.md` or in
    loop.
 
 Judgments the reframe after round 3 made, from the round records and the
-tree (`spec.md` §*Why the deny predicts nothing*, `plan.md` I–L):
+tree (`spec.md` §*Why the deny's own sentences predict nothing*, `plan.md`
+I–L):
 
 8. **Whether round 3's two findings get a third fix.** No. Each of three
    rounds found the next switch form the recipe was wrong for, with no fact

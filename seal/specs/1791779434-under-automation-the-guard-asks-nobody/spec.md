@@ -69,11 +69,11 @@ an `ask` is the guard's correct answer to that state. The reader is not
 changed, loosened, or given a fallback. `plan.md` §*Alternatives considered*
 holds the three designs that were weighed and why each is refused (A, B, C).
 
-### In 2 — the dirty-tree row under the press is a deny to the model, and it predicts nothing
+### In 2 — the dirty-tree row under the press is a deny to the model, and its own sentences predict nothing
 
 *Reframed after round 3. The first frame's In 2 prescribed a way on per
-switch form; §*Why the deny predicts nothing* says what that cost and why
-this In 2 replaces it. The press sentence and the shape — fact, press, ways
+switch form; §*Why the deny's own sentences predict nothing* says what that
+cost and why this In 2 replaces it. The press sentence and the shape — fact, press, ways
 on, no question tool, the re-issue sentence — are the first frame's and stay.*
 
 Where `automation_answered` is True for the session's own clone, the
@@ -137,7 +137,7 @@ HEAD has a commit no branch names until it names one. Neither loses the
 change, and neither is this guard's to predict; M4 measures whether it
 happens, and P3 is whether the stash should be named at all.
 
-### Why the deny predicts nothing (reframe after round 3)
+### Why the deny's own sentences predict nothing (reframe after round 3)
 
 Three review rounds each found the first frame's recipe wrong for one more
 switch form. Round 1: `-c` — *commit here first* puts the commit on the
@@ -165,9 +165,10 @@ So the reframed deny keeps every sentence that is a fact the guard read or a
 fact about the guard itself — the changes listed from `git status`, the
 press, that `commit` and `stash` are listed shapes (S4), that a compound
 meets the same row (S5), that a re-issue meets the same refusal — and drops
-every sentence about what git will do. Round 3's two findings close under
-this frame by the removal of the sentences they were about, not by a third
-sentence; the redesign's own review round records that
+every sentence of its own about what git will do. The index-residue note it
+shares with the `ask` stays as the `ask` has it. Round 3's two findings
+close under this frame by the removal of the sentences they were about, not
+by a third sentence; the redesign's own review round records that
 (`skills/code-review/orchestration.md` §*A fix of a fix twice sends the work
 item back to its framer*, *A record after the stop is the redesign's*).
 
@@ -252,7 +253,7 @@ red against the base (`c38f97d7`) and the handover says how.
 | S6 the plain retry after an unrecognised-shape stop meets In 2 | Given the press and a dirty tree · When `git checkout feature/x` then `git switch feature/x` · Then `deny` with the stop's text, then `deny` with S1's text; in an ACTIVE tree both are the deny with the worktree steer, as today | `test_the_plain_retry_meets_todays_rows` rewritten; its 0.20.0 ledger row S6 takes a `Corrected ·` citing row in this item's fragment |
 | S7 a creation on the same line is stopped with it and records nothing | Given the press, no consent record, a dirty tree · When `git switch feature/x && git worktree add ../wt f` · Then `deny`, and `specseal-worktree-consent/` holds no file for `me` | new case; the PostToolUse writer is not run because the command did not |
 | S8 the other readers are unchanged | `hooks/commit-review-gate.py`, `hooks/worktree_consent.py` and `hooks/cmdline_base.py` are byte-identical to `c38f97d7`'s | `git diff c38f97d7 -- <the three>` is empty; read at review and asserted by the handover |
-| S9 the policy says what the code does (rewritten at the reframe) | `docs/worktree-guard-spec.md` §A's tracked-changes row and *The tracked-changes row has two readers too* carry the reframed In 2 — the deny states the facts, names the two commands, promises no outcome, one text for every form — with one paragraph saying why (§*Why the deny predicts nothing*, in the policy's words), and `Enforced by:` lines naming S1, S3, S5, S6, S12 and losing the three removed cases; *The stop has two readers* is unchanged; §*Known limits* carries In 1 (the press is this session's, on this machine; a resumed run presses again); the module docstring's row (`hooks/worktree-guard.py` lines 27–31) says the same in its words | the `Enforced by:` resolver (`tests/test_a_folded_statement_names_what_enforces_it.py`), `tests/test_docs_line_wrap.py`, the survivor sweep |
+| S9 the policy says what the code does (rewritten at the reframe) | `docs/worktree-guard-spec.md` §A's tracked-changes row and *The tracked-changes row has two readers too* carry the reframed In 2 — the deny states the facts, names the two commands, promises no outcome, one text for every form — with one paragraph saying why (§*Why the deny's own sentences predict nothing*, in the policy's words), and `Enforced by:` lines naming S1, S3, S5, S6, S12 and losing the three removed cases; *The stop has two readers* is unchanged; §*Known limits* carries In 1 (the press is this session's, on this machine; a resumed run presses again); the module docstring's row (`hooks/worktree-guard.py` lines 27–31) says the same in its words | the `Enforced by:` resolver (`tests/test_a_folded_statement_names_what_enforces_it.py`), `tests/test_docs_line_wrap.py`, the survivor sweep |
 | S12 one text for every switch form (new at the reframe) | Given the press and a dirty tree · When each form round 3's table enumerated — plain `feature/x`, `-c newb`, `-C newb`, `--create newb`, `--force-create newb`, `-C feature/x`, `--orphan newb`, `--detach feature/x`, `-f feature/x`, `--discard-changes feature/x`, `-m feature/x`, `--merge feature/x`, `-` — from a branch, and plain and `--orphan newb` from a detached HEAD · Then every verdict is `deny` with byte-identical reasons across the forms, and the reason contains none of the forms' option words and none of `pop`, `way 2`, `carries`, `conflict`, `detached`. Both languages | new case, parametrised over the table so a form a later round finds is a row here and not a sentence in the deny; red at `0f1663f5` on the word check (its one reason names `-c` and `--orphan`); the equality half is one string at `0f1663f5` too, so it is seen red through `mutation-check` with a per-form clause planted in the text |
 | S10 the orchestrator's procedure carries In 3 | `skills/implement/orchestration.md` holds the paragraph; `skills/code-review/orchestration.md` links it from the *another machine* paragraph; `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py` stays green (the section is the orchestrator's and already marked) | read at review; the two tests named |
 | S11 the fragments | `seal/specs/1791779434-…/changelog.md` says what a person sees differently; `seal/ledger/1791779434-….md` holds S1–S10's rows and the S6 correction | `bin/evidence-check` on the fragment; the hygiene workflow at the pull request |
