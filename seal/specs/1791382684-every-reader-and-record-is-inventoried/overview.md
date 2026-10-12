@@ -6,7 +6,7 @@ The inventory found that the readers which kept being reopened were the ones
 guessing at text they did not control, and the item ships as that inventory:
 its first frame's backfill of `Reads:` lines was built, read false three
 rounds running, and withdrawn whole by the reframe (`spec.md` §*The
-reframe*), so the tree's code is what 7608d82c holds.
+reframe*), so the branch's code is the release branch's.
 
 ## Where spec and implementation diverged
 
@@ -20,18 +20,20 @@ reframe*), so the tree's code is what 7608d82c holds.
 
 | Item | Who must answer |
 |---|---|
-| the full suite, lint and typecheck over the build's tree | the sealer, after the review rounds settle |
-| ✅ that each of the 189 `Reads:` lines says what its unit reads today: each is the inventory's reading of 2026-10-07 carried over for a unit whose hash has not moved since, and was not read against the code again | withdrawn: phase 4 (ef8fb33c) restored the 44 files, so no such line is in the tree; rounds 1 to 3 had read them and found 71 false |
+| the full suite, lint and typecheck at the head | the sealer, after the review rounds settle |
+| ✅ that each of the 189 `Reads:` lines says what its unit reads today: each is the inventory's reading of 2026-10-07 carried over for a unit whose hash has not moved since, and was not read against the code again | withdrawn: phase 4 (ef8fb33c) restored the 44 files, so no such line is in the tree; rounds 1 to 3 had read them and made 71 findings of a false line, at most 68 of them distinct lines |
 | ✅ phase 4, `hooks/worktree-guard.py`'s units | gone with the reframe (`plan.md` §*Phases*): this branch changes the guard at no commit, and its units declare when next touched |
 
 ## Not done
 
 The 189 units the build wrote a line on are back on the census, beside the
 rest the inventory rowed, and each declares when next touched, by whoever reads its body then;
-`spec.md` §*The direction word, settled* is the definition that hand applies.
-The inventory's other columns (`Decides`, `Duplicates`, `Note`) stay where
-they are, as the reading of 5623d728.
+`docs/the-reader-registry.md` §*The four classes and the line that declares
+one* is the definition that hand applies. The inventory stays where it is,
+every column of it, as the reading of 5623d728.
 
 ## Fed back into the spec
 
-none
+- `spec.md` §*The direction word, settled* → `docs/the-reader-registry.md`
+  §*The four classes and the line that declares one*, its direction sentence
+  (round 4 🟡 2). Settled by the reframe, not inferred during implementation.

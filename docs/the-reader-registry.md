@@ -28,8 +28,12 @@ between them is for the reviewer. The classes:
 | `guess` | a person's text, or a shape predicted from text the reader does not control |
 | `nothing` | the unit decides from no input except what a declaring caller handed it: a writer, a formatter of its own output, a pure function |
 
-The direction says what the unit does with input it does not understand:
-`refused`, `passed` or `mixed`. A unit reading several inputs declares the
+The direction says where an input the unit does not understand ends, read
+through to the decision the unit's value feeds: `refused` where that
+decision refuses it (raised, stopped, or handed back as a value its caller
+refuses on), `passed` where it is let through as if understood, `mixed`
+where both happen. A helper's direction is therefore read at its callers,
+not on its own body. A unit reading several inputs declares the
 weakest, `guess` being the weakest, and a unit parsing text its caller handed
 it takes the class of where that text came from. The declaration is one line:
 a wrapped line has no last word to read, so its explanation goes in the

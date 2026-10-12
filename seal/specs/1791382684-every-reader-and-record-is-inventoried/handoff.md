@@ -36,7 +36,7 @@ git shape asks the owner yes/no (#894 documents this).
 | #835 | 1791384152 | #895 | **merged** dae101ab; capped at round 3; sealed 63580c62 after two seal failures (two suite guards, then one Windows-only case) | — |
 | #894 | 1791779434 | #897 (draft) | reframed after round 3 (the deny states only facts about the guard), capped at round 6 with nothing to fix and four ⬜ notes; release merged in at 1762901d; `main`'s `Reads:` line at 35c0cade | see its `handoff.md` |
 | #896 | 1791781864 | none | phases 1–2 built at 33ff3dd9; phase 3 (the shared docs) waits for #894 to land | see its `handoff.md` |
-| #834 (its own build) | 1791382684 | none | framed by the Fable framer (5326a0ee, 75c7091a, 0f97351c); Q1 answered (c) by the owner: lines for the 245 units no ledger row cites, zero re-reads; `plan.md` approved at d00d1c67 | spawn the smith for phases 1–3; phase 4 (`hooks/worktree-guard.py`) after #894 and #896 land |
+| #834 (its own build) | 1791382684 | #901 (draft) | framed by the Fable framer (5326a0ee, 75c7091a, 0f97351c); phases 1–3 built (681fa7b1, 36491ddb, 8160ad69); capped by a second fix of a fix at round 3 and reframed at 73c1145a: the backfill withdrawn whole; phases 4–5 built (ef8fb33c, c6dda5ca, the release merge c778429d, 9c228af5); the owner chose withdrawal on 2026-10-12 | the redesign's review rounds from round 4, then the seal; the item ships as the inventory alone |
 
 `release/v0.21.0` is at dae101ab. Moved on 2026-10-12 to the new milestone
 `release: 0.21.1`, because they are not in 0.21.0's scope: #844, #857, #871,
@@ -139,6 +139,9 @@ run, not longer prompts.
      frame`, and each PR takes `chain: reframed`.
 2. **0.21.0 ships as the six merged items plus #866, #835 and #834's build**,
    with the three reframed items once they land.
+   *Superseded 2026-10-12 for #834:* the reframe after its round 3 withdrew the
+   build, and the owner answered in the session to withdraw everything; #834
+   ships as the inventory alone.
 3. **#836 Q1 stays at (a) for now.** A bulk migration of the released rows
    that already cite a test needs #836's test rows, and #836 is being
    reframed. Decide (c) and its timing after #836 lands. Weigh it then against

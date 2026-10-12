@@ -1,7 +1,8 @@
 ### Added
 
 - **Every reader and record of 0.20.0 is inventoried (#834).** The work
-  item's `inventory/` holds 1,467 reader rows across six parts — each unit,
+  item's `inventory/` (`seal/specs/1791382684-every-reader-and-record-is-inventoried/inventory/`,
+  read at the `v0.21.0` tag once `settle --retire` removes the directory) holds 1,467 reader rows across six parts — each unit,
   what it reads, what it decides, its input class (`owned`, `observed`,
   `guess`), what it does with input it does not understand, and where the
   same judgment is copied — beside 35 record mechanisms with what each cost
