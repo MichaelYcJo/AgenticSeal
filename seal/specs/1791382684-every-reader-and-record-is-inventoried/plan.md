@@ -5,6 +5,7 @@ artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
 Approved 2026-10-12 by the repository owner, when `smith` was spawned.
+Approved 2026-10-12 by the orchestrating session under the owner's automation press, for the reframe, when `smith` was spawned.
 
 `questions.md` Q1 was answered (c) by the owner with that approval. The
 reframe of 2026-10-12, after round 3, withdraws the build that answer sized
