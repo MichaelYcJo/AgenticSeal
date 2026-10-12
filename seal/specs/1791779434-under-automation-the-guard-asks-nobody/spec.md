@@ -18,6 +18,9 @@ Framed by `specseal:framer` on Fable 5.1 for #894. -->
 | `CONTRIBUTING.md` §*What a change to a gate must carry* | A test seen red, a stated failure direction, a prompt budget, platform honesty. Each is answered below and in `plan.md` |
 | `skills/agent-contract/SKILL.md` §12 | The class, not the coordinate. The ticket names two stops; the class is *every `ask` the guard can emit while the press is read*, enumerated in §*Scope* |
 | `skills/agent-contract/SKILL.md` §13, §15 | The deny's ways on are run against the guard, not read off it (S4, S5); the new cases are seen red against the base |
+| `docs/the-commit-gate-inside-git.md` §*The convergence argument is claimed for commits alone* | *Those arms still predict from text, and do not converge.* The owner's standing judgment on a reader that says what git will do: it is kept only where pinned not to grow. The reframe after round 3 applies it to the deny's own sentences — a recipe per switch form is a prediction from text, and three rounds measured it not converging (§*Why the deny predicts nothing*) |
+| `docs/worktree-guard-spec.md` §*Known limits*, the brace-reader paragraph | The precedent: a reader built in work item 1791384157 and taken out in the same release, because *every reading of it imitated bash, and five review rounds each found the next spelling it missed*. Three rounds of this item found the next switch form the same way |
+| `seal/specs/1791384159-a-unit-the-extractor-cannot-bound-is-refused/spec.md` §Grounding, the #834 row | *What converged read an owned format or an observed fact and refused the unknown. What did not converge read someone else's text and let the unknown through.* The test the reframed deny is written against: every sentence in it is a fact the guard read or a fact about the guard itself |
 | `docs/the-evidence-ledger.md` §*A released row is read again in the branch's fragment* | `seal/releases/0.20.0.md` row S6 claims the plain retry in a dirty tree is the tracked-changes `ask`, with the press written. This work changes that; the correction is a citing row in this item's fragment, never an edit of the released file |
 | `skills/implement/orchestration.md` §*Orchestrator: how the work is routed — two questions, one call, one file* | The press is question 1 of this batch, put through `AskUserQuestion`. In 3 adds where it is put again |
 | `skills/code-review/orchestration.md`, the paragraph beginning *When the implementing session no longer exists — a new day, another machine* | The one place a resumed run is described. In 3 hangs its sentence here |
@@ -66,33 +69,59 @@ an `ask` is the guard's correct answer to that state. The reader is not
 changed, loosened, or given a fallback. `plan.md` §*Alternatives considered*
 holds the three designs that were weighed and why each is refused (A, B, C).
 
-### In 2 — the dirty-tree row under the press is a deny to the model
+### In 2 — the dirty-tree row under the press is a deny to the model, and it predicts nothing
+
+*Reframed after round 3. The first frame's In 2 prescribed a way on per
+switch form; §*Why the deny predicts nothing* says what that cost and why
+this In 2 replaces it. The press sentence and the shape — fact, press, ways
+on, no question tool, the re-issue sentence — are the first frame's and stay.*
 
 Where `automation_answered` is True for the session's own clone, the
-tracked-changes row of §A answers `deny` instead of `ask`. The reason:
+tracked-changes row of §A answers `deny` instead of `ask`. **The reason
+states what the guard read and nothing it inferred.** The guard holds three
+facts: tracked changes are present (`git status`, the `entries` list), the
+command asks for a switch (its shape, §A), and the press is in this session's
+transcript. What the switch form does with the changes, where a commit lands,
+whether a `stash pop` applies cleanly — none of that is read from any fact
+the guard holds, and no sentence of the reason says it. The reason:
 
-- lists the changes as today (file list, index-only residue note, the three
-  leads of #624.2 unchanged in wording);
-- names the ways on that need nobody, each **as a command of its own**,
-  because the guard reads the tree before the command runs and a compound
-  `git stash && git switch x` meets the same deny (S5):
-  1. commit the changes here first — on a declared branch the commit gate is
-     silent for it, and a feature branch squashes at the merge, so an
-     intermediate commit costs nothing (#21, *committing first is close to
-     free*);
-  2. `git stash`, then the switch, then `git stash pop` — and says that `pop`
-     applies to whatever is checked out when it runs (#21, executed);
-  3. says which applies when HEAD is detached, because stop 2 ran from a
-     detached HEAD and a commit there is on no branch (W1 decides whether the
-     guard reads HEAD's state or tells the model the one-line check);
+- opens with the lead and lists the changes as today (file list, index-only
+  residue note, the three leads of #624.2 unchanged in wording), and says
+  only that they are present — not what the switch would do with them;
+- carries the press sentence, byte-identical to the first frame's and to the
+  one #896 copies: *This session's person pressed `automation` on the routing
+  question, so this guard puts no question to them, and none is to be put to
+  them in its place.*;
+- says what the row means, in the guard's own terms: it stops a switch while
+  uncommitted tracked changes are present, and where none are present it
+  says nothing (§A's clean row — an owned fact);
+- names the plain commands that leave a tree with no uncommitted tracked
+  change, `git commit` and `git stash`, each as a listed shape that passes
+  this guard when issued alone (§A, *Which commands reach these rows* — an
+  owned fact, S4), and says that which one fits this switch, and what
+  follows it, is the model's to decide and git's own output reports. It
+  promises no outcome for any form, and names no sequence past the one
+  command: no `pop`, no *then re-issue the switch* for one form and *take
+  the other way* for another;
+- says each command is issued on its own, because the guard reads the tree
+  before the command runs and a compound `git stash && git switch x` meets
+  the same row (S5 — an owned fact);
 - names no question tool, and says that re-issuing the command unchanged
   meets the same refusal (the commit gate's shape).
+
+**One text for every switch form.** The reason is the same bytes for a plain
+switch, the creating family (`-c`, `-C`, `--create`, `--force-create`),
+`--orphan`, `--detach`, the discarding forms (`-f`, `--discard-changes`),
+`-m`/`--merge` and `-`, from a branch and from a detached HEAD, and it
+contains no switch option word (S12). A per-form clause is a prediction, and
+S12 is the case that keeps one from coming back as a fix: a form a later
+round finds is a row in S12's parametrisation, never a sentence in the deny.
 
 Without the press the row is byte-for-byte today's `ask` (S2). `[shared-tree-ok]`
 stays ignored at this row in both readers: it answers a different question
 (§*Choice sites*). Carrying the changes along, the one destination approving
-used to give, is reachable under the press through the stash sequence, so no
-spelling is lost.
+used to give, is what the model decides for itself under the press, with the
+commands git offers; the deny neither names nor forbids it.
 
 **Failure direction.** Blocks more, never allows more: a verdict moves from
 `ask` to `deny` in one state and nowhere else. A wrong deny — a press read
@@ -101,7 +130,46 @@ decides it is unchanged, so this work can produce no such reading that today's
 unrecognised-shape stop does not already produce. **Prompt budget.** Under the
 press the dirty row puts zero questions to a person, from one per dirty switch.
 Attended, unchanged. In 3 adds one click at a resume, at a moment a person is
-present by definition.
+present by definition. **What the shorter reason gives up.** A model told
+less decides more: one that stashes and never restores leaves a stash in its
+own session, listed by `git stash list`, and one that commits onto a detached
+HEAD has a commit no branch names until it names one. Neither loses the
+change, and neither is this guard's to predict; M4 measures whether it
+happens, and P3 is whether the stash should be named at all.
+
+### Why the deny predicts nothing (reframe after round 3)
+
+Three review rounds each found the first frame's recipe wrong for one more
+switch form. Round 1: `-c` — *commit here first* puts the commit on the
+branch being left, so the fix sent a creating switch to the stash way. Round
+2: `--orphan` — the stash way's pop conflicts on the empty tree, so the fix
+sent `--orphan` back to the commit; and `-f`/`--discard-changes` drop the
+changes, so *would follow* was false and the premise was narrowed. Round 3:
+a detached HEAD with `--orphan` — the detached-HEAD sentence still offered
+the stash way; and a target branch that changed a listed file — the pop stops
+on a `UU` conflict where the reason promised a carry. Each fix was a sentence
+about what git does for one form, and each next round found the form the
+sentence had not named (`rounds/round-1.md`, `round-2.md`, `round-3.md`).
+
+Round 3's table of sixteen setups is the measurement (`rounds/round-3-report.md`
+§1): fourteen cells where the recipe held and two where it did not, and
+nothing the guard reads distinguishes them. The guard does not read HEAD's
+state, the target branch's history, or what a stash holds, and the first
+frame refused to add a git spawn for the first of those (W1). A reason that
+is right in fourteen cells and wrong in two, with no fact to tell them apart,
+is a prediction from text, and this repository has judged that class not to
+converge three times over (the Grounding rows for
+`docs/the-commit-gate-inside-git.md`, the brace reader, and 1791384159).
+
+So the reframed deny keeps every sentence that is a fact the guard read or a
+fact about the guard itself — the changes listed from `git status`, the
+press, that `commit` and `stash` are listed shapes (S4), that a compound
+meets the same row (S5), that a re-issue meets the same refusal — and drops
+every sentence about what git will do. Round 3's two findings close under
+this frame by the removal of the sentences they were about, not by a third
+sentence; the redesign's own review round records that
+(`skills/code-review/orchestration.md` §*A fix of a fix twice sends the work
+item back to its framer*, *A record after the stop is the redesign's*).
 
 ### In 3 — a resumed run presses again, through the tool
 
@@ -158,6 +226,15 @@ Every `ask` the guard can emit while the press is readable, enumerated from
   home); a link row is the orchestrator's call, not this build's.
 - **Windows.** Every switch there takes the detection-unusable row, which is
   P1's site, not this work's. Read, not run (§*Known limits*).
+- **A guard that reads HEAD's state, the target branch or the stash to
+  tailor the reason** (reframe). That is a new reader for a fact the deny
+  would then predict from, and §*Which tree* pins the switch arm's reading
+  not to grow; `plan.md` J says why it would not have ended the rounds
+  either.
+- **The attended `ask`'s own prediction** — *They will follow you onto the
+  target branch* is the base's text and is false for the discarding forms
+  too. S2 pins it byte-identical, and it is #21's attended site; the reframe
+  changes the pressed reader only.
 
 ## User scenarios & acceptance *(mandatory)*
 
@@ -167,15 +244,16 @@ red against the base (`c38f97d7`) and the handover says how.
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
-| S1 the dirty row under the press is a deny | Given session `me`'s `automation` press in its transcript (`ask_entries`), a single-stream tree with one modified tracked file · When `git switch feature/x` · Then `deny`; the reason lists `f.txt`, names committing here first and `git stash` / `git stash pop` each as a command of its own, says `pop` applies to whatever is checked out, says re-issuing unchanged meets the same refusal, and does not contain `AskUserQuestion`. Both languages (`SPECSEAL_LANG=ko`) | new case; red at the base (`ask`) |
+| S1 the dirty row under the press is a deny that states the facts (rewritten at the reframe) | Given session `me`'s `automation` press in its transcript (`ask_entries`), a single-stream tree with one modified tracked file · When `git switch feature/x` · Then `deny`; the reason lists `f.txt`, carries the press sentence byte-identical to the first frame's, names `git commit` and `git stash` as commands issued on their own that pass this guard alone, says the choice and what follows are the model's and git's output reports it, says re-issuing unchanged meets the same refusal, and contains none of `AskUserQuestion`, `pop`, `way 2`, `squash`, `carries`, `-c`, `--orphan`, `detached`. Both languages (`SPECSEAL_LANG=ko`), the whole text pinned | `test_under_the_press_the_dirty_row_is_a_deny_to_the_model` rewritten; red at `0f1663f5`'s guard (its text names `-c`, `--orphan` and way 2) and at the base (`ask`) |
 | S2 without the press the row is today's ask | Given no press · When the same command in the same tree, in each of the three states of `test_the_dirty_tree_row_names_what_was_measured` · Then the reason is byte-identical to the base's | the existing case stays; one new assertion compares against the base's text captured in the case |
 | S3 the token does not reach the row under the press either | Given the press, only-idle sessions or detection unusable, a dirty tree · When `git switch other  # [shared-tree-ok]` · Then `deny`, lead `[shared-tree-ok] carries the user's answer…`, the rest S1's text | new case; red at the base (`ask`) |
-| S4 the ways on pass the guard | Given the press and a dirty tree · When `git commit -am x` then `git switch feature/x` as two issues; and `git stash`, `git switch feature/x`, `git stash pop` as three · Then every issue but none is silent, and the tree ends on `feature/x` with the change where the way on said it would be | new case, real git in the fixture repository, the guard run per issue (`decide`) and git run between them |
+| S4 the named commands pass the guard (narrowed at the reframe) | Given the press and a dirty tree · When `git commit -am x` then `git switch feature/x` as two issues; and `git stash` then `git switch feature/x` as two · Then every issue is silent at the guard: the two commands are listed shapes, and the switch after either meets a clean tree. What git did with the change is asserted by nothing, because the deny promises none of it | `test_the_ways_on_pass_the_guard` narrowed to the owned claim, real git in the fixture repository, the guard run per issue (`decide`) and git run between them. The three recipe cases of rounds 1–2 — `test_a_creating_switch_under_the_press_takes_the_stash_way`, `test_an_orphan_switch_under_the_press_takes_the_commit_way`, `test_the_deny_does_not_say_a_discarding_switch_carries_the_changes` — are removed with the sentences they pin, and their `Enforced by:` entries with them (W4) |
 | S5 a compound stash-and-switch meets the deny, not a loop | Given the press and a dirty tree · When `git stash && git switch feature/x` · Then `deny` with S1's text, which says to run them as commands of their own | new case; red at the base (`ask`) |
 | S6 the plain retry after an unrecognised-shape stop meets In 2 | Given the press and a dirty tree · When `git checkout feature/x` then `git switch feature/x` · Then `deny` with the stop's text, then `deny` with S1's text; in an ACTIVE tree both are the deny with the worktree steer, as today | `test_the_plain_retry_meets_todays_rows` rewritten; its 0.20.0 ledger row S6 takes a `Corrected ·` citing row in this item's fragment |
 | S7 a creation on the same line is stopped with it and records nothing | Given the press, no consent record, a dirty tree · When `git switch feature/x && git worktree add ../wt f` · Then `deny`, and `specseal-worktree-consent/` holds no file for `me` | new case; the PostToolUse writer is not run because the command did not |
 | S8 the other readers are unchanged | `hooks/commit-review-gate.py`, `hooks/worktree_consent.py` and `hooks/cmdline_base.py` are byte-identical to `c38f97d7`'s | `git diff c38f97d7 -- <the three>` is empty; read at review and asserted by the handover |
-| S9 the policy says what the code does | `docs/worktree-guard-spec.md` §A's tracked-changes row and *The stop has two readers* carry In 2 with `Enforced by:` lines naming S1, S3, S5, S6; §*Known limits* carries In 1 (the press is this session's, on this machine; a resumed run presses again); the module docstring's row says the same in its words | the `Enforced by:` resolver (`tests/test_a_folded_statement_names_what_enforces_it.py`), `tests/test_docs_line_wrap.py`, the survivor sweep |
+| S9 the policy says what the code does (rewritten at the reframe) | `docs/worktree-guard-spec.md` §A's tracked-changes row and *The tracked-changes row has two readers too* carry the reframed In 2 — the deny states the facts, names the two commands, promises no outcome, one text for every form — with one paragraph saying why (§*Why the deny predicts nothing*, in the policy's words), and `Enforced by:` lines naming S1, S3, S5, S6, S12 and losing the three removed cases; *The stop has two readers* is unchanged; §*Known limits* carries In 1 (the press is this session's, on this machine; a resumed run presses again); the module docstring's row (`hooks/worktree-guard.py` lines 27–31) says the same in its words | the `Enforced by:` resolver (`tests/test_a_folded_statement_names_what_enforces_it.py`), `tests/test_docs_line_wrap.py`, the survivor sweep |
+| S12 one text for every switch form (new at the reframe) | Given the press and a dirty tree · When each form round 3's table enumerated — plain `feature/x`, `-c newb`, `-C newb`, `--create newb`, `--force-create newb`, `-C feature/x`, `--orphan newb`, `--detach feature/x`, `-f feature/x`, `--discard-changes feature/x`, `-m feature/x`, `--merge feature/x`, `-` — from a branch, and plain and `--orphan newb` from a detached HEAD · Then every verdict is `deny` with byte-identical reasons across the forms, and the reason contains none of the forms' option words and none of `pop`, `way 2`, `carries`, `conflict`, `detached`. Both languages | new case, parametrised over the table so a form a later round finds is a row here and not a sentence in the deny; red at `0f1663f5` on the word check (its one reason names `-c` and `--orphan`); the equality half is one string at `0f1663f5` too, so it is seen red through `mutation-check` with a per-form clause planted in the text |
 | S10 the orchestrator's procedure carries In 3 | `skills/implement/orchestration.md` holds the paragraph; `skills/code-review/orchestration.md` links it from the *another machine* paragraph; `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py` stays green (the section is the orchestrator's and already marked) | read at review; the two tests named |
 | S11 the fragments | `seal/specs/1791779434-…/changelog.md` says what a person sees differently; `seal/ledger/1791779434-….md` holds S1–S10's rows and the S6 correction | `bin/evidence-check` on the fragment; the hygiene workflow at the pull request |
 
@@ -189,12 +267,16 @@ red against the base (`c38f97d7`) and the handover says how.
   once.
 - No new file, marker, environment variable, or payload field. No change to
   `hooks/hooks.json`.
-- Text: one new `tr(en, ko)` pair for the deny's ways on; the three leads of
-  #624.2 keep their words.
+- Text: one `tr(en, ko)` pair for the deny, the same bytes for every switch
+  form, with no clause keyed on a form, HEAD's state, or the target branch
+  (S12); the three leads of #624.2 keep their words, and the press sentence
+  keeps the first frame's bytes.
 
 ## Open questions → questions.md
 
-P1, P2 (a person); M1–M3 (a measurement); W1, W2 (the work). Each row says
-which judgment it could not settle from the tree and who closes it.
+P1–P3 (a person); M1–M4 (a measurement); W1–W4 (the work). Each row says
+which judgment it could not settle from the tree and who closes it. P3, M4,
+W3 and W4 are the reframe's.
 
 Framed 2026-10-12 by framer, before the build.
+Reframed 2026-10-12 by framer, after round 3.
