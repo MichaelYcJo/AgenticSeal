@@ -232,8 +232,7 @@ makes the target `Unresolved`, and calls that `refused`; part 6's key says a
 presence pin is `refused` because a rewording fails it. The registry's is the
 inventory's, by #835's own frame — its spec §*The vocabulary, and the grammar
 the check reads* says *the direction is the inventory's* — which
-`docs/the-reader-registry.md` carries as *what the unit does with input it
-does not understand*.
+`docs/the-reader-registry.md` now states in the inventory's words.
 
 So the direction of a unit is **where an input it does not understand ends,
 read through to the decision the unit feeds**: `refused` where that decision
@@ -337,13 +336,13 @@ Each is its own issue in milestone `release: 0.21.0`. The three drafted on
 
 None. The table is a record. Its schema is the column set each part states at
 its head. The `Reads:` line's grammar is `docs/the-reader-registry.md`'s, and
-this item adds no word to it, and after the reframe its one sentence there
-is the direction's definition, with limit 5's sentence on a helper staled
+this item adds no word to it, and after the reframe its two sentences there
+are the direction's definition, with limit 5's sentence on a helper staled
 by its caller.
 
 ## Removes
 
-nothing — the reframe withdraws what this item's own build added (189 docstring lines in 44 files, their census removal, two ledger rows, a changelog entry), so the branch's code is the release branch's but for two docstrings, the pytest recorder's direction word (round 5 🟡 1) and the registry test module's statement of the rule (round 5 ⬜ 3); no unit, heading or test pin that stood before this item leaves the tree, and the one rule sentence it replaces is the direction sentence of `docs/the-reader-registry.md`, rewritten to the settled meaning (`overview.md` §*Fed back into the spec*).
+nothing — the reframe withdraws what this item's own build added (189 docstring lines in 44 files, their census removal, two ledger rows, a changelog entry), so the branch's code is the release branch's but for one docstring, the registry test module's statement of the rule (round 5 ⬜ 3); no unit, heading or test pin that stood before this item leaves the tree, and the one rule sentence it replaces is the direction sentence of `docs/the-reader-registry.md`, rewritten to the settled meaning (`overview.md` §*Fed back into the spec*).
 
 The inventory was framed 2026-10-07 by the session; the build above was framed
 by the framer, which is the `Planning` row `routing.md` has carried since
