@@ -119,10 +119,11 @@ read as gone — a cell that is no coordinate, a test's node id, a bare symbol
 in a file no parser bounds, a path that escapes the tree or walks through
 `..`, a path that is there and will not read as a file, and a path carrying
 a `--map` prefix. A row is read in this tree and nowhere else, so neither the
-original a migration declares nor a mapped checkout answers for it. Both
-exit 2, as a stated name the tree lacks does. A work item removing nothing writes `nothing — <why>`. The names on the
-section's lines are not read as stated names, because the section exists to
-say they are gone.
+original a migration declares nor a mapped checkout answers for it; a
+directory of this tree that carries a map's name is written `./<path>`. Both
+exit 2, as a stated name the tree lacks does. A work item removing nothing
+writes `nothing — <why>`. The names on the section's lines are not read as
+stated names, because the section exists to say they are gone.
 
 The per-phase removal table this replaces recorded the same fact once per
 phase and was read by nothing. A removal a phase makes that the frame did not

@@ -1795,7 +1795,8 @@ def test_a_removal_is_read_in_this_tree_never_in_another_checkout(tmp_path):
             "REFUSED",
             "`legacy/a.py#k` — the path names another checkout through `--map`, "
             "and a frame names what its work removes from this tree — write the "
-            "path in this tree",
+            "path in this tree, as `./legacy/a.py` where this tree's own "
+            "directory carries the map's name",
         )
     ]
 

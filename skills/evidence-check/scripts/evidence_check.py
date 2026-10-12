@@ -6138,7 +6138,9 @@ def removal_findings(lines, shown, root, maps, default_repo, required):
                     where,
                     f"`{cell}` — the path names another checkout through "
                     "`--map`, and a frame names what its work removes from "
-                    "this tree — write the path in this tree",
+                    "this tree — write the path in this tree, as "
+                    f"`./{raw_path}` where this tree's own directory carries "
+                    "the map's name",
                 )
             )
             continue
