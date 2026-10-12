@@ -292,6 +292,29 @@ def test_the_gate_still_passes_the_flag_the_notice_names():
     assert "EVIDENCE" in call, f"this is not the ledger check any more:\n{call}"
 
 
+def test_the_gate_hands_the_ledger_arm_the_run_it_seals():
+    """S21 of #836. The ledger arm reads the head run's pytest record: where
+    the suite ran, its argv carries the record directory and the head key,
+    under the checker's own spellings of the two options; on a preflight,
+    where no suite ran, it carries neither."""
+    source = read(BROAD_GATE)
+    call = ledger_call_site()
+    assert "*observed" in call, call
+    at = source.index(call.strip())
+    built = source[source.rindex("observed = (", 0, at) : at]
+    assert "if head is None" in built, built
+    assert "[EVIDENCE_RECORD, records_dir(keep), EVIDENCE_KEY, head_key]" in built
+    spec = importlib.util.spec_from_file_location(
+        "specseal_broad_gate_for_the_ledger_arm", BROAD_GATE
+    )
+    gate = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gate)
+    assert (gate.EVIDENCE_RECORD, gate.EVIDENCE_KEY) == (
+        ec.SUITE_RECORD_OPTION,
+        ec.SUITE_KEY_OPTION,
+    )
+
+
 def test_the_wrapper_holds_no_default_of_its_own():
     """S4. The notice says exit 1 is what *this* reader gives. It is true only
     while the wrapper passes arguments straight through and adds none."""

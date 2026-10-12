@@ -20,6 +20,14 @@ that cites none (#299), and OVERFLOW for a table row that splits into more
 cells than its table's header, whose text past the last column no reader
 sees (#585).
 
+A row may name instead the tests that hold its claim, as pytest spells them
+(`tests/test_x.py::test_y`), in its Code grounds cell and nowhere else
+(#836). Such a row has no hash and never drifts: each test is OK where a
+`def` or `class` of that name is defined in its file once, BROKEN where its
+file or unit is gone, and MALFORMED where it shares the cell with a code
+coordinate. That is all reading the file establishes; whether the test ran
+and passed is read off the sealed run's record where one is handed over.
+
 **A coordinate names a place by content, never by position.** A line number
 moves for edits that have nothing to do with the claim, so a coordinate made of
 one rots on contact: the row gets re-anchored, which resets whatever the row
@@ -116,6 +124,7 @@ import glob
 import hashlib
 import html
 import importlib.util
+import json
 import os
 import re
 import stat
@@ -1678,6 +1687,9 @@ def check_ledger(ledger, root, maps, default_repo=None, families=None):
         )
     findings = check_text(body, root, maps, default_repo)
     findings.extend(read_by_family)
+    # A row held by a test (#836) is read here unless a family holds it: then
+    # `family_view` read it, and read nothing of a superseded family's rows.
+    findings.extend(held_by_tests(text, root, maps, default_repo, owned))
     findings.extend(old_format_rows(text))
     findings.extend(malformed_rows(text))
     findings.extend(overflow_rows(text))
@@ -2174,11 +2186,18 @@ def malformed_rows(text):
         spans = [m.group(2).strip() for m in CODE_SPAN_RE.finditer(left)]
         words = CODE_SPAN_RE.sub(" ", left).split()
         refused = [s for s in spans + words if refused_coordinate(s)]
+        tests = node_tokens(cell)
+        # A citing row's first coordinate names a ledger line, not code, and
+        # is not the other form (#836, D4): `family_view` grades it apart.
+        code = list(ANCHOR_RE.finditer(cell))[1 if citing_verb(cells) else 0 :]
         if refused:
             for coord in refused:
                 found(coord, malformed_remedy(coord))
+        elif tests and code:
+            found(cell, MIXED_ROW)
         elif (
             cell
+            and not tests
             and not ANCHOR_RE.search(cell)
             and not OLD_COORD_RE.search(unpacted)
             and any(c for i, c in enumerate(cells) if i != column)
@@ -2187,8 +2206,362 @@ def malformed_rows(text):
                 cell,
                 "cites no coordinate, so nothing checks the claim — write "
                 "`path#anchor@hash` in the Code grounds cell, the hash as "
-                "`@00000000`, then run `evidence-check --reverify .`",
+                "`@00000000`, then run `evidence-check --reverify .`; or, "
+                f"where a test holds the claim, {TEST_FORM}",
             )
+    return findings
+
+
+# --- a claim held by a test (#836) -------------------------------------------
+#
+# A row's Code grounds cell may name, instead of coordinates, the tests that
+# hold its claim, in pytest's own node-id spelling, each in backticks:
+# `tests/test_x.py::test_y`, or `tests/test_x.py::TestA::test_b` for a method.
+# Such a row has no hash, so nothing in it drifts: this reads that each test
+# is there, and the suite reads that it passes. `docs/the-evidence-ledger.md`
+# §*A claim held by a test* is the rule.
+#
+# **Only a code span in the Code grounds cell is read**, through
+# `grounds_cells`: `a::b` is a spelling prose uses -- a C++ scope, a Rust path,
+# a quoted `Enforced by:` line -- where a coordinate's `#...@hex` shape is
+# unambiguous. Measured before this was written: no Code grounds cell of this
+# repository's ledgers held `::` anywhere, in a span or out of one.
+#
+# **The names after the path, joined with `.`, are the qualified name
+# `py_spans` keys on**, so a method is `Class.method` to both readers. The
+# path ends `.py` and the names are identifiers: a parametrised id
+# (`::test_y[case]`) names no `def`, and is refused with the function's form.
+NODE_SEP = "::"
+NODE_ID_RE = re.compile(
+    r"(?P<path>[^\s:`]+\.py)(?P<names>(?:" + NODE_SEP + r"[A-Za-z_][A-Za-z0-9_]*)+)"
+)
+TEST_FORM = (
+    "name it in Code grounds as pytest spells it, `tests/test_x.py::test_y`, or "
+    "`tests/test_x.py::TestA::test_b` for a method"
+)
+MIXED_ROW = (
+    "holds a test and a code coordinate, and a row is one form or the other — "
+    "keep the test where it holds the claim and move the coordinates out, or "
+    "keep the coordinates and move the test to Verified behavior"
+)
+
+
+def node_tokens(cell):
+    """Every code span of CELL that holds `::` and no coordinate: what a Code
+    grounds cell names as a test, parsed or not, in cell order. A span
+    holding a coordinate or a pact anchor is that coordinate, whatever its
+    quoted locator says -- a heading `## A::b`, a C++ scope (round 1, 🟡 3)."""
+    return [
+        m.group(2).strip()
+        for m in CODE_SPAN_RE.finditer(cell)
+        if NODE_SEP in m.group(2)
+        and not ANCHOR_RE.search(m.group(2))
+        and not PACT_ANCHOR_RE.search(m.group(2))
+    ]
+
+
+@functools.cache
+def _parsed_kinds(text):
+    """`unit_kinds`'s answer, stored once per distinct text, or None. The walk
+    is `parsed_spans`', so the two key a unit by one qualified name."""
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError):
+        return None
+    out = {}
+
+    def walk(node, prefix, in_function):
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                name = prefix + child.name
+                kind = "class" if isinstance(child, ast.ClassDef) else "def"
+                out.setdefault(name, []).append(kind)
+                walk(child, name + ".", not isinstance(child, ast.ClassDef))
+            elif isinstance(child, (ast.Assign, ast.AnnAssign)) and not in_function:
+                targets = (
+                    child.targets if isinstance(child, ast.Assign) else [child.target]
+                )
+                for t in targets:
+                    elts = t.elts if isinstance(t, (ast.Tuple, ast.List)) else [t]
+                    for n in elts:
+                        if isinstance(n, ast.Name):
+                            out.setdefault(prefix + n.id, []).append("constant")
+            else:
+                walk(child, prefix, in_function)
+
+    walk(tree, "", False)
+    return {name: tuple(kinds) for name, kinds in out.items()}
+
+
+def unit_kinds(text):
+    """`{qualified name: (kind, ...)}` for the Python TEXT, one kind per
+    definition -- `def`, `class` or `constant` -- or None where it will not
+    parse. A fresh dict per caller, as `py_spans` hands out."""
+    kinds = _parsed_kinds(text)
+    return None if kinds is None else dict(kinds)
+
+
+def named_unit(text, names):
+    """What NAMES -- the parts of a `path::name(::name)*` target after its
+    path -- name in the Python TEXT: the kinds of every definition of that
+    qualified name, `()` where there is none, or None where TEXT will not
+    parse.
+
+    **The one resolver of `path::name`** (#836): a ledger's test row is read
+    through it here, and `fold-check` loads this module to read an `Enforced
+    by:` target with it. What each accepts is its own: a test here, any
+    `def` or `class` there.
+    """
+    kinds = unit_kinds(text)
+    if kinds is None:
+        return None
+    if any("." in name for name in names):
+        # One identifier per part: `A.b` is not `A::b` (round 1, ⬜ 4).
+        return ()
+    return kinds.get(".".join(names), ())
+
+
+# --- the sealed run's record (#836, the reframe after round 2) ----------------
+#
+# Whether a cited test ran, and how it ended, is read off the record the broad
+# gate's pytest recorder writes during the run it seals
+# (`skills/verify/scripts/pytest_record/specseal_pytest_record.py`, its
+# docstring §*What it writes*), never predicted from the test's file. The gate
+# hands this check the record's directory and the run's key on its ledger arm
+# (`--suite-record`, `--suite-key`); every other caller hands none, and test
+# rows are then read for existence alone, which one line says.
+#
+# Five fields of a `test` line are read -- `path`, `nodeid`, `category`,
+# `outcome` and whether it carries `wasxfail` -- so a field the recorder adds
+# changes nothing here. `category` is the word pytest's own summary counts the
+# report under, which the recorder asks of pytest; a report whose `outcome` is
+# `passed` with no `wasxfail` is a pass whatever its word. This matches the
+# words and derives no rule of pytest's. A
+# second reader of one format beside `broad_gate.py#read_record`, because this
+# file ships alone through `evidence-ci` and that one reduces a run to files.
+SUITE_RECORD_OPTION = "--suite-record"
+SUITE_KEY_OPTION = "--suite-key"
+# What `main` hands `node_finding`: RECORD, `{(path, names): {category}}` or
+# None where no record was read; KEY and DIRECTORY as given, or None. Set once
+# per run, before any ledger is read, so the three callers of `node_finding`
+# -- `held_by_tests`, `family_view`'s member loop, and `reverify` through
+# `held_by_tests` -- read one record and none of them carries it
+# (`questions.md` Q6 of work item 1791384153).
+SUITE_RECORD = types.SimpleNamespace(record=None, key=None, directory=None)
+# Every test token `node_finding` read in this process, so `main` prints the
+# existence line only where a ledger held a test row.
+NODES_READ = []
+# The order a test's categories are named in, worst first; another word a
+# plugin writes is named after these.
+OBSERVED_ORDER = ("failed", "error", "xpassed", "xfailed", "skipped")
+
+
+def record_name(path, root):
+    """PATH as the record's reader names a file: its `realpath` made relative
+    to ROOT's, with `/`, or its `realpath` where it is not under ROOT --
+    `broad_gate.py#record_path`'s rule, so both readers name one file one way."""
+    real = os.path.realpath(path)
+    try:
+        rel = os.path.relpath(real, os.path.realpath(root))
+    except ValueError:
+        return real
+    if rel.split(os.sep)[0] == os.pardir:
+        return real
+    return rel.replace(os.sep, "/")
+
+
+def suite_record(directory, key, root):
+    """`{(path, names): {category}}` for every `test` line of every `*.jsonl`
+    directly under DIRECTORY whose first line is a `session` line carrying KEY,
+    or None where no file carried it or DIRECTORY cannot be listed.
+
+    PATH is the line's `path` named by `record_name`, never rebuilt from the
+    node id; NAMES the node id's parts after its first `::`, cut at the first
+    `[` that begins a case id, which pytest writes verbatim. A line that does
+    not parse as an object, or lacks a field, is passed over."""
+    try:
+        names = sorted(os.listdir(directory))
+    except OSError:
+        return None
+    record, keyed = {}, False
+    for name in names:
+        if not name.endswith(".jsonl"):
+            continue
+        try:
+            with open(
+                os.path.join(directory, name), encoding="utf-8", errors="replace"
+            ) as handle:
+                text = handle.read()
+        except OSError:
+            continue
+        lines = []
+        for line in gfm_lines(text):
+            try:
+                value = json.loads(line) if line.strip() else None
+            except ValueError:
+                continue
+            if isinstance(value, dict):
+                lines.append(value)
+        if not lines or lines[0].get("kind") != "session" or lines[0].get("key") != key:
+            continue
+        keyed = True
+        for value in lines[1:]:
+            path, nodeid = value.get("path"), value.get("nodeid")
+            category = value.get("category")
+            if value.get("kind") != "test" or not isinstance(path, str):
+                continue
+            if not isinstance(nodeid, str) or NODE_SEP not in nodeid:
+                continue
+            if not isinstance(category, str):
+                continue
+            # pytest's own outcome says the report passed and no xfail was
+            # expected of it: a plugin's word for it (`subtests passed`,
+            # which pytest 9 counts under `-q` and not without it) is a pass
+            # (round 3, 🟡 2). An `xpassed` carries `wasxfail` and stays.
+            if value.get("outcome") == "passed" and "wasxfail" not in value:
+                category = "passed" if category else ""
+            # A case id is written verbatim, `::` included, and no name of a
+            # def or class holds `[`: the first `[` after the file begins the
+            # id, so it is cut before the names split (round 3, 🔴 1).
+            qualified = nodeid.partition(NODE_SEP)[2].partition("[")[0]
+            parts = qualified.split(NODE_SEP)
+            place_key = (record_name(path, root), tuple(parts))
+            record.setdefault(place_key, set()).add(category)
+    return record if keyed else None
+
+
+def observed(record, path, names):
+    """None where the test PATH and NAMES cite was held in RECORD -- among the
+    categories of every line it owns, less `""` (a passed setup or teardown),
+    `passed` and nothing else -- else the words naming what was observed. A
+    cited unit owns every line of its file whose names begin with its own, so
+    a class owns its methods and a function its parametrised cases."""
+    cited, owned, categories = tuple(names), False, set()
+    for (where, parts), words in record.items():
+        if where == path and parts[: len(cited)] == cited:
+            owned = True
+            categories |= words
+    if not owned:
+        return "not run in the recorded suite"
+    others = categories - {"", "passed"}
+    if "passed" in categories and not others:
+        return None
+    ranked = sorted(
+        others,
+        key=lambda w: (OBSERVED_ORDER.index(w) if w in OBSERVED_ORDER else 99, w),
+    )
+    return f"{', '.join(ranked) or 'no outcome'} in the recorded suite"
+
+
+def existence_line():
+    """The one line a check prints where it read test rows with no record, or
+    None where it read none or had one."""
+    if not NODES_READ or SUITE_RECORD.record is not None:
+        return None
+    if SUITE_RECORD.key is None:
+        why = "no suite record was given"
+    else:
+        why = (
+            f"no session under {SUITE_RECORD.directory} carries the key "
+            f"{SUITE_RECORD.key}"
+        )
+    return (
+        f"test rows were read for existence alone: {why}, so whether each cited "
+        "test ran and passed was not read — `broad-gate` hands this check the "
+        "sealed run's record"
+    )
+
+
+def node_finding(token, root, maps, default_repo=None):
+    """`(status, token, detail)` for one test a Code grounds cell names: OK
+    where a `def` or `class` of that qualified name is defined in its file
+    once, BROKEN where the file or the unit is not there, the name is no `def`
+    or `class`, or it is defined more than once, and MALFORMED where the token
+    does not parse as a node id. Never DRIFTED: there is no hash.
+
+    **That is all reading the file establishes, and all this says** (the
+    reframe after round 2). Whether the unit is a test, whether pytest
+    collects it and whether a mark keeps it from running or from failing are
+    predictions of pytest; the sealed run's record answers each of them by
+    observation, where a caller hands one over: given `SUITE_RECORD`, a unit
+    that exists is OK only where the run held it (`observed`), and MALFORMED
+    with the observation in the detail where it did not."""
+    NODES_READ.append(token)
+    m = NODE_ID_RE.fullmatch(token)
+    if m is None:
+        return ("MALFORMED", token, f"does not parse as a test — {TEST_FORM}")
+    path, names = m.group("path"), m.group("names").split(NODE_SEP)[1:]
+    repo, rel = place(root, maps, default_repo, path)
+    if repo is None:
+        return ("BROKEN", token, "path escapes the repository")
+    body = read(os.path.join(repo, rel))
+    if body is None:
+        return ("BROKEN", token, "file not found")
+    kinds = unit_kinds(body)
+    if kinds is None:
+        return ("BROKEN", token, f"{path} does not parse as Python")
+    own = named_unit(body, names)
+    if not own:
+        detail = f"no def or class named {NODE_SEP.join(names)} in {path}"
+        homes = sorted(
+            q
+            for q in kinds
+            if len(names) == 1
+            and q.endswith("." + names[0])
+            and kinds.get(q.rpartition(".")[0]) == ("class",)
+        )
+        if homes:
+            detail += (
+                f" — it is a method of {homes[0].rpartition('.')[0]}, and a "
+                f"method is written `{path}::{NODE_SEP.join(homes[0].split('.'))}`"
+            )
+        return ("BROKEN", token, detail)
+    if len(own) > 1:
+        return (
+            "BROKEN",
+            token,
+            f"{'.'.join(names)} is defined {len(own)} times in {path}; a test "
+            "is defined once",
+        )
+    if own[0] not in ("def", "class"):
+        return (
+            "BROKEN",
+            token,
+            f"no def or class named {NODE_SEP.join(names)} in {path} — it is a "
+            f"{own[0]}",
+        )
+    if SUITE_RECORD.record is None:
+        return ("OK", token, f"a {own[0]} defined once")
+    seen = observed(
+        SUITE_RECORD.record, record_name(os.path.join(repo, rel), root), names
+    )
+    if seen is not None:
+        return (
+            "MALFORMED",
+            token,
+            f"{seen}, so nothing holds the claim — {TEST_FORM}; or, where no test "
+            "holds it, write `path#anchor@hash`",
+        )
+    return ("OK", token, f"a {own[0]} seen passing in the recorded suite")
+
+
+def held_by_tests(text, root, maps, default_repo=None, unread=()):
+    """`node_finding` for every test a Code grounds cell of TEXT names, each
+    distinct token once, as MALFORMED counts a text once.
+
+    UNREAD is the line numbers left to another reader: a row a family holds
+    is read by `family_view`, which reads no row of a family a `Corrected ·`
+    row supersedes, so a released row whose test is gone is re-pointed by one
+    correction, as a row whose unit is gone is (round 1, 🔴 1)."""
+    findings, seen = [], set()
+    for number, header, cells in ledger_table_rows(text):
+        column = cell_index(header, cells, CODE_GROUNDS)
+        if number in unread or column < 0:
+            continue
+        for token in node_tokens(cells[column]):
+            if token not in seen:
+                seen.add(token)
+                findings.append(node_finding(token, root, maps, default_repo))
     return findings
 
 
@@ -2750,6 +3123,12 @@ def family_view(paths, root, maps, default_repo=None, scan_cache=None):
             continue
         by_coord = {}
         for key in sorted(members, key=lambda k: (str(k[0]), k[1])):
+            # A member's tests (#836), read here and not by `check_ledger`, so
+            # a superseded family's are not read at all (round 1, 🔴 1).
+            _, _, header, cells = row(key)
+            grounds = cell_index(header, cells, CODE_GROUNDS)
+            for token in node_tokens(cells[grounds]) if grounds >= 0 else ():
+                emit(key, node_finding(token, root, maps, default_repo))
             cite = citations.get(key)
             for m in ANCHOR_RE.finditer(row(key)[1]):
                 if cite is not None and m.span() == cite.span():
@@ -3542,7 +3921,7 @@ def reverify(
     (#792).
     """
     global PLANNED
-    unreadable, malformed, overflow = [], [], []
+    unreadable, malformed, untested, overflow = [], [], [], []
     scan_cache = {}
     # The family judgment (#785), over every ledger the repository carries
     # as well as LEDGERS, so a narrowing that leaves out the file holding a
@@ -3575,6 +3954,21 @@ def reverify(
         # this command prints no per-ledger heading; its hashes are still
         # re-stamped, because the hash is not what is wrong.
         malformed.extend((coord, why) for _, coord, why in malformed_rows(text))
+        # A test row has no hash to re-stamp and is never dated; one whose
+        # test is gone or is no test is named, as a malformed row is (#836),
+        # unless a `Corrected ·` row supersedes its family (round 1, 🔴 1).
+        here = file_identity(ledger)
+        untested.extend(
+            (coord, f"{status} — {why}")
+            for status, coord, why in held_by_tests(
+                text,
+                root,
+                maps,
+                default_repo,
+                {n for i, n in superseded if i == here},
+            )
+            if status != "OK"
+        )
         overflow.extend(
             (f"{built_name(ledger, root)} {coord}", why)
             for _, coord, why in overflow_rows(text)
@@ -3873,6 +4267,8 @@ def reverify(
         print(f"  LEFT  {path}  ledger unreadable")
     for coord, why in malformed:
         print(f"  LEFT  {coord}  MALFORMED — {why}")
+    for coord, why in untested:
+        print(f"  LEFT  {coord}  {why}")
     for where, why in overflow:
         print(f"  LEFT  {where}  OVERFLOW — {why}")
     for where in undatable:
@@ -3890,7 +4286,8 @@ def reverify(
             "text it names moves with every re-stamp of it, so it is left at the "
             "hash its row recorded"
         )
-    return 1 if unreadable or malformed or overflow or undatable or unsettled else 0
+    left_any = unreadable or malformed or untested or overflow or undatable
+    return 1 if left_any or unsettled else 0
 
 
 # --- the freeze, and the citing rows a re-read writes (#715) -----------------
@@ -4315,6 +4712,15 @@ INTO_REPAIR = (
 )
 
 STALE_NOTHING = "no `Re-read ·` row was written for this row"
+# The other repair, printed once by a run that wrote a `Re-read ·` row (#836):
+# the run cannot tell which of a row's grounds holds its claim, so it names
+# the option rather than writing it.
+INTO_HELD = (
+    "  a claim a test holds can move onto it once instead: a `Corrected ·` row "
+    "citing the released row and naming that test in Code grounds, "
+    "`tests/test_x.py::test_y`, retires the row's hashes, and no later edit "
+    "drifts it (docs/the-evidence-ledger.md)"
+)
 
 
 def spanned(text):
@@ -4515,13 +4921,17 @@ def reverify_into(
     def report(landed):
         wrote = rows if rows and landed_at(landed, into) else []
         name = built_name(into, root) if wrote else ""
-        return [
-            f"  wrote {name}:{start + offset}  Re-read · {label}  citing {where}"
-            for offset, (where, label, _) in enumerate(wrote)
-        ] + [
-            f"{len(wrote)} citing row{'' if len(wrote) == 1 else 's'} written · "
-            f"{len(left)} released row{'' if len(left) == 1 else 's'} left"
-        ]
+        return (
+            [
+                f"  wrote {name}:{start + offset}  Re-read · {label}  citing {where}"
+                for offset, (where, label, _) in enumerate(wrote)
+            ]
+            + [
+                f"{len(wrote)} citing row{'' if len(wrote) == 1 else 's'} written · "
+                f"{len(left)} released row{'' if len(left) == 1 else 's'} left"
+            ]
+            + ([INTO_HELD] if wrote else [])
+        )
 
     told_now(told, report)
     for where, why in left:
@@ -5875,7 +6285,38 @@ def main():
         "fragment (seal/ledger/<work-item-id>.md) for every released row with "
         "a drifted coordinate, instead of editing the released file",
     )
+    ap.add_argument(
+        SUITE_RECORD_OPTION,
+        metavar="DIR",
+        help="with --suite-key: the directory of the sealed run's pytest "
+        "records; a test row is held only where its test was seen passing there",
+    )
+    ap.add_argument(
+        SUITE_KEY_OPTION,
+        metavar="KEY",
+        help="with --suite-record: the key of the run whose record is read",
+    )
     args = ap.parse_args()
+
+    # The record is one run's, so a directory without its key, or a key
+    # without its directory, names none; refused before anything is read.
+    if (args.suite_record is None) != (args.suite_key is None):
+        sys.stderr.write(
+            f"evidence_check: `{SUITE_RECORD_OPTION}` and `{SUITE_KEY_OPTION}` "
+            "name one run's record together — pass both or neither\n"
+        )
+        return 2
+    SUITE_RECORD.key, SUITE_RECORD.directory, SUITE_RECORD.record = (
+        args.suite_key,
+        args.suite_record,
+        None,
+    )
+    if args.suite_record is not None:
+        SUITE_RECORD.record = suite_record(
+            os.path.abspath(args.suite_record),
+            args.suite_key,
+            os.path.abspath(args.root),
+        )
 
     # `--into` dates every row it writes, so it is refused without the date
     # and without the command it belongs to, before anything is read (#715).
@@ -6197,6 +6638,11 @@ def main():
         f"{totals['OLD-FORMAT']} old-format · {totals['MALFORMED']} malformed"
         f" · {totals['OVERFLOW']} overflow"
     )
+    # Test rows read with no record are read for existence alone, and a run
+    # says so once, so an existence OK never reads as an observed one (#836).
+    note = existence_line()
+    if note:
+        print(note)
 
     # The second arm. A ledger row is a claim about the tree that something
     # reads; a RECORD states the same kind of thing and nothing reads it
