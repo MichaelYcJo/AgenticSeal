@@ -1902,9 +1902,11 @@ OPTION_WORD = re.compile(r"(?<![\w-])--?[A-Za-z][\w-]*")
 
 def option_words(reason):
     """Every option-shaped word in REASON (`-c`, `--orphan`), which a text
-    keyed on no switch form has none of. `git -C <path>` is W2's command word
-    and never appears here: the shell stands in the switch's tree."""
-    return OPTION_WORD.findall(reason)
+    keyed on no switch form has none of. The command word `git_at` hands back
+    (`git -C <path>`) and the phantom note's `restore --staged` are the text's
+    own spellings, not a switch form, so they are taken out first."""
+    reason = re.sub(r"git -C (?:'[^']*'|\S+)", "git", reason)
+    return OPTION_WORD.findall(reason.replace("restore --staged", "restore"))
 
 
 def verdict_in(module, monkeypatch, capsys, repo, command, sessions, session_id):
@@ -2097,6 +2099,9 @@ def test_the_press_is_read_from_the_sessions_own_root(
     assert decision == "deny", reason
     at = f"git -C {shlex.quote(top)}"
     assert f"`{at} commit` and `{at} stash` are on this guard's list" in reason, reason
+    # Round 4, note 3: issued from another repository, the text's own command
+    # word is `git -C <path>`, and S12's option check reads past it.
+    assert option_words(reason) == [], reason
 
     write_transcript(projects, "me", ask_entries(other))
     decision, reason = decide(monkeypatch, capsys, repo, command)
