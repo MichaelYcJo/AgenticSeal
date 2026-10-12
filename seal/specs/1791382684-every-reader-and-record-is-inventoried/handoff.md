@@ -8,8 +8,10 @@ what its next step is.
 
 ## Where the run stands
 
-Six of the eleven work items are squashed into `release/v0.21.0`. Four are in
-the review chain, and one has not started.
+Ten of the eleven work items are squashed into `release/v0.21.0` (2026-10-12).
+#835 is being framed again against the landed tree, and #834's own build
+follows it. Each sibling landed one at a time: the next merged the release
+branch in, re-read what drifted, and was sealed again before it landed.
 
 | Issue(s) | Work item | PR | State | Next step |
 |---|---|---|---|---|
@@ -19,14 +21,14 @@ the review chain, and one has not started.
 | #867 | 1791384156 | #882 | **merged** 56ade5c8 | — |
 | #869, #852, #853 | 1791384158 | #880 | **merged** b6c81a83 | — |
 | #860, #805 | 1791384160 | #878 | **merged** ad447367, after a reframe at round 3 | — |
-| #836 | 1791384153 | #887 (draft) | round 2 recorded at da1a0cd3: 🟡 1, 🟡 2, `Fix of a fix: first`, one reopening left | **reframe** (owner, 2026-10-12): the collection half, against the pytest recorder's record; the test-row half stands |
-| #870, #848 | 1791384159 | #889 (draft) | round 1 recorded at 8b0d4d7a: 🟡 1–3 | **reframe** (owner, 2026-10-12): force a format; bound only where a real parser exists |
-| #868, #856 | 1791384157 | #881 (draft, `chain: reframed`) | reframed after round 3; the redesign's round 5 closed at 11b6ed14 (2 fixed, 2 answered) | **reframe** (owner, 2026-10-12): observe the act (git's `reference-transaction` hook), not the command |
-| #866 | 1791384155 | none yet | phases 1–4 closed; phase 5 stopped mid-edit and committed as an unverified `wip:` | finish phase 5 (or revert the wip), build 6–7, then the draft PR and round 1 — its branch's `handoff.md` |
-| #835 | 1791384152 | none | framed 2026-10-07; a framer (Fable) refreshes the design on 2026-10-12 against the review: a K1 call-list misses readers silently | builds **last**. **After every sibling lands, run the #835 framer again on `model: fable`** against the landed tree to fix the population and census, then the smith |
+| #836 | 1791384153 | #887 | **merged** 23f5977c; reframed (the collection half observes the pytest recorder's record), capped at round 4, deferred #891 | — |
+| #868, #856 | 1791384157 | #881 | **merged** 9afc90aa; reframed twice (the brace reader deleted, a named limit), capped at round 6, deferred #893 | the owner's P2: round 6 found `git rebase main other` from a diverged `main` refusable at `reference-transaction`, which narrows delete's ground (#893) |
+| #870, #848 | 1791384159 | #889 | **merged** be464c06; reframed (the lexer deleted, bound only where a parser exists), capped at round 3, deferred #892 | — |
+| #866 | 1791384155 | #890 | **merged** c38f97d7; capped at round 3 with nothing to fix | — |
+| #835 | 1791384152 | none | framed 2026-10-07; refreshed 2026-10-12 (62c27416); the Fable framer runs again against the landed tree at c38f97d7 | approve `plan.md`, then the smith |
 | #834 (its own build) | 1791382684 | none | the inventory only | after #835 |
 
-`release/v0.21.0` is at ad447367. Not framed for 0.21.0: #844 (a docstring
+`release/v0.21.0` is at c38f97d7. Not framed for 0.21.0: #844 (a docstring
 reflow) and #857 (the stamp's mark waits on the owner's design; it is still
 in the milestone).
 
@@ -195,7 +197,13 @@ written down.
 - #886: the guard reads past substitution, a here-string, an untokenizable
   line, or `--git-dir`.
 - #888: evidence-check's opener misses a Go receiver, a generic function and a
-  typed constant.
+  typed constant. Closed as moot when #870 landed.
+- #891: a skipped or xfailed subtest at pytest's default verbosity still holds
+  its ledger test row (#836's round 4).
+- #892: a claim on a decorated Python definition leaves the decorators out of
+  its hash (#870's round 3).
+- #893: a tokens comment and the rebase sentence say more than the guard and
+  git do (#868's round 6); the second bears on the owner's P2.
 
 Filed earlier by the frames: #871, #872, #873, #874.
 
