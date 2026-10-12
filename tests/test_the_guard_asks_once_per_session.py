@@ -1855,7 +1855,9 @@ def dirty_deny(lang, lead):
             "its own: this guard reads the tree before a command runs, so `git "
             "stash && git switch <branch>` on one line meets this same refusal.\n"
             "  1. Commit the changes here first (`git commit …`), then re-issue "
-            "the switch. On a branch a `routing.md` declares, the commit gate is "
+            "the switch. This keeps them on the branch checked out now, so where "
+            "the switch creates its branch (`-c`) to carry them there, take way "
+            "2. On a branch a `routing.md` declares, the commit gate is "
             "silent for that commit. "
             "Where HEAD is detached (`git branch --show-current` prints nothing), "
             "the commit lands on no branch: name it with `git branch <name>` "
@@ -1880,7 +1882,9 @@ def dirty_deny(lang, lead):
         "이 guard 는 명령이 실행되기 전에 트리를 읽으므로, `git stash && git "
         "switch <branch>` 처럼 한 줄에 쓰면 같은 거부를 받습니다.\n"
         "  1. 먼저 여기서 변경을 커밋하고(`git commit …`) 전환을 다시 "
-        "실행합니다. `routing.md` 가 선언한 브랜치에서는 커밋 게이트가 이 커밋을 "
+        "실행합니다. 이 방법은 변경을 지금 체크아웃된 브랜치에 남기므로, "
+        "브랜치를 새로 만들어(`-c`) 변경을 그쪽으로 옮기려는 전환이면 2번을 "
+        "택하세요. `routing.md` 가 선언한 브랜치에서는 커밋 게이트가 이 커밋을 "
         "막지 않습니다. HEAD 가 분리되어 "
         "있으면(`git branch --show-current` 가 아무것도 출력하지 않으면) 커밋이 "
         "어느 브랜치에도 남지 않습니다. 전환 전에 `git branch <name>` 으로 이름을 "
@@ -1997,6 +2001,27 @@ def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
         assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
         git_in(repo, *command.split()[1:])
     assert git_in(repo, "branch", "--show-current") == "feature/x"
+    assert git_in(repo, "status", "--porcelain") == "M f.txt"
+
+
+def test_a_creating_switch_under_the_press_takes_the_stash_way(
+    monkeypatch, capsys, projects, repo
+):
+    """Round 1, yellow 1. Both `-c` forms meet the deny, and committing first
+    would leave the change on the branch being left. The reason sends a
+    creating switch to way 2, and way 2, run with real git, carries the change
+    onto the new branch. Seen red at `1eec0f8e`: no `-c` sentence."""
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+    here = git_in(repo, "branch", "--show-current")
+    for command in ("git switch -c newb", f"git switch -c newb {here}"):
+        decision, reason = decide(monkeypatch, capsys, repo, command)
+        assert decision == "deny", (command, reason)
+        assert "creates its branch (`-c`) to carry them there, take way 2" in reason
+    for command in ("git stash", "git switch -c newb", "git stash pop"):
+        assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
+        git_in(repo, *command.split()[1:])
+    assert git_in(repo, "branch", "--show-current") == "newb"
     assert git_in(repo, "status", "--porcelain") == "M f.txt"
 
 

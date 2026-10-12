@@ -37,9 +37,12 @@ session's own directory, never against the tree the switch names. The reason
 opens with the same lead and lists the changes as the `ask` does, then names
 the ways on that need nobody, each as a command of its own: commit here first,
 or `git stash`, the switch and `git stash pop`, whose pop applies the changes
-to whatever is checked out when it runs. Where HEAD is detached a commit lands
-on no branch, so the reason names the check (`git branch --show-current`
-prints nothing) and `git branch <name>` before the switch. It names no
+to whatever is checked out when it runs. Committing first keeps the changes
+on the branch checked out now, so the reason sends a switch that creates its
+branch (`-c`) to carry them there to the stash sequence. Where HEAD is
+detached a commit lands on no branch, so the reason names the check (`git
+branch --show-current` prints nothing) and `git branch <name>` before the
+switch. It names no
 question tool, and says re-issuing the command unchanged meets the same
 refusal. Each way on is a command of its own because the guard reads the tree
 before a line runs, so `git stash && git switch x` meets this same row.
@@ -51,7 +54,7 @@ the same `deny` with the token's lead.
 and nowhere else, and the reader that decides it is the stop's, unchanged. A
 wrong deny costs the model a turn. Under the press this row puts no question
 to a person, where it put one per dirty switch; attended it puts the same one.
-Enforced by: tests/test_the_guard_asks_once_per_session.py::test_under_the_press_the_dirty_row_is_a_deny_to_the_model, tests/test_the_guard_asks_once_per_session.py::test_the_token_does_not_reach_the_dirty_row_under_the_press_either, tests/test_the_guard_asks_once_per_session.py::test_a_compound_stash_and_switch_meets_the_deny, tests/test_the_guard_asks_once_per_session.py::test_the_plain_retry_meets_todays_rows, tests/test_the_guard_asks_once_per_session.py::test_the_ways_on_pass_the_guard, tests/test_the_guard_asks_once_per_session.py::test_a_creation_on_the_dirty_line_is_stopped_with_it, tests/test_the_guard_asks_once_per_session.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_worktree_guard.py::test_the_dirty_tree_row_names_what_was_measured
+Enforced by: tests/test_the_guard_asks_once_per_session.py::test_under_the_press_the_dirty_row_is_a_deny_to_the_model, tests/test_the_guard_asks_once_per_session.py::test_the_token_does_not_reach_the_dirty_row_under_the_press_either, tests/test_the_guard_asks_once_per_session.py::test_a_compound_stash_and_switch_meets_the_deny, tests/test_the_guard_asks_once_per_session.py::test_the_plain_retry_meets_todays_rows, tests/test_the_guard_asks_once_per_session.py::test_the_ways_on_pass_the_guard, tests/test_the_guard_asks_once_per_session.py::test_a_creation_on_the_dirty_line_is_stopped_with_it, tests/test_the_guard_asks_once_per_session.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_the_guard_asks_once_per_session.py::test_a_creating_switch_under_the_press_takes_the_stash_way, tests/test_worktree_guard.py::test_the_dirty_tree_row_names_what_was_measured
 
 A command that also creates a worktree is judged by this table whichever of the
 two is written first, with the creation judged inside it — see §Creation
