@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 897 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `c67fc2e5c5239e42e7117c4ccebb77cb2ca14385..1ac03f4dc0f8b036b05d830f68aa0e006ab2d0db`, 3 commits |
+| Contract changes | none |
+| New units | test_an_orphan_switch_under_the_press_takes_the_commit_way (depth 1); test_the_deny_does_not_say_a_discarding_switch_carries_the_changes (depth 1) |
 | Fix of a fix | first — 🟡 1 at hooks/worktree-guard.py#main, a unit round-1's fixes changed; 🟡 2 at hooks/worktree-guard.py#main, a unit round-1's fixes changed |
 | Needs a fix | yes — 🟡 1 (`--orphan` is sent to way 2 and ends in a conflict) and 🟡 2 (the deny's *would follow* premise is false for a discarding switch, and round 1's grounds for leaving it do not hold) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -33,9 +33,9 @@ Facts arriving as coordinates, executed by the orchestrator: `round_record.py cl
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | `git switch --orphan` creates its branch, so the fix's new sentence sends it to way 2, and there the pop meets a modify/delete conflict and keeps the stash | `hooks/worktree-guard.py:3298` | open | Executed: deny under the press; way 2 through the guard ends `DU f.txt` with the stash kept; git alone refuses `--orphan` over the change; way 1 is silent and succeeds with the proposed fix. The sentence came from a798c85a |
-| 🟡 2 | The deny says the changes would follow, which is false for `--discard-changes`, `-f` and `--orphan`; round 1's grounds for note 5 (base text word for word, pinned by S2) do not hold | `hooks/worktree-guard.py:3287` | open | Executed: `would follow` and `switch itself may go ahead` are absent from the base's hook, and the base's `ask` block is byte-identical at the target. Read: S2 pins only the unpressed case. Executed: all three forms meet the deny with the premise |
-| ⬜ 3 | 0.15.6 W9's re-read row still says the claim holds at `main@c6554e10`, a hash where it held only without the press | `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md:31` | open | Read: 8bdd6680 moved the hash; `Corrected · W9` supersedes the family, so the row is inert but false; A4 (line 27) and S2 (line 58) keep the base's `08a308fb`. A record correction, so `Needs a fix` does not count it |
+| 🟡 1 | `git switch --orphan` creates its branch, so the fix's new sentence sends it to way 2, and there the pop meets a modify/delete conflict and keeps the stash | `hooks/worktree-guard.py:3298` | **fixed** `04f450ea` | fixed at 04f450ea — the report's paste-ready text: way 1 now names `--orphan`, which starts from an empty tree no pop carries onto, in both languages, the policy paragraph and the changelog fragment; `test_an_orphan_switch_under_the_press_takes_the_commit_way` runs way 1 with real git, seen red through `mutation-check` with the sentence removed; Executed: deny under the press; way 2 through the guard ends `DU f.txt` with the stash kept; git alone refuses `--orphan` over the change; way 1 is silent and succeeds with the proposed fix. The sentence came from a798c85a |
+| 🟡 2 | The deny says the changes would follow, which is false for `--discard-changes`, `-f` and `--orphan`; round 1's grounds for note 5 (base text word for word, pinned by S2) do not hold | `hooks/worktree-guard.py:3287` | **fixed** `8c1db4bd` | fixed at 8c1db4bd — the report's paste-ready text: the premise says a switch that keeps the changes carries them, in both languages and the policy paragraph, with the attended `ask` untouched; `test_the_deny_does_not_say_a_discarding_switch_carries_the_changes` pins `--discard-changes`, `-f` and `--orphan`, seen red through `mutation-check` with the old premise restored; Executed: `would follow` and `switch itself may go ahead` are absent from the base's hook, and the base's `ask` block is byte-identical at the target. Read: S2 pins only the unpressed case. Executed: all three forms meet the deny with the premise |
+| ⬜ 3 | 0.15.6 W9's re-read row still says the claim holds at `main@c6554e10`, a hash where it held only without the press | `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md:31` | answered | corrected at 1ac03f4d — 0.15.6 W9's re-read row in the 1791384157 fragment is back at `main@08a308fb`, as A4 and S2 stand; `--reverify` left it there because `Corrected · W9` supersedes the family; Read: 8bdd6680 moved the hash; `Corrected · W9` supersedes the family, so the row is inert but false; A4 (line 27) and S2 (line 58) keep the base's `08a308fb`. A record correction, so `Needs a fix` does not count it |
 | 🟢 | round 1's yellow 1 is closed for every creating form except `--orphan` — `-c`, `-C`, `--create`, `--force-create`, `-cX`, `--create=X`, `-c X <start>` | `hooks/worktree-guard.py:3296` | confirmed | Executed: each meets the deny with the sentence, and way 2 through the guard ends on `newb` with `M f.txt` and no stash; the new case fails against 1eec0f8e's hook |
 | 🟢 | round 1's yellow 2 is closed — no squash clause in either language | `hooks/worktree-guard.py:3296` | confirmed | Executed: `git grep -i squash` hits only S1's own comment and assertion. Read: the Korean text is pinned by equality |
 | 🟢 | round 1's note 3 answer holds — `Corrected · W9` states what `main` does and its three tests pass | `seal/ledger/1791779434-under-automation-the-guard-asks-nobody.md:18` | confirmed | Executed: the three cited cases pass at the target. Read: the claim against `main` |
