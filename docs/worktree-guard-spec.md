@@ -17,8 +17,8 @@ actually live on the tree.
 | Tree state | Decision |
 |---|---|
 | ACTIVE session present | deny — steer to a worktree. One destination, so no choice to offer |
-| only IDLE sessions | **choice** — switch here, or split into a worktree; each session listed with its last-activity age, because forgotten tabs are the user's call |
-| detection unusable (can't see even our own process) | **choice** — same two. A blanket deny locked out extension hosts entirely |
+| only IDLE sessions | **choice** — switch here, or split into a worktree; each session listed with its last-activity age, because forgotten tabs are the user's call. Where the person pressed `automation`, a deny to the model on every attempt instead, naming the split as the way on — see §Choice sites, *Under the press* |
+| detection unusable (can't see even our own process) | **choice** — same two. A blanket deny locked out extension hosts entirely. Under the press, the same deny as the row above: its way on, the split, needs no switch and no person, which is what keeps it from being that lockout |
 | single stream, tracked changes present | ask — the changes follow the switch. Genuinely yes/no: the destination branch is the same either way, and what is being asked is whether the uncommitted changes ride along. Where the person pressed `automation`, a deny to the model instead, naming the ways on that need nobody — see *The tracked-changes row has two readers too* |
 | single stream, clean | allow silently |
 
@@ -124,7 +124,11 @@ The stop has two readers. Where the session's person pressed `automation` on
 the routing question, it is a `deny` to the model, which rewrites in the
 plain spelling and meets the rows above on the retry, and no person is
 asked. In a dirty tree that retry meets the tracked-changes row, which under
-the press is a `deny` as well, so neither issue reaches a person. Otherwise it is an `ask` with the same text, except in a tree another
+the press is a `deny` as well, so neither issue reaches a person. Where the
+tree holds only IDLE sessions, or detection is unusable, the retry meets the
+two choice rows, which under the press deny on every attempt naming the
+split (§Choice sites, *Under the press*), so no issue there reaches a person
+either. Otherwise it is an `ask` with the same text, except in a tree another
 session is ACTIVE in: row 1 denies a branch-form `checkout` there with
 nobody asked, so the stop is a `deny` whoever is at the keyboard. On the
 `ask` path a creation on the same line is judged first, because approving
@@ -597,6 +601,33 @@ made before this design, which is also the answer for an environment with
 nobody to ask — one extra round trip, then the old behavior. No session id, no
 marker, so the site's old decision stands from the start.
 
+**Under the press the switch direction's two sites deny on every attempt, and
+name the split into a worktree as the way on (#896).** Where this session's
+person pressed `automation` on the routing question, nobody is at the keyboard
+to put the two options to: the deny's instruction would put a question to them
+one step removed, and the `ask` after it would put one directly. So rows
+only IDLE sessions and detection unusable `deny` on every attempt. The reason
+opens with the row's situation, carries the press sentence the tracked-changes
+row carries, and names the split as commands the model can issue: `git
+worktree add <wt_root>/<branch> <branch>` for a branch that exists, `git
+worktree add <wt_root>/<name> -b <branch> origin/main` for a new one, and then
+working in that tree by path with `git -C`. The press is consent, read before
+every creation row (§Creation consent), so those commands pass as written with
+no `[worktree-ok]`. The reason says a branch already checked out in a worktree
+needs no switch, names no question tool and no `[shared-tree-ok]`, and says
+re-issuing the command unchanged meets the same refusal. The press is read by
+the stop's reader, against the session's own root, and only where one of the
+two rows fires, so a command reads the transcript at most once. No marker is
+written, because the marker means *the question was put* and none was: a
+session whose person later answers `per axis` in the same clone meets the
+first-attempt deny an attended session meets. The token reads as it did, so
+`[shared-tree-ok]` still turns both rows silent under the press; the reason
+does not name it, and a model that appends it anyway leaves that on the
+command line. The creation direction's two sites never run under the press,
+because consent is read before them. Without the press both rows are what
+they were, word for word.
+Enforced by: tests/test_the_idle_session_rows_ask_nobody.py::test_under_the_press_a_choice_row_denies_every_attempt, tests/test_the_idle_session_rows_ask_nobody.py::test_the_token_still_reads_as_it_does_attended, tests/test_the_idle_session_rows_ask_nobody.py::test_the_way_on_passes_the_guard, tests/test_the_idle_session_rows_ask_nobody.py::test_a_creation_on_the_same_line_is_stopped_with_it, tests/test_the_idle_session_rows_ask_nobody.py::test_the_plain_retry_after_the_stop_meets_the_deny, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_at_most_once_per_command, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_worktree_guard.py::test_the_attended_choice_rows_are_the_bases_in_korean
+
 **Retry tokens, one per direction.** Both are matched as **bare words** of the
 command, never as substrings: a substring test read
 `echo 'we documented [shared-tree-ok] today'` as an answer and turned the
@@ -715,7 +746,10 @@ from a heartbeat. So every listed session shows:
 - **host app**, attributed by walking the ANCESTOR process chain (never
   sibling processes) — e.g. "(VS Code 터미널)";
 - **disaggregated signals** — terminal input/output age and transcript
-  active-event age separately;
+  active-event age separately. A session no process can be pinned on prints
+  the kind of its one signal and its age, *lease declaration 4.7h ago*, and
+  nothing after them: whether it is working is the header's to say, and the
+  line used to end with a clause saying it was, at any age (#896);
 - the project's newest OTHER transcript's **last user message snippet**, so
   the human can recognize which conversation is being protected.
 
@@ -731,6 +765,11 @@ disables `git switch` outright. Rationale: the
 guard's failure modes are asymmetric — a wrong deny costs a prompt, a wrong
 allow breaks another session's tree — but a deny that fires on EVERY switch
 in an environment is no longer a cost, it is an outage.
+
+Under the press those two rows are a deny on every attempt (§Choice sites,
+*Under the press*), and on Windows that is every switch. What keeps it a cost
+rather than the outage above is its way on: a worktree per branch, created
+with `-b`, needs no switch and no person, and the press consents to it.
 
 ### Which tree, when the command walks to it
 
@@ -932,7 +971,13 @@ at one prompt against a wrong allow breaking another session's tree.
   meets the confirmation where a POSIX system's single-stream row refuses it
   (#692's Windows pass, CI run 36978391812). And every unrecognised shape
   stops there, in every tree: a `deny` to the model under the press, an
-  `ask` otherwise. Read from the code, not run on Windows.
+  `ask` otherwise. Under the press every `git switch` there is row 2's deny,
+  in a shared tree and in a linked worktree alike, so an `automation` run on
+  Windows works in a worktree per branch, created with `-b`, and never
+  switches. Read from the code, not run on Windows;
+  `test_on_windows_a_switch_under_the_press_is_row_twos_deny` in
+  `tests/test_the_idle_session_rows_ask_nobody.py` runs on the Windows legs
+  only, with nothing stubbed, and measures the switch half.
 - The `automation` press is this session's, on this machine. It is read from
   this session's own main transcript (§*Creation consent*, rule 1), which the
   harness writes on the machine the session runs on, and a subagent reaches
@@ -952,12 +997,13 @@ at one prompt against a wrong allow breaking another session's tree.
   twice in a run routed `automation`; replayed up to the first of those
   stops, the reader found no press in that session.
 - Under the press the two **choice** rows of §A, only IDLE sessions and
-  detection unusable, still reach a person: the first attempt is a `deny`
-  whose reason says to call `AskUserQuestion`, and every attempt after it is
-  an `ask`. What needs nobody there, a split into a worktree or the model
-  pressing `[shared-tree-ok]` on its own judgment, is the owner's to name
-  (work item 1791779434, `questions.md` P1). On Windows every switch takes
-  the second of them.
+  detection unusable, deny on every attempt and name the split into a
+  worktree, never `[shared-tree-ok]` (§Choice sites, *Under the press*). A
+  model that does not take the split loops on the deny, and the reason's
+  text is the only bound. Whether a run does is a measurement owed by the
+  next `automation` run after this ships (work item 1791781864,
+  `questions.md` M1). Letting the model press the token on its own judgment
+  is the owner's lever (P1 (c)), not taken.
 - Transcript activity is per-project, not per-pid: one working session marks
   every session of that project active. Conservative by design.
 - tty atime also refreshes on in-turn stdin reads (a session listening for
