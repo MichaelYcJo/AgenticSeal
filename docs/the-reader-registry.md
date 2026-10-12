@@ -116,9 +116,9 @@ heading path in a `.md` file, a quoted line anywhere else. `evidence-check`'s
 records arm reads the section in every live frame: a coordinate that still
 resolves is `STANDING`, and a cell the ledger would refuse is `REFUSED`, never
 read as gone — a cell that is no coordinate, a test's node id, a bare symbol
-in a file no parser bounds, a path that escapes the tree or walks through
-`..`, a path that is there and will not read as a file, and a path carrying
-a `--map` prefix. A row is read in this tree and nowhere else, so neither the
+in a file no parser bounds, a path that escapes the tree, walks through `..`
+or carries an empty or `.` segment after its first, a path that is there and
+will not read as a file, and a path carrying a `--map` prefix. A row is read in this tree and nowhere else, so neither the
 original a migration declares nor a mapped checkout answers for it; a
 directory of this tree that carries a map's name is written `./<path>`. Both
 exit 2, as a stated name the tree lacks does. A work item removing nothing

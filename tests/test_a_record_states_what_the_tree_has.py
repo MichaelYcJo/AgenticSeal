@@ -1802,11 +1802,21 @@ def test_a_removal_is_read_in_this_tree_never_in_another_checkout(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "coordinate", ["kept.py/#k", "kept.py/.#k", "./legacy/kept.py#k"]
+    ("coordinate", "status"),
+    [
+        ("kept.py/#k", "REFUSED"),
+        ("kept.py/.#k", "REFUSED"),
+        ("sub//kept.py#k", "REFUSED"),
+        ("./legacy/kept.py#k", "STANDING"),
+    ],
 )
-def test_a_path_spelled_another_way_is_read_as_the_file_it_names(tmp_path, coordinate):
-    """Round 3 of #835, ⬜ 2 and ⬜ 1. A trailing `/` or `/.` names the file
-    `contained` judged, so the row is `STANDING` rather than gone; `./` is the
+def test_a_path_spelled_another_way_is_refused_never_read_as_gone(
+    tmp_path, coordinate, status
+):
+    """Round 3 of #835, ⬜ 2 and ⬜ 1, as the broad gate left them. A trailing
+    `/` or `/.`, or an empty segment, names a file by a spelling the read does
+    not use, and a lexical fold would name another file through a symlink
+    (#163), so it is refused rather than read as gone. A leading `./` is the
     spelling the `--map` refusal names, and it reads the row in this tree."""
     tree(
         tmp_path,
@@ -1821,7 +1831,13 @@ def test_a_path_spelled_another_way_is_read_as_the_file_it_names(tmp_path, coord
     found, _read, _stamps = module().check_records(
         str(tmp_path), str(tmp_path / "seal"), {"legacy": str(tmp_path / "absent")}
     )
-    assert [s for s, _c, _d in found] == ["STANDING"]
+    assert [s for s, _c, _d in found] == [status]
+    if status == "REFUSED":
+        assert found[0][2] == (
+            f"`{coordinate}` — the path carries an empty or `.` segment, so it "
+            "names the file by a spelling the tree does not use — write the "
+            "path as the tree spells it"
+        )
 
 
 def test_a_path_through_dot_dot_is_refused_never_read_as_gone(tmp_path):

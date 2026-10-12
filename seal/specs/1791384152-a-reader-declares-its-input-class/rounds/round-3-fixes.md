@@ -17,12 +17,10 @@ four notes, each corrected in a commit of its own after it.
 The range is cbab19d1..dcde8e56.
 
 - **Contract changes:** `skills/evidence-check/scripts/evidence_check.py#removal_findings` loses its `default_repo` parameter; its one caller, `file_claims`, moves with it.
-- **New units:** `tests/test_a_record_states_what_the_tree_has.py#test_a_path_spelled_another_way_is_read_as_the_file_it_names`. No shipped unit is new.
+- **New units:** `tests/test_a_record_states_what_the_tree_has.py#test_a_path_spelled_another_way_is_refused_never_read_as_gone`, under the name the broad gate's correction gave it. No shipped unit is new.
 
-⬜ 2's correction is the report's line with one more half: the normalised
-path is also the one `resolve_unit` is handed, because `kept.py/` has no
-suffix and `bounding_rule` refused it as unbounded once the read succeeded.
-It is spelled with `/`, as the ledger spells a path.
+⬜ 2's first correction folded the path with `os.path.normpath`, which the
+broad gate refused below; the path is now refused instead of folded.
 
 ## Seen red
 

@@ -21,8 +21,9 @@
   records arm reads each row of a live frame as a claim of absence: a
   coordinate that still resolves reads `STANDING`, and a cell the ledger
   would refuse — no coordinate, a test's node id, a bare symbol in a file no
-  parser bounds, a path that escapes the tree or walks through `..`, a path
-  that is there and will not read as a file, a path carrying a `--map`
+  parser bounds, a path that escapes the tree, walks through `..` or ends in
+  `/` or `/.`, a path that is there and will not read as a file, a path
+  carrying a `--map`
   prefix — reads `REFUSED`, never as a removal that happened. A row is read
   in this tree only, never in a migration's original. Both exit 2. A new `seal/config.md` row, `Removes from | <work-item id>`, makes
   the section required for every frame at or above that id; it is read by

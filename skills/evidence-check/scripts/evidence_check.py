@@ -6172,10 +6172,23 @@ def removal_findings(lines, shown, root, maps, required):
                 )
             )
             continue
-        # The path `contained` judged, so a trailing `/` or `/.` cannot read
-        # as gone; `..` is refused above, so this never crosses a symlink
-        # (round 3 of #835, ⬜ 2).
-        rel = os.path.normpath(rel).replace(os.sep, "/")
+        if any(part in ("", ".") for part in raw_path.split("/")[1:]):
+            # A trailing `/` or `/.`, or an empty or `.` segment inside, names
+            # the file `contained` judged by a spelling the read does not:
+            # `kept.py/` would read as gone while `kept.py` holds the unit.
+            # Refused rather than folded, because a lexical fold names another
+            # file through a symlink (#163). A leading `./` is the spelling
+            # the `--map` refusal names, and stays (round 3 of #835, ⬜ 2).
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path carries an empty or `.` segment, so "
+                    "it names the file by a spelling the tree does not use — "
+                    "write the path as the tree spells it",
+                )
+            )
+            continue
         full = os.path.join(repo, rel)
         body = read(full)
         if body is None:
