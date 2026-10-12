@@ -6063,7 +6063,7 @@ def removes_section(lines):
     return present, cut, rows, nothing
 
 
-def removal_findings(lines, shown, root, maps, default_repo, required):
+def removal_findings(lines, shown, root, maps, required):
     """`(findings, cut)`: the findings over a frame's `## Removes` section,
     and the claim-line numbers the name half leaves to it.
 
@@ -6244,9 +6244,7 @@ def file_claims(
     """
     findings, names_read, stamps_read, cut = [], 0, 0, set()
     if removes is not None:
-        findings, cut = removal_findings(
-            lines, shown, root, maps, default_repo, removes
-        )
+        findings, cut = removal_findings(lines, shown, root, maps, removes)
     remedy = (
         f"Correct the record, or write {NOT_IN_TREE} on the line where the "
         "record means a name the tree does not have"
