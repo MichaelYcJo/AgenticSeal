@@ -78,7 +78,8 @@ on, no question tool, the re-issue sentence — are the first frame's and stay.*
 
 Where `automation_answered` is True for the session's own clone, the
 tracked-changes row of §A answers `deny` instead of `ask`. **The reason
-states what the guard read and nothing it inferred.** The guard holds three
+states what the guard read, and infers nothing beyond the index-residue note
+it shares with the `ask`.** The guard holds three
 facts: tracked changes are present (`git status`, the `entries` list), the
 command asks for a switch (its shape, §A), and the press is in this session's
 transcript. What the switch form does with the changes, where a commit lands,

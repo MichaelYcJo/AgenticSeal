@@ -34,7 +34,8 @@ the model, because nobody is at the keyboard to answer it, and the answer the
 person would give, commit first, is not one of its two buttons. The press is
 read by the reader the unrecognised-shape stop uses, against the root of the
 session's own directory, never against the tree the switch names. The reason
-states what the guard read and what the guard is, and nothing it inferred. It
+states what the guard read and what the guard is. Its one sentence about what
+git does is the index-residue note it shares with the `ask`, word for word. It
 opens with the same lead and lists the changes as the `ask` does, carries the
 press sentence, and says the row stops a switch while uncommitted tracked
 changes are present and says nothing once none are. It names `git commit`
@@ -59,9 +60,10 @@ discarding forms, then a detached HEAD and a target branch that changed a
 listed file. Over sixteen setups the text was right in fourteen, and nothing
 the guard reads tells those from the other two. That is a prediction from
 text, the class this repository judges not to converge (§*Known limits*, the
-brace reader), so each sentence about what git does was taken out rather
-than corrected again. A form found later is a row in the case that pins one
-text for every form, never a sentence here.
+brace reader), so each sentence of the row's own about what git does was taken
+out rather than corrected again. The index-residue note it shares with the
+`ask` stays as the `ask` has it. A form found later is a row in the case that
+pins one text for every form, never a sentence here.
 
 **The failure direction.** A verdict moves from `ask` to `deny` in one state
 and nowhere else, and the reader that decides it is the stop's, unchanged. A
