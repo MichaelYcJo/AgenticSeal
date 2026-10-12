@@ -1543,3 +1543,346 @@ def test_a_built_coordinate_prints_with_forward_slashes_on_windows():
     assert built(r"D:\other\seal\specs\x\plan.md", r"C:\proj", flavour=ntpath) == (
         "D:/other/seal/specs/x/plan.md"
     )
+
+
+# --- a frame's `## Removes` section, read as claims of absence (#835) ---------
+
+REMOVES_HEAD = (
+    "# frame\n\n## Removes\n\n"
+    "| Removes | Coordinate | Where it lands, or why it can go |\n"
+    "|---|---|---|\n"
+)
+REMOVES_TAIL = "\n## Open questions\n\nnone\n"
+
+
+def frame(tmp_path, rows, item="1780000000-live"):
+    """A live work item whose `spec.md` carries a `## Removes` section of ROWS
+    (whole lines), and the arm's findings over it."""
+    h = home(tmp_path)
+    work_item(h, item, **{"spec.md": REMOVES_HEAD + rows + REMOVES_TAIL})
+    found, _ = refusals(tmp_path)
+    return found
+
+
+def test_a_named_removal_that_still_stands_is_standing(tmp_path):
+    """S1. A row whose coordinate resolves at HEAD names a removal that has
+    not happened."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    found = frame(tmp_path, "| the old reader | `mod.py#old_reader` | gone |\n")
+    assert [(s, c.replace(os.sep, "/")[-9:]) for s, c, _ in found] == [
+        ("STANDING", "spec.md:7")
+    ]
+    assert found[0][2] == (
+        "`mod.py#old_reader` still resolves at 1-2, so the removal this row "
+        "names has not happened — take it out of the tree, or correct the row"
+    )
+
+
+def test_a_standing_removal_fails_the_run_like_a_stated_name_the_tree_lacks(
+    tmp_path,
+):
+    """S1. Graded as NOT-IN-TREE is: exit 2 under either reading."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    frame(tmp_path, "| the old reader | `mod.py#old_reader` | gone |\n")
+    r = run(["."], tmp_path)
+    assert r.returncode == 2, r.stdout + r.stderr
+    assert "STANDING" in r.stdout and "1 refused" in r.stdout
+
+
+@pytest.mark.parametrize(
+    "coordinate",
+    [
+        "mod.py#old_reader",
+        "gone.py#anything",
+        'notes.md#"## Gone heading"',
+        'mod.py#kept>"return 2"',
+    ],
+)
+def test_a_removal_that_happened_is_no_finding(tmp_path, coordinate):
+    """S2. A unit gone from its file, a file gone, a heading gone, and a
+    quoted line gone from a unit that stays: each is the claim holding."""
+    tree(
+        tmp_path,
+        **{
+            "mod.py": "def kept():\n    return 1\n",
+            "notes.md": "# n\n\n## Kept\n\ntext\n",
+        },
+    )
+    assert frame(tmp_path, f"| x | `{coordinate}` | y |\n") == []
+
+
+@pytest.mark.parametrize("coordinate", ['notes.md#"## Kept"', 'mod.py#kept>"return 1"'])
+def test_a_heading_or_a_quoted_line_still_there_is_standing(tmp_path, coordinate):
+    """S1 for the two locators that are not a unit name."""
+    tree(
+        tmp_path,
+        **{
+            "mod.py": "def kept():\n    return 1\n",
+            "notes.md": "# n\n\n## Kept\n\ntext\n",
+        },
+    )
+    found = frame(tmp_path, f"| x | `{coordinate}` | y |\n")
+    assert [s for s, _c, _d in found] == ["STANDING"]
+
+
+def test_a_name_in_a_removes_row_is_not_read_by_the_name_half(tmp_path):
+    """S2. Elsewhere in a record `mod.py#gone_helper` is a stated name the
+    tree lacks; in the section it is the claim that it is gone."""
+    tree(tmp_path, **{"mod.py": "def kept():\n    return 1\n"})
+    rows = "| `gone_helper` | `mod.py#gone_helper` | `other_gone_name` |\n"
+    assert frame(tmp_path, rows) == []
+    (tmp_path / "seal" / "specs" / "1780000000-live" / "plan.md").write_text(
+        "# p\n\n`mod.py#gone_helper`\n", encoding="utf-8"
+    )
+    found, _ = refusals(tmp_path)
+    assert [s for s, _c, _d in found] == ["NOT-IN-TREE"]
+
+
+@pytest.mark.parametrize(
+    ("line", "refused"),
+    [("nothing — the work only adds a check", False), ("nothing", True)],
+)
+def test_the_nothing_line_names_its_reason(tmp_path, line, refused):
+    """S3."""
+    h = home(tmp_path)
+    work_item(h, "1780000000-live", **{"spec.md": f"# f\n\n## Removes\n\n{line}\n"})
+    found, _ = refusals(tmp_path)
+    if refused:
+        assert [(s, d) for s, _c, d in found] == [
+            (
+                "REFUSED",
+                "`nothing` — a `nothing` line names its reason: `nothing — <why>`",
+            )
+        ]
+    else:
+        assert found == []
+
+
+def removes_config(tmp_path, value):
+    (tmp_path / "seal").mkdir(exist_ok=True)
+    (tmp_path / "seal" / "config.md").write_text(
+        f"| Item | Value |\n|---|---|\n| Removes from | {value} |\n",
+        encoding="utf-8",
+    )
+
+
+@pytest.mark.parametrize(
+    ("cutoff", "item", "spec", "why"),
+    [
+        ("1780000000", "1780000000-bound", "# f\n\nno section\n", "has no"),
+        (
+            "1780000000",
+            "1780000001-bound",
+            "# f\n\n## Removes\n\n## Next\n",
+            "has an empty",
+        ),
+        ("1780000000", "1770000000-older", "# f\n\nno section\n", None),
+        (None, "1780000000-unbound", "# f\n\nno section\n", None),
+    ],
+    ids=["bound, absent", "bound, empty", "below the cutoff", "no row"],
+)
+def test_presence_is_required_at_or_above_the_cutoff(tmp_path, cutoff, item, spec, why):
+    """S4, one root per branch."""
+    h = home(tmp_path)
+    if cutoff is not None:
+        removes_config(tmp_path, cutoff)
+    work_item(h, item, **{"spec.md": spec})
+    found, _ = refusals(tmp_path)
+    if why is None:
+        assert found == []
+        return
+    assert len(found) == 1
+    status, coord, detail = found[0]
+    assert status == "REFUSED"
+    assert coord.replace(os.sep, "/").endswith(f"{item}/spec.md")
+    assert detail == (
+        f"{why} `## Removes` section, and `Removes from` in seal/config.md binds "
+        "this work item — name what the work removes, in the ledger's grammar "
+        "without a hash, or write `nothing — <why>`"
+    )
+
+
+def test_a_section_below_the_cutoff_is_still_read_where_present(tmp_path):
+    """S4. Not required is not unread."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    removes_config(tmp_path, "1790000000")
+    found = frame(tmp_path, "| r | `mod.py#old_reader` | gone |\n")
+    assert [s for s, _c, _d in found] == ["STANDING"]
+
+
+@pytest.mark.parametrize(
+    ("cell", "detail"),
+    [
+        (
+            '<path#unit, or path#"heading">',
+            '`<path#unit, or path#"heading">` is not a coordinate — write '
+            '`path#unit`, `path#"## heading"` or `path#"a quoted line"`',
+        ),
+        (
+            "`tests/test_x.py::test_y`",
+            "`tests/test_x.py::test_y` is a test's node id, which names a test "
+            'and no unit — write `path#unit`, `path#"## heading"` or '
+            '`path#"a quoted line"`',
+        ),
+    ],
+    ids=["the template's placeholder", "a node id"],
+)
+def test_a_cell_that_is_no_coordinate_is_refused_naming_the_row(tmp_path, cell, detail):
+    """S5."""
+    found = frame(tmp_path, f"| x | {cell} | y |\n")
+    assert [(s, c.replace(os.sep, "/")[-9:], d) for s, c, d in found] == [
+        ("REFUSED", "spec.md:7", detail)
+    ]
+
+
+def test_a_bare_symbol_no_rule_bounds_is_refused_never_read_as_gone(tmp_path):
+    """S5. `f.ts#bar` would read as a removal that happened if `resolve_unit`'s
+    empty places were taken at their word; its `refused` sentence is the
+    answer, and it is `unbounded`'s, pinned in
+    `tests/test_a_unit_the_extractor_cannot_bound_is_refused.py`."""
+    tree(tmp_path, **{"f.ts": "function bar() {}\n"})
+    found = frame(tmp_path, "| x | `f.ts#bar` | y |\n")
+    unbounded = module().unbounded("f.ts", None, "")
+    assert [(s, d) for s, _c, d in found] == [("REFUSED", f"`f.ts#bar` — {unbounded}")]
+
+
+def test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone(tmp_path):
+    """S5, round 1 of #835 (🟡 2). `place` refuses a path out of the tree,
+    and a directory will not read; neither is a removal that happened, so
+    each is refused naming the row. A file the tree does not have is still
+    the claim holding."""
+    root = tmp_path / "r"
+    tree(root, **{"pkg__sub.d__x.py": "def g():\n    return 1\n"})
+    (tmp_path / "outside.py").write_text("def f():\n    return 1\n", encoding="utf-8")
+    h = home(root)
+    rows = (
+        "| x | `../outside.py#f` | y |\n"
+        "| x | `pkg/sub.d#g` | y |\n"
+        "| x | `pkg/gone.py#g` | y |\n"
+    )
+    work_item(h, "1780000000-live", **{"spec.md": REMOVES_HEAD + rows + REMOVES_TAIL})
+    found, _ = refusals(root)
+    assert [(s, d) for s, _c, d in found] == [
+        (
+            "REFUSED",
+            "`../outside.py#f` — the path escapes the repository, so nothing it "
+            "names can be read as gone — write a path inside the tree",
+        ),
+        (
+            "REFUSED",
+            "`pkg/sub.d#g` — the path is there and will not read as a file, so "
+            "nothing in it can be read as gone",
+        ),
+    ]
+
+
+def test_a_removal_is_read_in_this_tree_never_in_another_checkout(tmp_path):
+    """S1/S2, round 2 of #835. A row is a claim about HEAD: one the original
+    still holds is a removal that happened here, and one in a mapped checkout
+    is refused rather than read as gone."""
+    root = tmp_path / "r"
+    tree(root, **{"kept.py": "def k():\n    return 1\n"})
+    orig = tmp_path / "orig"
+    tree(orig, **{"old.py": "def k():\n    return 1\n"})
+    h = home(root)
+    rows = "| x | `old.py#k` | y |\n| x | `legacy/a.py#k` | y |\n"
+    work_item(h, "1780000000-live", **{"spec.md": REMOVES_HEAD + rows + REMOVES_TAIL})
+    found, _read, _stamps = module().check_records(
+        str(root), str(root / "seal"), {"legacy": str(tmp_path / "absent")}, str(orig)
+    )
+    assert [(s, d) for s, _c, d in found] == [
+        (
+            "REFUSED",
+            "`legacy/a.py#k` — the path names another checkout through `--map`, "
+            "and a frame names what its work removes from this tree — write the "
+            "path in this tree, as `./legacy/a.py` where this tree's own "
+            "directory carries the map's name",
+        )
+    ]
+
+
+@pytest.mark.parametrize(
+    ("coordinate", "status"),
+    [
+        ("kept.py/#k", "REFUSED"),
+        ("kept.py/.#k", "REFUSED"),
+        ("sub//kept.py#k", "REFUSED"),
+        ("./legacy/kept.py#k", "STANDING"),
+    ],
+)
+def test_a_path_spelled_another_way_is_refused_never_read_as_gone(
+    tmp_path, coordinate, status
+):
+    """Round 3 of #835, ⬜ 2 and ⬜ 1, as the broad gate left them. A trailing
+    `/` or `/.`, or an empty segment, names a file by a spelling the read does
+    not use, and a lexical fold would name another file through a symlink
+    (#163), so it is refused rather than read as gone. A leading `./` is the
+    spelling the `--map` refusal names, and it reads the row in this tree."""
+    tree(
+        tmp_path,
+        **{
+            "kept.py": "def k():\n    return 1\n",
+            "legacy__kept.py": "def k():\n    return 1\n",
+        },
+    )
+    h = home(tmp_path)
+    rows = f"| x | `{coordinate}` | y |\n"
+    work_item(h, "1780000000-live", **{"spec.md": REMOVES_HEAD + rows + REMOVES_TAIL})
+    found, _read, _stamps = module().check_records(
+        str(tmp_path), str(tmp_path / "seal"), {"legacy": str(tmp_path / "absent")}
+    )
+    assert [s for s, _c, _d in found] == [status]
+    if status == "REFUSED":
+        assert found[0][2] == (
+            f"`{coordinate}` — the path carries an empty or `.` segment, so it "
+            "names the file by a spelling the tree does not use — write the "
+            "path as the tree spells it"
+        )
+
+
+def test_a_path_through_dot_dot_is_refused_never_read_as_gone(tmp_path):
+    """Round 2 of #835, ⬜ 2. `missing/../kept.py` stays inside the tree by
+    name, and the read goes through `missing`, so it would read as gone while
+    `kept.py` holds the unit; a path through `..` is refused instead."""
+    tree(tmp_path, **{"kept.py": "def k():\n    return 1\n"})
+    found = frame(tmp_path, "| x | `missing/../kept.py#k` | y |\n")
+    assert [(s, d) for s, _c, d in found] == [
+        (
+            "REFUSED",
+            "`missing/../kept.py#k` — the path walks through `..`, so whether it "
+            "names a file depends on the directories it passes — write the path "
+            "as the tree spells it",
+        )
+    ]
+
+
+@pytest.mark.parametrize(
+    "wrap",
+    [("```\n", "```\n"), ("<!--\n", "-->\n")],
+    ids=["a fence", "an html comment"],
+)
+def test_a_quoted_section_is_not_read(tmp_path, wrap):
+    """S7. A section inside a fence or a comment is an example."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    h = home(tmp_path)
+    opener, closer = wrap
+    section = REMOVES_HEAD.split("\n", 2)[2] + "| r | `mod.py#old_reader` | gone |\n"
+    work_item(
+        h, "1780000000-live", **{"spec.md": "# f\n\n" + opener + section + closer}
+    )
+    found, _ = refusals(tmp_path)
+    assert found == []
+
+
+def test_the_section_is_read_only_in_a_frame(tmp_path):
+    """A `## Removes` heading in another record is that record's prose; the
+    frame's own file is the one place the section is a claim."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    h = home(tmp_path)
+    work_item(
+        h,
+        "1780000000-live",
+        **{"plan.md": REMOVES_HEAD + "| r | `mod.py#old_reader` | gone |\n"},
+    )
+    found, _ = refusals(tmp_path)
+    assert found == []
