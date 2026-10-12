@@ -510,6 +510,8 @@ The document and the rules' statement:
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
 | the per-phase removal table, a second record of what a work item takes out of the tree | `templates/sdd-phase.md#"## What this phase removes"` | this section, at the frame; a removal the frame did not name is a divergence row in `overview.md` |
+| the table's pin, which held its two columns and its `none` row | `tests/test_a_phase_hands_the_next_one_a_record.py#test_removes_section_is_a_table_with_a_none_row` | `test_a_phase_record_carries_no_removal_table`, which holds the opposite, beside it; added by the build after round 1's ⬜ 4 |
+| the pin that counted three sections | `tests/test_a_phase_hands_the_next_one_a_record.py#test_all_three_sections_exist_outside_comments` | `test_both_sections_exist_outside_comments`, the same pin over two; added by the build after round 1's ⬜ 4 |
 
 ## Open questions → questions.md
 
