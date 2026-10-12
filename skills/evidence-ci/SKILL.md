@@ -94,3 +94,14 @@ of this command, not something that arrives silently.
 Re-run this command. It diffs the vendored copy against the plugin's current
 version and reports what changed, so an update is a reviewable diff rather
 than a silent swap.
+
+**Update the copy before the ledger holds a row held by a test.** A row whose
+Code grounds cell names a test, `tests/test_x.py::test_y`, is read by an
+`evidence_check.py` that carries `held_by_tests` (#836); an older vendored copy
+reads it as `MALFORMED`, *cites no coordinate*, and the step fails under
+`--strict`. The vendored step reads whether the test is there, and says in
+one line that it read the test rows for existence alone. Whether the test
+ran and passed is read off a pytest record: a repository that wants the
+step to read it loads `specseal_pytest_record` in its own test job and hands
+the step that run's directory and key with `--suite-record` and
+`--suite-key`; this command sets neither up.
