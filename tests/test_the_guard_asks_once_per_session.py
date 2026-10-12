@@ -1857,7 +1857,9 @@ def dirty_deny(lang, lead):
             "  1. Commit the changes here first (`git commit …`), then re-issue "
             "the switch. This keeps them on the branch checked out now, so where "
             "the switch creates its branch (`-c`) to carry them there, take way "
-            "2. On a branch a `routing.md` declares, the commit gate is "
+            "2. A switch to `--orphan` starts from an empty tree that nothing "
+            "carries onto, so it takes this way. On a branch a `routing.md` "
+            "declares, the commit gate is "
             "silent for that commit. "
             "Where HEAD is detached (`git branch --show-current` prints nothing), "
             "the commit lands on no branch: name it with `git branch <name>` "
@@ -1884,7 +1886,9 @@ def dirty_deny(lang, lead):
         "  1. 먼저 여기서 변경을 커밋하고(`git commit …`) 전환을 다시 "
         "실행합니다. 이 방법은 변경을 지금 체크아웃된 브랜치에 남기므로, "
         "브랜치를 새로 만들어(`-c`) 변경을 그쪽으로 옮기려는 전환이면 2번을 "
-        "택하세요. `routing.md` 가 선언한 브랜치에서는 커밋 게이트가 이 커밋을 "
+        "택하세요. `--orphan` 전환은 빈 트리에서 시작해 변경이 따라갈 곳이 "
+        "없으므로 이 방법을 택하세요. "
+        "`routing.md` 가 선언한 브랜치에서는 커밋 게이트가 이 커밋을 "
         "막지 않습니다. HEAD 가 분리되어 "
         "있으면(`git branch --show-current` 가 아무것도 출력하지 않으면) 커밋이 "
         "어느 브랜치에도 남지 않습니다. 전환 전에 `git branch <name>` 으로 이름을 "
@@ -2023,6 +2027,26 @@ def test_a_creating_switch_under_the_press_takes_the_stash_way(
         git_in(repo, *command.split()[1:])
     assert git_in(repo, "branch", "--show-current") == "newb"
     assert git_in(repo, "status", "--porcelain") == "M f.txt"
+
+
+def test_an_orphan_switch_under_the_press_takes_the_commit_way(
+    monkeypatch, capsys, projects, repo
+):
+    """Round 2, yellow 1. `--orphan` creates its branch from an empty tree, so
+    way 2's pop meets a modify/delete conflict there and keeps the stash. The
+    reason sends it to way 1, and way 1, run with real git, leaves the change
+    committed on the branch it was made on and the orphan switch clean."""
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+    here = git_in(repo, "branch", "--show-current")
+    decision, reason = decide(monkeypatch, capsys, repo, "git switch --orphan newb")
+    assert decision == "deny", reason
+    assert "`--orphan` starts from an empty tree" in reason, reason
+    for command in ("git commit -am x", "git switch --orphan newb"):
+        assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
+        git_in(repo, *command.split()[1:])
+    assert git_in(repo, "branch", "--show-current") == "newb"
+    assert git_in(repo, "show", f"{here}:f.txt") == "changed"
 
 
 def test_the_deny_does_not_say_a_discarding_switch_carries_the_changes(

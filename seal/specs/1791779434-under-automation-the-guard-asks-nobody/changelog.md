@@ -13,7 +13,8 @@
      them on the branch checked out now. The other is `git stash`, the
      switch, and `git stash pop`, whose pop applies the changes to whatever
      is checked out when it runs, so a switch that creates its branch (`-c`)
-     to carry them there is sent this way. A detached HEAD is
+     to carry them there is sent this way, and a switch to `--orphan` is
+     sent to the commit. A detached HEAD is
      named, because a commit there lands on no branch. Re-issuing the switch
      unchanged meets the same refusal, so the model is told to take a way on
      rather than retry.
