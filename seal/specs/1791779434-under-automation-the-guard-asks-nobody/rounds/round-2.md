@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 897 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-3 |
 | Fix range | `c67fc2e5c5239e42e7117c4ccebb77cb2ca14385..1ac03f4dc0f8b036b05d830f68aa0e006ab2d0db`, 3 commits |
 | Contract changes | none |
 | New units | test_an_orphan_switch_under_the_press_takes_the_commit_way (depth 1); test_the_deny_does_not_say_a_discarding_switch_carries_the_changes (depth 1) |
