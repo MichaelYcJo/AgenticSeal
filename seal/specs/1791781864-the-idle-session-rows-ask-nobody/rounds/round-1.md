@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #902 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `c7860bfe2edbaa9e0d9560c634d7d884d7b469b2..5652b6be05cbcdad764d998112f6805f1c734c95`, 4 commits |
+| Contract changes | none |
+| New units | elsewhere (depth 1); test_a_switch_into_another_clone_names_no_split_it_cannot_consent (depth 1); test_a_clone_this_session_already_split_is_named_the_split (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🔴 1 (the deny promises a split that another clone's creation ladder puts to a person), 🟡 2 (`choose` declares `owned` for a presence test), 🟡 3 (*every* Windows switch, past the token) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,12 +25,12 @@ Round 1 of #896, target 44c67f9f against `origin/release/v0.21.0` at 34fc36e9 (#
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🔴 1 | under the press, a switch into another clone is told its split passes as written, and the named creation meets §B's choice row, which asks a person (`deny` naming AskUserQuestion, then `ask`) | `hooks/worktree-guard.py:3125` | open | executed (probe 5); the creation reads consent from its own clone, `hooks/worktree_consent.py#automation_answered` condition 4; S11 pins the false sentence |
-| 🟡 2 | `choose` declares `owned` for a marker presence test | `hooks/worktree-guard.py:1474` | open | `docs/the-reader-registry.md` §*The four classes*; #834's `plan.md` mapping rule names this guard's `already_asked` as `observed` |
-| 🟡 3 | *every* `git switch` on Windows under the press is row 2's deny, though `[shared-tree-ok]` stands row 2 aside | `docs/worktree-guard-spec.md:974` | open | read: row 2 is `not reliable and not shared_ok`; S6 pins the token under the press |
-| ⬜ 4 | the new sentence's `git -C {wt_root}/<name>` fits only the new-branch form and is unquoted | `hooks/worktree-guard.py:3137` | open | read; `overview.md` §*Not done* covers the shared `split` only |
-| ⬜ 5 | `handoff.md` says no PR and phases 1–2 only | `seal/specs/1791781864-the-idle-session-rows-ask-nobody/handoff.md` | open | correction to the run's paperwork |
-| ⬜ 6 | #894's restated S2 keeps *the one new branch* in its Proof cell | `seal/ledger/1791779434-under-automation-the-guard-asks-nobody.md` | open | correction to the run's paperwork |
+| 🔴 1 | under the press, a switch into another clone is told its split passes as written, and the named creation meets §B's choice row, which asks a person (`deny` naming AskUserQuestion, then `ask`) | `hooks/worktree-guard.py:3125` | **fixed** `fbf7554f` | fixed at fbf7554f; executed (probe 5); the creation reads consent from its own clone, `hooks/worktree_consent.py#automation_answered` condition 4; S11 pins the false sentence |
+| 🟡 2 | `choose` declares `owned` for a marker presence test | `hooks/worktree-guard.py:1474` | **fixed** `a6313eb5` | fixed at a6313eb5; `docs/the-reader-registry.md` §*The four classes*; #834's `plan.md` mapping rule names this guard's `already_asked` as `observed` |
+| 🟡 3 | *every* `git switch` on Windows under the press is row 2's deny, though `[shared-tree-ok]` stands row 2 aside | `docs/worktree-guard-spec.md:974` | **fixed** `a6313eb5` | fixed at a6313eb5; read: row 2 is `not reliable and not shared_ok`; S6 pins the token under the press |
+| ⬜ 4 | the new sentence's `git -C {wt_root}/<name>` fits only the new-branch form and is unquoted | `hooks/worktree-guard.py:3137` | answered | the placeholder now names the path either creation form makes, `{wt_root}/<branch>` or `{wt_root}/<name>`, in both languages, at fbf7554f. The path stays unquoted, as `split` prints it on the lines just above: the model copies one spelling from one reason, and S5 holds `split` byte for byte. Quoting both is the predating `{wt_root}` limit `overview.md` §*Not done* already names; read; `overview.md` §*Not done* covers the shared `split` only |
+| ⬜ 5 | `handoff.md` says no PR and phases 1–2 only | `seal/specs/1791781864-the-idle-session-rows-ask-nobody/handoff.md` | answered | corrected at a6313eb5: `handoff.md` names PR #902, phases 1–3 with their commits, round 1 at c7860bfe, and the verifying round as the next act; correction to the run's paperwork |
+| ⬜ 6 | #894's restated S2 keeps *the one new branch* in its Proof cell | `seal/ledger/1791779434-under-automation-the-guard-asks-nobody.md` | answered | corrected at e95a40ec: #894's restated S2 Proof cell names #894's one branch and #896's two `pressed=` reads. a6313eb5 had already restated it; e95a40ec qualified S2's and S9's claims after 🔴 1; correction to the run's paperwork |
 | 🟢 | the press sentence in the new deny is #894's `PRESS`, byte for byte, English and Korean | `hooks/worktree-guard.py:3122` | confirmed | executed (probe 3): the source literals joined and compared, and `PRESS[lang]` followed by a blank line in every reason under the press |
 | 🟢 | under the press both rows deny on every attempt and write no marker | `hooks/worktree-guard.py#choose` | confirmed | executed (probe 3): four attempts, two rows, two languages, all `deny`; S3 and S4 pass |
 | 🟢 | without the press both rows, and the ACTIVE steer, are the base's byte for byte | `hooks/worktree-guard.py#main` | confirmed | executed (probe 4) against a copy of `34fc36e9`'s guard |
