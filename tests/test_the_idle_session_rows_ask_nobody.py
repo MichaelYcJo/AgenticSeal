@@ -33,8 +33,10 @@ from conftest import load_hook_module
 from test_the_guard_asks_once_per_session import (
     ACTIVE,
     IDLE,
+    TOKEN,
     ask_entries,
     consent_dir,
+    dirty_deny,
     wg,
     write_transcript,
 )
@@ -215,18 +217,18 @@ def test_the_token_still_reads_as_it_does_attended(monkeypatch, capsys, projects
     as it does attended: a clean tree is silent, and a dirty one reaches the
     tracked-changes row with the token's lead rather than this work's deny.
     Green at `c38f97d7` by design; shown red by the mutation that reads the
-    press ahead of the token (phase 2's record). The dirty row's own verdict
-    under the press is #894's, and this case does not pin it."""
+    press ahead of the token (phase 2's record). The dirty row's verdict
+    under the press is #894's deny, whole, with the token's lead: pinned
+    here since #894 merged in (phase 3)."""
     write_transcript(projects, "me", ask_entries(repo))
     command = "git switch feature/x  # [shared-tree-ok]"
     for row, sessions in ROWS.items():
         got = judge(wg, monkeypatch, capsys, repo, command, sessions)
         assert got == ("silent", ""), (row, got)
         dirty(repo)
-        _, reason = judge(wg, monkeypatch, capsys, repo, command, sessions)
-        assert reason.splitlines()[0].startswith("[shared-tree-ok] carries"), reason
-        assert "f.txt" in reason, reason
-        assert "split into a worktree" not in reason, reason
+        got = judge(wg, monkeypatch, capsys, repo, command, sessions)
+        assert got == ("deny", dirty_deny("en", TOKEN["en"])), (row, got)
+        assert "split into a worktree" not in got[1], got
         (repo / "f.txt").write_text("one\ntwo\nthree\n", encoding="utf-8")
 
 

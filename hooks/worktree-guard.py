@@ -1187,6 +1187,8 @@ def fmt_sessions(entries):
     a keystroke from an autonomous turn's transcript write, and app guesses
     made from sibling MCP processes misattributed a VS Code tab to Cursor.
 
+    Reads: nothing — formats the session entries its caller measured, telling a lease from transcript activity by the mark its caller wrote
+
     An unidentified entry -- a lease, or transcript activity no process can
     be pinned on -- prints its kind and its age and stops there. It used to
     end with a clause saying the session was at work on this tree at that
@@ -1457,6 +1459,12 @@ def choose(
     unattended="",
 ):
     """Deny once and hand the user the two options; ask on every attempt after.
+
+    Reads: owned — whether this session was already asked in this direction, the marker this guard writes, through `already_asked`; unknown refused
+
+    Every other input is its caller's, the press included. Every path stops
+    the command, a deny or an ask, so a marker it cannot read or write falls
+    to the ask, by `already_asked`'s own rule, and nothing passes.
 
     A hook decision renders as approve/decline, and the model never gets the
     turn — so where declining has TWO destinations the user sees neither and

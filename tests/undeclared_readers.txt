@@ -617,10 +617,8 @@ hooks/worktree-guard.py#_wide_git@120878e6
 hooks/worktree-guard.py#already_asked@00967e20
 hooks/worktree-guard.py#ancestors@2903c0be
 hooks/worktree-guard.py#automation_pressed@32bfd323
-hooks/worktree-guard.py#choose@ed62dd1a
 hooks/worktree-guard.py#dead_session_ids@b4b75781
 hooks/worktree-guard.py#file_activity_epoch@3dd2dd43
-hooks/worktree-guard.py#fmt_sessions@19c23483
 hooks/worktree-guard.py#fmt_snippet@5a159b28
 hooks/worktree-guard.py#fresh_leases@1492baeb
 hooks/worktree-guard.py#git_at@28d2e5f8
