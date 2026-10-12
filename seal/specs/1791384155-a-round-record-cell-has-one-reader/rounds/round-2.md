@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 890 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-3 |
 | Fix range | `ff88f31dfd832cf486248966a766ff628586668f..07449c197391398a44b6b5acb4eac68e444e1802`, 3 commits |
 | Contract changes | run → run, attempt, gh_json, _issue_api, drop_label, arrived, existing_labels, create_label, add_label, is_ancestor, commit_message, release_exists, merged_pulls, create, merge_base, subjects_since, milestone_titles, open_in_milestone, labelled, gh, tagged, rasterise, content_at, try_run, list_open_issues, close_issue, open_issue, add_xdist, add_markdown_it, add_pillow, add_cmarkgfm, build, main, README.md, git, _process, common_dir, _git, claude_ancestor, _ps, git_dir, dirty, resolve_runner, git_dir_of, repo_root, git_common_dir, current_branch, owner_pid, latest, ancestors, proc_cwd, host_app, tty_idle_minutes, lease_owner_alive, lease_dir, sessions_in_tree, tracked_changes, phantom_entries, repo_paths, 1791384155-a-round-record-cell-has-one-reader.md, 0.10.0.md, 0.11.2.md, 0.11.3.md, 0.12.2.md, 0.12.3.md, 0.15.4.md, 0.17.0.md, plan.md, questions.md, spec.md, overview.md, post-review-check-2.md, post-review-check.md, round-1-report.md, round-2-report.md, round-2.md, round-1.md, SKILL.md, config_at_head, pull_request_from_gh, carried_by_a_pull_head, resolves_to, pull_request_cell, read_blobs, config_at, git_asked, porcelain, tracked, install_workflow, remove_workflow, gitlinks_under_root, switch, released, tracked_text, run_arms, broad_gate.py, cmd_exe_reads, handed_to_shell, quote, compare_at_base, seal_record, gate, run_gh, commit_of, overviews_at, tree_at, wrote_a_spec, show, pytest |
 | New units | none |
