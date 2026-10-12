@@ -51,7 +51,8 @@ case takes `monkeypatch` and `capsys` for that.
 **S28 on git 2.50.1, executed.** `git rebase main other` reaches
 `reference-transaction` the way `switch` and `checkout` do; the parameter
 passes beside them, the tree on `other` and the line naming
-`refs/heads/other`. The CI floor leg answers for 2.34–2.43.
+`refs/heads/other`. No CI leg runs the floor gits 2.34–2.43; the repository
+owner answers for them.
 
 **Where the frame does not hold, and what was built instead.**
 
