@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 895 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `93898214653d7038bcdbbb3692290b2ae7247389..dcde8e56909abbd7f7a3102b98b706cdec273c84`, 4 commits |
+| Contract changes | removal_findings → file_claims |
+| New units | test_a_path_spelled_another_way_is_read_as_the_file_it_names (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -32,10 +32,10 @@ Facts arriving as coordinates, executed by the orchestrator: `round_record.py cl
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| ⬜ 1 | an in-tree row whose first segment equals a `--map` name is refused, and the remedy says to write the path in this tree, which it already is; `./` reads it in this tree and is written nowhere | `skills/evidence-check/scripts/evidence_check.py:6134` | open | executed through `check_records`: `REFUSED` with the map absent and present; `./legacy/a.py#k` `STANDING`; the test is `place`'s own |
-| ⬜ 2 | a trailing `/` (`kept.py/#k`, `kept.py/.#k`) reads as gone while the file holds the unit; round 2's ⬜ 2 by another spelling | `skills/evidence-check/scripts/evidence_check.py:6173` | open | executed: no finding for both rows; `contained` judges by `realpath`, the read and `lexists` by the kernel |
-| ⬜ 3 | the document's `Enforced by:` line does not name the `..` case, and line 123 runs past the wrap | `docs/the-reader-registry.md:130` | open | read; `fold-check` exit 0 |
-| ⬜ 4 | `removal_findings` keeps a `default_repo` parameter nothing reads | `skills/evidence-check/scripts/evidence_check.py:6066` | open | read: the name occurs only in the signature |
+| ⬜ 1 | an in-tree row whose first segment equals a `--map` name is refused, and the remedy says to write the path in this tree, which it already is; `./` reads it in this tree and is written nowhere | `skills/evidence-check/scripts/evidence_check.py:6134` | answered | corrected at cbab19d1 — the `--map` refusal and `docs/the-reader-registry.md` name the `./<path>` spelling that reads the row in this tree; executed through `check_records`: `REFUSED` with the map absent and present; `./legacy/a.py#k` `STANDING`; the test is `place`'s own |
+| ⬜ 2 | a trailing `/` (`kept.py/#k`, `kept.py/.#k`) reads as gone while the file holds the unit; round 2's ⬜ 2 by another spelling | `skills/evidence-check/scripts/evidence_check.py:6173` | answered | corrected at a5c543d0 — the row's path is normalised before it is read and resolved, so `kept.py/#k` and `kept.py/.#k` read `STANDING`; a case pins both and the `./` route; executed: no finding for both rows; `contained` judges by `realpath`, the read and `lexists` by the kernel |
+| ⬜ 3 | the document's `Enforced by:` line does not name the `..` case, and line 123 runs past the wrap | `docs/the-reader-registry.md:130` | answered | corrected at 3eafec0c — the `Enforced by:` line names `test_a_path_through_dot_dot_is_refused_never_read_as_gone`; line 123's re-wrap rode cbab19d1; read; `fold-check` exit 0 |
+| ⬜ 4 | `removal_findings` keeps a `default_repo` parameter nothing reads | `skills/evidence-check/scripts/evidence_check.py:6066` | answered | corrected at dcde8e56 — `removal_findings` takes no `default_repo`, and `file_claims` hands it none; read: the name occurs only in the signature |
 | 🟢 | round 2's first finding is closed — a removal is read in this tree only: the original never answers, and a `--map` prefix is refused | `skills/evidence-check/scripts/evidence_check.py:6148` | confirmed | executed: `old.py#k` no finding with the original holding it, `STANDING` with this tree holding it, the mapped row `REFUSED`; two mutations red through the case's assertion |
 | 🟢 | round 2's second note is closed — a path through `..` is refused, after the escape refusal | `skills/evidence-check/scripts/evidence_check.py:6159` | confirmed | executed: `missing/../` and `pkg/../` refused, `../outside.py` keeps the escape text; one mutation red; read: round 1's case pins the order |
 | 🟢 | round 2's third note is closed — R7 says what K1 does since round 1 | `seal/ledger/1791384152-a-reader-declares-its-input-class.md:25` | confirmed | executed: the three cited mutations red, 81 rows OK |
