@@ -243,15 +243,21 @@ def callers(path, name):
 def test_every_caller_reads_the_refusal_from_resolve_unit_and_derives_none():
     """S7. Two readings of one coordinate describe one row two ways (#809).
     So the refusal travels in `resolve_unit`'s answer, and the callers that
-    print a verdict ask that answer for it; none of the five asks the suffix
-    table or the parser for itself."""
+    print a verdict ask that answer for it; none of the six asks the suffix
+    table or the parser for itself.
+
+    The sixth is #835's `removal_findings`, which reads a frame's
+    `## Removes` rows. Its other refusals — a path that escapes, will not
+    read, walks through `..`, carries an empty or `.` segment, or names a
+    `--map` checkout — are about where the path is, which `place` and the
+    read answer, and none of them asks how a unit is bounded."""
     found = {
         "evidence_check": callers(SCRIPT, "resolve_unit"),
         "rider_check": callers(RIDER, "resolve_unit"),
         "survivor_check": callers(SURVIVOR, "resolve_unit"),
     }
     assert {k: sorted(v) for k, v in found.items()} == {
-        "evidence_check": ["judge", "read_citation", "resolve"],
+        "evidence_check": ["judge", "read_citation", "removal_findings", "resolve"],
         "rider_check": ["region_lines"],
         "survivor_check": ["resolves"],
     }, found
@@ -262,6 +268,7 @@ def test_every_caller_reads_the_refusal_from_resolve_unit_and_derives_none():
     for name, source in [
         ("judge", found["evidence_check"]["judge"]),
         ("read_citation", found["evidence_check"]["read_citation"]),
+        ("removal_findings", found["evidence_check"]["removal_findings"]),
         ("region_lines", found["rider_check"]["region_lines"]),
     ]:
         assert ".refused" in source, f"{name} drops the refusal"

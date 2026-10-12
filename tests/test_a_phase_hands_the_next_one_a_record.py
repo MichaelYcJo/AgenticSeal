@@ -15,14 +15,14 @@ per-segment record the review chain already has in `templates/sdd-round.md`
   the field table    `Phase`, `Commit` — nothing more, because a phase has
                      no `Target SHA` to squash away and no `Pass` checkbox
                      to answer
-  the three sections  ship outside HTML comments, as placeholders rather
+  the two sections    ship outside HTML comments, as placeholders rather
                      than filled claims — a template whose only mention of
                      a section is commented out ships a record that is
                      missing it the moment someone copies the file
-  the removal table   a real table (`Removed item` / `Where it must land`),
-                     with `none` offered as a valid row, because most
-                     phases remove nothing and a blank table must not read
-                     the same as `none` does
+  no removal table    what a work item takes out of the tree is named once,
+                     in `spec.md`'s `## Removes`, where the records arm reads
+                     it (#835); a per-phase table was a second record of the
+                     same fact that nothing read
   the measured story  each section's own comment names the failure it
                      answers, so the template does not ship a blank nobody
                      can trace back to a reason
@@ -51,8 +51,9 @@ IMPLEMENT_SKILL = os.path.join(ROOT, "skills", "implement", "SKILL.md")
 SECTIONS = (
     "## What this phase was asked",
     "## What this phase found",
-    "## What this phase removes",
 )
+SPEC_TEMPLATE = os.path.join(ROOT, "templates", "sdd-spec.md")
+FRAMER_AGENT = os.path.join(ROOT, "agents", "framer.md")
 
 
 def read(path):
@@ -206,10 +207,10 @@ def test_the_template_resolves_who_types_a_phase_records_row():
     )
 
 
-# --- the three sections exist and ship placeholders, not claims -------------
+# --- the two sections exist and ship placeholders, not claims ---------------
 
 
-def test_all_three_sections_exist_outside_comments():
+def test_both_sections_exist_outside_comments():
     lines = stripped_lines()
     present = {line.strip() for line in lines}
     for heading in SECTIONS:
@@ -231,29 +232,45 @@ def test_asked_and_found_sections_ship_a_placeholder():
         )
 
 
-def test_removes_section_is_a_table_with_a_none_row():
-    lines = stripped_lines()
-    body = section_body(lines, "## What this phase removes")
+def test_a_phase_record_carries_no_removal_table():
+    """S8 of #835. A removal is named once, at the frame; a phase record
+    carrying a second table for it is two records of one fact."""
+    raw = read(PHASE_TEMPLATE)
+    assert "## What this phase removes" not in raw
+    assert "Removed item" not in raw
+    flat = " ".join(raw.split())
+    assert "`spec.md`'s `## Removes` section" in flat, (
+        "the phase template does not say where a removal is recorded now"
+    )
+    assert "goes where divergences go: `overview.md`" in flat
+
+
+def test_the_spec_template_carries_the_removes_section_above_the_mark():
+    """S8 of #835. The section ships outside comments, with the three-column
+    table and a placeholder row, and the framer's mark is still the last
+    line."""
+    raw = read(SPEC_TEMPLATE)
+    lines = reader_module().strip_comments(raw.splitlines())
+    body = section_body(lines, "## Removes")
     rows = [line.strip() for line in body if line.strip().startswith("|")]
-    header = next((r for r in rows if "Removed item" in r), None)
-    assert header is not None, (
-        "`## What this phase removes` has no `Removed item` column — "
-        "the removal table must be a real table, not prose"
+    assert rows[0] == "| Removes | Coordinate | Where it lands, or why it can go |"
+    assert len(rows) == 3, rows
+    cells = [c.strip() for c in rows[2].strip("|").split("|")]
+    assert all(c.startswith("<") and c.endswith(">") for c in cells), cells
+    assert raw.index("## Removes") < raw.index("Framed <date> by <who>")
+    assert raw.rstrip("\n").splitlines()[-1] == (
+        "Framed <date> by <who>, before the build."
     )
-    assert "Where it must land" in header
-    data_rows = [
-        r for r in rows if r != header and not set(r.replace("|", "").strip()) <= {"-"}
-    ]
-    assert len(data_rows) == 1, f"expected one placeholder row, found {data_rows}"
-    cells = [c.strip() for c in data_rows[0].strip("|").split("|")]
-    assert len(cells) == 2, cells
-    for cell in cells:
-        assert cell.startswith("<") and cell.endswith(">"), (
-            f"a template must not ship a claim, and `{cell}` is one"
-        )
-    assert "`none`" in cells[0] or "none" in cells[0], (
-        "the removed-item cell must offer `none` — most phases remove nothing"
-    )
+    assert "`nothing — <why>`" in " ".join(raw.split())
+
+
+def test_the_framer_is_told_it_writes_the_removes_section():
+    """S8 of #835. The framer's writes table and its report name the
+    section, because a frame that does not know it owes one ships without
+    it."""
+    flat = " ".join(read(FRAMER_AGENT).split())
+    assert "what the work removes (`## Removes`)" in flat
+    assert "**What the frame says the work removes.**" in flat
 
 
 # --- each section's comment names the measured failure it answers -----------
@@ -268,20 +285,18 @@ def test_each_section_comment_names_its_measured_failure():
         "that issue's finding that neither record said what it was told to do"
     )
     assert "#107" in raw and "#121" in raw, (
-        "no `#107`/`#121` — the found/removes sections answer the dropped-"
-        "rule failure those issues measured"
+        "no `#107`/`#121` — the found section answers the dropped-rule "
+        "failure those issues measured"
     )
-    # The removal table's comment specifically must carry the worked #107
-    # story (plan.md: "the #107 dropped-rule story for the removal table
-    # specifically"), not just the bare issue number.
-    removes_idx = raw.index("## What this phase removes")
-    tail = raw[removes_idx:]
-    assert "agents/smith.md" in tail, (
-        "the removal table's comment must carry the #107 worked example "
-        "(a rule moved out of agents/smith.md and lost between phases), "
-        "not just cite the issue number"
+    # The removal's worked #107 story moved with the removal, to the frame's
+    # `## Removes` comment (#835), and it is the story, not the bare number.
+    spec = read(SPEC_TEMPLATE)
+    tail = spec[spec.index("## Removes") :]
+    assert "#107" in tail and "agents/smith.md" in tail, (
+        "the `## Removes` comment must carry the #107 worked example "
+        "(a rule moved out of agents/smith.md and lost between phases)"
     )
-    assert "went missing" in tail or "nothing recording" in tail
+    assert "lost between two phases" in " ".join(tail.split())
 
 
 # --- the plan points at the path ---------------------------------------------

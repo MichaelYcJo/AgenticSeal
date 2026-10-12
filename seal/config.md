@@ -12,3 +12,4 @@ row and what an absent one means. -->
 | Document line ceiling | 1000 |
 | Over the ceiling | none |
 | Ledger frozen from | 1790993141 |
+| Removes from | 1791780031 |

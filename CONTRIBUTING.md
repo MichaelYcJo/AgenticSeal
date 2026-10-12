@@ -263,8 +263,18 @@ change to one is judged by what it does when it is wrong:
 - **Platform honesty.** Process inspection (`ps`, `lsof`, `/proc`) behaves
   differently across macOS, Linux, and Windows. If you cannot test a
   platform, say so in the PR rather than assuming.
+- **A `Reads:` line on every unit you add or change.** Each top-level `def`
+  and `class` of shipped Python says in its docstring what class of input it
+  decides from, and a changed unit leaves the census when it declares.
+  `docs/the-reader-registry.md` holds the grammar, and
+  `tests/test_a_reader_declares_its_input_class.py` refuses a unit without it.
+- **A frame that names what it removes.** A change that takes a reader, a
+  rule or a pin out of the tree lists it under its `spec.md`'s `## Removes`,
+  where `evidence-check` reads each row as a claim that the thing is gone.
+  `docs/the-reader-registry.md` §*A frame names what its work removes* is the
+  rule.
 
-The prompt budget is the one of these four a passing suite cannot report on,
+The prompt budget is the one of these a passing suite cannot report on,
 because nothing counts interruptions. It is answered in the pull request body
 or it is not answered. `skills/implement/SKILL.md` §1 holds the reasoning the
 budget is drawn against: the cost of a question is not its difficulty, it is

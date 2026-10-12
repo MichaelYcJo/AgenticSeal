@@ -4271,6 +4271,9 @@ def reverify(
 # released row goes instead. A repository without the row keeps the
 # re-stamp in place every installed copy had (spec D4, D5).
 FROZEN_ROW = "Ledger frozen from"
+# The work-item id from which a live `spec.md` must carry `## Removes`
+# (#835); read by `check_records` through `cutoff_row`, as the row above is.
+REMOVES_ROW = "Removes from"
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
 CONFIG_HEADER_RE = re.compile(r"^\|\s*Item\s*\|\s*Value\s*\|\s*$")
 # A line of a two-cell row's SHAPE, which `notify_may_be_always` judges a
@@ -4377,17 +4380,19 @@ def config_rule():
     return vendored_config_text, vendored_config_rows, vendored_config_value
 
 
-def frozen_from(root):
-    """`(cutoff, refusal)`: the `Ledger frozen from` value as a whole number,
-    or None where the row is absent or empty, and a sentence where the value
-    is not a work-item id. `0` is a value: it binds every work item.
+def cutoff_row(root, item, binds):
+    """`(cutoff, refusal)`: the value of the `seal/config.md` row ITEM as a
+    whole number, or None where the row is absent or empty, and a sentence
+    where the value is not a work-item id. `0` is a value: it binds every
+    work item. BINDS says what the row binds, in the refusal's remedy.
 
-    **The freeze never turns off because the file could not be read**
-    (#867). A `config.md` that is there and will not read, and a `Ledger
-    frozen from` row written twice, are refusals, the shape a non-numeric
-    value already took: `--reverify` exits 2 naming them and writes nothing.
-    Before, an unreadable file read as no row, so the freeze was off and a
-    released row was re-stamped in place."""
+    Reads: owned — a work-item-id row of `seal/config.md`, through `config_rule`; unknown refused
+
+    **The one reader of a cutoff row** (#835). `Ledger frozen from` and
+    `Removes from` are one shape, a work-item id whose absence means not
+    checked, and two readers of one shape are how two answers about one file
+    come apart. A `config.md` that is there and will not read, and a row
+    written twice, are refusals, never an absent row (#867)."""
     home = seal_home(root)
     path = os.path.join(home, "config.md")
     text_of, rows_of, value_of = config_rule()
@@ -4396,7 +4401,7 @@ def frozen_from(root):
         return None, refusal
     if text is None:
         return None, None
-    value, refusal = value_of(rows_of(text), FROZEN_ROW)
+    value, refusal = value_of(rows_of(text), item)
     if refusal is not None:
         return None, f"{display_name(path, root)}: {refusal}"
     if value is None or not value.strip():
@@ -4404,11 +4409,27 @@ def frozen_from(root):
     value = value.strip()
     if not value.isdigit():
         return None, (
-            f"the `{FROZEN_ROW}` row of {display_name(path, root)} holds "
+            f"the `{item}` row of {display_name(path, root)} holds "
             f"`{value}`, which is not a work-item id — write the epoch prefix of "
-            "the first work item the freeze binds, or `0` for every one"
+            f"the first work item {binds}, or `0` for every one"
         )
     return int(value), None
+
+
+def frozen_from(root):
+    """`(cutoff, refusal)`: the `Ledger frozen from` value as a whole number,
+    or None where the row is absent or empty, and a sentence where the value
+    is not a work-item id. `0` is a value: it binds every work item.
+
+    Reads: owned — the `Ledger frozen from` row, through `cutoff_row`; unknown refused
+
+    **The freeze never turns off because the file could not be read**
+    (#867). A `config.md` that is there and will not read, and a `Ledger
+    frozen from` row written twice, are refusals, the shape a non-numeric
+    value already took: `--reverify` exits 2 naming them and writes nothing.
+    Before, an unreadable file read as no row, so the freeze was off and a
+    released row was re-stamped in place."""
+    return cutoff_row(root, FROZEN_ROW, "the freeze binds")
 
 
 def newest_hash(view, key, coord, m):
@@ -5991,8 +6012,232 @@ def left_out_of_corpus(root, home):
     )
 
 
+# A frame's `## Removes` section (#835): what the work item takes out of the
+# tree, each row a claim of ABSENCE. A row whose coordinate still resolves is
+# STANDING, graded as a stated name the tree lacks is; a row the ledger's
+# grammar would refuse, a bare `nothing`, and a section a cutoff requires and
+# the frame lacks are REFUSED.
+STANDING_STATUS = "STANDING"
+REFUSED_STATUS = "REFUSED"
+REMOVES_HEADING = "Removes"
+REMOVES_COORD_RE = re.compile(
+    r"(?P<path>" + ANCHOR_PATH + r")"
+    r"#(?P<locator>" + ANCHOR_LOCATOR + r")"
+    r"(?:>(?P<claim>" + ANCHOR_QUOTED + r"))?"
+)
+REMOVES_NOTHING_RE = re.compile(r"nothing(?P<rest>.*)")
+REMOVES_REASON_RE = re.compile(r"\s+(?:—|--)\s+\S")
+
+
+def removes_section(lines):
+    """`(present, cut, rows, nothing)` for a frame's `## Removes` section:
+    whether the heading is there, the claim-line numbers inside the section,
+    `[(line number, cells)]` for its table's body rows, and `[(line number,
+    text)]` for every line in it that begins `nothing`.
+
+    Reads: owned — the section's lines, on the lines `claim_lines` reads, by the template's shape; unknown refused
+
+    The section runs from a level-2 heading reading `Removes` to the next
+    heading of level 2 or above. A line inside a fence or an HTML comment is
+    not a claim line, so a quoted section is no section (`claim_lines`).
+    """
+    split = cell_rule()
+    present, inside, cut, rows, nothing = False, False, set(), [], []
+    for number, text in claim_lines(lines):
+        level = heading_level(text)
+        if level is not None and level <= 2:
+            inside = level == 2 and text.strip().lstrip("#").strip() == REMOVES_HEADING
+            present = present or inside
+            continue
+        if not inside:
+            continue
+        cut.add(number)
+        cells = split(text)
+        if cells is None:
+            if REMOVES_NOTHING_RE.match(text.strip()):
+                nothing.append((number, text.strip()))
+            continue
+        if all(RULE_CELL_RE.match(c) for c in cells) or cells[0] == REMOVES_HEADING:
+            continue
+        rows.append((number, cells))
+    return present, cut, rows, nothing
+
+
+def removal_findings(lines, shown, root, maps, required):
+    """`(findings, cut)`: the findings over a frame's `## Removes` section,
+    and the claim-line numbers the name half leaves to it.
+
+    Reads: owned — a frame's `## Removes` rows, resolved by `resolve_unit`; unknown refused
+
+    **A row is a claim of absence.** Its coordinate is the ledger's grammar
+    without a hash, and one whose `resolve_unit(...).places` is non-empty at
+    HEAD names a removal that has not happened. **A coordinate the ledger
+    would refuse is refused here, never read as gone**: a cell that is not a
+    coordinate, a test's node id, and a bare symbol in a file no rule bounds
+    (`unbounded`), and a path `place` refuses or that is there and will not
+    read, which the ledger arm grades BROKEN. Only a file the tree does not
+    have holds nothing, so a row naming one is a removal that happened (round
+    1 of #835, 🟡 2). **A row is read in this tree and nowhere else**: a frame
+    names what its work takes out of HEAD, so `--default-repo` is not asked,
+    a path carrying a `--map` prefix is refused, and so is one that walks
+    through `..` (round 2). With REQUIRED, a section that is
+    absent or holds no row and no `nothing` line is refused too.
+    """
+    present, cut, rows, nothing = removes_section(lines)
+    findings = []
+    if required and not (rows or nothing):
+        why = (
+            "has no `## Removes` section"
+            if not present
+            else "has an empty `## Removes` section"
+        )
+        findings.append(
+            (
+                REFUSED_STATUS,
+                shown,
+                f"{why}, and `{REMOVES_ROW}` in seal/config.md binds this work "
+                "item — name what the work removes, in the ledger's grammar "
+                "without a hash, or write `nothing — <why>`",
+            )
+        )
+    for number, text in nothing:
+        if not REMOVES_REASON_RE.match(REMOVES_NOTHING_RE.match(text).group("rest")):
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    f"{shown}:{number}",
+                    f"`{text}` — a `nothing` line names its reason: `nothing — <why>`",
+                )
+            )
+    for number, cells in rows:
+        cell = cells[1].strip() if len(cells) > 1 else ""
+        if len(cell) > 1 and cell.startswith("`") and cell.endswith("`"):
+            cell = cell[1:-1]
+        where = f"{shown}:{number}"
+        m = REMOVES_COORD_RE.fullmatch(cell)
+        if m is None:
+            why = (
+                "is a test's node id, which names a test and no unit"
+                if "::" in cell
+                else "is not a coordinate"
+            )
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` {why} — write `path#unit`, "
+                    '`path#"## heading"` or `path#"a quoted line"`',
+                )
+            )
+            continue
+        raw_path, locator, claim = m.group("path"), m.group("locator"), m.group("claim")
+        if any(raw_path == name or raw_path.startswith(name + "/") for name in maps):
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path names another checkout through "
+                    "`--map`, and a frame names what its work removes from "
+                    "this tree — write the path in this tree, as "
+                    f"`./{raw_path}` where this tree's own directory carries "
+                    "the map's name",
+                )
+            )
+            continue
+        # This tree only: `--default-repo` would read a removal that happened
+        # here as STANDING wherever the original still holds the path (round
+        # 2 of #835, 🟡 1).
+        repo, rel = place(root, {}, None, raw_path)
+        if repo is None:
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path escapes the repository, so nothing it "
+                    "names can be read as gone — write a path inside the tree",
+                )
+            )
+            continue
+        if ".." in raw_path.split("/"):
+            # `contained` resolves `a/../x.py` by name, and the read goes
+            # through `a`; a missing `a` would read as a removal that happened
+            # while `x.py` holds the unit (round 2 of #835, ⬜ 2).
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path walks through `..`, so whether it "
+                    "names a file depends on the directories it passes — write "
+                    "the path as the tree spells it",
+                )
+            )
+            continue
+        if any(part in ("", ".") for part in raw_path.split("/")[1:]):
+            # A trailing `/` or `/.`, or an empty or `.` segment inside, names
+            # the file `contained` judged by a spelling the read does not:
+            # `kept.py/` would read as gone while `kept.py` holds the unit.
+            # Refused rather than folded, because a lexical fold names another
+            # file through a symlink (#163). A leading `./` is the spelling
+            # the `--map` refusal names, and stays (round 3 of #835, ⬜ 2).
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path carries an empty or `.` segment, so "
+                    "it names the file by a spelling the tree does not use — "
+                    "write the path as the tree spells it",
+                )
+            )
+            continue
+        full = os.path.join(repo, rel)
+        body = read(full)
+        if body is None:
+            if os.path.lexists(full):
+                findings.append(
+                    (
+                        REFUSED_STATUS,
+                        where,
+                        f"`{cell}` — the path is there and will not read as a "
+                        "file, so nothing in it can be read as gone",
+                    )
+                )
+            continue
+        found = resolve_unit(rel, locator, body, shown=raw_path)
+        if found.refused:
+            findings.append((REFUSED_STATUS, where, f"`{cell}` — {found.refused}"))
+            continue
+        places = found.places
+        if claim and places:
+            want = unescape(claim[1:-1])
+            body_lines = gfm_lines(body)
+            places = [
+                p for r in places for p in literal_statements(body_lines, r, want)
+            ]
+        if places:
+            at = ", ".join(f"{a}-{b}" for a, b in places)
+            findings.append(
+                (
+                    STANDING_STATUS,
+                    where,
+                    f"`{cell}` still resolves at {at}, so the removal this row "
+                    "names has not happened — take it out of the tree, or "
+                    "correct the row",
+                )
+            )
+    return findings, cut
+
+
 def file_claims(
-    lines, shown, root, known, outside, maps, default_repo, scan_cache, file_tokens
+    lines,
+    shown,
+    root,
+    known,
+    outside,
+    maps,
+    default_repo,
+    scan_cache,
+    file_tokens,
+    removes=None,
 ):
     """(findings, names read, stamps read) for one file the arm reads.
 
@@ -6001,13 +6246,25 @@ def file_claims(
     `claim_lines` decides which lines count, the name half reads a
     backticked name and a name written as `path#name`, and the stamp half is
     `check_text`.
+
+    Reads: guess — a person's record, by the records' claim rules; unknown refused
+
+    REMOVES is None for a file that is no frame, and for a `spec.md` it is
+    whether a cutoff requires its `## Removes` section (#835). There the
+    section's rows are read as claims of absence by `removal_findings` and
+    under no other rule: a removed unit named in it is what the section
+    exists to say, and the name half would refuse it as a stale name.
     """
-    findings, names_read, stamps_read = [], 0, 0
+    findings, names_read, stamps_read, cut = [], 0, 0, set()
+    if removes is not None:
+        findings, cut = removal_findings(lines, shown, root, maps, removes)
     remedy = (
         f"Correct the record, or write {NOT_IN_TREE} on the line where the "
         "record means a name the tree does not have"
     )
     for number, name in stated_names(lines):
+        if number in cut:
+            continue
         names_read += 1
         if name in known:
             continue
@@ -6019,6 +6276,8 @@ def file_claims(
             )
         )
     for number, raw_path, name in stated_coordinates(lines):
+        if number in cut:
+            continue
         read_it, missing, resolved = coordinate_misses(
             raw_path, name, root, maps, default_repo, known, file_tokens
         )
@@ -6040,6 +6299,8 @@ def file_claims(
             )
         findings.append((NOT_IN_TREE_STATUS, f"{shown}:{number}", detail))
     for number, line in stated_stamps(lines):
+        if number in cut:
+            continue
         # The stamps on the line, counted from the line. Counting what
         # `check_text` RETURNS counts findings: it dedupes a repeated anchor,
         # so one line stamping a unit twice read as one stamp, and `0 stamps
@@ -6073,6 +6334,14 @@ def check_records(root, home, maps=None, default_repo=None):
     is not history: the file is permanent and a row leaves it when its item
     is done, so every row in it is live. It is read by the records' own
     claim rules, and it is out of the corpus (`tree_names`).
+
+    Reads: guess — every live work item's records and the follow-up list, through `file_claims`; unknown refused
+
+    **A live `spec.md` is a frame, and its `## Removes` section is read
+    wherever it is present** (#835). Where `seal/config.md` declares
+    `Removes from`, the frame of a work item whose id is at or above it must
+    carry the section, and a value that is not a work-item id is refused
+    naming the row, the way `Ledger frozen from` is.
     """
     # A directory that could not be listed is a finding, not an empty answer
     # — the direction an unreadable FILE already takes one line down. It is
@@ -6089,6 +6358,13 @@ def check_records(root, home, maps=None, default_repo=None):
         )
         for path in unlistable
     ]
+    # Before the early return too: a cutoff that will not read is refused on
+    # a tree with nothing live, the way `--reverify` refuses the freeze row
+    # whatever it was asked to re-stamp.
+    cutoff, refusal = cutoff_row(root, REMOVES_ROW, "the section binds")
+    if refusal is not None:
+        config = built_name(os.path.join(home, "config.md"), root)
+        findings.append((REFUSED_STATUS, config, refusal))
     follow_up = follow_up_path(home)
     has_follow_up = os.path.lexists(follow_up)
     if not live and not has_follow_up:
@@ -6098,7 +6374,12 @@ def check_records(root, home, maps=None, default_repo=None):
     names_read, stamps_read = 0, 0
     scan_cache, file_tokens = {}, {}
     paths = []
-    for _item, directory in sorted(live.items()):
+    frames = {}
+    for item, directory in sorted(live.items()):
+        epoch = item.split("-", 1)[0]
+        frames[os.path.join(directory, "spec.md")] = (
+            cutoff is not None and epoch.isdigit() and int(epoch) >= cutoff
+        )
         records, refused_dirs = record_files(directory)
         for path in refused_dirs:
             findings.append(
@@ -6132,6 +6413,7 @@ def check_records(root, home, maps=None, default_repo=None):
             default_repo,
             scan_cache,
             file_tokens,
+            frames.get(path),
         )
         findings.extend(found)
         names_read += names

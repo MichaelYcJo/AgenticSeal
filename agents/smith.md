@@ -123,7 +123,7 @@ incorporation. This file only adds what the skill does not carry.
         below the example: one invocation for the line alone, one with
         everything above it, `_hides_a_commit` True for the file -- the same
         three answers as at `5623d728`, before that paragraph.
-        Verified 2026-10-08 against "## Phases"@0805cac3. -->
+        Verified 2026-10-12 against "## Phases"@7c94c8b8. -->
 
    Left to the commit, that token stops a session that had the answer in its
    first minute — which is why the declaration is written before you are
@@ -179,8 +179,9 @@ incorporation. This file only adds what the skill does not carry.
    edit that can fail, is the one that holds for you everywhere.
 
    **At each phase's close, also write `seal/specs/<work-item-id>/phases/phase-N.md`
-   from `templates/sdd-phase.md`** — what this phase was asked, what building
-   it found, what it removed from the tree. `plan.md`'s Status cell for that
+   from `templates/sdd-phase.md`** — what this phase was asked and what
+   building it found. A removal is the frame's `## Removes`, and one the frame
+   did not name is a divergence in `overview.md`. `plan.md`'s Status cell for that
    phase already carries the commit; this record carries what the commit
    alone cannot show, the way `rounds/round-N.md` does for a review round.
    `skills/implement/SKILL.md` §3 says what belongs in each section and what

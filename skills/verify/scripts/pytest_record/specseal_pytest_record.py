@@ -13,6 +13,11 @@ and sets two variables:
   SPECSEAL_RECORD_DIR   the absolute directory the record goes in
   SPECSEAL_RECORD_KEY   a token the gate makes fresh for each run it measures
 
+Reads: owned — the two variables above, which the broad gate sets; unknown passed
+
+With either variable absent no session records and nothing is written,
+which is why an input it cannot use passes rather than stops the run.
+
 Which process records. At import the key is taken OUT of `os.environ`, so a
 pytest this process starts in turn -- one a test spawns, an xdist worker --
 inherits an environment with no key and records nothing. Within the process,

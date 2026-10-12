@@ -110,7 +110,8 @@ every repository, whatever either row says:
   `nobody — <why>`; `Ran by` with the `on` that joins its two halves and the
   `unknown` in `unknown — <why>`; an `overview.md`'s `## Not verified`
   heading with its
-  `Item` and `Who must answer` columns. A translated field name is not a
+  `Item` and `Who must answer` columns; a `spec.md`'s `## Removes` heading
+  and the `nothing` in `nothing — <why>`. A translated field name is not a
   translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
   section's `## X.Y.Z — <date>`, a drained file's `drained` line, the `✅`
@@ -529,3 +530,31 @@ turns off because the file could not be read, which is the one direction
 that re-stamps a released row in place. Lowering the value to `0` once
 no branch below it is open exempts nobody who still exists, so it needs no
 follow-up.
+
+## The removal section
+
+One row, read by `evidence-check`'s records arm through the same reader as
+`Ledger frozen from`. It declares from which work item a frame, the live
+`spec.md` of a work item, must carry a `## Removes` section: what the work
+takes out of the tree, each row a claim of absence (`templates/sdd-spec.md`
+carries the section).
+
+```markdown
+| Removes from | 1791384160 |
+```
+
+| Row | Value | Absent |
+|---|---|---|
+| `Removes from` | a work-item id's epoch prefix, or `0`. A live `spec.md` of a work item at or above it with no `## Removes` section, or an empty one, is `REFUSED`; one below it is read where the section is present and not required | presence is not checked, and a section that is present is still read |
+
+**The section is read wherever it is present, whatever the row says.** A
+row whose coordinate still resolves is `STANDING`, and a row the ledger's
+grammar would refuse is `REFUSED`; both exit 2, as a stated name the tree
+does not carry does. The row decides only whether the section has to be
+there.
+
+**A value that is not a whole number is refused**, naming the row in the
+sentence `Ledger frozen from` uses, and so is the row written twice and a
+`config.md` that is there and will not read. The comparison is on the work
+item's id, for the reason the freeze gives: a branch cut before the row
+landed keeps its exemption after it merges the release branch in.

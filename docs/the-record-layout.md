@@ -175,6 +175,7 @@ a work item that finds one wrong corrects it.
 | `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
 | `docs/the-commit-gate-inside-git.md` | what git decides inside a commit, what its hooks cannot see, and which reading judges each state of a repository |
 | `docs/the-evidence-ledger.md` | what a ledger row is, how a coordinate names code, how a released row is read again, and what a merge can drop |
+| `docs/the-reader-registry.md` | what class of input each unit of shipped Python declares, who must declare, and how a frame names what its work removes |
 | `docs/the-record-layout.md` | this index: where each kind of record lives, which file a change writes, and when a later commit brings the changelog fragment along |
 | `docs/the-review-and-parity-arms.md` | what each opt-in arm of the commit gate wants, and the routing declaration that moves the review arm's check to the pull request |
 | `docs/worktree-guard-spec.md` | what the worktree guard refuses, and why |

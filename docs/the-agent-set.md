@@ -56,17 +56,19 @@ Enforced by: tests/test_chain_check_at_the_pull_request.py::test_a_declared_fram
 **A build phase leaves a record, the way a review round does.** What a phase
 discovers reaches the next phase only if somebody retypes it into the next
 spawn prompt, and it goes missing without a trace when nobody does. So a
-phase writes what it was asked, what building it found that the next phase
-needs, and what it removed from the tree that another phase must place —
-beside the plan whose Status cell already carries the commit.
+phase writes what it was asked and what building it found that the next
+phase needs, beside the plan whose Status cell already carries the commit.
 
-The three sections are chosen against what the diff cannot show. *What this
+The two sections are chosen against what the diff cannot show. *What this
 phase was asked* is the scope the spawn actually gave, which a later reader
-cannot otherwise tell from a scope the phase invented for itself. *What it
-removes* exists because one phase moved a rule into an interim home and the
-next removed the interim home before the rule had reached anywhere else, and
-nothing recorded that it had gone.
-Enforced by: tests/test_a_phase_hands_the_next_one_a_record.py::test_smith_is_told_to_write_the_phase_record, tests/test_a_phase_hands_the_next_one_a_record.py::test_all_three_sections_exist_outside_comments
+cannot otherwise tell from a scope the phase invented for itself. What a work
+item removes from the tree is not a phase's section: it is named once, in the
+frame's `## Removes` (`templates/sdd-spec.md`), where the records arm reads
+each row as a claim of absence. One phase once
+moved a rule into an interim home and the next removed the interim home
+before the rule had reached anywhere else, and nothing recorded that it had
+gone; a removal the frame did not name is a divergence in `overview.md`.
+Enforced by: tests/test_a_phase_hands_the_next_one_a_record.py::test_smith_is_told_to_write_the_phase_record, tests/test_a_phase_hands_the_next_one_a_record.py::test_both_sections_exist_outside_comments, tests/test_a_phase_hands_the_next_one_a_record.py::test_a_phase_record_carries_no_removal_table
 
 <!-- specs/1789100139-the-file-said-to-delete-it-when-the-last-box-was-ticked -->
 **A document that describes a transition is deleted when the transition is
