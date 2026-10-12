@@ -3147,19 +3147,35 @@ def main():
 
     def unattended_text():
         own = worktree_consent._clone_of(repo_paths(cwd)[0])
-        if (own and own == worktree_consent._clone_of(top)) or worktree_consent.granted(
-            top, session_id
-        ):
+        # Which consent names the split decides the sentence that says why it
+        # passes: the press consents only in the clone it was given in, and
+        # this session's record only in the clone it was written in.
+        here = bool(own) and own == worktree_consent._clone_of(top)
+        if here or worktree_consent.granted(top, session_id):
+            why = (
+                tr(
+                    "That answer already consents to creating one, so these "
+                    "commands pass as written:\n\n",
+                    "그 답이 worktree 생성에 이미 동의했으므로, 아래 명령은 쓰인 그대로 "
+                    "통과합니다.\n\n",
+                )
+                if here
+                else tr(
+                    "This session already created a worktree in this clone, and "
+                    "that creation consents to the next one here, so these "
+                    "commands pass as written:\n\n",
+                    "이 세션은 이 클론에서 이미 worktree 를 만들었고 그 생성이 이 "
+                    "클론의 다음 생성에도 동의하므로, 아래 명령은 쓰인 그대로 "
+                    "통과합니다.\n\n",
+                )
+            )
             return (
                 press
                 + tr(
-                    "The way on that needs nobody is to split into a worktree. "
-                    "That answer already consents to creating one, so these "
-                    "commands pass as written:\n\n",
-                    "사람이 없어도 되는 길은 worktree 로 분리하는 것입니다. 그 답이 "
-                    "worktree 생성에 이미 동의했으므로, 아래 명령은 쓰인 그대로 "
-                    "통과합니다.\n\n",
+                    "The way on that needs nobody is to split into a worktree. ",
+                    "사람이 없어도 되는 길은 worktree 로 분리하는 것입니다. ",
                 )
+                + why
                 + split
                 + tr(
                     "Then work in that tree by path from this session: `git -C` "

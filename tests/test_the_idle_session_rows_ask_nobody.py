@@ -480,13 +480,16 @@ def test_a_switch_into_another_clone_names_no_split_it_cannot_consent(
 
 
 def test_a_clone_this_session_already_split_is_named_the_split(
-    monkeypatch, capsys, projects, repo, tmp_path
+    monkeypatch, capsys, projects, repo, tmp_path, wko
 ):
     """Round 1, red 1, the record's half. Where this session already created a
     worktree in the other clone, its creation record is consent there
     (`worktree_consent.granted`), so the switch into that clone names the
-    split as it does in the session's own clone. Seen red with the record's
-    branch taken out of the clone test through `mutation-check`."""
+    split as it does in the session's own clone, and says the record
+    consents rather than the press, which consents only in the clone it was
+    given in (round 2). Both languages. Seen red with the record's branch
+    taken out of the clone test through `mutation-check` (round 1), and
+    against the round-1 text, which credited the press (round 2)."""
     other = tmp_path / "other-repo"
     shutil.copytree(repo, other)
     write_transcript(projects, "me", ask_entries(repo))
@@ -494,5 +497,24 @@ def test_a_clone_this_session_already_split_is_named_the_split(
     top = wg.repo_paths(str(other))[0]
     command = f"git -C {shlex.quote(top)} switch feature/x"
     at = f"git -C {shlex.quote(top)}"
-    got = judge(wg, monkeypatch, capsys, repo, command, ROWS["idle"])
-    assert got == ("deny", unattended(wg, "en", "idle", other, git=at)), got
+    because = {
+        "en": (
+            "That answer already consents to creating one, so these commands "
+            "pass as written:",
+            "This session already created a worktree in this clone, and that "
+            "creation consents to the next one here, so these commands pass as "
+            "written:",
+        ),
+        "ko": (
+            "그 답이 worktree 생성에 이미 동의했으므로, 아래 명령은 쓰인 그대로 "
+            "통과합니다.",
+            "이 세션은 이 클론에서 이미 worktree 를 만들었고 그 생성이 이 클론의 "
+            "다음 생성에도 동의하므로, 아래 명령은 쓰인 그대로 통과합니다.",
+        ),
+    }
+    for lang, module in (("en", wg), ("ko", wko)):
+        was, now = because[lang]
+        base = unattended(module, lang, "idle", other, git=at)
+        assert was in base, (lang, base)
+        got = judge(module, monkeypatch, capsys, repo, command, ROWS["idle"])
+        assert got == ("deny", base.replace(was, now)), (lang, got)
