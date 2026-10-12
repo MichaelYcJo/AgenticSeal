@@ -3112,40 +3112,82 @@ def main():
     # their place: that is the call those rows exist to hand a person, and
     # the token that carries it is written by whoever issues the command
     # (`docs/worktree-guard-spec.md` §*Choice sites*), so it is not named.
-    # The split needs nobody: the press is consent, read before every
-    # creation row, so the plain `git worktree add` passes, and a session
-    # works in the new tree by path, as this repository's own automation runs
-    # do. A worktree already on the branch is named too, because on Windows
-    # every switch is row 2, a linked worktree's included.
-    unattended = (
-        tr(
-            "This session's person pressed `automation` on the routing "
-            "question, so this guard puts no question to them, and none is to "
-            "be put to them in its place.\n\n"
-            "The way on that needs nobody is to split into a worktree. That "
-            "answer already consents to creating one, so these commands pass "
-            "as written:\n\n",
-            "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
-            "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 "
-            "물어서도 안 됩니다.\n\n"
-            "사람이 없어도 되는 길은 worktree 로 분리하는 것입니다. 그 답이 "
-            "worktree 생성에 이미 동의했으므로, 아래 명령은 쓰인 그대로 "
-            "통과합니다.\n\n",
-        )
-        + split
-        + tr(
-            "Then work in that tree by path from this session: "
-            f"`git -C {wt_root}/<name> …` for git, and an absolute path for "
-            "every edit. A branch already checked out in a worktree needs no "
-            "switch: work in that worktree.\n\n"
-            "Re-issuing this command unchanged meets this same refusal.",
-            "그런 다음 이 세션에서 그 트리를 경로로 지정해 작업하세요. git 은 "
-            f"`git -C {wt_root}/<name> …` 로, 파일 편집은 절대 경로로 합니다. "
-            "이미 어느 worktree 에 체크아웃된 브랜치라면 전환할 필요 없이 그 "
-            "worktree 에서 작업하세요.\n\n"
-            "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
-        )
+    # The split needs nobody where its creation is consented: the press is
+    # consent in the clone it was given in, read before every creation row
+    # there, so the plain `git worktree add` passes, and a session works in
+    # the new tree by path, as this repository's own automation runs do. A
+    # worktree already on the branch is named too, because on Windows every
+    # switch is row 2, a linked worktree's included.
+    #
+    # These rows read the press from the session's own root, while the
+    # creation ladder reads consent in the creation's own clone
+    # (`worktree_consent.automation_answered`, condition 4), or from this
+    # session's record there (`worktree_consent.granted`). So the split is
+    # named only where one of those holds for the switch's tree; a switch
+    # into another clone is refused naming none, because §B's choice rows
+    # would put that split to a person (round 1 of work item 1791781864).
+    # Neither check reads the transcript.
+    press = tr(
+        "This session's person pressed `automation` on the routing "
+        "question, so this guard puts no question to them, and none is to "
+        "be put to them in its place.\n\n",
+        "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+        "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 "
+        "물어서도 안 됩니다.\n\n",
     )
+    reissue = tr(
+        "Re-issuing this command unchanged meets this same refusal.",
+        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
+    )
+
+    def unattended_text():
+        own = worktree_consent._clone_of(repo_paths(cwd)[0])
+        if (own and own == worktree_consent._clone_of(top)) or worktree_consent.granted(
+            top, session_id
+        ):
+            return (
+                press
+                + tr(
+                    "The way on that needs nobody is to split into a worktree. "
+                    "That answer already consents to creating one, so these "
+                    "commands pass as written:\n\n",
+                    "사람이 없어도 되는 길은 worktree 로 분리하는 것입니다. 그 답이 "
+                    "worktree 생성에 이미 동의했으므로, 아래 명령은 쓰인 그대로 "
+                    "통과합니다.\n\n",
+                )
+                + split
+                + tr(
+                    "Then work in that tree by path from this session: `git -C` "
+                    f"with the path the creation named, `{wt_root}/<branch>` or "
+                    f"`{wt_root}/<name>`, for git, and an absolute path for every "
+                    "edit. A branch already checked out in a worktree needs no "
+                    "switch: work in that worktree.\n\n",
+                    "그런 다음 이 세션에서 그 트리를 경로로 지정해 작업하세요. git 은 "
+                    f"생성할 때 쓴 경로(`{wt_root}/<branch>` 또는 `{wt_root}/<name>`)를 "
+                    "`git -C` 로 지정하고, 파일 편집은 절대 경로로 합니다. 이미 어느 "
+                    "worktree 에 체크아웃된 브랜치라면 전환할 필요 없이 그 worktree "
+                    "에서 작업하세요.\n\n",
+                )
+                + reissue
+            )
+        return (
+            press
+            + tr(
+                "That answer was read in this session's own clone, and it "
+                "consents to creating a worktree only in a clone it was given "
+                "in. This tree is in another clone, where this session has "
+                "created no worktree, so a split of it may be put to a person, "
+                "and this guard names no way on here. Leave this switch to a "
+                "session working in the clone this tree is in.\n\n",
+                "그 답은 이 세션의 클론에서 읽은 것이고, 답을 받은 클론에서만 "
+                "worktree 생성에 동의합니다. 이 트리는 다른 클론에 있고 이 세션은 그 "
+                "클론에서 worktree 를 만든 적이 없으므로, 이 트리를 분리하면 사람에게 "
+                "물을 수 있습니다. 그래서 이 guard 는 여기서 갈 길을 알려 주지 "
+                "않습니다. 이 전환은 이 트리가 있는 클론에서 작업하는 세션에 "
+                "맡기세요.\n\n",
+            )
+            + reissue
+        )
 
     switch_or_split = (
         (
@@ -3219,6 +3261,10 @@ def main():
 
     # 1-b) 살아 있으나 입력이 끊긴 세션뿐 -> 잊힌 탭일 공산. 차단 대신 사용자 판단.
     if idle and not shared_ok:
+        # Read here and in row 2 only, and `choose` ends the command either
+        # way, so a switch reads the transcript once at most (W2 of work item
+        # 1791781864). The session's own root, as the stop's reading is.
+        pressed = automation_pressed(repo_paths(cwd)[0], session_id, transcript_path)
         choose(
             top,
             session_id,
@@ -3256,18 +3302,15 @@ def main():
             )
             + steer,
             before_ask=judge_the_creation,
-            # Read here and in row 2 only, and `choose` ends the command
-            # either way, so a switch reads the transcript once at most (W2
-            # of work item 1791781864). The session's own root, as the stop's
-            # reading is.
-            pressed=automation_pressed(repo_paths(cwd)[0], session_id, transcript_path),
-            unattended=unattended,
+            pressed=pressed,
+            unattended=unattended_text() if pressed else "",
         )
 
     # 2) 세션 감지 자체가 불가능하면 사용자에게 확인. deny 였으나 확장 호스트처럼
     #    조상 프로세스가 `claude` 로 보이지 않는 환경에서 모든 전환이 막혔다 —
     #    판정 불가의 비용은 사용자가 한 번 확인하는 것으로 충분하다.
     if not reliable and not shared_ok:
+        pressed = automation_pressed(repo_paths(cwd)[0], session_id, transcript_path)
         choose(
             top,
             session_id,
@@ -3299,8 +3342,8 @@ def main():
             )
             + steer,
             before_ask=judge_the_creation,
-            pressed=automation_pressed(repo_paths(cwd)[0], session_id, transcript_path),
-            unattended=unattended,
+            pressed=pressed,
+            unattended=unattended_text() if pressed else "",
         )
 
     # A creation later in the same command has not been judged yet, and this is

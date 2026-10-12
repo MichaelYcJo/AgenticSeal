@@ -37,6 +37,7 @@ from test_the_guard_asks_once_per_session import (
     ask_entries,
     consent_dir,
     dirty_deny,
+    grant,
     wg,
     write_transcript,
 )
@@ -141,9 +142,10 @@ def ways_on(lang, git, wt_root):
             f"  {git} fetch origin\n"
             f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n"
             "\n"
-            "Then work in that tree by path from this session: "
-            f"`git -C {wt_root}/<name> …` for git, and an absolute path for "
-            "every edit. A branch already checked out in a worktree needs no "
+            "Then work in that tree by path from this session: `git -C` with "
+            f"the path the creation named, `{wt_root}/<branch>` or "
+            f"`{wt_root}/<name>`, for git, and an absolute path for every "
+            "edit. A branch already checked out in a worktree needs no "
             "switch: work in that worktree.\n"
             "\n"
             "Re-issuing this command unchanged meets this same refusal."
@@ -164,9 +166,45 @@ def ways_on(lang, git, wt_root):
         f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n"
         "\n"
         "그런 다음 이 세션에서 그 트리를 경로로 지정해 작업하세요. git 은 "
-        f"`git -C {wt_root}/<name> …` 로, 파일 편집은 절대 경로로 합니다. 이미 "
-        "어느 worktree 에 체크아웃된 브랜치라면 전환할 필요 없이 그 worktree 에서 "
+        f"생성할 때 쓴 경로(`{wt_root}/<branch>` 또는 `{wt_root}/<name>`)를 "
+        "`git -C` 로 지정하고, 파일 편집은 절대 경로로 합니다. 이미 어느 "
+        "worktree 에 체크아웃된 브랜치라면 전환할 필요 없이 그 worktree 에서 "
         "작업하세요.\n"
+        "\n"
+        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
+    )
+
+
+def elsewhere(lang):
+    """What follows the opening under the press when the switch's tree is in
+    another clone than the session's own and this session holds no creation
+    record there: the press is consent only in the clone it was given in, so
+    no split is named (round 1, red 1)."""
+    if lang == "en":
+        return (
+            "This session's person pressed `automation` on the routing "
+            "question, so this guard puts no question to them, and none is to "
+            "be put to them in its place.\n"
+            "\n"
+            "That answer was read in this session's own clone, and it consents "
+            "to creating a worktree only in a clone it was given in. This tree "
+            "is in another clone, where this session has created no worktree, "
+            "so a split of it may be put to a person, and this guard names no "
+            "way on here. Leave this switch to a session working in the clone "
+            "this tree is in.\n"
+            "\n"
+            "Re-issuing this command unchanged meets this same refusal."
+        )
+    return (
+        "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+        "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 물어서도 "
+        "안 됩니다.\n"
+        "\n"
+        "그 답은 이 세션의 클론에서 읽은 것이고, 답을 받은 클론에서만 worktree "
+        "생성에 동의합니다. 이 트리는 다른 클론에 있고 이 세션은 그 클론에서 "
+        "worktree 를 만든 적이 없으므로, 이 트리를 분리하면 사람에게 물을 수 "
+        "있습니다. 그래서 이 guard 는 여기서 갈 길을 알려 주지 않습니다. 이 전환은 "
+        "이 트리가 있는 클론에서 작업하는 세션에 맡기세요.\n"
         "\n"
         "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
     )
@@ -358,18 +396,18 @@ def test_the_press_is_read_from_the_sessions_own_root(
     """S11. Whether anybody is at the keyboard is a fact about the session,
     so the press is read against the root the shell stands in, not the tree
     the switch names. A switch into another clone in the idle state denies
-    under this session's press, naming that clone in every command, and a
-    press given only in that other clone leaves the attended first attempt.
-    Seen red at `c38f97d7`: the first half was the attended deny."""
+    under this session's press, and a press given only in that other clone
+    leaves the attended first attempt. Seen red at `c38f97d7`: the first half
+    was the attended deny. Since round 1 the first half names no split, because
+    the press is consent only in the clone it was given in."""
     other = tmp_path / "other-repo"
     shutil.copytree(repo, other)
-    top = wg.repo_paths(str(other))[0]
     command = f"git -C {shlex.quote(str(other))} switch feature/x"
-    at = f"git -C {shlex.quote(top)}"
 
     write_transcript(projects, "me", ask_entries(repo))
     got = judge(wg, monkeypatch, capsys, repo, command, ROWS["idle"])
-    assert got == ("deny", unattended(wg, "en", "idle", other, git=at)), got
+    want = situation("en", "idle", wg.IDLE_MIN) + "\n\n" + elsewhere("en")
+    assert got == ("deny", want), got
     assert no_marker(wg, other)
 
     write_transcript(projects, "me", ask_entries(other))
@@ -409,3 +447,50 @@ def test_on_windows_a_switch_under_the_press_is_row_twos_deny(
     d = json.loads(capsys.readouterr().out)["hookSpecificOutput"]
     got = (d["permissionDecision"], d["permissionDecisionReason"])
     assert got == ("deny", unattended(wg, "en", "unusable", repo)), got
+
+
+def test_a_switch_into_another_clone_names_no_split_it_cannot_consent(
+    monkeypatch, capsys, projects, repo, tmp_path, wko
+):
+    """Round 1, red 1. The press consents to a creation only in the clone it
+    was given in (`worktree_consent.automation_answered`, condition 4), so a
+    switch into another clone under this session's press is refused without
+    naming a split that clone's creation ladder would put to a person. Both
+    rows, both languages. Seen red at `44c67f9f`, where the reason said the
+    split's commands pass as written."""
+    other = tmp_path / "other-repo"
+    shutil.copytree(repo, other)
+    write_transcript(projects, "me", ask_entries(repo))
+    top = wg.repo_paths(str(other))[0]
+    command = f"git -C {shlex.quote(top)} switch feature/x"
+    for row, sessions in ROWS.items():
+        for lang, module in (("en", wg), ("ko", wko)):
+            decision, reason = judge(
+                module, monkeypatch, capsys, repo, command, sessions
+            )
+            assert decision == "deny", (row, lang, reason)
+            assert reason == situation(lang, row, wg.IDLE_MIN) + "\n\n" + elsewhere(
+                lang
+            ), (row, lang, reason)
+            assert "worktree add" not in reason, reason
+            assert_names_nobody(reason)
+        assert no_marker(wg, other)
+
+
+def test_a_clone_this_session_already_split_is_named_the_split(
+    monkeypatch, capsys, projects, repo, tmp_path
+):
+    """Round 1, red 1, the record's half. Where this session already created a
+    worktree in the other clone, its creation record is consent there
+    (`worktree_consent.granted`), so the switch into that clone names the
+    split as it does in the session's own clone. Seen red with the record's
+    branch taken out of the clone test through `mutation-check`."""
+    other = tmp_path / "other-repo"
+    shutil.copytree(repo, other)
+    write_transcript(projects, "me", ask_entries(repo))
+    grant(other)
+    top = wg.repo_paths(str(other))[0]
+    command = f"git -C {shlex.quote(top)} switch feature/x"
+    at = f"git -C {shlex.quote(top)}"
+    got = judge(wg, monkeypatch, capsys, repo, command, ROWS["idle"])
+    assert got == ("deny", unattended(wg, "en", "idle", other, git=at)), got
