@@ -96,8 +96,7 @@ the guard holds, and no sentence of the reason says it. The reason:
 - says what the row means, in the guard's own terms: it stops a switch while
   uncommitted tracked changes are present, and where none are present it
   says nothing (§A's clean row — an owned fact);
-- names the plain commands that leave a tree with no uncommitted tracked
-  change, `git commit` and `git stash`, each as a listed shape that passes
+- names `git commit` and `git stash`, each as a listed shape that passes
   this guard when issued alone (§A, *Which commands reach these rows* — an
   owned fact, S4), and says that which one fits this switch, and what
   follows it, is the model's to decide. It

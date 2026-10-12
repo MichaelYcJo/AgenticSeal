@@ -27,9 +27,9 @@ A) Branch switching (Bash: `git switch`, and every git shape not known to
   - tracked changes present (dirty)                 -> ask the user first; this
     one really is yes/no (the branch is the same either way, and the only
     question is whether the uncommitted changes ride along). Where the person
-    pressed `automation`, a `deny` to the model instead, naming the plain
-    commands that empty the tree and promising no outcome, one text for every
-    switch form (#894)
+    pressed `automation`, a `deny` to the model instead, naming `git commit`
+    and `git stash` as listed shapes that pass this guard alone and promising
+    no outcome, one text for every switch form (#894)
   - otherwise (single work stream, clean)           -> allow the plain switch
 
   A command that also creates a worktree is judged by these rows, whichever of
