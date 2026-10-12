@@ -3284,8 +3284,9 @@ def main():
                 "deny",
                 tr(
                     f"{lead}, so the switch itself may go ahead — but there are "
-                    f"{len(entries)} uncommitted tracked changes, and they would "
-                    f"follow it onto the target branch:\n{listing}\n{note}\n"
+                    f"{len(entries)} uncommitted tracked changes, and a switch "
+                    "that keeps them carries them onto the target branch:\n"
+                    f"{listing}\n{note}\n"
                     "This session's person pressed `automation` on the routing "
                     "question, so this guard puts no question to them, and none "
                     "is to be put to them in its place.\n\n"
@@ -3309,8 +3310,8 @@ def main():
                     "here.\n\n"
                     "Re-issuing this command unchanged meets this same refusal.",
                     f"{lead} 전환 자체는 진행할 수 있지만, 커밋되지 않은 변경 "
-                    f"{len(entries)}건이 있고 전환하면 이 변경이 대상 브랜치로 "
-                    f"따라갑니다:\n{listing}\n{note}\n"
+                    f"{len(entries)}건이 있고 변경을 유지하는 전환이면 이 변경이 "
+                    f"대상 브랜치로 따라갑니다:\n{listing}\n{note}\n"
                     "이 세션의 사용자가 라우팅 질문에서 `automation` 을 "
                     "눌렀습니다. 그래서 이 guard 는 사용자에게 아무것도 묻지 "
                     "않으며, 다른 방법으로 대신 물어서도 안 됩니다.\n\n"

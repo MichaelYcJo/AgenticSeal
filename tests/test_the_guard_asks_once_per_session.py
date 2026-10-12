@@ -1843,8 +1843,8 @@ def dirty_deny(lang, lead):
     if lang == "en":
         return (
             f"{lead}, so the switch itself may go ahead — but there are 1 "
-            "uncommitted tracked changes, and they would follow it onto the "
-            "target branch:\n"
+            "uncommitted tracked changes, and a switch that keeps them carries "
+            "them onto the target branch:\n"
             "     M  f.txt\n"
             "\n"
             "This session's person pressed `automation` on the routing question, "
@@ -1871,7 +1871,7 @@ def dirty_deny(lang, lead):
         )
     return (
         f"{lead} 전환 자체는 진행할 수 있지만, 커밋되지 않은 변경 1건이 있고 "
-        "전환하면 이 변경이 대상 브랜치로 따라갑니다:\n"
+        "변경을 유지하는 전환이면 이 변경이 대상 브랜치로 따라갑니다:\n"
         "     M  f.txt\n"
         "\n"
         "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
@@ -2023,6 +2023,25 @@ def test_a_creating_switch_under_the_press_takes_the_stash_way(
         git_in(repo, *command.split()[1:])
     assert git_in(repo, "branch", "--show-current") == "newb"
     assert git_in(repo, "status", "--porcelain") == "M f.txt"
+
+
+def test_the_deny_does_not_say_a_discarding_switch_carries_the_changes(
+    monkeypatch, capsys, projects, repo
+):
+    """Round 2, yellow 2. `--discard-changes` and `-f` drop the changes and
+    git refuses `--orphan` over them, so the deny says only that a switch that
+    keeps them carries them."""
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+    for command in (
+        "git switch --discard-changes feature/x",
+        "git switch -f feature/x",
+        "git switch --orphan newb",
+    ):
+        decision, reason = decide(monkeypatch, capsys, repo, command)
+        assert decision == "deny", (command, reason)
+        assert "would follow" not in reason, (command, reason)
+        assert "a switch that keeps them carries them" in reason, (command, reason)
 
 
 def test_the_press_is_read_from_the_sessions_own_root(
