@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 895 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `6b108d367c7e27dccbce4002ce2976627840faa2..6c5d4529ad4eaec39ebd14f870370d0151796cbe`, 2 commits |
+| Contract changes | none |
+| New units | test_a_removal_is_read_in_this_tree_never_in_another_checkout (depth 1); test_a_path_through_dot_dot_is_refused_never_read_as_gone (depth 1) |
 | Fix of a fix | first — 🟡 1 at skills/evidence-check/scripts/evidence_check.py#removal_findings, a unit round-1's fixes changed |
 | Needs a fix | yes — 🟡 1 (a `## Removes` row is read through `--default-repo` and `--map`, so a removal that happened reads `STANDING` and a row in an absent checkout reads as gone) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -33,12 +33,12 @@ Facts arriving as coordinates, executed by the orchestrator: `round_record.py cl
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | a `## Removes` row is placed through `--default-repo` and `--map`: a removal from this tree reads `STANDING` when the original holds the path, and a mapped row whose checkout is absent reads as gone | `skills/evidence-check/scripts/evidence_check.py:6131` | open | executed through `check_records`: `STANDING` for the default-repo row, no finding for the mapped row; spec S1/S2 read at HEAD |
-| ⬜ 2 | a `..` through a missing directory, or through a file, reads as gone while the file it names holds the unit | `skills/evidence-check/scripts/evidence_check.py:6142` | open | executed: two rows, no finding, `kept.py` defining the unit; `contained` resolves by `realpath`, the read by the kernel |
-| ⬜ 3 | the R7 row says `ast.walk` is no primitive and cites a mutation of the receiver set the fix removed | `seal/ledger/1791384152-a-reader-declares-its-input-class.md:25` | open | read against `tests/reader_registry.py:198` and the moved test row; a correction under `seal/ledger/` |
-| ⬜ 4 | the document's and the changelog's lists of `## Removes` refusals stop at three, and the `Enforced by:` line does not name the new case | `docs/the-reader-registry.md:119` | open | read; the general clause stays true |
-| ⬜ 5 | the upgrade note says `--reverify` already stopped on a doubled `Removes from` | `seal/specs/1791384152-a-reader-declares-its-input-class/changelog.md:46` | open | read: `--reverify` returns before `check_records`; a correction under `seal/specs/` |
-| ⬜ 6 | a test docstring calls its last two rows round 1's, and those are `ast.walk` and `pathlib` | `tests/test_a_reader_declares_its_input_class.py:493` | open | read |
+| 🟡 1 | a `## Removes` row is placed through `--default-repo` and `--map`: a removal from this tree reads `STANDING` when the original holds the path, and a mapped row whose checkout is absent reads as gone | `skills/evidence-check/scripts/evidence_check.py:6131` | **fixed** `5dfefd3b` | fixed at 5dfefd3b; executed through `check_records`: `STANDING` for the default-repo row, no finding for the mapped row; spec S1/S2 read at HEAD |
+| ⬜ 2 | a `..` through a missing directory, or through a file, reads as gone while the file it names holds the unit | `skills/evidence-check/scripts/evidence_check.py:6142` | **fixed** `5dfefd3b` | fixed at 5dfefd3b; executed: two rows, no finding, `kept.py` defining the unit; `contained` resolves by `realpath`, the read by the kernel |
+| ⬜ 3 | the R7 row says `ast.walk` is no primitive and cites a mutation of the receiver set the fix removed | `seal/ledger/1791384152-a-reader-declares-its-input-class.md:25` | answered | corrected at 6c5d4529; read against `tests/reader_registry.py:198` and the moved test row; a correction under `seal/ledger/` |
+| ⬜ 4 | the document's and the changelog's lists of `## Removes` refusals stop at three, and the `Enforced by:` line does not name the new case | `docs/the-reader-registry.md:119` | **fixed** `6c5d4529` | fixed at 6c5d4529; read; the general clause stays true |
+| ⬜ 5 | the upgrade note says `--reverify` already stopped on a doubled `Removes from` | `seal/specs/1791384152-a-reader-declares-its-input-class/changelog.md:46` | answered | corrected at 6c5d4529; read: `--reverify` returns before `check_records`; a correction under `seal/specs/` |
+| ⬜ 6 | a test docstring calls its last two rows round 1's, and those are `ast.walk` and `pathlib` | `tests/test_a_reader_declares_its_input_class.py:493` | **fixed** `6c5d4529` | fixed at 6c5d4529; read |
 | 🟢 | round 1's first finding is closed — K1 judges a module's method by its name, `os.open` and `re.split` are refused, one declaration moved and it is true | `tests/reader_registry.py:198` | confirmed | executed: three readings over every unit at both trees; module test 76 passed |
 | 🟢 | round 1's second finding is closed — an escaping path, a symlink out, a directory and a dangling link are `REFUSED`, and the case pins each text | `skills/evidence-check/scripts/evidence_check.py:6132` | confirmed | executed: planted probes; three `mutation-check` runs red through the case's assertion |
 | 🟢 | round 1's third finding is closed — K7's note, the three `cutoff_row` anchors and the changelog's note | `seal/ledger/1791384156-config-rows-coordinates-and-headings-have-one-reader.md:24` | confirmed | executed: hashes recomputed at the target; read: no released row carries the sentence |
