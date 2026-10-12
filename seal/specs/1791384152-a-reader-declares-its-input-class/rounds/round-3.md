@@ -6,7 +6,7 @@
 | Written late | no |
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 895 |
-| Broad gate | not yet |
+| Broad gate | 10a0d2ba against c38f97d7 |
 | Fixes checked by | no fixes to check |
 | Fix range | `93898214653d7038bcdbbb3692290b2ae7247389..dcde8e56909abbd7f7a3102b98b706cdec273c84`, 4 commits |
 | Contract changes | removal_findings → file_claims |
