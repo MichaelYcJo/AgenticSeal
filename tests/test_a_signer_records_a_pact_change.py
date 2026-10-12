@@ -52,7 +52,7 @@ ec = load()
 
 def unit_hash(repo, rel, locator):
     text = (repo / rel).read_text(encoding="utf-8")
-    places, _ = ec.resolve_unit(rel, locator, text)
+    places = ec.resolve_unit(rel, locator, text).places
     a, b = places[0]
     return ec.content_hash(ec.gfm_lines(text)[a - 1 : b])
 
@@ -462,21 +462,28 @@ def test_a_change_left_is_recorded_by_the_remedy_it_names(repo):
 
 
 @pytest.mark.parametrize(
-    "config_bytes, said",
+    "config_bytes, said, exit_code",
     [
         (
             b"| Item | Value |\n|---|---|\n| Pact | orders api |\n",
             "the `Pact` rows will not read: `orders api` holds a space",
+            1,
         ),
+        # Since #867 a `config.md` that will not read is refused when the
+        # freeze row is read, before the pact record is reached: exit 2, the
+        # path named, and nothing re-stamped either way.
         (
             b"| Item | Value |\n|---|---|\n| Pact | git@example.com:org/orders-api.git |"
             b"\n| Note | caf\xe9 |\n",
-            "the `Pact` rows will not read: seal/config.md could not be read",
+            "is there and cannot be read as UTF-8 text",
+            2,
         ),
     ],
     ids=["a Pact row that will not parse", "a config that is not UTF-8"],
 )
-def test_a_pact_row_that_will_not_read_leaves_the_row(repo, config_bytes, said):
+def test_a_pact_row_that_will_not_read_leaves_the_row(
+    repo, config_bytes, said, exit_code
+):
     """The silent path: the `Pact` rows will not read, so nothing could say
     whether the drifted row cites a declared pact. It was exit 0 with the
     ledger re-stamped and no line at all; it is a refusal now."""
@@ -486,8 +493,10 @@ def test_a_pact_row_that_will_not_read_leaves_the_row(repo, config_bytes, said):
     ledger = cite(repo, rows)
     move_serialize(repo)
     code, out = run(repo, "--into", FRAGMENT, "--checked", "2026-09-04")
-    assert code == 1, out
-    assert said in out and "nothing was re-stamped" in out, out
+    assert code == exit_code, out
+    assert said in out, out
+    if exit_code == 1:
+        assert "nothing was re-stamped" in out, out
     assert ledger.read_text(encoding="utf-8") == "".join(rows), out
 
 
@@ -676,7 +685,7 @@ def test_this_repositorys_own_piped_coordinates_are_recorded_once(repo):
         m = ec.ANCHOR_RE.search(f"{rel}#{locator}@00000000")
         assert m, locator
         place, claim = m.group("locator"), m.group("claim")
-        places, _ = ec.resolve_unit(rel, place, text)
+        places = ec.resolve_unit(rel, place, text).places
         region = places[0]
         if claim:
             region = ec.minor_region(rel, text, region, claim)[0]
@@ -976,7 +985,7 @@ def test_a_refused_declaration_that_still_rules_always_out_leaves_no_row_unknown
 
 def _minor_coordinate(repo):
     text = (repo / "src" / "orders.py").read_text(encoding="utf-8")
-    places, _ = ec.resolve_unit("src/orders.py", "serialize", text)
+    places = ec.resolve_unit("src/orders.py", "serialize", text).places
     a, b = ec.minor_region("src/orders.py", text, places[0], '"return"')[0]
     h = ec.content_hash(ec.gfm_lines(text)[a - 1 : b])
     return f'src/orders.py#serialize>"return"@{h}'
@@ -1538,7 +1547,11 @@ def test_a_vendored_copy_whose_config_will_not_read_leaves_the_row(
     """A `seal/config.md` the vendored copy cannot open, or one that is not
     UTF-8, cannot rule `always` out either, so a moved row citing no clause
     is left, as the plugin's own reader leaves it (round 3 of PR #756,
-    yellow 1). Read leniently, the byte below hides the notify row."""
+    yellow 1). Read leniently, the byte below hides the notify row.
+
+    Since #867 the copy refuses such a file earlier, where it reads the
+    freeze row through its twin of `hooks/config.py#config_text`: exit 2,
+    the path named, and the ledger left exactly as it was."""
     old = unit_hash(repo, "src/orders.py", "serialize")
     ledger_rows = [row("O2", "", f"src/orders.py#serialize@{old}")]
     ledger = cite(repo, ledger_rows)
@@ -1556,7 +1569,7 @@ def test_a_vendored_copy_whose_config_will_not_read_leaves_the_row(
             code, out = _vendored(repo, tmp_path)
         finally:
             os.chmod(config, 0o644)
-    assert code == 1 and "may be `always`" in out, out
+    assert code == 2 and "is there and cannot be read" in out, out
     assert ledger.read_text(encoding="utf-8") == "".join(ledger_rows), out
 
 
@@ -2226,37 +2239,37 @@ def test_a_reading_its_family_holds_records_no_pact_change(repo):
     assert not [r for r in record_rows(repo) if a_file in r], out
 
 
-# --- #809: a claim on a place the declaration rule is unsure of (#824) ------
+# --- #809: a claim re-read at its statement (#824) ---------------------------
+#
+# These read a claim on a place the declaration rule was unsure of until #870
+# removed that rule; the property — a claim is re-read at its statement's hash
+# and recorded as a move, or as BROKEN where its statement is gone — holds for
+# a claim on any unit, and a Python one is the instance a parser gives.
 
-UNSURE_CS = "public new void Render(int x) {\n    var a = x + 2;\n}\n"
-
-
-def _unsure_claim(repo):
-    """A `.cs` unit whose only place the declaration rule is unsure of --
-    `new` is a statement word elsewhere -- and a claim quoting a statement
-    inside it. Returns the coordinate, without its hash, and the hash the
-    statement holds now."""
-    (repo / "src" / "a.cs").write_text(UNSURE_CS, encoding="utf-8")
-    places, unsure = ec.resolve_unit("src/a.cs", "Render", UNSURE_CS)
-    assert unsure and len(places) == 1, places
-    (inside,) = ec.minor_region("src/a.cs", UNSURE_CS, places[0], '"var a"')
-    now = ec.content_hash(ec.gfm_lines(UNSURE_CS)[inside[0] - 1 : inside[1]])
-    return 'src/a.cs#Render>"var a"', now
+CLAIMED_PY = "def render(x):\n    a = x + 2\n"
 
 
-def test_under_the_freeze_a_claim_on_an_unsure_place_is_recorded_as_a_move(repo):
-    """#809, cell C8, under the freeze. `--strict` calls a claim on a place
-    the declaration rule is unsure of DRIFTED, and `--into` re-reads it at
-    its statement's hash: the `Re-read ·` row carries that hash, and the
-    record holds the move, never BROKEN. Red at e6d5a055, which said *no one
-    place to hash* and recorded BROKEN."""
+def _claim(repo):
+    """A Python unit and a claim quoting a statement inside it. Returns the
+    coordinate, without its hash, and the hash the statement holds now."""
+    (repo / "src" / "a.py").write_text(CLAIMED_PY, encoding="utf-8")
+    (place,) = ec.resolve_unit("src/a.py", "render", CLAIMED_PY).places
+    (inside,) = ec.minor_region("src/a.py", CLAIMED_PY, place, '"a ="')
+    now = ec.content_hash(ec.gfm_lines(CLAIMED_PY)[inside[0] - 1 : inside[1]])
+    return 'src/a.py#render>"a ="', now
+
+
+def test_under_the_freeze_a_claim_is_recorded_as_a_move(repo):
+    """#809, cell C8, under the freeze. `--strict` calls a stale claim
+    DRIFTED, and `--into` re-reads it at its statement's hash: the `Re-read ·`
+    row carries that hash, and the record holds the move, never BROKEN."""
     (repo / "seal" / "config.md").write_text(
         config_text(
             ("Mode", "shared"), ("Pact", PACT_URL), ("Ledger frozen from", "0")
         ),
         encoding="utf-8",
     )
-    coord, now = _unsure_claim(repo)
+    coord, now = _claim(repo)
     released = repo / "seal" / "releases" / "0.1.0.md"
     released.parent.mkdir(parents=True)
     released.write_text(
@@ -2274,11 +2287,10 @@ def test_under_the_freeze_a_claim_on_an_unsure_place_is_recorded_as_a_move(repo)
     ], out
 
 
-def test_a_claim_on_an_unsure_place_restamped_in_place_is_recorded_as_a_move(repo):
+def test_a_claim_restamped_in_place_is_recorded_as_a_move(repo):
     """#809, cell C8, in place. The fragment row is re-stamped at the
-    statement's hash and the record holds the move. Red at e6d5a055, which
-    left the row and recorded BROKEN."""
-    coord, now = _unsure_claim(repo)
+    statement's hash and the record holds the move."""
+    coord, now = _claim(repo)
     ledger = cite(repo, [row("O1", f"`{CLAUSE}`, ", f"{coord}@0000beef")])
     code, out = run(repo, "--into", FRAGMENT, "--checked", "2026-09-04")
     assert code == 0, out
@@ -2289,21 +2301,17 @@ def test_a_claim_on_an_unsure_place_restamped_in_place_is_recorded_as_a_move(rep
     ], out
 
 
-def test_a_claim_whose_statement_is_gone_from_an_unsure_place_is_recorded_broken(
-    repo,
-):
-    """S3c. The statement the claim quotes is gone from the place the
-    declaration rule is unsure of: the run leaves the row with the check's
-    *anchored statement is gone*, and the record says BROKEN, the pact's word
-    for *left by the re-read*. Green at e6d5a055 for the record, red for the
-    words."""
-    coord, _now = _unsure_claim(repo)
-    (repo / "src" / "a.cs").write_text(
-        UNSURE_CS.replace("var a = x + 2;", "return;"), encoding="utf-8"
+def test_a_claim_whose_statement_is_gone_is_recorded_broken(repo):
+    """S3c. The statement the claim quotes is gone from its unit: the run
+    leaves the row with the check's *anchored statement is gone*, and the
+    record says BROKEN, the pact's word for *left by the re-read*."""
+    coord, _now = _claim(repo)
+    (repo / "src" / "a.py").write_text(
+        CLAIMED_PY.replace("a = x + 2", "return"), encoding="utf-8"
     )
     cite(repo, [row("O1", f"`{CLAUSE}`, ", f"{coord}@0000beef")])
     _code, out = run(repo, "--into", FRAGMENT, "--checked", "2026-09-04")
-    assert f"  {coord}  the anchored statement is gone from Render (1-2)" in out, out
+    assert f"  {coord}  the anchored statement is gone from render (1-2)" in out, out
     assert record_rows(repo) == [
         f"| {CLAUSE} | seal/ledger/{ITEM}.md · O1 | `{coord}@0000beef` BROKEN "
         "| 2026-09-04 |"

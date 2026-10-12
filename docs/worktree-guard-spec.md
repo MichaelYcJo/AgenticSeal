@@ -17,9 +17,9 @@ actually live on the tree.
 | Tree state | Decision |
 |---|---|
 | ACTIVE session present | deny — steer to a worktree. One destination, so no choice to offer |
-| only IDLE sessions | **choice** — switch here, or split into a worktree; each session listed with its last-activity age, because forgotten tabs are the user's call |
-| detection unusable (can't see even our own process) | **choice** — same two. A blanket deny locked out extension hosts entirely |
-| single stream, tracked changes present | ask — the changes follow the switch. Genuinely yes/no: the destination branch is the same either way, and what is being asked is whether the uncommitted changes ride along |
+| only IDLE sessions | **choice** — switch here, or split into a worktree; each session listed with its last-activity age, because forgotten tabs are the user's call. Where the person pressed `automation`, a deny to the model on every attempt instead, naming the split as the way on where its creation is consented, by the press in the clone it was given in or by this session's record in a clone it already split — see §Choice sites, *Under the press* |
+| detection unusable (can't see even our own process) | **choice** — same two. A blanket deny locked out extension hosts entirely. Under the press, the same deny as the row above: its way on, the split, needs no switch and no person, which is what keeps it from being that lockout |
+| single stream, tracked changes present | ask — the changes follow the switch. Genuinely yes/no: the destination branch is the same either way, and what is being asked is whether the uncommitted changes ride along. Where the person pressed `automation`, a deny to the model instead, naming the ways on that need nobody — see *The tracked-changes row has two readers too* |
 | single stream, clean | allow silently |
 
 `[shared-tree-ok]` in the command turns the two **choice** rows silent — see
@@ -27,6 +27,49 @@ actually live on the tree.
 states as well, and there its reason opens with the token carrying the user's
 answer rather than with *Single-stream tree*, because nothing was counted as
 single-stream.
+
+**The tracked-changes row has two readers too (#894).** Where the session's
+person pressed `automation` on the routing question, the row is a `deny` to
+the model, because nobody is at the keyboard to answer it, and the answer the
+person would give, commit first, is not one of its two buttons. The press is
+read by the reader the unrecognised-shape stop uses, against the root of the
+session's own directory, never against the tree the switch names. The reason
+states what the guard read and what the guard is. Its one sentence about what
+git does is the index-residue note it shares with the `ask`, word for word. It
+opens with the same lead and lists the changes as the `ask` does, carries the
+press sentence, and says the row stops a switch while uncommitted tracked
+changes are present and says nothing once none are. It names `git commit`
+and `git stash` as commands on `LEAVES_THE_TREE`, each of which passes the
+guard when issued alone, and leaves to the model which of them fits the
+switch and what follows. Each is a command of
+its own, because the guard reads the tree before a line runs, so `git stash
+&& git switch x` meets this same row. It names no question tool, and says
+re-issuing the command unchanged meets the same refusal. The text is one
+string for every switch form, from a branch or a detached HEAD, and it names
+no switch option. Without the press the row is the `ask` it was, word for
+word, and `[shared-tree-ok]` reaches neither reader: a dirty tree under the
+token meets the same `deny` with the token's lead.
+
+**Why the row's own sentences predict nothing.** The guard reads three facts here: the
+changes (`git status`), that the command asks for a switch, and the press.
+What a given switch form does with the changes, where a commit lands, and
+whether a stash restores cleanly are not among them. The first text of this
+row named a way on per form, and three review rounds of work item 1791779434
+each found the next form it was wrong for: `-c`, then `--orphan` and the
+discarding forms, then a detached HEAD and a target branch that changed a
+listed file. Over sixteen setups the text was right in fourteen, and nothing
+the guard reads tells those from the other two. That is a prediction from
+text, the class this repository judges not to converge (§*Known limits*, the
+brace reader), so each sentence of the row's own about what git does was taken
+out rather than corrected again. The index-residue note it shares with the
+`ask` stays as the `ask` has it. A form found later is a row in the case that
+pins one text for every form, never a sentence here.
+
+**The failure direction.** A verdict moves from `ask` to `deny` in one state
+and nowhere else, and the reader that decides it is the stop's, unchanged. A
+wrong deny costs the model a turn. Under the press this row puts no question
+to a person, where it put one per dirty switch; attended it puts the same one.
+Enforced by: tests/test_the_guard_asks_once_per_session.py::test_under_the_press_the_dirty_row_is_a_deny_to_the_model, tests/test_the_guard_asks_once_per_session.py::test_the_token_does_not_reach_the_dirty_row_under_the_press_either, tests/test_the_guard_asks_once_per_session.py::test_a_compound_stash_and_switch_meets_the_deny, tests/test_the_guard_asks_once_per_session.py::test_the_plain_retry_meets_todays_rows, tests/test_the_guard_asks_once_per_session.py::test_the_ways_on_pass_the_guard, tests/test_the_guard_asks_once_per_session.py::test_a_creation_on_the_dirty_line_is_stopped_with_it, tests/test_the_guard_asks_once_per_session.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_the_guard_asks_once_per_session.py::test_one_text_for_every_switch_form, tests/test_worktree_guard.py::test_the_dirty_tree_row_names_what_was_measured
 
 A command that also creates a worktree is judged by this table whichever of the
 two is written first, with the creation judged inside it — see §Creation
@@ -80,7 +123,11 @@ the other session ends.
 The stop has two readers. Where the session's person pressed `automation` on
 the routing question, it is a `deny` to the model, which rewrites in the
 plain spelling and meets the rows above on the retry, and no person is
-asked. Otherwise it is an `ask` with the same text, except in a tree another
+asked. In a dirty tree that retry meets the tracked-changes row, which under
+the press is a `deny` as well, and with only IDLE sessions or detection
+unusable it meets the choice rows' deny (§Choice sites, *Under the press*), so
+no issue reaches a person. Otherwise it is an `ask` with the same text, except
+in a tree another
 session is ACTIVE in: row 1 denies a branch-form `checkout` there with
 nobody asked, so the stop is a `deny` whoever is at the keyboard. On the
 `ask` path a creation on the same line is judged first, because approving
@@ -296,6 +343,15 @@ whole fact, the way the choice marker's is.
   is the same clone. A session that creates its first worktree from the main
   tree and its second from inside a linked one has made one decision, so it
   pays for one.
+- **The clone the guard judged.** The writer places a creation by the
+  guard's own placement, `hooks/worktree_consent.py#place`, through the same
+  tokenizing adapter, so the record lands under the clone whose tree the guard
+  judged (#868). Before #868 the writer took the first directory of the walk
+  that it could compute, and that disagreed with the guard twice: `eval x ; cd
+  A || git worktree add …` was filed under `A`, the branch the `||` skips, and
+  `cd <missing> ; git worktree add …` under a directory that holds nothing, so
+  no record was written at all. bash runs both creations in the session's own
+  directory, and that is where both are judged and filed.
 - **No expiry and no pruning.** A session id is already scoped to a session, so
   a time bound can only produce one new outcome: a session that outlives it is
   asked a second time, which is the failure this removes.
@@ -466,7 +522,7 @@ another session's branch out from under it.
 **The prompt budget.** Zero for a session whose person pressed `automation`. One per session otherwise, from one per worktree unbounded — for a creation written on its own, which is the form the measured six took. Re-measured after round 2's fixes, six creations in one session on a clean single-stream tree: **deny, allow, allow, allow, allow, allow**.
 With consent, a creation written as one segment of a compound gets no allow,
 and neither does one carrying an expansion, a redirection, a wrapper or a **path-qualified command word**, because that is exactly what the bound above refuses to speak for. The guard is silent there, so what each one costs is whatever the user's own permission settings ask. The last of those is what round 2's second fix added to the list, and it moves nothing in the budget: `git worktree add …`, the same backgrounded, and the `\git` spelling all still allow.
-Enforced by: tests/test_the_guard_asks_once_per_session.py::test_the_first_creation_is_still_a_question, tests/test_the_guard_asks_once_per_session.py::test_a_second_creation_in_the_same_session_is_allowed, tests/test_the_guard_asks_once_per_session.py::test_the_measured_automation_run_is_not_stopped, tests/test_the_guard_asks_once_per_session.py::test_a_result_not_linked_to_an_ask_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_automation_on_another_question_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_an_answer_given_in_another_clone_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_the_labels_match_the_routing_question_the_orchestrator_asks, tests/test_the_guard_asks_once_per_session.py::test_a_typed_answer_that_qualifies_the_preset_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_a_shape_the_reader_did_not_expect_keeps_the_guards_deny, tests/test_the_guard_asks_once_per_session.py::test_a_switch_written_after_a_creation_is_judged, tests/test_the_guard_asks_once_per_session.py::test_the_order_of_a_switch_and_a_creation_does_not_decide, tests/test_the_guard_asks_once_per_session.py::test_a_command_with_both_is_never_weaker_than_either_alone, tests/test_the_guard_asks_once_per_session.py::test_the_command_word_class_is_what_the_allow_covers, tests/test_the_guard_asks_once_per_session.py::test_the_guard_is_never_silent_where_the_writer_records
+Enforced by: tests/test_the_guard_asks_once_per_session.py::test_the_first_creation_is_still_a_question, tests/test_the_guard_asks_once_per_session.py::test_a_second_creation_in_the_same_session_is_allowed, tests/test_the_guard_asks_once_per_session.py::test_the_measured_automation_run_is_not_stopped, tests/test_the_guard_asks_once_per_session.py::test_a_result_not_linked_to_an_ask_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_automation_on_another_question_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_an_answer_given_in_another_clone_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_the_labels_match_the_routing_question_the_orchestrator_asks, tests/test_the_guard_asks_once_per_session.py::test_a_typed_answer_that_qualifies_the_preset_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_a_shape_the_reader_did_not_expect_keeps_the_guards_deny, tests/test_the_guard_asks_once_per_session.py::test_a_switch_written_after_a_creation_is_judged, tests/test_the_guard_asks_once_per_session.py::test_the_order_of_a_switch_and_a_creation_does_not_decide, tests/test_the_guard_asks_once_per_session.py::test_a_command_with_both_is_never_weaker_than_either_alone, tests/test_the_guard_asks_once_per_session.py::test_the_command_word_class_is_what_the_allow_covers, tests/test_the_guard_asks_once_per_session.py::test_the_guard_is_never_silent_where_the_writer_records, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_files_a_creation_where_bash_runs_it, tests/test_guard_resolves_the_tree_it_judges.py::test_the_writer_files_under_the_clone_the_guard_judged, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_composes_the_creations_own_dash_c
 
 ### Decided before git runs (#692)
 
@@ -543,6 +599,29 @@ nothing can get past. Every attempt after the first gets the decision the site
 made before this design, which is also the answer for an environment with
 nobody to ask — one extra round trip, then the old behavior. No session id, no
 marker, so the site's old decision stands from the start.
+
+**Under the press the switch direction's two sites deny on every attempt, and
+name the split into a worktree as the way on (#896).** Nobody is at the
+keyboard to put the two options to, so rows only IDLE sessions and detection
+unusable `deny` every time. The reason opens with the row's situation and the
+tracked-changes row's press sentence. Where a creation in the switch's clone is
+consented, by the press in the clone it was given in or by this session's
+record in a clone it already split (§Creation consent), the reason names which
+of the two consents and the split as commands that pass as written with no
+`[worktree-ok]`: `git worktree add <wt_root>/<branch> <branch>`, or `git
+worktree add <wt_root>/<name> -b <branch> origin/main`, then `git -C` on that
+path; a branch already in a worktree needs no switch. Elsewhere it names no
+split, because §B's rows would put the creation to a person. Neither reason
+names a question tool or `[shared-tree-ok]`, and both say re-issuing the command
+unchanged meets the same refusal. The press is read by the stop's reader at the
+session's own root, only where one of the two rows fires, so a command reads
+the transcript at most once. No marker is written, because none was asked: a
+later `per axis` in the same clone meets the attended first attempt. The token
+still turns both rows silent; the reason does not name it, and a model that
+appends it leaves that on the command line. In the press's own clone the
+creation direction's two sites never run under the press, because consent is
+read before them. Without the press both rows are what they were, word for word.
+Enforced by: tests/test_the_idle_session_rows_ask_nobody.py::test_under_the_press_a_choice_row_denies_every_attempt, tests/test_the_idle_session_rows_ask_nobody.py::test_the_token_still_reads_as_it_does_attended, tests/test_the_idle_session_rows_ask_nobody.py::test_the_way_on_passes_the_guard, tests/test_the_idle_session_rows_ask_nobody.py::test_a_creation_on_the_same_line_is_stopped_with_it, tests/test_the_idle_session_rows_ask_nobody.py::test_the_plain_retry_after_the_stop_meets_the_deny, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_at_most_once_per_command, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_the_idle_session_rows_ask_nobody.py::test_a_switch_into_another_clone_names_no_split_it_cannot_consent, tests/test_the_idle_session_rows_ask_nobody.py::test_a_clone_this_session_already_split_is_named_the_split, tests/test_worktree_guard.py::test_the_attended_choice_rows_are_the_bases_in_korean
 
 **Retry tokens, one per direction.** Both are matched as **bare words** of the
 command, never as substrings: a substring test read
@@ -662,7 +741,9 @@ from a heartbeat. So every listed session shows:
 - **host app**, attributed by walking the ANCESTOR process chain (never
   sibling processes) — e.g. "(VS Code 터미널)";
 - **disaggregated signals** — terminal input/output age and transcript
-  active-event age separately;
+  active-event age separately. An unidentified session prints its one
+  signal's kind and age (*lease declaration 4.7h ago*) and nothing after them:
+  whether it is working is the header's to say (#896);
 - the project's newest OTHER transcript's **last user message snippet**, so
   the human can recognize which conversation is being protected.
 
@@ -677,7 +758,10 @@ some hosts never satisfy the process heuristics, and a permanent deny there
 disables `git switch` outright. Rationale: the
 guard's failure modes are asymmetric — a wrong deny costs a prompt, a wrong
 allow breaks another session's tree — but a deny that fires on EVERY switch
-in an environment is no longer a cost, it is an outage.
+in an environment is no longer a cost, it is an outage. Under the press those
+rows deny every attempt (§Choice sites), on Windows every switch without
+`[shared-tree-ok]`; their way on, a worktree per branch made with `-b`, needs
+no switch and no person, which keeps that a cost, not this outage.
 
 ### Which tree, when the command walks to it
 
@@ -788,6 +872,20 @@ at one prompt against a wrong allow breaking another session's tree.
   before its tree has moved (M1), and a hook after a creation cannot undo all
   of it (P6), so §A and §B read the command's text on every git, through the
   frozen reading §*Which tree* describes.
+- A word the shell builds before git runs — a brace expansion, a
+  substitution that spells `git`, a here-string or heredoc handed to a
+  shell, a git spelled past the splitter (`g""it` in a line it cannot
+  close) — is not read, so `git rebase {main,feature/x}`, `git rebase
+  --ro{,} feature/x`, `git stash {branch,} y` and `git worktree {add,} ../wt
+  f` are listed and silent in every tree, though bash makes the first three
+  switch HEAD and the fourth add a worktree (#856), and the class is decided
+  in #886. The guard reads the words the frozen reading splits, and the
+  shell makes this word afterwards. A brace reader was built for #856 in
+  work item 1791384157 and taken out in the same release: every reading of
+  it imitated bash, and five review rounds each found the next spelling it
+  missed. `test_a_shell_built_word_is_the_named_limit` and the braced half
+  of `test_no_listed_form_moves_head_under_git` in
+  `tests/test_worktree_guard.py` pin the limit as a fact.
 - A switch into the worktree the same command creates is judged against the
   session's own tree: `git worktree add ../x -b x && cd ../x && git switch y`
   meets that tree's switch verdict, because `../x` does not exist yet when the
@@ -865,7 +963,30 @@ at one prompt against a wrong allow breaking another session's tree.
   meets the confirmation where a POSIX system's single-stream row refuses it
   (#692's Windows pass, CI run 36978391812). And every unrecognised shape
   stops there, in every tree: a `deny` to the model under the press, an
-  `ask` otherwise. Read from the code, not run on Windows.
+  `ask` otherwise, and under the press every switch without `[shared-tree-ok]`
+  is row 2's deny. Read from the code; a Windows-only case in
+  `tests/test_the_idle_session_rows_ask_nobody.py` measures the switch half.
+- The `automation` press is this session's, on this machine. It is read from
+  this session's own main transcript (§*Creation consent*, rule 1), which the
+  harness writes on the machine the session runs on, and a subagent reaches
+  it through its parent's id. A run resumed in a new session (a `/clear`, a
+  new `claude` start, another machine) has no press until question 1 is put
+  through `AskUserQuestion` again, and until then every stop that reads it is
+  the person's `ask` (`skills/implement/orchestration.md` §*Orchestrator: how
+  the work is routed — two questions, one call, one file*). Nothing that
+  survives a machine move can stand in for it. The consent record and the
+  choice markers sit under the git directory, which does not travel, and
+  everything that travels is in the tree, which the model writes, so
+  `routing.md` is not read. What keeps the press is what keeps the
+  session's id: `claude --resume` and compaction both go on writing the
+  same transcript the press already sits in, and the section named above
+  holds the reading that showed it. Measured in #894: a release run resumed
+  on another machine with the answer typed, and the guard asked the owner
+  twice in a run routed `automation`; replayed up to the first of those
+  stops, the reader found no press in that session.
+- Under the press a model that does not take the split loops on §A's choice
+  rows' deny, bounded by the reason's text alone; the next `automation` run
+  measures it (work item 1791781864, `questions.md` M1; P1 (c) is the lever).
 - Transcript activity is per-project, not per-pid: one working session marks
   every session of that project active. Conservative by design.
 - tty atime also refreshes on in-turn stdin reads (a session listening for

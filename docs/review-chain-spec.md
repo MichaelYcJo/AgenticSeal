@@ -241,11 +241,11 @@ whose `Location` is under `seal/specs/`, `seal/ledger/`, `seal/releases/` or
 `seal/ledger.md` is about the run's own paperwork rather than about the tool,
 and it owes no fix pass and no reader. What `chain_check` or `evidence_check`
 refuses is corrected in the closing commit; what neither reads is prose,
-corrected in passing or not at all. `Needs a fix` does not count it, so a
+a ⬜ like any other. `Needs a fix` does not count it, so a
 verifying round that finds only such things has opened nothing needing a fix.
-In the fix table such a row closes `answered` with `corrected at <sha>` as its
-grounds, never `fixed`: `fixed` is a fix word, and a fix word commissions the
-reader a correction does not owe.
+A ⬜ closes at the run's end through `notes`, a 🟡 in its fix table; each
+closes `answered` with `corrected at <sha>` as its grounds, never `fixed`,
+which would commission the reader a correction does not owe.
 
 **Two cells, not one.** The Verdict cell holds the word alone and the
 correcting commit goes in `Commit or grounds` beside it. This section
@@ -486,10 +486,10 @@ branch as issues too, and bounded nothing the count did not.
 a fix word: `deferred #170` and `deferred seal/follow-up.md` close a finding
 on the issue or the file it went to, and produced no code — so `no fixes to
 check` beside them is the truth, and a last record whose every verdict reads
-that way may tick `Pass`. A bare `deferred`, the word with nothing after it,
-stays OPEN — the direction every verdict the checker cannot read takes. It
-says something was left and not where, which is the state a `nobody` with no
-reason is refused for.
+that way may tick `Pass`. The home is what stands after the word, up to the
+first ` — ` (`chain_check.deferred_parts`), and names an issue only where it
+is exactly `#N`. A bare `deferred` stays OPEN, as every verdict the checker
+cannot read does: it says something was left and not where.
 
 ### Where a leftover goes — the ladder, and why a new issue is not the default
 
@@ -652,11 +652,11 @@ disclosure teaches people to write none — the reasoning `unverified_check.py`
 already runs on. On the run's LAST record beside a checked `Pass` it does
 fail, for a work item begun on or after the cutoff, because that pair is the
 review claiming to have passed rather than disclosing anything. It fails at a
-ready pull request, and wherever the state cannot be read. In a draft it
-prints, because the draft is where the pair stands between `close` and the
-verifying round's record, and *Ready for review* re-runs the check. The refusal
-table under `docs/round-record-spec.md` §`Fixes checked by` holds both halves
-and what each costs.
+ready pull request, and where a payload cannot answer. It prints in a draft and
+where no pull request was seen: the pair stands there between `close` and the
+verifying round's record, and *Ready for review* re-runs the check.
+The refusal table under `docs/round-record-spec.md` §`Fixes checked by` holds
+both halves and what each costs.
 
 The field records the state. What keeps `nobody` rare rather than routine is
 the verifying round, which is the run's own shape and sits with the bound

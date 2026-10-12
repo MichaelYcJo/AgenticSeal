@@ -33,6 +33,7 @@ the single-stream site still denies, and nothing in the switch direction moves.
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -628,8 +629,9 @@ def test_the_guard_is_never_silent_where_the_writer_records(
     the whole command line to a person, which is the standing a creation that
     runs is claimed to have.
 
-    The `outside` half is the guard's SECOND silent exit: `judgeable` falls
-    back to the session's own directory, so `top` is empty only when the SHELL
+    The `outside` half is the guard's SECOND silent exit: the placement
+    (`worktree_consent.place`, `judgeable` until #868) falls back to the
+    session's own directory, so `top` is empty only when the SHELL
     is outside any repository -- and a `git -C <repo> worktree add` in the same
     command is not. Executed before this case: silent here, record written.
 
@@ -1787,14 +1789,16 @@ def test_under_the_press_the_stop_is_a_deny_to_the_model(
 
 
 def test_the_plain_retry_meets_todays_rows(monkeypatch, capsys, projects, repo):
-    """S6. The deny's rewrite reaches the ladder, which asks the person about
-    the changes in a dirty tree, press or none, and denies with the worktree
-    steer where another session is ACTIVE."""
+    """S6 of work item 1791779434, which rewrote 1791270162's S6. The deny's
+    rewrite reaches the ladder. Under the press the tracked-changes row is a
+    deny to the model too, so neither issue reaches a person; where another
+    session is ACTIVE both are the deny with the worktree steer, as before.
+    Seen red at `c38f97d7`: the plain retry was the person's `ask`."""
     write_transcript(projects, "me", ask_entries(repo))
     dirty(repo)
     assert decide(monkeypatch, capsys, repo, "git checkout feature/x")[0] == "deny"
     decision, reason = decide(monkeypatch, capsys, repo, "git switch feature/x")
-    assert decision == "ask" and "uncommitted tracked changes" in reason, reason
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
     assert STOP not in reason, reason
 
     (repo / "f.txt").write_text("one\ntwo\nthree\n", encoding="utf-8")
@@ -1818,3 +1822,372 @@ def test_the_consent_record_is_not_the_press(monkeypatch, capsys, projects, repo
     dirty(repo)
     decision, reason = decide(monkeypatch, capsys, repo, "git checkout feature/x")
     assert decision == "ask" and STOP in reason, reason
+
+
+# --- #894: under the press, the tracked-changes row asks nobody -------------
+#
+# Work item 1791779434. The row of `docs/worktree-guard-spec.md` §A that the
+# 0.21.0 run met with nobody at the keyboard: a `git switch` over one modified
+# tracked file put a yes/no to the owner in a run routed `automation`. Under
+# the press it is a deny to the model naming the ways on that need nobody;
+# attended it is the `ask` it was (`tests/test_worktree_guard.py`, S2).
+
+SINGLE = {"en": "Single-stream tree", "ko": "이 트리는 단건 작업이라"}
+TOKEN = {
+    "en": "[shared-tree-ok] carries the user's answer to switch in this shared tree",
+    "ko": "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
+}
+
+
+# The press sentence, byte for byte the first frame's: #896 copies it.
+PRESS = {
+    "en": "This session's person pressed `automation` on the routing question, "
+    "so this guard puts no question to them, and none is to be put to them in "
+    "its place.",
+    "ko": "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+    "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 물어서도 "
+    "안 됩니다.",
+}
+
+
+def dirty_deny(lang, lead):
+    """W3: the deny's one text for `dirty(repo)`, issued from inside the tree.
+    Every sentence is a fact the guard read or a fact about the guard; none
+    says what git does for any switch form (the reframe after round 3)."""
+    if lang == "en":
+        return (
+            f"{lead}, so no other row of this guard stops the switch, but 1 "
+            "uncommitted tracked changes are present:\n"
+            "     M  f.txt\n"
+            "\n" + PRESS["en"] + "\n\n"
+            "This row of the guard stops a branch switch while uncommitted "
+            "tracked changes are present, and says nothing of a switch once "
+            "none are.\n"
+            "\n"
+            "The ways on, none of which needs a person. Issue each command on "
+            "its own: this guard reads the tree before a command runs, so `git "
+            "stash && git switch <branch>` on one line meets this same refusal. "
+            "`git commit` and `git stash` are on this guard's list of commands "
+            "that leave the branch where it is, so each passes it when issued "
+            "alone. Which of them fits this switch, and what to run after it, is "
+            "yours to decide.\n"
+            "\n"
+            "Re-issuing this command unchanged meets this same refusal."
+        )
+    return (
+        f"{lead} 이 guard 의 다른 규칙은 이 전환을 막지 않지만, 커밋되지 않은 "
+        "추적 파일 변경이 1건 있습니다:\n"
+        "     M  f.txt\n"
+        "\n" + PRESS["ko"] + "\n\n"
+        "이 guard 의 이 규칙은 커밋되지 않은 추적 파일 변경이 있는 동안 브랜치 "
+        "전환을 막고, 변경이 없으면 전환에 대해 아무 말도 하지 않습니다.\n"
+        "\n"
+        "사람이 없어도 되는 길은 아래와 같습니다. 명령은 하나씩 따로 실행하세요. "
+        "이 guard 는 명령이 실행되기 전에 트리를 읽으므로, `git stash && git "
+        "switch <branch>` 처럼 한 줄에 쓰면 같은 거부를 받습니다. `git commit` 과 "
+        "`git stash` 는 이 guard 가 브랜치를 그대로 두는 명령으로 꼽는 목록에 "
+        "있어, 따로 실행하면 이 guard 를 통과합니다. 이 전환에 어느 쪽이 맞는지, "
+        "그 뒤에 무엇을 실행할지는 직접 정하세요.\n"
+        "\n"
+        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
+    )
+
+
+# Words a sentence about what git does for one switch form would carry. S1
+# and S12 refuse them, so a form a later round finds becomes a row in S12's
+# table and never a clause in the deny (W4).
+PREDICTION_WORDS = ("pop", "way 2", "squash", "carries", "conflict", "detached")
+OPTION_WORD = re.compile(r"(?<![\w-])--?[A-Za-z][\w-]*")
+
+
+def option_words(reason):
+    """Every option-shaped word in REASON (`-c`, `--orphan`), which a text
+    keyed on no switch form has none of. The command word `git_at` hands back
+    (`git -C <path>`) and the phantom note's `restore --staged` are the text's
+    own spellings, not a switch form, so they are taken out first."""
+    reason = re.sub(r"git -C (?:'[^']*'|\S+)", "git", reason)
+    return OPTION_WORD.findall(reason.replace("restore --staged", "restore"))
+
+
+def verdict_in(module, monkeypatch, capsys, repo, command, sessions, session_id):
+    """`decide` for a module loaded under another language."""
+    monkeypatch.setattr(module, "sessions_in_tree", lambda top, own="": sessions)
+    monkeypatch.setattr(
+        module,
+        "load_input",
+        lambda: {
+            "tool_name": "Bash",
+            "session_id": session_id,
+            "tool_input": {"command": command},
+            "cwd": str(repo),
+        },
+    )
+    try:
+        module.main()
+    except SystemExit:
+        pass
+    d = json.loads(capsys.readouterr().out)["hookSpecificOutput"]
+    return d["permissionDecision"], d["permissionDecisionReason"]
+
+
+def test_under_the_press_the_dirty_row_is_a_deny_to_the_model(
+    monkeypatch, capsys, projects, repo
+):
+    """S1, rewritten at the reframe after round 3. The whole text is pinned in
+    both languages: the changes listed, the press sentence byte for byte, what
+    the row does, `git commit` and `git stash` as commands that pass this guard
+    issued alone, the choice and what follows left to the model, the re-issue
+    sentence, and no question tool. It names no switch option and predicts
+    nothing of its own. Seen red at `c38f97d7` (`ask`) and at `0f1663f5`,
+    whose text named `-c`, `--orphan` and way 2."""
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+    decision, reason = decide(monkeypatch, capsys, repo, "git switch feature/x")
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
+    assert PRESS["en"] in reason, reason
+
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_894_ko")
+    monkeypatch.setattr(wko.worktree_consent, "PROJECTS_ROOT", str(projects))
+    decision, ko = verdict_in(
+        wko, monkeypatch, capsys, repo, "git switch feature/x", ([], [], True), "me"
+    )
+    assert (decision, ko) == ("deny", dirty_deny("ko", SINGLE["ko"])), ko
+    assert PRESS["ko"] in ko, ko
+    for text in (reason, ko):
+        assert "AskUserQuestion" not in text, text
+        for word in PREDICTION_WORDS:
+            assert word not in text, (word, text)
+        assert option_words(text) == [], text
+
+
+def test_the_deny_carries_the_note_the_ask_carries(monkeypatch, capsys, projects, repo):
+    """S1's last clause: the deny's one sentence about what git does is the
+    index-residue note, line for line the attended `ask`'s. Round 6, note 4:
+    no case under the press had a force-staged path, so the note could
+    leave the deny with every case green. Seen red through `mutation-check`
+    with `{note}` taken out of the deny's English text."""
+    dirty(repo)
+    (repo / ".gitignore").write_text("ign.txt\n", encoding="utf-8")
+    (repo / "ign.txt").write_text("x\n", encoding="utf-8")
+    git_in(repo, "add", "-f", "ign.txt")
+
+    write_transcript(projects, "me", ask_entries(repo))
+    decision, deny = decide(monkeypatch, capsys, repo, "git switch feature/x")
+    write_transcript(projects, "me", [])
+    attended, ask = decide(monkeypatch, capsys, repo, "git switch feature/x")
+    assert (decision, attended) == ("deny", "ask"), (deny, ask)
+
+    head = "Index-only residue invisible in the working tree:"
+    assert head in ask.split("\n"), ask
+    assert head in deny.split("\n"), deny
+
+    def note(text):
+        lines = text.split("\n")
+        first = lines.index(head)
+        last = max(i for i, x in enumerate(lines) if "restore --staged" in x)
+        return lines[first : last + 1]
+
+    assert note(deny) == note(ask), (deny, ask)
+
+
+def test_the_token_does_not_reach_the_dirty_row_under_the_press_either(
+    monkeypatch, capsys, projects, repo
+):
+    """S3. `[shared-tree-ok]` stands the two choice rows aside and answers
+    nothing about the changes, so a dirty tree reaches the same deny with the
+    token's lead, in both languages. Seen red at `c38f97d7`: `ask`."""
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_894_token_ko")
+    monkeypatch.setattr(wko.worktree_consent, "PROJECTS_ROOT", str(projects))
+    command = "git switch other  # [shared-tree-ok]"
+    for sessions in (([], IDLE, True), ([], [], False)):
+        decision, reason = decide(monkeypatch, capsys, repo, command, sessions)
+        assert (decision, reason) == ("deny", dirty_deny("en", TOKEN["en"])), reason
+        assert reason.splitlines()[0].startswith("[shared-tree-ok] carries"), reason
+        decision, reason = verdict_in(
+            wko, monkeypatch, capsys, repo, command, sessions, "me"
+        )
+        assert (decision, reason) == ("deny", dirty_deny("ko", TOKEN["ko"])), reason
+
+
+def git_in(repo, *args):
+    """git run between two issues, as the shell would after a silent guard."""
+    r = subprocess.run(
+        ["git", "-C", str(repo), *args],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    assert r.returncode == 0, (args, r.stdout, r.stderr)
+    return r.stdout.strip()
+
+
+def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
+    """S4, narrowed at the reframe to the claim the deny makes: `git commit`
+    and `git stash`, each issued alone, pass the guard, and a switch after
+    either meets a clean tree and passes too. Run with real git
+    (`agent-contract` §13). What git did with the change is asserted by
+    nothing, because the deny promises none of it."""
+    write_transcript(projects, "me", ask_entries(repo))
+    here = git_in(repo, "branch", "--show-current")
+
+    dirty(repo)
+    for command in ("git commit -am x", "git switch feature/x"):
+        assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
+        git_in(repo, *command.split()[1:])
+
+    git_in(repo, "switch", "-q", here)
+    dirty(repo)
+    for command in ("git stash", "git switch feature/x"):
+        assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
+        git_in(repo, *command.split()[1:])
+
+
+# S12: round 3's sixteen setups (`rounds/round-3-report.md` §1), each a form
+# and the state git was in. The guard reads none of the state, so every row
+# meets the same bytes; a form a later round finds is a row here.
+SIXTEEN = (
+    ("plain", "git switch feature/x", ()),
+    ("plain, target changed f.txt", "git switch feature/x", ("target",)),
+    ("-c", "git switch -c newb", ()),
+    ("-C new", "git switch -C newb", ()),
+    ("--create", "git switch --create newb", ()),
+    ("--force-create", "git switch --force-create newb", ()),
+    ("-C existing", "git switch -C feature/x", ()),
+    ("--orphan", "git switch --orphan newb", ()),
+    ("--orphan, detached", "git switch --orphan newb", ("detached",)),
+    ("--detach", "git switch --detach feature/x", ()),
+    ("-f", "git switch -f feature/x", ()),
+    ("--discard-changes", "git switch --discard-changes feature/x", ()),
+    ("-m", "git switch -m feature/x", ()),
+    ("--merge, target changed f.txt", "git switch --merge feature/x", ("target",)),
+    ("-", "git switch -", ()),
+    ("plain, detached", "git switch feature/x", ("detached",)),
+)
+
+
+@pytest.mark.parametrize(
+    "setup,command,state", SIXTEEN, ids=[row[0] for row in SIXTEEN]
+)
+def test_one_text_for_every_switch_form(
+    monkeypatch, capsys, projects, repo, setup, command, state
+):
+    """S12, new at the reframe after round 3. Every form round 3's table ran
+    meets the deny with the same bytes in both languages, and the text names
+    no form's option word and nothing about what git does. Seen red at
+    `0f1663f5` on the word check (its text named `-c` and `--orphan`), and on
+    the equality through `mutation-check` with a per-form clause planted."""
+    here = git_in(repo, "branch", "--show-current")
+    if "target" in state:
+        git_in(repo, "switch", "-q", "feature/x")
+        (repo / "f.txt").write_text("target side\n", encoding="utf-8")
+        git_in(repo, "commit", "-qam", "target changes f.txt")
+        git_in(repo, "switch", "-q", here)
+    if "detached" in state:
+        git_in(repo, "switch", "-q", "--detach", "HEAD")
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+
+    decision, reason = decide(monkeypatch, capsys, repo, command)
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_894_s12_ko")
+    monkeypatch.setattr(wko.worktree_consent, "PROJECTS_ROOT", str(projects))
+    decision, ko = verdict_in(
+        wko, monkeypatch, capsys, repo, command, ([], [], True), "me"
+    )
+    assert (decision, ko) == ("deny", dirty_deny("ko", SINGLE["ko"])), ko
+    for text in (reason, ko):
+        assert option_words(text) == [], (setup, text)
+        for word in PREDICTION_WORDS:
+            assert word not in text, (setup, word, text)
+
+
+def test_the_press_is_read_from_the_sessions_own_root(
+    monkeypatch, capsys, projects, repo, tmp_path
+):
+    """W2. Whether anybody is at the keyboard is a fact about the session, so
+    the press is read against the root the shell stands in, as the stop's is,
+    and not against the tree the switch names. A switch into another dirty
+    clone denies under this session's press, naming that clone in every
+    command, and a press given only in that other clone asks. Seen SURVIVED,
+    then red, against the mutation that reads the switch's tree instead."""
+    import shlex
+    import shutil
+
+    other = tmp_path / "other-repo"
+    shutil.copytree(repo, other)
+    dirty(other)
+    top = wg.repo_paths(str(other))[0]
+    command = f"git -C {shlex.quote(str(other))} switch feature/x"
+
+    write_transcript(projects, "me", ask_entries(repo))
+    decision, reason = decide(monkeypatch, capsys, repo, command)
+    at = f"git -C {shlex.quote(top)}"
+    want = (
+        dirty_deny("en", SINGLE["en"])
+        .replace("`git ", f"`{at} ")
+        .replace("&& git ", f"&& {at} ")
+    )
+    # Round 5, note 3: issued from another repository, the deny is S1's text
+    # with the command word `git_at` hands back, and nothing else.
+    assert (decision, reason) == ("deny", want), reason
+    assert option_words(reason) == [], reason
+
+    write_transcript(projects, "me", ask_entries(other))
+    decision, reason = decide(monkeypatch, capsys, repo, command)
+    assert decision == "ask" and "Confirm to proceed" in reason, reason
+
+    # Round 6, note 3: the Korean half, issued from another repository. Seen
+    # red through `mutation-check` with a Korean clause appended only where
+    # the command word carries `git -C`, which every other case let through.
+    write_transcript(projects, "me", ask_entries(repo))
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_894_w2_ko")
+    monkeypatch.setattr(wko.worktree_consent, "PROJECTS_ROOT", str(projects))
+    decision, ko = verdict_in(
+        wko, monkeypatch, capsys, repo, command, ([], [], True), "me"
+    )
+    want_ko = (
+        dirty_deny("ko", SINGLE["ko"])
+        .replace("`git ", f"`{at} ")
+        .replace("&& git ", f"&& {at} ")
+    )
+    assert (decision, ko) == ("deny", want_ko), ko
+
+
+def test_a_compound_stash_and_switch_meets_the_deny(
+    monkeypatch, capsys, projects, repo
+):
+    """S5. The guard reads the tree before the line runs, so the stash in
+    front of the switch has not run yet: the deny, with the text that says to
+    issue them apart, rather than a way on that loops. Seen red at
+    `c38f97d7`: `ask`."""
+    write_transcript(projects, "me", ask_entries(repo))
+    dirty(repo)
+    decision, reason = decide(
+        monkeypatch, capsys, repo, "git stash && git switch feature/x"
+    )
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
+    assert "Issue each command on its own" in reason, reason
+
+
+def test_a_creation_on_the_dirty_line_is_stopped_with_it(
+    monkeypatch, capsys, projects, repo
+):
+    """S7. The press is consent for the creation, which is silent for a
+    compound, and the switch behind it meets the deny: the whole line stops,
+    so the creation does not run and nothing is recorded for it. Seen red at
+    `c38f97d7`: `ask`, whose approval would have run both."""
+    write_transcript(projects, "me", ask_entries(repo))
+    assert not consent_dir(repo).exists()
+    dirty(repo)
+    decision, reason = decide(
+        monkeypatch, capsys, repo, "git switch feature/x && git worktree add ../wt f"
+    )
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
+    assert not (consent_dir(repo) / "me").exists()
+    assert not (repo.parent / "wt").exists()

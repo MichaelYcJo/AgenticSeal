@@ -167,8 +167,9 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with pillow==12.3.0 --with cmar
 ```
 
 CI runs five jobs: lint (`ruff check` + `ruff format --check`), the suite on
-ubuntu, macOS and Windows at the floor stated above (Windows in four shards,
-divided by `pytest-split` from the committed `.test_durations`, #841),
+ubuntu, macOS and Windows at the floor stated above (macOS in three shards
+and Windows in four, each leg divided by `pytest-split` from the one
+committed `.test_durations`, #841, #864; ubuntu as one job),
 `tests/test_arm_check.py`
 at 3.13 and 3.14 (`arm-check`'s node-type tables are only as true as the
 interpreter that reads them, #684), the evidence ledger against this
@@ -186,10 +187,17 @@ only: time spent building a fixture in setup is not held to it. Each
 beside the values says which runs they were set from.
 
 `.test_durations` goes stale as cases are added, which unbalances the
-Windows shards and drops no case. To refresh it, push a branch on which
-`test.yml` runs the Windows leg as one job again for a single run: one
-Windows entry with `store: "--store-durations"` in place of the four shard
-entries, with a `timeout` for the whole leg rather than a shard's 20 (it
+Windows and macOS shards and drops no case. The file is the Windows leg's,
+and it divides the macOS leg too, because every leg collects the same
+cases. It prices each case as Windows ran it, so a case Windows skips is
+near zero there and its whole macOS cost is unseen by the division: after
+a refresh, read the macOS shards' times in the next run's jobs and set
+their `timeout` again by the rule beside the values. To refresh it, push a
+branch on which `test.yml` runs the Windows
+leg as one job again for a single run: one Windows entry with
+`store: "--store-durations"` in place of the four Windows shard entries,
+the three macOS shard entries left as they are, with a `timeout` for the
+whole Windows leg rather than a shard's 20 (it
 ran 34 minutes unsharded when the file was first made, so 55 by the rule
 beside the values); `${{ matrix.store }}` on the pytest line; and an
 `actions/upload-artifact@v4` step with `if: always() && matrix.store != ''`,
@@ -197,9 +205,10 @@ beside the values); `${{ matrix.store }}` on the pytest line; and an
 with a dot, which the action skips by default). Both halves of the
 condition are needed. On that branch the shard cases in
 `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py` fail,
-because the matrix has no shards, so without `always()` the upload is
+because the Windows leg has no shards, so without `always()` the upload is
 skipped although the file was written. Without `matrix.store != ''`,
-ubuntu and macOS upload the committed file under the same name first.
+ubuntu and the macOS shards upload the committed file under the same name
+first.
 Download the artifact with `gh run download <run> -n <artifact>`, make its
 line ends LF, commit it, and restore the shards.
 
@@ -211,7 +220,12 @@ removes `GITHUB_TOKEN` and `GITHUB_ENTERPRISE_TOKEN`, and sets `GH_TOKEN` and
 variable, `gh` reads the login it keeps in your OS keyring. A case that falls
 through its stubs onto a live `gh` then fails where you run it, instead of
 passing because you happen to be logged in and failing only on CI after the
-branch was sealed (#510). A case that needs `gh` stubs it.
+branch was sealed (#510). A case that needs `gh` stubs it. One question is
+stubbed for every case: `chain_check.py` asks `gh pr view --json isDraft`
+where no event payload exists (#866), so the conftest puts a `gh` first on
+PATH that finds no pull request — which the check reads as *unknown*, not as
+ready — and passes every other call to the `gh` behind it. A case that means
+a draft or a ready pull request says so with `gh_answers`.
 
 Two steps of the hygiene workflow ship to user repositories as well, as
 `templates/hygiene.yml`: the unverified-rows tally and the chain check, run
@@ -249,8 +263,18 @@ change to one is judged by what it does when it is wrong:
 - **Platform honesty.** Process inspection (`ps`, `lsof`, `/proc`) behaves
   differently across macOS, Linux, and Windows. If you cannot test a
   platform, say so in the PR rather than assuming.
+- **A `Reads:` line on every unit you add or change.** Each top-level `def`
+  and `class` of shipped Python says in its docstring what class of input it
+  decides from, and a changed unit leaves the census when it declares.
+  `docs/the-reader-registry.md` holds the grammar, and
+  `tests/test_a_reader_declares_its_input_class.py` refuses a unit without it.
+- **A frame that names what it removes.** A change that takes a reader, a
+  rule or a pin out of the tree lists it under its `spec.md`'s `## Removes`,
+  where `evidence-check` reads each row as a claim that the thing is gone.
+  `docs/the-reader-registry.md` §*A frame names what its work removes* is the
+  rule.
 
-The prompt budget is the one of these four a passing suite cannot report on,
+The prompt budget is the one of these a passing suite cannot report on,
 because nothing counts interruptions. It is answered in the pull request body
 or it is not answered. `skills/implement/SKILL.md` §1 holds the reasoning the
 budget is drawn against: the cost of a question is not its difficulty, it is

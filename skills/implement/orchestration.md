@@ -288,6 +288,24 @@ press and expensive to use by a mechanism that already exists: `[no-review]`
 waives one command, typed in front of each, which is a per-command price none
 of the other answers pays.
 
+**A run resumed in a new session puts question 1 through `AskUserQuestion`
+again, before the first spawn**, in the same call as whatever else the resume
+has to ask. The session puts it from a directory inside the clone the run
+works in: the readers keep the answer only where the result's own directory
+and the gate's root are the same clone (`docs/worktree-guard-spec.md`
+§*Creation consent*, rule 4). A new session is a `/clear`, a new `claude`
+start, or another machine, and a new day is one only where it starts one. A
+typed answer is not the press: the gates read a harness-written result in
+this session's own transcript and nothing else, and `routing.md` is not read
+(`docs/worktree-guard-spec.md` §*Known limits*). Measured: a release run
+resumed on another machine with the answer given as text, and the worktree
+guard asked the owner twice in a run routed `automation` on every item
+(#894). `claude --resume` and compaction keep the session's id and append to
+its transcript, so the press survives both and nothing is put again. Read
+off one machine's transcripts on 2026-10-12: 20 compaction boundaries, each
+under its file's own id, and 8 of 115 transcripts written under one id by
+more than one CLI version, which only a resumed process does.
+
 ### Question 2 — `multiSelect`, meaningful only under *per axis*
 
 **The order is the specification, not an incidental listing.** The first box is
@@ -647,6 +665,7 @@ not a closed-looking one.
 | Orchestrator: which of these acts runs itself | `skills/implement/orchestration.md` | check: `tests/test_every_orchestrator_act_names_its_delivery.py` | The test holds this table against both files from both sides, which is the condition #330 set for enumerating the class at all: unless something reads it. It reads the marker and not the meaning, so an act written under a heading with no prefix is in neither the table nor the test |
 | Orchestrator: a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A resumed fix pass and a fresh spawn leave identical trees, so nothing at the pull request can tell them apart, and the measured difference between them is 282 calls against 30. The steps inside the section are commands, `bin/round-record` for the fix table and `bin/survivor-check` for the sweep that follows, and the choice of session is not one of them |
 | Orchestrator: the run ends with a verifying round | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It fails a ready pull request when the run's last record carries `nobody` beside a checked `Pass`, which is the run whose own last fixes nobody opened; on a draft that pair prints and names the verifying round. Work items begun before its cutoff print instead of failing |
+| A note closes once, at the run's end | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It fails a ready pull request over a ⬜ still open on a record of the run, and a ⬜ closed on a fix word for a work item begun at or after `1791384163`. `bin/round-record` is the rest: `close` refuses a row for a note, `notes` closes the run's notes once and refuses before the last record reads `no fixes to check`, and `seal` refuses while one is open. What nothing reaches is the grade: a defect a reviewer marks ⬜ closes `answered` at the run's end with the broad gate as its only reader |
 | The cap is a ceiling, and this is the floor it never had | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It reads `Loses a record or crashes` on every record and refuses a run whose count of records passes the bound that row sets. What it cannot read is whether the reviewer's answer was true |
 | A fix of a fix twice sends the work item back to its framer | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | `round_record.py new` writes the `Fix of a fix` row, prints the stop at a `second` and refuses the next record until `spec.md`'s foot carries the `Reframed` line; the check refuses a run that counted past the stop, wrote a fix under it, or resumed without that line. What neither can see is whether a landing was real: the row is the generator's declaration, and a squash takes the fix commits that would re-derive it |
 | A fix pass adds the unit that pins it, and that unit ships unreviewed | `skills/code-review/orchestration.md` | command: `bin/round-record` | `close` derives `New units` from the fix range with a depth per entry, and refuses depth 2 before any cell is written. It does not reach the level above: a fix pass that adds mechanism, a rule or a checker or a template section or a walk, leaves a unit at depth 1 and nothing refuses it |

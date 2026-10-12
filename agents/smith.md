@@ -119,7 +119,11 @@ incorporation. This file only adds what the skill does not carry.
         `seal/specs/1788873640-a-corrected-sentence-survives-elsewhere-and-
         nothing-looks/questions.md` Q4 is where the question is open, and
         this paragraph is evidence for it rather than an answer to it.
-        Verified 2026-10-05 against "## Phases"@1029389b. -->
+        RE-MEASURED 2026-10-08, after #837 added a paragraph to this section
+        below the example: one invocation for the line alone, one with
+        everything above it, `_hides_a_commit` True for the file -- the same
+        three answers as at `5623d728`, before that paragraph.
+        Verified 2026-10-12 against "## Phases"@7c94c8b8. -->
 
    Left to the commit, that token stops a session that had the answer in its
    first minute — which is why the declaration is written before you are
@@ -175,8 +179,9 @@ incorporation. This file only adds what the skill does not carry.
    edit that can fail, is the one that holds for you everywhere.
 
    **At each phase's close, also write `seal/specs/<work-item-id>/phases/phase-N.md`
-   from `templates/sdd-phase.md`** — what this phase was asked, what building
-   it found, what it removed from the tree. `plan.md`'s Status cell for that
+   from `templates/sdd-phase.md`** — what this phase was asked and what
+   building it found. A removal is the frame's `## Removes`, and one the frame
+   did not name is a divergence in `overview.md`. `plan.md`'s Status cell for that
    phase already carries the commit; this record carries what the commit
    alone cannot show, the way `rounds/round-N.md` does for a review round.
    `skills/implement/SKILL.md` §3 says what belongs in each section and what
@@ -201,6 +206,10 @@ incorporation. This file only adds what the skill does not carry.
    commit in the range, and a commit somebody can open is the whole of what
    `fixed` asserts. The Verdict cell holds the word alone in both cases;
    only `deferred` carries its own suffix.
+   A ⬜ takes no row at all: `close` leaves a note open and refuses a row for
+   one, and the run's notes close once at its end, through `round-record
+   notes` — `skills/code-review/orchestration.md` §*A note closes once, at
+   the run's end* owns that rule.
    The build's phases keep theirs.
    A fix that changes what the work item ships brings the work item's
    `changelog.md` along in its range, and `chain-check` names one that did

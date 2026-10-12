@@ -22,11 +22,19 @@ A) Branch switching (Bash: `git switch`, and every git shape not known to
   - ACTIVE Claude session inside THIS working tree -> deny, steer to a worktree
   - only IDLE sessions (no terminal input for a while) -> CHOICE: switch here,
     or split into a worktree -- they are usually forgotten tabs, and the user
-    can tell
-  - cannot tell (process inspection unusable)       -> the same CHOICE
+    can tell. Where the person pressed `automation` nobody is there to tell:
+    a `deny` to the model on every attempt instead, naming the split as the
+    way on where its creation is consented: by that answer in the clone it
+    was given in, or by this session's record where it already created a
+    worktree (#896)
+  - cannot tell (process inspection unusable)       -> the same CHOICE, and
+    the same deny under the press
   - tracked changes present (dirty)                 -> ask the user first; this
     one really is yes/no (the branch is the same either way, and the only
-    question is whether the uncommitted changes ride along)
+    question is whether the uncommitted changes ride along). Where the person
+    pressed `automation`, a `deny` to the model instead, naming `git commit`
+    and `git stash` as listed shapes that pass this guard alone and promising
+    no outcome, one text for every switch form (#894)
   - otherwise (single work stream, clean)           -> allow the plain switch
 
   A command that also creates a worktree is judged by these rows, whichever of
@@ -76,6 +84,18 @@ nobody to answer (headless) pays one extra round trip and then behaves as it
 always did. Direction, not site: within one direction the sites are mutually
 exclusive on tree state, while one budget for the whole guard let a creation
 question spend the answer a later switch needed.
+
+Under the press -- this session's person pressed `automation` on the
+routing question -- nobody is there to put the two options to, so the switch
+direction's two sites deny on every attempt. Where a creation in the
+switch's clone is consented -- by that answer in the clone it was given in,
+or by this session's record in a clone it already created a worktree in --
+the reason names the way on that needs nobody: split into a worktree and
+work there by path. A switch into another clone is refused naming no split,
+because the creation rows there would put it to a person. The reason names
+no question tool and no token, and no marker is written, because no question
+was put (#896). In the clone the press was given in, the creation
+direction's two sites never run under the press: consent is read first.
 
 Creation consent is a SECOND session-scoped record and deliberately not part
 of that budget: `<git-common-dir>/specseal-worktree-consent/<session-id>`,
@@ -171,11 +191,10 @@ try:
 except (Exception, SystemExit):
     wide = None
 
-# The consent reads' rules, shared with the commit gate (#773, #780): asked
-# only for `without_bodies`, the command with its here-document bodies taken
-# out. Guarded like the import above, because this guard's rows do not need
-# it: where it cannot load, `has_token` finds the bodies with the frozen
-# reader instead.
+# The one consent-token reader, shared with the commit gate (#773, #780,
+# #868): `has_token` is `tokens.given`. Guarded like the import above,
+# because this guard's rows do not need it: where it cannot load, no token is
+# read, which costs a prompt and never a silence.
 try:
     import tokens
 except (Exception, SystemExit):
@@ -184,6 +203,11 @@ except (Exception, SystemExit):
 # The AFTER half of this guard: it owns the consent record, and this file reads
 # it. A plain filename again -- and the reason that file's name carries an
 # underscore where every other gate here carries a hyphen.
+#
+# `hooksession` beside it: which process is a Claude session is one test,
+# `hooksession.is_claude`, shared with the lease writer and the commit gate's
+# lease route (#868).
+import hooksession
 import worktree_consent
 from cmdline_base import apply_chdir, parse_git
 
@@ -229,50 +253,11 @@ def load_input():
         return {}
 
 
-def _tokenize_with_separators(command: str, windows=None):
-    """`cmdline.split_segments_with_separators`, Windows separators carried across.
-
-    Returns `([(operator, tokens), ...], parsed_cleanly)`. The operator is what
-    joined each segment to the one before it, and reading a `cd` needs it: `&&`
-    runs what follows where the `cd` arrived, `||` runs it only if the `cd`
-    failed, which is where the shell already was.
-
-    On Windows `\\` is the path separator, and POSIX-mode shlex reads it as an
-    escape: `git -C C:\\proj\\repo switch topic` tokenizes to `C:projrepo` and
-    the value naming the repository is gone. Doubling the backslashes first
-    hands them back. The one form that comes out still doubled is a
-    single-quoted path, where shlex unescapes nothing, and `apply_chdir`
-    collapses those with `os.path.normpath` -- which is `ntpath` on Windows
-    (measured).
-
-    `windows` is overridable so the branch can be exercised from any platform:
-    the failure it guards is invisible on the machines most sessions run on,
-    and the value it destroys is the one that decides WHICH repository the
-    command acts on.
-
-    A `cd` argument is the same kind of value as a `-C` one, arrives the same
-    way, and goes through this same doubling — which is the whole of what the
-    adapter has to say about it, since both then reach `apply_chdir` and its
-    `normpath`.
-    """
-    # RIDER: a UNC path in SINGLE quotes still loses the repository.
-    # `git -C '\\\\server\\share\\repo' switch x` reaches `apply_chdir` with the
-    # leading pair doubled: the line below doubles every backslash, shlex
-    # unescapes nothing inside single quotes, and `ntpath.normpath` collapses
-    # interior runs but not the leading pair that names the host. The guard
-    # then finds no repository there and exits silently. The base hook handled
-    # this form, so this one place went backwards; every other Windows form
-    # (bare, double-quoted, relative) was compared against base and matches.
-    # Verified 2026-08-31 against _tokenize_with_separators@8801e5d6.
-    #
-    # A `cd` operand goes through this same doubling since that fix, so the
-    # single-quoted UNC form loses the repository there too and the rider now
-    # covers both. Read, not run: there is no Windows runner here.
-    if windows is None:
-        windows = os.name == "nt"
-    if windows:
-        command = command.replace("\\", "\\\\")
-    return cmdline.split_segments_with_separators(command)
+# The tokenizing adapter and the placement live in `hooks/worktree_consent.py`
+# since #868, beside the consent writer that reads the same command, so the
+# directory a creation is filed under is the one this guard judged.
+_tokenize_with_separators = worktree_consent.split_with_separators
+segment_cwd = worktree_consent.segment_cwd
 
 
 def _tokenize(command: str, windows=None):
@@ -395,69 +380,43 @@ def has_token(command: str, token: str) -> bool:
     silent. Shell prose is usually quoted, so the residual is narrow, but it
     is a residual and not a property.
 
-    **No substring fallback for a command that does not parse cleanly**, and
-    that is where this parts company with the commit gate's `has_marker`,
-    which does fall back. The asymmetry above is the reason: reading a marker
-    loosely costs one skipped check the user is being asked about anyway,
-    while reading this token loosely turns the guard off with nobody asked.
+    **No substring fallback for a command that does not parse cleanly**: a
+    quote that never closes ends the read, and nothing inside it is a word.
     Measured: `git worktree add ../wt f && echo "we agreed on [worktree-ok]
-    yesterday` carries the token as a substring and gives no consent.
+    yesterday` carries the token as a substring and gives no consent. Since
+    #868 the commit gate's `has_marker` reads the same way.
 
     **Comments are NOT dropped here**, and that is the one way this read
     differs from the judgment read `split_command` does. A retry token is
     written in a comment on purpose — `git worktree add ../wt f
     # [worktree-ok]` is the documented form — so dropping comments first would
-    throw away the only place the token is ever written.
+    throw away the only place the token is ever written. A parenthesis riding
+    on a word is not part of it, so `(git worktree add ../wt f
+    [worktree-ok])` carries the token: creation is the one verdict in this
+    guard with no `ask` behind it, which turns an unreadable token into a loop
+    with no way out.
 
     **A here-document body is not read** (#780). A token counts only where
     the command as written AND the command with its bodies taken out both
-    carry it, the rule `hooks/tokens.py#given` keeps for the commit gate
-    since #773. A body is text a command only carries, so a
-    `[shared-tree-ok]` written in one passed a switch nobody answered, and a
-    `[worktree-ok]` there lowered the single-stream deny to an ask. The AND
-    is what keeps the second read from finding more than the first: taking a
-    body out can let the splitter finish a command it gave up on, and a
-    token only that read finds is one the command as written never offered.
+    carry it. A body is text a command only carries, so a `[shared-tree-ok]`
+    written in one passed a switch nobody answered, and a `[worktree-ok]`
+    there lowered the single-stream deny to an ask.
+
+    Every one of those rules is `hooks/tokens.py#given`'s, the one reader of
+    a consent token (#868): this guard, the commit gate and the old spelling
+    handed to the git hooks split a command one way. Where `hooks/cmdline.py`
+    cannot load, or the body read raises for any other reason, the frozen
+    reader's `drop_heredoc_bodies` finds the bodies instead, handed to
+    `given` as its fallback: falling back to the command as written would
+    bring #780 back whenever that module is broken, and reading no token at
+    all would leave the single-stream creation deny with no way past (`plan.md`
+    G and H of work item 1791163981). Where `hooks/tokens.py` itself did not
+    load, no token is read, and the cost is the prompt the token would have
+    spared.
     """
-
-    # A closing parenthesis rides on the last word of a segment, so a token
-    # written at the end of `(git worktree add ../wt f [worktree-ok])` arrived
-    # here with a `)` on it and matched nothing. The judgment read strips a
-    # subshell opener, so that command now classifies — and creation is the
-    # one verdict in this guard with no `ask` behind it, which turns an
-    # unreadable token into a loop with no way out rather than one more
-    # prompt. Widening a CONSENT read is the safe direction; the judgment
-    # read is where a stray parenthesis must not decide anything.
-    def carries(text):
-        segments, _clean = _tokenize(text)
-        return any(
-            tok == token or tok.strip("()") == token
-            for toks in segments
-            for tok in toks
-        )
-
-    return carries(command) and carries(_without_bodies(command))
-
-
-def _without_bodies(command: str) -> str:
-    """COMMAND with its here-document bodies taken out and its comments kept,
-    for `has_token`.
-
-    `tokens.without_bodies`, the body reader every consent read shares
-    (#773). It imports `hooks/cmdline.py` when it runs, so where that module
-    cannot load, or where the read raises for any other reason, the frozen
-    reader's `drop_heredoc_bodies` finds the bodies instead, the one
-    `_judgment_text` already uses. Falling back to the command as written
-    would bring #780 back whenever that module is broken, and reading no
-    token at all would leave the single-stream creation deny, which has no
-    `ask` behind it, with no way past (`plan.md` G and H of work item
-    1791163981)."""
-    if tokens is not None:
-        try:
-            return tokens.without_bodies(command)
-        except (Exception, SystemExit):
-            pass
-    return cmdline.drop_heredoc_bodies(command)
+    if tokens is None:
+        return False
+    return token in tokens.given(command, cmdline.drop_heredoc_bodies)
 
 
 # The characters that make ONE segment do something besides run its command
@@ -591,62 +550,6 @@ def only_creates_a_worktree(command: str, cwd: str, windows=None) -> bool:
             return False
         seen = True
     return seen
-
-
-def judgeable(tokens, where: str, cwd: str):
-    """(shell directory, git directory) this segment's verdict is about.
-
-    Two destinations fall back to the session's own directory, which is this
-    guard's answer from before it could read a `cd` at all:
-
-      - one the reader could not compute (a variable, a glob, a subshell);
-      - one that reads cleanly and holds no repository.
-
-    The second was missed, and it is the more common of the two. `cd
-    /no/such/dir ; git switch x` leaves the shell exactly where it started —
-    `;` runs what follows whether the `cd` worked or not — so the switch
-    happens in the session's own tree, which is the tree another session may
-    be sitting in. Judging the destination sent the guard to `if not top:
-    sys.exit(0)` and it said nothing at all.
-
-    The commit gate STOPS on a target like this (`names_a_directory` in
-    `hooks/commit-review-gate.py`) and this guard falls back instead. The two
-    protect different things: a commit nobody judged is a commit nobody
-    reviewed, while a guard that goes silent leaves a shared tree unguarded,
-    and `worktree-guard-spec.md` §Unknowns resolve conservatively puts the
-    cost of a wrong deny at one prompt against a wrong allow breaking another
-    session's tree.
-
-    A `git -C` that names no repository is NOT this case and keeps today's
-    silence: git refuses that command itself, so no tree is touched.
-
-    Which is why the segment's own `-C` is composed BEFORE the fallback is
-    considered, and not after. Deciding first threw the destination away and
-    then resolved a RELATIVE `-C` against the session directory instead:
-    `cd ~/projects && git -C myrepo switch main` turned a real target
-    repository into a path that does not exist, and the guard exited at
-    `if not top` having said nothing. Returning both directories is what lets
-    the caller classify against the tree it is about to judge.
-    """
-    here = cwd if isinstance(where, cmdline.Unresolved) else where
-    target = segment_cwd(tokens, here)
-    if here == cwd or repo_paths(target)[0]:
-        return here, target
-    return cwd, segment_cwd(tokens, cwd)
-
-
-def segment_cwd(tokens, cwd: str) -> str:
-    """`cwd` with this segment's own `git -C` applied, or `cwd` unchanged.
-
-    Takes the token list the walk produced -- the same one `shape_of` read.
-    `main()` asks this for the `-C` target of the segment whose shape it just
-    read, so reading both from one tokenization is what keeps the verdict and
-    the tree it is about in agreement.
-    """
-    parsed = parse_git(tokens)
-    if not parsed:
-        return cwd
-    return apply_chdir(cwd, parsed[2])
 
 
 def ancestors(pid: int):
@@ -1211,7 +1114,9 @@ def sessions_in_tree(top: str, own_session_id: str = ""):
     conservative behaviour.
     """
     # `pgrep -x claude` was observed to silently miss live sessions on macOS,
-    # so enumerate with ps and match the executable basename ourselves.
+    # so enumerate with ps and match the executable basename ourselves, by
+    # the one test the lease writer and the commit gate's lease route use
+    # (`hooksession.is_claude`, #868).
     try:
         r = subprocess.run(
             ["ps", "-axo", "pid=,comm="],
@@ -1225,7 +1130,7 @@ def sessions_in_tree(top: str, own_session_id: str = ""):
             if not line:
                 continue
             num, _, comm = line.partition(" ")
-            if os.path.basename(comm.strip()) == "claude":
+            if hooksession.is_claude(comm):
                 pids.add(int(num))
     except Exception:
         return [], [], False
@@ -1297,7 +1202,18 @@ def fmt_sessions(entries):
     """Per-session line with DISAGGREGATED signals and host app. "마지막 활동
     1분 전" alone proved undiagnosable in practice — the reader could not tell
     a keystroke from an autonomous turn's transcript write, and app guesses
-    made from sibling MCP processes misattributed a VS Code tab to Cursor."""
+    made from sibling MCP processes misattributed a VS Code tab to Cursor.
+
+    Reads: nothing — formats the session entries its caller measured, telling a lease from transcript activity by the mark its caller wrote
+
+    An unidentified entry -- a lease, or transcript activity no process can
+    be pinned on -- prints its kind and its age and stops there. It used to
+    end with a clause saying the session was at work on this tree at that
+    moment, at any age: under the idle header that contradicted the header
+    one line up, a lease 4.7 hours old included, and under the ACTIVE header
+    it restated the header's judgment as if it were a third signal (#896).
+    Which list an entry sits in is the header's to say, every caller prints
+    one, and this function cannot tell which list it was handed."""
     lines = []
     for p, d, tty_idle, tr_idle, app in entries:
         if p is None:
@@ -1309,9 +1225,9 @@ def fmt_sessions(entries):
             lines.append(
                 tr(
                     f"    (unidentified session — extension panel or a session in another cwd)  {d}\n"
-                    f"        {kind} {_age(tr_idle)} — working on this tree right now",
+                    f"        {kind} {_age(tr_idle)}",
                     f"    (프로세스 미확인 세션 — VS Code 확장 패널·다른 cwd 의 세션 등)  {d}\n"
-                    f"        {kind} {_age(tr_idle)} — 지금 이 트리에서 작업 중",
+                    f"        {kind} {_age(tr_idle)}",
                 )
             )
             continue
@@ -1548,9 +1464,24 @@ def already_asked(top: str, session: str, scope: str) -> bool:
 
 
 def choose(
-    top, session_id, scope, situation, question, options, fallback, before_ask=None
+    top,
+    session_id,
+    scope,
+    situation,
+    question,
+    options,
+    fallback,
+    before_ask=None,
+    pressed=False,
+    unattended="",
 ):
     """Deny once and hand the user the two options; ask on every attempt after.
+
+    Reads: observed — whether this session was already asked in this direction, the presence of the marker this guard writes, through `already_asked`; unknown refused
+
+    Every other input is its caller's, the press included. Every path stops
+    the command, a deny or an ask, so a marker it cannot read or write falls
+    to the ask, by `already_asked`'s own rule, and nothing passes.
 
     A hook decision renders as approve/decline, and the model never gets the
     turn — so where declining has TWO destinations the user sees neither and
@@ -1579,7 +1510,23 @@ def choose(
     is what keeps the deny branch intact: the first attempt still puts the
     switch's two options, naming the sessions it found, and only the branch
     that would have let the command through yields.
+
+    **`pressed` is a third verdict, and it is taken before the other two.**
+    Where this session's person pressed `automation` on the routing
+    question, nobody is at the keyboard: the deny's instruction would put a
+    question to them one step removed, and the `ask` after it would put one
+    directly, on every attempt. So the site denies on every attempt with
+    SITUATION and then UNATTENDED, the caller's text naming the way on that
+    needs nobody (#896). It returns before `already_asked`, so no marker is
+    written: the marker records that the question was put, and none was. A
+    session whose person later answers `per axis` in the same clone -- the
+    last answer stands -- then meets the first-attempt deny an attended
+    session meets. `before_ask` is not run, because the deny stops the whole
+    line. Only the switch direction passes it: the creation direction reads
+    consent, the press included, before any of its rows.
     """
+    if pressed:
+        respond("deny", situation.rstrip("\n") + "\n\n" + unattended)
     if session_id and not already_asked(top, session_id, scope):
         lines = [
             situation.rstrip("\n"),
@@ -2114,6 +2061,16 @@ BODY_DEPTH = 32
 # The openers of a substitution, for the text test alone.
 _OPENERS = ("$(", "`", "<(", ">(")
 
+# A word the shell builds before git runs is not read: a brace expansion
+# (`git rebase {main,feature/x}` is `git rebase main feature/x` to git), a
+# substitution that spells `git`, a string handed to a shell by a here-string
+# or a heredoc, a git spelled past the splitter. The guard reads the words the
+# frozen reading splits, and the shell makes this one afterwards. Work item
+# 1791384157 built a brace reader for #856 and took it out in the same
+# release, because every reading of it imitated bash and five review rounds
+# each found the next spelling it missed. The class is the limit
+# `docs/worktree-guard-spec.md` §*Known limits* names, decided in #886.
+
 
 class Finding(tuple):
     """One unrecognised shape: (kind, words, detail).
@@ -2243,10 +2200,13 @@ def _rebase_names_a_branch(args) -> bool:
     takes only spelled whole, and it takes any unambiguous prefix of a long
     option: `--ro` and `--roo` are `--root`, while `--r` is ambiguous and git
     refuses it. `--root` is the one option of `git rebase -h` that changes how
-    many words name a branch, and it is read off the words bash hands git, so
-    `--root>/dev/null` is `--root` too. An option taking a value counts its
-    value as a word, as above (git 2.50.1; #854, round 3 of work item
-    1791270162, yellow 1)."""
+    many words name a branch, and it is read off the words once their
+    redirections are off (`_plain_words`), so `--root>/dev/null` is `--root`
+    too. Those are the words bash hands git except where the shell builds a
+    word first (`--ro{,}` is `--ro --ro` to bash), which the guard does not
+    read: the limit named above `Finding` (#856, #886). An option taking a
+    value counts its value as a word, as above (git 2.50.1;
+    #854, round 3 of work item 1791270162, yellow 1)."""
     words = _plain_words(args)
     end = next(
         (i for i, w in enumerate(words) if w in ("--", "--end-of-options")),
@@ -2488,11 +2448,12 @@ def _first_finding_in(body, depth):
     return None
 
 
-def _finding_tree(tokens, where, cwd):
+def _finding_tree(tokens, wheres, cwd):
     """The directory an unrecognised shape's verdict is about.
 
-    `judgeable`'s, which composes the segment's own `-C` as the frozen
-    reading reads it. A git only the wider reader reads (`2>/dev/null git -C
+    `worktree_consent.place`'s, which places the segment at the first of the
+    frozen walk's directories WHERES and composes the segment's own `-C` as
+    the frozen reading reads it. A git only the wider reader reads (`2>/dev/null git -C
     W switch x`) carries a `-C` the frozen reading cannot see, so the wider
     reading's is composed the same way: the shape is judged in `W`, where it
     runs, not in the tree it was typed from. A body or an untokenizable
@@ -2503,7 +2464,7 @@ def _finding_tree(tokens, where, cwd):
     §*Known limits*; round 1 of work item 1791270162, yellow 5)."""
     if tokens is None:
         return cwd
-    here, target = judgeable(tokens, where, cwd)
+    here, target = worktree_consent.place(tokens, wheres, cwd)
     if parse_git(tokens) is None and wide is not None:
         try:
             parsed = _wide_git(tokens)
@@ -2892,6 +2853,18 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
 
 
 def main():
+    """Judge one tool call from the hook payload on stdin.
+
+    Reads: guess — the command text the model wrote, split by the frozen reading into git shapes, beside the tree's git state, its sessions and the press in this session's transcript; unknown mixed
+
+    The command is text this guard does not control, and a unit reading
+    several inputs takes the class of its weakest. An unknown shape stops
+    where the tree it names matters and is silent in a clean tree nobody else
+    is in (`docs/worktree-guard-spec.md` §A, *Which commands reach these
+    rows*), and a word the shell builds after this guard reads the command is
+    not read at all (§*Known limits*), so unknown input is refused in one
+    place and passed in another.
+    """
     data = load_input()
     tool = data.get("tool_name", "")
     cwd = data.get("cwd") or os.getcwd()
@@ -2995,27 +2968,26 @@ def main():
         shape, finding = _segment_finding(tokens)
         if shape not in ("switch", "creation") and finding is None:
             continue
-        where = wheres[0] if wheres else cwd
+        # Placed by `worktree_consent.place`, the one placement the consent
+        # writer files a creation by (#868).
         if shape == "switch":
             if switch_at is None:
-                switch_at = judgeable(tokens, where, cwd)[1]
+                switch_at = worktree_consent.place(tokens, wheres, cwd)[1]
         elif shape == "creation":
             if creation_at is None:
-                creation_at = judgeable(tokens, where, cwd)[1]
+                creation_at = worktree_consent.place(tokens, wheres, cwd)[1]
         else:
-            unrecognised.append((index, finding, tokens, where))
+            unrecognised.append((index, finding, tokens, wheres))
     # A cut group is placed by its own words, from the directory its first
     # part runs in (`_merged_findings`).
     for first, finding, tokens in _merged_findings(items):
-        wheres = walked[first][1]
-        unrecognised.append((first, finding, tokens, wheres[0] if wheres else cwd))
+        unrecognised.append((first, finding, tokens, walked[first][1]))
     # A substitution body and an untokenizable command belong to no one
     # segment, so they are judged in the session's own tree: the fallback
     # #686 gives a directory the walk cannot place, and the stand-in the
     # commit gate judges a body's commit against (`_unresolved_base`).
     unrecognised += [
-        (len(walked), finding, None, cwd)
-        for finding in _command_findings(judged, clean)
+        (len(walked), finding, None, ()) for finding in _command_findings(judged, clean)
     ]
     unrecognised.sort(key=lambda found: found[0])
 
@@ -3037,8 +3009,8 @@ def main():
     seen = {}
     placed = set()
     trees = []
-    for _index, _found, tokens, where in unrecognised:
-        at = _finding_tree(tokens, where, cwd)
+    for _index, _found, tokens, wheres in unrecognised:
+        at = _finding_tree(tokens, wheres, cwd)
         if at in placed:
             continue
         placed.add(at)
@@ -3087,7 +3059,7 @@ def main():
     # on the machine.
     if not top:
         # The guard's OTHER silent exit, and it hides the same escape as the
-        # one at the end of the switch ladder. `judgeable` already falls back
+        # one at the end of the switch ladder. `worktree_consent.place` falls back
         # to the session's own directory, so `top` is empty only when the
         # SHELL is outside any repository -- and a `git -C <repo> worktree
         # add` later in the same command is not. Executed: with the shell in
@@ -3118,22 +3090,126 @@ def main():
     # over the dirty-tree question (which asks something else entirely).
     shared_ok = has_token(command, "[shared-tree-ok]")
 
-    steer = tr(
+    # The split, as commands. Shared by the steer every attended row hands
+    # back and by the deny rows 1-b and 2 give under the press, which name it
+    # as the one way on that needs nobody.
+    split = tr(
         f"  # check an existing branch out into a worktree\n"
         f"  {git} worktree add {wt_root}/<branch> <branch>\n\n"
         f"  # or create a new branch off the latest origin/main\n"
         f"  {git} fetch origin\n"
-        f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n\n"
-        "Then work in that folder from a separate Claude Code session. "
-        "`git worktree list` shows worktrees.",
+        f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n\n",
         f"  # 기존 브랜치를 worktree로 꺼내기\n"
         f"  {git} worktree add {wt_root}/<branch> <branch>\n\n"
         f"  # 새 브랜치를 최신 origin/main 기준으로 생성 (저장소 정책)\n"
         f"  {git} fetch origin\n"
-        f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n\n"
+        f"  {git} worktree add {wt_root}/<name> -b <branch> origin/main\n\n",
+    )
+    steer = split + tr(
+        "Then work in that folder from a separate Claude Code session. "
+        "`git worktree list` shows worktrees.",
         "그런 다음 그 폴더에서 별도의 Claude Code 세션으로 작업하세요. "
         "worktree 목록은 `git worktree list`.",
     )
+
+    # What rows 1-b and 2 say after their situation where this session's
+    # person pressed `automation` (#896). Nobody is at the keyboard to pick
+    # between the two options, and the model may not pick the shared tree in
+    # their place: that is the call those rows exist to hand a person, and
+    # the token that carries it is written by whoever issues the command
+    # (`docs/worktree-guard-spec.md` §*Choice sites*), so it is not named.
+    # The split needs nobody where its creation is consented: the press is
+    # consent in the clone it was given in, read before every creation row
+    # there, so the plain `git worktree add` passes, and a session works in
+    # the new tree by path, as this repository's own automation runs do. A
+    # worktree already on the branch is named too, because on Windows every
+    # switch is row 2, a linked worktree's included.
+    #
+    # These rows read the press from the session's own root, while the
+    # creation ladder reads consent in the creation's own clone
+    # (`worktree_consent.automation_answered`, condition 4), or from this
+    # session's record there (`worktree_consent.granted`). So the split is
+    # named only where one of those holds for the switch's tree; a switch
+    # into another clone is refused naming none, because §B's choice rows
+    # would put that split to a person (round 1 of work item 1791781864).
+    # Neither check reads the transcript.
+    press = tr(
+        "This session's person pressed `automation` on the routing "
+        "question, so this guard puts no question to them, and none is to "
+        "be put to them in its place.\n\n",
+        "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+        "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 "
+        "물어서도 안 됩니다.\n\n",
+    )
+    reissue = tr(
+        "Re-issuing this command unchanged meets this same refusal.",
+        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
+    )
+
+    def unattended_text():
+        own = worktree_consent._clone_of(repo_paths(cwd)[0])
+        # Which consent names the split decides the sentence that says why it
+        # passes: the press consents only in the clone it was given in, and
+        # this session's record only in the clone it was written in.
+        here = bool(own) and own == worktree_consent._clone_of(top)
+        if here or worktree_consent.granted(top, session_id):
+            why = (
+                tr(
+                    "That answer already consents to creating one, so these "
+                    "commands pass as written:\n\n",
+                    "그 답이 worktree 생성에 이미 동의했으므로, 아래 명령은 쓰인 그대로 "
+                    "통과합니다.\n\n",
+                )
+                if here
+                else tr(
+                    "This session already created a worktree in this clone, and "
+                    "that creation consents to the next one here, so these "
+                    "commands pass as written:\n\n",
+                    "이 세션은 이 클론에서 이미 worktree 를 만들었고 그 생성이 이 "
+                    "클론의 다음 생성에도 동의하므로, 아래 명령은 쓰인 그대로 "
+                    "통과합니다.\n\n",
+                )
+            )
+            return (
+                press
+                + tr(
+                    "The way on that needs nobody is to split into a worktree. ",
+                    "사람이 없어도 되는 길은 worktree 로 분리하는 것입니다. ",
+                )
+                + why
+                + split
+                + tr(
+                    "Then work in that tree by path from this session: `git -C` "
+                    f"with the path the creation named, `{wt_root}/<branch>` or "
+                    f"`{wt_root}/<name>`, for git, and an absolute path for every "
+                    "edit. A branch already checked out in a worktree needs no "
+                    "switch: work in that worktree.\n\n",
+                    "그런 다음 이 세션에서 그 트리를 경로로 지정해 작업하세요. git 은 "
+                    f"생성할 때 쓴 경로(`{wt_root}/<branch>` 또는 `{wt_root}/<name>`)를 "
+                    "`git -C` 로 지정하고, 파일 편집은 절대 경로로 합니다. 이미 어느 "
+                    "worktree 에 체크아웃된 브랜치라면 전환할 필요 없이 그 worktree "
+                    "에서 작업하세요.\n\n",
+                )
+                + reissue
+            )
+        return (
+            press
+            + tr(
+                "That answer was read in this session's own clone, and it "
+                "consents to creating a worktree only in a clone it was given "
+                "in. This tree is in another clone, where this session has "
+                "created no worktree, so a split of it may be put to a person, "
+                "and this guard names no way on here. Leave this switch to a "
+                "session working in the clone this tree is in.\n\n",
+                "그 답은 이 세션의 클론에서 읽은 것이고, 답을 받은 클론에서만 "
+                "worktree 생성에 동의합니다. 이 트리는 다른 클론에 있고 이 세션은 그 "
+                "클론에서 worktree 를 만든 적이 없으므로, 이 트리를 분리하면 사람에게 "
+                "물을 수 있습니다. 그래서 이 guard 는 여기서 갈 길을 알려 주지 "
+                "않습니다. 이 전환은 이 트리가 있는 클론에서 작업하는 세션에 "
+                "맡기세요.\n\n",
+            )
+            + reissue
+        )
 
     switch_or_split = (
         (
@@ -3207,6 +3283,10 @@ def main():
 
     # 1-b) 살아 있으나 입력이 끊긴 세션뿐 -> 잊힌 탭일 공산. 차단 대신 사용자 판단.
     if idle and not shared_ok:
+        # Read here and in row 2 only, and `choose` ends the command either
+        # way, so a switch reads the transcript once at most (W2 of work item
+        # 1791781864). The session's own root, as the stop's reading is.
+        pressed = automation_pressed(repo_paths(cwd)[0], session_id, transcript_path)
         choose(
             top,
             session_id,
@@ -3244,12 +3324,15 @@ def main():
             )
             + steer,
             before_ask=judge_the_creation,
+            pressed=pressed,
+            unattended=unattended_text() if pressed else "",
         )
 
     # 2) 세션 감지 자체가 불가능하면 사용자에게 확인. deny 였으나 확장 호스트처럼
     #    조상 프로세스가 `claude` 로 보이지 않는 환경에서 모든 전환이 막혔다 —
     #    판정 불가의 비용은 사용자가 한 번 확인하는 것으로 충분하다.
     if not reliable and not shared_ok:
+        pressed = automation_pressed(repo_paths(cwd)[0], session_id, transcript_path)
         choose(
             top,
             session_id,
@@ -3281,6 +3364,8 @@ def main():
             )
             + steer,
             before_ask=judge_the_creation,
+            pressed=pressed,
+            unattended=unattended_text() if pressed else "",
         )
 
     # A creation later in the same command has not been judged yet, and this is
@@ -3296,6 +3381,9 @@ def main():
     # so reaching this line at all was a property of the FIRST attempt. Those
     # two hand their fallback `judge_the_creation` above, which is why they
     # still keep their deny and no longer keep the creation from being judged.
+    # Under the `automation` press they deny on every attempt instead (#896),
+    # which stops a creation on the line with the switch, so neither of them
+    # reaches here or calls `judge_the_creation` there.
     # `choose`'s docstring holds the measurement; this line is what the two
     # rows below, and a session that never met either `choose`, still reach.
     #
@@ -3366,6 +3454,64 @@ def main():
                 "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
             )
         )
+        # Two readers, as the unrecognised-shape stop has (#894). Where this
+        # session's person pressed `automation`, nobody is at the keyboard to
+        # answer the yes/no below. So the model gets the turn: a `deny` that
+        # states what this guard read -- the changes, the press -- and what
+        # this guard is: it stops a switch while they are present, `git
+        # commit` and `git stash` are listed shapes that pass it alone, and a
+        # line holding both a stash and a switch meets this same row, because
+        # the tree is read before the line runs. It says nothing about what
+        # git does for any switch form. Three review rounds each found the
+        # next form a per-form recipe got wrong, and nothing this guard reads
+        # tells a right case from a wrong one, so the text is one string for
+        # every form (the reframe after round 3; S12 pins it). The press is
+        # read by the reader the stop uses, from the session's own root, and
+        # only here: the stop exits before the ladder whenever it fires, so
+        # one command never reads the transcript twice (W2 of work item
+        # 1791779434).
+        if automation_pressed(repo_paths(cwd)[0], session_id, transcript_path):
+            respond(
+                "deny",
+                tr(
+                    f"{lead}, so no other row of this guard stops the switch, "
+                    f"but {len(entries)} uncommitted tracked changes are "
+                    f"present:\n{listing}\n{note}\n"
+                    "This session's person pressed `automation` on the routing "
+                    "question, so this guard puts no question to them, and none "
+                    "is to be put to them in its place.\n\n"
+                    "This row of the guard stops a branch switch while "
+                    "uncommitted tracked changes are present, and says nothing "
+                    "of a switch once none are.\n\n"
+                    "The ways on, none of which needs a person. Issue each "
+                    "command on its own: this guard reads the tree before a "
+                    f"command runs, so `{git} stash && {git} switch <branch>` on "
+                    f"one line meets this same refusal. `{git} commit` and "
+                    f"`{git} stash` are on this guard's list of commands that "
+                    "leave the branch where it is, so each passes it when "
+                    "issued alone. Which of them fits this switch, and what to "
+                    "run after it, is yours to decide.\n\n"
+                    "Re-issuing this command unchanged meets this same refusal.",
+                    f"{lead} 이 guard 의 다른 규칙은 이 전환을 막지 않지만, "
+                    f"커밋되지 않은 추적 파일 변경이 {len(entries)}건 "
+                    f"있습니다:\n{listing}\n{note}\n"
+                    "이 세션의 사용자가 라우팅 질문에서 `automation` 을 "
+                    "눌렀습니다. 그래서 이 guard 는 사용자에게 아무것도 묻지 "
+                    "않으며, 다른 방법으로 대신 물어서도 안 됩니다.\n\n"
+                    "이 guard 의 이 규칙은 커밋되지 않은 추적 파일 변경이 있는 "
+                    "동안 브랜치 전환을 막고, 변경이 없으면 전환에 대해 아무 "
+                    "말도 하지 않습니다.\n\n"
+                    "사람이 없어도 되는 길은 아래와 같습니다. 명령은 하나씩 따로 "
+                    "실행하세요. 이 guard 는 명령이 실행되기 전에 트리를 "
+                    f"읽으므로, `{git} stash && {git} switch <branch>` 처럼 한 "
+                    f"줄에 쓰면 같은 거부를 받습니다. `{git} commit` 과 "
+                    f"`{git} stash` 는 이 guard 가 브랜치를 그대로 두는 명령으로 "
+                    "꼽는 목록에 있어, 따로 실행하면 이 guard 를 통과합니다. 이 "
+                    "전환에 어느 쪽이 맞는지, 그 뒤에 무엇을 실행할지는 직접 "
+                    "정하세요.\n\n"
+                    "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
+                ),
+            )
         respond(
             "ask",
             (

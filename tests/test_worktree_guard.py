@@ -9,7 +9,7 @@ import json
 import os
 
 import pytest
-from conftest import load_hook_module
+from conftest import load_hook_module, shell_probe
 
 wg = load_hook_module("worktree-guard.py", "wg")
 
@@ -142,6 +142,232 @@ def test_switch_active_session_denies(monkeypatch, capsys, repo):
     assert "VS Code" in reason  # host app attribution shown
 
 
+# S5 of work item 1791781864: the switch ladder's two choice rows as
+# `c38f97d7` printed them for IDLE and for detection unusable, attempt 1 and
+# attempt 2, in both languages. Without the `automation` press they move
+# nowhere; `tests/test_the_idle_session_rows_ask_nobody.py` holds the press.
+ATTENDED_CHOICE = {
+    ("en", "idle", 1): (
+        "deny",
+        (
+            "Other Claude sessions may exist in this tree, but none of them "
+            "can be shown to be working: no input or transcript for "
+            "{idle_min}+ minutes, or a lease whose owning session cannot be "
+            "identified.\n"
+            "    pid 222 (Terminal terminal)  /tree\n"
+            "        terminal in/out 6.7h ago · transcript activity 1.5h ago\n"
+            "\n"
+            "Do not choose for the user. Ask with the AskUserQuestion tool, "
+            "offering exactly these two options:\n"
+            "\n"
+            "  No session here can be shown to be working — switch in this "
+            "shared tree, or split into a worktree?\n"
+            '    1. "Switch in this shared tree" — right when those are '
+            "forgotten tabs or sessions that have already ended. Re-issue the "
+            "SAME command with the token appended (`… # [shared-tree-ok]`); it "
+            "carries this answer, so the switch goes straight through.\n"
+            '    2. "Split into a worktree" — keeps the branch of a session '
+            "that IS still working. Run `git worktree add {wt_root}/<branch> "
+            "<branch>  # [worktree-ok]` for a branch that already exists, or "
+            "`git worktree add {wt_root}/<name> -b <branch> origin/main  # "
+            "[worktree-ok]` for a new one, then work there from a separate "
+            "session. The token carries this answer, so creating it is "
+            "confirmed rather than questioned again.\n"
+            "\n"
+            "Then run what they picked. Re-issuing this command before they "
+            "answer reaches the ordinary confirmation prompt instead."
+        ),
+    ),
+    ("en", "idle", 2): (
+        "ask",
+        (
+            "Other Claude sessions may exist in this tree, but none of them "
+            "can be shown to be working: no input or transcript for "
+            "{idle_min}+ minutes, or a lease whose owning session cannot be "
+            "identified.\n"
+            "    pid 222 (Terminal terminal)  /tree\n"
+            "        terminal in/out 6.7h ago · transcript activity 1.5h ago\n"
+            "\n"
+            "Your call:\n"
+            "  · Approve — switch branches in this shared tree (right when "
+            "those are forgotten tabs or sessions that have already ended).\n"
+            "  · Deny — the switch is cancelled; split into a worktree instead "
+            "so a session that IS still working keeps its branch:\n"
+            "\n"
+            "  # check an existing branch out into a worktree\n"
+            "  git worktree add {wt_root}/<branch> <branch>\n"
+            "\n"
+            "  # or create a new branch off the latest origin/main\n"
+            "  git fetch origin\n"
+            "  git worktree add {wt_root}/<name> -b <branch> origin/main\n"
+            "\n"
+            "Then work in that folder from a separate Claude Code session. "
+            "`git worktree list` shows worktrees."
+        ),
+    ),
+    ("en", "unusable", 1): (
+        "deny",
+        (
+            "Cannot determine whether other sessions are working in this tree "
+            "(process inspection unavailable in this environment).\n"
+            "\n"
+            "Do not choose for the user. Ask with the AskUserQuestion tool, "
+            "offering exactly these two options:\n"
+            "\n"
+            "  No verdict is possible here — switch in this shared tree, or "
+            "split into a worktree?\n"
+            '    1. "Switch in this shared tree" — right when those are '
+            "forgotten tabs or sessions that have already ended. Re-issue the "
+            "SAME command with the token appended (`… # [shared-tree-ok]`); it "
+            "carries this answer, so the switch goes straight through.\n"
+            '    2. "Split into a worktree" — keeps the branch of a session '
+            "that IS still working. Run `git worktree add {wt_root}/<branch> "
+            "<branch>  # [worktree-ok]` for a branch that already exists, or "
+            "`git worktree add {wt_root}/<name> -b <branch> origin/main  # "
+            "[worktree-ok]` for a new one, then work there from a separate "
+            "session. The token carries this answer, so creating it is "
+            "confirmed rather than questioned again.\n"
+            "\n"
+            "Then run what they picked. Re-issuing this command before they "
+            "answer reaches the ordinary confirmation prompt instead."
+        ),
+    ),
+    ("en", "unusable", 2): (
+        "ask",
+        (
+            "Cannot determine whether other sessions are working in this tree "
+            "(process inspection unavailable in this environment).\n"
+            "Your call:\n"
+            "  · Approve — switch branches in this shared tree (safe when no "
+            "other session is active here).\n"
+            "  · Deny — the switch is cancelled; split into a worktree instead "
+            "so any concurrent session keeps its branch:\n"
+            "\n"
+            "  # check an existing branch out into a worktree\n"
+            "  git worktree add {wt_root}/<branch> <branch>\n"
+            "\n"
+            "  # or create a new branch off the latest origin/main\n"
+            "  git fetch origin\n"
+            "  git worktree add {wt_root}/<name> -b <branch> origin/main\n"
+            "\n"
+            "Then work in that folder from a separate Claude Code session. "
+            "`git worktree list` shows worktrees."
+        ),
+    ),
+    ("ko", "idle", 1): (
+        "deny",
+        (
+            "이 트리에 다른 Claude 세션이 있을 수 있으나, 작업 중임을 확인할 수 "
+            "있는 것은 없습니다 — {idle_min}분 이상 활동(키 입력·작업 기록)이 "
+            "없거나, lease 를 남긴 세션이 누구인지 확인되지 않습니다.\n"
+            "    pid 222 (Terminal 터미널)  /tree\n"
+            "        터미널 입력/출력 6.7시간 전 · 작업 기록(트랜스크립트) 1.5시간 전\n"
+            "\n"
+            "사용자 대신 고르지 마세요. AskUserQuestion 툴로 아래 두 선택지를 "
+            "그대로 물어보세요:\n"
+            "\n"
+            "  작업 중임이 확인되는 세션이 없습니다 — 이 공용 트리에서 전환할까요, "
+            "worktree 로 분리할까요?\n"
+            '    1. "이 공용 트리에서 전환한다" — 잊힌 탭이거나 이미 끝난 세션이면 '
+            "이쪽이 맞습니다. 같은 명령 뒤에 토큰을 붙여(`… # [shared-tree-ok]`) "
+            "다시 실행하세요. 이 토큰이 지금 고른 답을 담고 있어 전환이 그대로 "
+            "통과합니다.\n"
+            '    2. "worktree 로 분리한다" — 아직 작업 중인 세션의 브랜치를 '
+            "보존합니다. 이미 있는 브랜치면 `git worktree add {wt_root}/<branch> "
+            "<branch>  # [worktree-ok]`, 새로 만들 브랜치면 `git worktree add "
+            "{wt_root}/<name> -b <branch> origin/main  # [worktree-ok]` 를 "
+            "실행하고, 그 폴더에서 별도 세션으로 작업하세요. 이 토큰이 지금 고른 "
+            "답을 담고 있어 생성할 때 다시 묻지 않고 확인만 받습니다.\n"
+            "\n"
+            "고른 쪽을 실행하세요. 답을 받기 전에 같은 명령을 다시 내면 일반 "
+            "확인창이 뜹니다."
+        ),
+    ),
+    ("ko", "idle", 2): (
+        "ask",
+        (
+            "이 트리에 다른 Claude 세션이 있을 수 있으나, 작업 중임을 확인할 수 "
+            "있는 것은 없습니다 — {idle_min}분 이상 활동(키 입력·작업 기록)이 "
+            "없거나, lease 를 남긴 세션이 누구인지 확인되지 않습니다.\n"
+            "    pid 222 (Terminal 터미널)  /tree\n"
+            "        터미널 입력/출력 6.7시간 전 · 작업 기록(트랜스크립트) 1.5시간 전\n"
+            "\n"
+            "선택해 주세요:\n"
+            "  · 승인 — 이 공용 트리에서 그대로 브랜치를 전환합니다(잊힌 탭이거나 "
+            "이미 끝난 세션이면 이쪽이 맞습니다).\n"
+            "  · 거부 — 전환을 취소하고 worktree 로 분리해, 아직 작업 중인 세션의 "
+            "브랜치를 보존합니다:\n"
+            "\n"
+            "  # 기존 브랜치를 worktree로 꺼내기\n"
+            "  git worktree add {wt_root}/<branch> <branch>\n"
+            "\n"
+            "  # 새 브랜치를 최신 origin/main 기준으로 생성 (저장소 정책)\n"
+            "  git fetch origin\n"
+            "  git worktree add {wt_root}/<name> -b <branch> origin/main\n"
+            "\n"
+            "그런 다음 그 폴더에서 별도의 Claude Code 세션으로 작업하세요. "
+            "worktree 목록은 `git worktree list`."
+        ),
+    ),
+    ("ko", "unusable", 1): (
+        "deny",
+        (
+            "이 트리에서 다른 세션이 작업 중인지 확인할 수 없습니다(이 환경에서는 "
+            "프로세스 조회가 불가능합니다).\n"
+            "\n"
+            "사용자 대신 고르지 마세요. AskUserQuestion 툴로 아래 두 선택지를 "
+            "그대로 물어보세요:\n"
+            "\n"
+            "  여기서는 자동 판정이 불가능합니다 — 이 공용 트리에서 전환할까요, "
+            "worktree 로 분리할까요?\n"
+            '    1. "이 공용 트리에서 전환한다" — 잊힌 탭이거나 이미 끝난 세션이면 '
+            "이쪽이 맞습니다. 같은 명령 뒤에 토큰을 붙여(`… # [shared-tree-ok]`) "
+            "다시 실행하세요. 이 토큰이 지금 고른 답을 담고 있어 전환이 그대로 "
+            "통과합니다.\n"
+            '    2. "worktree 로 분리한다" — 아직 작업 중인 세션의 브랜치를 '
+            "보존합니다. 이미 있는 브랜치면 `git worktree add {wt_root}/<branch> "
+            "<branch>  # [worktree-ok]`, 새로 만들 브랜치면 `git worktree add "
+            "{wt_root}/<name> -b <branch> origin/main  # [worktree-ok]` 를 "
+            "실행하고, 그 폴더에서 별도 세션으로 작업하세요. 이 토큰이 지금 고른 "
+            "답을 담고 있어 생성할 때 다시 묻지 않고 확인만 받습니다.\n"
+            "\n"
+            "고른 쪽을 실행하세요. 답을 받기 전에 같은 명령을 다시 내면 일반 "
+            "확인창이 뜹니다."
+        ),
+    ),
+    ("ko", "unusable", 2): (
+        "ask",
+        (
+            "이 트리에서 다른 세션이 작업 중인지 확인할 수 없습니다(이 환경에서는 "
+            "프로세스 조회가 불가능합니다).\n"
+            "선택해 주세요:\n"
+            "  · 승인 — 이 공용 트리에서 그대로 브랜치를 전환합니다(다른 활성 "
+            "세션이 없다면 안전합니다).\n"
+            "  · 거부 — 전환을 취소하고 worktree 로 분리해, 동시 세션의 브랜치를 "
+            "보존합니다:\n"
+            "\n"
+            "  # 기존 브랜치를 worktree로 꺼내기\n"
+            "  git worktree add {wt_root}/<branch> <branch>\n"
+            "\n"
+            "  # 새 브랜치를 최신 origin/main 기준으로 생성 (저장소 정책)\n"
+            "  git fetch origin\n"
+            "  git worktree add {wt_root}/<name> -b <branch> origin/main\n"
+            "\n"
+            "그런 다음 그 폴더에서 별도의 Claude Code 세션으로 작업하세요. "
+            "worktree 목록은 `git worktree list`."
+        ),
+    ),
+}
+
+
+def attended(module, lang, state, attempt, repo):
+    """(decision, reason) as `c38f97d7` gave it for a switch in REPO."""
+    decision, text = ATTENDED_CHOICE[lang, state, attempt]
+    return decision, text.format(
+        idle_min=module.IDLE_MIN, wt_root=module.repo_paths(str(repo))[1]
+    )
+
+
 def test_switch_idle_sessions_offer_both_ways_on(monkeypatch, capsys, repo):
     decision, reason = decide(
         monkeypatch, capsys, repo, "git switch feature/x", sessions=([], IDLE, True)
@@ -150,6 +376,112 @@ def test_switch_idle_sessions_offer_both_ways_on(monkeypatch, capsys, repo):
     assert "terminal in/out" in reason  # disaggregated signals, English default
     assert "AskUserQuestion" in reason
     assert "[shared-tree-ok]" in reason and "worktree" in reason
+    assert (decision, reason) == attended(wg, "en", "idle", 1, repo)  # S5
+
+
+# --- #896 In 1: an unidentified session's line states what was measured ----
+#
+# Work item 1791781864. The measured entry: a lease alive, quiet past
+# IDLE_MIN, and no pid the process scan reported, which `fresh_leases` puts in
+# its unattributable list at 282 minutes old. Beside it, the active list's
+# unidentified kind: fresh transcript activity no process can be pinned on.
+LEASED = (
+    None,
+    "/Users/x/work/feature  [lease: 5924d73a… pid 87946 alive, quiet]",
+    None,
+    282.0,
+    None,
+)
+WRITING = (None, "/Users/x/work/feature", None, 1.0, None)
+CLAUSES = ("working on this tree right now", "지금 이 트리에서 작업 중")
+MEASURED = {
+    "en": {
+        LEASED: "        lease declaration 4.7h ago",
+        WRITING: "        transcript activity 1m ago",
+    },
+    "ko": {
+        LEASED: "        lease 선언 4.7시간 전",
+        WRITING: "        작업 기록(트랜스크립트) 1분 전",
+    },
+}
+
+
+def said(module, monkeypatch, capsys, repo, command, sessions, session_id):
+    """`main()`'s decision and reason, for MODULE loaded in either language."""
+    monkeypatch.setattr(module, "sessions_in_tree", lambda top, own="": sessions)
+    monkeypatch.setattr(
+        module,
+        "load_input",
+        lambda: {
+            "tool_name": "Bash",
+            "session_id": session_id,
+            "tool_input": {"command": command},
+            "cwd": str(repo),
+        },
+    )
+    try:
+        module.main()
+    except SystemExit:
+        pass
+    d = json.loads(capsys.readouterr().out)["hookSpecificOutput"]
+    return d["permissionDecision"], d["permissionDecisionReason"]
+
+
+def test_an_unidentified_sessions_line_prints_its_kind_and_age(
+    monkeypatch, capsys, repo
+):
+    """S1. The line is the measurement and stops there: the kind and the age,
+    both languages, under the idle header and under the ACTIVE one. Seen red
+    at `c38f97d7`: each line ended with the clause."""
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_896_s1_ko")
+    for lang, module in (("en", wg), ("ko", wko)):
+        for entry, sessions in (
+            (LEASED, ([], [LEASED], True)),
+            (WRITING, ([WRITING], [], True)),
+        ):
+            decision, reason = said(
+                module,
+                monkeypatch,
+                capsys,
+                repo,
+                "git switch feature/x",
+                sessions,
+                f"s1-{lang}-{entry[3]}",
+            )
+            assert decision == "deny", (lang, reason)
+            assert MEASURED[lang][entry] in reason.splitlines(), (lang, reason)
+            assert not any(clause in reason for clause in CLAUSES), (lang, reason)
+
+
+def test_no_site_says_an_unidentified_session_is_working_now(monkeypatch, capsys, repo):
+    """S2. One function prints the line at six sites, and the clause is gone
+    from the function, so from every one of them: the creation ladder's
+    ACTIVE and only-idle rows, the stop's busy and idle descriptions, and the
+    switch ladder's ACTIVE row and row 1-b. Each site is shown printing the
+    entry, so a site that printed nothing could not pass. Seen red at
+    `c38f97d7`: every site carried the clause, and the source held both."""
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_896_s2_ko")
+    busy, idle = ([WRITING], [], True), ([], [LEASED], True)
+    sites = (
+        ("git worktree add ../wt f", busy, WRITING),
+        ("git worktree add ../wt f", idle, LEASED),
+        ("git checkout feature/x", busy, WRITING),
+        ("git checkout feature/x", idle, LEASED),
+        ("git switch feature/x", busy, WRITING),
+        ("git switch feature/x", idle, LEASED),
+    )
+    for lang, module in (("en", wg), ("ko", wko)):
+        for n, (command, sessions, entry) in enumerate(sites):
+            _, reason = said(
+                module, monkeypatch, capsys, repo, command, sessions, f"s2-{lang}-{n}"
+            )
+            assert MEASURED[lang][entry] in reason.splitlines(), (lang, n, reason)
+            assert not any(clause in reason for clause in CLAUSES), (lang, n, reason)
+    with open(wg.__file__, encoding="utf-8") as f:
+        source = f.read()
+    assert not any(clause in source for clause in CLAUSES)
 
 
 def test_the_second_attempt_gets_the_plain_prompt(monkeypatch, capsys, repo):
@@ -166,6 +498,7 @@ def test_the_second_attempt_gets_the_plain_prompt(monkeypatch, capsys, repo):
     )
     assert decision == "ask"
     assert "Approve" in reason and "Deny" in reason
+    assert (decision, reason) == attended(wg, "en", "idle", 2, repo)  # S5
 
 
 def test_a_second_session_is_offered_the_choice_too(monkeypatch, capsys, repo):
@@ -501,12 +834,31 @@ def test_switch_unreliable_detection_offers_both_ways_on(monkeypatch, capsys, re
         monkeypatch, capsys, repo, "git switch feature/x", sessions=([], [], False)
     )
     assert decision == "deny" and "AskUserQuestion" in reason
-    assert (
-        decide(
-            monkeypatch, capsys, repo, "git switch feature/x", sessions=([], [], False)
-        )[0]
-        == "ask"
+    assert (decision, reason) == attended(wg, "en", "unusable", 1, repo)  # S5
+    again = decide(
+        monkeypatch, capsys, repo, "git switch feature/x", sessions=([], [], False)
     )
+    assert again[0] == "ask"
+    assert again == attended(wg, "en", "unusable", 2, repo)  # S5
+
+
+def test_the_attended_choice_rows_are_the_bases_in_korean(monkeypatch, capsys, repo):
+    """S5 of work item 1791781864, the Korean half: both rows, both attempts,
+    as `c38f97d7` printed them, with no `automation` press anywhere."""
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_896_s5_ko")
+    for state, sessions in (("idle", ([], IDLE, True)), ("unusable", ([], [], False))):
+        for attempt in (1, 2):
+            got = said(
+                wko,
+                monkeypatch,
+                capsys,
+                repo,
+                "git switch feature/x",
+                sessions,
+                f"s5-{state}",
+            )
+            assert got == attended(wko, "ko", state, attempt, repo), (state, got)
 
 
 def test_worktree_add_single_denies(monkeypatch, capsys, repo):
@@ -725,11 +1077,10 @@ def test_the_unbalanced_quote_note_is_read_from_the_command_as_written(
 def test_consent_is_not_read_out_of_a_command_that_did_not_parse(
     monkeypatch, capsys, repo
 ):
-    """The commit gate falls back to a SUBSTRING test when a command does not
-    parse cleanly (`has_marker`), and this guard must not inherit it. Reading
-    `[no-review]` loosely skips one check the user is being asked about
-    anyway; reading `[shared-tree-ok]` loosely turns this guard off with
-    nobody asked — the regression two review rounds went into closing."""
+    """A token inside a quote that never closes is prose, and no consent
+    read takes it: `hooks/tokens.py#given` reads nothing from where a split
+    fails (#868). Read loosely, `[shared-tree-ok]` would turn this guard off
+    with nobody asked — the regression two review rounds went into closing."""
     cmd = 'git worktree add ../wt f && echo "we agreed on [worktree-ok] yesterday'
     assert "[worktree-ok]" in cmd  # a substring test would say yes
     assert not wg.has_token(cmd, "[worktree-ok]")
@@ -1055,6 +1406,34 @@ def test_the_dirty_tree_row_names_what_was_measured(monkeypatch, capsys, repo):
             if not counted:
                 first = reason.splitlines()[0]
                 assert first.startswith("[shared-tree-ok]"), first
+            # S2 of work item 1791779434: with no press, the row is the base's
+            # `ask`, byte for byte, as `c38f97d7` printed it.
+            lang = "ko" if module is not wg else "en"
+            lead = ATTENDED_LEADS[lang][counted]
+            assert reason == ATTENDED_ASK[lang].format(lead=lead), reason
+
+
+# The tracked-changes row's attended text at `c38f97d7`, for one modified
+# `f.txt` (S2 of work item 1791779434). The press moves it nowhere.
+ATTENDED_LEADS = {
+    "en": {
+        True: "Single-stream tree",
+        False: "[shared-tree-ok] carries the user's answer to switch in this "
+        "shared tree",
+    },
+    "ko": {
+        True: "이 트리는 단건 작업이라",
+        False: "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
+    },
+}
+ATTENDED_ASK = {
+    "en": "{lead}, so the switch is allowed — but there are 1 uncommitted "
+    "tracked changes:\n     M  f.txt\nThey will follow you onto the target "
+    "branch. Confirm to proceed (commit/stash first is recommended).",
+    "ko": "{lead} 브랜치 전환을 허용할 수 있지만, 커밋되지 않은 변경 1건이 "
+    "있습니다:\n     M  f.txt\n전환하면 이 변경이 대상 브랜치로 따라갑니다. "
+    "진행할지 확인해 주세요 (커밋/스태시 후 전환을 권장).",
+}
 
 
 def test_a_git_command_inside_a_heredoc_body_is_not_judged(monkeypatch, capsys, repo):
@@ -1965,9 +2344,19 @@ SWITCHING = (
     "checkout feature/x",
     "switch feature/x",
 )
+# #856: forms whose braces bash expands into other words before git runs,
+# written for `str.format`. Each switches HEAD or adds a worktree under bash
+# (S13 of work item 1791384157), and the guard reads each as listed: the
+# limit S26 of its second reframe states.
+BRACED = (
+    "rebase {{{start},feature/x}}",
+    "rebase --ro{{,}} feature/x",
+    "stash {{branch,}} y",
+    "worktree {{add,}} ../wt{n} feature/x",
+)
 
 
-def test_no_listed_form_moves_head_under_git(repo, tmp_path):
+def test_no_listed_form_moves_head_under_git(monkeypatch, capsys, repo, tmp_path):
     """Binds `LEAVES_THE_TREE` to git (round 1 of work item 1791270162, red
     3): each row's form runs in a copy of a repository with a second commit
     on `feature/x` and a stash, and a form the guard reads as listed must
@@ -2033,6 +2422,77 @@ def test_no_listed_form_moves_head_under_git(repo, tmp_path):
         set(FORMS.values()) ^ set(listed)
     )
     assert sorted(moved) == sorted(SWITCHING), moved
+
+    # #856, as the second reframe of work item 1791384157 leaves it (S26):
+    # each braced form runs through bash, which expands the braces before git
+    # reads the words, and each switches HEAD or adds a worktree; the guard
+    # reads each as listed and says nothing in an ACTIVE tree. A word the
+    # shell builds before git runs is the limit `docs/worktree-guard-spec.md`
+    # §*Known limits* names, decided with #886's shapes, and the day a change
+    # to the frozen words makes the guard read one, this half says so. Red at
+    # `52c72bbe`, where the guard stopped all four. The guard's half reads
+    # words and runs everywhere; bash's half runs only where `bash` is a
+    # shell.
+    import shlex
+
+    braced = [
+        (n, form.format(start=start, n=n))
+        for n, form in enumerate(BRACED, start=len(FORMS) + len(SWITCHING))
+    ]
+    in_state(monkeypatch, repo, "active")
+    read = [
+        text
+        for _n, text in braced
+        if wg.shape_of(["git", *shlex.split(text)]) != "listed"
+        or verdict(monkeypatch, capsys, repo, f"git {text}") != ("silent", "")
+    ]
+    assert not read, read
+    # On a `windows-latest` runner `bash` resolves to the WSL launcher, which
+    # exits 1 for every command it is handed (`conftest.shell_probe`; round 1
+    # of work item 1791384157, red 1). The ubuntu and macOS legs run it.
+    why = shell_probe("bash")
+    if why is not None:
+        pytest.skip(f"bash: {why}")
+    acted = []
+    for n, text in braced:
+        copy = tmp_path / f"r{n}"
+        shutil.copytree(template, copy)
+        done = subprocess.run(
+            ["bash", "-c", f"git -C {shlex.quote(str(copy))} {text}"],
+            capture_output=True,
+            stdin=subprocess.DEVNULL,
+            env={**os.environ, "GIT_EDITOR": "true", "GIT_PAGER": "cat"},
+        )
+        assert done.returncode == 0, (text, done.returncode, done.stderr)
+        if head(copy) != head(template) or (tmp_path / f"wt{n}").is_dir():
+            acted.append(text)
+    assert len(acted) == len(BRACED), acted
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git rebase {main,feature/x}",
+        "git rebase --ro{,} feature/x",
+        "git stash {branch,} y",
+        "git worktree {add,} ../wt feature/x",
+        "git commit -m '{a,b}'",
+        "git log --format='{%h}'",
+        "cat {a,b}",
+        "echo {a,b}",
+    ],
+)
+def test_a_shell_built_word_is_the_named_limit(monkeypatch, capsys, repo, command):
+    """S26 of work item 1791384157's second reframe. The guard reads the
+    words the frozen reading splits, and a word the shell builds before git
+    runs is not among them, so a brace changes nothing: each form is silent
+    in a tree another session is ACTIVE in. The first four switch HEAD or add
+    a worktree under bash (`test_no_listed_form_moves_head_under_git`), which
+    is the limit `docs/worktree-guard-spec.md` §*Known limits* names beside
+    #886's shapes. Red at `52c72bbe`, where the brace reader stopped all but
+    the two quoted forms."""
+    in_state(monkeypatch, repo, "active")
+    assert verdict(monkeypatch, capsys, repo, command) == ("silent", "")
 
 
 def test_the_readings_are_gone():
