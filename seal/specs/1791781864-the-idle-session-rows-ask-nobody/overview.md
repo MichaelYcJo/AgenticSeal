@@ -24,6 +24,7 @@ naming the worktree split, and the line prints only what was measured.
 |---|---|---|---|
 | S6's dirty half | `spec.md` S6: *with one modified tracked file, #894's deny with the token lead*. Phase 2 could pin only the lead, because #894 was not merged | the whole deny, compared with #894's `dirty_deny`, added in phase 3 | `phases/phase-2.md` *What this phase found* 1 |
 | S7's branch | `spec.md` S7 runs `git worktree add ../wt -b feature/x`; the `repo` fixture already holds `feature/x`, so git refuses it | `feature/y` | `tests/conftest.py#_build_repo` (`phases/phase-2.md` 2) |
+| the split's consent in another clone | `spec.md` In 2: *under the press a creation is consented before any row is read*, and §*The class* calls §B's choice rows unreachable under the press. Round 1 executed a switch into another clone: the press is consent only in the clone it was given in (`hooks/worktree_consent.py#automation_answered`, condition 4), so the named split met §B's choice row and asked a person | the deny names the split only in the press's own clone or one holding this session's creation record, and names none elsewhere; whether §B's rows should deny there is #903 | round 1's 🔴 1 (`rounds/round-1-report.md`) |
 | `## Removes` in `spec.md` | the frame has no such section; #835 landed `Removes from` at `1791780031`, below this id, so the records arm refuses the frame without one | the smith wrote the section in phase 3, naming the removals In 1 and §*Seams* already name | `docs/the-reader-registry.md` §*A frame names what its work removes* |
 
 ## Not verified
