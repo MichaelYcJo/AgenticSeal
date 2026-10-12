@@ -128,7 +128,7 @@ stated names, because the section exists to say they are gone.
 The per-phase removal table this replaces recorded the same fact once per
 phase and was read by nothing. A removal a phase makes that the frame did not
 name is a divergence, and it goes to `overview.md`.
-Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_a_named_removal_that_still_stands_is_standing, tests/test_a_record_states_what_the_tree_has.py::test_a_cell_that_is_no_coordinate_is_refused_naming_the_row, tests/test_a_record_states_what_the_tree_has.py::test_a_bare_symbol_no_rule_bounds_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_removal_is_read_in_this_tree_never_in_another_checkout
+Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_a_named_removal_that_still_stands_is_standing, tests/test_a_record_states_what_the_tree_has.py::test_a_cell_that_is_no_coordinate_is_refused_naming_the_row, tests/test_a_record_states_what_the_tree_has.py::test_a_bare_symbol_no_rule_bounds_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_removal_is_read_in_this_tree_never_in_another_checkout, tests/test_a_record_states_what_the_tree_has.py::test_a_path_through_dot_dot_is_refused_never_read_as_gone
 
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
 **Where `seal/config.md` declares `Removes from`, every frame at or above
