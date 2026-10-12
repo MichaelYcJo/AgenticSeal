@@ -9,9 +9,11 @@
 
   1. Where the person pressed `automation`, the switch is refused to the
      model, and the refusal names the ways on that need nobody, each as a
-     command of its own. One is to commit the changes first. The other is
-     `git stash`, the switch, and `git stash pop`, whose pop applies the
-     changes to whatever is checked out when it runs. A detached HEAD is
+     command of its own. One is to commit the changes first, which keeps
+     them on the branch checked out now. The other is `git stash`, the
+     switch, and `git stash pop`, whose pop applies the changes to whatever
+     is checked out when it runs, so a switch that creates its branch (`-c`)
+     to carry them there is sent this way. A detached HEAD is
      named, because a commit there lands on no branch. Re-issuing the switch
      unchanged meets the same refusal, so the model is told to take a way on
      rather than retry.
