@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 890 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `ec02e1562543d8dcd2f10a84ea7873af204617fd..9a410177571eaeb66aef877a105ea3e72862d4f6`, 1 commit |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -30,8 +30,8 @@ This round verified round 2's fixes, ff88f31d..07449c19, plus the fix table and 
 | 🟢 | round 2's note 3 stands as answered — the unseen line's CI clause is Q1's | `skills/code-review/scripts/chain_check.py:1335` | confirmed | read: `questions.md` Q1 and `templates/hygiene.yml` lines 12-22; the same Q1 covers the re-arm half of the three notices on a route with no pull request |
 | 🟢 | round 2's note 4 stands as answered — the payload test is one reading | `skills/code-review/scripts/chain_check.py:1341` | confirmed | read: `event_payload_present` and `pull_request_state` test `GITHUB_EVENT_PATH` the same way |
 | 🟢 | round 2's note 5 stands as answered — no cell has the shape | `skills/code-review/scripts/chain_check.py:1947` | confirmed | read: round 2 executed it over every cell in the tree; nothing in the fix range writes a deferral cell |
-| ⬜ 1 | The docs and docstrings describing the three non-strict arms still name the draft alone, though an unseen run is excused the same way | `skills/code-review/scripts/chain_check.py:5033` | open | read: also `skills/code-review/orchestration.md:238`, `docs/review-chain-spec.md` §*What a draft is excused, and what it is not*, `chain_check.py:5455` and `chain_check.py:166`; none is false, each omits the unseen state; `docs/review-chain-spec.md` is at 999 lines |
-| ⬜ 2 | Round 2's fix table says each notice is pinned in both states, and the empty-`rounds/` wording is asserted in the unseen run only | `tests/test_chain_check_at_the_pull_request.py:246` | open | read: the draft case asserts the notice prints and names `ready_for_review`; executed: one shared literal, so the wording revert fails the unseen case |
+| ⬜ 1 | The docs and docstrings describing the three non-strict arms still name the draft alone, though an unseen run is excused the same way | `skills/code-review/scripts/chain_check.py:5033` | answered | none of the named sentences is false, as the reviewer read: each describes what a draft is excused, and an unseen run is excused by the same arm, which the printed notices now say (round 2's 🟡 2). `docs/review-chain-spec.md` is at 999 lines, so widening its sentence means splitting the file, and this record ends the run. The docstrings are recorded, not changed; read: also `skills/code-review/orchestration.md:238`, `docs/review-chain-spec.md` §*What a draft is excused, and what it is not*, `chain_check.py:5455` and `chain_check.py:166`; none is false, each omits the unseen state; `docs/review-chain-spec.md` is at 999 lines |
+| ⬜ 2 | Round 2's fix table says each notice is pinned in both states, and the empty-`rounds/` wording is asserted in the unseen run only | `tests/test_chain_check_at_the_pull_request.py:246` | answered | the empty-`rounds/` notice prints the same string in both states, so reverting its wording turns the unseen case red; the reviewer executed the revert and saw 4 of 5 pins fail. The wording is pinned, through one state rather than two, and round 2's fix table overstated how. Recorded, not changed, in the run's last record; read: the draft case asserts the notice prints and names `ready_for_review`; executed: one shared literal, so the wording revert fails the unseen case |
 
 ## Paste-ready fixes
 
