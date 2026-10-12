@@ -1406,6 +1406,34 @@ def test_the_dirty_tree_row_names_what_was_measured(monkeypatch, capsys, repo):
             if not counted:
                 first = reason.splitlines()[0]
                 assert first.startswith("[shared-tree-ok]"), first
+            # S2 of work item 1791779434: with no press, the row is the base's
+            # `ask`, byte for byte, as `c38f97d7` printed it.
+            lang = "ko" if module is not wg else "en"
+            lead = ATTENDED_LEADS[lang][counted]
+            assert reason == ATTENDED_ASK[lang].format(lead=lead), reason
+
+
+# The tracked-changes row's attended text at `c38f97d7`, for one modified
+# `f.txt` (S2 of work item 1791779434). The press moves it nowhere.
+ATTENDED_LEADS = {
+    "en": {
+        True: "Single-stream tree",
+        False: "[shared-tree-ok] carries the user's answer to switch in this "
+        "shared tree",
+    },
+    "ko": {
+        True: "이 트리는 단건 작업이라",
+        False: "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
+    },
+}
+ATTENDED_ASK = {
+    "en": "{lead}, so the switch is allowed — but there are 1 uncommitted "
+    "tracked changes:\n     M  f.txt\nThey will follow you onto the target "
+    "branch. Confirm to proceed (commit/stash first is recommended).",
+    "ko": "{lead} 브랜치 전환을 허용할 수 있지만, 커밋되지 않은 변경 1건이 "
+    "있습니다:\n     M  f.txt\n전환하면 이 변경이 대상 브랜치로 따라갑니다. "
+    "진행할지 확인해 주세요 (커밋/스태시 후 전환을 권장).",
+}
 
 
 def test_a_git_command_inside_a_heredoc_body_is_not_judged(monkeypatch, capsys, repo):
