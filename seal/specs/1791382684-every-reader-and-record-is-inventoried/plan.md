@@ -1,4 +1,4 @@
-# Implementation Plan: every reader and record is inventoried (#834) — the backfill
+# Implementation Plan: every reader and record is inventoried (#834) — the backfill, withdrawn at the reframe
 
 <!-- seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md — HOW, in phases. This is the Design Gate's
 artifact: where the work alters observable behaviour, approval of this plan is
@@ -6,173 +6,152 @@ the gate. -->
 
 Approved 2026-10-12 by the repository owner, when `smith` was spawned.
 
-`questions.md` Q1 was answered (c) by the owner with that approval.
+`questions.md` Q1 was answered (c) by the owner with that approval. The
+reframe of 2026-10-12, after round 3, withdraws the build that answer sized
+(`spec.md` §*The reframe*); the redesign is approved by a second `Approved`
+line under this one when `smith` is spawned for it
+(`skills/code-review/orchestration.md` §*A fix of a fix twice sends the work
+item back to its framer*).
 
 ## Summary
 
-The inventory read 912 units of the population at 5623d728 and gave each a
-class. The build moves those classes into the code as `Reads:` lines and takes
-the units off the census, for the units whose row still describes the code
-and whose line the ledger lets this release afford. The frame measured both
-conditions at 57e2bc13 (`spec.md` §*The build*): 759 units are clean, and
-writing all 759 owes 687 `Re-read ·` rows under the freeze, so the default is
-the 245 units no ledger row cites — zero re-reads — and the rest wait for the
-owner's answer to Q1 or for 0.22.0's ledger rework. The build changes no
-reader's body, adds no mechanism, and leaves the inventory where it is.
+The first frame moved the inventory's classes into the code as `Reads:`
+lines, for the 245 units no ledger row cites; phases 1–3 wrote 189 of them in
+44 files by transcribing the rows. Three review rounds read the lines against
+the code and found 40, then 27, then 4 false, the last four in lines the fix
+passes themselves had written, and the run stopped on the second fix of a
+fix. The reframe's judgment is `spec.md` §*The reframe*: nothing in a
+transcribed line is verifiable by a check beyond its two vocabulary words, so
+the build is a guess-and-patch loop under 0.21.0's theme, and the fate of the
+reader that produced it is deletion. Phases 4 and 5 put the tree back — the
+44 files and the census return to what 7608d82c holds, in one file-level
+restore, and the records stop claiming lines — and the item ships as the
+inventory, which was its first scope. The direction word's two definitions
+are settled on the inventory's, and the guard's phase is gone with the rest.
 
 ## Technical context
 
-**The grammar and the check** are landed: `docs/the-reader-registry.md`
-§*The four classes and the line that declares one*,
-`tests/reader_registry.py` (`declarations`, `population`, `census_lines`,
-`CENSUS_LINE`) and `tests/test_a_reader_declares_its_input_class.py`
-(`test_every_unit_of_shipped_python_declares_or_is_on_the_census`,
-`test_a_census_line_naming_no_undeclared_unit_is_refused`). A unit that gains
-a line and keeps its census line is refused by the second; a census line
-whose unit is gone is refused the same way. The census only shrinks:
-`write_census` refuses to run where the file exists, so every line leaves by
-an edit.
+**The withdrawal is a restore, not an edit.** Every `.py` change on this
+branch since 7608d82c is the build's: a `Reads:` line, the paragraph under
+it, or one of three rider stamps. `git diff 7608d82c HEAD -- '*.py'` is 44
+files, 684 insertions and 71 deletions, read line by line at the reframe, and
+rounds 1–3 each found the syntax trees with docstrings removed equal at both
+ends. The release branch has not been merged in since 57e2bc13, so no
+sibling's change sits in those files. Phase 4 is therefore one
+`git checkout 7608d82c -- <paths>` over the 44 files and
+`tests/undeclared_readers.txt`, the paths taken from
+`git diff --name-only 7608d82c HEAD -- '*.py' tests/undeclared_readers.txt`,
+and its verification is `git diff --quiet 7608d82c HEAD -- '*.py'
+tests/undeclared_readers.txt`. The three rider stamps come back with their
+old hashes, which are the restored units' hashes, so
+`tests/test_a_rider_reaches_its_file.py` is green with no re-stamp. No `Edit`
+call touches a docstring and no script is written: the restore is git's, and
+what it leaves is checkable by one diff.
 
-**The mapping, stated so phase 1 reproduces it.** The inventory's reader
-rows are the table under `## Readers` in `inventory/1-…` to `6-…`, columns
-`# | File | Unit | What it reads | Decides | Class | Unknown | Duplicates |
-Note`.
+**What each record becomes** (phase 5):
 
-- `File` → path. Part 1 uses the short names its head states (`cl` =
-  `hooks/cmdline.py`, `cb` = `hooks/cmdline_base.py`, `tk` = `hooks/tokens.py`,
-  `oh` = `hooks/one_heredoc.py`, `gt` = `hooks/gate.py`, `cg` =
-  `hooks/commitgate.py`, `crg` = `hooks/commit-review-gate.py`, `wg` =
-  `hooks/worktree-guard.py`, `wc` = `hooks/worktree_consent.py`, `dp` =
-  `hooks/dispatch.py`). Part 2 names the file under `hooks/`, `git/…`
-  included. Part 3: `CC` = `skills/code-review/scripts/chain_check.py`, `RR`
-  = `round_record.py`, `SC` = `survivor_check.py` beside it. Part 4 names the
-  file; the six live under `skills/evidence-check/scripts/`,
-  `skills/settle/scripts/` and `skills/implement/scripts/`. Part 5: `bg` =
-  `skills/verify/scripts/broad_gate.py`, a bare `.py` name is under
-  `skills/verify/scripts/`, `pytest_record` is
-  `skills/verify/scripts/pytest_record/specseal_pytest_record.py`, and a
-  `bin/` or `.yml` row is out. Part 6 names the path; only a file outside
-  `tests/test_*.py` is in.
-- `Unit` → units. Every backticked name in the cell, its head before any
-  `.`, matched against the names `reader_registry.population()` gives for
-  that file. A name that is no top-level unit (a constant, a nested function,
-  a method) matches nothing. **Corrected after rounds 1 and 2 (🟡 1, ⬜ 6;
-  ⬜ 4):** a unit takes the row's `What it reads` as its prose only where its
-  own body, or a unit of the same file its body calls, makes every read that
-  cell names: the K1 call, the `open`, the `git` or `gh` command, the AST
-  walk. Being named first in the cell does not make a unit that one, and
-  where no one unit makes all the reads, none does. Every other unit the row
-  names is read on its own body: its prose says what that body reads, its
-  class is the class of that, and its direction is what that body does with
-  an input it does not understand — `refused` where it raises or stops,
-  `passed` where it hands back a default for its caller to judge, `mixed`
-  where it does both. A unit that cannot be read that way stays on the
-  census. A test of whether a file this plugin writes exists is `observed`,
-  whatever the row's `Class` cell says (round 1 ⬜ 4): part 1 row 114, the
-  guard's `already_asked`, says `owned`, and its body is `os.path.exists` on
-  its marker. Phase 2 gave every named unit the row's prose; rounds 1 and 2
-  found 46 lines describing another unit, and the round-2 fix pass read every
-  unit three enumerations selected (`rounds/round-2-fixes.md`). Phase 4 and any
-  later rerun apply this rule instead.
-- Stale or not. `reader_registry.unit_hash` over the file at HEAD against the
-  same over `git show 5623d728:<path>`; a unit the base lacks is stale too.
-- Class and direction. The first word of the `Class` cell in `owned`,
-  `observed`, `guess`; the first word of the `Unknown` cell in `refused`,
-  `passed`, `mixed`. A unit several rows name takes the weakest of what they
-  say (`guess`; `mixed`), by `docs/the-reader-registry.md`'s rule for a unit
-  reading several inputs.
-- Drift. A whole-unit anchor `` `<path>#<unit>@<hash>` `` in a `|` row of
-  `seal/ledger.md` or `seal/releases/*.md` is a released citation, in
-  `seal/ledger/*.md` a live one; a `Class.method` anchor and a `>` anchor are
-  not moved by a docstring line on the unit.
+- `seal/ledger/1791382684-every-reader-and-record-is-inventoried.md` —
+  removed. Its two rows (B1, B2) claim lines and a shrink the tree no longer
+  has, and no test holds a claim the item still makes: the inventory is read,
+  not tested. With no fragment the item is not live, so the records arm reads
+  none of its files; the `· NAME NOT IN TREE` markers phase 3 put on ten
+  inventory lines stay, because they are true and cost nothing.
+- `changelog.md` — the `### Changed` entry removed; `### Added` stands as
+  written.
+- `overview.md` — one more divergence row (the build withdrawn at the
+  reframe, `spec.md` §*The reframe* as grounds); in `## Not verified`, the
+  189-lines row and the phase-4 row closed with ✅ and what closed them (no
+  line left to verify, no phase left), the full-suite row left for the
+  sealer; `## Not done` rewritten: the 912 rowed units stay on the census and
+  declare when touched, the inventory beside them at the tag.
+- `survivors.md` — re-derived from `survivor-check --range
+  origin/release/v0.21.0...HEAD` at the phase-4 head. The census block is no
+  longer a removed sentence, so most rows go; what the check still names is
+  read again and kept with its grounds.
+- `phases/phase-4.md` and `phases/phase-5.md` — written as each closes, from
+  `templates/sdd-phase.md`.
+- this file's Status cells for 4 and 5.
 
-**The counts the frame read at 57e2bc13** are in `spec.md` §*Which units,
-measured* and §*What a line costs*. Phase 1 reads them again at the build's
-tree: #894 and #896 land on `hooks/worktree-guard.py` between the two trees,
-so that file's stale set grows and its clean set shrinks.
+**The merge.** `origin/release/v0.21.0` moved to 34fc36e9 (#894) after this
+branch's base; phase 5 merges it in — a merge, never a rebase — so the
+redesign's review round and the sealer read the landed guard. After phase 4
+this branch changes no `.py` file, so the merge meets no code conflict, and
+`tests/undeclared_readers.txt` takes the release branch's lines (#894's
+`main` left it) because this branch's copy equals the base's. A later landing
+(#896) is the landing step's own merge, `handoff.md` §*How a chain is run*
+item 2.
 
-**How the lines are written.** 245 to 759 docstrings across up to 57 files
-is not an `Edit` call each. `skills/implement/SKILL.md` §2 allows a scripted
-edit where every substitution asserts its landing, and that is the shape:
-one throwaway script, run once from the mapping above, that for each unit
-finds the docstring by `ast` (`node.body[0]` an `ast.Expr` holding a string,
-or none), inserts the line after the summary line and a blank line, or writes
-a docstring of the line alone, and raises where the docstring's text is not
-found verbatim in the file once. The script is a probe under `agent-contract`
-§7 — `test_tmp_*`, run once, deleted before the hand-over — and the diff it
-leaves is what the warden reads. `uvx ruff format --check .` must stay green
-after it: ruff does not reflow a docstring, and `E501` is not selected
-(`ruff.toml`), so a long line is not a lint finding, but a line the cell
-would make longer than about 110 characters is trimmed at a clause boundary
-by hand, with the rest of the cell under it.
+**The direction word.** Settled in `spec.md` §*The direction word, settled*:
+the inventory's meaning, which #835's spec made the registry's. The rule
+rounds 1 and 2 wrote into this file's `Unit → units` bullet is withdrawn with
+the bullet; the bullet, and the six mapping rules phase 1 applied, are in
+this file at 8938af5b and in `phases/phase-1.md`.
 
-**The census edit** is the same script's: it removes exactly the lines whose
-`path#unit` gained a line, and asserts each was present once.
-
-**Where it breaks in six months.** A line written from a row is a reading of
-2026-10-07 carried into the docstring; nothing re-reads it (limit 5 of
-`docs/the-reader-registry.md` §*What neither check can read*). A unit
-redesigned from `guess` to `owned` keeps the old word until the diff's
-reviewer moves it. That is the cost #835 accepted for the whole mechanism,
-and the backfill adds 245–759 such lines at once.
+**Where it breaks in six months.** The 912 rowed units carry no line, and the
+inventory's reading of them is in a directory that retires at the fold. A
+session touching one of them reads the code, not the row, and writes the
+line from that reading; the inventory is at the tag for anyone who wants the
+2026-10-07 reading beside it. Nothing re-reads the census but the hash,
+which is the registry's own design.
 
 ## Alternatives considered
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| (a) write all 759 clean units now, as #835 Q7's default | 687 `Re-read ·` rows in one fragment, 1.9 times the whole run's 360; each carries `--checked <date>`, which asserts a reading, so either the smith reads 687 released rows that a docstring line cannot have falsified, or the fragment records 687 readings nobody made — the unread re-stamp `seal/follow-up.md` already names | not the default; Q1 option (a) |
-| (b) write the 275 `guess` units only, the half the registry exists for | 247 re-reads for the same reason; `grep -rn "Reads: guess"` becomes complete for the inventory's clean readers, at 69% of the run's whole re-read output | not the default; Q1 option (b) |
-| **(c) write the 245 units no ledger row cites; the 514 cited ones wait for Q1 or 0.22.0** | zero re-reads and one live re-stamp; the grep lists 95 of the 275 `guess` readers, and the biggest readers (`reverify`, `gate`, the `main`s) stay off it — they are stale anyway, and a stale unit stays on the census under every option | **chosen as the default**; the owner can widen it in Q1 |
-| read the 123 stale units afresh and write their lines | 501 re-reads and 357 live re-stamps for a judgment no row grounds; the units the siblings rewrote declare when next touched by the rule's own transition | rejected; `spec.md` §*Which units, measured* |
-| write the lines by hand, one `Edit` per unit | 245–759 tool calls for a mechanical insertion, each a chance to mistype the class word; a script that asserts each landing is the form `skills/implement/SKILL.md` §2 names for this | rejected |
-| keep a mapping script in the tree so 0.22.0 reruns it | mechanism the build was told not to add; the mapping is six rules, stated above, and the inventory it reads is a reading of a moment that 0.22.0 may not want | rejected; the rules are in this file |
-| retire `inventory/` with the process record now that its classes live in the code | the columns that did not move (`Decides`, `Duplicates`, `Note`) and the 123 stale rows are the only reading of those units anybody wrote; `settle --retire` takes the directory at the fold, and the tag keeps it | rejected; `spec.md` §*The inventory's fate* |
-| write `Reads: nothing` lines on the unrowed 695 units from the inventory's silence | the inventory's agents did not judge those units `nothing`; they left them out, and a line on each would be 695 claims nobody made (#835's spec says this is #834's to weigh) | rejected |
+| **withdraw all 189 lines; every unit returns to the census** | `grep -rn "Reads: guess"` loses 53 entries the inventory still lists; the units declare when touched, one reading per diff, read by the diff's reviewer | **chosen**; `spec.md` §*The reframe* |
+| keep the 64 lines from rows naming one unit, withdraw the 125 from rows naming several | measured by the framer's probe: 3 of the 64 were found false in round 1 and none since, against 68 of the 125 — a lower rate, not a verified set. Rounds 2 and 3 opened a single-unit line's body only where an enumeration built for the multi-unit class selected it, so the 64 were sampled, not read. Keeping them keeps the part of the guess that looked better, which is the patch the theme refuses | rejected; the owner can overturn it at the approval with this row's numbers |
+| keep the lines a check can verify | the set is empty: `declarations` reads two vocabulary words, K1 refuses `nothing` beside a primitive and none of the 189 says `nothing`, and `docs/the-reader-registry.md` §*What neither check can read* lists the rest as the reviewer's | the chosen approach is this one with its set measured at zero |
+| a fourth fix pass over the four lines round 3 named and the 94 nobody opened | the loop the owner's review of the run names; each pass so far wrote a false line of its own (`sections` after round 1, `_name_at` after round 2) | rejected by the stop itself (`skills/code-review/orchestration.md` §*A fix of a fix twice sends the work item back to its framer*) |
+| read all 189 units afresh and write lines from the code, not the rows | 189 hand readings by one agent in one spawn, reviewed by sampling — the instrument that produced the three rounds' error rate, with no row grounding it; the registry pays the reading when the unit is touched, one at a time, in a diff a reviewer reads whole | rejected |
+| a checker that reads the prose against the body (every backticked name present in the unit or its callees) | mechanism in a reframe, and a necessary condition only: `_name_at`'s line passed it and was false; `docs/the-reader-registry.md` §*Who declares: every unit, found by a rule* chose a loud rule over a quiet enumeration for this reason | rejected |
+| `git revert` of the build's commits | the commits carry records (phase records, this file's Status cells, round-record closures) the history keeps; reverting them re-edits the record set and reopens closed phases | rejected; a file-level restore of the code and the census, the records rewritten by hand |
+| keep phase 4 (the guard) as framed, after #896 lands | the same transcription over the guard's 25 uncited units, from the part whose rows the rounds found wrongest (part 1: 98 `guess` readers, most of the multi-unit rows) | rejected; the guard's units declare under #894 and #896, and the rest when touched |
+
+The first frame's alternatives — the Q1 sizes, the stale units, the one-shot
+script, the inventory's home, `Reads: nothing` on the unrowed units — are in
+this file at 8938af5b; they sized a build the reframe withdraws and are not
+re-argued.
 
 ## Phases
 
 Vertical slices — each phase ends with something runnable and verified.
-Phases 2 and 3 touch every population file except `hooks/worktree-guard.py`;
-phase 4 is that file alone, after the release branch with #894 and #896 is
-merged in, so the sibling fix passes never meet a docstring conflict.
+Phases 1–3 are closed and keep their commits; what they built, phases 4 and
+5 withdraw. Phase 4 as the first frame drew it (`hooks/worktree-guard.py`
+after #894 and #896) is gone, not deferred.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | The mapping at the build's tree, by the six rules above, read with `reader_registry.population()`: the rowed, clean, stale, conflicting and unparsed counts, the Q1 sets (a)–(c) with their re-read counts, each beside the frame's reading at 57e2bc13; the per-unit listing stays in the phase record's text only as counts and the names of the 30 hand-read units. No tree edit | `phases/phase-1.md` holds both readings with their SHAs; `bin/test tests/test_a_reader_declares_its_input_class.py` green before any edit | 681fa7b1 |
+| 1 | The mapping at the build's tree, by the first frame's six rules (this file at 8938af5b), read with `reader_registry.population()`: the rowed, clean, stale, conflicting and unparsed counts, the Q1 sets (a)–(c) with their re-read counts, each beside the frame's reading at 57e2bc13; the per-unit listing stays in the phase record's text only as counts and the names of the 30 hand-read units. No tree edit | `phases/phase-1.md` holds both readings with their SHAs; `bin/test tests/test_a_reader_declares_its_input_class.py` green before any edit | 681fa7b1 |
 | 2 | The lines on every unit in Q1's answered set (default: the units no ledger row cites) in every file but `hooks/worktree-guard.py`, and the census lines of exactly those units removed, by the one-shot script, deleted after. The 30 hand-read units are decided here, the weakest class winning | the registry test green; `git diff --stat` on the census shows a line removed per unit written and no other; `bin/evidence-check .` reports no drifted released row under (c), and the live rows it names are re-stamped in place (`--reverify --checked <date>`, narrowed with `--ledger` to the fragments read); under (a) or (b) the `Re-read ·` rows are written with `--reverify --into` after each cited row is read | 36491ddb |
 | 3 | The rows in `seal/ledger/1791382684-every-reader-and-record-is-inventoried.md`: one claim per acceptance row of `spec.md` §*User scenarios & acceptance* that a test holds, anchored on the test by #836's form where one holds it and on the census file's heading-less line count otherwise; the changelog fragment; `overview.md` opened with the divergences phase 2 met | `bin/evidence-check .` exit 0; `correction-check` clean; `survivor-check --range origin/release/v0.21.0...HEAD` clean | 8160ad69 |
-| 4 | After `git merge origin/release/v0.21.0` with #894 and #896 landed: phase 1's mapping again for `hooks/worktree-guard.py` only, its clean units' lines by the same script, its census lines removed, and the merge's drift re-read; if either sibling has not landed when phase 3 closes, this phase waits and the pull request opens as a draft with the phase's row empty | the registry test green; the guard's own modules green (`tests/test_worktree_guard.py`, `tests/test_the_guard_asks_once_per_session.py`); `bin/evidence-check .` exit 0 | |
+| 4 | The withdrawal: the 44 `.py` files the build changed and `tests/undeclared_readers.txt` restored from 7608d82c by `git checkout 7608d82c -- <paths>`, the paths from `git diff --name-only 7608d82c HEAD -- '*.py' tests/undeclared_readers.txt`, in one commit that touches nothing else; no docstring edited by hand, no script written | `git diff --quiet 7608d82c HEAD -- '*.py' tests/undeclared_readers.txt` exit 0; `wc -l tests/undeclared_readers.txt` prints 1584; `bin/test -q -p no:cacheprovider tests/test_a_reader_declares_its_input_class.py tests/test_a_rider_reaches_its_file.py` green; `bin/evidence-check .` exit 0 | |
+| 5 | The records say what the tree now has: the ledger fragment removed, the changelog's `### Changed` entry removed, `overview.md`'s two `Not verified` rows closed and its divergence and `Not done` sections rewritten, `survivors.md` re-derived, `phases/phase-4.md` and `phases/phase-5.md` written; then `origin/release/v0.21.0` merged in, a merge and never a rebase | `bin/evidence-check .` exit 0 and no `Re-read ·` row owed; `bin/correction-check --range origin/release/v0.21.0...HEAD` exit 0; `bin/survivor-check --range origin/release/v0.21.0...HEAD --exempt` this item's `survivors.md`, exit 0; `bin/unverified-check` with `--baseline origin/release/v0.21.0`, exit 0; the eleven suite-wide guard modules green; `grep -c "^### "` on this item's `changelog.md` prints 1; `ls seal/ledger/` names no file of this item; `git diff --stat origin/release/v0.21.0...HEAD -- hooks/worktree-guard.py` prints nothing | |
 
 This table is also where the work records how far it got. There is no separate
 task list. **Status is empty, or the commit that closed the phase.**
 
 ## Seams
 
-- `hooks/worktree-guard.py` — 43 clean units at 57e2bc13, 24 of them uncited;
-  #897 (#894) changes its `main` and the branch-switching block, and
-  `fix/896-the-idle-session-rows-ask-nobody` changes 109 lines of it (read
-  from `git diff --stat origin/release/v0.21.0...origin/fix/896-…`). Phase 4
-  only.
-- `tests/conftest.py` — 27 clean units, in the population as a helper module;
-  its module docstring already declares for the body (#835). Lines go on the
-  units, and the module line stays.
-- `skills/evidence-check/scripts/evidence_check.py` — 62 clean units and 22
-  stale; three rowed units already carry #835's own line (`check_records`,
-  `file_claims`, `frozen_from`) and are skipped, the row's class matching the
-  line in each.
-- `tests/reader_registry.py` — not in the inventory (it did not exist at
-  5623d728); every unit declares already.
+- `hooks/worktree-guard.py` — untouched by this branch at every commit, and
+  after phase 5's merge it is the release branch's. #896's branch changes 121
+  lines of it and declares three of its units; nothing here meets that.
+- `hooks/cmdline_base.py` — untouched at every commit (its bytes below the
+  rider are pinned); nothing to restore.
+- `tests/undeclared_readers.txt` — the one file both this item and every
+  sibling edit. After phase 4 this branch's copy equals the base's, so the
+  merge takes the release branch's lines with no conflict.
+- `seal/specs/1791382684-every-reader-and-record-is-inventoried/inventory/`
+  — the ten marker lines stay; the records arm reads them only while a
+  fragment exists, and after phase 5 none does.
 
 ## Operational impact
 
 No migration, dependency or environment change. What a deployer meets:
 
-- **The ledger fragment grows by what Q1 chooses** — 0 `Re-read ·` rows under
-  the default, 247 under (b), 687 under (a) — and the fold at 0.21.0 carries
-  them into `seal/releases/0.21.0.md`.
-- **Any branch open against `release/v0.21.0` that edits a unit this build
-  wrote a line on meets a docstring conflict at its merge.** At 57e2bc13 the
-  only such branches are #894's and #896's, and phase 4 waits for them.
-- **The census shrinks by 245 to 759 lines** and `grep -rn "Reads: guess"`
-  grows by 95 to 275; the number in `docs/the-reader-registry.md` §*The counts
-  at landing* is the reading of #835's moment and is not edited.
+- **No code change ships from this item.** The census is #835's 1,584 lines
+  less whatever the siblings declared; `grep -rn "Reads: guess"` lists
+  exactly what the release branch lists.
+- **The fold at 0.21.0 gathers this item's changelog fragment and no ledger
+  rows**; the `Re-read ·` cost the first frame measured is not paid.
+- **Any branch open against `release/v0.21.0` meets no docstring conflict
+  from this item.**
