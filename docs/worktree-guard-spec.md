@@ -34,24 +34,34 @@ the model, because nobody is at the keyboard to answer it, and the answer the
 person would give, commit first, is not one of its two buttons. The press is
 read by the reader the unrecognised-shape stop uses, against the root of the
 session's own directory, never against the tree the switch names. The reason
-opens with the same lead and lists the changes as the `ask` does, then names
-the ways on that need nobody, each as a command of its own: commit here first,
-or `git stash`, the switch and `git stash pop`, whose pop applies the changes
-to whatever is checked out when it runs. Committing first keeps the changes
-on the branch checked out now, so the reason sends a switch that creates its
-branch (`-c`) to carry them there to the stash sequence. A switch to
-`--orphan` starts from an empty tree that no pop carries them onto, so the
-reason sends it to the commit. It says only that a switch that keeps the
-changes carries them, because `--discard-changes` and `-f` drop them and git
-refuses `--orphan` over them. Where HEAD is detached a commit lands on no
-branch, so the reason names the check (`git branch --show-current` prints
-nothing) and `git branch <name>` before the switch. It names no question
-tool, and says re-issuing the command unchanged meets the same refusal. Each
-way on is a command of its own because the guard reads the tree before a line
-runs, so `git stash && git switch x` meets this same row.
-Without the press the row is the `ask` it was, word for word, and
-`[shared-tree-ok]` reaches neither reader: a dirty tree under the token meets
-the same `deny` with the token's lead.
+states what the guard read and what the guard is, and nothing it inferred. It
+opens with the same lead and lists the changes as the `ask` does, carries the
+press sentence, and says the row stops a switch while uncommitted tracked
+changes are present and says nothing once none are. It names `git commit`
+and `git stash` as commands on `LEAVES_THE_TREE`, each of which passes the
+guard when issued alone, and leaves to the model which of them fits the
+switch and what follows, which git's own output reports. Each is a command of
+its own, because the guard reads the tree before a line runs, so `git stash
+&& git switch x` meets this same row. It names no question tool, and says
+re-issuing the command unchanged meets the same refusal. The text is one
+string for every switch form, from a branch or a detached HEAD, and it names
+no switch option. Without the press the row is the `ask` it was, word for
+word, and `[shared-tree-ok]` reaches neither reader: a dirty tree under the
+token meets the same `deny` with the token's lead.
+
+**Why the reason predicts nothing.** The guard reads three facts here: the
+changes (`git status`), that the command asks for a switch, and the press.
+What a given switch form does with the changes, where a commit lands, and
+whether a stash restores cleanly are not among them. The first text of this
+row named a way on per form, and three review rounds of work item 1791779434
+each found the next form it was wrong for: `-c`, then `--orphan` and the
+discarding forms, then a detached HEAD and a target branch that changed a
+listed file. Over sixteen setups the text was right in fourteen, and nothing
+the guard reads tells those from the other two. That is a prediction from
+text, the class this repository judges not to converge (§*Known limits*, the
+brace reader), so each sentence about what git does was taken out rather
+than corrected again. A form found later is a row in the case that pins one
+text for every form, never a sentence here.
 
 **The failure direction.** A verdict moves from `ask` to `deny` in one state
 and nowhere else, and the reader that decides it is the stop's, unchanged. A

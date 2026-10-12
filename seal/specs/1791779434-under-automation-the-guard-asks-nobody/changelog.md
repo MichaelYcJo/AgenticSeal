@@ -8,16 +8,13 @@
   unrecognised shape already had.
 
   1. Where the person pressed `automation`, the switch is refused to the
-     model, and the refusal names the ways on that need nobody, each as a
-     command of its own. One is to commit the changes first, which keeps
-     them on the branch checked out now. The other is `git stash`, the
-     switch, and `git stash pop`, whose pop applies the changes to whatever
-     is checked out when it runs, so a switch that creates its branch (`-c`)
-     to carry them there is sent this way, and a switch to `--orphan` is
-     sent to the commit. A detached HEAD is
-     named, because a commit there lands on no branch. Re-issuing the switch
-     unchanged meets the same refusal, so the model is told to take a way on
-     rather than retry.
+     model. The refusal lists the changes and says the guard stops a switch
+     while they are present. It names `git commit` and `git stash` as
+     commands that pass the guard when run on their own, and leaves which
+     one fits, and what comes after, to the model and to git's own output.
+     It says nothing about what any kind of switch does with the changes,
+     and it is the same text for every kind. Re-issuing the switch unchanged
+     meets the same refusal, so the model is told to act rather than retry.
   2. Without the press nothing changes: the person sees the same prompt,
      word for word.
 
