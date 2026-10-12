@@ -31,6 +31,28 @@ regression tests' skeleton.
 Schema deltas, endpoints, payload shapes. Reference, don't duplicate, the
 evidence ledger's coordinates.
 
+## Removes
+
+| Removes | Coordinate | Where it lands, or why it can go |
+|---|---|---|
+| <a copy, a reader, a rule sentence, a test pin> | <path#unit, or path#"heading"[>"line"], or path#"a quoted line"> | <the file or record that now owns it, or why nothing needs to> |
+
+<!-- What this work item takes out of the tree, named once, here, before the
+     build. A coordinate is the ledger's grammar without a hash: a function or
+     class in a `.py` file, a heading path in a `.md` file, a quoted line in
+     any other file, each with an optional `>"quoted line"`. The records arm
+     of `evidence-check` reads every row as a claim of ABSENCE: a coordinate
+     that still resolves is STANDING, and a cell the ledger would refuse is
+     REFUSED rather than read as gone. A work item that removes nothing
+     writes one line in place of the table: `nothing — <why>`. Where
+     `seal/config.md` declares `Removes from`, a frame at or above that id
+     must carry the section (#835).
+     #107 is why a removal is recorded at all, and `docs/the-agent-set.md`
+     tells it: a rule taken out of `agents/smith.md` was lost between two
+     phases with no record of where it went. A removal a phase makes that
+     this section did not name is a divergence, and it goes to
+     `overview.md`. -->
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

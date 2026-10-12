@@ -91,7 +91,7 @@ template:
 
 | You write | From | It holds |
 |---|---|---|
-| `spec.md` | `templates/sdd-spec.md` | WHAT — scope, the grounding clauses, the acceptance, and your mark at its foot |
+| `spec.md` | `templates/sdd-spec.md` | WHAT — scope, the grounding clauses, the acceptance, what the work removes (`## Removes`), and your mark at its foot |
 | `plan.md` | `templates/sdd-plan.md` | HOW — phases, alternatives, the chosen approach |
 | `questions.md` | `templates/sdd-questions.md` | the residue — what only a person can settle |
 
@@ -339,6 +339,10 @@ against.
   reader cannot tell a wrong one from a right one by counting it. Whoever
   approves the plan is approving the order the work arrives in, which means
   seeing it.
+- **What the frame says the work removes.** The `## Removes` rows, or its
+  `nothing — <why>` line. A removal is named once, at the frame, and the
+  records arm reads each row as a claim of absence from the build on; one
+  left unnamed reaches the reader only as a divergence after the fact.
 - **What you put out of scope, and why, one line each.** A report of what was
   decided does not surface what was left out, and left out is where a framing
   error hides. Measured on this definition's own first frame: its scope
