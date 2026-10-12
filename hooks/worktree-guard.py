@@ -24,8 +24,9 @@ A) Branch switching (Bash: `git switch`, and every git shape not known to
     or split into a worktree -- they are usually forgotten tabs, and the user
     can tell. Where the person pressed `automation` nobody is there to tell:
     a `deny` to the model on every attempt instead, naming the split as the
-    way on where that answer consents to it: in the clone it was given in,
-    or where this session already created a worktree (#896)
+    way on where its creation is consented: by that answer in the clone it
+    was given in, or by this session's record where it already created a
+    worktree (#896)
   - cannot tell (process inspection unusable)       -> the same CHOICE, and
     the same deny under the press
   - tracked changes present (dirty)                 -> ask the user first; this
@@ -86,10 +87,11 @@ question spend the answer a later switch needed.
 
 Under the press -- this session's person pressed `automation` on the routing
 question -- nobody is there to put the two options to, so the switch
-direction's two sites deny on every attempt. Where that answer consents to
-a creation in the switch's clone -- the clone it was given in, or one this
-session already created a worktree in -- the reason names the way on that
-needs nobody: split into a worktree and work there by path. A switch into
+direction's two sites deny on every attempt. Where a creation in the
+switch's clone is consented -- by that answer in the clone it was given in,
+or by this session's record in a clone it already created a worktree in --
+the reason names the way on that needs nobody: split into a worktree and
+work there by path. A switch into
 another clone is refused naming no split, because the creation rows there
 would put it to a person. The reason names no question tool and no token,
 and no marker is written, because no question was put (#896). In the clone

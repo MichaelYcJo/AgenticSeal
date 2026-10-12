@@ -8,12 +8,13 @@
   a run routed `automation`.
 
   1. Where the person pressed `automation`, both rows now refuse the switch
-     to the model on every attempt. In the clone that answer was given in,
-     or one this session already created a worktree in, the refusal names
+     to the model on every attempt. Where a creation in the switch's clone
+     is consented, by that answer in the clone it was given in or by a
+     worktree this session already created in that clone, the refusal names
      the way on that needs nobody: split into a worktree with `git worktree
-     add`, which that answer consents to there, and work there by path with
-     `git -C`. A switch into another clone is refused without one, because a
-     split there would be put to the person. It names no question tool and
+     add` and work there by path with `git -C`. A switch into another clone
+     is refused without one, because a split there would be put to the
+     person. It names no question tool and
      no `[shared-tree-ok]`, and says that re-issuing the switch unchanged
      meets the same refusal.
   2. Without the press nothing changes: the person sees the same two

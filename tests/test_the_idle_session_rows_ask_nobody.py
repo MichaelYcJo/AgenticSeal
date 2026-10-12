@@ -8,13 +8,14 @@ person with `AskUserQuestion`, and an `ask` on every attempt after. On the
 person had pressed `automation` on the routing question, which says nobody
 is at the keyboard.
 
-Under the press both rows now `deny` on every attempt. Where the press
-consents to a creation in the switch's clone -- the clone it was given in,
-or one this session already created a worktree in -- the reason names the
-one way on that needs nobody: split into a worktree and work there by path.
-In another clone it names no split, because a creation there would be put
-to a person (round 1). It names no question tool and no token, and it writes
-no choice marker, because no question was put. Attended, both rows are the base's byte for byte
+Under the press both rows now `deny` on every attempt. Where a creation in
+the switch's clone is consented -- by the press in the clone it was given
+in, or by this session's record in a clone it already created a worktree
+in -- the reason names the one way on that needs nobody: split into a
+worktree and work there by path. In another clone it names no split,
+because a creation there would be put to a person (round 1). It names no
+question tool and no token, and it writes no choice marker, because no
+question was put. Attended, both rows are the base's byte for byte
 (`tests/test_worktree_guard.py`, S5).
 
 The press is read by `automation_pressed` against the session's own root,
@@ -124,9 +125,10 @@ def situation(lang, row, idle_min):
 
 
 def ways_on(lang, git, wt_root):
-    """What follows the opening under the press: no question, the split as
-    the plain commands the press consents to, working there by path, and the
-    re-issue sentence."""
+    """What follows the opening under the press where the split's creation
+    is consented: no question, the split as plain commands, working there by
+    path, and the re-issue sentence. The why-sentence is the press's, the
+    one the session's own clone reads."""
     if lang == "en":
         return (
             "This session's person pressed `automation` on the routing "

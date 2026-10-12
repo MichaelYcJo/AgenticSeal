@@ -17,7 +17,7 @@ actually live on the tree.
 | Tree state | Decision |
 |---|---|
 | ACTIVE session present | deny — steer to a worktree. One destination, so no choice to offer |
-| only IDLE sessions | **choice** — switch here, or split into a worktree; each session listed with its last-activity age, because forgotten tabs are the user's call. Where the person pressed `automation`, a deny to the model on every attempt instead, naming the split as the way on where the press consents to its creation — see §Choice sites, *Under the press* |
+| only IDLE sessions | **choice** — switch here, or split into a worktree; each session listed with its last-activity age, because forgotten tabs are the user's call. Where the person pressed `automation`, a deny to the model on every attempt instead, naming the split as the way on where its creation is consented, by the press in the clone it was given in or by this session's record in a clone it already split — see §Choice sites, *Under the press* |
 | detection unusable (can't see even our own process) | **choice** — same two. A blanket deny locked out extension hosts entirely. Under the press, the same deny as the row above: its way on, the split, needs no switch and no person, which is what keeps it from being that lockout |
 | single stream, tracked changes present | ask — the changes follow the switch. Genuinely yes/no: the destination branch is the same either way, and what is being asked is whether the uncommitted changes ride along. Where the person pressed `automation`, a deny to the model instead, naming the ways on that need nobody — see *The tracked-changes row has two readers too* |
 | single stream, clean | allow silently |
@@ -615,11 +615,13 @@ working in that tree by path with `git -C`. The press is consent in the clone
 it was given in, read there before every creation row (§Creation consent), and
 so is this session's creation record in the clone it is in, so where either
 holds for the switch's tree those commands pass as written with no
-`[worktree-ok]`. A switch into another clone is refused under the press as
-well, and its reason names no split, because a creation there is not consented
-and §B's rows would put it to a person. The reason says a branch already checked out in a worktree
-needs no switch, names no question tool and no `[shared-tree-ok]`, and says
-re-issuing the command unchanged meets the same refusal. The press is read by
+`[worktree-ok]`, and the reason names whichever of the two consents. That
+reason also says a branch already checked out in a worktree needs no switch.
+A switch into another clone is refused under the press as well, and its
+reason names no split, because a creation there is not consented and §B's rows
+would put it to a person. Both reasons name no question tool and no
+`[shared-tree-ok]`, and say re-issuing the command unchanged meets the same
+refusal. The press is read by
 the stop's reader, against the session's own root, and only where one of the
 two rows fires, so a command reads the transcript at most once. No marker is
 written, because the marker means *the question was put* and none was: a
@@ -629,8 +631,7 @@ first-attempt deny an attended session meets. The token reads as it did, so
 does not name it, and a model that appends it anyway leaves that on the
 command line. In the clone the press was given in, the creation direction's
 two sites never run under the press, because consent is read before them.
-Without the press both rows are what
-they were, word for word.
+Without the press both rows are what they were, word for word.
 Enforced by: tests/test_the_idle_session_rows_ask_nobody.py::test_under_the_press_a_choice_row_denies_every_attempt, tests/test_the_idle_session_rows_ask_nobody.py::test_the_token_still_reads_as_it_does_attended, tests/test_the_idle_session_rows_ask_nobody.py::test_the_way_on_passes_the_guard, tests/test_the_idle_session_rows_ask_nobody.py::test_a_creation_on_the_same_line_is_stopped_with_it, tests/test_the_idle_session_rows_ask_nobody.py::test_the_plain_retry_after_the_stop_meets_the_deny, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_at_most_once_per_command, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_the_idle_session_rows_ask_nobody.py::test_a_switch_into_another_clone_names_no_split_it_cannot_consent, tests/test_the_idle_session_rows_ask_nobody.py::test_a_clone_this_session_already_split_is_named_the_split, tests/test_worktree_guard.py::test_the_attended_choice_rows_are_the_bases_in_korean
 
 **Retry tokens, one per direction.** Both are matched as **bare words** of the
