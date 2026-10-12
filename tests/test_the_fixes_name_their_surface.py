@@ -39,6 +39,7 @@ import subprocess
 import sys
 
 import pytest
+from conftest import gh_answers
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CHECK = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
@@ -172,7 +173,9 @@ def record(sha, contract="none", new_units="none"):
 
 
 def run(repo, draft=None):
-    env = dict(os.environ)
+    # The local run judged as a ready pull request: no payload, and a `gh`
+    # that says ready (#866, round 1's 🟡 2).
+    env = gh_answers(dict(os.environ), "ready")
     env.pop("GITHUB_EVENT_PATH", None)
     env.pop("GITHUB_HEAD_REF", None)
     if draft is not None:

@@ -28,8 +28,9 @@ provable:
 Where `seal/config.md` declares `Ledger frozen from` (#715), `--reverify`
 writes no released ledger file, so that last line says instead that a
 released row is re-pointed or retired by a `Corrected ·` row in the branch's
-own fragment, which carries every coordinate the claim still rests on, and
-that drift is re-read with `--reverify --into` (`FROZEN_REPAIR`).
+own fragment, which carries every coordinate the claim still rests on or
+names the test that holds it (#836), and that drift is re-read with
+`--reverify --into` (`FROZEN_REPAIR`).
 
 **Silent when clean, silent when the repository has no ledger, silent outside
 opted-in repositories.** A line that prints on every commit is a line people
@@ -127,7 +128,9 @@ FROZEN_REPAIR = (
     "fragments; a released file is not edited after its release, so a released "
     "row is re-pointed or retired by a `Corrected ·` row in your own fragment, "
     "which carries every coordinate the claim still rests on, the moved one at "
-    "its new place, because a coordinate it leaves out is not checked again; "
+    "its new place, because a coordinate it leaves out is not checked again — "
+    "or, where a test holds the claim, names that test instead, "
+    "`tests/test_x.py::test_y`, and no later edit drifts it; "
     "and drift is re-read with `--reverify --into seal/ledger/<work-item-id>.md "
     "--checked YYYY-MM-DD` (docs/the-evidence-ledger.md)."
 )
@@ -217,10 +220,15 @@ def main():
             f"evidence-check: this commit leaves {n} anchor{'s'[: n != 1]} broken"
         )
         lines += [f"  BROKEN  {coord}  {detail}" for coord, detail in broken]
-        frozen, _ = checker().frozen_from(root)
+        # A refusal -- a `config.md` that will not read, a `Ledger frozen
+        # from` row written twice or not a number -- is not quoted here: this
+        # hook says nothing about the config (#867). It only keeps the freeze
+        # on, so the repair named is never the in-place re-stamp that
+        # `--reverify` would refuse.
+        frozen, refused = checker().frozen_from(root)
         lines.append(
             FROZEN_REPAIR
-            if frozen is not None
+            if frozen is not None or refused
             else "`bin/evidence-check --reverify .` re-anchors what it can prove."
         )
     if old:

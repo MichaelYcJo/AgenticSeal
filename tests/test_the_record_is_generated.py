@@ -28,6 +28,7 @@ import subprocess
 import sys
 
 import pytest
+from conftest import gh_answers
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPTS = os.path.join(ROOT, "skills", "code-review", "scripts")
@@ -278,6 +279,67 @@ def rows_of(text, heading):
 
 
 # --- the field table, one case per derivation --------------------------------
+
+
+def generate_under(repo, state, report_text=None):
+    """`new` at round 1 with the suite's `gh` answering STATE; (exit, output,
+    record text)."""
+    scratch = repo.parent
+    (scratch / "report-1.md").write_text(
+        report() if report_text is None else report_text, encoding="utf-8"
+    )
+    (scratch / "asked-1.md").write_text(ASKED, encoding="utf-8")
+    r = subprocess.run(
+        [
+            sys.executable,
+            GENERATOR,
+            "new",
+            "--item",
+            str(repo / ITEM),
+            "--round",
+            "1",
+            "--target",
+            git(repo, "rev-parse", "HEAD").stdout.strip(),
+            "--report",
+            str(scratch / "report-1.md"),
+            "--asked",
+            str(scratch / "asked-1.md"),
+            "--ran-by",
+            RAN_BY,
+            "--baseline",
+            "base",
+        ],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+        env=gh_answers(env_without_a_pull_request(), state),
+    )
+    path = repo / ROUNDS / "round-1.md"
+    text = path.read_text(encoding="utf-8") if path.exists() else None
+    return r.returncode, r.stdout + r.stderr, text
+
+
+def test_with_no_pull_request_to_see_new_does_not_fail_the_record_it_wrote(repo):
+    """Round 1's 🟡 1 of #866. No payload and a `gh` that finds no pull
+    request: nobody observed one — before the draft opens, on a route that
+    stops before it, with no `gh`. Round 1's record (`Pass` unchecked,
+    `Broad gate` not yet) is written and `new` exits 0, the line naming the
+    state as unknown and every source tried, and no line tells the reader to
+    spawn the sealer. A `gh` that says ready is ready, and the same record
+    exits 1 there, where the ready state's refusals are the true answer."""
+    declared(repo)
+    code, out, text = generate_under(repo, "unknown")
+    assert text is not None, out
+    assert code == 0, out
+    assert "the pull request's state is unknown, and it is not judged as a " in out
+    assert "no pull-request event payload, and `gh pr view` exited 1" in out, out
+    assert "spawn the `sealer`" not in out, out
+    (repo / ROUNDS / "round-1.md").unlink()
+    code, out, text = generate_under(repo, "ready")
+    assert text is not None, out
+    assert code == 1, out
+    assert "judged as a ready pull request (`gh pr view --json isDraft`)" in out
 
 
 def test_the_target_is_the_flag_and_it_has_to_resolve(repo):
@@ -1591,11 +1653,12 @@ def test_every_record_this_writes_is_read_back_before_it_is_written():
     the difference between this and the grid: the grid could go one row short
     and stay green.
 
-    `run_check` is the second name and it is not a record — it writes the
-    GitHub event payload `chain_check` reads a pull request's state from,
-    into a temp file it then unlinks. A THIRD name means a new writer, and
-    it either goes through `write_record` or says here why what it writes is
-    not a record."""
+    `write_record` is the only name (#866 S8). `run_check` used to be a
+    second, writing a draft event payload for `chain_check` to read a pull
+    request's state from; the check asks `gh` itself now, and nothing here
+    writes a file the check then trusts. A SECOND name means a new writer,
+    and it either goes through `write_record` or says here why what it
+    writes is not a record."""
     import ast
 
     module = ast.parse(read(GENERATOR))
@@ -1618,7 +1681,7 @@ def test_every_record_this_writes_is_read_back_before_it_is_written():
             ]
             if any(set("wax") & set(m) for m in modes):
                 writers.setdefault(node.name, []).append(inner.lineno)
-    assert set(writers) == {"write_record", "run_check"}, (
+    assert set(writers) == {"write_record"}, (
         f"a writer this case does not know about: {writers}. Every record is "
         "written by `write_record`, which asks the hider question first"
     )
@@ -1684,6 +1747,9 @@ def record(sha, passed=True, verdict="answered", finding="🟢 1"):
 
 
 def run_check(repo, worktree=False):
+    """The check as a local run judged as a READY pull request — the state
+    these cases are about: no payload, and a `gh` that says ready (#866,
+    round 1's 🟡 2)."""
     r = subprocess.run(
         [
             sys.executable,
@@ -1698,7 +1764,7 @@ def run_check(repo, worktree=False):
         encoding="utf-8",
         errors="replace",
         timeout=60,
-        env=env_without_a_pull_request(),
+        env=gh_answers(env_without_a_pull_request(), "ready"),
     )
     return r.returncode, r.stdout + r.stderr
 

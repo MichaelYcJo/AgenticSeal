@@ -9,7 +9,8 @@ of the form
 
 and classifies each:
 
-  BROKEN   the anchor is not in the file, or is in it more than once
+  BROKEN   the anchor is not in the file, or is in it more than once, or
+           no rule can bound a unit in that file (#870)
   DRIFTED  the anchor is there and the content under it has changed
   OK       the anchor is there and the content is what the row recorded
   EXTERNAL path not in this repo and no --map given — cannot judge here
@@ -19,6 +20,14 @@ row, MALFORMED for a `Code grounds` cell whose coordinate does not parse or
 that cites none (#299), and OVERFLOW for a table row that splits into more
 cells than its table's header, whose text past the last column no reader
 sees (#585).
+
+A row may name instead the tests that hold its claim, as pytest spells them
+(`tests/test_x.py::test_y`), in its Code grounds cell and nowhere else
+(#836). Such a row has no hash and never drifts: each test is OK where a
+`def` or `class` of that name is defined in its file once, BROKEN where its
+file or unit is gone, and MALFORMED where it shares the cell with a code
+coordinate. That is all reading the file establishes; whether the test ran
+and passed is read off the sealed run's record where one is handed over.
 
 **A coordinate names a place by content, never by position.** A line number
 moves for edits that have nothing to do with the claim, so a coordinate made of
@@ -116,6 +125,7 @@ import glob
 import hashlib
 import html
 import importlib.util
+import json
 import os
 import re
 import stat
@@ -141,13 +151,25 @@ HELP_EPILOG = _EPILOG_HEAD + (__doc__ or "").partition(_EPILOG_HEAD)[2]
 # records arm reads a name written the way a coordinate is written with the
 # same two pieces (`RECORD_COORD_RE`, #508): one grammar, so *a coordinate*
 # means one thing in both arms.
+#
+# **This is the one grammar of the coordinate** (#867). `correction_check.py`
+# and `settle.py` load this module and read `ANCHOR_RE` itself, and
+# `.github/scripts/rider_check.py` builds its stamp from `ANCHOR_LOCATOR` and
+# `ANCHOR_HASH`, because a stamp is a coordinate minus its path. Three
+# regexes used to spell it again, and they disagreed: `correction-check` gave
+# no identity to a path with no `.ext` (`bin/test`) and gave one to a quoted
+# MALFORMED example with a space before the `@`. A locator form added here is
+# read by every one of them; a reader that copied a piece would not be.
 ANCHOR_PATH = r"[A-Za-z0-9_@.][A-Za-z0-9_.@/-]*[/.][A-Za-z0-9_.@/-]*?"
 ANCHOR_NAME = r"[A-Za-z_][A-Za-z0-9_.]*"
+ANCHOR_QUOTED = r"\"(?:[^\"\n]|\\\")+\""
+ANCHOR_LOCATOR = ANCHOR_QUOTED + r"|" + ANCHOR_NAME
+ANCHOR_HASH = r"[0-9a-f]{6,12}"
 ANCHOR_RE = re.compile(
     r"(?P<path>" + ANCHOR_PATH + r")"
-    r"#(?P<locator>\"(?:[^\"\n]|\\\")+\"|" + ANCHOR_NAME + r")"
-    r"(?:>(?P<claim>\"(?:[^\"\n]|\\\")+\"))?"
-    r"@(?P<hash>[0-9a-f]{6,12})"
+    r"#(?P<locator>" + ANCHOR_LOCATOR + r")"
+    r"(?:>(?P<claim>" + ANCHOR_QUOTED + r"))?"
+    r"@(?P<hash>" + ANCHOR_HASH + r")"
 )
 HASH_LEN = 8
 # A clause of a pact held in another repository, cited from a signer
@@ -451,10 +473,13 @@ def py_spans(text):
     local, not a unit, and is not collected.
 
     None rather than `{}` for a SyntaxError, because the two callers diverge
-    on exactly that: a file that cannot be parsed falls back to the generic
-    text rule, while a file that parses and simply lacks the symbol is
-    BROKEN. Conflating the two anchored rows to leftover call sites, and
-    `--reverify` then made the wrong anchor permanent (round 4, 🔴 2).
+    on exactly that: a file that cannot be parsed is refused with the
+    interpreter's version and the error's line on it (#870), while a file
+    that parses and simply lacks the symbol is BROKEN with the repo-wide
+    scan. The refusal used to be a fall-back to the generic text rule, which
+    hashed a multi-line `def` without its body; conflating the two before
+    that anchored rows to leftover call sites, and `--reverify` then made the
+    wrong anchor permanent (round 4, 🔴 2).
 
     **One parse per distinct text, for the life of the process** (#519). The
     ledger cites one file from many rows, and parsing it once per row was
@@ -514,34 +539,96 @@ def parsed_spans(text):
     return out
 
 
+def vendored_heading_level(line):
+    """`unverified_check.py#heading_level`, for a copy with no reader beside
+    it: CommonMark 4.2's ATX heading — at most three spaces, one to six `#`,
+    then a space, a tab or the end of the line — as its level, or None.
+    `tests/test_evidence_check.py#test_the_vendored_heading_rule_agrees_with_the_shared_one`
+    holds the two equal."""
+    indent = len(line) - len(line.lstrip(" "))
+    if indent > 3:
+        return None
+    s = line[indent:]
+    n = len(s) - len(s.lstrip("#"))
+    if 1 <= n <= 6 and (len(s) == n or s[n] in " \t\r\n"):
+        return n
+    return None
+
+
+@functools.cache
+def heading_rule():
+    """`heading_level`: the shared reader's where this is the plugin's own
+    copy, and the vendored twin where it is not (#867), beside `fence_rule`
+    and `cell_rule`."""
+    reader = shared_reader()
+    return reader.heading_level if reader is not None else vendored_heading_level
+
+
 def heading_level(line):
-    m = re.match(r"^(#{1,6})\s", line)
-    return len(m.group(1)) if m else None
+    """The level of the markdown heading LINE is, or None — the one rule,
+    `heading_rule()`, under the name every caller here and
+    `pact_check.py#clause_hash` already spell. It used to be `^#{1,6}\\s` on
+    any line, so a heading indented up to three spaces was not one, and a
+    `## B` quoted inside a fence was: the regions below read it on the lines
+    a renderer shows (`markdown_lines`)."""
+    return heading_rule()(line)
 
 
-def text_regions(lines, anchor, markdown=False):
+def markdown_lines(text):
+    """TEXT's lines as GFM ends them, with every line inside a closed fence
+    blanked (`unquoted`) — the lines a renderer shows a heading on (#867).
+    The count and the line numbers are `gfm_lines(text)`'s, so a region found
+    here is the same region there, and its hash is taken over the lines as
+    written: where a region ENDS moves, its bytes do not.
+
+    **Computed once per distinct text** (round 1 of #867, ⬜ 11): every
+    quoted `.md` anchor asks for its file's shown lines, and recomputing
+    them per anchor took a `--strict` run over this repository from 13.2 s
+    to 15.4 s. The memo is keyed on the TEXT, as `parsed_spans`' is, and
+    each caller gets a fresh list."""
+    return list(_shown_lines(text))
+
+
+@functools.cache
+def _shown_lines(text):
+    """`markdown_lines`' answer, stored once per distinct text, as a tuple
+    no caller can change."""
+    return tuple(gfm_lines(unquoted(text)))
+
+
+def text_regions(lines, anchor, markdown=False, shown=None):
     """Every region a text anchor matches, 1-based and inclusive.
 
     A markdown heading owns everything down to the next heading at its level or
     above, which is what a reader means by a section. Anything else owns the
     contiguous run of non-blank lines it sits in — a paragraph, a table, a
-    block of code.
+    block of code. **A quoted line is a paragraph and never a function** (#870):
+    nothing here reads the language, so a unit with no blank line inside it
+    is hashed whole by one quote, and a unit with blank lines is cited one
+    quote per paragraph.
 
     **The heading rule is markdown-only.** `#` opens a comment in Python, shell
     and YAML, and reading one as a heading made a 23-line comment block resolve
     to its first line alone. Found by migrating this repository's own ledger,
     not by reasoning about it.
+
+    **A heading is read on SHOWN, the lines a renderer shows** (#867):
+    `markdown_lines` of the same text, which the caller passes for a markdown
+    file. A `## B` quoted in a closed fence opens no section and ends none.
+    The text is still matched on LINES as written, so an anchor on a line
+    inside a fence finds its paragraph as it did.
     """
+    shown = lines if shown is None else shown
     want = " ".join(anchor.split())
     out = []
     for i, line in enumerate(lines):
         if " ".join(line.split()) != want:
             continue
-        level = heading_level(line) if markdown else None
+        level = heading_level(shown[i]) if markdown else None
         if level is not None:
             j = i + 1
             while j < len(lines):
-                k = heading_level(lines[j])
+                k = heading_level(shown[j])
                 if k is not None and k <= level:
                     break
                 j += 1
@@ -570,6 +657,9 @@ def heading_path(lines, parts):
     Each part narrows inside the section the previous one opened, so a heading
     that repeats across a document is disambiguated by its parent rather than
     by a line number. Zero matches or several is the caller's BROKEN.
+
+    LINES are `markdown_lines` (#867): a heading quoted in a closed fence is a
+    blank line there, so it is no part of any path and ends no section.
     """
     regions = [(1, len(lines))]
     for part in parts:
@@ -595,36 +685,122 @@ def heading_path(lines, parts):
     return regions
 
 
+# The suffixes each bounding rule reads (#870). `bounding_rule` is the one
+# place a path's suffix decides how a unit in it is bounded; `resolve_unit`,
+# `minor_region`, `file_units` and `content_matches` each used to test the
+# suffix on their own.
+AST_SUFFIXES = frozenset([".py", ".pyi"])
+HEADING_SUFFIXES = frozenset([".md"])
+
+
+def bounding_rule(path):
+    """The rule that bounds a unit in PATH: "ast", "heading", or None where
+    no rule does (#870).
+
+    A unit is bounded only where a real parser decides its extent. In #835's
+    words, "ast" is OBSERVED, the running interpreter's own parse, and
+    "heading" is an OWNED locator over a person's document, read by
+    CommonMark's heading rule (#867). None is the refusal: a bare symbol in
+    any other file is BROKEN with the quoted-line anchor's shape on its line,
+    never read through a rule that imitates a language's grammar without its
+    parser. A quoted locator needs no rule — the run of non-blank lines it
+    sits in is a structure the file itself shows.
+    """
+    suffix = os.path.splitext(path)[1]
+    if suffix in AST_SUFFIXES:
+        return "ast"
+    if suffix in HEADING_SUFFIXES:
+        return "heading"
+    return None
+
+
+def unbounded(path, rule, text):
+    """The sentence a refused bare-symbol locator in PATH reads, naming why
+    no unit can be bounded and the anchor to write instead (#870)."""
+    remedy = "anchor a quoted line instead"
+    if rule == "ast":
+        try:
+            ast.parse(text)
+        except SyntaxError as err:
+            why = err.msg + (f" at line {err.lineno}" if err.lineno else "")
+        else:  # asked only of a text `py_spans` already refused
+            why = "it did not parse"
+        version = ".".join(str(n) for n in sys.version_info[:3])
+        return (
+            f"Python {version} cannot parse this file ({why}), so no unit in it "
+            "is bounded and none is guessed at — run the checker on the Python "
+            f"the file is written for, or {remedy}"
+        )
+    if rule == "heading":
+        return (
+            "a markdown unit is a heading, and a bare symbol names none — "
+            'anchor its heading path instead, `"## <heading>"`'
+        )
+    suffix = os.path.splitext(path)[1]
+    named = f"`{suffix}`" if suffix else "a file with no suffix"
+    return (
+        f"no bounding rule for {named}; {remedy}: "
+        f'`{path}#"<a line of the unit>"@00000000`, whose region is the '
+        "paragraph that line sits in, and `--reverify` fills the hash"
+    )
+
+
+class Resolution:
+    """`resolve_unit`'s one reading of a coordinate (#870): `places`, the
+    `[(start, end)]` the locator resolves to, and `refused`, None or the
+    sentence saying why no unit in the file can be bounded.
+
+    A refused reading has no places, so a caller that never asks for the
+    reason still reads nothing there rather than a span nobody bounded; one
+    that prints a verdict asks for it, and that is one reading of the
+    coordinate rather than a second call (#809). It is no tuple: a field
+    beside `places` that no code can set would be read by its callers as a
+    fact about the place, which is how the resurrection flag outlived the
+    rule that set it until #870 took both out.
+    """
+
+    __slots__ = ("places", "refused")
+
+    def __init__(self, places, refused=None):
+        self.places = places
+        self.refused = refused
+
+    def __repr__(self):
+        return f"Resolution({self.places!r}, refused={self.refused!r})"
+
+
 def resolve(path, locator, text):
     """[(start, end)] for the LOCATOR — empty for none, several for ambiguous.
 
-    **This discards how sure the answer is.** For a file the generic rule
-    reads, some places survive only because the keyword blocklist emptied the
-    set and they were put back; a consumer that acts on such a place — the
-    check deciding OK, `--reverify` deciding to write — has to know that, and
-    calls `resolve_unit` instead. **Nothing inside this module calls it any
-    more** — `file_units` reaches `generic_units` directly — so the wrapper
-    survives for the cases that assert places and for anything importing this
-    module. Its docstring named `file_units` for one round after that stopped
-    being true (round 7, 🟢).
+    It drops the refusal's reason, so a consumer that prints a verdict calls
+    `resolve_unit` instead. **Nothing inside this module calls it any more**,
+    so the wrapper survives for the cases that assert places and for anything
+    importing this module.
     """
-    return resolve_unit(path, locator, text)[0]
+    return resolve_unit(path, locator, text).places
 
 
-def resolve_unit(path, locator, text):
-    """([(start, end)], resurrected) — the places, and whether they survived
-    only because the declaration rule put keyword-blocked candidates back.
+def resolve_unit(path, locator, text, shown=None):
+    """`Resolution(places, refused)` — the places the locator resolves to,
+    and why no unit could be bounded, or None.
 
-    Round 4's 🔴 1, round 5's 🔴 C and round 6's 🔴 J are three attempts at one
-    rule, and the two failure modes are the same ambiguity: without the
-    resurrection a C# `public new void Render(int x)` reads BROKEN, with it a
-    `return render(y);` left behind by a move reads as the unit. No keyword
-    list separates them, so the uncertainty is carried OUT of here instead of
-    being argued about in here — `check_ledger` answers a resurrected place
-    that does not reconstruct the recorded hash with BROKEN and the repo-wide
-    scan, which is what `ast` already gives `.py`, and `--reverify` refuses to
-    write onto one at all. The classifier is then allowed to stay wrong,
-    because being wrong stops being expensive.
+    SHOWN is the path the row itself writes, where it differs from PATH:
+    the refusal's remedy is the edit to make, so it is written on the row's
+    own path, `--map` prefix included (round 2 of #870).
+
+    **A unit no rule can bound is refused, never guessed at** (#870). Which
+    rule bounds PATH is `bounding_rule`'s answer and nobody else's. A `.py`
+    file the running interpreter cannot parse used to fall through to the
+    text rule, which hashed lines 1-3 of a five-line `def f(` whose
+    parameters ran over three lines and left the body out; a suffix no rule
+    names was read by an indentation rule, and then by a bracket walk over a
+    hand-written lexer, each imitating a grammar without its parser. Both
+    now come back with no places and the reason, which `judge` prints as
+    BROKEN with the quoted-line anchor's shape on the line.
+
+    Its input class is the rule's, in #835's words: OBSERVED for `ast`, and
+    an OWNED locator for a markdown heading path and for a quoted line,
+    whose region is the paragraph it sits in (`text_regions`).
 
     **A coordinate's job is to put a reader in the right logic, not to pin a
     line.** So the address is the enclosing unit: the function for code, the
@@ -644,150 +820,28 @@ def resolve_unit(path, locator, text):
     still says re-read this; it just stops saying go fix the ledger.
     """
     lines = gfm_lines(text)
-    markdown = path.endswith(".md")
+    rule = bounding_rule(path)
     if locator.startswith('"'):
         body = unescape(locator[1:-1])
-        if markdown:
+        if rule == "heading":
+            # A heading is read where a renderer shows one (#867).
+            shown = markdown_lines(text)
             parts = [p for p in body.split(HEADING_SEP) if p.strip()]
             if parts and heading_level(parts[0].strip()) is not None:
-                return heading_path(lines, parts), False
-        return text_regions(lines, body, markdown), False
-    if path.endswith(".py"):
+                return Resolution(heading_path(shown, parts))
+            return Resolution(text_regions(lines, body, True, shown))
+        return Resolution(text_regions(lines, body))
+    if rule == "ast":
         spans = py_spans(text)
-        if spans is not None:
-            # The parse succeeded, so ast's answer is the whole answer: a
-            # symbol it cannot find is GONE. Falling back to the text rule
-            # here read a leftover call site as the unit — a moved function
-            # reported DRIFTED instead of BROKEN-with-hint, and --reverify
-            # anchored the row to the call permanently (round 4, 🔴 2). The
-            # fallback survives only for the file ast cannot read at all.
-            return spans.get(locator, []), False
-    return generic_units(lines, locator)
-
-
-# Words that BEGIN a statement and can be followed directly by a call —
-# `return render(y);`, `await render(y)`, `if render(x):`. Any of them in the
-# text before the name makes the line a use rather than a declaration —
-# but only where a candidate without one survives, because the same words are
-# declaration modifiers in other languages (`public new void Render(int x)`,
-# `case loading(String)`), and refusing those made real code BROKEN
-# (round 5, 🔴 C). The list may NARROW a set of candidates and may never empty
-# it; a tie it cannot break is broken by the row's own recorded hash in
-# `check_ledger`, which is why being wrong here is no longer expensive.
-STATEMENT_WORDS = frozenset(
-    [
-        "return",
-        "raise",
-        "throw",
-        "yield",
-        "await",
-        "assert",
-        "case",
-        "match",
-        "if",
-        "elif",
-        "while",
-        "with",
-        "switch",
-        "do",
-        "else",
-        "new",
-        "not",
-        "and",
-        "or",
-        "in",
-        "of",
-        "until",
-        "unless",
-        "when",
-    ]
-)
-
-
-def generic_units(lines, name):
-    """[(start, end)] for `name`'s declaration block, without any parser.
-
-    The `ast` path exists for `.py` only, and a project adopting this skill is
-    mostly code that is not Python. Falling back to text anchors there would
-    hand those projects the brittle version of this design, so the major level
-    has a rule that needs no parser and no dependency.
-
-    A declaration is the name followed by `(`, `{`, `:` or `=`. The block runs
-    to the next line at the same or lower indentation, which closes a suite in
-    an indentation language and lands on the closing brace in a brace
-    language, because that brace sits at the declaration's own indent.
-
-    `=` is in that list because a module-level constant is a unit too, and a
-    common one to cite — this plugin's own ledger cites three. Without it every
-    constant in every adopting project falls to a literal text anchor, which is
-    the brittle form this rule exists to avoid. A multi-line value comes along,
-    since its continuation lines are indented past the name.
-
-    It is coarser than a parser and that is the trade. Where it cannot resolve
-    a unit the answer is BROKEN and a person looks — loud and honest beats a
-    per-language parser nobody maintains.
-    """
-    out = []
-    # What may sit before the name on a declaration line: keywords and
-    # modifiers, nothing else. `x = f(` is already blocked because `=` cannot
-    # appear in `pre`; `if v not in NAME:` is why the colon is stricter still.
-    # Statement keywords are blocked by name: `return render(y);` is the
-    # commonest shape in every brace language, and reading it as a second
-    # declaration made a one-declaration-one-call file BROKEN-ambiguous
-    # (round 4, 🔴 1). The list names the USES because declaration modifiers
-    # (`export`, `static`, `async`, `def`, ...) are unbounded across
-    # languages, and a wrong entry here fails loud — a declaration whose
-    # modifier matched would report BROKEN — never silent.
-    blocked = []
-    esc = re.escape(name)
-    opener = re.compile(r"^(?P<pre>[\w\s*&]*?)\b" + esc + r"\s*(?P<delim>[({=]|:)")
-    for i, line in enumerate(lines):
-        m = opener.match(line)
-        if not m:
-            continue
-        pre, delim = m.group("pre"), m.group("delim")
-        if delim == ":" and pre.strip():
-            continue  # `if v not in NAME:` is a use, not a declaration
-        if not pre.strip() and delim == "(" and line.rstrip().endswith(";"):
-            # `render(1);` — nothing before the name, so no keyword blocks it,
-            # and the line TERMINATES, so it opens no block. That is a call
-            # statement in every brace language (round 5, 🔴 C). Structural
-            # rather than a vocabulary guess, which is why this one may empty
-            # the set where the keyword list may not: a declaration with
-            # nothing before its name does not end at a semicolon.
-            continue
-        indent = len(line) - len(line.lstrip())
-        j = i + 1
-        while j < len(lines):
-            nxt = lines[j]
-            if nxt.strip() and (len(nxt) - len(nxt.lstrip())) <= indent:
-                break
-            j += 1
-        while j > i + 1 and not lines[j - 1].strip():
-            j -= 1
-        pre_words = pre.replace("*", " ").replace("&", " ").split()
-        # Nothing before the name, an opening paren, and a span of ONE line is
-        # a call in every language — Swift, Kotlin, Go, Ruby and Lua end no
-        # statement with a semicolon, so the structural guard above never
-        # reached them and `render(y)` left behind by a move read as the unit
-        # (round 7, 🔴 L). Marked rather than dropped, because a one-line
-        # declaration has the same shape and the recorded hash tells them
-        # apart. The span is what bounds this: `function f(x) {` opens a block
-        # and stays a declaration the rule is sure of.
-        bare_one_liner = not pre.strip() and delim == "(" and j == i + 1
-        target = (
-            blocked
-            if (STATEMENT_WORDS.intersection(pre_words) or bare_one_liner)
-            else out
-        )
-        target.append((i + 1, j))
-    # A keyword-prefixed candidate is dropped only where another survives, and
-    # the caller is told when that resurrection is the only reason there is an
-    # answer at all. Round 6's 🔴 J: those candidates include pure call
-    # statements, not only the C#/Swift declarations the resurrection was
-    # written for, so a consumer that cannot tell them apart must be able to
-    # ask.
-    return (out, False) if out else (blocked, bool(blocked))
+        if spans is None:
+            return Resolution([], unbounded(shown or path, rule, text))
+        # The parse succeeded, so ast's answer is the whole answer: a symbol
+        # it cannot find is GONE. Falling back to the text rule here read a
+        # leftover call site as the unit — a moved function reported DRIFTED
+        # instead of BROKEN-with-hint, and --reverify anchored the row to the
+        # call permanently (round 4, 🔴 2).
+        return Resolution(spans.get(locator, []))
+    return Resolution([], unbounded(shown or path, rule, text))
 
 
 def name_statements(text, region, name):
@@ -877,15 +931,48 @@ def minor_region(path, text, region, minor):
     bookkeeping this design exists to remove.
 
     Ambiguity widens for the same reason: several matches is not a place.
+
+    **A quoted claim is bounded by the parser, or is its own line** (round 2
+    of #870). `literal_statements` grows a hit through the lines deeper than
+    it, which is the indentation guess #870 removed at the major level, and
+    it ended a claim on #848's signature line before the body. In `.py` the
+    claim is the innermost statement `ast` gives for the quoted line
+    (`statement_at`); in a file no parser reads it is the line itself, as is
+    a bare minor anchor there. Markdown keeps the literal rule: what follows
+    a line deeper there is the line's own list item, which the format shows.
     """
     lines = gfm_lines(text)
+    rule = bounding_rule(path)
     if minor.startswith('"'):
         found = literal_statements(lines, region, unescape(minor[1:-1]))
-    elif path.endswith(".py"):
+        if rule == "ast":
+            found = [statement_at(text, region, a) for a, _b in found]
+    elif rule == "ast":
         found = name_statements(text, region, minor)
     else:
         found = literal_statements(lines, region, minor)
+    if rule is None:
+        found = [(a, a) for a, _b in found]
     return found if len(found) == 1 else []
+
+
+def statement_at(text, region, line):
+    """`(start, end)` of the innermost statement `ast` gives that holds LINE
+    inside REGION, or `(line, line)` where none does (round 2 of #870)."""
+    lo, hi = region
+    best = (line, line)
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return best
+    size = None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.stmt):
+            continue
+        a, b = node.lineno, node.end_lineno or node.lineno
+        if lo <= a <= line <= b <= hi and (size is None or b - a < size):
+            best, size = (a, b), b - a
+    return best
 
 
 def recorded_here(rel, body, place, want, claim):
@@ -910,22 +997,25 @@ SCAN_SIZE_CAP = 256 * 1024
 
 
 def file_units(rel, body):
-    """[(spelling, (start, end), unsure)] — every unit in one file, resolvable
-    ones only, each saying whether the declaration rule is sure of it.
+    """[(spelling, (start, end))] — every unit in one file, resolvable ones
+    only.
 
-    The flag exists for `--migrate`, which writes an anchor: a place the rule
-    is unsure of is not one to anchor a row onto without other evidence. The
-    destination scan below deliberately keeps them, because there the evidence
-    is reconstruction against the row's recorded hash.
+    Bounded by `bounding_rule`'s rule for REL: OBSERVED for `ast`, OWNED for
+    markdown headings. A file no rule bounds yields no units, so the rename
+    scan names no destination there and `--migrate` names the quoted-line
+    remedy instead (#870).
     """
-    lines = gfm_lines(body)
     units = []
-    if rel.endswith(".py"):
+    rule = bounding_rule(rel)
+    if rule == "ast":
         for name, places in (py_spans(body) or {}).items():
             if len(places) == 1:
-                units.append((name, places[0], False))
-    elif rel.endswith(".md"):
+                units.append((name, places[0]))
+    elif rule == "heading":
+        # Headings read where a renderer shows one (#867); a quoted heading
+        # in a closed fence is a blank line here and no unit.
         seen = {}
+        lines = markdown_lines(body)
         for i, line in enumerate(lines):
             level = heading_level(line)
             if level is None:
@@ -938,18 +1028,7 @@ def file_units(rel, body):
                 j += 1
             name = '"' + line.strip().replace("|", "\\|").replace('"', '\\"') + '"'
             seen.setdefault(name, []).append((i + 1, j))
-        units = [(n, p[0], False) for n, p in seen.items() if len(p) == 1]
-    else:
-        opener = re.compile(r"^([\w\s*&]*?)\b(\w+)\s*([({=]|:)")
-        names = set()
-        for line in lines:
-            m = opener.match(line)
-            if m and not (m.group(3) == ":" and m.group(1).strip()):
-                names.add(m.group(2))
-        for name in sorted(names):
-            found, resurrected = generic_units(lines, name)
-            if len(found) == 1:
-                units.append((name, found[0], resurrected))
+        units = [(n, p[0]) for n, p in seen.items() if len(p) == 1]
     return units
 
 
@@ -1012,7 +1091,7 @@ def content_matches(repo, rel, locator, want, cache):
     separately: `main`, `resolve` and `check` collide across files as a
     matter of course, so a name alone must never fix anything.
     """
-    markdown = rel.endswith(".md")
+    markdown = bounding_rule(rel) == "heading"
     old_name = unescape(locator[1:-1]) if locator.startswith('"') else locator
     old_last = old_name.rsplit(".", 1)[-1]
     if markdown:
@@ -1031,7 +1110,7 @@ def content_matches(repo, rel, locator, want, cache):
         if body is None:
             continue
         lines = gfm_lines(body)
-        for name, (a, b), _unsure in file_units(path, body):
+        for name, (a, b) in file_units(path, body):
             region = lines[a - 1 : b]
             if markdown:
                 region = [old_name, *region[1:]]
@@ -1598,6 +1677,9 @@ def check_ledger(ledger, root, maps, default_repo=None, families=None):
         )
     findings = check_text(body, root, maps, default_repo)
     findings.extend(read_by_family)
+    # A row held by a test (#836) is read here unless a family holds it: then
+    # `family_view` read it, and read nothing of a superseded family's rows.
+    findings.extend(held_by_tests(text, root, maps, default_repo, owned))
     findings.extend(old_format_rows(text))
     findings.extend(malformed_rows(text))
     findings.extend(overflow_rows(text))
@@ -1736,31 +1818,27 @@ def judge(m, root, maps, default_repo, scan_cache):
             detail += f" (repo-wide scan skipped: over {SCAN_FILE_CAP} files)"
         return found("BROKEN", detail, dest=destination(repo, rel, hashes))
 
-    places, resurrected = resolve_unit(rel, locator, body)
-    unsure, hit = [], []
-    if places and (resurrected or len(places) > 1):
-        # The row's OWN recorded content decides, in both directions. With
-        # several places it breaks the tie (questions.md §Q3). With one
-        # place the declaration rule is not sure of, it is the only thing
-        # that can say whether the row's unit is still there — and where
-        # nothing reconstructs, the unit is GONE, which is the answer
-        # `ast` already gives `.py` (round 6, 🔴 J). Two places
-        # reconstructing one hash are identical spans, so the choice
-        # between them is not a choice — at the MAJOR level. A claim
-        # row's `want` is the hash of the minor region, which two
-        # unrelated units can share by holding one identical line, so
-        # neither move is licensed there: the tie stands, and an unsure
-        # place stays DRIFTED rather than being called gone.
-        # `docs/the-evidence-ledger.md` §*A row is a content anchor* is the
-        # rule — *an anchor degrades to DRIFTED, never to BROKEN.
-        # Only the major level can be BROKEN* (round 8, 🔴 A and 🔴 B).
+    # The remedy is written on the row's own path, `--map` prefix included,
+    # so a row copied from it still cites the checkout it named (round 2).
+    unit = resolve_unit(rel, locator, body, shown=raw_path)
+    if unit.refused:
+        # Before the repo-wide scan, because a refused unit was never found
+        # and so cannot have moved: no unit in a file of this kind is
+        # bounded, and a hint pointing elsewhere would send the reader past
+        # the one fix that works — the anchor the line names (#870).
+        return found("BROKEN", unit.refused)
+    places = unit.places
+    hit = []
+    if len(places) > 1:
+        # The row's OWN recorded content breaks a tie (questions.md §Q3).
+        # Two places reconstructing one hash are identical spans, so the
+        # choice between them is not a choice — at the MAJOR level. A claim
+        # row's `want` is the hash of the minor region, which two unrelated
+        # units can share by holding one identical line, so no move is
+        # licensed there and the tie stands (round 8, 🔴 B).
         hit = [p for p in places if recorded_here(rel, body, p, want, claim)]
         if hit and (len(hit) == 1 or not claim):
             places = hit[:1]
-        elif resurrected and not claim:
-            # Kept, not discarded: the place is what the person needs to
-            # see, and its hash is what they need to record (round 7, 🔴 M).
-            unsure, places = places, []
     if len(places) > 1:
         at = ", ".join(f"{a}-{b}" for a, b in places)
         # HIT is non-empty here only for a claim's tie: a row with no claim
@@ -1775,20 +1853,6 @@ def judge(m, root, maps, default_repo, scan_cache):
         )
     if not places:
         detail = "locator not found"
-        if unsure:
-            # `locator not found` was a lie — the place was found and the
-            # rule is unsure of it. Saying which lines and what they hash
-            # to is what makes Known limits' *record it by hand* an act
-            # somebody can actually carry out (round 7, 🔴 M).
-            at = "; ".join(
-                f"{a}-{b}@{content_hash(gfm_lines(body)[a - 1 : b])}" for a, b in unsure
-            )
-            detail = (
-                "the declaration rule is unsure of the only place"
-                f"{'' if len(unsure) == 1 else 's'} it found, and none holds "
-                f"the recorded content — {at}; record one by hand if it is "
-                "still the unit"
-            )
         scan = scan_cache.setdefault(repo, {})
         hashes, names, capped = content_matches(repo, rel, locator, want, scan)
         if len(hashes) == 1:
@@ -1805,6 +1869,13 @@ def judge(m, root, maps, default_repo, scan_cache):
             # A labelled fact, never the word "renamed": the content
             # differs, so the checker does not know that.
             detail += f" — same name at {names[0][0]} (content differs)"
+        elif locator.startswith('"'):
+            # A quoted line has no name to find elsewhere, and outside `.py`
+            # and `.md` no file yields units to reconstruct it from, so the
+            # line names the one repair there is (round 2's ⬜ 4).
+            detail += (
+                " — the quoted text is not in the file; quote the line as it reads now"
+            )
         if capped:
             detail += f" (repo-wide scan skipped: over {SCAN_FILE_CAP} files)"
         return found("BROKEN", detail, dest=destination(repo, rel, hashes))
@@ -2094,11 +2165,18 @@ def malformed_rows(text):
         spans = [m.group(2).strip() for m in CODE_SPAN_RE.finditer(left)]
         words = CODE_SPAN_RE.sub(" ", left).split()
         refused = [s for s in spans + words if refused_coordinate(s)]
+        tests = node_tokens(cell)
+        # A citing row's first coordinate names a ledger line, not code, and
+        # is not the other form (#836, D4): `family_view` grades it apart.
+        code = list(ANCHOR_RE.finditer(cell))[1 if citing_verb(cells) else 0 :]
         if refused:
             for coord in refused:
                 found(coord, malformed_remedy(coord))
+        elif tests and code:
+            found(cell, MIXED_ROW)
         elif (
             cell
+            and not tests
             and not ANCHOR_RE.search(cell)
             and not OLD_COORD_RE.search(unpacted)
             and any(c for i, c in enumerate(cells) if i != column)
@@ -2107,8 +2185,362 @@ def malformed_rows(text):
                 cell,
                 "cites no coordinate, so nothing checks the claim — write "
                 "`path#anchor@hash` in the Code grounds cell, the hash as "
-                "`@00000000`, then run `evidence-check --reverify .`",
+                "`@00000000`, then run `evidence-check --reverify .`; or, "
+                f"where a test holds the claim, {TEST_FORM}",
             )
+    return findings
+
+
+# --- a claim held by a test (#836) -------------------------------------------
+#
+# A row's Code grounds cell may name, instead of coordinates, the tests that
+# hold its claim, in pytest's own node-id spelling, each in backticks:
+# `tests/test_x.py::test_y`, or `tests/test_x.py::TestA::test_b` for a method.
+# Such a row has no hash, so nothing in it drifts: this reads that each test
+# is there, and the suite reads that it passes. `docs/the-evidence-ledger.md`
+# §*A claim held by a test* is the rule.
+#
+# **Only a code span in the Code grounds cell is read**, through
+# `grounds_cells`: `a::b` is a spelling prose uses -- a C++ scope, a Rust path,
+# a quoted `Enforced by:` line -- where a coordinate's `#...@hex` shape is
+# unambiguous. Measured before this was written: no Code grounds cell of this
+# repository's ledgers held `::` anywhere, in a span or out of one.
+#
+# **The names after the path, joined with `.`, are the qualified name
+# `py_spans` keys on**, so a method is `Class.method` to both readers. The
+# path ends `.py` and the names are identifiers: a parametrised id
+# (`::test_y[case]`) names no `def`, and is refused with the function's form.
+NODE_SEP = "::"
+NODE_ID_RE = re.compile(
+    r"(?P<path>[^\s:`]+\.py)(?P<names>(?:" + NODE_SEP + r"[A-Za-z_][A-Za-z0-9_]*)+)"
+)
+TEST_FORM = (
+    "name it in Code grounds as pytest spells it, `tests/test_x.py::test_y`, or "
+    "`tests/test_x.py::TestA::test_b` for a method"
+)
+MIXED_ROW = (
+    "holds a test and a code coordinate, and a row is one form or the other — "
+    "keep the test where it holds the claim and move the coordinates out, or "
+    "keep the coordinates and move the test to Verified behavior"
+)
+
+
+def node_tokens(cell):
+    """Every code span of CELL that holds `::` and no coordinate: what a Code
+    grounds cell names as a test, parsed or not, in cell order. A span
+    holding a coordinate or a pact anchor is that coordinate, whatever its
+    quoted locator says -- a heading `## A::b`, a C++ scope (round 1, 🟡 3)."""
+    return [
+        m.group(2).strip()
+        for m in CODE_SPAN_RE.finditer(cell)
+        if NODE_SEP in m.group(2)
+        and not ANCHOR_RE.search(m.group(2))
+        and not PACT_ANCHOR_RE.search(m.group(2))
+    ]
+
+
+@functools.cache
+def _parsed_kinds(text):
+    """`unit_kinds`'s answer, stored once per distinct text, or None. The walk
+    is `parsed_spans`', so the two key a unit by one qualified name."""
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError):
+        return None
+    out = {}
+
+    def walk(node, prefix, in_function):
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                name = prefix + child.name
+                kind = "class" if isinstance(child, ast.ClassDef) else "def"
+                out.setdefault(name, []).append(kind)
+                walk(child, name + ".", not isinstance(child, ast.ClassDef))
+            elif isinstance(child, (ast.Assign, ast.AnnAssign)) and not in_function:
+                targets = (
+                    child.targets if isinstance(child, ast.Assign) else [child.target]
+                )
+                for t in targets:
+                    elts = t.elts if isinstance(t, (ast.Tuple, ast.List)) else [t]
+                    for n in elts:
+                        if isinstance(n, ast.Name):
+                            out.setdefault(prefix + n.id, []).append("constant")
+            else:
+                walk(child, prefix, in_function)
+
+    walk(tree, "", False)
+    return {name: tuple(kinds) for name, kinds in out.items()}
+
+
+def unit_kinds(text):
+    """`{qualified name: (kind, ...)}` for the Python TEXT, one kind per
+    definition -- `def`, `class` or `constant` -- or None where it will not
+    parse. A fresh dict per caller, as `py_spans` hands out."""
+    kinds = _parsed_kinds(text)
+    return None if kinds is None else dict(kinds)
+
+
+def named_unit(text, names):
+    """What NAMES -- the parts of a `path::name(::name)*` target after its
+    path -- name in the Python TEXT: the kinds of every definition of that
+    qualified name, `()` where there is none, or None where TEXT will not
+    parse.
+
+    **The one resolver of `path::name`** (#836): a ledger's test row is read
+    through it here, and `fold-check` loads this module to read an `Enforced
+    by:` target with it. What each accepts is its own: a test here, any
+    `def` or `class` there.
+    """
+    kinds = unit_kinds(text)
+    if kinds is None:
+        return None
+    if any("." in name for name in names):
+        # One identifier per part: `A.b` is not `A::b` (round 1, ⬜ 4).
+        return ()
+    return kinds.get(".".join(names), ())
+
+
+# --- the sealed run's record (#836, the reframe after round 2) ----------------
+#
+# Whether a cited test ran, and how it ended, is read off the record the broad
+# gate's pytest recorder writes during the run it seals
+# (`skills/verify/scripts/pytest_record/specseal_pytest_record.py`, its
+# docstring §*What it writes*), never predicted from the test's file. The gate
+# hands this check the record's directory and the run's key on its ledger arm
+# (`--suite-record`, `--suite-key`); every other caller hands none, and test
+# rows are then read for existence alone, which one line says.
+#
+# Five fields of a `test` line are read -- `path`, `nodeid`, `category`,
+# `outcome` and whether it carries `wasxfail` -- so a field the recorder adds
+# changes nothing here. `category` is the word pytest's own summary counts the
+# report under, which the recorder asks of pytest; a report whose `outcome` is
+# `passed` with no `wasxfail` is a pass whatever its word. This matches the
+# words and derives no rule of pytest's. A
+# second reader of one format beside `broad_gate.py#read_record`, because this
+# file ships alone through `evidence-ci` and that one reduces a run to files.
+SUITE_RECORD_OPTION = "--suite-record"
+SUITE_KEY_OPTION = "--suite-key"
+# What `main` hands `node_finding`: RECORD, `{(path, names): {category}}` or
+# None where no record was read; KEY and DIRECTORY as given, or None. Set once
+# per run, before any ledger is read, so the three callers of `node_finding`
+# -- `held_by_tests`, `family_view`'s member loop, and `reverify` through
+# `held_by_tests` -- read one record and none of them carries it
+# (`questions.md` Q6 of work item 1791384153).
+SUITE_RECORD = types.SimpleNamespace(record=None, key=None, directory=None)
+# Every test token `node_finding` read in this process, so `main` prints the
+# existence line only where a ledger held a test row.
+NODES_READ = []
+# The order a test's categories are named in, worst first; another word a
+# plugin writes is named after these.
+OBSERVED_ORDER = ("failed", "error", "xpassed", "xfailed", "skipped")
+
+
+def record_name(path, root):
+    """PATH as the record's reader names a file: its `realpath` made relative
+    to ROOT's, with `/`, or its `realpath` where it is not under ROOT --
+    `broad_gate.py#record_path`'s rule, so both readers name one file one way."""
+    real = os.path.realpath(path)
+    try:
+        rel = os.path.relpath(real, os.path.realpath(root))
+    except ValueError:
+        return real
+    if rel.split(os.sep)[0] == os.pardir:
+        return real
+    return rel.replace(os.sep, "/")
+
+
+def suite_record(directory, key, root):
+    """`{(path, names): {category}}` for every `test` line of every `*.jsonl`
+    directly under DIRECTORY whose first line is a `session` line carrying KEY,
+    or None where no file carried it or DIRECTORY cannot be listed.
+
+    PATH is the line's `path` named by `record_name`, never rebuilt from the
+    node id; NAMES the node id's parts after its first `::`, cut at the first
+    `[` that begins a case id, which pytest writes verbatim. A line that does
+    not parse as an object, or lacks a field, is passed over."""
+    try:
+        names = sorted(os.listdir(directory))
+    except OSError:
+        return None
+    record, keyed = {}, False
+    for name in names:
+        if not name.endswith(".jsonl"):
+            continue
+        try:
+            with open(
+                os.path.join(directory, name), encoding="utf-8", errors="replace"
+            ) as handle:
+                text = handle.read()
+        except OSError:
+            continue
+        lines = []
+        for line in gfm_lines(text):
+            try:
+                value = json.loads(line) if line.strip() else None
+            except ValueError:
+                continue
+            if isinstance(value, dict):
+                lines.append(value)
+        if not lines or lines[0].get("kind") != "session" or lines[0].get("key") != key:
+            continue
+        keyed = True
+        for value in lines[1:]:
+            path, nodeid = value.get("path"), value.get("nodeid")
+            category = value.get("category")
+            if value.get("kind") != "test" or not isinstance(path, str):
+                continue
+            if not isinstance(nodeid, str) or NODE_SEP not in nodeid:
+                continue
+            if not isinstance(category, str):
+                continue
+            # pytest's own outcome says the report passed and no xfail was
+            # expected of it: a plugin's word for it (`subtests passed`,
+            # which pytest 9 counts under `-q` and not without it) is a pass
+            # (round 3, 🟡 2). An `xpassed` carries `wasxfail` and stays.
+            if value.get("outcome") == "passed" and "wasxfail" not in value:
+                category = "passed" if category else ""
+            # A case id is written verbatim, `::` included, and no name of a
+            # def or class holds `[`: the first `[` after the file begins the
+            # id, so it is cut before the names split (round 3, 🔴 1).
+            qualified = nodeid.partition(NODE_SEP)[2].partition("[")[0]
+            parts = qualified.split(NODE_SEP)
+            place_key = (record_name(path, root), tuple(parts))
+            record.setdefault(place_key, set()).add(category)
+    return record if keyed else None
+
+
+def observed(record, path, names):
+    """None where the test PATH and NAMES cite was held in RECORD -- among the
+    categories of every line it owns, less `""` (a passed setup or teardown),
+    `passed` and nothing else -- else the words naming what was observed. A
+    cited unit owns every line of its file whose names begin with its own, so
+    a class owns its methods and a function its parametrised cases."""
+    cited, owned, categories = tuple(names), False, set()
+    for (where, parts), words in record.items():
+        if where == path and parts[: len(cited)] == cited:
+            owned = True
+            categories |= words
+    if not owned:
+        return "not run in the recorded suite"
+    others = categories - {"", "passed"}
+    if "passed" in categories and not others:
+        return None
+    ranked = sorted(
+        others,
+        key=lambda w: (OBSERVED_ORDER.index(w) if w in OBSERVED_ORDER else 99, w),
+    )
+    return f"{', '.join(ranked) or 'no outcome'} in the recorded suite"
+
+
+def existence_line():
+    """The one line a check prints where it read test rows with no record, or
+    None where it read none or had one."""
+    if not NODES_READ or SUITE_RECORD.record is not None:
+        return None
+    if SUITE_RECORD.key is None:
+        why = "no suite record was given"
+    else:
+        why = (
+            f"no session under {SUITE_RECORD.directory} carries the key "
+            f"{SUITE_RECORD.key}"
+        )
+    return (
+        f"test rows were read for existence alone: {why}, so whether each cited "
+        "test ran and passed was not read — `broad-gate` hands this check the "
+        "sealed run's record"
+    )
+
+
+def node_finding(token, root, maps, default_repo=None):
+    """`(status, token, detail)` for one test a Code grounds cell names: OK
+    where a `def` or `class` of that qualified name is defined in its file
+    once, BROKEN where the file or the unit is not there, the name is no `def`
+    or `class`, or it is defined more than once, and MALFORMED where the token
+    does not parse as a node id. Never DRIFTED: there is no hash.
+
+    **That is all reading the file establishes, and all this says** (the
+    reframe after round 2). Whether the unit is a test, whether pytest
+    collects it and whether a mark keeps it from running or from failing are
+    predictions of pytest; the sealed run's record answers each of them by
+    observation, where a caller hands one over: given `SUITE_RECORD`, a unit
+    that exists is OK only where the run held it (`observed`), and MALFORMED
+    with the observation in the detail where it did not."""
+    NODES_READ.append(token)
+    m = NODE_ID_RE.fullmatch(token)
+    if m is None:
+        return ("MALFORMED", token, f"does not parse as a test — {TEST_FORM}")
+    path, names = m.group("path"), m.group("names").split(NODE_SEP)[1:]
+    repo, rel = place(root, maps, default_repo, path)
+    if repo is None:
+        return ("BROKEN", token, "path escapes the repository")
+    body = read(os.path.join(repo, rel))
+    if body is None:
+        return ("BROKEN", token, "file not found")
+    kinds = unit_kinds(body)
+    if kinds is None:
+        return ("BROKEN", token, f"{path} does not parse as Python")
+    own = named_unit(body, names)
+    if not own:
+        detail = f"no def or class named {NODE_SEP.join(names)} in {path}"
+        homes = sorted(
+            q
+            for q in kinds
+            if len(names) == 1
+            and q.endswith("." + names[0])
+            and kinds.get(q.rpartition(".")[0]) == ("class",)
+        )
+        if homes:
+            detail += (
+                f" — it is a method of {homes[0].rpartition('.')[0]}, and a "
+                f"method is written `{path}::{NODE_SEP.join(homes[0].split('.'))}`"
+            )
+        return ("BROKEN", token, detail)
+    if len(own) > 1:
+        return (
+            "BROKEN",
+            token,
+            f"{'.'.join(names)} is defined {len(own)} times in {path}; a test "
+            "is defined once",
+        )
+    if own[0] not in ("def", "class"):
+        return (
+            "BROKEN",
+            token,
+            f"no def or class named {NODE_SEP.join(names)} in {path} — it is a "
+            f"{own[0]}",
+        )
+    if SUITE_RECORD.record is None:
+        return ("OK", token, f"a {own[0]} defined once")
+    seen = observed(
+        SUITE_RECORD.record, record_name(os.path.join(repo, rel), root), names
+    )
+    if seen is not None:
+        return (
+            "MALFORMED",
+            token,
+            f"{seen}, so nothing holds the claim — {TEST_FORM}; or, where no test "
+            "holds it, write `path#anchor@hash`",
+        )
+    return ("OK", token, f"a {own[0]} seen passing in the recorded suite")
+
+
+def held_by_tests(text, root, maps, default_repo=None, unread=()):
+    """`node_finding` for every test a Code grounds cell of TEXT names, each
+    distinct token once, as MALFORMED counts a text once.
+
+    UNREAD is the line numbers left to another reader: a row a family holds
+    is read by `family_view`, which reads no row of a family a `Corrected ·`
+    row supersedes, so a released row whose test is gone is re-pointed by one
+    correction, as a row whose unit is gone is (round 1, 🔴 1)."""
+    findings, seen = [], set()
+    for number, header, cells in ledger_table_rows(text):
+        column = cell_index(header, cells, CODE_GROUNDS)
+        if number in unread or column < 0:
+            continue
+        for token in node_tokens(cells[column]):
+            if token not in seen:
+                seen.add(token)
+                findings.append(node_finding(token, root, maps, default_repo))
     return findings
 
 
@@ -2314,7 +2746,10 @@ def read_citation(cite, verb, root, maps, default_repo, load):
     if entry is None:
         return found("BROKEN", "the released file it names is not there")
     _, body, lines, rows = entry
-    places, _ = resolve_unit(rel, cite.group("locator"), body)
+    section = resolve_unit(rel, cite.group("locator"), body, cite.group("path"))
+    if section.refused:
+        return found("BROKEN", section.refused)
+    places = section.places
     if len(places) != 1:
         return found(
             "BROKEN",
@@ -2419,18 +2854,20 @@ def citation_for(root, path, number, body=None):
     raw = gfm_lines(body)
     lines = gfm_lines(unquoted(body))
     rel = SEAL_PREFIX + os.path.relpath(path, seal_home(root)).replace(os.sep, "/")
+    # The headings are read on the shown lines (#867), so a heading quoted in
+    # a closed fence in a release file is never a citation's section.
     trail = []
     for n in range(number - 1, 0, -1):
-        level = heading_level(raw[n - 1])
+        level = heading_level(lines[n - 1])
         if level is not None and all(level < held for held, _ in trail):
-            trail.insert(0, (level, raw[n - 1].strip()))
+            trail.insert(0, (level, lines[n - 1].strip()))
     texts = [text for _, text in trail]
     tries = [texts[-1:], texts] + [[text] for text in reversed(texts[:-1])]
     cell = re.split(r"(?<!\\)\|", lines[number - 1].strip()[1:])[0]
     for parts in tries:
         if not parts or any("`" in text for text in parts):
             continue
-        found = heading_path(raw, parts)
+        found = heading_path(lines, parts)
         if len(found) != 1 or not found[0][0] < number <= found[0][1]:
             continue
         literal = unique_literal(lines, found[0], number, cell)
@@ -2668,6 +3105,12 @@ def family_view(paths, root, maps, default_repo=None, scan_cache=None):
             continue
         by_coord = {}
         for key in sorted(members, key=lambda k: (str(k[0]), k[1])):
+            # A member's tests (#836), read here and not by `check_ledger`, so
+            # a superseded family's are not read at all (round 1, 🔴 1).
+            _, _, header, cells = row(key)
+            grounds = cell_index(header, cells, CODE_GROUNDS)
+            for token in node_tokens(cells[grounds]) if grounds >= 0 else ():
+                emit(key, node_finding(token, root, maps, default_repo))
             cite = citations.get(key)
             for m in ANCHOR_RE.finditer(row(key)[1]):
                 if cite is not None and m.span() == cite.span():
@@ -2834,6 +3277,14 @@ def migrate(ledgers, root, maps=None, default_repo=None):
                     left.append((m.group(0), "file not found"))
                     failed = True
                     continue
+                rule = bounding_rule(rel)
+                if rule is None or (rule == "ast" and py_spans(body) is None):
+                    # No unit here is bounded, so none can contain the range;
+                    # the reason a person reads is the refusal, which names
+                    # the anchor to write instead (#870, round 1's ⬜ 5).
+                    left.append((m.group(0), unbounded(raw, rule, body)))
+                    failed = True
+                    continue
                 lines = gfm_lines(body)
                 if e > len(lines):
                     left.append((m.group(0), f"line past EOF ({len(lines)} lines)"))
@@ -2863,36 +3314,18 @@ def migrate(ledgers, root, maps=None, default_repo=None):
                 while e > s and not lines[e - 1].strip():
                     e -= 1
                 best = None
-                for name, (a, b), unsure in file_units(rel, body):
+                for name, (a, b) in file_units(rel, body):
                     if (
                         a <= s
                         and e <= b
                         and (best is None or b - a < best[2] - best[1])
                     ):
-                        best = (name, a, b, unsure)
+                        best = (name, a, b)
                 if best is None:
                     left.append((m.group(0), f"no single unit contains {s}-{e}"))
                     failed = True
                     continue
-                name, a, b, unsure = best
-                if unsure and not proved:
-                    # One placement question, two commands: `--reverify` refuses
-                    # a place the rule is unsure of, and this used to anchor a
-                    # row onto one without a word (round 7, 🔴 M). `proved` is
-                    # the exception rather than a softening — it says the cited
-                    # lines have not moved since the person wrote them, which is
-                    # evidence about THIS place that `--reverify` never has.
-                    left.append(
-                        (
-                            m.group(0),
-                            f"the declaration rule is unsure of {name} ({a}-{b}) "
-                            "and the stamp cannot vouch for the cited lines — "
-                            f"record {content_hash(lines[a - 1 : b])} by hand if "
-                            "it is still the unit",
-                        )
-                    )
-                    failed = True
-                    continue
+                name, a, b = best
                 spliced.append(line[at : m.start()])
                 spliced.append(f"{raw}#{name}@{content_hash(lines[a - 1 : b])}")
                 at = m.end()
@@ -3460,7 +3893,7 @@ def reverify(
     (#792).
     """
     global PLANNED
-    unreadable, malformed, overflow = [], [], []
+    unreadable, malformed, untested, overflow = [], [], [], []
     scan_cache = {}
     # The family judgment (#785), over every ledger the repository carries
     # as well as LEDGERS, so a narrowing that leaves out the file holding a
@@ -3493,6 +3926,21 @@ def reverify(
         # this command prints no per-ledger heading; its hashes are still
         # re-stamped, because the hash is not what is wrong.
         malformed.extend((coord, why) for _, coord, why in malformed_rows(text))
+        # A test row has no hash to re-stamp and is never dated; one whose
+        # test is gone or is no test is named, as a malformed row is (#836),
+        # unless a `Corrected ·` row supersedes its family (round 1, 🔴 1).
+        here = file_identity(ledger)
+        untested.extend(
+            (coord, f"{status} — {why}")
+            for status, coord, why in held_by_tests(
+                text,
+                root,
+                maps,
+                default_repo,
+                {n for i, n in superseded if i == here},
+            )
+            if status != "OK"
+        )
         overflow.extend(
             (f"{built_name(ledger, root)} {coord}", why)
             for _, coord, why in overflow_rows(text)
@@ -3791,6 +4239,8 @@ def reverify(
         print(f"  LEFT  {path}  ledger unreadable")
     for coord, why in malformed:
         print(f"  LEFT  {coord}  MALFORMED — {why}")
+    for coord, why in untested:
+        print(f"  LEFT  {coord}  {why}")
     for where, why in overflow:
         print(f"  LEFT  {where}  OVERFLOW — {why}")
     for where in undatable:
@@ -3808,7 +4258,8 @@ def reverify(
             "text it names moves with every re-stamp of it, so it is left at the "
             "hash its row recorded"
         )
-    return 1 if unreadable or malformed or overflow or undatable or unsettled else 0
+    left_any = unreadable or malformed or untested or overflow or undatable
+    return 1 if left_any or unsettled else 0
 
 
 # --- the freeze, and the citing rows a re-read writes (#715) -----------------
@@ -3820,74 +4271,165 @@ def reverify(
 # released row goes instead. A repository without the row keeps the
 # re-stamp in place every installed copy had (spec D4, D5).
 FROZEN_ROW = "Ledger frozen from"
+# The work-item id from which a live `spec.md` must carry `## Removes`
+# (#835); read by `check_records` through `cutoff_row`, as the row above is.
+REMOVES_ROW = "Removes from"
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
 CONFIG_HEADER_RE = re.compile(r"^\|\s*Item\s*\|\s*Value\s*\|\s*$")
+# A line of a two-cell row's SHAPE, which `notify_may_be_always` judges a
+# line by on its own; an empty item is that shape too.
 CONFIG_ROW_RE = re.compile(
     r"^\|\s*(?P<item>(?:[^|\\]|\\.)*?)\s*\|\s*(?P<value>(?:[^|\\]|\\.)*?)\s*\|\s*$"
 )
+# The vendored copy's twin of `hooks/config.py#CONFIG_ROW` and
+# `#CONFIG_SEPARATOR`, spelled as that file spells them (#867): the row's item
+# takes at least one character, so `|| x |` is no row in either reader.
+# `tests/test_evidence_check.py#test_the_vendored_config_rule_agrees_with_the_shared_one`
+# holds the two readers equal over the config table's own shapes.
+VENDORED_CONFIG_ROW_RE = re.compile(
+    r"^\|\s*(?P<item>(?:[^|\\]|\\.)+?)\s*\|\s*(?P<value>(?:[^|\\]|\\.)*?)\s*\|\s*$"
+)
+RULE_LINE_RE = re.compile(r"^\|[\s:|-]+\|$")
 
 
 def vendored_config_rows(text):
     """`hooks/config.py#config_rows`, for a copy with no `hooks/` beside it:
-    the `(item, value)` rows under the first `| Item | Value |` header, up to
-    the first line that is not one. It does not know fences or comments, which
-    the plugin's reader does; a vendored copy reads a CI checkout's config,
-    where the table is the file's own."""
+    the `(item, value)` rows under the first `| Item | Value |` header, with
+    the stop rule that reader keeps — a header or a separator above the first
+    row is the table's furniture and below it ends the table, and so does any
+    other line once a row was found.
+
+    **It differs from the plugin's reader in two ways, both stated.** It
+    does not know fences or comments, which the plugin's reader does; a
+    vendored copy reads a CI checkout's config, where the table is the
+    file's own. And it ends a line where GFM does (`gfm_lines`), where the
+    plugin's reader walks `str.splitlines` pieces, so a row holding a form
+    feed, U+2028 or another character only Python ends a line at is one row
+    here and two pieces there, neither of them a row (round 1 of #867, ⬜ 7,
+    measured over eight shapes). The equality case's table holds neither
+    shape, for those reasons. Every other shape it reads as
+    the reader does: until #867 a stray separator or a second header was
+    stepped past here, so the rows of a second table were read as this
+    one's, and an empty item was a row."""
     found, seen = [], False
     for line in gfm_lines(text):
         if not seen:
             seen = bool(CONFIG_HEADER_RE.match(line))
             continue
-        if RULE_LINE_RE.match(line.strip()):
+        if CONFIG_HEADER_RE.match(line) or RULE_LINE_RE.match(line.strip()):
+            if found:
+                break
             continue
-        m = CONFIG_ROW_RE.match(line)
+        m = VENDORED_CONFIG_ROW_RE.match(line)
         if not m:
             if found:
                 break
             continue
         found.append(
-            (m.group("item").replace("\\|", "|"), m.group("value").replace("\\|", "|"))
+            (
+                m.group("item").strip().replace("\\|", "|"),
+                m.group("value").strip().replace("\\|", "|"),
+            )
         )
     return found
 
 
-RULE_LINE_RE = re.compile(r"^\|[\s:|-]+\|$")
+def vendored_config_value(rows, item):
+    """`hooks/config.py#value_of`, for a copy with no `hooks/` beside it: no
+    row is `(None, None)`, one row is `(its value, None)`, and a row written
+    more than once has no value and the reader's own sentence."""
+    values = [value for found, value in rows if found == item]
+    if len(values) > 1:
+        return None, f"`{item}` appears {len(values)} times — one value"
+    return (values[0], None) if values else (None, None)
+
+
+def vendored_config_text(home):
+    """`hooks/config.py#config_text`, for a copy with no `hooks/` beside it:
+    `(None, None)` for no file, `(text, None)` for a file read strictly as
+    UTF-8, and `(None, the reader's sentence)` for one that is there and
+    will not read."""
+    path = os.path.join(home, "config.md")
+    if not os.path.lexists(path):
+        return None, None
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read(), None
+    except (OSError, ValueError) as exc:
+        why = exc.strerror if isinstance(exc, OSError) and exc.strerror else str(exc)
+        return None, (
+            f"{path} is there and cannot be read as UTF-8 text ({why}), so no "
+            "row of it can be read — a config that is absent declares "
+            "nothing, and one that will not read is refused rather than read "
+            "as absent"
+        )
 
 
 @functools.cache
-def config_reader():
-    """`config_rows`: the one reader of `seal/config.md`,
-    `hooks/config.py#config_rows`, where this is the plugin's own copy -- told
-    apart the way `shared_reader` tells it -- and the vendored one where it is
-    not."""
+def config_rule():
+    """`(config_text, config_rows, value_of)`: the one reader of
+    `seal/config.md`, `hooks/config.py`, where this is the plugin's own copy
+    -- told apart the way `shared_reader` tells it -- and the vendored twins
+    where it is not."""
     skill = os.path.join(HERE, "..", "SKILL.md")
     if os.path.isfile(CONFIG_READER) and os.path.isfile(skill):
         spec = importlib.util.spec_from_file_location("specseal_config", CONFIG_READER)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        return module.config_rows
-    return vendored_config_rows
+        return module.config_text, module.config_rows, module.value_of
+    return vendored_config_text, vendored_config_rows, vendored_config_value
+
+
+def cutoff_row(root, item, binds):
+    """`(cutoff, refusal)`: the value of the `seal/config.md` row ITEM as a
+    whole number, or None where the row is absent or empty, and a sentence
+    where the value is not a work-item id. `0` is a value: it binds every
+    work item. BINDS says what the row binds, in the refusal's remedy.
+
+    Reads: owned — a work-item-id row of `seal/config.md`, through `config_rule`; unknown refused
+
+    **The one reader of a cutoff row** (#835). `Ledger frozen from` and
+    `Removes from` are one shape, a work-item id whose absence means not
+    checked, and two readers of one shape are how two answers about one file
+    come apart. A `config.md` that is there and will not read, and a row
+    written twice, are refusals, never an absent row (#867)."""
+    home = seal_home(root)
+    path = os.path.join(home, "config.md")
+    text_of, rows_of, value_of = config_rule()
+    text, refusal = text_of(home)
+    if refusal is not None:
+        return None, refusal
+    if text is None:
+        return None, None
+    value, refusal = value_of(rows_of(text), item)
+    if refusal is not None:
+        return None, f"{display_name(path, root)}: {refusal}"
+    if value is None or not value.strip():
+        return None, None
+    value = value.strip()
+    if not value.isdigit():
+        return None, (
+            f"the `{item}` row of {display_name(path, root)} holds "
+            f"`{value}`, which is not a work-item id — write the epoch prefix of "
+            f"the first work item {binds}, or `0` for every one"
+        )
+    return int(value), None
 
 
 def frozen_from(root):
     """`(cutoff, refusal)`: the `Ledger frozen from` value as a whole number,
     or None where the row is absent or empty, and a sentence where the value
-    is not a work-item id. `0` is a value: it binds every work item."""
-    path = os.path.join(seal_home(root), "config.md")
-    text = read(path)
-    if text is None:
-        return None, None
-    values = [value for item, value in config_reader()(text) if item == FROZEN_ROW]
-    if not values or not values[-1].strip():
-        return None, None
-    value = values[-1].strip()
-    if not value.isdigit():
-        return None, (
-            f"the `{FROZEN_ROW}` row of {display_name(path, root)} holds "
-            f"`{value}`, which is not a work-item id — write the epoch prefix of "
-            "the first work item the freeze binds, or `0` for every one"
-        )
-    return int(value), None
+    is not a work-item id. `0` is a value: it binds every work item.
+
+    Reads: owned — the `Ledger frozen from` row, through `cutoff_row`; unknown refused
+
+    **The freeze never turns off because the file could not be read**
+    (#867). A `config.md` that is there and will not read, and a `Ledger
+    frozen from` row written twice, are refusals, the shape a non-numeric
+    value already took: `--reverify` exits 2 naming them and writes nothing.
+    Before, an unreadable file read as no row, so the freeze was off and a
+    released row was re-stamped in place."""
+    return cutoff_row(root, FROZEN_ROW, "the freeze binds")
 
 
 def newest_hash(view, key, coord, m):
@@ -4163,6 +4705,15 @@ INTO_REPAIR = (
 )
 
 STALE_NOTHING = "no `Re-read ·` row was written for this row"
+# The other repair, printed once by a run that wrote a `Re-read ·` row (#836):
+# the run cannot tell which of a row's grounds holds its claim, so it names
+# the option rather than writing it.
+INTO_HELD = (
+    "  a claim a test holds can move onto it once instead: a `Corrected ·` row "
+    "citing the released row and naming that test in Code grounds, "
+    "`tests/test_x.py::test_y`, retires the row's hashes, and no later edit "
+    "drifts it (docs/the-evidence-ledger.md)"
+)
 
 
 def spanned(text):
@@ -4237,8 +4788,8 @@ def reverify_into(
         ledgers, view_paths, root, maps, default_repo
     )
     # Each drifted coordinate's hash is `judge`'s, the reading `--strict`
-    # graded it by, so a claim on a place the declaration rule is unsure of
-    # takes its statement's hash here as it does in place (#809).
+    # graded it by, so a claim takes its statement's hash here as it does in
+    # place (#809).
     scan = {}
     today = (today or datetime.date.today()).isoformat()
     # A fragment is named for its work item, so the row can say whose
@@ -4363,13 +4914,17 @@ def reverify_into(
     def report(landed):
         wrote = rows if rows and landed_at(landed, into) else []
         name = built_name(into, root) if wrote else ""
-        return [
-            f"  wrote {name}:{start + offset}  Re-read · {label}  citing {where}"
-            for offset, (where, label, _) in enumerate(wrote)
-        ] + [
-            f"{len(wrote)} citing row{'' if len(wrote) == 1 else 's'} written · "
-            f"{len(left)} released row{'' if len(left) == 1 else 's'} left"
-        ]
+        return (
+            [
+                f"  wrote {name}:{start + offset}  Re-read · {label}  citing {where}"
+                for offset, (where, label, _) in enumerate(wrote)
+            ]
+            + [
+                f"{len(wrote)} citing row{'' if len(wrote) == 1 else 's'} written · "
+                f"{len(left)} released row{'' if len(left) == 1 else 's'} left"
+            ]
+            + ([INTO_HELD] if wrote else [])
+        )
 
     told_now(told, report)
     for where, why in left:
@@ -4509,7 +5064,7 @@ PACT_CHANGE_UNDONE = (
 @functools.cache
 def plugin_module(path, name):
     """The plugin's own module at PATH, or None for a vendored copy, told
-    apart as `config_reader` tells it: the module and this skill's `SKILL.md`
+    apart as `config_rule` tells it: the module and this skill's `SKILL.md`
     both beside this script, where the plugin ships them."""
     skill = os.path.join(HERE, "..", "SKILL.md")
     if not (os.path.isfile(path) and os.path.isfile(skill)):
@@ -4948,9 +5503,9 @@ NOT_IN_TREE = "NAME NOT IN TREE"
 # The two delimiters of an HTML comment, as `claim_lines` scans for them.
 COMMENT_OPENER, COMMENT_CLOSER = "<!--", "-->"
 # A backticked identifier, with an optional call suffix — the shape a record
-# names a unit in. `round_record.py`'s `IDENTIFIER_RE` reads the same thing
-# for the fix surface; the two are separate because that one measures a diff
-# and this one reads prose, and folding them would give one pattern two jobs.
+# names a unit in. `round_record.py` read the same shape out of a `Location`
+# cell until #866, and reads only whole path forms there now (`path_forms`);
+# this one reads prose, which is a different job.
 RECORD_NAME_RE = re.compile(r"`([A-Za-z_]\w*)(?:\(\))?`")
 # A backticked name written the way a coordinate is written, with no hash:
 # `path#name`, `path#name()` or `path#Class.method` (#508). `RECORD_NAME_RE`
@@ -5457,8 +6012,232 @@ def left_out_of_corpus(root, home):
     )
 
 
+# A frame's `## Removes` section (#835): what the work item takes out of the
+# tree, each row a claim of ABSENCE. A row whose coordinate still resolves is
+# STANDING, graded as a stated name the tree lacks is; a row the ledger's
+# grammar would refuse, a bare `nothing`, and a section a cutoff requires and
+# the frame lacks are REFUSED.
+STANDING_STATUS = "STANDING"
+REFUSED_STATUS = "REFUSED"
+REMOVES_HEADING = "Removes"
+REMOVES_COORD_RE = re.compile(
+    r"(?P<path>" + ANCHOR_PATH + r")"
+    r"#(?P<locator>" + ANCHOR_LOCATOR + r")"
+    r"(?:>(?P<claim>" + ANCHOR_QUOTED + r"))?"
+)
+REMOVES_NOTHING_RE = re.compile(r"nothing(?P<rest>.*)")
+REMOVES_REASON_RE = re.compile(r"\s+(?:—|--)\s+\S")
+
+
+def removes_section(lines):
+    """`(present, cut, rows, nothing)` for a frame's `## Removes` section:
+    whether the heading is there, the claim-line numbers inside the section,
+    `[(line number, cells)]` for its table's body rows, and `[(line number,
+    text)]` for every line in it that begins `nothing`.
+
+    Reads: owned — the section's lines, on the lines `claim_lines` reads, by the template's shape; unknown refused
+
+    The section runs from a level-2 heading reading `Removes` to the next
+    heading of level 2 or above. A line inside a fence or an HTML comment is
+    not a claim line, so a quoted section is no section (`claim_lines`).
+    """
+    split = cell_rule()
+    present, inside, cut, rows, nothing = False, False, set(), [], []
+    for number, text in claim_lines(lines):
+        level = heading_level(text)
+        if level is not None and level <= 2:
+            inside = level == 2 and text.strip().lstrip("#").strip() == REMOVES_HEADING
+            present = present or inside
+            continue
+        if not inside:
+            continue
+        cut.add(number)
+        cells = split(text)
+        if cells is None:
+            if REMOVES_NOTHING_RE.match(text.strip()):
+                nothing.append((number, text.strip()))
+            continue
+        if all(RULE_CELL_RE.match(c) for c in cells) or cells[0] == REMOVES_HEADING:
+            continue
+        rows.append((number, cells))
+    return present, cut, rows, nothing
+
+
+def removal_findings(lines, shown, root, maps, required):
+    """`(findings, cut)`: the findings over a frame's `## Removes` section,
+    and the claim-line numbers the name half leaves to it.
+
+    Reads: owned — a frame's `## Removes` rows, resolved by `resolve_unit`; unknown refused
+
+    **A row is a claim of absence.** Its coordinate is the ledger's grammar
+    without a hash, and one whose `resolve_unit(...).places` is non-empty at
+    HEAD names a removal that has not happened. **A coordinate the ledger
+    would refuse is refused here, never read as gone**: a cell that is not a
+    coordinate, a test's node id, and a bare symbol in a file no rule bounds
+    (`unbounded`), and a path `place` refuses or that is there and will not
+    read, which the ledger arm grades BROKEN. Only a file the tree does not
+    have holds nothing, so a row naming one is a removal that happened (round
+    1 of #835, 🟡 2). **A row is read in this tree and nowhere else**: a frame
+    names what its work takes out of HEAD, so `--default-repo` is not asked,
+    a path carrying a `--map` prefix is refused, and so is one that walks
+    through `..` (round 2). With REQUIRED, a section that is
+    absent or holds no row and no `nothing` line is refused too.
+    """
+    present, cut, rows, nothing = removes_section(lines)
+    findings = []
+    if required and not (rows or nothing):
+        why = (
+            "has no `## Removes` section"
+            if not present
+            else "has an empty `## Removes` section"
+        )
+        findings.append(
+            (
+                REFUSED_STATUS,
+                shown,
+                f"{why}, and `{REMOVES_ROW}` in seal/config.md binds this work "
+                "item — name what the work removes, in the ledger's grammar "
+                "without a hash, or write `nothing — <why>`",
+            )
+        )
+    for number, text in nothing:
+        if not REMOVES_REASON_RE.match(REMOVES_NOTHING_RE.match(text).group("rest")):
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    f"{shown}:{number}",
+                    f"`{text}` — a `nothing` line names its reason: `nothing — <why>`",
+                )
+            )
+    for number, cells in rows:
+        cell = cells[1].strip() if len(cells) > 1 else ""
+        if len(cell) > 1 and cell.startswith("`") and cell.endswith("`"):
+            cell = cell[1:-1]
+        where = f"{shown}:{number}"
+        m = REMOVES_COORD_RE.fullmatch(cell)
+        if m is None:
+            why = (
+                "is a test's node id, which names a test and no unit"
+                if "::" in cell
+                else "is not a coordinate"
+            )
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` {why} — write `path#unit`, "
+                    '`path#"## heading"` or `path#"a quoted line"`',
+                )
+            )
+            continue
+        raw_path, locator, claim = m.group("path"), m.group("locator"), m.group("claim")
+        if any(raw_path == name or raw_path.startswith(name + "/") for name in maps):
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path names another checkout through "
+                    "`--map`, and a frame names what its work removes from "
+                    "this tree — write the path in this tree, as "
+                    f"`./{raw_path}` where this tree's own directory carries "
+                    "the map's name",
+                )
+            )
+            continue
+        # This tree only: `--default-repo` would read a removal that happened
+        # here as STANDING wherever the original still holds the path (round
+        # 2 of #835, 🟡 1).
+        repo, rel = place(root, {}, None, raw_path)
+        if repo is None:
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path escapes the repository, so nothing it "
+                    "names can be read as gone — write a path inside the tree",
+                )
+            )
+            continue
+        if ".." in raw_path.split("/"):
+            # `contained` resolves `a/../x.py` by name, and the read goes
+            # through `a`; a missing `a` would read as a removal that happened
+            # while `x.py` holds the unit (round 2 of #835, ⬜ 2).
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path walks through `..`, so whether it "
+                    "names a file depends on the directories it passes — write "
+                    "the path as the tree spells it",
+                )
+            )
+            continue
+        if any(part in ("", ".") for part in raw_path.split("/")[1:]):
+            # A trailing `/` or `/.`, or an empty or `.` segment inside, names
+            # the file `contained` judged by a spelling the read does not:
+            # `kept.py/` would read as gone while `kept.py` holds the unit.
+            # Refused rather than folded, because a lexical fold names another
+            # file through a symlink (#163). A leading `./` is the spelling
+            # the `--map` refusal names, and stays (round 3 of #835, ⬜ 2).
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path carries an empty or `.` segment, so "
+                    "it names the file by a spelling the tree does not use — "
+                    "write the path as the tree spells it",
+                )
+            )
+            continue
+        full = os.path.join(repo, rel)
+        body = read(full)
+        if body is None:
+            if os.path.lexists(full):
+                findings.append(
+                    (
+                        REFUSED_STATUS,
+                        where,
+                        f"`{cell}` — the path is there and will not read as a "
+                        "file, so nothing in it can be read as gone",
+                    )
+                )
+            continue
+        found = resolve_unit(rel, locator, body, shown=raw_path)
+        if found.refused:
+            findings.append((REFUSED_STATUS, where, f"`{cell}` — {found.refused}"))
+            continue
+        places = found.places
+        if claim and places:
+            want = unescape(claim[1:-1])
+            body_lines = gfm_lines(body)
+            places = [
+                p for r in places for p in literal_statements(body_lines, r, want)
+            ]
+        if places:
+            at = ", ".join(f"{a}-{b}" for a, b in places)
+            findings.append(
+                (
+                    STANDING_STATUS,
+                    where,
+                    f"`{cell}` still resolves at {at}, so the removal this row "
+                    "names has not happened — take it out of the tree, or "
+                    "correct the row",
+                )
+            )
+    return findings, cut
+
+
 def file_claims(
-    lines, shown, root, known, outside, maps, default_repo, scan_cache, file_tokens
+    lines,
+    shown,
+    root,
+    known,
+    outside,
+    maps,
+    default_repo,
+    scan_cache,
+    file_tokens,
+    removes=None,
 ):
     """(findings, names read, stamps read) for one file the arm reads.
 
@@ -5467,13 +6246,25 @@ def file_claims(
     `claim_lines` decides which lines count, the name half reads a
     backticked name and a name written as `path#name`, and the stamp half is
     `check_text`.
+
+    Reads: guess — a person's record, by the records' claim rules; unknown refused
+
+    REMOVES is None for a file that is no frame, and for a `spec.md` it is
+    whether a cutoff requires its `## Removes` section (#835). There the
+    section's rows are read as claims of absence by `removal_findings` and
+    under no other rule: a removed unit named in it is what the section
+    exists to say, and the name half would refuse it as a stale name.
     """
-    findings, names_read, stamps_read = [], 0, 0
+    findings, names_read, stamps_read, cut = [], 0, 0, set()
+    if removes is not None:
+        findings, cut = removal_findings(lines, shown, root, maps, removes)
     remedy = (
         f"Correct the record, or write {NOT_IN_TREE} on the line where the "
         "record means a name the tree does not have"
     )
     for number, name in stated_names(lines):
+        if number in cut:
+            continue
         names_read += 1
         if name in known:
             continue
@@ -5485,6 +6276,8 @@ def file_claims(
             )
         )
     for number, raw_path, name in stated_coordinates(lines):
+        if number in cut:
+            continue
         read_it, missing, resolved = coordinate_misses(
             raw_path, name, root, maps, default_repo, known, file_tokens
         )
@@ -5506,6 +6299,8 @@ def file_claims(
             )
         findings.append((NOT_IN_TREE_STATUS, f"{shown}:{number}", detail))
     for number, line in stated_stamps(lines):
+        if number in cut:
+            continue
         # The stamps on the line, counted from the line. Counting what
         # `check_text` RETURNS counts findings: it dedupes a repeated anchor,
         # so one line stamping a unit twice read as one stamp, and `0 stamps
@@ -5539,6 +6334,14 @@ def check_records(root, home, maps=None, default_repo=None):
     is not history: the file is permanent and a row leaves it when its item
     is done, so every row in it is live. It is read by the records' own
     claim rules, and it is out of the corpus (`tree_names`).
+
+    Reads: guess — every live work item's records and the follow-up list, through `file_claims`; unknown refused
+
+    **A live `spec.md` is a frame, and its `## Removes` section is read
+    wherever it is present** (#835). Where `seal/config.md` declares
+    `Removes from`, the frame of a work item whose id is at or above it must
+    carry the section, and a value that is not a work-item id is refused
+    naming the row, the way `Ledger frozen from` is.
     """
     # A directory that could not be listed is a finding, not an empty answer
     # — the direction an unreadable FILE already takes one line down. It is
@@ -5555,6 +6358,13 @@ def check_records(root, home, maps=None, default_repo=None):
         )
         for path in unlistable
     ]
+    # Before the early return too: a cutoff that will not read is refused on
+    # a tree with nothing live, the way `--reverify` refuses the freeze row
+    # whatever it was asked to re-stamp.
+    cutoff, refusal = cutoff_row(root, REMOVES_ROW, "the section binds")
+    if refusal is not None:
+        config = built_name(os.path.join(home, "config.md"), root)
+        findings.append((REFUSED_STATUS, config, refusal))
     follow_up = follow_up_path(home)
     has_follow_up = os.path.lexists(follow_up)
     if not live and not has_follow_up:
@@ -5564,7 +6374,12 @@ def check_records(root, home, maps=None, default_repo=None):
     names_read, stamps_read = 0, 0
     scan_cache, file_tokens = {}, {}
     paths = []
-    for _item, directory in sorted(live.items()):
+    frames = {}
+    for item, directory in sorted(live.items()):
+        epoch = item.split("-", 1)[0]
+        frames[os.path.join(directory, "spec.md")] = (
+            cutoff is not None and epoch.isdigit() and int(epoch) >= cutoff
+        )
         records, refused_dirs = record_files(directory)
         for path in refused_dirs:
             findings.append(
@@ -5598,6 +6413,7 @@ def check_records(root, home, maps=None, default_repo=None):
             default_repo,
             scan_cache,
             file_tokens,
+            frames.get(path),
         )
         findings.extend(found)
         names_read += names
@@ -5723,7 +6539,38 @@ def main():
         "fragment (seal/ledger/<work-item-id>.md) for every released row with "
         "a drifted coordinate, instead of editing the released file",
     )
+    ap.add_argument(
+        SUITE_RECORD_OPTION,
+        metavar="DIR",
+        help="with --suite-key: the directory of the sealed run's pytest "
+        "records; a test row is held only where its test was seen passing there",
+    )
+    ap.add_argument(
+        SUITE_KEY_OPTION,
+        metavar="KEY",
+        help="with --suite-record: the key of the run whose record is read",
+    )
     args = ap.parse_args()
+
+    # The record is one run's, so a directory without its key, or a key
+    # without its directory, names none; refused before anything is read.
+    if (args.suite_record is None) != (args.suite_key is None):
+        sys.stderr.write(
+            f"evidence_check: `{SUITE_RECORD_OPTION}` and `{SUITE_KEY_OPTION}` "
+            "name one run's record together — pass both or neither\n"
+        )
+        return 2
+    SUITE_RECORD.key, SUITE_RECORD.directory, SUITE_RECORD.record = (
+        args.suite_key,
+        args.suite_record,
+        None,
+    )
+    if args.suite_record is not None:
+        SUITE_RECORD.record = suite_record(
+            os.path.abspath(args.suite_record),
+            args.suite_key,
+            os.path.abspath(args.root),
+        )
 
     # `--into` dates every row it writes, so it is refused without the date
     # and without the command it belongs to, before anything is read (#715).
@@ -6045,6 +6892,11 @@ def main():
         f"{totals['OLD-FORMAT']} old-format · {totals['MALFORMED']} malformed"
         f" · {totals['OVERFLOW']} overflow"
     )
+    # Test rows read with no record are read for existence alone, and a run
+    # says so once, so an existence OK never reads as an observed one (#836).
+    note = existence_line()
+    if note:
+        print(note)
 
     # The second arm. A ledger row is a claim about the tree that something
     # reads; a RECORD states the same kind of thing and nothing reads it

@@ -73,7 +73,8 @@ to fall one way, it falls toward the silence.
 
   OK       the anchor resolves once and the hash is what the stamp recorded
   DRIFTED  it resolves and the content changed -- re-read the rider, re-stamp
-  BROKEN   it resolves to nothing, to several places, or only by resurrection
+  BROKEN   it resolves to nothing or to several places, or the checker
+           refuses it because no rule bounds a unit in that file
 
 DRIFTED is the ledger's degradation and it is right here for a sharper reason
 than that it is right there: a drifted rider IS the rider firing. It says
@@ -85,12 +86,10 @@ be the looser of two rules about one thing -- and answering a drifted rider is
 re-reading a comment in the file you just edited plus one command, where
 answering an orphaned commit was bookkeeping with no reading in it at all.
 
-**Resurrection is refused here where the ledger tolerates it.** A resurrected
-place survives only because the declaration rule put keyword-blocked candidates
-back, and `evidence_check` carries that uncertainty out to its caller. The
-ledger tolerates it because its rows were bulk-migrated off line numbers. A
-rider is hand-written by somebody standing at the coordinate, who can pick a
-better anchor.
+**The checker's refusal is the rider's.** A rider anchored on a bare symbol in
+a file `evidence_check` has no bounding rule for — anything but `.py`, `.pyi`
+and `.md` — reads that refusal as its reason, with the quoted-line anchor's
+shape on it (#870).
 
 Usage:
   rider_check.py                  check every rider; exit 1 on drift, 2 on broken
@@ -151,17 +150,36 @@ OLD_STAMP = re.compile(
     r"Verified (?P<date>\d{4}-\d{2}-\d{2}) at (?P<sha>[0-9a-f]{7,40})\b"
 )
 
-# `Verified <date> against <anchor>@<hash>`. The locator alternatives and the
-# hash width are `evidence_check.ANCHOR_RE`'s, minus the path.
-NEW_STAMP = re.compile(
-    r"Verified (?P<date>\d{4}-\d{2}-\d{2}) against "
-    r"(?P<locator>\"(?:[^\"\n]|\\\")+\"|[A-Za-z_][A-Za-z0-9_.]*)"
-    r"@(?P<hash>[0-9a-f]{6,12})"
-)
+# `Verified <date> against <anchor>@<hash>`: a coordinate minus its path, so
+# its locator and its hash are the checker's own pieces,
+# `evidence_check.py#ANCHOR_LOCATOR` and `#ANCHOR_HASH`, built into the
+# pattern by `load_checker` (#867). A copy of the two alternatives stood here,
+# and a locator form the checker gained would have been a stamp this file
+# could not read.
+_new_stamp = None
+
+
+def stamp_pattern(checker):
+    """The `Verified <date> against <locator>@<hash>` pattern, its locator
+    and hash CHECKER's own pieces."""
+    return re.compile(
+        r"Verified (?P<date>\d{4}-\d{2}-\d{2}) against "
+        r"(?P<locator>" + checker.ANCHOR_LOCATOR + r")"
+        r"@(?P<hash>" + checker.ANCHOR_HASH + r")"
+    )
+
+
+def new_stamp():
+    """The stamp pattern `load_checker` built, loading the checker first
+    where nothing has yet."""
+    if _new_stamp is None:
+        load_checker()
+    return _new_stamp
 
 
 def load_checker(path=CHECKER):
-    """`evidence_check` as a module, or a sentence and exit 2.
+    """`evidence_check` as a module, or a sentence and exit 2. Loading it
+    builds the stamp pattern from its pieces (`stamp_pattern`).
 
     A missing file is a sentence naming the path rather than the
     `FileNotFoundError` `spec_from_file_location` hands back for any name
@@ -170,6 +188,7 @@ def load_checker(path=CHECKER):
     defect here to keep the two matching would have been the wrong half to be
     consistent with.
     """
+    global _new_stamp
     if not os.path.isfile(path):
         sys.stderr.write(
             f"rider_check: cannot find the anchor resolver at {path}. It is the "
@@ -180,6 +199,7 @@ def load_checker(path=CHECKER):
     spec = importlib.util.spec_from_file_location("evidence_check", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    _new_stamp = stamp_pattern(module)
     return module
 
 
@@ -378,7 +398,7 @@ class Rider:
         self.line = line
         self.body = "\n".join(text.splitlines()[start - 1 : end])
         self.old = OLD_STAMP.search(self.body)
-        self.new = NEW_STAMP.search(self.body)
+        self.new = new_stamp().search(self.body)
 
     def where(self):
         return f"{self.rel}:{self.line}"
@@ -475,17 +495,17 @@ def region_lines(checker, rel, locator, text):
     removed by LINE NUMBER rather than by content, so two riders carrying the
     same sentence do not remove each other's lines.
     """
-    places, resurrected = checker.resolve_unit(rel, locator, text)
+    unit = checker.resolve_unit(rel, locator, text)
+    if unit.refused:
+        # The checker's own refusal, read from its one reading of the anchor
+        # and never re-derived here (#870): a unit no rule can bound is not
+        # a unit that is missing, and the reason names the anchor to use.
+        return None, unit.refused
+    places = unit.places
     if not places:
         return None, "the anchor resolves to nothing in this file"
     if len(places) > 1:
         return None, f"the anchor resolves to {len(places)} places, so it names none"
-    if resurrected:
-        return None, (
-            "the anchor survives only because the declaration rule put a "
-            "keyword-blocked candidate back, so it may be a call site rather "
-            "than the unit. Pick a more distinctive anchor"
-        )
     start, end = places[0]
     lines = checker.gfm_lines(text)  # the lines `resolve_unit` numbered (#664)
     # GFM lines, the ones `riders_in` hands `comment_blocks` too, so the blocks
@@ -606,8 +626,9 @@ def content_at(root, sha, rel):
 def restamp(body, date, locator, digest):
     """`body` with its stamp replaced by the new form, once."""
     new = f"Verified {date} against {locator}@{digest}"
-    if NEW_STAMP.search(body):
-        return NEW_STAMP.sub(lambda m: new, body, count=1)
+    stamp = new_stamp()
+    if stamp.search(body):
+        return stamp.sub(lambda m: new, body, count=1)
     return OLD_STAMP.sub(lambda m: new, body, count=1)
 
 

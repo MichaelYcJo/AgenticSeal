@@ -14,7 +14,9 @@ is that reader, shipped.
 **The shape.** Every statement whose marker group holds a work-item id at or
 above the cutoff opens with a bold rule sentence and carries exactly one live
 `Enforced by:` line, whose targets each resolve: a file inside the repository
-and, with `::name`, a `def` or `class` in it. Or the line says
+and, with `::name`, a `def` or `class` in it, spelled as pytest spells a node
+id — `::Class::method` for a method — and resolved by the ledger's own reader,
+`skills/evidence-check/scripts/evidence_check.py#named_unit`. Or the line says
 `nothing — <why>`, with a reason. Ids are epoch-prefixed, so the cutoff is a
 comparison and needs no list of exemptions, and `--shape-from 0` binds every
 statement there is.
@@ -113,6 +115,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
 OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
+# The ledger's checker, whose `named_unit` is the one resolver of a
+# `path::name` target (#836): an `Enforced by:` line and a ledger row held by
+# a test name a unit in one grammar, so one function reads both.
+EVIDENCE = os.path.join(
+    HERE, "..", "..", "evidence-check", "scripts", "evidence_check.py"
+)
 
 DOCS = "docs"
 CONFIG = "config.md"
@@ -136,7 +144,6 @@ OVER_ENTRY = re.compile(
 WHOLE = re.compile(r"[0-9]+")
 OVER_SHAPE = "<path> frozen at <n> markers <12-hex digest> until <home>"
 
-HEADING = re.compile(r"^ {0,3}#{1,6}(?:[ \t]|$)")
 BOLD_OPENING = re.compile(r"^\*{2,3}[^*\s]")
 ENFORCED = "Enforced by: "
 NOTHING = "nothing — "
@@ -181,6 +188,17 @@ def reader():
     return _loaded["reader"]
 
 
+def evidence():
+    """`evidence_check.py`, loaded once on first use, for `named_unit`."""
+    if "evidence" not in _loaded:
+        _loaded["evidence"] = load(
+            EVIDENCE,
+            "specseal_evidence_check_for_folds",
+            "it is where a `path::name` target is resolved",
+        )
+    return _loaded["evidence"]
+
+
 class Unusable(Exception):
     """A row whose value will not parse, or a file the run had to read and
     could not (exit 2, no result printed)."""
@@ -193,7 +211,9 @@ def numbered_statements(text):
     """`[(marker ids, [(1-based line number, live line)])]`, in document order.
 
     Consecutive marker lines are one group. A statement runs from its markers
-    to the next marker, the next heading or the end of the file."""
+    to the next marker, the next heading or the end of the file. A heading is
+    the one rule's, `unverified_check.py#heading_level` (#867), which this
+    module spelled again as a pattern of its own."""
     uc = reader()
     found = []
     current = None
@@ -212,7 +232,7 @@ def numbered_statements(text):
             previous_was_marker = True
             continue
         previous_was_marker = False
-        if HEADING.match(line):
+        if uc.heading_level(line) is not None:
             current = None
             continue
         if current is not None:
@@ -281,19 +301,24 @@ def target_problem(root, target):
         return f"{target}: `::name` needs a Python file"
     try:
         with open(full, encoding="utf-8") as f:
-            tree = ast.parse(f.read())
+            text = f.read()
+        # The ledger's resolver (#836): `::A::b` is `b` inside `A`, as pytest
+        # spells a method, and a name is looked up where it is defined rather
+        # than anywhere in the file.
+        kinds = evidence().named_unit(text, name.split("::"))
+        if kinds is None:
+            ast.parse(text)
     except (OSError, ValueError, SyntaxError) as unreadable:
         # Not a problem with the statement and not a result: a target written
         # for a newer Python than this one does not parse here, and a file
         # that is not UTF-8 does not decode. Exit 1 means problems found, so
         # this goes to exit 2 by `Unusable`, never as a traceback (round 1,
-        # finding 2).
+        # finding 2). `ast.parse` runs only to name the line that will not.
         raise Unusable(
             f"names `{target}`, and {path} could not be read as Python "
             f"({why(unreadable)})"
         ) from unreadable
-    kinds = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-    if any(isinstance(n, kinds) and n.name == name for n in ast.walk(tree)):
+    if kinds is not None and ("def" in kinds or "class" in kinds):
         return None
     return f"{target}: no def or class named {name} in {path}"
 
@@ -488,30 +513,28 @@ def seal_home(root):
     return located(root)[0]
 
 
-def config_rows(home):
-    """Every `| Item | Value |` row of `<home>/config.md`, through the one
-    table reader, `hooks/config.py#config_rows`. No root, no file or a file
-    that will not read is no row at all, as every reader of it fails."""
-    if not home:
-        return []
-    try:
-        with open(os.path.join(home, CONFIG), encoding="utf-8") as f:
-            text = f.read()
-    except (OSError, ValueError):
-        return []
+def config_reader():
+    """`hooks/config.py`, the one reader of `seal/config.md`, or exit 2."""
     return load(
         CONFIG_READER,
         "specseal_config_for_folds",
         "it is what reads the rows of seal/config.md",
-    ).config_rows(text)
+    )
 
 
-def row_value(rows, item):
-    """The row's value, or None where it is absent or empty."""
-    for name, value in rows:
-        if name == item:
-            return value or None
-    return None
+def config_rows(home):
+    """Every `| Item | Value |` row of `<home>/config.md`, through the one
+    table reader, `hooks/config.py#config_rows`. No root and no file are no
+    row at all; a file that is there and will not read is `Unusable`, in the
+    reader's own sentence (#867), because reading it as no row turned every
+    check this command runs off at exit 0."""
+    if not home:
+        return []
+    reader = config_reader()
+    text, refused = reader.config_text(home)
+    if refused is not None:
+        raise Unusable(refused)
+    return [] if text is None else reader.config_rows(text)
 
 
 def parse_over(value):
@@ -533,9 +556,20 @@ def parse_over(value):
 
 def declared(home):
     """`(cutoff, ceiling, over, digests)` as the root's `config.md` states
-    them, None for a row that is absent, or `Unusable` naming the row."""
+    them, None for a row that is absent or empty, or `Unusable` naming the
+    row. Each value is the reader's own answer, `hooks/config.py#value_of`,
+    so a row written twice is `Unusable` rather than its first (#867); the
+    local reader this module used to keep took the first."""
     rows = config_rows(home)
-    cutoff = row_value(rows, SHAPE_ROW)
+    reader = config_reader()
+
+    def stated(item):
+        value, refused = reader.value_of(rows, item)
+        if refused is not None:
+            raise Unusable(refused)
+        return value or None
+
+    cutoff = stated(SHAPE_ROW)
     if cutoff is not None:
         if not WHOLE.fullmatch(cutoff):
             raise Unusable(
@@ -544,7 +578,7 @@ def declared(home):
                 "statement)"
             )
         cutoff = int(cutoff)
-    ceiling = row_value(rows, CEILING_ROW)
+    ceiling = stated(CEILING_ROW)
     if ceiling is not None:
         if not WHOLE.fullmatch(ceiling) or int(ceiling) < 1:
             raise Unusable(
@@ -552,7 +586,7 @@ def declared(home):
                 "positive whole number of lines"
             )
         ceiling = int(ceiling)
-    over, digests = parse_over(row_value(rows, OVER_ROW))
+    over, digests = parse_over(stated(OVER_ROW))
     return cutoff, ceiling, over, digests
 
 

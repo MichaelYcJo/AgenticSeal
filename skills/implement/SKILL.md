@@ -426,7 +426,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | `plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
 | `questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `overview.md` | `templates/sdd-overview.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
-| `phases/phase-N.md` | `templates/sdd-phase.md` | the builder | what this phase was asked, what building it found, what it removed from the tree — never the commit or the one-line delivery description `plan.md`'s Status/Delivers cells already own | written when the phase closes |
+| `phases/phase-N.md` | `templates/sdd-phase.md` | the builder | what this phase was asked and what building it found — never what the work removes, which the frame's `## Removes` names once, and never the commit or the one-line delivery description `plan.md`'s Status/Delivers cells already own | written when the phase closes |
 
 The `Starts from` column is not decoration. A template that no shipped
 document names is a template a session cannot find: it reads *bootstrapped
@@ -562,7 +562,11 @@ rebuilt — only re-checked for whether the finding is now fixed.
 sits under `## Fixes` as `| # | Verdict | Commit or grounds |`, one row per
 OPEN finding of the round it answers: `fixed` with the commit, `answered` with
 the grounds, `deferred <home>` with the issue or file it went to — a finding
-the reviewer closed in the report takes no row, and `close` refuses one.
+the reviewer closed in the report takes no row, and `close` refuses one. A ⬜
+note takes none either: `close` leaves it open and refuses a row for it, and
+the run's notes close once at its end through `round-record notes`
+(`skills/code-review/orchestration.md` §*A note closes once, at the run's
+end* owns that rule).
 **The Verdict cell holds the word alone**, and everything after it goes in
 `Commit or grounds`; only `deferred` carries its own suffix, because the home
 is what makes a deferral readable. Two things that are not `fixed` although

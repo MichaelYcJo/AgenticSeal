@@ -77,7 +77,7 @@ def signer(tmp_path, clause_cell, grounds_extra=""):
     (root / "src").mkdir(parents=True)
     (root / "seal").mkdir()
     (root / "src" / "service.py").write_text(SERVICE, encoding="utf-8")
-    regions, _ = ec.resolve_unit("src/service.py", "handler", SERVICE)
+    regions = ec.resolve_unit("src/service.py", "handler", SERVICE).places
     start, end = regions[0]
     digest = ec.content_hash(ec.gfm_lines(SERVICE)[start - 1 : end])
     grounds = f"`src/service.py#handler@{digest}`" + grounds_extra

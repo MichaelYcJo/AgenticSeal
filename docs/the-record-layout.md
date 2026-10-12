@@ -91,15 +91,19 @@ the fragment nothing. 0.18.2 shipped three fragments their own review rounds had
 made false, and #795 corrected them by hand before the release.
 
 `chain-check` names the commits a fragment was left behind by. For a work item
-declared `through the review chain`, it walks the first-parent commits after
-round 1's `Target SHA`, merges skipped, and names each one that changed a path
-outside the `seal/` root and outside a `tests` directory after the fragment last
-changed. A move lists both its paths, so a file moved under `tests/` is named.
-Where the checkout is CI's, the pull request merged into its base, the walk
-starts at the pull request's own head rather than at the base. Each commit is
-attributed to the round whose `Fix range` holds it, to *after the last round*,
-or to *outside every round's fix range* for a commit between two rounds'
-ranges. It prints and never refuses, which is the measurement
+declared `through the review chain`, it reads the commits that the range from
+round 1's `Target SHA` to HEAD owns, as the next section defines them, and
+names each one that changed a path outside the `seal/` root and outside a
+`tests` directory and that no own commit changing the fragment descends from.
+On a linear history that is every commit after the fragment last changed. A
+move lists both its paths, so a file moved under `tests/` is named. The
+notice reads `<round 1's Target SHA>..HEAD` wherever it runs. On CI's
+checkout HEAD is the pull request merged into its base, so there the range
+also holds every base commit that has round 1's target as an ancestor, and
+CI can name a commit a branch checkout does not.
+Each commit is attributed to the round whose `Fix range` owns it, to *after
+the last round*, or to *outside every round's fix range* for a commit between
+two rounds' ranges. It prints and never refuses, which is the measurement
 #797 took: over 42 work items a refusal would have stopped 24 runs, at least 9
 of them for a fragment that needed no change. So the notice says nothing is
 owed where the fragment still says what ships. It reaches a person at
@@ -111,6 +115,45 @@ does not descend from, and no `changelog.md` at HEAD. It cannot see a
 behaviour change made only inside a merge commit, and it names a test-only
 commit outside a `tests` directory although nothing was owed.
 Enforced by: skills/code-review/scripts/chain_check.py::fragment_left_behind, tests/test_a_fragment_left_behind_is_named.py
+
+## A range owns the commits that descend from its start
+
+**A range `a..b` owns exactly the commits `git log --ancestry-path
+--no-merges a..b` lists.** That is the whole test `chain_check.py#own_commits`
+runs. It does not read which parent of a merge a commit sits behind, which branch
+the commit was made on, or when it was made. Whether a given commit of a
+given history is owned is answered by running `own_commits` on that history.
+`tests/test_a_range_owns_what_git_lists_for_it.py` holds the histories the
+review of #860 built, one case each, and a history it lacks becomes a case
+there rather than a sentence here.
+
+Two readers walked a range by the shape of its merges before this rule, and
+both read another work item's commits as this one's. `round-record close`
+diffed the range's two ends, and one record's `New units` named 111 units,
+109 of them another work item's that a merge of the base had brought in
+(#860). The fragment notice above followed HEAD's first parent, so on a
+branch rebuilt on its base with its old tip merged in, it named another work
+item's commit on the base and missed the item's own fix (#805). Which parent
+of a merge comes first is set by whoever ran `git merge`, and nothing here
+controls it. Ancestry is a fact git holds.
+
+`close` still measures the fix surface at the range's two ends, and keeps in
+`Contract changes` and `New units` only a unit that an owned commit added or
+changed between its parent and itself. Restricting the paths is not enough:
+in #860's range one file an owned commit touched gained 22 top-level names
+between the two ends, and 2 of them were the item's. `Fix of a fix` reads the
+previous record's range the same way, and a `fixed` row has to name one of
+the owned commits. The `Fix range` row's count stays `git rev-list --count
+a..b`, because its job is to catch an end that moved and the writer and the
+checker both read it that way. So the count and the surface read one range
+two ways.
+
+The rule has two limits. A change made only inside a merge's conflict
+resolution is in no owned commit, so no reader sees it, and `close` refuses
+a `fixed` row that names the merge. A range whose start does not reach its
+end owns nothing, and `close` refuses it rather than writing an empty
+surface.
+Enforced by: skills/code-review/scripts/chain_check.py::own_commits, skills/code-review/scripts/round_record.py::own_units, tests/test_a_range_owns_what_git_lists_for_it.py, tests/test_the_range_rule_states_no_shape.py, tests/test_a_fragment_left_behind_is_named.py::test_a_branch_rebuilt_on_the_base_names_its_own_commits_and_not_the_siblings, tests/test_the_fixes_close_the_record.py::test_a_unit_a_merge_brought_into_a_file_an_own_commit_touched_is_not_new, tests/test_the_fixes_close_the_record.py::test_a_fixed_row_naming_a_commit_the_range_does_not_own_is_refused
 
 ## docs/
 
@@ -132,6 +175,7 @@ a work item that finds one wrong corrects it.
 | `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
 | `docs/the-commit-gate-inside-git.md` | what git decides inside a commit, what its hooks cannot see, and which reading judges each state of a repository |
 | `docs/the-evidence-ledger.md` | what a ledger row is, how a coordinate names code, how a released row is read again, and what a merge can drop |
+| `docs/the-reader-registry.md` | what class of input each unit of shipped Python declares, who must declare, and how a frame names what its work removes |
 | `docs/the-record-layout.md` | this index: where each kind of record lives, which file a change writes, and when a later commit brings the changelog fragment along |
 | `docs/the-review-and-parity-arms.md` | what each opt-in arm of the commit gate wants, and the routing declaration that moves the review arm's check to the pull request |
 | `docs/worktree-guard-spec.md` | what the worktree guard refuses, and why |

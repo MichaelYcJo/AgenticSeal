@@ -16,6 +16,7 @@ one in-tree caller and one test caller, and a unit called from tests alone,
 because that is the diff `Contract changes` has to name.
 """
 
+import inspect
 import re
 import shutil
 import subprocess
@@ -145,6 +146,31 @@ def close(repo, n, fixes, rng, extra=()):
     return r.returncode, r.stdout + r.stderr, record
 
 
+def generator_run(repo, command, *args):
+    """Run another `round_record.py` subcommand on the fixture's work item;
+    asserts exit 0 and returns its output."""
+    r = subprocess.run(
+        [
+            sys.executable,
+            GENERATOR,
+            command,
+            "--item",
+            str(repo / ITEM),
+            *args,
+            "--baseline",
+            "base",
+        ],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+        env=env_without_a_pull_request(),
+    )
+    out = r.stdout + r.stderr
+    assert r.returncode == 0, out
+    return out
+
+
 def test_a_directory_at_the_record_path_is_refused_as_a_directory(repo):
     """The second member of ⬜ 6's class, in `close` rather than `report_path`.
 
@@ -250,10 +276,10 @@ def test_pass_is_ticked_when_nothing_is_open_and_the_gate_is_the_flag(repo):
     record, which is the state that makes the verifying round mandatory.
     The exit is the check's; the record stands.
 
-    The check is told `draft`, as `round_record.run_check` tells it on every
-    local run unless `gh` says the pull request is ready, so since #598 the
-    pair prints there rather than failing, and the line names the verifying
-    round. At a ready pull request the same run exits 1."""
+    The check sees no pull request here — the suite's `gh` finds none, which
+    it reads as unknown and not as ready (#866) — so, as in a draft since
+    #598, the pair prints rather than failing, and the line names the
+    verifying round. At a ready pull request the same run exits 1."""
     a = round_one(repo)
     write(repo, "mod.py", MOD_CHANGED)
     b = commit(repo, "fix")
@@ -732,7 +758,9 @@ def test_the_empty_span_repair_did_not_widen_the_shared_separators():
     arrives as `deferred seal/follow-up.md`. The rider is right about WHERE
     the repair goes and its reason is not the one it gives. Recorded rather
     than quietly corrected, because the other two callers are a real cost and
-    nothing here measured them.
+    nothing here measured them. Since #866 the home reaches no
+    `SEPARATORS` strip in `fix_table` at all: `chain.deferred_parts` reads
+    it, and its `HOME_MARKS` takes the backticks off first.
     """
     generator = generator_module()
     assert "`" not in generator.chain.SEPARATORS, (
@@ -857,6 +885,63 @@ def test_a_deferred_row_whose_third_cell_begins_with_its_home_says_it_once(repo)
     assert "executed" in one[4], "the reviewer's grounds"
 
 
+def test_a_deferred_verdict_cells_home_ends_at_the_dash(repo):
+    """#866 S4. `fix_table` took the whole rest of the verdict cell as the
+    home, so `deferred #854 — the run is capped` wrote that whole sentence
+    into the Verdict cell, and the gate, the panel and the release seal each
+    read a different home out of it. The home is `chain.deferred_parts`'
+    reading: `#854`, and what followed the dash leads the note, the third
+    cell's reasoning behind it."""
+    a = round_one(repo, verdicts=OPEN_1)
+    write(repo, "README.md", "# untouched\n")
+    b = commit(repo, "nothing")
+    code, out, record = close(
+        repo,
+        1,
+        fix_table("| 1 | deferred #854 — the run is capped | why |\n"),
+        f"{a}..{b}",
+    )
+    assert code == 0, out
+    (one,) = verdict_cells(record)
+    assert one[3] == "deferred #854", (one, out)
+    assert one[4] == "#854 — the run is capped — why; executed", one
+
+
+def test_a_bare_deferred_verdict_reads_its_home_from_the_third_cell(repo):
+    """#866: a bare `deferred` beside a third cell reads that cell as if the
+    word stood in front of it, through the same `deferred_parts`, so the home
+    is `#309` and not the third cell whole — which used to land in the
+    Verdict cell as `deferred #309 — the parity arm is out of scope`."""
+    a = round_one(repo, verdicts=OPEN_1)
+    write(repo, "README.md", "# untouched\n")
+    b = commit(repo, "nothing")
+    code, out, record = close(
+        repo,
+        1,
+        fix_table("| 1 | deferred | #309 — the parity arm is out of scope |\n"),
+        f"{a}..{b}",
+    )
+    assert code == 0, out
+    (one,) = verdict_cells(record)
+    assert one[3] == "deferred #309", (one, out)
+    assert one[4] == "#309 — the parity arm is out of scope; executed", one
+
+
+def test_a_deferred_verdict_glued_to_its_home_is_not_the_word(repo):
+    """#866: `deferred—#12`, the dash touching the word, is not `deferred` to
+    `verdict_of`, which leaves it open at the gate. The fix table used to
+    close it with its own prefix test; it refuses it now, as it refuses any
+    verdict outside its three words, and nothing is written."""
+    a = round_one(repo, verdicts=OPEN_1)
+    write(repo, "README.md", "# untouched\n")
+    b = commit(repo, "nothing")
+    code, out, _ = close(
+        repo, 1, fix_table("| 1 | deferred\N{EM DASH}#12 | why |\n"), f"{a}..{b}"
+    )
+    assert code == 2, out
+    assert "deferred <home>" in out, out
+
+
 def test_the_unknown_finding_refusal_says_so_when_the_table_holds_no_id(repo):
     """Round 1's ⬜ 5. The parenthetical names the ids the verdict table does
     hold, so on an empty mapping it rendered as `(which has )` and the reader
@@ -931,32 +1016,44 @@ def test_a_correction_closed_answered_lands_on_no_fixes_to_check(repo):
     chain): a ⬜ row located in a record closes `answered` with `corrected
     at <sha>`, which is no fix word, so the cell reads `no fixes to check`
     and the check judged as READY exits 0 -- where `fixed <sha>` on the same
-    row leaves `nobody` beside a checked `Pass` and exits 1."""
+    row leaves `nobody` beside a checked `Pass` and exits 1.
+
+    Through `notes` since #837, which is where a ⬜ closes: `close` refuses a
+    row for one, and the record `new` wrote already reads `no fixes to
+    check`, because an open note commissions no reader. The note closes once,
+    at the run's end, at the correction commit `--at` names, and the broad
+    gate's cell is then written by `seal`."""
     note = "| ⬜ 1 | F1 counts three where four are excused | `seal/ledger.md` | open | read |\n"
-    a = round_one(repo, verdicts=note)
+    round_one(repo, verdicts=note)
+    chain = check_module()
+    first = read_record(repo, 1)
+    assert fields(first)["Fixes checked by"] == chain.NO_FIXES, first
+    assert "- [ ] Pass" in first, "an open note leaves `Pass` unticked"
     write(repo, "README.md", "# the ledger row corrected\n")
     b = commit(repo, "the correction")
-    # `--broad-gate` is passed because this case runs the check judged as
+    table = repo.parent / "notes-1.md"
+    table.write_text(
+        "## Fixes\n\n| Round | # | Verdict | Commit or grounds |\n|---|---|---|---|\n"
+        "| round-1 | 1 | corrected | |\n",
+        encoding="utf-8",
+    )
+    out = generator_run(repo, "notes", "--fixes", str(table), "--at", b)
+    record = read_record(repo, 1)
+    assert fields(record)["Fixes checked by"] == chain.NO_FIXES, out
+    assert "- [x] Pass" in record
+    cells = verdict_cells(record)[0]
+    assert cells[3] == "answered", cells
+    assert cells[4] == f"corrected at {b[:8]}; read", cells
+    commit(repo, "round 1's note closed")
+    # The broad gate's cell, because this case runs the check judged as
     # READY, and at a ready pull request `chain_check` reads that cell on the
     # last record (#295): a generated record says `not yet` until the one
     # full-suite run happens, and `not yet` there is a refusal of its own.
     # The value is `b`, the correction commit, because the broad gate runs
     # AFTER the fixes — a SHA the record's `Target SHA` descends from would
     # fail as the run spent before the round it was meant to seal.
-    _, out, record = close(
-        repo,
-        1,
-        fix_table(f"| 1 | answered | corrected at {b[:7]} |\n"),
-        f"{a}..{b}",
-        extra=("--broad-gate", f"{b[:7]} against base"),
-    )
-    chain = check_module()
-    assert fields(record)["Fixes checked by"] == chain.NO_FIXES, out
-    assert "- [x] Pass" in record
-    cells = verdict_cells(record)[0]
-    assert cells[3] == "answered", cells
-    assert cells[4] == f"corrected at {b[:7]}; read", cells
-    commit(repo, "round 1 closed")
+    generator_run(repo, "seal", "--broad-gate", f"{b[:7]} against base")
+    commit(repo, "sealed")
     code, out = check_tree(repo)
     assert "judged as a ready pull request" in out, out
     assert code == 0, out
@@ -1183,6 +1280,243 @@ def test_the_same_name_added_in_two_files_is_one_entry(repo):
     assert fields(record)["New units"] == "added_unit (depth 1); ADDED (depth 1)", out
 
 
+# --- a merge inside the range (#860) -----------------------------------------
+#
+# Round 1 of work item 1791270164 closed over a range holding the branch's
+# merge of its base, and `close` wrote 111 entries into `New units`, 109 of
+# them a sibling's. The range owns the commits that descend from its start
+# (`docs/the-record-layout.md` §*A range owns the commits that descend from
+# its start*), and the surface keeps only a unit one of them added or changed.
+
+
+def on_the_base(repo, rel, text, message="a sibling's squash"):
+    """A sibling's commit on the base, the feature checked out again."""
+    git(repo, "switch", "-q", "base")
+    write(repo, rel, text)
+    sibling = commit(repo, message)
+    git(repo, "switch", "-q", "feature")
+    return sibling
+
+
+def merge_the_base(repo):
+    """The branch's own merge of its base, the merge commit returned."""
+    git(
+        repo,
+        "-c",
+        "user.email=e@example.com",
+        "-c",
+        "user.name=e",
+        "merge",
+        "-q",
+        "--no-ff",
+        "-m",
+        "integrate the base",
+        "base",
+    )
+    return git(repo, "rev-parse", "HEAD").stdout.strip()
+
+
+SIBLING_UNIT = "def sibling_unit():\n    return 2\n\n\n"
+RANGE_RULE = "A range owns the commits that descend from its start"
+
+
+def test_a_unit_a_merge_brought_in_a_file_no_own_commit_touched_is_not_new(repo):
+    """S1 of #860, at the file level. The sibling's units sit in files only
+    the merge changed; the two ends' diff named them as this round's, and
+    named the sibling's script as a file this round's surface read by the
+    diff-line heuristic."""
+    a = round_one(repo, verdicts=OPEN_1)
+    on_the_base(repo, "sibling.py", SIBLING_UNIT)
+    on_the_base(repo, "sibling.js", "function sibling_script() {}\n")
+    merge_the_base(repo)
+    write(repo, "mod.py", MOD_GROWN)
+    b = commit(repo, "fix")
+    _, out, record = close(
+        repo, 1, fix_table(f"| 1 | fixed | {b[:7]} |\n"), f"{a}..{b}"
+    )
+    assert fields(record)["New units"] == "added_unit (depth 1); ADDED (depth 1)", out
+    assert "sibling.js" not in record, record
+
+
+def test_a_file_the_range_deleted_is_not_read(repo):
+    """A path an own commit deleted is not at the range's end, so it is no
+    surface: no unit, and no note that the diff-line heuristic read it,
+    which is what a deleted Python file would otherwise get, since the AST
+    has nothing at the end to read."""
+    a = round_one(repo, verdicts=OPEN_1)
+    git(repo, "rm", "-q", "tests/test_mod.py")
+    write(repo, "mod.py", MOD_GROWN)
+    b = commit(repo, "fix, and a test file removed")
+    _, out, record = close(
+        repo, 1, fix_table(f"| 1 | fixed | {b[:7]} |\n"), f"{a}..{b}"
+    )
+    assert fields(record)["New units"] == "added_unit (depth 1); ADDED (depth 1)", out
+    assert "test_mod.py" not in record, record
+
+
+def test_a_unit_a_merge_brought_into_a_file_an_own_commit_touched_is_not_new(repo):
+    """S2 of #860, the measured shape: the sibling's unit and the own
+    commit's units in ONE file. A filter on the own commits' paths keeps the
+    file, and with it the sibling's unit; the filter is per unit. The merge
+    is made from the branch after the fix, so the range ends at the merge."""
+    a = round_one(repo, verdicts=OPEN_1)
+    write(repo, "mod.py", MOD_GROWN)
+    fix = commit(repo, "fix")
+    on_the_base(repo, "mod.py", SIBLING_UNIT + MOD)
+    b = merge_the_base(repo)
+    merged = (repo / "mod.py").read_text(encoding="utf-8")
+    assert "def sibling_unit" in merged and "def added_unit" in merged, merged
+    _, out, record = close(
+        repo, 1, fix_table(f"| 1 | fixed | {fix[:7]} |\n"), f"{a}..{b}"
+    )
+    assert fields(record)["New units"] == "added_unit (depth 1); ADDED (depth 1)", out
+
+
+def test_a_contract_a_merge_changed_is_not_this_rounds(repo):
+    """S3 of #860. A sibling changed `caller`'s signature on the base and the
+    own commit changed `helper`'s: only the own change is a contract change,
+    and its reach is read at the range's end as before."""
+    a = round_one(repo, verdicts=OPEN_1)
+    on_the_base(repo, "mod.py", MOD.replace("def caller():", "def caller(x=None):"))
+    merge_the_base(repo)
+    merged = (repo / "mod.py").read_text(encoding="utf-8")
+    write(repo, "mod.py", merged.replace("def helper(a):", "def helper(a, b=None):"))
+    b = commit(repo, "fix")
+    _, out, record = close(
+        repo, 1, fix_table(f"| 1 | fixed | {b[:7]} |\n"), f"{a}..{b}"
+    )
+    assert fields(record)["Contract changes"] == "helper → caller, pytest", out
+
+
+def test_a_range_whose_start_does_not_reach_its_end_is_refused(repo):
+    """S5 of #860. Such a range owns no commit, and an empty surface written
+    from it would read as a fix pass that added nothing."""
+    round_one(repo, verdicts=OPEN_1)
+    elsewhere = on_the_base(repo, "sibling.py", SIBLING_UNIT)
+    write(repo, "mod.py", MOD_CHANGED)
+    b = commit(repo, "fix")
+    out = refused(repo, fix_table(f"| 1 | fixed | {b[:7]} |\n"), f"{elsewhere}..{b}")
+    assert f"`{elsewhere[:8]}` is not an ancestor of `{b[:8]}`" in out, out
+    assert "owns no commit" in out, out
+    assert "No cell was written" in out, out
+    assert f"§*{RANGE_RULE}*" in out, "the refusal names the section that owns it"
+
+
+def test_the_section_the_range_refusals_name_exists():
+    """Both refusals send the reader to a section by title. The checker's
+    constant and the document's heading are one spelling, and the title is
+    spelled here as well, so a case asserting the refusal names it is not
+    agreeing with whatever the script happens to say."""
+    assert check_module().RANGE_RULE == RANGE_RULE
+    headings = [
+        line[3:].strip()
+        for line in read("docs", "the-record-layout.md").splitlines()
+        if line.startswith("## ")
+    ]
+    assert RANGE_RULE in headings, headings
+
+
+@pytest.mark.parametrize("named", ["the merge", "the sibling's commit"])
+def test_a_fixed_row_naming_a_commit_the_range_does_not_own_is_refused(repo, named):
+    """S6 of #860. Both commits lie inside `a..b` by git's count and are not
+    the range's own: the merge is no commit's fix, and the sibling's commit
+    reached the branch only through it. The surface is measured on neither,
+    so a `fixed` row naming one is a fix nobody measured."""
+    a = round_one(repo, verdicts=OPEN_1)
+    sibling = on_the_base(repo, "sibling.py", SIBLING_UNIT)
+    merge = merge_the_base(repo)
+    write(repo, "mod.py", MOD_CHANGED)
+    b = commit(repo, "fix")
+    commit_named = merge if named == "the merge" else sibling
+    out = refused(repo, fix_table(f"| 1 | fixed | {commit_named[:7]} |\n"), f"{a}..{b}")
+    assert "is not one of the range's own commits" in out, out
+    # Round 2 of #860: the refusal names the merged-in commits it refuses as
+    # those not made on top of the start, which `own_commits` does not list.
+    assert (
+        f"a merge, or a commit a merge brought in that was not made on top of {a[:7]}"
+        in out
+    ), out
+    assert commit_named[:7] in out, out
+    assert f"§*{RANGE_RULE}*" in out, out
+
+
+QUOTED = "naïve.py"
+QUOTED_MODULE = (
+    "from mod import helper\n"
+    "\n"
+    "\n"
+    "def naive_unit():\n"
+    "    return 1\n"
+    "\n"
+    "\n"
+    "def naive_caller():\n"
+    "    return helper(2)\n"
+)
+
+
+def test_a_path_git_would_quote_is_read_as_the_path_it_is(repo):
+    """S10 of #860. Three readers took a git listing as text, and git quotes
+    a name holding a non-ASCII character unless `core.quotePath` is off — so
+    the quoted name matched no file. Set on here, so the case does not lean
+    on the reader's own config. One fixture, three readers: `touched`, so the
+    file's units are new; `call_sites`, so a call inside the file is named
+    by its enclosing unit; and `tracked_at`, so a `Location` in the file
+    resolves when the next round counts a fix of a fix."""
+    git(repo, "config", "core.quotePath", "true")
+    a = round_one(repo, verdicts=OPEN_1)
+    write(repo, "mod.py", MOD.replace("def helper(a):", "def helper(a, b=None):"))
+    write(repo, QUOTED, QUOTED_MODULE)
+    b = commit(repo, "fix, with a module whose name git quotes")
+    assert '"' in git(repo, "ls-tree", "-r", "--name-only", b).stdout, (
+        "git did not quote the name, so nothing here is exercised"
+    )
+    _, out, record = close(
+        repo, 1, fix_table(f"| 1 | fixed | {b[:7]} |\n"), f"{a}..{b}"
+    )
+    cells = fields(record)
+    assert cells["New units"] == "naive_unit (depth 1); naive_caller (depth 1)", out
+    assert cells["Contract changes"] == "helper → caller, naive_caller, pytest", out
+    commit(repo, "close round 1")
+    finding = f"| 🟡 1 | naive_unit is wrong | `{QUOTED}#naive_unit` | open | read |\n"
+    code, out, text = generate(repo, n=2, report_text=report(verdicts=finding))
+    assert code != 2, out
+    assert fields(text)["Fix of a fix"] == (
+        f"first — 🟡 1 at {QUOTED}#naive_unit, a unit round-1's fixes added"
+    ), out
+
+
+def test_a_binary_file_holding_the_call_hides_no_call_site(repo):
+    """`call_sites` walks `git grep -z`'s output by NUL, and git reports a
+    binary file as one `Binary file … matches` line with no NUL in it. Read
+    in that walk, the line swallows the next match's path, so `caller` in
+    `mod.py`, which sorts after the binary file, was named by a path that is
+    no file. `-I` leaves binary files out of the search."""
+    (repo / "blob.bin").write_bytes(b"\x00helper(1)\x00\n")
+    b = commit(repo, "a binary file that holds the call")
+    sites = generator_module().call_sites(
+        reader_module(), str(repo), b, "mod.py", "helper", {}
+    )
+    assert sites == ["caller", "pytest"], sites
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="a `:` is no file name there")
+def test_a_colon_in_a_path_does_not_split_it(repo):
+    """The colon split read `<rev>:<path>:<line>:<text>` by position, so a
+    `:` inside a path moved every field after it. Under `-z` only the first
+    `:` is the separator, the revision being a full commit that holds none,
+    and the caller inside `a:b.py` is named by its enclosing unit."""
+    write(
+        repo,
+        "a:b.py",
+        "from mod import helper\n\n\ndef colon_caller():\n    return helper(3)\n",
+    )
+    b = commit(repo, "a module whose name holds a colon")
+    sites = generator_module().call_sites(
+        reader_module(), str(repo), b, "mod.py", "helper", {}
+    )
+    assert sites == ["colon_caller", "caller", "pytest"], sites
+
+
 def test_a_surface_writer_refuses_a_separator_inside_a_name():
     generator = generator_module()
     with pytest.raises(generator.Refused):
@@ -1240,26 +1574,18 @@ def two_rounds(repo, location, path="mod.py", others=()):
     [
         "`mod.py#helper`",
         "`mod.py:2`",
-        "`helper`",
         "`mod.py#helper@deadbee`",
         "`./mod.py#helper`",
-        "`helper()`",
-        "helper",
         "`mod.py::helper`",
         "`mod.py:2`, and the guard at `README.md`",
-        "`mod.py#other` and `#helper`",
     ],
     ids=[
         "path-unit",
         "path-line",
-        "identifier",
         "path-unit-hash",
         "dot-slash",
-        "identifier-call",
-        "bare",
         "double-colon",
         "prose-around-path-line",
-        "fragment-after-path",
     ],
 )
 def test_a_unit_added_beside_a_finding_inside_an_earlier_units_is_refused(
@@ -1270,11 +1596,10 @@ def test_a_unit_added_beside_a_finding_inside_an_earlier_units_is_refused(
     and it is refused naming the unit, the finding, and the record whose
     row names the parent -- with the exit the rule gives.
 
-    The last five forms are the ones round 1 of #161's own chain found
-    escaping (🟡 4): each closed with `helper_guard (depth 1)` until the
-    Location's path was resolved against the tree and `()` and `::`
-    were read. A bare name is resolved against every file the range
-    touched, at the range's start, that holds a unit of that name."""
+    Every form here carries its path, as `path_forms` reads a `Location`
+    (#866): the path resolved against the tree at the range's start, and
+    `@hash`, `./` and `::` read — the forms round 1 of #161's own chain
+    found escaping (🟡 4)."""
     a = two_rounds(repo, location)
     write(repo, "mod.py", MOD_CHANGED + GUARD)
     b = commit(repo, "round 2's fix")
@@ -1284,6 +1609,29 @@ def test_a_unit_added_beside_a_finding_inside_an_earlier_units_is_refused(
     assert "round-1.md" in out
     assert "depth 2" in out
     assert "deferred with a named answerer, or becomes an issue" in out
+
+
+@pytest.mark.parametrize(
+    "location",
+    ["`helper`", "`helper()`", "helper", "`mod.py#other` and `#helper`"],
+    ids=["identifier", "identifier-call", "bare", "fragment-after-path"],
+)
+def test_a_finding_located_by_a_name_with_no_path_places_nothing(repo, location):
+    """#866 S5. The depth walk reads a `Location` through `path_forms`, as
+    `landings` reads it for a fix of a fix, so a name with no path beside it
+    — backticked, called or bare, or a `#name` standing apart from its path
+    — places the finding nowhere, and the unit its fix adds is written at
+    depth 1. The walk used to resolve such a name against every file the
+    range touched, which read the cell a second way."""
+    a = two_rounds(repo, location)
+    write(repo, "mod.py", MOD_CHANGED + GUARD)
+    b = commit(repo, "round 2's fix")
+    _code, out, record = close(
+        repo, 2, fix_table(f"| 1 | fixed | {b[:7]} |\n"), f"{a}..{b}"
+    )
+    assert "depth 2" not in out, out
+    assert "round-record: closed" in out, out
+    assert fields(record)["New units"] == "helper_guard (depth 1)", out
 
 
 # #30's measured shape, in one file: two findings, each located inside a
@@ -1377,6 +1725,30 @@ def test_a_depth_two_refusal_names_the_finding_whose_fix_added_the_unit(repo):
         "the range resolves an adder for each unit, so nothing should fall back"
     )
     assert "deferred with a named answerer, or becomes an issue" in out
+
+
+def test_a_unit_one_fix_added_and_the_next_only_changed_is_the_first_fixs(repo):
+    """The per-commit reading `unit_adders` takes from `own_units` (#860)
+    knows which commit ADDED a unit and which only changed it. The second
+    fix rewrites `alpha_guard`'s body as well as adding `beta_guard`, and
+    `alpha_guard` is still the first finding's alone: a commit that changed
+    a unit did not add it, and counting it would leave the unit with two
+    candidate rows and no attribution."""
+    a = two_findings_inside_two_earlier_units(repo)
+    write(repo, "pair.py", PAIR_FIXED + ALPHA_GUARD)
+    b1 = commit(repo, "round 2's fix for 1")
+    rewritten = ALPHA_GUARD.replace("b is not None", "b is not None and b != 0")
+    write(repo, "pair.py", PAIR_FIXED + rewritten + BETA_GUARD)
+    b2 = commit(repo, "round 2's fix for 2, which also touches alpha_guard")
+    out = refused(
+        repo,
+        fix_table(f"| 1 | fixed | {b1[:7]} |\n| 2 | fixed | {b2[:7]} |\n"),
+        f"{a}..{b2}",
+        n=2,
+    )
+    line = next(ln for ln in out.splitlines() if "`alpha_guard` in pair.py" in ln)
+    assert "🔴 1" in line and "🟡 2" not in line, out
+    assert "FILE-LEVEL" not in out, out
 
 
 def test_a_depth_two_refusal_it_cannot_attribute_says_so_and_names_every_candidate(
@@ -1505,6 +1877,25 @@ def test_a_unit_added_by_a_fix_outside_every_earlier_unit_is_depth_one(repo):
     assert "round-record: closed" in out, out
     assert "no cell was written" not in out, out
     assert fields(record)["New units"] == "beta_guard (depth 1)", record
+
+
+def test_one_reader_places_a_finding_and_the_wide_one_is_gone():
+    """#866 S6. The wide `Location` reading and its five patterns left
+    `round_record.py`, and both questions about the cell — a fix of a fix and
+    the depth — read it through `path_forms`."""
+
+    generator = generator_module()
+    for gone in (
+        "location_units",
+        "LOCATION_UNIT_RE",
+        "LOCATION_LINE_RE",
+        "FRAGMENT_RE",
+        "IDENTIFIER_RE",
+        "BARE_IDENTIFIER_RE",
+    ):
+        assert not hasattr(generator, gone), gone
+    for reader in (generator.depth_two, generator.landings):
+        assert "path_forms(" in inspect.getsource(reader), reader.__name__
 
 
 def test_a_basename_resolves_to_the_one_tracked_file_that_ends_in_it(repo):
