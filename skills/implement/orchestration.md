@@ -301,10 +301,10 @@ this session's own transcript and nothing else, and `routing.md` is not read
 resumed on another machine with the answer given as text, and the worktree
 guard asked the owner twice in a run routed `automation` on every item
 (#894). `claude --resume` and compaction keep the session's id and append to
-its transcript, so the press survives both and nothing is put again. Read off one machine's
-transcripts on 2026-10-12: 20 compaction boundaries, each under its file's
-own id, and 8 of 115 transcripts written under one id by more than one CLI
-version, which only a resumed process does.
+its transcript, so the press survives both and nothing is put again. Read
+off one machine's transcripts on 2026-10-12: 20 compaction boundaries, each
+under its file's own id, and 8 of 115 transcripts written under one id by
+more than one CLI version, which only a resumed process does.
 
 ### Question 2 — `multiSelect`, meaningful only under *per axis*
 
