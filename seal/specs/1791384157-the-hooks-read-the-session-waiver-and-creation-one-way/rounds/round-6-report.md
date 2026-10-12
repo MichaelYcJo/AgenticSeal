@@ -322,8 +322,8 @@ def test_a_rebase_from_its_onto_branch_is_seen_before_the_branch_reaches_the_tre
 
 - The case above, in `tests/test_the_hook_surface_git_offers.py`, with its
   name added to the `Enforced by:` line under the convergence paragraph of
-  `docs/the-commit-gate-inside-git.md`. NAME NOT IN TREE until planted:
-  `test_a_rebase_from_its_onto_branch_is_seen_before_the_branch_reaches_the_tree`.
+  `docs/the-commit-gate-inside-git.md`:
+  `test_a_rebase_from_its_onto_branch_is_seen_before_the_branch_reaches_the_tree` (NAME NOT IN TREE until planted).
   Seen red here by its flip, not against the doc; the smith shows it red
   again before planting it (§15).
 - No case is proposed for 🟡 1. It is a comment, and no reader sees it.
