@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 2 |
-| Commit | the commit that adds this record; `plan.md`'s Status cell for phase 2 carries its hash |
+| Commit | 36491ddb |
 | Ran by | smith on opus, as the run-level `handoff.md` §*Starting on a new machine* item 4 names the spawn |
 
 ## What this phase was asked
