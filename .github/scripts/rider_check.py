@@ -73,7 +73,8 @@ to fall one way, it falls toward the silence.
 
   OK       the anchor resolves once and the hash is what the stamp recorded
   DRIFTED  it resolves and the content changed -- re-read the rider, re-stamp
-  BROKEN   it resolves to nothing, to several places, or only by resurrection
+  BROKEN   it resolves to nothing or to several places, or the checker
+           refuses it because no rule bounds a unit in that file
 
 DRIFTED is the ledger's degradation and it is right here for a sharper reason
 than that it is right there: a drifted rider IS the rider firing. It says
@@ -85,12 +86,10 @@ be the looser of two rules about one thing -- and answering a drifted rider is
 re-reading a comment in the file you just edited plus one command, where
 answering an orphaned commit was bookkeeping with no reading in it at all.
 
-**Resurrection is refused here where the ledger tolerates it.** A resurrected
-place survives only because the declaration rule put keyword-blocked candidates
-back, and `evidence_check` carries that uncertainty out to its caller. The
-ledger tolerates it because its rows were bulk-migrated off line numbers. A
-rider is hand-written by somebody standing at the coordinate, who can pick a
-better anchor.
+**The checker's refusal is the rider's.** A rider anchored on a bare symbol in
+a file `evidence_check` has no bounding rule for — anything but `.py`, `.pyi`
+and `.md` — reads that refusal as its reason, with the quoted-line anchor's
+shape on it (#870).
 
 Usage:
   rider_check.py                  check every rider; exit 1 on drift, 2 on broken
@@ -496,17 +495,17 @@ def region_lines(checker, rel, locator, text):
     removed by LINE NUMBER rather than by content, so two riders carrying the
     same sentence do not remove each other's lines.
     """
-    places, resurrected = checker.resolve_unit(rel, locator, text)
+    unit = checker.resolve_unit(rel, locator, text)
+    if unit.refused:
+        # The checker's own refusal, read from its one reading of the anchor
+        # and never re-derived here (#870): a unit no rule can bound is not
+        # a unit that is missing, and the reason names the anchor to use.
+        return None, unit.refused
+    places = unit.places
     if not places:
         return None, "the anchor resolves to nothing in this file"
     if len(places) > 1:
         return None, f"the anchor resolves to {len(places)} places, so it names none"
-    if resurrected:
-        return None, (
-            "the anchor survives only because the declaration rule put a "
-            "keyword-blocked candidate back, so it may be a call site rather "
-            "than the unit. Pick a more distinctive anchor"
-        )
     start, end = places[0]
     lines = checker.gfm_lines(text)  # the lines `resolve_unit` numbered (#664)
     # GFM lines, the ones `riders_in` hands `comment_blocks` too, so the blocks

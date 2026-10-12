@@ -289,7 +289,7 @@ def test_a_unit_defined_twice_is_named(repo, script):
 
 def handler_hash(repo):
     text = (repo / "src" / "service.py").read_text(encoding="utf-8")
-    (place,) = ec.resolve_unit("src/service.py", "handler", text)[0]
+    (place,) = ec.resolve_unit("src/service.py", "handler", text).places
     return ec.content_hash(ec.gfm_lines(text)[place[0] - 1 : place[1]])
 
 

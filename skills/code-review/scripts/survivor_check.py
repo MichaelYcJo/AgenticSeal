@@ -1265,7 +1265,7 @@ def removed_ledger_rows(root, a, b, before, after):
 
     def resolves(blobs, anchor):
         text = blobs.get(anchor[0])
-        return text is not None and bool(loaded.resolve_unit(*anchor, text)[0])
+        return text is not None and bool(loaded.resolve_unit(*anchor, text).places)
 
     out = set()
     for path, number, anchors in rows:

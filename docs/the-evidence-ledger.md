@@ -356,6 +356,27 @@ about 1.7 s. The cost was the parse and not the rows, so no row left: a row
 still leaves the ledger only with its code.
 Enforced by: tests/test_a_row_points_by_content.py::test_rows_citing_one_file_cost_one_parse, tests/test_a_row_points_by_content.py::test_a_file_edited_between_two_reads_gets_its_new_spans
 
+<!-- specs/1791384159-a-unit-the-extractor-cannot-bound-is-refused -->
+**A unit is bounded only where a real parser decides its extent, and a
+quoted line is the format everywhere else.** A bare symbol is read by
+Python's own `ast` in a `.py` or `.pyi` file and by the heading path in a
+`.md` file, and by nothing in any other: there it is `BROKEN`, with the
+reason and the quoted-line anchor's shape written on the line. A Python file
+the running interpreter cannot parse is refused the same way, naming the
+interpreter. A quoted line's region is the paragraph it sits in, which the
+file itself shows and no grammar decides, so a function with no blank line
+inside it is hashed whole by one quote, and a row resting on several
+paragraphs quotes one line of each. The rules this replaces read someone
+else's text without that language's parser: an indentation rule bounded a
+multi-line TypeScript signature at the line that opened its body, so a
+rewrite of the body read `ok` and `--reverify` had nothing to notice (#848),
+and the bracket-matching lexer that followed was misled the same way by a
+regex literal. A reader of more shapes reads `ok` over code nobody re-read
+on the next shape it does not know; a refusal with the remedy on its line
+costs one edit to the row, and the quoted line says on the row what it
+covers.
+Enforced by: tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_848_is_answered_by_a_quoted_line_that_hashes_the_function, tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_a_bare_symbol_outside_the_two_parsers_is_refused_with_the_shape, tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_a_python_file_that_will_not_parse_is_refused_naming_the_interpreter
+
 ## A correction a merge dropped
 
 <!-- specs/1789969379-a-conflict-resolved-by-side-reverts-the-other-sides-corrections -->
