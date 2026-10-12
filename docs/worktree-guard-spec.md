@@ -944,12 +944,13 @@ at one prompt against a wrong allow breaking another session's tree.
   survives a machine move can stand in for it. The consent record and the
   choice markers sit under the git directory, which does not travel, and
   everything that travels is in the tree, which the model writes, so
-  `routing.md` is not read. `claude --resume` and compaction keep the
-  session's id and append to its transcript, so the press survives both.
-  Measured in #894: a release run resumed on another machine with the answer
-  typed, and the guard asked the owner twice in a run routed `automation`;
-  replayed up to the first of those stops, the reader found no press in that
-  session.
+  `routing.md` is not read. What keeps the press is what keeps the
+  session's id: `claude --resume` and compaction both go on writing the
+  same transcript the press already sits in, and the section named above
+  holds the reading that showed it. Measured in #894: a release run resumed
+  on another machine with the answer typed, and the guard asked the owner
+  twice in a run routed `automation`; replayed up to the first of those
+  stops, the reader found no press in that session.
 - Under the press the two **choice** rows of §A, only IDLE sessions and
   detection unusable, still reach a person: the first attempt is a `deny`
   whose reason says to call `AskUserQuestion`, and every attempt after it is
