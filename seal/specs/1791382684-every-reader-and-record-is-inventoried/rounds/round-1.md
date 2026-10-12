@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #901 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `a6b0ac200865f1b12662c2a6b5f1f448338d529c..bf1e425a01f0a5f2f5a2afe2378fcf13357c1e14`, 1 commit |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (32 `Reads:` lines or paragraphs that describe another unit), 🟡 2 (five class words and two direction words the code contradicts), 🟡 3 (three wrong line references) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,13 +25,13 @@ Round 1 of #834's build (phases 1–3 of `plan.md`; phase 4, `hooks/worktree-gua
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | 32 `Reads:` lines or their paragraphs describe a sibling unit's input, mostly a helper given its row's lead description; four carry the inventory's own shorthand | `hooks/commitgate.py:144` | open | read all 189 units against their code; 97 of 180 matched lines came from multi-unit rows, 65 as a non-lead unit (probe) |
-| 🟡 2 | five class words and two direction words the unit's code contradicts, one an identical body declared two ways | `skills/evidence-check/scripts/correction_check.py:746` | open | `survivor_check.py:458` is the same body declared `observed … mixed`; `tree_at`, `lease_dirs`, `other_ci_files`, `agents_in` read in code |
-| 🟡 3 | three new paragraphs cite line numbers that were wrong at the commit that wrote them | `hooks/cmdline.py:339` | open | the cited comment is at 457 (was 443), the cited refusal at 541 (was 518); found by a search of every added line, three hits |
-| ⬜ 4 | one shape (does a marker this plugin wrote exist) is declared `owned` twice and `observed` twice | `hooks/commit-review-gate.py:686` | open | the registry's class table does not settle it; the registry's owner answers |
-| ⬜ 5 | Q4 still ⬜ though phase 2 applied its answer | `seal/specs/1791382684-every-reader-and-record-is-inventoried/questions.md` | open | correction to the run's paperwork |
-| ⬜ 6 | the plan's mapping rule gives a helper its lead's line, and phase 4 reruns it | `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md` | open | correction to the run's paperwork; it is what keeps 🟡 1 from recurring on the guard |
-| ⬜ 7 | the plan's approval line misses the form the chain check reads, so it reports the line absent | `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md` | open | correction to the run's paperwork; the notice printed when the generator ran in the scratch clone |
+| 🟡 1 | 32 `Reads:` lines or their paragraphs describe a sibling unit's input, mostly a helper given its row's lead description; four carry the inventory's own shorthand | `hooks/commitgate.py:144` | **fixed** `bf1e425a` | fixed at bf1e425a — the 32 units the report lists, each read against its own code before its line or paragraph was replaced; the four shorthand words went with them; `overview.md` carries the divergence row for spec acceptance row 4; the eleven places `survivor-check` names over the fix range are lead units whose lines still describe them and the inventory's own rows, recorded in `survivors.md`; read all 189 units against their code; 97 of 180 matched lines came from multi-unit rows, 65 as a non-lead unit (probe) |
+| 🟡 2 | five class words and two direction words the unit's code contradicts, one an identical body declared two ways | `skills/evidence-check/scripts/correction_check.py:746` | **fixed** `bf1e425a` | fixed at bf1e425a — both `parse_range` bodies now declare `observed … mixed` in one line and paragraph; `tree_at`, `lease_dirs` and `other_ci_files` declare `observed`, `agents_in` `guess`; `tree_at`'s direction is `passed`, and `short_commit`'s, in finding 1, `passed`; `survivor_check.py:458` is the same body declared `observed … mixed`; `tree_at`, `lease_dirs`, `other_ci_files`, `agents_in` read in code |
+| 🟡 3 | three new paragraphs cite line numbers that were wrong at the commit that wrote them | `hooks/cmdline.py:339` | **fixed** `bf1e425a` | fixed at bf1e425a — `drop_heredoc_bodies` and `heredoc_bodies` name `_heredoc_split`'s comment on an unbalanced `${` instead of its line numbers, and `origin` names `check` as the unit that refuses an empty name; the cited comment is at 457 (was 443), the cited refusal at 541 (was 518); found by a search of every added line, three hits |
+| ⬜ 4 | one shape (does a marker this plugin wrote exist) is declared `owned` twice and `observed` twice | `hooks/commit-review-gate.py:686` | answered | corrected at `bf1e425a`: the registry's table decides it. `owned` is a format this repository's writer produces or a vocabulary its checker defines, and a presence test reads no format; `observed` is a fact asked of the system, and K1 lists existence tests in its process-boundary family. All four now declare `observed`; `overview.md` records it; the registry's class table does not settle it; the registry's owner answers |
+| ⬜ 5 | Q4 still ⬜ though phase 2 applied its answer | `seal/specs/1791382684-every-reader-and-record-is-inventoried/questions.md` | answered | corrected at `bf1e425a`: `questions.md` Q4 closed ✅ with phase 2's answer; correction to the run's paperwork |
+| ⬜ 6 | the plan's mapping rule gives a helper its lead's line, and phase 4 reruns it | `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md` | answered | corrected at `bf1e425a`: `plan.md` §*Technical context*'s `Unit → units` bullet now gives the row's prose only to the unit whose body does the reading, reads every other named unit on its own code, and leaves on the census one that cannot be read so; phase 4 and any later rerun apply it; correction to the run's paperwork; it is what keeps 🟡 1 from recurring on the guard |
+| ⬜ 7 | the plan's approval line misses the form the chain check reads, so it reports the line absent | `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md` | answered | corrected at `bf1e425a`: `plan.md`'s approval line now ends with the words when smith was spawned, in the form `APPROVED_RE` matches (checked against the regex); the Q1 (c) answer is a sentence of its own under it; correction to the run's paperwork; the notice printed when the generator ran in the scratch clone |
 | 🟢 | the build changes no reader's behaviour | the 44 changed `.py` files | confirmed | syntax trees equal at both ends with docstrings removed (probe) |
 | 🟢 | the census lost exactly the written units' 189 lines | `tests/undeclared_readers.txt` | confirmed | numstat 0 added, 189 removed; registry test green |
 
