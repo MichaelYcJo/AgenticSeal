@@ -4,7 +4,7 @@
 artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-12 by the repository owner, with `questions.md` Q1 answered (c); `smith` is not yet spawned.
 
 ## Summary
 
