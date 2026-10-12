@@ -1776,6 +1776,46 @@ def test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone(tmp_path)
     ]
 
 
+def test_a_removal_is_read_in_this_tree_never_in_another_checkout(tmp_path):
+    """S1/S2, round 2 of #835. A row is a claim about HEAD: one the original
+    still holds is a removal that happened here, and one in a mapped checkout
+    is refused rather than read as gone."""
+    root = tmp_path / "r"
+    tree(root, **{"kept.py": "def k():\n    return 1\n"})
+    orig = tmp_path / "orig"
+    tree(orig, **{"old.py": "def k():\n    return 1\n"})
+    h = home(root)
+    rows = "| x | `old.py#k` | y |\n| x | `legacy/a.py#k` | y |\n"
+    work_item(h, "1780000000-live", **{"spec.md": REMOVES_HEAD + rows + REMOVES_TAIL})
+    found, _read, _stamps = module().check_records(
+        str(root), str(root / "seal"), {"legacy": str(tmp_path / "absent")}, str(orig)
+    )
+    assert [(s, d) for s, _c, d in found] == [
+        (
+            "REFUSED",
+            "`legacy/a.py#k` — the path names another checkout through `--map`, "
+            "and a frame names what its work removes from this tree — write the "
+            "path in this tree",
+        )
+    ]
+
+
+def test_a_path_through_dot_dot_is_refused_never_read_as_gone(tmp_path):
+    """Round 2 of #835, ⬜ 2. `missing/../kept.py` stays inside the tree by
+    name, and the read goes through `missing`, so it would read as gone while
+    `kept.py` holds the unit; a path through `..` is refused instead."""
+    tree(tmp_path, **{"kept.py": "def k():\n    return 1\n"})
+    found = frame(tmp_path, "| x | `missing/../kept.py#k` | y |\n")
+    assert [(s, d) for s, _c, d in found] == [
+        (
+            "REFUSED",
+            "`missing/../kept.py#k` — the path walks through `..`, so whether it "
+            "names a file depends on the directories it passes — write the path "
+            "as the tree spells it",
+        )
+    ]
+
+
 @pytest.mark.parametrize(
     "wrap",
     [("```\n", "```\n"), ("<!--\n", "-->\n")],

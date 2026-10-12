@@ -6077,7 +6077,10 @@ def removal_findings(lines, shown, root, maps, default_repo, required):
     (`unbounded`), and a path `place` refuses or that is there and will not
     read, which the ledger arm grades BROKEN. Only a file the tree does not
     have holds nothing, so a row naming one is a removal that happened (round
-    1 of #835, 🟡 2). With REQUIRED, a section that is
+    1 of #835, 🟡 2). **A row is read in this tree and nowhere else**: a frame
+    names what its work takes out of HEAD, so `--default-repo` is not asked,
+    a path carrying a `--map` prefix is refused, and so is one that walks
+    through `..` (round 2). With REQUIRED, a section that is
     absent or holds no row and no `nothing` line is refused too.
     """
     present, cut, rows, nothing = removes_section(lines)
@@ -6128,7 +6131,21 @@ def removal_findings(lines, shown, root, maps, default_repo, required):
             )
             continue
         raw_path, locator, claim = m.group("path"), m.group("locator"), m.group("claim")
-        repo, rel = place(root, maps, default_repo, raw_path)
+        if any(raw_path == name or raw_path.startswith(name + "/") for name in maps):
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path names another checkout through "
+                    "`--map`, and a frame names what its work removes from "
+                    "this tree — write the path in this tree",
+                )
+            )
+            continue
+        # This tree only: `--default-repo` would read a removal that happened
+        # here as STANDING wherever the original still holds the path (round
+        # 2 of #835, 🟡 1).
+        repo, rel = place(root, {}, None, raw_path)
         if repo is None:
             findings.append(
                 (
@@ -6136,6 +6153,20 @@ def removal_findings(lines, shown, root, maps, default_repo, required):
                     where,
                     f"`{cell}` — the path escapes the repository, so nothing it "
                     "names can be read as gone — write a path inside the tree",
+                )
+            )
+            continue
+        if ".." in raw_path.split("/"):
+            # `contained` resolves `a/../x.py` by name, and the read goes
+            # through `a`; a missing `a` would read as a removal that happened
+            # while `x.py` holds the unit (round 2 of #835, ⬜ 2).
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path walks through `..`, so whether it "
+                    "names a file depends on the directories it passes — write "
+                    "the path as the tree spells it",
                 )
             )
             continue
