@@ -8,7 +8,7 @@ evidence ledger, not here. -->
 
 📋 implement applied
 · spec:     `spec.md` (every section), `plan.md` (phases, seams, alternatives), `questions.md` Q1–Q7, `docs/the-evidence-ledger.md`, `docs/the-record-layout.md`, `templates/config.md` §*The ledger freeze*, `skills/agent-contract/SKILL.md` §§1–17
-· evidence: `seal/ledger/1791384152-a-reader-declares-its-input-class.md`, and the in-place re-stamps `--reverify` made in the live fragments 1791384154, 1791384156, 1791384158 and 1791384159
+· evidence: `seal/ledger/1791384152-a-reader-declares-its-input-class.md` — one test-held row per scenario group (R1–R10, S1–S8), D1 on the new document, one `Corrected ·` row (0.8.0's R5) and the `Re-read ·` rows `--reverify --into` wrote — and the in-place re-stamps `--reverify` made in the live fragments 1791384154, 1791384156, 1791384158 and 1791384159
 · verified: executed — the registry module, the records-arm and freeze modules, every module reading an edited document, `bin/evidence-check --strict`, one `mutation-check` per new unit; read — the claim of every ledger row the edits drifted
 
 ## Why this work exists
@@ -25,6 +25,7 @@ holds it after the release.
 |---|---|---|---|
 | K1's count | `spec.md` §*The population*: 621 units call a K1 primitive at 4ba84e19, by matching a method by its attribute name on every receiver. The walker reads 620 | the walker | a method called on a module K1 itself names is judged by the table, so `ast.walk` is not `walk`; the one unit the frame counted for it, `arm_check.py#_refuse_unknown`, calls nothing else K1 lists. `phases/phase-1.md` carries both readings |
 | The population's edge | the spec's reproducing command reads `ast.parse(...).body` | the walker takes every `def` and `class` inside no other, through module-level `if`, `try`, `except` and `with` | the spec's own rule is *every unit*, and `py_spans` keys such a unit by its bare name too; at this tree the two agree |
+| The limits list | `spec.md` §*What neither check can read*: six | seven in `docs/the-reader-registry.md`, the seventh a census line put back by hand | the row below; a limit nobody states is the one a reader meets by surprise |
 | What the census can hold | `spec.md`: the census *only shrinks* | shrinks by convention: the writer refuses to run over an existing file, and a line put back by hand passes | telling a restored line from an original one needs history, and the check calls git only to list files (`plan.md` §*Constraints*). The test module's docstring names it as the sixth limit; the warden reads the census's diff |
 | A wrapped declaration | the grammar's direction word is *last after `; unknown`* | the word must end the declaration's one line, and a paragraph under the line explains it | *One line per unit* (`spec.md` §*The vocabulary*); reading a wrapped paragraph would mean deciding where a person's prose ends |
 | S9's exit code | `plan.md` phase 3 *Verified by*: exit 1 naming `STANDING` at the probe commit | exit 2 | `spec.md` S1 grades `STANDING` like a stated name the tree lacks, which `exit_code` counts as refused, exit 2 under either reading; the spec outranks the plan's verification cell |
