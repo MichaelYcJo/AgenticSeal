@@ -4,7 +4,9 @@
 artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
-Approved 2026-10-12 by the repository owner, with `questions.md` Q1 answered (c); `smith` is not yet spawned.
+Approved 2026-10-12 by the repository owner, when `smith` was spawned.
+
+`questions.md` Q1 was answered (c) by the owner with that approval.
 
 ## Summary
 
@@ -54,7 +56,14 @@ Note`.
 - `Unit` → units. Every backticked name in the cell, its head before any
   `.`, matched against the names `reader_registry.population()` gives for
   that file. A name that is no top-level unit (a constant, a nested function,
-  a method) matches nothing.
+  a method) matches nothing. **Corrected after round 1 (🟡 1, ⬜ 6):** only
+  the unit whose body does the reading the row describes takes the row's
+  `What it reads` as its prose. Every other unit the row names is read on its
+  own code: it keeps the row's class and direction where its code bears them
+  out, and its prose says what that unit reads; a unit that cannot be read
+  that way stays on the census. Phase 2 gave every named unit the row's
+  prose, and round 1 found 32 lines describing another unit; phase 4 and any
+  later rerun apply this rule instead.
 - Stale or not. `reader_registry.unit_hash` over the file at HEAD against the
   same over `git show 5623d728:<path>`; a unit the base lacks is stale too.
 - Class and direction. The first word of the `Class` cell in `owned`,

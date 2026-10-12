@@ -102,7 +102,7 @@ def code_lines(text):
 
 
 def _indent(line):
-    """Reads: guess — every `steps:` list in a workflow, split into steps by indentation; unknown passed"""
+    """Reads: guess — one workflow line's leading spaces, by which `workflow_steps` splits steps; unknown passed"""
     return len(line) - len(line.lstrip(" "))
 
 
@@ -110,7 +110,7 @@ def _unquote(value):
     """A YAML scalar with its matching quotes off, as `broad_gate.py#unquote`
     reads a step's name.
 
-    Reads: guess — every `steps:` list in a workflow, split into steps by indentation; unknown passed
+    Reads: guess — a step's `name:` scalar, its matching quotes taken off; unknown passed
     """
     for mark in ('"', "'"):
         if len(value) >= 2 and value.startswith(mark) and value.endswith(mark):

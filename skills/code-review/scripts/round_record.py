@@ -3613,7 +3613,7 @@ def measure(reader, root, a, b, paths):
 
 
 def under_tests(path):
-    """Reads: guess — file names, decorators vs pytest's default collection rules; unknown passed"""
+    """Reads: guess — a path's directories, for one named `tests`; unknown passed"""
     return TESTS_DIR in path.split("/")[:-1]
 
 

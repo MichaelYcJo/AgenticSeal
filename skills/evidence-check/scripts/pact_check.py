@@ -264,7 +264,7 @@ def near_miss(said, name):
 def git(root, *args):
     """Git's stdout in ROOT, or None where git refused.
 
-    Reads: observed — git stdout; file text (strict); unknown passed
+    Reads: observed — git's stdout and exit code; unknown passed
 
     Passed: None.
     """
@@ -284,7 +284,7 @@ def git(root, *args):
 def read(path):
     """The file's text, or None for one that will not read.
 
-    Reads: observed — git stdout; file text (strict); unknown passed
+    Reads: observed — a file's text, decoded as strict UTF-8; unknown passed
 
     Passed: None.
     """
@@ -300,7 +300,7 @@ def origin(root):
 
     Reads: guess — `git remote get-url origin`; unknown passed
 
-    Passed: "" gives no name, which is then refused at L518.
+    Passed: "" gives no name, which `check` then refuses.
     """
     return (git(root, "remote", "get-url", "origin") or "").strip()
 

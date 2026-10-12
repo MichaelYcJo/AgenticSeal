@@ -372,7 +372,7 @@ def composition(root, home, name, definition, sections):
 
 
 def agents_in(root, only=()):
-    """Reads: owned — `agents/*.md`, `name` else filename; unknown passed"""
+    """Reads: guess — `agents/*.md`, each `name` through `frontmatter`, else the filename; unknown passed"""
     directory = os.path.join(root, "agents")
     found = {}
     if not os.path.isdir(directory):

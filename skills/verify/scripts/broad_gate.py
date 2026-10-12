@@ -697,9 +697,10 @@ def moved_line(root, base):
 def short_commit(root, rev):
     """`rev`'s short commit hash, or None where it names no commit.
 
-    Reads: observed — `rev-parse --abbrev-ref <b>@{upstream}`, `refs/remotes/origin/<b>`; unknown mixed
+    Reads: observed — `rev-parse --short <rev>^{commit}`; unknown passed
 
-    What it reads, continued: `check-ref-format --branch`
+    Passed: a failed git and a rev naming no commit both give None, and `resolve_base`
+    tries its next step.
     """
     out = git(root, "rev-parse", "--short", f"{rev}^{{commit}}")
     return out.strip() if out and out.strip() else None
@@ -2407,7 +2408,7 @@ STEP_RE = re.compile(r"^\s*-\s+name:\s*(\S.*?)\s*$")
 def unquote(value):
     """A YAML scalar with its matching quotes off, if it wore any.
 
-    Reads: guess — `.github/workflows/hygiene.yml` as text, `- name:` lines of job `release`; unknown passed
+    Reads: guess — one YAML scalar from a `hygiene.yml` step's `- name:` line; unknown passed
     """
     for mark in ('"', "'"):
         if len(value) >= 2 and value.startswith(mark) and value.endswith(mark):

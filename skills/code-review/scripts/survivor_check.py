@@ -455,9 +455,10 @@ def resolves(root, rev):
 def parse_range(root, spec):
     """`A..B` or `A...B` into two resolved commits.
 
-    Reads: observed — `--range` text, split at first `...` else `..`; unknown mixed
+    Reads: observed — `A..B` / `A...B` from the CLI, each end resolved by git; unknown mixed
 
-    What it reads, continued: `git merge-base` for `...`
+    Mixed: no separator, or an end that does not resolve, is refused; a failing
+    `merge-base` keeps the left end for `...`.
 
     Both spellings are accepted and mean the same thing here, because what is
     read is the two endpoints and never the walk between them. `A...B` is what

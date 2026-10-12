@@ -3435,9 +3435,9 @@ def calendar_date(text):
     `2026-13-45` would otherwise outrank every reading after it when
     `family_view` orders readings by date (round 2, ⬜ 13).
 
-    Reads: owned — `Checked` or `Date` header, or cell 4 of a 5-cell row; unknown passed
+    Reads: owned — a `CHECKED_RE` match, asked of `datetime.date.fromisoformat`; unknown passed
 
-    Passed: no calendar date sorts as "", oldest.
+    Passed: False, and the caller sorts that reading as "", oldest.
     """
     try:
         datetime.date.fromisoformat(text)
@@ -5787,9 +5787,9 @@ def github_slug(text):
     """TEXT's anchor: entities decoded, lower-cased, every character but a
     letter, digit, `_`, `-` or space dropped, each space a `-`.
 
-    Reads: guess — a `.md` file's headings; unknown passed
+    Reads: guess — one heading's text from a `.md` file; unknown passed
 
-    Passed: both slug variants accepted.
+    Passed: every character outside the kept set is dropped, never refused.
     """
     return re.sub(r"[^\w\- ]", "", html.unescape(text).lower()).replace(" ", "-")
 

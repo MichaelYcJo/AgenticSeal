@@ -147,9 +147,9 @@ def call_args(start=None, depth=20):
 def lease_dirs(common):
     """Every `specseal-leases` directory of the clone at `common`.
 
-    Reads: owned — every `specseal-leases/*` JSON under common dir and `worktrees/*/`; unknown passed
+    Reads: observed — the `specseal-leases` directories under the common dir and `worktrees/*/`; unknown passed
 
-    What it reads, continued: `record["pid"] == pid`
+    Passed: a `worktrees` directory that will not list reads as none.
     """
     found = [os.path.join(common, LEASES)]
     worktrees = os.path.join(common, "worktrees")

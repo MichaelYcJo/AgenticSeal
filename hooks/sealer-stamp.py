@@ -94,10 +94,9 @@ def load_stamp():
     """`seal_stamp.py`, or None where it cannot be imported — its own floor
     refuses an interpreter under 3.12 with `SystemExit` at import.
 
-    Reads: owned — the values JSON under `<common>/specseal-stamp/<session>/`; unknown passed
+    Reads: owned — `seal_stamp.py` beside this hook, loaded by path; unknown passed
 
-    What it reads, continued: through `seal_stamp.read_values`, `label` and
-    `stamp`.
+    Passed: any exception, `SystemExit` included, gives None, so nothing is drawn.
     """
     try:
         spec = importlib.util.spec_from_file_location(

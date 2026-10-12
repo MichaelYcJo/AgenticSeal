@@ -743,7 +743,10 @@ def resolves(root, rev):
 def parse_range(root, spec):
     """`A..B` or `A...B` into two resolved commits.
 
-    Reads: owned — `A..B` / `A...B` from the CLI; unknown refused
+    Reads: observed — `A..B` / `A...B` from the CLI, each end resolved by git; unknown mixed
+
+    Mixed: no separator, or an end that does not resolve, is refused; a failing
+    `merge-base` keeps the left end for `...`.
 
     `A...B` is what a pull request's own comparison is spelled with and what
     the CI leg passes, so it is resolved to its merge base here rather than

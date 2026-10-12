@@ -1631,10 +1631,7 @@ def nothing_declared(root, routing, branch):
 
 
 def is_ancestor(root, sha, ref):
-    """Reads: observed — `merge-base --is-ancestor` exit; unknown refused
-
-    What it reads, continued: `for-each-ref --contains refs/remotes/pull/`
-    """
+    """Reads: observed — `merge-base --is-ancestor` exit; unknown refused"""
     r = subprocess.run(
         ["git", "-C", root, "merge-base", "--is-ancestor", sha, ref],
         capture_output=True,
@@ -1702,9 +1699,7 @@ def declared_pull_head(reader, root, rows):
 def carried_by_a_pull_head(root, sha):
     """The `refs/pull/<N>/head` carrying `sha`, or None.
 
-    Reads: observed — `merge-base --is-ancestor` exit; unknown refused
-
-    What it reads, continued: `for-each-ref --contains refs/remotes/pull/`
+    Reads: observed — `for-each-ref --contains <sha> refs/remotes/pull/`, exit and first line; unknown refused
 
     The fallback that needs nothing written. One `for-each-ref`, so the cost
     does not grow with a ref per call, and it is narrower than "any ref that
@@ -2600,7 +2595,7 @@ def pass_checked(lines):
 def nobody_reason(value):
     """The reason after `nobody`, `""` when none was given, or None.
 
-    Reads: owned — `Fixes checked by` cell; sibling record names; Target ordering; unknown refused
+    Reads: owned — one `Fixes checked by` cell: `nobody`, then a separator or nothing; unknown refused
 
     None means the cell is not a `nobody` at all — `nobodys` is a word this
     does not recognise, and recognising it would be the tolerant read the
@@ -4943,7 +4938,7 @@ def behaviour_path(routing, path):
 def range_ends(reader, root, rel):
     """(a, b), the full commits of a record's `Fix range`, or None.
 
-    Reads: owned — `FIX_RANGE_RE` ends resolved; else `none` + last Target; unknown passed
+    Reads: owned — the `Fix range` cell through `FIX_RANGE_RE`, both ends resolved; unknown passed
 
     None wherever the row is absent, says `none`, will not parse, or names
     an end this repository cannot see. `fix_range` reports each of those

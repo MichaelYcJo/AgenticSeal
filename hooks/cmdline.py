@@ -337,7 +337,7 @@ def drop_heredoc_bodies(command: str) -> str:
     Reads: guess — raw command: `<<`, `<<-`, `<<<`, `$((`, `$[`, `((`, `${`, newlines; unknown mixed
 
     Mixed: an unterminated body runs to the end of the input; an unbalanced `${` hides a
-    `((` region (fails open, documented at 443-446)
+    `((` region (fails open, as `_heredoc_split`'s comment on an unbalanced `${` says)
 
     A heredoc body is data. The shell feeds it to a command on stdin and never
     executes it, so a JUDGMENT read has to drop it — the same rule, and the
@@ -385,7 +385,7 @@ def heredoc_bodies(command: str) -> list:
     Reads: guess — raw command: `<<`, `<<-`, `<<<`, `$((`, `$[`, `((`, `${`, newlines; unknown mixed
 
     Mixed: an unterminated body runs to the end of the input; an unbalanced `${` hides a
-    `((` region (fails open, documented at 443-446)
+    `((` region (fails open, as `_heredoc_split`'s comment on an unbalanced `${` says)
 
     Same reach and the same blind spots — two on one line come back in
     delimiter order, one inside quotes or a subshell is invisible here exactly
@@ -2180,7 +2180,8 @@ def _expands(word):
 
     Reads: guess — a string handed to a shell; unknown refused
 
-    Refused: if it expands the commit gate stops; more than 32 headers gives True.
+    Refused: a first word holding an `EXPANDS` character counts as expanding, so the commit
+    gate stops.
     """
     if not word or word[0] in RESERVED or word[0] == "[":
         return False
@@ -2556,10 +2557,9 @@ def _dedup(states):
     """States in order, keeping a readable directory apart from an unreadable
     one that happens to spell the same path.
 
-    Reads: guess — segments and their operators; unknown refused
+    Reads: guess — the (directory, previous) states the walk built from the segments; unknown refused
 
-    Refused: an unreadable construct gives `Unresolved(CONSTRUCT)`; more than 64 states
-    collapse into one `Unresolved`
+    Refused: an `Unresolved` state is kept apart from a readable one that spells the same path.
 
     Which branch a shell arrived by is not part of the identity any more: the
     two live in separate lists, so a state cannot be in both at once.
@@ -2576,10 +2576,9 @@ def _dedup(states):
 def _directories(states):
     """The distinct directories in `states`, in order.
 
-    Reads: guess — segments and their operators; unknown refused
+    Reads: guess — the (directory, previous) states the walk built from the segments; unknown refused
 
-    Refused: an unreadable construct gives `Unresolved(CONSTRUCT)`; more than 64 states
-    collapse into one `Unresolved`
+    Refused: an `Unresolved` directory is kept apart from a readable one that spells the same path.
 
     Two shells that arrived at one directory by different routes are one
     candidate, not two: `cd N || cd B` reaches B from both branches and
@@ -2650,7 +2649,7 @@ def _capped(states, parked):
 def _step(here, operand):
     """`here` after a `cd` to `operand`, as `git -C` would resolve it.
 
-    Reads: guess — the cd kind and operand, and the previous directory; unknown refused
+    Reads: guess — a `cd` operand and the directory the shell stood in; unknown refused
 
     Refused: an unreadable start stays `Unresolved`
 

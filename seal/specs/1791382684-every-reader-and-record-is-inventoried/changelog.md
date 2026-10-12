@@ -14,6 +14,8 @@
   inventory's rows (#834).** Each carries a `Reads:` line in its own
   docstring, in the grammar `docs/the-reader-registry.md` states, and has
   left `tests/undeclared_readers.txt`, which goes from 1,584 lines to 1,395.
+  Where an inventory row named several units, a unit other than the one
+  doing the row's reading says what its own code reads.
   These are the inventory's units whose code has not changed since the
   inventory read it and which no released ledger row cites, so no released
   row owes a re-read. A unit whose code moved since keeps its census line

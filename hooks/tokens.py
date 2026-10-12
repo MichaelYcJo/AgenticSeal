@@ -157,7 +157,7 @@ def given(command, fallback=None):
 def _empties_the_environment(word, after):
     """Reads: guess — bare words; unknown refused
 
-    Refused: a command that does not split gives True.
+    Refused: `-i` anywhere in a short option cluster counts as emptying the environment.
     """
     if word.strip("(").rsplit("/", 1)[-1] != "env":
         return False

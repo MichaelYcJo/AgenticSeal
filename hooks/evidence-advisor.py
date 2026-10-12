@@ -85,9 +85,9 @@ WRAPPERS = {"command", "env", "nohup", "time", "sudo"}
 def commits_in(command):
     """True when some segment's command word is git with a commit subcommand.
 
-    Reads: guess — same quote-blind split; after a `git` command word; unknown passed
+    Reads: guess — the command split on `&&`, `||`, `;`, `|` and newlines, quotes ignored; unknown passed
 
-    What it reads, continued: ANY later token `== "commit"`
+    What it reads, continued: after a `git` command word, any later token `== "commit"`.
 
     Word-level like the other post hooks, so `echo "git commit"` in prose does
     not fire. Over-matching is cheap here anyway: the advisory prints only

@@ -667,7 +667,7 @@ def inside(repo, path):
 
 
 def no_root(repo, shared, local):
-    """Reads: observed — `optin.repo_root`, `home_paths`, `home_at`, `SCRATCH`; unknown refused"""
+    """Reads: observed — whether `optin.SCRATCH` is a file under `optin.git_common_dir`; unknown refused"""
     if not repo:
         print("not inside a git repository — seal works on a clone")
         return 1
@@ -1806,7 +1806,7 @@ def plugin_version():
 def plugin_workflow():
     """The exact bytes `install_workflow` writes, or "" when it could not.
 
-    Reads: observed — the template's `PLACEHOLDER`; `git add` exit code; unknown refused
+    Reads: observed — `templates/hygiene.yml` and its `PLACEHOLDER`, with `plugin_version`; unknown refused
 
     One reader for two questions — what to write, and whether a file already
     there is the one this plugin would have written. `remove_workflow` asks

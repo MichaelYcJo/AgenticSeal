@@ -88,7 +88,7 @@ def running():
 def due():
     """True if a day has passed; stamps the marker so the next session skips.
 
-    Reads: observed — marker mtime; payload `cwd`; unknown passed
+    Reads: observed — the marker's mtime; unknown passed
 
     Stamped before the lookup, not after, so a hanging network call cannot
     make every session retry it. A lookup that then fails hands the day back

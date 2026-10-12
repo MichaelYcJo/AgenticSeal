@@ -153,7 +153,7 @@ def workflow_files(root):
 def other_ci_files(root):
     """CI systems whose config is a single known path.
 
-    Reads: guess — presence of six fixed CI paths + runner words; unknown passed
+    Reads: observed — whether six fixed CI paths are files, and `.buildkite/*.yml`; unknown passed
     """
     out = []
     for rel in (

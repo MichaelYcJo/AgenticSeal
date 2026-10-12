@@ -683,7 +683,7 @@ def has_marker(command, marker):
 def already_asked(cwd, git_dir, session):
     """True when this session was already offered the question in this repo.
 
-    Reads: owned — whether `<git-dir>/specseal-commit-choice/<session>` exists; unknown passed
+    Reads: observed — whether `<git-dir>/specseal-commit-choice/<session>` exists; unknown passed
 
     Passed: unwritable counts as already asked, so it asks.
 

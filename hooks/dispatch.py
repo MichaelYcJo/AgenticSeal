@@ -450,7 +450,7 @@ def flat(value):
 
     What it reads, continued: its group, phase, error and message.
 
-    Passed: `{}`, so the line comes from the file name.
+    Passed: a value that is not a string gives "".
     """
     return " ".join(value.split()) if isinstance(value, str) else ""
 
