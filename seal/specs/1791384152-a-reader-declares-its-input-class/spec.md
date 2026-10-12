@@ -5,7 +5,10 @@ The policy documents in docs/ outrank this file; cite them, don't restate.
 Reframed 2026-10-12 at the owner's request, before anything was built: the
 population rule is inverted (§*How a reader is found*), the frame is
 re-based on the tree after six siblings landed, and every count is the
-reading of a moment. -->
+reading of a moment. Re-based the same day, on the owner's direction that
+this item builds last, against the tree every 0.21.0 sibling left:
+`origin/release/v0.21.0` at c38f97d7, merged into this branch as 4ba84e19.
+Every count below is read at 4ba84e19 unless it says otherwise. -->
 
 ## Grounding
 
@@ -16,6 +19,8 @@ reading of a moment. -->
 | `CONTRIBUTING.md` §*House rules* › *A change writes a fragment, never a shared registry* | why the registry is not a table every change edits; three branches once conflicted on one shared file, and eleven were open this release |
 | `docs/the-record-layout.md` §*docs/*, §*The size a reader takes whole*, §*A change writes fragments, never a shared file* | what a `docs/` document is (standing policy), the 1,000-line ceiling, and the fragment rule the registry's shape has to satisfy |
 | `docs/the-evidence-ledger.md` §*A row is a content anchor, and it names no commit* | the coordinate grammar a `## Removes` row writes, and the rule that the checker calls git for nothing, which bounds what the Removes judgment can read |
+| `docs/the-evidence-ledger.md` §*A claim held by a test* and `templates/ledger.md` §*A row held by a test* (#836, landed 23f5977c) | a row that names its test carries no hash, so no docstring line drifts it; the backfill's drift cost below counts hashed anchors only, and a row moved onto its test leaves the count |
+| `skills/evidence-check/scripts/evidence_check.py#bounding_rule` and `#unbounded` (#870, landed be464c06) | a unit is bounded by `ast` in `.py` and `.pyi`, by the heading rule in `.md`, and nowhere else; a bare symbol anywhere else is refused with the quoted line to write. The `## Removes` coordinate is read by the same rule and refused the same way |
 | `docs/the-commit-gate-inside-git.md` §*The convergence argument is claimed for commits alone* | the one precedent in `docs/` for the owner's direction: a reader that predicts a foreign tool does not converge, and the cure was to observe the act. The population rule below is chosen against the same argument |
 | `skills/settle/SKILL.md` §*2. Write one standing statement per segment* | a new `docs/` document is created only for an area that has none; the statement shape with `Enforced by:`; `Enforced by: nothing — <why>` as the shape a rule nothing reads takes |
 | `templates/config.md` §*The fold's values*, §*The ledger freeze* | the cutoff-row pattern `Removes from` copies: a work-item id, absent means not checked, an unparsable value is refused naming the row |
@@ -80,9 +85,12 @@ is their permanent home.
   pin is `guess`, `passed`. The helpers beside the pins are excluded with
   them, by one rule the walker applies to a file name and not by a list of
   calls, and the exclusion's size is measured so nobody mistakes it for
-  small: 1,671 non-test `def`s inside `tests/test_*.py` at 81037623, 692 of
-  them calling a listed primitive (the framer's probe, 2026-10-12,
-  provisional). The four helper modules the inventory counts as code
+  small: 1,683 non-test top-level `def`s inside the 180 `tests/test_*.py`
+  modules at 4ba84e19, 618 of them calling a K1 primitive by the
+  import-resolving reading §*The population* states (the framer's probe,
+  2026-10-12; the same reading gives 1,654 and 602 at 62c27416, and the
+  morning probe's 1,671 and 692 matched module functions bare). The four
+  helper modules the inventory counts as code
   (`tests/conftest.py`, `tests/block_shapes.py`, `tests/commonmark_oracle.py`,
   `tests/gfm_table_oracle.py`) are in the population, and so is any other
   tracked `.py` under `tests/` whose name does not begin `test_`. Widening
@@ -107,10 +115,15 @@ is their permanent home.
   as the population rule (§*How a reader is found*, (c)); a later item may
   add it as a cross-check on `nothing` declarations, and this frame files
   nothing.
-- **Siblings' units.** The build changes no reader's body. Which units each
-  sibling adds or removes is its own `spec.md`; the seams are in this item's
-  `plan.md`, and the units are named there only as far as each sibling's
-  spec states them.
+- **Siblings' units.** The build changes no reader's body. Every 0.21.0
+  sibling has landed, and no shipped unit carries a `Reads:` line yet
+  (`grep -rnE '^\s*Reads: ' --include='*.py' hooks skills .github tests`
+  finds none outside `tests/test_*.py` at 4ba84e19), so the 39 units the
+  four late siblings added are on the census like every other unit, and
+  the 14 they removed are not in the population. `plan.md` §*Seams* names
+  each, as the probe read them between 62c27416 and 4ba84e19; the classes
+  #866's and #870's specs state beside their units are #834's backfill
+  source, not this build's.
 
 ## The decisions
 
@@ -130,8 +143,8 @@ in the shape the theme refuses. Three ways were weighed.
 
 | | What finds a reader | Failure direction | Cost | Verdict |
 |---|---|---|---|---|
-| (a) K1, stated plainly | a listed call in the unit's body | **quiet**: an unlisted call exempts the unit and nothing says so | 657 declarations at 81037623 | rejected: the trap the mechanism exists to prevent, kept as the mechanism's own population rule |
-| (b) the default inverted | every top-level unit; a unit is exempt from nothing, and says `nothing` where it reads nothing | **loud**: an undeclared unit fails whatever it calls; what passes is a false declaration, which is a claim a reviewer reads, never an absence nobody sees | 1,562 declarations at 81037623; 2,404 released ledger anchors on 952 of those units drift when their docstrings change (§*The census*) | **chosen** |
+| (a) K1, stated plainly | a listed call in the unit's body | **quiet**: an unlisted call exempts the unit and nothing says so | 621 declarations at 4ba84e19 by the import-resolving reading (the morning probe's 657 at 81037623 matched `load` and `run` bare) | rejected: the trap the mechanism exists to prevent, kept as the mechanism's own population rule |
+| (b) the default inverted | every top-level unit; a unit is exempt from nothing, and says `nothing` where it reads nothing | **loud**: an undeclared unit fails whatever it calls; what passes is a false declaration, which is a claim a reviewer reads, never an absence nobody sees | 1,587 declarations at 4ba84e19; 2,392 released ledger anchors on 943 of those units, and 691 more in the ten live fragments on 247 units, drift when their docstrings change (§*The census*) | **chosen** |
 | (c) found by what a run observed | an audit hook (`sys.addaudithook`: `open`, `subprocess.Popen`, `os.listdir`, …) during the suite, attributed to a unit by its stack | **quiet, moved**: a unit the suite never exercises is never seen; the hooks run as `python3 <script>` children, so the hook has to be injected into each; and a regex over a string — the `guess` class, the one the theme is about — is pure computation that no audit event reports | a runtime harness per process, and a population that changes with which tests ran | rejected as the population rule; it observes `owned` and `observed` reads only, and cannot see a guess |
 
 **(b) is the forced format, applied to the registry itself.** The rule a
@@ -152,18 +165,22 @@ Under (b) it declares like every other unit, and its class is the class of
 the text it was handed (`guess` where a person wrote it), which is where the
 inventory found the reopening families sitting.
 
-**What (b) costs, stated so nobody discovers it.** 1,562 units at 81037623
-against 657, and 195 of them have no docstring at all. The census carries
+**What (b) costs, stated so nobody discovers it.** 1,587 units at 4ba84e19
+against 621, and 194 of them have no docstring at all. The census carries
 every one until it is touched, so the cost is paid per touch, one docstring
 line, by whoever changes the unit — and by #834's backfill where it writes
 lines in bulk. A docstring line moves the unit's ledger hash, so each line
-written on an anchored unit drifts its released rows and owes a `Re-read ·`
-row under the freeze: at 81037623, 952 population units carry 2,404 released
-anchors (provisional; phase 1 re-measures at the tree the siblings leave).
-That is the re-read cost the owner's review calls structural, handed to
-#834's build in full if it backfills everything at once; the census makes
-*at once* a choice and not a requirement, and when and how much to backfill
-is #834's spec and the owner's, decided with #836's test rows.
+written on an anchored unit drifts its rows: at 4ba84e19, 943 population
+units carry 2,392 anchors in the 44 released files, each of which owes a
+`Re-read ·` row under the freeze, and 247 units carry 691 anchors in the ten
+live `seal/ledger/*.md` fragments, which `--reverify` re-stamps in place
+until the 0.21.0 fold releases them. A row #836 moved onto its test has no
+hash and is in neither count (five released rows at #836's landing, its
+`overview.md` §*Not done*). That is the re-read cost the owner's review calls
+structural, handed to #834's build in full if it backfills everything at
+once; the census makes *at once* a choice and not a requirement, and when
+and how much to backfill is #834's spec and the owner's, decided now that
+#836's test rows have landed (`questions.md` Q7).
 
 ### The registry is the code, and `docs/` holds the rule
 
@@ -218,20 +235,51 @@ the top-level one: methods and nested functions fold into the `class` or
 sweep declines when a listed file is not on disk, through
 `conftest.decline_if_shrunken`, as every sweep here does.
 
-Measured by the framer's probe on 2026-10-12 at 81037623, all **provisional**
-— the siblings still open change this before the build (`plan.md`
-§*Seams*), and phase 1 measures again at the tree they leave:
+Read by the framer's probe on 2026-10-12 at 4ba84e19, the merge of
+`origin/release/v0.21.0` at c38f97d7 with every 0.21.0 sibling landed; 253
+tracked `.py`, 180 of them `tests/test_*.py`, and no `test_*.py` outside
+`tests/`. Phase 1 reads the same numbers again with the walker the test
+will use, and records them with its own SHA:
 
-| Root | Top-level units | Call a listed primitive | No docstring |
+| Root | Top-level units | Call a K1 primitive | No docstring |
 |---|---|---|---|
-| `hooks/` (with `hooks/git/`) | 461 | 165 | 69 |
-| `skills/*/scripts/` | 831 | 365 | 69 |
-| `.github/scripts/` | 211 | 104 | 49 |
-| `tests/`, outside `test_*.py` | 59 | 23 | 8 |
-| **total** | **1,562** | **657** | **195** |
+| `hooks/` (with `hooks/git/`) | 461 | 162 | 68 |
+| `skills/*/scripts/` | 854 | 344 | 69 |
+| `.github/scripts/` | 211 | 94 | 49 |
+| `tests/`, outside `test_*.py` | 61 | 21 | 8 |
+| **total** | **1,587** | **621** | **194** |
 
-Excluded by the one rule, and measured: 1,671 non-test `def`s inside
-`tests/test_*.py`, 692 of them calling a listed primitive.
+The first and third columns are reproduced by one command, run in the
+repository root:
+
+```
+git ls-files -z -- '*.py' | python3 -c "
+import ast, sys, re, collections
+c = collections.Counter()
+for p in sys.stdin.buffer.read().split(b'\0'):
+    p = p.decode()
+    if not p or re.fullmatch(r'tests/test_[^/]*\.py', p):
+        continue
+    tops = [n for n in ast.parse(open(p, encoding='utf-8').read()).body
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))]
+    c['units'] += len(tops)
+    c['no docstring'] += sum(ast.get_docstring(n) is None for n in tops)
+print(dict(c))"
+```
+
+The K1 column is the probe's import-resolving reading — a method by its
+attribute name on any receiver (`.open`, `.read_text`, `.exists`, `.match`,
+`.splitlines`, …), `open` and `input` bare, a module function only where
+the file's imports bind the name (`subprocess.run`, `json.load`,
+`shlex.split`, …), and `os.environ`, `sys.stdin`, `sys.argv` as references
+— which is the rule below and the one phase 1's `k1_calls` implements. The
+same reading at 62c27416 gives 1,562 / 619 / 195, so the four late
+siblings added 25 units net (39 added, 14 removed; `plan.md` §*Seams*).
+The morning probe's 657 matched `load` and `run` bare and is superseded.
+
+Excluded by the one rule, and measured: 1,683 non-test top-level `def`s
+inside `tests/test_*.py`, 618 of them calling a K1 primitive, and 17
+top-level classes.
 
 **K1, the contradiction list.** Two families, each closed by construction
 and each a list to extend, never an exemption list to grow:
@@ -260,8 +308,12 @@ declaring `nothing` whose body calls a K1 primitive is refused, naming the
 unit, the call and the line.
 
 **Module bodies.** A statement outside every `def` and `class` can read too:
-14 at 81037623, most of them `os.environ` read at import in `tests/conftest.py`
-and the pytest recorder, the rest sibling-module loads. These are not units
+two modules at 4ba84e19, fifteen `os.environ` references between them —
+thirteen in `tests/conftest.py`, which has no module docstring, and two in
+`skills/verify/scripts/pytest_record/specseal_pytest_record.py` (:139–140),
+which has one (the morning probe's 14 counted sibling-module loads matched
+as `json.load` bare; the import rule reads them as this repository's own
+loaders). These are not units
 of the population and the ledger has no spelling for them, so the rule is
 the one place K1 still selects, bounded to a kind of code the walker can
 count: a module whose body calls a K1 primitive outside any unit declares
@@ -277,13 +329,18 @@ stays quiet in rule 1.
 `tests/undeclared_readers.txt` holds one line `path#unit@hash` for every
 population unit undeclared when the check lands, the hash computed by
 `evidence_check.content_hash` over the span `evidence_check.py_spans` gives,
-imported and not copied. A unit on the census with its hash unchanged is not
+imported and not copied. `unit` is the key `py_spans` gives, which for a
+top-level `def` or `class` is its bare name (measured by the framer at
+4ba84e19: `py_spans` keys `hooks/gate.py`'s `git` as `git`, a method as
+`Resolution.__init__`, a nested function as `parsed_spans.walk`, and a
+constant by its name; `questions.md` Q2), so the line is the ledger's own
+spelling and `resolve_unit` finds it. A unit on the census with its hash unchanged is not
 required to declare; one whose hash moved was changed, and the check says
 *declare it and remove its line*; a line naming no undeclared population unit
 — gone, renamed, declared since, or outside the population — is refused
 naming the line. A malformed line is refused by the grammar. When the file
 is empty the check says to delete it, and with no file it reads no census.
-Under (b) the census starts at about 1,562 lines rather than 657, and it
+Under (b) the census starts at about 1,587 lines rather than 621, and it
 need not empty on any schedule: a unit nobody touches stays listed with its
 hash and costs nothing, and a unit anybody touches declares. The rule binds
 every new unit from the landing and every changed one, which is the half of
@@ -304,19 +361,22 @@ being changed. #834's build shrinks it in bulk where it chooses to.
 
 or the one line `nothing — <why>`, with the reason not empty (the
 `Enforced by: nothing — <why>` rule). The coordinate is the ledger's
-grammar without a hash: a function or class for a file the ledger bounds by
-`ast`, a heading path for a document, a quoted line for every other file
-(#870's two bounding rules and its format everywhere else), an optional
-`>"quoted line"` narrowing to one sentence. The records arm
-(`evidence_check.py#file_claims`, through `claim_lines`) reads the rows under
-this heading as claims of absence and under no other rule: a coordinate that
-resolves at HEAD by `resolve_unit` is a finding, `STANDING`, graded as a
-stated name the tree does not carry is graded today; the names on those
-lines are not read by the name half. **A coordinate the ledger would refuse
-is refused here, never read as gone**: a row whose cell is not a coordinate
-(the template's placeholder), or a bare symbol in a file no rule bounds,
-which `resolve_unit` answers `BROKEN` after #870, is refused naming the row
-— otherwise a `foo.ts#bar` row would read as a removal that happened. The
+grammar without a hash: a function or class for a `.py` or `.pyi` file, a
+heading path for a `.md` file, a quoted line for every other file — the
+three answers of `evidence_check.py#bounding_rule` (`"ast"`, `"heading"`,
+`None`; #870, landed) — with an optional `>"quoted line"` narrowing to one
+sentence. The records arm (`evidence_check.py#file_claims`, through
+`claim_lines`) reads the rows under this heading as claims of absence and
+under no other rule: a coordinate whose `resolve_unit(...).places` is
+non-empty at HEAD is a finding, `STANDING`, graded as a stated name the tree
+does not carry is graded today; the names on those lines are not read by the
+name half. **A coordinate the ledger would refuse is refused here, never
+read as gone**: a row whose cell is not a coordinate (the template's
+placeholder), a `tests/x.py::test_y` node id (#836's grammar names a test
+and no unit), or a bare symbol in a file `bounding_rule` bounds by no rule,
+which `resolve_unit` answers as a `Resolution` with no `places` and the
+sentence `unbounded` writes in `refused`, is refused naming the row —
+otherwise a `foo.ts#bar` row would read as a removal that happened. The
 section is read wherever it is present; where `seal/config.md` declares
 `Removes from | <work-item id>`, a live `spec.md` at or above it with no
 section, or an empty one, is a finding. The row is documented in
@@ -347,8 +407,8 @@ knows the edge before meeting it.
    declaration exists for the warden to read at review, which is the whole
    re-reading; nothing else reads the prose.
 2. **Units inside `tests/test_*.py` other than the pins' assertions.**
-   Excluded by one rule on the file name, 692 of them calling a primitive at
-   81037623, widened by deleting the rule.
+   Excluded by one rule on the file name, 618 of them calling a K1
+   primitive at 4ba84e19, widened by deleting the rule.
 3. **A reader outside Python.** `bin/`, the shell steps of the workflows, a
    `sh -c` string inside a Python call. The walk is `ast`.
 4. **A module-level read through an unlisted call.** The one corner where K1
@@ -407,7 +467,7 @@ Rule 1, the registry check (`tests/test_a_reader_declares_its_input_class.py`):
 | R7 the contradiction | Given a unit declaring `nothing` whose body calls one K1 primitive per family (a boundary call, `os.environ`, `sys.stdin`, a parser call through its import, `shlex.split`), then it fails naming the unit, the call and the line; given `str.split`, or a local `load` no import binds to `json`, then it passes; given a `nothing` unit calling a primitive K1 does not list, then it passes, and the case says in its name that this is the stated limit | parametrised planted cases |
 | R8 this tree passes | Given this repository at landing, then every population unit is declared or on the census, and the census hashes are the tree's | the real-tree case |
 | R9 the failure is the instruction | Given each failure, then its text is pinned whole, names the site and the repair, and the test's docstring states what the walk cannot see (§14, the encoding test's shape) | the pins |
-| R10 a module body | Given a module whose body calls a K1 primitive outside any unit and whose module docstring carries no `Reads:` line, then it fails naming the statement; given the line, it passes; given a body with no such call and no line, it passes | planted cases |
+| R10 a module body | Given a module whose body calls a K1 primitive outside any unit and whose module docstring carries no `Reads:` line, then it fails naming the statement; given the line, it passes; given a body with no such call and no line, it passes | planted cases; the two real ones at 4ba84e19 are `tests/conftest.py` (no module docstring, thirteen `os.environ` statements) and the pytest recorder (a docstring, two statements at :139–140) |
 
 Rule 2, the `## Removes` section (`evidence-check`'s records arm):
 
@@ -417,7 +477,7 @@ Rule 2, the `## Removes` section (`evidence-check`'s records arm):
 | S2 a removal that happened | Given a row whose coordinate names no unit at HEAD, then no finding, and no name on that line is read by the name half | planted root; the unit's name absent from the tree |
 | S3 the `nothing` line | Given `nothing — <why>`, then no finding; given bare `nothing`, then refused naming the line | planted cases |
 | S4 presence under the cutoff | Given `Removes from | N`, a live item at or above N with no section or an empty one fails naming the file; one below N is read where present and not required; with no row, presence is not checked | planted roots, one per branch |
-| S5 the row's grammar, and a coordinate the ledger refuses | Given a coordinate cell that is not a coordinate (the template's placeholder), then refused naming the row; given a bare symbol in a file no bounding rule covers (`f.ts#bar` after #870), then refused naming the row and the quoted-line form, never read as gone | planted cases |
+| S5 the row's grammar, and a coordinate the ledger refuses | Given a coordinate cell that is not a coordinate (the template's placeholder), or a `tests/x.py::test_y` node id, then refused naming the row; given a bare symbol in a file `bounding_rule` answers `None` for (`f.ts#bar`), then `resolve_unit` returns no `places` and a `refused` sentence, and the row is refused naming it and the quoted-line form `unbounded` writes, never read as gone | planted cases; the refusal text is `unbounded`'s, pinned by `tests/test_a_unit_the_extractor_cannot_bound_is_refused.py` already |
 | S6 the row refuses an unreadable value | Given `Removes from | 17x`, then exit 2 naming the row, in the `Ledger frozen from` shape | planted case |
 | S7 quoted rows are not read | Given a row inside a fence or an HTML comment, then not read (`claim_lines`) | planted case |
 | S8 the templates | Given `templates/sdd-spec.md`, then it carries the section above the mark and the mark is still last; given `templates/sdd-phase.md`, then it carries no *What this phase removes* section and no test pins one; `agents/framer.md`'s writes table and report list name the section | the pins moved in the same commit |
@@ -458,6 +518,6 @@ round <N>.` and stands above the mark on purpose: `chain_check.py#frame_foot`
 reads the foot from the last line up, takes any other sentence there as the
 mark's slot, and returns no mark. Above the mark it is prose, and the mark
 stays the foot. -->
-Reframed 2026-10-12 by framer, before the build, at the owner's request after the run's review.
+Reframed 2026-10-12 by framer, before the build, at the owner's request after the run's review; re-based the same day on the tree every 0.21.0 sibling left (c38f97d7, merged as 4ba84e19).
 
 Framed 2026-10-08 by framer, before the build.
