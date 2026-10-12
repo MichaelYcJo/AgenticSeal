@@ -116,15 +116,18 @@ heading path in a `.md` file, a quoted line anywhere else. `evidence-check`'s
 records arm reads the section in every live frame: a coordinate that still
 resolves is `STANDING`, and a cell the ledger would refuse is `REFUSED`, never
 read as gone — a cell that is no coordinate, a test's node id, a bare symbol
-in a file no parser bounds. Both exit 2, as a stated name the tree lacks
-does. A work item removing nothing writes `nothing — <why>`. The names on the
+in a file no parser bounds, a path that escapes the tree or walks through
+`..`, a path that is there and will not read as a file, and a path carrying
+a `--map` prefix. A row is read in this tree and nowhere else, so neither the
+original a migration declares nor a mapped checkout answers for it. Both
+exit 2, as a stated name the tree lacks does. A work item removing nothing writes `nothing — <why>`. The names on the
 section's lines are not read as stated names, because the section exists to
 say they are gone.
 
 The per-phase removal table this replaces recorded the same fact once per
 phase and was read by nothing. A removal a phase makes that the frame did not
 name is a divergence, and it goes to `overview.md`.
-Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_a_named_removal_that_still_stands_is_standing, tests/test_a_record_states_what_the_tree_has.py::test_a_cell_that_is_no_coordinate_is_refused_naming_the_row, tests/test_a_record_states_what_the_tree_has.py::test_a_bare_symbol_no_rule_bounds_is_refused_never_read_as_gone
+Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_a_named_removal_that_still_stands_is_standing, tests/test_a_record_states_what_the_tree_has.py::test_a_cell_that_is_no_coordinate_is_refused_naming_the_row, tests/test_a_record_states_what_the_tree_has.py::test_a_bare_symbol_no_rule_bounds_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_removal_is_read_in_this_tree_never_in_another_checkout
 
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
 **Where `seal/config.md` declares `Removes from`, every frame at or above

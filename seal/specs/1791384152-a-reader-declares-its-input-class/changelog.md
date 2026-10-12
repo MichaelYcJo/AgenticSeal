@@ -21,8 +21,10 @@
   records arm reads each row of a live frame as a claim of absence: a
   coordinate that still resolves reads `STANDING`, and a cell the ledger
   would refuse — no coordinate, a test's node id, a bare symbol in a file no
-  parser bounds — reads `REFUSED`, never as a removal that happened. Both
-  exit 2. A new `seal/config.md` row, `Removes from | <work-item id>`, makes
+  parser bounds, a path that escapes the tree or walks through `..`, a path
+  that is there and will not read as a file, a path carrying a `--map`
+  prefix — reads `REFUSED`, never as a removal that happened. A row is read
+  in this tree only, never in a migration's original. Both exit 2. A new `seal/config.md` row, `Removes from | <work-item id>`, makes
   the section required for every frame at or above that id; it is read by
   the same reader as `Ledger frozen from` and refused the same way when the
   value is not an id.
@@ -43,7 +45,9 @@
 
   A `seal/config.md` that is there and will not read, or that writes
   `Removes from` twice, now stops a plain `evidence-check` run at exit 2 —
-  and so the CI ledger job and the commit advisor — as it already stopped
-  `--reverify`: the records arm reads the row through the freeze row's
-  reader, which refuses such a file rather than reading it as absent. A
-  repository that declares no `Removes from` row meets this too.
+  and so the CI ledger job and the commit advisor. An unreadable file
+  already stopped `--reverify`; a doubled `Removes from` does not, because
+  `--reverify` reads only `Ledger frozen from`. The records arm reads the
+  row through the freeze row's reader, which refuses such a file rather than
+  reading it as absent. A repository that declares no `Removes from` row
+  meets the unreadable-file refusal too.

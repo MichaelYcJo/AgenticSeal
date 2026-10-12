@@ -490,9 +490,11 @@ def test_nothing_beside_a_k1_primitive_is_refused_naming_the_call(
     tmp_path, head, body, call
 ):
     """R7, one or more per family: a boundary call, `os.environ`,
-    `sys.stdin`, a parser through its import, `shlex.split`. The last two
-    rows are round 1's 🟡 1: a module K1's table names is not vouched for
-    by the table, so a method of it the table lacks is judged by its name."""
+    `sys.stdin`, a parser through its import, `shlex.split`. The last four
+    rows are round 1's 🟡 1: `os.open` and `re.split` are rows of the table,
+    and `ast.walk` and `pathlib.Path.read_text` show that a module the table
+    names is not vouched for by it, so a method the table lacks is judged by
+    its name."""
     unit, line = nothing_unit(tmp_path, head, body)
     assert contradictions(unit) == [contradiction("hooks/a.py#f", line, call)]
 
