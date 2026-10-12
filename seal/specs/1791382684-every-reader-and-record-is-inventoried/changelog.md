@@ -9,9 +9,11 @@
   since 0.18.0, and the 63 issues since 0.18.0 by family. The decisions it
   led to are their own issues in this release.
 
-- **The reader registry says where a `Reads:` line's direction word is read
-  (#834).** `docs/the-reader-registry.md` now defines the direction as where
-  an input the unit does not understand ends, read through to the decision
-  its value feeds, so a helper's direction is read at its callers rather than
-  on its own body. This is the inventory's meaning, which #835 adopted, and
-  the reading a declaration on a helper had kept getting wrong.
+- **The reader registry says where a `Reads:` line's direction is read
+  (#834).** In `docs/the-reader-registry.md`, the direction word names where
+  an input the unit does not understand ends, followed to the decision its
+  value feeds, so a helper's direction is read at its callers and not on its
+  own body. It is the meaning the inventory's `Unknown` column was settled
+  on, after a reading of the helper's body alone kept giving the wrong word.
+  The broad gate's pytest recorder declares `unknown refused` under it: a
+  record it cannot write is read by the gate as not measured.

@@ -6,7 +6,9 @@ The inventory found that the readers which kept being reopened were the ones
 guessing at text they did not control, and the item ships as that inventory:
 its first frame's backfill of `Reads:` lines was built, read false three
 rounds running, and withdrawn whole by the reframe (`spec.md` §*The
-reframe*), so the branch's code is the release branch's.
+reframe*), so the branch's code is the release branch's but for one
+docstring line on the pytest recorder's module body, whose direction word
+the registry's settled definition made false (round 5 🟡 1).
 
 ## Where spec and implementation diverged
 
@@ -37,3 +39,6 @@ every column of it, as the reading of 5623d728.
 - `spec.md` §*The direction word, settled* → `docs/the-reader-registry.md`
   §*The four classes and the line that declares one*, its direction sentence
   (round 4 🟡 2). Settled by the reframe, not inferred during implementation.
+- the consequence for a helper's line → the same document's §*What neither
+  check can read*, limit 5: a helper's line goes stale when only a caller
+  changes (round 5 🟡 2).

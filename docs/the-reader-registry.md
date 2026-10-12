@@ -158,6 +158,10 @@ Stated so nobody meets the edge by surprise:
 4. A module-level read through a call K1 does not list.
 5. A stale line: a reader redesigned from `guess` to `owned` keeps its old
    line until somebody moves it, as nothing re-reads an `Enforced by:` target.
+   A helper's line goes stale the same way when only a caller changes: its
+   direction, and its class where it parses text a caller handed it, are
+   read at its callers, so the helper's hash does not move and the diff the
+   warden reads does not show its line.
 6. A census line put back by hand.
 7. A `## Removes` coordinate that never existed: the arm reads HEAD, and a
    misspelled Python name reads as a removal that happened.

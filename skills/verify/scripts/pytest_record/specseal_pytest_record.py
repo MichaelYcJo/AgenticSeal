@@ -13,10 +13,13 @@ and sets two variables:
   SPECSEAL_RECORD_DIR   the absolute directory the record goes in
   SPECSEAL_RECORD_KEY   a token the gate makes fresh for each run it measures
 
-Reads: owned — the two variables above, which the broad gate sets; unknown passed
+Reads: owned — the two variables above, which the broad gate sets; unknown refused
 
-With either variable absent no session records and nothing is written,
-which is why an input it cannot use passes rather than stops the run.
+With either variable absent no session records and nothing is written, and
+the run goes on: that is a pytest the gate did not start, and nothing reads
+its record. Where the gate set them and the record cannot be written, the
+gate reads the missing record as not measured -- the strict side, as below
+-- so an input the recorder cannot use ends refused at the verdict it feeds.
 
 Which process records. At import the key is taken OUT of `os.environ`, so a
 pytest this process starts in turn -- one a test spawns, an xdist worker --

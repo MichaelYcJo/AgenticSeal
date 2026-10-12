@@ -161,9 +161,11 @@ The last column is the framer's probe over the inventory's `Unit` cells and
 the census diff, executed 2026-10-12: 64 of the 189 lines came from a row
 naming one unit, 125 from a row naming several. Round 3 stopped the run on
 the second fix of a fix (`rounds/round-3.md`, its `Fix of a fix` row reads
-`second`). Round 1 read every line beside its body; after it, 94 of the 189
-were opened by no later round: round 3's probe table says of them *read,
-bodies not opened; this is a sample, not a verdict*. Round 1's own matching
+`second`). Round 1 read every line beside its body; round 3 then opened 95
+against their bodies and left 94 outside its union, reading those lines
+without their bodies (its probe table: *read, bodies not opened; this is a
+sample, not a verdict*); how many of the 94 round 2 had opened is not
+counted. Round 1's own matching
 split the lines 83 from rows naming one unit, 97 from rows naming several and
 9 unmatched, where the framer's probe above reads 64 and 125.
 
@@ -241,8 +243,9 @@ happen. A helper's direction is therefore its callers' to read, which is why
 a row's direction word, written for the reader as a whole, was wrong on the
 helper, and why the narrower rule was tempting: it is readable on one body.
 The narrower rule is withdrawn. After phase 4 nothing in the tree carries a
-line this item wrote, and the definition is here for whoever next writes a
-line on one of these units.
+line the inventory's rows wrote, and the definition is
+`docs/the-reader-registry.md`'s, for whoever next writes a line on one of
+these units.
 
 ## What the table says
 
@@ -325,7 +328,7 @@ Each is its own issue in milestone `release: 0.21.0`. The three drafted on
 | A reader asks what a reader reads | Given the inventory, when they look up a unit, then its row gives file, unit, what it reads, class, unknown input and copies | open `inventory/<part>.md` |
 | A reader asks what keeps costing | Given part 8, when they sort by family, then the issues and reopenings per family are counted with their numbers | `inventory/8-evidence.md` §*Counts by family* |
 | A decision cites its ground | Given an issue from the table above, when it is opened, then it names the part and row it rests on | the issue bodies |
-| The tree carries no line the inventory wrote | Given phase 4's commit, when the 44 `.py` files the build changed and the census are diffed against 7608d82c, then the diff is empty: no `Reads:` line, no paragraph under one, no re-stamped rider | `git diff --quiet 7608d82c <head> -- '*.py' tests/undeclared_readers.txt`, exit 0 |
+| The tree carries no line the inventory wrote | Given phase 4's commit, when the 44 `.py` files the build changed and the census are diffed against 7608d82c, then the diff is empty: no `Reads:` line, no paragraph under one, no re-stamped rider | `git diff --quiet 7608d82c ef8fb33c -- '*.py' tests/undeclared_readers.txt`, exit 0 |
 | The census is the one #835 landed | Given the head, when the registry test runs, then it passes and the census equals the release branch's: the 1,584 lines #835 landed, less the units siblings have since declared (1,583 at 34fc36e9, after #894 declared `hooks/worktree-guard.py#main`) | `bin/test -q -p no:cacheprovider tests/test_a_reader_declares_its_input_class.py`; `wc -l tests/undeclared_readers.txt` |
 | No record claims a line | Given the head, when the record checks run, then each exits 0, this item has no ledger fragment, and its changelog fragment holds `### Added` alone | `bin/evidence-check .`; `bin/correction-check --range origin/release/v0.21.0...HEAD`; `bin/survivor-check --range origin/release/v0.21.0...HEAD`, with no exemption file (`phases/phase-5.md`); `bin/unverified-check` with `--baseline origin/release/v0.21.0`; `ls seal/ledger/` names no file of this item; `grep -c "^### " changelog.md` prints 1 |
 | The guard is nobody's phase | Given the release branch merged in, when `hooks/worktree-guard.py` is diffed between the base and the head, then this branch changed it nowhere | `git diff --stat origin/release/v0.21.0...<head> -- hooks/worktree-guard.py` prints nothing |
@@ -334,11 +337,13 @@ Each is its own issue in milestone `release: 0.21.0`. The three drafted on
 
 None. The table is a record. Its schema is the column set each part states at
 its head. The `Reads:` line's grammar is `docs/the-reader-registry.md`'s, and
-this item adds no word to it and, after the reframe, no line in it.
+this item adds no word to it, and after the reframe its one sentence there
+is the direction's definition, with limit 5's sentence on a helper staled
+by its caller.
 
 ## Removes
 
-nothing — the reframe withdraws what this item's own build added (189 docstring lines in 44 files, their census removal, two ledger rows, a changelog entry), so the branch's code is the release branch's; no unit, heading, rule sentence or test pin that stood before this item leaves the tree.
+nothing — the reframe withdraws what this item's own build added (189 docstring lines in 44 files, their census removal, two ledger rows, a changelog entry), so the branch's code is the release branch's but for one docstring line, the pytest recorder's direction word (round 5 🟡 1); no unit, heading or test pin that stood before this item leaves the tree, and the one rule sentence it replaces is the direction sentence of `docs/the-reader-registry.md`, rewritten to the settled meaning (`overview.md` §*Fed back into the spec*).
 
 The inventory was framed 2026-10-07 by the session; the build above was framed
 by the framer, which is the `Planning` row `routing.md` has carried since
