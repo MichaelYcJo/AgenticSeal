@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 897 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `5356b8a6142788be077224810f1c2e78bb93a7fa..8141dbee33ce55a5aff74562acd062bd0d008a9d`, 8 commits |
+| Contract changes | none |
+| New units | test_the_deny_carries_the_note_the_ask_carries (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -35,10 +35,10 @@ Facts arriving as coordinates: `round_record.py close` exit 0 for round 5. The s
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| ⬜ 1 | The policy's paragraph title still reads *Why the reason predicts nothing*; the reason carries the note, whose *These commands clean the tree* is a prediction | `docs/worktree-guard-spec.md:53` | open | Read: d664e911 narrowed the body and not the title; the body and the paragraph above state the exception, so no reader is misled about the code. A new title drifts six rows hashing `## Decision matrix` |
-| ⬜ 2 | `spec.md`'s §Why says the deny *drops every sentence about what git will do*, and `overview.md:23` quotes In 2's pre-fix words | `seal/specs/1791779434-under-automation-the-guard-asks-nobody/spec.md:168` | open | Read: In 2 at line 80 now says the opposite; a correction to the run's paperwork |
-| ⬜ 3 | The deny issued through `git -C <repo>` is pinned whole in English only; a Korean clause keyed on `git -C` survives | `tests/test_the_guard_asks_once_per_session.py:2100` | open | Executed: Korean plant SURVIVED, 368 passed; the fenced block red against it in a probe and green at the target |
-| ⬜ 4 | The index-residue note, which ledger S1 and the policy now name as the deny's one sentence about git, is in no case under the press | `hooks/worktree-guard.py:3292` | open | Executed: `{note}` taken out of the deny SURVIVED, 368 passed; the fenced case red against it in a probe and green at the target |
+| ⬜ 1 | The policy's paragraph title still reads *Why the reason predicts nothing*; the reason carries the note, whose *These commands clean the tree* is a prediction | `docs/worktree-guard-spec.md:53` | answered | corrected at 0f1f6efb — the policy paragraph is titled *Why the row's own sentences predict nothing*, so the title no longer covers the index-residue note the deny shares with the `ask`. The six ledger rows hashing `## Decision matrix` were read again against the new title and re-stamped; none of their claims rests on it, and S9's claim now names it; Read: d664e911 narrowed the body and not the title; the body and the paragraph above state the exception, so no reader is misled about the code. A new title drifts six rows hashing `## Decision matrix` |
+| ⬜ 2 | `spec.md`'s §Why says the deny *drops every sentence about what git will do*, and `overview.md:23` quotes In 2's pre-fix words | `seal/specs/1791779434-under-automation-the-guard-asks-nobody/spec.md:168` | answered | corrected at 8141dbee — `spec.md` §Why's last paragraph says the deny drops every sentence of its own about what git will do and keeps the note as the `ask` has it. Its heading and In 2's say *its own sentences*, and the references to it in `spec.md`, `plan.md` and `questions.md` follow. `overview.md` quotes In 2 as it now reads and names the policy paragraph's new title; Read: In 2 at line 80 now says the opposite; a correction to the run's paperwork |
+| ⬜ 3 | The deny issued through `git -C <repo>` is pinned whole in English only; a Korean clause keyed on `git -C` survives | `tests/test_the_guard_asks_once_per_session.py:2100` | answered | corrected at e5ea20f2 — `test_the_press_is_read_from_the_sessions_own_root` pins the whole Korean deny issued through `git -C <repo>`, the report's fenced block. A Korean clause appended only where the command word carries `git -C` turned it red through `mutation-check`. Ledger W2 names the Korean half at 0f1f6efb; Executed: Korean plant SURVIVED, 368 passed; the fenced block red against it in a probe and green at the target |
+| ⬜ 4 | The index-residue note, which ledger S1 and the policy now name as the deny's one sentence about git, is in no case under the press | `hooks/worktree-guard.py:3292` | answered | corrected at e5ea20f2 — `test_the_deny_carries_the_note_the_ask_carries` puts a force-staged ignored file under the press and asserts the deny carries the attended `ask`'s note line for line, the report's fenced case. `{note}` taken out of the deny's English text turned it red through `mutation-check`. Ledger S1 cites it at 0f1f6efb; Executed: `{note}` taken out of the deny SURVIVED, 368 passed; the fenced case red against it in a probe and green at the target |
 | 🟢 | round 5's finding 1 is closed — the policy's reason paragraph, its *Why* body, ledger S1 and `spec.md` In 2 each say the deny's one sentence about git is the note it shares with the `ask`, and each is true of the hook | `docs/worktree-guard-spec.md:37` | confirmed | Read: both readers interpolate one `note`; every other sentence is a fact about the guard or what it read. Executed: under the press with a force-staged file, the deny's note lines equal the `ask`'s |
 | 🟢 | round 5's note 2 is closed — S1's docstring says the choice and what follows are the model's, and that the text predicts nothing of its own | `tests/test_the_guard_asks_once_per_session.py:1939` | confirmed | Read: the docstring against the case's assertions |
 | 🟢 | round 5's note 3 is closed for English — the deny issued through `git -C <repo>` is pinned whole | `tests/test_the_guard_asks_once_per_session.py:2104` | confirmed | Executed: an English clause keyed on `git -C`, with no option word, turned the W2 case red on its equality assertion. The Korean half is ⬜ 3 |
