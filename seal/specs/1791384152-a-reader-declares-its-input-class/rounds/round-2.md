@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 895 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-3 |
 | Fix range | `6b108d367c7e27dccbce4002ce2976627840faa2..6c5d4529ad4eaec39ebd14f870370d0151796cbe`, 2 commits |
 | Contract changes | none |
 | New units | test_a_removal_is_read_in_this_tree_never_in_another_checkout (depth 1); test_a_path_through_dot_dot_is_refused_never_read_as_gone (depth 1) |
