@@ -66,3 +66,4 @@ named one more:
 | Path | Quote | Grounds |
 |---|---|---|
 | `seal/releases/0.9.5.md` | which is the state a draft pull request opens in | a released row's coordinate (G1's narrowed locator), frozen by `Ledger frozen from`; G1 is superseded by this item's `Corrected · G1`, whose coordinates are the ones checked |
+| `seal/ledger/1791384159-a-unit-the-extractor-cannot-bound-is-refused.md` | which is the state a draft pull request opens in | #870's re-read of G1, made at its own tree before this branch merged in, cites G1's narrowed locator; the row now says it is superseded by this item's `Corrected · G1`, on the same ground as the row above |
