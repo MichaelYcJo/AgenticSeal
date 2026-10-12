@@ -33,7 +33,7 @@ import os
 
 import pytest
 import reader_registry as rr
-from conftest import build_tracked_tree
+from conftest import build_tracked_tree, decline_if_shrunken
 
 ROOT = rr.ROOT
 
@@ -102,6 +102,144 @@ def contradictions(unit):
     if len(found) != 1 or found[0].problem or found[0].kind != rr.NOTHING:
         return []
     return [contradiction(unit.key, line, call) for line, call in rr.k1_calls(unit)]
+
+
+# --- the declaration and the census, judged --------------------------------------
+
+
+def undeclared(unit):
+    """The finding for a unit with no `Reads:` line and no census line."""
+    return (
+        f"{unit.key} (line {unit.line}) declares no input class. Add one line "
+        f"to its docstring: {rr.GRAMMAR}. A unit that stood undeclared when the "
+        "census was cut, and has not changed since, keeps its census line "
+        f"`{unit.key}@{unit.hash}` in {rr.CENSUS}; every other unit declares."
+    )
+
+
+def malformed_declaration(site, decl):
+    """The finding for a `Reads:` line outside the grammar."""
+    return (
+        f"{site} declares `{decl.line}`, read as class `{decl.kind or '(none)'}` "
+        f"and direction `{decl.direction or '(none)'}`: {decl.problem}. The "
+        f"grammar is {rr.GRAMMAR}."
+    )
+
+
+def declared_twice(site, count):
+    """The finding for a docstring carrying more than one `Reads:` line."""
+    return (
+        f"{site} carries {count} `Reads:` lines. A unit declares once, the "
+        "weakest class it reads, `guess` being the weakest."
+    )
+
+
+def census_unit_changed(unit, n, line):
+    """The finding for an undeclared unit whose census hash moved."""
+    return (
+        f"{unit.key} (line {unit.line}) changed since {rr.CENSUS}:{n} listed it "
+        f"as `{line}`, and its hash is now {unit.hash}. Declare it and remove "
+        "its census line."
+    )
+
+
+GONE = "no top-level unit of that name is in the file: it went, or was renamed"
+DECLARED_SINCE = "the unit declares now"
+OUTSIDE = "the file is not in the population: it is untracked, or a test module"
+
+
+def census_line_names_nothing(n, line, cause):
+    """The finding for a census line naming no undeclared population unit."""
+    return (
+        f"{rr.CENSUS}:{n} `{line}` names no undeclared unit: {cause}. Remove the line."
+    )
+
+
+def module_undeclared(module, line, call):
+    """The finding for a module body that reads with no module declaration."""
+    return (
+        f"{module.path} reads at module level — `{call}` at line {line} — and "
+        "its module docstring carries no `Reads:` line. Declare for the module "
+        f"body in the module docstring: {rr.GRAMMAR}."
+    )
+
+
+def judge_declaration(site, doc):
+    """`(declarations, findings)` for one docstring: a second line and a line
+    outside the grammar are findings."""
+    found = rr.declarations(doc)
+    out = []
+    if len(found) > 1:
+        out.append(declared_twice(site, len(found)))
+    out += [malformed_declaration(site, d) for d in found if d.problem]
+    return found, out
+
+
+def findings(units, modules, missing, census):
+    """Every finding over a population and its census, in a stable order.
+
+    A census line naming a file the working tree deleted is the one finding
+    that could be the tree rather than the registry, so it declines instead
+    (`conftest.decline_if_shrunken`), and only after every positive finding
+    was collected and found empty.
+    """
+    entries, out = census_entries(census)
+    by_key = {}
+    for u in units:
+        by_key.setdefault(u.key, []).append(u)
+    for u in units:
+        found, problems = judge_declaration(f"{u.key} (line {u.line})", u.doc)
+        out += problems
+        if found:
+            out += contradictions(u)
+            continue
+        entry = entries.get(u.key)
+        if entry is None:
+            out.append(undeclared(u))
+        elif entry[2] != u.hash:
+            out.append(census_unit_changed(u, entry[0], entry[1]))
+    for m in modules:
+        found, problems = judge_declaration(f"{m.path} (module docstring)", m.doc)
+        out += problems
+        if not m.body_calls:
+            continue
+        if not found:
+            out += [module_undeclared(m, line, call) for line, call in m.body_calls]
+        elif len(found) == 1 and not found[0].problem and found[0].kind == rr.NOTHING:
+            site = f"{m.path} (module body)"
+            out += [contradiction(site, line, call) for line, call in m.body_calls]
+    files = {m.path for m in modules}
+    gone = []
+    for key, (n, line, _hash) in sorted(entries.items(), key=lambda e: e[1][0]):
+        if key in by_key:
+            if any(rr.declarations(u.doc) for u in by_key[key]):
+                out.append(census_line_names_nothing(n, line, DECLARED_SINCE))
+            continue
+        path = key.split("#", 1)[0]
+        if path in missing:
+            gone.append(path)
+        elif path in files:
+            out.append(census_line_names_nothing(n, line, GONE))
+        else:
+            out.append(census_line_names_nothing(n, line, OUTSIDE))
+    return out, sorted(set(gone))
+
+
+DECLINES = "the reader registry's census liveness half"
+
+
+def registry_findings(root):
+    """`findings` over the repository at ROOT, declining on a census line
+    whose file the working tree deleted."""
+    units, modules, missing = rr.population(root)
+    out, gone = findings(units, modules, missing, rr.read_census(root))
+    if not out:
+        decline_if_shrunken(gone, DECLINES)
+    return out
+
+
+def failure(found):
+    return f"{len(found)} reader-registry finding(s):\n" + "\n".join(found)
 
 
 # --- helpers ---------------------------------------------------------------------
@@ -419,3 +557,299 @@ def test_a_module_body_read_is_counted_outside_every_unit(tmp_path):
     source = "import os\nX = os.environ.get('X')\n\ndef f():\n    return os.environ\n"
     _, modules, _ = planted(tmp_path, {"hooks/a.py": source})
     assert [m.body_calls for m in modules] == [[(2, "os.environ")]]
+
+
+# --- R8: this tree passes ----------------------------------------------------------
+
+
+def test_every_unit_of_shipped_python_declares_or_is_on_the_census():
+    """R8. The rule, over this repository: every population unit declares
+    or stands on the census unchanged, every module body that reads
+    declares, and every census line names an undeclared unit."""
+    found = registry_findings(ROOT)
+    assert not found, failure(found)
+
+
+# --- R1: an undeclared unit ----------------------------------------------------------
+
+
+def judge_planted(tmp_path, files):
+    root = build_tracked_tree(tmp_path / "r", files)
+    units, modules, missing = rr.population(root)
+    out, gone = findings(units, modules, missing, rr.read_census(root))
+    return units, out, gone
+
+
+@pytest.mark.parametrize(
+    "body",
+    ["    return 1\n", "    return pickle.loads(p)\n"],
+    ids=["calls no primitive", "calls a primitive k1 does not list"],
+)
+def test_a_new_unit_with_no_declaration_is_refused_whatever_it_calls(tmp_path, body):
+    """R1. The duty to declare is the unit's, not its calls'."""
+    units, out, _ = judge_planted(
+        tmp_path, {"hooks/a.py": f"import pickle\n\ndef f(p):\n{body}"}
+    )
+    assert out == [undeclared(units[0])]
+
+
+def test_a_unit_with_no_docstring_is_undeclared(tmp_path):
+    units, out, _ = judge_planted(
+        tmp_path, {"skills/x/scripts/a.py": "class C:\n    x = 1\n"}
+    )
+    assert out == [undeclared(units[0])]
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "Reads: owned — the census; unknown refused",
+        "Reads: observed -- git ls-files; unknown mixed",
+        "Reads: guess — a person's sentence; unknown passed",
+        "Reads: nothing — a formatter of its own output",
+        "Reads: nothing -- a pure function",
+    ],
+)
+def test_a_declaration_in_the_grammar_passes(tmp_path, line):
+    """R1's other side: each class and both separators."""
+    source = f'def f(p):\n    """Summary.\n\n    {line}\n    """\n    return p\n'
+    _, out, _ = judge_planted(tmp_path, {"hooks/a.py": source})
+    assert out == []
+
+
+# --- R2: a declaration outside the vocabulary -----------------------------------
+
+
+@pytest.mark.parametrize(
+    ("line", "kind", "direction", "problem"),
+    [
+        (
+            "Reads: maybe — something; unknown refused",
+            "maybe",
+            "refused",
+            "`maybe` is not a class; the class word is one of `owned`, "
+            "`observed`, `guess` or `nothing`",
+        ),
+        (
+            "Reads: owned — the census",
+            "owned",
+            "",
+            "a class line ends `; unknown <refused|passed|mixed>`",
+        ),
+        (
+            "Reads: observed — a file; unknown sometimes",
+            "observed",
+            "sometimes",
+            "`sometimes` is not a direction; it is one of `refused`, `passed` "
+            "or `mixed`",
+        ),
+        (
+            "Reads: nothing",
+            "nothing",
+            "",
+            "a `nothing` line names its reason after ` — `",
+        ),
+        (
+            "Reads: nothing —",
+            "nothing",
+            "",
+            "a `nothing` line names its reason after ` — `",
+        ),
+        (
+            "Reads:",
+            "",
+            "",
+            "`(none)` is not a class; the class word is one of `owned`, "
+            "`observed`, `guess` or `nothing`",
+        ),
+    ],
+)
+def test_a_declaration_outside_the_grammar_is_refused_naming_its_words(
+    tmp_path, line, kind, direction, problem
+):
+    """R2, one per defect: the finding names the unit and the two words the
+    check reads."""
+    source = f'def f(p):\n    """{line}"""\n    return p\n'
+    _, out, _ = judge_planted(tmp_path, {"hooks/a.py": source})
+    decl = rr.Declaration(line, kind, direction, problem)
+    assert out == [malformed_declaration("hooks/a.py#f (line 1)", decl)]
+
+
+def test_two_declarations_in_one_unit_are_refused(tmp_path):
+    """R2. One line per unit."""
+    source = (
+        'def f(p):\n    """Reads: owned — a; unknown refused\n'
+        '    Reads: guess — b; unknown passed\n    """\n    return p\n'
+    )
+    _, out, _ = judge_planted(tmp_path, {"hooks/a.py": source})
+    assert out == [declared_twice("hooks/a.py#f (line 1)", 2)]
+
+
+def test_a_reads_word_inside_a_sentence_is_not_a_declaration(tmp_path):
+    """R2's edge: a declaration is a line that begins `Reads:`, so prose
+    mentioning the word, or a quoted example, declares nothing."""
+    source = 'def f(p):\n    """The line `Reads: maybe` is refused.\n    """\n'
+    units, out, _ = judge_planted(tmp_path, {"hooks/a.py": source})
+    assert out == [undeclared(units[0])]
+
+
+# --- R3, R4: the census -------------------------------------------------------------
+
+
+def test_an_unchanged_unit_on_the_census_passes(tmp_path):
+    """The transition: a unit undeclared at the landing, unchanged, owes
+    nothing."""
+    files = {"hooks/a.py": "def f(p):\n    return p\n"}
+    units, _, _ = judge_planted(tmp_path / "first", files)
+    census = "".join(line + "\n" for line in rr.census_lines(units))
+    _, out, _ = judge_planted(tmp_path / "second", {**files, rr.CENSUS: census})
+    assert out == []
+
+
+def test_a_changed_census_unit_must_declare(tmp_path):
+    """R3."""
+    files = {"hooks/a.py": "def f(p):\n    return p\n"}
+    units, _, _ = judge_planted(tmp_path / "first", files)
+    line = rr.census_lines(units)[0]
+    changed = {"hooks/a.py": "def f(p):\n    return p + 1\n", rr.CENSUS: line + "\n"}
+    now, out, _ = judge_planted(tmp_path / "second", changed)
+    assert out == [census_unit_changed(now[0], 1, line)]
+
+
+@pytest.mark.parametrize(
+    ("files", "line", "cause"),
+    [
+        (
+            {"hooks/a.py": 'def g():\n    """Reads: nothing — planted."""\n'},
+            "hooks/a.py#f@0123abcd",
+            GONE,
+        ),
+        (
+            {"hooks/a.py": 'def f():\n    """Reads: nothing — planted."""\n'},
+            "hooks/a.py#f@0123abcd",
+            DECLARED_SINCE,
+        ),
+        ({"hooks/a.py": "x = 1\n"}, "hooks/b.py#f@0123abcd", OUTSIDE),
+        (
+            {"hooks/a.py": "x = 1\n", "tests/test_x.py": "def f():\n    pass\n"},
+            "tests/test_x.py#f@0123abcd",
+            OUTSIDE,
+        ),
+    ],
+    ids=["gone or renamed", "declared since", "untracked", "a test module"],
+)
+def test_a_census_line_naming_no_undeclared_unit_is_refused(
+    tmp_path, files, line, cause
+):
+    """R4, one per cause."""
+    _, out, _ = judge_planted(tmp_path, {**files, rr.CENSUS: line + "\n"})
+    assert out == [census_line_names_nothing(1, line, cause)]
+
+
+def test_a_census_line_for_a_deleted_file_declines_rather_than_refuses(tmp_path):
+    """The liveness half: a file off disk could be the tree mid-edit, so the
+    line is not judged stale and the real-tree case declines on it."""
+    root = build_tracked_tree(
+        tmp_path / "r",
+        {
+            "hooks/a.py": 'def a():\n    """Reads: nothing — planted."""\n',
+            "hooks/b.py": "def b():\n    pass\n",
+            rr.CENSUS: "hooks/b.py#b@0123abcd\n",
+        },
+        deleted=["hooks/b.py"],
+    )
+    units, modules, missing = rr.population(root)
+    assert findings(units, modules, missing, rr.read_census(root)) == (
+        [],
+        ["hooks/b.py"],
+    )
+    with pytest.raises(pytest.skip.Exception) as declined:
+        registry_findings(root)
+    assert DECLINES in str(declined.value) and "hooks/b.py" in str(declined.value)
+
+
+# --- R10: a module body ---------------------------------------------------------
+
+
+READING_BODY = "import os\nX = os.environ.get('X')\n"
+
+
+def test_a_module_body_that_reads_without_a_declaration_is_refused(tmp_path):
+    """R10."""
+    _, out, _ = judge_planted(tmp_path, {"hooks/a.py": READING_BODY})
+    _, modules, _ = planted(tmp_path / "again", {"hooks/a.py": READING_BODY})
+    assert out == [module_undeclared(modules[0], 2, "os.environ")]
+
+
+def test_a_module_body_declared_in_its_docstring_passes(tmp_path):
+    """R10."""
+    doc = '"""A module.\n\nReads: observed — the environment; unknown passed\n"""\n'
+    _, out, _ = judge_planted(tmp_path, {"hooks/a.py": doc + READING_BODY})
+    assert out == []
+
+
+def test_a_module_body_with_no_k1_call_owes_no_line(tmp_path):
+    """R10."""
+    _, out, _ = judge_planted(tmp_path, {"hooks/a.py": "X = 1\n"})
+    assert out == []
+
+
+def test_a_module_body_declaring_nothing_beside_a_read_is_refused(tmp_path):
+    """R10 meets R7: `nothing` on a module body that reads is the same lie."""
+    doc = '"""Reads: nothing — planted."""\n'
+    _, out, _ = judge_planted(tmp_path, {"hooks/a.py": doc + READING_BODY})
+    assert out == [contradiction("hooks/a.py (module body)", 3, "os.environ")]
+
+
+# --- R9: the failure is the instruction ------------------------------------------
+
+
+def test_every_finding_text_is_pinned_whole():
+    """R9 (§14): each finding names its site and its repair."""
+
+    class U:
+        key, line, hash = "hooks/a.py#f", 3, "0123abcd"
+
+    class M:
+        path = "hooks/a.py"
+
+    grammar = (
+        "`Reads: <owned|observed|guess> — <what it reads>; unknown "
+        "<refused|passed|mixed>`, or `Reads: nothing — <why it reads nothing>`"
+    )
+    assert undeclared(U) == (
+        "hooks/a.py#f (line 3) declares no input class. Add one line to its "
+        f"docstring: {grammar}. A unit that stood undeclared when the census "
+        "was cut, and has not changed since, keeps its census line "
+        "`hooks/a.py#f@0123abcd` in tests/undeclared_readers.txt; every other "
+        "unit declares."
+    )
+    decl = rr.Declaration("Reads: maybe", "maybe", "", "a problem")
+    assert malformed_declaration("hooks/a.py#f (line 3)", decl) == (
+        "hooks/a.py#f (line 3) declares `Reads: maybe`, read as class `maybe` "
+        f"and direction `(none)`: a problem. The grammar is {grammar}."
+    )
+    assert declared_twice("hooks/a.py#f (line 3)", 2) == (
+        "hooks/a.py#f (line 3) carries 2 `Reads:` lines. A unit declares once, "
+        "the weakest class it reads, `guess` being the weakest."
+    )
+    assert census_unit_changed(U, 7, "hooks/a.py#f@99999999") == (
+        "hooks/a.py#f (line 3) changed since tests/undeclared_readers.txt:7 "
+        "listed it as `hooks/a.py#f@99999999`, and its hash is now 0123abcd. "
+        "Declare it and remove its census line."
+    )
+    assert census_line_names_nothing(2, "hooks/a.py#g@0123abcd", GONE) == (
+        "tests/undeclared_readers.txt:2 `hooks/a.py#g@0123abcd` names no "
+        "undeclared unit: no top-level unit of that name is in the file: it "
+        "went, or was renamed. Remove the line."
+    )
+    assert DECLARED_SINCE == "the unit declares now"
+    assert OUTSIDE == (
+        "the file is not in the population: it is untracked, or a test module"
+    )
+    assert module_undeclared(M, 2, "os.environ") == (
+        "hooks/a.py reads at module level — `os.environ` at line 2 — and its "
+        "module docstring carries no `Reads:` line. Declare for the module body "
+        f"in the module docstring: {grammar}."
+    )
+    assert failure(["a", "b"]) == "2 reader-registry finding(s):\na\nb"

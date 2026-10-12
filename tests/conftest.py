@@ -1,3 +1,13 @@
+"""The suite's shared helpers and fixtures, and the environment every case runs in.
+
+Reads: observed — the process environment it inherits, `os.environ`; unknown refused
+
+The module body sets that environment for every case and every child: the
+locale, git's template and maintenance, `gh`'s login and `PATH`. It reads
+the case ceiling from it too, and a ceiling that is not a positive number
+raises.
+"""
+
 import atexit
 import importlib.util
 import json
