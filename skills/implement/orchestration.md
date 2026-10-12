@@ -288,6 +288,22 @@ press and expensive to use by a mechanism that already exists: `[no-review]`
 waives one command, typed in front of each, which is a per-command price none
 of the other answers pays.
 
+**A run resumed in a new session puts question 1 through `AskUserQuestion`
+again, before the first spawn**, in the same call as whatever else the resume
+has to ask. A new session is a `/clear`, a new `claude` start, or another
+machine, and a new day is one only where it starts one. A typed answer is not
+the press: the gates read a harness-written result in this session's own
+transcript and nothing else, and `routing.md` is not read
+(`docs/worktree-guard-spec.md` §*Known limits*). Measured: a release run
+resumed on another machine with the answer given as text, and the worktree
+guard asked the owner twice in a run routed `automation` on every item
+(#894). `claude
+--resume` and compaction keep the session's id and append to its transcript,
+so the press survives both and nothing is put again. Read off one machine's
+transcripts on 2026-10-12: 20 compaction boundaries, each under its file's
+own id, and 8 of 115 transcripts written under one id by more than one CLI
+version, which only a resumed process does.
+
 ### Question 2 — `multiSelect`, meaningful only under *per axis*
 
 **The order is the specification, not an incidental listing.** The first box is
