@@ -2096,11 +2096,15 @@ def test_the_press_is_read_from_the_sessions_own_root(
 
     write_transcript(projects, "me", ask_entries(repo))
     decision, reason = decide(monkeypatch, capsys, repo, command)
-    assert decision == "deny", reason
     at = f"git -C {shlex.quote(top)}"
-    assert f"`{at} commit` and `{at} stash` are on this guard's list" in reason, reason
-    # Round 4, note 3: issued from another repository, the text's own command
-    # word is `git -C <path>`, and S12's option check reads past it.
+    want = (
+        dirty_deny("en", SINGLE["en"])
+        .replace("`git ", f"`{at} ")
+        .replace("&& git ", f"&& {at} ")
+    )
+    # Round 5, note 3: issued from another repository, the deny is S1's text
+    # with the command word `git_at` hands back, and nothing else.
+    assert (decision, reason) == ("deny", want), reason
     assert option_words(reason) == [], reason
 
     write_transcript(projects, "me", ask_entries(other))
