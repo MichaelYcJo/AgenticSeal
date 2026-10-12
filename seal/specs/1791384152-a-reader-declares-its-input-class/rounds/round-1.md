@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 895 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `8f3d912e195fc850c9109228ec38713bea64811e..f21f151fe83279cf6be05cf7bdedc909f8f568ca`, 6 commits |
+| Contract changes | none |
+| New units | test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (K1 rows the receiver rule hides), 🟡 2 (a `## Removes` path that escapes or will not read passes as gone), 🟡 3 (K7's false note, the re-stamped anchors that miss `cutoff_row`, and the changelog's upgrade note) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -35,12 +35,12 @@ Facts arriving as coordinates, executed by the orchestrator at 03784ec3: `bin/ev
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | K1's receiver rule treats the table as complete for every module it names; reading calls the table lacks (`os.open`, `os.path.islink`, `re.split`, `shlex.shlex` and others) pass a `nothing`, and `os.open` was caught by name before the rule | `tests/reader_registry.py:209` | open | executed differential at the target; the document places `open`, existence tests and the `re` matchers inside K1's families |
-| 🟡 2 | a `## Removes` row whose path `place` refuses, or that names a directory or unreadable file, is read as a removal that happened | `skills/evidence-check/scripts/evidence_check.py:6130` | open | executed: both rows gave no finding; the ledger arm calls the escape BROKEN, and the spec says a coordinate the ledger would refuse is refused here |
-| 🟡 3 | plain `evidence-check` now refuses an unreadable `seal/config.md`; K7's re-stamped note says it reads no config row, three re-stamped rows anchor `frozen_from` whose arms moved to `cutoff_row`, and the changelog's upgrade note omits the change | `seal/ledger/1791384156-config-rows-coordinates-and-headings-have-one-reader.md:24` | open | executed: target exit 2, base exit 0 on a directory `config.md`; the rows and the changelog read |
-| ⬜ 4 | this item's `## Removes` does not name the two pins the diff removed, and `overview.md` has no divergence row for them | `seal/specs/1791384152-a-reader-declares-its-input-class/spec.md:508` | open | read; the spec's own prose says the pins go too |
-| ⬜ 5 | two descriptions of a phase record still say it records what it removed | `skills/code-review/scripts/survivor_check.py:142` | open | read; still true of records already written |
-| ⬜ 6 | the census writer can emit a line its own grammar refuses, for a path with whitespace | `tests/reader_registry.py:461` | open | read; latent while the census file exists |
+| 🟡 1 | K1's receiver rule treats the table as complete for every module it names; reading calls the table lacks (`os.open`, `os.path.islink`, `re.split`, `shlex.shlex` and others) pass a `nothing`, and `os.open` was caught by name before the rule | `tests/reader_registry.py:209` | **fixed** `e6843d9a` | fixed at e6843d9a; executed differential at the target; the document places `open`, existence tests and the `re` matchers inside K1's families |
+| 🟡 2 | a `## Removes` row whose path `place` refuses, or that names a directory or unreadable file, is read as a removal that happened | `skills/evidence-check/scripts/evidence_check.py:6130` | **fixed** `20c4e993` | fixed at 20c4e993; executed: both rows gave no finding; the ledger arm calls the escape BROKEN, and the spec says a coordinate the ledger would refuse is refused here |
+| 🟡 3 | plain `evidence-check` now refuses an unreadable `seal/config.md`; K7's re-stamped note says it reads no config row, three re-stamped rows anchor `frozen_from` whose arms moved to `cutoff_row`, and the changelog's upgrade note omits the change | `seal/ledger/1791384156-config-rows-coordinates-and-headings-have-one-reader.md:24` | **fixed** `978aa43a` | fixed at 978aa43a; executed: target exit 2, base exit 0 on a directory `config.md`; the rows and the changelog read |
+| ⬜ 4 | this item's `## Removes` does not name the two pins the diff removed, and `overview.md` has no divergence row for them | `seal/specs/1791384152-a-reader-declares-its-input-class/spec.md:508` | **fixed** `1aa26afa` | fixed at 1aa26afa; read; the spec's own prose says the pins go too |
+| ⬜ 5 | two descriptions of a phase record still say it records what it removed | `skills/code-review/scripts/survivor_check.py:142` | answered | the two descriptions in `survivor_check.py` are of phase records as the check meets them, and every phase record written before #835 does carry what it removed; the check reads those records, so the sentence stays true where it stands; read; still true of records already written |
+| ⬜ 6 | the census writer can emit a line its own grammar refuses, for a path with whitespace | `tests/reader_registry.py:461` | answered | the writer runs only where no census exists, and this repository's census exists; a path with whitespace in it would be refused line by line by the test that reads it, which is loud, and widening `CENSUS_LINE` is mechanism a fix pass does not add; read; latent while the census file exists |
 | 🟢 | no census line names a unit new or changed on this branch, and the census has only shrunk since its cut | `tests/undeclared_readers.txt` | confirmed | executed: 1,584 hashes against `c38f97d7`, and the diff from `33d0b0ca` is three removals |
 | 🟢 | the walker and `py_spans` agree on the key of a unit inside a module-level `with`, `if`/`else` and `for`, and a nested `def` is not counted | `tests/reader_registry.py:403` | confirmed | executed on a planted file |
 | 🟢 | the `## Removes` arm reads a section with no `Removes from` row, refuses a doubled row, reports a standing dotted name, and ignores a heading and a row inside a fence | `skills/evidence-check/scripts/evidence_check.py:6032` | confirmed | executed, eight planted cases |
