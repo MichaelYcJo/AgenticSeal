@@ -34,7 +34,10 @@ When the implementing session no longer exists â€” a new day, another machine â€
 the fresh spawn is the only option left, and what it takes is the handoff
 before round 1 (`docs/review-handoff-protocol.md`): coordinates rather than
 prose, each fact labelled. The rule decides which to reach for while both
-options exist.
+options exist. A new session has no `automation` press until it puts the
+routing question's first question through `AskUserQuestion` again, so it does
+that before the spawn (`skills/implement/orchestration.md`, *A run resumed in
+a new session*).
 
 **The fix pass hands back a `## Fixes` table, and `close` applies it.** The
 handover carries `| # | Verdict | Commit or grounds |`, one row per open

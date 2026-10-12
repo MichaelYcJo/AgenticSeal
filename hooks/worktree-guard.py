@@ -26,7 +26,10 @@ A) Branch switching (Bash: `git switch`, and every git shape not known to
   - cannot tell (process inspection unusable)       -> the same CHOICE
   - tracked changes present (dirty)                 -> ask the user first; this
     one really is yes/no (the branch is the same either way, and the only
-    question is whether the uncommitted changes ride along)
+    question is whether the uncommitted changes ride along). Where the person
+    pressed `automation`, a `deny` to the model instead, naming `git commit`
+    and `git stash` as listed shapes that pass this guard alone and promising
+    no outcome, one text for every switch form (#894)
   - otherwise (single work stream, clean)           -> allow the plain switch
 
   A command that also creates a worktree is judged by these rows, whichever of
@@ -2791,6 +2794,18 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
 
 
 def main():
+    """Judge one tool call from the hook payload on stdin.
+
+    Reads: guess — the command text the model wrote, split by the frozen reading into git shapes, beside the tree's git state, its sessions and the press in this session's transcript; unknown mixed
+
+    The command is text this guard does not control, and a unit reading
+    several inputs takes the class of its weakest. An unknown shape stops
+    where the tree it names matters and is silent in a clean tree nobody else
+    is in (`docs/worktree-guard-spec.md` §A, *Which commands reach these
+    rows*), and a word the shell builds after this guard reads the command is
+    not read at all (§*Known limits*), so unknown input is refused in one
+    place and passed in another.
+    """
     data = load_input()
     tool = data.get("tool_name", "")
     cwd = data.get("cwd") or os.getcwd()
@@ -3264,6 +3279,64 @@ def main():
                 "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
             )
         )
+        # Two readers, as the unrecognised-shape stop has (#894). Where this
+        # session's person pressed `automation`, nobody is at the keyboard to
+        # answer the yes/no below. So the model gets the turn: a `deny` that
+        # states what this guard read -- the changes, the press -- and what
+        # this guard is: it stops a switch while they are present, `git
+        # commit` and `git stash` are listed shapes that pass it alone, and a
+        # line holding both a stash and a switch meets this same row, because
+        # the tree is read before the line runs. It says nothing about what
+        # git does for any switch form. Three review rounds each found the
+        # next form a per-form recipe got wrong, and nothing this guard reads
+        # tells a right case from a wrong one, so the text is one string for
+        # every form (the reframe after round 3; S12 pins it). The press is
+        # read by the reader the stop uses, from the session's own root, and
+        # only here: the stop exits before the ladder whenever it fires, so
+        # one command never reads the transcript twice (W2 of work item
+        # 1791779434).
+        if automation_pressed(repo_paths(cwd)[0], session_id, transcript_path):
+            respond(
+                "deny",
+                tr(
+                    f"{lead}, so no other row of this guard stops the switch, "
+                    f"but {len(entries)} uncommitted tracked changes are "
+                    f"present:\n{listing}\n{note}\n"
+                    "This session's person pressed `automation` on the routing "
+                    "question, so this guard puts no question to them, and none "
+                    "is to be put to them in its place.\n\n"
+                    "This row of the guard stops a branch switch while "
+                    "uncommitted tracked changes are present, and says nothing "
+                    "of a switch once none are.\n\n"
+                    "The ways on, none of which needs a person. Issue each "
+                    "command on its own: this guard reads the tree before a "
+                    f"command runs, so `{git} stash && {git} switch <branch>` on "
+                    f"one line meets this same refusal. `{git} commit` and "
+                    f"`{git} stash` are on this guard's list of commands that "
+                    "leave the branch where it is, so each passes it when "
+                    "issued alone. Which of them fits this switch, and what to "
+                    "run after it, is yours to decide.\n\n"
+                    "Re-issuing this command unchanged meets this same refusal.",
+                    f"{lead} 이 guard 의 다른 규칙은 이 전환을 막지 않지만, "
+                    f"커밋되지 않은 추적 파일 변경이 {len(entries)}건 "
+                    f"있습니다:\n{listing}\n{note}\n"
+                    "이 세션의 사용자가 라우팅 질문에서 `automation` 을 "
+                    "눌렀습니다. 그래서 이 guard 는 사용자에게 아무것도 묻지 "
+                    "않으며, 다른 방법으로 대신 물어서도 안 됩니다.\n\n"
+                    "이 guard 의 이 규칙은 커밋되지 않은 추적 파일 변경이 있는 "
+                    "동안 브랜치 전환을 막고, 변경이 없으면 전환에 대해 아무 "
+                    "말도 하지 않습니다.\n\n"
+                    "사람이 없어도 되는 길은 아래와 같습니다. 명령은 하나씩 따로 "
+                    "실행하세요. 이 guard 는 명령이 실행되기 전에 트리를 "
+                    f"읽으므로, `{git} stash && {git} switch <branch>` 처럼 한 "
+                    f"줄에 쓰면 같은 거부를 받습니다. `{git} commit` 과 "
+                    f"`{git} stash` 는 이 guard 가 브랜치를 그대로 두는 명령으로 "
+                    "꼽는 목록에 있어, 따로 실행하면 이 guard 를 통과합니다. 이 "
+                    "전환에 어느 쪽이 맞는지, 그 뒤에 무엇을 실행할지는 직접 "
+                    "정하세요.\n\n"
+                    "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
+                ),
+            )
         respond(
             "ask",
             (
