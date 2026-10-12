@@ -3,7 +3,8 @@
 **The rule.** Every top-level `def` and `class` in every tracked `.py` file
 outside `tests/test_*.py` carries one docstring line in the grammar
 `tests/reader_registry.py#GRAMMAR` states: the class of input it reads and
-what it does with an input it does not understand, or `nothing` and the
+where an input it does not understand ends, read through to the decision it
+feeds, or `nothing` and the
 reason it reads nothing. `docs/the-reader-registry.md` is the rule's home.
 
 **The population is a rule a walk applies whole.** It is every unit, found
@@ -23,7 +24,10 @@ of calls known to take an input, decides one thing only: a unit declaring
 4. A module-level read through a call K1 does not list. Module bodies are the
    one place K1 selects who declares, and only for a call it knows.
 5. A stale line: a reader redesigned from `guess` to `owned` keeps its old
-   line until somebody moves it.
+   line until somebody moves it. A helper's line goes stale the same way when
+   only a caller changes: its direction, and its class where it parses text
+   a caller handed it, are read at its callers, so its hash does not move
+   and the diff the warden reads does not show its line.
 6. A census line added by hand. The census only shrinks by convention: its
    writer refuses to run where the file exists, and a line put back passes,
    so its diff is the warden's.
