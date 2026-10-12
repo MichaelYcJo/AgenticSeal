@@ -38,7 +38,7 @@ Round 3 of #894 (PR #897), verifying round 2's fixes at c67fc2e5..1ac03f4d (`rou
 | 🟢 | round 2's note 3 is closed — W9's re-read row is back at `main@08a308fb`, and every other change to the fragment is a hash move | `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md:31` | confirmed | Read: word diff shows only `main` and §Decision matrix hashes changed. Executed: `evidence-check --strict` 0 drifted |
 | 🟢 | S2: the attended `ask` is byte-identical to the base | `hooks/worktree-guard.py:3343` | confirmed | Executed: block comparison identical, 654 characters; both S2 cases pass at the target |
 | 🟢 | S8: the three other readers are byte-identical to the base | `hooks/commit-review-gate.py` | confirmed | Executed: `git diff --stat` printed nothing, exit 0 |
-| 🟢 | The fix range's two new units are depth 1 | `tests/test_the_guard_asks_once_per_session.py#test_an_orphan_switch_under_the_press_takes_the_commit_way` | confirmed | Read: the only two definitions added; the findings they pin sit in `main`, which predates the run |
+| 🟢 | The fix range's two new units are depth 1 | `tests/test_the_guard_asks_once_per_session.py#test_an_orphan_switch_under_the_press_takes_the_commit_way` | confirmed | Read: the only two definitions added; the findings they pin sit in `main`, which predates the run (removed at the reframe after round 3: NAME NOT IN TREE) |
 | 🟢 | Every other switch form succeeds and loses nothing by each way the deny names — the creating family, an existing branch under `-C`, `--detach`, `-f`, `--discard-changes`, `-m`, `-`, and a plain switch from a detached HEAD | `hooks/worktree-guard.py:3296` | confirmed | Executed: each form denies with the premise; every step of both ways is silent at the guard; git leaves the change committed or in the tree with no stash left |
 
 ## Paste-ready fixes
@@ -180,7 +180,7 @@ before a line runs, so `git stash && git switch x` meets this same row.
 | round-2 | `seal/ledger/1791779434-under-automation-the-guard-asks-nobody.md:18` | round 2's 🟢 — confirmed |
 | round-2 | `skills/implement/orchestration.md:293` | round 2's 🟢 — confirmed |
 | round-2 | `hooks/worktree-guard.py:3338` | round 2's 🟢 — confirmed |
-| round-2 | `tests/test_the_guard_asks_once_per_session.py#test_a_creating_switch_under_the_press_takes_the_stash_way` | round 2's 🟢 — confirmed |
+| round-2 | `tests/test_the_guard_asks_once_per_session.py#test_a_creating_switch_under_the_press_takes_the_stash_way` | round 2's 🟢 — confirmed (removed at the reframe after round 3: NAME NOT IN TREE) |
 
 ## Deferred
 

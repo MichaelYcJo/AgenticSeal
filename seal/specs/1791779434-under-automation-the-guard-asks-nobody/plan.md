@@ -113,9 +113,9 @@ for any form; one text for every form, pinned by S12. The press sentence
   (`test_under_the_press_the_dirty_row_is_a_deny_to_the_model`) pins the
   whole text and is rewritten; `test_the_ways_on_pass_the_guard` (S4) drops
   its assertions about where the change ended; the three recipe cases of
-  rounds 1–2 (`test_a_creating_switch_under_the_press_takes_the_stash_way`,
-  `test_an_orphan_switch_under_the_press_takes_the_commit_way`,
-  `test_the_deny_does_not_say_a_discarding_switch_carries_the_changes`) are
+  rounds 1–2 (`test_a_creating_switch_under_the_press_takes_the_stash_way` NAME NOT IN TREE,
+  `test_an_orphan_switch_under_the_press_takes_the_commit_way` NAME NOT IN TREE,
+  `test_the_deny_does_not_say_a_discarding_switch_carries_the_changes` NAME NOT IN TREE) are
   removed; `test_the_press_is_read_from_the_sessions_own_root` asserts the
   stash sentence (*`git stash`, then the switch, then `git stash pop`*) and
   moves to the new text's command sentence; `test_a_compound_stash_and_switch_meets_the_deny`

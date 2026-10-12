@@ -126,9 +126,9 @@ Holds.
 ### 5. Depth
 
 Read: the fix range adds two top-level definitions, both in the test module:
-`tests/test_the_guard_asks_once_per_session.py#test_an_orphan_switch_under_the_press_takes_the_commit_way`
+`tests/test_the_guard_asks_once_per_session.py#test_an_orphan_switch_under_the_press_takes_the_commit_way` (NAME NOT IN TREE since the reframe)
 and
-`tests/test_the_guard_asks_once_per_session.py#test_the_deny_does_not_say_a_discarding_switch_carries_the_changes`.
+`tests/test_the_guard_asks_once_per_session.py#test_the_deny_does_not_say_a_discarding_switch_carries_the_changes` (NAME NOT IN TREE since the reframe).
 The findings they pin are located in `hooks/worktree-guard.py#main`, which
 predates the run. Neither sits inside round 1's new unit. Both are depth 1,
 as `round-2.md` records.
@@ -225,7 +225,7 @@ applied.
 | 🟢 | round 2's note 3 is closed — W9's re-read row is back at `main@08a308fb`, and every other change to the fragment is a hash move | `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md:31` | confirmed | Read: word diff shows only `main` and §Decision matrix hashes changed. Executed: `evidence-check --strict` 0 drifted |
 | 🟢 | S2: the attended `ask` is byte-identical to the base | `hooks/worktree-guard.py:3343` | confirmed | Executed: block comparison identical, 654 characters; both S2 cases pass at the target |
 | 🟢 | S8: the three other readers are byte-identical to the base | `hooks/commit-review-gate.py` | confirmed | Executed: `git diff --stat` printed nothing, exit 0 |
-| 🟢 | The fix range's two new units are depth 1 | `tests/test_the_guard_asks_once_per_session.py#test_an_orphan_switch_under_the_press_takes_the_commit_way` | confirmed | Read: the only two definitions added; the findings they pin sit in `main`, which predates the run |
+| 🟢 | The fix range's two new units are depth 1 | `tests/test_the_guard_asks_once_per_session.py#test_an_orphan_switch_under_the_press_takes_the_commit_way` | confirmed | Read: the only two definitions added; the findings they pin sit in `main`, which predates the run (removed at the reframe after round 3: NAME NOT IN TREE) |
 | 🟢 | Every other switch form succeeds and loses nothing by each way the deny names — the creating family, an existing branch under `-C`, `--detach`, `-f`, `--discard-changes`, `-m`, `-`, and a plain switch from a detached HEAD | `hooks/worktree-guard.py:3296` | confirmed | Executed: each form denies with the premise; every step of both ways is silent at the guard; git leaves the change committed or in the tree with no stash left |
 
 ## Executed probes

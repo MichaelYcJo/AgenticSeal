@@ -92,7 +92,7 @@ over `hooks/commit-review-gate.py`, `hooks/worktree_consent.py` and
 ### 5. Depth
 
 Read: the fix range adds one function,
-`test_a_creating_switch_under_the_press_takes_the_stash_way`. The hook's change
+`test_a_creating_switch_under_the_press_takes_the_stash_way` (NAME NOT IN TREE since the reframe). The hook's change
 sits inside `main`, which existed before. This is round 1's fix pass, so the
 new unit is depth 1, as the record's `New units` row says.
 
@@ -232,7 +232,7 @@ record correction, so `Needs a fix` does not count it.
 | 🟢 | round 1's note 4 answer holds — the resume paragraph states `automation_answered`'s condition 4 | `skills/implement/orchestration.md:293` | confirmed | Read: `hooks/worktree_consent.py#automation_answered` condition 4 and §*Creation consent* rule 4 |
 | 🟢 | S2: the attended `ask` is byte-identical to the base in both languages | `hooks/worktree-guard.py:3338` | confirmed | Executed: block comparison, identical |
 | 🟢 | S8: the three other readers are byte-identical to the base | `hooks/commit-review-gate.py` | confirmed | Executed: `git diff --stat` printed nothing, exit 0 |
-| 🟢 | The fix range's one new unit is depth 1 | `tests/test_the_guard_asks_once_per_session.py#test_a_creating_switch_under_the_press_takes_the_stash_way` | confirmed | Read: the only function added in the range; the hook change sits in `main` |
+| 🟢 | The fix range's one new unit is depth 1 | `tests/test_the_guard_asks_once_per_session.py#test_a_creating_switch_under_the_press_takes_the_stash_way` | confirmed | Read: the only function added in the range; the hook change sits in `main` (removed at the reframe after round 3: NAME NOT IN TREE) |
 
 ## Executed probes
 
@@ -387,7 +387,7 @@ Files opened at `8fb7eaeb`:
 - `hooks/worktree_consent.py`: `automation_answered`
 - `tests/test_the_guard_asks_once_per_session.py`: the header, `decide`,
   `projects`, `dirty`, `git_in`, `dirty_deny`, S1, and
-  `test_a_creating_switch_under_the_press_takes_the_stash_way`
+  `test_a_creating_switch_under_the_press_takes_the_stash_way` (NAME NOT IN TREE since the reframe)
 - `tests/conftest.py`: `_build_repo`, `repo`
 - `docs/worktree-guard-spec.md`: the tracked-changes paragraph and its
   `Enforced by:` line, §*Creation consent* rule 4

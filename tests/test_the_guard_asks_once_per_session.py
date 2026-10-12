@@ -33,6 +33,7 @@ the single-stream site still denies, and nothing in the switch direction moves.
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -1838,68 +1839,72 @@ TOKEN = {
 }
 
 
+# The press sentence, byte for byte the first frame's: #896 copies it.
+PRESS = {
+    "en": "This session's person pressed `automation` on the routing question, "
+    "so this guard puts no question to them, and none is to be put to them in "
+    "its place.",
+    "ko": "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+    "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 물어서도 "
+    "안 됩니다.",
+}
+
+
 def dirty_deny(lang, lead):
-    """W1: the deny's one text for `dirty(repo)`, issued from inside the tree."""
+    """W3: the deny's one text for `dirty(repo)`, issued from inside the tree.
+    Every sentence is a fact the guard read or a fact about the guard; none
+    says what git does for any switch form (the reframe after round 3)."""
     if lang == "en":
         return (
-            f"{lead}, so the switch itself may go ahead — but there are 1 "
-            "uncommitted tracked changes, and a switch that keeps them carries "
-            "them onto the target branch:\n"
+            f"{lead}, so no other row of this guard stops the switch, but 1 "
+            "uncommitted tracked changes are present:\n"
             "     M  f.txt\n"
-            "\n"
-            "This session's person pressed `automation` on the routing question, "
-            "so this guard puts no question to them, and none is to be put to "
-            "them in its place.\n"
+            "\n" + PRESS["en"] + "\n\n"
+            "This guard stops a branch switch while uncommitted tracked changes "
+            "are present, and says nothing of a switch once none are.\n"
             "\n"
             "The ways on, none of which needs a person. Issue each command on "
             "its own: this guard reads the tree before a command runs, so `git "
-            "stash && git switch <branch>` on one line meets this same refusal.\n"
-            "  1. Commit the changes here first (`git commit …`), then re-issue "
-            "the switch. This keeps them on the branch checked out now, so where "
-            "the switch creates its branch (`-c`) to carry them there, take way "
-            "2. A switch to `--orphan` starts from an empty tree that nothing "
-            "carries onto, so it takes this way. On a branch a `routing.md` "
-            "declares, the commit gate is "
-            "silent for that commit. "
-            "Where HEAD is detached (`git branch --show-current` prints nothing), "
-            "the commit lands on no branch: name it with `git branch <name>` "
-            "before the switch, or take way 2.\n"
-            "  2. `git stash`, then the switch, then `git stash pop`. The pop "
-            "applies the changes to whatever is checked out when it runs: after "
-            "the switch it carries them onto the target branch, and after a "
-            "switch back it returns them here.\n"
+            "stash && git switch <branch>` on one line meets this same refusal. "
+            "`git commit` and `git stash` are on this guard's list of commands "
+            "that leave the branch where it is, so each passes it when issued "
+            "alone. Which of them fits this switch, and what to run after it, is "
+            "yours to decide, and git's own output reports what each one did.\n"
             "\n"
             "Re-issuing this command unchanged meets this same refusal."
         )
     return (
-        f"{lead} 전환 자체는 진행할 수 있지만, 커밋되지 않은 변경 1건이 있고 "
-        "변경을 유지하는 전환이면 이 변경이 대상 브랜치로 따라갑니다:\n"
+        f"{lead} 이 guard 의 다른 규칙은 이 전환을 막지 않지만, 커밋되지 않은 "
+        "추적 파일 변경이 1건 있습니다:\n"
         "     M  f.txt\n"
+        "\n" + PRESS["ko"] + "\n\n"
+        "이 guard 는 커밋되지 않은 추적 파일 변경이 있는 동안 브랜치 전환을 막고, "
+        "변경이 없으면 전환에 대해 아무 말도 하지 않습니다.\n"
         "\n"
-        "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
-        "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 물어서도 "
-        "안 됩니다.\n"
-        "\n"
-        "사람이 없어도 되는 길은 아래 둘입니다. 명령은 하나씩 따로 실행하세요. "
+        "사람이 없어도 되는 길은 아래와 같습니다. 명령은 하나씩 따로 실행하세요. "
         "이 guard 는 명령이 실행되기 전에 트리를 읽으므로, `git stash && git "
-        "switch <branch>` 처럼 한 줄에 쓰면 같은 거부를 받습니다.\n"
-        "  1. 먼저 여기서 변경을 커밋하고(`git commit …`) 전환을 다시 "
-        "실행합니다. 이 방법은 변경을 지금 체크아웃된 브랜치에 남기므로, "
-        "브랜치를 새로 만들어(`-c`) 변경을 그쪽으로 옮기려는 전환이면 2번을 "
-        "택하세요. `--orphan` 전환은 빈 트리에서 시작해 변경이 따라갈 곳이 "
-        "없으므로 이 방법을 택하세요. "
-        "`routing.md` 가 선언한 브랜치에서는 커밋 게이트가 이 커밋을 "
-        "막지 않습니다. HEAD 가 분리되어 "
-        "있으면(`git branch --show-current` 가 아무것도 출력하지 않으면) 커밋이 "
-        "어느 브랜치에도 남지 않습니다. 전환 전에 `git branch <name>` 으로 이름을 "
-        "붙이거나 2번을 택하세요.\n"
-        "  2. `git stash`, 전환, `git stash pop` 을 차례로 실행합니다. pop 은 "
-        "실행하는 시점에 체크아웃되어 있는 곳에 변경을 적용합니다. 전환 뒤에 "
-        "실행하면 변경이 대상 브랜치로 가고, 다시 돌아온 뒤에 실행하면 이 "
-        "브랜치로 돌아옵니다.\n"
+        "switch <branch>` 처럼 한 줄에 쓰면 같은 거부를 받습니다. `git commit` 과 "
+        "`git stash` 는 이 guard 가 브랜치를 그대로 두는 명령으로 꼽는 목록에 "
+        "있어, 따로 실행하면 이 guard 를 통과합니다. 이 전환에 어느 쪽이 맞는지, "
+        "그 뒤에 무엇을 실행할지는 직접 정하고, 각 명령이 한 일은 git 의 출력이 "
+        "알려 줍니다.\n"
         "\n"
         "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
     )
+
+
+# Words a sentence about what git does for one switch form would carry. S1
+# and S12 refuse them, so a form a later round finds becomes a row in S12's
+# table and never a clause in the deny (W4).
+PREDICTION_WORDS = ("pop", "way 2", "squash", "carries", "conflict", "detached")
+OPTION_WORD = re.compile(r"(?<![\w-])--?[A-Za-z][\w-]*")
+
+
+def option_words(reason):
+    """Every option-shaped word in REASON (`-c`, `--orphan`), which a text
+    keyed on no switch form has none of. `git -C <path>` is W2's command word
+    and never appears here: the shell stands in the switch's tree."""
+    return OPTION_WORD.findall(reason)
 
 
 def verdict_in(module, monkeypatch, capsys, repo, command, sessions, session_id):
@@ -1926,27 +1931,32 @@ def verdict_in(module, monkeypatch, capsys, repo, command, sessions, session_id)
 def test_under_the_press_the_dirty_row_is_a_deny_to_the_model(
     monkeypatch, capsys, projects, repo
 ):
-    """S1. The whole text is pinned in both languages: the changes listed,
-    commit-first and the stash sequence each as a command of its own, what
-    `pop` applies to, the detached-HEAD check, the re-issue sentence, and no
-    question tool. Seen red at `c38f97d7`: the row answered `ask`."""
+    """S1, rewritten at the reframe after round 3. The whole text is pinned in
+    both languages: the changes listed, the press sentence byte for byte, what
+    the row does, `git commit` and `git stash` as commands that pass this guard
+    issued alone, the choice and what follows left to the model and git's
+    output, the re-issue sentence, and no question tool. It names no switch
+    option and predicts nothing. Seen red at `c38f97d7` (`ask`) and at
+    `0f1663f5`, whose text named `-c`, `--orphan` and way 2."""
     write_transcript(projects, "me", ask_entries(repo))
     dirty(repo)
     decision, reason = decide(monkeypatch, capsys, repo, "git switch feature/x")
     assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
-    assert "AskUserQuestion" not in reason, reason
-    # Round 1, yellow 2: whether a branch squashes is the repository's, and
-    # this text reaches every repository the plugin is installed in.
-    assert "squash" not in reason, reason
+    assert PRESS["en"] in reason, reason
 
     monkeypatch.setenv("SPECSEAL_LANG", "ko")
     wko = load_hook_module("worktree-guard.py", "wg_894_ko")
     monkeypatch.setattr(wko.worktree_consent, "PROJECTS_ROOT", str(projects))
-    decision, reason = verdict_in(
+    decision, ko = verdict_in(
         wko, monkeypatch, capsys, repo, "git switch feature/x", ([], [], True), "me"
     )
-    assert (decision, reason) == ("deny", dirty_deny("ko", SINGLE["ko"])), reason
-    assert "AskUserQuestion" not in reason, reason
+    assert (decision, ko) == ("deny", dirty_deny("ko", SINGLE["ko"])), ko
+    assert PRESS["ko"] in ko, ko
+    for text in (reason, ko):
+        assert "AskUserQuestion" not in text, text
+        for word in PREDICTION_WORDS:
+            assert word not in text, (word, text)
+        assert option_words(text) == [], text
 
 
 def test_the_token_does_not_reach_the_dirty_row_under_the_press_either(
@@ -1984,9 +1994,11 @@ def git_in(repo, *args):
 
 
 def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
-    """S4, run rather than read (`agent-contract` §13). Each way on the deny
-    names, issued as the commands it says, passes the guard at every issue,
-    and git leaves the change where the deny said it would."""
+    """S4, narrowed at the reframe to the claim the deny makes: `git commit`
+    and `git stash`, each issued alone, pass the guard, and a switch after
+    either meets a clean tree and passes too. Run with real git
+    (`agent-contract` §13). What git did with the change is asserted by
+    nothing, because the deny promises none of it."""
     write_transcript(projects, "me", ask_entries(repo))
     here = git_in(repo, "branch", "--show-current")
 
@@ -1994,78 +2006,72 @@ def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
     for command in ("git commit -am x", "git switch feature/x"):
         assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
         git_in(repo, *command.split()[1:])
-    assert git_in(repo, "branch", "--show-current") == "feature/x"
-    assert git_in(repo, "status", "--porcelain") == ""
-    assert git_in(repo, "show", f"{here}:f.txt") == "changed"
 
     git_in(repo, "switch", "-q", here)
-    git_in(repo, "reset", "-q", "--hard", "HEAD~1")
     dirty(repo)
-    for command in ("git stash", "git switch feature/x", "git stash pop"):
+    for command in ("git stash", "git switch feature/x"):
         assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
         git_in(repo, *command.split()[1:])
-    assert git_in(repo, "branch", "--show-current") == "feature/x"
-    assert git_in(repo, "status", "--porcelain") == "M f.txt"
 
 
-def test_a_creating_switch_under_the_press_takes_the_stash_way(
-    monkeypatch, capsys, projects, repo
+# S12: round 3's sixteen setups (`rounds/round-3-report.md` §1), each a form
+# and the state git was in. The guard reads none of the state, so every row
+# meets the same bytes; a form a later round finds is a row here.
+SIXTEEN = (
+    ("plain", "git switch feature/x", ()),
+    ("plain, target changed f.txt", "git switch feature/x", ("target",)),
+    ("-c", "git switch -c newb", ()),
+    ("-C new", "git switch -C newb", ()),
+    ("--create", "git switch --create newb", ()),
+    ("--force-create", "git switch --force-create newb", ()),
+    ("-C existing", "git switch -C feature/x", ()),
+    ("--orphan", "git switch --orphan newb", ()),
+    ("--orphan, detached", "git switch --orphan newb", ("detached",)),
+    ("--detach", "git switch --detach feature/x", ()),
+    ("-f", "git switch -f feature/x", ()),
+    ("--discard-changes", "git switch --discard-changes feature/x", ()),
+    ("-m", "git switch -m feature/x", ()),
+    ("--merge, target changed f.txt", "git switch --merge feature/x", ("target",)),
+    ("-", "git switch -", ()),
+    ("plain, detached", "git switch feature/x", ("detached",)),
+)
+
+
+@pytest.mark.parametrize(
+    "setup,command,state", SIXTEEN, ids=[row[0] for row in SIXTEEN]
+)
+def test_one_text_for_every_switch_form(
+    monkeypatch, capsys, projects, repo, setup, command, state
 ):
-    """Round 1, yellow 1. Both `-c` forms meet the deny, and committing first
-    would leave the change on the branch being left. The reason sends a
-    creating switch to way 2, and way 2, run with real git, carries the change
-    onto the new branch. Seen red at `1eec0f8e`: no `-c` sentence."""
-    write_transcript(projects, "me", ask_entries(repo))
-    dirty(repo)
+    """S12, new at the reframe after round 3. Every form round 3's table ran
+    meets the deny with the same bytes in both languages, and the text names
+    no form's option word and nothing about what git does. Seen red at
+    `0f1663f5` on the word check (its text named `-c` and `--orphan`), and on
+    the equality through `mutation-check` with a per-form clause planted."""
     here = git_in(repo, "branch", "--show-current")
-    for command in ("git switch -c newb", f"git switch -c newb {here}"):
-        decision, reason = decide(monkeypatch, capsys, repo, command)
-        assert decision == "deny", (command, reason)
-        assert "creates its branch (`-c`) to carry them there, take way 2" in reason
-    for command in ("git stash", "git switch -c newb", "git stash pop"):
-        assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
-        git_in(repo, *command.split()[1:])
-    assert git_in(repo, "branch", "--show-current") == "newb"
-    assert git_in(repo, "status", "--porcelain") == "M f.txt"
-
-
-def test_an_orphan_switch_under_the_press_takes_the_commit_way(
-    monkeypatch, capsys, projects, repo
-):
-    """Round 2, yellow 1. `--orphan` creates its branch from an empty tree, so
-    way 2's pop meets a modify/delete conflict there and keeps the stash. The
-    reason sends it to way 1, and way 1, run with real git, leaves the change
-    committed on the branch it was made on and the orphan switch clean."""
+    if "target" in state:
+        git_in(repo, "switch", "-q", "feature/x")
+        (repo / "f.txt").write_text("target side\n", encoding="utf-8")
+        git_in(repo, "commit", "-qam", "target changes f.txt")
+        git_in(repo, "switch", "-q", here)
+    if "detached" in state:
+        git_in(repo, "switch", "-q", "--detach", "HEAD")
     write_transcript(projects, "me", ask_entries(repo))
     dirty(repo)
-    here = git_in(repo, "branch", "--show-current")
-    decision, reason = decide(monkeypatch, capsys, repo, "git switch --orphan newb")
-    assert decision == "deny", reason
-    assert "`--orphan` starts from an empty tree" in reason, reason
-    for command in ("git commit -am x", "git switch --orphan newb"):
-        assert decide(monkeypatch, capsys, repo, command) == ("silent", ""), command
-        git_in(repo, *command.split()[1:])
-    assert git_in(repo, "branch", "--show-current") == "newb"
-    assert git_in(repo, "show", f"{here}:f.txt") == "changed"
 
-
-def test_the_deny_does_not_say_a_discarding_switch_carries_the_changes(
-    monkeypatch, capsys, projects, repo
-):
-    """Round 2, yellow 2. `--discard-changes` and `-f` drop the changes and
-    git refuses `--orphan` over them, so the deny says only that a switch that
-    keeps them carries them."""
-    write_transcript(projects, "me", ask_entries(repo))
-    dirty(repo)
-    for command in (
-        "git switch --discard-changes feature/x",
-        "git switch -f feature/x",
-        "git switch --orphan newb",
-    ):
-        decision, reason = decide(monkeypatch, capsys, repo, command)
-        assert decision == "deny", (command, reason)
-        assert "would follow" not in reason, (command, reason)
-        assert "a switch that keeps them carries them" in reason, (command, reason)
+    decision, reason = decide(monkeypatch, capsys, repo, command)
+    assert (decision, reason) == ("deny", dirty_deny("en", SINGLE["en"])), reason
+    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    wko = load_hook_module("worktree-guard.py", "wg_894_s12_ko")
+    monkeypatch.setattr(wko.worktree_consent, "PROJECTS_ROOT", str(projects))
+    decision, ko = verdict_in(
+        wko, monkeypatch, capsys, repo, command, ([], [], True), "me"
+    )
+    assert (decision, ko) == ("deny", dirty_deny("ko", SINGLE["ko"])), ko
+    for text in (reason, ko):
+        assert option_words(text) == [], (setup, text)
+        for word in PREDICTION_WORDS:
+            assert word not in text, (setup, word, text)
 
 
 def test_the_press_is_read_from_the_sessions_own_root(
@@ -2090,7 +2096,7 @@ def test_the_press_is_read_from_the_sessions_own_root(
     decision, reason = decide(monkeypatch, capsys, repo, command)
     assert decision == "deny", reason
     at = f"git -C {shlex.quote(top)}"
-    assert f"`{at} stash`, then the switch, then `{at} stash pop`" in reason, reason
+    assert f"`{at} commit` and `{at} stash` are on this guard's list" in reason, reason
 
     write_transcript(projects, "me", ask_entries(other))
     decision, reason = decide(monkeypatch, capsys, repo, command)
