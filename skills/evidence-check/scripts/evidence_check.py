@@ -6172,6 +6172,10 @@ def removal_findings(lines, shown, root, maps, default_repo, required):
                 )
             )
             continue
+        # The path `contained` judged, so a trailing `/` or `/.` cannot read
+        # as gone; `..` is refused above, so this never crosses a symlink
+        # (round 3 of #835, ⬜ 2).
+        rel = os.path.normpath(rel).replace(os.sep, "/")
         full = os.path.join(repo, rel)
         body = read(full)
         if body is None:

@@ -1801,6 +1801,29 @@ def test_a_removal_is_read_in_this_tree_never_in_another_checkout(tmp_path):
     ]
 
 
+@pytest.mark.parametrize(
+    "coordinate", ["kept.py/#k", "kept.py/.#k", "./legacy/kept.py#k"]
+)
+def test_a_path_spelled_another_way_is_read_as_the_file_it_names(tmp_path, coordinate):
+    """Round 3 of #835, ⬜ 2 and ⬜ 1. A trailing `/` or `/.` names the file
+    `contained` judged, so the row is `STANDING` rather than gone; `./` is the
+    spelling the `--map` refusal names, and it reads the row in this tree."""
+    tree(
+        tmp_path,
+        **{
+            "kept.py": "def k():\n    return 1\n",
+            "legacy__kept.py": "def k():\n    return 1\n",
+        },
+    )
+    h = home(tmp_path)
+    rows = f"| x | `{coordinate}` | y |\n"
+    work_item(h, "1780000000-live", **{"spec.md": REMOVES_HEAD + rows + REMOVES_TAIL})
+    found, _read, _stamps = module().check_records(
+        str(tmp_path), str(tmp_path / "seal"), {"legacy": str(tmp_path / "absent")}
+    )
+    assert [s for s, _c, _d in found] == ["STANDING"]
+
+
 def test_a_path_through_dot_dot_is_refused_never_read_as_gone(tmp_path):
     """Round 2 of #835, ⬜ 2. `missing/../kept.py` stays inside the tree by
     name, and the read goes through `missing`, so it would read as gone while
