@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #901 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `062e31e46ea465fafb471b1b11a1780e42b75d97..d0541ae449b26d6f1a9455cd98c3a5db091e7bcc`, 1 commit |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | first — 🟡 3 at skills/verify/scripts/unverified_check.py#sections, a unit round-1's fixes changed |
 | Needs a fix | yes — 🟡 1 (thirteen more `Reads:` lines naming a read their unit never makes), 🟡 2 (three direction words and one class word from the row, not the unit), 🟡 3 (`sections` and `flat`, two units the fix pass rewrote, still declare a read that is not theirs) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,11 +25,11 @@ Round 2 of #834's build, the verifying round, target 7ef6abbf. It was asked to i
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | thirteen more units carry a `Reads:` line or paragraph naming a read their own code never makes, the class round 1 found and the plan's corrected rule forbids | `skills/evidence-check/scripts/correction_check.py:780` | open | each read beside its body; found by a by-construction list of non-lead units, word-for-word shared lines, and names absent from body and callees (probes) |
-| 🟡 2 | three direction words and one class word come from the row, not the unit: `merges`, `parents`, `_ordered`, `parse_section` | `hooks/routing.py:415` | open | `merges` only raises, `parents` only gives `[]`, `_ordered` re-raises `NotADirectoryError`; `check_text` is `guess` and its loose arm is `parse_section`'s |
-| 🟡 3 | two units the fix pass rewrote still declare a read that is not theirs: `sections`' new line holds for a pattern heading only, and `flat` keeps `read_record`'s line above its new paragraph | `skills/verify/scripts/unverified_check.py:882` | open | the string arm returns exact matches of the string, and the shared reader's callers pass `VERDICTS`; `flat` joins one value's whitespace |
-| ⬜ 4 | the corrected mapping rule leaves the reading unit to position and drops round 1's presence-test class, which guard row 114 contradicts | `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md` | open | correction to the run's paperwork; the guard's `already_asked` runs `os.path.exists` and its row says `owned` |
-| ⬜ 5 | `survivors.md` calls `parse_section` the row's lead and says it reads that shape | `seal/specs/1791382684-every-reader-and-record-is-inventoried/survivors.md` | open | correction to the run's paperwork; part 5 row 75 names `check_text` first |
+| 🟡 1 | thirteen more units carry a `Reads:` line or paragraph naming a read their own code never makes, the class round 1 found and the plan's corrected rule forbids | `skills/evidence-check/scripts/correction_check.py:780` | **fixed** `d0541ae4` | fixed at d0541ae4 — the thirteen units, each read against its body and the callees it relies on (`merges`' caller, `_env_option`, `running`, `_ordered`, `top_units`, both `run_gh` callers, `is_header`); and the class closed by construction: every unit the three enumerations below selected was read against its own body, and 11 more lines that named a read their unit does not make were corrected; the one place `survivor-check` names over the fix range is the inventory's own row for `run_gh`, a row in `survivors.md`; each read beside its body; found by a by-construction list of non-lead units, word-for-word shared lines, and names absent from body and callees (probes) |
+| 🟡 2 | three direction words and one class word come from the row, not the unit: `merges`, `parents`, `_ordered`, `parse_section` | `hooks/routing.py:415` | **fixed** `d0541ae4` | fixed at d0541ae4 — `merges` `refused` (it only raises `Refused`), `parents` `passed` (a failure gives [] and the caller lists the merge as unjudged), `_ordered` `mixed` (it re-raises `NotADirectoryError` and gives [] on any other `OSError`), `parse_section` `guess` (its `strict_header=False` arm is `check_text`'s loose reading), each confirmed in the code first; `merges` only raises, `parents` only gives `[]`, `_ordered` re-raises `NotADirectoryError`; `check_text` is `guess` and its loose arm is `parse_section`'s |
+| 🟡 3 | two units the fix pass rewrote still declare a read that is not theirs: `sections`' new line holds for a pattern heading only, and `flat` keeps `read_record`'s line above its new paragraph | `skills/verify/scripts/unverified_check.py:882` | **fixed** `d0541ae4` | fixed at d0541ae4 — `sections` says a string heading is matched exactly and a pattern falls back after `## Not verified`; `flat` says it reads one field `describe` hands it, and the record's line and paragraph are gone from it; the string arm returns exact matches of the string, and the shared reader's callers pass `VERDICTS`; `flat` joins one value's whitespace |
+| ⬜ 4 | the corrected mapping rule leaves the reading unit to position and drops round 1's presence-test class, which guard row 114 contradicts | `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md` | answered | corrected at `d0541ae4`: `plan.md`'s `Unit → units` bullet now names the unit that does the reading by what its body (or a same-file callee) does — the K1 call, the `open`, the `git` or `gh` command, the AST walk — never by position, says that where no one unit makes every read none does, gives each word a mechanical meaning, and carries round 1 ⬜ 4's decision with guard row 114 named; correction to the run's paperwork; the guard's `already_asked` runs `os.path.exists` and its row says `owned` |
+| ⬜ 5 | `survivors.md` calls `parse_section` the row's lead and says it reads that shape | `seal/specs/1791382684-every-reader-and-record-is-inventoried/survivors.md` | answered | corrected at `d0541ae4`: the `parse_section` row is gone from `survivors.md`, since its line no longer carries the quoted prose; `check_text`, which the row names first and whose line carries that prose with `guess`, has a row of its own already; correction to the run's paperwork; part 5 row 75 names `check_text` first |
 | 🟢 | round 1's finding 1 is closed for 31 of its 32 units — each new line true of its own body | `hooks/commitgate.py:144` | confirmed | all 32 read at 7ef6abbf, with the callers four of them cite; the 32nd, `sections`, is this round's 3 |
 | 🟢 | round 1's finding 2 is closed — both `parse_range` bodies declare one line, and four class words follow the code | `skills/evidence-check/scripts/correction_check.py:746` | confirmed | read in code: `Refused` raises, `merge-base` keeps the left end; `tree_at`, `lease_dirs`, `other_ci_files`, `agents_in` |
 | 🟢 | round 1's finding 3 is closed — no docstring in the build counts lines | `hooks/cmdline.py:340` | confirmed | `_heredoc_split`'s comment found; search of every added line, no line-number shape |
