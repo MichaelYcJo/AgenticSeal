@@ -634,7 +634,6 @@ hooks/worktree-guard.py#last_user_snippet@9c7a62ce
 hooks/worktree-guard.py#lease_dir@33e78553
 hooks/worktree-guard.py#lease_owner_alive@4950940b
 hooks/worktree-guard.py#load_input@60d13c15
-hooks/worktree-guard.py#main@08a308fb
 hooks/worktree-guard.py#only_creates_a_worktree@279e226e
 hooks/worktree-guard.py#parses_cleanly@567d7a73
 hooks/worktree-guard.py#phantom_entries@770e7cd0

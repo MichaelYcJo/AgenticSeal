@@ -2794,6 +2794,18 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
 
 
 def main():
+    """Judge one tool call from the hook payload on stdin.
+
+    Reads: guess — the command text the model wrote, split by the frozen reading into git shapes, beside the tree's git state, its sessions and the press in this session's transcript; unknown mixed
+
+    The command is text this guard does not control, and a unit reading
+    several inputs takes the class of its weakest. An unknown shape stops
+    where the tree it names matters and is silent in a clean tree nobody else
+    is in (`docs/worktree-guard-spec.md` §A, *Which commands reach these
+    rows*), and a word the shell builds after this guard reads the command is
+    not read at all (§*Known limits*), so unknown input is refused in one
+    place and passed in another.
+    """
     data = load_input()
     tool = data.get("tool_name", "")
     cwd = data.get("cwd") or os.getcwd()
