@@ -480,13 +480,19 @@ def nothing_unit(tmp_path, head, body):
         ("PATTERN = None", "return PATTERN.fullmatch(s)", ".fullmatch"),
         ("import os", "return os.path.exists(p)", "os.path.exists"),
         ("import evidence_check as ec", "return ec.FENCE.sub('', s)", ".sub"),
+        ("import os", "return os.open(p, 0)", "os.open"),
+        ("import re", "return re.split(',', s)", "re.split"),
+        ("import ast", "return list(ast.walk(p))", ".walk"),
+        ("import pathlib", "return pathlib.Path.read_text(p)", ".read_text"),
     ],
 )
 def test_nothing_beside_a_k1_primitive_is_refused_naming_the_call(
     tmp_path, head, body, call
 ):
     """R7, one or more per family: a boundary call, `os.environ`,
-    `sys.stdin`, a parser through its import, `shlex.split`."""
+    `sys.stdin`, a parser through its import, `shlex.split`. The last two
+    rows are round 1's 🟡 1: a module K1's table names is not vouched for
+    by the table, so a method of it the table lacks is judged by its name."""
     unit, line = nothing_unit(tmp_path, head, body)
     assert contradictions(unit) == [contradiction("hooks/a.py#f", line, call)]
 
@@ -498,7 +504,6 @@ def test_nothing_beside_a_k1_primitive_is_refused_naming_the_call(
         ("def load(p):\n    return p\n", "return load(p)"),
         ("from mymodule import load", "return load(p)"),
         ("from mymodule import run", "return run(p)"),
-        ("import ast", "return list(ast.walk(p))"),
         ("import os", "return os.path.join(p, s)"),
     ],
 )

@@ -68,8 +68,10 @@ boundary (`open`, the `read` methods, `subprocess`, `os.environ`, `sys.stdin`,
 `sys.argv`, directory listings and existence tests) and a standard-library
 parser handed text (the `re` matchers, `shlex.split`, `json`, `ast.parse`,
 `tomllib`, `xml.etree`, `csv`, `splitlines`). A method is matched by its name
-on any receiver except a module K1 itself names, which is judged by the
-table, so `ast.walk` is not `walk`; a module function counts only where the
+on any receiver, a module's included, so `os.open` is `open` and `ast.walk`
+is `walk`: the table adds calls and never vouches that a module's other calls
+read nothing, because a table read as complete for a module is the quiet
+direction again. A module function the table lists counts only where the
 file's imports bind it, so a repository's own `load` is not `json.load`. A
 call K1 does not list is a row to add, and buys one more contradiction the
 check can see, never one more unit that has to declare.
@@ -157,7 +159,8 @@ Enforced by: nothing — each is the warden's reading of the diff at review, whi
 ## The counts at landing
 
 The reading of one moment, not a pin: 1,587 population units at the build's
-tree, 620 of them calling a K1 primitive and 194 with no docstring; two
+tree, 632 of them calling a K1 primitive as K1 stands after its first review
+(621 by the list as framed) and 194 with no docstring; two
 module bodies K1 selects; 1,683 non-test top-level functions inside the test
 modules, out by the file-name rule. Every one of the 1,587 started on the
 census. 943 of them carry 2,392 anchors in the released ledger files and 247

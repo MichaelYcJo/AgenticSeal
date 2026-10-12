@@ -56,10 +56,13 @@ GRAMMAR = (
 # --- K1, the contradiction list ---------------------------------------------
 #
 # Two families, each a list to extend. A method is matched by its attribute
-# name on any receiver that is not a module K1 names, because a compiled
-# pattern or a path is called on a name. A module function is
-# matched only where the file's imports bind the name to that module, so a
-# repository's own `load` or `run` never reads as the library's.
+# name on any receiver, because a compiled pattern or a path is called on a
+# name, and a module's own reading function is matched the same way. A module
+# function is matched by its dotted name only where the file's imports bind
+# the name to that module, so a repository's own `load` or `run` never reads
+# as the library's. Nothing here says a call does NOT read: `ast.walk` matches
+# `walk`, and a `nothing` beside it is refused, which costs a truthful class
+# word, where a table read as complete for a module let `os.open` pass.
 
 K1_METHODS = frozenset(
     {
@@ -82,6 +85,8 @@ K1_METHODS = frozenset(
         "isdir",
         "lexists",
         "stat",
+        "lstat",
+        "readlink",
         # a standard-library parser handed text
         "match",
         "search",
@@ -107,14 +112,23 @@ K1_FUNCTIONS = frozenset(
         "subprocess.getstatusoutput",
         "os.popen",
         "os.getenv",
+        "os.open",
+        "os.read",
+        "os.fdopen",
+        "os.readlink",
         "os.listdir",
         "os.scandir",
         "os.walk",
         "os.stat",
+        "os.lstat",
+        "os.access",
         "os.path.exists",
         "os.path.isfile",
         "os.path.isdir",
         "os.path.lexists",
+        "os.path.islink",
+        "os.path.getsize",
+        "os.path.getmtime",
         "glob.glob",
         "glob.iglob",
         "re.match",
@@ -124,7 +138,9 @@ K1_FUNCTIONS = frozenset(
         "re.finditer",
         "re.sub",
         "re.subn",
+        "re.split",
         "shlex.split",
+        "shlex.shlex",
         "json.load",
         "json.loads",
         "ast.parse",
@@ -137,17 +153,12 @@ K1_FUNCTIONS = frozenset(
     }
 )
 K1_REFERENCES = frozenset({"os.environ", "sys.stdin", "sys.argv"})
-# The modules whose functions K1 names. A method called on one of these is
-# judged by the table above and nothing else, so `ast.walk` and
-# `os.path.join` are not `walk` and `join`; a method called on anything
-# else, a sibling module's compiled pattern included, is judged by its name.
-K1_MODULES = frozenset(name.rsplit(".", 1)[0] for name in K1_FUNCTIONS)
 
 
 def bindings(tree):
     """`{local name: dotted target}` for every import in the module.
 
-    Reads: nothing — walks an AST its caller parsed and returns what the imports bind
+    Reads: observed — the import statements of an AST its caller parsed; unknown passed
 
     `import subprocess as sp` binds `sp` to `subprocess`; `from subprocess
     import run` binds `run` to `subprocess.run`. Collected over the whole
@@ -193,9 +204,11 @@ def k1_call(node, bound):
 
     A call to a bare name is the builtin `open` or `input` where no import
     binds the name, and otherwise the dotted name its import binds. A method
-    is judged by its full dotted name where its receiver is a module K1
-    names, and by its attribute name everywhere else. A reference to
-    `os.environ`, `sys.stdin` or `sys.argv` counts without a call.
+    is K1 by its full dotted name where the table lists it, and by its
+    attribute name on any receiver otherwise, a module's included: the table
+    adds calls, and never vouches that a module's other calls read nothing.
+    A reference to `os.environ`, `sys.stdin` or `sys.argv` counts without a
+    call.
     """
     if isinstance(node, ast.Call):
         func = node.func
@@ -205,10 +218,9 @@ def k1_call(node, bound):
             target = bound[func.id]
             return target if target in K1_FUNCTIONS else None
         if isinstance(func, ast.Attribute):
-            receiver = dotted(func.value, bound)
-            if receiver in K1_MODULES:
-                target = f"{receiver}.{func.attr}"
-                return target if target in K1_FUNCTIONS else None
+            target = dotted(func, bound)
+            if target in K1_FUNCTIONS:
+                return target
             return f".{func.attr}" if func.attr in K1_METHODS else None
         return None
     if isinstance(node, (ast.Attribute, ast.Name)):
