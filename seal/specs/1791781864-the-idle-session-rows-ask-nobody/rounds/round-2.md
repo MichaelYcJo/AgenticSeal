@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #902 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `dc3501c4fb2ebe064a1dac7f27e20bbf547b3e8c..e88a460c3d08afd3bfce8034227ce8216218f530`, 4 commits |
+| Contract changes | test_a_clone_this_session_already_split_is_named_the_split → round-2-report.md, round-2.md |
+| New units | none |
 | Fix of a fix | first — 🟡 1 at hooks/worktree-guard.py#main, a unit round-1's fixes changed |
 | Needs a fix | yes — 🟡 1 (the record branch's reason credits the press with a consent only the record gives, and a case pins it), 🟡 2 (four docstring and changelog copies credit the answer with the record clone's consent) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,11 +25,11 @@ Round 2 of #896, the verifying round, target 57f46c5f. It was asked to inherit r
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | in a clone holding only this session's creation record, the deny says *that answer already consents*, while the press is refused there by condition 4 and the record is what consents; the already-split case pins the false sentence | `hooks/worktree-guard.py:3157` | open | executed (probe 1): the switch's reason carries the press sentence's claim, the creation's `allow` names the record; inside `unattended_text`, written by round 1's fix |
-| 🟡 2 | the module docstrings of the guard and the case module, the `ways_on` docstring and changelog item 1 say the answer consents in a clone this session already split | `hooks/worktree-guard.py:27` | open | read: `hooks/worktree_consent.py#automation_answered` condition 4; the policy's *Under the press* paragraph and ledger R1 attribute it to the record |
-| ⬜ 3 | a press also given in the switch's clone is read as another clone: no way on is named though the creation is `allow` | `hooks/worktree-guard.py:3181` | open | executed (probe 1); no person is asked; separating it costs a second transcript read (S10) |
-| ⬜ 4 | the policy paragraph's line 620 is 99 wide, lines 632–633 break short, and the branch-already-in-a-worktree sentence reads as if both reasons said it | `docs/worktree-guard-spec.md:620` | open | read |
-| ⬜ 5 | round 1's `New units` row names `elsewhere` and not `unattended_text` | `seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md` | open | correction to the run's paperwork; the fix table names `unattended_text` |
+| 🟡 1 | in a clone holding only this session's creation record, the deny says *that answer already consents*, while the press is refused there by condition 4 and the record is what consents; the already-split case pins the false sentence | `hooks/worktree-guard.py:3157` | **fixed** `f655e31f` | fixed at f655e31f; executed (probe 1): the switch's reason carries the press sentence's claim, the creation's `allow` names the record; inside `unattended_text`, written by round 1's fix |
+| 🟡 2 | the module docstrings of the guard and the case module, the `ways_on` docstring and changelog item 1 say the answer consents in a clone this session already split | `hooks/worktree-guard.py:27` | **fixed** `e78b8de8` | fixed at e78b8de8; read: `hooks/worktree_consent.py#automation_answered` condition 4; the policy's *Under the press* paragraph and ledger R1 attribute it to the record |
+| ⬜ 3 | a press also given in the switch's clone is read as another clone: no way on is named though the creation is `allow` | `hooks/worktree-guard.py:3181` | answered | No person is asked in that state. The guard withholds a way on that exists, and the other-clone text hedges (*may be put to a person*). Telling a press given in both clones from a press given in the session's clone alone costs a second transcript read, which S10 forbids, or a reader returning every clone with a press, which is mechanism a fix pass does not add. If #903 makes §B's rows deny under the press read from the session's root, the difference stops mattering; executed (probe 1); no person is asked; separating it costs a second transcript read (S10) |
+| ⬜ 4 | the policy paragraph's line 620 is 99 wide, lines 632–633 break short, and the branch-already-in-a-worktree sentence reads as if both reasons said it | `docs/worktree-guard-spec.md:620` | answered | corrected at e78b8de8. The policy paragraph is rewrapped, and *a branch already checked out in a worktree needs no switch* now sits under the split's reason alone. The sentence that follows the other-clone sentence says what both reasons share; read |
+| ⬜ 5 | round 1's `New units` row names `elsewhere` and not `unattended_text` | `seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md` | answered | `round_record.py close` measures `New units` from the fix range's top-level names. `unattended_text` is nested inside `main`, so the generator does not bound it, and the test helper `elsewhere` is the top-level name it found. Round 1's fix table names `unattended_text`, and that table is the hand-written account. The record is generated, so it is not hand-edited; correction to the run's paperwork; the fix table names `unattended_text` |
 | 🟢 | round 1's blocking finding is closed — a switch into another clone names no split, and where the split is named its commands pass | `hooks/worktree-guard.py:3149` | confirmed | executed: probe 1 ran the named fetch and both creation forms (silent, `allow`, `allow`) and the linked-worktree paths; both halves of the condition mutated, each turned its cases red |
 | 🟢 | round 1's yellow 2 is closed — `choose` declares `observed` | `hooks/worktree-guard.py:1479` | confirmed | read; `tests/test_a_reader_declares_its_input_class.py` passes (executed) |
 | 🟢 | round 1's yellow 3 is closed — the Windows sentences except `[shared-tree-ok]` | `docs/worktree-guard-spec.md:981` | confirmed | read: the bullet, §*Unknowns resolve conservatively* and changelog item 3 match row 2's condition |
