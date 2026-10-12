@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 881 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `8bba58353607204de53f50fd4a64c0161024e8bd..d37021860400c0cde680e683f8b6c5f31eb98f07`, 3 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (a comment in `hooks/tokens.py` still says the guard reads a brace through `QUOTED_SPANS`), 🟡 2 (the rebase sentence and its pin say a branch-naming rebase reaches `reference-transaction` as a switch does, which is false from the onto branch with diverged branches) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,10 +25,10 @@ The second redesign's first finding round: 99a35836..8bba5835, the merge 048506e
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | The comment above `QUOTED_SPANS` still says the worktree guard reads a brace expansion through it; the guard reads none since phase 11 | `hooks/tokens.py:68` | open | executed: `QUOTED_SPANS` has one reader, `is_plain`; read: the comment and the guard's diff |
-| 🟡 2 | The rebase sentence says a branch-naming rebase reaches `reference-transaction` as a switch does; from its onto branch with diverged branches, the first HEAD line arrives before the branch's content and a refusal there leaves the tree clean | `docs/the-commit-gate-inside-git.md:174` | open | executed on git 2.50.1: the refusal exits 128 with HEAD on `main` and a clean tree; from a third branch the tree moves first; the pinned parameter covers only the case where `main` is an ancestor of `other` |
-| ⬜ 3 | S28 and phase 11 name the CI legs as the answerer for git 2.34–2.43, and no leg runs those gits | `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md:9` | open | executed: the ubuntu job at the target logged git 2.55.0; read: `.github/workflows/test.yml`'s matrix; a correction |
-| ⬜ 4 | The plan's phase 11 row keeps a marker for two case names the phase planted, and says the grep shows one comment where phase 11 records three lines | `seal/specs/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way/plan.md:235` | open | executed: the only one of 83 added marker lines whose underscore names are all in the tree; a correction |
+| 🟡 1 | The comment above `QUOTED_SPANS` still says the worktree guard reads a brace expansion through it; the guard reads none since phase 11 | `hooks/tokens.py:68` | deferred #893 | #893 — the run ends at this record (capped: round 4 met the floor and round 5 closed on a fix, counted by the generator across the owner-directed reframe). The comment names a reader the guard no longer has; the one-clause deletion is in the report and in #893; executed: `QUOTED_SPANS` has one reader, `is_plain`; read: the comment and the guard's diff |
+| 🟡 2 | The rebase sentence says a branch-naming rebase reaches `reference-transaction` as a switch does; from its onto branch with diverged branches, the first HEAD line arrives before the branch's content and a refusal there leaves the tree clean | `docs/the-commit-gate-inside-git.md:174` | deferred #893 | #893 — the run ends at this record. The finding bears on whether the second reframe's delete stands, which is `questions.md` P2, the owner's to answer; #893 carries the executed topology, the sentence, its pin and the reviewer's case; executed on git 2.50.1: the refusal exits 128 with HEAD on `main` and a clean tree; from a third branch the tree moves first; the pinned parameter covers only the case where `main` is an ancestor of `other` |
+| ⬜ 3 | S28 and phase 11 name the CI legs as the answerer for git 2.34–2.43, and no leg runs those gits | `seal/ledger/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way.md:9` | answered | corrected at e9ed9e54: S28 and `phases/phase-11.md` say no CI leg runs the floor gits and name the repository owner as the answerer; executed: the ubuntu job at the target logged git 2.55.0; read: `.github/workflows/test.yml`'s matrix; a correction |
+| ⬜ 4 | The plan's phase 11 row keeps a marker for two case names the phase planted, and says the grep shows one comment where phase 11 records three lines | `seal/specs/1791384157-the-hooks-read-the-session-waiver-and-creation-one-way/plan.md:235` | answered | corrected at e9ed9e54: plan row 11 drops the marker for the two planted case names and says the grep found three lines; executed: the only one of 83 added marker lines whose underscore names are all in the tree; a correction |
 | 🟢 | The brace reader is absent from the guard, its tests and its policy | `hooks/worktree-guard.py:2002` | confirmed | read: the diff; executed: no removed name outside this work item's records |
 | 🟢 | The four #856 forms are silent in every tree state, and no decision differs from 0.20.0's guard | `hooks/worktree-guard.py:2883` | confirmed | executed: 2,945 decisions, two guards, zero differences; the limit and contrast cases ran (12 passed, the bash half not skipped) |
 | 🟢 | #868's placement, token reader, session test and git runner are intact | `hooks/worktree_consent.py:507` | confirmed | read: the range touches none of their files; executed: token commands decide as at 0.20.0 |
