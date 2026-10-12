@@ -6,9 +6,10 @@ The inventory found that the readers which kept being reopened were the ones
 guessing at text they did not control, and the item ships as that inventory:
 its first frame's backfill of `Reads:` lines was built, read false three
 rounds running, and withdrawn whole by the reframe (`spec.md` §*The
-reframe*), so the branch's code is the release branch's but for one
-docstring line on the pytest recorder's module body, whose direction word
-the registry's settled definition made false (round 5 🟡 1).
+reframe*), so the branch's code is the release branch's but for two docstrings: the
+pytest recorder's module line, whose direction word the registry's settled
+definition made false (round 5 🟡 1), and the registry test module's own
+statement of the rule (round 5 ⬜ 3).
 
 ## Where spec and implementation diverged
 

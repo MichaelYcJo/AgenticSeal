@@ -343,7 +343,7 @@ by its caller.
 
 ## Removes
 
-nothing — the reframe withdraws what this item's own build added (189 docstring lines in 44 files, their census removal, two ledger rows, a changelog entry), so the branch's code is the release branch's but for one docstring line, the pytest recorder's direction word (round 5 🟡 1); no unit, heading or test pin that stood before this item leaves the tree, and the one rule sentence it replaces is the direction sentence of `docs/the-reader-registry.md`, rewritten to the settled meaning (`overview.md` §*Fed back into the spec*).
+nothing — the reframe withdraws what this item's own build added (189 docstring lines in 44 files, their census removal, two ledger rows, a changelog entry), so the branch's code is the release branch's but for two docstrings, the pytest recorder's direction word (round 5 🟡 1) and the registry test module's statement of the rule (round 5 ⬜ 3); no unit, heading or test pin that stood before this item leaves the tree, and the one rule sentence it replaces is the direction sentence of `docs/the-reader-registry.md`, rewritten to the settled meaning (`overview.md` §*Fed back into the spec*).
 
 The inventory was framed 2026-10-07 by the session; the build above was framed
 by the framer, which is the `Planning` row `routing.md` has carried since
