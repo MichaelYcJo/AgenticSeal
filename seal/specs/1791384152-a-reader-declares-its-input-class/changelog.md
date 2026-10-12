@@ -40,3 +40,10 @@
   release on; one that has no `Removes from` row is asked for no section.
   The `Reads:` rule and its census are this repository's own test, and ask
   nothing of a repository that installs the plugin.
+
+  A `seal/config.md` that is there and will not read, or that writes
+  `Removes from` twice, now stops a plain `evidence-check` run at exit 2 —
+  and so the CI ledger job and the commit advisor — as it already stopped
+  `--reverify`: the records arm reads the row through the freeze row's
+  reader, which refuses such a file rather than reading it as absent. A
+  repository that declares no `Removes from` row meets this too.
