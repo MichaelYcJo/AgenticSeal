@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 897 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `5e2e9ad5d4a3b5add6a7c3d83a74363cd11a10b7..7bc54620848442f4d89ae6d641ddadbfcccec482`, 4 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (the deny says the whole guard is silent once the tree is clean) and 🟡 2 (the deny says git's output reports what each command did, which `-q` falsifies) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -35,9 +35,9 @@ Facts arriving as coordinates, from the smith and unverified: S1 and S12 seen re
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | The deny says the whole guard says nothing of a switch once no changes are present; rows 1, 1-b and 2 still stop a clean switch, and under the press a repeated choice row asks a person | `hooks/worktree-guard.py:3296` | open | Executed: clean tree under the press, rows 1, 1-b, 2 gave deny, deny, ask. Read: In 2 and the policy scope this to the row; the code says the guard |
-| 🟡 2 | The deny says git's own output reports what each command did; with `-q` it reports nothing, and the clause is a sentence about git, the class the reframe removed | `hooks/worktree-guard.py:3305` | open | Executed: `git stash -q` and `git commit -q -am x` exit 0 with empty output. Read: the policy's *nothing it inferred* and ledger S1's *nothing git does* are false while it stands |
-| ⬜ 3 | S12's option-word check finds four `-C` in the deny issued through `git -C <repo>` from another repository; it is sound only for its fixture's shell position | `tests/test_the_guard_asks_once_per_session.py:1903` | open | Executed: the probe from another repository; the planted per-form clause turned six S12 rows red, so the other direction holds |
+| 🟡 1 | The deny says the whole guard says nothing of a switch once no changes are present; rows 1, 1-b and 2 still stop a clean switch, and under the press a repeated choice row asks a person | `hooks/worktree-guard.py:3296` | **fixed** `b6851ffb` | fixed at b6851ffb — the report's paste-ready text: *This row of the guard stops a branch switch …* in English and *이 guard 의 이 규칙은 …* in Korean, in the hook and in `dirty_deny`; S1 was seen red through `mutation-check` with the old sentence put back; Executed: clean tree under the press, rows 1, 1-b, 2 gave deny, deny, ask. Read: In 2 and the policy scope this to the row; the code says the guard |
+| 🟡 2 | The deny says git's own output reports what each command did; with `-q` it reports nothing, and the clause is a sentence about git, the class the reframe removed | `hooks/worktree-guard.py:3305` | **fixed** `927497cc` | fixed at 927497cc — the clause *and git's own output reports what each one did* and its Korean twin are gone from the hook, `dirty_deny`, `docs/worktree-guard-spec.md`, `changelog.md`, `spec.md` In 2 and its S1 row, and ledger S1; S1 was seen red through `mutation-check` with the clause put back; Executed: `git stash -q` and `git commit -q -am x` exit 0 with empty output. Read: the policy's *nothing it inferred* and ledger S1's *nothing git does* are false while it stands |
+| ⬜ 3 | S12's option-word check finds four `-C` in the deny issued through `git -C <repo>` from another repository; it is sound only for its fixture's shell position | `tests/test_the_guard_asks_once_per_session.py:1903` | answered | corrected at 97ee27c4 — `option_words` takes the report's text and strips the `git -C <path>` command word and `restore --staged` before scanning; `test_the_press_is_read_from_the_sessions_own_root` now runs the check on a deny issued from another repository, red through `mutation-check` without the strip; Executed: the probe from another repository; the planted per-form clause turned six S12 rows red, so the other direction holds |
 | 🟢 | round 3's first finding is closed — no sentence offers a stash way, to `--orphan` or anything else, from a detached HEAD | `hooks/worktree-guard.py:3286` | confirmed | Executed: S12's `--orphan, detached` row passes with the one text; `git grep` for `way 2` and `stash pop` exits 1 |
 | 🟢 | round 3's second finding is closed — no sentence promises a carry onto a target that changed a listed file | `hooks/worktree-guard.py:3286` | confirmed | Executed: S12's two target-changed rows pass with the one text, which contains no `pop` and no `carries` |
 | 🟢 | rounds 1 and 2's findings stay closed — the `-c`, `--orphan`, discarding-form and squash sentences are gone | `hooks/worktree-guard.py:3286` | confirmed | Executed: S1 and S12 assert no option word and no `squash`, and pass at the target |
