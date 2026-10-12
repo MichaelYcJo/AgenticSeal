@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | 897 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `45af38a1c7fb7295048267463a87b3cd7fafe5c6..18c5a9e076c14caaf860e40658594246def6ef42`, 4 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (the policy, ledger S1 and spec In 2 say the deny infers nothing about git, and its index-residue note predicts a clean tree that a tracked ignored file does not reach) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -33,10 +33,10 @@ Facts arriving as coordinates: `round_record.py close` exit 0 for round 4. The s
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | The policy, ledger S1 and spec In 2 say the deny infers nothing about git; its index-residue note says *These commands clean the tree*, and for a tracked file `.gitignore` matches, the restore leaves it dirty | `docs/worktree-guard-spec.md:37` | open | Executed: probe with a tracked ignored file staged under the press; after the note's restore the status was ` M g.txt` and the switch met the deny again. Read: In 2 keeps the note *as today*; the policy's *nothing it inferred* and *each sentence about what git does was taken out* are false while it stands |
-| ⬜ 2 | S1's docstring still says the choice is left to the model and git's output | `tests/test_the_guard_asks_once_per_session.py:1939` | open | Read: the docstring at the target; `survivor-check` misses it because the wording differs and wraps |
-| ⬜ 3 | The deny issued through `git -C <repo>` from another repository is pinned by a substring and the option check only; a clause keyed on that spelling survives | `tests/test_the_guard_asks_once_per_session.py:2104` | open | Executed: planted clause SURVIVED, 224 passed across two modules; the fenced whole-text assertion passes at the target and is red with the clause planted |
-| ⬜ 4 | The module docstring, ledger `Corrected · S2` and `spec.md:98` call commit and stash commands that empty the tree; a plain `git commit` with an unstaged change exits 1 and empties nothing | `hooks/worktree-guard.py:30` | open | Executed: plain `git commit -m x` over an unstaged change, exit 1, status ` M f.txt` |
+| 🟡 1 | The policy, ledger S1 and spec In 2 say the deny infers nothing about git; its index-residue note says *These commands clean the tree*, and for a tracked file `.gitignore` matches, the restore leaves it dirty | `docs/worktree-guard-spec.md:37` | **fixed** `d664e911` | fixed at d664e911 — the report's paste-ready text: `docs/worktree-guard-spec.md`'s reason paragraph and *Why the reason predicts nothing*, ledger S1 and `spec.md` In 2 now say the deny's one sentence about git is the index-residue note it shares with the `ask`. The note itself is unchanged, because S2 pins it in the attended `ask` and it predates the branch; the orchestrator files it as an issue; Executed: probe with a tracked ignored file staged under the press; after the note's restore the status was ` M g.txt` and the switch met the deny again. Read: In 2 keeps the note *as today*; the policy's *nothing it inferred* and *each sentence about what git does was taken out* are false while it stands |
+| ⬜ 2 | S1's docstring still says the choice is left to the model and git's output | `tests/test_the_guard_asks_once_per_session.py:1939` | answered | corrected at dad015f7 — S1's docstring says the choice and what follows are left to the model, and that the text predicts nothing of its own; Read: the docstring at the target; `survivor-check` misses it because the wording differs and wraps |
+| ⬜ 3 | The deny issued through `git -C <repo>` from another repository is pinned by a substring and the option check only; a clause keyed on that spelling survives | `tests/test_the_guard_asks_once_per_session.py:2104` | answered | corrected at fc5fb6d1 — `test_the_press_is_read_from_the_sessions_own_root` pins the whole deny issued through `git -C <repo>`: S1's text with `git_at`'s command word. With one command word left plain through `mutation-check`, it was red; Executed: planted clause SURVIVED, 224 passed across two modules; the fenced whole-text assertion passes at the target and is red with the clause planted |
+| ⬜ 4 | The module docstring, ledger `Corrected · S2` and `spec.md:98` call commit and stash commands that empty the tree; a plain `git commit` with an unstaged change exits 1 and empties nothing | `hooks/worktree-guard.py:30` | answered | corrected at 18c5a9e0 — the hook's module docstring, ledger `Corrected · S2` and `spec.md` In 2 name `git commit` and `git stash` as listed shapes that pass the guard alone, not commands that empty the tree; Executed: plain `git commit -m x` over an unstaged change, exit 1, status ` M f.txt` |
 | 🟢 | round 4's first finding is closed — the clean-tree sentence speaks for this row, in both languages, in the hook and in `dirty_deny` | `hooks/worktree-guard.py:3296` | confirmed | Executed: with the old sentence put back through `mutation-check`, S1 red on its assertion. Read: every sentence of the pressed text, both languages |
 | 🟢 | round 4's second finding is closed — the clause about git's output is gone from the hook, `dirty_deny`, the policy, the changelog, `spec.md` and ledger S1 | `hooks/worktree-guard.py:3306` | confirmed | Executed: either language's clause put back, S1 red; `survivor-check` over the fix range finds no removed wording. Read: W3 and the phase records keep it as history; the docstring twin is ⬜ 2 |
 | 🟢 | round 4's note 3 is answered — `option_words` reads past the command word, and the strip hides no clause the equality checks would catch | `tests/test_the_guard_asks_once_per_session.py:1903` | confirmed | Executed: without the strip the W2 case is red; a planted `-C` clause turned two S12 rows and W2 red |
