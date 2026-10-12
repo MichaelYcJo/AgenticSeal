@@ -23,8 +23,9 @@ A) Branch switching (Bash: `git switch`, and every git shape not known to
   - only IDLE sessions (no terminal input for a while) -> CHOICE: switch here,
     or split into a worktree -- they are usually forgotten tabs, and the user
     can tell. Where the person pressed `automation` nobody is there to tell:
-    a `deny` to the model on every attempt instead, naming the split, which
-    that answer already consents to, as the way on (#896)
+    a `deny` to the model on every attempt instead, naming the split as the
+    way on where that answer consents to it: in the clone it was given in,
+    or where this session already created a worktree (#896)
   - cannot tell (process inspection unusable)       -> the same CHOICE, and
     the same deny under the press
   - tracked changes present (dirty)                 -> ask the user first; this
@@ -85,11 +86,15 @@ question spend the answer a later switch needed.
 
 Under the press -- this session's person pressed `automation` on the routing
 question -- nobody is there to put the two options to, so the switch
-direction's two sites deny on every attempt with the way on that needs
-nobody: split into a worktree, whose creation that answer already consents
-to, and work there by path. The reason names no question tool and no token,
-and no marker is written, because no question was put (#896). The creation
-direction's two sites never run under the press: consent is read first.
+direction's two sites deny on every attempt. Where that answer consents to
+a creation in the switch's clone -- the clone it was given in, or one this
+session already created a worktree in -- the reason names the way on that
+needs nobody: split into a worktree and work there by path. A switch into
+another clone is refused naming no split, because the creation rows there
+would put it to a person. The reason names no question tool and no token,
+and no marker is written, because no question was put (#896). In the clone
+the press was given in, the creation direction's two sites never run under
+the press: consent is read first.
 
 Creation consent is a SECOND session-scoped record and deliberately not part
 of that budget: `<git-common-dir>/specseal-worktree-consent/<session-id>`,
@@ -1471,7 +1476,7 @@ def choose(
 ):
     """Deny once and hand the user the two options; ask on every attempt after.
 
-    Reads: owned — whether this session was already asked in this direction, the marker this guard writes, through `already_asked`; unknown refused
+    Reads: observed — whether this session was already asked in this direction, the presence of the marker this guard writes, through `already_asked`; unknown refused
 
     Every other input is its caller's, the press included. Every path stops
     the command, a deny or an ask, so a marker it cannot read or write falls

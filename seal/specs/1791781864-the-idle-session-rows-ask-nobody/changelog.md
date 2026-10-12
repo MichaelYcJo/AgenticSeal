@@ -8,16 +8,19 @@
   a run routed `automation`.
 
   1. Where the person pressed `automation`, both rows now refuse the switch
-     to the model on every attempt. The refusal names the way on that needs
-     nobody: split into a worktree with `git worktree add`, which that answer
-     already consents to, and work there by path with `git -C`. It names no
-     question tool and no `[shared-tree-ok]`, and says that re-issuing the
-     switch unchanged meets the same refusal.
+     to the model on every attempt. In the clone that answer was given in,
+     or one this session already created a worktree in, the refusal names
+     the way on that needs nobody: split into a worktree with `git worktree
+     add`, which that answer consents to there, and work there by path with
+     `git -C`. A switch into another clone is refused without one, because a
+     split there would be put to the person. It names no question tool and
+     no `[shared-tree-ok]`, and says that re-issuing the switch unchanged
+     meets the same refusal.
   2. Without the press nothing changes: the person sees the same two
      options and the same prompt after them, word for word.
   3. On Windows, where sessions can never be counted, every `git switch`
-     under the press is this refusal, so an `automation` run there works in
-     a worktree per branch.
+     under the press that does not carry `[shared-tree-ok]` is this refusal,
+     so an `automation` run there works in a worktree per branch.
 
 - **A session the guard cannot tie to a process no longer reads as working
   right now (#896).** Its line under a guard prompt used to end with a clause

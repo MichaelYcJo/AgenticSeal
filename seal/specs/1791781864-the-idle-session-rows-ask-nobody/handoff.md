@@ -8,11 +8,16 @@ branch `chore/834-every-reader-and-record-is-inventoried`; read it first.
 | | |
 |---|---|
 | Issue(s) | #896 |
-| PR | none yet |
-| State | framed by `framer` on Fable; `plan.md` approved (0b52518f); phases 1–2 built by the smith on Opus and closed at 17d7ed5f and abe3dc3e (records 79a0577a, 33ff3dd9), pushed |
+| PR | #902, draft |
+| State | framed by `framer` on Fable; `plan.md` approved (0b52518f); phases 1–3 built by the smith on Opus and closed at 17d7ed5f, abe3dc3e and e905b5a5 (records 79a0577a, 33ff3dd9, ec9a63a7), #894 merged in at f5cb21fd; review round 1 recorded at c7860bfe and its fix pass written (`rounds/round-1-fixes.md`), awaiting the verifying round |
 | Owner's questions | P1 (b) and P2 (a), both at the default the frame is built on |
 
-**Next act, after #894 (PR #897) lands on `release/v0.21.0`:**
+**Next act:** the verifying round over round 1's fix range, then step 4
+below. Steps 1–3 are done: the merge at f5cb21fd, phase 3 closed at e905b5a5,
+draft PR #902 opened and round 1 recorded at c7860bfe. They are kept as they
+were written.
+
+**The plan as written, after #894 (PR #897) lands on `release/v0.21.0`:**
 
 1. `git -C <wt> merge origin/release/v0.21.0` (a merge, never a rebase).
    - Expect text conflicts in the module docstring of `hooks/worktree-guard.py`, in `main`, and in `docs/worktree-guard-spec.md` §A. `plan.md` §Seams names each one.
