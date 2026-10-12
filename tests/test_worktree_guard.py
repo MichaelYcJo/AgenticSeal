@@ -9,7 +9,7 @@ import json
 import os
 
 import pytest
-from conftest import load_hook_module
+from conftest import load_hook_module, shell_probe
 
 wg = load_hook_module("worktree-guard.py", "wg")
 
@@ -725,11 +725,10 @@ def test_the_unbalanced_quote_note_is_read_from_the_command_as_written(
 def test_consent_is_not_read_out_of_a_command_that_did_not_parse(
     monkeypatch, capsys, repo
 ):
-    """The commit gate falls back to a SUBSTRING test when a command does not
-    parse cleanly (`has_marker`), and this guard must not inherit it. Reading
-    `[no-review]` loosely skips one check the user is being asked about
-    anyway; reading `[shared-tree-ok]` loosely turns this guard off with
-    nobody asked — the regression two review rounds went into closing."""
+    """A token inside a quote that never closes is prose, and no consent
+    read takes it: `hooks/tokens.py#given` reads nothing from where a split
+    fails (#868). Read loosely, `[shared-tree-ok]` would turn this guard off
+    with nobody asked — the regression two review rounds went into closing."""
     cmd = 'git worktree add ../wt f && echo "we agreed on [worktree-ok] yesterday'
     assert "[worktree-ok]" in cmd  # a substring test would say yes
     assert not wg.has_token(cmd, "[worktree-ok]")
@@ -1965,9 +1964,19 @@ SWITCHING = (
     "checkout feature/x",
     "switch feature/x",
 )
+# #856: forms whose braces bash expands into other words before git runs,
+# written for `str.format`. Each switches HEAD or adds a worktree under bash
+# (S13 of work item 1791384157), and the guard reads each as listed: the
+# limit S26 of its second reframe states.
+BRACED = (
+    "rebase {{{start},feature/x}}",
+    "rebase --ro{{,}} feature/x",
+    "stash {{branch,}} y",
+    "worktree {{add,}} ../wt{n} feature/x",
+)
 
 
-def test_no_listed_form_moves_head_under_git(repo, tmp_path):
+def test_no_listed_form_moves_head_under_git(monkeypatch, capsys, repo, tmp_path):
     """Binds `LEAVES_THE_TREE` to git (round 1 of work item 1791270162, red
     3): each row's form runs in a copy of a repository with a second commit
     on `feature/x` and a stash, and a form the guard reads as listed must
@@ -2033,6 +2042,77 @@ def test_no_listed_form_moves_head_under_git(repo, tmp_path):
         set(FORMS.values()) ^ set(listed)
     )
     assert sorted(moved) == sorted(SWITCHING), moved
+
+    # #856, as the second reframe of work item 1791384157 leaves it (S26):
+    # each braced form runs through bash, which expands the braces before git
+    # reads the words, and each switches HEAD or adds a worktree; the guard
+    # reads each as listed and says nothing in an ACTIVE tree. A word the
+    # shell builds before git runs is the limit `docs/worktree-guard-spec.md`
+    # §*Known limits* names, decided with #886's shapes, and the day a change
+    # to the frozen words makes the guard read one, this half says so. Red at
+    # `52c72bbe`, where the guard stopped all four. The guard's half reads
+    # words and runs everywhere; bash's half runs only where `bash` is a
+    # shell.
+    import shlex
+
+    braced = [
+        (n, form.format(start=start, n=n))
+        for n, form in enumerate(BRACED, start=len(FORMS) + len(SWITCHING))
+    ]
+    in_state(monkeypatch, repo, "active")
+    read = [
+        text
+        for _n, text in braced
+        if wg.shape_of(["git", *shlex.split(text)]) != "listed"
+        or verdict(monkeypatch, capsys, repo, f"git {text}") != ("silent", "")
+    ]
+    assert not read, read
+    # On a `windows-latest` runner `bash` resolves to the WSL launcher, which
+    # exits 1 for every command it is handed (`conftest.shell_probe`; round 1
+    # of work item 1791384157, red 1). The ubuntu and macOS legs run it.
+    why = shell_probe("bash")
+    if why is not None:
+        pytest.skip(f"bash: {why}")
+    acted = []
+    for n, text in braced:
+        copy = tmp_path / f"r{n}"
+        shutil.copytree(template, copy)
+        done = subprocess.run(
+            ["bash", "-c", f"git -C {shlex.quote(str(copy))} {text}"],
+            capture_output=True,
+            stdin=subprocess.DEVNULL,
+            env={**os.environ, "GIT_EDITOR": "true", "GIT_PAGER": "cat"},
+        )
+        assert done.returncode == 0, (text, done.returncode, done.stderr)
+        if head(copy) != head(template) or (tmp_path / f"wt{n}").is_dir():
+            acted.append(text)
+    assert len(acted) == len(BRACED), acted
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git rebase {main,feature/x}",
+        "git rebase --ro{,} feature/x",
+        "git stash {branch,} y",
+        "git worktree {add,} ../wt feature/x",
+        "git commit -m '{a,b}'",
+        "git log --format='{%h}'",
+        "cat {a,b}",
+        "echo {a,b}",
+    ],
+)
+def test_a_shell_built_word_is_the_named_limit(monkeypatch, capsys, repo, command):
+    """S26 of work item 1791384157's second reframe. The guard reads the
+    words the frozen reading splits, and a word the shell builds before git
+    runs is not among them, so a brace changes nothing: each form is silent
+    in a tree another session is ACTIVE in. The first four switch HEAD or add
+    a worktree under bash (`test_no_listed_form_moves_head_under_git`), which
+    is the limit `docs/worktree-guard-spec.md` §*Known limits* names beside
+    #886's shapes. Red at `52c72bbe`, where the brace reader stopped all but
+    the two quoted forms."""
+    in_state(monkeypatch, repo, "active")
+    assert verdict(monkeypatch, capsys, repo, command) == ("silent", "")
 
 
 def test_the_readings_are_gone():

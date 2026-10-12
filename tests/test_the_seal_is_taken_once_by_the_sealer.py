@@ -3886,6 +3886,69 @@ def test_the_ledger_carries_its_three_counts_on_one_row():
     assert ("ledger", "exit 0") in bare, bare
 
 
+SKIPPED_TEST = (
+    "import pytest\n\n\n@pytest.mark.skip\ndef test_skipped():\n    assert True\n"
+)
+
+
+@pytest.mark.parametrize(
+    "node, held",
+    [
+        ("tests/test_one.py::test_one", True),
+        ("tests/test_skipped.py::test_skipped", False),
+    ],
+)
+def test_the_ledger_arm_reads_the_run_it_seals(repo, node, held):
+    """S21 of #836, over a planted repository. A ledger row held by a test is
+    read against the head run's pytest record: a row naming a test the row
+    skipped fails the ledger arm, naming what was observed, and the run is
+    NOT SEALED; a row naming a test that passed leaves the arm clean."""
+    write(repo, "tests/test_skipped.py", SKIPPED_TEST)
+    write(
+        repo,
+        "seal/ledger/1799000000-a-sealed-work-item.md",
+        f"| T1 · the claim | `{node}` | seen red, then green | 2026-10-12 | |\n",
+    )
+    commit(repo, "a ledger row held by a test")
+    out = run_gate(repo)
+    ledger = (repo.parent / "out" / "ledger.txt").read_text(encoding="utf-8")
+    if held:
+        assert "MALFORMED" not in ledger, ledger
+        assert "read for existence alone" not in ledger, ledger
+        assert not [
+            line
+            for line in out.stdout.splitlines()
+            if line.strip().startswith("ledger ") and "exit 2" in line
+        ], out.stdout
+    else:
+        assert out.returncode == 1, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
+        assert "NOT SEALED" in out.stdout, out.stdout
+        assert f"MALFORMED {node}  skipped in the recorded suite" in ledger, ledger
+        assert "ledger" in out.stdout and "exit 2" in out.stdout, out.stdout
+
+
+def test_a_seal_over_existence_alone_says_so(repo):
+    """Round 3 of #836, 🟡 3: a row that replaces `PYTEST_ADDOPTS` leaves no
+    session under the key, so the ledger arm reads test rows for existence
+    alone. The run still seals, and the checker's line reaches the person
+    reading it. Red before the fix: the line was only in the kept
+    `ledger.txt`. The row sets the variable with a POSIX prefix, which
+    `cmd.exe` reads as a command name."""
+    posix_row_shell_or_skip()
+    write(
+        repo,
+        "seal/ledger/1799000000-a-sealed-work-item.md",
+        "| T1 · the claim | `tests/test_one.py::test_one` | seen red, then "
+        "green | 2026-10-08 | |\n",
+    )
+    commit(repo, "a ledger row held by a test")
+    out = run_gate(set_row(repo, f"PYTEST_ADDOPTS=-q {SUITE_ROW}"))
+    assert out.returncode == 0, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
+    assert (
+        "broad-gate: ledger: test rows were read for existence alone: no session under"
+    ) in out.stderr, out.stderr
+
+
 def test_a_failing_ledger_ends_with_its_total_line(tmp_path):
     """A4's second half. `evidence-check` prints its `total:` line LAST and the
     failure form quotes a check's first eight lines, so a ledger refused for
@@ -4307,11 +4370,49 @@ def rounds_of(tmp_path, text, rounds=3):
     ],
 )
 def test_rounds_says_capped_and_counts_what_was_deferred(tmp_path, text, rows):
-    """A10. `capped` is read off the last record's `Needs a fix` beginning
-    `yes`; the row beneath counts the verdicts `chain_check.verdict_of` calls
+    """A10. `capped` is read off the last record's `Needs a fix` through
+    `chain_check.says_reopened` (#866); the row beneath counts the verdicts `chain_check.verdict_of` calls
     `deferred` and lists their homes, read through `chain_check`'s own
     readers rather than a second parser of a round record."""
     assert rounds_of(tmp_path, text) == rows
+
+
+@pytest.mark.parametrize(
+    "needs, head",
+    [
+        ("yes — 🟡 1, the wording", "3 · capped"),
+        # Emphasis comes off first, as `says_reopened` takes it off: the
+        # panel used to read these as not capped, because they begin `*`.
+        ("**yes — 🟡 1, the wording**", "3 · capped"),
+        ("`yes` — 🟡 1, the wording", "3 · capped"),
+        # Invisible characters come off before the word is read, as the gate
+        # reads the cell (`chain_check.record_facts`, round 1's 🟡 3).
+        ("​yes — 🟡 1, the wording", "3 · capped"),
+        ("﻿yes — 🟡 1, the wording", "3 · capped"),
+        # A cell the check cannot read answers nothing: the panel used to
+        # read the first two as capped.
+        ("yes", None),
+        ("yesterday's finding is closed", None),
+        ("maybe", None),
+        ("", None),
+        ("no", "3"),
+        ("no — every finding closed", "3"),
+    ],
+)
+def test_the_panels_capped_is_the_gates_reopening(tmp_path, needs, head):
+    """#866 S1: the panel is the third reader of `Needs a fix` and reads it
+    through `chain_check.says_reopened`. True draws `capped`, False draws the
+    count alone over the deferral row, and None — a cell the check refuses —
+    is a record that cannot answer, which prints `<R>` with no row beneath."""
+    chain, reader = check_module(), reader_module()
+    reopened = chain.says_reopened(reader.visible(needs).strip())
+    rows = rounds_of(tmp_path, capped_record(needs=needs))
+    if head is None:
+        assert reopened is None, needs
+        assert rows == [("rounds", "3")], (needs, rows)
+        return
+    assert reopened == head.endswith("capped"), needs
+    assert rows == [("rounds", head), ("", "2 deferred → #664")], (needs, rows)
 
 
 def test_a_record_with_no_rows_or_no_record_prints_the_count_alone(tmp_path):
@@ -4325,70 +4426,41 @@ def test_a_record_with_no_rows_or_no_record_prints_the_count_alone(tmp_path):
     assert gate.rounds_rows(str(item), home) == [("rounds", "0")]
 
 
-def test_the_home_is_read_off_the_cell_after_the_word(tmp_path):
-    """`verdict_of` hands back the bare word for a homed deferral, so the home
-    comes off the cell itself, through the same normalisation: emphasis off,
-    the word, then the separators, then the home's first word."""
-    gate, chain = gate_module(), check_module()
-    for cell, home in (
-        ("deferred #664", "#664"),
-        ("**deferred** #664", "#664"),
-        ("deferred — #664, see the issue", "#664"),
-        ("Deferred seal/follow-up.md.", "seal/follow-up.md"),
-        ("deferred", None),
-        ("fixed abc1234", None),
-    ):
-        assert gate.deferred_home(chain, cell) == home, cell
-
-
 @pytest.mark.parametrize(
     "cell, home",
     [
         ("deferred #664", "#664"),
         ("**deferred** #664.", "#664"),
-        ("deferred to #664", "#664"),
-        ("deferred → #664", "#664"),
-        ("deferred (#664)", "#664"),
-        ("deferred — issue #97 already holds this axis", "#97"),
-        ("deferred `seal/follow-up.md`", "seal/follow-up.md"),
-        ("deferred [#664](https://example.com/664)", "#664"),
-        ("deferred phase 9 of this branch", "phase 9 of this branch"),
-        ("deferred → later", "later"),
-        # A path or a `.md` file after other words is still the home.
-        ("deferred to seal/follow-up.md", "seal/follow-up.md"),
-        ("deferred into the follow-up.md file", "follow-up.md"),
-        # Words joined by a slash are words, not a path (round 2's 🟡 1).
-        ("deferred — the stdout/stderr split is #700's", "#700"),
-        ("deferred to whoever owns CI/CD next", "to whoever owns CI/CD next"),
-        ("deferred — read/write order is in seal/follow-up.md", "seal/follow-up.md"),
-        ("deferred and/or #701", "#701"),
-        # A path written from `./` is still the file, and words in a code
-        # span lose the span's marks.
-        ("deferred see ./seal/follow-up.md", "seal/follow-up.md"),
-        ("deferred `phase 9 of this branch`", "phase 9 of this branch"),
-        ("deferred **phase 9 of this branch**", "phase 9 of this branch"),
-        # A file name keeps its underscores (round 2's 🟡 2).
+        ("deferred #854 — the run is capped", "#854"),
+        # A file keeps its underscores (round 2's 🟡 2 of #666).
+        ("deferred `tests/test_a_b.py`", "tests/test_a_b.py"),
+        ("deferred the frame", "the frame"),
+        # Prose prints as the prose it is: the panel used to find `#664` and
+        # `#97` inside these two (#866).
+        ("deferred to #664", "to #664"),
         (
-            "deferred `tests/test_the_gate_names_every_step_ci_runs.py`",
-            "tests/test_the_gate_names_every_step_ci_runs.py",
+            "deferred — issue #97 already holds this axis",
+            "issue #97 already holds this axis",
         ),
-        (
-            "deferred to `skills/verify/scripts/broad_gate.py`'s owner",
-            "skills/verify/scripts/broad_gate.py",
-        ),
+        # ASCII on the panel, anything else reading `?`.
+        ("deferred → #664", "? #664"),
     ],
 )
-def test_a_deferrals_home_is_read_whole(cell, home):
-    """Round 1's 🟡 2, over the shapes the tree's records and a person
-    write: the home is an issue or a path wherever it stands, and the words
-    where it is neither, never the first word alone — and what reaches the
-    panel is ASCII, because the letter twin is for a console that is not
-    UTF-8."""
-    gate, chain = gate_module(), check_module()
-    assert chain.verdict_of([cell], 0) == chain.DEFERRED, cell
-    found = gate.deferred_home(chain, cell)
-    assert found == home, (cell, found)
-    assert found.isascii(), found
+def test_the_panels_home_is_the_gates_home(tmp_path, cell, home):
+    """#866 S2 on the panel: the homes after `→` are
+    `chain_check.deferred_home`'s answers, in ASCII because the letter twin
+    maps only the owner's characters. The fourteen prose shapes this case
+    replaces read an issue or a path out of the rest of the cell, which no
+    other reader of the cell did."""
+    chain = check_module()
+    assert chain.deferred_home(cell) is not None, cell
+    rows = rounds_of(
+        tmp_path, capped_record(verdicts=f"| 🟡 1 | a | `f.py:1` | {cell} | why |\n")
+    )
+    assert rows[0] == ("rounds", "3 · capped"), rows
+    # A home too long for one row continues beneath (`wrapped`).
+    assert all(label == "" for label, _ in rows[1:]), rows
+    assert " ".join(value for _, value in rows[1:]) == f"1 deferred → {home}", rows
 
 
 def test_a_capped_run_is_sealed_with_its_deferral_on_the_stamp(repo, tmp_path):
@@ -8461,12 +8533,15 @@ def test_a_green_tree_preflights_green_and_seals_nothing(repo, tmp_path):
     assert not any(c in out.stdout for c in HALF_BLOCKS), "a preflight drew blocks"
     arms = record_arms()
     assert len(arms) >= 6, f"the gate's record arms were not read: {arms}"
-    # `.txt` alone: the chain arm's draft payload (`draft_env`) is kept here
-    # too, and it is an input rather than an arm's output.
-    kept = sorted(n for n in os.listdir(keep) if n.endswith(".txt"))
+    # Every file kept is an arm's output (#866): the chain arm no longer
+    # writes a draft payload beside them, and passes `--sealing` instead.
+    kept = sorted(os.listdir(keep))
     assert kept == sorted(f"{name}.txt" for name in arms), (
         f"the preflight kept {kept}; the gate's record arms are {arms}"
     )
+    chain_line = (keep / "chain.txt").read_text(encoding="utf-8").split("\n", 1)[0]
+    assert chain_line.endswith(f" {gate_module().CHAIN_SEALING}"), chain_line
+    assert gate_module().CHAIN_SEALING == check_module().SEALING
     for name in arms:
         text = (keep / f"{name}.txt").read_text(encoding="utf-8")
         assert text.startswith("$ "), f"{name}.txt does not open with its command"
@@ -9913,7 +9988,7 @@ def test_the_panel_reports_the_rows_exit_code_and_asserts_no_linter(a_sealed_run
     )
 
 
-def test_a_runners_event_payload_judges_the_fixture_and_fails_its_gate(
+def test_a_runners_event_payload_is_what_judges_the_fixture(
     repo, tmp_path, monkeypatch, capsys
 ):
     """What the leak did, reproduced deliberately so it is not only CI's to
@@ -9921,36 +9996,43 @@ def test_a_runners_event_payload_judges_the_fixture_and_fails_its_gate(
     green on every laptop.
 
     With `GITHUB_EVENT_PATH` pointing at a REAL pull request's payload, the
-    gate's own chain check judges this fixture repository a ready pull
-    request and fails it on the fixture record's `Broad gate: not yet` —
-    which is #332's state, read into a repository that has nothing to do with
-    it. The gate then never reaches `seal` at all.
+    gate's own chain check judges this fixture repository by THAT pull
+    request's state — #332's, read into a repository that has nothing to do
+    with it. Until #866 the consequence was a failure: the fixture's `Broad
+    gate: not yet` failed the arm and the gate never reached `seal`. Under
+    `--sealing` that one cell is excused, so what is left to observe is the
+    judgment itself (`questions.md` W2 of 1791384155): the chain arm's kept
+    output names the runner's payload as its source, where the same gate
+    with the variable cleared names the `gh` it asked.
 
     This is the case that gives the clearing fixture above its teeth on a
     machine that sets nothing: it puts the variable back on purpose and
     asserts the consequence, so a reader who removes the guard can see what
     the guard was for without waiting for a pull request to go red."""
     settled_item(repo)
-    monkeypatch.setenv("GITHUB_EVENT_PATH", ready_payload(tmp_path))
+    payload = ready_payload(tmp_path)
     mod = gate_module()
-    code = mod.gate(
-        argparse.Namespace(
-            root=str(repo),
-            base="base",
-            record=str(repo / ITEM),
-            shape=True,
-            keep_output=str(tmp_path / "out"),
-            preflight=False,
-        ),
-        False,
-    )
-    out = capsys.readouterr()
-    assert code == 1, f"exit {code}\n{out.out}{out.err}"
-    assert "NOT SEALED" in out.out, out.out
-    assert re.search(r"^\s+chain\s+exit 1", out.out, re.M), (
-        f"the chain check is not what failed:\n{out.out}"
-    )
-    assert "ready pull request" in out.out, out.out
+
+    def chain_text(keep):
+        mod.gate(
+            argparse.Namespace(
+                root=str(repo),
+                base="base",
+                record=None,
+                shape=True,
+                keep_output=str(keep),
+                preflight=True,
+            ),
+            False,
+        )
+        capsys.readouterr()
+        return (keep / "chain.txt").read_text(encoding="utf-8")
+
+    cleared = chain_text(tmp_path / "cleared")
+    assert "no pull-request event payload, and `gh pr view`" in cleared, cleared
+    monkeypatch.setenv("GITHUB_EVENT_PATH", payload)
+    leaked = chain_text(tmp_path / "leaked")
+    assert f"judged as a ready pull request ({payload})" in leaked, leaked
 
 
 def test_a_seal_exit_that_is_not_two_leaves_the_tree_unsealed(

@@ -16,6 +16,7 @@ one in-tree caller and one test caller, and a unit called from tests alone,
 because that is the diff `Contract changes` has to name.
 """
 
+import inspect
 import re
 import shutil
 import subprocess
@@ -275,10 +276,10 @@ def test_pass_is_ticked_when_nothing_is_open_and_the_gate_is_the_flag(repo):
     record, which is the state that makes the verifying round mandatory.
     The exit is the check's; the record stands.
 
-    The check is told `draft`, as `round_record.run_check` tells it on every
-    local run unless `gh` says the pull request is ready, so since #598 the
-    pair prints there rather than failing, and the line names the verifying
-    round. At a ready pull request the same run exits 1."""
+    The check sees no pull request here — the suite's `gh` finds none, which
+    it reads as unknown and not as ready (#866) — so, as in a draft since
+    #598, the pair prints rather than failing, and the line names the
+    verifying round. At a ready pull request the same run exits 1."""
     a = round_one(repo)
     write(repo, "mod.py", MOD_CHANGED)
     b = commit(repo, "fix")
@@ -757,7 +758,9 @@ def test_the_empty_span_repair_did_not_widen_the_shared_separators():
     arrives as `deferred seal/follow-up.md`. The rider is right about WHERE
     the repair goes and its reason is not the one it gives. Recorded rather
     than quietly corrected, because the other two callers are a real cost and
-    nothing here measured them.
+    nothing here measured them. Since #866 the home reaches no
+    `SEPARATORS` strip in `fix_table` at all: `chain.deferred_parts` reads
+    it, and its `HOME_MARKS` takes the backticks off first.
     """
     generator = generator_module()
     assert "`" not in generator.chain.SEPARATORS, (
@@ -880,6 +883,63 @@ def test_a_deferred_row_whose_third_cell_begins_with_its_home_says_it_once(repo)
     assert one[4].count("#309") == 1, (one, out)
     assert "the parity arm is out of scope" in one[4], one
     assert "executed" in one[4], "the reviewer's grounds"
+
+
+def test_a_deferred_verdict_cells_home_ends_at_the_dash(repo):
+    """#866 S4. `fix_table` took the whole rest of the verdict cell as the
+    home, so `deferred #854 — the run is capped` wrote that whole sentence
+    into the Verdict cell, and the gate, the panel and the release seal each
+    read a different home out of it. The home is `chain.deferred_parts`'
+    reading: `#854`, and what followed the dash leads the note, the third
+    cell's reasoning behind it."""
+    a = round_one(repo, verdicts=OPEN_1)
+    write(repo, "README.md", "# untouched\n")
+    b = commit(repo, "nothing")
+    code, out, record = close(
+        repo,
+        1,
+        fix_table("| 1 | deferred #854 — the run is capped | why |\n"),
+        f"{a}..{b}",
+    )
+    assert code == 0, out
+    (one,) = verdict_cells(record)
+    assert one[3] == "deferred #854", (one, out)
+    assert one[4] == "#854 — the run is capped — why; executed", one
+
+
+def test_a_bare_deferred_verdict_reads_its_home_from_the_third_cell(repo):
+    """#866: a bare `deferred` beside a third cell reads that cell as if the
+    word stood in front of it, through the same `deferred_parts`, so the home
+    is `#309` and not the third cell whole — which used to land in the
+    Verdict cell as `deferred #309 — the parity arm is out of scope`."""
+    a = round_one(repo, verdicts=OPEN_1)
+    write(repo, "README.md", "# untouched\n")
+    b = commit(repo, "nothing")
+    code, out, record = close(
+        repo,
+        1,
+        fix_table("| 1 | deferred | #309 — the parity arm is out of scope |\n"),
+        f"{a}..{b}",
+    )
+    assert code == 0, out
+    (one,) = verdict_cells(record)
+    assert one[3] == "deferred #309", (one, out)
+    assert one[4] == "#309 — the parity arm is out of scope; executed", one
+
+
+def test_a_deferred_verdict_glued_to_its_home_is_not_the_word(repo):
+    """#866: `deferred—#12`, the dash touching the word, is not `deferred` to
+    `verdict_of`, which leaves it open at the gate. The fix table used to
+    close it with its own prefix test; it refuses it now, as it refuses any
+    verdict outside its three words, and nothing is written."""
+    a = round_one(repo, verdicts=OPEN_1)
+    write(repo, "README.md", "# untouched\n")
+    b = commit(repo, "nothing")
+    code, out, _ = close(
+        repo, 1, fix_table("| 1 | deferred\N{EM DASH}#12 | why |\n"), f"{a}..{b}"
+    )
+    assert code == 2, out
+    assert "deferred <home>" in out, out
 
 
 def test_the_unknown_finding_refusal_says_so_when_the_table_holds_no_id(repo):
@@ -1514,26 +1574,18 @@ def two_rounds(repo, location, path="mod.py", others=()):
     [
         "`mod.py#helper`",
         "`mod.py:2`",
-        "`helper`",
         "`mod.py#helper@deadbee`",
         "`./mod.py#helper`",
-        "`helper()`",
-        "helper",
         "`mod.py::helper`",
         "`mod.py:2`, and the guard at `README.md`",
-        "`mod.py#other` and `#helper`",
     ],
     ids=[
         "path-unit",
         "path-line",
-        "identifier",
         "path-unit-hash",
         "dot-slash",
-        "identifier-call",
-        "bare",
         "double-colon",
         "prose-around-path-line",
-        "fragment-after-path",
     ],
 )
 def test_a_unit_added_beside_a_finding_inside_an_earlier_units_is_refused(
@@ -1544,11 +1596,10 @@ def test_a_unit_added_beside_a_finding_inside_an_earlier_units_is_refused(
     and it is refused naming the unit, the finding, and the record whose
     row names the parent -- with the exit the rule gives.
 
-    The last five forms are the ones round 1 of #161's own chain found
-    escaping (🟡 4): each closed with `helper_guard (depth 1)` until the
-    Location's path was resolved against the tree and `()` and `::`
-    were read. A bare name is resolved against every file the range
-    touched, at the range's start, that holds a unit of that name."""
+    Every form here carries its path, as `path_forms` reads a `Location`
+    (#866): the path resolved against the tree at the range's start, and
+    `@hash`, `./` and `::` read — the forms round 1 of #161's own chain
+    found escaping (🟡 4)."""
     a = two_rounds(repo, location)
     write(repo, "mod.py", MOD_CHANGED + GUARD)
     b = commit(repo, "round 2's fix")
@@ -1558,6 +1609,29 @@ def test_a_unit_added_beside_a_finding_inside_an_earlier_units_is_refused(
     assert "round-1.md" in out
     assert "depth 2" in out
     assert "deferred with a named answerer, or becomes an issue" in out
+
+
+@pytest.mark.parametrize(
+    "location",
+    ["`helper`", "`helper()`", "helper", "`mod.py#other` and `#helper`"],
+    ids=["identifier", "identifier-call", "bare", "fragment-after-path"],
+)
+def test_a_finding_located_by_a_name_with_no_path_places_nothing(repo, location):
+    """#866 S5. The depth walk reads a `Location` through `path_forms`, as
+    `landings` reads it for a fix of a fix, so a name with no path beside it
+    — backticked, called or bare, or a `#name` standing apart from its path
+    — places the finding nowhere, and the unit its fix adds is written at
+    depth 1. The walk used to resolve such a name against every file the
+    range touched, which read the cell a second way."""
+    a = two_rounds(repo, location)
+    write(repo, "mod.py", MOD_CHANGED + GUARD)
+    b = commit(repo, "round 2's fix")
+    _code, out, record = close(
+        repo, 2, fix_table(f"| 1 | fixed | {b[:7]} |\n"), f"{a}..{b}"
+    )
+    assert "depth 2" not in out, out
+    assert "round-record: closed" in out, out
+    assert fields(record)["New units"] == "helper_guard (depth 1)", out
 
 
 # #30's measured shape, in one file: two findings, each located inside a
@@ -1803,6 +1877,25 @@ def test_a_unit_added_by_a_fix_outside_every_earlier_unit_is_depth_one(repo):
     assert "round-record: closed" in out, out
     assert "no cell was written" not in out, out
     assert fields(record)["New units"] == "beta_guard (depth 1)", record
+
+
+def test_one_reader_places_a_finding_and_the_wide_one_is_gone():
+    """#866 S6. The wide `Location` reading and its five patterns left
+    `round_record.py`, and both questions about the cell — a fix of a fix and
+    the depth — read it through `path_forms`."""
+
+    generator = generator_module()
+    for gone in (
+        "location_units",
+        "LOCATION_UNIT_RE",
+        "LOCATION_LINE_RE",
+        "FRAGMENT_RE",
+        "IDENTIFIER_RE",
+        "BARE_IDENTIFIER_RE",
+    ):
+        assert not hasattr(generator, gone), gone
+    for reader in (generator.depth_two, generator.landings):
+        assert "path_forms(" in inspect.getsource(reader), reader.__name__
 
 
 def test_a_basename_resolves_to_the_one_tracked_file_that_ends_in_it(repo):

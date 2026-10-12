@@ -160,7 +160,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 
 # The interpreter, before this file does anything a reader could mistake for
 # progress.
@@ -1019,31 +1018,6 @@ def pull_request_cell(root, given, which=shutil.which, run=subprocess.run):
     except (ValueError, KeyError, TypeError):
         return PR_NOT_YET
     return f"#{number} {DASH} {url}"
-
-
-def pull_request_is_ready(root, which=shutil.which, run=subprocess.run):
-    """True only when `gh` says the branch's pull request is not a draft.
-
-    `chain_check` judges an unchecked `Pass` as a failure on a READY pull
-    request and as the honest state of a running review on a draft. A record
-    being generated is a review still running, so the check is told `draft`
-    unless the platform says otherwise — and the platform is asked, not the
-    session.
-    """
-    if which("gh") is None:
-        return False
-    try:
-        r = run(
-            ["gh", "pr", "view", "--json", "isDraft"],
-            cwd=root,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=30,
-        )
-        return r.returncode == 0 and json.loads(r.stdout).get("isDraft") is False
-    except (OSError, subprocess.SubprocessError, ValueError, AttributeError):
-        return False
 
 
 def default_baseline(root):
@@ -2038,9 +2012,10 @@ def floor_and_fixes(reader, earlier):
       |               |        | floor record's own walk, which starts    |
       |               |        | fresh — so every floor record is walked  |
 
-    That is the enumeration, taken by construction over `stopping_floor`'s
-    body — the two loops under `word == FLOOR_NO`, which is the whole of what
-    it does with `later` — and then a monotonicity question asked of each,
+    That is the enumeration, taken by construction over the two walks —
+    `chain.floor_walks` since #866, the one function the gate's
+    `stopping_floor` and this both call, where they were two loops apiece —
+    and then a monotonicity question asked of each,
     rather than by reading for more instances of the shape. Reading the
     earliest floor record's count walk alone printed `one reopening remains`
     at round 4 of this work item while the gate returned an error at
@@ -2077,35 +2052,28 @@ def floor_and_fixes(reader, earlier):
     — the permissive direction, and against what this docstring says it does
     (round 1, 🟡 12). `checked_by` already names the unreadable record.
     """
-    seen = []
+    paths, facts = [], []
     for _k, path in earlier:
         try:
             with open(path, encoding="utf-8") as handle:
                 text = handle.read()
         except OSError:
             return None, [], 0, False, None
-        lines = reader.readable(text)
-        rows = chain.table_rows(reader, lines)
-        floor = chain.field(rows, chain.FLOOR)
-        met = floor is not None and (
-            chain.yes_or_no(reader.visible(floor).strip())[0] == chain.FLOOR_NO
-        )
-        needs = chain.field(rows, chain.NEEDS)
-        # Through the gate's own reader of the reopening question rather
-        # than a `== FLOOR_YES` of this line's own (#138): a bare `yes` is
-        # no reopening there, so it is none here, and the printed bound and
-        # the gate cannot be made to disagree by one cell — #218's class.
-        reopened = needs is not None and (
-            chain.says_reopened(reader.visible(needs).strip()) is True
-        )
-        seen.append((path, met, reopened, chain.closed_with_a_fix(reader, lines, path)))
+        # The gate's own reading of each record and its own two walks
+        # (`chain.record_facts`, `chain.floor_walks`, #866), so the printed
+        # bound and the gate cannot be made to disagree by one cell or one
+        # loop — #218's class. A bare `yes` is no reopening there, so it is
+        # none here (#138).
+        paths.append(path)
+        facts.append(chain.record_facts(reader, reader.readable(text), path))
 
-    floor_i = next((i for i, row in enumerate(seen) if row[1]), None)
-    if floor_i is None:
+    walks = chain.floor_walks(facts)
+    if not walks:
         return None, [], 0, False, None
+    floor_i = min(walks)
     # The reopening walk, from the EARLIEST floor record — the only start it
     # needs, by the monotonicity argument above.
-    fixes = [p for p, _m, _r, wrote in seen[floor_i + 1 :] if wrote]
+    fixes = [paths[j] for j in walks[floor_i][0]]
 
     # The count walk, from EVERY floor record. Among the walks still running,
     # the earliest has the largest count — a later walk's records are all in
@@ -2126,19 +2094,11 @@ def floor_and_fixes(reader, earlier):
     # after the stop would be counted too (the ticket's ninth mutation
     # survivor, which this reading closes).
     counted, counted_at, running = 0, None, False
-    for i, (path, met, _r, _w) in enumerate(seen):
-        if not met:
-            continue
-        spent, stopped = 0, False
-        for _p, _m, reopened, wrote in seen[i + 1 :]:
-            spent += 1
-            if reopened or wrote:
-                stopped = True
-                break
+    for i, (_fixers, spent, stopped) in sorted(walks.items()):
         fires = spent > 1 if stopped else spent >= 1
         if fires and spent > counted:
-            counted, counted_at, running = spent, path, not stopped
-    return seen[floor_i][0], fixes, counted, running, counted_at
+            counted, counted_at, running = spent, paths[i], not stopped
+    return paths[floor_i], fixes, counted, running, counted_at
 
 
 def bound_line(reader, routing, rounds, n):
@@ -2307,17 +2267,13 @@ def current_run(reader, earlier):
     **Only a `second` its run counted cuts it** (round 1's ⬜ 2): one with no
     earlier landing in the run is a record that disagrees with its run, which
     the gate refuses, and letting it cut would restart the floor's walks on a
-    stop that never happened. `chain_check.runs_of` cuts by the same rule.
+    stop that never happened. Where the cuts fall is `chain.cut_runs`' answer,
+    the one `chain_check.runs_of` reads (#866).
     """
-    last, landed = None, False
-    for index, (_k, path) in enumerate(earlier):
-        count = fof_count_of(reader, path) or 0
-        if count == 2 and landed:
-            last, landed = index, False
-        elif count:
-            landed = True
-    if last is None:
+    cuts = chain.cut_runs([fof_count_of(reader, path) for _k, path in earlier])
+    if not cuts:
         return list(earlier), None
+    last = cuts[-1]
     return list(earlier[last + 1 :]), earlier[last]
 
 
@@ -2460,9 +2416,9 @@ def landings(reader, root, target, keyed, previous):
     `keyed` is the report's verdict rows as `verdict_rows` keys them; the open
     ones are the rows `close` will demand a fix-table row for. `previous` is
     `(K-1, path)` of the record before this one, or None for round 1. Each
-    `Location` is resolved at THIS round's target through `location_units`
-    with `paths_only`, so only a code span or word that is wholly
-    `path:line`, `path#unit` or `path::unit` (`path_forms`) counts.
+    `Location` is resolved at THIS round's target through `path_forms`, so
+    only a code span or word that is wholly `path:line`, `path#unit` or
+    `path::unit` counts.
 
     Lands nowhere: a row whose severity commissions no fix
     (`COMMISSIONS_NOTHING`); a `#name` apart from its path, and a path that
@@ -2530,9 +2486,7 @@ def landings(reader, root, target, keyed, previous):
         # and its place written together. A name with no path, a `#name`
         # standing apart from its path, and a path that is the tail of a
         # longer token land nowhere — no prose is read to decide otherwise.
-        for rel, unit in location_units(
-            reader, root, target, location, tracked, paths_only=True
-        ):
+        for rel, unit in path_forms(reader, root, target, location, tracked):
             landing = (label, rel, unit, units.get((rel, unit)))
             if landing[3] is not None and landing not in found:
                 found.append(landing)
@@ -2781,33 +2735,16 @@ def build(reader, routing, args, root, item, rounds):
 def run_check(root, baseline):
     """`chain_check --worktree` on the repository, printed, its code returned.
 
-    The check reads the pull request's state from the event payload GitHub
-    writes, and outside a workflow it has none and judges as READY — where an
-    unchecked `Pass` fails. A record being generated is a review still
-    running, so the check is told `draft` unless `gh` says the pull request
-    is already ready, in which case it is judged as CI will judge it. On a
-    machine without `gh` the check is told `draft` for every local run, and
-    CI re-judges from the real payload at the pull request.
+    The check reads the pull request's state itself (#866): the event payload
+    where GitHub wrote one, else `gh pr view --json isDraft` in ROOT, else
+    `unknown`, which it reads as unknown, does not judge as a ready pull
+    request, and prints with every source tried
+    (`chain_check.pull_request_state`, round 1's 🟡 1). This writes nothing
+    into the environment. It used to hand the check a DRAFT payload whenever
+    `gh` was absent, failed or said draft; a `gh` that says ready is now read
+    as ready, and the check's exit is this command's.
     """
-    env_was = os.environ.get("GITHUB_EVENT_PATH")
-    payload = None
-    if not pull_request_is_ready(root):
-        fd, payload = tempfile.mkstemp(suffix=".json", prefix="round-record-")
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump({"pull_request": {"draft": True}}, f)
-        os.environ["GITHUB_EVENT_PATH"] = payload
-    try:
-        return chain.main(["--worktree", "--baseline", baseline, "--root", root])
-    finally:
-        if payload is not None:
-            if env_was is None:
-                os.environ.pop("GITHUB_EVENT_PATH", None)
-            else:
-                os.environ["GITHUB_EVENT_PATH"] = env_was
-            try:
-                os.unlink(payload)
-            except OSError:
-                pass
+    return chain.main(["--worktree", "--baseline", baseline, "--root", root])
 
 
 def worktrees_of(item):
@@ -3064,22 +3001,9 @@ HEURISTIC_NOTE = "read by the diff-line heuristic and not by the AST"
 # definition, and every record and document a range touches would otherwise
 # be named as read for them (round 1 of #161's own chain, 🟡 5).
 PROSE_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
-# The shapes a `Location` cell names a unit in: `path#unit` or `path::unit`,
-# either with `@hash` after, `path:line`, a backticked identifier with or
-# without `()`, and a cell that is a bare identifier. A path is resolved
-# against the tree at the range's start — exact, `./`-stripped, or the one
-# tracked path ending in `/<path>`, because records name
-# `chain_check.py#fix_surface` for a file three directories down (round 1
-# of #161's own chain, 🟡 4: the five forms after the first escaped).
-LOCATION_UNIT_RE = re.compile(r"([\w./-]+\.py)(?:#|::)([A-Za-z_]\w*)")
-LOCATION_LINE_RE = re.compile(r"([\w./-]+\.py):(\d+)")
-# A second unit named by its fragment alone after a path — `path#a` and
-# `#b` — the form round 1 of #161's own chain located its 🟡 4 in. The
-# fragment names a unit in the last path the cell resolved, or no file.
-FRAGMENT_RE = re.compile(r'(?<![\w./\-"#])#([A-Za-z_]\w*)')
-IDENTIFIER_RE = re.compile(r"`([A-Za-z_]\w*)(?:\(\))?`")
-BARE_IDENTIFIER_RE = re.compile(r"^([A-Za-z_]\w*)(?:\(\))?$")
-# The three forms a fix-of-a-fix landing is read from (#823), matched against
+# The three forms a `Location` cell places a finding in, for a fix-of-a-fix
+# landing (#823) and for the depth walk (#866) alike -- the one reading of
+# that cell, through `path_forms` -- matched against
 # a WHOLE token and never searched for inside one: `path:line` (a range after
 # it allowed), `path#unit` and `path::unit` (a `()` and an `@hash` after it
 # allowed). A token is a code span's whole content, or a whitespace-separated
@@ -3854,12 +3778,12 @@ def fix_table(reader, path, notes=False):
     # and the `note` line below now cuts the commit's own code span, where it
     # used to cut the hex alone. It was right that the repair belongs here and
     # not in `chain.SEPARATORS` -- that constant is read by the `deferred`
-    # home below and by `chain_check`'s own readers -- and its stated REASON
-    # did not hold at this site: `chain.EMPHASIS` is ``[*_`]+`` and runs over
-    # the verdict cell one line before `SEPARATORS` is reached, so a home
-    # written as a code span already arrives with its backticks gone
-    # (measured 2026-09-14). The other two callers are still a real cost and
-    # nothing has measured them, so the constant is left alone.
+    # home reader (`chain.deferred_parts`) and by `chain_check`'s own readers
+    # -- and its stated REASON did not hold at this site: a home written as a
+    # code span loses its backticks to `chain.HOME_MARKS` before
+    # `SEPARATORS` is reached (it was `chain.EMPHASIS` when this was measured,
+    # 2026-09-14). The other two callers are still a real cost and nothing has
+    # measured them, so the constant is left alone.
     header = NOTES_HEADER if notes else FIXES_HEADER
     label = NOTES_TABLE_LABEL if notes else FIX_TABLE_LABEL
     text = read_text(path, label)
@@ -3944,11 +3868,18 @@ def fix_table(reader, path, notes=False):
                     "third cell. An answer nobody can argue with is not one"
                 )
             out[key] = (ANSWERED, third, "")
-        elif word == DEFERRED_WORD or (
-            word.startswith(DEFERRED_WORD)
-            and word[len(DEFERRED_WORD)] in chain.SEPARATORS
+        elif chain.verdict_of([seen[1]], 0) in (
+            DEFERRED_WORD,
+            f"{DEFERRED_WORD} {chain.NO_HOME}",
         ):
-            home = verdict[len(DEFERRED_WORD) :].strip(chain.SEPARATORS) or third
+            # The home is `chain.deferred_parts`' reading of the cell (#866),
+            # the one the gate, the panel and the release seal take: up to the
+            # first ` — `, and what follows it is note rather than home. A bare
+            # `deferred` takes its home from the third cell, read the same way
+            # as if the word stood in front of it.
+            home, tail = chain.deferred_parts(seen[1])
+            if home is None and third:
+                home, third = chain.deferred_parts(f"{DEFERRED_WORD} {third}")
             if not home:
                 raise Refused(
                     f"{name} is `{DEFERRED_WORD}` with no home. Write "
@@ -3984,7 +3915,13 @@ def fix_table(reader, path, notes=False):
             # above it already tested to be a separator, so none of them can
             # leave a stop behind.
             rest = third[len(home) :] if third.startswith(home) else third
-            out[key] = (DEFERRED_WORD, home, rest.strip(chain.SEPARATORS + "."))
+            # What followed the home in the verdict cell leads the note, and
+            # the third cell's reasoning follows it, joined the way `close`
+            # joins a home to its note (#866 S4).
+            note = f" {DASH} ".join(
+                part for part in (tail, rest.strip(chain.SEPARATORS + ".")) if part
+            )
+            out[key] = (DEFERRED_WORD, home, note)
         elif any(
             word.startswith(w) and word[len(w)] in chain.SEPARATORS for w in admitted
         ):
@@ -4199,54 +4136,20 @@ def resolve_path(rel, tracked):
     return ends[0] if len(ends) == 1 else None
 
 
-def location_units(reader, root, a, text, tracked, paths_only=False):
-    """[(path or None, unit)] the `Location` cell of a finding names.
-
-    Every path is resolved against `tracked`, the tree at `a` where the fix
-    started (`resolve_path`); one that resolves to nothing names no unit
-    here. A `path:line` is resolved to the top-level unit holding that line
-    at `a`. A backticked identifier, with or without `()`, or a cell that
-    is one bare identifier, names a unit and no file, and the caller finds
-    the file among the ones the range touched.
-
-    `paths_only` is `landings`' reading and not the depth walk's (round 4 of
-    #823): only a token that IS one of the three path forms (`PATH_FORM_RE`)
-    places a unit, its path and its unit or line written together. A fragment
-    borrowing the last path the cell resolved, a backticked or bare name, and
-    a path that is the tail of a longer token place nothing.
-    """
-    if paths_only:
-        return path_forms(reader, root, a, text, tracked)
-    visible = reader.visible(text)
-    out, last = [], None
-    for m in LOCATION_UNIT_RE.finditer(visible):
-        last = resolve_path(m.group(1), tracked)
-        if last is not None:
-            out.append((last, m.group(2)))
-    for m in FRAGMENT_RE.finditer(visible):
-        out.append((last, m.group(1)))
-    for m in LOCATION_LINE_RE.finditer(visible):
-        rel = resolve_path(m.group(1), tracked)
-        module = parse_module(reader.show(root, a, rel)) if rel is not None else None
-        unit = enclosing_unit(top_units(module), int(m.group(2))) if module else None
-        if unit:
-            out.append((rel, unit))
-    for m in IDENTIFIER_RE.finditer(visible):
-        out.append((None, m.group(1)))
-    m = BARE_IDENTIFIER_RE.match(visible)
-    if m:
-        out.append((None, m.group(1)))
-    return out
-
-
 def path_forms(reader, root, a, text, tracked):
     """[(path, unit)] for every token of the cell that is wholly a path form.
 
-    A token is a code span's whole content, or a word outside the spans with
-    `CLAUSE_END` stripped from its end; it counts only where `PATH_FORM_RE`
-    matches ALL of it, so a `.py` path that is a suffix of the token is not
-    read. The path resolves as `location_units` resolves one, and a line to
-    the top-level unit holding it at `a`.
+    The one reader of a `Location` cell (#866): `landings` reads a fix of a
+    fix through it and `depth_two` reads the depth through it, so the two
+    questions about one cell take one answer. A token is a code span's whole
+    content, or a word outside the spans with `CLAUSE_END` stripped from its
+    end; it counts only where `PATH_FORM_RE` matches ALL of it, so a `.py`
+    path that is a suffix of the token is not read. The path resolves against
+    `tracked`, the tree at `a` (`resolve_path`), and a line to the top-level
+    unit holding it at `a`. A name with no path beside it, backticked or
+    bare, a `#name` standing apart from its path, and a path that is the tail
+    of a longer token place nothing: no prose is read to decide which name in
+    a cell is the place.
     """
     visible = reader.visible(text)
     tokens = CODE_SPAN_RE.findall(visible) + CODE_SPAN_RE.sub(" ", visible).split()
@@ -4321,12 +4224,13 @@ def depth_two(reader, root, a, rows, fixes, added, at_a, earlier, adders=None):
     naming the unit, the finding, the record whose row names the parent,
     and the exit. Nothing has been written when this raises.
 
-    A Location that names a file is inside the unit only if that file
-    holds a top-level unit of that name at `a` — `at_a` is the range's
-    files parsed there, and a file the range did not touch has nothing
-    added to refuse. A Location that names no file is resolved against
-    every file the range touched that holds the unit at `a`, which is the
-    widest honest reading of a name with no path beside it.
+    A Location is read through `path_forms`, as `landings` reads it (#866):
+    only a token that is wholly `path:line`, `path#unit` or `path::unit`
+    places the finding, and a name with no path beside it places nothing,
+    so its fix is not a candidate here. A placed finding is inside the unit
+    only if its file holds a top-level unit of that name at `a` — `at_a` is
+    the range's files parsed there, and a file the range did not touch has
+    nothing added to refuse.
 
     The candidate scope is the finding's file, not every file changed by its
     fix. A regression case added in a separate test file is therefore not
@@ -4381,14 +4285,10 @@ def depth_two(reader, root, a, rows, fixes, added, at_a, earlier, adders=None):
             continue
         _i, cells = rows[number]
         location = cells[LOCATION_COL] if len(cells) > LOCATION_COL else ""
-        for rel, unit in location_units(reader, root, a, location, tracked):
+        for rel, unit in path_forms(reader, root, a, location, tracked):
             if unit not in named:
                 continue
-            if rel is not None:
-                files = [rel] if unit in at_a.get(rel, {}) else []
-            else:
-                files = [f for f, units in at_a.items() if unit in units]
-            for f in files:
+            for f in [rel] if unit in at_a.get(rel, {}) else []:
                 for name in [n for r, n in added if r == f]:
                     candidates.setdefault((f, name), {})[number] = (
                         unit,
@@ -4723,8 +4623,10 @@ def close(args):
         # of the record is still half-repaired.
         #
         # Nothing has reached disk when this raises: `write_record` runs after
-        # this loop, so `raw`'s earlier rows are in memory only.
-        if old and (old.startswith(grounds) or chain.CLOSE_PREFIX_RE.match(old)):
+        # this loop, so `raw`'s earlier rows are in memory only. The second
+        # arm is `chain.close_prefixes`, the reader the check's
+        # `doubled_grounds` counts with (#866).
+        if old and (old.startswith(grounds) or chain.close_prefixes(old)):
             raise Refused(
                 f"finding {number}'s `Grounds` cell already carries a close "
                 f"prefix -- {old[:60]!r} -- so this row was closed once "
@@ -4803,7 +4705,7 @@ def close(args):
     checker, _surface = landing_values(
         [w for n, w in zip(rows, words, strict=True) if n not in notes_open]
     )
-    boxes = [i for i, ln in enumerate(lines) if chain.PASS_RE.match(ln)]
+    boxes = [i for i, _checked in chain.pass_boxes(lines)]
     if len(boxes) != 1:
         raise Refused(f"the record has {len(boxes)} `Pass` boxes and needs one")
     raw[boxes[0]] = f"- [{' ' if still_open else 'x'}] Pass"
@@ -5144,7 +5046,7 @@ def notes(args):
                 grounds = value + (f" {DASH} {note}" if note else "")
             # `close`'s guard, for `close`'s reason: a cell already carrying
             # these grounds, or a close-prefix, was closed once already.
-            if old and (old.startswith(grounds) or chain.CLOSE_PREFIX_RE.match(old)):
+            if old and (old.startswith(grounds) or chain.close_prefixes(old)):
                 raise Refused(
                     f"round-{k}'s {chain.NOTE} {n} has a `Grounds` cell that "
                     f"already carries a closing -- {old[:60]!r} -- so this row "
@@ -5165,7 +5067,7 @@ def notes(args):
             )
             for i, _c in keyed.values()
         ]
-        boxes = [i for i, ln in enumerate(lines) if chain.PASS_RE.match(ln)]
+        boxes = [i for i, _checked in chain.pass_boxes(lines)]
         if len(boxes) != 1:
             raise Refused(
                 f"round-{k}.md has {len(boxes)} `Pass` boxes and needs one; no "
@@ -5491,7 +5393,7 @@ def seal(args):
         raw, lines = reader.gfm_lines(text), reader.readable(text)
         rows = chain.table_rows(reader, lines)
 
-    boxes = [m for ln in lines for m in [chain.PASS_RE.match(ln)] if m]
+    boxes = chain.pass_boxes(lines)
     if n is not None and len(boxes) != 1:
         raise Refused(
             f"round-{n}.md has {len(boxes)} `Pass` boxes and needs one; no cell "
@@ -5518,7 +5420,7 @@ def seal(args):
                 f"it: `{NOTES_COMMAND}`. {chain.NOTES_OWNER}; no cell was "
                 "written"
             )
-    if n is not None and boxes[0].group(1) == " ":
+    if n is not None and not boxes[0][1]:
         raise Refused(
             f"round-{n}.md's `Pass` is unchecked — a finding in its verdict "
             "table is still open, and the broad gate seals a review that has "
@@ -5605,19 +5507,18 @@ def seal(args):
             "sealer's mark names a commit this repository holds — the tree "
             "the run was taken over; no cell was written"
         )
-    for sha in chain.SHA_RE.findall(chain.field(rows, chain.TARGET) or ""):
-        reviewed = chain.resolves_to(root, sha)
-        if reviewed is None or reviewed == ran_at:
-            continue
-        if chain.is_ancestor(root, ran_at, reviewed):
-            raise Refused(
-                f"--broad-gate names `{named[0]}`, and round-{n}.md's "
-                f"`{chain.TARGET}` names `{sha}`, which descends from it. The "
-                "run was spent BEFORE the round it is meant to seal — "
-                "everything that round reviewed after that commit went "
-                "through no broad gate (`CLAUDE.md` §*Verification Scope*). "
-                "Run it again at the tree as it stands; no cell was written"
-            )
+    # The comparison the check's `broad_gate` arm makes, through the same
+    # function (#866): a premature run is refused here before it is written.
+    shape, sha = chain.gate_before_review(root, ran_at, chain.field(rows, chain.TARGET))
+    if shape == chain.PREMATURE:
+        raise Refused(
+            f"--broad-gate names `{named[0]}`, and round-{n}.md's "
+            f"`{chain.TARGET}` names `{sha}`, which descends from it. The "
+            "run was spent BEFORE the round it is meant to seal — "
+            "everything that round reviewed after that commit went "
+            "through no broad gate (`CLAUDE.md` §*Verification Scope*). "
+            "Run it again at the tree as it stands; no cell was written"
+        )
 
     # ONE ENTRY PER RUN, NEWEST FIRST (#174). A run the cell already holds is
     # kept behind the new one as `earlier run`, because a second broad run --

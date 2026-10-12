@@ -44,7 +44,7 @@ SOURCE = "def serialize(order):\n    return {'id': order.id}\n"
 
 def unit_hash(repo):
     text = (repo / "src" / "orders.py").read_text(encoding="utf-8")
-    places, _ = checker.resolve_unit("src/orders.py", "serialize", text)
+    places = checker.resolve_unit("src/orders.py", "serialize", text).places
     a, b = places[0]
     return checker.content_hash(checker.gfm_lines(text)[a - 1 : b])
 

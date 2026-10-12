@@ -31,7 +31,7 @@ edit that does not change what the unit *is*.
 
 | Level | What it is | Where it comes from |
 |---|---|---|
-| **Major** | a function or class for code, a heading path for a document | `ast` for `.py`; otherwise the declaration rule below; `## A / ### B` for markdown |
+| **Major** | a function or class for code, a heading path for a document | `ast` for `.py` and `.pyi`; `## A / ### B` for markdown; in any other file a quoted line, whose region is its paragraph (below) |
 | **Minor**, optional | the statement the claim is actually about | the name it references (`ast` for `.py`), or a quoted line as a last resort |
 
 ```
@@ -86,53 +86,41 @@ parent: `"## Verify / ### Scope"`.
 
 ### Resolving a unit without a parser
 
-`ast` is an exactness upgrade for `.py`, not the only road — most projects
-adopting this are mostly code that is not Python.
+**Without a parser, a unit is not bounded: the anchor is a quoted line.** A
+bare symbol is bounded only where a real parser decides its extent
+(`evidence_check.py#bounding_rule`):
 
-The generic rule needs no parser and no dependency: **the name followed by
-`(`, `{`, `=` or `:`, with only declaration keywords before it, then the block
-to the next line at the same or lower indentation.** That closes a suite in an
-indentation language and lands on the closing brace in a brace language,
-because the brace sits at the declaration's own indent.
+| Suffix | What bounds a bare symbol | What it refuses |
+|---|---|---|
+| `.py`, `.pyi` | `ast`, the running interpreter's own parse | a file that interpreter cannot parse: `BROKEN`, naming its version and the error's line. Nothing falls through to a text rule |
+| `.md` | the heading path, read where a renderer shows a heading | a bare symbol, which names no heading |
+| anything else, and no suffix | nothing | every bare symbol: `BROKEN`, ``no bounding rule for `.ts`; anchor a quoted line instead:`` followed by the row's own path with a placeholder quoted line and a zero hash |
 
-`=` is there because a module-level constant is a unit too, and a common one to
-cite. The colon is stricter — it declares only when the name opens the line —
-because `if v not in NAME:` also ends in one, and without that a row citing a
-constant reads BROKEN for a use somewhere else in the file. A statement
-keyword before the name — `return render(y);`, `await render(y)` — makes the
-line a use for the same reason: it is the commonest shape in every brace
-language, and reading it as a second declaration made an ordinary
-one-declaration-one-call file BROKEN-ambiguous. A line with nothing at all
-before the name whose statement ends — `render(1);` — is a call on structure
-rather than on vocabulary, and is refused whatever the keyword list says.
+**A quoted line's region is the paragraph it sits in** — the run of non-blank
+lines around it, read without the language. It needs no rule, so it resolves
+in every file, and it is the remedy every refusal names:
+`src/f.ts#"export function multiLine("@00000000`, then `--reverify` fills the
+hash.
 
-Swift, Kotlin, Go, Ruby and Lua end no statement with a semicolon, so that
-guard never reached them. **A line with nothing before the name, an opening
-paren, and a span of ONE line is treated as uncertain in every language**, and
-the span is what bounds it: `render() {` opens a block and stays a declaration
-the rule is sure of, while `render(y)` alone does not.
+- **A unit with no blank line inside it is one paragraph**, and one quoted
+  line anywhere in it hashes the whole unit. #848's function — a signature
+  whose parameters run over three lines, then the body — is this case: its
+  signature line hashes lines 1–5, and a body-only edit reads `DRIFTED`.
+- **A unit with blank lines inside it is several paragraphs**, and a quoted
+  line hashes the paragraph it is in. **A quoted line is never a function.** A
+  row whose claim rests on several paragraphs quotes one line of each, in the
+  same `Code grounds` cell.
+- **A quoted line that occurs more than once** is a tie, broken by the row's
+  own recorded hash as for any two places; where none or several hold it, the
+  row is `BROKEN` with the places named.
 
-**The rule reports how sure it is rather than being asked to be right.** Where
-the certain candidates would leave the set empty, the uncertain ones come back —
-a C# `public new void Render(int x)` and a Swift `case loading(String)` are
-declarations whose modifiers are statement keywords elsewhere — and the
-answer is marked as having survived only that way. What the marking buys is
-that nothing downstream has to tell the two apart. The check accepts such a
-place only where its content reconstructs the row's recorded hash, and
-otherwise treats the unit as GONE: `BROKEN` with the repo-wide scan naming the
-destination, which is the answer `ast` already gives `.py`. `--reverify`
-refuses to write onto such a place at all, because it is the command that
-MAKES the hash and has none to compare against. `--migrate` answers the same
-way, with one exception it can prove: where the old stamp's commit holds the
-cited lines unchanged, the person's own line numbers vouch for that place and
-the row migrates.
-
-**A row citing such a unit is still written by hand.** The check names the
-place and the hash it holds — `1-2@a1b2c3d4` — so recording it is a copy
-rather than a computation somebody has to do themselves.
-
-Where it cannot resolve a unit, that is `BROKEN` and a person looks. Loud and
-honest beats a per-language parser nobody maintains.
+The rules this replaces each imitated a language's grammar without its
+parser — an indentation rule that ended a Prettier signature at its
+`): number {` line with the body outside the hash (#848), then a hand-written
+lexer that matched brackets, which a regex literal misled the same way. Each was
+right until the next form it did not know, and silent there. The quoted line
+says on its row what it covers; the cost is that a reworded quoted line reads
+`BROKEN` where a symbol would have survived, which is one edit to the row.
 
 ### Marker comments in the source are not the mechanism
 
@@ -265,7 +253,7 @@ branch had touched.
 
 | Verdict | Meaning | Action |
 |---|---|---|
-| `BROKEN` (exit 2) | the MAJOR unit — or its whole file — is not there, or the unit is there more than once | fix the coordinate now. Where the content still exists the line names the destination, graded by proof: `identical content at <where> (renamed?/moved?)` is content identity across a repo-wide scan and `--reverify` acts on it; `same name at <path> (content differs)` is a labelled fact only; several matches are counted, never named |
+| `BROKEN` (exit 2) | the MAJOR unit — or its whole file — is not there, or the unit is there more than once, or no rule can bound a bare symbol in that file (any file but `.py`, `.pyi` and `.md`, or a `.py` the interpreter cannot parse) | fix the coordinate now. A refusal's line says why and writes out the remedy, a quoted-line anchor on the row's own path, and it carries no destination: a unit nobody could bound was never found, so it cannot have moved. Where the content still exists the line names the destination, graded by proof: `identical content at <where> (renamed?/moved?)` is content identity across a repo-wide scan and `--reverify` acts on it; `same name at <path> (content differs)` is a labelled fact only; several matches are counted, never named |
 | `OLD-FORMAT` (exit 2, `--strict` or not) | an old `path:line` row from before content anchoring, which nothing measures any more | run `evidence-check --migrate .` — a red build naming the migrator beats a green build checking nothing |
 | `MALFORMED` (exit 1; 2 under `--strict`, which is what `broad-gate` passes) | a row's `Code grounds` cell holds a coordinate that does not parse — a placeholder or short hash, no path, a bare `"` inside a quoted locator, a minor anchor that is not quoted — or cites no coordinate at all while the row claims something. Before this verdict such a row entered no count and the totals read clean | write it as `path#anchor@hash`: a `"` inside a quoted locator as `\"`, the hash as `@00000000` until `--reverify` fills it. `--reverify` names the row and leaves it, because which reading of an unparseable coordinate was meant is not the checker's call. Exit 1 here means *fix the coordinate*, not *re-read*: the verdict word on the row says which of the two exit 1 is |
 | `OVERFLOW` (exit 1; 2 under `--strict`, which is what `broad-gate` passes) | a table row in a ledger file splits into more cells than its table's header, so the text past the last column is in no column and no reader sees it — usually an unescaped `\|` inside a cell. A row under no header, which is every fragment row, is counted against the five columns `templates/ledger.md` declares for a ledger row. The line is named with both counts | write a `\|` inside a cell as `\\|`; a table that is not ledger rows takes a header of its own. `--reverify` names the row and leaves it, and still rewrites the row's hashes where their anchors resolve, because the hash is not what is wrong. Exit 1 here means *escape the pipe*, not *re-read* |
@@ -274,6 +262,25 @@ branch had touched.
 | `NOT-IN-TREE` (exit 2, records arm) | a record of a work item that has not shipped, or a row of `seal/follow-up.md`, names a compound backticked identifier that nothing carries outside `seal/specs/`, `seal/ledger/` and `seal/follow-up.md`, or writes a `path#name` whose path resolves to a file that does not carry the name | correct the record, or append ` · NAME NOT IN TREE` on the line where the record means a name the tree does not have (placed before any trailing colon introducing a block). The marker exempts the LINE, not the name |
 | `UNREADABLE` (exit 2, records arm) | a record under a live work item, or a `seal/follow-up.md` that is there, that could not be opened, or a directory the walk could not LIST — a work item's own folder, or `seal/ledger/` itself | a record nobody can read is indistinguishable from a record with nothing in it, which is the green build this refuses. The same holds a directory up, where it is worse: an unlistable `seal/ledger/` used to read as a repository with no live work item and take the whole arm quiet at exit 0. A directory that is ABSENT is still an empty answer — a repository that has not started is not a broken one |
 | `OK` | the content is what the row recorded — the current line numbers are printed for you to open |
+
+**A row held by a test takes three of these, and never `DRIFTED`** (#836).
+Where the Code grounds cell names tests as pytest spells a node id —
+`tests/test_x.py::test_y`, `tests/test_x.py::TestA::test_b` for a method —
+each is `BROKEN` where its file or unit is gone, where the name is a constant
+rather than a `def` or `class`, or where it is defined twice, and a method
+written bare is told its spelling; `MALFORMED` where the token is no node id
+or shares the cell with a code coordinate. Otherwise it depends on the run's
+record. Given `--suite-record DIR --suite-key KEY`, which `broad-gate` hands
+its ledger arm for the run it seals, a test is `OK` only where every line
+the pytest recorder wrote for it says `passed`, and `MALFORMED` otherwise,
+the detail naming what was observed — *not run*, *skipped*, *xfailed*,
+*xpassed*, *failed* or *error in the recorded suite*. Given no record, a
+test that exists is `OK`, and one line beside the totals says the test rows
+were read for existence alone. Write the test where it holds the claim, and
+`path#anchor@hash` where none does. A node id outside the Code grounds cell,
+or inside a coordinate's quoted locator, is prose. A superseded row's tests
+are not read again, as its hashes are not. `docs/the-evidence-ledger.md` §*A
+claim held by a test* is the rule.
 
 **An ambiguous MAJOR unit is BROKEN, loudly, and never a measurement.** With
 two places to look, an `OK` would be a claim about whichever one the code
@@ -294,7 +301,14 @@ renaming its hash would hide the one row somebody has to look at. A
 `MALFORMED` row is left too, with a `LEFT` line naming it and the remedy, and
 the run exits 1. An `OVERFLOW` row gets the same `LEFT` line, naming the
 ledger and the line because this command prints no heading per ledger, and
-the run exits 1.
+the run exits 1. A row held by a test has no hash to rewrite: the run writes
+nothing on it and dates nothing, names one whose test is gone, or that the
+record it was given refuses, on a `LEFT` line, and exits 1 for it (#836). A run of `--into` that writes a
+`Re-read ·` row says once, after its count, that a claim a test holds can move
+onto it instead: a `Corrected ·` row citing the released row and naming that
+test, and no code coordinate, retires the row's hashes for good. It writes no
+such row itself, because it cannot tell which of a row's grounds holds its
+claim.
 
 **Where no re-read is owed, the hash and the date stay** (#785). A coordinate
 whose family's newest reading already records what the code holds, and one in
@@ -404,11 +418,11 @@ this rule, one there was checked. Now it is not, and nothing says so.
 
 | Anchor | Region |
 |---|---|
-| a symbol in `.py` | the whole `def`/`class` span, **decorators included** — a decorator carries behaviour |
-| a symbol elsewhere | the declaration line to the next line at its indent or lower, so a closing brace ends it |
+| a symbol in `.py` or `.pyi` | the whole `def`/`class` span, **decorators included** — a decorator carries behaviour |
+| a symbol in any other file | none — refused, with the quoted-line anchor written out |
 | a markdown heading path | down to the next heading at its level or above, which is what a reader means by a section |
-| a minor anchor | the statement it names, capped so a claim cannot quietly grow to a whole unit |
-| any other line | the contiguous run of non-blank lines it sits in — a paragraph, a table, a block of code |
+| a minor anchor | in `.py`, the statement it names — for a quoted line, the innermost statement `ast` gives that holds it; in a file no parser reads, the line it quotes and nothing below it; in markdown, the quoted line and the lines deeper than it, capped so a claim cannot quietly grow to a whole unit |
+| any other quoted line | the contiguous run of non-blank lines it sits in — a paragraph, a table, a block of code. **A quoted line hashes the paragraph it is in and is never a function**: a unit with blank lines inside it is cited one quote per paragraph |
 
 **The heading rule is markdown-only.** `#` opens a comment in Python, shell and
 YAML, and reading one as a heading made a 23-line comment block resolve to its
@@ -701,12 +715,13 @@ absent, or the record is wrong, and the marker is one comment away.
   a renamed directory: no `(moved?)` hint and no `--reverify` heal, so it is
   fixed by `--map` or by hand.
 - `DRIFTED` means "someone must re-read this", not "the claim is wrong".
-- A place the rule is unsure of — a C# `new`, a Swift `case`, a one-line
-  bare-name declaration — is never re-anchored by `--reverify`, and is
-  migrated only where the old stamp vouches for the cited lines. Where its
-  content changed in place and no destination is provable, both commands leave
-  the row and print the hash to record by hand. Accepting it instead is how a
-  call site left behind by a move becomes the row's permanent anchor.
+- A quoted line covers its paragraph and nothing past a blank line. A row
+  quoting the signature of a function whose body has a blank line in it
+  covers the first paragraph only, and an edit below the blank line reads
+  `ok`: the row says on its face what it covers, and the repair is one more
+  quote in the same cell. A reworded quoted line reads `BROKEN` where a
+  symbol would have survived, and no rename scan heals it, because outside
+  `.py`, `.pyi` and `.md` no file yields units to scan.
 - Every row the check calls `BROKEN`, `DRIFTED`, `MALFORMED` or `OVERFLOW`
   gets a line back from `--reverify`, whether or not it could heal it.
   Silence there reads as a heal that happened.
@@ -752,9 +767,12 @@ absent, or the record is wrong, and the marker is one comment away.
   import are nearly all of it.
 - A name match with different content never fixes anything — `main`,
   `resolve` and `check` collide across files as a matter of course.
-- The generic unit rule stops AT a closing brace rather than including it. The
-  brace carries no claim, and a language-aware rule for what closes a block is
-  the per-language parser this deliberately does not have.
+- On upgrade (#870), every row citing a bare symbol in a file that is not
+  `.py`, `.pyi` or `.md` reads `BROKEN` with the refusal and the quoted-line
+  anchor's shape on its line, rows the old text rule bounded right included:
+  quote a line of the unit, then `--reverify`. A decorated `.pyi` stub reads
+  `DRIFTED` once, because `ast` takes the decorators into the span. Every
+  `.py` and `.md` row keeps its hash and its verdict.
 - A `path#name` whose name holds a hyphen or starts with a digit is not read at
   all, so a multi-word heading anchor such as `README.md#known-limits` is
   checked by nobody. And a `#` line GitHub does not render as a heading — in
@@ -791,7 +809,10 @@ the current tree to its enclosing unit and rewritten as `path#unit@hash`; the
 commit stamp drops and the date stays. The run prints the same faithfulness
 report this repository's own 51-coordinate migration was held to: how many
 converted, and every row left named with why — a line past the end of its
-file, a file that is gone, a range no single unit contains. A left row keeps
+file, a file that is gone, a range no single unit contains, or a file no rule
+bounds, whose reason is the refusal with the quoted-line anchor's shape on it:
+which line of the cited range stands for the claim is the row's author's
+choice, so the migrator names the remedy rather than writing one. A left row keeps
 failing the plain check as `OLD-FORMAT`, so nothing is silently dropped, and
 running the command twice is a no-op.
 

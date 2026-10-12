@@ -126,20 +126,30 @@ def head(d):
     return r.stdout.strip() or g(d, "rev-parse", "HEAD").stdout.strip()
 
 
-@pytest.mark.parametrize("verb", ["switch", "checkout"])
-def test_no_git_refuses_a_switch_before_the_tree_moves(tmp_path, verb):
+@pytest.mark.parametrize(
+    "words, ref",
+    [
+        (["switch", "other"], "HEAD"),
+        (["checkout", "other"], "HEAD"),
+        # A branch-naming rebase reaches the hook the same way: its line names
+        # the branch, after the tree moved (S28 of work item 1791384157,
+        # executed by its second reframe on 2.50.1).
+        (["rebase", "main", "other"], "refs/heads/other"),
+    ],
+)
+def test_no_git_refuses_a_switch_before_the_tree_moves(tmp_path, words, ref):
     d, hooks = repo(tmp_path)
     log = tmp_path / "rt.log"
     hook(hooks, "reference-transaction", REFUSING_RT)
+    verb = " ".join(words)
     r = g(
         d,
-        verb,
-        "other",
+        *words,
         check=False,
-        env={"RT_LOG": str(log), "REFUSE_SUFFIX": " HEAD"},
+        env={"RT_LOG": str(log), "REFUSE_SUFFIX": f" {ref}"},
     )
     text = log.read_text(encoding="utf-8") if log.exists() else ""
-    head_lines = re.findall(r"^  \S+ \S+ HEAD$", text, re.M)
+    head_lines = re.findall(rf"^  \S+ \S+ {re.escape(ref)}$", text, re.M)
 
     # Whatever git did with the hook, the working tree is on `other`.
     assert (d / "marker.txt").read_text(encoding="utf-8") == "other\n", (
