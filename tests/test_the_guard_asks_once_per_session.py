@@ -1936,10 +1936,10 @@ def test_under_the_press_the_dirty_row_is_a_deny_to_the_model(
     """S1, rewritten at the reframe after round 3. The whole text is pinned in
     both languages: the changes listed, the press sentence byte for byte, what
     the row does, `git commit` and `git stash` as commands that pass this guard
-    issued alone, the choice and what follows left to the model and git's
-    output, the re-issue sentence, and no question tool. It names no switch
-    option and predicts nothing. Seen red at `c38f97d7` (`ask`) and at
-    `0f1663f5`, whose text named `-c`, `--orphan` and way 2."""
+    issued alone, the choice and what follows left to the model, the re-issue
+    sentence, and no question tool. It names no switch option and predicts
+    nothing of its own. Seen red at `c38f97d7` (`ask`) and at `0f1663f5`,
+    whose text named `-c`, `--orphan` and way 2."""
     write_transcript(projects, "me", ask_entries(repo))
     dirty(repo)
     decision, reason = decide(monkeypatch, capsys, repo, "git switch feature/x")
