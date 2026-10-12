@@ -21,7 +21,7 @@ Framed by `specseal:framer` on Fable 5.1 for #896. -->
 | `CONTRIBUTING.md` §*What a change to a gate must carry* | A test seen red, a stated failure direction, a prompt budget, platform honesty. Each is answered in §*Scope* and `plan.md` |
 | `skills/agent-contract/SKILL.md` §12 | The class, not the coordinate. The line is printed by one function at six sites (In 1 names them); the press is read at the two `choose` sites of the switch direction, and §*The class* says why the creation direction's two choice rows take nothing |
 | `skills/agent-contract/SKILL.md` §13, §14, §15 | The way on is run against the guard, not read off it (S7); the changed texts are pinned in both languages; every new case is seen red at the base |
-| `docs/the-evidence-ledger.md` §*A released row is read again in the branch's fragment* | `seal/releases/0.9.1.md`'s row on `hooks/worktree-guard.py#choose@ed62dd1a` and the `main@…` families of `0.15.6`, `0.18.3` and `0.20.0` drift under this work. Each re-read is a `Re-read ·` citing row in this item's fragment, never an edit of a released file |
+| `docs/the-evidence-ledger.md` §*A released row is read again in the branch's fragment* | `seal/releases/0.9.1.md`'s row on `hooks/worktree-guard.py#choose`, stamped `ed62dd1a`, and the `main@…` families of `0.15.6`, `0.18.3` and `0.20.0` drift under this work. Each re-read is a `Re-read ·` citing row in this item's fragment, never an edit of a released file |
 | `skills/writing-style/SKILL.md`, the Korean sentence rules | The Korean half of every text this work writes |
 
 ## Scope
@@ -226,6 +226,19 @@ measured entry's: `282.0` minutes.
   `hooks/commit-review-gate.py#AUTOMATION_WAYS`.
 - No new file, marker, environment variable, payload field or reader. No
   change to `hooks/hooks.json`.
+
+## Removes
+
+| Removes | Coordinate | Where it lands, or why it can go |
+|---|---|---|
+| the clause ending an unidentified session's per-session line, saying it was working on the tree now, at any age (In 1) | `hooks/worktree-guard.py#fmt_sessions>"working on this tree right now"` | nowhere: the header above every list carries the judgment, and `docs/worktree-guard-spec.md` §*What a blocking prompt must show* says the line is the signals alone |
+| the Korean half of the same clause | `hooks/worktree-guard.py#fmt_sessions>"지금 이 트리에서 작업 중"` | the same |
+| #894's §*Known limits* bullet saying the two choice rows still reach a person under the press | `docs/worktree-guard-spec.md#"## Known limits">"detection unusable, still reach a person: the first attempt is a `deny`"` | §*Choice sites*, *Under the press*, and the bullet that replaced it |
+
+Written by the smith in phase 3, after #835 landed `Removes from` in
+`seal/config.md` at a work-item id below this one; the frame predates the
+rule. The rows are the removals `spec.md` In 1 and `plan.md` §*Seams* already
+name.
 
 ## Open questions → questions.md
 

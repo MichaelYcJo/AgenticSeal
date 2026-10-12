@@ -64,7 +64,7 @@ and can be built before it lands.
   `<git-dir>/specseal-worktree-choice/<scope>/<session>`. Under the press
   `choose` returns before reaching it, so nothing is written (S3).
 - Ledger rows this work drifts: `seal/releases/0.9.1.md`'s row on
-  `hooks/worktree-guard.py#choose@ed62dd1a`, and the `main@…` families in
+  `hooks/worktree-guard.py#choose`, stamped `ed62dd1a`, and the `main@…` families in
   `0.15.6`, `0.18.3` and `0.20.0` and the unreleased fragments under
   `seal/ledger/` that cite `main@08a308fb`. #894 drifts `main` first and
   writes its own `Re-read ·` rows; this item writes its own in its fragment
