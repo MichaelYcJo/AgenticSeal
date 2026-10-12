@@ -6074,8 +6074,10 @@ def removal_findings(lines, shown, root, maps, default_repo, required):
     HEAD names a removal that has not happened. **A coordinate the ledger
     would refuse is refused here, never read as gone**: a cell that is not a
     coordinate, a test's node id, and a bare symbol in a file no rule bounds
-    (`unbounded`). A file the tree does not have holds nothing, so a row
-    naming one is a removal that happened. With REQUIRED, a section that is
+    (`unbounded`), and a path `place` refuses or that is there and will not
+    read, which the ledger arm grades BROKEN. Only a file the tree does not
+    have holds nothing, so a row naming one is a removal that happened (round
+    1 of #835, 🟡 2). With REQUIRED, a section that is
     absent or holds no row and no `nothing` line is refused too.
     """
     present, cut, rows, nothing = removes_section(lines)
@@ -6127,8 +6129,28 @@ def removal_findings(lines, shown, root, maps, default_repo, required):
             continue
         raw_path, locator, claim = m.group("path"), m.group("locator"), m.group("claim")
         repo, rel = place(root, maps, default_repo, raw_path)
-        body = None if repo is None else read(os.path.join(repo, rel))
+        if repo is None:
+            findings.append(
+                (
+                    REFUSED_STATUS,
+                    where,
+                    f"`{cell}` — the path escapes the repository, so nothing it "
+                    "names can be read as gone — write a path inside the tree",
+                )
+            )
+            continue
+        full = os.path.join(repo, rel)
+        body = read(full)
         if body is None:
+            if os.path.lexists(full):
+                findings.append(
+                    (
+                        REFUSED_STATUS,
+                        where,
+                        f"`{cell}` — the path is there and will not read as a "
+                        "file, so nothing in it can be read as gone",
+                    )
+                )
             continue
         found = resolve_unit(rel, locator, body, shown=raw_path)
         if found.refused:

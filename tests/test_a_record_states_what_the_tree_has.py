@@ -1746,6 +1746,36 @@ def test_a_bare_symbol_no_rule_bounds_is_refused_never_read_as_gone(tmp_path):
     assert [(s, d) for s, _c, d in found] == [("REFUSED", f"`f.ts#bar` — {unbounded}")]
 
 
+def test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone(tmp_path):
+    """S5, round 1 of #835 (🟡 2). `place` refuses a path out of the tree,
+    and a directory will not read; neither is a removal that happened, so
+    each is refused naming the row. A file the tree does not have is still
+    the claim holding."""
+    root = tmp_path / "r"
+    tree(root, **{"pkg__sub.d__x.py": "def g():\n    return 1\n"})
+    (tmp_path / "outside.py").write_text("def f():\n    return 1\n", encoding="utf-8")
+    h = home(root)
+    rows = (
+        "| x | `../outside.py#f` | y |\n"
+        "| x | `pkg/sub.d#g` | y |\n"
+        "| x | `pkg/gone.py#g` | y |\n"
+    )
+    work_item(h, "1780000000-live", **{"spec.md": REMOVES_HEAD + rows + REMOVES_TAIL})
+    found, _ = refusals(root)
+    assert [(s, d) for s, _c, d in found] == [
+        (
+            "REFUSED",
+            "`../outside.py#f` — the path escapes the repository, so nothing it "
+            "names can be read as gone — write a path inside the tree",
+        ),
+        (
+            "REFUSED",
+            "`pkg/sub.d#g` — the path is there and will not read as a file, so "
+            "nothing in it can be read as gone",
+        ),
+    ]
+
+
 @pytest.mark.parametrize(
     "wrap",
     [("```\n", "```\n"), ("<!--\n", "-->\n")],
