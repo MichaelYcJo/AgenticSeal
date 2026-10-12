@@ -1997,6 +1997,35 @@ def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
     assert git_in(repo, "status", "--porcelain") == "M f.txt"
 
 
+def test_the_press_is_read_from_the_sessions_own_root(
+    monkeypatch, capsys, projects, repo, tmp_path
+):
+    """W2. Whether anybody is at the keyboard is a fact about the session, so
+    the press is read against the root the shell stands in, as the stop's is,
+    and not against the tree the switch names. A switch into another dirty
+    clone denies under this session's press, naming that clone in every
+    command, and a press given only in that other clone asks. Seen SURVIVED,
+    then red, against the mutation that reads the switch's tree instead."""
+    import shlex
+    import shutil
+
+    other = tmp_path / "other-repo"
+    shutil.copytree(repo, other)
+    dirty(other)
+    top = wg.repo_paths(str(other))[0]
+    command = f"git -C {shlex.quote(str(other))} switch feature/x"
+
+    write_transcript(projects, "me", ask_entries(repo))
+    decision, reason = decide(monkeypatch, capsys, repo, command)
+    assert decision == "deny", reason
+    at = f"git -C {shlex.quote(top)}"
+    assert f"`{at} stash`, then the switch, then `{at} stash pop`" in reason, reason
+
+    write_transcript(projects, "me", ask_entries(other))
+    decision, reason = decide(monkeypatch, capsys, repo, command)
+    assert decision == "ask" and "Confirm to proceed" in reason, reason
+
+
 def test_a_compound_stash_and_switch_meets_the_deny(
     monkeypatch, capsys, projects, repo
 ):
