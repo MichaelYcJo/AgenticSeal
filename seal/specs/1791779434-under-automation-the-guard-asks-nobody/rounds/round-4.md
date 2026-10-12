@@ -149,12 +149,12 @@ def option_words(reason):
 | round-2 | `seal/ledger/1791779434-under-automation-the-guard-asks-nobody.md:18` | round 2's 🟢 — confirmed |
 | round-2 | `skills/implement/orchestration.md:293` | round 2's 🟢 — confirmed |
 | round-2 | `hooks/worktree-guard.py:3338` | round 2's 🟢 — confirmed |
-| round-2 | `tests/test_the_guard_asks_once_per_session.py#test_a_creating_switch_under_the_press_takes_the_stash_way` | round 2's 🟢 — confirmed |
+| round-2 | `tests/test_the_guard_asks_once_per_session.py#test_a_creating_switch_under_the_press_takes_the_stash_way` | round 2's 🟢 — confirmed (removed at the reframe after round 3: NAME NOT IN TREE) |
 | round-3 | `hooks/worktree-guard.py:3307` | round 3's 🟡 1 — deferred |
 | round-3 | `hooks/worktree-guard.py:3310` | round 3's 🟡 2 — deferred |
 | round-3 | `hooks/worktree-guard.py:3300` | round 3's 🟢 — confirmed |
 | round-3 | `hooks/worktree-guard.py:3343` | round 3's 🟢 — confirmed |
-| round-3 | `tests/test_the_guard_asks_once_per_session.py#test_an_orphan_switch_under_the_press_takes_the_commit_way` | round 3's 🟢 — confirmed |
+| round-3 | `tests/test_the_guard_asks_once_per_session.py#test_an_orphan_switch_under_the_press_takes_the_commit_way` | round 3's 🟢 — confirmed (removed at the reframe after round 3: NAME NOT IN TREE) |
 
 ## Deferred
 
