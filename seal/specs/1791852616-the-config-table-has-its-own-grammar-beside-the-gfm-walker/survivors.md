@@ -58,3 +58,9 @@ carries a `Corrected ·` row citing it; where it holds, a `Re-read ·` row.
 | `tests/test_the_pull_request_language_is_the_repositorys.py` | The copy of the loop that used to live here agreed with | History of the copy #415 removed from this module, still true; the case asserts the one reader |
 | `.test_durations` | test_the_four_spellings_of_undeclared_are_one_answer | Generated timings keyed by test id, refreshed by their own work item; not prose anybody reads |
 | `.test_durations` | test_one_thing_named_is_not_two | The same generated file |
+| `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/plan.md` | holds two table readers | This work item's frame describes the tree it was drawn against, history by design; round 1's fix moved the same account out of `config_table`'s docstring under the owner's in-place rule, which does not reach `seal/specs/` |
+| `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/plan.md` | it hands a gate rows GitHub does not render in five shapes | The same frame's measurement, history by design |
+| `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/plan.md` | The triple exists to answer which side of the stopping line a row is on | The same frame's alternatives table, history by design |
+| `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/changelog.md` | table had a reader of its own | The changelog is where the change is told, as the owner's rule says |
+| `seal/releases/0.12.1.md` | one rule says so in front of all three walks of it | Frozen; R5's claim, corrected by `Corrected · R5` in this item's fragment |
+| `tests/test_the_seal_is_taken_once_by_the_sealer.py` | The stop rule broke on a line it could not parse only once it had FOUND a row | The case's history (#415 round 1), followed by the walker's answer it pins now |
