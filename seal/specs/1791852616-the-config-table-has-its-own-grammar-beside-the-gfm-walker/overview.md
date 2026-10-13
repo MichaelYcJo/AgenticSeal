@@ -35,7 +35,7 @@ is named once, with its edit, by the first command that reads it.
 | Item | Who must answer |
 |---|---|
 | the full suite, repository-wide lint and typecheck after the rounds settle | the sealer, spawned by the orchestrator |
-| the refusal's cause where a `<!--` follows one of the eight characters only `str.splitlines` ends a line at: the walker reads Python's pieces, so it names an HTML block left open that GFM does not see. The direction is refused and no row GFM hides is read; the sentence names the wrong cause | the owner — the walker's line ending is `gfm_table`'s for all four tables, outside this work item (`tests/test_the_mode_question_is_asked_once.py#test_a_break_commonmark_does_not_honour_hides_no_config_row`) |
+| the refusal's cause where an HTML comment opener follows one of the eight characters only `str.splitlines` ends a line at: the walker reads Python's pieces, so it names an HTML block left open that GFM does not see. The direction is refused and no row GFM hides is read; the sentence names the wrong cause | the owner — the walker's line ending is `gfm_table`'s for all four tables, outside this work item (`tests/test_the_mode_question_is_asked_once.py#test_a_break_commonmark_does_not_honour_hides_no_config_row`) |
 | a repository's CI on a vendored `tools/evidence_check.py` keeps the stop rule's twin until `/specseal:evidence-ci` is run again | each installed repository's owner, at their next `/specseal:evidence-ci` (`plan.md` §*Operational impact*) |
 
 ## Not done
