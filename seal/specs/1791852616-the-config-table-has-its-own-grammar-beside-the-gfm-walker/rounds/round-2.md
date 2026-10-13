@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #925 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-3 |
 | Fix range | `4dfb3d0d9bb0a2fc4a4dec1ed4291dd53f1a87ce..40fab1ec06e7658ac941a3c46cddf1dd82ad0bed`, 11 commits |
 | Contract changes | test_a_vendored_copy_under_a_notify_row_leaves_a_row_citing_no_clause → pytest only; test_s6_a_pact_line_below_the_table_leaves_the_moved_row → pytest only; test_s9_a_vendored_copy_leaves_where_the_plugin_refuses_a_pact_line → pytest only |
 | New units | gfm_line_starts (depth 1); VENDORED_FIRST_CELL (depth 1); VENDORED_THEMATIC_BREAK (depth 1); VENDORED_PIECE_BREAK (depth 1); vendored_block_closes_below (depth 1); test_a_fold_row_written_again_below_the_stop_has_no_value (depth 1); walk_refused (depth 1); assert_refused_by_the_walk (depth 1); test_the_twin_names_an_example_table_inside_a_closed_block (depth 1); test_the_twin_does_not_call_a_block_line_a_row (depth 1); test_a_signer_after_a_break_gfm_does_not_honour_is_no_signer (depth 1); test_a_heading_after_a_break_does_not_end_the_rows_nobody_reads (depth 1); test_a_header_after_a_break_gfm_does_not_honour_is_no_table (depth 1); test_an_item_named_under_the_next_heading_is_another_tables (depth 1); test_a_line_below_the_stop_is_a_line_where_gfm_begins_one (depth 1) |
