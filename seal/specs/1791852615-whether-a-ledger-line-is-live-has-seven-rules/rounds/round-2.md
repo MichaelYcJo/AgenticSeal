@@ -7,10 +7,10 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #918 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `5eeb24b8eee864277e780c44e6f4c19acaf71529..259b82ee0cf591e396a9f9c8a71a026d5007b0d1`, 1 commit |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 6: the excusing bullet attributes `routing.md` rows to `hidden_lines`, and its new "one place" sentence is false for a routing row below a fence nobody closed. |
 | Loses a record or crashes | no |
@@ -29,7 +29,7 @@ Round 2 of #872, the verifying round, target 65385bd1: the diff of round 1's fix
 | 🟢 | round 1's 🟡 2 is closed — the three partings are stated, the two added shapes are in the table, and the overview says three | `docs/the-evidence-ledger.md:625` | confirmed | executed: all seven readers asked on both added shapes, every cell equal to the table; the five readers' cells resting on round 1's measurement are right and match their docstrings |
 | 🟢 | round 1's 🟡 3 is closed — the four holding readers declare `unknown refused` | `skills/evidence-check/scripts/evidence_check.py:370` | confirmed | read: `:370`, `:5591`, `rider_check.py:238`, `settle.py:590` and `docs/the-reader-registry.md:31` to `:35`; W2 says `refused` |
 | 🟢 | the nine re-stamped rows hold, C2 included, and no moved anchor was missed | `seal/ledger/1791852615-whether-a-ledger-line-is-live-has-seven-rules.md` | confirmed | executed: `bin/evidence-check --strict .` 0 drifted, 0 broken; `bin/fold-check` 0 over the ceiling, which is C2's claim; `git grep` finds exactly A4, P2-1, P2-3, P4-1, P4-2, R5 and C2 anchored to the three moved anchors |
-| 🟡 6 | the excusing bullet attributes `routing.md` rows to `hidden_lines` and calls a row below an unclosed comment opener the one place a hidden line declares; `routing.md` is read by `hooks/routing.py#shown`, which declares a row below a fence nobody closed; `hidden_lines`' `Reads:` line names `routing.md`, which no caller hands it | `docs/the-evidence-ledger.md:642` | open | executed: the probe, routing row below an unclosed fence declared by `table_rows` and hidden by `hidden_lines`; read: `hooks/routing.py:127` to `:149`, `hooks/config.py:176`, `:189`, `:247`, `broad_gate.py#hidden_row_at` |
+| 🟡 6 | the excusing bullet attributes `routing.md` rows to `hidden_lines` and calls a row below an unclosed comment opener the one place a hidden line declares; `routing.md` is read by `hooks/routing.py#shown`, which declares a row below a fence nobody closed; `hidden_lines`' `Reads:` line names `routing.md`, which no caller hands it | `docs/the-evidence-ledger.md:642` | **fixed** `259b82ee` | fixed at 259b82ee; executed: the probe, routing row below an unclosed fence declared by `table_rows` and hidden by `hidden_lines`; read: `hooks/routing.py:127` to `:149`, `hooks/config.py:176`, `:189`, `:247`, `broad_gate.py#hidden_row_at` |
 | ⬜ 7 | the frame says `routing.py#shown` reads `hidden_lines` through `unfenced`, and gives `hidden_lines` `routing.md` lines as input | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/plan.md:58` | open | read: `plan.md:58`, `spec.md:151`, `hooks/routing.py:127` to `:149` |
 | ⬜ 8 | the changelog fragment says `hooks/config.py` is the one reader of its kind that reads a row below an unclosed comment opener; the routing reader does too | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/changelog.md:14` | open | executed: 🟡 6's probe, second row |
 | ⬜ 9 | the holding bullet says a renderer "shows" comment text; it shows none | `docs/the-evidence-ledger.md:631` | open | read: the bullet and the rider check's `quoted_lines` docstring; the behaviour stated is right |
