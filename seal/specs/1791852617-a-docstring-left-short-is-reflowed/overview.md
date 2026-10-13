@@ -13,7 +13,7 @@ evidence ledger, not here. -->
 
 ## Scope confirmation
 
-Rewrap the last five lines of `tests/test_one_word_one_meaning.py#without_the_policy_span`'s docstring to round 3's fence, change no word and no code, and re-read the one ledger family the rewrap drifts.
+Rewrap the last six lines of `tests/test_one_word_one_meaning.py#without_the_policy_span`'s docstring into five, to round 3's fence, change no word and no code, and re-read the one ledger family the rewrap drifts.
 
 ## Why this work exists
 
