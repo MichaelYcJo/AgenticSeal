@@ -32,7 +32,7 @@ the prose kept a structure that is gone
 `vendored_config_rows`. Executed.
 
 The twin refuses a header with any line above it that starts with `<`
-(`VENDORED_BLOCK_OPENER`, line 4302). It does not ask whether that block is
+(`VENDORED_BLOCK_OPENER`, line 4302). It does not ask whether that block is · NAME NOT IN TREE
 still open. `skills/implement/scripts/seal.py#NEW_CONFIG` writes a closed
 `&lt;!-- … -->` comment above the header into every config it creates, and
 this repository's own `seal/config.md` has the same comment. So the twin
@@ -281,7 +281,7 @@ not counted in `Needs a fix`.
 
 ### 🔴 1 — `skills/evidence-check/scripts/evidence_check.py`
 
-Replace the `VENDORED_BLOCK_OPENER` comment and definition (lines 4299–4302)
+Replace the `VENDORED_BLOCK_OPENER` comment and definition (lines 4299–4302) · NAME NOT IN TREE
 with:
 
 ```python
