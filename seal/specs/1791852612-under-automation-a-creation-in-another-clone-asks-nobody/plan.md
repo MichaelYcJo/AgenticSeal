@@ -4,7 +4,7 @@
 artifact: where the work alters observable behaviour, approval of this plan is
 the gate. Framed by `specseal:framer` on Fable 5.1 for #903. -->
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-13 by the orchestrating session, under the owner's `automation` answer, when `smith` was spawned.
 
 ## Summary
 
