@@ -21,7 +21,10 @@ word true, and two sentences #834's round 6 found stale are corrected.
 
 ## Not verified
 
-none — filled at the last phase
+| Item | Who must answer |
+|---|---|
+| the full suite, the repository-wide lint and the typecheck at the branch head; the build ran only the modules each phase names | the sealer, after the review rounds settle |
+| whether a sibling 0.21.1 frame's prose under a `###` sub-heading names a unit its work removes, which the name half now reads (`questions.md` M1) | the orchestrator, at the 0.21.1 gather's `bin/evidence-check --strict .` |
 
 ## Not done
 
