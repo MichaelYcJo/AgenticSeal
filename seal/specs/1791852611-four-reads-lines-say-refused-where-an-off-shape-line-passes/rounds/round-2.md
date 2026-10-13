@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #915 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-3 |
 | Fix range | `683d9d55b6dcfb5bd773cc48688f495d24577ee3..de5adcb99f96bc050e3944d645b5a8e497f9fda0`, 3 commits |
 | Contract changes | none |
 | New units | test_a_header_is_the_row_a_rule_row_follows (depth 1); test_a_table_in_the_next_section_is_no_strayed_row (depth 1) |
