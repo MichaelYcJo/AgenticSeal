@@ -6048,10 +6048,11 @@ def removes_section(lines):
     reading `Removes` opens nothing. A table row under such a sub-heading,
     up to the next heading of level 2 or above, is no prose: read by the
     name half alone, a row naming a unit that still stands would pass, so it
-    is handed back to be refused (round 1 of #905, 🟡 1). A second table's
-    header and rule rows name nothing and are not. A line inside a fence or
-    an HTML comment is not a claim line, so a quoted section is no section
-    (`claim_lines`).
+    is handed back to be refused (round 1 of #905, 🟡 1). A table's header,
+    the row a rule row directly follows whatever it reads, and its rule row
+    name nothing and are not, there or in the section itself (round 2). A
+    line inside a fence or an HTML comment is not a claim line, so a quoted
+    section is no section (`claim_lines`).
 
     **The marker exempts no line here.** `NAME NOT IN TREE` exempts a line
     from the name half, and `cut` already keeps the name half off the
@@ -6063,32 +6064,44 @@ def removes_section(lines):
     present, inside, under = False, False, False
     cut, rows, nothing, other, strayed = set(), [], [], [], []
     unmarked = [line.replace(NOT_IN_TREE, "") for line in lines]
-    for number, text in claim_lines(unmarked):
+    read = claim_lines(unmarked)
+    cells_of = {number: split(text) for number, text in read}
+    # A header is the row a rule row directly follows, whatever its first
+    # cell reads: read by its content, a foreign table's header was refused
+    # and a body row whose first cell read `Removes` passed (round 2 of #905).
+    ruled = {
+        number
+        for number, cells in cells_of.items()
+        if cells is not None and all(RULE_CELL_RE.match(c) for c in cells)
+    }
+    not_rows = ruled | {
+        number
+        for number, cells in cells_of.items()
+        if cells is not None and number + 1 in ruled
+    }
+    for number, text in read:
         level = heading_level(text)
         if level is not None:
             under = (inside or under) and level > 2
             inside = level == 2 and text.strip().lstrip("#").strip() == REMOVES_HEADING
             present = present or inside
             continue
+        cells = cells_of[number]
         if under:
-            cells = split(text)
-            if cells is not None and not (
-                all(RULE_CELL_RE.match(c) for c in cells) or cells[0] == REMOVES_HEADING
-            ):
+            if cells is not None and number not in not_rows:
                 cut.add(number)
                 strayed.append((number, text.strip()))
             continue
         if not inside:
             continue
         cut.add(number)
-        cells = split(text)
         if cells is None:
             if REMOVES_NOTHING_RE.match(text.strip()):
                 nothing.append((number, text.strip()))
             else:
                 other.append((number, text.strip()))
             continue
-        if all(RULE_CELL_RE.match(c) for c in cells) or cells[0] == REMOVES_HEADING:
+        if number in not_rows:
             continue
         rows.append((number, cells))
     return present, cut, rows, nothing, other, strayed

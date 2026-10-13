@@ -2102,3 +2102,65 @@ def test_the_marker_exempts_no_line_of_the_removes_section(tmp_path, body, expec
     assert [(s, c.replace(os.sep, "/").rsplit("/", 1)[-1]) for s, c, _d in found] == [
         expected
     ]
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        (
+            REMOVES_TABLE
+            + "\n### Why these rows\n\n| Before | After |\n|---|---|\n| a | b |\n",
+            [("REFUSED", "spec.md:13")],
+        ),
+        (
+            REMOVES_TABLE + "\n### Phase 2\n\n| Removes | `mod.py#old_reader` | z |\n",
+            [("REFUSED", "spec.md:11")],
+        ),
+        (
+            REMOVES_TABLE.replace(
+                "| x | `gone.py#x` |", "| Removes | `mod.py#old_reader` |"
+            ),
+            [("STANDING", "spec.md:7")],
+        ),
+    ],
+    ids=[
+        "a foreign table's header",
+        "a row reading Removes under the sub-heading",
+        "a row reading Removes in the section",
+    ],
+)
+def test_a_header_is_the_row_a_rule_row_follows(tmp_path, body, expected):
+    """Round 2 of #905, 🟡 1. A header is known by the rule row under it,
+    never by its first cell: a foreign table's header names no removal, and
+    a body row whose first cell reads `Removes` is still a row."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    h = home(tmp_path)
+    work_item(
+        h,
+        "1780000000-live",
+        **{"spec.md": "# frame\n\n## Removes\n\n" + body + REMOVES_TAIL},
+    )
+    found, _ = refusals(tmp_path)
+    assert [
+        (s, c.replace(os.sep, "/").rsplit("/", 1)[-1]) for s, c, _d in found
+    ] == expected
+
+
+def test_a_table_in_the_next_section_is_no_strayed_row(tmp_path):
+    """Round 2 of #905, 🟡 2. A table row under a sub-heading of `## Removes`
+    is refused up to the next heading of level 2 or above and no further: a
+    table in the frame's next section is read as the rest of the frame is."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    h = home(tmp_path)
+    body = (
+        REMOVES_TABLE
+        + "\n### Why these rows\n\nProse.\n\n## Data & interfaces\n\n"
+        + "| Unit | Why |\n|---|---|\n| `mod.py#old_reader` | z |\n"
+    )
+    work_item(
+        h,
+        "1780000000-live",
+        **{"spec.md": "# frame\n\n## Removes\n\n" + body + REMOVES_TAIL},
+    )
+    found, _ = refusals(tmp_path)
+    assert found == []
