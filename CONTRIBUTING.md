@@ -192,14 +192,20 @@ and it divides the macOS leg too, because every leg collects the same
 cases. It prices each case as Windows ran it, so a case Windows skips is
 near zero there and its whole macOS cost is unseen by the division: after
 a refresh, read the macOS shards' times in the next run's jobs and set
-their `timeout` again by the rule beside the values. To refresh it, push a
-branch on which `test.yml` runs the Windows
+their `timeout` again by the rule beside the values. The file is refreshed
+at each release's preparation, from the release branch
+(`docs/release-checklist.md` §*0. Before starting*), and whenever
+`test_the_durations_file_prices_the_suite` goes red: more than one collected
+case in twenty (`STALE_SHARE`) has no price in the file.
+`bin/test tests -q -k test_the_durations_file_prices_the_suite` runs that
+case alone against the whole collection, and naming one module skips it.
+To refresh it, push a branch on which `test.yml` runs the Windows
 leg as one job again for a single run: one Windows entry with
 `store: "--store-durations"` in place of the four Windows shard entries,
 the three macOS shard entries left as they are, with a `timeout` for the
-whole Windows leg rather than a shard's 20 (it
-ran 34 minutes unsharded when the file was first made, so 55 by the rule
-beside the values); `${{ matrix.store }}` on the pytest line; and an
+whole Windows leg rather than a shard's 20 (60 by the rule beside the
+values, from the 37 m 21 s it ran unsharded in run 38332345615);
+`${{ matrix.store }}` on the pytest line; and an
 `actions/upload-artifact@v4` step with `if: always() && matrix.store != ''`,
 `path: .test_durations` and `include-hidden-files: true` (the name starts
 with a dot, which the action skips by default). Both halves of the
@@ -211,13 +217,6 @@ ubuntu and the macOS shards upload the committed file under the same name
 first.
 Download the artifact with `gh run download <run> -n <artifact>`, make its
 line ends LF, commit it, and restore the shards.
-The file is refreshed at each release's preparation, from the release
-branch (`docs/release-checklist.md` §*0. Before starting*), and whenever
-`test_the_durations_file_prices_the_suite` in that module goes red: more than
-one collected case in twenty has no price in the file (`STALE_SHARE`).
-`bin/test tests -q -k test_the_durations_file_prices_the_suite` runs it alone
-against the whole collection. Naming one module skips it, because one module
-is not the suite.
 
 **The suite runs with `gh` logged out, on your machine as on CI.** CI's
 pytest job has no token, so `tests/conftest.py` makes the same true locally

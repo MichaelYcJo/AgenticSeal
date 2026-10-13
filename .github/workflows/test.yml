@@ -42,20 +42,24 @@ jobs:
         #
         # `timeout`: each leg's budget in minutes, by `questions.md` Q6's rule
         # (a) of work item 1791270165 -- 1.5 times the leg's slowest measured
-        # job after that item's phases 3 and 4, rounded up to 5. GitHub fails
+        # job, rounded up to 5. GitHub fails
         # a job that runs past it, so a leg that grows names itself here
         # rather than in a wait. The base is the slowest of the runs measured,
         # because the same suite ran 1.2 times slower from one run to the
         # next and one shard ran 1.7 times slower than its siblings in one
         # run:
-        #   ubuntu  9 m 03 s, run 37469595104 (7 m 58 s in 37458654434,
-        #           6 m 40 s in 37457228586, 5 m 40 s in 37465328899) -> 15
-        #   macOS, per shard: 6 m 56 s, group 3 of run 37700567455, the
-        #          first run of the three shards (the other two 5 m 22 s and
-        #          6 m 24 s; the unsharded leg they replaced took 15 m 25 s
-        #          to 20 m 52 s and ran under 35)                     -> 15
-        #   Windows, per shard: 10 m 34 s, group 3 of run 37469595104 (the
-        #          other shards there 9 m 27 s to 10 m 15 s; 5 m 38 s to
+        #   ubuntu  9 m 43 s, run 38332345615 (6 m 20 s in 38335775781,
+        #           9 m 03 s in 37469595104, 8 m 24 s in 37700567455,
+        #           5 m 40 s to 7 m 58 s in three runs before them)   -> 15
+        #   macOS, per shard: 8 m 29 s, group 3 of run 38332345615, on the
+        #          durations file before #874 refreshed it (7 m 11 s to
+        #          7 m 29 s on the refreshed file in 38335775781; 6 m 56 s
+        #          in 37700567455, the first run of the three shards; the
+        #          unsharded leg they replaced took 15 m 25 s to 20 m 52 s
+        #          and ran under 35)                                  -> 15
+        #   Windows, per shard: 11 m 52 s, group 4 of run 37700567455
+        #          (10 m 20 s to 11 m 27 s on the refreshed file in
+        #          38335775781; 10 m 34 s in 37469595104; 5 m 38 s to
         #          10 m 03 s in the sharded run 37465328899)          -> 20
         include:
           - { os: ubuntu-latest, python: "3.12", timeout: 15 }
