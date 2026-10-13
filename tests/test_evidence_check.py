@@ -677,6 +677,16 @@ LACKS_BLOCK_STATE = {
     "a heading inside a fence below the table": (
         _HEAD + "| Mode | shared |\n\n```\n# x\n```\n| Broad gate | y |\n"
     ),
+    # Planted after a mutation dropping the comment from the blocks the twin
+    # follows below the table survived the shapes above.
+    "a heading inside a comment below the table": (
+        _HEAD
+        + "| Mode | shared |\n\n"
+        + config_shapes.OPEN
+        + "\n# x\n"
+        + config_shapes.CLOSE
+        + "\n| Broad gate | y |\n"
+    ),
 }
 
 
