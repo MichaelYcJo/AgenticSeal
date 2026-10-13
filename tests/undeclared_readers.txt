@@ -1225,7 +1225,6 @@ skills/verify/scripts/broad_gate.py#common_dir@4e128065
 skills/verify/scripts/broad_gate.py#compare_at_base@d9c16853
 skills/verify/scripts/broad_gate.py#config_text@7e8ef25a
 skills/verify/scripts/broad_gate.py#copy_origin@6d8b5974
-skills/verify/scripts/broad_gate.py#coverage_line@4c87286e
 skills/verify/scripts/broad_gate.py#exemptions@a742ffea
 skills/verify/scripts/broad_gate.py#failing_files@2a1186ca
 skills/verify/scripts/broad_gate.py#failure_lines@cda133dc

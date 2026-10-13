@@ -3,8 +3,8 @@ remembered, and nothing held the two lists against each other (#468).
 
 `skills/verify/scripts/broad_gate.py#gate` runs a handful of arms so the
 sealer's one run says what CI will say. `.github/workflows/hygiene.yml`'s
-`release` job runs thirteen named steps. #424 added one of those thirteen and
-the gate was not extended, so from that merge onward a green seal covered a
+`release` job runs fourteen named steps. #424 added one of them and the gate
+was not extended, so from that merge onward a green seal covered a
 shorter list than the merge is judged by — and no case in the suite went red
 for it.
 
@@ -557,7 +557,7 @@ def test_the_stamp_says_how_many_steps_the_seal_did_not_answer(tmp_path):
     W1's choice, recorded: **the panel carries the count and the names go to
     the stream beside it.** The panel gives a value 41 columns since #832
     (23 before it) — `broad_gate.PANEL_VALUE_WIDTH` — and three
-    step names do not fit in it, let alone thirteen. A reader given only a
+    step names do not fit in it, let alone fourteen. A reader given only a
     number would have to reconstruct WHICH from two files, which is the
     reconstruction this work item exists to remove, so both are printed and
     neither alone.
@@ -835,7 +835,7 @@ def test_a_step_no_row_classifies_is_not_said_to_carry_a_reason():
     no row has ever heard of.
 
     Counting them as unanswered is honest; telling their reader the reason is
-    in `PARTITION` is not, because `PARTITION` holds thirteen rows about a
+    in `PARTITION` is not, because `PARTITION` holds a row per step of a
     workflow that repository does not run. A reader who follows the pointer
     finds somebody else's list and no answer, which is the reconstruction
     from two files this work item exists to remove, one level further out."""
@@ -1161,6 +1161,7 @@ def test_the_count_cannot_be_asked_without_a_base():
 
 FEATURE_UNANSWERED = (
     "every issue this pull request claims, and every one it only names",
+    "every budget holds its ceiling, and a raised ceiling says why",
     "the pull request heads a round record may name",
     "the CLAUDE.md block is the template's, line for line",
     "both READMEs move together",
@@ -1179,21 +1180,22 @@ def real_panel_workflow_row(given):
 
 def test_a_feature_seal_counts_the_nine_steps_ci_runs_for_it():
     """A11 over this repository's own workflow. Against a base that is not
-    `main` CI runs 9 of the 13 steps and the gate mirrors 5, so the panel
-    reads `CI also · 4 more steps` (#717, its `·` #832's; `4 of 9 not
-    answered` before #717);
-    the line names the four unanswered steps CI
+    `main` CI runs 10 of the 14 steps and the gate mirrors 5, so the panel
+    reads `CI also · 5 more steps` (#717, its `·` #832's; `4 of 9 not
+    answered` before #717, over the 13 steps of then);
+    the line names the five unanswered steps CI
     runs and none of the four only-at-`main` ones, and says four were left
-    out and why. Pinned verbatim (`agent-contract` §14)."""
+    out and why. Pinned verbatim (`agent-contract` §14). The name keeps the
+    count of the day it was written, because released ledger rows cite it."""
     assert gate.steps_for(read(HYGIENE), "release/x") == [
         step
         for step in gate.job_steps(read(HYGIENE), gate.RELEASE_JOB)
         if step not in gate.ONLY_AT_MAIN
     ]
-    assert real_panel_workflow_row("release/x") == "· 4 more steps"
+    assert real_panel_workflow_row("release/x") == "· 5 more steps"
     said = gate.coverage_line(read(HYGIENE), "release/x")
     assert said.startswith(
-        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 9 steps for this base "
+        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 10 steps for this base "
         "and this seal answers 5. 4 more run only on a pull request into `main`, "
         "so this count leaves them out."
     ), said
@@ -1205,15 +1207,16 @@ def test_a_feature_seal_counts_the_nine_steps_ci_runs_for_it():
 
 def test_a_release_seal_counts_the_eleven_steps_ci_runs_for_it():
     """A12. Against `main` CI runs every step but the two it skips there, and
-    the gate mirrors 3 of the 11, so the panel reads `CI also · 8 more steps`
-    (#717; `8 of 11 not answered` before it) and the line says the two
-    skipped steps were left out. `SKIPPED_LINE` still prints as it did (the
-    #473 cases above)."""
+    the gate mirrors 3 of the 12, so the panel reads `CI also · 9 more steps`
+    (#717; `8 of 11 not answered` before it, over the 13 steps of then) and
+    the line says the two skipped steps were left out. `SKIPPED_LINE` still
+    prints as it did (the #473 cases above). The name keeps the count of the
+    day it was written, because released ledger rows cite it."""
     for given in ("main", "origin/main"):
-        assert real_panel_workflow_row(given) == "· 8 more steps", given
+        assert real_panel_workflow_row(given) == "· 9 more steps", given
         said = gate.coverage_line(read(HYGIENE), given)
         assert said.startswith(
-            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 11 steps for this "
+            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 12 steps for this "
             "base and this seal answers 3. 2 more are steps CI skips on a pull "
             "request into `main`, so this count leaves them out."
         ), said

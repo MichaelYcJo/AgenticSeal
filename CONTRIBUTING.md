@@ -49,8 +49,12 @@ and ledger-fold steps belong to a release and exit early on any base but
 `main`. The others run on every pull request. Three of them pass for a different
 reason — they ask nothing of a branch that declared nothing: the round-record
 check, the unverified-record tally and the issue-claim report. The remaining
-two, the ledger and the survivor sweep, are always-on and CAN refuse a
-contribution; the heading below counts both and says what each asks.
+three, the ledger, the survivor sweep and the budgets, are always-on and CAN
+refuse a contribution. The budget step asks only for what is yours to write:
+a ceiling in `seal/budgets.md` moved in the same pull request as the change
+that moved the measurement, and for a raise a `Budget raised:` line in your
+description, as the step's message spells it. The heading below counts the
+other two and says what each asks.
 Each row below gives its own reason, and a maintainer adding a CI step should
 read the row rather than this sentence.
 
