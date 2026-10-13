@@ -893,6 +893,17 @@ def test_a_signer_config_the_walker_refuses_is_refused_with_notify_none():
     ], refusals
 
 
+def test_a_walker_refusal_follows_a_doubled_notify_row_too():
+    """#871, the arm a doubled `Pact notify` returns from early: the walker's
+    sentence still comes last. Planted after a mutation that dropped it on
+    that arm alone survived every other case."""
+    text = CONFIG + "| Pact notify | always |\n| Pact notify | never |\n| a | b | c |\n"
+    pacts, notify, refusals = config.pact_declaration(text)
+    assert (pacts, notify) == (ORDERS, None)
+    assert refusals[0] == "`Pact notify` appears 2 times — one value", refusals
+    assert refusals[1:] == walked(text) and len(refusals) == 2, refusals
+
+
 def _vendored_checker():
     path = os.path.join(
         ROOT, "skills", "evidence-check", "scripts", "evidence_check.py"
