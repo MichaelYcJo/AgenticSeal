@@ -634,7 +634,11 @@ opened*, so the count is on the line either way.
 and an anchor stamp `path#unit@hash` resolved exactly as a ledger row's is. A
 single word in backticks is prose far more often than it is a unit. A FENCED
 line is a quotation — a paste-ready fix is code the tree does not have yet —
-and an HTML comment that begins a line is an aside; neither is read.
+and an HTML comment that begins a line is an aside; neither is read. Of the
+three answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
+a deletion* gives to whether a line is live, this arm gives the one for a line
+that holds a claim, which is read wherever there is doubt; the comment that
+begins a line and closes is the one place it reads less than the ledger walk.
 
 **A name written the way a coordinate is written is a claim too** (#508):
 a backticked `path#name`, `path#name()` or `path#Class.method` with no hash.

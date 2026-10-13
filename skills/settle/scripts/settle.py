@@ -587,6 +587,13 @@ def first_cell(line):
 def anchored_rows(root, work_item_ids):
     """Every live ledger row with an anchor inside one of these directories.
 
+    Reads: owned — every line of every ledger the checker reads, by the checker's `ANCHOR_RE`; unknown refused
+
+    A line that holds an anchor is read on doubt, the first of the three
+    answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
+    a deletion* gives: the wrong answer is a directory kept and named at
+    exit 1, never a row the checker reports broken after the removal.
+
     #511. A retirement used to remove a directory a ledger row anchored into,
     and the checker then reported the row BROKEN — found twice on one branch,
     both times after the fact. This is the read that answers it before

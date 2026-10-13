@@ -603,6 +603,65 @@ a correction supersedes holds no directory. The command names the rows and
 edits none of them, because which row goes is a judgment about a claim.
 Enforced by: tests/test_settle_reads_before_it_removes.py::test_a_row_anchored_inside_a_candidate_keeps_that_directory
 
+<!-- specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules -->
+**Whether a line is live is asked by what the line does, and the seven
+readers that ask it give three answers.** The two statements above each state
+one direction for one reader. These are all seven readers, grouped by the
+kind of line they read, with the cost each answer is chosen against.
+
+- **A line that HOLDS something — a claim, an anchor, a rider — is read on
+  doubt.** The checker's `quoted_lines`, which every walk the checker makes
+  reads through `unquoted`; the records arm's `claim_lines`;
+  `settle.py#anchored_rows`; and the rider check's `quoted_lines`. A fence
+  nobody closed is a malformed file whose lines are read, and a commented-out
+  row is a parked claim and is read. What this protects is that a claim
+  never leaves a ledger or a record in silence. The wrong answer is loud
+  instead: `BROKEN`, a refused name, a kept directory or exit 2, and a person
+  answers it with an edit or a marker. Three of the four read a different
+  amount from the checker, each for a reason its own docstring holds.
+  `claim_lines` reads a line-start comment that closes as an aside, because a
+  template's comments describe fields rather than assert units.
+  `anchored_rows` reads a fence that closes, because a guard that reads more
+  than the checker keeps a directory rather than breaking a row. The rider
+  check reads by `hooks/blocks.py#walk` rather than by the delimiter rule,
+  and parts from the checker three ways: it reads a fence its walk is not
+  sure of, one opened at one to three spaces, which the delimiter rule
+  closes, because a rider the walk cannot place is read as it was before the
+  walk; it reads a fence inside a line-start comment that closes, which a
+  renderer reads as comment text, not as a fence; and it skips a fence that
+  closes below a fence nobody closed, which a renderer hides either way.
+- **A line that EXCUSES or DECLARES something — a fold marker, a
+  `seal/config.md` row, a `routing.md` row — is not taken on doubt, except
+  where a declaring reader keeps an older reading that took it.**
+  `unverified_check.py#live_lines` parks a line inside any fence or comment,
+  closed or not, and a line its two span readings disagree about.
+  `hooks/config.py#hidden_lines`, which reads `seal/config.md`, keeps,
+  wherever its walk is unsure, the fence-only reading it gave before #667:
+  a row below a fence nobody closed declares nothing, and a row below a
+  comment opener nobody closed still declares, because that reading never
+  hid one and work item 1790645290 was bound to miss no row the older
+  reading saw. `hooks/routing.py#shown`, which reads a `routing.md` and is
+  not one of the seven, keeps the reading it gave before #667 the same way,
+  and that reading hid nothing: a row below a fence or a comment opener
+  nobody closed still declares there. Those rows are the places a line
+  nobody wrote live declares something; at every other fence or comment,
+  what this protects is that nothing is excused or declared by a line
+  nobody wrote live. The wrong answer is a fold reported as a deletion at
+  exit 1, a fragment the sweep keeps, a hook that says nothing, or a gate
+  that asks.
+- **A line a record's rows are COUNTED on is blanked the same way on both
+  sides of a comparison.** `unverified_check.py#readable` blanks comment text
+  and fenced lines with the indices intact, and a region nobody closed to the
+  end of the file. So the working tree and the base revision count the same
+  table, and the readers that judge a record refuse a hidden table as absent
+  rather than read it as empty. No caller hands it a ledger file.
+
+No one rule serves all three kinds. The holding bias would let a fold marker
+quoted in an example excuse a removal nothing absorbed, and the excusing bias
+would drop a parked ledger row without a word. A reader of a new kind of line
+is a fourth answer, and it is argued against these three.
+Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_each_reader_gives_its_stated_answer_on_each_shape, tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_the_statement_names_each_reader_under_its_answer
+
 <!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
 **A fold is not a work item, and it adds no work item's rows to the
 ledger.** It opens no directory under `seal/specs/`. Under the freeze it
