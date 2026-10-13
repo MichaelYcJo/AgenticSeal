@@ -186,7 +186,7 @@ def hidden_lines(lines, text=None):
     """({index: "fence" or "comment"} for every line of LINES no walk of the
     table is shown, the index of a fence opener never closed or None).
 
-    Reads: guess — the lines of `seal/config.md` or a `routing.md`, through `hooks/blocks.py#walk`; unknown mixed
+    Reads: guess — the lines of `seal/config.md`, through `hooks/blocks.py#walk`; unknown mixed
 
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers

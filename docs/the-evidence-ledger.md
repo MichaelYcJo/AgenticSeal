@@ -635,15 +635,20 @@ kind of line they read, with the cost each answer is chosen against.
   where a declaring reader keeps an older reading that took it.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
   closed or not, and a line its two span readings disagree about.
-  `hooks/config.py#hidden_lines` keeps, wherever its walk is unsure, the
-  fence-only reading it gave before #667: a row below a fence nobody closed
-  declares nothing, and a row below a comment opener nobody closed still
-  declares, because that reading never hid one and work item 1790645290 was
-  bound to miss no row the older reading saw. That row is the one place a
-  line nobody wrote live declares something; everywhere else, what this
-  protects is that nothing is excused or declared by a line nobody wrote
-  live. The wrong answer is a fold reported as a deletion at exit 1, a
-  fragment the sweep keeps, a hook that says nothing, or a gate that asks.
+  `hooks/config.py#hidden_lines`, which reads `seal/config.md`, keeps,
+  wherever its walk is unsure, the fence-only reading it gave before #667:
+  a row below a fence nobody closed declares nothing, and a row below a
+  comment opener nobody closed still declares, because that reading never
+  hid one and work item 1790645290 was bound to miss no row the older
+  reading saw. `hooks/routing.py#shown`, which reads a `routing.md` and is
+  not one of the seven, keeps the reading it gave before #667 the same way,
+  and that reading hid nothing: a row below a fence or a comment opener
+  nobody closed still declares there. Those rows are the places a line
+  nobody wrote live declares something; at every other fence or comment,
+  what this protects is that nothing is excused or declared by a line
+  nobody wrote live. The wrong answer is a fold reported as a deletion at
+  exit 1, a fragment the sweep keeps, a hook that says nothing, or a gate
+  that asks.
 - **A line a record's rows are COUNTED on is blanked the same way on both
   sides of a comparison.** `unverified_check.py#readable` blanks comment text
   and fenced lines with the indices intact, and a region nobody closed to the
