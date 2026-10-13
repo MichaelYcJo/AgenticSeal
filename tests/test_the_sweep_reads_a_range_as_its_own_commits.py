@@ -72,17 +72,21 @@ def history(repo, root=None, s1=None, f1=None, f2=None):
     """The measured history, each commit writing what the case hands it.
 
     `{name: sha}` for `root`, `f1`, `S1`, the merge and `f2`. `feature` is
-    checked out at `f2` when this returns."""
+    checked out at `f2` when this returns. Each commit also adds a file of
+    its own that no other commit touches, so every commit changes something
+    and two cases differing in one file differ in nothing else at the tip."""
     repo.mkdir()
     git(repo, "init", "-q", "-b", "base")
     shas = {"root": put(repo, "root", {**FILLER, **(root or {})})}
     switch(repo, "-c", "feature")
-    shas["f1"] = put(repo, "f1", f1 or {"f.md": doc("f", "The first step.")})
+    shas["f1"] = put(repo, "f1", {"f1.md": doc("f1", "A first step."), **(f1 or {})})
     switch(repo, "base")
-    shas["S1"] = put(repo, "S1", s1 or {"s.md": doc("s", "The base moves on.")})
+    shas["S1"] = put(
+        repo, "S1", {"s1.md": doc("s1", "The base moves on."), **(s1 or {})}
+    )
     switch(repo, "feature")
     shas["merge"] = merge(repo, "the branch merges the base", "base")
-    shas["f2"] = put(repo, "f2", f2 or {"f.md": doc("f", "The second step.")})
+    shas["f2"] = put(repo, "f2", {"f2.md": doc("f2", "A second step."), **(f2 or {})})
     return shas
 
 
@@ -103,6 +107,167 @@ def module():
     loaded = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loaded)
     return loaded
+
+
+def removed(text):
+    """How many sentences the report says the range removed."""
+    found = re.search(r"against (\d+) sentence\(s\) the range", text)
+    assert found, f"no report line:\n{text}"
+    return int(found.group(1))
+
+
+def block(text, path):
+    """The report's lines for the survivor at `path`, or None."""
+    lines = text.splitlines()
+    for at, line in enumerate(lines):
+        if line.startswith(f"{path}:"):
+            return lines[at : at + 4]
+    return None
+
+
+def score_of(text, path):
+    """The score the report gives the survivor at `path`."""
+    lines = block(text, path)
+    assert lines, f"{path} is not reported:\n{text}"
+    found = re.search(r"phrase\(s\), ([\d.]+):", lines[3])
+    assert found, lines
+    return float(found.group(1))
+
+
+# The branch's own correction, in the same two-stretch shape. `copy.md`
+# carries its twin; `other.md` is where `f2` corrects it.
+OWN_FOUND = (
+    "The ledger row is stamped by the release itself and the session never "
+    "rewrites it later."
+)
+OWN_REPAIRED = (
+    "The ledger row is stamped by the fold and the session leaves it alone later."
+)
+# A sentence holding the whole first stretch `OWN_FOUND` lost and nothing of
+# the second, so counted as written it takes one of the two runs away.
+ECHO = "Nothing here is ruled by the release itself and the clock alone."
+
+
+# --- S1-S4: a two-dot range holding a merge of the base -------------------------
+
+
+def test_a_correction_the_merge_brought_in_is_not_this_ranges(tmp_path):
+    """S1, the shape the frame measured. `S1` corrects `notes.md` on the base
+    and leaves its twin in `docs.md`; `f1` and `f2` touch neither. Over
+    `f1..f2`, which holds the merge, the sweep read `S1`'s correction as this
+    range's and reported `docs.md`. Seen red against `corrected` as it
+    stood: exit 1, `docs.md:3` reported, one sentence removed."""
+    repo = tmp_path / "repo"
+    shas = history(
+        repo,
+        root={"notes.md": doc("notes", FOUND), "docs.md": doc("docs", FOUND)},
+        s1={"notes.md": doc("notes", REPAIRED)},
+    )
+    code, text = sweep(repo, f"{shas['f1']}..{shas['f2']}")
+    assert code == 0, f"the base's correction was read as this range's:\n{text}"
+    assert removed(text) == 0, text
+    assert "docs.md" not in text, text
+
+
+def test_an_own_correction_beside_the_merge_is_still_measured(tmp_path):
+    """S2. The same history, and `f2` corrects `other.md`, whose twin stands
+    in `copy.md`. The own correction is reported with the sentence it
+    corrected, and the base's is not. Seen red against a filter that drops
+    every sentence."""
+    repo = tmp_path / "repo"
+    shas = history(
+        repo,
+        root={
+            "notes.md": doc("notes", FOUND),
+            "docs.md": doc("docs", FOUND),
+            "other.md": doc("other", OWN_FOUND),
+            "copy.md": doc("copy", OWN_FOUND),
+        },
+        s1={"notes.md": doc("notes", REPAIRED)},
+        f2={"other.md": doc("other", OWN_REPAIRED)},
+    )
+    code, text = sweep(repo, f"{shas['f1']}..{shas['f2']}")
+    assert code == 1, f"the own correction's twin was not reported:\n{text}"
+    assert removed(text) == 1, text
+    lines = block(text, "copy.md")
+    assert lines and "corrected   other.md:3" in lines[2], text
+    assert "docs.md" not in text, text
+
+
+def own_correction_score(tmp_path, name, echo_on_the_base):
+    """The score of `f2`'s survivor where `ECHO` stands in `echo.md` at the
+    tip: written by `S1` when `echo_on_the_base`, else already in `root`.
+    The tree at the tip is the same either way, so the pool and every
+    phrase's weight are too."""
+    repo = tmp_path / name
+    root = {"other.md": doc("other", OWN_FOUND), "copy.md": doc("copy", OWN_FOUND)}
+    s1 = None
+    if echo_on_the_base:
+        s1 = {"echo.md": doc("echo", ECHO)}
+    else:
+        root["echo.md"] = doc("echo", ECHO)
+    shas = history(repo, root=root, s1=s1, f2={"other.md": doc("other", OWN_REPAIRED)})
+    code, text = sweep(repo, f"{shas['f1']}..{shas['f2']}")
+    assert code == 1, f"{name}: exit {code}\n{text}"
+    return score_of(text, "copy.md")
+
+
+def test_wording_the_merge_brought_in_does_not_subtract_an_own_survivor(tmp_path):
+    """S3. `S1` writes a sentence holding a stretch of what `f2` corrects.
+    Counted as written by this range it would take that stretch out of the
+    wording looked for, and the survivor would drop under the floor. It is
+    reported at the score it has where the same sentence stood before the
+    range. Seen red against a filter of `gone` alone: `copy.md` not
+    reported."""
+    before = own_correction_score(tmp_path, "already", echo_on_the_base=False)
+    merged = own_correction_score(tmp_path, "merged", echo_on_the_base=True)
+    assert merged == before, (
+        f"the merged side's wording moved the own survivor's score from "
+        f"{before} to {merged}"
+    )
+
+
+def test_a_file_both_sides_changed_keeps_only_the_own_sentence(tmp_path):
+    """S4. `shared.md` holds both claims; `S1` corrects one there and `f2`
+    the other, each with a twin elsewhere. Per sentence, not per path: `f2`'s
+    twin is reported and `S1`'s is not. Seen red against a restriction of
+    the paths alone (plan alternative D): `docs.md` reported as well."""
+    repo = tmp_path / "repo"
+    shas = history(
+        repo,
+        root={
+            "shared.md": doc("shared", FOUND, OWN_FOUND),
+            "docs.md": doc("docs", FOUND),
+            "copy.md": doc("copy", OWN_FOUND),
+        },
+        s1={"shared.md": doc("shared", REPAIRED, OWN_FOUND)},
+        f2={"shared.md": doc("shared", REPAIRED, OWN_REPAIRED)},
+    )
+    code, text = sweep(repo, f"{shas['f1']}..{shas['f2']}")
+    assert code == 1, text
+    assert block(text, "copy.md"), f"f2's survivor was not reported:\n{text}"
+    assert "docs.md" not in text, f"S1's survivor was reported:\n{text}"
+    assert removed(text) == 1, text
+
+
+# --- S6: `A...B` reads its two ends ---------------------------------------------
+
+
+def test_a_three_dot_range_reads_its_two_ends_from_the_merge_base(tmp_path):
+    """S6. `f1` corrects `other.md` and the branch merges the base after it.
+    `base...feature` starts at the merge base, `S1`, and `f1` is not on an
+    ancestry path from there: read as its own commits the range would drop
+    `f1`'s correction. Read at its two ends, `copy.md` is reported. Seen red
+    with the own-commits pass applied to `A...B` (plan alternative F)."""
+    repo = tmp_path / "repo"
+    history(
+        repo,
+        root={"other.md": doc("other", OWN_FOUND), "copy.md": doc("copy", OWN_FOUND)},
+        f1={"other.md": doc("other", OWN_REPAIRED)},
+    )
+    code, text = sweep(repo, "base...feature")
+    assert code == 1, f"f1's survivor was not reported:\n{text}"
+    assert block(text, "copy.md"), text
 
 
 # --- S7: a start that does not reach its end ----------------------------------

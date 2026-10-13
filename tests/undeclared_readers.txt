@@ -875,9 +875,7 @@ skills/code-review/scripts/survivor_check.py#blank_released@4a6ce6aa
 skills/code-review/scripts/survivor_check.py#blank_struck@b6b96f7e
 skills/code-review/scripts/survivor_check.py#carriers@b4716ca5
 skills/code-review/scripts/survivor_check.py#corpus@31e8a379
-skills/code-review/scripts/survivor_check.py#corrected@fde86cfa
 skills/code-review/scripts/survivor_check.py#evidence@e8efd32b
-skills/code-review/scripts/survivor_check.py#examine@4ad680b7
 skills/code-review/scripts/survivor_check.py#exempted@5f2549e7
 skills/code-review/scripts/survivor_check.py#gathered_fragments@8b1644f2
 skills/code-review/scripts/survivor_check.py#git@fb4e1e13
@@ -907,7 +905,6 @@ skills/code-review/scripts/survivor_check.py#score@8c27abd3
 skills/code-review/scripts/survivor_check.py#segments@7bcc1eea
 skills/code-review/scripts/survivor_check.py#sentences@02abcd13
 skills/code-review/scripts/survivor_check.py#shape_pattern@86a20a7e
-skills/code-review/scripts/survivor_check.py#survivors@32bc5615
 skills/code-review/scripts/survivor_check.py#tracked@4be48c62
 skills/code-review/scripts/survivor_check.py#trim@c038acbf
 skills/code-review/scripts/survivor_check.py#wanted@bb5025bd

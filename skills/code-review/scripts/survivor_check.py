@@ -1375,9 +1375,55 @@ def corpus(root, rev):
 # --- the check -------------------------------------------------------------
 
 
-def corrected(root, a, b):
+def own_changes(root, own, paths):
+    """`(lost, gained)`: the `(path, sentence key)` pairs the range's own
+    commits removed and wrote, each commit read against its parent.
+
+    Reads: observed — each own commit's blobs and its parent's, at the paths it changed that `paths` holds; unknown refused
+
+    `own` is `owned`'s list and `paths` is `corrected`'s, already filtered,
+    so a commit's paths are intersected with it and nothing outside the range
+    as `corrected` measures it is read. A pair is counted the way `corrected`
+    counts a file between the two ends -- a key held fewer times after the
+    commit than before is lost, more times gained, and for a changelog what
+    the commit put under a version heading is held -- so on a range whose
+    every commit is its own, every sentence `corrected` counts is in a pair.
+    Each own commit has one parent: `own_commits` lists no merge."""
+    lost, gained = set(), set()
+    for full, _short, changes in own:
+        mine = sorted({path for _status, path in changes} & set(paths))
+        if not mine:
+            continue
+        before = read_blobs(root, full + "^", mine)
+        after = read_blobs(root, full, mine)
+        for path in mine:
+            was = sentences(path, before[path]) if path in before else []
+            now = sentences(path, after[path]) if path in after else []
+            if a_changelog(path) and path in after:
+                now += newly_released(path, before.get(path, ""), after[path])
+            old, new = Counter(s.key for s in was), Counter(s.key for s in now)
+            lost.update((path, key) for key in old if old[key] > new[key])
+            gained.update((path, key) for key in new if new[key] > old[key])
+    return lost, gained
+
+
+def corrected(root, a, b, own=None):
     """`[Sentence]` -- what the range removed -- the n-grams it wrote, and
     the gathered n-grams that split a changelog's removed sentences alone.
+
+    Reads: observed — git's diff of the two ends, their blobs, and the own commits `owned` listed; unknown refused
+
+    **On a two-dot range a removed or written sentence is kept only where
+    one of the range's own commits removed or wrote it** (#873). `own` is
+    `owned`'s list, None for `A...B`. The two ends are still what is counted;
+    `own_changes` says which of the sentences counted there an own commit
+    lost or gained at that path, and the rest -- what a merge of the base
+    brought in -- is neither removed nor written by this range. Which
+    commits are its own is `docs/the-record-layout.md` §*A range owns the
+    commits that descend from its start*, read through
+    `chain_check.py#own_commits`. Both lists, because `written` is
+    subtracted from every removed sentence's score, and the filter is applied
+    where a sentence is appended, before the pairing across paths.
 
     A sentence counts as corrected when the file holds it FEWER times at `b`
     than at `a`. Counted rather than tested for membership, so a sentence
@@ -1502,6 +1548,10 @@ def corrected(root, a, b):
         for path, text in read_blobs(root, a, fragments).items()
         for sentence in sentences(path, text)
     }
+    # `A...B`, or a caller that names no own commits, keeps everything.
+    lost_by_own = gained_by_own = None
+    if own is not None:
+        lost_by_own, gained_by_own = own_changes(root, own, paths)
     gone, fresh, split = [], [], set()
     for path in paths:
         was = sentences(path, before[path]) if path in before else []
@@ -1517,7 +1567,9 @@ def corrected(root, a, b):
         seen, lost = Counter(), len(gone)
         for sentence in was:
             seen[sentence.key] += 1
-            if seen[sentence.key] > counted[sentence.key]:
+            if seen[sentence.key] > counted[sentence.key] and (
+                lost_by_own is None or (path, sentence.key) in lost_by_own
+            ):
                 gone.append(sentence)
         if len(gone) == lost:
             # Nothing of this file was removed, so there is nothing the moved
@@ -1543,7 +1595,9 @@ def corrected(root, a, b):
         old, new = Counter(s.key for s in was), Counter()
         for sentence in now + moved:
             new[sentence.key] += 1
-            if new[sentence.key] > old[sentence.key]:
+            if new[sentence.key] > old[sentence.key] and (
+                gained_by_own is None or (path, sentence.key) in gained_by_own
+            ):
                 fresh.append(sentence)
     # Only after every path is counted: a sentence that left one path and
     # arrived at another is a move, and neither side of it is this range's.
@@ -1787,13 +1841,16 @@ def score(gone, keep, where, weight_of, floor, split=frozenset()):
     )
 
 
-def examine(root, a, b, floor=FLOOR):
+def examine(root, a, b, floor=FLOOR, own=None):
     """The whole run: `(rows, files examined, sentences corrected)`.
+
+    Reads: observed — the range's two ends and the own commits its caller listed, through `corrected` and `corpus`; unknown refused
 
     Every caller goes through this. It returns the two counts as well as the
     rows because the report line names what was examined -- a check that says
-    only what it found cannot be told apart from one that looked at nothing."""
-    gone, written, split = corrected(root, a, b)
+    only what it found cannot be told apart from one that looked at nothing.
+    `own` is `owned`'s list, carried to `corrected`."""
+    gone, written, split = corrected(root, a, b, own)
     keep = wanted(gone, written)
     pool = corpus(root, b)
     where, files = carriers(pool, keep)
@@ -1804,9 +1861,11 @@ def examine(root, a, b, floor=FLOOR):
     )
 
 
-def survivors(root, a, b, floor=FLOOR):
-    """`examine`'s rows alone, for a caller that wants only the survivors."""
-    return examine(root, a, b, floor)[0]
+def survivors(root, a, b, floor=FLOOR, own=None):
+    """`examine`'s rows alone, for a caller that wants only the survivors.
+
+    Reads: observed — what `examine` reads, the own commits carried through; unknown refused"""
+    return examine(root, a, b, floor, own)[0]
 
 
 # --- the exemptions --------------------------------------------------------
@@ -2341,7 +2400,7 @@ def main(argv=None):
         # The run's own range and no declaration's: a two-dot start that does
         # not reach its end is refused here, and `whole_range` resolves a
         # row spelled that way exactly as before.
-        owned(root, args.range, a, b)
+        own = owned(root, args.range, a, b)
         # Before the run rather than after it: an exemption file that will not
         # parse is exit 2, and finding that out after several seconds of
         # indexing prints a refusal underneath a report.
@@ -2350,7 +2409,7 @@ def main(argv=None):
         # the line above gives: a declaration is judged against the range this
         # run is actually over, and nothing here costs several seconds.
         whole, unresolved, foreign = whole_range(root, ranges, a, b)
-        rows, examined, gone = examine(root, a, b, args.floor)
+        rows, examined, gone = examine(root, a, b, args.floor, own)
         return report(
             rows,
             exemptions,
