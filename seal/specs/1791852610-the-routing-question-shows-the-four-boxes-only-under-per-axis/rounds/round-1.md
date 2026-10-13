@@ -7,10 +7,10 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #917 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `ab8212989a29f53006eb015da54ecf876baeda26..4d55d7a50795af1978f8de426fd4c0425f8b621e`, 2 commits |
+| Contract changes | none |
+| New units | boxes_alone (depth 1); test_the_boxes_asked_alone_neither_give_nor_take_back_the_press (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (the §1 citation in the routing section), 🟡 2 (the batching test still pinning the retired one-call rule), 🟡 3 (five for six) |
 | Loses a record or crashes | no |
@@ -25,9 +25,9 @@ Round 1 of #911, target bb9eed9b against `origin/release/v0.21.1` at 321e9de1, o
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | The routing section says the batch rule forbids only a late question and not a second click, citing §1; §1 says each interruption is a wait | `skills/implement/orchestration.md:270` | open | `skills/implement/SKILL.md:205-206` says *three interruptions cost three waits*; the trade is the owner's from #911 (Q1), not §1's |
-| 🟡 2 | A batching test still pins the retired one-call rule in its message and comment, and its `in one call` assertion is satisfied by a sentence meaning the reverse | `tests/test_chain_hooks_hardening.py:1275` | open | Message: *the questions go in one call, which is what makes the batch one wait*; comment at :1298 says `agents/framer.md` uses `in one call`, which it no longer does; contract §12 |
-| 🟡 3 | The ceiling sentence the build carried into its paragraph counts two presets beside four boxes as five | `skills/implement/orchestration.md:274` | open | Two presets (`automation`, `no work item`) plus four boxes is six; wrong since #88 (`865a9807`), reflowed by this build |
+| 🟡 1 | The routing section says the batch rule forbids only a late question and not a second click, citing §1; §1 says each interruption is a wait | `skills/implement/orchestration.md:270` | **fixed** `44e0d652` | fixed at 44e0d652; `skills/implement/SKILL.md:205-206` says *three interruptions cost three waits*; the trade is the owner's from #911 (Q1), not §1's |
+| 🟡 2 | A batching test still pins the retired one-call rule in its message and comment, and its `in one call` assertion is satisfied by a sentence meaning the reverse | `tests/test_chain_hooks_hardening.py:1275` | **fixed** `44e0d652` | fixed at 44e0d652; Message: *the questions go in one call, which is what makes the batch one wait*; comment at :1298 says `agents/framer.md` uses `in one call`, which it no longer does; contract §12 |
+| 🟡 3 | The ceiling sentence the build carried into its paragraph counts two presets beside four boxes as five | `skills/implement/orchestration.md:274` | **fixed** `44e0d652` | fixed at 44e0d652; Two presets (`automation`, `no work item`) plus four boxes is six; wrong since #88 (`865a9807`), reflowed by this build |
 | ⬜ 4 | The resume paragraph puts question 1 in the same call as other questions, while the new opening says it goes in a call of its own | `skills/implement/orchestration.md:301` | open | Behaviour right (the reader takes both, and a resume asks no boxes); the two sentences need a word saying which moment each governs |
 | ⬜ 5 | A reflow left `Nothing that` on a line of its own | `docs/worktree-guard-spec.md:981` | open | Cosmetic; rejoin with the next line |
 | ⬜ 6 | `overview.md` reports the approval line and the `Ran by` rows as unfilled; `bb9eed9b` filled both | `seal/specs/1791852610-the-routing-question-shows-the-four-boxes-only-under-per-axis/overview.md` | open | `plan.md:7` and `phases/phase-1.md:7`, `phase-2.md:7`, `phase-3.md:7` at the target; a record correction, outside `Needs a fix` |
