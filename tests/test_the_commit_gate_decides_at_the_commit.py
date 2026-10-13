@@ -308,8 +308,9 @@ CORPUS, GROUPS = corpus()
 # one into `u`; the session found through the variable and, under `env -i`,
 # through the lease; `exec`, a pipeline, a child shell, a substitution, a
 # redirected stdin; and `LD_PRELOAD`. Every row is one whose bare run commits
-# into `main` or `u` on each leg, save the two named limits S2 skips on
-# Windows, and is built from bash, git and POSIX tools alone; a row that
+# into `main` or `u` on each leg, save the three named limits S2 skips on
+# Windows, and is built from bash, git and tools the stock macOS, ubuntu and
+# Git for Windows images all carry -- GNU `timeout` is not one; a row that
 # commits nowhere undeclared fails S2 rather than skipping (T2). A row taken
 # out of this list is a removal: the mutation table in the work item's phase
 # record is what says the rest still kill what it killed.
@@ -321,7 +322,7 @@ SAMPLE = (
     "ns: r3: an invalid name prefix",
     "ns: r3: a prefix, then a cd",
     "shape: exec",
-    "shape: timeout",
+    "shape: nice",
     "shape: xargs -I",
     "shape: stdbuf",
     "shape: env -i",
@@ -346,7 +347,7 @@ SAMPLE = (
     "position: P8, a function body",
     "position: followed by 2>&1 | tail",
     "#686: builtin cd",
-    "#686: 2>&1 cd",
+    "#686: cd $W unset",
     "#686 ;: pushd",
     "#686 ;: command cd",
 )
@@ -556,6 +557,15 @@ NO_GIT_UNDER_ENV_I = (
     "the row commits nowhere"
 )
 
+# A limit of the corpus row, not of the gate. The `#686` rows write `{U}`
+# unquoted, so on Windows bash takes the backslashes out of the path, the
+# `cd` fails, and `&&` runs no commit; the `;` forms commit into `main`
+# instead (PR #939's CI run 38477955404).
+NO_CD_INTO_AN_UNQUOTED_PATH = (
+    "known limit of the row: on Windows bash strips the backslashes of the "
+    "unquoted path, so the cd fails and && runs no commit"
+)
+
 NOT_A_COMMIT = "commits into no undeclared repository without the hooks"
 
 
@@ -566,6 +576,8 @@ def _lands_nothing_undeclared(tmp_path, name):
         pytest.skip(NO_HOOK_UNDER_LD_PRELOAD)
     if os.name == "nt" and CORPUS[name].startswith("env -i"):
         pytest.skip(NO_GIT_UNDER_ENV_I)
+    if os.name == "nt" and GROUPS[name] == "#686" and "{U}" in CORPUS[name]:
+        pytest.skip(NO_CD_INTO_AN_UNQUOTED_PATH)
     home = tmp_path / "home"
     home.mkdir()
     bare = _run_corpus_row(tmp_path / "bare", CORPUS[name], False, home)
