@@ -1300,6 +1300,17 @@ def test_an_item_written_again_below_the_stopping_line_has_no_value(config):
     assert config.config_value(text, "a")[1] is not None
 
 
+def test_an_item_named_under_the_next_heading_is_another_tables(config):
+    """#871 round 2, yellow 10. A table under the next heading is not below
+    the line the walk stopped at, so a `Mode` cell in it does not double the
+    config's `Mode` row. Seen red against 4dfb3d0d: "appears 2 times"."""
+    text = TABLE.format(
+        rows="| Mode | shared |\n| a | b | c |\n\n## Notes\n\n"
+        "| Mode | what it means |\n|---|---|\n| local | x |\n"
+    )
+    assert config.config_value(text, "Mode") == ("shared", None)
+
+
 def test_a_refused_append_names_the_walkers_cause_not_a_defect(config, tmp_path):
     """#871 round 1, 🟡 2. A file with no table and an HTML comment that
     never closes: `with_row` appends a table, the walker refuses the

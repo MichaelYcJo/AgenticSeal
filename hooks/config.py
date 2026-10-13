@@ -523,10 +523,12 @@ def config_value(text, item):
     The rows are `config_table`'s, so a row is a row only where that walk
     reads it: one in a fence or in a closed comment is not counted, which is
     what keeps a fenced example from doubling the live row. **In a table the
-    walk refused, a line written below its last row that names ITEM in its
-    first cell counts too**: the walk did not read it, so it is not a value,
-    but it is an answer somebody wrote, and a row read above it is then one
-    of two answers and has no value either."""
+    walk refused, a line written below its last row and above the next
+    heading that names ITEM in its first cell counts too**: the walk did not
+    read it, so it is not a value, but it is an answer somebody wrote, and a
+    row read above it is then one of two answers and has no value either. A
+    table under the next heading is another table's, which the walk's own
+    rows nobody reads stop at as well."""
     if text is None:
         return None, None
     rows, refusals = config_table(text)
@@ -547,13 +549,18 @@ FIRST_CELL = re.compile(rf"^ {{0,3}}\|((?:{CELL})*)\|")
 
 
 def rows_named_below(text, index, item):
-    """How many lines of TEXT below the line at INDEX, of those the walk is
-    shown, name ITEM in their first cell.
+    """How many lines of TEXT below the line at INDEX and above the next
+    heading, of those the walk is shown, name ITEM in their first cell --
+    the stretch `gfm_table` calls rows nobody reads.
 
     Reads: guess — the lines of a person's `config.md` below the last row the walk read; unknown refused"""
     count = 0
     for at, line in unfenced(text.splitlines(), text):
-        first = FIRST_CELL.match(line) if at > index else None
+        if at <= index:
+            continue
+        if ATX_HEADING.match(line.lstrip(" ")) and blocks.columns(line) < 4:
+            break
+        first = FIRST_CELL.match(line)
         if first and unescaped(first.group(1).strip()) == item:
             count += 1
     return count
