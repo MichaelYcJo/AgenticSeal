@@ -367,7 +367,7 @@ def quoted_lines(lines):
     """The indices of LINES inside a fenced block that CLOSES, delimiters
     included — the lines a ledger walk skips.
 
-    Reads: guess — a markdown file's lines, a ledger's or any `.md` file an anchor names, by the shared fence rule; unknown passed
+    Reads: guess — a markdown file's lines, a ledger's or any `.md` file an anchor names, by the shared fence rule; unknown refused
 
     A line that holds a claim is read on doubt, the first of the three
     answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
@@ -5588,7 +5588,7 @@ def claim_lines(lines):
     """[(line number, text)] for the record lines that are read as claims,
     the text being what the line holds outside every aside and quotation.
 
-    Reads: guess — a record's lines, a session's prose in the records' template shape; unknown passed
+    Reads: guess — a record's lines, a session's prose in the records' template shape; unknown refused
 
     A line that holds a claim is read on doubt, the first of the three
     answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from

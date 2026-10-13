@@ -87,14 +87,43 @@ SHAPES = {
     ],
     # A fence opened at two spaces: the shared delimiter rule closes it, and
     # `hooks/blocks.py#walk` is not sure of it, because a list item's end can
-    # end a construct indented that way. It is the one shape here on which the
-    # checker's `quoted_lines` and the rider check's give different answers.
+    # end a construct indented that way. It is the first of three shapes here
+    # on which the checker's `quoted_lines` and the rider check's part.
     "a fence the walk is not sure of": [
         "intro",
         "",
         "  ```",
         ROW,
         "  ```",
+        "",
+        "after",
+    ],
+    # The second: a fence that closes inside a line-start comment that closes
+    # is comment text to a renderer, so the walk opens no fence there, while
+    # the shared delimiter rule does.
+    "a fence inside a comment that closes": [
+        "intro",
+        "",
+        "<!--",
+        "```",
+        ROW,
+        "```",
+        "-->",
+        "",
+        "after",
+    ],
+    # The third: a fence that closes below a fence nobody closed. The
+    # delimiter rule never closes the outer `~~~~`, so it reads everything
+    # below it; the walk reads that opener as an ordinary line and takes the
+    # inner fence as certain, which a renderer hides either way.
+    "a closed fence below a fence nobody closed": [
+        "intro",
+        "",
+        "~~~~",
+        "x",
+        "```",
+        ROW,
+        "```",
         "",
         "after",
     ],
@@ -169,43 +198,43 @@ TABLE = {
         checker_quoted_lines,
         HOLDS,
         "checker's `quoted_lines`",
-        (N, R, R, R, R, R, R, N),
+        (N, R, R, R, R, R, R, N, N, R),
     ),
     "evidence_check.py#claim_lines": (
         checker_claim_lines,
         HOLDS,
         "`claim_lines`",
-        (N, R, N, R, R, R, N, N),
+        (N, R, N, R, R, R, N, N, N, R),
     ),
     "settle.py#anchored_rows": (
         settle_anchored_rows,
         HOLDS,
         "`settle.py#anchored_rows`",
-        (R, R, R, R, R, R, R, R),
+        (R, R, R, R, R, R, R, R, R, R),
     ),
     "rider_check.py#quoted_lines": (
         rider_quoted_lines,
         HOLDS,
         "rider check's `quoted_lines`",
-        (N, R, R, R, R, R, R, R),
+        (N, R, R, R, R, R, R, R, R, N),
     ),
     "unverified_check.py#live_lines": (
         unverified_live_lines,
         EXCUSES,
         "`unverified_check.py#live_lines`",
-        (N, N, N, N, R, R, N, N),
+        (N, N, N, N, R, R, N, N, N, N),
     ),
     "config.py#hidden_lines": (
         config_hidden_lines,
         EXCUSES,
         "`hooks/config.py#hidden_lines`",
-        (N, N, N, R, R, R, N, N),
+        (N, N, N, R, R, R, N, N, N, N),
     ),
     "unverified_check.py#readable": (
         unverified_readable,
         COUNTS,
         "`unverified_check.py#readable`",
-        (N, N, N, N, R, R, N, N),
+        (N, N, N, N, R, R, N, N, N, N),
     ),
 }
 

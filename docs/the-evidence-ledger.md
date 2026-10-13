@@ -623,21 +623,27 @@ kind of line they read, with the cost each answer is chosen against.
   template's comments describe fields rather than assert units.
   `anchored_rows` reads a fence that closes, because a guard that reads more
   than the checker keeps a directory rather than breaking a row. The rider
-  check reads a fence its walk is not sure of, one opened at one to three
-  spaces, which the checker's delimiter rule closes, because a rider the
-  walk cannot place is read as it was before the walk.
+  check reads by `hooks/blocks.py#walk` rather than by the delimiter rule,
+  and parts from the checker three ways: it reads a fence its walk is not
+  sure of, one opened at one to three spaces, which the delimiter rule
+  closes, because a rider the walk cannot place is read as it was before the
+  walk; it reads a fence inside a line-start comment that closes, which a
+  renderer shows as comment text; and it skips a fence that closes below a
+  fence nobody closed, which a renderer hides either way.
 - **A line that EXCUSES or DECLARES something — a fold marker, a
-  `seal/config.md` row, a `routing.md` row — is not taken on doubt.**
+  `seal/config.md` row, a `routing.md` row — is not taken on doubt, except
+  where a declaring reader keeps an older reading that took it.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
   closed or not, and a line its two span readings disagree about.
   `hooks/config.py#hidden_lines` keeps, wherever its walk is unsure, the
   fence-only reading it gave before #667: a row below a fence nobody closed
-  declares nothing, and a row below a `<!--` nobody closed still declares,
-  because that reading never hid one and work item 1790645290 was bound to
-  miss no row the older reading saw. What this protects is that nothing is
-  excused or declared by a line nobody wrote live. The wrong answer is a fold
-  reported as a deletion at exit 1, a fragment the sweep keeps, a hook that
-  says nothing, or a gate that asks.
+  declares nothing, and a row below a comment opener nobody closed still
+  declares, because that reading never hid one and work item 1790645290 was
+  bound to miss no row the older reading saw. That row is the one place a
+  line nobody wrote live declares something; everywhere else, what this
+  protects is that nothing is excused or declared by a line nobody wrote
+  live. The wrong answer is a fold reported as a deletion at exit 1, a
+  fragment the sweep keeps, a hook that says nothing, or a gate that asks.
 - **A line a record's rows are COUNTED on is blanked the same way on both
   sides of a comparison.** `unverified_check.py#readable` blanks comment text
   and fenced lines with the indices intact, and a region nobody closed to the

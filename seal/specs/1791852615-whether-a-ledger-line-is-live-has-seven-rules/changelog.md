@@ -10,7 +10,7 @@
   are counted on is blanked the same way on both sides of a comparison. No
   reader's behaviour changed: each of the seven now says in its own
   docstring which answer it gives and what the wrong one costs, and one test
-  holds all seven side by side on eight shapes of line, so a reader whose
+  holds all seven side by side on ten shapes of line, so a reader whose
   answer moves turns a named cell red. `hooks/config.py` is the one reader
   of the second kind that still reads a row below a comment opener nobody
   closed, because it keeps the reading it gave before its walk was added,
