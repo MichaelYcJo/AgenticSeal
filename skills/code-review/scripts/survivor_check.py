@@ -449,17 +449,41 @@ def resolves(root, rev):
     return text or None
 
 
+def separator(spec):
+    """`...` or `..`, whichever the range is spelled with, or None.
+
+    Reads: guess — the range a person typed, by its dots; unknown refused
+
+    The one reader of the spelling: `parse_range` resolves the ends by it and
+    `owned` decides by it which reading the range gets. Three dots are asked
+    first, because `A...B` holds `..` as well."""
+    for sep in ("...", ".."):
+        if sep in spec:
+            return sep
+    return None
+
+
 def parse_range(root, spec):
     """`A..B` or `A...B` into two resolved commits.
 
-    Both spellings are accepted and mean the same thing here, because what is
-    read is the two endpoints and never the walk between them. `A...B` is what
-    a pull request's own comparison is spelled with, and refusing it would send
-    whoever runs this at a pull request to work out the merge base by hand."""
-    for sep in ("...", ".."):
-        if sep in spec:
-            left, _, right = spec.partition(sep)
-            break
+    Reads: guess — the range a person typed, resolved by git; unknown refused
+
+    The two spellings read different things, and this unit resolves both.
+    `A...B` is read at its two ends, the start being the merge base: it is
+    what a pull request's own comparison is spelled with, and refusing it
+    would send whoever runs this at a pull request to work out the merge base
+    by hand. `A..B` is read at its two ends too, and `corrected` keeps of
+    what changed between them only what the range's own commits changed,
+    the list `owned` hands it (`docs/the-record-layout.md` §*A range owns
+    the commits that descend from its start* owns which commits those are).
+
+    A start that does not reach its end is not refused here: `whole_range`
+    resolves a declaration's range through this unit, and a row spelled that
+    way is a range this run is not over rather than one that does not
+    resolve. `owned` refuses it for the run's own `--range`."""
+    sep = separator(spec)
+    if sep is not None:
+        left, _, right = spec.partition(sep)
     else:
         raise Refused(
             f"--range {spec} is not a range. Write `A..B`, the two commits a "
@@ -476,6 +500,37 @@ def parse_range(root, spec):
         if base and base.strip():
             a = base.strip()
     return a, b
+
+
+def owned(root, spec, a, b):
+    """The commits a two-dot `--range` owns, as `chain_check.py#own_commits`
+    lists them, or None for `A...B`, which is read at its two ends.
+
+    Reads: guess — the range a person typed, by its dots, and git's ancestry of its two resolved ends through `chain_check.py`; unknown refused
+
+    The list is `own_commits`' and never a second walk here: one reader of
+    which commits a range owns, so the two cannot drift
+    (`docs/the-record-layout.md` §*A range owns the commits that descend
+    from its start* owns the rule).
+    A two-dot start that is not an ancestor of its end owns nothing, and a
+    report over it would say *0 sentence(s) the range removed* about a range
+    nobody meant, so it is refused here, before anything is examined.
+    `round_record.py#parse_range` refuses the same range for `close`."""
+    if separator(spec) != "..":
+        return None
+    loaded = chain()
+    if not loaded.is_ancestor(root, a, b):
+        raise Refused(
+            f"--range {spec}: `{a[:8]}` is not an ancestor of `{b[:8]}`, so "
+            "the range owns no commit and there is nothing it removed to look "
+            "for. Write `A...B` for a range whose start is on the base, which "
+            "is read at its two ends from the merge base, or name the commit "
+            "the fixes started from. Nothing was examined"
+        )
+    commits = loaded.own_commits(root, a, b)
+    if commits is None:
+        raise Refused(f"cannot list the commits {a[:7]}..{b[:7]} owns in {root}")
+    return commits
 
 
 def tracked(root, rev):
@@ -1138,6 +1193,28 @@ def evidence():
             "left the code. This script ships beside it under `skills/`."
         )
     spec = importlib.util.spec_from_file_location("specseal_evidence_check", EVIDENCE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# The review chain's checker, loaded by path the way `evidence()` loads the
+# ledger checker. It owns which commits a range owns (`own_commits`) and
+# whether a start reaches its end (`is_ancestor`); the sweep asks it rather
+# than walking the range a second way.
+CHAIN = os.path.join(HERE, "chain_check.py")
+
+
+def chain():
+    """`chain_check.py`, or a sentence saying why it cannot be read.
+
+    Reads: observed — whether `chain_check.py` stands beside this script; unknown refused"""
+    if not os.path.isfile(CHAIN):
+        raise Refused(
+            f"cannot read {CHAIN}, which says which commits a two-dot range "
+            "owns. This script ships beside it under `skills/`."
+        )
+    spec = importlib.util.spec_from_file_location("specseal_chain_check", CHAIN)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -2226,6 +2303,9 @@ def report(
 
 
 def main(argv=None):
+    """The command, answering with the exit code the module docstring names.
+
+    Reads: guess — the arguments a person typed, through `parse_range`, `owned` and `read_exemptions`; unknown refused"""
     ap = argparse.ArgumentParser(
         prog="survivor-check",
         description="Report every place still carrying wording a range removed.",
@@ -2258,6 +2338,10 @@ def main(argv=None):
     try:
         root = os.path.abspath(args.root)
         a, b = parse_range(root, args.range)
+        # The run's own range and no declaration's: a two-dot start that does
+        # not reach its end is refused here, and `whole_range` resolves a
+        # row spelled that way exactly as before.
+        owned(root, args.range, a, b)
         # Before the run rather than after it: an exemption file that will not
         # parse is exit 2, and finding that out after several seconds of
         # indexing prints a refusal underneath a report.

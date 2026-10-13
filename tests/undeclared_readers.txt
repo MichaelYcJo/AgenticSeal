@@ -885,13 +885,11 @@ skills/code-review/scripts/survivor_check.py#hook@2b603cc5
 skills/code-review/scripts/survivor_check.py#ledger_rows@3ed50499
 skills/code-review/scripts/survivor_check.py#local_item@cd229ab7
 skills/code-review/scripts/survivor_check.py#local_specs@3b0fc79a
-skills/code-review/scripts/survivor_check.py#main@1bd887a9
 skills/code-review/scripts/survivor_check.py#newly_released@9f729ae3
 skills/code-review/scripts/survivor_check.py#ngrams@eeb47c62
 skills/code-review/scripts/survivor_check.py#on_its_branch@537eaffb
 skills/code-review/scripts/survivor_check.py#only_released@417ace0e
 skills/code-review/scripts/survivor_check.py#paired_across_paths@53cabf4b
-skills/code-review/scripts/survivor_check.py#parse_range@8a702916
 skills/code-review/scripts/survivor_check.py#python_prose@8bdedcfe
 skills/code-review/scripts/survivor_check.py#read_blobs@7c70d4b4
 skills/code-review/scripts/survivor_check.py#read_exemptions@c12c4c2f
