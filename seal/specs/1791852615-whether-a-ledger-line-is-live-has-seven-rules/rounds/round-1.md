@@ -7,10 +7,10 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #918 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `9b5239c6ded482c279f11e28f32479f3289f277a..e224390fb4ad6438dc3c2eaf658c68344ff127d7`, 1 commit |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1, 🟡 2 and 🟡 3: the statement's excusing headline, the statement's account of how the rider check parts from the checker, and the two `passed` direction words in the holding group. |
 | Loses a record or crashes | no |
@@ -25,9 +25,9 @@ Round 1 of #872, target f8c96c3b against `origin/release/v0.21.1` at 321e9de1, o
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | the excusing bullet's headline "is not taken on doubt" and its sentence "nothing is excused or declared by a line nobody wrote live" are false for `hidden_lines` on a row below a comment opener nobody closed, which the same bullet says it declares and the table pins as read | `docs/the-evidence-ledger.md:629` | open | read: the bullet at lines 629 to 640; `hooks/blocks.py:366` makes the line uncertain; the table pins `read` at `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py:202` |
-| 🟡 2 | the statement names one shape on which the rider check parts from the checker; they part on three, and on a closed fence below a fence nobody closed the rider does not read, against line 615's "a fence nobody closed is a malformed file whose lines are read" | `docs/the-evidence-ledger.md:625` | open | executed: the probe on two added shapes (rider reads and checker skips; checker reads and rider skips); read: `hooks/blocks.py:321`; `overview.md:24` carries the same narrow claim |
-| 🟡 3 | the checker's `quoted_lines` and `claim_lines` declare `unknown passed` while the rider check's `quoted_lines` and `anchored_rows` declare `unknown refused` for the same answer on doubt; both `passed` units' own consequence sentences name a refusal | `skills/evidence-check/scripts/evidence_check.py:370` | open | read: the four `Reads:` lines and their sentences; `docs/the-reader-registry.md` §*The four classes* reads direction at the decision; inventory rows E9 and E58 against S9 |
+| 🟡 1 | the excusing bullet's headline "is not taken on doubt" and its sentence "nothing is excused or declared by a line nobody wrote live" are false for `hidden_lines` on a row below a comment opener nobody closed, which the same bullet says it declares and the table pins as read | `docs/the-evidence-ledger.md:629` | **fixed** `e224390f` | fixed at e224390f; read: the bullet at lines 629 to 640; `hooks/blocks.py:366` makes the line uncertain; the table pins `read` at `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py:202` |
+| 🟡 2 | the statement names one shape on which the rider check parts from the checker; they part on three, and on a closed fence below a fence nobody closed the rider does not read, against line 615's "a fence nobody closed is a malformed file whose lines are read" | `docs/the-evidence-ledger.md:625` | **fixed** `e224390f` | fixed at e224390f; executed: the probe on two added shapes (rider reads and checker skips; checker reads and rider skips); read: `hooks/blocks.py:321`; `overview.md:24` carries the same narrow claim |
+| 🟡 3 | the checker's `quoted_lines` and `claim_lines` declare `unknown passed` while the rider check's `quoted_lines` and `anchored_rows` declare `unknown refused` for the same answer on doubt; both `passed` units' own consequence sentences name a refusal | `skills/evidence-check/scripts/evidence_check.py:370` | **fixed** `e224390f` | fixed at e224390f; read: the four `Reads:` lines and their sentences; `docs/the-reader-registry.md` §*The four classes* reads direction at the decision; inventory rows E9 and E58 against S9 |
 | ⬜ 4 | one `BY_BIAS` cell (`hidden_lines` on a mid-line comment) is answered by the docstring itself, and its label's reason, "where the walk is unsure", does not hold: the walk is sure of that line | `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py:222` | open | executed: the walk returns `live`, `uncertain=False`, on that line; the cell's answer is right; "four cells" also appears in W1, Q4 and phase 1 |
 | ⬜ 5 | `overview.md`'s first `Not verified` row can be answered from the code: the walk cannot return `fence` and uncertain together, so the surviving mutation is equivalent | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/overview.md:31` | open | read: `hooks/blocks.py:321`, `:340` to `:368`, `:424` to `:428`; executed: fuzz, 0 lines in 200,000 texts |
 | 🟢 | the seven census lines are gone, and each of the seven units carries one `Reads:` line in the grammar and one consequence sentence | `tests/undeclared_readers.txt` | confirmed | read: the diff, all seven lines; the census test is the orchestrator's executed run at `f8c96c3b` |
