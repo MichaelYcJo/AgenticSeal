@@ -4,7 +4,7 @@
 |---|---|
 | Phase | 3 |
 | Commit | 8a680e81 |
-| Ran by | unknown — the spawn prompt named the agent, `smith`, and not the model; the orchestrator fills this row |
+| Ran by | specseal:smith on Opus 5.5 |
 
 ## What this phase was asked
 
