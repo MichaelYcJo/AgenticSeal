@@ -625,7 +625,6 @@ hooks/worktree-guard.py#git_at@28d2e5f8
 hooks/worktree-guard.py#git_dir@e4c6c02c
 hooks/worktree-guard.py#has_token@92642195
 hooks/worktree-guard.py#host_app@50dff44a
-hooks/worktree-guard.py#judge_creation@bc8a0654
 hooks/worktree-guard.py#last_active_event_epoch@e34f6778
 hooks/worktree-guard.py#last_user_snippet@9c7a62ce
 hooks/worktree-guard.py#lease_dir@33e78553

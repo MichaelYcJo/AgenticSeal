@@ -247,6 +247,25 @@ def test_the_press_is_read_from_the_sessions_own_root(
     assert decision == "allow" and "pressed `automation`" in reason, reason
 
 
+@pytest.mark.parametrize("row", ["idle", "unusable"])
+def test_an_unbalanced_quote_under_the_press_names_no_token(
+    monkeypatch, capsys, projects, repo, other, wko, row
+):
+    """S1 for a command the lexer gives up on (round 1, yellow 1). The
+    origin's quote note exists for the single-stream deny's way past,
+    `[worktree-ok]`; under the press rows 3 and 4 name no token, so the deny
+    is S1's, word for word, on every attempt. Seen red at `9e7514f3`: the
+    first line named `[worktree-ok]` and invited a re-issue, and the retry
+    with the token reached row 2's `ask`."""
+    write_transcript(projects, "me", ask_entries(repo))
+    command = creation(other, "  # don't")
+    for lang, module in (("en", wg), ("ko", wko)):
+        for attempt in range(2):
+            got = judge(module, monkeypatch, capsys, repo, command, ROWS[row])
+            assert got == ("deny", unattended(lang, row)), (lang, attempt, got)
+            assert_names_nobody(got[1])
+
+
 def test_a_creation_behind_a_cd_meets_the_same_deny(
     monkeypatch, capsys, projects, repo, other
 ):

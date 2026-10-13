@@ -1604,6 +1604,7 @@ def guard_worktree_creation(
     session_id: str = "",
     consented="silent",
     transcript_path="",
+    plain_origin="",
 ):
     """Worktrees are for CONCURRENT work only -- block the single-stream case.
 
@@ -1837,6 +1838,12 @@ def guard_worktree_creation(
     # session's own root, inside each row's `if`, so a command reads it only
     # where one of the two rows fires: `cwd` is where the shell stands, which
     # `judge_creation` hands here on purpose.
+    #
+    # Under the press the two rows open with PLAIN_ORIGIN, the origin without
+    # `judge_creation`'s quote note: that note tells the model to re-issue
+    # with `[worktree-ok]`, which reaches row 2's `ask`, a person's prompt
+    # (round 1 of work item 1791852612, yellow 1). Attended, the origin is
+    # the one every row reads.
     elsewhere = (
         press_sentence()
         + tr(
@@ -1859,12 +1866,14 @@ def guard_worktree_creation(
 
     # 3) 살아 있긴 하나 한동안 입력이 없는 세션뿐 -> 잊힌 탭일 가능성. 사용자가 안다.
     if idle:
+        pressed = automation_pressed(repo_paths(cwd)[0], session_id, transcript_path)
+        lead = (plain_origin or origin) if pressed else origin
         choose(
             top,
             session_id,
             "create",
             (
-                f"{origin}\n"
+                f"{lead}\n"
                 + tr(
                     f"The only other sessions here have shown no activity (input or transcript) "
                     f"for {IDLE_MIN}+ minutes — if they are forgotten tabs this is effectively "
@@ -1889,18 +1898,20 @@ def guard_worktree_creation(
                 "`git switch` 로 전환합니다:\n",
             )
             + steer_to_switch(git),
-            pressed=automation_pressed(repo_paths(cwd)[0], session_id, transcript_path),
+            pressed=pressed,
             unattended=elsewhere,
         )
 
     # 4) 동시 세션 판정 불가 -> 자동으로 만들지 말고 물어본다.
     if not reliable:
+        pressed = automation_pressed(repo_paths(cwd)[0], session_id, transcript_path)
+        lead = (plain_origin or origin) if pressed else origin
         choose(
             top,
             session_id,
             "create",
             (
-                f"{origin}\n"
+                f"{lead}\n"
                 + tr(
                     "Cannot determine whether other sessions are working here (ps/lsof "
                     "unavailable), so no automatic verdict.\n",
@@ -1919,7 +1930,7 @@ def guard_worktree_creation(
                 "use `git switch`.",
                 "정말 동시 작업이면 확인해 주시고, 단건이면 취소하고 `git switch` 로 진행하세요.",
             ),
-            pressed=automation_pressed(repo_paths(cwd)[0], session_id, transcript_path),
+            pressed=pressed,
             unattended=elsewhere,
         )
 
@@ -1948,6 +1959,13 @@ def judge_creation(
     command: str, cwd: str, top: str, session_id: str, transcript_path: str = ""
 ):
     """Put the creation question for a `git worktree add` in `command`.
+
+    Reads: guess — the command text the model wrote, for a bare `[worktree-ok]`, whether it tokenizes, and whether it is a creation and nothing else, handed to `guard_worktree_creation` beside its own reads; unknown mixed
+
+    A command it cannot tokenize carries no token it can read, so the
+    creation is judged as one without it, a refusal; under consent the same
+    command is silent, because it is no bare creation, and the harness's own
+    flow judges it, a pass.
 
     Extracted because more than one site reaches it, and the second one is
     why. `main` classified only the FIRST segment it could read, while
@@ -2005,6 +2023,10 @@ def judge_creation(
         "Attempting to create a worktree with `git worktree add`.",
         "`git worktree add` 로 worktree를 만들려 합니다.",
     )
+    # The note below is the single-stream deny's way past, which is
+    # `[worktree-ok]`. Under the press rows 3 and 4 name no token (#903), so
+    # they open with the origin as it stands here.
+    plain_origin = origin
     if not user_ok and not parses_cleanly(command):
         origin += tr(
             " No [worktree-ok] was read, and this command has an unbalanced "
@@ -2039,6 +2061,7 @@ def judge_creation(
         # Where the routing answer is read from; `worktree_consent` falls back
         # to this session's own file by id when the path names another one.
         transcript_path=transcript_path,
+        plain_origin=plain_origin,
     )
 
 
@@ -3548,13 +3571,19 @@ def main():
         if automation_pressed(repo_paths(cwd)[0], session_id, transcript_path):
             respond(
                 "deny",
+                # The press and re-issue sentences are the shared strings,
+                # so a reword reaches this row too (round 1 of work item
+                # 1791852612, yellow 2).
                 tr(
                     f"{lead}, so no other row of this guard stops the switch, "
                     f"but {len(entries)} uncommitted tracked changes are "
-                    f"present:\n{listing}\n{note}\n"
-                    "This session's person pressed `automation` on the routing "
-                    "question, so this guard puts no question to them, and none "
-                    "is to be put to them in its place.\n\n"
+                    f"present:\n{listing}\n{note}\n",
+                    f"{lead} 이 guard 의 다른 규칙은 이 전환을 막지 않지만, "
+                    f"커밋되지 않은 추적 파일 변경이 {len(entries)}건 "
+                    f"있습니다:\n{listing}\n{note}\n",
+                )
+                + press_sentence()
+                + tr(
                     "This row of the guard stops a branch switch while "
                     "uncommitted tracked changes are present, and says nothing "
                     "of a switch once none are.\n\n"
@@ -3565,14 +3594,7 @@ def main():
                     f"`{git} stash` are on this guard's list of commands that "
                     "leave the branch where it is, so each passes it when "
                     "issued alone. Which of them fits this switch, and what to "
-                    "run after it, is yours to decide.\n\n"
-                    "Re-issuing this command unchanged meets this same refusal.",
-                    f"{lead} 이 guard 의 다른 규칙은 이 전환을 막지 않지만, "
-                    f"커밋되지 않은 추적 파일 변경이 {len(entries)}건 "
-                    f"있습니다:\n{listing}\n{note}\n"
-                    "이 세션의 사용자가 라우팅 질문에서 `automation` 을 "
-                    "눌렀습니다. 그래서 이 guard 는 사용자에게 아무것도 묻지 "
-                    "않으며, 다른 방법으로 대신 물어서도 안 됩니다.\n\n"
+                    "run after it, is yours to decide.\n\n",
                     "이 guard 의 이 규칙은 커밋되지 않은 추적 파일 변경이 있는 "
                     "동안 브랜치 전환을 막고, 변경이 없으면 전환에 대해 아무 "
                     "말도 하지 않습니다.\n\n"
@@ -3583,9 +3605,9 @@ def main():
                     f"`{git} stash` 는 이 guard 가 브랜치를 그대로 두는 명령으로 "
                     "꼽는 목록에 있어, 따로 실행하면 이 guard 를 통과합니다. 이 "
                     "전환에 어느 쪽이 맞는지, 그 뒤에 무엇을 실행할지는 직접 "
-                    "정하세요.\n\n"
-                    "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
-                ),
+                    "정하세요.\n\n",
+                )
+                + reissue_sentence(),
             )
         respond(
             "ask",
