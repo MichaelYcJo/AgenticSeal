@@ -44,8 +44,10 @@ evidence ledger's coordinates.
      is refused naming it. Prose about the rows goes under a sub-heading
      after the table, such as `### Why these rows`, which ends the section;
      its lines are read as the rest of the frame is, so a removed unit named
-     there carries `NAME NOT IN TREE` on its line. The grammar, the verdicts
-     and the `Removes from` row
+     there carries `NAME NOT IN TREE` on its line. A table row under that
+     sub-heading is refused, because only the table above it is read as
+     removals, and the marker exempts no line of the section itself. The
+     grammar, the verdicts and the `Removes from` row
      are `docs/the-reader-registry.md` §*A frame names what its work removes*.
      #107 is why a removal is recorded at all, and `docs/the-agent-set.md`
      tells it: a rule taken out of `agents/smith.md` was lost between two

@@ -13,8 +13,13 @@
      sub-heading after the table, such as `### Why these rows`.
   2. The section now ends at the next heading of any level. A sub-heading's
      lines are read as the rest of the frame is, so a unit the work removes,
-     named there in backticks, needs `NAME NOT IN TREE` on its line.
-  3. A required section that is empty is refused as before, in the same
+     named there in backticks, needs `NAME NOT IN TREE` on its line. A table
+     row under that sub-heading is refused naming it, because only the table
+     above it is read as removals.
+  3. The marker exempts no line of the section itself. Before, a line under
+     `## Removes` carrying it was skipped, so a marked bullet passed and a
+     marked row naming a unit that still stands was never read.
+  4. A required section that is empty is refused as before, in the same
      words.
 
 - **Two sentences that said something untrue are corrected (#905).**

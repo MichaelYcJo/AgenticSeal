@@ -2015,3 +2015,78 @@ def test_a_heading_of_any_level_ends_the_section(tmp_path, sub):
     assert [(s, c.replace(os.sep, "/").rsplit("/", 1)[-1]) for s, c, _d in found] == [
         ("NOT-IN-TREE", "spec.md:11")
     ]
+
+
+def strayed(line):
+    """The refusal of a table row LINE under a sub-heading of `## Removes`."""
+    return (
+        f"`{line}` — a table row under a sub-heading of `## Removes` is not "
+        "read as a removal; move it into the table above the sub-heading, or "
+        "write it as prose"
+    )
+
+
+@pytest.mark.parametrize("required", [False, True], ids=["unrequired", "required"])
+@pytest.mark.parametrize(
+    ("tail", "number"),
+    [
+        ("| y | `mod.py#old_reader` | z |\n", 11),
+        (REMOVES_HEAD.split("\n", 4)[4] + "| y | `mod.py#old_reader` | z |\n", 13),
+    ],
+    ids=["a row alone", "a whole second table"],
+)
+def test_a_table_row_under_a_sub_heading_of_removes_is_refused(
+    tmp_path, required, tail, number
+):
+    """Round 1 of #905, 🟡 1. The section ends at any heading so prose has a
+    home, and a table row under that sub-heading is refused naming it —
+    never read by the name half alone, where a unit that still stands
+    passes. A second table's header and rule rows name no removal and are
+    not refused; its body row is."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    h = home(tmp_path)
+    if required:
+        removes_config(tmp_path, "1780000000")
+    body = REMOVES_TABLE + "\n### Phase 2\n\n" + tail
+    work_item(
+        h,
+        "1780000000-live",
+        **{"spec.md": "# frame\n\n## Removes\n\n" + body + REMOVES_TAIL},
+    )
+    found, _ = refusals(tmp_path)
+    assert [(s, c.replace(os.sep, "/").rsplit("/", 1)[-1], d) for s, c, d in found] == [
+        ("REFUSED", f"spec.md:{number}", strayed("| y | `mod.py#old_reader` | z |"))
+    ]
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        (
+            REMOVES_TABLE + "- `mod.py#old_reader` goes too NAME NOT IN TREE\n",
+            ("REFUSED", "spec.md:8"),
+        ),
+        (
+            REMOVES_TABLE.replace(
+                "`gone.py#x` | y", "`mod.py#old_reader` | y NAME NOT IN TREE"
+            ),
+            ("STANDING", "spec.md:7"),
+        ),
+    ],
+    ids=["a marked bullet", "a marked row"],
+)
+def test_the_marker_exempts_no_line_of_the_removes_section(tmp_path, body, expected):
+    """Round 1 of #905, 🟡 2. The marker exempts a line from the name half,
+    and the section is not the name half's: a marked line under `## Removes`
+    is read by the section's shapes like any other."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    h = home(tmp_path)
+    work_item(
+        h,
+        "1780000000-live",
+        **{"spec.md": "# frame\n\n## Removes\n\n" + body + REMOVES_TAIL},
+    )
+    found, _ = refusals(tmp_path)
+    assert [(s, c.replace(os.sep, "/").rsplit("/", 1)[-1]) for s, c, _d in found] == [
+        expected
+    ]

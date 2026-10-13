@@ -6030,29 +6030,53 @@ REMOVES_REASON_RE = re.compile(r"\s+(?:—|--)\s+\S")
 
 
 def removes_section(lines):
-    """`(present, cut, rows, nothing, other)` for a frame's `## Removes`
-    section: whether the heading is there, the claim-line numbers inside the
-    section, `[(line number, cells)]` for its table's body rows, `[(line
-    number, text)]` for every line in it that begins `nothing`, and `[(line
-    number, text)]` for every other line in it that is not a table row — the
-    lines its two shapes do not cover, which the caller refuses (#905).
-    `claim_lines` hands back no blank line, so none reaches either list.
+    """`(present, cut, rows, nothing, other, strayed)` for a frame's
+    `## Removes` section: whether the heading is there, the claim-line
+    numbers the section's reading owns, `[(line number, cells)]` for its
+    table's body rows, `[(line number, text)]` for every line in it that
+    begins `nothing`, `[(line number, text)]` for every other line in it that
+    is not a table row — the lines its two shapes do not cover — and `[(line
+    number, text)]` for every table body row under a sub-heading of it. The
+    caller refuses the last two (#905). `claim_lines` hands back no blank
+    line, so none reaches any list.
 
-    Reads: owned — the section's lines, on the lines `claim_lines` reads, by the template's shape; unknown refused
+    Reads: owned — the section's lines, on the lines `claim_lines` reads with the marker blanked, by the template's shape; unknown refused
 
     The section runs from a level-2 heading reading `Removes` to the next
     heading of ANY level, so prose about the rows goes under a sub-heading
     after the table and is read as the rest of the record is; a sub-heading
-    reading `Removes` opens nothing. A line inside a fence or an HTML comment
-    is not a claim line, so a quoted section is no section (`claim_lines`).
+    reading `Removes` opens nothing. A table row under such a sub-heading,
+    up to the next heading of level 2 or above, is no prose: read by the
+    name half alone, a row naming a unit that still stands would pass, so it
+    is handed back to be refused (round 1 of #905, 🟡 1). A second table's
+    header and rule rows name nothing and are not. A line inside a fence or
+    an HTML comment is not a claim line, so a quoted section is no section
+    (`claim_lines`).
+
+    **The marker exempts no line here.** `NAME NOT IN TREE` exempts a line
+    from the name half, and `cut` already keeps the name half off the
+    section, so the marker is blanked before `claim_lines` reads the lines:
+    otherwise a marked bullet passed and a marked row was never read (round 1
+    of #905, 🟡 2).
     """
     split = cell_rule()
-    present, inside, cut, rows, nothing, other = False, False, set(), [], [], []
-    for number, text in claim_lines(lines):
+    present, inside, under = False, False, False
+    cut, rows, nothing, other, strayed = set(), [], [], [], []
+    unmarked = [line.replace(NOT_IN_TREE, "") for line in lines]
+    for number, text in claim_lines(unmarked):
         level = heading_level(text)
         if level is not None:
+            under = (inside or under) and level > 2
             inside = level == 2 and text.strip().lstrip("#").strip() == REMOVES_HEADING
             present = present or inside
+            continue
+        if under:
+            cells = split(text)
+            if cells is not None and not (
+                all(RULE_CELL_RE.match(c) for c in cells) or cells[0] == REMOVES_HEADING
+            ):
+                cut.add(number)
+                strayed.append((number, text.strip()))
             continue
         if not inside:
             continue
@@ -6067,7 +6091,7 @@ def removes_section(lines):
         if all(RULE_CELL_RE.match(c) for c in cells) or cells[0] == REMOVES_HEADING:
             continue
         rows.append((number, cells))
-    return present, cut, rows, nothing, other
+    return present, cut, rows, nothing, other, strayed
 
 
 def removal_findings(lines, shown, root, maps, required):
@@ -6091,9 +6115,11 @@ def removal_findings(lines, shown, root, maps, required):
     absent or holds no row and no `nothing` line is refused too. **A line in
     a present section that is neither a row nor a `nothing` line is refused
     naming it**, required or not and beside a row or alone: dropped, a
-    removal written as a bullet was a claim of absence nobody read (#905).
+    removal written as a bullet was a claim of absence nobody read (#905). So
+    is a table row under a sub-heading of the section, and a line carrying
+    `NAME NOT IN TREE` is read like any other (round 1 of #905).
     """
-    present, cut, rows, nothing, other = removes_section(lines)
+    present, cut, rows, nothing, other, strayed = removes_section(lines)
     findings = []
     if required and not (rows or nothing):
         why = (
@@ -6127,6 +6153,16 @@ def removal_findings(lines, shown, root, maps, required):
                 f"`{text}` — a line under `## Removes` is a table row or "
                 "`nothing — <why>`; prose about the rows goes under a sub-heading "
                 "after the table, such as `### Why these rows`",
+            )
+        )
+    for number, text in strayed:
+        findings.append(
+            (
+                REFUSED_STATUS,
+                f"{shown}:{number}",
+                f"`{text}` — a table row under a sub-heading of `## Removes` is "
+                "not read as a removal; move it into the table above the "
+                "sub-heading, or write it as prose",
             )
         )
     for number, cells in rows:
