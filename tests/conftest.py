@@ -1019,3 +1019,20 @@ def pytest_collection_modifyitems(session, items):
     Reads: observed — the items pytest collected, recorded unjudged; unknown passed
     """
     setattr(session, COLLECTED_NODE_IDS, [item.nodeid for item in items])
+
+
+def posix_id(value, sep=os.sep):
+    """A parametrized path's id written with `/`, or None for a value that is
+    not a string, which leaves pytest its own id.
+
+    `.test_durations` is measured on Windows and read on every leg, so an id
+    has to be one spelling on every machine: `os.path.join` writes `\\` on
+    Windows, and the file then prices that case on Windows alone. Pass it as
+    `ids=` where a parametrization's values are paths. `sep` is the platform's
+    separator unless a case hands it Windows' to read this on POSIX.
+
+    Reads: nothing — rewrites the value its caller hands it
+    """
+    if not isinstance(value, str):
+        return None
+    return value.replace(sep, "/")

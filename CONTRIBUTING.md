@@ -189,7 +189,10 @@ beside the values says which runs they were set from.
 `.test_durations` goes stale as cases are added, which unbalances the
 Windows and macOS shards and drops no case. The file is the Windows leg's,
 and it divides the macOS leg too, because every leg collects the same
-cases. It prices each case as Windows ran it, so a case Windows skips is
+cases under the same ids: a parametrized path takes `ids=posix_id` from
+`tests/conftest.py`, and no id carries the interpreter's path, which
+`test_no_collected_id_carries_the_interpreters_path` holds. It prices each
+case as Windows ran it, so a case Windows skips is
 near zero there and its whole macOS cost is unseen by the division: after
 a refresh, read the macOS shards' times in the next run's jobs and set
 their `timeout` again by the rule beside the values. The file is refreshed
@@ -201,7 +204,9 @@ case in twenty (`STALE_SHARE`) has no price in the file.
 case alone against the whole collection, and naming one module skips it.
 To refresh it, push a branch on which `test.yml` runs the Windows
 leg as one job again for a single run: one Windows entry with
-`store: "--store-durations"` in place of the four Windows shard entries,
+`store: "--store-durations --clean-durations"` (the second drops every
+entry the run did not collect, which `pytest-split` otherwise keeps) in
+place of the four Windows shard entries,
 the three macOS shard entries left as they are, with a `timeout` for the
 whole Windows leg rather than a shard's 20 (60 by the rule beside the
 values, from the 37 m 21 s it ran unsharded in run 38332345615);

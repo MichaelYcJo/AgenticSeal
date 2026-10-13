@@ -8,7 +8,8 @@ released ledger row anchors its three cases by this path.
 `pytest-split` divides the suite by each case's duration, read from the
 committed `.test_durations`, and every shard runs the group its matrix entry
 names. One file divides both legs, because every leg collects the same
-cases. What decides whether a leg's union is the suite is the matrix itself:
+cases under the same ids: an id built from a path writes it with `/`, and
+none carries the interpreter's path. What decides whether a leg's union is the suite is the matrix itself:
 a group named twice runs twice and a group named by no entry runs nowhere,
 and nothing on the runner says so -- each shard passes. So the matrix is
 read here, through `tests/test_ci_gives_the_checks_what_they_need.py#
@@ -32,11 +33,13 @@ no longer collects are not counted, because the division never reads them.
 """
 
 import json
+import ntpath
 import os
 import re
+import sys
 
 import pytest
-from conftest import COLLECTED_NODE_IDS
+from conftest import COLLECTED_NODE_IDS, posix_id
 from test_ci_gives_the_checks_what_they_need import (
     jobs,
     matrix_include_entries,
@@ -55,12 +58,14 @@ SHARDED = {"windows-latest": 4, "macos-latest": 3}
 
 # The share of the collected cases the durations file may leave unpriced
 # before the suite case fails: one in twenty (`questions.md` Q1 of work item
-# 1791852613). Over one release cycle's growth (4.9 % in 0.21.0), so a file
-# refreshed at a release's preparation stays under it through the next cycle;
-# under the 9.4 % the file had reached when #874 was framed. It bounds the
-# file's age, not the shards' imbalance: how far an unpriced case's real cost
-# sits from the mean is what each leg's `--durations=50` table and `timeout`
-# hold.
+# 1791852613). Every id is one spelling on every machine -- a path is written
+# with `/` (`conftest.py#posix_id`) and no id carries the interpreter's path
+# -- so a file refreshed on Windows prices the whole collection on every leg,
+# and one release cycle's growth (4.9 % in 0.21.0) stays under the share until
+# the next release's refresh; under the 9.4 % the file had reached when #874
+# was framed. It bounds the file's age, not the shards' imbalance: how far an
+# unpriced case's real cost sits from the mean is what each leg's
+# `--durations=50` table and `timeout` hold.
 STALE_SHARE = 0.05
 
 
@@ -222,3 +227,25 @@ def test_only_the_suite_or_the_repository_is_the_whole_collection():
     assert not collects_the_suite([module], ROOT, ROOT)
     assert not collects_the_suite([module + "::test_x"], ROOT, ROOT)
     assert not collects_the_suite([SUITE], SUITE, SUITE)
+
+
+def test_no_collected_id_carries_the_interpreters_path(request):
+    """An id holding `sys.executable` is a key no other machine writes, so
+    every refresh would leave it unpriced on every leg but the one measured."""
+    config = request.config
+    if not collects_the_suite(
+        config.args, config.invocation_params.dir, config.rootpath
+    ):
+        pytest.skip(
+            "the suite was not collected; run `bin/test tests -q -k "
+            "test_no_collected_id_carries_the_interpreters_path`"
+        )
+    collected = getattr(request.session, COLLECTED_NODE_IDS)
+    bad = [node for node in collected if sys.executable in node]
+    assert not bad, f"{len(bad)} collected ids carry {sys.executable}: {bad[:3]}"
+
+
+def test_a_path_id_is_written_with_forward_slashes():
+    assert posix_id(ntpath.join("agents", "framer.md"), "\\") == "agents/framer.md"
+    assert posix_id("agents/framer.md") == "agents/framer.md"
+    assert posix_id(None) is None

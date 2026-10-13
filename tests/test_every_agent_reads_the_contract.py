@@ -27,6 +27,7 @@ import os
 import re
 
 import pytest
+from conftest import posix_id
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -115,7 +116,7 @@ def contract_path(token):
 
 
 def name(path):
-    return os.path.relpath(path, ROOT)
+    return posix_id(os.path.relpath(path, ROOT))
 
 
 # --- there is something to check -------------------------------------------
