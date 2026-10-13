@@ -17,8 +17,9 @@ place at the range's tip that still carries one of them.
 
 Exit codes: **0** nothing survived. **1** survivors, each named with its path,
 the surviving text and the corrected sentence it matched. **2** unusable
-input -- a range that does not resolve, an exemption file that will not parse.
-Nothing is ever written; this reads git and prints.
+input -- a range that does not resolve, a two-dot range whose start does not
+reach its end, an exemption file that will not parse. Nothing is ever
+written; this reads git and prints.
 
 ## Why the input is the diff
 
@@ -356,6 +357,13 @@ request merged, never the branch's own in-flight record.
 It reads the tip of the range, so a survivor introduced AFTER the range is
 invisible to it. It answers *did this range leave wording standing*, never *is
 the tree consistent now*, which is why the report prints what it examined.
+
+On a two-dot range it reads only what the range's own commits changed, and
+which commits those are is `docs/the-record-layout.md` §*A range owns the
+commits that descend from its start*, listed by `chain_check.py#own_commits`.
+`A...B` is read at its two ends. The limit that section states is this
+check's too: a change made only inside a merge's conflict resolution is in
+no owned commit, so on a two-dot range it is not measured (#873).
 """
 
 import argparse
@@ -509,9 +517,8 @@ def owned(root, spec, a, b):
     Reads: guess — the range a person typed, by its dots, and git's ancestry of its two resolved ends through `chain_check.py`; unknown refused
 
     The list is `own_commits`' and never a second walk here: one reader of
-    which commits a range owns, so the two cannot drift
-    (`docs/the-record-layout.md` §*A range owns the commits that descend
-    from its start* owns the rule).
+    which commits a range owns, so the two cannot drift; the rule is
+    `parse_range`'s link.
     A two-dot start that is not an ancestor of its end owns nothing, and a
     report over it would say *0 sentence(s) the range removed* about a range
     nobody meant, so it is refused here, before anything is examined.
