@@ -39,7 +39,7 @@ Read at c22f7472 unless marked `executed`.
 | D3. macOS on a smaller slice (one shard of three, or the spawn-heavy files) | the slice is a list that rots; a macOS-only defect in an unlisted file is found at the release | not decided here; item B |
 | D4. Keep all legs on every pull request, hold them by `ci-minutes:*` | the cost stays where it is and the wait is Windows's slowest shard; nothing rots | **default until item B decides** |
 | E. Call the hook in process instead of through git and bash | loses the oracle (what git did) the corpus exists for; kept only where a case asserts a verdict word of `round_record.py` and one end-to-end case per exit code remains | partly taken, phase 3 |
-| F. Cheaper pytest children (`PYTEST_DISABLE_PLUGIN_AUTOLOAD`) | measured 0.11 s against 0.12–0.28 s locally: nothing to gain; Windows unmeasured | rejected |
+| F. Cheaper pytest children (`PYTEST_DISABLE_PLUGIN_AUTOLOAD`) | measured 0.11 s against 0.12–0.28 s locally: nothing to gain; Windows unmeasured | rejected · NAME NOT IN TREE: a pytest environment variable |
 | G. A `suite-cases` row in `seal/budgets.md` | the only cheap source is `.test_durations`, which moves at a refresh, so the row would go red on the refresh pull request rather than on the one that added the cases; a true count needs a collection run every pull request | rejected |
 | H. Split: this item (phases 1–4) and item B (which legs run on a pull request) | item B is framed against the post-cut numbers and #930's billable line, which is the order #931 already argues; nothing in this item waits on it | **chosen** |
 
@@ -62,11 +62,11 @@ This table is also where the work records how far it got. **Status is empty, or 
 
 | Case | Guards | Mutation it kills |
 |---|---|---|
-| T1 `every_corpus_family_has_a_sampled_row` | S2 | every `#686 ;` row removed from `SAMPLE`: the family is in `CORPUS` and has no representative |
-| T2 `a_sampled_row_that_commits_nowhere_undeclared_fails_rather_than_skips` | S3 | the `pytest.skip` restored for sampled rows; a vacuous row put in `SAMPLE` must fail, not skip |
-| T3 `every_sampled_name_is_a_corpus_row` | S2 | one `SAMPLE` name misspelled: a representative that selects nothing |
-| T4 `one_shared_run_per_signature_and_a_writer_keeps_its_own` | phase 2's memo | the memo keyed on arguments alone (two signatures differing only by environment share a run); a case marked as writing handed the shared run |
-| T5 `the_in_process_close_and_the_cli_agree_on_each_exit_code` | phase 3 | the in-process path's exit mapping changed for one code; the CLI case is the oracle |
+| T1 `test_every_corpus_family_has_a_sampled_row` | S2 | every `#686 ;` row removed from `SAMPLE`: the family is in `CORPUS` and has no representative |
+| T2 `test_a_sampled_row_that_commits_nowhere_undeclared_fails_rather_than_skips` | S3 | the `pytest.skip` restored for sampled rows; a vacuous row put in `SAMPLE` must fail, not skip |
+| T3 `test_every_sampled_name_is_a_corpus_row` | S2 | one `SAMPLE` name misspelled: a representative that selects nothing |
+| T4 `one_shared_run_per_signature_and_a_writer_keeps_its_own` | phase 2's memo | the memo keyed on arguments alone (two signatures differing only by environment share a run); a case marked as writing handed the shared run · NAME NOT IN TREE: planted in phase 2 |
+| T5 `the_in_process_close_and_the_cli_agree_on_each_exit_code` | phase 3 | the in-process path's exit mapping changed for one code; the CLI case is the oracle · NAME NOT IN TREE: planted in phase 3 |
 
 Each is seen red by its mutation before it is committed, and the phase record says how.
 

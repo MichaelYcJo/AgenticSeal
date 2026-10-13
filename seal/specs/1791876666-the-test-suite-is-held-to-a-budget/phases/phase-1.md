@@ -119,24 +119,20 @@ sample is Q4's and stays unmeasured. `test_the_durations_file_prices_the_suite`,
 `test_every_group_of_each_sharded_leg_runs_exactly_once` pass on the pruned
 file (`executed`).
 
-**The ledger: one re-read owed, written in phase 4.** S2's new text drifts
-the coordinate in G4 of `seal/releases/0.17.0.md`. That is the only drift,
-and `evidence-check` exits 1. The claim was re-read and holds: a commit bash
-makes into an undeclared repository does not land, save the Windows limits
-the row names. `--reverify --into` writes this row:
+**The ledger: one re-read, in the work item's fragment.** S2's new text
+drifted the coordinate in G4 of `seal/releases/0.17.0.md`, which was the only
+drift. The claim was re-read and holds: a commit bash makes into an
+undeclared repository does not land, save the Windows limits the row names.
+`evidence-check --reverify --into seal/ledger/1791876666-….md --checked
+2026-10-14 --ledger seal/releases/0.17.0.md` wrote one `Re-read · G4` row on
+the un-mutated tree, citing S2 at `@561885aa`.
 
-    | Re-read · G4 · `pre-commit` judges a commit in the worktree it lands in with `hoo… | `seal/releases/0.17.0.md#"### 1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text">"G4 ·"@e8bdea1f`, `tests/test_the_commit_gate_decides_at_the_commit.py#test_s2_a_commit_bash_makes_into_an_undeclared_repository_does_not_land@561885aa` | re-read against the code at the hashes in this row, and the cited row's claim holds | 2026-10-14 | … |
-
-The row is not committed. Once `seal/ledger/1791876666-….md` exists, the work
-item counts as live, and the records arm reads `plan.md`. It then refuses six
-names there, and `evidence-check` exits 2 instead of 1:
-
-- T1–T3, written without their `test_` prefix;
-- T4 and T5, which are not built yet;
-- `PYTEST_DISABLE_PLUGIN_AUTOLOAD` in alternative F.
-
-`plan.md` is the framer's file, so whoever writes the fragment in phase 4
-first corrects those names, or marks the lines `NAME NOT IN TREE`.
+The fragment makes the work item live, so the records arm reads its records.
+At the orchestrator's decision, `plan.md`'s test-rows table names T1–T3 as
+the tree spells them, with `test_`. The rows for T4 and T5 (not planted yet)
+and alternative F's pytest environment variable carry `NAME NOT IN TREE`.
+Nothing else in `plan.md` changed. With that, `bin/evidence-check .` and
+`bin/evidence-check --strict .` both exit 0 (`executed`).
 
 Two things the next phase would otherwise learn the hard way:
 
