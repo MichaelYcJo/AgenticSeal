@@ -634,6 +634,12 @@ CONFIG_SHAPES = {
     + " a note "
     + config_shapes.CLOSE
     + "\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
+    # #871 round 2, yellow 8: an item written again below the line the walk
+    # stopped at has no value, in the twin as in the plugin.
+    "an item written again below the stop": _HEAD
+    + "| Mode | shared |\n| a | b | c |\n| Mode | local |\n",
+    "a cutoff written again below the stop": _HEAD
+    + "| Ledger frozen from | 100 |\n| a | b | c |\n| Ledger frozen from | 200 |\n",
     "this repository's own config": open(
         os.path.join(ROOT, "seal", "config.md"), encoding="utf-8"
     ).read(),
@@ -658,6 +664,18 @@ LACKS_BLOCK_STATE = {
     ),
     "a fence directly under the last row": (
         _HEAD + "| Mode | shared |\n```\n| Broad gate | x |\n```\n"
+    ),
+    # #871 round 2: the twin ends a line where GFM does and the walker reads
+    # `str.splitlines` pieces, and a fence below the table can hide a heading
+    # from the walker that the twin sees. Each was seen red against
+    # 4dfb3d0d: the twin read `Mode` or answered no `Broad gate` row where
+    # the plugin refused.
+    "a row holding a line separator": _HEAD + "| Mode | shared |\n",
+    "a row piece after a line separator below the table": (
+        _HEAD + "| Mode | shared |\n\nx | Broad gate | y |\n"
+    ),
+    "a heading inside a fence below the table": (
+        _HEAD + "| Mode | shared |\n\n```\n# x\n```\n| Broad gate | y |\n"
     ),
 }
 
@@ -746,14 +764,75 @@ def test_the_vendored_table_grammar_is_the_walkers():
         (ec.VENDORED_DELIMITER_ROW, config.DELIMITER_ROW),
         (ec.VENDORED_ATX_HEADING, config.ATX_HEADING),
         (ec.VENDORED_LIST_ITEM, config.LIST_ITEM),
+        (ec.VENDORED_FIRST_CELL, config.FIRST_CELL),
+        (ec.VENDORED_THEMATIC_BREAK, config.THEMATIC_BREAK),
     ):
         assert (twin.pattern, twin.flags) == (walker.pattern, walker.flags)
     assert ec.VENDORED_CONFIG_HEADER == config.CONFIG_TABLE
+    # The characters the twin splits a GFM line at, to read it as the
+    # walker's pieces: every one `str.splitlines` ends a line at, LF and CR
+    # aside, and no other.
+    import sys
+
+    cuts = {
+        chr(c)
+        for c in range(sys.maxunicode + 1)
+        if len(f"a{chr(c)}b".splitlines()) == 2 and chr(c) not in "\r\n"
+    }
+    assert {
+        chr(c)
+        for c in range(sys.maxunicode + 1)
+        if ec.VENDORED_PIECE_BREAK.match(chr(c))
+    } == cuts
     # The HTML blocks no blank line ends, kinds 1-5, which the twin follows
     # to their close above the header as the walker does.
     assert [
         (s.pattern, s.flags, e.pattern, e.flags) for s, e in ec.VENDORED_RAW_HTML
     ] == [(s.pattern, s.flags, e.pattern, e.flags) for s, e in config.HTML_KINDS[:5]]
+
+
+def test_the_twin_names_an_example_table_inside_a_closed_block():
+    """#871 round 2, yellow 11. A header inside a fence or a comment that
+    closes below it is an example the twin cannot tell from the live table:
+    its sentence says so, never that the block is unclosed, and a block that
+    is never closed keeps its own sentence. Seen red against 4dfb3d0d, which
+    said "never closed" for both closed blocks."""
+    ec = _checker("ec_vendored_example_table")
+    for name in (
+        "a fenced example above the live table",
+        "a commented old table above the live one",
+    ):
+        said = ec.vendored_config_rows(LACKS_BLOCK_STATE[name])[1]
+        assert said and "closes below it" in said[0], (name, said)
+        assert "never closed" not in said[0], (name, said)
+    unclosed = "# c\n\n```\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
+    said = ec.vendored_config_rows(unclosed)[1]
+    assert said and "close the fence above the table" in said[0], said
+    comment = (
+        "# c\n\n" + config_shapes.OPEN + "\n\n| Item | Value |\n|---|---|\n"
+        "| Mode | shared |\n"
+    )
+    said = ec.vendored_config_rows(comment)[1]
+    assert said and "never closed" in said[0], said
+
+
+@pytest.mark.parametrize(
+    "line",
+    ["```", "~~~", "- item", "1. item", "> quoted", "    code", "\tcode", "<div>"]
+    + ["***", "---", config_shapes.OPEN + " c " + config_shapes.CLOSE],
+)
+def test_the_twin_does_not_call_a_block_line_a_row(line):
+    """#871 round 2, yellow 12. The walker ends the table at each of these
+    lines (cmark-gfm measured by the round's reviewer for the fence, list,
+    quote, code and HTML lines), so the twin's refusal names what it cannot
+    judge and the blank line that clears it. Seen red against 4dfb3d0d,
+    which said GFM reads the line as one of the table's rows, or called
+    `---` a delimiter row out of place."""
+    ec = _checker("ec_vendored_block_line")
+    said = ec.vendored_config_rows(_HEAD + "| Mode | shared |\n" + line + "\n")[1]
+    assert said and "leave a blank line above it" in said[0], said
+    assert "reads as one of its rows" not in said[0], said
+    assert "out of place" not in said[0], said
 
 
 @pytest.mark.parametrize("shape", ["absent", "readable", "directory", "undecodable"])

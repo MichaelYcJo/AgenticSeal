@@ -4313,6 +4313,16 @@ VENDORED_RAW_HTML = (
     (re.compile(r"<!\[CDATA\["), re.compile(r"\]\]>")),
 )
 VENDORED_CONFIG_HEADER = ("Item", "Value")
+# `hooks/config.py#FIRST_CELL` and `#THEMATIC_BREAK`, spelled as that file
+# spells them: how this copy tells that a line the walk did not read names
+# an item, and a thematic break the walker ends the table at.
+VENDORED_FIRST_CELL = re.compile(rf"^ {{0,3}}\|((?:{VENDORED_CELL})*)\|")
+VENDORED_THEMATIC_BREAK = re.compile(
+    r"(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})$"
+)
+# The eight characters `str.splitlines` ends a line at and GFM does not; the
+# plugin's walker reads the pieces they cut a GFM line into.
+VENDORED_PIECE_BREAK = re.compile("[\x0b\x0c\x1c\x1d\x1e\x85  ]")
 
 
 def vendored_block_left_open(lines):
@@ -4346,6 +4356,20 @@ def vendored_block_left_open(lines):
                     end, opener = closer, line
                 break
     return opener
+
+
+def vendored_block_closes_below(lines, at, opener):
+    """Whether the block OPENER opened, still open at line AT of LINES,
+    closes on a line below AT -- OPENER being a line
+    `vendored_block_left_open` returned.
+
+    Reads: guess — the lines of a person's `config.md` below its header; unknown refused"""
+    fence = vendored_fence_opener(opener)
+    if fence is not None:
+        return any(vendored_fence_closes(line, fence) for line in lines[at + 1 :])
+    content = opener.lstrip(" ")
+    closer = next(end for start, end in VENDORED_RAW_HTML if start.match(content))
+    return any(closer.search(line) for line in lines[at + 1 :])
 
 
 def vendored_cells(line):
@@ -4384,32 +4408,44 @@ def vendored_config_rows(text):
     plugin reads, and never reads where the plugin refuses** — the stated
     direction, and the cheaper mistake in CI. Above the header it follows a
     fence and an HTML block of kinds 1-5 to their close
-    (`vendored_block_left_open`): a header inside one still open is refused,
-    which is also how the first header of a fenced or commented example
-    table above the live one is refused, and a header under a block that
-    closed is read. A line inside the table the walker ends
-    the table at by block state — a fence, a comment, a list item, a block
-    quote, a thematic break, an HTML block, a line four columns in — is
-    refused here as the line it is, so a row below it is never read. The
-    equality case holds the two readers equal over the config table's own
-    shapes and holds this direction over the ones that carry a comment.
+    (`vendored_block_left_open`): a header inside one never closed is
+    refused as that, a header inside one that closes below it -- the first
+    header of a fenced or commented example table above the live one -- is
+    refused as an example this copy cannot tell from the live table, and a
+    header under a block that closed is read. A line directly under a row
+    that the walker may end the table at by block state — a fence, a
+    comment or another HTML line, a list item, a block quote, a thematic
+    break, a line four columns in — is refused here as a line this copy
+    cannot judge, with the blank line that clears it, so a row below it is
+    never read. The equality case holds the two readers equal over the
+    config table's own shapes and holds this direction over the ones that
+    carry a comment.
 
     It ends a line where GFM does (`gfm_lines`), where the plugin's walker
     reads `str.splitlines` pieces, so a row holding a form feed, U+2028 or
     another character only Python ends a line at is one line here and two
-    pieces there (round 1 of #867, ⬜ 7); the equality case holds no such
-    shape."""
+    pieces there (round 1 of #867, ⬜ 7). So a line in the table holding
+    one is refused here whatever the plugin reads of it, and a header in
+    such a line is refused as the plugin refuses it."""
     name = " | ".join(VENDORED_CONFIG_HEADER)
     written = "`| … | … |`"
     lines = gfm_lines(text)
-    at = next(
-        (
-            k
-            for k, line in enumerate(lines)
-            if vendored_cells(line) == VENDORED_CONFIG_HEADER
-        ),
-        None,
-    )
+    at = None
+    for k, line in enumerate(lines):
+        if vendored_cells(line) == VENDORED_CONFIG_HEADER:
+            at = k
+            break
+        if VENDORED_PIECE_BREAK.search(line) and any(
+            vendored_cells(piece) == VENDORED_CONFIG_HEADER
+            for piece in VENDORED_PIECE_BREAK.split(line)
+        ):
+            return [], [
+                f"has a `| {name} |` header that shares a line with the line "
+                "beside it to GFM: a form feed, U+2028 or another character "
+                "only Python ends a line at stands between them, so GitHub "
+                "renders no table there — put the header and its delimiter "
+                "row each on a line of its own"
+            ]
     if at is None:
         return [], []
     above = lines[at - 1] if at > 0 else ""
@@ -4428,6 +4464,14 @@ def vendored_config_rows(text):
             "that line can take — leave a blank line above the header"
         ]
     opener = vendored_block_left_open(lines[:at])
+    if opener is not None and vendored_block_closes_below(lines, at, opener):
+        return [], [
+            f"has a `| {name} |` header inside a block `{opener.strip()}` "
+            "opens above it and that closes below it — an example table a "
+            "copy of the checker with no `hooks/` beside it cannot tell from "
+            "the live one; take the example out of this file, or run the "
+            "plugin's own `evidence-check`"
+        ]
     if opener is not None and vendored_fence_opener(opener) is None:
         return [], [
             f"has a `| {name} |` header inside an HTML block opened above it "
@@ -4456,7 +4500,7 @@ def vendored_config_rows(text):
             f"has a `| {name} |` header over a delimiter row of {width} "
             "cells, so GFM renders no table there"
         ]
-    rows, stray, ended = [], None, False
+    rows, stray, ended, block = [], None, False, None
     for index in range(at + 2, len(lines)):
         line = lines[index]
         heading = VENDORED_ATX_HEADING.match(line.lstrip(" ")) and not line.startswith(
@@ -4464,20 +4508,56 @@ def vendored_config_rows(text):
         )
         if ended or not line.strip():
             ended = True
-            if heading:
+            if block is None and (
+                vendored_fence_opener(line) is not None
+                or line.lstrip(" ").startswith("<")
+            ):
+                block = line.strip()
+            if heading and block is None:
                 break
-            if line.lstrip().startswith("|"):
+            if any(
+                piece.lstrip().startswith("|")
+                for piece in VENDORED_PIECE_BREAK.split(line)
+            ):
                 stray = (
                     f"has a `{name}` table that ends above `{line.strip()}`, "
                     "a row the walk never reaches — it and every row below it "
                     "would go unread"
+                    if block is None
+                    else f"has a `{name}` table with `{block}` below it, a "
+                    "block a copy of the checker with no `hooks/` beside it "
+                    f"does not follow, and `{line.strip()}` below that, which "
+                    "may be a row the walk never reaches — run the plugin's "
+                    "own `evidence-check`"
                 )
                 break
             continue
         if heading:
             break
         found = vendored_cells(line)
-        if VENDORED_DELIMITER_ROW.match(line):
+        content = line.lstrip(" ")
+        if VENDORED_PIECE_BREAK.search(line):
+            stray = (
+                f"has a `{name}` table that stops at `{line.strip()}`, a line "
+                "holding a form feed, U+2028 or another character only Python "
+                "ends a line at, which the plugin's walker reads as more than "
+                "one line — take the character out, or put what follows it on "
+                "a line of its own"
+            )
+        elif (
+            line.expandtabs(4).startswith("    ")
+            or vendored_fence_opener(line) is not None
+            or VENDORED_LIST_ITEM.match(content)
+            or VENDORED_THEMATIC_BREAK.match(content)
+            or content.startswith(("<", ">"))
+        ):
+            stray = (
+                f"has a `{name}` table that stops at `{line.strip()}`, a line "
+                "that may end the table by block state a copy of the checker "
+                "with no `hooks/` beside it does not carry — leave a blank line "
+                "above it, or run the plugin's own `evidence-check`"
+            )
+        elif VENDORED_DELIMITER_ROW.match(line):
             stray = (
                 f"has a `{name}` table that stops at `{line.strip()}`, a "
                 "delimiter row out of place — every row below it would go unread"
@@ -4508,11 +4588,24 @@ def vendored_config_value(text, item):
     and an item the walk did not read in a table it refused is the walker's
     first sentence (#871). TEXT None is no file.
 
+    In a table the walk refused, a line below its last row naming ITEM in
+    its first cell makes the row read above it one of two, as it does to
+    the plugin. This copy counts such lines to the end of the file, where
+    the plugin stops at the next heading it is shown: it cannot tell a
+    heading inside a fence from one outside, so it counts every line the
+    plugin may count, and refuses where the plugin reads rather than the
+    other way round.
+
     Reads: guess — a person's `| Item | Value |` table, through `vendored_config_rows`; unknown refused"""
     if text is None:
         return None, None
     rows, refusals = vendored_config_rows(text)
     values = [value for _index, found, value in rows if found == item]
+    if values and refusals:
+        for line in gfm_lines(text)[rows[-1][0] + 1 :]:
+            first = VENDORED_FIRST_CELL.match(line)
+            if first and first.group(1).strip().replace("\\|", "|") == item:
+                values.append(None)
     if len(values) > 1:
         return None, f"`{item}` appears {len(values)} times — one value"
     if values:
