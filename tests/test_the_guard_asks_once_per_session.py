@@ -1480,6 +1480,41 @@ def test_question_1_alone_and_the_boxes_beside_it_read_the_same_press(projects, 
     assert wc.consent(str(repo), "me") == ""
 
 
+def boxes_alone(repo, ticked, tool_id):
+    """The second call of the new shape: the four boxes, alone."""
+    return ask_entries(
+        repo,
+        answer=", ".join(ticked),
+        options=BOXES,
+        multi=True,
+        tool_id=tool_id,
+        question=BOXES_QUESTION,
+    )
+
+
+def test_the_boxes_asked_alone_neither_give_nor_take_back_the_press(projects, repo):
+    """#911, round 1. Under `per axis` the boxes come in a second call of
+    their own. That result answers no routing question, so the `per axis`
+    before it stands however many boxes were ticked, an earlier press stays
+    taken back, and a press is not taken back by a boxes call alone.
+
+    Seen red by a throwaway edit to `_routing_answer` that returned True for
+    any result carrying a `multiSelect` question."""
+    q1 = ask_entries(repo, answer="per axis", tool_id="toolu_q1")
+    for ticked in (BOXES, BOXES[:1], ()):
+        write_transcript(projects, "me", q1 + boxes_alone(repo, ticked, "toolu_b"))
+        assert wc.automation_answered(str(repo), "me") is False, ticked
+        assert wc.consent(str(repo), "me") == "", ticked
+
+    earlier = ask_entries(repo, tool_id="toolu_earlier")
+    write_transcript(projects, "me", earlier + q1 + boxes_alone(repo, BOXES, "toolu_b"))
+    assert wc.automation_answered(str(repo), "me") is False
+
+    write_transcript(projects, "me", earlier + boxes_alone(repo, (), "toolu_b"))
+    assert wc.automation_answered(str(repo), "me") is True
+    assert wc.consent(str(repo), "me") == "answer"
+
+
 def test_a_result_before_its_question_is_not_consent(projects, repo):
     use, result = ask_entries(repo)
     write_transcript(projects, "me", [result, use])

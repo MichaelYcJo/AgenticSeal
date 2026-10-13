@@ -268,11 +268,14 @@ call at once, so the owner was shown four meaningless boxes at the start of
 nearly every run (#911).
 
 Under `per axis` the second call follows the first at once, before the first
-edit, and that is still the one batch the batch rule asks for: what it forbids
-is a question that arrives late, not a second click
-(`skills/implement/SKILL.md` §1). `AskUserQuestion` allows at most four
-options per question, and two presets beside the boxes is five — so the shape
-below is two questions rather than one, and that is what makes both fit.
+edit. That is a second wait, and it is the trade #911 took: the boxes depend
+on question 1's answer, so putting them beside it shows them under the two
+answers they mean nothing for. Asked at once and before the first edit, the
+second wait still costs a reply rather than a stopped session, which is how
+`skills/implement/SKILL.md` §1 prices a question. `AskUserQuestion` allows at
+most four options per question, and two presets beside the four boxes is six
+— so the shape below is two questions rather than one, and that is what
+makes both fit.
 
 ### Question 1 — single-select
 
