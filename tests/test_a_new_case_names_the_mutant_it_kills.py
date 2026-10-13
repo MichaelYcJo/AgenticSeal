@@ -194,13 +194,12 @@ def test_a_proven_function_passes_and_the_summary_lists_both_runs(
 
 def test_a_changed_function_is_read_as_new(tmp_path, capsys):
     """S2: a function whose body changed is read even though its name is at
-    the base, so a line left stale by the change is named.
+    the base, so a line the change left stale is named: the body asserts
+    what the line's mutant leaves true.
 
     Kills: .github/scripts/case_check.py "            if name not in base or base[name][1] != text:" "            if name not in base:"
     """
-    changed = DOUBLE.replace("double(2) == 4", "double(3) == 6").replace(
-        '"return x * 2"', '"return x + x"'
-    )
+    changed = DOUBLE.replace("double(2) == 4", "double(0) == 0")
     root = tree(
         tmp_path,
         {"tests/test_m.py": module_text(DOUBLE)},
@@ -208,7 +207,7 @@ def test_a_changed_function_is_read_as_new(tmp_path, capsys):
     )
     code, out = run(root, capsys)
     assert code == 1, out
-    assert "tests/test_m.py::test_double: with it: refused" in out, out
+    assert "tests/test_m.py::test_double: with it: SURVIVED" in out, out
 
 
 def test_a_prose_pin_runs_through_the_document(tmp_path, capsys):
