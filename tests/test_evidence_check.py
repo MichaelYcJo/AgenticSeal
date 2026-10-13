@@ -670,9 +670,9 @@ LACKS_BLOCK_STATE = {
     # from the walker that the twin sees. Each was seen red against
     # 4dfb3d0d: the twin read `Mode` or answered no `Broad gate` row where
     # the plugin refused.
-    "a row holding a line separator": _HEAD + "| Mode | shared |\n",
+    "a row holding a line separator": _HEAD + f"| Mode | shared{chr(0x2028)}|\n",
     "a row piece after a line separator below the table": (
-        _HEAD + "| Mode | shared |\n\nx | Broad gate | y |\n"
+        _HEAD + f"| Mode | shared |\n\nx{chr(0x2028)}| Broad gate | y |\n"
     ),
     "a heading inside a fence below the table": (
         _HEAD + "| Mode | shared |\n\n```\n# x\n```\n| Broad gate | y |\n"
@@ -828,8 +828,10 @@ def test_the_twin_names_an_example_table_inside_a_closed_block():
 
 @pytest.mark.parametrize(
     "line",
-    ["```", "~~~", "- item", "1. item", "> quoted", "    code", "\tcode", "<div>"]
-    + ["***", "---", config_shapes.OPEN + " c " + config_shapes.CLOSE],
+    [
+        *("```", "~~~", "- item", "1. item", "> quoted", "    code", "\tcode"),
+        *("<div>", "***", "---", config_shapes.OPEN + " c " + config_shapes.CLOSE),
+    ],
 )
 def test_the_twin_does_not_call_a_block_line_a_row(line):
     """#871 round 2, yellow 12. The walker ends the table at each of these

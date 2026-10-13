@@ -4322,7 +4322,9 @@ VENDORED_THEMATIC_BREAK = re.compile(
 )
 # The eight characters `str.splitlines` ends a line at and GFM does not; the
 # plugin's walker reads the pieces they cut a GFM line into.
-VENDORED_PIECE_BREAK = re.compile("[\x0b\x0c\x1c\x1d\x1e\x85  ]")
+VENDORED_PIECE_BREAK = re.compile(
+    "[" + "".join(map(chr, (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85, 0x2028, 0x2029))) + "]"
+)
 
 
 def vendored_block_left_open(lines):
