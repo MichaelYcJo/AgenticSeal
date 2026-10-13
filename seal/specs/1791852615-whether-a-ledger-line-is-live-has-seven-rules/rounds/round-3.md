@@ -87,8 +87,8 @@ def test_a_declaration_below_a_comment_opener_nobody_closed_still_reads():
 | round-1 | `docs/the-evidence-ledger.md:629` | round 1's 🟡 1 — fixed |
 | round-1 | `docs/the-evidence-ledger.md:625` | round 1's 🟡 2 — fixed |
 | round-1 | `skills/evidence-check/scripts/evidence_check.py:370` | round 1's 🟡 3 — fixed |
-| round-1 | `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py:222` | round 1's ⬜ 4 — open |
-| round-1 | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/overview.md:31` | round 1's ⬜ 5 — open |
+| round-1 | `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py:222` | round 1's ⬜ 4 — answered |
+| round-1 | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/overview.md:31` | round 1's ⬜ 5 — answered |
 | round-1 | `tests/undeclared_readers.txt` | round 1's 🟢 — confirmed |
 | round-1 | `skills/verify/scripts/unverified_check.py:744` | round 1's 🟢 — confirmed |
 | round-1 | `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py:79` | round 1's 🟢 — confirmed |
@@ -96,9 +96,9 @@ def test_a_declaration_below_a_comment_opener_nobody_closed_still_reads():
 | round-1 | `seal/releases` | round 1's 🟢 — confirmed |
 | round-2 | `docs/the-evidence-ledger.md:633` | round 2's 🟢 — confirmed |
 | round-2 | `docs/the-evidence-ledger.md:642` | round 2's 🟡 6 — fixed |
-| round-2 | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/plan.md:58` | round 2's ⬜ 7 — open |
-| round-2 | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/changelog.md:14` | round 2's ⬜ 8 — open |
-| round-2 | `docs/the-evidence-ledger.md:631` | round 2's ⬜ 9 — open |
+| round-2 | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/plan.md:58` | round 2's ⬜ 7 — answered |
+| round-2 | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/changelog.md:14` | round 2's ⬜ 8 — answered |
+| round-2 | `docs/the-evidence-ledger.md:631` | round 2's ⬜ 9 — answered |
 
 ## Deferred
 

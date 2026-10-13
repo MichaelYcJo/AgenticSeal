@@ -15,7 +15,7 @@
 | Needs a fix | yes — 🟡 6: the excusing bullet attributes `routing.md` rows to `hidden_lines`, and its new "one place" sentence is false for a routing row below a fence nobody closed. |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -30,9 +30,9 @@ Round 2 of #872, the verifying round, target 65385bd1: the diff of round 1's fix
 | 🟢 | round 1's 🟡 3 is closed — the four holding readers declare `unknown refused` | `skills/evidence-check/scripts/evidence_check.py:370` | confirmed | read: `:370`, `:5591`, `rider_check.py:238`, `settle.py:590` and `docs/the-reader-registry.md:31` to `:35`; W2 says `refused` |
 | 🟢 | the nine re-stamped rows hold, C2 included, and no moved anchor was missed | `seal/ledger/1791852615-whether-a-ledger-line-is-live-has-seven-rules.md` | confirmed | executed: `bin/evidence-check --strict .` 0 drifted, 0 broken; `bin/fold-check` 0 over the ceiling, which is C2's claim; `git grep` finds exactly A4, P2-1, P2-3, P4-1, P4-2, R5 and C2 anchored to the three moved anchors |
 | 🟡 6 | the excusing bullet attributes `routing.md` rows to `hidden_lines` and calls a row below an unclosed comment opener the one place a hidden line declares; `routing.md` is read by `hooks/routing.py#shown`, which declares a row below a fence nobody closed; `hidden_lines`' `Reads:` line names `routing.md`, which no caller hands it | `docs/the-evidence-ledger.md:642` | **fixed** `259b82ee` | fixed at 259b82ee; executed: the probe, routing row below an unclosed fence declared by `table_rows` and hidden by `hidden_lines`; read: `hooks/routing.py:127` to `:149`, `hooks/config.py:176`, `:189`, `:247`, `broad_gate.py#hidden_row_at` |
-| ⬜ 7 | the frame says `routing.py#shown` reads `hidden_lines` through `unfenced`, and gives `hidden_lines` `routing.md` lines as input | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/plan.md:58` | open | read: `plan.md:58`, `spec.md:151`, `hooks/routing.py:127` to `:149` |
-| ⬜ 8 | the changelog fragment says `hooks/config.py` is the one reader of its kind that reads a row below an unclosed comment opener; the routing reader does too | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/changelog.md:14` | open | executed: 🟡 6's probe, second row |
-| ⬜ 9 | the holding bullet says a renderer "shows" comment text; it shows none | `docs/the-evidence-ledger.md:631` | open | read: the bullet and the rider check's `quoted_lines` docstring; the behaviour stated is right |
+| ⬜ 7 | the frame says `routing.py#shown` reads `hidden_lines` through `unfenced`, and gives `hidden_lines` `routing.md` lines as input | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/plan.md:58` | answered | corrected at 8d339b32 — `plan.md` and `spec.md` say `routing.py#shown` does not read through `hidden_lines`, with a dated mark; read: `plan.md:58`, `spec.md:151`, `hooks/routing.py:127` to `:149` |
+| ⬜ 8 | the changelog fragment says `hooks/config.py` is the one reader of its kind that reads a row below an unclosed comment opener; the routing reader does too | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/changelog.md:14` | answered | corrected at 8d339b32 — `changelog.md` names both `hooks/config.py` and `hooks/routing.py` as still reading a row below an unclosed comment opener; executed: 🟡 6's probe, second row |
+| ⬜ 9 | the holding bullet says a renderer "shows" comment text; it shows none | `docs/the-evidence-ledger.md:631` | answered | corrected at 8d339b32 — `docs/the-evidence-ledger.md` says a renderer reads that text as comment text, not as a fence, rewritten in place; read: the bullet and the rider check's `quoted_lines` docstring; the behaviour stated is right |
 
 ## Paste-ready fixes
 
@@ -74,8 +74,8 @@ Round 2 of #872, the verifying round, target 65385bd1: the diff of round 1's fix
 | round-1 | `docs/the-evidence-ledger.md:629` | round 1's 🟡 1 — fixed |
 | round-1 | `docs/the-evidence-ledger.md:625` | round 1's 🟡 2 — fixed |
 | round-1 | `skills/evidence-check/scripts/evidence_check.py:370` | round 1's 🟡 3 — fixed |
-| round-1 | `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py:222` | round 1's ⬜ 4 — open |
-| round-1 | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/overview.md:31` | round 1's ⬜ 5 — open |
+| round-1 | `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py:222` | round 1's ⬜ 4 — answered |
+| round-1 | `seal/specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules/overview.md:31` | round 1's ⬜ 5 — answered |
 | round-1 | `tests/undeclared_readers.txt` | round 1's 🟢 — confirmed |
 | round-1 | `skills/verify/scripts/unverified_check.py:744` | round 1's 🟢 — confirmed |
 | round-1 | `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py:79` | round 1's 🟢 — confirmed |
