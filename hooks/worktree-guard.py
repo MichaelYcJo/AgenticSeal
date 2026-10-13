@@ -1867,7 +1867,7 @@ def guard_worktree_creation(
     # 3) 살아 있긴 하나 한동안 입력이 없는 세션뿐 -> 잊힌 탭일 가능성. 사용자가 안다.
     if idle:
         pressed = automation_pressed(repo_paths(cwd)[0], session_id, transcript_path)
-        lead = (plain_origin or origin) if pressed else origin
+        lead = plain_origin if pressed else origin
         choose(
             top,
             session_id,
@@ -1905,7 +1905,7 @@ def guard_worktree_creation(
     # 4) 동시 세션 판정 불가 -> 자동으로 만들지 말고 물어본다.
     if not reliable:
         pressed = automation_pressed(repo_paths(cwd)[0], session_id, transcript_path)
-        lead = (plain_origin or origin) if pressed else origin
+        lead = plain_origin if pressed else origin
         choose(
             top,
             session_id,

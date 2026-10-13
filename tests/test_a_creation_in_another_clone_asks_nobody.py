@@ -266,6 +266,24 @@ def test_an_unbalanced_quote_under_the_press_names_no_token(
             assert_names_nobody(got[1])
 
 
+@pytest.mark.parametrize("row", ["idle", "unusable"])
+def test_attended_an_unbalanced_quote_keeps_the_quote_note(
+    monkeypatch, capsys, projects, repo, other, wko, row
+):
+    """Attended, rows 3 and 4 open with the origin and its quote note, as at
+    the base: only the press drops the note (round 2, note 5). No transcript
+    is planted, so nothing is pressed; each language is its own session, so
+    each meets its first attempt. Seen red through `mutation-check` with the
+    attended arm of both rows' `lead` dropped."""
+    command = creation(other, "  # don't")
+    for lang, module in (("en", wg), ("ko", wko)):
+        decision, reason = judge(
+            module, monkeypatch, capsys, repo, command, ROWS[row], f"att-{lang}"
+        )
+        assert decision == "deny" and "AskUserQuestion" in reason, (lang, reason)
+        assert "[worktree-ok]" in reason.splitlines()[0], (lang, reason)
+
+
 def test_a_creation_behind_a_cd_meets_the_same_deny(
     monkeypatch, capsys, projects, repo, other
 ):
