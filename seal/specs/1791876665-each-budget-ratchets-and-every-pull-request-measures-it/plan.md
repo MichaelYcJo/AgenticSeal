@@ -62,21 +62,21 @@ This table is also where the work records how far it got. **Status is empty, or 
 
 | Case | Guards | Mutation it kills |
 |---|---|---|
-| T1 `measured_over_ceiling_fails_naming_the_row` | S1 | `>` becomes `>=`, or the compare is dropped: the fixture is measured = ceiling + 1 |
-| T2 `measured_inside_the_band_holds` | the band | the band inequality inverted: measured = ceiling exactly passes, ceiling × 1.02 passes |
-| T3 `a_ceiling_above_the_band_asks_to_lower` | S4 | the lower-band check removed: measured = ceiling / 1.05 at slack 2 % fails and names the number to lower to |
-| T4 `a_raise_without_its_line_fails_and_with_it_passes` | S2, S3 | the baseline read dropped (raise passes), or the line regex loosened to any mention of the name (a line without the new value passes) |
-| T5 `a_removed_row_is_a_raise` | the ratchet | a missing row treated as new: baseline has the row, HEAD does not, no `Budget removed:` line → must fail |
-| T6 `base_main_skips_the_line_and_keeps_the_ceiling` | S6 | the whole check skipped on `main`: a raise passes, but measured > ceiling still fails |
-| T7 `a_new_row_needs_no_line` | the first pull request | a new row treated as a raise |
-| T8 `the_preload_measurer_sums_the_agents_files_and_not_the_pair` | `preload:*` | the `CLAUDE.md` pair row included: a hand-built tree with known sizes gives a different sum |
-| T9 `the_docs_classifier_skips_fences_comments_headings_and_rule_blocks` | S8 | each exclusion dropped, one parametrised case per exclusion; the history regex narrowed to `#\d+` alone |
-| T10 `an_unlisted_file_over_the_threshold_fails_and_a_listed_one_may_not_grow` | S7 | the threshold check removed; the per-file compare removed |
-| T11 `ci_minutes_sum_each_leg_off_the_job_name_and_price_the_run` | S9 | leg read off `runner_name` instead of the job name (fixture names carry one, not the other); the 2×/10× factors swapped |
-| T12 `the_summary_goes_to_the_step_file_when_set_and_names_no_path` | S5 | writing to stdout when `GITHUB_STEP_SUMMARY` is set; a machine path in the summary |
-| T13 `the_trees_budgets_hold` | the gate, locally | none — this is the gate's local form, as `test_every_document_in_docs_is_under_the_ceiling_or_frozen` is; its value is that the sealer's run sees the tree's own budgets |
-| T14 `the_workflows_run_the_checker_where_the_plan_says` | S5, S9 | the hygiene step without `--baseline`; the `budgets` job without `needs: pytest` or `actions: read` |
-| T16 `a_malformed_row_or_a_missing_file_is_exit_2` | S11 | a malformed row skipped with exit 0; a missing file read as empty |
+| T1 `test_measured_over_ceiling_fails_naming_the_row` | S1 | `>` becomes `>=`, or the compare is dropped: the fixture is measured = ceiling + 1 |
+| T2 `test_measured_inside_the_band_holds` | the band | the band inequality inverted: measured = ceiling exactly passes, ceiling × 1.02 passes |
+| T3 `test_a_ceiling_above_the_band_asks_to_lower` | S4 | the lower-band check removed: measured = ceiling / 1.05 at slack 2 % fails and names the number to lower to |
+| T4 `test_a_raise_without_its_line_fails`, `test_a_raise_with_its_line_passes_and_the_summary_shows_it` | S2, S3 | the baseline read dropped (raise passes), or the line regex loosened to any mention of the name (a line without the new value passes) |
+| T5 `test_a_removed_row_is_a_raise` | the ratchet | a missing row treated as new: baseline has the row, HEAD does not, no `Budget removed:` line → must fail |
+| T6 `test_base_main_skips_the_line_and_keeps_the_ceiling` | S6 | the whole check skipped on `main`: a raise passes, but measured > ceiling still fails |
+| T7 `test_a_new_row_needs_no_line` | the first pull request | a new row treated as a raise |
+| T8 `test_the_preload_measurer_sums_the_agents_files_and_not_the_pair` (NAME NOT IN TREE until phase 2 plants it) | `preload:*` | the `CLAUDE.md` pair row included: a hand-built tree with known sizes gives a different sum |
+| T9 `test_the_docs_classifier_skips_fences_comments_headings_and_rule_blocks` (NAME NOT IN TREE until phase 2 plants it) | S8 | each exclusion dropped, one parametrised case per exclusion; the history regex narrowed to `#\d+` alone |
+| T10 `test_an_unlisted_file_over_the_threshold_fails_and_a_listed_one_may_not_grow` (NAME NOT IN TREE until phase 2 plants it) | S7 | the threshold check removed; the per-file compare removed |
+| T11 `test_ci_minutes_sum_each_leg_off_the_job_name_and_price_the_run` (NAME NOT IN TREE until phase 3 plants it) | S9 | leg read off `runner_name` instead of the job name (fixture names carry one, not the other); the 2×/10× factors swapped |
+| T12 `test_the_summary_goes_to_the_step_file_when_set_and_names_no_path` | S5 | writing to stdout when `GITHUB_STEP_SUMMARY` is set; a machine path in the summary |
+| T13 `test_the_trees_budgets_hold` | the gate, locally | none — this is the gate's local form, as `test_every_document_in_docs_is_under_the_ceiling_or_frozen` is; its value is that the sealer's run sees the tree's own budgets |
+| T14 `test_the_workflows_run_the_checker_where_the_plan_says` (NAME NOT IN TREE until phase 3 plants it) | S5, S9 | the hygiene step without `--baseline`; the `budgets` job without `needs: pytest` or `actions: read` |
+| T16 `test_a_malformed_row_or_a_missing_file_is_exit_2` | S11 | a malformed row skipped with exit 0; a missing file read as empty |
 
 ## Operational impact
 
