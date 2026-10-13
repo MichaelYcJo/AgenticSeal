@@ -211,6 +211,13 @@ ubuntu and the macOS shards upload the committed file under the same name
 first.
 Download the artifact with `gh run download <run> -n <artifact>`, make its
 line ends LF, commit it, and restore the shards.
+The file is refreshed at each release's preparation, from the release
+branch (`docs/release-checklist.md` §*0. Before starting*), and whenever
+`test_the_durations_file_prices_the_suite` in that module goes red: more than
+one collected case in twenty has no price in the file (`STALE_SHARE`).
+`bin/test tests -q -k test_the_durations_file_prices_the_suite` runs it alone
+against the whole collection. Naming one module skips it, because one module
+is not the suite.
 
 **The suite runs with `gh` logged out, on your machine as on CI.** CI's
 pytest job has no token, so `tests/conftest.py` makes the same true locally

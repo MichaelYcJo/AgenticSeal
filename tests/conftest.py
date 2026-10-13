@@ -993,3 +993,26 @@ def pytest_runtest_makereport(item, call):
     if sentence is not None:
         report.outcome = "failed"
         report.longrepr = sentence
+
+
+# --- the durations file prices the suite (#874) -------------------------------
+#
+# `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#
+# test_the_durations_file_prices_the_suite` compares the suite's collection
+# with `.test_durations`, and on a shard the items a case can see are only the
+# shard's own: `pytest-split` replaces the list with the group.
+COLLECTED_NODE_IDS = "specseal_collected_node_ids"
+
+
+def pytest_collection_modifyitems(session, items):
+    """Record every collected node id on the session, under
+    `COLLECTED_NODE_IDS`, and change nothing.
+
+    It must run before `pytest-split`'s hook, which is `trylast` and replaces
+    `items[:]` with the shard's group, and it does: a hook with no ordering
+    mark in a `conftest.py` is called before a `trylast` one. `-k` and
+    `--deselect` trim the list after it as well, so the record is the whole
+    collection on a shard as on ubuntu, and a case selected alone by `-k`
+    still reads the suite. Under xdist each worker collects the whole suite
+    and runs this hook itself."""
+    setattr(session, COLLECTED_NODE_IDS, [item.nodeid for item in items])
