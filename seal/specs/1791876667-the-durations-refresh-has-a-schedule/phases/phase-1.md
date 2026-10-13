@@ -31,7 +31,7 @@ It holds for everything phase 1 builds, with four places where the tree
 said something the frame did not.
 
 1. **T2 keeps its old name.** `plan.md`'s test rows name T2
-   `the_pytest_line_hands_the_split_then_the_store`, and `spec.md` §*Data &
+   `the_pytest_line_hands_the_split_then_the_store` (NAME NOT IN TREE), and `spec.md` §*Data &
    interfaces* says `test_the_pytest_line_hands_the_split_to_pytest` is
    rewritten. The second wins: released rows anchor the old name —
    0.20.0's S4 (`seal/releases/0.20.0.md`) and 0.21.0's macOS S1

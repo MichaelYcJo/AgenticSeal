@@ -65,17 +65,17 @@ This table is also where the work records how far it got. **Status is empty, or 
 
 | Case | Guards | Mutation it kills |
 |---|---|---|
-| T1 `the_windows_entries_store_and_the_other_entries_do_not` | S1 | a macOS entry gains `store`, or a Windows entry loses it, in a fixture matrix |
-| T2 `the_pytest_line_hands_the_split_then_the_store` | S1 | the line ends at `${{ matrix.split }}`, or the store expression precedes the split |
-| T3 `the_upload_step_runs_always_and_only_where_store_is_set` | S1 | `always()` dropped (a red shard uploads nothing), `matrix.store != ''` dropped (ubuntu uploads the committed file), `include-hidden-files` dropped |
-| T4 `the_union_of_the_parts_is_the_whole_sorted_with_lf` | S2 | a part skipped; keys unsorted; CRLF written |
-| T5 `a_missing_part_a_duplicate_id_or_an_unparseable_part_is_exit_2` | S2 | fewer parts than `--count` read as complete; a duplicate id overwritten; a bad part skipped with exit 0 |
-| T6 `the_summary_names_each_parts_seconds_the_spread_and_the_live_sum` | S3 | the spread as slowest over fastest instead of over the mean; the committed sum not read; a machine path in a line |
-| T7 `dead_seconds_past_the_share_fail_and_at_the_share_pass` | S4 | the seconds side dropped or inverted; fixture at exactly one twentieth of the seconds, and one entry more |
-| T8 `the_sentence_names_the_download_and_the_counts` | S4 | the remedy names the old recipe; the artifact name missing |
-| T9 `an_entry_nobody_collects_is_not_counted` (kept, reworded) | S4 | a dead entry counted toward the unpriced share |
-| T10 `the_durations_job_needs_pytest_and_runs_unless_cancelled` | S2 | `needs:` dropped; `if:` dropped or `success()` |
-| T11 `the_recipe_names_the_artifact_and_the_checklist_has_no_box` | S6 | the box re-added; `test-durations` or `gh run download` absent from the paragraph |
+| T1 `test_the_windows_entries_store_and_the_other_entries_do_not` | S1 | a macOS entry gains `store`, or a Windows entry loses it, in a fixture matrix |
+| T2 `test_the_pytest_line_hands_the_split_to_pytest`, its body rewritten (built under the released name, `overview.md`) | S1 | the line ends at `${{ matrix.split }}`, or the store expression precedes the split |
+| T3 `test_the_upload_step_runs_always_and_only_where_store_is_set` | S1 | `always()` dropped (a red shard uploads nothing), `matrix.store != ''` dropped (ubuntu uploads the committed file), `include-hidden-files` dropped |
+| T4 `test_the_union_of_the_parts_is_the_whole_sorted_with_lf` | S2 | a part skipped; keys unsorted; CRLF written |
+| T5 `test_a_missing_part_a_duplicate_id_or_an_unparseable_part_is_exit_2` | S2 | fewer parts than `--count` read as complete; a duplicate id overwritten; a bad part skipped with exit 0 |
+| T6 `test_the_summary_names_each_parts_seconds_the_spread_and_the_live_sum` | S3 | the spread as slowest over fastest instead of over the mean; the committed sum not read; a machine path in a line |
+| T7 `test_dead_seconds_past_the_share_fail_and_at_the_share_pass` | S4 | the seconds side dropped or inverted; fixture at exactly one twentieth of the seconds, and one entry more |
+| T8 `test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe`, its body rewritten (built under the released name, `overview.md`) | S4 | the remedy names the old recipe; the artifact name missing |
+| T9 `test_an_entry_nobody_collects_is_not_counted` (kept, reworded) | S4 | a dead entry counted toward the unpriced share |
+| T10 `test_the_durations_job_needs_pytest_and_runs_unless_cancelled` | S2 | `needs:` dropped; `if:` dropped or `success()` |
+| T11 `test_the_recipe_names_the_artifact_and_the_checklist_has_no_box` | S6 | the box re-added; `test-durations` or `gh run download` absent from the paragraph |
 
 ## Operational impact
 
