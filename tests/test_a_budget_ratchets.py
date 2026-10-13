@@ -295,6 +295,38 @@ def test_a_report_row_is_printed_and_never_fails(tmp_path, capsys):
     assert "| report | over |" in capsys.readouterr().out
 
 
+@pytest.mark.parametrize(
+    "ceiling, slack, verdict",
+    [(1005, "+5", 0), (1005, "+5 bytes", 0), (1006, "+5", 1)],
+    ids=["the top of the band", "the unit named", "one over the top"],
+)
+def test_an_absolute_slack_is_counted_in_the_rows_unit(
+    tmp_path, capsys, ceiling, slack, verdict
+):
+    """`+N` is a slack of N in the row's unit, not a share: 1,000 bytes at
+    `+5` allows a ceiling up to 1,005 and asks to lower one at 1,006."""
+    root = tree(tmp_path, budgets(warden(ceiling, slack)))
+    assert run(root) == verdict, capsys.readouterr()
+
+
+def test_a_reader_the_checker_loads_that_is_gone_is_exit_2(
+    tmp_path, capsys, monkeypatch
+):
+    """The table walker, the meter and the merge base are each read through
+    the one module that owns it. A copy of the checker taken without them has
+    read nothing, and says which one is missing rather than raising."""
+    root = tree(tmp_path, budgets(warden(MEASURED)))
+    monkeypatch.setattr(budget_check, "_loaded", {})
+    monkeypatch.setitem(
+        budget_check.SIBLINGS, "config", ("no-such-config.py", "it reads the table")
+    )
+    assert run(root) == 2
+    assert (
+        "cannot read no-such-config.py, and it reads the table"
+        in capsys.readouterr().err
+    )
+
+
 def test_the_trees_budgets_hold():
     """T13: this repository's own `seal/budgets.md` holds against its own
     tree. The gate's local form, as the fold ceiling's pin is: a session and
@@ -312,6 +344,8 @@ def _broken_skill(root):
         (None, (), {}, None, "seal/budgets.md is not in the tree"),
         (budgets(warden("1,000")), (), {}, None, "is not a whole number"),
         (budgets(warden(MEASURED, "two")), (), {}, None, "`two` is no slack"),
+        (budgets(warden(MEASURED, "+5 lines")), (), {}, None, "`+5 lines` is no slack"),
+        (budgets(("preload", "bytes", 1, "2 %", "gate")), (), {}, None, "no measurer"),
         (
             budgets(warden(MEASURED, kind="maybe")),
             (),
@@ -362,6 +396,8 @@ def _broken_skill(root):
         "no file",
         "a ceiling with a comma",
         "a slack in words",
+        "an absolute slack in another unit",
+        "a family with no subject",
         "an unknown kind",
         "a row twice",
         "an unknown family",
