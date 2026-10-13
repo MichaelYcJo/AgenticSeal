@@ -59,6 +59,62 @@ judgment the ticket left open* or in `plan.md`'s Alternatives table.
     sibling branches on `origin` hold no `spec.md` yet (`spec.md` §*The
     judgment* 4). M1 measures it again at the gather.
 
+Decided at the reframe, after round 3, from the round records and the tree
+(`spec.md` §*The reading, redesigned after round 3*; `plan.md` §*Alternatives
+considered*, the `(reframe)` rows). Item 4 above is superseded by 13–15.
+
+12. **Patch the header rule a fourth time, or replace it?** Replace it. Three
+    rounds each found the previous round's rule wrong, the chain's stop rule
+    forbids a fourth patch, and round 3's own measurement (40,000 generated
+    sections to find the shape) is what an enumerated oracle does on every
+    suite run.
+13. **Which reader?** `hooks/config.py#gfm_table`, the one walker held to
+    cmark-gfm, loaded through the module `config_rule` already loads; in the
+    copy with no `hooks/` beside it, #871's vendored twin with its header
+    lifted into a parameter. Not a GFM-shaped reader of `evidence_check.py`'s
+    own: that is a second walker beside the one the oracle holds, the shape
+    #871 retires for the config table.
+14. **Is the table's header pinned to the template's?** Yes. The walker is
+    header-keyed; the template is the grammar; a field name a checker reads
+    stays English under any `Record language`; every live frame already
+    writes it (measured). A frame headed otherwise is refused naming the
+    header the table takes.
+15. **What is a table under a sub-heading of the section?** Refused, every
+    `|` claim line of it, header and delimiter row included: a sub-heading of
+    `## Removes` holds prose and no table, and a comparison table goes in a
+    section of its own. Round 2's reading — let a foreign header through,
+    refuse its body — needed the header rule the reframe retires, and is
+    reversed.
+16. **Does the `nothing — <why>` line stay one line?** Yes. A paragraph
+    reading is decidable but is a second reading of one line kind and a
+    template change; #874's five-line reason is refused at ac5c6ac7 already,
+    so the gather names it either way. The refusal names the sub-heading as
+    the home for the rest.
+17. **Is `hooks/config.py` edited, and does the oracle gain a pass?** No and
+    no. The walker's census hash would move and owe a declaration two
+    branches would write differently; a three-cell header already takes an
+    oracle pass, and the oracle module is one #871 is editing.
+18. **Who writes the vendored twin?** #871 has (read at beec7bf9); this item
+    lifts its header into a parameter and keeps the config projection. Phase
+    4 is built on a base that holds it, and the smith hands back rather than
+    writing a second twin if #871 has not merged.
+19. **Does the marker blanking stay?** Yes, as round 1's 🟡 2 settled: a
+    marked row is a row to the walker, a marked bullet is off-shape, and no
+    line of the section is exempt.
+20. **Which `Reads:` words move?** `removes_section`'s class word, `owned` to
+    `guess`, the class #871 gives every reader of a person's table through
+    the walker. Every direction word stays `refused`, which is what this item
+    is for.
+21. **How are the documents changed?** In place. A statement in `docs/` or a
+    template that states the rule is rewritten to the current rule where it
+    stands, and no paragraph narrating the header rule, the rounds or the
+    reframe is appended — the owner's rule, given 2026-10-13 during the
+    reframe, written into `plan.md`'s phase 4 and 5 rows.
+22. **What do the closed round-3 records do once the two sets leave?** Their
+    claim lines naming the sets gain ` · NAME NOT IN TREE`, the shape ten
+    round records at v0.21.0 already have; no other byte of a closed record
+    moves.
+
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
 | P1 | **Does the direction word stay in the `Reads:` grammar, and is any general rule wanted over it?** #834's round 6 found a fourth wrong direction word on lines a person wrote, and the issue says a word a reader cannot check costs what the withdrawn backfill cost. This item makes four words true and test-held, which is #836's form applied to one class, and touches the grammar not at all. Whether every direction word should be held by a test, or the word should retire from the grammar, is a change to #835's rule in `docs/the-reader-registry.md` and to `tests/reader_registry.py#DIRECTIONS`, a `feat:` | **a person**: the repository owner. The word is the inventory's one predictive column and the per-unit statement of rule 1's condition; keeping or retiring it is what the registry is for, which somebody has to be accountable for | **(a)** the word stays and nothing general is added; a false word is the warden's, as limits 1 and 5 say, and the pattern this item sets — make it true, pin it — is followed when the next one is found. **(b)** the word stays and a rule is opened as its own issue: a `Reads:` line whose direction a test can hold names the test, the way a ledger row does. **(c)** the word retires: `DIRECTIONS` goes, 26 lines lose their last word, the registry's definition and `CONTRIBUTING.md`'s bullet are rewritten — and `grep -rn "Reads: guess"` can no longer tell a bounded guess from an unbounded one | (a); the build is the same under every answer, so the row does not block; (b) and (c) are each a new issue the orchestrator files on the owner's word | ⬜ |
@@ -66,6 +122,9 @@ judgment the ticket left open* or in `plan.md`'s Alternatives table.
 | M1 | **At the 0.21.1 gather, does any sibling frame carry a line under `## Removes` that this refusal names?** Measured 2026-10-13 at 39a315a5: no live frame does, and the six sibling branches on `origin` hold no `spec.md` yet | **a measurement**: the orchestrator at the release gather, `bin/evidence-check --strict .` on `release/v0.21.1` with every item landed — the run `docs/release-checklist.md` already makes | **Exit 0:** nothing to do. **A `REFUSED` naming a sibling's line:** that sibling moves the line into a row's last cell, the `nothing` reason or a comment, in its own integration commit; the refusal's text names the remedy | the run the checklist already makes | ✅ answered at the smith's spawn by the orchestrator, who measured it 2026-10-13 (executed: awk over each frame's `## Removes` section): every frame of this run except #873's (#905's own, #911, #903, #872, likely #871) writes prose under its table. So the section ends at the next heading of any level, and a level-3 heading reading `Removes` opens none; prose goes under a sub-heading after the table, such as `### Why these rows`, and the refusal, `templates/sdd-spec.md`'s comment and the registry sentence say so; this frame's prose moved under one at 6c04efd5. Sibling smiths were told the same, so either merge order works for the refusal. The sub-heading's lines are read by the name half, so a removed unit named there needs `NAME NOT IN TREE` on its line (`phases/phase-2.md`); the gather run above still measures that |
 | W1 | **The shape `removes_section` hands the off-shape lines back in** — a fifth element `[(number, text)]`, or one list of `(number, text, kind)`; and whether the refusal's detail names the two shapes in one sentence or two | **the work**: phase 2 | S1–S3 hold either way; the detail text is pinned whole by the new cases (§14) | — | ✅ phase 2: a fifth element `other`, `[(number, text)]`; one sentence for the two shapes and a clause after a semicolon for the sub-heading (`phases/phase-2.md`) |
 | W2 | **Where in `agents/warden.md` §*Role* the sentence sits, and how its ledger row anchors it** — a quoted-line anchor on the sentence (the paragraph region), or the section heading | **the work**: phase 1 for the sentence, phase 3 for the row | `tests/test_one_word_one_meaning.py` and `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py` pass; the row is OK under `--strict` | — | ✅ phase 1 for the sentence: its own paragraph in §*Role*'s first bullet, after the reference-root paragraph (`phases/phase-1.md`); phase 3 for the row |
+| W3 | **How a walker refusal rides back from `removes_section`, and where it is reported** — a seventh value `[(sentence)]`, or an entry of `other` tagged as the walker's; and whether `removal_findings` reports it at `shown` with the line quoted in the sentence (the walker returns no line number) or re-finds the quoted line's number and reports `shown:<n>` | **the work**: phase 4 | S9 holds either way; the detail is pinned whole by S9's case (§14); `removal_findings` unpacks the same six values it does today | — | ⬜ |
+| W4 | **Where the switch between the walker and the twin sits for S12's case** — a keyword argument on `removes_section` naming the reader, or the mechanism `tests/test_evidence_check.py#test_the_vendored_config_rule_agrees_with_the_shared_one` already uses to call the twin beside the plugin's reader | **the work**: phase 4 | S12 holds either way; the plugin's copy must take the walker with no argument passed, so the four `Reads:` lines stay true for every caller | — | ⬜ |
+| M2 | **At the 0.21.1 gather, does any sibling frame carry a shape the walker refuses that ac5c6ac7's reader read?** Measured 2026-10-13 over the seven live frames on this machine: none — every table headed as the template writes it, no line directly under the heading, no `\|` line under a sub-heading; #874's wrapped `nothing` reason is refused by both readers | **a measurement**: the orchestrator at the release gather, the `bin/evidence-check --strict .` run `docs/release-checklist.md` already makes, with every item landed | **Exit 0:** nothing to do. **A `REFUSED` in the walker's sentence naming a sibling's line:** that sibling makes the edit the sentence names in its own integration commit | the run the checklist already makes | ⬜ |
 
 **`Who can answer` takes one of three values and nothing else.**
 
