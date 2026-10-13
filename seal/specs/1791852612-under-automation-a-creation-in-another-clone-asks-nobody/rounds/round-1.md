@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #916 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `6528e2ebabe8d2dee8936057f9d5de69623f0c2c..462e6dd53ba1b9ed107a4d99de05ab382972c66d`, 2 commits |
 | Contract changes | guard_worktree_creation → judge_creation, round-1-report.md, round-1.md |
 | New units | test_an_unbalanced_quote_under_the_press_names_no_token (depth 1) |
