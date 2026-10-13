@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 1 |
-| Commit | open — the union commit after the branch's first run closes it, and `plan.md`'s Status cell takes that hash |
+| Commit | 9ffc5f66 |
 | Ran by | specseal:smith on Opus 5.5, as `routing.md` and `handoff.md` name it |
 
 ## What this phase was asked
@@ -179,16 +179,100 @@ writes LF and nothing could see it. The plain `newline=None` break is one
 only a Windows shard can see, and this module runs on one; that is `read`,
 not executed.
 
-### For phase 1's second half and for phase 2
+### The branch's first run: the parts, the union, the commit
 
-- **The run must show** four `test-durations-<4…7>` artifacts from the
-  Windows shards, one `test-durations` artifact from the `durations` job,
-  and that job's summary; `phases/phase-1.md` takes each part's seconds, the
-  spread and the per-part ratio from it as this phase's *after the build,
-  before the commit*.
-- **Not verified here: whether `gh run download <id> -n test-durations`
-  overwrites a `.test_durations` that is already in the directory.** The
-  artifact holds the file at its root, so downloading into the repository
-  root writes it in place if `gh` overwrites. If it refuses an existing file,
-  the remedy phase 2 prints needs `-D <dir>` and a move. Answered by phase
-  1's own download of the union.
+`executed` 2026-10-14. Run 38475370013, `pull_request` at 8355b7b7 (draft
+#937, base `release/v0.22.0` at a8d83663, which is this branch's merge base,
+so the run's tree is the branch's). Every job green. The `durations` job ran
+7 s. Artifacts: `test-durations-4` … `-7` (76,533 · 135,062 · 37,909 ·
+59,757 bytes zipped, expiring 2026-10-14T22:15–22:18Z) and `test-durations`
+(307,180 bytes, expiring 2026-10-20).
+
+The job's summary page is not served by the REST API, so its lines were
+reproduced: `durations_union.py` run locally over the four downloaded parts
+against the branch's committed file wrote a union byte-identical to the
+artifact (`cmp` exit 0), and printed:
+
+```
+- entries: 13,930 in the union of 4 parts, 13,482 in the committed file
+- seconds: 8,490.3 s live, 7,861.7 s in the committed file
+- unpriced: 476 of the union's 13,930 cases (3.42%) have no price in the committed file
+- dead: 28 entries of the committed file are no case a part ran, 0.9 s (0.01% of its seconds)
+- part test-durations-4: 3,166 cases, 2,211.9 s measured, median price 1.16 x the committed file's over 3,146 cases both price
+- part test-durations-5: 7,072 cases, 2,068.8 s measured, median price 0.80 x the committed file's over 6,794 cases both price
+- part test-durations-6: 1,480 cases, 2,128.3 s measured, median price 0.92 x the committed file's over 1,409 cases both price
+- part test-durations-7: 2,212 cases, 2,081.3 s measured, median price 0.54 x the committed file's over 2,105 cases both price
+- spread: the slowest part, test-durations-4, measured 1.04 x the parts' mean of 2,122.6 s
+```
+
+`test-durations-4` … `-7` are groups 1 … 4 (ubuntu is job index 0, the
+macOS shards 1–3): each part's count is that group's passed plus skipped in
+its job log (3,149 + 17, 7,037 + 35, 1,373 + 107, 2,145 + 67).
+
+- **Unpriced and dead by the union are the local numbers.** 476 and 28
+  (0.9 s), the counts collected at 67422a3d.
+- **Q2 holds: the union's keys are the collection.** Against
+  `bin/test tests --collect-only -q -p no:xdist` at 67422a3d (no case has
+  changed since): 13,930 and 13,930, equal as sets. Skipped cases have
+  entries, as the counts above show, and no entry is priced 0.
+- **The parts carry CRLF and the union does not.** A downloaded part holds
+  `\r`; the union holds none and ends `}` with no newline, as the committed
+  file did.
+- **`gh run download <id> -n test-durations` does not overwrite.** Into a
+  directory already holding `.test_durations` it exits 1 with
+  `error extracting ".test_durations": … file exists` and leaves the old
+  file. The remedy phase 2 prints has to download elsewhere (`-D <dir>`) and
+  move the file, or remove the old file first.
+
+**The before, by pytest's seconds, on this same run** (the measure of the
+table above, under the committed file): Windows groups 1 · 2 · 3 · 4 692.3 ·
+550.4 · 597.2 · 695.5 s, 1.10 max/mean, 1.26 max/min; wall 1.13 max/mean.
+macOS 1.34 max/mean.
+
+**The parts' seconds and the session's clock disagree on which shard is
+heavy.** By summed case seconds the four parts sit within 1.04 of their
+mean; by the session's clock group 2 ran 550 s against group 4's 695 s.
+Group 2 holds 7,072 mostly short cases and the others 1,480 to 3,166, and
+`-n auto` overlaps short cases better, so a division balanced by summed
+seconds is not balanced by wall clock. Phase 2's *after* reads both.
+
+**Q1 — the per-part skew, by two readings.** The median per-case ratio
+spreads 0.54 to 1.16, but it is a median over thousands of
+millisecond-scale cases. Weighted by seconds (a part's sum over the cases
+the committed file prices, against the file's sum over the same cases) the
+four read 1.082, 1.096, 1.064 and 1.040: within 1.06 of one another, inside
+the 1.2× run-to-run noise. Q1's answer is phase 2's; this is its input.
+
+**The commit.** 9ffc5f66 commits the artifact's `.test_durations`,
+copied into place whole (`cp`; the file is generated, and nothing in it was
+edited), byte-identical to the artifact. `bin/test tests -q -k
+test_the_durations_file_prices_the_suite`: exit 0, 1 passed (run, not
+skipped), so 0 unpriced; this module whole: exit 0.
+
+### What `suite-seconds` and `slow-file:*` read after the commit
+
+For whichever of #930 and this pull request lands second: #930's
+`budget_check.py` is not on this branch, so these are read from the file by
+the definitions in #930's `spec.md` (`suite-seconds`: the file's sum, 5 %;
+`slow-file:<path>`: one file's sum, one row per file at ≥ 120 s, 10 %).
+
+- **`suite-seconds` reads 8,490.3 s, 8.0 % over 7,861.7 s**, past the 5 %
+  band (8,255). The pull request that carries both owes
+  `Budget raised: suite-seconds 7862 -> 8491`. Of the 628.6 s, 74.7 s is
+  the 476 cases the old file did not price (0.157 s each, a quarter of the
+  old mean). The other 553.9 s are the 13,454 cases both files price,
+  priced 1.071 × by these four runners against the one that measured the old
+  file. That is the price level of one run, which #930's own reading puts at
+  1.2× noise; it is not growth of the suite.
+- **`slow-file:*`: 10 of the 16 files at ≥ 120 s grow past 10 %**, the
+  largest `test_a_corrected_sentence_survives_elsewhere.py` at 1.25 and
+  `test_the_commit_gate_decides_at_the_commit.py` at 1.18 (1,137.0 →
+  1,337.3 s), and the ratios run 0.81 to 1.25. Two files cross 120 s and
+  are not listed: `test_a_note_closes_once_at_the_runs_end.py` (108.7 →
+  125.0 s) and `test_the_chain_goes_back_to_its_framer.py` (112.9 → 135.8 s).
+- **What that means for the schedule.** Every refresh is one run's
+  measurement, so every refresh can move both rows by the runners' price
+  level as much as by the suite. Whether #930's bands absorb that, the
+  ratchet asks for a raise each time, or the union is scaled to the
+  committed file's level, is not phase 1's to answer. Phase 2 reads Q1 from
+  the next run, and #930's pull request is where the bands are set.

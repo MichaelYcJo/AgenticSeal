@@ -20,13 +20,13 @@ first divergence; phase 3 closes it. -->
 
 | Item | Who must answer |
 |---|---|
-| GitHub runs the workflow as written: four `test-durations-<4…7>` parts, one `test-durations` union, the summary, and the Windows job names | the branch's first run, read by phase 1's second half |
-| `gh run download <id> -n test-durations` writes over a `.test_durations` already in the directory | phase 1's own download of the union |
+| ✅ GitHub runs the workflow as written: four `test-durations-<4…7>` parts, one `test-durations` union, the summary, and the Windows job names | run 38475370013, every job green, the five artifacts listed and downloaded 2026-10-14; the summary reproduced byte-for-byte from the parts (`phases/phase-1.md`) |
+| ✅ `gh run download <id> -n test-durations` writes over a `.test_durations` already in the directory | it does not: exit 1, `file exists`, the old file kept — executed 2026-10-14 against run 38475370013 |
 | The full suite, lint and typecheck at the branch's tip | the sealer, after the review rounds |
 
 ## Not done
 
-Phase 1's second half (the union commit) and phases 2 and 3.
+Phases 2 and 3.
 
 ## Fed back into the spec
 
