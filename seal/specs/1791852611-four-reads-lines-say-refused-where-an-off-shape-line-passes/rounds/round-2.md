@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #915 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `683d9d55b6dcfb5bd773cc48688f495d24577ee3..de5adcb99f96bc050e3944d645b5a8e497f9fda0`, 3 commits |
+| Contract changes | none |
+| New units | test_a_header_is_the_row_a_rule_row_follows (depth 1); test_a_table_in_the_next_section_is_no_strayed_row (depth 1) |
 | Fix of a fix | first — 🟡 1 at skills/evidence-check/scripts/evidence_check.py#removes_section, a unit round-1's fixes changed; 🟡 2 at skills/evidence-check/scripts/evidence_check.py#removes_section, a unit round-1's fixes changed |
 | Needs a fix | yes — 🟡 1 (a header is known by its first cell, so a foreign header is refused and a row reading `Removes` passes naming a standing unit) and 🟡 2 (the new branch's bound at level 2 is pinned by nothing) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,8 +25,8 @@ Round 2 of #905, the verifying round, target 2989accd: the diff of round 1's fix
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | the new branch knows a header by its first cell reading `Removes`: a foreign table's header under the sub-heading is refused as a row, and a body row whose first cell reads `Removes` passes naming a standing unit; the section's own table has the same silent pass since #835; the docstring at line 6052 and ledger row F1 claim a second table's header is not refused | `skills/evidence-check/scripts/evidence_check.py:6076` | open | probe at the target (executed); the patch below, applied in the clone and dropped (executed) |
-| 🟡 2 | the new branch's stop at the next heading of level 2 or above is pinned by nothing: `level >= 2` survives both modules and the tree's `--strict` run | `skills/evidence-check/scripts/evidence_check.py:6069` | open | `bin/mutation-check`, SURVIVED twice (executed); the proposed case red under the mutant (executed) |
+| 🟡 1 | the new branch knows a header by its first cell reading `Removes`: a foreign table's header under the sub-heading is refused as a row, and a body row whose first cell reads `Removes` passes naming a standing unit; the section's own table has the same silent pass since #835; the docstring at line 6052 and ledger row F1 claim a second table's header is not refused | `skills/evidence-check/scripts/evidence_check.py:6076` | **fixed** `b126895d` | fixed at b126895d; probe at the target (executed); the patch below, applied in the clone and dropped (executed) |
+| 🟡 2 | the new branch's stop at the next heading of level 2 or above is pinned by nothing: `level >= 2` survives both modules and the tree's `--strict` run | `skills/evidence-check/scripts/evidence_check.py:6069` | **fixed** `b126895d` | fixed at b126895d; `bin/mutation-check`, SURVIVED twice (executed); the proposed case red under the mutant (executed) |
 | 🟢 | round 1's finding 1 is closed: a table row under a sub-heading of `## Removes` is refused naming it, required or not, and is not also read by the name half | `skills/evidence-check/scripts/evidence_check.py:6073` | confirmed | the 8 new ids red at e3ae4cb6's reader and green at the head; round 1's first input replayed; three mutants red (executed) |
 | 🟢 | round 1's finding 2 is closed: a marked line under `## Removes` is read by the section's shapes, and the blanking moves no fence or comment boundary | `skills/evidence-check/scripts/evidence_check.py:6065` | confirmed | the 2 new ids red at e3ae4cb6's reader and green at the head; the marker-kept mutant red (executed); `claim_lines` read |
 | 🟢 | the records and documents the fix range touched read clean | `seal/ledger/1791852611-four-reads-lines-say-refused-where-an-off-shape-line-passes.md` | confirmed | `bin/evidence-check --strict .` exit 0; `bin/fold-check --root .` exit 0 (executed) |
