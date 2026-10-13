@@ -40,7 +40,12 @@ evidence ledger's coordinates.
 <!-- What this work item takes out of the tree, named once, here, before the
      build, each row a claim of absence that `evidence-check` reads. A work
      item that removes nothing writes one line in place of the table:
-     `nothing — <why>`. The grammar, the verdicts and the `Removes from` row
+     `nothing — <why>`. Nothing else sits under the heading: any other line
+     is refused naming it. Prose about the rows goes under a sub-heading
+     after the table, such as `### Why these rows`, which ends the section;
+     its lines are read as the rest of the frame is, so a removed unit named
+     there carries `NAME NOT IN TREE` on its line. The grammar, the verdicts
+     and the `Removes from` row
      are `docs/the-reader-registry.md` §*A frame names what its work removes*.
      #107 is why a removal is recorded at all, and `docs/the-agent-set.md`
      tells it: a rule taken out of `agents/smith.md` was lost between two

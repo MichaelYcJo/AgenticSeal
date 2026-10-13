@@ -6030,22 +6030,27 @@ REMOVES_REASON_RE = re.compile(r"\s+(?:—|--)\s+\S")
 
 
 def removes_section(lines):
-    """`(present, cut, rows, nothing)` for a frame's `## Removes` section:
-    whether the heading is there, the claim-line numbers inside the section,
-    `[(line number, cells)]` for its table's body rows, and `[(line number,
-    text)]` for every line in it that begins `nothing`.
+    """`(present, cut, rows, nothing, other)` for a frame's `## Removes`
+    section: whether the heading is there, the claim-line numbers inside the
+    section, `[(line number, cells)]` for its table's body rows, `[(line
+    number, text)]` for every line in it that begins `nothing`, and `[(line
+    number, text)]` for every other line in it that is not blank and not a
+    table row — the lines its two shapes do not cover, which the caller
+    refuses (#905).
 
     Reads: owned — the section's lines, on the lines `claim_lines` reads, by the template's shape; unknown refused
 
     The section runs from a level-2 heading reading `Removes` to the next
-    heading of level 2 or above. A line inside a fence or an HTML comment is
-    not a claim line, so a quoted section is no section (`claim_lines`).
+    heading of ANY level, so prose about the rows goes under a sub-heading
+    after the table and is read as the rest of the record is; a sub-heading
+    reading `Removes` opens nothing. A line inside a fence or an HTML comment
+    is not a claim line, so a quoted section is no section (`claim_lines`).
     """
     split = cell_rule()
-    present, inside, cut, rows, nothing = False, False, set(), [], []
+    present, inside, cut, rows, nothing, other = False, False, set(), [], [], []
     for number, text in claim_lines(lines):
         level = heading_level(text)
-        if level is not None and level <= 2:
+        if level is not None:
             inside = level == 2 and text.strip().lstrip("#").strip() == REMOVES_HEADING
             present = present or inside
             continue
@@ -6056,11 +6061,13 @@ def removes_section(lines):
         if cells is None:
             if REMOVES_NOTHING_RE.match(text.strip()):
                 nothing.append((number, text.strip()))
+            elif text.strip():
+                other.append((number, text.strip()))
             continue
         if all(RULE_CELL_RE.match(c) for c in cells) or cells[0] == REMOVES_HEADING:
             continue
         rows.append((number, cells))
-    return present, cut, rows, nothing
+    return present, cut, rows, nothing, other
 
 
 def removal_findings(lines, shown, root, maps, required):
@@ -6081,9 +6088,12 @@ def removal_findings(lines, shown, root, maps, required):
     names what its work takes out of HEAD, so `--default-repo` is not asked,
     a path carrying a `--map` prefix is refused, and so is one that walks
     through `..` (round 2). With REQUIRED, a section that is
-    absent or holds no row and no `nothing` line is refused too.
+    absent or holds no row and no `nothing` line is refused too. **A line in
+    a present section that is neither a row nor a `nothing` line is refused
+    naming it**, required or not and beside a row or alone: dropped, a
+    removal written as a bullet was a claim of absence nobody read (#905).
     """
-    present, cut, rows, nothing = removes_section(lines)
+    present, cut, rows, nothing, other = removes_section(lines)
     findings = []
     if required and not (rows or nothing):
         why = (
@@ -6109,6 +6119,16 @@ def removal_findings(lines, shown, root, maps, required):
                     f"`{text}` — a `nothing` line names its reason: `nothing — <why>`",
                 )
             )
+    for number, text in other:
+        findings.append(
+            (
+                REFUSED_STATUS,
+                f"{shown}:{number}",
+                f"`{text}` — a line under `## Removes` is a table row or "
+                "`nothing — <why>`; prose about the rows goes under a sub-heading "
+                "after the table, such as `### Why these rows`",
+            )
+        )
     for number, cells in rows:
         cell = cells[1].strip() if len(cells) > 1 else ""
         if len(cell) > 1 and cell.startswith("`") and cell.endswith("`"):

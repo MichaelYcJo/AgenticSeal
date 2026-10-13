@@ -1886,3 +1886,132 @@ def test_the_section_is_read_only_in_a_frame(tmp_path):
     )
     found, _ = refusals(tmp_path)
     assert found == []
+
+
+# --- a line under `## Removes` that is neither a row nor a `nothing` line (#905)
+
+REMOVES_TABLE = (
+    "| Removes | Coordinate | Where it lands, or why it can go |\n"
+    "|---|---|---|\n"
+    "| x | `gone.py#x` | y |\n"
+)
+
+
+def off_shape(line):
+    """The refusal of an off-shape LINE under `## Removes`, whole (§14)."""
+    return (
+        f"`{line}` — a line under `## Removes` is a table row or "
+        "`nothing — <why>`; prose about the rows goes under a sub-heading "
+        "after the table, such as `### Why these rows`"
+    )
+
+
+@pytest.mark.parametrize("required", [False, True], ids=["unrequired", "required"])
+@pytest.mark.parametrize(
+    ("body", "number", "line"),
+    [
+        (
+            REMOVES_TABLE + "- `mod.py#old_reader` goes too\n",
+            8,
+            "- `mod.py#old_reader` goes too",
+        ),
+        (
+            REMOVES_TABLE + "The reader above goes because nothing calls it.\n",
+            8,
+            "The reader above goes because nothing calls it.",
+        ),
+        (
+            REMOVES_TABLE + "Nothing — the rest of the work only adds a check\n",
+            8,
+            "Nothing — the rest of the work only adds a check",
+        ),
+        (
+            "nothing — the work only adds a check and\nkeeps every reader it had\n",
+            6,
+            "keeps every reader it had",
+        ),
+    ],
+    ids=["a bullet", "a prose line", "a capitalised Nothing", "a wrapped reason"],
+)
+def test_an_off_shape_line_under_removes_is_refused_naming_it(
+    tmp_path, required, body, number, line
+):
+    """S1 of #905. A line the section's two shapes do not cover is refused at
+    its line, naming it, beside a row or a `nothing` line, whether or not a
+    cutoff binds the frame — never dropped unread, which is what made the
+    four `unknown refused` words false. The run exits 2."""
+    tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
+    h = home(tmp_path)
+    if required:
+        removes_config(tmp_path, "1780000000")
+    work_item(
+        h,
+        "1780000000-live",
+        **{"spec.md": "# frame\n\n## Removes\n\n" + body + REMOVES_TAIL},
+    )
+    found, _ = refusals(tmp_path)
+    assert [(s, c.replace(os.sep, "/").rsplit("/", 1)[-1], d) for s, c, d in found] == [
+        ("REFUSED", f"spec.md:{number}", off_shape(line))
+    ]
+    r = run(["."], tmp_path)
+    assert r.returncode == 2, r.stdout + r.stderr
+
+
+def test_the_shapes_that_belong_under_removes_are_not_refused(tmp_path):
+    """S2 of #905. The header and rule rows, a blank line, an HTML comment
+    over two lines and a fenced block are no off-shape line."""
+    body = (
+        REMOVES_TABLE
+        + "\n<!-- why the row above can go:\n     nothing reads it -->\n\n"
+        + "```\n- a quoted bullet\n```\n"
+    )
+    h = home(tmp_path)
+    work_item(
+        h,
+        "1780000000-live",
+        **{"spec.md": "# frame\n\n## Removes\n\n" + body + REMOVES_TAIL},
+    )
+    found, _ = refusals(tmp_path)
+    assert found == []
+
+
+def test_a_required_section_holding_only_an_off_shape_line_is_refused_twice(tmp_path):
+    """S3 of #905. The section is empty in today's words, and the line is
+    refused naming it: neither finding stands in for the other."""
+    h = home(tmp_path)
+    removes_config(tmp_path, "1780000000")
+    item = "1780000000-bound"
+    work_item(
+        h, item, **{"spec.md": "# frame\n\n## Removes\n\n- `mod.py#old_reader` goes\n"}
+    )
+    found, _ = refusals(tmp_path)
+    assert [(s, c.replace(os.sep, "/").rsplit("/", 1)[-1], d) for s, c, d in found] == [
+        (
+            "REFUSED",
+            "spec.md",
+            "has an empty `## Removes` section, and `Removes from` in "
+            "seal/config.md binds this work item — name what the work removes, "
+            "in the ledger's grammar without a hash, or write `nothing — <why>`",
+        ),
+        ("REFUSED", "spec.md:5", off_shape("- `mod.py#old_reader` goes")),
+    ]
+
+
+@pytest.mark.parametrize("sub", ["### Why these rows", "### Removes"])
+def test_a_heading_of_any_level_ends_the_section(tmp_path, sub):
+    """M1 of #905. Prose about the rows goes under a sub-heading, which ends
+    the section — a level-3 heading reading `Removes` opens none — so the
+    prose is no off-shape line, and the name half reads it as it reads any
+    record line: a removed unit named there is a stated name the tree
+    lacks, unless the line carries the marker."""
+    body = REMOVES_TABLE + f"\n{sub}\n\nThe `gone_helper` went with its caller.\n"
+    h = home(tmp_path)
+    work_item(
+        h,
+        "1780000000-live",
+        **{"spec.md": "# frame\n\n## Removes\n\n" + body + REMOVES_TAIL},
+    )
+    found, _ = refusals(tmp_path)
+    assert [(s, c.replace(os.sep, "/").rsplit("/", 1)[-1]) for s, c, _d in found] == [
+        ("NOT-IN-TREE", "spec.md:11")
+    ]

@@ -126,13 +126,17 @@ will not read as a file, and a path carrying a `--map` prefix. A row is read in 
 original a migration declares nor a mapped checkout answers for it; a
 directory of this tree that carries a map's name is written `./<path>`. Both
 exit 2, as a stated name the tree lacks does. A work item removing nothing
-writes `nothing — <why>`. The names on the section's lines are not read as
-stated names, because the section exists to say they are gone.
+writes `nothing — <why>`. Any other line in the section is `REFUSED` naming
+it, so a removal written as a bullet is never a claim nobody reads; the
+section ends at the next heading of any level, and prose about the rows goes
+under a sub-heading after the table, where it is read as the rest of the
+frame is. The names on the section's lines are not read as stated names,
+because the section exists to say they are gone.
 
 The per-phase removal table this replaces recorded the same fact once per
 phase and was read by nothing. A removal a phase makes that the frame did not
 name is a divergence, and it goes to `overview.md`.
-Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_a_named_removal_that_still_stands_is_standing, tests/test_a_record_states_what_the_tree_has.py::test_a_cell_that_is_no_coordinate_is_refused_naming_the_row, tests/test_a_record_states_what_the_tree_has.py::test_a_bare_symbol_no_rule_bounds_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_removal_is_read_in_this_tree_never_in_another_checkout, tests/test_a_record_states_what_the_tree_has.py::test_a_path_through_dot_dot_is_refused_never_read_as_gone
+Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_a_named_removal_that_still_stands_is_standing, tests/test_a_record_states_what_the_tree_has.py::test_a_cell_that_is_no_coordinate_is_refused_naming_the_row, tests/test_a_record_states_what_the_tree_has.py::test_a_bare_symbol_no_rule_bounds_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_removal_is_read_in_this_tree_never_in_another_checkout, tests/test_a_record_states_what_the_tree_has.py::test_a_path_through_dot_dot_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_an_off_shape_line_under_removes_is_refused_naming_it, tests/test_a_record_states_what_the_tree_has.py::test_a_heading_of_any_level_ends_the_section
 
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
 **Where `seal/config.md` declares `Removes from`, every frame at or above

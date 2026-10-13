@@ -247,6 +247,8 @@ non-blocking row. The 22 other lines were read true by #834's round 6
 | limit 5's clause that a caller-staled helper's line is one the warden's diff does not show, as the last word on who reads it | `docs/the-reader-registry.md#"warden reads does not show its line."` | the fact stays in limit 5 and is followed by how the warden reads it: opening the lines of the helpers a changed caller feeds (⬜ 4) |
 | the same clause mirrored in the registry test module's docstring | `tests/test_a_reader_declares_its_input_class.py#"and the diff the warden reads does not show its line."` | reworded with limit 5, so the module's item 5 and the document's say the same thing |
 
+### Why these rows
+
 The silent drop inside `removes_section` is no unit, sentence or pin and has no coordinate; the refusal replaces it in place. Each row above is read whole-line by `text_regions`, so it stands `STANDING` at 39a315a5 and reads as gone once the clause is rewritten; the work item is live for the records arm only once its ledger fragment exists, which the plan puts in the last phase.
 
 ## Open questions → questions.md
