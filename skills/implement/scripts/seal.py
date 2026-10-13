@@ -1472,8 +1472,9 @@ def with_row(text, value):
     the delimiter row where it read none, the header being the first line
     `unfenced` shows whose cells are the config header -- the line the walk
     itself starts at. A writer with a walk of its own is the file two rows
-    deep (#429, #415): the stop rule's writer wrote a second `Mode` row under
-    a bare-piped line. **A table the walker refused is refused here** in the
+    deep (#429, #415): a `Mode` row it adds under a line its walk reads past
+    is a second `Mode` row to a reader that stops there. **A table the
+    walker refused is refused here** in the
     shape a doubled row takes, with the walker's sentence: a row the walk
     did not read may be the `Mode` row, so there is none to replace, and
     adding one may make two.
