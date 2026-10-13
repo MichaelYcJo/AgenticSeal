@@ -642,7 +642,7 @@ kind of line they read, with the cost each answer is chosen against.
   sides of a comparison.** `unverified_check.py#readable` blanks comment text
   and fenced lines with the indices intact, and a region nobody closed to the
   end of the file. So the working tree and the base revision count the same
-  table, and the record readers that call it refuse a hidden table as absent
+  table, and the readers that judge a record refuse a hidden table as absent
   rather than read it as empty. No caller hands it a ledger file.
 
 No one rule serves all three kinds. The holding bias would let a fold marker

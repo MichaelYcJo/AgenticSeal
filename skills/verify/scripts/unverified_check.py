@@ -649,6 +649,14 @@ def _partner_ahead(lines, start_line, width):
 def live_lines(lines):
     """`(the line, it begins live)` for each line — both readings, ANDed.
 
+    Reads: guess — markdown lines, under two readings of a block model nobody computes; unknown mixed
+
+    A line that excuses something is not taken on doubt, the second of the
+    three answers `docs/the-evidence-ledger.md` §*The fold, and what tells
+    it from a deletion* gives: what this parks, the fold and `settle` refuse
+    as a deletion at exit 1 and a kept directory, and the changelog gather
+    and the ledger fold pass as a line holding no marker.
+
     **The one rule for whether a line is live, and every reader of the fold
     record and of the ledger sections asks it here** — `folded_items` below
     and both loops of `skills/settle/scripts/settle.py#coordinates`. A line
@@ -732,6 +740,16 @@ def live_lines(lines):
 
 def readable(text):
     """The lines a reader should judge: no comment text, no fenced blocks.
+
+    Reads: guess — a record's lines, a round record, an `overview.md` or a `survivors.md`; unknown mixed
+
+    A line a record's rows are counted on is blanked the same way on both
+    sides of a comparison, the third of the three answers
+    `docs/the-evidence-ledger.md` §*The fold, and what tells it from a
+    deletion* gives: a region nobody closed is blanked to the end, and the
+    readers that judge a record refuse the table it hid as absent, while
+    `broad_gate.py`'s label, which never stops a sealed run, is drawn
+    without it.
 
     Every read starts here — the working tree and the base revision alike —
     which is what keeps the two sides of the comparison counting the same
