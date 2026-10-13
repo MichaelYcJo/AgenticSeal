@@ -15,7 +15,7 @@
 | Needs a fix | yes — 🔴 1 (the vendored twin refuses every plugin-written config), 🟡 2 (`seal mode` names the wrong cause), 🟡 3 (the remedy for a second table), 🟡 4 (a row GitHub does not show is still read), 🟡 5 (prose naming a structure that is gone) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -30,7 +30,7 @@ Round 1 of #871, target c5dde1f7 against `origin/release/v0.21.1`'s merge-base 3
 | 🟡 3 | A second table under the config table before a heading is refused, and all three documents give "move it into the table" as its only remedy | `templates/config.md:62` | **fixed** `9848f788` | fixed at 9848f788; executed: cmark-gfm renders both tables; the base read the config rows with no refusal; the walker refuses; the heading remedy is named nowhere |
 | 🟡 4 | The walker reads a row cmark-gfm does not render where a row shares its GFM line with another after FF or U+2028; the overview's Not verified row names only the harmless member of the class | `hooks/config.py#config_table` | **fixed** `9848f788` | fixed at 9848f788; executed: two rows read against one rendered; the base read the same, so not a regression, but S1 and the overview's claim are false of it |
 | 🟡 5 | Prose states a structure the tree no longer has: "all three walks" in three places, and "the shape this repository's own config has" for a last-row Broad gate line | `templates/config.md:314` | **fixed** `9848f788` | fixed at 9848f788; read: also `hooks/config.py:151`, `skills/verify/scripts/broad_gate.py:1026` and `:1108`; the Broad gate row is second of seven here and fourth of seven in the template |
-| ⬜ 6 | survivors.md's ground "Still true of this repository's config and the template's table" is false | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/survivors.md` | open | read: neither table ends with the Broad gate row; a correction to the run's paperwork |
+| ⬜ 6 | survivors.md's ground "Still true of this repository's config and the template's table" is false | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/survivors.md` | answered | corrected at f72e2bbb — the `survivors.md` ground now says the quoted sentence is history and false of both tables; the case does not depend on it; read: neither table ends with the Broad gate row; a correction to the run's paperwork |
 | 🟢 | The plugin's walker reads this repository's config, the template's table and the config `seal mode` writes whole, with nothing refused | `hooks/config.py#config_table` | confirmed | executed: 7, 7 and 1 rows, refusals empty |
 | 🟢 | No hook asks, denies or prints on a refused table; the prompt budget is zero | `hooks/mode-gate.py:163` | confirmed | read, and the hook cases over shapes 1, 5 and 7 passed in the module run |
 | 🟢 | Each of the overview's seven divergences has grounds the tree supports | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/overview.md` | confirmed | read, each against its coordinate |

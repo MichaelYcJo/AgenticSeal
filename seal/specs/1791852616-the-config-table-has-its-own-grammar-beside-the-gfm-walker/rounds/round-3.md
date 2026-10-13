@@ -15,7 +15,7 @@
 | Needs a fix | yes — 🟡 14 (a closed block below the table makes the vendored CI step exit 2 on a config the plugin reads whole), 🟡 15 (the twin doubles a row named under the next heading) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -27,8 +27,8 @@ Round 3 of #871, the verifying round after the run's one reopening, target 46063
 |---|---|---|---|---|
 | 🟡 14 | a closed comment, fence or `<` line below the table makes the twin refuse every `\| … \|` line under every later heading, so the vendored CI step exits 2 on a config the plugin reads whole | `skills/evidence-check/scripts/evidence_check.py#vendored_config_rows` | deferred #928 | executed: vendored `--strict .` exits 0 at 4dfb3d0d and 2 at 46063a51 over the same config; the plugin refuses nothing; cmark-gfm renders both tables; the fix applied in the clone is green. A unit round 2's fixes changed (91d9225d); the run ends here under the reopening bound |
 | 🟡 15 | the twin counts an item named in a table under the next heading, where the plugin stops at the heading, and says the row appears twice | `skills/evidence-check/scripts/evidence_check.py#vendored_config_value` | deferred #928 | executed: on round 2's 🟡 10 shape the plugin reads `shared` and `100`, the twin refuses both as "appears 2 times"; the docstring's reason is false of `vendored_config_rows`' own walk. A unit round 2's fixes changed (91d9225d); the same issue as 🟡 14, whose helper it uses |
-| ⬜ 16 | C1, N7 and the changelog say every refused table stops `--reverify` at exit 2, which holds only where the freeze row is not read above the refused line | `seal/ledger/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker.md` | open | executed: `cutoff_row` returns `(100, None)` with a freeze row above a refused pact line; read: `--reverify` then reaches the pact reader |
-| ⬜ 17 | the three re-pinned pact cases take their expected exit from `walk_refused`, so which shapes stop at exit 2 is not pinned | `tests/test_a_signer_records_a_pact_change.py#walk_refused` | open | executed: 18 of 39 cases take the exit-2 branch; read: both branches pin no re-stamp and no record |
+| ⬜ 16 | C1, N7 and the changelog say every refused table stops `--reverify` at exit 2, which holds only where the freeze row is not read above the refused line | `seal/ledger/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker.md` | answered | corrected at f72e2bbb — `Corrected · C1`, N7, the changelog bullet, the overview row, Q7 and the `walk_refused` docstring say exit 2 only where no `Ledger frozen from` row was read above the refused line; executed: `cutoff_row` returns `(100, None)` with a freeze row above a refused pact line; read: `--reverify` then reaches the pact reader |
+| ⬜ 17 | the three re-pinned pact cases take their expected exit from `walk_refused`, so which shapes stop at exit 2 is not pinned | `tests/test_a_signer_records_a_pact_change.py#walk_refused` | answered | corrected at f72e2bbb — `STOPPED_BY_THE_WALK` lists the 18 cases that must stop at exit 2, checked independently of the walker; both branches keep their no-change assertions; executed: 18 of 39 cases take the exit-2 branch; read: both branches pin no re-stamp and no record |
 | 🟢 | round 2's finding 7 is closed — the header and the delimiter row are asked whether they begin a GFM line | `hooks/config.py#gfm_table` | confirmed | executed: the 16-case header test passes in plugin and twin; cmark-gfm's answer carried from round 2 |
 | 🟢 | round 2's finding 8 is closed — the twin gives no value to an item written again below the stop | `skills/evidence-check/scripts/evidence_check.py#vendored_config_value` | confirmed | executed: the two new `CONFIG_SHAPES` entries pass the equality case |
 | 🟢 | round 2's finding 9 is closed — fold-check refuses a row written again below the stop | `skills/settle/scripts/fold_check.py#config_rows` | confirmed | executed: the new fold case passes; read: the loop asks `config_value` only where the walk refused |
@@ -172,7 +172,7 @@ def vendored_below(lines, start):
 | round-1 | `templates/config.md:62` | round 1's 🟡 3 — fixed |
 | round-1 | `hooks/config.py#config_table` | round 1's 🟡 4 — fixed |
 | round-1 | `templates/config.md:314` | round 1's 🟡 5 — fixed |
-| round-1 | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/survivors.md` | round 1's ⬜ 6 — open |
+| round-1 | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/survivors.md` | round 1's ⬜ 6 — answered |
 | round-1 | `hooks/mode-gate.py:163` | round 1's 🟢 — confirmed |
 | round-1 | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/overview.md` | round 1's 🟢 — confirmed |
 | round-1 | `seal/ledger/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker.md` | round 1's 🟢 — confirmed |

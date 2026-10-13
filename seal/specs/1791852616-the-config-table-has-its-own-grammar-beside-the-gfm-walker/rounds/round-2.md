@@ -309,7 +309,7 @@ def test_the_twin_does_not_call_a_block_line_a_row(line):
 | round-1 | `templates/config.md:62` | round 1's 🟡 3 — fixed |
 | round-1 | `hooks/config.py#config_table` | round 1's 🟡 4 — fixed |
 | round-1 | `templates/config.md:314` | round 1's 🟡 5 — fixed |
-| round-1 | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/survivors.md` | round 1's ⬜ 6 — open |
+| round-1 | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/survivors.md` | round 1's ⬜ 6 — answered |
 | round-1 | `hooks/mode-gate.py:163` | round 1's 🟢 — confirmed |
 | round-1 | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/overview.md` | round 1's 🟢 — confirmed |
 | round-1 | `seal/ledger/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker.md` | round 1's 🟢 — confirmed |
