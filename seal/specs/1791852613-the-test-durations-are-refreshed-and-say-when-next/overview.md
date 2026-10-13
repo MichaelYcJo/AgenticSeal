@@ -16,8 +16,8 @@ is refreshed by the recipe.
 | What counts as the whole collection | `plan.md` §*Declining a partial collection*: "when no argument of `session.config.invocation_params.args` resolves to the `tests` directory, it skips". The code reads `config.args`, which pytest fills with the invocation directory when no path is named, and accepts the repository or `tests` there, with `config.rootpath` the repository's | the code | `seal/config.md`'s `Broad gate` row is `uvx ruff check . && uvx ruff format --check . && bin/test -q`, which names no path, so the plan's rule would skip the case in the one local run of the whole suite. Executed 2026-10-13: `bin/test -q -k test_the_durations_file_prices_the_suite` runs the case. The rootpath condition keeps the plan's third six-month risk (pytest run from inside `tests/`) declining |
 | One pure function | `spec.md` §*Data & interfaces*: "one pure function over `(collected, durations)` returning the unpriced ids". The code has `unpriced` (that function) and `staleness` (the share comparison and the sentence) | the code | S2 asks for fixture cases at the boundary; the comparison has to live in a function they can call, and `unpriced` alone holds no boundary |
 | The artifact's name | The recipe in `CONTRIBUTING.md` names none | `test-durations` | `actions/upload-artifact@v4` defaults to `artifact`; phase 2's `gh run download <id> -n <artifact>` needs a name somebody can read |
-| Unpriced after the refresh | `spec.md` S1: "prices every case the tree at the restore commit collects, so the count of unpriced cases is zero there". At `3d2324ce` the count against the POSIX collection is 213 (1.58 %) | the file as downloaded | The 213 are parametrized cases whose ids carry a path (`[agents/framer.md-1]` here, `[agents\\framer.md-1]` on Windows). The file is the Windows leg's by policy (`CONTRIBUTING.md` §*Running the checks*), so they are priced under their Windows ids and cannot be priced under their POSIX ones by this recipe. The case is green at 1.58 % |
-| The dead entries | `spec.md` Out: "The 838 dead entries leave with the data". The file keeps 625 old entries | the file as downloaded | `pytest-split` 0.11.0's `PytestSplitCachePlugin.pytest_sessionfinish` merges into the old file unless `--clean-durations` is passed, and the recipe does not pass it. `spec.md` Out also forbids editing the file by hand. Of the frame's 838, 235 were Windows-form ids rather than gone cases |
+| The test ids, which the spec did not name | `spec.md` S1 asks for zero unpriced cases at the restore commit, and `spec.md` §*Data & interfaces* names no test module beyond the shard module and `conftest.py`. The first refresh left 213 ids unpriced on POSIX: 205 built from a path that Windows writes with `\`, and 8 holding `sys.executable`. Round 1's 🟡 1 took the root fix, which touches six modules outside the frame's list | the root fix | Without it, S1 cannot hold on two legs of three, and the `STALE_SHARE` ground, a whole cycle of growth under the share after a refresh, holds on Windows alone. After `fa4e9cce` and run 38342987499 the count is zero on POSIX, and by construction on Windows too, because the file is Windows' own collection |
+| The recipe's `store` value | `spec.md` Out: "Removing the 838 dead entries by hand. The refresh replaces the whole file". Without `--clean-durations`, `pytest-split` 0.11.0 merges into the old file, so the first refresh kept 625 entries | `--clean-durations` added to the recipe | `spec.md` assumed the refresh replaced the file, and the flag is what makes that true. Nothing edits the file by hand. Run 38342987499's file has 13,482 entries and none that the suite does not collect |
 | One ledger row per scenario | `plan.md` phase 3: "one row per S1–S7". The fragment has S1–S6 and no S7 | S1–S6 | S7's claim is that the records exist. Its only coordinate would be this directory's `overview.md`, which `settle --retire-process` removes after the release, so the row would break. `evidence-check --strict` exiting 0 is S7's evidence |
 
 ## Not verified
@@ -31,23 +31,16 @@ is refreshed by the recipe.
 
 ## Not done
 
-Two findings this work measured and left alone. Each is a candidate for an
-issue the orchestrator files, and neither widens this item.
+Phase 2 found two problems with the first refresh: 213 ids spelled per
+machine, and a recipe that merges instead of replacing. Both were fixed in
+this work by round 1's fix pass. Neither is left for an issue.
 
-- **213 cases are unpriced on ubuntu and macOS after every refresh.** Each
-  is a parametrized case whose id carries a path. Windows writes
-  `[agents\\framer.md-1]` where POSIX writes `[agents/framer.md-1]`, so a
-  file measured on Windows cannot price them for the POSIX legs. They hold
-  1.58 % of the 5 % `STALE_SHARE` allows on those legs. The 213 cases sit in
-  six modules, and 170 of them are in
-  `tests/test_a_moved_rule_leaves_its_definition.py`. One fix is ids built
-  from a path's `as_posix()`.
-- **The recipe merges into the old file and does not replace it.** Without
-  `--clean-durations`, `pytest-split` keeps every entry it loaded, so 625
-  entries the suite no longer collects stayed in the refreshed file. They
-  cost bytes and nothing else, because the division never reads them.
-  Adding `--clean-durations` to the recipe's `store` value would drop them
-  at the next refresh.
+- **The separator half is held only on Windows.** A future parametrization
+  of paths that omits `ids=posix_id` passes on POSIX. It shows up only as
+  cases that are unpriced on ubuntu and macOS after the next refresh, and
+  the staleness case reports those only once they reach `STALE_SHARE`.
+  Refusing a backslash across the collection is not possible, because 1,645
+  POSIX ids carry one from escaped characters (round 1's report).
 
 Not built here either: the `workflow_dispatch` input that measures without
 a commit (`plan.md` Alternatives E). `spec.md` Out named it as the design to
