@@ -611,6 +611,10 @@ CONFIG_SHAPES = {
     "a line before the first row": _HEAD + "| not a row\n| Mode | shared |\n",
     "crlf": (_HEAD + "| Mode | shared |\n| Broad gate | x |\n").replace("\n", "\r\n"),
     "no table": "# nothing here\n",
+    # #871: planted after a mutation dropping the twin's list-item check
+    # survived every other shape — GFM reads this header into the item.
+    "a header indented under a list item": "- a note\n\n | Item | Value |\n"
+    "|---|---|\n| Mode | shared |\n",
     **{
         f"shape {n}": config_shapes.SHAPES[n]
         for n in (1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)

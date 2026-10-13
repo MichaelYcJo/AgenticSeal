@@ -2223,6 +2223,42 @@ def test_a_refused_line_last_in_its_table_took_nothing_and_is_told_so(tmp_path):
     )
 
 
+def test_the_refusal_reads_each_of_its_conditions_off_the_file(tmp_path):
+    """#871. Four conditions `walker_refusal` and `refused_broad_row` read,
+    each planted after a mutation of it survived every case above:
+
+      - a heading ends what is written below the stopping line, so a row
+        under a heading is not one the clause is about;
+      - the escape is named for a bare pipe only, and a `Broad gate` line
+        with no closing pipe is refused without it;
+      - the stopping line is found under the delimiter row, so a stray
+        separator is told from the table's own;
+      - an empty `Broad gate` row the walk read is the absent-row refusal,
+        never a line the walk is said to have missed."""
+    head = "| Item | Value |\n|---|---|\n| Mode | shared |\n"
+    under_heading = refusal_over(
+        tmp_path,
+        "heading_below",
+        head + f"| {ROW} | bin/test -q | tee out |\n## Notes\n| x | y |\n",
+    )
+    assert IS_THE_ROW in under_heading and UNREAD not in under_heading, under_heading
+    unclosed = refusal_over(
+        tmp_path, "no_closing_pipe", head + f"| {ROW} | bin/test -q\n"
+    )
+    assert IS_THE_ROW in unclosed and ESCAPE not in unclosed, unclosed
+
+    stray = head + "|---|---|\n" + f"| {ROW} | bin/test -q |\n"
+    module = gate_module()
+    config = module.load(module.CONFIG_READER, "specseal_config_for_this_case")
+    said = config.config_table(stray)[1][0]
+    assert module.stopping_line(stray, said) == (3, "|---|---|"), said
+
+    empty = refusal_over(
+        tmp_path, "empty_row_read", head + f"| {ROW} |  |\n| a | b | c |\n"
+    )
+    assert f"has no `{ROW}` row" in empty, empty
+
+
 def test_a_broad_gate_row_under_the_stopping_line_is_named_where_it_is(tmp_path):
     """S6 of #871, the sentence for a row under the stopping line, which
     replaces the stop rule's hidden-row arm. The `Broad gate` row is the
