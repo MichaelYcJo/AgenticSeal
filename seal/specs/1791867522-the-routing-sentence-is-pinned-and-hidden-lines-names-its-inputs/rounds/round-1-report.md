@@ -30,7 +30,7 @@ The account said the `Reads:` line names five inputs, one more than #922 and rou
 
 | Input | How it reaches `hidden_lines` |
 |---|---|
-| `seal/config.md` | `indexed_config_rows` (`hooks/config.py:366`), `refusal` (`:465`), `skills/implement/scripts/seal.py#table_span` (`:1453`), all through `unfenced`; also `fence_map` called directly by `skills/verify/scripts/broad_gate.py#fence_left_open` (`:1045`) and `skills/implement/scripts/seal.py#write_row` (`:1587`), and `hidden_lines` called directly by `skills/verify/scripts/broad_gate.py#hidden_row_at` (`:976`) |
+| `seal/config.md` | `indexed_config_rows` (`hooks/config.py:366`), `refusal` (`:465`), `skills/implement/scripts/seal.py#table_span` (`:1453`), all through `unfenced`; also `fence_map` called directly by `skills/verify/scripts/broad_gate.py#fence_left_open` (`:1045`) and `skills/implement/scripts/seal.py#write_row` (`:1587`), and `hidden_lines` called directly by `skills/verify/scripts/broad_gate.py#hidden_row_at` (`:976`) · NAME NOT IN TREE |
 | `seal/pact.md` | `pact_signers` → `read_table` → `gfm_table` → `unfenced` (`hooks/config.py:1518`, `:1460`, `:1350`); called by `pact_check.py:542` and `chain_check.py:4844` |
 | a `seal/pact-changes/` record | `pact_changes` → `gfm_table` (`hooks/config.py:1553`); called by `pact_check.py:807` and `evidence_check.py:5237` |
 | a `seal/pact-reviews/` record | `pact_reviews` → `read_table` (`hooks/config.py:1591`); called by `pact_check.py:730` |
