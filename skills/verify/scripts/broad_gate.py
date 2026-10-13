@@ -838,7 +838,9 @@ def broad_command(home):
     and the refusal that sentence belongs in quotes the line and names the
     edit, which is `missing_row`'s to write. A row the walk read above a
     line it refused is a value, and the gate runs it: GitHub shows that row
-    as the person wrote it."""
+    as the person wrote it. A line below that one naming the row again makes
+    it a row written twice, which has no value (`config_value`), and the
+    gate refuses it as it refuses any doubled row."""
     config = load(CONFIG_READER, "specseal_config_for_broad_gate")
     text, refused = config.config_text(home)
     if refused is not None:

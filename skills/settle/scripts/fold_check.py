@@ -535,7 +535,9 @@ def config_rows(home):
     the three rows this command reads** (#871), in the walker's sentence: an
     unread row may be written below the line it stopped at, so it is not
     absent, and reading it as absent is the same exit 0 an unreadable file
-    gave. A refusal below all three rows touches none of them."""
+    gave. A refusal below all three rows touches none of them, unless one of
+    them is written again below it: `config_value` gives that row no value,
+    and neither does this command."""
     if not home:
         return []
     reader = config_reader()
@@ -548,6 +550,10 @@ def config_rows(home):
     read = {item for _index, item, _value in rows}
     if refusals and not {SHAPE_ROW, CEILING_ROW, OVER_ROW} <= read:
         raise Unusable(f"the file {refusals[0]}")
+    for item in (SHAPE_ROW, CEILING_ROW, OVER_ROW) if refusals else ():
+        refused = reader.config_value(text, item)[1]
+        if refused is not None:
+            raise Unusable(refused)
     return [(item, value) for _index, item, value in rows]
 
 

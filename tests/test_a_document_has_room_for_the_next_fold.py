@@ -589,3 +589,17 @@ def test_a_listed_document_below_the_top_level_is_named_as_outside_it(tmp_path):
         "docs/deep/big.md is listed over the ceiling and is not a top-level "
         "docs/*.md, the only documents the ceiling holds"
     ], found
+
+
+def test_a_fold_row_written_again_below_the_stop_has_no_value(tmp_path):
+    """#871 round 2, yellow 9. A row read above a line the walk refused and
+    written again below it has no value, in fold-check as in
+    `config_value`. Seen red against 4dfb3d0d: `declared` returned 400."""
+    (tmp_path / "config.md").write_text(
+        "# c\n\n| Item | Value |\n|---|---|\n| Fold shape from | 100 |\n"
+        "| Document line ceiling | 400 |\n| Over the ceiling | none |\n"
+        "| a | b | c |\n| Document line ceiling | 9000 |\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(fold_check.Unusable, match="appears 2 times"):
+        fold_check.declared(str(tmp_path))
