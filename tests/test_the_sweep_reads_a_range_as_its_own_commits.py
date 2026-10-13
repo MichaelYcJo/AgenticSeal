@@ -268,6 +268,83 @@ def test_a_three_dot_range_reads_its_two_ends_from_the_merge_base(tmp_path):
     code, text = sweep(repo, "base...feature")
     assert code == 1, f"f1's survivor was not reported:\n{text}"
     assert block(text, "copy.md"), text
+    assert "not read" not in text, f"`A...B` named commits it did not read:\n{text}"
+
+
+# --- round 1's 🟡 1: what a two-dot range lists and does not own ---------------
+
+
+def test_a_two_dot_range_names_the_commits_it_does_not_read(tmp_path):
+    """Round 1's 🟡 1. `base..feature` after the branch merged the base's tip
+    resolves to the same two commits as `base...feature` and owns `f2` alone,
+    so `f1`'s correction is not read. The report names `f1` as not read and
+    names `A...B`, rather than reporting a clean range in silence. Seen red
+    against the sweep as it stood at round 1's target: exit 0, 0 removed,
+    nothing naming `f1`."""
+    repo = tmp_path / "repo"
+    shas = history(
+        repo,
+        root={"other.md": doc("other", OWN_FOUND), "copy.md": doc("copy", OWN_FOUND)},
+        f1={"other.md": doc("other", OWN_REPAIRED)},
+    )
+    _code, text = sweep(repo, "base..feature")
+    assert "not read    1 commit(s)" in text, text
+    assert shas["f1"][:7] in text, text
+    assert "write `A...B`" in text, text
+
+
+def test_the_base_commit_a_two_dot_range_leaves_out_is_named(tmp_path):
+    """Round 1's 🟡 1, S1's shape. Over `f1..f2` the base's `S1` is listed
+    and not owned, and the line that names it is what says why its
+    correction counted nothing. Seen red against the sweep as it stood at
+    round 1's target: no line names `S1`."""
+    repo = tmp_path / "repo"
+    shas = history(
+        repo,
+        root={"notes.md": doc("notes", FOUND), "docs.md": doc("docs", FOUND)},
+        s1={"notes.md": doc("notes", REPAIRED)},
+    )
+    code, text = sweep(repo, f"{shas['f1']}..{shas['f2']}")
+    assert code == 0, text
+    assert "not read    1 commit(s)" in text, text
+    assert shas["S1"][:7] in text, text
+    named = text.split("does not own:", 1)[1].split(".", 1)[0]
+    assert shas["f2"][:7] not in named, (
+        f"an owned commit was named as not read:\n{text}"
+    )
+
+
+# --- round 1's 🟡 2: own commits that cannot be listed ------------------------
+
+
+def test_a_range_whose_own_commits_cannot_be_listed_is_refused(tmp_path, capsys):
+    """Round 1's 🟡 2. `own_commits` answers None where git fails and raises
+    `subprocess.TimeoutExpired` where its 60 s timeout expires. Either is
+    unusable input, exit 2, never a traceback at exit 1, which is the
+    survivors code. Seen red with the `try` removed: the timeout escaped
+    `main`."""
+    repo = tmp_path / "repo"
+    shas = history(repo)
+    for failure in (None, subprocess.TimeoutExpired(["git", "log"], 60)):
+        loaded = module()
+        real = loaded.chain()
+
+        class Stub:
+            is_ancestor = staticmethod(real.is_ancestor)
+
+            @staticmethod
+            def own_commits(root, a, b, failure=failure):
+                if failure is None:
+                    return None
+                raise failure
+
+        loaded.chain = lambda stub=Stub: stub
+        code = loaded.main(
+            ["--range", f"{shas['f1']}..{shas['f2']}", "--root", str(repo)]
+        )
+        err = capsys.readouterr().err
+        assert code == 2, f"{failure!r}: exit {code}\n{err}"
+        assert "cannot list the commits" in err, err
 
 
 # --- S7: a start that does not reach its end ----------------------------------

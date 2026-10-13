@@ -363,7 +363,9 @@ which commits those are is `docs/the-record-layout.md` §*A range owns the
 commits that descend from its start*, listed by `chain_check.py#own_commits`.
 `A...B` is read at its two ends. The limit that section states is this
 check's too: a change made only inside a merge's conflict resolution is in
-no owned commit, so on a two-dot range it is not measured (#873).
+no owned commit, so on a two-dot range it is not measured (#873). What a
+two-dot range lists and does not own is not read, and the report names
+those commits on a `not read` line.
 """
 
 import argparse
@@ -534,10 +536,34 @@ def owned(root, spec, a, b):
             "is read at its two ends from the merge base, or name the commit "
             "the fixes started from. Nothing was examined"
         )
-    commits = loaded.own_commits(root, a, b)
+    # `chain_check.py`'s git runs under a timeout and raises on its expiry
+    # rather than answering None; either is unusable input, never exit 1.
+    try:
+        commits = loaded.own_commits(root, a, b)
+    except subprocess.TimeoutExpired:
+        commits = None
     if commits is None:
         raise Refused(f"cannot list the commits {a[:7]}..{b[:7]} owns in {root}")
     return commits
+
+
+def not_owned(root, a, b, own):
+    """The short SHAs of the commits `git rev-list --no-merges a..b` lists
+    that `own` does not, oldest first; empty for `A...B` (`own` None).
+
+    Reads: observed — git's list of the range's non-merge commits, against `owned`'s list; unknown refused
+
+    A two-dot range is read by the commits it owns, and what else it lists
+    is not read. `report` prints them, so a run whose start is not where the
+    person meant names the commits it left out rather than reporting a clean
+    range in silence (#873 round 1)."""
+    if own is None:
+        return []
+    out = git(root, "rev-list", "--reverse", "--no-merges", f"{a}..{b}")
+    if out is None:
+        raise Refused(f"cannot list the commits in {a[:7]}..{b[:7]} in {root}")
+    mine = {full for full, _short, _changes in own}
+    return [full[:7] for full in out.split() if full not in mine]
 
 
 def tracked(root, rev):
@@ -2282,8 +2308,15 @@ def report(
     whole=None,
     unresolved=(),
     foreign=(),
+    unread=(),
 ):
     """Print the survivors and answer with the exit code.
+
+    Reads: guess — the exemption rows a person wrote, matched through `exempted`, beside the rows and counts its caller measured; unknown refused
+
+    `unread` is `not_owned`'s list: the commits a two-dot range lists and
+    does not own, printed under the examined line so a clean report says
+    what it left unread.
 
     `whole` is the `(range_spec, grounds)` declaration covering this exact
     range, and it excuses every candidate. `unresolved` is the declarations
@@ -2311,6 +2344,14 @@ def report(
         f"{corrected_count} sentence(s) the range {a[:7]}..{b[:7]} removed",
         file=out,
     )
+    if unread:
+        shown = " ".join(unread[:8]) + (" …" if len(unread) > 8 else "")
+        print(
+            f"  not read    {len(unread)} commit(s) in {a[:7]}..{b[:7]} the "
+            f"range does not own: {shown}. For a whole branch write `A...B`, "
+            "which is read at its two ends",
+            file=out,
+        )
     for spec, grounds in unresolved:
         print(
             f"  unresolved  {spec} does not resolve here, so it silences "
@@ -2406,6 +2447,7 @@ def main(argv=None):
         # not reach its end is refused here, and `whole_range` resolves a
         # row spelled that way exactly as before.
         own = owned(root, args.range, a, b)
+        unread = not_owned(root, a, b, own)
         # Before the run rather than after it: an exemption file that will not
         # parse is exit 2, and finding that out after several seconds of
         # indexing prints a refusal underneath a report.
@@ -2425,6 +2467,7 @@ def main(argv=None):
             whole=whole,
             unresolved=unresolved,
             foreign=foreign,
+            unread=unread,
         )
     except Refused as exc:
         print(f"survivor-check: {exc}", file=sys.stderr)

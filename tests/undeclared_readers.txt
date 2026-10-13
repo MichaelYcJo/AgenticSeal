@@ -897,7 +897,6 @@ skills/code-review/scripts/survivor_check.py#records_a_past_state@c8dd4d40
 skills/code-review/scripts/survivor_check.py#references@d96e1682
 skills/code-review/scripts/survivor_check.py#released_lines@a98c0509
 skills/code-review/scripts/survivor_check.py#removed_ledger_rows@bab8ffb5
-skills/code-review/scripts/survivor_check.py#report@74a8bff6
 skills/code-review/scripts/survivor_check.py#resolves@fd7c55f4
 skills/code-review/scripts/survivor_check.py#retired_directories@6a368229
 skills/code-review/scripts/survivor_check.py#runs@a0aaf0d2
