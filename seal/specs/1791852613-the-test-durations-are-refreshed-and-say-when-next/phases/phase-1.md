@@ -4,7 +4,7 @@
 |---|---|
 | Phase | 1 |
 | Commit | e4c84963 |
-| Ran by | unknown — the spawn prompt named no value, and this row is the spawning session's to fill |
+| Ran by | specseal:smith on Opus 5.5 |
 
 ## What this phase was asked
 
