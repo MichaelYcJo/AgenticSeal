@@ -1463,6 +1463,37 @@ def already_asked(top: str, session: str, scope: str) -> bool:
     return False
 
 
+def press_sentence():
+    """The sentence every deny under the press carries after its situation.
+
+    Reads: nothing — returns this guard's own text in the language `tr` was loaded with
+
+    One string for both ladders: the switch rows' deny in `main` and the
+    creation rows' in `guard_worktree_creation` say it byte for byte (#903,
+    W1). A function rather than a constant, as `tr` is, so each loaded copy
+    of this module speaks the language it was loaded in."""
+    return tr(
+        "This session's person pressed `automation` on the routing "
+        "question, so this guard puts no question to them, and none is to "
+        "be put to them in its place.\n\n",
+        "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+        "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 "
+        "물어서도 안 됩니다.\n\n",
+    )
+
+
+def reissue_sentence():
+    """The sentence every deny under the press ends with.
+
+    Reads: nothing — returns this guard's own text in the language `tr` was loaded with
+
+    Shared by both ladders for the reason `press_sentence` gives."""
+    return tr(
+        "Re-issuing this command unchanged meets this same refusal.",
+        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
+    )
+
+
 def choose(
     top,
     session_id,
@@ -1517,13 +1548,15 @@ def choose(
     question to them one step removed, and the `ask` after it would put one
     directly, on every attempt. So the site denies on every attempt with
     SITUATION and then UNATTENDED, the caller's text naming the way on that
-    needs nobody (#896). It returns before `already_asked`, so no marker is
+    needs nobody, or saying why it names none (#896). It returns before `already_asked`, so no marker is
     written: the marker records that the question was put, and none was. A
     session whose person later answers `per axis` in the same clone -- the
     last answer stands -- then meets the first-attempt deny an attended
     session meets. `before_ask` is not run, because the deny stops the whole
-    line. Only the switch direction passes it: the creation direction reads
-    consent, the press included, before any of its rows.
+    line. Both directions pass it. The creation direction reads consent, the
+    press included, before any of its rows, so it reaches this site under the
+    press only in a clone the press does not consent to and this session
+    holds no record in (#903).
     """
     if pressed:
         respond("deny", situation.rstrip("\n") + "\n\n" + unattended)
@@ -1567,6 +1600,14 @@ def guard_worktree_creation(
     transcript_path="",
 ):
     """Worktrees are for CONCURRENT work only -- block the single-stream case.
+
+    Reads: observed — this session's consent for the creation's clone (its record, then the press in its transcript, through `worktree_consent.consent`), the sessions in the tree through `sessions_in_tree`, and at rows 3 and 4 the press read from the session's own root through `automation_pressed`; unknown refused
+
+    The token and the bound on the allow are its caller's, read from the
+    command. Every way of not reading an input of its own lands on a row that
+    stops the command: no consent falls to the rows, an unreadable count to
+    row 4, an unreadable press to the attended verdict, so nothing it cannot
+    read passes.
 
     The Bash path's creation ladder. The Agent/Task path used to come through
     here as well, with its own `single_stream` verdict and its own wording for
@@ -1779,6 +1820,37 @@ def guard_worktree_creation(
             ),
         )
 
+    # What rows 3 and 4 say after their situation where this session's person
+    # pressed `automation` (#903). Row 0 reads the press as consent in the
+    # clone it was given in, so under the press these rows are reached only
+    # in another clone where this session has created no worktree. Nobody is
+    # at the keyboard to choose between the two options, the split is the
+    # creation being refused, and the shared tree is the call these rows
+    # exist to hand a person, so the deny names no way on, as the switch
+    # rows' does for a switch into another clone. The press is read from the
+    # session's own root, inside each row's `if`, so a command reads it only
+    # where one of the two rows fires: `cwd` is where the shell stands, which
+    # `judge_creation` hands here on purpose.
+    elsewhere = (
+        press_sentence()
+        + tr(
+            "That answer was read in this session's own clone, and it consents "
+            "to creating a worktree only in a clone it was given in. This tree "
+            "is in another clone, where this session has created no worktree, "
+            "and nobody is at the keyboard to choose between splitting it and "
+            "switching in its shared tree, so this guard names no way on here. "
+            "Leave this creation to a session working in the clone this tree "
+            "is in.\n\n",
+            "그 답은 이 세션의 클론에서 읽은 것이고, 답을 받은 클론에서만 worktree "
+            "생성에 동의합니다. 이 트리는 다른 클론에 있고 이 세션은 그 클론에서 "
+            "worktree 를 만든 적이 없습니다. 이 트리를 분리할지 공용 트리에서 "
+            "전환할지 고를 사람도 자리에 없으므로, 이 guard 는 여기서 갈 길을 알려 "
+            "주지 않습니다. 이 생성은 이 트리가 있는 클론에서 작업하는 세션에 "
+            "맡기세요.\n\n",
+        )
+        + reissue_sentence()
+    )
+
     # 3) 살아 있긴 하나 한동안 입력이 없는 세션뿐 -> 잊힌 탭일 가능성. 사용자가 안다.
     if idle:
         choose(
@@ -1811,6 +1883,8 @@ def guard_worktree_creation(
                 "`git switch` 로 전환합니다:\n",
             )
             + steer_to_switch(git),
+            pressed=automation_pressed(repo_paths(cwd)[0], session_id, transcript_path),
+            unattended=elsewhere,
         )
 
     # 4) 동시 세션 판정 불가 -> 자동으로 만들지 말고 물어본다.
@@ -1839,6 +1913,8 @@ def guard_worktree_creation(
                 "use `git switch`.",
                 "정말 동시 작업이면 확인해 주시고, 단건이면 취소하고 `git switch` 로 진행하세요.",
             ),
+            pressed=automation_pressed(repo_paths(cwd)[0], session_id, transcript_path),
+            unattended=elsewhere,
         )
 
     # A Bash command can carry `[worktree-ok]` and come back through the block
@@ -3133,18 +3209,9 @@ def main():
     # into another clone is refused naming none, because §B's choice rows
     # would put that split to a person (round 1 of work item 1791781864).
     # Neither check reads the transcript.
-    press = tr(
-        "This session's person pressed `automation` on the routing "
-        "question, so this guard puts no question to them, and none is to "
-        "be put to them in its place.\n\n",
-        "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
-        "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 "
-        "물어서도 안 됩니다.\n\n",
-    )
-    reissue = tr(
-        "Re-issuing this command unchanged meets this same refusal.",
-        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다.",
-    )
+    # The creation ladder's two choice rows say both sentences too (#903).
+    press = press_sentence()
+    reissue = reissue_sentence()
 
     def unattended_text():
         own = worktree_consent._clone_of(repo_paths(cwd)[0])

@@ -232,6 +232,8 @@ issued from `repo`.
 |---|---|---|
 | the sentence in `choose`'s docstring saying that only the switch direction passes `pressed`, because the creation direction reads consent before any of its rows | `hooks/worktree-guard.py#choose>"Only the switch direction passes it"` | replaced in the same docstring by a sentence saying both directions pass it, and that the creation direction reaches `choose` under the press only in a clone the press does not consent to (#903) |
 
+### Why these rows
+
 Two sentences this work extends are not removed, because each is true as
 written and gains the other clone's half after it: the module docstring's
 *In the clone the press was given in, the creation direction's two sites
