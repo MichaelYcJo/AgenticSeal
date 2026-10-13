@@ -297,20 +297,14 @@ the guard's behaviour before the answer was read:
    nobody measured.
 3. **The routing question**: one single-select question whose options' leading
    phrases are exactly `automation`, `per axis` and `no work item`
-   (`skills/implement/orchestration.md` §*Question 1 — single-select*),
-   answered with the option labelled `automation`. The answer must equal one
-   of the question's option labels verbatim, because that is what a pressed
-   option writes; a typed `Other` answer is the person's own text and is not
-   read, so *automation - but ask me before each worktree* is not consent. A
-   leading phrase is the label casefolded and cut at the first ` (`, ` —` or
-   ` -`, so an option labelled `automation (Recommended)` counts. Question 1
-   asked alone and question 1 with the four `multiSelect` boxes beside it in
-   the same call are read the same, because a question whose `multiSelect` is
-   not `false` is skipped; the second shape is the one every session still
-   asks whose installed block predates #911. For the same reason the boxes
-   asked in a call of their own, which is the second call a `per axis` run
-   now puts, answer no routing question: they neither give the press nor take
-   it back, so the `per axis` before them is the answer that stands.
+   (`skills/implement/orchestration.md` §*Question 1 — single-select*), answered with
+   the option labelled `automation`; a `multiSelect` question is skipped, so the boxes
+   beside question 1 or in a call of their own neither give nor take back the press.
+   The answer must equal one of the question's option labels verbatim, because that
+   is what a pressed option writes; a typed `Other` answer is the person's own text
+   and is not read, so *automation - but ask me before each worktree* is not consent.
+   A leading phrase is the label casefolded and cut at the first ` (`, ` —` or ` -`,
+   so an option labelled `automation (Recommended)` counts.
 4. **The same clone**: the result entry's own `cwd` resolves to the same common
    git directory as the creation's repository.
 5. **The last answer stands**: of every answer to the routing question from
@@ -978,19 +972,17 @@ at one prompt against a wrong allow breaking another session's tree.
   harness writes on the machine the session runs on, and a subagent reaches
   it through its parent's id. A run resumed in a new session (a `/clear`, a
   new `claude` start, another machine) has no press until question 1 is put
-  through `AskUserQuestion` again, and until then every stop that reads it is
-  the person's `ask` (`skills/implement/orchestration.md` §*Orchestrator: how
-  the work is routed — question 1 alone, boxes if per axis, one file*).
-  Nothing that survives a machine move can stand in for it. The consent record and the
-  choice markers sit under the git directory, which does not travel, and
-  everything that travels is in the tree, which the model writes, so
-  `routing.md` is not read. What keeps the press is what keeps the
-  session's id: `claude --resume` and compaction both go on writing the
-  same transcript the press already sits in, and the section named above
-  holds the reading that showed it. Measured in #894: a release run resumed
-  on another machine with the answer typed, and the guard asked the owner
-  twice in a run routed `automation`; replayed up to the first of those
-  stops, the reader found no press in that session.
+  through `AskUserQuestion` again, and until then every stop that reads it is the
+  person's `ask` (`skills/implement/orchestration.md` §*Orchestrator: how the work
+  is routed*). Nothing that survives a machine move can stand in for it. The consent
+  record and the choice markers sit under the git directory, which does not travel,
+  and everything that travels is in the tree, which the model writes, so
+  `routing.md` is not read. What keeps the press is what keeps the session's id:
+  `claude --resume` and compaction both go on writing the same transcript the press
+  already sits in, and the section named above holds the reading that showed it.
+  Measured in #894: a release run resumed on another machine with the answer typed,
+  and the guard asked the owner twice in a run routed `automation`; replayed up to
+  the first of those stops, the reader found no press in that session.
 - Under the press a model that does not take the split loops on §A's choice
   rows' deny, bounded by the reason's text alone; the next `automation` run
   measures it (work item 1791781864, `questions.md` M1; P1 (c) is the lever).
