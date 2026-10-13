@@ -15,7 +15,7 @@
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -30,8 +30,8 @@ Round 2 of #903, the verifying round, target d71acaf9: the diff of round 1's fix
 | 🟢 | round 1's finding 3 is closed — both READMEs scope the press's no-question creation to its own clone | `README.md:201` | confirmed | read: row 0 answers every creation in the press's clone; `README.ko.md:198` says the same; no other tracked `.md` carries the old claim |
 | 🟢 | `judge_creation`'s `Reads: guess … unknown mixed` is the right class and direction | `hooks/worktree-guard.py:1963` | confirmed | read: it parses the model's command; an untokenizable command is stopped without consent and left silent under it; executed (probe 1): the declaration check passes |
 | 🟢 | the `plain_origin` argument breaks no call site | `hooks/worktree-guard.py:1607` | confirmed | read: `judge_creation` is the only caller of `guard_worktree_creation` in hooks and tests |
-| ⬜ 5 | the `lead` line's `or origin` fallback is unreachable, and its attended arm survives deletion with every case green | `hooks/worktree-guard.py:1870` | open | executed (probes 3, 4): both mutations leave 268 cases green; behaviour is right in both arms today |
-| ⬜ 6 | the policy subsection's `Enforced by:` line does not name the case that holds *names no `[worktree-ok]`* for a command with an unbalanced quote | `docs/worktree-guard-spec.md:558` | open | read: the ledger's S1 row names the case; the subsection's line does not |
+| ⬜ 5 | the `lead` line's `or origin` fallback is unreachable, and its attended arm survives deletion with every case green | `hooks/worktree-guard.py:1870` | answered | corrected at 21865a2d — rows 3 and 4 read `lead = plain_origin if pressed else origin`, the unreachable fallback dropped; an attended case pins the attended arm, seen red under its deletion in each row; executed (probes 3, 4): both mutations leave 268 cases green; behaviour is right in both arms today |
+| ⬜ 6 | the policy subsection's `Enforced by:` line does not name the case that holds *names no `[worktree-ok]`* for a command with an unbalanced quote | `docs/worktree-guard-spec.md:558` | answered | corrected at 21865a2d — §*A creation in another clone under the press*'s `Enforced by:` names the two unbalanced-quote cases; read: the ledger's S1 row names the case; the subsection's line does not |
 
 ## Paste-ready fixes
 
@@ -57,7 +57,7 @@ no paste-ready fix in the report
 | round-1 | `hooks/worktree-guard.py:2008` | round 1's 🟡 1 — fixed |
 | round-1 | `hooks/worktree-guard.py:3555` | round 1's 🟡 2 — fixed |
 | round-1 | `README.md:201` | round 1's 🟡 3 — fixed |
-| round-1 | `seal/ledger/1791852612-under-automation-a-creation-in-another-clone-asks-nobody.md:30` | round 1's ⬜ 4 — open |
+| round-1 | `seal/ledger/1791852612-under-automation-a-creation-in-another-clone-asks-nobody.md:30` | round 1's ⬜ 4 — answered |
 | round-1 | `hooks/worktree-guard.py:1892` | round 1's 🟢 — confirmed |
 | round-1 | `tests/test_a_creation_in_another_clone_asks_nobody.py` | round 1's 🟢 — confirmed |
 | round-1 | `tests/test_a_creation_in_another_clone_asks_nobody.py#test_the_transcript_is_read_at_most_twice_per_creation` | round 1's 🟢 — confirmed |
