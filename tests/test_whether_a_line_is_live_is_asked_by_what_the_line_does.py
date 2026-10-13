@@ -85,6 +85,19 @@ SHAPES = {
         "",
         "after",
     ],
+    # A fence opened at two spaces: the shared delimiter rule closes it, and
+    # `hooks/blocks.py#walk` is not sure of it, because a list item's end can
+    # end a construct indented that way. It is the one shape here on which the
+    # checker's `quoted_lines` and the rider check's give different answers.
+    "a fence the walk is not sure of": [
+        "intro",
+        "",
+        "  ```",
+        ROW,
+        "  ```",
+        "",
+        "after",
+    ],
 }
 
 ORDER = list(SHAPES)
@@ -156,43 +169,43 @@ TABLE = {
         checker_quoted_lines,
         HOLDS,
         "checker's `quoted_lines`",
-        (N, R, R, R, R, R, R),
+        (N, R, R, R, R, R, R, N),
     ),
     "evidence_check.py#claim_lines": (
         checker_claim_lines,
         HOLDS,
         "`claim_lines`",
-        (N, R, N, R, R, R, N),
+        (N, R, N, R, R, R, N, N),
     ),
     "settle.py#anchored_rows": (
         settle_anchored_rows,
         HOLDS,
         "`settle.py#anchored_rows`",
-        (R, R, R, R, R, R, R),
+        (R, R, R, R, R, R, R, R),
     ),
     "rider_check.py#quoted_lines": (
         rider_quoted_lines,
         HOLDS,
         "rider check's `quoted_lines`",
-        (N, R, R, R, R, R, R),
+        (N, R, R, R, R, R, R, R),
     ),
     "unverified_check.py#live_lines": (
         unverified_live_lines,
         EXCUSES,
         "`unverified_check.py#live_lines`",
-        (N, N, N, N, R, R, N),
+        (N, N, N, N, R, R, N, N),
     ),
     "config.py#hidden_lines": (
         config_hidden_lines,
         EXCUSES,
         "`hooks/config.py#hidden_lines`",
-        (N, N, N, R, R, R, N),
+        (N, N, N, R, R, R, N, N),
     ),
     "unverified_check.py#readable": (
         unverified_readable,
         COUNTS,
         "`unverified_check.py#readable`",
-        (N, N, N, N, R, R, N),
+        (N, N, N, N, R, R, N, N),
     ),
 }
 

@@ -617,12 +617,15 @@ kind of line they read, with the cost each answer is chosen against.
   row is a parked claim and is read. What this protects is that a claim
   never leaves a ledger or a record in silence. The wrong answer is loud
   instead: `BROKEN`, a refused name, a kept directory or exit 2, and a person
-  answers it with an edit or a marker. Two of the four read a different
-  amount, each for a reason its own docstring holds. `claim_lines` reads a
-  line-start comment that closes as an aside, because a template's comments
-  describe fields rather than assert units. `anchored_rows` reads a fence
-  that closes, which the checker skips, because a guard that reads more than
-  the checker keeps a directory rather than breaking a row.
+  answers it with an edit or a marker. Three of the four read a different
+  amount from the checker, each for a reason its own docstring holds.
+  `claim_lines` reads a line-start comment that closes as an aside, because a
+  template's comments describe fields rather than assert units.
+  `anchored_rows` reads a fence that closes, because a guard that reads more
+  than the checker keeps a directory rather than breaking a row. The rider
+  check reads a fence its walk is not sure of, one opened at one to three
+  spaces, which the checker's delimiter rule closes, because a rider the
+  walk cannot place is read as it was before the walk.
 - **A line that EXCUSES or DECLARES something — a fold marker, a
   `seal/config.md` row, a `routing.md` row — is not taken on doubt.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
