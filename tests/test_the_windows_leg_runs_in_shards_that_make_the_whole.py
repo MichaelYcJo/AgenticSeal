@@ -417,18 +417,21 @@ COMMITTED = {
 
 def write_parts(tmp_path, parts=None, committed=None):
     """`(parts dir, committed path, out path)` with `parts` written as the
-    job downloads them, and `committed` as the tree holds it."""
+    job downloads them, and `committed` as the tree holds it. A part or a
+    committed file given as `str` or `bytes` is written as it is."""
+
+    def raw(value):
+        if isinstance(value, bytes):
+            return value
+        text = value if isinstance(value, str) else json.dumps(value, indent=4)
+        return text.replace("\n", "\r\n").encode("utf-8")
+
     root = tmp_path / "parts"
     for label, part in (PARTS if parts is None else parts).items():
         (root / label).mkdir(parents=True)
-        text = part if isinstance(part, str) else json.dumps(part, indent=4)
-        (root / label / ".test_durations").write_bytes(
-            text.replace("\n", "\r\n").encode("utf-8")
-        )
+        (root / label / ".test_durations").write_bytes(raw(part))
     held = tmp_path / "committed.json"
-    held.write_text(
-        json.dumps(COMMITTED if committed is None else committed), encoding="utf-8"
-    )
+    held.write_bytes(raw(COMMITTED if committed is None else committed))
     return root, held, tmp_path / "union" / ".test_durations"
 
 
@@ -492,10 +495,31 @@ def test_the_union_of_the_parts_is_the_whole_sorted_with_lf(tmp_path):
             id="not-seconds",
         ),
         pytest.param(
+            {**PARTS, "test-durations-7": {"tests/test_q.py::test_a": True}},
+            4,
+            "part test-durations-7 prices 'tests/test_q.py::test_a' at True",
+            id="a-boolean",
+        ),
+        pytest.param(
+            {**PARTS, "test-durations-7": "[1, 2]"},
+            4,
+            "part test-durations-7 is not a JSON object",
+            id="not-an-object",
+        ),
+        pytest.param(
+            {**PARTS, "test-durations-7": b"\xff\xfe{}"},
+            4,
+            "part test-durations-7 cannot be read: UnicodeDecodeError",
+            id="not-utf-8",
+        ),
+        pytest.param(
             {**PARTS, "test-durations-7": {}},
             4,
             "part test-durations-7 prices no case",
             id="empty",
+        ),
+        pytest.param(
+            {}, 4, "the parts directory does not exist", id="nothing-downloaded"
         ),
     ],
 )
@@ -512,6 +536,18 @@ def test_a_missing_part_a_duplicate_id_or_an_unparseable_part_is_exit_2(
     text = summary.read_text(encoding="utf-8")
     assert said in text, text
     assert "Nothing was written." in text, text
+
+
+def test_a_committed_file_that_does_not_parse_is_exit_2(tmp_path):
+    """S2. The report is read against the committed file, and one that does
+    not parse would also have stopped every shard at collection, so no run
+    that reaches this job holds one; refusing it costs nothing."""
+    root, held, out = write_parts(tmp_path, committed="{")
+    summary = tmp_path / "summary.md"
+    assert run_union(root, held, out, 3, summary) == 2
+    assert not out.exists(), "a refused union was written"
+    text = summary.read_text(encoding="utf-8")
+    assert "the committed file does not parse as JSON" in text, text
 
 
 def test_the_summary_names_each_parts_seconds_the_spread_and_the_live_sum(
@@ -553,3 +589,18 @@ def test_the_summary_names_each_parts_seconds_the_spread_and_the_live_sum(
     ), text
     assert str(tmp_path) not in text, text
     assert os.sep + "parts" not in text, text
+
+
+def test_a_part_the_committed_file_does_not_price_says_so():
+    """S3. A part with no case the committed file prices has no ratio to
+    take a median of, and an empty committed file has no seconds to share
+    the dead ones over; each line says so rather than stopping the job."""
+    lines = du.report([("p", {"tests/t.py::t": 1.0})], {"tests/t.py::t": 1.0}, {})
+    assert (
+        "- part p: 1 cases, 1.0 s measured, no case the committed file also prices"
+        in lines
+    ), lines
+    assert (
+        "- dead: 0 entries of the committed file are no case a part ran, "
+        "0.0 s (0.00% of its seconds)" in lines
+    ), lines

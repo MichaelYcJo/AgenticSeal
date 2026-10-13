@@ -90,8 +90,8 @@ def read_map(path, what):
 
 
 def find_parts(directory):
-    """`[(label, path)]` for every regular file under `directory`, sorted by
-    label. A label is the file's directory relative to `directory`, written
+    """`[(label, path)]` for every file under `directory`, sorted by
+    label; one that is not a readable part is refused where it is read. A label is the file's directory relative to `directory`, written
     with `/`, or the file's name when it sits in `directory` itself.
 
     Reads: observed — a directory listing; unknown refused
@@ -103,8 +103,6 @@ def find_parts(directory):
         dirs.sort()
         for name in files:
             path = os.path.join(here, name)
-            if not os.path.isfile(path):
-                continue
             rel = os.path.relpath(here, directory)
             label = name if rel == os.curdir else rel.replace(os.sep, "/")
             found.append((label, path))
