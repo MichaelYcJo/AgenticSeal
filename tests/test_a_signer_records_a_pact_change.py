@@ -50,6 +50,29 @@ def load():
 ec = load()
 
 
+def walk_refused(text, vendored=False):
+    """The first sentence the table walk refuses TEXT's `| Item | Value |`
+    table in -- the plugin's walker, or the vendored copy's twin -- or None.
+
+    Since #871 a command reads `Ledger frozen from` through `config_value`,
+    and an item the walk did not read in a table it refused is a refusal,
+    never an absent row (spec S2 of 1791852616). So where the walk refuses,
+    `--reverify` exits 2 on the freeze row before it judges any ledger row:
+    the moved row is left as the pact refusal left it, the ledger is byte
+    for byte what it was, and no record is written, but the sentence is
+    the walker's and the exit is 2, not the `LEFT` line at exit 1."""
+    walked = ec.vendored_config_rows(text) if vendored else ec.config_rule()[1](text)
+    return walked[1][0] if walked[1] else None
+
+
+def assert_refused_by_the_walk(code, out, said, ledger, ledger_rows, repo):
+    """What `--reverify` does where `walk_refused` names a sentence: exit 2,
+    that sentence printed, the ledger left as it was, and no record."""
+    assert code == 2 and said in out, (said, out)
+    assert ledger.read_text(encoding="utf-8") == "".join(ledger_rows), out
+    assert not (repo / "seal" / "pact-changes").exists(), out
+
+
 def unit_hash(repo, rel, locator):
     text = (repo / rel).read_text(encoding="utf-8")
     places = ec.resolve_unit(rel, locator, text).places
@@ -1466,7 +1489,7 @@ def _vendored(repo, tmp_path):
         "never, which this copy cannot read either",
         "a no-break space beside a pipe, which the plugin reads",
         "an ideographic space beside a pipe, which the plugin reads",
-        "a row after a line separator, which the plugin reads",
+        "a row after a line separator, which the walk refuses",
     ],
 )
 def test_a_vendored_copy_under_a_notify_row_leaves_a_row_citing_no_clause(
@@ -1478,14 +1501,17 @@ def test_a_vendored_copy_under_a_notify_row_leaves_a_row_citing_no_clause(
     PR #756, yellow 1). Leaving it under `never` too is the safe direction.
     A row is found as the plugin's reader finds one, with `\\s` and
     `str.splitlines` (round 2 of PR #756, yellow 1)."""
-    (repo / "seal" / "config.md").write_text(
-        config_text(("Mode", "shared"), *rows), encoding="utf-8"
-    )
+    text = config_text(("Mode", "shared"), *rows)
+    (repo / "seal" / "config.md").write_text(text, encoding="utf-8")
     old = unit_hash(repo, "src/orders.py", "serialize")
     ledger_rows = [row("O2", "", f"src/orders.py#serialize@{old}")]
     ledger = cite(repo, ledger_rows)
     move_serialize(repo)
     code, out = _vendored(repo, tmp_path)
+    said = walk_refused(text, vendored=True)
+    if said is not None:
+        assert_refused_by_the_walk(code, out, said, ledger, ledger_rows, repo)
+        return
     assert code == 1, out
     assert ledger.read_text(encoding="utf-8") == "".join(ledger_rows), out
     assert (
@@ -1620,18 +1646,24 @@ def test_s6_a_pact_line_below_the_table_leaves_the_moved_row(
     repo, rows, below, cites, why
 ):
     """S6. A pact line under a blank line that ended the table was read as
-    the default, and the moved row was re-stamped unrecorded. It is refused
-    now, so the row is left: exit 1, the `LEFT` line naming the refused
-    line, the ledger byte-identical, and no record. A `Pact` line refuses
-    with no `Pact` row in the table too, and its clause's row is left."""
-    (repo / "seal" / "config.md").write_text(
-        config_text(("Mode", "shared"), *rows) + below, encoding="utf-8"
-    )
+    the default, and the moved row was re-stamped unrecorded. It is refused,
+    so the row is left, the ledger byte-identical, and no record. Where the
+    table walk refuses the line too, the run stops on the freeze row with
+    the walker's sentence at exit 2 (`walk_refused`); where only the pact
+    reader refuses it, at exit 1 with the `LEFT` line naming the refused
+    line. A `Pact` line refuses with no `Pact` row in the table too, and its
+    clause's row is left."""
+    text = config_text(("Mode", "shared"), *rows) + below
+    (repo / "seal" / "config.md").write_text(text, encoding="utf-8")
     old = unit_hash(repo, "src/orders.py", "serialize")
     ledger_rows = [row("O1", cites, f"src/orders.py#serialize@{old}")]
     ledger = cite(repo, ledger_rows)
     move_serialize(repo)
     code, out = run(repo, "--into", FRAGMENT, "--checked", "2026-09-04")
+    said = walk_refused(text)
+    if said is not None:
+        assert_refused_by_the_walk(code, out, said, ledger, ledger_rows, repo)
+        return
     assert code == 1, out
     assert (
         f"LEFT seal/ledger/{ITEM}.md:1 {why}, and the `Pact` rows will not "
@@ -1709,18 +1741,22 @@ def test_s9_a_vendored_copy_leaves_where_the_plugin_refuses_a_pact_line(
     """S9 (a). Where the plugin's reader refuses a line naming a pact, a
     copy with no `hooks/` leaves the moved row too: it reads the same lines
     by the same word, and it has no walk, so a plain `Pact notify` row
-    anywhere beside a `Pact` value is enough. The full S2 corpus runs
+    anywhere beside a `Pact` value is enough. Where the copy's twin of the
+    table walk refuses the line, the run stops earlier, on the freeze row,
+    at exit 2 with nothing written (`walk_refused`). The full S2 corpus runs
     through its decision in `tests/test_a_signer_declares_its_pact.py`;
     these run it end to end."""
-    (repo / "seal" / "config.md").write_text(
-        config_text(("Mode", "shared"), ("Pact", PACT_URL)) + below,
-        encoding="utf-8",
-    )
+    text = config_text(("Mode", "shared"), ("Pact", PACT_URL)) + below
+    (repo / "seal" / "config.md").write_text(text, encoding="utf-8")
     old = unit_hash(repo, "src/orders.py", "serialize")
     ledger_rows = [row("O2", "", f"src/orders.py#serialize@{old}")]
     ledger = cite(repo, ledger_rows)
     move_serialize(repo)
     code, out = _vendored(repo, tmp_path)
+    said = walk_refused(text, vendored=True)
+    if said is not None:
+        assert_refused_by_the_walk(code, out, said, ledger, ledger_rows, repo)
+        return
     assert code == 1, out
     assert "moved, and `Pact notify` may be `always`" in out, out
     assert ledger.read_text(encoding="utf-8") == "".join(ledger_rows), out
