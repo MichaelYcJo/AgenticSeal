@@ -306,8 +306,8 @@ the guard's behaviour before the answer was read:
    ` -`, so an option labelled `automation (Recommended)` counts. Question 1
    asked alone and question 1 with the four `multiSelect` boxes beside it in
    the same call are read the same, because a question whose `multiSelect` is
-   not `false` is skipped; the second shape is the one every session on a
-   block older than 0.21.1 still asks (#911).
+   not `false` is skipped; the second shape is the one every session still
+   asks whose installed block predates #911.
 4. **The same clone**: the result entry's own `cwd` resolves to the same common
    git directory as the creation's repository.
 5. **The last answer stands**: of every answer to the routing question from
@@ -977,7 +977,8 @@ at one prompt against a wrong allow breaking another session's tree.
   new `claude` start, another machine) has no press until question 1 is put
   through `AskUserQuestion` again, and until then every stop that reads it is
   the person's `ask` (`skills/implement/orchestration.md` §*Orchestrator: how
-  the work is routed — two questions, one call, one file*). Nothing that
+  the work is routed — question 1 alone, boxes if per axis, one file*).
+  Nothing that
   survives a machine move can stand in for it. The consent record and the
   choice markers sit under the git directory, which does not travel, and
   everything that travels is in the tree, which the model writes, so

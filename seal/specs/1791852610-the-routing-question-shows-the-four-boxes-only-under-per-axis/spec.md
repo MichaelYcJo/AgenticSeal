@@ -146,6 +146,8 @@ result: the declaration is what the session writes from it, as before.
 |---|---|---|
 | the sentence that the routing question is two questions in one call, in every live file that carries it | `skills/implement/orchestration.md#"## Orchestrator: how the work is routed — two questions, one call, one file"` | replaced by the section under the new heading above; the grounds for one call (the four-option ceiling) stay in that section |
 
+### Why these rows
+
 The Question 2 heading's rename is not a row: the section under it stays
 whole, and a heading coordinate carrying backticks is one the records arm
 does not read (measured on this frame, 2026-10-13: the row produced no line

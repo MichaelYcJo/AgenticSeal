@@ -127,7 +127,12 @@ def test_implement_and_the_preset_block_do_not_drift():
         # build nor round 1 ran this module.** Both chose their narrow set by
         # which files they had edited; this one reads two of those files and
         # was in neither set.
-        "two questions in ONE `AskUserQuestion` call",
+        #
+        # It moved again (#911): the boxes meant nothing under two of
+        # question 1's three answers and were on screen under all three, so
+        # question 1 now goes alone and the boxes follow only under
+        # `per axis`.
+        "Ask question 1 alone; the boxes in a second call only under `per axis`.",
         "What is checked is the answer",
         "each box is a row of",
         # The third axis. A document still saying two would send a session to

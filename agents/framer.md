@@ -272,7 +272,7 @@ So the one moment of human contact is your caller's, and it happens **before
 you are spawned**:
 
 ```
-the session : asks the two questions in one call        ← the tool is here
+the session : asks question 1; boxes only if per axis   ← the tool is here
 the session : writes and commits routing.md
 YOU         : read, judge, write spec / plan / questions
 the session : reads plan.md and spawns the build        ← the approval

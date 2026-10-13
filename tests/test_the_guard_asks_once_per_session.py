@@ -1431,7 +1431,7 @@ BOXES = (
 def with_the_boxes(entries):
     """The same call with question 2's four boxes beside question 1.
 
-    That is the shape every session asked before 0.21.1, and the one a
+    That is the shape every session asked before #911, and the one a
     machine whose installed block predates it still asks until
     `/specseal:update` reaches it."""
     use, result = (json.loads(json.dumps(e)) for e in entries)
@@ -1450,7 +1450,7 @@ def with_the_boxes(entries):
 def test_question_1_alone_and_the_boxes_beside_it_read_the_same_press(projects, repo):
     """#911 (work item 1791852610), S5. The routing question is now asked as
     question 1 alone, and the boxes come in a second call only under
-    `per axis`; installed blocks older than 0.21.1 still put both in one
+    `per axis`; an installed block older than #911 still puts both in one
     call. The reader has to read the two shapes the same, or an un-updated
     machine's `automation` run meets the guard's prompt again (#894).
 
