@@ -7,13 +7,14 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #924 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `744c610f4db52c59988b6eb967f09950db691636..dfd51a66fa4fac46483d101bcd8aa30d12ad895f`, 8 commits |
+| Contract changes | none |
+| New units | posix_id (depth 1); interpreter_free (depth 1); test_no_collected_id_carries_the_interpreters_path (depth 1); test_a_path_id_is_written_with_forward_slashes (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (the `STALE_SHARE` ground and the two sentences that say every leg collects the same cases; the ids fix is the root) and 🟡 2 (the release box's missing budget re-read) |
 | Loses a record or crashes | no |
+<!-- New units: .github/workflows/test.yml, .test_durations read by the diff-line heuristic and not by the AST -->
 
 - [ ] Pass
 
@@ -25,8 +26,8 @@ Round 1 of #874, target 64afbf9f against `origin/release/v0.21.1` at 321e9de1, o
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | `STALE_SHARE`'s written ground is false on ubuntu and macOS: 213 path-carrying ids are unpriced after every refresh, so a 0.21.0-sized cycle crosses 5 % after a preparation refresh; `CONTRIBUTING.md:191` and the module docstring still say every leg collects the same cases | `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:56` | open | executed: 213 of 13,480 unpriced on the POSIX collection, red after about 485 new cases against 655 in 0.21.0; 8 of the 213 carry `sys.executable`, which `as_posix()` does not reach |
-| 🟡 2 | The release-checklist box itemises the refresh and drops the macOS `timeout` re-read the recipe requires after it | `docs/release-checklist.md:55` | open | read: `CONTRIBUTING.md` §*Running the checks*, the sentence beginning *after a refresh, read the macOS shards' times* |
+| 🟡 1 | `STALE_SHARE`'s written ground is false on ubuntu and macOS: 213 path-carrying ids are unpriced after every refresh, so a 0.21.0-sized cycle crosses 5 % after a preparation refresh; `CONTRIBUTING.md:191` and the module docstring still say every leg collects the same cases | `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:56` | **fixed** `fa4e9cce` | fixed at fa4e9cce; executed: 213 of 13,480 unpriced on the POSIX collection, red after about 485 new cases against 655 in 0.21.0; 8 of the 213 carry `sys.executable`, which `as_posix()` does not reach |
+| 🟡 2 | The release-checklist box itemises the refresh and drops the macOS `timeout` re-read the recipe requires after it | `docs/release-checklist.md:55` | **fixed** `0b71b66d` | fixed at 0b71b66d; read: `CONTRIBUTING.md` §*Running the checks*, the sentence beginning *after a refresh, read the macOS shards' times* |
 | ⬜ 3 | `Corrected · S3` cites the released row and `test.yml` but leaves out the test coordinate 0.21.0's S3 carried | `seal/ledger/1791852613-the-test-durations-are-refreshed-and-say-when-next.md:7` | open | read: `docs/the-evidence-ledger.md`, the paragraph on a correction superseding the whole released row |
 | ⬜ 4 | A `test.yml` comment line was left short by the in-place cut | `.github/workflows/test.yml:45` | open | read |
 | 🟢 | The decline rule reads `config.args`, so the sealer's pathless `bin/test -q` runs the case | `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#collects_the_suite` | confirmed | executed: pathless `-k` form `1 passed`; module alone `1 skipped` with the reason |
