@@ -192,24 +192,24 @@ and it divides the macOS leg too, because every leg collects the same
 cases under the same ids: a parametrized path takes `ids=posix_id` from
 `tests/conftest.py`, and no id carries the interpreter's path, which
 `test_no_collected_id_carries_the_interpreters_path` holds. It prices each
-case as Windows ran it, so a case Windows skips is
-near zero there and its whole macOS cost is unseen by the division: after
-a refresh, read the macOS shards' times in the next run's jobs and set
-their `timeout` again by the rule beside the values. The file is refreshed
-at each release's preparation, from the release branch
+case as Windows ran it, so a case Windows skips is near zero there and its
+whole macOS cost is unseen by the division: after a refresh, read the macOS
+shards' times in the next run's jobs and set their `timeout` again by the
+rule beside the values. The file is refreshed at each release's
+preparation, from the release branch
 (`docs/release-checklist.md` §*0. Before starting*), and whenever
-`test_the_durations_file_prices_the_suite` goes red: more than one collected
-case in twenty (`STALE_SHARE`) has no price in the file.
+`test_the_durations_file_prices_the_suite` goes red: more than one
+collected case in twenty (`STALE_SHARE`) has no price in the file.
 `bin/test tests -q -k test_the_durations_file_prices_the_suite` runs that
 case alone against the whole collection, and naming one module skips it.
-To refresh it, push a branch on which `test.yml` runs the Windows
-leg as one job again for a single run: one Windows entry with
+To refresh it, push a branch on which `test.yml` runs the Windows leg as
+one job again for a single run: one Windows entry with
 `store: "--store-durations --clean-durations"` (the second drops every
 entry the run did not collect, which `pytest-split` otherwise keeps) in
-place of the four Windows shard entries,
-the three macOS shard entries left as they are, with a `timeout` for the
-whole Windows leg rather than a shard's 20 (60 by the rule beside the
-values, from the 37 m 21 s it ran unsharded in run 38332345615);
+place of the four Windows shard entries, the three macOS shard entries left
+as they are, with a `timeout` for the whole Windows leg rather than a
+shard's 20 (60 by the rule beside the values, from the 37 m 21 s it ran
+unsharded in run 38332345615);
 `${{ matrix.store }}` on the pytest line; and an
 `actions/upload-artifact@v4` step with `if: always() && matrix.store != ''`,
 `path: .test_durations` and `include-hidden-files: true` (the name starts

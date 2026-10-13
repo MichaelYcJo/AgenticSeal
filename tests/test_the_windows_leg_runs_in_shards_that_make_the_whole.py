@@ -9,10 +9,11 @@ released ledger row anchors its three cases by this path.
 committed `.test_durations`, and every shard runs the group its matrix entry
 names. One file divides both legs, because every leg collects the same
 cases under the same ids: an id built from a path writes it with `/`, and
-none carries the interpreter's path. What decides whether a leg's union is the suite is the matrix itself:
-a group named twice runs twice and a group named by no entry runs nowhere,
-and nothing on the runner says so -- each shard passes. So the matrix is
-read here, through `tests/test_ci_gives_the_checks_what_they_need.py#
+none carries the interpreter's path. What decides whether a leg's union is
+the suite is the matrix itself: a group named twice runs twice and a group
+named by no entry runs nowhere, and nothing on the runner says so -- each
+shard passes. So the matrix is read here, through
+`tests/test_ci_gives_the_checks_what_they_need.py#
 matrix_include_entries`, the suite's one reading of the job's entries,
 which refuses a matrix whose entries would not be its jobs: every entry of
 a sharded system is a shard of that system's count `K` in `SHARDED`, its

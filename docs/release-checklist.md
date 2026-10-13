@@ -62,8 +62,8 @@ running.
       finishes, read its macOS shards' times and set their `timeout` again by
       the rule beside the values, as `CONTRIBUTING.md` §*Running the checks*
       says after a refresh; a value the rule leaves where it is needs no
-      commit. A release that skips this box is
-      caught later by `test_the_durations_file_prices_the_suite` in
+      commit. A release that skips this box is caught later by
+      `test_the_durations_file_prices_the_suite` in
       `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, on
       whichever pull request takes the suite past one unpriced case in twenty,
       and that session runs the recipe mid-cycle (#874).

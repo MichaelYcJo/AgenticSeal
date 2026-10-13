@@ -35,10 +35,11 @@ Phase 2 found two problems with the first refresh: 213 ids spelled per
 machine, and a recipe that merges instead of replacing. Both were fixed in
 this work by round 1's fix pass. Neither is left for an issue.
 
-- **The separator half is held only on Windows.** A future parametrization
-  of paths that omits `ids=posix_id` passes on POSIX. It shows up only as
-  cases that are unpriced on ubuntu and macOS after the next refresh, and
-  the staleness case reports those only once they reach `STALE_SHARE`.
+- **No leg refuses a path id that omits `posix_id`.** A future
+  parametrization of paths that omits `ids=posix_id` passes on POSIX. It
+  shows up only as cases that are unpriced on ubuntu and macOS after the
+  next refresh, and the staleness case reports those only once they reach
+  `STALE_SHARE`.
   Refusing a backslash across the collection is not possible, because 1,645
   POSIX ids carry one from escaped characters (round 1's report).
 

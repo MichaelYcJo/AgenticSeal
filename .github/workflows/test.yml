@@ -42,9 +42,9 @@ jobs:
         #
         # `timeout`: each leg's budget in minutes, by `questions.md` Q6's rule
         # (a) of work item 1791270165 -- 1.5 times the leg's slowest measured
-        # job, rounded up to 5. GitHub fails
-        # a job that runs past it, so a leg that grows names itself here
-        # rather than in a wait. The base is the slowest of the runs measured,
+        # job, rounded up to 5. GitHub fails a job that runs past it, so a
+        # leg that grows names itself here rather than in a wait. The base is
+        # the slowest of the runs measured,
         # because the same suite ran 1.2 times slower from one run to the
         # next and one shard ran 1.7 times slower than its siblings in one
         # run:
