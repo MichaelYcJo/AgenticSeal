@@ -17,6 +17,7 @@ a push does.
 """
 
 import importlib.util
+import json
 import os
 import subprocess
 
@@ -77,11 +78,20 @@ def git(root, *args):
     )
 
 
-def tree(tmp_path, head, base=None):
+def write(root, files):
+    for rel, text in (files or {}).items():
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, "utf-8")
+
+
+def tree(tmp_path, head, base=None, files=None, base_files=None):
     """A repository whose agent measures `MEASURED` bytes and whose
     `seal/budgets.md` is `head`. With `base`, the file is first committed as
     `base` on a branch called `base` — or left out of it where `base` is "" —
-    and `head` is committed on top, so `--baseline base` reads the two."""
+    and `head` is committed on top, so `--baseline base` reads the two.
+    `base_files` are written before the base commit and `files` after it,
+    each `{path: text}`."""
     root = tmp_path / "repo"
     (root / "agents").mkdir(parents=True)
     (root / "skills" / "review").mkdir(parents=True)
@@ -92,6 +102,7 @@ def tree(tmp_path, head, base=None):
         _sized(SKILL_HEAD, 400), "utf-8"
     )
     path = root / "seal" / "budgets.md"
+    write(root, base_files)
     if base is not None:
         git(root, "init", "-q")
         if base:
@@ -101,6 +112,7 @@ def tree(tmp_path, head, base=None):
         git(root, "branch", "base")
     if head is not None:
         path.write_text(head, "utf-8")
+    write(root, files)
     if base is not None:
         git(root, "add", "-A")
         git(root, "commit", "-qm", "head", "--allow-empty")
@@ -130,7 +142,7 @@ def test_the_fixture_measures_what_the_cases_assume(tmp_path):
     measured something else would make each case about a different band."""
     root = tree(tmp_path, budgets(warden(MEASURED)))
     row = budget_check.budgets_here(str(root))[0]
-    assert budget_check.measure(str(root), row) == MEASURED
+    assert budget_check.measure(str(root), row, {}) == MEASURED
 
 
 def test_measured_over_ceiling_fails_naming_the_row(tmp_path, capsys):
@@ -423,3 +435,346 @@ def test_a_malformed_row_or_a_missing_file_is_exit_2(
     assert run(root, *args, env=env) == 2
     err = capsys.readouterr().err
     assert said in err, err
+
+
+# --- phase 2: the families measured per file, and the preload pair ----------
+
+
+def table(header, rows):
+    """A per-file table under its heading, `rows` as `(file, ceiling)`."""
+    title = {
+        "Seconds ceiling": "Slow test files",
+        "Lines ceiling": "Docs history lines",
+    }
+    lines = ["", f"## {title[header]}", "", f"| File | {header} |", "|---|---|"]
+    lines += [f"| {path} | {ceiling} |" for path, ceiling in rows]
+    return "\n".join(lines) + "\n"
+
+
+def slow(*rows, threshold=120, slack="10 %", suite=None):
+    """Budgets with the `slow-file` row and its table, and `suite-seconds`
+    where `suite` is `(ceiling, slack)`."""
+    head = [("slow-file", "seconds", threshold, slack, "gate")]
+    if suite:
+        head.append(("suite-seconds", "seconds", suite[0], suite[1], "gate"))
+    return budgets(*head) + table("Seconds ceiling", rows)
+
+
+# `test_a.py` at 130 s over two cases and `test_b.py` at 50 s, under a
+# threshold of 120 s.
+SMALL = {
+    "tests/test_a.py::t1": 100.0,
+    "tests/test_a.py::t2": 30.0,
+    "tests/test_b.py::t": 50.0,
+}
+# The same with `test_c.py` at 800 s, a suite of 980 s whose bulk stands still
+# while one file moves; the threshold goes to 800 to leave it unlisted.
+CASES = {**SMALL, "tests/test_c.py::t": 800.0}
+
+
+def docs_budget(*rows):
+    return budgets(("docs-history", "lines", 0, "+0 lines", "gate")) + table(
+        "Lines ceiling", rows
+    )
+
+
+def test_the_preload_measurer_sums_the_agents_files_and_not_the_pair(tmp_path):
+    """T8: an agent's preload is its definition and the skills it names, and
+    never the `CLAUDE.md` pair the harness adds — which the meter does see
+    here, both halves of it under the tree. `preload:claude-md` is the
+    repository's `CLAUDE.md` alone, by its bytes."""
+    root = tree(
+        tmp_path,
+        budgets(warden(MEASURED), ("preload:claude-md", "bytes", 300, "2 %", "gate")),
+        files={"CLAUDE.md": "c" * 300, ".claude/CLAUDE.md": "u" * 200},
+    )
+    rows = {r.name: r for r in budget_check.budgets_here(str(root))}
+    assert budget_check.measure(str(root), rows["preload:warden"], {}) == MEASURED
+    assert budget_check.measure(str(root), rows["preload:claude-md"], {}) == 300
+    assert run(root) == 0
+
+
+@pytest.mark.parametrize(
+    "text, history",
+    [
+        ("Fixed in #123.\n", [1]),
+        ("Found in round 2.\n", [1]),
+        ("Read on 2026-10-14.\n", [1]),
+        ("Measured once.\n", [1]),
+        ("It was measured once.\n", [1]),
+        ("A list item #5 is no issue number.\n", []),
+        ("Prose.\n\n```\n#123\n```\n", []),
+        ("Prose.\n\n<!-- #123\nround 2 -->\n", []),
+        ("## The #123 rule\n", []),
+        (
+            "**The rule.** It says\nmore, #123.\nEnforced by: tests/x.py\nSee #456.\n",
+            [4],
+        ),
+        ("**The rule.** #123 grounds it.\n\nThe story of #456.\n", [3]),
+    ],
+    ids=[
+        "an issue number",
+        "a round",
+        "a date",
+        "Measured",
+        "measured",
+        "one digit after a hash",
+        "a fence",
+        "a comment",
+        "a heading",
+        "a rule block to its Enforced by line",
+        "a rule block to the end of its paragraph",
+    ],
+)
+def test_the_docs_classifier_skips_fences_comments_headings_and_rule_blocks(
+    text, history
+):
+    """T9, S8: a history line is a line outside a fence, a comment, a heading
+    and a rule block that carries one of the four marks. Each exclusion is a
+    case, each mark is a case, and a rule block with no `Enforced by:` line
+    ends with its paragraph rather than swallowing the rest of the file."""
+    assert budget_check.classify(text)[0] == history
+
+
+def test_a_docs_file_that_gains_a_history_line_fails_naming_it_and_the_line(
+    tmp_path, capsys
+):
+    """S8: a docs file listed at 0 that gains a line citing an issue fails,
+    naming the file and the line; one the table does not list is held to the
+    family's 0 the same way. The summary prints each document's history and
+    rule lines."""
+    text = "# Doc\n\nA rule.\nSee #812 for the story.\n"
+    root = tree(
+        tmp_path,
+        docs_budget(("docs/listed.md", 0)),
+        files={"docs/listed.md": text, "docs/unlisted.md": text},
+    )
+    assert run(root) == 1
+    out = capsys.readouterr().out
+    assert (
+        "budget-check: docs-history:docs/listed.md: measured 1 lines is over the "
+        "ceiling 0 by 1. Its history lines are at lines 4." in out
+    ), out
+    assert (
+        "budget-check: docs-history: docs/unlisted.md is not listed and measures "
+        "1 lines, over the 0 every file `## Docs history lines` does not list is "
+        "held to. Its history lines are at lines 4." in out
+    ), out
+    assert "- `docs/listed.md`: 1 history · 0 rule" in out, out
+
+
+@pytest.mark.parametrize(
+    "rows, verdict, said",
+    [
+        ((), 1, "slow-file: tests/test_a.py is not listed and measures 130 seconds"),
+        (
+            (("tests/test_a.py", 125),),
+            1,
+            "measured 130 seconds is over the ceiling 125",
+        ),
+        ((("tests/test_a.py", 130),), 0, "every gate row holds"),
+    ],
+    ids=["unlisted over the threshold", "listed and grown", "listed and holding"],
+)
+def test_an_unlisted_file_over_the_threshold_fails_and_a_listed_one_may_not_grow(
+    tmp_path, capsys, rows, verdict, said
+):
+    """T10, S7: a test file over the threshold that the table does not list
+    fails, naming it; a listed one is held to its own ceiling."""
+    root = tree(tmp_path, slow(*rows), files={".test_durations": json.dumps(SMALL)})
+    assert run(root) == verdict
+    assert said in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "ceiling, verdict", [(181, 0), (180, 1)], ids=["at the sum", "one under"]
+)
+def test_the_suite_seconds_are_the_sum_of_every_priced_case(
+    tmp_path, capsys, ceiling, verdict
+):
+    """`suite-seconds` sums every case `.test_durations` prices and rounds a
+    half up: 100.25 and 80.25 seconds are 181."""
+    cases = {"tests/test_a.py::t1": 100.25, "tests/test_b.py::t": 80.25}
+    root = tree(
+        tmp_path,
+        budgets(("suite-seconds", "seconds", ceiling, "5 %", "gate")),
+        files={".test_durations": json.dumps(cases)},
+    )
+    assert run(root) == verdict, capsys.readouterr()
+
+
+@pytest.mark.parametrize(
+    "base, head, body, verdict",
+    [
+        (slow(), slow(("tests/test_a.py", 130)), "", 1),
+        (
+            slow(),
+            slow(("tests/test_a.py", 130)),
+            "Budget raised: slow-file:tests/test_a.py 120 -> 130: it grew",
+            0,
+        ),
+        (
+            slow(("tests/test_a.py", 130)),
+            budgets(),
+            "Budget removed: slow-file: gone",
+            0,
+        ),
+    ],
+    ids=["listed since the base, no line", "with its line", "the family removed"],
+)
+def test_a_file_row_is_held_at_its_familys_ceiling_at_the_base(
+    tmp_path, capsys, base, head, body, verdict
+):
+    """A file row the base did not list was held there to its family's
+    ceiling, so listing it above that is a raise from it and needs its line.
+    A file row whose family row is gone needs no line of its own: the
+    family's removal is the one."""
+    root = tree(
+        tmp_path, head, base=base, base_files={".test_durations": json.dumps(SMALL)}
+    )
+    assert ratchet(root, body) == verdict, capsys.readouterr()
+
+
+def priced(scale, only=None):
+    """`CASES` with every case, or the cases of the file `only`, multiplied."""
+    return {
+        case: seconds * (scale if only is None or case.startswith(only) else 1)
+        for case, seconds in CASES.items()
+    }
+
+
+RESCALED = slow(("tests/test_a.py", 130), threshold=800, suite=(980, "5 %"))
+
+
+def test_a_uniform_rescale_of_the_durations_holds_every_row(tmp_path, capsys):
+    """A refresh that prices the same cases 1.07 times higher moves no row:
+    the seconds rows are read in the base's prices, and the summary says the
+    raw value and the level it was divided by."""
+    root = tree(
+        tmp_path,
+        RESCALED,
+        base=RESCALED,
+        base_files={".test_durations": json.dumps(CASES)},
+        files={".test_durations": json.dumps(priced(1.07))},
+    )
+    assert ratchet(root, "") == 0
+    out = capsys.readouterr().out
+    assert "prices the 4 cases it shares with the base x1.070 the base's" in out, out
+    assert "| `suite-seconds` | 980 seconds (raw 1,049 at x1.070) |" in out, out
+
+
+def test_a_file_doubling_against_the_rest_still_fails_its_row(tmp_path, capsys):
+    """One file twice as slow while the rest stand still is composition, not
+    price: the level moves to 1.133 and the file still reads 230 seconds in
+    the base's prices, over its 130."""
+    root = tree(
+        tmp_path,
+        RESCALED,
+        base=RESCALED,
+        base_files={".test_durations": json.dumps(CASES)},
+        files={".test_durations": json.dumps(priced(2, only="tests/test_a.py"))},
+    )
+    assert ratchet(root, "") == 1
+    out = capsys.readouterr().out
+    assert (
+        "budget-check: slow-file:tests/test_a.py: measured 230 seconds is over "
+        "the ceiling 130" in out
+    ), out
+    assert "budget-check: suite-seconds:" not in out, out
+
+
+@pytest.mark.parametrize(
+    "before, said",
+    [
+        ({"tests/test_z.py::t": 10.0}, "share no case id"),
+        ({case: 0.0 for case in CASES}, "at 0 seconds"),
+        (None, None),
+    ],
+    ids=["no case in common", "the base prices them at nothing", "no file at the base"],
+)
+def test_a_price_level_that_cannot_be_read_is_exit_2(tmp_path, capsys, before, said):
+    """No case id in common, or a base pricing the common ones at 0, leaves
+    no level to divide by, and the run says so rather than comparing raw
+    seconds. A base with no durations file at all has nothing to price
+    against, and the rows are read as they stand."""
+    root = tree(
+        tmp_path,
+        RESCALED,
+        base=RESCALED,
+        base_files=None if before is None else {".test_durations": json.dumps(before)},
+        files={".test_durations": json.dumps(CASES)},
+    )
+    if said is None:
+        assert ratchet(root, "") == 0, capsys.readouterr()
+        return
+    assert ratchet(root, "") == 2
+    assert said in capsys.readouterr().err
+
+
+SUITE = budgets(("suite-seconds", "seconds", 180, "5 %", "gate"))
+
+
+@pytest.mark.parametrize(
+    "head, files, said",
+    [
+        (
+            budgets(warden(MEASURED)) + table("Seconds ceiling", []),
+            {},
+            "and no `slow-file` row in its Budgets table",
+        ),
+        (
+            budgets(("slow-file", "seconds", 120, "10 %", "gate")),
+            {},
+            "has a `slow-file` row and no `## Slow test files` table",
+        ),
+        (slow(("tests/test_a.py", 1), ("tests/test_a.py", 1)), {}, "is written twice"),
+        (slow(("tests/test_a.py", "1,0")), {}, "is not a whole number"),
+        (slow(("tests/a b.py", 1)), {}, "is no file name"),
+        (
+            budgets(("slow-file", "bytes", 120, "10 %", "gate"))
+            + table("Seconds ceiling", []),
+            {".test_durations": json.dumps(SMALL)},
+            "the unit is `bytes`, and slow-file is measured in seconds",
+        ),
+        (SUITE, {}, ".test_durations is not in the tree"),
+        (SUITE, {".test_durations": "{"}, ".test_durations is not JSON"),
+        (
+            SUITE,
+            {".test_durations": '{"tests/test_a.py::t": "slow"}'},
+            "is not an object of case ids to seconds",
+        ),
+        (
+            slow(("tests/test_z.py", 1)),
+            {".test_durations": json.dumps(SMALL)},
+            "tests/test_z.py is not in .test_durations",
+        ),
+        (docs_budget(("docs/gone.md", 0)), {}, "docs/gone.md is not in docs/"),
+        (
+            budgets(("preload:claude-md", "bytes", 1, "2 %", "gate")),
+            {},
+            "CLAUDE.md is not in the tree",
+        ),
+    ],
+    ids=[
+        "a file table with no family row",
+        "a family row with no file table",
+        "a file twice",
+        "a file ceiling with a comma",
+        "a file name with a space",
+        "a family row in another unit",
+        "no durations file",
+        "a durations file that is no JSON",
+        "durations that are not seconds",
+        "a listed test file the durations do not price",
+        "a listed document the tree lacks",
+        "no CLAUDE.md",
+    ],
+)
+def test_a_family_that_cannot_be_read_is_exit_2(tmp_path, capsys, head, files, said):
+    """S11 for the per-file families and the files they read: a table and its
+    family row come together, a row names a file that is there, and a
+    durations file or a `CLAUDE.md` that is missing or unreadable stops the
+    run naming it — never 0, never a reading of nothing."""
+    root = tree(tmp_path, head, files=files)
+    assert run(root) == 2
+    assert said in capsys.readouterr().err

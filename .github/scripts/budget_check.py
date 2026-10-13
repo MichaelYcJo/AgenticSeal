@@ -60,6 +60,19 @@ such line closes it first. It errs both ways: a rule's grounds citing an
 issue outside its paragraph count as history, and a narrative line with none
 of the marks does not.
 
+**The seconds rows are held to composition, not to the runners' speed.**
+Every refresh of `.test_durations` prices the suite on a different set of
+runners, and one measured refresh priced the same cases 1.07 times higher.
+So with `--baseline`, where the file differs from the base's, the price level
+is the seconds-weighted ratio over the case ids both files hold: HEAD's
+seconds for those ids summed, over the base's. `suite-seconds` and every
+`slow-file` reading are HEAD's seconds divided by it, in the base's prices,
+and the summary prints the raw value beside the ratio. A uniform rescale
+holds every row; cases added, cases removed and one file growing against the
+rest move them. A file the base did not have is a ratio of 1, and two files
+sharing no case id, or a base pricing the shared ones at nothing, is exit 2.
+A suite that is slower everywhere is what the per-run CI minutes measure.
+
 **The summary** is a table, one line per budget — measured, ceiling, headroom,
 kind, verdict — and the raises the ratchet read. It goes to
 `$GITHUB_STEP_SUMMARY` where the runner sets one and to stdout otherwise, and
@@ -107,6 +120,8 @@ FILE_TABLES = {
 }
 CLAUDE_MD = "claude-md"
 DURATIONS = ".test_durations"
+# The families read from `.test_durations`, compared in the base's prices.
+PRICED = ("suite-seconds", "slow-file")
 DOCS = "docs"
 HISTORY = re.compile(r"#\d{2,}|round \d|20\d\d-\d\d-\d\d|[Mm]easured")
 RULE_OPENER = "**"
@@ -273,12 +288,11 @@ def budgets_here(root):
         return parse_budgets(handle.read(), BUDGETS_GIT)
 
 
-def budgets_at(root, ref):
-    """`(label, rows)` for `seal/budgets.md` at `git merge-base REF HEAD`:
-    no rows where the file was not there yet, Unreadable where the base does
-    not resolve.
+def base_of(root, ref):
+    """`(commit, label)` for `git merge-base REF HEAD`, or Unreadable where
+    the base does not resolve.
 
-    Reads: observed — git's merge base and the blob it holds, parsed by `parse_budgets`; unknown refused"""
+    Reads: observed — git's merge base, through `unverified_check.py#merge_base`; unknown refused"""
     base = sibling("unverified_check").merge_base(root, ref)
     if base is None:
         raise Unreadable(
@@ -286,7 +300,13 @@ def budgets_at(root, ref):
             "resolve here, or shares no history with it — so no ceiling was "
             "compared with the one before"
         )
-    label = f"the merge base of {ref} and HEAD ({base[:7]})"
+    return base, f"the merge base of {ref} and HEAD ({base[:7]})"
+
+
+def blob_at(root, base, path, label):
+    """The text of `path` at commit `base`, or None where it was not there.
+
+    Reads: observed — the blob git holds; unknown refused"""
 
     def git(*args):
         return subprocess.run(
@@ -296,18 +316,29 @@ def budgets_at(root, ref):
             errors="replace",
         )
 
-    listed = git("ls-tree", "--name-only", base, "--", BUDGETS_GIT)
+    listed = git("ls-tree", "--name-only", base, "--", path)
     if listed.returncode != 0:
-        raise Unreadable(f"git could not list {BUDGETS_GIT} at {label}")
+        raise Unreadable(f"git could not list {path} at {label}")
     if not listed.stdout.strip():
-        return label, []
-    shown = git("show", f"{base}:{BUDGETS_GIT}")
+        return None
+    shown = git("show", f"{base}:{path}")
     if shown.returncode != 0:
-        raise Unreadable(f"git could not read {BUDGETS_GIT} at {label}")
-    return label, parse_budgets(shown.stdout, f"{BUDGETS_GIT} at {label}")
+        raise Unreadable(f"git could not read {path} at {label}")
+    return shown.stdout
 
 
-def measure_preload(root, agent):
+def budgets_at(root, base, label):
+    """The rows of `seal/budgets.md` at commit `base`: none where the file was
+    not there yet.
+
+    Reads: guess — the file a person edits, as git holds it, through `blob_at` and `parse_budgets`; unknown refused"""
+    text = blob_at(root, base, BUDGETS_GIT, label)
+    if text is None:
+        return []
+    return parse_budgets(text, f"{BUDGETS_GIT} at {label}")
+
+
+def measure_preload(root, agent, _cache):
     """Bytes of `agents/<agent>.md` and of each `SKILL.md` its `skills:` list
     names, the agent's own share of `payload_meter`'s rows — never the
     `CLAUDE.md` pair, which is the harness's and half of it is not in the tree.
@@ -354,23 +385,62 @@ def durations(root):
         raise Unreadable(
             f"{DURATIONS} is not in the tree, and the seconds budgets read it"
         )
+    with open(path, encoding="utf-8", errors="replace") as handle:
+        return durations_from(handle.read(), DURATIONS)
+
+
+def durations_from(text, where):
+    """`{case id: seconds}` from the text of a `.test_durations`, or
+    Unreadable naming `where` it was read.
+
+    Reads: observed — the JSON the suite's durations plugin wrote, handed by its caller; unknown refused"""
     try:
-        with open(path, encoding="utf-8") as handle:
-            data = json.load(handle)
+        data = json.loads(text)
     except ValueError:
-        raise Unreadable(f"{DURATIONS} is not JSON") from None
+        raise Unreadable(f"{where} is not JSON") from None
     if not isinstance(data, dict) or not all(
         isinstance(v, (int, float)) and not isinstance(v, bool) for v in data.values()
     ):
-        raise Unreadable(f"{DURATIONS} is not an object of case ids to seconds")
+        raise Unreadable(f"{where} is not an object of case ids to seconds")
     return data
 
 
-def measure_suite(root, _subject):
-    """Seconds summed over every case `.test_durations` prices.
+def price_level(base, head, label):
+    """`(ratio, common)`: how much higher HEAD's `.test_durations` prices the
+    cases both files hold than the base's does, seconds-weighted — the sum of
+    HEAD's seconds over the common case ids divided by the base's — and how
+    many ids that is. 1 where the base has no such file, and exactly 1 where
+    the two are the same file; Unreadable where they share no case id or the
+    base prices the shared ones at nothing, since then no level can be read.
+
+    Reads: nothing — compares the two readings handed to it"""
+    if base is None:
+        return 1, 0
+    common = base.keys() & head.keys()
+    if not common:
+        raise Unreadable(
+            f"{DURATIONS} here and at {label} share no case id, so no price "
+            "level between them can be read"
+        )
+    before = sum(base[case] for case in common)
+    if before <= 0:
+        raise Unreadable(
+            f"{DURATIONS} at {label} prices the {len(common)} cases it shares "
+            "with this tree at 0 seconds, so no price level can be read"
+        )
+    return sum(head[case] for case in common) / before, len(common)
+
+
+def measure_suite(root, _subject, cache):
+    """Seconds summed over every case `.test_durations` prices, in the base's
+    prices where the run read a price level (`cache["price"]`), with the raw
+    sum kept for the summary.
 
     Reads: observed — `.test_durations`, through `durations`; unknown refused"""
-    return seconds(sum(durations(root).values()))
+    raw = sum(durations(root).values())
+    ratio = cache.get("price", (1, 0))[0]
+    cache.setdefault("raw", {})["suite-seconds"] = seconds(raw)
+    return seconds(raw / ratio)
 
 
 def rule_lines(lines):
@@ -434,7 +504,9 @@ def docs_lines(root):
 
 def file_values(root, family, cache):
     """`{file: measured}` for a per-file family, measured once per run and
-    kept in `cache`, with the docs classification under `cache["docs"]`.
+    kept in `cache`, with the docs classification under `cache["docs"]`. A
+    test file's seconds are in the base's prices where the run read a price
+    level, and its raw seconds go to `cache["raw"]`.
 
     Reads: guess — `.test_durations` or the documents, through `durations` and `docs_lines`; unknown refused"""
     if family not in cache:
@@ -442,7 +514,11 @@ def file_values(root, family, cache):
             per_file = collections.defaultdict(float)
             for case, value in durations(root).items():
                 per_file[case.split("::", 1)[0]] += value
-            cache[family] = {path: seconds(v) for path, v in per_file.items()}
+            ratio = cache.get("price", (1, 0))[0]
+            raw = cache.setdefault("raw", {})
+            for path, value in per_file.items():
+                raw[f"{family}:{path}"] = seconds(value)
+            cache[family] = {path: seconds(v / ratio) for path, v in per_file.items()}
         else:
             cache["docs"] = docs_lines(root)
             cache[family] = {path: len(h) for path, (h, _) in cache["docs"].items()}
@@ -457,7 +533,7 @@ MEASURERS = {
 }
 
 
-def measure(root, row):
+def measure(root, row, cache):
     """What `row` measures in the tree at `root`, in the row's unit.
 
     Reads: owned — the row's family, in the vocabulary `MEASURERS` defines; unknown refused"""
@@ -473,7 +549,7 @@ def measure(root, row):
         raise Unreadable(
             f"{row.name}: the unit is `{row.unit}`, and {family} is measured in {unit}"
         )
-    return measurer(root, subject)
+    return measurer(root, subject, cache)
 
 
 def top_of_band(measured, slack):
@@ -626,15 +702,27 @@ def ratchet(base_rows, head_rows, body, release):
     return problems, moves
 
 
-def render(results, moves, against, docs=None):
-    """The summary as markdown: one line per budget, the raises read, and
-    where the docs were classified, each document's history and rule lines.
+def render(results, moves, against, cache=None):
+    """The summary as markdown: one line per budget, the raises read, the
+    price level the seconds rows were read at, and where the docs were
+    classified, each document's history and rule lines.
 
     Reads: nothing — formats the results handed to it"""
+    cache = cache or {}
+    docs, raw = cache.get("docs"), cache.get("raw", {})
+    ratio, common = cache.get("price", (1, 0))
     lines = [
         "### Budgets",
         "",
         f"From `{BUDGETS_GIT}`; the ratchet read {against}.",
+    ]
+    if ratio != 1:
+        lines.append(
+            f"`{DURATIONS}` prices the {common:,} cases it shares with the base "
+            f"x{ratio:.3f} the base's, seconds-weighted; the seconds rows are "
+            "compared in the base's prices."
+        )
+    lines += [
         "",
         "| Budget | Measured | Ceiling | Headroom | Kind | Verdict |",
         "|---|---|---|---|---|---|",
@@ -645,6 +733,8 @@ def render(results, moves, against, docs=None):
         share = f"{room / row.ceiling:.1%}" if row.ceiling else "—"
         verdict = "holds" if not result.problems else "over" if room < 0 else "lower it"
         largest = " (largest unlisted)" if row.name in FILE_TABLES else ""
+        if ratio != 1 and row.name in raw:
+            largest += f" (raw {raw[row.name]:,} at x{ratio:.3f})"
         lines.append(
             f"| `{row.name}` | {result.measured:,} {row.unit}{largest} | "
             f"{row.ceiling:,} | {room:,} ({share}) | {row.kind} | {verdict} |"
@@ -690,6 +780,18 @@ def check(root, baseline=None, body="", release=False):
     head = budgets_here(root)
     names = {row.name for row in head}
     results, refusals, cache = [], [], {}
+    moves, against, base_rows = [], "no baseline", None
+    if baseline is not None:
+        base, against = base_of(root, baseline)
+        base_rows = budgets_at(root, base, against)
+        if any(row.name.partition(":")[0] in PRICED for row in head):
+            text = blob_at(root, base, DURATIONS, against)
+            before = (
+                None
+                if text is None
+                else durations_from(text, f"{DURATIONS} at {against}")
+            )
+            cache["price"] = price_level(before, durations(root), against)
     for row in head:
         try:
             results.append(measured_row(root, row, names, cache))
@@ -698,12 +800,10 @@ def check(root, baseline=None, body="", release=False):
     problems = [
         (r.row.name, p) for r in results if r.row.kind == GATE for p in r.problems
     ]
-    moves, against = [], "no baseline"
-    if baseline is not None:
-        against, base_rows = budgets_at(root, baseline)
+    if base_rows is not None:
         found, moves = ratchet(base_rows, head, body, release)
         problems += found
-    return problems, refusals, render(results, moves, against, cache.get("docs"))
+    return problems, refusals, render(results, moves, against, cache)
 
 
 def measured_row(root, row, names, cache):
@@ -714,7 +814,7 @@ def measured_row(root, row, names, cache):
     Reads: guess — the tree, through `file_values` and `measure`; unknown refused"""
     family, _, subject = row.name.partition(":")
     if family not in FILE_TABLES:
-        return band(row, measure(root, row))
+        return band(row, measure(root, row, cache))
     unit = FILE_TABLES[family][2]
     if row.unit != unit:
         raise Unreadable(
