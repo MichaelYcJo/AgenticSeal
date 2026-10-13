@@ -65,3 +65,9 @@ carries a `Corrected ·` row citing it; where it holds, a `Re-read ·` row.
 | `seal/releases/0.12.1.md` | one rule says so in front of all three walks of it | Frozen; R5's claim, corrected by `Corrected · R5` in this item's fragment |
 | `skills/config/SKILL.md` | Every way of not naming a language lands on English | Still true: the language row is read by a session following `commit-pr-convention`, for which a row it cannot read is no language and lands on English; it shares only *no such row* and *does not parse* with `declared_mode`'s docstring, which this item rewrote |
 | `tests/test_the_seal_is_taken_once_by_the_sealer.py` | The stop rule broke on a line it could not parse only once it had FOUND a row | The case's history (#415 round 1), followed by the walker's answer it pins now |
+| `seal/releases/0.18.3.md` | in place and under | Frozen; an earlier release's re-read of C1, true when it was written. The claim it re-read is corrected by `Corrected · C1` in this item's fragment; the row round 2 removed was this fragment's own re-read of it |
+| `seal/releases/0.19.0.md` | in place and under | The same, in the next release's fragment |
+| `seal/ledger/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker.md` | the generic *defect in this command* | N12's own evidence, still true; it shares only the phrasing of N10's, which round 2 rewrote |
+| `seal/ledger/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker.md` | was red against the stop rule's writer | A `Corrected ·` row's evidence for its own claim, still true |
+| `tests/test_the_mode_question_is_asked_once.py` | which inserted a second `Mode` row under the | The case's record of how it was seen red, past tense about a writer that is gone; the case still passes |
+| `seal/releases/0.16.0.md` | the class case was red for all eight characters on both | Frozen; #682's measurement, unrelated to this item beyond its phrasing |
