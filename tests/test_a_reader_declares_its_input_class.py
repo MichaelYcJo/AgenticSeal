@@ -27,7 +27,8 @@ of calls known to take an input, decides one thing only: a unit declaring
    line until somebody moves it. A helper's line goes stale the same way when
    only a caller changes: its direction, and its class where it parses text
    a caller handed it, are read at its callers, so its hash does not move
-   and the diff the warden reads does not show its line.
+   and the diff carries no hunk on its line; the warden, reviewing a
+   caller's change, opens the lines of the helpers that change feeds.
 6. A census line added by hand. The census only shrinks by convention: its
    writer refuses to run where the file exists, and a line put back passes,
    so its diff is the warden's.

@@ -105,7 +105,9 @@ It never changes an outcome, never raises out of a hook, and runs none of
 the row's code: it looks no module up and imports nothing but pytest. A
 directory it cannot write is one warning, shown under the recorder's own
 filter so that a run with warnings as errors does not raise it (#825 round
-1), and no record, which the gate reads as no record -- the strict side.
+1), and no record, which the gate reads as no record: not measured where
+the suite failed, and existence alone on the ledger arm, so a run whose
+suite passed still seals (#836).
 
 It runs in the ROW's interpreter, whose version the gate does not know, so it
 is written for Python 3.8 syntax and reads only names pytest has had since

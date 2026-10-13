@@ -147,7 +147,7 @@ Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_presence_is_r
 ## What neither check can read
 
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
-**Seven things pass both checks, and the reviewer is the reader of each.**
+**Seven things pass both checks, and the warden is the reader of each.**
 Stated so nobody meets the edge by surprise:
 
 1. A false declaration: `nothing` on a unit reading through a call K1 does
@@ -160,13 +160,15 @@ Stated so nobody meets the edge by surprise:
    line until somebody moves it, as nothing re-reads an `Enforced by:` target.
    A helper's line goes stale the same way when only a caller changes: its
    direction, and its class where it parses text a caller handed it, are
-   read at its callers, so the helper's hash does not move and the diff the
-   warden reads does not show its line.
+   read at its callers, so the helper's hash does not move and the diff
+   carries no hunk on its line. The warden reads it anyway: reviewing a
+   caller's change, it opens the `Reads:` lines of the helpers whose value
+   that change feeds, as `agents/warden.md` §*Role* tells it to.
 6. A census line put back by hand.
 7. A `## Removes` coordinate that never existed: the arm reads HEAD, and a
    misspelled Python name reads as a removal that happened.
 
-Enforced by: nothing — each is the warden's reading of the diff at review, which is where a `Reads:` line and a `## Removes` row are argued
+Enforced by: nothing — each is the warden's reading at review, of the diff and of the helpers a changed caller feeds, which is where a `Reads:` line and a `## Removes` row are argued
 
 ## The counts at landing
 

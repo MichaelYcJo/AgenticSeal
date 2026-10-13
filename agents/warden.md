@@ -108,6 +108,12 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   there, so a diff that edits, moves or copies a file out of one is a
   finding.
 
+  A unit's `Reads:` line is a claim too, and a helper's direction is read at
+  its callers (`docs/the-reader-registry.md` §*The four classes and the line
+  that declares one*): where the diff changes what a caller hands a helper or
+  does with its value, open that helper's `Reads:` line and read it again,
+  because the helper's own lines carry no hunk.
+
   Take the review target and what to look at from your prompt as given —
   "only the migration files", "round 2, re-check findings 3 and 5", a PR
   number. That is what to look at, not what to conclude. It is also not the
