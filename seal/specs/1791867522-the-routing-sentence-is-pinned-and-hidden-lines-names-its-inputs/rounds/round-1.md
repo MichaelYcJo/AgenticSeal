@@ -15,7 +15,7 @@
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,8 +25,8 @@ Round 1 of #922, target 7db671f0 against `origin/release/v0.21.1` at 2d4fbdff, o
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| ⬜ 1 | N3's caller list says the inputs arrive "all through `unfenced` but one" and omits `fence_map`'s two direct callers, `broad_gate.py#fence_left_open` and `seal.py#write_row`, both reading `seal/config.md` | `seal/ledger/1791867522-the-routing-sentence-is-pinned-and-hidden-lines-names-its-inputs.md:3` | open | read: `git grep -w` of every `fence_map`, `unfenced`, `hidden_lines`, `gfm_table`, `read_table` call outside `tests/`; `broad_gate.py:1045`, `seal.py:1587`. The input set is right; the route is short by two |
-| ⬜ 2 | the `Reads:` line's route, "through `unfenced` and `hooks/blocks.py#walk`", omits the direct paths through `fence_map` and `hidden_row_at`; every input is named and class and direction are right | `hooks/config.py:189` | open | read: the same grep; `broad_gate.py:976`, `:1045`, `seal.py:1587`. Wording only; nothing a check reads moves |
+| ⬜ 1 | N3's caller list says the inputs arrive "all through `unfenced` but one" and omits `fence_map`'s two direct callers, `broad_gate.py#fence_left_open` and `seal.py#write_row`, both reading `seal/config.md` | `seal/ledger/1791867522-the-routing-sentence-is-pinned-and-hidden-lines-names-its-inputs.md:3` | answered | corrected at 63f168fc — N3 names three routes, adding `fence_map`'s two direct callers `broad_gate.py#fence_left_open` and `seal.py#write_row`; the input set is unchanged; read: `git grep -w` of every `fence_map`, `unfenced`, `hidden_lines`, `gfm_table`, `read_table` call outside `tests/`; `broad_gate.py:1045`, `seal.py:1587`. The input set is right; the route is short by two |
+| ⬜ 2 | the `Reads:` line's route, "through `unfenced` and `hooks/blocks.py#walk`", omits the direct paths through `fence_map` and `hidden_row_at`; every input is named and class and direction are right | `hooks/config.py:189` | answered | corrected at 63f168fc — `hidden_lines`' `Reads:` line names the route through `unfenced`, `fence_map` or directly, the report's replacement line; nothing else in `hooks/config.py` changed; read: the same grep; `broad_gate.py:976`, `:1045`, `seal.py:1587`. Wording only; nothing a check reads moves |
 | 🟢 | #872 round 3's 🟡 10 is closed — both declaring clauses scoped past a fence that closes, the comment half pinned, both routing cases on `Enforced by:` | `docs/the-evidence-ledger.md:638-664`, `tests/test_routing_is_recorded.py:834` | confirmed | read: `shown` and `hidden_lines` against the wording, R8 at `tests/block_shapes.py:198`. Executed: the new case red under a mutation of `shown`, green on the tree; the four narrow modules pass |
 | 🟢 | #872 round 3's 🟡 11 is closed — the `Reads:` line names all five inputs the function is handed, `pact_reviews` the fifth | `hooks/config.py:189` | confirmed | read: every caller traced (table in the prose). Executed: `tests/test_a_reader_declares_its_input_class.py` passes |
 | 🟢 | the 23 rows re-stamped in 1791852610's and 1791852612's fragments hold against the merged §*Known limits* and §*Creation consent* | `seal/ledger/1791852610-the-routing-question-shows-the-four-boxes-only-under-per-axis.md`, `seal/ledger/1791852612-under-automation-a-creation-in-another-clone-asks-nobody.md` | confirmed | read: each of the thirteen families' claim text against the merged sections, rule 3 and the Windows bullet included. Executed: `evidence-check --strict .` exit 0, 8,744 ok, 0 drifted |
