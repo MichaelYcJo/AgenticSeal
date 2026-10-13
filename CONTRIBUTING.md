@@ -132,10 +132,12 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with pillow==12.3.0 --with cmar
 # or: pip install pytest markdown-it-py==4.2.0 pillow==12.3.0 cmarkgfm==2025.10.22 && python3 -m pytest tests/
 ```
 
-CI runs five jobs: lint (`ruff check` + `ruff format --check`), the suite on
-ubuntu, macOS and Windows at the floor stated above (macOS in three shards and
-Windows in four, each leg divided by `pytest-split` from the one committed
-`.test_durations`, #841, #864; ubuntu as one job), `tests/test_arm_check.py`
+CI runs six jobs: lint (`ruff check` + `ruff format --check`), the suite on
+ubuntu, macOS and Windows at the floor stated above (macOS in three shards
+and Windows in four, each leg divided by `pytest-split` from the one
+committed `.test_durations`, #841, #864; ubuntu as one job), `durations`,
+which unions what the Windows shards measured (#931),
+`tests/test_arm_check.py`
 at 3.13 and 3.14 (`arm-check`'s node-type tables are only as true as the
 interpreter that reads them, #684), each leg's minutes in that run against its
 `ci-minutes` row of `seal/budgets.md`, and the hygiene workflow that guards
@@ -159,35 +161,25 @@ cases under the same ids: a parametrized path takes `ids=posix_id` from
 `tests/conftest.py`, and no id carries the interpreter's path, which
 `test_no_collected_id_carries_the_interpreters_path` holds. It prices each
 case as Windows ran it, so a case Windows skips is near zero there and its
-whole macOS cost is unseen by the division: after a refresh, read the macOS
-shards' times in the next run's jobs and set their `timeout` again by the
-rule beside the values. The file is refreshed at each release's
-preparation, from the release branch
-(`docs/release-checklist.md` §*0. Before starting*), and whenever
-`test_the_durations_file_prices_the_suite` goes red: more than one
-collected case in twenty (`STALE_SHARE`) has no price in the file.
+macOS cost is unseen by the division; a macOS shard that grows past its
+`timeout` fails, and the rule beside the values in `test.yml` sets it
+again. Every `tests` run measures the file: each Windows shard runs with
+`--store-durations --clean-durations` and uploads the part it wrote, and
+the `durations` job unions the four parts into the `test-durations`
+artifact, kept seven days, and writes each shard's measured seconds and
+their spread to its summary. When to commit it is
+`test_the_durations_file_prices_the_suite`'s to say: it fails when more
+than one collected case in twenty (`STALE_SHARE`) has no price in the
+file, or when more than one second in twenty of the file's belongs to
+entries the suite no longer collects.
 `bin/test tests -q -k test_the_durations_file_prices_the_suite` runs that
 case alone against the whole collection, and naming one module skips it.
-To refresh it, push a branch on which `test.yml` runs the Windows leg as
-one job again for a single run: one Windows entry with
-`store: "--store-durations --clean-durations"` (the second drops every
-entry the run did not collect, which `pytest-split` otherwise keeps) in
-place of the four Windows shard entries, the three macOS shard entries left
-as they are, with a `timeout` for the whole Windows leg rather than a
-shard's 20 (60 by the rule beside the values, from the 37 m 21 s it ran
-unsharded in run 38332345615);
-`${{ matrix.store }}` on the pytest line; and an
-`actions/upload-artifact@v4` step with `if: always() && matrix.store != ''`,
-`path: .test_durations` and `include-hidden-files: true` (the name starts
-with a dot, which the action skips by default). Both halves of the
-condition are needed. On that branch the shard cases in
-`tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py` fail,
-because the Windows leg has no shards, so without `always()` the upload is
-skipped although the file was written. Without `matrix.store != ''`,
-ubuntu and the macOS shards upload the committed file under the same name
-first.
-Download the artifact with `gh run download <run> -n <artifact>`, make its
-line ends LF, commit it, and restore the shards.
+To refresh the file, take the artifact from your branch's latest `tests`
+run: `gh run download <run id> -n test-durations -D <dir>`, then move
+`<dir>/.test_durations` over the committed file and commit it. Its line
+ends are already LF. The download goes to a directory of its own because
+`gh` will not write over a file that is already there. A run older than
+seven days is re-run first, with `gh run rerun <run id>`.
 
 **The suite runs with `gh` logged out, on your machine as on CI.** CI's
 pytest job has no token, so `tests/conftest.py` makes the same true locally

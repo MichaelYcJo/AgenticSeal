@@ -33,13 +33,16 @@ The durations file is read too. A file missing from the tree only unbalances
 the shards (`pytest-split` then divides by count), but one that does not
 parse stops every shard at collection.
 
-And it is held to its age (#874). A case added since the last refresh has no
+And it is held to its age (#874, #931), in both directions, and that is the
+whole schedule of its refresh. A case added since the last refresh has no
 price in the file, `pytest-split` gives it the file's mean, and the shards
 drift apart with nothing saying so: the file went from 3.9 % to 9.4 %
-unpriced in five days. More than `STALE_SHARE` of the collected cases
-unpriced fails the suite case below, which is when the file is refreshed next
-outside the planned refresh at each release's preparation. Entries the suite
-no longer collects are not counted, because the division never reads them.
+unpriced in five days. A case removed since leaves its entry behind, which
+the division never reads but the file's sum still counts. More than
+`STALE_SHARE` of the collected cases unpriced, or more than `STALE_SHARE` of
+the file's seconds in entries the suite no longer collects, fails the suite
+case below, and its sentence names the download that refreshes the file
+from the branch's own run.
 """
 
 import importlib.util
@@ -79,14 +82,17 @@ SPLIT = re.compile(r"--splits (\d+) --group (\d+)")
 # here runs the whole suite as one job and carries no split.
 SHARDED = {"windows-latest": 4, "macos-latest": 3}
 
-# The share of the collected cases the durations file may leave unpriced
-# before the suite case fails: one in twenty (`questions.md` Q1 of work item
-# 1791852613). Every id is one spelling on every machine -- a path is written
-# with `/` (`conftest.py#posix_id`) and no id carries the interpreter's path
-# -- so a file refreshed on Windows prices the whole collection on every leg,
-# and one release cycle's growth (4.9 % in 0.21.0) stays under the share until
-# the next release's refresh; under the 9.4 % the file had reached when #874
-# was framed. It bounds the file's age, not the shards' imbalance: how far an
+# The share the durations file may be out of date by before the suite case
+# fails, one in twenty, read two ways under the one constant: of the
+# collected cases unpriced, and of the file's seconds in entries nobody
+# collects (`questions.md` Q1 of work item 1791852613 set the value; work item
+# 1791876667 added the seconds side). Every id is one spelling on every
+# machine -- a path is written with `/` (`conftest.py#posix_id`) and no id
+# carries the interpreter's path -- so a file measured on Windows prices the
+# whole collection on every leg. At about 44 cases a pull request the
+# unpriced side fails about one release cycle after a refresh; the seconds
+# side fails in the pull request that removes a twentieth of the suite's
+# time. It bounds the file's age, not the shards' imbalance: how far an
 # unpriced case's real cost sits from the mean is what each leg's
 # `--durations=50` table and `timeout` hold.
 STALE_SHARE = 0.05
@@ -252,20 +258,61 @@ def unpriced(collected, durations):
     return [node for node in collected if node not in durations]
 
 
+def dead(collected, durations):
+    """The entries of `durations` that are no node id of `collected`, in the
+    file's order."""
+    live = set(collected)
+    return [node for node in durations if node not in live]
+
+
+# What the failing case tells a contributor to do. `gh run download` will
+# not write over a file that is already there (it exits 1, `file exists`,
+# measured on run 38475370013), so the artifact goes to a directory of its
+# own and is moved over the committed file.
+REMEDY = (
+    "Refresh it from this branch's latest `tests` run, whose `durations` job "
+    "unioned the Windows shards' parts: `gh run download <run id> -n "
+    "test-durations -D <dir>`, then move <dir>/.test_durations over the "
+    "committed .test_durations and commit it; its line ends are already LF. "
+    "A run older than the artifact's seven days is re-run first, with "
+    "`gh run rerun <run id>` (CONTRIBUTING.md §Running the checks)."
+)
+
+
 def staleness(collected, durations):
     """The sentence the suite case fails with when more than `STALE_SHARE`
-    of `collected` is unpriced in `durations`, or None at or under it."""
+    of `collected` is unpriced in `durations`, or more than `STALE_SHARE` of
+    the seconds of `durations` belong to entries `collected` does not hold;
+    None when neither is over."""
     missing = unpriced(collected, durations)
     share = len(missing) / len(collected)
-    if share <= STALE_SHARE:
+    gone = dead(collected, durations)
+    held = sum(durations.values())
+    gone_seconds = sum(durations[node] for node in gone)
+    gone_share = gone_seconds / held if held else 0.0
+    found, first = [], []
+    if share > STALE_SHARE:
+        found.append(
+            f"{len(missing)} of the {len(collected)} collected cases "
+            f"({share:.1%}) have no price in .test_durations, and "
+            "pytest-split gives each the file's mean"
+        )
+        first.append("First unpriced: " + ", ".join(missing[:5]) + ".")
+    if gone_share > STALE_SHARE:
+        found.append(
+            f"{gone_seconds:,.1f} s of the file's {held:,.1f} s "
+            f"({gone_share:.1%}) belong to {len(gone)} entries the suite no "
+            "longer collects, which the file's sum still counts"
+        )
+        first.append("First gone: " + ", ".join(gone[:5]) + ".")
+    if not found:
         return None
     return (
-        f"{len(missing)} of the {len(collected)} collected cases ({share:.1%}) "
-        f"have no price in .test_durations, over the {STALE_SHARE:.0%} "
-        "STALE_SHARE allows: pytest-split gives each the file's mean, which "
-        "unbalances the Windows and macOS shards. Refresh the file by the "
-        "recipe in CONTRIBUTING.md §Running the checks. First unpriced: "
-        + ", ".join(missing[:5])
+        "; and ".join(found)
+        + f" -- over the {STALE_SHARE:.0%} STALE_SHARE allows. "
+        + REMEDY
+        + " "
+        + " ".join(first)
     )
 
 
@@ -324,14 +371,22 @@ def test_exactly_the_share_unpriced_passes():
 
 
 def test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe():
+    """S4 of work item 1791876667: the counts, the share, and the recipe,
+    which is the download of the branch's own `test-durations` artifact into
+    a directory of its own -- `gh run download` refuses to write over the
+    committed file -- and the re-run for an artifact past its seven days."""
     collected = _collection(FIXTURE_SIZE)
     priced = {node: 1.0 for node in collected[AT_THE_SHARE + 1 :]}
     sentence = staleness(collected, priced)
     assert sentence is not None
     assert f"{AT_THE_SHARE + 1} of the {FIXTURE_SIZE} collected cases" in sentence
     assert f"({(AT_THE_SHARE + 1) / FIXTURE_SIZE:.1%})" in sentence
+    assert "gh run download <run id> -n test-durations -D <dir>" in sentence
+    assert "move <dir>/.test_durations over the committed" in sentence
+    assert "gh run rerun <run id>" in sentence
     assert "CONTRIBUTING.md §Running the checks" in sentence
-    assert collected[0] in sentence
+    assert "First unpriced: " + collected[0] in sentence
+    assert "First gone" not in sentence, sentence
 
 
 def test_an_empty_collection_is_refused():
@@ -340,11 +395,68 @@ def test_an_empty_collection_is_refused():
 
 
 def test_an_entry_nobody_collects_is_not_counted():
+    """An entry the suite no longer collects is never an unpriced case: it
+    counts toward the seconds the file holds for nobody, and only there. Five
+    thousand of them beside a thousand live cases fail the seconds side and
+    leave the unpriced side at zero."""
     collected = _collection(FIXTURE_SIZE)
     priced = {node: 1.0 for node in collected}
     priced.update({f"tests/test_gone.py::test_{i}": 1.0 for i in range(5000)})
     assert unpriced(collected, priced) == []
+    sentence = staleness(collected, priced)
+    assert sentence is not None
+    assert "have no price" not in sentence, sentence
+    assert "First unpriced" not in sentence, sentence
+    assert "belong to 5000 entries the suite no longer collects" in sentence
+
+
+def _with_gone(n_gone):
+    """A collection of `FIXTURE_SIZE - AT_THE_SHARE` cases all priced, and
+    `n_gone` entries nobody collects, every entry at one second."""
+    collected = _collection(FIXTURE_SIZE - AT_THE_SHARE)
+    priced = {node: 1.0 for node in collected}
+    priced.update({f"tests/test_gone.py::test_{i}": 1.0 for i in range(n_gone)})
+    return collected, priced
+
+
+def test_dead_seconds_past_the_share_fail_and_at_the_share_pass():
+    """S4 of work item 1791876667, the seconds side. A pull request that
+    removes a twentieth of the suite's time and keeps the file leaves the
+    division unharmed and the file's sum high; at exactly the share of the
+    file's seconds it passes, and one entry more fails naming the seconds,
+    the share, the count and the first gone entry."""
+    collected, priced = _with_gone(AT_THE_SHARE)
+    assert sum(priced[n] for n in dead(collected, priced)) == AT_THE_SHARE
     assert staleness(collected, priced) is None
+    collected, priced = _with_gone(AT_THE_SHARE + 1)
+    sentence = staleness(collected, priced)
+    assert sentence is not None
+    held = FIXTURE_SIZE + 1
+    assert (
+        f"{AT_THE_SHARE + 1:,.1f} s of the file's {held:,.1f} s "
+        f"({(AT_THE_SHARE + 1) / held:.1%}) belong to {AT_THE_SHARE + 1} "
+        "entries the suite no longer collects"
+    ) in sentence, sentence
+    assert "First gone: tests/test_gone.py::test_0" in sentence, sentence
+    assert "gh run download <run id> -n test-durations -D <dir>" in sentence
+    assert "have no price" not in sentence, sentence
+
+
+def test_both_sides_over_are_named_in_one_sentence():
+    collected = _collection(FIXTURE_SIZE)
+    priced = {node: 1.0 for node in collected[AT_THE_SHARE + 1 :]}
+    priced.update({f"tests/test_gone.py::test_{i}": 1.0 for i in range(100)})
+    sentence = staleness(collected, priced)
+    assert "have no price in .test_durations" in sentence, sentence
+    assert "belong to 100 entries the suite no longer collects" in sentence
+    assert sentence.count("gh run download") == 1, sentence
+
+
+def test_an_empty_file_is_all_unpriced_and_nothing_gone():
+    """No seconds to share the dead ones over is not a division by zero."""
+    sentence = staleness(_collection(FIXTURE_SIZE), {})
+    assert "1000 of the 1000 collected cases (100.0%)" in sentence, sentence
+    assert "First gone" not in sentence, sentence
 
 
 def test_only_the_suite_or_the_repository_is_the_whole_collection():
@@ -604,3 +716,40 @@ def test_a_part_the_committed_file_does_not_price_says_so():
         "- dead: 0 entries of the committed file are no case a part ran, "
         "0.0 s (0.00% of its seconds)" in lines
     ), lines
+
+
+# --- the words a contributor acts on (#931) -----------------------------------
+
+
+def section(path, heading):
+    """The text of `path` under the `## ` heading `heading`, up to the next
+    `## ` heading."""
+    with open(os.path.join(ROOT, path), encoding="utf-8") as handle:
+        text = handle.read()
+    head = f"\n## {heading}\n"
+    assert head in text, f"{path} has no `## {heading}`"
+    return text.split(head, 1)[1].split("\n## ", 1)[0]
+
+
+def test_the_recipe_names_the_artifact_and_the_checklist_has_no_box():
+    """S6 of work item 1791876667. The paragraph a contributor meets when
+    the staleness case goes red names the artifact and the download that
+    works -- into a directory of its own, because `gh` will not overwrite --
+    and nothing of the measuring run it replaced. The release checklist has
+    no refresh box: a box a person ticks was the schedule 0.21.1 skipped."""
+    running = section("CONTRIBUTING.md", "Running the checks")
+    (recipe,) = [p for p in running.split("\n\n") if "goes stale" in p]
+    flat = " ".join(recipe.split())
+    for said in (
+        "`test-durations`",
+        "`gh run download <run id> -n test-durations -D <dir>`",
+        "`gh run rerun <run id>`",
+        "`durations` job",
+        "`STALE_SHARE`",
+        "entries the suite no longer collects",
+    ):
+        assert said in flat, f"the recipe paragraph does not say {said}"
+    for gone in ("restore the shards", "one job again", "gh workflow run"):
+        assert gone not in flat, f"the recipe paragraph still says {gone!r}"
+    before = section("docs/release-checklist.md", "0. Before starting")
+    assert ".test_durations" not in before, "the checklist still has a refresh box"

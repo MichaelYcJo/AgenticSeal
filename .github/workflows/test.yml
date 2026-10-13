@@ -14,7 +14,8 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   # A pushed branch measured without a pull request (#841): a branch whose
   # routing stops before the pull request runs nothing on push, and the
-  # Windows leg's own `--durations` table is the only per-case figure for it.
+  # Windows leg's own `--durations` table and the `durations` job's
+  # `test-durations` artifact are the only per-case figures for it.
   workflow_dispatch:
 
 jobs:
