@@ -60,7 +60,7 @@ every pytest job of that run is red; `always()` is what uploads the file.
 
 **The ledger drift is wider than the plan's ledger paragraph.** 0.21.0's
 re-read rows of 0.20.0's S9 (`seal/releases/0.21.0.md`, the two `Re-read ·
-S9` rows) anchor `CONTRIBUTING.md#"## Running the checks"@7b26acf8`, the
+S9` rows) anchor `CONTRIBUTING.md#"## Running the checks"`, the
 whole section, which the new sentence moves. Phase 3's `--reverify --into`
 owes that anchor a re-read too, beside `test.yml#"pytest:"`. The plan named
 nothing for `docs/release-checklist.md`, and the box drifts a family of five

@@ -141,7 +141,7 @@ file can promise, and 9.4 % of the cases are priced at a guess.
   the next.
 - Ledger anchors this work drifts, for the fragment's re-reads (`read`
   2026-10-13 from `seal/releases/0.21.0.md` and `0.20.0.md`):
-  `.github/workflows/test.yml#"pytest:"@fd3a49c3` (0.21.0 S1, S2, S3, S4,
+  `.github/workflows/test.yml#"pytest:"` (0.21.0 S1, S2, S3, S4,
   S5; the re-reads of 0.20.0's S1/S2/S8 cite it too), the three quoted
   `CONTRIBUTING.md` lines of 0.21.0's S5 and the re-read of 0.20.0's S9
   (the recipe paragraph's first line is one of them, so editing it breaks
