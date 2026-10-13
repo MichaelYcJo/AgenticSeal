@@ -6,7 +6,7 @@
 | Written late | no |
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #925 |
-| Broad gate | not yet |
+| Broad gate | 5f07d035 against 737963b1 |
 | Fixes checked by | no fixes to check |
 | Fix range | none |
 | Contract changes | none |
