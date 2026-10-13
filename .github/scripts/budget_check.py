@@ -68,6 +68,8 @@ HEADER = ("Budget", "Unit", "Ceiling", "Slack", "Kind")
 KINDS = ("gate", "report")
 GATE = "gate"
 RELEASE_BRANCH = "main"
+# What the summary says of a raise or a removal the body declares nothing for.
+UNDECLARED = "**not declared** — the pull request body carries no line for it"
 
 # The modules this reads through, each the one reader of its input: the table
 # walker every `seal/` table is read by (#871), the meter the preload budgets
@@ -346,6 +348,7 @@ def ratchet(base_rows, head_rows, body, release):
             if match or release:
                 moves.append((old.name, what, match[0] if match else "at a release"))
                 continue
+            moves.append((old.name, what, UNDECLARED))
             wrote = "".join(f" The body's line says {o} -> {n}." for o, n, _ in lines)
             problems.append(
                 (
@@ -362,6 +365,7 @@ def ratchet(base_rows, head_rows, body, release):
         if reasons or release:
             moves.append((old.name, what, reasons[0] if reasons else "at a release"))
             continue
+        moves.append((old.name, what, UNDECLARED))
         problems.append(
             (
                 old.name,

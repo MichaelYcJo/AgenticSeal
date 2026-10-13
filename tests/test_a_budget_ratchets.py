@@ -190,10 +190,12 @@ RAISED_HEAD = budgets(warden(1050, "10 %"))
 def test_a_raise_without_its_line_fails(tmp_path, capsys, body):
     """T4, S2: a ceiling higher than at the merge base fails unless the body
     declares that raise, both numbers and a reason. The failure names the
-    row and the line to write."""
+    row and the line to write, and the summary marks the raise undeclared,
+    since its band verdict alone reads `holds`."""
     root = tree(tmp_path, RAISED_HEAD, base=RAISED_BASE)
     assert ratchet(root, body) == 1
     out = capsys.readouterr().out
+    assert "- `preload:warden` raised 1000 -> 1050: **not declared**" in out, out
     assert (
         "budget-check: preload:warden: the ceiling was raised from 1000 to 1050" in out
     ), out
@@ -236,6 +238,7 @@ def test_a_removed_row_is_a_raise(tmp_path, capsys, head):
     assert ratchet(root, "") == 1
     out = capsys.readouterr().out
     assert "Write `Budget removed: preload:warden: <reason>` in the body" in out, out
+    assert "- `preload:warden` " in out and "**not declared**" in out, out
     assert ratchet(root, "Budget removed: preload:warden: the gate moved") == 0
 
 
