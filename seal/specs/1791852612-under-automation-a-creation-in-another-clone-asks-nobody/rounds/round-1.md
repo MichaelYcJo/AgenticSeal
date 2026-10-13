@@ -7,10 +7,10 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #916 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `6528e2ebabe8d2dee8936057f9d5de69623f0c2c..462e6dd53ba1b9ed107a4d99de05ab382972c66d`, 2 commits |
+| Contract changes | guard_worktree_creation → judge_creation, round-1-report.md, round-1.md |
+| New units | test_an_unbalanced_quote_under_the_press_names_no_token (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (an unbalanced quote puts `[worktree-ok]` into the deny under the press), 🟡 2 (the third copy of the shared sentences drifts silently), 🟡 3 (both READMEs say a creation is never asked under the press) |
 | Loses a record or crashes | no |
@@ -25,9 +25,9 @@ Round 1 of #903, target 9e7514f3 against `origin/release/v0.21.1` at 321e9de1, o
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | under the press, a creation with an unbalanced quote gets rows 3 and 4's deny with the origin's quote note, which names `[worktree-ok]` and invites a re-issue; the token retry reaches row 2's `ask`, a person's prompt | `hooks/worktree-guard.py:2008` | open | executed (probe 3): both rows, two attempts each, `deny` naming `[worktree-ok]`; the retry with the token was `ask`. Contradicts `spec.md` In 1 and `docs/worktree-guard-spec.md` §*A creation in another clone under the press* |
-| 🟡 2 | #894's tracked-changes deny under the press keeps inline copies of both shared sentences; a reword of `press_sentence` leaves it behind with every case green, so the ground `phases/phase-1.md` gives for leaving it is false | `hooks/worktree-guard.py:3555` | open | executed (probe 5): `press_sentence` English reworded, `tests/test_the_guard_asks_once_per_session.py` 101 passed exit 0, `tests/test_the_idle_session_rows_ask_nobody.py` 7 failed; ledger S9 says one string each |
-| 🟡 3 | both READMEs say a creation is not asked at all under the press; row 1 still asks in another clone, the reason the policy's budget sentence was narrowed | `README.md:201` | open | read: `hooks/worktree-guard.py#guard_worktree_creation` row 1 is above the press; overview divergence 3; `README.ko.md:198` is the same claim |
+| 🟡 1 | under the press, a creation with an unbalanced quote gets rows 3 and 4's deny with the origin's quote note, which names `[worktree-ok]` and invites a re-issue; the token retry reaches row 2's `ask`, a person's prompt | `hooks/worktree-guard.py:2008` | **fixed** `462e6dd5` | fixed at 462e6dd5; executed (probe 3): both rows, two attempts each, `deny` naming `[worktree-ok]`; the retry with the token was `ask`. Contradicts `spec.md` In 1 and `docs/worktree-guard-spec.md` §*A creation in another clone under the press* |
+| 🟡 2 | #894's tracked-changes deny under the press keeps inline copies of both shared sentences; a reword of `press_sentence` leaves it behind with every case green, so the ground `phases/phase-1.md` gives for leaving it is false | `hooks/worktree-guard.py:3555` | **fixed** `462e6dd5` | fixed at 462e6dd5; executed (probe 5): `press_sentence` English reworded, `tests/test_the_guard_asks_once_per_session.py` 101 passed exit 0, `tests/test_the_idle_session_rows_ask_nobody.py` 7 failed; ledger S9 says one string each |
+| 🟡 3 | both READMEs say a creation is not asked at all under the press; row 1 still asks in another clone, the reason the policy's budget sentence was narrowed | `README.md:201` | **fixed** `85be560f` | fixed at 85be560f; read: `hooks/worktree-guard.py#guard_worktree_creation` row 1 is above the press; overview divergence 3; `README.ko.md:198` is the same claim |
 | ⬜ 4 | #896's S13 `Corrected ·` row keeps claims about §*What a blocking prompt must show* and §*Unknowns resolve conservatively* but no longer cites either section | `seal/ledger/1791852612-under-automation-a-creation-in-another-clone-asks-nobody.md:30` | open | read: `seal/releases/0.21.0.md:748` cited both; both headings stand at `9e7514f3`; correction to the run's paperwork |
 | 🟢 | rows 3 and 4 deny on every attempt under the press in another clone, with one text, both languages, no marker | `hooks/worktree-guard.py:1892` | confirmed | executed (probe 1): S1, S2, S8 green at `9e7514f3`; probe 2: red at `321e9de1`'s guard |
 | 🟢 | the frame's seen-red claims hold: S1, S2, S8 and S10 red at the base, S3, S5, S6 and S7 green there by design | `tests/test_a_creation_in_another_clone_asks_nobody.py` | confirmed | executed (probe 2): base guard in the clone, 4 failed and 4 passed, matching `phases/phase-1.md` |
