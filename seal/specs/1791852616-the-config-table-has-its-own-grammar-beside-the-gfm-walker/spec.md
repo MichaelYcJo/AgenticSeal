@@ -210,6 +210,8 @@ where the plugin reads, never read where the plugin refuses.
 | the sealer's pin on the arm where the quoted line was read and a lower line stopped the reader | `tests/test_the_seal_is_taken_once_by_the_sealer.py#test_a_stopping_line_lower_down_with_nothing_under_it_names_no_rows` | a `Broad gate` row the walk read is a value and the gate runs; there is no refusal to word |
 | the sealer's pin on `hides_this_row` | `tests/test_the_seal_is_taken_once_by_the_sealer.py#test_a_hidden_row_alone_under_the_stopping_line_has_no_others` | S6's sentence for a row under the stopping line, re-pinned under its own name |
 
+### Why these rows
+
 Every other case the stop rule's cases hold is re-pinned in place to the
 walker's answer and keeps its name; a removal a phase makes that this table
 did not name is a divergence row in `overview.md`.

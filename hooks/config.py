@@ -30,11 +30,13 @@ in -- it RECORDS an answer -- and putting it in that module would read as the
 clause being softened.
 
 Everything here fails toward "nothing is declared" -- except where a written
-row would be read as absent. A file that is there and cannot be read, and a
-row written twice, are refused by `config_text` and `config_value` rather than
-read as nothing (#867); a hook reads a refusal as nothing it can act on and
-says nothing, and a command prints it and exits 2. `config_text`'s docstring
-says which caller is which kind.
+row would be read as absent. A file that is there and cannot be read, a row
+written twice, and an item the table walker did not read because it refused
+a line above it are refused by `config_text` and `config_value` rather than
+read as nothing (#867, #871); a hook reads a refusal as nothing it can act on
+and says nothing, and a command prints it and exits 2. `config_text`'s
+docstring says which caller is which kind. The table is read by
+`gfm_table`, the walker held to cmark-gfm, through `config_table`.
 """
 
 import os
@@ -71,36 +73,39 @@ ROW_ITEM = "Mode"
 LOCAL, SHARED = "local", "shared"
 MODES = (LOCAL, SHARED)
 
-# The `| Item | Value |` table, read exactly as `templates/parity.md` and the
-# pull-request-language row are read.
-CONFIG_HEADER = re.compile(r"^\|\s*Item\s*\|\s*Value\s*\|\s*$")
+# The `| Item | Value |` table's header, as the cells `gfm_table` matches a
+# header by (#871). The table has no grammar of its own: it is read by the
+# walker cmark-gfm holds, which is handed this tuple and nothing else.
+CONFIG_TABLE = ("Item", "Value")
 
 # A CELL is any run of characters that are neither a pipe nor a backslash, or
 # a backslash followed by anything. The second half is markdown's own escape,
 # and this file is markdown: `\|` is how a cell of a markdown table carries a
 # literal pipe, and `templates/config.md` already writes its own cells that
-# way. Without it a cell ended at the first `|`, so a `Broad gate` row holding
-# a pipe stopped being a row -- and `config_rows`'s stop rule then took every
-# row written below it, silently (#415).
-#
-# A bare pipe is still a cell boundary, deliberately. Making it part of the
-# value needs a greedy last cell, and a greedy last cell reads the rows of a
-# THREE-column table written under this one as rows of this one --
-# `templates/config.md` ships three-column tables.
+# way (#415). A bare pipe is a cell boundary, as it is to cmark-gfm.
 #
 # **This narrows in exactly one shape, and it is not a defect to repair.** A
-# backslash standing immediately against a cell-ending pipe used to be a
-# plain character followed by the delimiter; it is now one escaped pipe, so
-# `| Broad gate | C:\Users\x\tools\|` is no longer a row. It cannot be both:
-# the escape is what the rest of this comment is for. Nothing becomes
-# unwritable, because `config_rows` strips each cell -- a space before the
+# backslash standing immediately against a cell-ending pipe is one escaped
+# pipe, so `| Broad gate | C:\Users\x\tools\|` is not a row. It cannot be
+# both: the escape is what the rest of this comment is for. Nothing becomes
+# unwritable, because `table_cells` strips each cell -- a space before the
 # closing pipe returns the same value byte for byte. Found by round 1 of
-# #415, where `plan.md` asserted that a widened pattern can only make MORE
-# lines into rows; `spec.md` §*What this repair cannot see* now names it.
+# #415.
+#
+# `TABLE_ROW` and `CELL_PIPE` below are built on it, and so is
+# `skills/evidence-check/scripts/pact_check.py#path_map`, which reads the
+# machine-local `| Remote | Path |` map with it and `CONFIG_SEPARATOR`.
 CELL = r"(?:[^|\\]|\\.)"
+# The stop rule's own header and row, read by `refusal` and
+# `skills/implement/scripts/seal.py#table_span` alone while #871 moves their
+# callers onto `config_table`; both leave with the last of them.
+CONFIG_HEADER = re.compile(r"^\|\s*Item\s*\|\s*Value\s*\|\s*$")
 CONFIG_ROW = re.compile(
     rf"^\|\s*(?P<item>{CELL}+?)\s*\|\s*(?P<value>{CELL}*?)\s*\|\s*$"
 )
+# The config table's separator before #871, kept for one reader alone:
+# `pact_check.py#path_map`, whose map is not `seal/config.md` and is not read
+# by the walker yet. Nothing here reads it.
 CONFIG_SEPARATOR = re.compile(r"^\|[\s:|-]+\|$")
 
 # A fenced code block's delimiter line, as CommonMark spells one: up to three
@@ -160,10 +165,12 @@ def fence_map(lines, text=None):
     arriving one shape over. A second fence rule written for that question is
     the split this module exists to prevent.
 
+    Reads: guess — the lines of a person's markdown its caller hands it, through `hidden_lines`; unknown mixed
+
     Nothing here refuses and nothing acts on the second value. It is a fact
     about the file, for the one caller that has somebody to tell --
     `skills/verify/scripts/broad_gate.py#fence_left_open` -- exactly as
-    `refusal` below is a fact about the table for the same caller.
+    `config_table`'s refusals are facts about the table for the same caller.
 
     **The lines it hides are `hidden_lines`' below**, which reads the file
     through `hooks/blocks.py`'s walk (#667): a closed fence, and now a
@@ -244,16 +251,21 @@ def unfenced(lines, text=None):
     were written for the fence half, and hold for the comment half word for
     word.
 
-    **One fence rule, in front of all three walks of this table.** A line
-    inside a fenced code block is not part of any `| Item | Value |` table:
-    not a header, not a separator, not a row, and not a line somebody wrote as
-    a row. `config_rows`'s walk below, `refusal`'s walk below that, and
-    `skills/implement/scripts/seal.py#table_span` -- the WRITER's walk, which
-    finds the line `with_row` overwrites -- all read the file through this
-    one generator. A fence rule that landed in one of them and not another
-    would leave the reader and the writer disagreeing about which row is the
-    row, which is the file two rows deep that `table_span`'s own comment says
-    no command can bring into agreement (#429).
+    Reads: guess — the lines of a person's markdown its caller hands it, through `fence_map`; unknown mixed
+
+    **One fence rule, in front of the one walk of every table.** A line
+    inside a fenced code block is not part of any table: not a header, not a
+    delimiter row, not a row, and not a line somebody wrote as a row.
+    `gfm_table` below reads every table this module reads through this one
+    generator -- the `| Item | Value |` table through `config_table`, and the
+    pact's three -- and `skills/implement/scripts/seal.py#with_row`, the
+    WRITER, overwrites the line `config_table` names, so the reader and the
+    writer cannot disagree about which row is the row: the file two rows
+    deep that no command can bring into agreement (#429). Since #871 there
+    is one walk of the config table where there were three, and a hidden
+    line is a gap the walk ends the table at: a line written `| … |` below
+    it is refused as a row the walk never reaches, because GFM does not show
+    it as one of the table's rows.
 
     **Why a table inside a fence is not the table.** `config.md`'s header
     comment points its reader at `templates/config.md`, a document of EXAMPLE
@@ -266,16 +278,14 @@ def unfenced(lines, text=None):
     the rows every gate got, and the sealer's seal was taken over a command
     nobody chose.
 
-    **It yields positions, not surviving text alone.** `table_span` returns
-    indices into its caller's own `lines` and `with_row` overwrites one of
-    them, so a helper handing back text could not serve that walk, and a
-    second fence rule written for it is the split this module exists to
-    prevent.
+    **It yields positions, not surviving text alone.** `gfm_table` returns
+    each row's line, `config_table` hands that index on, and `with_row`
+    overwrites the line at it, so a helper handing back text could not serve
+    that walk, and a second fence rule written for the writer is the split
+    this module exists to prevent.
 
-    **It takes either spelling of a line.** `config_rows` and `refusal` walk
-    `text.splitlines()` and `table_span` walks `text.splitlines(keepends=True)`;
-    the ending is stripped here, so all three get the same answer about the
-    same file whether it is written with LF or CRLF.
+    **It takes either spelling of a line.** The ending is stripped here, so
+    a file written with LF and one written with CRLF get the same answer.
 
     The edge cases past `spec.md`'s rule are resolved toward *not a fence*,
     which is the direction that keeps a live table readable:
@@ -295,8 +305,8 @@ def unfenced(lines, text=None):
 
     A fence opens wherever its line stands, INCLUDING between two rows of a
     table, because this walk answers a question about the file and not about
-    any one caller's state. The three walks hold different state at the same
-    line, so a fence rule that consulted it would give them three answers.
+    any one caller's state; the table walk reads the gap it leaves as the
+    table's end.
 
     **The walk itself is `fence_map` above**, and this is its surviving lines.
     One walk rather than two: the caller that needs to know whether a fence
@@ -307,76 +317,78 @@ def unfenced(lines, text=None):
     yield from fence_map(lines, text)[0]
 
 
-def config_rows(text):
-    """Every `| Item | Value |` row under the first such header, in order.
+def config_table(text):
+    """(rows, refusals) for the `| Item | Value |` table of TEXT -- the one
+    walk of `seal/config.md`, which is `gfm_table`'s (#871).
 
-    The header and the separator are this table's own furniture ABOVE its
-    first row and somebody else's table BELOW it; any other line ends the
-    table. Both rules were arrived at over two review rounds of #82, in the
-    copy of this loop that used to live in
-    `tests/test_the_pull_request_language_is_the_repositorys.py` and now
-    calls this one. Round 1 🟡 6: a row of a different SHAPE was skipped as
-    though it were not there, so a `| a | b | c |` between two two-cell rows
-    let the row after it be read as part of this table. Round 2 🟡 5: a
-    header and a separator were stepped past wherever they appeared, so a
-    stray separator or a second `| Item | Value |` header let the rows
-    behind it be read as more of this one. A second reader that read the
-    table differently would answer a different question about the same file,
-    which is what this module exists to prevent.
+    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
+
+      rows      [(index, item, value)] for every row the walk read, in order:
+                INDEX is the row's line in `text.splitlines()`, and ITEM and
+                VALUE are the cells as `table_cells` returns them, stripped
+                and with `\\|` reduced to one literal pipe
+      refusals  the walker's sentences for what stopped it, each reading
+                after a noun naming the file; [] where nothing did
+
+    **A text holding no such table is `([], [])`**: no table declares
+    nothing, everywhere, as no file does. A header the walker refuses -- a
+    line directly above it, no delimiter row under it, a delimiter row of
+    another width -- is a table, refused, and every item of it is a refusal.
+
+    **The table has no grammar of its own.** Until #871 it was read by a
+    stop rule of three regexes argued over #82, #415, #429, #430 and #667,
+    held by hand cases, beside the walker the pact's tables are read by,
+    held to cmark-gfm over an enumerated corpus. Measured, the stop rule
+    handed a gate rows GitHub does not show in five shapes and dropped rows
+    GitHub shows in four (`seal/specs/1791852616-…/spec.md` §*Data &
+    interfaces*). Now a row is a row where the renderer shows it as one, or
+    the walk refuses -- naming the line it stopped at and the edit -- and
+    never steps past a line to read on below it, so no row is read under a
+    line it refused.
+
+    What a caller does with a refusal is its own kind's, as `config_text`
+    says: a hook says nothing, and a command prints the sentence and exits 2
+    for the items the walk did not read. `config_value` is the per-item
+    answer, and a caller holding these rows asks `value_of` of them and acts
+    on the refusals by its own kind."""
+    rows, refusals = gfm_table(text, CONFIG_TABLE)
+    if refusals and refusals[0].startswith("holds no "):
+        return [], []
+    return [(line - 1, item, value) for line, (item, value) in rows], refusals
+
+
+def config_rows(text):
+    """Every `| Item | Value |` row the walk read, as (item, value), in order
+    -- `config_table`'s rows without their places or its refusals.
+
+    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
+
+    **Rows alone are not an answer about an item**, and that is why the
+    direction is read at the callers: a row the walk did not read is absent
+    from this list whether the table ended or the walk refused the line, and
+    only `config_table`'s refusals tell the two apart. A caller asking for
+    one item asks `config_value`; a caller holding these rows asks
+    `config_table` for the refusals (#871).
 
     Each cell comes back with `\\|` reduced to one literal pipe and nothing
     else changed; `unescaped` above says why it is those two characters
-    alone. The stop rule is unchanged, so a line a person wrote as a row
-    still ends the table when it will not parse -- `refused_row` below is
-    what names such a line, for a caller that has somebody to tell.
-
-    **`unfenced` filters in FRONT of this walk and neither half of the stop
-    rule moves.** Both halves were arrived at over those two rounds, and a
-    repair that reached into the `if found: break` arms to special-case a
-    fence is the regression this docstring predicts. What changed is which
-    lines the walk is shown: a line inside a code fence is not shown to it at
-    all, so an example table pasted above the live one is no longer this
-    reader's table (#429).
-
-    **The walk is `indexed_config_rows` below, and this is its rows without
-    their places** (#759). The pact reader needs to know WHICH line each row
-    came from, and a second walk written for that question would be a second
-    stop rule to keep in step with this one.
-    """
-    return [(item, value) for _index, item, value in indexed_config_rows(text)]
+    alone. A line inside a code fence or a closed comment is not shown to the
+    walk at all (`unfenced`), so an example table pasted above the live one
+    is not this reader's table (#429)."""
+    return [(item, value) for _index, item, value in config_table(text)[0]]
 
 
 def indexed_config_rows(text):
     """`config_rows`' rows as (index, item, value), the index being the row's
-    line in `text.splitlines()`. `config_rows` is this walk's projection, and
-    its docstring is where the stop rule's reasoning lives.
+    line in `text.splitlines()` -- `config_table`'s rows, kept for the
+    callers that spell this name.
+
+    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
 
     The index is what lets `pact_lines_not_read` tell a line this walk took
     as a row from every other line of the file (#759).
     """
-    found, seen_header = [], False
-    for index, line in unfenced(text.splitlines(), text):
-        if not seen_header:
-            if CONFIG_HEADER.match(line):
-                seen_header = True
-            continue
-        if CONFIG_HEADER.match(line) or CONFIG_SEPARATOR.match(line.strip()):
-            if found:
-                break
-            continue
-        match = CONFIG_ROW.match(line)
-        if not match:
-            if found:
-                break
-            continue
-        found.append(
-            (
-                index,
-                unescaped(match.group("item").strip()),
-                unescaped(match.group("value").strip()),
-            )
-        )
-    return found
+    return config_table(text)[0]
 
 
 def refusal(text):
@@ -555,12 +567,28 @@ def doubled_row(item, count):
 
 def config_value(text, item):
     """(value, refusal) for ITEM in the `| Item | Value |` table of TEXT —
-    the one answer every reader of one config row gives (#867).
+    the one answer every reader of one config row gives (#867, #871).
 
-      (None, None)     no row names ITEM, or TEXT is None (no file)
-      (value, None)    one row: its value, stripped and unescaped as
-                       `config_rows` returns it, "" where it is empty
-      (None, refusal)  ITEM is written more than once, and REFUSAL says so
+    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
+
+      (None, None)     no row names ITEM in a table the walk read whole, or
+                       TEXT holds no such table, or TEXT is None (no file)
+      (value, None)    one row the walk read: its value, stripped and
+                       unescaped as `config_rows` returns it, "" where empty
+      (None, refusal)  ITEM is written more than once, and REFUSAL says so;
+                       or the walk refused the table and did not read ITEM,
+                       and REFUSAL is the walker's first sentence, naming the
+                       line it stopped at and the edit
+
+    **A refusal is per item, never an absent row** (#871). A row the walk
+    read before it stopped is a row GitHub shows, so it is a value, and a
+    `Mode` row above a malformed line keeps the mode gate quiet as it did.
+    An item the walk did not read may be written below the line it stopped
+    at, so it has no value and is not absent either: it is the walker's
+    sentence, which a hook reads as nothing it can act on and a command
+    prints. Refusing the whole table would turn every item off for a line
+    that is not theirs; reading the item as absent is the silent default
+    #415 was opened about.
 
     **A row written twice has no value**, not its first and not its last.
     `pact_declaration` refused a doubled `Pact notify` with *its first row is
@@ -571,13 +599,16 @@ def config_value(text, item):
     the one answer is a refusal, and what a caller does with it is its own
     kind's -- `config_text` says which kind does which.
 
-    The rows are `config_rows`', so a row is a row only where that walk takes
-    it: one written below the table's end, in a fence or in a closed comment
-    is not counted, which is what keeps a fenced example from doubling the
-    live row."""
+    The rows are `config_table`'s, so a row is a row only where that walk
+    reads it: one in a fence or in a closed comment is not counted, which is
+    what keeps a fenced example from doubling the live row."""
     if text is None:
         return None, None
-    return value_of(config_rows(text), item)
+    rows, refusals = config_table(text)
+    value, refusal = value_of([(found, v) for _i, found, v in rows], item)
+    if value is None and refusal is None and refusals:
+        return None, refusals[0]
+    return value, refusal
 
 
 def value_of(rows, item):
@@ -592,8 +623,12 @@ def value_of(rows, item):
 
 def declared_value(home, item):
     """(value, refusal) for ITEM in `<home>/config.md`: `config_text`, then
-    `config_value`, so an unreadable file and a doubled row reach the caller
-    the same way -- as a refusal it acts on by its own kind."""
+    `config_value`, so an unreadable file, a doubled row and a table the
+    walker refused above ITEM reach the caller the same way -- as a refusal
+    it acts on by its own kind.
+
+    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
+    """
     text, refusal = config_text(home)
     if refusal is not None:
         return None, refusal
@@ -603,15 +638,18 @@ def declared_value(home, item):
 def declared_mode(home):
     """(kind, value) for the `Mode` row — what the repository SAYS it wants.
 
-      "none"     nothing is declared: no file, no such row, an empty value,
-                 or a file that does not parse as that table. Four spellings
-                 of one state, the same four the pull-request-language row
-                 has for not naming a language
+      "none"     nothing is declared: no file, no such row in a table the
+                 walk read whole, an empty value, or a file holding no such
+                 table. Four spellings of one state, the same four the
+                 pull-request-language row has for not naming a language
       "mode"     `local` or `shared`, lowercased
       "unknown"  a row is there and its value is not a mode — a claim nobody
                  can act on, which is not the same as no claim
-      "refused"  the file is there and will not read, or the row is written
-                 more than once; VALUE is `declared_value`'s sentence
+      "refused"  the file is there and will not read, the row is written
+                 more than once, or the walk refused the table without
+                 reading the row (#871); VALUE is `declared_value`'s sentence
+
+    Reads: guess — the `Mode` row of a person's `| Item | Value |` table, through `declared_value`; unknown refused
 
     **There is no default.** Every other item in `config.md` falls back to
     what every repository got before the row existed; for the mode that is
@@ -965,8 +1003,17 @@ def pact_declaration(text):
     each is refused with `notify` None. This reader alone refuses where the
     others fail silent, and only for these two rows: no other row's default
     loses a record that cannot be recovered.
+
+    Reads: guess — a signer's `| Item | Value |` table, read as cmark-gfm renders it, and every line naming a pact; unknown refused
+
+    **A table the walker refuses is refused here too** (#871). Its
+    sentences are appended after every other refusal, with `notify` None:
+    the line it stopped at may hold the `Pact notify` row, and a row below
+    it is one the walk never read, so no value read from the table is the
+    answer. `pact-check` exits 2 on it and a signer's CI prints it, the
+    split #647 decided.
     """
-    rows = indexed_config_rows(text)
+    rows, walk_refusals = config_table(text)
     pairs = [(item, value) for _i, item, value in rows]
     # A row written twice has no value, by `value_of`'s rule and in its
     # sentence (#867): the first row is not the answer, so a caller that read
@@ -983,7 +1030,7 @@ def pact_declaration(text):
         pact_line_refusal(line, cell and not names_a_pact(line)) for line in not_read
     )
     if not value:
-        return [], None, refusals
+        return [], None, refusals + walk_refusals
     pacts, refused = remote_entries(
         value.split(PACT_SEPARATOR),
         f"`{PACT_ROW} | {value}` holds an empty entry — one remote URL between "
@@ -993,7 +1040,7 @@ def pact_declaration(text):
     refusals.extend(refused)
     if doubled_notify:
         refusals.append(doubled_notify)
-        return pacts, None, refusals
+        return pacts, None, refusals + walk_refusals
     notify = " ".join((written or "").split()).lower()
     if not notify:
         notify = NOTIFY_DEFAULT
@@ -1003,17 +1050,21 @@ def pact_declaration(text):
             + ", ".join(f"`{v}`" for v in NOTIFY_VALUES)
         )
         notify = None
-    if not_read:
+    if not_read or walk_refusals:
         # The line this reader does not read may be the one that says
-        # `always`, so no value read from the table is the answer (#759).
+        # `always`, so no value read from the table is the answer (#759);
+        # and so may a line below the one the walk stopped at (#871).
         notify = None
-    return pacts, notify, refusals
+    return pacts, notify, refusals + walk_refusals
 
 
 def pact_lines_not_read(text, rows):
     """Every line of TEXT that names a pact and is not a pact row in the one
     spelling read, as written and in file order. ROWS is
-    `indexed_config_rows(text)`.
+    `config_table(text)`'s rows: the lines the walker read as rows, and no
+    line below one it refused (#871).
+
+    Reads: guess — every GFM line of a signer's config, beside the rows `config_table` read; unknown refused
 
     **A line is one GFM line** (`blocks.gfm_lines`), the coarsest cut any
     reader here makes, so a word can only be whole on it where it is whole on
@@ -1126,12 +1177,14 @@ def declared_pacts(home):
 
 # --- one GFM table walker (#647, steps C and D) -----------------------------
 #
-# Three tables are read out of markdown by name: the pact's `| Signer |`,
-# a signer's record of pact changes, and the pact's record of pact
-# reviews. One walker reads all three, because three walkers are three break
-# lists to keep in step, and round 3 of #735 measured exactly that drift in
-# the one there was: an autolink row ended the table, and a signer written
-# as one was read by nobody at exit 0.
+# Four tables are read out of markdown by name: `seal/config.md`'s
+# `| Item | Value |` (#871), the pact's `| Signer |`, a signer's record of
+# pact changes, and the pact's record of pact reviews. One walker reads all
+# four, because four walkers are four break lists to keep in step, and round
+# 3 of #735 measured exactly that drift in the one there was: an autolink
+# row ended the table, and a signer written as one was read by nobody at
+# exit 0. The config table had a grammar of its own until #871, and it
+# handed gates rows GitHub does not show.
 #
 # **It reads what cmark-gfm renders, or refuses.** It is held to the renderer
 # by `tests/test_one_table_walker_reads_what_gfm_renders.py`, a property case

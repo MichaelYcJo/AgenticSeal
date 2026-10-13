@@ -684,8 +684,7 @@ OUT_OF_CLASS.update(
             "the pieces `riders_in` read, written back each with its own end",
         ),
         ("hooks/blocks.py", "walk_text"): (1, F),
-        # `config_rows`' walk, which keeps each row's index since #759.
-        ("hooks/config.py", "indexed_config_rows"): (1, F),
+        # The stop rule's third walk, until #871 takes its last caller.
         ("hooks/config.py", "refusal"): (1, F),
         # Each GFM line counted in the reader's pieces of it, so a line the
         # walk took whole is told from one a `str.splitlines`-only character
@@ -699,9 +698,9 @@ OUT_OF_CLASS.update(
             1,
             F,
         ),
-        # The one GFM table walker the pact's `Signer` table and both pact
-        # records are read through, reading what `unfenced` shows it as
-        # `config_rows` does (#647; ⬜ 21 of #735's round 3).
+        # The one GFM table walker `seal/config.md`'s table (#871), the
+        # pact's `Signer` table and both pact records are read through,
+        # reading what `unfenced` shows it (#647; ⬜ 21 of #735's round 3).
         ("hooks/config.py", "gfm_table"): (1, F),
         # A glued old header quoted as written, read back by its row number.
         ("hooks/config.py", "read_table"): (

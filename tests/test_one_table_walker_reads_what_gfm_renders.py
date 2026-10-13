@@ -48,6 +48,10 @@ HEADERS = {
     "signer": ("Signer",),
     "pact change": ("Clause", "Row", "Code", "Checked"),
     "pact review": ("Signer", "Change", "Verdict"),
+    # `seal/config.md`'s table, read by this walker since #871 through
+    # `hooks/config.py#config_table`, which hands it this tuple and nothing
+    # else (`test_the_config_pass_is_the_config_readers_header`).
+    "config": ("Item", "Value"),
 }
 
 # CommonMark 0.29 §4.6, HTML block start condition 6: the block-level tag
@@ -584,7 +588,20 @@ def test_the_corpus_is_counted():
     generating shapes is a red case rather than a smaller number nobody
     reads."""
     sizes = {which: len(corpus(header)) for which, header in HEADERS.items()}
-    assert sizes == {"signer": 5454, "pact change": 5455, "pact review": 5455}, sizes
+    assert sizes == {
+        "signer": 5454,
+        "pact change": 5455,
+        "pact review": 5455,
+        "config": 5455,
+    }, sizes
+
+
+def test_the_config_pass_is_the_config_readers_header():
+    """The fourth pass is the config table's only where the header it walks
+    is the one `hooks/config.py#config_table` hands the walker (#871): a
+    pass over a header no reader uses would hold nothing. Seen red before
+    `CONFIG_TABLE` existed, as an `AttributeError`."""
+    assert HEADERS["config"] == config.CONFIG_TABLE
 
 
 @pytest.mark.parametrize(

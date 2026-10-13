@@ -29,6 +29,7 @@ import json
 import os
 import subprocess
 
+import config_shapes
 import pytest
 from block_shapes import SHAPES
 from conftest import decision_of, load_hook_module, local_home, run_hook
@@ -352,16 +353,20 @@ def test_a_backslash_against_a_pipe_is_the_one_shape_the_escape_narrows(config):
     ], "and the same for the item cell"
 
 
-def test_a_three_column_row_still_ends_the_table(config):
-    """The escape widens what a cell may hold and must not widen what a ROW
-    is. Round 1 🟡 6 of the reader's own history is this line: a greedy last
-    cell reads `| a | b | c |` as the row `('a', 'b | c')`, and then the rows
-    of a three-column table written under this one are read as more of this
-    one. `templates/config.md` ships three-column tables."""
+def test_a_three_column_row_is_refused_and_the_rows_above_it_arrive(config):
+    """Shape 6 of #871. The escape widens what a cell may hold and must not
+    widen what a ROW is: a greedy last cell would read `| a | b | c |` as the
+    row `('a', 'b | c')`. Until #871 the line ended the table silently, and
+    every row below it fell to its default; cmark-gfm shows those rows, so
+    the walker refuses the line instead, naming it, and the rows above it
+    are values. Seen red against the stop rule: `('c', ...)` was `(None,
+    None)`, an absent row."""
     text = "| Item | Value |\n|---|---|\n| a | b |\n| x | y | z |\n| c | d |\n"
-    assert config.config_rows(text) == [("a", "b")], (
-        "the three-cell line is a row of somebody else's table and ends this one"
-    )
+    assert config.config_rows(text) == [("a", "b")]
+    value, said = config.config_value(text, "c")
+    assert value is None and said is not None, (value, said)
+    assert "stops at `| x | y | z |`, which is not a 2-cell row" in said, said
+    assert config.config_value(text, "a") == ("b", None)
 
 
 def test_seal_mode_writes_one_row_where_the_mode_row_sits_below_a_piped_row(
@@ -472,16 +477,17 @@ def test_seal_mode_still_writes_a_second_mode_row_for_a_bare_pipe(config, tmp_pa
 def test_a_line_that_will_not_parse_is_named_and_the_hook_still_says_nothing(
     config, repo
 ):
-    """A4 and A7 of #415, which are one case because they are one decision.
+    """A4 and A7 of #415, which are one case because they are one decision,
+    re-pinned by #871.
 
-    `refused_row` reports; it refuses nothing and raises nothing. The caller
-    that consults it is `broad-gate`, which already talks to a person.
-    `hooks/mode-gate.py` deliberately does not: it is a `PreToolUse` hook, so
-    a wrong refusal there stops a session with nobody able to get past it.
-    A config whose `Mode` row is hidden below an unparseable line still reads
-    as undeclared and the gate still simply asks the mode question again —
-    the stated cost of keeping that hook silent (`spec.md` §*What this repair
-    cannot see*).
+    The reader names the line in its refusal, and the hook says nothing. The
+    caller that prints the sentence is a command, which already talks to a
+    person; `hooks/mode-gate.py` deliberately does not, because it is a
+    `PreToolUse` hook and a wrong refusal there stops a session with nobody
+    able to get past it. Until #871 a `Mode` row below an unparseable line
+    read as undeclared and the gate asked the mode question again; now the
+    item is a refusal, which the gate reads as an answer it cannot act on,
+    so it asks nothing -- the prompt budget of a refused table is zero.
     """
     text = (
         "| Item | Value |\n|---|---|\n"
@@ -489,20 +495,22 @@ def test_a_line_that_will_not_parse_is_named_and_the_hook_still_says_nothing(
         "| Broad gate | bin/test -q | tee out.txt |\n"
         "| Mode | shared |\n"
     )
-    assert config.refused_row(text) == "| Broad gate | bin/test -q | tee out.txt |"
-    assert config.refused_row(TABLE.format(rows="| Mode | shared |\n")) is None
-    assert config.refused_row("# no table here\n\nprose.\n") is None
+    value, said = config.config_value(text, "Mode")
+    assert value is None and "`| Broad gate | bin/test -q | tee out.txt |`" in said
+    assert config.config_table(TABLE.format(rows="| Mode | shared |\n"))[1] == []
+    assert config.config_table("# no table here\n\nprose.\n") == ([], [])
     assert (
-        config.refused_row("| Item | Value |\n|---|---|\n| a | b |\n\nprose.\n") is None
+        config.config_table("| Item | Value |\n|---|---|\n| a | b |\n\nprose.\n")[1]
+        == []
     ), "a blank line is the table ending, not a row somebody wrote"
 
     gate = load_hook_module(GATE, "specseal_mode_gate_for_415")
     home = opt_in_shared(repo)
     write_config(home, text)
     answer = gate.undeclared(str(repo))
-    assert answer == str(home), (
-        'the hook\'s answer is the home or `""` and never a message; the '
-        f"row below the unparseable line is invisible to it, as before: {answer!r}"
+    assert answer == "", (
+        'the hook\'s answer is the home or `""` and never a message; a `Mode` '
+        f"row below a refused line is a refusal, which is silence: {answer!r}"
     )
 
 
@@ -603,23 +611,23 @@ def test_a_fenced_example_below_a_table_that_never_began_is_still_not_the_table(
 
 
 def test_a_fenced_pipe_line_is_not_a_line_somebody_wrote_as_a_row(config):
-    """A3. `refusal`'s walk, which is the one that reads ON past the stopping
-    line, treated any line beginning with a pipe as a line somebody wrote as
-    a row — so a line inside an example block came back as `refused`, and
-    `broad-gate` quotes a refused line back at the person as their own.
+    """A3. The walk that read ON past the stopping line treated any line
+    beginning with a pipe as a line somebody wrote as a row — so a line
+    inside an example block came back as refused, and `broad-gate` quotes a
+    refused line back at the person as their own.
 
-    All three fields, because the walk fills three: the fenced line is in
-    neither `refused` nor `below`, and it is not what stopped the reader.
+    Re-pinned by #871: the fence directly under the delimiter row ends the
+    table, as GFM ends it, so the live `Mode` row below the fence is not one
+    of the table's rows and the walk refuses it -- naming THAT line, never
+    the fenced one.
     """
-    refused, below, stopper = config.refusal(FENCED_REFUSAL)
-    assert refused == [], (
-        f"a line inside a code fence came back as a refused row:\n{refused}"
+    rows, refusals = config.config_table(FENCED_REFUSAL)
+    assert rows == [], rows
+    assert len(refusals) == 1, refusals
+    assert "tee out.txt" not in refusals[0], (
+        f"a line inside a code fence came back as a refused row:\n{refusals}"
     )
-    assert below == [], below
-    assert stopper is None, f"a fenced line stopped the reader:\n{stopper}"
-    assert config.config_rows(FENCED_REFUSAL) == [("Mode", "shared")], (
-        "the row outside the fence is what this table holds"
-    )
+    assert "ends above `| Mode | shared |`" in refusals[0], refusals
 
 
 def test_the_writer_and_the_reader_agree_about_which_row_is_the_row(tmp_path):
@@ -782,14 +790,16 @@ def test_a_file_whose_last_line_has_no_ending_gets_its_row_on_a_line(
 
 
 def test_the_fence_rule_answers_the_same_for_a_crlf_file(config, tmp_path):
-    """A7. `config_rows` and `refusal` walk `splitlines()` while
-    `table_span` walks `splitlines(keepends=True)` and rstrips each line, so
-    the shared rule is the one place the two spellings have to meet. Round 3
-    of #415 measured CRLF for the existing walks; this is the same
-    measurement for the answers this work item adds."""
+    """A7. The reader walks `splitlines()` while the writer splits with
+    `splitlines(keepends=True)`, so the shared rule is the one place the two
+    spellings have to meet. Round 3 of #415 measured CRLF for the existing
+    walks; this is the same measurement for the answers this work item adds,
+    and since #871 for the walker's refusal as well."""
     assert config.config_rows(crlf(FENCED_ABOVE)) == config.config_rows(FENCED_ABOVE)
     assert config.config_rows(crlf(FENCED_BELOW_A_TABLE_THAT_NEVER_BEGAN)) == []
-    assert config.refusal(crlf(FENCED_REFUSAL)) == ([], [], None)
+    assert config.config_table(crlf(FENCED_REFUSAL)) == config.config_table(
+        FENCED_REFUSAL
+    )
 
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
@@ -825,25 +835,35 @@ def test_what_counts_as_a_fence_is_commonmarks_rule_as_far_as_it_goes(config):
       - an unclosed fence runs to the end of the file, which lands on
         *nothing is declared* — the direction `hooks/config.py` already
         fails in.
+
+    **A blank line stands above the live header in each fixture since
+    #871**, because the walker refuses a header with a non-blank line
+    directly above it whatever that line is (the migration's shape, rows 1,
+    2 and 11 of the work item's measurement), and the decisions here are
+    about which line opens or closes a fence, not about that one. The first
+    assertion is that refusal, so the reason for the blank line is pinned
+    beside it.
     """
     live = "| Item | Value |\n|---|---|\n| Mode | shared |\n"
-    assert config.config_rows("    ```\n" + live) == [("Mode", "shared")], (
+    value, said = config.config_value("    ```\n" + live, "Mode")
+    assert value is None and "leave a blank line above the header" in said, said
+    assert config.config_rows("    ```\n\n" + live) == [("Mode", "shared")], (
         "four spaces is an indented code block and not a fence"
     )
-    assert config.config_rows("```` `x` ````\n" + live) == [("Mode", "shared")], (
+    assert config.config_rows("```` `x` ````\n\n" + live) == [("Mode", "shared")], (
         "a backtick fence's info string may not hold a backtick, so this "
         "line opens no fence"
     )
     assert config.config_rows(
-        "```\n| Item | Value |\n|---|---|\n| Mode | local |\n``````\n" + live
+        "```\n| Item | Value |\n|---|---|\n| Mode | local |\n``````\n\n" + live
     ) == [("Mode", "shared")], (
         "a closing run longer than the opening one closes the block"
     )
     assert config.config_rows(
-        "```\n~~~\n| Item | Value |\n|---|---|\n| Mode | local |\n```\n" + live
+        "```\n~~~\n| Item | Value |\n|---|---|\n| Mode | local |\n```\n\n" + live
     ) == [("Mode", "shared")], "a tilde run does not close a backtick fence"
     assert config.config_rows(
-        "````\n```\n| Item | Value |\n|---|---|\n| Mode | local |\n````\n" + live
+        "````\n```\n| Item | Value |\n|---|---|\n| Mode | local |\n````\n\n" + live
     ) == [("Mode", "shared")], (
         "a run SHORTER than the opening one does not close the block — this "
         "repository's own records wrap a fenced example in four backticks, "
@@ -883,48 +903,67 @@ QUOTED_DELIMITERS = shape_text("C1")
 LIVE = [("Mode", "shared"), ("Broad gate", "bin/test -q")]
 
 
+# The walker's sentence for a live row written under a comment that sits
+# inside the table: GFM ends the table at the comment, so the row below it is
+# not one of the table's rows (#871).
+UNDER_THE_COMMENT = "ends above `| Mode | shared |`, a row the walk never reaches"
+
+
 @pytest.mark.parametrize(
-    "name, rows",
+    "name, rows, stops",
     [
         # pins: delimiters quoted in code spans either side of the table hide
         # nothing (1790635413 round 1, 🟡 3)
-        ("C1", LIVE),
+        ("C1", LIVE, None),
         # red at base: a closed comment above the table quoting a fence line
         # opened a fence that ran to the end and hid the live table
-        ("C2", [("Mode", "shared")]),
+        ("C2", [("Mode", "shared")], None),
         # pins: a mid-line opener nobody closed switches off no fence below it
         # (1790635413 round 3, 🟡 1)
-        ("C3", [("Mode", "shared"), ("Broad gate", "bin/test")]),
+        ("C3", [("Mode", "shared"), ("Broad gate", "bin/test")], None),
         # pins: nor does one that an example's closer below seems to close
         # (1790635413 round 3, ⬜ 3)
-        ("C4", LIVE),
-        # red at base: a row parked in a comment inside the table, and a whole
-        # old table parked above the live one, and the first again in CRLF
-        ("C5", [("Mode", "shared"), ("Broad gate", "bin/test -q")]),
-        ("C6", LIVE),
-        ("C7", [("Mode", "shared"), ("Broad gate", "bin/test -q")]),
+        ("C4", LIVE, None),
+        # #871: a row parked in a comment inside the table ends the table
+        # there, as GFM ends it, so the live rows under the comment are
+        # refused rather than read; the same in CRLF. A whole old table
+        # parked above the live one still leaves the live one read.
+        ("C5", [], UNDER_THE_COMMENT),
+        ("C6", LIVE, None),
+        ("C7", [], UNDER_THE_COMMENT),
         # red at base: a malformed pipe-line inside a comment is not the
-        # person's refused row
-        ("C8", [("Mode", "shared")]),
-        # pins: a `<!--` nobody closed hides nothing, above the table or in it
-        ("C9a", [("Mode", "shared")]),
-        ("C9b", LIVE),
+        # person's refused row -- the walk names the live row under it
+        ("C8", [], UNDER_THE_COMMENT),
+        # #871: a `<!--` nobody closed still hides nothing from the fence
+        # rule, but GFM renders no table under or after it, so the walk
+        # refuses where the stop rule read
+        ("C9a", [], "inside an HTML block opened above it and never closed"),
+        ("C9b", [], UNDER_THE_COMMENT),
         # pins: #429's fenced example above the live table
-        ("C12", [("Mode", "shared")]),
-        # pins: a fence nobody closed still hides everything below it
-        ("C14", []),
+        ("C12", [("Mode", "shared")], None),
+        # pins: a fence nobody closed still hides everything below it, so the
+        # file holds no table and declares nothing
+        ("C14", [], None),
     ],
-    ids=lambda value: value if isinstance(value, str) else "",
+    ids=lambda value: value if isinstance(value, str) and value[:1] == "C" else "",
 )
-def test_the_config_shapes_read_as_the_frame_expects(config, name, rows):
-    """S5. Every config shape the frame names, through `config_rows` and
-    `refusal`. A row inside a comment that closes is not an answer somebody
-    gave, which is the direction this module fails in; a construct that never
-    closes is not one, so an unclosed comment hides nothing, and an unclosed
-    fence keeps hiding what it hid, because that was this reader's reading."""
+def test_the_config_shapes_read_as_the_frame_expects(config, name, rows, stops):
+    """S5 of #667, re-pinned to the walker by #871. Every config shape the
+    frame names, through `config_table`. A row inside a comment that closes
+    is not an answer somebody gave, which is the direction this module fails
+    in, and a fenced line is no row either. Where GFM ends the table at a
+    comment or shows no table at all, the walk refuses, naming the live row
+    it did not read -- never the parked one -- rather than reading on below
+    it as the stop rule did; a refused item is a refusal, never absent."""
     text = shape_text(name)
+    found, refusals = config.config_table(text)
     assert config.config_rows(text) == rows, config.config_rows(text)
-    assert config.refusal(text) == ([], [], None), config.refusal(text)
+    if stops is None:
+        assert refusals == [], refusals
+    else:
+        assert len(refusals) == 1 and stops in refusals[0], refusals
+        assert "old -q" not in refusals[0], refusals
+    assert [(item, value) for _i, item, value in found] == rows
 
 
 def test_delimiters_quoted_in_code_spans_hide_nothing(config):
@@ -939,16 +978,27 @@ def test_delimiters_quoted_in_code_spans_hide_nothing(config):
 def test_a_break_commonmark_does_not_honour_hides_no_config_row(config, name):
     """#667 round 1, 🟡 1: the routing reader's shape in `config.md`. A
     `<!--` after a character `str.splitlines` breaks at and CommonMark does
-    not is mid-line to a renderer, so it hides no row, and the base read
-    `Mode shared`."""
+    not is mid-line to a renderer, so it hides no line, and the base read
+    `Mode shared`.
+
+    **Re-pinned by #871 to the walker's answer, which is a refusal.** The
+    `-->` under the row is a row GFM shows, so the table is one the walk
+    cannot read whole, and the walk reads the pieces `str.splitlines` cuts,
+    where `<!--` begins one: it refuses at the header, naming an HTML block
+    GFM does not see. The direction is the refusing one and no row is read
+    that GFM does not show; the sentence's cause is the walker's limit on
+    these eight characters, named in the work item's `overview.md`."""
     from block_shapes import BREAKS, OPEN
 
     text = (
         f"A note{BREAKS[name]}{OPEN}\n\n| Item | Value |\n|---|---|\n"
         "| Mode | shared |\n-->\n"
     )
-    assert config.config_rows(text) == [("Mode", "shared")]
-    assert config.refusal(text) == ([], [], None)
+    lines = text.splitlines()
+    assert [i for i, _line in config.unfenced(lines, text)] == list(range(len(lines)))
+    assert config.config_rows(text) == []
+    value, said = config.config_value(text, "Mode")
+    assert value is None and said is not None, said
 
 
 @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
@@ -1027,12 +1077,20 @@ def test_the_writer_reads_where_commonmark_breaks(config, tmp_path, name):
 
 def test_a_commented_row_is_not_a_row_in_either_line_ending(config):
     """S5, C5 to C7, named as 1790635413 named them. The rows parked in a
-    comment are gone from every walk, and the live rows under them arrive."""
+    comment are gone from every walk. Since #871 the live rows under a
+    comment that sits inside the table do not arrive either: GFM ends the
+    table at the comment, so the walk refuses them, naming the first, and an
+    item among them is a refusal and never an absent row. Under a whole old
+    table parked above the live one, the live table arrives."""
     for text in (COMMENTED_OLD_ROW, COMMENTED_OLD_TABLE, crlf(COMMENTED_OLD_ROW)):
-        assert config.config_rows(text) == LIVE, text
         assert all(
             "old -q" not in line for _index, line in config.unfenced(text.splitlines())
         ), text
+    assert config.config_rows(COMMENTED_OLD_TABLE) == LIVE
+    for text in (COMMENTED_OLD_ROW, crlf(COMMENTED_OLD_ROW)):
+        assert config.config_rows(text) == [], text
+        value, said = config.config_value(text, "Broad gate")
+        assert value is None and UNDER_THE_COMMENT in said, said
 
 
 def test_a_fence_line_inside_a_closed_comment_names_no_unclosed_fence(config, tmp_path):
@@ -1103,6 +1161,85 @@ def test_the_writer_leaves_a_commented_row_alone(config, tmp_path):
         f"the writer rewrote the commented row, or more than one line:\n{after}"
     )
     assert config.declared_mode(str(home)) == ("mode", "shared")
+
+
+# --- #871: the config table is read by the walker cmark-gfm holds ----------
+#
+# The scenario ids are `seal/specs/1791852616-the-config-table-has-its-own-
+# grammar-beside-the-gfm-walker/spec.md`'s, and the shape numbers are its
+# §*Data & interfaces* table's; the texts are `tests/config_shapes.py`'s.
+
+
+@pytest.mark.parametrize("number", sorted(config_shapes.SHAPES))
+def test_every_config_reader_is_one_walk_over_the_sixteen_shapes(config, number):
+    """S1. `config_rows` is read first, because it is the name every caller
+    spells and the one the stop rule answered: seen red against the stop
+    rule on ten of the sixteen shapes (1-5, 9, 11-13, 16). On 6, 7, 8 and 14
+    the stop rule returned the same rows above the line and dropped every
+    row below it in silence, which is what the refusal assertion holds; 10
+    and 15 the two readers read alike. Then the walk itself: `config_table`
+    is `gfm_table` over the config header, `indexed_config_rows` is its
+    rows, every index names the line the row is written on, and the refusal
+    names where the walk stopped."""
+    text = config_shapes.SHAPES[number]
+    assert config.config_rows(text) == config_shapes.READ[number]
+    rows, refusals = config.config_table(text)
+    walked, said = config.gfm_table(text, config.CONFIG_TABLE)
+    assert rows == [(line - 1, item, value) for line, (item, value) in walked]
+    assert refusals == said
+    assert config.indexed_config_rows(text) == rows
+    lines = text.splitlines()
+    assert all(
+        config.table_cells(lines[index]) == (item, value) for index, item, value in rows
+    ), rows
+    stops = config_shapes.STOPS[number]
+    if stops is None:
+        assert refusals == [], refusals
+    else:
+        assert len(refusals) == 1 and stops in refusals[0], refusals
+
+
+def test_a_refusal_is_per_item_and_never_an_absent_row(config, repo):
+    """S2, one arm per assertion, over shapes 1, 5, 7 and 13. A row the walk
+    read before it stopped is a value; an item it did not read is the
+    walker's sentence; a doubled row is #867's sentence; and `(None, None)`
+    is only an unrefused table with no such row, or no table at all. Seen
+    red against the stop rule: shape 7's `Mode` read `shared`, a row GitHub
+    shows truncated, and shape 13's read `shared` past a line GitHub shows
+    as a row of its own."""
+    shapes, stops = config_shapes.SHAPES, config_shapes.STOPS
+    assert config.config_value(shapes[5], "Mode") == ("shared", None)
+    assert config.config_value(shapes[7], "Record language") == ("English", None)
+    for number, item in ((1, "Mode"), (5, "Broad gate"), (7, "Mode"), (13, "Mode")):
+        value, said = config.config_value(shapes[number], item)
+        assert value is None and said is not None, (number, item, value)
+        assert stops[number] in said, (number, said)
+    doubled = TABLE.format(rows="| Mode | shared |\n| Mode | local |\n")
+    assert config.config_value(doubled, "Mode") == (
+        None,
+        "`Mode` appears 2 times — one value",
+    )
+    unrefused = TABLE.format(rows="| Mode | shared |\n")
+    assert config.config_value(unrefused, "Broad gate") == (None, None)
+    assert config.config_value("a file of prose\n", "Mode") == (None, None)
+    home = opt_in_shared(repo)
+    write_config(home, shapes[7])
+    kind, said = config.declared_mode(str(home))
+    assert kind == "refused" and stops[7] in said, (kind, said)
+
+
+@pytest.mark.parametrize("number", [1, 5, 7])
+def test_a_table_the_walker_refuses_is_silence_from_the_mode_gate(repo, number):
+    """S3. The mode gate reads a refusal as an answer it cannot act on and
+    says nothing, on the first call and the second, as it does for a file
+    that will not read (#867); the prompt budget of a refused table is zero.
+    Shape 5's `Mode` row is read, so the gate is quiet because the mode is
+    declared. Seen red against the stop rule on shape 7: the row under the
+    bare pipe was not read, the file read as declaring nothing, and the gate
+    denied."""
+    write_config(opt_in_shared(repo), config_shapes.SHAPES[number])
+    seen = [decision_of(run_hook(GATE, payload("ls", repo))) for _ in range(2)]
+    assert seen == ["silent", "silent"], seen
 
 
 # --- S7-S10: the gate ------------------------------------------------------
