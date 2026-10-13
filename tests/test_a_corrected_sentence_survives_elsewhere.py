@@ -1038,16 +1038,18 @@ def durations_file(*ids):
     return "{\n" + rows + "\n}"
 
 
-def test_keys_a_durations_refresh_removed_are_not_corrections(tmp_path):
+@pytest.mark.parametrize("where", [".test_durations", "pkg/.test_durations"])
+def test_keys_a_durations_refresh_removed_are_not_corrections(tmp_path, where):
     """The range half. A refresh rewrites `.test_durations` whole, and every
     key it drops read as a sentence somebody corrected, hunted across the
-    tree: 753 places on #874's branch. Seen red before `generated_data`."""
+    tree: 753 places on #874's branch. Seen red before `generated_data`. A
+    package's own durations file, one directory down, is the same file."""
     repo = tmp_path / "probe"
     os.makedirs(repo, exist_ok=True)
     build(
         repo,
         {
-            ".test_durations": durations_file(FOUND, "another case"),
+            where: durations_file(FOUND, "another case"),
             "notes.md": f"# notes\n\nFirst statement. {FOUND}\n",
             "guide.md": f"# guide\n\nSecond statement. {FOUND}\n",
             "filler.md": "# filler\n\nUnrelated prose that shares nothing.\n",
@@ -1056,7 +1058,7 @@ def test_keys_a_durations_refresh_removed_are_not_corrections(tmp_path):
     )
     head = build(
         repo,
-        {".test_durations": durations_file("another case")},
+        {where: durations_file("another case")},
         "the durations file refreshed, and nothing else",
     )
     code, text = run("--range", f"{head}^..{head}", "--root", str(repo))
