@@ -22,8 +22,8 @@
   The commits a two-dot range lists and does not own are not read, and the
   report now names them on a `not read` line with the advice to write
   `A...B` for a whole branch. So `origin/<base>..HEAD` on a branch that has
-  merged its base says which of the branch's commits it left out, rather
-  than reporting a clean range.
+  merged its base still reports what it read, and no longer in silence: it
+  says which of the branch's commits it left out.
 
 - **`survivor-check` refuses a two-dot range whose start is not an ancestor
   of its end** (#873). Such a range owns no commit, and the sweep used to
