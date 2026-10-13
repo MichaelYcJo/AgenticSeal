@@ -7,10 +7,10 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #915 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `e3ae4cb685094d4aee755627f6ae7d9d92c15def..8d636bd164cca6cb7b657040af3410df943185ea`, 3 commits |
+| Contract changes | removes_section → round-1-report.md, round-1.md, removal_findings |
+| New units | strayed (depth 1); STANDING_ROW (depth 1); GONE_ROW (depth 1); test_a_table_row_under_a_sub_heading_of_removes_is_refused (depth 1); test_the_marker_exempts_no_line_of_the_removes_section (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (a table row under a sub-heading of `## Removes` is read by nobody as a removal) and 🟡 2 (a marked line under `## Removes` is neither refused nor read) |
 | Loses a record or crashes | no |
@@ -25,8 +25,8 @@ Round 1 of #905, target 43761b3a against `origin/release/v0.21.1` at 321e9de1, o
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | the section now ends at any heading, so a table row under a sub-heading of `## Removes` is read by the name half alone and a row naming a unit that still stands passes; at the base it read `STANDING`; required, a table under a sub-heading reads as an empty section | `skills/evidence-check/scripts/evidence_check.py:6053` | open | probe at both SHAs (executed); the M1 amendment's stated cost names prose only |
-| 🟡 2 | a line carrying the marker under `## Removes` is dropped by `claim_lines` before `removes_section` reads it: a marked bullet passes and a marked row naming a standing unit is never read, so "any other line in the section is `REFUSED`" and the four `unknown refused` words are false for that input | `skills/evidence-check/scripts/evidence_check.py:6051` | open | probe at both SHAs (executed), same result, so older than the branch; the branch's registry sentence and template comment make the claim and teach the marker |
+| 🟡 1 | the section now ends at any heading, so a table row under a sub-heading of `## Removes` is read by the name half alone and a row naming a unit that still stands passes; at the base it read `STANDING`; required, a table under a sub-heading reads as an empty section | `skills/evidence-check/scripts/evidence_check.py:6053` | **fixed** `d93f700b` | fixed at d93f700b; probe at both SHAs (executed); the M1 amendment's stated cost names prose only |
+| 🟡 2 | a line carrying the marker under `## Removes` is dropped by `claim_lines` before `removes_section` reads it: a marked bullet passes and a marked row naming a standing unit is never read, so "any other line in the section is `REFUSED`" and the four `unknown refused` words are false for that input | `skills/evidence-check/scripts/evidence_check.py:6051` | **fixed** `d93f700b` | fixed at d93f700b; probe at both SHAs (executed), same result, so older than the branch; the branch's registry sentence and template comment make the claim and teach the marker |
 | ⬜ 3 | the off-shape refusal tells a wrapped `nothing` reason to move under a sub-heading "after the table" where there is no table, and nests the quoted line's backticks | `skills/evidence-check/scripts/evidence_check.py:6127` | open | read; behaviour right, the sentence reads badly |
 | 🟢 | S1 to S3 and the M1 case hold: each of the 11 parametrised cases fails against the base reader and passes at the head, and S2's case passes at both by design | `tests/test_a_record_states_what_the_tree_has.py` | confirmed | the head's test module run against the base code: 11 failed, 1 passed; at the head 142 passed (executed) |
 | 🟢 | S5 and S6: the stale sentences are gone and the registry names one reader | `docs/the-reader-registry.md:154` | confirmed | both `git grep` checks exit 1; `bin/fold-check --root .` exit 0 (executed) |
