@@ -49,6 +49,7 @@ LINKERS = (
     os.path.join(ROOT, "docs", "round-record-spec.md"),
     os.path.join(SCRIPTS, "chain_check.py"),
     os.path.join(SCRIPTS, "round_record.py"),
+    os.path.join(SCRIPTS, "survivor_check.py"),
 )
 
 
