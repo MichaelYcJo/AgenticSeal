@@ -36,6 +36,30 @@ line at its own pull request. The ceiling still holds there.
 **Kind.** A `gate` row fails the run; a `report` row is measured and printed
 beside the gates and never fails it.
 
+**The families.** A budget's name is `<family>` or `<family>:<subject>`:
+
+  preload:<agent>   bytes of `agents/<agent>.md` and each `SKILL.md` its
+                    `skills:` list names, never the `CLAUDE.md` pair
+  preload:claude-md bytes of `CLAUDE.md`
+  suite-seconds     seconds summed over `.test_durations`, rounded
+  slow-file         seconds of one test file in `.test_durations`
+  docs-history      history lines of one `docs/*.md` file
+
+The last two are measured per file. The family's own row in the Budgets
+table gives the unit, the slack and the kind, and its ceiling is what every
+file its table does not list is held to: `## Slow test files` (`| File |
+Seconds ceiling |`) and `## Docs history lines` (`| File | Lines ceiling |`)
+list the files held to a ceiling of their own. So an unlisted test file over
+the threshold fails, and listing it is a raise from the threshold that needs
+its line, as is a row the table drops whose ceiling was under it. A docs
+line is a **history line** when it is not a rule line, not blank, not hidden
+in a fence or a comment and not a heading, and matches `#NN`, `round N`, a
+date or `measured`. A **rule line** is in a block from a line opening with
+`**` to the next `Enforced by:` line, or to the end of its paragraph where no
+such line closes it first. It errs both ways: a rule's grounds citing an
+issue outside its paragraph count as history, and a narrative line with none
+of the marks does not.
+
 **The summary** is a table, one line per budget — measured, ceiling, headroom,
 kind, verdict — and the raises the ratchet read. It goes to
 `$GITHUB_STEP_SUMMARY` where the runner sets one and to stdout otherwise, and
@@ -45,15 +69,19 @@ either way.
 Exit codes: **0** every gate row holds · **1** a gate row is over its ceiling,
 under its band, or raised or removed with no line for it, each named · **2**
 nothing was compared: `seal/budgets.md` is missing or a row of it cannot be
-read, a row names a budget no measurer here reads, the baseline does not
-resolve, `--pr-body-env` names a variable that is not set, or a sibling module
-this reads through is not beside it. Closed, never silent.
+read, a row names a budget no measurer here reads or a file the tree does
+not have, a family row and its file table are not both there, `CLAUDE.md` or
+`.test_durations` is missing or unreadable, the baseline does not resolve,
+`--pr-body-env` names a variable that is not set, or a sibling module this
+reads through is not beside it. Closed, never silent.
 """
 
 import argparse
 import collections
 import fractions
 import importlib.util
+import json
+import math
 import os
 import re
 import subprocess
@@ -70,6 +98,19 @@ GATE = "gate"
 RELEASE_BRANCH = "main"
 # What the summary says of a raise or a removal the body declares nothing for.
 UNDECLARED = "**not declared** — the pull request body carries no line for it"
+
+# The families measured per file: the heading and header of each one's table,
+# and the unit its family row must state.
+FILE_TABLES = {
+    "slow-file": ("Slow test files", ("File", "Seconds ceiling"), "seconds"),
+    "docs-history": ("Docs history lines", ("File", "Lines ceiling"), "lines"),
+}
+CLAUDE_MD = "claude-md"
+DURATIONS = ".test_durations"
+DOCS = "docs"
+HISTORY = re.compile(r"#\d{2,}|round \d|20\d\d-\d\d-\d\d|[Mm]easured")
+RULE_OPENER = "**"
+RULE_CLOSER = "Enforced by:"
 
 # The modules this reads through, each the one reader of its input: the table
 # walker every `seal/` table is read by (#871), the meter the preload budgets
@@ -154,10 +195,13 @@ def parse_slack(cell, unit):
 
 def parse_budgets(text, where):
     """Every row of the `| Budget | Unit | Ceiling | Slack | Kind |` table in
-    `text`, or Unreadable naming the row and `where` it stands.
+    `text`, then every file row of the per-file tables as `<family>:<file>`
+    with its family's unit, slack and kind, or Unreadable naming the row and
+    `where` it stands.
 
-    Reads: guess — a person's markdown table, through `hooks/config.py#gfm_table`; unknown refused"""
-    rows, refusals = sibling("config").gfm_table(text, HEADER)
+    Reads: guess — a person's markdown tables, through `hooks/config.py#gfm_table`; unknown refused"""
+    config = sibling("config")
+    rows, refusals = config.gfm_table(text, HEADER)
     if refusals:
         raise Unreadable(f"{where} {refusals[0]}")
     out, seen = [], set()
@@ -181,6 +225,40 @@ def parse_budgets(text, where):
         if kind not in KINDS:
             raise Unreadable(f"{at}: {name}'s kind `{kind}` is neither gate nor report")
         out.append(Row(line, name, unit, int(ceiling), parsed, kind))
+    families = {row.name: row for row in out}
+    for family, (title, header, _unit) in FILE_TABLES.items():
+        listed, refused = config.gfm_table(text, header)
+        written = "`| " + " | ".join(header) + " |`"
+        absent = bool(refused) and refused[0].startswith("holds no ")
+        if family not in families:
+            if not absent:
+                raise Unreadable(
+                    f"{where} has a {written} table and no `{family}` row in its "
+                    "Budgets table to give its unit, slack and kind"
+                )
+            continue
+        if absent:
+            raise Unreadable(
+                f"{where} has a `{family}` row and no `## {title}` table "
+                f"{written} listing its files"
+            )
+        if refused:
+            raise Unreadable(f"{where} {refused[0]}")
+        head = families[family]
+        for line, cells in listed:
+            path, ceiling = (c.strip().strip("`") for c in cells)
+            name, at = f"{family}:{path}", f"{where}, line {line}"
+            if not NAME.fullmatch(name):
+                raise Unreadable(f"{at}: `{path}` is no file name")
+            if name in seen:
+                raise Unreadable(f"{at}: `{path}` is written twice")
+            seen.add(name)
+            if not CEILING.fullmatch(ceiling):
+                raise Unreadable(
+                    f"{at}: {path}'s ceiling `{ceiling}` is not a whole number "
+                    "written in digits alone"
+                )
+            out.append(Row(line, name, head.unit, int(ceiling), head.slack, head.kind))
     return out
 
 
@@ -234,7 +312,15 @@ def measure_preload(root, agent):
     names, the agent's own share of `payload_meter`'s rows — never the
     `CLAUDE.md` pair, which is the harness's and half of it is not in the tree.
 
+    `preload:claude-md` is the one file every prefix carries, the
+    orchestrator's included: `CLAUDE.md` at the root, by its bytes.
+
     Reads: owned — an agent definition's frontmatter and the files it names, through `payload_meter`; unknown refused"""
+    if agent == CLAUDE_MD:
+        path = os.path.join(root, "CLAUDE.md")
+        if not os.path.isfile(path):
+            raise Unreadable(f"preload:{CLAUDE_MD}: CLAUDE.md is not in the tree")
+        return os.path.getsize(path)
     meter = sibling("payload_meter")
     found = meter.agents_in(root, (agent,))
     if agent not in found:
@@ -252,9 +338,123 @@ def measure_preload(root, agent):
     return sum(row["bytes"] for row in own)
 
 
+def seconds(value):
+    """Seconds rounded to the nearest whole one, a half up.
+
+    Reads: nothing — a number from the number handed to it"""
+    return math.floor(value + 0.5)
+
+
+def durations(root):
+    """`{case id: seconds}` from `.test_durations`, or Unreadable.
+
+    Reads: observed — the JSON the suite's durations plugin wrote; unknown refused"""
+    path = os.path.join(root, DURATIONS)
+    if not os.path.isfile(path):
+        raise Unreadable(
+            f"{DURATIONS} is not in the tree, and the seconds budgets read it"
+        )
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except ValueError:
+        raise Unreadable(f"{DURATIONS} is not JSON") from None
+    if not isinstance(data, dict) or not all(
+        isinstance(v, (int, float)) and not isinstance(v, bool) for v in data.values()
+    ):
+        raise Unreadable(f"{DURATIONS} is not an object of case ids to seconds")
+    return data
+
+
+def measure_suite(root, _subject):
+    """Seconds summed over every case `.test_durations` prices.
+
+    Reads: observed — `.test_durations`, through `durations`; unknown refused"""
+    return seconds(sum(durations(root).values()))
+
+
+def rule_lines(lines):
+    """The indexes of LINES inside a rule block: from a line opening with
+    `**` to the next `Enforced by:` line, or to the end of its paragraph
+    where none closes it first.
+
+    Reads: guess — the lines of a person's markdown its caller hands it; unknown passed"""
+    out, at = set(), 0
+    while at < len(lines):
+        if not lines[at].startswith(RULE_OPENER):
+            at += 1
+            continue
+        end = at
+        while end < len(lines):
+            if lines[end].startswith(RULE_CLOSER):
+                end += 1
+                break
+            if not lines[end].strip():
+                break
+            end += 1
+        out.update(range(at, end))
+        at = end
+    return out
+
+
+def classify(text):
+    """`(history line numbers, rule line count)` for one markdown document.
+
+    Reads: guess — a person's markdown, through `hooks/config.py#unfenced` and `unverified_check.py#heading_level`; unknown passed"""
+    lines = text.splitlines()
+    shown = {index for index, _ in sibling("config").unfenced(lines, text)}
+    heading_level = sibling("unverified_check").heading_level
+    rules = rule_lines(lines)
+    history, rule = [], 0
+    for index, line in enumerate(lines):
+        if index not in shown or not line.strip() or heading_level(line) is not None:
+            continue
+        if index in rules:
+            rule += 1
+        elif HISTORY.search(line):
+            history.append(index + 1)
+    return history, rule
+
+
+def docs_lines(root):
+    """`{docs/<file>.md: (history line numbers, rule line count)}` for every
+    markdown file at the top of `docs/`.
+
+    Reads: guess — the documents a person writes, through `classify`; unknown passed"""
+    directory = os.path.join(root, DOCS)
+    out = {}
+    names = sorted(os.listdir(directory)) if os.path.isdir(directory) else []
+    for name in names:
+        path = os.path.join(directory, name)
+        if name.endswith(".md") and os.path.isfile(path):
+            with open(path, encoding="utf-8", errors="replace") as handle:
+                out[f"{DOCS}/{name}"] = classify(handle.read())
+    return out
+
+
+def file_values(root, family, cache):
+    """`{file: measured}` for a per-file family, measured once per run and
+    kept in `cache`, with the docs classification under `cache["docs"]`.
+
+    Reads: guess — `.test_durations` or the documents, through `durations` and `docs_lines`; unknown refused"""
+    if family not in cache:
+        if family == "slow-file":
+            per_file = collections.defaultdict(float)
+            for case, value in durations(root).items():
+                per_file[case.split("::", 1)[0]] += value
+            cache[family] = {path: seconds(v) for path, v in per_file.items()}
+        else:
+            cache["docs"] = docs_lines(root)
+            cache[family] = {path: len(h) for path, (h, _) in cache["docs"].items()}
+    return cache[family]
+
+
 # A budget's name is `<family>` or `<family>:<subject>`; the family picks the
-# measurer and the unit the row must state.
-MEASURERS = {"preload": (measure_preload, "bytes")}
+# measurer, the unit the row must state, and whether a subject is named.
+MEASURERS = {
+    "preload": (measure_preload, "bytes", True),
+    "suite-seconds": (measure_suite, "seconds", False),
+}
 
 
 def measure(root, row):
@@ -262,12 +462,13 @@ def measure(root, row):
 
     Reads: owned — the row's family, in the vocabulary `MEASURERS` defines; unknown refused"""
     family, _, subject = row.name.partition(":")
-    if family not in MEASURERS or not subject:
+    if family not in MEASURERS or bool(subject) != MEASURERS[family][2]:
         raise Unreadable(
             f"{row.name}: no measurer here reads a budget of that name — the "
-            f"families are {', '.join(f'`{f}:<subject>`' for f in MEASURERS)}"
+            "families are `preload:<agent>`, `preload:claude-md`, "
+            "`suite-seconds`, `slow-file` and `docs-history`"
         )
-    measurer, unit = MEASURERS[family]
+    measurer, unit, _ = MEASURERS[family]
     if row.unit != unit:
         raise Unreadable(
             f"{row.name}: the unit is `{row.unit}`, and {family} is measured in {unit}"
@@ -284,9 +485,19 @@ def top_of_band(measured, slack):
     return int(measured * (1 + slack.amount))
 
 
-def band(row, measured):
+def at_lines(lines):
+    """The sentence naming where a document's history lines stand, or "".
+
+    Reads: nothing — formats the line numbers handed to it"""
+    if not lines:
+        return ""
+    return f". Its history lines are at lines {', '.join(str(n) for n in lines)}"
+
+
+def band(row, measured, lines=()):
     """`Result` for one row: what is wrong with its ceiling against
-    `measured`, from both sides.
+    `measured`, from both sides. `lines` are a document's history lines, named
+    where it is over.
 
     Reads: nothing — compares the numbers handed to it"""
     top = top_of_band(measured, row.slack)
@@ -294,9 +505,9 @@ def band(row, measured):
     if measured > row.ceiling:
         problems.append(
             f"measured {measured:,} {row.unit} is over the ceiling {row.ceiling:,} "
-            f"by {measured - row.ceiling:,}. Bring it back under, or raise the "
-            f"ceiling in {BUDGETS_GIT} and write `Budget raised: {row.name} "
-            f"{row.ceiling} -> <new>: <reason>` in the pull request body"
+            f"by {measured - row.ceiling:,}{at_lines(lines)}. Bring it back under, "
+            f"or raise the ceiling in {BUDGETS_GIT} and write `Budget raised: "
+            f"{row.name} {row.ceiling} -> <new>: <reason>` in the pull request body"
         )
     elif row.ceiling > top:
         problems.append(
@@ -306,6 +517,25 @@ def band(row, measured):
             f"anything from {measured} to {top} holds"
         )
     return Result(row, measured, top, problems)
+
+
+def unlisted_band(row, unlisted, history):
+    """`Result` for a per-file family's own row: each file its table does not
+    list, held to the row's ceiling, and named where it is over. The row has
+    no lower band, because its ceiling is a threshold rather than a reading.
+
+    Reads: nothing — compares the numbers handed to it"""
+    title = FILE_TABLES[row.name][0]
+    problems = [
+        f"{path} is not listed and measures {value:,} {row.unit}, over the "
+        f"{row.ceiling:,} every file `## {title}` does not list is held to"
+        f"{at_lines(history.get(path, ()))}. Bring it under, or list it there and "
+        f"write `Budget raised: {row.name}:{path} {row.ceiling} -> <new>: "
+        "<reason>` in the pull request body"
+        for path, value in sorted(unlisted.items())
+        if value > row.ceiling
+    ]
+    return Result(row, max(unlisted.values(), default=0), None, problems)
 
 
 def declarations(body):
@@ -326,6 +556,20 @@ def declarations(body):
     return raised, removed
 
 
+def effective(rows, others):
+    """`{name: Row}` for ROWS, with every file row OTHERS has and ROWS lacks
+    held at its family's ceiling in ROWS, which is what an unlisted file is
+    held to there.
+
+    Reads: nothing — rows its caller read"""
+    out = {row.name: row for row in rows}
+    for row in others:
+        family, _, subject = row.name.partition(":")
+        if subject and family in FILE_TABLES and family in out and row.name not in out:
+            out[row.name] = out[family]._replace(name=row.name, line=None)
+    return out
+
+
 def ratchet(base_rows, head_rows, body, release):
     """`(problems, moves)`: each gate row raised or removed since the base
     with no line for it, and every raise or removal read, as `(name, what,
@@ -333,12 +577,18 @@ def ratchet(base_rows, head_rows, body, release):
 
     Reads: guess — a pull request body its caller handed it, through `declarations`; unknown refused"""
     raised, removed = declarations(body)
-    head = {row.name: row for row in head_rows}
+    base = effective(base_rows, head_rows)
+    head = effective(head_rows, base_rows)
     problems, moves = [], []
-    for old in base_rows:
+    for old in base.values():
         if old.kind != GATE:
             continue
         new = head.get(old.name)
+        family, _, subject = old.name.partition(":")
+        if new is None and subject and family in FILE_TABLES:
+            # A file row whose family row is gone: the family's removal is
+            # the one line it needs.
+            continue
         if new is not None and new.kind == GATE:
             if new.ceiling <= old.ceiling:
                 continue
@@ -376,8 +626,9 @@ def ratchet(base_rows, head_rows, body, release):
     return problems, moves
 
 
-def render(results, moves, against):
-    """The summary as markdown: one line per budget, then the raises read.
+def render(results, moves, against, docs=None):
+    """The summary as markdown: one line per budget, the raises read, and
+    where the docs were classified, each document's history and rule lines.
 
     Reads: nothing — formats the results handed to it"""
     lines = [
@@ -393,13 +644,30 @@ def render(results, moves, against):
         room = row.ceiling - result.measured
         share = f"{room / row.ceiling:.1%}" if row.ceiling else "—"
         verdict = "holds" if not result.problems else "over" if room < 0 else "lower it"
+        largest = " (largest unlisted)" if row.name in FILE_TABLES else ""
         lines.append(
-            f"| `{row.name}` | {result.measured:,} {row.unit} | {row.ceiling:,} | "
-            f"{room:,} ({share}) | {row.kind} | {verdict} |"
+            f"| `{row.name}` | {result.measured:,} {row.unit}{largest} | "
+            f"{row.ceiling:,} | {room:,} ({share}) | {row.kind} | {verdict} |"
         )
     if moves:
         lines += ["", "Ceilings moved since the base:", ""]
         lines += [f"- `{name}` {what}: {reason}" for name, what, reason in moves]
+    if docs:
+        history = sum(len(h) for h, _ in docs.values())
+        rule = sum(r for _, r in docs.values())
+        lines += [
+            "",
+            "History and rule lines per document — the first is gated, the "
+            "ratio is read:",
+            "",
+        ]
+        lines += [
+            f"- `{path}`: {len(h)} history · {r} rule" for path, (h, r) in docs.items()
+        ]
+        ratio = f"{rule / history:.1f}" if history else "—"
+        lines.append(
+            f"- all {len(docs)}: {history} history · {rule} rule · {ratio} rule per history"
+        )
     return "\n".join(lines) + "\n"
 
 
@@ -420,10 +688,11 @@ def check(root, baseline=None, body="", release=False):
 
     Reads: guess — `seal/budgets.md` and the body its caller handed it, through the units above; unknown refused"""
     head = budgets_here(root)
-    results, refusals = [], []
+    names = {row.name for row in head}
+    results, refusals, cache = [], [], {}
     for row in head:
         try:
-            results.append(band(row, measure(root, row)))
+            results.append(measured_row(root, row, names, cache))
         except Unreadable as error:
             refusals.append(str(error))
     problems = [
@@ -434,7 +703,39 @@ def check(root, baseline=None, body="", release=False):
         against, base_rows = budgets_at(root, baseline)
         found, moves = ratchet(base_rows, head, body, release)
         problems += found
-    return problems, refusals, render(results, moves, against)
+    return problems, refusals, render(results, moves, against, cache.get("docs"))
+
+
+def measured_row(root, row, names, cache):
+    """`Result` for one row of the tree at `root`: a per-file family's own
+    row holds the files `names` does not list, a file row its file, and any
+    other row its measurer's reading.
+
+    Reads: guess — the tree, through `file_values` and `measure`; unknown refused"""
+    family, _, subject = row.name.partition(":")
+    if family not in FILE_TABLES:
+        return band(row, measure(root, row))
+    unit = FILE_TABLES[family][2]
+    if row.unit != unit:
+        raise Unreadable(
+            f"{row.name}: the unit is `{row.unit}`, and {family} is measured in {unit}"
+        )
+    values = file_values(root, family, cache)
+    history = {path: h for path, (h, _) in cache.get("docs", {}).items()}
+    if not subject:
+        unlisted = {
+            path: value
+            for path, value in values.items()
+            if f"{family}:{path}" not in names
+        }
+        return unlisted_band(row, unlisted, history)
+    if subject not in values:
+        source = DURATIONS if family == "slow-file" else f"{DOCS}/"
+        raise Unreadable(
+            f"{row.name}: {subject} is not in {source}, so its row holds nothing "
+            "— remove it"
+        )
+    return band(row, values[subject], history.get(subject, ()))
 
 
 def main(argv=None, env=None):
