@@ -48,6 +48,10 @@ HEADERS = {
     "signer": ("Signer",),
     "pact change": ("Clause", "Row", "Code", "Checked"),
     "pact review": ("Signer", "Change", "Verdict"),
+    # `seal/config.md`'s table, read by this walker since #871 through
+    # `hooks/config.py#config_table`, which hands it this tuple and nothing
+    # else (`test_the_config_pass_is_the_config_readers_header`).
+    "config": ("Item", "Value"),
 }
 
 # CommonMark 0.29 §4.6, HTML block start condition 6: the block-level tag
@@ -584,7 +588,20 @@ def test_the_corpus_is_counted():
     generating shapes is a red case rather than a smaller number nobody
     reads."""
     sizes = {which: len(corpus(header)) for which, header in HEADERS.items()}
-    assert sizes == {"signer": 5454, "pact change": 5455, "pact review": 5455}, sizes
+    assert sizes == {
+        "signer": 5454,
+        "pact change": 5455,
+        "pact review": 5455,
+        "config": 5455,
+    }, sizes
+
+
+def test_the_config_pass_is_the_config_readers_header():
+    """The fourth pass is the config table's only where the header it walks
+    is the one `hooks/config.py#config_table` hands the walker (#871): a
+    pass over a header no reader uses would hold nothing. Seen red before
+    `CONFIG_TABLE` existed, as an `AttributeError`."""
+    assert HEADERS["config"] == config.CONFIG_TABLE
 
 
 @pytest.mark.parametrize(
@@ -735,6 +752,44 @@ def test_a_heading_inside_the_list_item_does_not_end_it():
     assert oracle.rows_under(text, ("Signer",)) is None, text
     _rows, refusals = config.gfm_table(text, ("Signer",))
     assert refusals and "indented under a list item" in refusals[0], refusals
+
+
+@pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
+def test_a_signer_after_a_break_gfm_does_not_honour_is_no_signer(name):
+    """#871 round 2, the deferred half of yellow 7. A signer row after a
+    character only `str.splitlines` ends a line at is more of the row above
+    it to cmark-gfm, which shows one signer (measured for FF and U+2028 by
+    the round's reviewer). The walk reads the first and refuses the second,
+    for every table it walks, so `pact_signers` names one signer and the
+    refusal. Seen red against 4dfb3d0d: two signers, no refusal."""
+    from block_shapes import BREAKS
+
+    a, b = "https://example.com/org/a", "https://example.com/org/b"
+    text = f"# Pact\n\n| Signer |\n|---|\n| {a} |{BREAKS[name]}| {b} |\n"
+    rows, refusals = config.gfm_table(text, ("Signer",))
+    assert [c for _l, c in rows] == [(a,)], rows
+    assert refusals and "not a row of its own to GFM" in refusals[0], refusals
+    signers, said, _header = config.pact_signers(text)
+    assert [s[0] for s in signers] == [a], signers
+    assert any("not a row of its own to GFM" in s for s in said), said
+
+
+@pytest.mark.parametrize("name", ["LS", "FF"])
+def test_a_heading_after_a_break_does_not_end_the_rows_nobody_reads(name):
+    """#871 round 2, yellow 7's class after the table's end. A heading piece
+    after a character only `str.splitlines` ends a line at is more of the
+    line above to GFM, not a heading, so a line written `| … |` under it is
+    still a row nobody reads, and is refused. Seen red against 4dfb3d0d,
+    where the piece ended the walk's look for such rows."""
+    from block_shapes import BREAKS
+
+    text = (
+        "| Item | Value |\n|---|---|\n| Mode | shared |\n\n"
+        f"x{BREAKS[name]}## Notes\n| Broad gate | y |\n"
+    )
+    rows, refusals = config.gfm_table(text, ("Item", "Value"))
+    assert [c for _l, c in rows] == [("Mode", "shared")], rows
+    assert refusals and "ends above `| Broad gate | y |`" in refusals[0], refusals
 
 
 def test_a_list_marker_in_indented_code_is_no_list_item():

@@ -42,6 +42,33 @@ cannot parse. A hook says nothing: the mode gate is silent rather than
 asking, and the commit advisor keeps naming the frozen repair. Delete the
 extra row, or write the file as UTF-8.
 
+**The table is read the way GitHub shows it, or refused.** The reader is the
+walker the plugin holds to cmark-gfm, GitHub's renderer, so a row is a row
+where GitHub shows it as one. A line it cannot read as GitHub shows it is
+refused, in a sentence naming the line and the edit. The rows above that
+line are read; every row written below it is that refusal, never an absent
+row, because GitHub may show it and nobody read it. The commands and the
+hooks act on it as on a row written twice. The shapes, each with its one
+edit:
+
+- a line directly above the header — a comment, a line of prose, a row of
+  something else: leave a blank line above the header;
+- a header with no delimiter row under it, or a delimiter row of another
+  width: write `|---|---|` under the header;
+- a bare pipe in a value, which GitHub shows cut off at the pipe: write it
+  `\|` (§*Broad gate* says why);
+- a third cell, a stray `|---|---|`, or a line of prose inside the table:
+  write it as `| … | … |`, or take it out;
+- a row under a comment, a fence or a blank line that ends the table: move
+  it into the table; where it heads a table of something else, put a
+  heading between the two tables;
+- a row, the header or the delimiter row after a form feed or U+2028 on
+  another line of the table, which GitHub shows as more of that line: put
+  it on a line of its own.
+
+A file `seal mode` wrote, and one copied from this template, has none of
+these shapes.
+
 | Item | Value |
 |---|---|
 | Commit and pull request language | English |
@@ -288,10 +315,10 @@ to the row.
 repository's own answer.** The live table is the first `| Item | Value |`
 table that stands outside every fenced code block, and a line inside a fence
 is not part of any table: not a header, not a separator, not a row, and not a
-line somebody wrote as a row. One rule says so and all three walks of this
-table read through it — the gates' reader, the mode gate's reader, and
-`seal mode`'s writer — so the reader and the writer can never disagree about
-which row is the row.
+line somebody wrote as a row. One rule says so and the one walk of this
+table reads through it — the gates, the mode gate, and `seal mode`'s writer
+all read the rows it names — so the reader and the writer can never
+disagree about which row is the row.
 
 A fence opens at a line indented at most three spaces whose first run is three
 or more backticks or three or more tildes, and closes at the next line of at
@@ -333,7 +360,7 @@ rather than paid for by a refusal:
 |---|---|
 | `$(…)` **inside** a longer line | nothing. `pytest -n $(nproc)` still runs as the command it reads as |
 | `;`, `\|\|`, quotes, redirection, variables, globs | the row answers with whatever the composition the repository wrote answers with. That is the repository's own claim about itself, which is what this row already is |
-| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` is green whenever `tee` is — the repository's own claim about itself. **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe still parses as no row**, and `broad-gate` quotes that line back and names the escape rather than reporting the row as absent. **A line that does not parse still takes every row below it** where a row above it already parsed — `config_rows` stops reading the table there, so a `Mode` row written under it is invisible and `seal mode` writes a second one into the file. Measured 2026-09-17; the row's own fragment carries it. Written LAST in its table it takes nothing, because nothing is under it to take, and `broad-gate`'s refusal asks what was written below the line before it says anything was lost (#430) |
+| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` is green whenever `tee` is — the repository's own claim about itself. **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `broad-gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line, and the mode gate says nothing. Written LAST in its table the line has nothing under it, and `broad-gate`'s refusal says the rows below it go unread only where a row is written below it |
 | an `&` anywhere but at the end | the command before it is backgrounded and its status discarded, exactly as a `;` discards one — and unlike a `;`, it may still be running when the gate stamps, writing into the tree the stamp is about. That is `/bin/sh`; `cmd.exe` sequences the two commands instead, so nothing is left running and the status read is the second command's. Telling an operator `&` from a `2>&1` or a quoted `&` needs the shell parser this list exists to avoid, so it stays the row author's own composition. The **trailing** form is refused, because nothing composes after it and the whole line goes to the background |
 
 ### Choosing a value — the criterion

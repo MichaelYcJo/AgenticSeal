@@ -14,6 +14,7 @@ import os
 import subprocess
 import sys
 
+import config_shapes
 import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -582,12 +583,15 @@ def test_the_vendored_cell_rule_agrees_with_the_shared_one():
         assert ec.vendored_split_row(line) == uc.split_row(line), line
 
 
-# The config table's own shapes, for S4 of #867: every shape the vendored
-# twin can meet in a CI checkout's `seal/config.md`. **No fence and no
-# comment**, on purpose: the twin is blind to both, as inventory row E46 of
-# #834 states, and a vendored copy reads a file whose table is its own. A
-# shape added here that holds either would hold the twin to a rule it does
-# not carry.
+# The config table's own shapes, for S4 of #867 and S7 of #871: every shape
+# the vendored twin can meet in a CI checkout's `seal/config.md` that it can
+# judge line by line, the walker's refusal shapes from
+# `tests/config_shapes.py` among them. **No fence and no comment inside the
+# table**, on purpose: the twin carries no block state, and where it lacks
+# it the rule is a direction, not equality —
+# `test_the_vendored_config_rule_refuses_where_it_lacks_block_state` holds
+# that over the shapes that carry one. Shape 1's comment is a single line
+# directly above the header, which both readers refuse by the line alone.
 _HEAD = "# Repository config\n\n| Item | Value |\n|---|---|\n"
 CONFIG_SHAPES = {
     "plain": _HEAD + "| Mode | shared |\n| Broad gate | bin/test -q |\n",
@@ -607,6 +611,82 @@ CONFIG_SHAPES = {
     "a line before the first row": _HEAD + "| not a row\n| Mode | shared |\n",
     "crlf": (_HEAD + "| Mode | shared |\n| Broad gate | x |\n").replace("\n", "\r\n"),
     "no table": "# nothing here\n",
+    # #871: planted after a mutation dropping the twin's list-item check
+    # survived every other shape — GFM reads this header into the item.
+    "a header indented under a list item": "- a note\n\n | Item | Value |\n"
+    "|---|---|\n| Mode | shared |\n",
+    # The shape every config `seal mode` writes, `seal.py#NEW_CONFIG`: a
+    # closed comment above the header, a blank line between, and this
+    # repository's own config, which carries the same comment.
+    "the config seal mode writes": "# Repository config\n\n"
+    + config_shapes.OPEN
+    + " What this repository says about itself. This file was\n"
+    + "created by `seal mode`. "
+    + config_shapes.CLOSE
+    + "\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
+    # A fence and a one-line comment that close above the header hide
+    # nothing from GFM; each was planted after a mutation of the twin's
+    # closing check survived the shapes above.
+    "a closed fence above the header": "# c\n\n```\nan example\n```\n\n"
+    "| Item | Value |\n|---|---|\n| Mode | shared |\n",
+    "a one-line comment above the header": "# c\n\n"
+    + config_shapes.OPEN
+    + " a note "
+    + config_shapes.CLOSE
+    + "\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
+    # #871 round 2, yellow 8: an item written again below the line the walk
+    # stopped at has no value, in the twin as in the plugin.
+    "an item written again below the stop": _HEAD
+    + "| Mode | shared |\n| a | b | c |\n| Mode | local |\n",
+    "a cutoff written again below the stop": _HEAD
+    + "| Ledger frozen from | 100 |\n| a | b | c |\n| Ledger frozen from | 200 |\n",
+    "this repository's own config": open(
+        os.path.join(ROOT, "seal", "config.md"), encoding="utf-8"
+    ).read(),
+    **{
+        f"shape {n}": config_shapes.SHAPES[n]
+        for n in (1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+    },
+}
+# The shapes where the twin lacks the block state the plugin's walker has:
+# a comment inside the table, and a fence or a comment above the header
+# that hides an example table from the plugin.
+LACKS_BLOCK_STATE = {
+    "shape 5, a comment inside the table": config_shapes.SHAPES[5],
+    "a fenced example above the live table": (
+        "# c\n\n```markdown\n\n| Item | Value |\n|---|---|\n| Mode | local |\n"
+        "```\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
+    ),
+    "a commented old table above the live one": (
+        "# c\n\n" + config_shapes.OPEN + "\n\n| Item | Value |\n|---|---|\n"
+        "| Mode | local |\n" + config_shapes.CLOSE + "\n\n"
+        "| Item | Value |\n|---|---|\n| Mode | shared |\n"
+    ),
+    "a fence directly under the last row": (
+        _HEAD + "| Mode | shared |\n```\n| Broad gate | x |\n```\n"
+    ),
+    # #871 round 2: the twin ends a line where GFM does and the walker reads
+    # `str.splitlines` pieces, and a fence below the table can hide a heading
+    # from the walker that the twin sees. Each was seen red against
+    # 4dfb3d0d: the twin read `Mode` or answered no `Broad gate` row where
+    # the plugin refused.
+    "a row holding a line separator": _HEAD + f"| Mode | shared{chr(0x2028)}|\n",
+    "a row piece after a line separator below the table": (
+        _HEAD + f"| Mode | shared |\n\nx{chr(0x2028)}| Broad gate | y |\n"
+    ),
+    "a heading inside a fence below the table": (
+        _HEAD + "| Mode | shared |\n\n```\n# x\n```\n| Broad gate | y |\n"
+    ),
+    # Planted after a mutation dropping the comment from the blocks the twin
+    # follows below the table survived the shapes above.
+    "a heading inside a comment below the table": (
+        _HEAD
+        + "| Mode | shared |\n\n"
+        + config_shapes.OPEN
+        + "\n# x\n"
+        + config_shapes.CLOSE
+        + "\n| Broad gate | y |\n"
+    ),
 }
 
 
@@ -627,24 +707,144 @@ def test_the_vendored_config_rule_agrees_with_the_shared_one(name):
     table's own shapes, item by item. The twin's table walk had no case at
     all (inventory row E46 said it had one, and none existed), and it read a
     stray separator, a second header and an empty item differently: seen red
-    against 5623d728's `vendored_config_rows` on those three shapes."""
+    against 5623d728's `vendored_config_rows` on those three shapes.
+
+    **Since #871 both sides are the walker's**: the twin returns
+    `(rows, refusals)` on the walker's table grammar, and the rows, the
+    refusals and the per-item answer are held equal to `config_table` and
+    `config_value`. Seen red against the stop rule's twin on every refusal
+    shape: it returned rows and no refusal."""
     from conftest import load_hook_module
 
     config = load_hook_module("config.py", "specseal_config_for_the_twin")
     ec = _checker("ec_vendored_config")
     assert os.path.realpath(
         ec.config_rule()[1].__code__.co_filename
-    ) == os.path.realpath(config.config_rows.__code__.co_filename), (
+    ) == os.path.realpath(config.config_table.__code__.co_filename), (
         "the plugin's copy must ask hooks/config.py, not its vendored twin"
     )
     text = CONFIG_SHAPES[name]
-    rows = config.config_rows(text)
-    assert ec.vendored_config_rows(text) == rows, name
+    rows, refusals = config.config_table(text)
+    twin_rows, twin_refusals = ec.vendored_config_rows(text)
+    assert [(i, v) for _n, i, v in twin_rows] == [(i, v) for _n, i, v in rows], name
+    assert twin_refusals == refusals, name
     for item in ("Mode", "Broad gate", "Ledger frozen from", "x", ""):
-        assert ec.vendored_config_value(rows, item) == config.value_of(rows, item), (
+        assert ec.vendored_config_value(text, item) == config.config_value(
+            text, item
+        ), (name, item)
+
+
+@pytest.mark.parametrize("name", sorted(LACKS_BLOCK_STATE))
+def test_the_vendored_config_rule_refuses_where_it_lacks_block_state(name):
+    """S7 of #871, the stated direction. Where the plugin's walker reads a
+    line by block state the twin does not carry, the twin may refuse what
+    the plugin reads and never reads what the plugin refuses: every item is
+    the plugin's answer or a refusal, a value is never one the plugin does
+    not give, and on each of these shapes the twin refuses something. Seen
+    red against the stop rule's twin, which read the fenced example's
+    `Mode local` where the plugin reads `shared`."""
+    from conftest import load_hook_module
+
+    config = load_hook_module("config.py", "specseal_config_for_the_twin_direction")
+    ec = _checker("ec_vendored_config_direction")
+    text = LACKS_BLOCK_STATE[name]
+    assert ec.vendored_config_rows(text)[1], name
+    for item in ("Mode", "Broad gate", "Ledger frozen from"):
+        twin = ec.vendored_config_value(text, item)
+        plugin = config.config_value(text, item)
+        assert twin == plugin or (twin[0] is None and twin[1] is not None), (
             name,
             item,
+            twin,
+            plugin,
         )
+
+
+def test_the_vendored_table_grammar_is_the_walkers():
+    """S7 of #871: each pattern of the twin's line grammar is the walker's,
+    byte for byte, so the two read a line alike wherever the twin reads one."""
+    from conftest import load_hook_module
+
+    config = load_hook_module("config.py", "specseal_config_for_the_twin_grammar")
+    ec = _checker("ec_vendored_config_grammar")
+    for twin, walker in (
+        (ec.VENDORED_TABLE_ROW, config.TABLE_ROW),
+        (ec.VENDORED_CELL_PIPE, config.CELL_PIPE),
+        (ec.VENDORED_EVEN_ESCAPED_PIPE, config.EVEN_ESCAPED_PIPE),
+        (ec.VENDORED_DELIMITER_ROW, config.DELIMITER_ROW),
+        (ec.VENDORED_ATX_HEADING, config.ATX_HEADING),
+        (ec.VENDORED_LIST_ITEM, config.LIST_ITEM),
+        (ec.VENDORED_FIRST_CELL, config.FIRST_CELL),
+        (ec.VENDORED_THEMATIC_BREAK, config.THEMATIC_BREAK),
+    ):
+        assert (twin.pattern, twin.flags) == (walker.pattern, walker.flags)
+    assert ec.VENDORED_CONFIG_HEADER == config.CONFIG_TABLE
+    # The characters the twin splits a GFM line at, to read it as the
+    # walker's pieces: every one `str.splitlines` ends a line at, LF and CR
+    # aside, and no other.
+    import sys
+
+    cuts = {
+        chr(c)
+        for c in range(sys.maxunicode + 1)
+        if len(f"a{chr(c)}b".splitlines()) == 2 and chr(c) not in "\r\n"
+    }
+    assert {
+        chr(c)
+        for c in range(sys.maxunicode + 1)
+        if ec.VENDORED_PIECE_BREAK.match(chr(c))
+    } == cuts
+    # The HTML blocks no blank line ends, kinds 1-5, which the twin follows
+    # to their close above the header as the walker does.
+    assert [
+        (s.pattern, s.flags, e.pattern, e.flags) for s, e in ec.VENDORED_RAW_HTML
+    ] == [(s.pattern, s.flags, e.pattern, e.flags) for s, e in config.HTML_KINDS[:5]]
+
+
+def test_the_twin_names_an_example_table_inside_a_closed_block():
+    """#871 round 2, yellow 11. A header inside a fence or a comment that
+    closes below it is an example the twin cannot tell from the live table:
+    its sentence says so, never that the block is unclosed, and a block that
+    is never closed keeps its own sentence. Seen red against 4dfb3d0d, which
+    said "never closed" for both closed blocks."""
+    ec = _checker("ec_vendored_example_table")
+    for name in (
+        "a fenced example above the live table",
+        "a commented old table above the live one",
+    ):
+        said = ec.vendored_config_rows(LACKS_BLOCK_STATE[name])[1]
+        assert said and "closes below it" in said[0], (name, said)
+        assert "never closed" not in said[0], (name, said)
+    unclosed = "# c\n\n```\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
+    said = ec.vendored_config_rows(unclosed)[1]
+    assert said and "close the fence above the table" in said[0], said
+    comment = (
+        "# c\n\n" + config_shapes.OPEN + "\n\n| Item | Value |\n|---|---|\n"
+        "| Mode | shared |\n"
+    )
+    said = ec.vendored_config_rows(comment)[1]
+    assert said and "never closed" in said[0], said
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        *("```", "~~~", "- item", "1. item", "> quoted", "    code", "\tcode"),
+        *("<div>", "***", "---", config_shapes.OPEN + " c " + config_shapes.CLOSE),
+    ],
+)
+def test_the_twin_does_not_call_a_block_line_a_row(line):
+    """#871 round 2, yellow 12. The walker ends the table at each of these
+    lines (cmark-gfm measured by the round's reviewer for the fence, list,
+    quote, code and HTML lines), so the twin's refusal names what it cannot
+    judge and the blank line that clears it. Seen red against 4dfb3d0d,
+    which said GFM reads the line as one of the table's rows, or called
+    `---` a delimiter row out of place."""
+    ec = _checker("ec_vendored_block_line")
+    said = ec.vendored_config_rows(_HEAD + "| Mode | shared |\n" + line + "\n")[1]
+    assert said and "leave a blank line above it" in said[0], said
+    assert "reads as one of its rows" not in said[0], said
+    assert "out of place" not in said[0], said
 
 
 @pytest.mark.parametrize("shape", ["absent", "readable", "directory", "undecodable"])

@@ -227,6 +227,16 @@ def refused(line, cell=False):
     )
 
 
+def walked(text):
+    """The walker's refusals of TEXT's `| Item | Value |` table, which
+    `pact_declaration` appends after its own since #871: a line written
+    `| … |` below the table's end is a row the walk never reaches, whether
+    or not it names a pact. The sentences themselves are pinned by
+    `tests/test_the_mode_question_is_asked_once.py`'s S1 and by the oracle;
+    here what is pinned is that they arrive, last, with `notify` None."""
+    return config.config_table(text)[1]
+
+
 # Delimiter rows by construction (round 2 of PR #793, yellow 1; round 3,
 # yellow 1): the outer pipes each optional, one cell to three, a cell of one
 # or three dashes with colons either side, padded with nothing or with each
@@ -270,13 +280,6 @@ STRAY_WAYS = [
         [f"| Pact | {URL} |", PLAIN],
         [],
     ),
-    (
-        "W2 between the header and the first row",
-        "| Item | Value |\n|---|---|\n | Pact notify | always |\n"
-        f"| Mode | shared |\n| Pact | {URL} |\n",
-        [" | Pact notify | always |"],
-        ORDERS,
-    ),
     ("W3 below a blank line", CONFIG + "\n" + PLAIN + "\n", [PLAIN], ORDERS),
     ("W4 prose", CONFIG + "Some prose.\n" + PLAIN + "\n", [PLAIN], ORDERS),
     ("W4 a heading", CONFIG + "## Notes\n" + PLAIN + "\n", [PLAIN], ORDERS),
@@ -296,7 +299,6 @@ STRAY_WAYS = [
         [PLAIN],
         ORDERS,
     ),
-    ("W8 indented", CONFIG + "  " + PLAIN + "\n", [PLAIN], ORDERS),
     ("W8 block-quoted", CONFIG + "> " + PLAIN + "\n", ["> " + PLAIN], ORDERS),
     ("W8 three cells", CONFIG + PLAIN + " x |\n", [PLAIN + " x |"], ORDERS),
     (
@@ -532,11 +534,13 @@ def test_s2_cmark_gfm_renders_a_table_behind_every_container_that_takes_one():
 def test_s2_every_way_the_walk_passes_a_pact_row_by_is_refused(text, lines, pacts):
     """S2. Each way the table walk passes a pact row by: every line is
     refused, naming it, `notify` is None, and `pacts` is what the plain
-    `Pact` row parsed."""
+    `Pact` row parsed. Where the walker refuses a line of the table too, its
+    sentence follows (#871)."""
     assert config.pact_declaration(text) == (
         pacts,
         None,
-        [refused(*x) if isinstance(x, tuple) else refused(x) for x in lines],
+        [refused(*x) if isinstance(x, tuple) else refused(x) for x in lines]
+        + walked(text),
     )
 
 
@@ -678,7 +682,12 @@ def test_s2_a_pact_item_spelled_another_way_is_refused(item, place):
     item; below, the walk does not reach it."""
     row = f"| {item} | always |"
     text = CONFIG + ("" if place == "in the table" else "\n") + row + "\n"
-    assert config.pact_declaration(text) == (ORDERS, None, [refused(row)])
+    assert config.pact_declaration(text) == (
+        ORDERS,
+        None,
+        [refused(row), *walked(text)],
+    )
+    assert bool(walked(text)) == (place != "in the table"), walked(text)
 
 
 @pytest.mark.parametrize(
@@ -691,7 +700,7 @@ def test_s2_a_notify_row_a_splitlines_character_cuts_is_refused(ch):
     assert config.pact_declaration(CONFIG + row + "\n") == (
         ORDERS,
         None,
-        [refused(row)],
+        [refused(row), *walked(CONFIG + row + "\n")],
     )
 
 
@@ -709,11 +718,8 @@ def test_s3_a_pact_line_with_no_pact_in_the_table_is_refused(line):
     """S3. No plain `Pact` row, and a line naming a pact below the table:
     refused all the same. Telling a mangled `Pact` line from a mangled
     notify line would need the item read through markup."""
-    assert config.pact_declaration(CONFIG_TOP + "\n" + line + "\n") == (
-        [],
-        None,
-        [refused(line)],
-    )
+    text = CONFIG_TOP + "\n" + line + "\n"
+    assert config.pact_declaration(text) == ([], None, [refused(line), *walked(text)])
 
 
 def test_s3_a_plain_notify_row_with_no_pact_is_still_ignored():
@@ -824,12 +830,19 @@ def test_a_refusal_comes_after_a_doubled_pact_and_before_the_entries():
     _pacts, notify, refusals = config.pact_declaration(text + tail)
     assert notify is None
     assert refusals[0].startswith("`Pact` appears 2 times")
-    assert refusals[1:] == [refused(PLAIN), refused("**Pact**: x |")]
+    assert refusals[1:] == [
+        refused(PLAIN),
+        refused("**Pact**: x |"),
+        *walked(text + tail),
+    ]
     _pacts, notify, refusals = config.pact_declaration(
         CONFIG_TOP + "| Pact | orders-api |\n" + tail
     )
     assert refusals[:2] == [refused(PLAIN), refused("**Pact**: x |")]
-    assert "is not a remote URL" in refusals[2] and len(refusals) == 3
+    assert "is not a remote URL" in refusals[2] and len(refusals) == 4
+    assert refusals[3:] == walked(CONFIG_TOP + "| Pact | orders-api |\n" + tail), (
+        refusals
+    )
 
 
 def test_config_rows_is_the_indexed_walk_without_its_places():
@@ -841,6 +854,54 @@ def test_config_rows_is_the_indexed_walk_without_its_places():
     assert [(i, v) for _, i, v in indexed] == config.config_rows(text)
     assert all(lines[n].startswith(f"| {item} |") for n, item, _ in indexed)
     assert [item for _, item, _ in indexed] == ["Mode", "Pact", "Pact notify"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "| Item | Value |\n|---|---|\n | Pact notify | always |\n"
+        f"| Mode | shared |\n| Pact | {URL} |\n",
+        CONFIG + "  " + PLAIN + "\n",
+    ],
+    ids=["W2 between the header and the first row", "W8 indented"],
+)
+def test_an_indented_pact_row_is_read_as_cmark_gfm_renders_it(text):
+    """#871. A row indented one to three spaces is one of the table's rows
+    to cmark-gfm, and the walker reads it, so these two of #784's
+    `STRAY_WAYS` are no longer ways the walk passes a row by: the row is
+    read, and nothing is refused. Seen red against the stop rule, whose row
+    pattern began at the margin: both were refused with `notify` None."""
+    assert config.pact_declaration(text) == (ORDERS, config.NOTIFY_ALWAYS, [])
+
+
+def test_a_signer_config_the_walker_refuses_is_refused_with_notify_none():
+    """#871. A signer's table is read by the walker cmark-gfm holds, so a
+    line it refuses is refused here as well, after every other refusal and
+    with `notify` None: the `Pact notify` row under a bare-piped line is one
+    the walk never read, and its value may be `always`. Seen red against the
+    stop rule: the row under the line was not read and nothing was refused,
+    so the signer answered the default with no refusal at all."""
+    text = CONFIG + "| Broad gate | bin/test -q | tee out |\n" + PLAIN + "\n"
+    pacts, notify, refusals = config.pact_declaration(text)
+    assert pacts == ORDERS
+    assert notify is None
+    assert refusals == [
+        refused(PLAIN),
+        "has a `Item | Value` table that stops at "
+        "`| Broad gate | bin/test -q | tee out |`, which is not a 2-cell row "
+        "written `| … | … |` — every row below it would go unread",
+    ], refusals
+
+
+def test_a_walker_refusal_follows_a_doubled_notify_row_too():
+    """#871, the arm a doubled `Pact notify` returns from early: the walker's
+    sentence still comes last. Planted after a mutation that dropped it on
+    that arm alone survived every other case."""
+    text = CONFIG + "| Pact notify | always |\n| Pact notify | never |\n| a | b | c |\n"
+    pacts, notify, refusals = config.pact_declaration(text)
+    assert (pacts, notify) == (ORDERS, None)
+    assert refusals[0] == "`Pact notify` appears 2 times — one value", refusals
+    assert refusals[1:] == walked(text) and len(refusals) == 2, refusals
 
 
 def _vendored_checker():
@@ -914,7 +975,7 @@ def test_s9_a_pact_row_a_splitlines_character_cuts_is_no_plain_row(ch):
     assert config.pact_declaration(CONFIG_TOP + line + "\n") == (
         [],
         None,
-        [refused(line)],
+        [refused(line), *walked(CONFIG_TOP + line + "\n")],
     )
     assert ec.CONFIG_ROW_RE.match(line) is not None
     assert ec.notify_may_be_always(CONFIG_TOP + line + "\n") is True
@@ -961,9 +1022,16 @@ def test_the_blind_side_is_read_as_no_line(item, gap):
     """Q1's default, stated in `docs/the-pact.md` §*What this does not see*:
     a spelling that puts a letter between the word's letters, or spells it
     with a look-alike letter, names no pact to either reader,
-    so the table's notify is read. A change to Q1's answer turns this red."""
+    so the table's notify is read. A change to Q1's answer turns this red.
+    Below the table the line is a row the walk never reaches, which the
+    walker refuses whether or not it names a pact (#871), so the notify is
+    None there and the one refusal is the walker's."""
     text = CONFIG + gap + f"| {item} | always |\n"
-    assert config.pact_declaration(text) == (ORDERS, config.NOTIFY_DEFAULT, [])
+    if gap:
+        assert config.pact_declaration(text) == (ORDERS, None, walked(text))
+        assert len(walked(text)) == 1, walked(text)
+    else:
+        assert config.pact_declaration(text) == (ORDERS, config.NOTIFY_DEFAULT, [])
     assert ec.notify_may_be_always(text) is False
 
 

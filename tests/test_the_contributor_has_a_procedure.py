@@ -33,7 +33,7 @@ import os
 import re
 
 import pytest
-from conftest import build_tracked_tree
+from conftest import build_tracked_tree, posix_id
 from test_release_hygiene import LOADED, tracked
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -170,7 +170,7 @@ CONVENTION_SURFACES = [
 ]
 
 
-@pytest.mark.parametrize("surface", CONVENTION_SURFACES)
+@pytest.mark.parametrize("surface", CONVENTION_SURFACES, ids=posix_id)
 def test_no_contributor_facing_surface_names_a_concrete_release_branch(surface):
     """Q1 holds wherever the convention is written, not only where it was
     first written.

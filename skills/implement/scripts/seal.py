@@ -1336,8 +1336,9 @@ def write_members(archive, into):
 # this file to get it (#151), and these aliases are what keeps the move from
 # becoming a second parser: one implementation, reached by the name each
 # caller already spells. Everything below the writer's own line -- `with_row`,
-# `table_span`, `write_row`, `NEW_CONFIG` -- stays here, because writing the
-# row is this command's job and nothing else does it.
+# `write_row`, `NEW_CONFIG` -- stays here, because writing the row is this
+# command's job and nothing else does it; where to write it is the reader's
+# walk, `config_table`, and nothing here walks the table again (#871).
 CONFIG = repo_config.CONFIG
 ROW_ITEM = repo_config.ROW_ITEM
 LOCAL, SHARED = repo_config.LOCAL, repo_config.SHARED
@@ -1372,14 +1373,13 @@ PLUGIN_ROOT = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
 )
 
-CONFIG_HEADER = repo_config.CONFIG_HEADER
-CONFIG_ROW = repo_config.CONFIG_ROW
-CONFIG_SEPARATOR = repo_config.CONFIG_SEPARATOR
-# The fence rule, taken from the reader rather than written again here. It is
-# an alias for the same reason the three above are: one implementation,
-# reached by the name each caller already spells. `fence_map` is the same walk
-# with the state it ENDS in kept, which is what lets `write_row` tell an
-# unclosed fence from every other reason a row would not read back.
+# The table walk and the fence rule, taken from the reader rather than
+# written again here: one implementation, reached by the name each caller
+# already spells. `config_table` is the one walk of the table (#871), and
+# `with_row` overwrites and inserts at the lines it names. `fence_map` is the
+# fence walk with the state it ENDS in kept, which is what lets `write_row`
+# tell an unclosed fence from every other reason a row would not read back.
+config_table = repo_config.config_table
 unfenced = repo_config.unfenced
 fence_map = repo_config.fence_map
 
@@ -1427,58 +1427,21 @@ def line_ending(lines):
     return "\n"
 
 
-def table_span(lines):
-    """(the index of every `Mode` row, in order, index just past the first
-    table's last row or -1) — one pass, reading exactly what `config_rows`
-    reads.
-
-    **Every `Mode` row, not the first** (#867). A row written twice has no
-    value (`hooks/config.py#config_value`), so the writer has no row to
-    overwrite: it used to set the first, because the reader read the first,
-    and the file then said two things for good. `with_row` refuses such a
-    file and names each line, from this list.
-
-    **Including the fence rule**, which is why this walk goes through
-    `hooks/config.py#unfenced` rather than stripping each line for itself. A
-    table inside a code fence is not the reader's table, so it must not be
-    this writer's either: repair the reader alone and `seal mode shared`
-    rewrites the `Mode` row inside somebody's pasted example while every gate
-    reads the live one — the file two rows deep the comment below is about
-    (#429). `unfenced` hands back each surviving line's own index, which is
-    what this walk returns and what `with_row` overwrites. LINES keep their
-    endings, so their join is the file, and the walk reads that where GFM
-    breaks a line (#667 round 1, 🟡 1).
-    """
-    seen_header, modes, end = False, [], -1
-    for i, line in unfenced(lines, "".join(lines)):
-        if not seen_header:
-            if CONFIG_HEADER.match(line):
-                seen_header = True
-            continue
-        if CONFIG_HEADER.match(line) or CONFIG_SEPARATOR.match(line.strip()):
-            if end >= 0:
-                break
-            continue
-        match = CONFIG_ROW.match(line)
-        if not match:
-            if end >= 0:
-                break
-            continue
-        end = i + 1
-        # Every match, because the reader counts every one (#867). A reader
-        # and a writer that disagree about which row is the row leave a file
-        # two rows deep that no command can bring into agreement.
-        if repo_config.unescaped(match.group("item").strip()) == ROW_ITEM:
-            modes.append(i)
-    return modes, end
-
-
 def doubled_modes(lines):
     """The sentence a file holding more than one `Mode` row is refused in,
     naming each line by its number and as written, or "" where it holds one
-    or none. LINES keep their endings, as `table_span` reads them. It opens
-    lower-case and ends with no full stop, so it reads after the path."""
-    modes, _end = table_span(lines)
+    or none. LINES keep their endings, and their join is the file the walk
+    reads. It opens lower-case and ends with no full stop, so it reads after
+    the path.
+
+    Reads: guess — the `Mode` rows of a person's `| Item | Value |` table, as `config_table` read them; unknown refused
+
+    **Every `Mode` row the walk read, not the first** (#867). A row written
+    twice has no value (`hooks/config.py#config_value`), so the writer has no
+    row to overwrite, and this sentence names each line from the walk's own
+    line numbers (#871)."""
+    rows, _refusals = config_table("".join(lines))
+    modes = [index for index, item, _value in rows if item == ROW_ITEM]
     if len(modes) < 2:
         return ""
     named = ", ".join(f"line {i + 1} `{lines[i].strip()}`" for i in modes)
@@ -1491,7 +1454,10 @@ def doubled_modes(lines):
 
 def with_row(text, value):
     """(TEXT with the `Mode` row set to VALUE, every other line's bytes kept,
-    "") — or (None, the refusal) where TEXT holds more than one `Mode` row.
+    "") — or (None, the refusal) where TEXT holds more than one `Mode` row,
+    or a table the walker refused.
+
+    Reads: guess — a person's `| Item | Value |` table, through `config_table`; unknown refused
 
     Three cases, and the file is a person's in all three: an existing row is
     replaced where it stands, a table with no such row gains one at its end,
@@ -1499,6 +1465,19 @@ def with_row(text, value):
     line. Nothing is re-wrapped, re-ordered, or re-ended. A fourth, two rows
     or more, is refused rather than resolved (#867): no row of them is the
     answer, so there is none to replace, and adding one more is a third.
+
+    **Where to write is the reader's walk, `config_table`, and nothing
+    else** (#871). The line overwritten is the one the walk read as the
+    `Mode` row; a new row goes after the last row the walk read, or under
+    the delimiter row where it read none, the header being the first line
+    `unfenced` shows whose cells are the config header -- the line the walk
+    itself starts at. A writer with a walk of its own is the file two rows
+    deep (#429, #415): a `Mode` row it adds under a line its walk reads past
+    is a second `Mode` row to a reader that stops there. **A table the
+    walker refused is refused here** in the
+    shape a doubled row takes, with the walker's sentence: a row the walk
+    did not read may be the `Mode` row, so there is none to replace, and
+    adding one may make two.
     """
     row = f"| {ROW_ITEM} | {value} |"
     lines = text.splitlines(keepends=True)
@@ -1506,7 +1485,22 @@ def with_row(text, value):
     doubled = doubled_modes(lines)
     if doubled:
         return None, doubled
-    modes, end = table_span(lines)
+    rows, refused = config_table(text)
+    if refused:
+        return None, refused[0]
+    modes = [index for index, item, _value in rows if item == ROW_ITEM]
+    if rows:
+        end = rows[-1][0] + 1
+    else:
+        header = next(
+            (
+                index
+                for index, line in unfenced(lines, text)
+                if repo_config.table_cells(line) == repo_config.CONFIG_TABLE
+            ),
+            None,
+        )
+        end = -1 if header is None else header + 2
 
     if modes:
         lines[modes[0]] = row + ending_of(lines[modes[0]], ending)
@@ -1537,6 +1531,8 @@ def with_row(text, value):
 def write_row(home, value):
     """Write `| Mode | value |` into the root's `config.md`; "" or why not.
 
+    Reads: guess — a person's `config.md`, opened here and walked through `with_row`; unknown refused
+
     Refused rather than followed: a symbolic link at that name is a write
     that leaves the root, which is the one way out of a structure the export
     walks (`root_files`), and a directory is `IsADirectoryError` arriving as
@@ -1565,7 +1561,7 @@ def write_row(home, value):
     )
     if doubled:
         return f"{path} {doubled}. Nothing was written"
-    # **The row is not written until it reads back.** `table_span` skips
+    # **The row is not written until it reads back.** The walk skips
     # fenced lines, so a file whose table is swallowed by a fence nobody
     # closed has no table this walk can see -- and `with_row` then appends
     # one at the END of the file, which is inside that fence. The write
@@ -1591,6 +1587,16 @@ def write_row(home, value):
                 f"written the `{ROW_ITEM}` row into -- is inside it, where no "
                 "walk of that table reads it. Nothing was written. Close the "
                 "fence and run this command again."
+            )
+        # The table walker refuses what this write would leave -- a table
+        # appended under an HTML block nobody closed, for one -- and its
+        # sentence names the cause and the edit.
+        walked = config_table(new)[1]
+        if walked:
+            return (
+                f"{path}, with the `{ROW_ITEM}` row written into it, "
+                f"{walked[0]}. Nothing was written and your file is exactly "
+                "as it was"
             )
         return (
             f"{path} would not read the `{ROW_ITEM}` row back after this "
@@ -1970,17 +1976,24 @@ def say_report(repo, home, shared, local, current, kind, value):
 
 def mode_refusal(home):
     """The sentence `seal mode` refuses the root's `config.md` in, or "":
-    the reader's own sentence for a file that will not read, and for a
-    `Mode` row written twice the writer's, which names each line (#867).
-    Read through `hooks/config.py#config_text`, the one place the file is
-    opened to tell absent from unreadable."""
+    the reader's own sentence for a file that will not read, for a `Mode`
+    row written twice the writer's, which names each line (#867), and for a
+    table the walker refused the walker's, after the path (#871) -- the
+    three things `with_row` would refuse, so a switch is refused before
+    anything moves. Read through `hooks/config.py#config_text`, the one
+    place the file is opened to tell absent from unreadable.
+
+    Reads: guess — a person's `config.md`, through `config_text` and `config_table`; unknown refused"""
     text, refused = repo_config.config_text(home)
     if refused:
         return refused
     if text is None:
         return ""
     doubled = doubled_modes(text.splitlines(keepends=True))
-    return f"{config_path(home)} {doubled}" if doubled else ""
+    if doubled:
+        return f"{config_path(home)} {doubled}"
+    walked = config_table(text)[1]
+    return f"{config_path(home)} {walked[0]}" if walked else ""
 
 
 def mode_report(args, repo, home, shared, local, current):

@@ -738,12 +738,11 @@ def without_the_policy_span(where, text):
     only when it starts at 1, and cmark reads a start number of at most nine
     digits, so `1.`, `01.` and `000000001)` end the span while `02.` and a
     ten-digit `0000000001.` stay in the paragraph (round 2 of #831). A lazy
-    continuation line stays inside,
-    and so does a pipe line over a `---` with no pipe in it, which GFM makes
-    part of the statement's setext heading. The delimiter's cell count is not
-    matched against the header's, so the end errs toward sweeping more. The
-    cut is made before flattening, which is what would erase the blank
-    line."""
+    continuation line stays inside, and so does a pipe line over a `---` with
+    no pipe in it, which GFM makes part of the statement's setext heading. The
+    delimiter's cell count is not matched against the header's, so the end
+    errs toward sweeping more. The cut is made before flattening, which is
+    what would erase the blank line."""
     span = PACT_RENAMED_SPANS["docs/the-pact.md"]
     head, marker, rest = text.partition(span)
     assert marker, f"{where}: the excluded span `{span}` is gone"

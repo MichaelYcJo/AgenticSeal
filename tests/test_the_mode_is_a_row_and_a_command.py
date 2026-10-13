@@ -32,6 +32,7 @@ import os
 import shutil
 import subprocess
 
+import config_shapes
 import pytest
 from conftest import local_home, symlink_or_skip
 
@@ -285,6 +286,44 @@ def test_check_exits_2_on_two_mode_rows(seal, shared_repo, capsys):
     assert code == 2, out
     assert "folder: shared" in out and "row:    refused" in out, out
     assert "holds 2 `Mode` rows" in out, out
+
+
+@pytest.mark.parametrize(
+    "args",
+    [["mode", "shared"], ["mode", "local"], ["mode"], ["mode", "--apply"]],
+)
+def test_a_table_the_walker_refuses_is_refused_and_nothing_is_written(
+    seal, shared_repo, capsys, args
+):
+    """S4 and S5 of #871. A `Mode` row under a bare-piped line is one the
+    walk never read, so it is a refusal and not an absent row: every form of
+    the command prints the walker's sentence, quoting the line, and writes
+    and moves nothing. Seen red against the stop rule: `seal mode` read the
+    row as undeclared and wrote a second `Mode` row, exit 0."""
+    config = shared_repo / "seal" / "config.md"
+    config.write_text(config_shapes.SHAPES[7], encoding="utf-8")
+    git(shared_repo, "add", "-A")
+    git(shared_repo, "commit", "-qm", "a bare pipe above the mode row")
+    before = state(seal, shared_repo)
+
+    code, out = run(seal, args, shared_repo, capsys)
+
+    assert code != 0, out
+    assert "stops at `| Broad gate | bin/test -q | tee out |`" in out, out
+    assert config.read_text(encoding="utf-8") == config_shapes.SHAPES[7]
+    assert state(seal, shared_repo) == before
+
+
+def test_check_exits_2_on_a_table_the_walker_refuses(seal, shared_repo, capsys):
+    """S4's `--check` half of #871: CI meets the walker's refusal at exit 2,
+    with the line quoted, and the report still says where the folder is."""
+    (shared_repo / "seal" / "config.md").write_text(
+        config_shapes.SHAPES[7], encoding="utf-8"
+    )
+    code, out = run(seal, ["mode", "--check"], shared_repo, capsys)
+    assert code == 2, out
+    assert "folder: shared" in out and "row:    refused" in out, out
+    assert "stops at `| Broad gate | bin/test -q | tee out |`" in out, out
 
 
 def test_check_does_not_pass_when_the_repository_cannot_be_resolved(

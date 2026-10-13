@@ -1217,6 +1217,18 @@ def config(row=True):
 
 
 SUITE_ROW = f"{sys.executable} -m pytest -q -p no:cacheprovider tests"
+
+
+def interpreter_free(value):
+    """The id of a parametrized row with `sys.executable` written `python`,
+    or None for a value that is not a string. The interpreter's path is a
+    different string on every machine, so an id carrying it is a key
+    `.test_durations` can price only where it was measured (#874)."""
+    if not isinstance(value, str):
+        return None
+    return value.replace(sys.executable, "python")
+
+
 # The same runner with no path of its own, so a run at the base collects only
 # the files the gate appends to it (#789). `failing on base too` is given only
 # where such a run collected nothing but its file; `SUITE_ROW` collects all of
@@ -1912,6 +1924,7 @@ def test_a_row_ending_in_a_single_ampersand_is_refused(repo, tmp_path):
         f"{SUITE_ROW} 2>&1",
         'grep "a & b" f && ' + SUITE_ROW,
     ],
+    ids=interpreter_free,
 )
 def test_an_ampersand_that_is_not_last_stays_allowed(value):
     """Round 1's 🟡 1, pinned as the boundary the code actually draws.
@@ -1970,6 +1983,7 @@ def test_a_refused_row_runs_no_check_and_adds_no_worktree(repo, tmp_path):
             False,
         ),
     ],
+    ids=interpreter_free,
 )
 def test_the_forms_that_stay_allowed_are_sealed_exactly_as_today(
     repo, tmp_path, value, why, needs_posix
@@ -2021,18 +2035,32 @@ def test_an_unescaped_pipe_is_named_as_a_line_that_will_not_parse(repo, tmp_path
     what the tree did rather than what anybody wanted, *so that the day
     `config_rows` learns to carry a pipe, this case is what says so*. This is
     that day.
+
+    **Re-pinned by #871, and it is S4's `broad-gate` case (shape 7).** The
+    table walker refuses the line in its own sentence — GitHub shows that
+    row cut off at the pipe, so the command it shows is not the one written
+    — the gate adds *write it `\\|`*, and the line is the table's last, so
+    the clause about rows below it is not said. Nothing ran and no worktree
+    was added. Seen red against the stop rule's sentence.
     """
     bare = f"{SUITE_ROW} | cat"
-    said = refusal_of(repo, bare, tmp_path / "out")
-    assert "does not parse as a row" in said, said
-    assert bare in said, (
+    keep = tmp_path / "out"
+    said = refusal_of(repo, bare, keep)
+    assert "which is not a 2-cell row" in said, said
+    assert f"| {ROW} | {bare} |" in said, (
         f"the refusal does not quote the line the person wrote:\n{said}"
     )
-    assert "\\|" in said, "the refusal names no way to write the pipe"
+    assert ESCAPE in said, "the refusal names no way to write the pipe"
+    assert UNREAD not in said, (
+        f"the line is the table's last, and the refusal names rows below it:\n{said}"
+    )
     assert "has no `Broad gate` row" not in said, (
         "the absent-row sentence survived beside the new one, which is two "
         "causes offered for one line"
     )
+    assert not keep.exists() or not os.listdir(keep), os.listdir(keep)
+    worktrees = git(repo, "worktree", "list").stdout.splitlines()
+    assert len(worktrees) == 1, f"a worktree was added under a refusal: {worktrees}"
     module = gate_module()
     assert module.not_as_written("/seal", bare) is None, (
         "the pipe was refused by this work's criterion, which allows it"
@@ -2051,46 +2079,40 @@ def refusal_over(tmp_path, name, table):
     return gate_module().missing_row(str(home))
 
 
-LOST = "every row written BELOW that line is lost"
-KEPT = "the stop rule needs a row before it can stop"
-# #430's four sentences, in the two prepositions the arms they live in
-# already use: an arm speaking about the line it QUOTES says `below it`, and
-# an arm speaking about the line that STOPPED the reader says `under that
-# line`. The wording is `spec.md` §*Data & interfaces*'s contract.
+# The phrases of the walker's refusal as the gate prints it (#871). The
+# stop rule's five arms and #430's four sentences went with it: the walker
+# never steps past a line it refuses, so there is one stopping line, every
+# row below it is unread, and the instructed edit loses no row the walk read.
 #
-# **Each says no ROW was written, which is what the value supports.** `below`
-# holds what parsed, and a further line the reader will not take as a row is
-# written under that line too — so *nothing was written* was false wherever a
-# second malformed line stood below the first (round 1's 🟡 3). `MOVES` is
-# what those arms say instead of predicting that one edit finishes the file.
-ALONE = "no row was written below it"
-ALONE_UNDER = "no row was written under that line"
-OTHERS = "Every other row under that line is gone the same way"
-# Site 4 is the one sentence of the four whose line DOES have a row under it
-# — this gate's own, which is why the branch was entered at all — so what it
-# can say is that no OTHER row was.
-NO_OTHERS = "No other row was written under that line"
-MOVES = "moves the stopping place down"
-WHOLE = "is the whole of what changes"
+# `UNREAD` is the walker's clause, said only where a line written `| … |`
+# stands below the stopping line — #430's condition, which `missing_row`
+# keeps. `NEVER_REACHED` is said where the `Broad gate` line is below the
+# stopping line rather than the line itself, and `ESCAPE` where the stopping
+# line is the `Broad gate` row and holds a bare pipe.
+UNREAD = "every row below it would go unread"
+NEVER_REACHED = "the walk never reached it"
+IS_THE_ROW = f"That line is the `{ROW}` row"
+ESCAPE = "write it `\\|`"
+# The stop rule's wording, gone from every refusal: a case asserting its
+# absence keeps it from coming back beside the walker's.
+KEPT = "the stop rule needs a row before it can stop"
 
 
 def test_what_a_refused_line_cost_is_read_off_the_file_and_not_stated_flat(
     tmp_path,
 ):
-    """Round 1's 🟡 1 of #415. The reader breaks on a line it cannot parse
-    only once it has FOUND a row, so the same piped line costs the rows below
-    it or costs only itself depending on whether anything parsed above it.
-    The branch measured that and wrote it into five records; the sentence a
-    person actually reads said the rows were lost either way, and a person
-    whose rows arrived was sent to reformat them — this work item's own
-    defect, one file over.
+    """Round 1's 🟡 1 of #415, re-pinned by #871. The stop rule broke on a
+    line it could not parse only once it had FOUND a row, so the same piped
+    line cost the rows below it or only itself depending on whether anything
+    parsed above it, and the refusal had to read which way it fell.
 
-    **Both tables are in one case on purpose.** A case that asserted only
-    that the conditional sentence exists would pass just as well with the
-    chooser wired to the wrong answer, and wiring it to one answer is exactly
-    what the old code did. The pair is what makes the CONDITION the subject:
-    it is red when the cost is stated flat, and red again when the two
-    sentences are swapped.
+    **The walker has no such condition, and both tables say so.** It never
+    steps past a line it refuses, so the rows below the piped line go unread
+    whether or not a row parsed above it — GitHub shows them as rows, and the
+    walk does not read them. Both refusals quote the line, name the escape
+    and say the rows below go unread; neither carries the stop rule's
+    sentence. Seen red against the stop rule: the first-row table said the
+    rows below were read.
     """
     below_it = (
         "| Item | Value |\n|---|---|\n"
@@ -2104,42 +2126,14 @@ def test_what_a_refused_line_cost_is_read_off_the_file_and_not_stated_flat(
         "| Mode | shared |\n"
         "| Record language | English |\n"
     )
-    took = refusal_over(tmp_path, "took", below_it)
-    kept = refusal_over(tmp_path, "kept", first_row)
-
-    assert "does not parse as a row" in took, took
-    assert LOST in took, (
-        "a row parsed above the piped line, so the reader stopped there and "
-        f"the rows below it did not arrive — the refusal does not say so:\n{took}"
-    )
-    assert KEPT not in took, took
-
-    assert "does not parse as a row" in kept, kept
-    assert LOST not in kept, (
-        "the piped line is this table's FIRST row, so nothing had parsed "
-        "above it, the reader stepped past it, and `Mode` and `Record "
-        f"language` both arrived. The refusal says they were lost:\n{kept}"
-    )
-    assert KEPT in kept, (
-        f"the refusal drops the cost sentence instead of correcting it:\n{kept}"
-    )
-
-
-def test_the_rows_below_a_first_row_refusal_really_do_arrive(tmp_path):
-    """The other half of the case above, and the reason it may say what it
-    says. The sentence is only true because the reader returns those rows —
-    asserted here against `config_rows` itself, so that a change to the stop
-    rule turns the claim red rather than leaving a refusal asserting a
-    behaviour the reader no longer has."""
-    module = gate_module()
-    config = module.load(module.CONFIG_READER, "specseal_config_for_this_case")
-    rows = config.config_rows(
-        "| Item | Value |\n|---|---|\n"
-        f"| {ROW} | bin/test -q | tee out.txt |\n"
-        "| Mode | shared |\n"
-        "| Record language | English |\n"
-    )
-    assert rows == [("Mode", "shared"), ("Record language", "English")], rows
+    for name, table in (("took", below_it), ("first", first_row)):
+        said = refusal_over(tmp_path, name, table)
+        assert "which is not a 2-cell row" in said, said
+        assert IS_THE_ROW in said and ESCAPE in said, said
+        assert UNREAD in said, (
+            f"a row is written below the piped line and the walk never reads it:\n{said}"
+        )
+        assert KEPT not in said, said
 
 
 def test_a_broad_gate_row_below_a_refused_line_is_not_reported_absent(tmp_path):
@@ -2166,11 +2160,14 @@ def test_a_broad_gate_row_below_a_refused_line_is_not_reported_absent(tmp_path):
     assert f"has no `{ROW}` row" not in said, (
         f"the row is in the file, below a line the reader refused:\n{said}"
     )
-    assert "does not parse as a row" in said, said
+    assert "which is not a 2-cell row" in said, said
     assert "see C:\\docs\\" in said, (
         f"the refusal does not show the line that hid the row:\n{said}"
     )
-    assert "never reached it" in said, said
+    assert NEVER_REACHED in said, said
+    assert f"| {ROW} | bin/test -q |" in said, (
+        f"the refusal does not quote the row it never reached:\n{said}"
+    )
 
 
 def test_a_refused_row_of_some_other_item_is_not_read_as_this_one(tmp_path):
@@ -2200,168 +2197,6 @@ def test_a_refused_row_of_some_other_item_is_not_read_as_this_one(tmp_path):
     assert f"has no `{ROW}` row" in module.missing_row(str(home))
 
 
-def test_a_second_refused_line_is_what_decides_what_a_first_one_cost(tmp_path):
-    """Round 2's 🟡 1 of #415. The refusal answered about the FIRST line it
-    would not take as a row, and both sentences the gate builds are about the
-    TABLE — which rows failed to arrive, and whether this gate's row is one of
-    them. Those are the same line only while there is one bad line in the file.
-
-    **Both directions are here, because the unit was wrong in both.** With
-    some other item refused first, this gate's row sits under the SECOND bad
-    line and was reported ABSENT — round 1's 🟡 3 with one more line in the
-    file. With the `Broad gate` line itself refused first, a later bad line
-    loses rows the refusal then calls read, and nothing sends that person
-    back.
-
-    **The one-bad-line file is in the same case, and it is the half a chooser
-    keyed on the ROWS still gets wrong.** A `Broad gate` line written last in
-    its table loses nothing below it, because there is nothing below it — and
-    a chooser reading *no rows were lost* as *the table had not begun* tells a
-    person with a `Mode` row above their eyes that nothing parsed above this
-    line. What the ARM is read off is the STOPPING line, and this fixture is
-    what says so.
-
-    **Its other assertion moved, and the move is the subject of #430.** This
-    case used to pin *every row written BELOW that line is lost* for this
-    file, recorded as what the tree did while this very docstring said the
-    file loses nothing — the defect and its own description sitting one
-    paragraph apart. The arm is unchanged and still pinned by `KEPT not in`;
-    what the arm SAYS is now read off `below`, and
-    `test_a_refused_line_last_in_its_table_took_nothing_and_is_told_so` is
-    where both directions of that are pinned.
-    """
-    hidden = refusal_over(
-        tmp_path,
-        "hidden_under_the_second",
-        "| Item | Value |\n|---|---|\n"
-        "| Notes | see C:\\docs\\|\n"
-        "| Mode | shared |\n"
-        "| Other | see C:\\x\\|\n"
-        f"| {ROW} | bin/test -q |\n",
-    )
-    assert f"has no `{ROW}` row" not in hidden, (
-        f"the row is in the file, under the SECOND refused line:\n{hidden}"
-    )
-    assert "never reached it" in hidden, hidden
-    assert "see C:\\x\\" in hidden, (
-        "the refusal shows the first refused line rather than the one that "
-        f"actually stopped the reader:\n{hidden}"
-    )
-    assert "see C:\\docs\\" not in hidden, (
-        "the line quoted is the first refused one, which the reader stepped "
-        f"past and read on from — it took nothing:\n{hidden}"
-    )
-
-    lost = refusal_over(
-        tmp_path,
-        "lost_under_the_second",
-        "| Item | Value |\n|---|---|\n"
-        f"| {ROW} | bin/test -q | tee out.txt |\n"
-        "| Mode | shared |\n"
-        "| Notes | see C:\\docs\\|\n"
-        "| Record language | Korean |\n",
-    )
-    assert "The reader stopped LOWER DOWN" in lost, (
-        "`Record language` did not arrive, and the refusal tells the person "
-        f"every row below this line was read:\n{lost}"
-    )
-    assert "see C:\\docs\\" in lost, (
-        f"the line that lost the rows is not named:\n{lost}"
-    )
-    assert "so every row under that line is lost" in lost, lost
-
-    last = refusal_over(
-        tmp_path,
-        "refused_and_last",
-        "| Item | Value |\n|---|---|\n"
-        "| Mode | shared |\n"
-        f"| {ROW} | bin/test -q | tee out.txt |\n",
-    )
-    assert ALONE in last, (
-        "a `Mode` row parsed above this line and the line is what stopped "
-        f"the reader, so the cost is the rows below it — none, here:\n{last}"
-    )
-    assert KEPT not in last, (
-        "a `Mode` row parsed above this line and the line is what stopped "
-        "the reader, so the cost is the rows below it — none, here. The "
-        f"refusal says the table had not begun:\n{last}"
-    )
-
-
-def test_the_gate_reads_every_refused_line_and_not_only_the_first(tmp_path):
-    """The other half of round 2's 🟡 1, and the one that reaches the message
-    this work item exists to end. The gate asked whether the FIRST refused
-    line was its own row; a file with two of them can have this row under the
-    second, and the answer was *has no `Broad gate` row* about a line sitting
-    in front of the person.
-
-    Three shapes, all of them a `Broad gate` line the reader will not take:
-    below another refused line, below the line that STOPPED the reader, and
-    below a paragraph of prose written above the table's first row — where
-    the walk used to give up although `config_rows` steps past prose and
-    reads on (round 2's correction). Each was reported absent.
-    """
-    module = gate_module()
-    config = module.load(module.CONFIG_READER, "specseal_config_for_this_case")
-
-    second = refusal_over(
-        tmp_path,
-        "refused_second",
-        "| Item | Value |\n|---|---|\n"
-        "| Notes | see C:\\x\\|\n"
-        "| Mode | shared |\n"
-        f"| {ROW} | bin/test -q | tee out |\n",
-    )
-    assert f"has no `{ROW}` row" not in second, (
-        f"the row is in the file and it is the SECOND refused line:\n{second}"
-    )
-    assert "bin/test -q | tee out" in second, second
-    # This fixture's refused line is the LAST row of its table, so what it
-    # cost is itself alone — #430's own instance, pinned here as `LOST`
-    # while the shape it describes has no row below it at all. The subject
-    # of this case is that the SECOND refused line is the one answered
-    # about, which the assertion above is what pins.
-    assert ALONE in second, second
-
-    under = refusal_over(
-        tmp_path,
-        "refused_under_the_stopper",
-        "| Item | Value |\n|---|---|\n"
-        "| Mode | shared |\n"
-        "| Notes | see C:\\x\\|\n"
-        f"| {ROW} | bin/test -q | tee out |\n",
-    )
-    assert f"has no `{ROW}` row" not in under, (
-        f"the row is in the file, below the line that stopped the reader:\n{under}"
-    )
-    assert "never even reached it" in under, under
-    assert "see C:\\x\\" in under, (
-        f"the line the reader stopped at is not named:\n{under}"
-    )
-
-    prose_table = (
-        "| Item | Value |\n|---|---|\n"
-        "a paragraph written above the first row, which the reader steps past\n"
-        f"| {ROW} | bin/test -q | tee out |\n"
-        "| Mode | shared |\n"
-    )
-    prose = refusal_over(tmp_path, "refused_under_prose", prose_table)
-    assert f"has no `{ROW}` row" not in prose, (
-        f"the row is in the file, below a line of prose the reader skips:\n{prose}"
-    )
-    assert KEPT in prose, prose
-    assert config.config_rows(prose_table) == [("Mode", "shared")], (
-        "the sentence above is only true because the reader steps past both "
-        "the prose and the refused line and goes on to read `Mode`"
-    )
-
-    home = tmp_path / "refused_under_the_stopper" / "seal"
-    assert module.refused_broad_row(str(home)) is not None, (
-        "the gate's other caller asks the same question and got None for a "
-        "line sitting in the file"
-    )
-
-
 def test_a_refused_line_last_in_its_table_took_nothing_and_is_told_so(tmp_path):
     """A8 and A9 of #430, site 2 — the instance the ticket names.
 
@@ -2373,236 +2208,93 @@ def test_a_refused_line_last_in_its_table_took_nothing_and_is_told_so(tmp_path):
     holding the first time they type a bare pipe is the file that sentence is
     false about.
 
-    **Both directions are in one case, for the reason the case above this one
-    states.** A9 is the same file with a row genuinely under the refused
-    line, and it is what keeps the repair from being a flat swap: red when
-    the new sentence is printed unconditionally, and red again when the two
-    are exchanged.
+    **Both directions are in one case.** A9 is the same file with a row
+    genuinely under the refused line, and it is what keeps the repair from
+    being a flat swap: red when the walker's clause is printed
+    unconditionally, and red again when it is never printed. Re-pinned by
+    #871 to the walker's sentence, whose clause about the rows below is
+    what `missing_row` keeps or drops.
     """
     table = "| Item | Value |\n|---|---|\n| Mode | shared |\n"
     refused_line = f"| {ROW} | bin/test -q | tee out.txt |\n"
 
     last = refusal_over(tmp_path, "a8_last_row", table + refused_line)
-    assert "does not parse as a row" in last, last
-    assert ALONE in last, (
-        "the refused line is the last row of its table, so nothing was "
-        f"written below it and nothing else was lost:\n{last}"
-    )
-    assert LOST not in last, (
+    assert "which is not a 2-cell row" in last, last
+    assert IS_THE_ROW in last and ESCAPE in last, last
+    assert UNREAD not in last, (
         f"the refusal names rows nobody wrote — #430's own instance:\n{last}"
     )
-    assert KEPT not in last, (
-        "a `Mode` row parsed above this line and the line is what stopped "
-        f"the reader, so the table HAD begun:\n{last}"
-    )
+    assert KEPT not in last, last
 
     below = refusal_over(
         tmp_path,
         "a9_row_below",
         table + refused_line + "| Record language | Korean |\n",
     )
-    assert LOST in below, (
+    assert UNREAD in below, (
         "`Record language` is written under the stopping line and never "
-        f"arrived — the refusal has to say it was lost:\n{below}"
-    )
-    assert ALONE not in below, (
-        "a row IS written below the stopping line, and the refusal says "
-        f"nothing was:\n{below}"
+        f"arrived — the refusal has to say it goes unread:\n{below}"
     )
 
 
-def test_a_refusal_above_the_first_row_says_what_actually_arrived(tmp_path):
-    """A10 of #430, site 1 — the arm for a line nothing had parsed above.
+def test_the_refusal_reads_each_of_its_conditions_off_the_file(tmp_path):
+    """#871. Four conditions `walker_refusal` and `refused_broad_row` read,
+    each planted after a mutation of it survived every case above:
 
-    The reader steps past a line it cannot parse until it has found a row, so
-    a `Broad gate` line written as the table's FIRST row loses only itself.
-    The sentence said *The rows below it were read*, which names rows nobody
-    wrote where that line is the table's ONLY row.
-
-    **What this arm reads is not `below`.** `hooks/config.py#refusal` fills
-    `below` with the rows written under the STOPPING line, and this arm is
-    the one where no line stopped the reader at all — so `below` is `[]` in
-    both fixtures here and cannot tell them apart. Measured, this session.
-    What tells them apart is what the reader actually returned, and in this
-    arm every row it returned is below the quoted line: a row parsed ABOVE it
-    would have made that line the stopping one, which is site 2's arm.
-    """
-    only_row = f"| Item | Value |\n|---|---|\n| {ROW} | bin/test -q | tee out.txt |\n"
-    alone = refusal_over(tmp_path, "site1_only_row", only_row)
-    assert "does not parse as a row" in alone, alone
-    assert ALONE in alone, (
-        "this line is the whole table — there is nothing below it and no row "
-        f"was read:\n{alone}"
-    )
-    assert "rows below it were read" not in alone, (
-        f"the refusal names rows nobody wrote:\n{alone}"
-    )
-    assert KEPT in alone, (
-        "the half that explains WHY the line took nothing is the stop rule, "
-        f"and dropping it leaves the person with no cause:\n{alone}"
-    )
-
-    with_rows = refusal_over(
-        tmp_path, "site1_rows_below", only_row + "| Mode | shared |\n"
-    )
-    assert "rows below it were read" in with_rows, (
-        "`Mode` is written below this line and the reader stepped past the "
-        f"line and read it — the refusal has to say so:\n{with_rows}"
-    )
-    assert ALONE not in with_rows, (
-        f"a row IS written below the line, and the refusal says none is:\n{with_rows}"
-    )
-
-    module = gate_module()
-    config = module.load(module.CONFIG_READER, "specseal_config_for_this_case")
-    assert config.config_rows(only_row) == [], (
-        "the sentence above is only true because the reader returns no row "
-        "for this file"
-    )
-    assert config.config_rows(only_row + "| Mode | shared |\n") == [
-        ("Mode", "shared")
-    ], "the other half is only true because `Mode` does arrive"
-
-
-def test_the_arm_whose_repair_costs_a_row_says_there_is_more_to_write(tmp_path):
-    """Round 2's 🟡 4. The arm where the rows below the quoted line WERE read
-    is the only one where doing what the refusal asks makes the file worse,
-    and it was the one arm with nothing to say about what lies below.
-
-    Nothing has parsed above the quoted line, so the reader steps past both
-    malformed lines and the `Mode` row arrives. Escape the pipe as the message
-    instructs and the quoted line parses — which is what lets the stop rule
-    stop, and it stops at the second malformed line, so the `Mode` row that
-    was being read is lost. The person follows the instruction exactly and
-    loses a declaration nothing warned them about.
-
-    **The reader is asserted either side of the instructed edit**, because the
-    sentence is only worth printing while that is what the edit costs.
-    """
-    quoted = f"| {ROW} | bin/test -q | tee out.txt |\n"
-    with_a_second = (
-        "| Item | Value |\n|---|---|\n"
-        + quoted
-        + "| Record language | a | b |\n| Mode | shared |\n"
-    )
-    said = refusal_over(tmp_path, "rows_read_and_more_to_write", with_a_second)
-    assert "The rows below it were read" in said, said
-    assert "There is more than one line to write here" in said, (
-        "repairing this line switches the stop rule on and the next line the "
-        f"reader will not take is where it stops — the `Mode` row goes:\n{said}"
-    )
-
-    alone = refusal_over(
+      - a heading ends what is written below the stopping line, so a row
+        under a heading is not one the clause is about;
+      - the escape is named for a bare pipe only, and a `Broad gate` line
+        with no closing pipe is refused without it;
+      - the stopping line is found under the delimiter row, so a stray
+        separator is told from the table's own;
+      - an empty `Broad gate` row the walk read is the absent-row refusal,
+        never a line the walk is said to have missed."""
+    head = "| Item | Value |\n|---|---|\n| Mode | shared |\n"
+    under_heading = refusal_over(
         tmp_path,
-        "rows_read_and_nothing_else_to_write",
-        "| Item | Value |\n|---|---|\n" + quoted + "| Mode | shared |\n",
+        "heading_below",
+        head + f"| {ROW} | bin/test -q | tee out |\n## Notes\n| x | y |\n",
     )
-    assert "The rows below it were read" in alone, alone
-    assert "more than one line to write" not in alone, (
-        "this line is the only one the reader will not take, so repairing it "
-        f"costs nothing:\n{alone}"
+    assert IS_THE_ROW in under_heading and UNREAD not in under_heading, under_heading
+    unclosed = refusal_over(
+        tmp_path, "no_closing_pipe", head + f"| {ROW} | bin/test -q\n"
     )
+    assert IS_THE_ROW in unclosed and ESCAPE not in unclosed, unclosed
 
+    stray = head + "|---|---|\n" + f"| {ROW} | bin/test -q |\n"
     module = gate_module()
     config = module.load(module.CONFIG_READER, "specseal_config_for_this_case")
-    assert config.config_rows(with_a_second) == [("Mode", "shared")], (
-        "the sentence is only worth printing because that row arrives today"
+    said = config.config_table(stray)[1][0]
+    assert module.stopping_line(stray, said) == (3, "|---|---|"), said
+
+    empty = refusal_over(
+        tmp_path, "empty_row_read", head + f"| {ROW} |  |\n| a | b | c |\n"
     )
-    assert config.config_rows(with_a_second.replace("-q | tee", "-q \\| tee")) == [
-        (ROW, "bin/test -q | tee out.txt")
-    ], "and because the instructed edit is what loses it"
+    assert f"has no `{ROW}` row" in empty, empty
 
 
-def test_a_stopping_line_lower_down_with_nothing_under_it_names_no_rows(tmp_path):
-    """A10 of #430, site 3 — the quoted line was read and something LOWER
-    DOWN stopped the reader.
-
-    The sentence ended *so every row under that line is lost*, computed from
-    the stopping line's existence rather than from what was written under it.
-    Reachable with a refused line above the table's first row, a row, and a
-    second refused line written last: the reader stops at the second, and
-    there is nothing under it to lose.
-
-    The half that explains the cause — the stop rule, and the quoted stopping
-    line — stays in both directions, because that is what the person acts on.
-    """
-    table = (
-        "| Item | Value |\n|---|---|\n"
-        f"| {ROW} | bin/test -q | tee out.txt |\n"
-        "| Mode | shared |\n"
-        "| Notes | see C:\\docs\\|\n"
-    )
-    nothing_under = refusal_over(tmp_path, "site3_nothing_under", table)
-    assert "The reader stopped LOWER DOWN" in nothing_under, nothing_under
-    assert "see C:\\docs\\" in nothing_under, (
-        f"the line that stopped the reader is not named:\n{nothing_under}"
-    )
-    assert ALONE_UNDER in nothing_under, (
-        "the stopping line is the last line of the table, so nothing was "
-        f"written under it and nothing else was lost:\n{nothing_under}"
-    )
-    assert "so every row under that line is lost" not in nothing_under, (
-        f"the refusal names rows nobody wrote:\n{nothing_under}"
-    )
-    assert KEPT in nothing_under, (
-        "the half that says why THIS line cost nothing is the stop rule:\n"
-        f"{nothing_under}"
-    )
-
-    row_under = refusal_over(
-        tmp_path, "site3_row_under", table + "| Record language | Korean |\n"
-    )
-    assert "so every row under that line is lost" in row_under, (
-        "`Record language` is written under the stopping line and never "
-        f"arrived:\n{row_under}"
-    )
-    assert ALONE_UNDER not in row_under, (
-        f"a row IS written under the stopping line:\n{row_under}"
-    )
-
-
-def test_a_hidden_row_alone_under_the_stopping_line_has_no_others(tmp_path):
-    """A10 of #430, site 4 — the hidden-row refusal, the one sentence of the
-    class that is not inside `missing_row`'s arms.
-
-    `hides_this_row` is true only when `below` holds this gate's row, so the
-    branch is never entered on an empty `below` — and with that row alone
-    under the stopping line, *Every other row under that line is gone the
-    same way* names rows nobody wrote. That reachability is `questions.md`
-    Q2 for this site, and this case is the instrument: measured this session
-    at one row and at two.
-    """
+def test_a_broad_gate_row_under_the_stopping_line_is_named_where_it_is(tmp_path):
+    """S6 of #871, the sentence for a row under the stopping line, which
+    replaces the stop rule's hidden-row arm. The `Broad gate` row is the
+    person's, sitting under a line the walk refused, so the refusal quotes
+    the stopping line in the walker's sentence, says the walk never reached
+    the row, and quotes the row itself; it names no escape, because the
+    stopping line is not this gate's row. With nothing else under the
+    stopping line, the walker's clause still stands: the `Broad gate` row
+    itself is a row written below it. Seen red against the stop rule's
+    sentence, which said the reader stops reading there."""
     table = (
         "| Item | Value |\n|---|---|\n"
         "| Mode | shared |\n"
         "| Notes | see C:\\docs\\|\n"
         f"| {ROW} | bin/test -q |\n"
     )
-    one = refusal_over(tmp_path, "site4_one_row", table)
-    assert "never reached it" in one, one
-    assert f"has no `{ROW}` row" not in one, one
-    assert OTHERS not in one, f"this gate's row is the only row under that line:\n{one}"
-    assert NO_OTHERS in one, (
-        "nothing else was written under the stopping line, and the refusal "
-        f"has to say that rather than name other rows:\n{one}"
-    )
-
-    two = refusal_over(
-        tmp_path, "site4_two_rows", table + "| Record language | Korean |\n"
-    )
-    assert "never reached it" in two, two
-    assert OTHERS in two, (
-        "`Record language` is written under the stopping line beside this "
-        f"gate's row and went the same way:\n{two}"
-    )
-    assert NO_OTHERS not in two, f"another row IS written under that line:\n{two}"
-
-    module = gate_module()
-    config = module.load(module.CONFIG_READER, "specseal_config_for_this_case")
-    assert config.refusal(table)[1] == [(ROW, "bin/test -q")], (
-        "the sentence above is only true because this gate's row is the one "
-        "and only row the stopping line took"
-    )
+    said = refusal_over(tmp_path, "row_under_the_stopper", table)
+    assert "stops at `| Notes | see C:\\docs\\|`" in said, said
+    assert NEVER_REACHED in said and f"| {ROW} | bin/test -q |" in said, said
+    assert UNREAD in said, said
+    assert ESCAPE not in said and IS_THE_ROW not in said, said
+    assert f"has no `{ROW}` row" not in said, said
 
 
 def test_a_second_unparseable_line_below_is_not_called_nothing(tmp_path):
@@ -2621,63 +2313,40 @@ def test_a_second_unparseable_line_below_is_not_called_nothing(tmp_path):
     4 said nothing else was written under a line that has another one under
     it.
 
-    The four sibling cases above are the other direction — the same arms with
-    nothing below — so a repair that printed the new sentence flat turns those
-    red and this one green.
+    **Re-pinned by #871.** The walker stops at the first line it refuses and
+    reads nothing below it, so a second malformed line below is one of the
+    rows its clause is about: in all four the clause stands, because a line
+    written `| … |` is below the stopping line, malformed or not.
     """
     head = "| Item | Value |\n|---|---|\n"
     bad = f"| {ROW} | bin/test -q | tee out.txt |\n"
     also_bad = "| Record language | a | b |\n"
     stops = "| Notes | see C:\\docs\\|\n"
 
-    # The removed wording, which is what these fixtures make false. `ALONE`
-    # and `ALONE_UNDER` above are the sentences that REPLACED it and are true
-    # here, because no ROW was written below the quoted line — a line the
-    # reader will not take as a row was.
-    was_written = "nothing was written below it"
-    was_written_under = "nothing was written under that line"
-
     site1 = refusal_over(tmp_path, "site1_second_bad_line", head + bad + also_bad)
-    assert was_written not in site1, (
-        f"a line IS written below it — `refusal` returned it:\n{site1}"
-    )
-    assert ALONE in site1, site1
-    assert MOVES in site1, site1
+    assert UNREAD in site1 and IS_THE_ROW in site1, site1
 
     site2 = refusal_over(
         tmp_path, "site2_second_bad_line", head + "| Mode | shared |\n" + bad + also_bad
     )
-    assert was_written not in site2, site2
-    assert ALONE in site2, site2
-    assert WHOLE not in site2, (
-        "fixing this line moves the stopping place down to the next one the "
-        f"reader will not take, so one edit does not finish the file:\n{site2}"
-    )
-    assert MOVES in site2, site2
+    assert UNREAD in site2 and IS_THE_ROW in site2, site2
 
     site3 = refusal_over(
         tmp_path,
         "site3_second_bad_line",
         head + bad + "| Mode | shared |\n" + stops + also_bad,
     )
-    assert "The reader stopped LOWER DOWN" in site3, site3
-    assert was_written_under not in site3, site3
-    assert ALONE_UNDER in site3, site3
-    assert WHOLE not in site3, site3
-    assert MOVES in site3, site3
+    assert UNREAD in site3 and IS_THE_ROW in site3, site3
+    assert "see C:\\docs\\" not in site3, (
+        f"the walk stopped at the first line it refused, not a lower one:\n{site3}"
+    )
 
     site4 = refusal_over(
         tmp_path,
         "site4_second_bad_line",
         head + "| Mode | shared |\n" + stops + f"| {ROW} | bin/test -q |\n" + also_bad,
     )
-    assert "never reached it" in site4, site4
-    assert "Nothing else was written under that line" not in site4, site4
-    assert NO_OTHERS in site4, (
-        "this gate's row is still the only ROW under the stopping line, which "
-        f"is what the sentence may claim:\n{site4}"
-    )
-    assert "will not take as rows either" in site4, site4
+    assert NEVER_REACHED in site4 and UNREAD in site4, site4
 
 
 # --- #429: a `Broad gate` line written where no walk reads it ---------------
@@ -2956,16 +2625,17 @@ def test_an_unclosed_fence_hides_the_live_table_and_the_gate_says_which_line(
 
 
 def test_both_reads_behind_one_refusal_apply_the_fence_rule(tmp_path):
-    """`missing_row` reads the config twice for one refusal — `refusal(home)`
-    always, and `rows_read(home)` in the arm where no line stopped the reader
-    (#430's site 1). Both go through `hooks/config.py`, so the fence rule
-    reaches both by construction; this is that measured rather than assumed.
+    """`missing_row` reads the config more than once for one refusal — the
+    walk, the line it stopped at, and what is written below that line — and
+    every read goes through `hooks/config.py#unfenced`, so the fence rule
+    reaches each by construction; this is that measured rather than assumed
+    (re-pinned by #871 from the stop rule's two reads).
 
-    The fixture is the one shape where the two could disagree: a fenced
-    example BELOW a line with nothing parsed above it. A `rows_read` that did
-    not apply the rule would hand back the example's rows, and the refusal
-    would tell the person the rows below their line were read — naming rows
-    out of a block nobody meant as an answer.
+    The fixture is the shape where they could disagree: a fenced example
+    BELOW the refused line. A read of what lies below that did not apply the
+    rule would find the example's rows, and the refusal would tell the
+    person rows below their line go unread — naming rows out of a block
+    nobody meant as an answer.
     """
     said = refusal_over(
         tmp_path,
@@ -2974,16 +2644,14 @@ def test_both_reads_behind_one_refusal_apply_the_fence_rule(tmp_path):
         f"| {ROW} | bin/test -q | tee out.txt |\n"
         "```markdown\n| Mode | local |\n| Broad gate | EXAMPLE |\n```\n",
     )
-    assert "does not parse as a row" in said, said
-    assert ALONE in said, (
-        "the only rows under this line are inside a code fence, so nothing "
-        f"the reader answers with was written below it:\n{said}"
+    assert "which is not a 2-cell row" in said, said
+    assert IS_THE_ROW in said and ESCAPE in said, said
+    assert UNREAD not in said, (
+        "the only rows under this line are inside a code fence, so no row "
+        f"the reader answers with is written below it:\n{said}"
     )
-    assert "rows below it were read" not in said, (
-        f"the refusal names rows out of an example block:\n{said}"
-    )
-    assert KEPT in said, (
-        f"the half that explains why the line took nothing is gone:\n{said}"
+    assert "EXAMPLE" not in said, (
+        f"the refusal names a row out of an example block:\n{said}"
     )
 
 
@@ -3042,31 +2710,34 @@ def test_two_refused_lines_of_one_character_do_not_collide(tmp_path):
 
     Both directions here, and the second is what the first is measured
     against.
+
+    **Re-pinned by #871.** The stopping line is now found by its place under
+    the header, the first line there that reads as the line the walker
+    quoted, so two `|` lines cannot be mistaken for each other: the first
+    is where the walk stopped, and the clause about rows below it stands
+    wherever a line is written under it, the second `|` included.
     """
     two_pipes = (
         "| Item | Value |\n|---|---|\n| Mode | shared |\n|\n|\n"
         f"| {ROW} | bin/test -q |\n"
     )
     collided = refusal_over(tmp_path, "two_bare_pipes", two_pipes)
-    assert "never reached it" in collided, collided
-    assert "will not take as rows either" in collided, (
-        "a second line the reader will not take stands below the stopping "
-        f"line, and the refusal says nothing about it:\n{collided}"
+    assert NEVER_REACHED in collided and "stops at `|`" in collided, collided
+    assert UNREAD in collided, (
+        "lines stand below the stopping line, and the refusal says nothing "
+        f"about them:\n{collided}"
     )
 
     distinct = refusal_over(
         tmp_path, "one_of_them_longer", two_pipes.replace("|\n|\n", "|\n| x\n", 1)
     )
-    assert "will not take as rows either" in distinct, distinct
+    assert UNREAD in distinct, distinct
 
-    nothing_after = refusal_over(
-        tmp_path,
-        "nothing_below_the_stopper",
-        f"| Item | Value |\n|---|---|\n| Mode | shared |\n|\n| {ROW} | bin/test -q |\n",
-    )
-    assert "will not take as rows either" not in nothing_after, (
-        "the stopping line is the only line the reader will not take, and the "
-        f"refusal names others:\n{nothing_after}"
+    module = gate_module()
+    config = module.load(module.CONFIG_READER, "specseal_config_for_this_case")
+    said = config.config_table(two_pipes)[1][0]
+    assert module.stopping_line(two_pipes, said) == (3, "|"), (
+        "the stopping line is the first `|` under the header, by position"
     )
 
 
@@ -3085,8 +2756,9 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before(tmp_path):
     text = open(os.path.join(home, "config.md"), encoding="utf-8").read()
 
     assert config.declared_mode(home) == ("mode", "shared"), config.declared_mode(home)
-    assert config.refusal(text) == ([], [], None), (
-        f"a refusal is built from this repository's own config:\n{config.refusal(text)}"
+    assert config.config_table(text)[1] == [], (
+        "a refusal is built from this repository's own config:\n"
+        f"{config.config_table(text)[1]}"
     )
     command = module.broad_command(home)
     assert command and f"| {ROW} | {command} |" in text, (
@@ -3147,6 +2819,7 @@ def test_an_escaped_pipe_reaches_the_gate_as_the_command_it_reads_as(tmp_path):
         "sleep 1 && echo done",
         "a && b &&",
     ],
+    ids=interpreter_free,
 )
 def test_a_pair_that_closes_early_wraps_a_part_and_not_the_whole(value):
     """The boundary, read directly off the unit. A substitution the value

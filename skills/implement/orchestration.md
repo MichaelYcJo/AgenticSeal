@@ -4,8 +4,8 @@ The sections `skills/implement/SKILL.md` used to carry for the session that
 spawns agents, under the `Orchestrator:` prefix `code-review` already used for
 its own. They are the procedure for **starting** a work item: creating the
 `seal/` root the first time a repository opts in, setting up parity mode where
-a project ports an original, and asking the one routing question — two
-questions, one call, one file — before the first edit.
+a project ports an original, and asking the one routing question — question
+1 alone, the boxes only under `per axis`, one file — before the first edit.
 
 The sequence those sections sit inside arrived later, from the shared
 checklist that was deleted for being written by every branch (#351). It is
@@ -165,11 +165,11 @@ its own root, and every 0.3.x work item carried `routing.md` (#688).
    a CI `run:` step is where one is likeliest to come from. Offer it that way
    rather than dropping the pipe or moving to the next candidate: the cell is
    markdown's, and the reader reduces `\|` to a plain pipe before any shell
-   sees it. Say why, because a bare one still parses as no row, the gate then
-   quotes that line back instead of reporting the row as absent, and — where
-   a row above it already parsed — every row written below it is lost with it.
-   `templates/config.md` §*What is refused, and what stays allowed* carries
-   the measurement.
+   sees it. Say why, because a bare one is refused: GitHub shows the row cut
+   off at the pipe, the gate quotes that line back with the edit instead of
+   reporting the row as absent, and every row written below it goes unread
+   with it. `templates/config.md` §*What is refused, and what stays allowed*
+   carries the rule.
 
    **Name the criterion; do not restate it.** `templates/config.md`
    §*Choosing a value — the criterion* owns the criterion, three rules with
@@ -252,18 +252,30 @@ Write `seal/parity.md` from `templates/parity.md` with those values, and
 record the machine-local checkout path in `~/.claude/specseal/parity-paths.md`
 keyed by the origin remote URL. The path never goes in the committed file.
 
-## Orchestrator: how the work is routed — two questions, one call, one file
+## Orchestrator: how the work is routed — question 1 alone, boxes if per axis, one file
 
 **How this work is routed is one of them.** It is one decision about where the
 work goes, and asking a later part of it on its own is itself the mid-round
 prompt this exists to remove. Opening a pull request is an outward-facing act —
 it is not a detail that can wait for the end.
 
-**This is two questions in ONE `AskUserQuestion` call**, which is one wait. What
-the batch rule asks for is one batch before the first edit, not one question
-(`skills/implement/SKILL.md` §1). `AskUserQuestion` allows at most four options
-per question, and two presets beside the boxes is five — so the shape below is
-two questions rather than one, and that is what makes both fit.
+**Ask question 1 alone; the boxes in a second call only under `per axis`.**
+Question 1 goes in one call of its own, and two of its three answers
+settle everything: `automation` writes every row, and `no work item` opens
+nothing, so under either of them the boxes mean nothing. They used to sit
+beside question 1 in the same call, and the harness shows every question of a
+call at once, so the owner was shown four meaningless boxes at the start of
+nearly every run (#911).
+
+Under `per axis` the second call follows the first at once, before the first
+edit. That is a second wait, and it is the trade #911 took: the boxes depend
+on question 1's answer, so putting them beside it shows them under the two
+answers they mean nothing for. Asked at once and before the first edit, the
+second wait still costs a reply rather than a stopped session, which is how
+`skills/implement/SKILL.md` §1 prices a question. `AskUserQuestion` allows at
+most four options per question, and two presets beside the four boxes is six
+— so the shape below is two questions rather than one, and that is what
+makes both fit.
 
 ### Question 1 — single-select
 
@@ -290,7 +302,10 @@ of the other answers pays.
 
 **A run resumed in a new session puts question 1 through `AskUserQuestion`
 again, before the first spawn**, in the same call as whatever else the resume
-has to ask. The session puts it from a directory inside the clone the run
+has to ask. That is the one call question 1 shares: the boxes are not put
+again, because `routing.md` already holds their answer, so a resume has no
+second call to keep apart, while at the start of a work item question 1 goes
+alone, as above. The session puts it from a directory inside the clone the run
 works in: the readers keep the answer only where the result's own directory
 and the gate's root are the same clone (`docs/worktree-guard-spec.md`
 §*Creation consent*, rule 4). A new session is a `/clear`, a new `claude`
@@ -306,7 +321,7 @@ off one machine's transcripts on 2026-10-12: 20 compaction boundaries, each
 under its file's own id, and 8 of 115 transcripts written under one id by
 more than one CLI version, which only a resumed process does.
 
-### Question 2 — `multiSelect`, meaningful only under *per axis*
+### Question 2 — `multiSelect`, asked only under *per axis*
 
 **The order is the specification, not an incidental listing.** The first box is
 a property of the run; the three below name parties, in the order they run. A
@@ -331,7 +346,7 @@ ask, never that a person did the work by hand.
 most four options per question. Question 2 sits at exactly four, and the room
 was made by taking the framer and the sealer out of the question. **It is fully
 spent: a fifth box breaks this shape**, and whoever adds one is back on #88's
-original wall — two questions in one call, or a preset that hides the axes.
+original wall — a third question of boxes, or a preset that hides the axes.
 
 ### What the answer writes
 
@@ -400,7 +415,7 @@ So the one moment of human contact is here, before the first edit, and the
 order does not change when a framer runs:
 
 ```
-you        : ask the two questions in one call        ← the tool is here
+you        : ask question 1; boxes only if per axis   ← the tool is here
 you        : write and commit routing.md
 the framer : read, judge, write spec / plan / questions
 you        : read plan.md and spawn the build         ← the approval
@@ -513,7 +528,7 @@ answering it costs a reply rather than a stopped session.
 ### A work item that commits in more than one repository
 
 Some work items commit in more than one repository. The routing question is
-still asked once, in the one call above, and every answer it writes goes into
+still asked once, in the shape above, and every answer it writes goes into
 every repository the work item commits in. Asking it again per repository is
 the mid-run question this section exists to remove, arriving once per
 checkout.
@@ -656,9 +671,9 @@ not a closed-looking one.
 | Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them |
 | Orchestrator: Bootstrap — create what's missing | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `bin/broad-gate`'s own refusal after the rounds have settled, and nothing checks that the workflow file was written from the template with the version substituted |
 | Orchestrator: Parity setup — deriving what can be derived | `skills/implement/orchestration.md` | still a sentence | The four fields are derived by hand and nothing reads the result. The commit gate's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
-| Orchestrator: how the work is routed — two questions, one call, one file | `skills/implement/orchestration.md` | check: `hooks/commit-review-gate.py` | The review arm asks at every commit until a declaration naming the branch stands in the working tree, and `templates/claude-md-block.md` carries the question's exact shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the single call this section mandates |
-| Question 1 — single-select | `skills/implement/orchestration.md` | part of its parent's act | The three options of the one `AskUserQuestion` call its parent describes. It names no act of its own |
-| Question 2 — `multiSelect`, meaningful only under *per axis* | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the same call, and the ceiling on how many there may be. It names no act of its own |
+| Orchestrator: how the work is routed — question 1 alone, boxes if per axis, one file | `skills/implement/orchestration.md` | check: `hooks/commit-review-gate.py` | The review arm asks at every commit until a declaration naming the branch stands in the working tree, and `templates/claude-md-block.md` carries the question's exact shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
+| Question 1 — single-select | `skills/implement/orchestration.md` | part of its parent's act | The three options of the first `AskUserQuestion` call its parent describes, put alone. It names no act of its own |
+| Question 2 — `multiSelect`, asked only under *per axis* | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |
 | What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/routing.py` parses the same rows at every commit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
 | A work item that commits in more than one repository | `skills/implement/orchestration.md` | check: `hooks/commit-review-gate.py` | In each gated repository the review arm asks at every commit until a declaration naming that repository's branch stands there, so a repository the step skipped is noticed at its first commit. What it does not reach: an id minted twice is legitimate in a signer's own work item and nothing tells the two apart, and a missing `Pact` row is noticed only when somebody runs `bin/pact-check` at the pact's repository, which refuses a relationship recorded on one side |
 | A pact review at the pact's repository | `skills/implement/orchestration.md` | command: `bin/pact-check` | The act opens on the command's `NOT TAKEN` line and closes when the same command reads every record as taken, refusing at exit 2 a review row that cannot be true. What it does not reach is the judgment itself: whether a change keeps its clause is the builder's and the warden's, and a `holds` written without reading the change parses exactly like one written after it |

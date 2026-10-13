@@ -1272,9 +1272,16 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
         encoding="utf-8",
     ) as f:
         orchestration = f.read()
-    assert "in one call" in orchestration, (
-        "the orchestrator's routing section no longer says the questions go "
-        "in one call, which is what makes the batch one wait"
+    # Since #911 question 1 goes in a call of its own and the boxes follow
+    # only under `per axis`. The bare `in one call` this used to assert is
+    # also satisfied by the routing.md-batching sentence, so it is pinned on
+    # the sentence that carries the claim.
+    assert "Question 1 goes in one call of its own" in " ".join(
+        orchestration.split()
+    ), (
+        "the orchestrator's routing section no longer says question 1 is put "
+        "in a call of its own before the first edit, with the boxes after it "
+        "only under `per axis` (#911)"
     )
     # WHAT IS REFUSED IS A CLAIM, NOT A SPELLING, and the first version of
     # this assertion refused the spelling. It read `"in one batch" not in
@@ -1296,8 +1303,9 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     # WHAT IT STILL CANNOT TELL APART, written down rather than left to be
     # found: *you collect the batch* from *your caller collects the batch*.
     # The second is true and a definition may need to say it — `agents/
-    # framer.md` does, and says it with `in one call`, which is the spelling
-    # that stays clear of this. A definition that needs the other wording will
+    # framer.md` does, in its diagram's first line (*asks question 1; boxes
+    # only if per axis*), which stays clear of this. A definition that needs
+    # the other wording will
     # meet this assertion and should reword rather than widen it, because one
     # word is all that separates the true sentence from the instruction.
     #

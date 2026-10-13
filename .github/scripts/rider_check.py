@@ -235,6 +235,13 @@ def quoted_lines(lines, text=None):
     breaks a line, so a fence run after a U+2028 or a form feed, which
     `str.splitlines` breaks at, quotes no rider (#667 round 1, 🟡 1).
 
+    Reads: guess — a markdown file's lines, through `hooks/blocks.py#walk`; unknown refused
+
+    A line that holds a rider is read on doubt, the first of the three
+    answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
+    a deletion* gives: the wrong answer is a quoted example reported as a
+    rider, `BROKEN` at exit 2 where it carries no stamp.
+
     A marker line there is a rider QUOTED in an example -- a `SKILL.md`
     showing what a rider looks like -- and reading it as one invented a rider
     with no stamp, BROKEN at exit 2 in CI, for a line nobody wrote as a rider
