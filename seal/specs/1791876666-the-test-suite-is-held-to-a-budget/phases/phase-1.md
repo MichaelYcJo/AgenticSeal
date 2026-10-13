@@ -47,7 +47,39 @@ So the sample is chosen as follows. A row is in it only if it landed on macOS
 nothing but bash, git and POSIX tools. Two `env -i` rows are kept with a
 named Windows skip, `NO_GIT_UNDER_ENV_I`, beside the existing
 `NO_HOOK_UNDER_LD_PRELOAD`. Every other row that commits nowhere undeclared
-fails the test (T2). Ubuntu was not measured row by row; see `overview.md`.
+fails the test (T2).
+
+**What CI found, and the fix.** PR #939's run 38477955404 at 480bea69
+answered the ubuntu question and found three rows that T2 failed by name.
+Every other job passed, ubuntu included.
+
+- `shape: timeout` on `macos-latest` (job 115573231555) landed nowhere. The
+  stock image has no GNU `timeout`; the local one is Homebrew's coreutils
+  (`/opt/homebrew/bin/timeout`), which is why it landed here. It is replaced
+  by `shape: nice` from the same subgroup, which uses `/usr/bin/nice`.
+- `#686: builtin cd` and `#686: 2>&1 cd` on `windows-latest` (job
+  115573231519) landed nowhere. In the same run the `;` forms passed, so they
+  committed into `main`, which means the `cd {U}` itself fails on Windows and
+  an `&&` form commits nothing. Every `&&` row of `#686` spells `{U}`
+  unquoted, and bash takes a Windows path's backslashes out. The cause is
+  read from that pair of results; the shell's stderr is discarded, so it is
+  not printed anywhere.
+- So the `&&` rows that `cd` into `{U}` skip on Windows by a named limit of
+  the row, `NO_CD_INTO_AN_UNQUOTED_PATH`. `#686: builtin cd` keeps the
+  subgroup's commit into `u` on macOS and ubuntu. `#686: 2>&1 cd` is replaced
+  by `#686: cd $W unset`, the one `&&` row with no path, so the subgroup
+  still runs on Windows. `cd` to an unset variable succeeds and stays put in
+  bash 3.2 here and in the `bash:5.2` image (`executed`).
+- The prices in `.test_durations` are no oracle for this. They put both
+  Windows `&&` rows in the two-sandbox band, and CI says neither ran there.
+
+The fix is badc0bd4. `.test_durations` drops the two ids that left the
+sample and takes the two that came in at their b93109a7 prices, so the file
+reads 366.94 s. The file gives 179 passed (`executed`). The mutation table
+holds: `mutation-check` with m1 and with m3 over the two new rows is red, with
+both rows failing each time. No `env -i` row changed, so m4 and m5 are as
+recorded, and m2 has no S2 killer. That the Windows skip is taken there is
+for the next CI run to show.
 
 **The battery is m1–m5, not m1–m4** (Q6, drawn from the docstrings before
 anything was removed). Under `env -i` the session is found in two places:
