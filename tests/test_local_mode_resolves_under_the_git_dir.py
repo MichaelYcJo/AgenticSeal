@@ -23,6 +23,7 @@ from conftest import (
     fired,
     load_hook_module,
     local_home,
+    posix_id,
     run_hook,
 )
 
@@ -177,6 +178,7 @@ def test_the_implementer_notice_names_the_local_path(local):
         os.path.join("ledger", "f.md"),
         os.path.join("releases", "0.4.0.md"),
     ],
+    ids=posix_id,
 )
 def test_the_evidence_advisor_reports_a_broken_row_from_the_local_ledger(local, at):
     """S6. The advisory globbed `seal/ledger.md` and `seal/ledger/*.md` under

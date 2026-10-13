@@ -65,6 +65,7 @@ import os
 import re
 
 import pytest
+from conftest import posix_id
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CONTRACT = os.path.join(ROOT, "skills", "agent-contract", "SKILL.md")
@@ -112,7 +113,7 @@ SECTIONS = sections(read(CONTRACT))
 
 
 def name(path):
-    return os.path.relpath(path, ROOT)
+    return posix_id(os.path.relpath(path, ROOT))
 
 
 def runs(body, window=WINDOW):
