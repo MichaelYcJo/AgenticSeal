@@ -646,41 +646,89 @@ def priced(scale, only=None):
 RESCALED = slow(("tests/test_a.py", 130), threshold=800, suite=(980, "5 %"))
 
 
-def test_a_uniform_rescale_of_the_durations_holds_every_row(tmp_path, capsys):
-    """A refresh that prices the same cases 1.07 times higher moves no row:
-    the seconds rows are read in the base's prices, and the summary says the
-    raw value and the level it was divided by."""
-    root = tree(
+def price(per_mille):
+    """The `## Price level` table stating `.test_durations` at `per_mille`."""
+    return (
+        "\n## Price level\n\n| Prices | Per mille |\n|---|---|\n"
+        f"| .test_durations | {per_mille} |\n"
+    )
+
+
+def refreshed(tmp_path, cases, head):
+    """A tree whose base holds `CASES` under `RESCALED` and whose HEAD holds
+    `cases` under `head`."""
+    return tree(
         tmp_path,
-        RESCALED,
+        head,
         base=RESCALED,
         base_files={".test_durations": json.dumps(CASES)},
-        files={".test_durations": json.dumps(priced(1.07))},
+        files={".test_durations": json.dumps(cases)},
     )
+
+
+def test_a_uniform_rescale_of_the_durations_holds_every_row(tmp_path, capsys):
+    """A refresh that prices the same cases 1.07 times higher moves no row
+    once it restates the price level to 1070: the seconds rows are read in
+    the prices their ceilings are written in, and the summary says the raw
+    value, the ratio measured against the base and the level divided by."""
+    root = refreshed(tmp_path, priced(1.07), RESCALED + price(1070))
     assert ratchet(root, "") == 0
     out = capsys.readouterr().out
     assert "prices the 4 cases it shares with the base x1.070 the base's" in out, out
+    assert "divided by the price level x1.070" in out, out
     assert "| `suite-seconds` | 980 seconds (raw 1,049 at x1.070) |" in out, out
+
+
+@pytest.mark.parametrize(
+    "cases, level, said",
+    [
+        (priced(1.07), 1000, "1000 x 1.070 = 1070 per mille, and `## Price level`"),
+        (CASES, 1070, "1000 x 1.000 = 1000 per mille, and `## Price level`"),
+    ],
+    ids=["a refresh that does not restate it", "a level moved with no refresh"],
+)
+def test_the_price_level_follows_the_durations_file_and_nothing_else(
+    tmp_path, capsys, cases, level, said
+):
+    """The level is the one number a refresh restates, and the check names
+    it. It cannot move unless the file did: a level raised over an unchanged
+    file would loosen every seconds row without a `Budget raised:` line."""
+    root = refreshed(tmp_path, cases, RESCALED + price(level))
+    assert ratchet(root, "") == 1
+    out = capsys.readouterr().out
+    assert "budget-check: price level: " in out and said in out, out
+
+
+def test_a_refreshed_file_holds_at_the_next_pull_request(tmp_path, capsys):
+    """After a refresh lands with its level, the next pull request's base
+    holds the refreshed file: the ratio is 1 and the rows are read at the
+    level that refresh wrote, so the refresh fails nothing downstream."""
+    head = RESCALED + price(1070)
+    root = tree(
+        tmp_path,
+        head,
+        base=head,
+        base_files={".test_durations": json.dumps(priced(1.07))},
+    )
+    assert ratchet(root, "") == 0, capsys.readouterr()
+    assert run(root) == 0
 
 
 def test_a_file_doubling_against_the_rest_still_fails_its_row(tmp_path, capsys):
     """One file twice as slow while the rest stand still is composition, not
-    price: the level moves to 1.133 and the file still reads 230 seconds in
-    the base's prices, over its 130."""
-    root = tree(
-        tmp_path,
-        RESCALED,
-        base=RESCALED,
-        base_files={".test_durations": json.dumps(CASES)},
-        files={".test_durations": json.dumps(priced(2, only="tests/test_a.py"))},
+    price: the level moves to 1133 and the file still reads 229 seconds in
+    the ceilings' prices, over its 130."""
+    root = refreshed(
+        tmp_path, priced(2, only="tests/test_a.py"), RESCALED + price(1133)
     )
     assert ratchet(root, "") == 1
     out = capsys.readouterr().out
     assert (
-        "budget-check: slow-file:tests/test_a.py: measured 230 seconds is over "
+        "budget-check: slow-file:tests/test_a.py: measured 229 seconds is over "
         "the ceiling 130" in out
     ), out
     assert "budget-check: suite-seconds:" not in out, out
+    assert "budget-check: price level:" not in out, out
 
 
 @pytest.mark.parametrize(
@@ -754,6 +802,16 @@ SUITE = budgets(("suite-seconds", "seconds", 180, "5 %", "gate"))
             {},
             "CLAUDE.md is not in the tree",
         ),
+        (
+            SUITE + price("1,070"),
+            {".test_durations": json.dumps(SMALL)},
+            "`## Price level` table is not one row",
+        ),
+        (
+            SUITE + price(1000) + "| .test_durations | 1000 |\n",
+            {".test_durations": json.dumps(SMALL)},
+            "`## Price level` table is not one row",
+        ),
     ],
     ids=[
         "a file table with no family row",
@@ -768,6 +826,8 @@ SUITE = budgets(("suite-seconds", "seconds", 180, "5 %", "gate"))
         "a listed test file the durations do not price",
         "a listed document the tree lacks",
         "no CLAUDE.md",
+        "a price level with a comma",
+        "a price level written twice",
     ],
 )
 def test_a_family_that_cannot_be_read_is_exit_2(tmp_path, capsys, head, files, said):

@@ -63,15 +63,22 @@ of the marks does not.
 **The seconds rows are held to composition, not to the runners' speed.**
 Every refresh of `.test_durations` prices the suite on a different set of
 runners, and one measured refresh priced the same cases 1.07 times higher.
-So with `--baseline`, where the file differs from the base's, the price level
-is the seconds-weighted ratio over the case ids both files hold: HEAD's
-seconds for those ids summed, over the base's. `suite-seconds` and every
-`slow-file` reading are HEAD's seconds divided by it, in the base's prices,
-and the summary prints the raw value beside the ratio. A uniform rescale
-holds every row; cases added, cases removed and one file growing against the
-rest move them. A file the base did not have is a ratio of 1, and two files
-sharing no case id, or a base pricing the shared ones at nothing, is exit 2.
-A suite that is slower everywhere is what the per-run CI minutes measure.
+So the seconds ceilings are written in one set of prices, and `## Price
+level` (`| Prices | Per mille |`, one row for `.test_durations`, 1000 where
+the table is absent) states how the committed file's prices stand against
+them. `suite-seconds` and every `slow-file` reading are the file's seconds
+divided by that level, and the summary prints the raw value beside it. With
+`--baseline`, the file's move is measured as the seconds-weighted ratio over
+the case ids both files hold — HEAD's seconds for those ids summed, over the
+base's — and the level here must be the base's times that ratio, rounded per
+mille, or the run fails naming the number to write. So a refresh restates
+one number and no `Budget raised:` line, the level cannot move without the
+file, and a later pull request reads the refreshed file at the level its
+refresh wrote. A uniform rescale holds every row; cases added, cases removed
+and one file growing against the rest move them. A file the base did not
+have is a ratio of 1, and two files sharing no case id, or a base pricing the
+shared ones at nothing, is exit 2. A suite that is slower everywhere is what
+the per-run CI minutes measure.
 
 **The summary** is a table, one line per budget — measured, ceiling, headroom,
 kind, verdict — and the raises the ratchet read. It goes to
@@ -120,8 +127,13 @@ FILE_TABLES = {
 }
 CLAUDE_MD = "claude-md"
 DURATIONS = ".test_durations"
-# The families read from `.test_durations`, compared in the base's prices.
+# The families read from `.test_durations`, compared in the prices their
+# ceilings are written in, and the table stating how the file's prices stand
+# against those, per mille.
 PRICED = ("suite-seconds", "slow-file")
+PRICE_TITLE = "Price level"
+PRICE_HEADER = ("Prices", "Per mille")
+PER_MILLE = 1000
 DOCS = "docs"
 HISTORY = re.compile(r"#\d{2,}|round \d|20\d\d-\d\d-\d\d|[Mm]easured")
 RULE_OPENER = "**"
@@ -277,15 +289,46 @@ def parse_budgets(text, where):
     return out
 
 
-def budgets_here(root):
-    """The rows of `seal/budgets.md` in the tree at `root`.
+def budgets_text_here(root):
+    """The text of `seal/budgets.md` in the tree at `root`, or Unreadable.
 
-    Reads: guess — the file a person edits, through `parse_budgets`; unknown refused"""
+    Reads: observed — the file on disk, as bytes decoded; unknown refused"""
     path = os.path.join(root, BUDGETS)
     if not os.path.isfile(path):
         raise Unreadable(f"{BUDGETS_GIT} is not in the tree, so no budget was read")
     with open(path, encoding="utf-8", errors="replace") as handle:
-        return parse_budgets(handle.read(), BUDGETS_GIT)
+        return handle.read()
+
+
+def budgets_here(root):
+    """The rows of `seal/budgets.md` in the tree at `root`.
+
+    Reads: guess — the file a person edits, through `parse_budgets`; unknown refused"""
+    return parse_budgets(budgets_text_here(root), BUDGETS_GIT)
+
+
+def stated_price(text, where):
+    """The price level `## Price level` states for `.test_durations`, per
+    mille of the prices the seconds ceilings are written in: 1000 where the
+    table is not there, Unreadable where it is and does not read as one row.
+
+    Reads: guess — a person's markdown table, through `hooks/config.py#gfm_table`; unknown refused"""
+    rows, refused = sibling("config").gfm_table(text, PRICE_HEADER)
+    if refused and refused[0].startswith("holds no "):
+        return PER_MILLE
+    if refused:
+        raise Unreadable(f"{where} {refused[0]}")
+    cells = [tuple(c.strip().strip("`") for c in cells) for _line, cells in rows]
+    if (
+        len(cells) != 1
+        or cells[0][0] != DURATIONS
+        or not CEILING.fullmatch(cells[0][1])
+    ):
+        raise Unreadable(
+            f"{where}'s `## {PRICE_TITLE}` table is not one row "
+            f"`| {DURATIONS} | <per mille, in digits> |`"
+        )
+    return int(cells[0][1])
 
 
 def base_of(root, ref):
@@ -325,17 +368,6 @@ def blob_at(root, base, path, label):
     if shown.returncode != 0:
         raise Unreadable(f"git could not read {path} at {label}")
     return shown.stdout
-
-
-def budgets_at(root, base, label):
-    """The rows of `seal/budgets.md` at commit `base`: none where the file was
-    not there yet.
-
-    Reads: guess — the file a person edits, as git holds it, through `blob_at` and `parse_budgets`; unknown refused"""
-    text = blob_at(root, base, BUDGETS_GIT, label)
-    if text is None:
-        return []
-    return parse_budgets(text, f"{BUDGETS_GIT} at {label}")
 
 
 def measure_preload(root, agent, _cache):
@@ -432,15 +464,14 @@ def price_level(base, head, label):
 
 
 def measure_suite(root, _subject, cache):
-    """Seconds summed over every case `.test_durations` prices, in the base's
-    prices where the run read a price level (`cache["price"]`), with the raw
+    """Seconds summed over every case `.test_durations` prices, divided by
+    the price level the budgets file states (`cache["level"]`), with the raw
     sum kept for the summary.
 
     Reads: observed — `.test_durations`, through `durations`; unknown refused"""
     raw = sum(durations(root).values())
-    ratio = cache.get("price", (1, 0))[0]
     cache.setdefault("raw", {})["suite-seconds"] = seconds(raw)
-    return seconds(raw / ratio)
+    return seconds(raw / cache.get("level", 1))
 
 
 def rule_lines(lines):
@@ -514,11 +545,11 @@ def file_values(root, family, cache):
             per_file = collections.defaultdict(float)
             for case, value in durations(root).items():
                 per_file[case.split("::", 1)[0]] += value
-            ratio = cache.get("price", (1, 0))[0]
+            level = cache.get("level", 1)
             raw = cache.setdefault("raw", {})
             for path, value in per_file.items():
                 raw[f"{family}:{path}"] = seconds(value)
-            cache[family] = {path: seconds(v / ratio) for path, v in per_file.items()}
+            cache[family] = {path: seconds(v / level) for path, v in per_file.items()}
         else:
             cache["docs"] = docs_lines(root)
             cache[family] = {path: len(h) for path, (h, _) in cache["docs"].items()}
@@ -711,6 +742,7 @@ def render(results, moves, against, cache=None):
     cache = cache or {}
     docs, raw = cache.get("docs"), cache.get("raw", {})
     ratio, common = cache.get("price", (1, 0))
+    level = cache.get("level", 1)
     lines = [
         "### Budgets",
         "",
@@ -719,8 +751,13 @@ def render(results, moves, against, cache=None):
     if ratio != 1:
         lines.append(
             f"`{DURATIONS}` prices the {common:,} cases it shares with the base "
-            f"x{ratio:.3f} the base's, seconds-weighted; the seconds rows are "
-            "compared in the base's prices."
+            f"x{ratio:.3f} the base's, seconds-weighted."
+        )
+    if level != 1:
+        lines.append(
+            f"The seconds rows are divided by the price level x{float(level):.3f} "
+            f"that `## {PRICE_TITLE}` states, into the prices their ceilings are "
+            "written in."
         )
     lines += [
         "",
@@ -733,8 +770,8 @@ def render(results, moves, against, cache=None):
         share = f"{room / row.ceiling:.1%}" if row.ceiling else "—"
         verdict = "holds" if not result.problems else "over" if room < 0 else "lower it"
         largest = " (largest unlisted)" if row.name in FILE_TABLES else ""
-        if ratio != 1 and row.name in raw:
-            largest += f" (raw {raw[row.name]:,} at x{ratio:.3f})"
+        if level != 1 and row.name in raw:
+            largest += f" (raw {raw[row.name]:,} at x{float(level):.3f})"
         lines.append(
             f"| `{row.name}` | {result.measured:,} {row.unit}{largest} | "
             f"{row.ceiling:,} | {room:,} ({share}) | {row.kind} | {verdict} |"
@@ -777,13 +814,19 @@ def check(root, baseline=None, body="", release=False):
     """`(problems, refusals, summary)` for the tree at `root`.
 
     Reads: guess — `seal/budgets.md` and the body its caller handed it, through the units above; unknown refused"""
-    head = budgets_here(root)
+    head_text = budgets_text_here(root)
+    head = parse_budgets(head_text, BUDGETS_GIT)
+    level = stated_price(head_text, BUDGETS_GIT)
     names = {row.name for row in head}
-    results, refusals, cache = [], [], {}
-    moves, against, base_rows = [], "no baseline", None
+    results, refusals = [], []
+    cache = {"level": fractions.Fraction(level, PER_MILLE)}
+    moves, against, base_rows, priced = [], "no baseline", None, []
     if baseline is not None:
         base, against = base_of(root, baseline)
-        base_rows = budgets_at(root, base, against)
+        base_text = blob_at(root, base, BUDGETS_GIT, against)
+        where = f"{BUDGETS_GIT} at {against}"
+        base_rows = [] if base_text is None else parse_budgets(base_text, where)
+        base_level = PER_MILLE if base_text is None else stated_price(base_text, where)
         if any(row.name.partition(":")[0] in PRICED for row in head):
             text = blob_at(root, base, DURATIONS, against)
             before = (
@@ -791,7 +834,9 @@ def check(root, baseline=None, body="", release=False):
                 if text is None
                 else durations_from(text, f"{DURATIONS} at {against}")
             )
-            cache["price"] = price_level(before, durations(root), against)
+            ratio, common = price_level(before, durations(root), against)
+            cache["price"] = (ratio, common)
+            priced = price_problems(base_level, ratio, common, level)
     for row in head:
         try:
             results.append(measured_row(root, row, names, cache))
@@ -800,10 +845,34 @@ def check(root, baseline=None, body="", release=False):
     problems = [
         (r.row.name, p) for r in results if r.row.kind == GATE for p in r.problems
     ]
+    problems += priced
     if base_rows is not None:
         found, moves = ratchet(base_rows, head, body, release)
         problems += found
     return problems, refusals, render(results, moves, against, cache)
+
+
+def price_problems(base_level, ratio, common, level):
+    """The one problem a price level that does not follow the durations file
+    is, or none: the level here has to be the base's times the ratio the
+    file moved by, per mille and rounded, so a refresh restates it in one
+    number and no other edit can move it.
+
+    Reads: nothing — compares the numbers handed to it"""
+    expected = seconds(base_level * ratio)
+    if level == expected:
+        return []
+    return [
+        (
+            "price level",
+            f"`{DURATIONS}` prices the {common:,} cases it shares with the base "
+            f"x{ratio:.3f} the base's, so its price level is {base_level} x "
+            f"{ratio:.3f} = {expected} per mille, and `## {PRICE_TITLE}` in "
+            f"{BUDGETS_GIT} says {level}. Write {expected} there; a price level "
+            "takes no `Budget raised:` line, because the durations file is what "
+            "moves it",
+        )
+    ]
 
 
 def measured_row(root, row, names, cache):

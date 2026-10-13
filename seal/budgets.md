@@ -7,7 +7,10 @@ band, the ratchet, the families and the `Budget raised:` line a raise needs in
 the pull request body. A ceiling moves in the same pull request as the change
 that moves the measurement. The `slow-file` and `docs-history` rows hold every
 file their own table below does not list, and give the files it does list
-their unit, slack and kind. -->
+their unit, slack and kind. The seconds ceilings are written in one set of
+prices; `## Price level` says how the committed `.test_durations` prices
+stand against them, and a refresh of that file restates it to the number the
+checker names. -->
 
 ## Budgets
 
@@ -22,6 +25,12 @@ their unit, slack and kind. -->
 | suite-seconds | seconds | 7862 | 5 % | gate |
 | slow-file | seconds | 120 | 10 % | gate |
 | docs-history | lines | 0 | +0 lines | gate |
+
+## Price level
+
+| Prices | Per mille |
+|---|---|
+| .test_durations | 1000 |
 
 ## Slow test files
 
