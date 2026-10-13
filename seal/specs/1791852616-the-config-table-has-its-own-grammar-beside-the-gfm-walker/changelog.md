@@ -26,7 +26,15 @@
     out;
   - a row under a comment, a fence or a blank line that ends the table was
     read as one of its rows, which GitHub does not show; it is now refused
-    as a row the walk never reaches: move it into the table;
+    as a row the walk never reaches: move it into the table, or, where it
+    heads a table of something else, put a heading between the two tables;
+  - a row after a form feed, U+2028 or another character only Python ends a
+    line at, on the line of the row above, was read as a row of its own,
+    which GitHub shows as more of the row above; it is now refused: put it
+    on a line of its own;
+  - an item written again below the line the walk stopped at has no value,
+    as an item written twice anywhere has none, so the row read above that
+    line is not taken as the answer;
   - a header indented one to three spaces, and a row indented the same way,
     were not read; they are, as GitHub shows them.
 - **Every command reading the table refuses an unread row at exit 2, and no
@@ -46,8 +54,9 @@
   exactly as it was, and the line is named.
 - **A vendored `evidence-check` carries the walker's line grammar (#871).**
   A copy with no `hooks/` beside it reads the table on the lines it can judge
-  alone and refuses where it lacks the plugin's block state — a fence or an
-  HTML line above the header, a comment or fence inside the table — so it
-  may refuse where the plugin reads, and never reads where the plugin
-  refuses. Run `/specseal:evidence-ci` to pick it up; until then a
+  alone, follows a fence or an HTML comment above the header to its close —
+  so the closed comment `seal mode` writes above every config's header is
+  read — and refuses where it lacks the plugin's block state — a block left
+  open above the header, a comment or fence inside the table — so it may
+  refuse where the plugin reads, and never reads where the plugin refuses. Run `/specseal:evidence-ci` to pick it up; until then a
   repository's CI reads with the stop rule.

@@ -1245,7 +1245,6 @@ skills/verify/scripts/broad_gate.py#exemptions@a742ffea
 skills/verify/scripts/broad_gate.py#failing_files@2a1186ca
 skills/verify/scripts/broad_gate.py#failure_lines@cda133dc
 skills/verify/scripts/broad_gate.py#fence_left_open@ff6e1e90
-skills/verify/scripts/broad_gate.py#fenced_row@2727f456
 skills/verify/scripts/broad_gate.py#fenced_row_at@1415b988
 skills/verify/scripts/broad_gate.py#fit@6c3cbf72
 skills/verify/scripts/broad_gate.py#gate@19e9f53b

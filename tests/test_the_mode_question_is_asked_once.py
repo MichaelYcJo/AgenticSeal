@@ -1270,6 +1270,59 @@ def test_a_table_the_walker_refuses_is_silence_from_the_mode_gate(repo, number):
     assert seen == ["silent", "silent"], seen
 
 
+@pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
+def test_a_row_after_a_break_gfm_does_not_honour_is_no_row_of_its_own(config, name):
+    """#871 round 1, 🟡 4. A row followed on its own line by a character only
+    `str.splitlines` ends a line at, then a second row, is ONE row to
+    cmark-gfm, cut off at its cells: GitHub shows `Mode shared` and no
+    `Broad gate`. The walk reads the first row and refuses the piece after
+    the break, so no gate is handed a command GitHub does not show. Seen red
+    against the walk before the guard: `Broad gate` was read as `x`."""
+    from block_shapes import BREAKS
+
+    text = TABLE.format(rows=f"| Mode | shared |{BREAKS[name]}| Broad gate | x |\n")
+    assert config.config_rows(text) == [("Mode", "shared")], config.config_rows(text)
+    value, said = config.config_value(text, "Broad gate")
+    assert value is None and "put it on a line of its own" in (said or ""), said
+
+
+def test_an_item_written_again_below_the_stopping_line_has_no_value(config):
+    """#871 round 1, the reviewer's second question, answered by #867's rule:
+    an item written twice has no value. A `Mode` row the walk read above a
+    line it refused, and a `Mode` row written below that line, are two
+    answers, so neither is the value. Seen red against the walk before the
+    count reached below the stopping line: `('shared', None)`."""
+    text = TABLE.format(rows="| Mode | shared |\n| a | b | c |\n| Mode | local |\n")
+    assert config.config_value(text, "Mode") == (
+        None,
+        "`Mode` appears 2 times — one value",
+    )
+    assert config.config_value(text, "a")[1] is not None
+
+
+def test_a_refused_append_names_the_walkers_cause_not_a_defect(config, tmp_path):
+    """#871 round 1, 🟡 2. A file with no table and an HTML comment that
+    never closes: `with_row` appends a table, the walker refuses the
+    appended header as inside that block, and `write_row` says so — the
+    walker's sentence — rather than calling it a defect in the command. Seen
+    red against the generic read-back sentence."""
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
+    spec = importlib.util.spec_from_file_location("specseal_seal_for_871_r1", path)
+    seal = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(seal)
+    from block_shapes import OPEN
+
+    before = f"# Repository config\n\n{OPEN} a note nobody closed\n"
+    home = tmp_path / "seal"
+    home.mkdir()
+    write_config(home, before)
+    said = seal.write_row(str(home), "shared")
+    assert "inside an HTML block opened above it and never closed" in said, said
+    assert "defect in this command" not in said, said
+    assert (home / "config.md").read_text(encoding="utf-8") == before
+
+
 # --- S7-S10: the gate ------------------------------------------------------
 
 

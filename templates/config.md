@@ -60,7 +60,10 @@ edit:
 - a third cell, a stray `|---|---|`, or a line of prose inside the table:
   write it as `| … | … |`, or take it out;
 - a row under a comment, a fence or a blank line that ends the table: move
-  it into the table.
+  it into the table; where it heads a table of something else, put a
+  heading between the two tables;
+- a row after a form feed or U+2028 on another row's line, which GitHub
+  shows as more of that row: put it on a line of its own.
 
 A file `seal mode` wrote, and one copied from this template, has none of
 these shapes.
@@ -311,10 +314,10 @@ to the row.
 repository's own answer.** The live table is the first `| Item | Value |`
 table that stands outside every fenced code block, and a line inside a fence
 is not part of any table: not a header, not a separator, not a row, and not a
-line somebody wrote as a row. One rule says so and all three walks of this
-table read through it — the gates' reader, the mode gate's reader, and
-`seal mode`'s writer — so the reader and the writer can never disagree about
-which row is the row.
+line somebody wrote as a row. One rule says so and the one walk of this
+table reads through it — the gates, the mode gate, and `seal mode`'s writer
+all read the rows it names — so the reader and the writer can never
+disagree about which row is the row.
 
 A fence opens at a line indented at most three spaces whose first run is three
 or more backticks or three or more tildes, and closes at the next line of at

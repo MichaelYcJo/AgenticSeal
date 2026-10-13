@@ -695,6 +695,9 @@ def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
             "write it as `| … | … |`",
             "`|---|---|` under",
             "move it into the table",
+            # #871 round 1: a second table under the config table is cleared
+            # by a heading between them, not by moving its rows.
+            "put a heading between the two",
         ):
             assert edit in text, f"{who} does not name the edit {edit!r}"
         for gone in (

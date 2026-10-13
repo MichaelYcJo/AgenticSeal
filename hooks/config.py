@@ -96,9 +96,9 @@ CONFIG_TABLE = ("Item", "Value")
 # `skills/evidence-check/scripts/pact_check.py#path_map`, which reads the
 # machine-local `| Remote | Path |` map with it and `CONFIG_SEPARATOR`.
 CELL = r"(?:[^|\\]|\\.)"
-# The config table's separator before #871, kept for one reader alone:
-# `pact_check.py#path_map`, whose map is not `seal/config.md` and is not read
-# by the walker yet. Nothing here reads it.
+# A separator line, for one reader alone: `pact_check.py#path_map`, whose
+# machine-local map is not `seal/config.md` and is not read by the walker.
+# Nothing here reads it.
 CONFIG_SEPARATOR = re.compile(r"^\|[\s:|-]+\|$")
 
 # A fenced code block's delimiter line, as CommonMark spells one: up to three
@@ -148,8 +148,9 @@ def fence_map(lines, text=None):
     """([(index, line)] outside every fenced block, the index of an opener
     that was never closed or None) -- the one fence rule, computed once.
 
-    `unfenced` below is the generator form all three walks read the file
-    through, and this is the same walk with the state it ENDS in kept. A fence
+    `unfenced` below is the generator form the one walk of every table reads
+    the file through, and this is the same walk with the state it ENDS in
+    kept. A fence
     that runs to the end of the file is the one thing about a fence a caller
     with somebody to tell has to be able to say: `broad-gate` quoting a live
     `| Broad gate |` row back as *written inside a code fence* and telling the
@@ -254,11 +255,10 @@ def unfenced(lines, text=None):
     pact's three -- and `skills/implement/scripts/seal.py#with_row`, the
     WRITER, overwrites the line `config_table` names, so the reader and the
     writer cannot disagree about which row is the row: the file two rows
-    deep that no command can bring into agreement (#429). Since #871 there
-    is one walk of the config table where there were three, and a hidden
-    line is a gap the walk ends the table at: a line written `| … |` below
-    it is refused as a row the walk never reaches, because GFM does not show
-    it as one of the table's rows.
+    deep that no command can bring into agreement (#429). A hidden line is
+    a gap the walk ends the table at: a line written `| … |` below it is
+    refused as a row the walk never reaches, because GFM does not show it as
+    one of the table's rows.
 
     **Why a table inside a fence is not the table.** `config.md`'s header
     comment points its reader at `templates/config.md`, a document of EXAMPLE
@@ -328,16 +328,18 @@ def config_table(text):
     line directly above it, no delimiter row under it, a delimiter row of
     another width -- is a table, refused, and every item of it is a refusal.
 
-    **The table has no grammar of its own.** Until #871 it was read by a
-    stop rule of three regexes argued over #82, #415, #429, #430 and #667,
-    held by hand cases, beside the walker the pact's tables are read by,
-    held to cmark-gfm over an enumerated corpus. Measured, the stop rule
-    handed a gate rows GitHub does not show in five shapes and dropped rows
-    GitHub shows in four (`seal/specs/1791852616-…/spec.md` §*Data &
-    interfaces*). Now a row is a row where the renderer shows it as one, or
-    the walk refuses -- naming the line it stopped at and the edit -- and
-    never steps past a line to read on below it, so no row is read under a
-    line it refused.
+    **The table has no grammar of its own.** It is read by the walker the
+    pact's tables are read by, held to cmark-gfm over an enumerated corpus:
+    a row is a row where the renderer shows it as one, or the walk refuses
+    -- naming the line it stopped at and the edit -- and never steps past a
+    line to read on below it, so no row is read under a line it refused.
+
+    **A row is a row only where it begins a line GFM begins.** The walker
+    reads `str.splitlines` pieces, and that ends a line at eight characters
+    GFM reads as part of the line -- a form feed, U+2028 and six more. A
+    piece after one of them is the tail of the row above it, which GitHub
+    shows cut off at its cells, so the walk stops there and refuses it, and
+    the row above keeps the value GitHub shows.
 
     What a caller does with a refusal is its own kind's, as `config_text`
     says: a hook says nothing, and a command prints the sentence and exits 2
@@ -347,7 +349,24 @@ def config_table(text):
     rows, refusals = gfm_table(text, CONFIG_TABLE)
     if refusals and refusals[0].startswith("holds no "):
         return [], []
+    kept = text.splitlines(keepends=True)
+    for at, (line, _cells) in enumerate(rows):
+        if line > 1 and not kept[line - 2].endswith(GFM_LINE_ENDS):
+            read = [(n - 1, item, value) for n, (item, value) in rows[:at]]
+            return read, [
+                f"has a `{' | '.join(CONFIG_TABLE)}` table that stops at "
+                f"`{kept[line - 1].strip()}`, which is not a row of its own "
+                "to GFM: a form feed, U+2028 or another character only "
+                "Python ends a line at stands before it, so GitHub reads it "
+                "as more of the line above — put it on a line of its own"
+            ]
     return [(line - 1, item, value) for line, (item, value) in rows], refusals
+
+
+# Where GFM ends a line. `str.splitlines` also ends one at eight characters
+# GFM reads as part of the line, so `config_table` refuses a row piece that
+# does not begin a GFM line.
+GFM_LINE_ENDS = ("\r\n", "\n", "\r")
 
 
 def config_rows(text):
@@ -382,7 +401,10 @@ def config_rows(text):
       - a third cell, a stray delimiter row or prose inside the table:
         write it as `| … | … |`, or take it out;
       - a row under a comment, a fence or a blank line that ends the table:
-        move it into the table.
+        move it into the table; where it heads a table of something else,
+        put a heading between the two tables;
+      - a row after a form feed or U+2028 on another row's line: put it on
+        a line of its own.
 
     Every row below the refused line is a refusal to `config_value`, never
     an absent row; the rows above it are read."""
@@ -500,14 +522,41 @@ def config_value(text, item):
 
     The rows are `config_table`'s, so a row is a row only where that walk
     reads it: one in a fence or in a closed comment is not counted, which is
-    what keeps a fenced example from doubling the live row."""
+    what keeps a fenced example from doubling the live row. **In a table the
+    walk refused, a line written below its last row that names ITEM in its
+    first cell counts too**: the walk did not read it, so it is not a value,
+    but it is an answer somebody wrote, and a row read above it is then one
+    of two answers and has no value either."""
     if text is None:
         return None, None
     rows, refusals = config_table(text)
     value, refusal = value_of([(found, v) for _i, found, v in rows], item)
     if value is None and refusal is None and refusals:
         return None, refusals[0]
+    if value is not None and refusals:
+        below = rows_named_below(text, rows[-1][0], item)
+        if below:
+            return None, doubled_row(item, 1 + below)
     return value, refusal
+
+
+# A line's first cell as a person wrote it, read up to the first pipe no
+# backslash escapes, at most three spaces in: how `config_value` tells that a
+# line the walk did not read names an item.
+FIRST_CELL = re.compile(rf"^ {{0,3}}\|((?:{CELL})*)\|")
+
+
+def rows_named_below(text, index, item):
+    """How many lines of TEXT below the line at INDEX, of those the walk is
+    shown, name ITEM in their first cell.
+
+    Reads: guess — the lines of a person's `config.md` below the last row the walk read; unknown refused"""
+    count = 0
+    for at, line in unfenced(text.splitlines(), text):
+        first = FIRST_CELL.match(line) if at > index else None
+        if first and unescaped(first.group(1).strip()) == item:
+            count += 1
+    return count
 
 
 def value_of(rows, item):
@@ -1082,8 +1131,7 @@ def declared_pacts(home):
 # four, because four walkers are four break lists to keep in step, and round
 # 3 of #735 measured exactly that drift in the one there was: an autolink
 # row ended the table, and a signer written as one was read by nobody at
-# exit 0. The config table had a grammar of its own until #871, and it
-# handed gates rows GitHub does not show.
+# exit 0.
 #
 # **It reads what cmark-gfm renders, or refuses.** It is held to the renderer
 # by `tests/test_one_table_walker_reads_what_gfm_renders.py`, a property case

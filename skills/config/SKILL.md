@@ -117,7 +117,9 @@ second answer.
   - no separator under the header, or one of the wrong width: put
     `|---|---|` under the header;
   - a row stranded after a comment, a fence or an empty line: move it into
-    the table.
+    the table; if it belongs to another table, put a heading between the two;
+  - a row sharing a line with the row above, after a form feed or U+2028:
+    give it a line of its own.
 
   `templates/config.md` says the same at its head. `broad-gate` and
   `seal mode` print the refusal and run or write nothing, and a hook stays

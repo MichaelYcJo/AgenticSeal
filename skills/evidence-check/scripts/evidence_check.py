@@ -4296,11 +4296,56 @@ VENDORED_DELIMITER_ROW = re.compile(
 )
 VENDORED_ATX_HEADING = re.compile(r"#{1,6}(?:[ \t]|$)")
 VENDORED_LIST_ITEM = re.compile(r"(?:[-+*]|[0-9]{1,9}[.)])(?:[ \t]|$)")
-# A line that may open a block GFM hides lines in or renders no table under
-# -- a fence or HTML -- which this copy cannot follow: above the header it is
-# refused rather than read past (#871).
-VENDORED_BLOCK_OPENER = re.compile(r"^ {0,3}(?:`{3,}|~{3,}|<)")
+# The HTML blocks no blank line ends, CommonMark 4.6's kinds 1-5, spelled as
+# `hooks/config.py#HTML_KINDS` spells them. Above the header this copy
+# follows each, and a fence by its own fence rule, to its close: a block
+# still open at the header is refused, and one that closed above it hides
+# nothing from GFM -- the closed comment `seal.py#NEW_CONFIG` writes above
+# every config's header among them.
+VENDORED_RAW_HTML = (
+    (
+        re.compile(r"<(?:script|pre|style|textarea)(?:[ \t>]|$)", re.I),
+        re.compile(r"</(?:script|pre|style|textarea)>", re.I),
+    ),
+    (re.compile(r"<" r"!--"), re.compile(r"-->")),
+    (re.compile(r"<\?"), re.compile(r"\?>")),
+    (re.compile(r"<![A-Za-z]"), re.compile(r">")),
+    (re.compile(r"<!\[CDATA\["), re.compile(r"\]\]>")),
+)
 VENDORED_CONFIG_HEADER = ("Item", "Value")
+
+
+def vendored_block_left_open(lines):
+    """The line opening a fence or an HTML block of kinds 1-5 that is still
+    open after LINES, as written, or None where every such block closed.
+
+    Reads: guess — the lines of a person's `config.md` above its header; unknown refused
+
+    A block of kinds 6 and 7 ends at a blank line, which the walk already
+    asks for directly above the header, so it is not followed."""
+    fence, end, opener = None, None, None
+    for line in lines:
+        if fence is not None:
+            if vendored_fence_closes(line, fence):
+                fence, opener = None, None
+            continue
+        if end is not None:
+            if end.search(line):
+                end, opener = None, None
+            continue
+        if line.startswith(("    ", "\t")):
+            continue
+        fence = vendored_fence_opener(line)
+        if fence is not None:
+            opener = line
+            continue
+        content = line.lstrip(" ")
+        for start, closer in VENDORED_RAW_HTML:
+            if start.match(content):
+                if not closer.search(content, 1):
+                    end, opener = closer, line
+                break
+    return opener
 
 
 def vendored_cells(line):
@@ -4337,9 +4382,12 @@ def vendored_config_rows(text):
 
     **Where it lacks the block state the plugin has, it refuses where the
     plugin reads, and never reads where the plugin refuses** — the stated
-    direction, and the cheaper mistake in CI. A fence or an HTML line above
-    the header is refused, because a fenced or commented example table there
-    is not the table to the plugin. A line inside the table the walker ends
+    direction, and the cheaper mistake in CI. Above the header it follows a
+    fence and an HTML block of kinds 1-5 to their close
+    (`vendored_block_left_open`): a header inside one still open is refused,
+    which is also how the first header of a fenced or commented example
+    table above the live one is refused, and a header under a block that
+    closed is read. A line inside the table the walker ends
     the table at by block state — a fence, a comment, a list item, a block
     quote, a thematic break, an HTML block, a line four columns in — is
     refused here as the line it is, so a row below it is never read. The
@@ -4379,13 +4427,18 @@ def vendored_config_rows(text):
             "and GFM renders a table under a line only in some of the shapes "
             "that line can take — leave a blank line above the header"
         ]
-    opener = next((ln for ln in lines[:at] if VENDORED_BLOCK_OPENER.match(ln)), None)
+    opener = vendored_block_left_open(lines[:at])
+    if opener is not None and vendored_fence_opener(opener) is None:
+        return [], [
+            f"has a `| {name} |` header inside an HTML block opened above it "
+            "and never closed, so GFM renders no table there — close the block"
+        ]
     if opener is not None:
         return [], [
-            f"has a `| {name} |` header below `{opener.strip()}`, a line that "
-            "may open a block a copy of the checker with no `hooks/` beside "
-            "it cannot follow — run the plugin's own `evidence-check`, or "
-            "take that line out of this file"
+            f"has a `| {name} |` header inside the code fence `{opener.strip()}` "
+            "opened above it, which a copy of the checker with no `hooks/` "
+            "beside it reads as never closed — close the fence above the "
+            "table, or run the plugin's own `evidence-check`"
         ]
     delimiter = lines[at + 1] if at + 1 < len(lines) else None
     if (

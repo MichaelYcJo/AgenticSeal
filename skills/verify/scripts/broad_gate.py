@@ -1021,9 +1021,11 @@ def fenced_row(home):
     """This gate's row written INSIDE a code fence — as written, with its own
     indentation — or None.
 
+    Reads: guess — a person's `config.md`, through `fenced_row_at`; unknown passed
+
     **The one question about a fenced line anybody asks, and this gate is the
     only one that may ask it.** `hooks/config.py#unfenced` makes a fenced line
-    invisible to all three walks of that table, which is what stops an example
+    invisible to the one walk of that table, which is what stops an example
     from being the command this gate seals over (#429). It also makes a
     `Broad gate` line written only inside a fence look exactly like no row at
     all — and then the absent-row refusal below is a true sentence about a
@@ -1105,17 +1107,15 @@ def missing_row(home):
       - **#430's condition**: the walker's sentence ends by saying every row
         below the line would go unread, and that clause is said only where a
         line written `| … |` stands below it. A `Broad gate` line written
-        LAST in its table — the shape this repository's own config has —
+        LAST in its table — the shape a stub `seal mode` wrote can take —
         loses nothing below it, and a person told otherwise goes looking
         for rows they never wrote;
       - **where the row is**: the stopping line itself, or a line below it
         the walk never reached, quoted as written.
 
-    The stop rule this replaced read on past a line it could not parse until
-    it had found a row, which needed five arms to say which side of the
-    stopping line a row was on and what a repair would cost (#415, #430). The
-    walker never steps past a line, so there is one stopping line, every row
-    below it is unread, and the instructed edit loses no row the walk read.
+    The walker never steps past a line, so there is one stopping line, every
+    row below it is unread, and the instructed edit loses no row the walk
+    read.
 
     **The second cause is a row written where no walk of that table reads
     it.** A `| Broad gate |` line inside a code fence is an example of the

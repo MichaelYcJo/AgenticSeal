@@ -615,6 +615,18 @@ CONFIG_SHAPES = {
     # survived every other shape — GFM reads this header into the item.
     "a header indented under a list item": "- a note\n\n | Item | Value |\n"
     "|---|---|\n| Mode | shared |\n",
+    # The shape every config `seal mode` writes, `seal.py#NEW_CONFIG`: a
+    # closed comment above the header, a blank line between, and this
+    # repository's own config, which carries the same comment.
+    "the config seal mode writes": "# Repository config\n\n"
+    + config_shapes.OPEN
+    + " What this repository says about itself. This file was\n"
+    + "created by `seal mode`. "
+    + config_shapes.CLOSE
+    + "\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
+    "this repository's own config": open(
+        os.path.join(ROOT, "seal", "config.md"), encoding="utf-8"
+    ).read(),
     **{
         f"shape {n}": config_shapes.SHAPES[n]
         for n in (1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
@@ -727,6 +739,11 @@ def test_the_vendored_table_grammar_is_the_walkers():
     ):
         assert (twin.pattern, twin.flags) == (walker.pattern, walker.flags)
     assert ec.VENDORED_CONFIG_HEADER == config.CONFIG_TABLE
+    # The HTML blocks no blank line ends, kinds 1-5, which the twin follows
+    # to their close above the header as the walker does.
+    assert [
+        (s.pattern, s.flags, e.pattern, e.flags) for s, e in ec.VENDORED_RAW_HTML
+    ] == [(s.pattern, s.flags, e.pattern, e.flags) for s, e in config.HTML_KINDS[:5]]
 
 
 @pytest.mark.parametrize("shape", ["absent", "readable", "directory", "undecodable"])

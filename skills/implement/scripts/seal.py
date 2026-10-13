@@ -1587,6 +1587,16 @@ def write_row(home, value):
                 "walk of that table reads it. Nothing was written. Close the "
                 "fence and run this command again."
             )
+        # The table walker refuses what this write would leave -- a table
+        # appended under an HTML block nobody closed, for one -- and its
+        # sentence names the cause and the edit.
+        walked = config_table(new)[1]
+        if walked:
+            return (
+                f"{path}, with the `{ROW_ITEM}` row written into it, "
+                f"{walked[0]}. Nothing was written and your file is exactly "
+                "as it was"
+            )
         return (
             f"{path} would not read the `{ROW_ITEM}` row back after this "
             "write, so the row would land where no walk of that table reads "
