@@ -6,7 +6,7 @@
 | Written late | no |
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #924 |
-| Broad gate | 5fed0461 against 2d4fbdff |
+| Broad gate | ff5e665d against 2d4fbdff; earlier run: 5fed0461 against 2d4fbdff |
 | Fixes checked by | no fixes to check |
 | Fix range | none |
 | Contract changes | none |
