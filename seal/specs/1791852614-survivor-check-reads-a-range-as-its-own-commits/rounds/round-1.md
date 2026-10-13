@@ -7,10 +7,10 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #919 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `b6b89e8cb8e1690d047c4dde2582d73095b30f84..d3a8221f74b6c5fa304064b0ed297f24f9e1b7d1`, 2 commits |
+| Contract changes | report → report, main, post-review-check.md, round-1-report.md, round-1.md, told_now, reverify, reverify_into, pytest |
+| New units | not_owned (depth 1); test_a_two_dot_range_names_the_commits_it_does_not_read (depth 1); test_the_base_commit_a_two_dot_range_leaves_out_is_named (depth 1); test_a_range_whose_own_commits_cannot_be_listed_is_refused (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (a two-dot range whose start the branch merged reads silently clean) and 🟡 2 (a timeout in `own_commits` is a traceback at exit 1) |
 | Loses a record or crashes | yes — 🟡 2, a `git log` over the 60 s timeout inside `own_commits` crashes the sweep with a traceback at exit 1 |
@@ -25,8 +25,8 @@ Round 1 of #873, target 2af175bd against `origin/release/v0.21.1` at 321e9de1, o
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | a two-dot range whose start the branch already merged reads only the commits after that merge and reports 0 removed, where it used to report the branch's survivors; the run never says which commits it left unread | `skills/code-review/scripts/survivor_check.py:526` | open | executed: old exit 1 and `copy.md` reported, new exit 0 and 0 removed, on S6's history spelled `base..feature`; `base...feature` still exit 1 |
-| 🟡 2 | `own_commits` runs git with a 60 s timeout, and `subprocess.TimeoutExpired` escapes `main`, which catches `Refused` alone: a traceback at exit 1, the survivors code; the `None` branch is the narrower failure and no case reaches it | `skills/code-review/scripts/survivor_check.py:537` | open | read: `chain_check.py:916` sets `timeout=60`; `survivor_check.py:2429` catches `Refused` only; executed: the `git log` takes 0.025 s for 169 commits here |
+| 🟡 1 | a two-dot range whose start the branch already merged reads only the commits after that merge and reports 0 removed, where it used to report the branch's survivors; the run never says which commits it left unread | `skills/code-review/scripts/survivor_check.py:526` | **fixed** `7f08b48f` | fixed at 7f08b48f; executed: old exit 1 and `copy.md` reported, new exit 0 and 0 removed, on S6's history spelled `base..feature`; `base...feature` still exit 1 |
+| 🟡 2 | `own_commits` runs git with a 60 s timeout, and `subprocess.TimeoutExpired` escapes `main`, which catches `Refused` alone: a traceback at exit 1, the survivors code; the `None` branch is the narrower failure and no case reaches it | `skills/code-review/scripts/survivor_check.py:537` | **fixed** `7f08b48f` | fixed at 7f08b48f; read: `chain_check.py:916` sets `timeout=60`; `survivor_check.py:2429` catches `Refused` only; executed: the `git log` takes 0.025 s for 169 commits here |
 | ⬜ 3 | the own-commits pass spawns two `cat-file` per commit and re-parses each blob, 23.4 s to 89.0 s on a 169-commit range | `skills/code-review/scripts/survivor_check.py:1385` | open | read, and Q1's figures in `phases/phase-2.md`; commissions no fix |
 | 🟢 | `separator` as the one reader of the dots | `skills/code-review/scripts/survivor_check.py:460` | confirmed | `parse_range` and `owned` both ask it; `parse_range`'s return shape is unchanged for `whole_range` |
 | 🟢 | S3's control is a history with the sentence already in `root` | `tests/test_the_sweep_reads_a_range_as_its_own_commits.py:197` | confirmed | the tree at the tip is equal, so the pool and the weights are too; the case asserts `code == 1` before comparing |
