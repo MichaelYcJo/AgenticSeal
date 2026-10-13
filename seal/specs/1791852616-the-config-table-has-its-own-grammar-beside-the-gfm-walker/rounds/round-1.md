@@ -7,10 +7,10 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #925 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `aa0fc421c3495ee39de536eb2683d4a6e66e782b..946360abb1b7d8f19f89ef4ff0f623f215adec5d`, 5 commits |
+| Contract changes | none |
+| New units | GFM_LINE_ENDS (depth 1); FIRST_CELL (depth 1); rows_named_below (depth 1); VENDORED_RAW_HTML (depth 1); vendored_block_left_open (depth 1); test_a_row_after_a_break_gfm_does_not_honour_is_no_row_of_its_own (depth 1); test_an_item_written_again_below_the_stopping_line_has_no_value (depth 1); test_a_refused_append_names_the_walkers_cause_not_a_defect (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🔴 1 (the vendored twin refuses every plugin-written config), 🟡 2 (`seal mode` names the wrong cause), 🟡 3 (the remedy for a second table), 🟡 4 (a row GitHub does not show is still read), 🟡 5 (prose naming a structure that is gone) |
 | Loses a record or crashes | no |
@@ -25,11 +25,11 @@ Round 1 of #871, target c5dde1f7 against `origin/release/v0.21.1`'s merge-base 3
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🔴 1 | The vendored checker refuses every config `seal mode` writes, this repository's own included, so an installed repository's evidence-check CI step exits 2 after its next `/specseal:evidence-ci` | `skills/evidence-check/scripts/evidence_check.py:4382` | open | executed: the twin refuses this repository's config and `NEW_CONFIG`; the vendored checker exits 2 at c5dde1f7 and 0 at 321e9de1 over the same repository |
-| 🟡 2 | `seal mode`'s read-back guard calls a walker refusal "a defect in this command" | `skills/implement/scripts/seal.py:1591` | open | executed: a file with no table and an unclosed comment gets the generic sentence; the walker names the real cause |
-| 🟡 3 | A second table under the config table before a heading is refused, and all three documents give "move it into the table" as its only remedy | `templates/config.md:62` | open | executed: cmark-gfm renders both tables; the base read the config rows with no refusal; the walker refuses; the heading remedy is named nowhere |
-| 🟡 4 | The walker reads a row cmark-gfm does not render where a row shares its GFM line with another after FF or U+2028; the overview's Not verified row names only the harmless member of the class | `hooks/config.py#config_table` | open | executed: two rows read against one rendered; the base read the same, so not a regression, but S1 and the overview's claim are false of it |
-| 🟡 5 | Prose states a structure the tree no longer has: "all three walks" in three places, and "the shape this repository's own config has" for a last-row Broad gate line | `templates/config.md:314` | open | read: also `hooks/config.py:151`, `skills/verify/scripts/broad_gate.py:1026` and `:1108`; the Broad gate row is second of seven here and fourth of seven in the template |
+| 🔴 1 | The vendored checker refuses every config `seal mode` writes, this repository's own included, so an installed repository's evidence-check CI step exits 2 after its next `/specseal:evidence-ci` | `skills/evidence-check/scripts/evidence_check.py:4382` | **fixed** `9848f788` | fixed at 9848f788; executed: the twin refuses this repository's config and `NEW_CONFIG`; the vendored checker exits 2 at c5dde1f7 and 0 at 321e9de1 over the same repository |
+| 🟡 2 | `seal mode`'s read-back guard calls a walker refusal "a defect in this command" | `skills/implement/scripts/seal.py:1591` | **fixed** `9848f788` | fixed at 9848f788; executed: a file with no table and an unclosed comment gets the generic sentence; the walker names the real cause |
+| 🟡 3 | A second table under the config table before a heading is refused, and all three documents give "move it into the table" as its only remedy | `templates/config.md:62` | **fixed** `9848f788` | fixed at 9848f788; executed: cmark-gfm renders both tables; the base read the config rows with no refusal; the walker refuses; the heading remedy is named nowhere |
+| 🟡 4 | The walker reads a row cmark-gfm does not render where a row shares its GFM line with another after FF or U+2028; the overview's Not verified row names only the harmless member of the class | `hooks/config.py#config_table` | **fixed** `9848f788` | fixed at 9848f788; executed: two rows read against one rendered; the base read the same, so not a regression, but S1 and the overview's claim are false of it |
+| 🟡 5 | Prose states a structure the tree no longer has: "all three walks" in three places, and "the shape this repository's own config has" for a last-row Broad gate line | `templates/config.md:314` | **fixed** `9848f788` | fixed at 9848f788; read: also `hooks/config.py:151`, `skills/verify/scripts/broad_gate.py:1026` and `:1108`; the Broad gate row is second of seven here and fourth of seven in the template |
 | ⬜ 6 | survivors.md's ground "Still true of this repository's config and the template's table" is false | `seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/survivors.md` | open | read: neither table ends with the Broad gate row; a correction to the run's paperwork |
 | 🟢 | The plugin's walker reads this repository's config, the template's table and the config `seal mode` writes whole, with nothing refused | `hooks/config.py#config_table` | confirmed | executed: 7, 7 and 1 rows, refusals empty |
 | 🟢 | No hook asks, denies or prints on a refused table; the prompt budget is zero | `hooks/mode-gate.py:163` | confirmed | read, and the hook cases over shapes 1, 5 and 7 passed in the module run |
