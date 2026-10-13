@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #925 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `aa0fc421c3495ee39de536eb2683d4a6e66e782b..946360abb1b7d8f19f89ef4ff0f623f215adec5d`, 5 commits |
 | Contract changes | none |
 | New units | GFM_LINE_ENDS (depth 1); FIRST_CELL (depth 1); rows_named_below (depth 1); VENDORED_RAW_HTML (depth 1); vendored_block_left_open (depth 1); test_a_row_after_a_break_gfm_does_not_honour_is_no_row_of_its_own (depth 1); test_an_item_written_again_below_the_stopping_line_has_no_value (depth 1); test_a_refused_append_names_the_walkers_cause_not_a_defect (depth 1) |
