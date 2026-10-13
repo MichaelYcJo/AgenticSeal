@@ -58,7 +58,11 @@ running.
       out, push it, and run `gh workflow run test.yml --ref <that branch>`:
       the Windows job runs the whole suite as one job and uploads the file.
       Download it, make its line ends LF, commit it in the preparation commit,
-      and delete the measuring branch. A release that skips this box is
+      and delete the measuring branch. When the release pull request's run
+      finishes, read its macOS shards' times and set their `timeout` again by
+      the rule beside the values, as `CONTRIBUTING.md` §*Running the checks*
+      says after a refresh; a value the rule leaves where it is needs no
+      commit. A release that skips this box is
       caught later by `test_the_durations_file_prices_the_suite` in
       `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, on
       whichever pull request takes the suite past one unpriced case in twenty,
