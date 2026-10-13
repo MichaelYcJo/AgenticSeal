@@ -187,6 +187,8 @@ one row per statement and per new unit, the `Re-read ·` rows `--reverify
 | the census line for `hidden_lines` | `tests/undeclared_readers.txt#"hooks/config.py#hidden_lines@c76b94d3"` | the unit declares |
 | the census line for `readable` | `tests/undeclared_readers.txt#"skills/verify/scripts/unverified_check.py#readable@4ee19967"` | the unit declares |
 
+### Why these rows
+
 No reader, rule sentence or test pin leaves the tree. The seven lines above
 leave by the registry's own rule, and are named here so the records arm reads
 each as a claim of absence from the build on rather than as a divergence
