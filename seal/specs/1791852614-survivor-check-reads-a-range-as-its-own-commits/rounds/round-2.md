@@ -15,7 +15,7 @@
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -30,7 +30,7 @@ Round 2 of #873, the verifying round, target 9758b754: the diff of round 1's fix
 | 🟢 | `not_owned` lists what the range holds beyond `owned`, and refuses where `rev-list` fails | `skills/code-review/scripts/survivor_check.py:550` | confirmed | executed: 10 merged base commits over `f1..f2`, exit 0, 10 named, `f2` not named; `rev-list` failing is exit 2 with its sentence |
 | 🟢 | the not-read line shows 8 commits and an ellipsis past 8 | `skills/code-review/scripts/survivor_check.py:2347` | confirmed | executed: 8 shown and ` …` then the full stop; cosmetic, commissions nothing |
 | 🟢 | the three new cases and the three-dot assertion | `tests/test_the_sweep_reads_a_range_as_its_own_commits.py:277` | confirmed | executed: the three fail against `b6b89e8c`'s sweep and pass at the target; the three-dot case passes on both, as an old sweep prints no line for any spelling |
-| ⬜ 4 | the changelog fragment says the run no longer reports a clean range, and it still does, now with a line naming what it left out | `seal/specs/1791852614-survivor-check-reads-a-range-as-its-own-commits/changelog.md:24` | open | read: exit 0, 0 removed and *no removed wording is still standing* after the line; the module docstring and `not_owned` say *in silence*; a correction, outside `Needs a fix` |
+| ⬜ 4 | the changelog fragment says the run no longer reports a clean range, and it still does, now with a line naming what it left out | `seal/specs/1791852614-survivor-check-reads-a-range-as-its-own-commits/changelog.md:24` | answered | corrected at 79bda2f3 — the changelog fragment says the run still reports what it read, no longer in silence, and names the commits it left out; read: exit 0, 0 removed and *no removed wording is still standing* after the line; the module docstring and `not_owned` say *in silence*; a correction, outside `Needs a fix` |
 
 ## Paste-ready fixes
 
@@ -54,7 +54,7 @@ no paste-ready fix in the report
 |---|---|---|
 | round-1 | `skills/code-review/scripts/survivor_check.py:526` | round 1's 🟡 1 — fixed |
 | round-1 | `skills/code-review/scripts/survivor_check.py:537` | round 1's 🟡 2 — fixed |
-| round-1 | `skills/code-review/scripts/survivor_check.py:1385` | round 1's ⬜ 3 — open |
+| round-1 | `skills/code-review/scripts/survivor_check.py:1385` | round 1's ⬜ 3 — answered |
 | round-1 | `skills/code-review/scripts/survivor_check.py:460` | round 1's 🟢 — confirmed |
 | round-1 | `tests/test_the_sweep_reads_a_range_as_its_own_commits.py:197` | round 1's 🟢 — confirmed |
 | round-1 | `seal/ledger/1791852614-survivor-check-reads-a-range-as-its-own-commits.md:10` | round 1's 🟢 — confirmed |

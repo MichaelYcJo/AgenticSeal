@@ -15,7 +15,7 @@
 | Needs a fix | yes — 🟡 1 (a two-dot range whose start the branch merged reads silently clean) and 🟡 2 (a timeout in `own_commits` is a traceback at exit 1) |
 | Loses a record or crashes | yes — 🟡 2, a `git log` over the 60 s timeout inside `own_commits` crashes the sweep with a traceback at exit 1 |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -27,7 +27,7 @@ Round 1 of #873, target 2af175bd against `origin/release/v0.21.1` at 321e9de1, o
 |---|---|---|---|---|
 | 🟡 1 | a two-dot range whose start the branch already merged reads only the commits after that merge and reports 0 removed, where it used to report the branch's survivors; the run never says which commits it left unread | `skills/code-review/scripts/survivor_check.py:526` | **fixed** `7f08b48f` | fixed at 7f08b48f; executed: old exit 1 and `copy.md` reported, new exit 0 and 0 removed, on S6's history spelled `base..feature`; `base...feature` still exit 1 |
 | 🟡 2 | `own_commits` runs git with a 60 s timeout, and `subprocess.TimeoutExpired` escapes `main`, which catches `Refused` alone: a traceback at exit 1, the survivors code; the `None` branch is the narrower failure and no case reaches it | `skills/code-review/scripts/survivor_check.py:537` | **fixed** `7f08b48f` | fixed at 7f08b48f; read: `chain_check.py:916` sets `timeout=60`; `survivor_check.py:2429` catches `Refused` only; executed: the `git log` takes 0.025 s for 169 commits here |
-| ⬜ 3 | the own-commits pass spawns two `cat-file` per commit and re-parses each blob, 23.4 s to 89.0 s on a 169-commit range | `skills/code-review/scripts/survivor_check.py:1385` | open | read, and Q1's figures in `phases/phase-2.md`; commissions no fix |
+| ⬜ 3 | the own-commits pass spawns two `cat-file` per commit and re-parses each blob, 23.4 s to 89.0 s on a 169-commit range | `skills/code-review/scripts/survivor_check.py:1385` | answered | `own_changes` re-reading each file per commit is a cost, not a defect: Q1 measured it (55 s for 169 commits with 24 merges, under 1 s on a two-commit fix range), and CI passes `A...B`, which the own pass never runs (`hygiene.yml:262`, read by round 2); a batched read is an optimisation for when a long two-dot range is swept by hand; read, and Q1's figures in `phases/phase-2.md`; commissions no fix |
 | 🟢 | `separator` as the one reader of the dots | `skills/code-review/scripts/survivor_check.py:460` | confirmed | `parse_range` and `owned` both ask it; `parse_range`'s return shape is unchanged for `whole_range` |
 | 🟢 | S3's control is a history with the sentence already in `root` | `tests/test_the_sweep_reads_a_range_as_its_own_commits.py:197` | confirmed | the tree at the tip is equal, so the pool and the weights are too; the case asserts `code == 1` before comparing |
 | 🟢 | 0.9.3 `S3` and 0.11.2 `S2` closed as `Corrected ·`, 25 `Re-read ·` | `seal/ledger/1791852614-survivor-check-reads-a-range-as-its-own-commits.md:10` | confirmed | each corrected row adds one exception or classification and matches the code; a re-read cannot restate a claim |
