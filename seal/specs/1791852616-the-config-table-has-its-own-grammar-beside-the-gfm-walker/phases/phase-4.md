@@ -4,7 +4,7 @@
 |---|---|
 | Phase | 4 |
 | Commit | 0db85117 |
-| Ran by | unknown — the spawn prompt named neither the agent's model nor asked this row to be filled; the orchestrator fills it |
+| Ran by | specseal:smith on Opus 5.5 |
 
 ## What this phase was asked
 
@@ -47,9 +47,10 @@ row; it is rewritten and its pin in `tests/test_first_setup_asks_once.py`
 re-pinned (red against the old wording, green after).
 
 **The frame named a unit that never stood.** `spec.md`, `plan.md` and
-`questions.md` cited `hooks/mode-gate.py#unanswered_root`; the unit at
-`hooks/mode-gate.py:128` is `undeclared`, and no `unanswered_root` stood at
-3bb2ea42. The records arm named it `NOT-IN-TREE`; it is corrected in place.
+`questions.md` cited the mode gate's unit by a name that was never in
+`hooks/mode-gate.py`, not at 3bb2ea42 either: `unanswered_root` · NAME NOT IN TREE
+The unit at `hooks/mode-gate.py:128` is `undeclared`. The records arm named
+the frame's spelling `NOT-IN-TREE`; it is corrected in place.
 
 **The owner's rule on shipped documents** took the `(#871)` references out
 of `templates/config.md`, `skills/config/SKILL.md` and

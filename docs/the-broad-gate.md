@@ -81,12 +81,12 @@ row, and it is three rules rather than an example.
 Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py::test_the_wrapped_row_that_would_have_seal_a_red_suite_is_refused, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_refused_row_runs_no_check_and_adds_no_worktree
 
 <!-- specs/1789721571-the-gate-reads-an-example-and-names-rows-nobody-wrote -->
-**A fenced example in a config file is not a config row.** One fence rule is
-consumed by every walk of the `| Item | Value |` table — the reader, the
-refusal, and the writer that locates the line it overwrites. A reader and a
-writer that disagree about which line is the row leave a file two rows deep
-that no command can bring into agreement, so a repair landing in the reader
-alone is half a repair.
+**A fenced example in a config file is not a config row.** The one walk of
+the `| Item | Value |` table reads the file through one fence rule, and the
+writer overwrites the line that walk names. A reader and a writer that
+disagree about which line is the row leave a file two rows deep that no
+command can bring into agreement, so a repair landing in the reader alone is
+half a repair.
 Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_broad_gate_line_only_inside_a_fence_is_named_and_not_called_absent
 
 <!-- specs/1790206436-the-runs-instruments-cost-wall-clock -->

@@ -239,13 +239,10 @@ def test_the_command_and_the_gate_read_one_parser(config):
 # The scenario ids are `seal/specs/1789598366-a-piped-broad-gate-row-takes-
 # every-config-row-below-it/spec.md`'s.
 #
-# **A row that parses must come FIRST in every fixture here**, and that is
-# load-bearing rather than decorative. `config_rows` breaks on a line it
-# cannot parse only once it has found a row; a line it cannot parse with
-# nothing found yet is stepped past as furniture. So a piped row written as
-# the table's FIRST row loses only itself, and the defect this section is
-# about — the rows below vanishing — needs a parseable row above it.
-# Measured 2026-09-17, both ways round.
+# **A row that parses comes FIRST in every fixture here.** The table walker
+# stops at the first line it refuses, wherever it stands (#871), so a row
+# read above the piped line is a value and every row below it is that
+# refusal; a parseable row above it is what lets a fixture show both.
 
 PIPED_TABLE = (
     "# Repository config\n\n"
@@ -264,10 +261,10 @@ def test_an_escaped_pipe_is_one_row_and_the_rows_below_it_still_arrive(config):
 
     **The count is asserted before the value, and that ordering is the
     case.** A case that checks the `Broad gate` value alone passes just as
-    well when every row under it has vanished, and vanishing is the defect:
-    `config_rows` stops at the first line that will not parse, so a piped row
-    used to take `Mode` and every later row with it, each falling back to a
-    default with no message anywhere (#415).
+    well when every row under it has vanished, and vanishing was the defect
+    #415 was opened about: before the escape, the piped row took `Mode` and
+    every later row with it, each falling back to a default with no message
+    anywhere. Written bare it is now refused, naming the line (#871).
     """
     rows = config.config_rows(PIPED_TABLE)
     assert len(rows) == 4, (
@@ -531,10 +528,10 @@ FENCED_BELOW_A_TABLE_THAT_NEVER_BEGAN = (
     "```\n"
 )
 
-# A fenced line that will not parse, standing ABOVE the first live row, which
-# is where `refusal`'s walk reaches it: it reads on past prose until a row is
-# found, so before the fence rule it handed `broad-gate` a line out of an
-# example block to quote back at a person as their own malformed row.
+# A fenced line that will not parse, standing ABOVE the first live row. Before
+# the fence rule it was handed to `broad-gate` as a line to quote back at a
+# person as their own malformed row; the walker refuses the live row below
+# the fence instead, and never quotes the fenced one (#871).
 FENCED_REFUSAL = (
     "| Item | Value |\n"
     "|---|---|\n"
@@ -607,11 +604,11 @@ def test_a_fenced_pipe_line_is_not_a_line_somebody_wrote_as_a_row(config):
 
 
 def test_the_writer_and_the_reader_agree_about_which_row_is_the_row(config, tmp_path):
-    """A4. `seal.py#table_span` is the third walk and it is the WRITER: it
-    locates the line `with_row` overwrites. Repair the reader alone and
-    `seal mode shared` rewrites the `Mode` row inside somebody's pasted
-    example while every gate reads the live one — the file two rows deep that
-    `table_span`'s own comment says no command can bring into agreement.
+    """A4. The WRITER locates the line `with_row` overwrites, and since #871
+    it locates it by the reader's own walk, `config_table`. A writer reading
+    the table any other way rewrites the `Mode` row inside somebody's pasted
+    example while every gate reads the live one: a file two rows deep that
+    no command can bring into agreement.
 
     Asserted on the BYTES, not on the reader's answer: what makes this case
     the writer's is that the fenced line comes back byte-identical and
