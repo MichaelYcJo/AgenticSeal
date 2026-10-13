@@ -1392,8 +1392,6 @@ def own_changes(root, own, paths):
     lost, gained = set(), set()
     for full, _short, changes in own:
         mine = sorted({path for _status, path in changes} & set(paths))
-        if not mine:
-            continue
         before = read_blobs(root, full + "^", mine)
         after = read_blobs(root, full, mine)
         for path in mine:
