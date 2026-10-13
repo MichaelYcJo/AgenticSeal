@@ -122,6 +122,8 @@ FRAGMENT_OWNER = (
 # scripts that read a range, and the orchestration that tells a session what
 # the fix surface holds, name the section.
 ROUND_RECORD = ("skills", "code-review", "scripts", "round_record.py")
+# The survivor sweep reads a two-dot range the same way since #873.
+SURVIVOR_CHECK = ("skills", "code-review", "scripts", "survivor_check.py")
 RANGE_OWNER = (
     "`docs/the-record-layout.md` §*A range owns the commits that descend from "
     "its start* owns"
@@ -373,6 +375,7 @@ RULES = {
         {
             CHAIN_CHECK: RANGE_OWNER,
             ROUND_RECORD: RANGE_OWNER,
+            SURVIVOR_CHECK: RANGE_OWNER,
             ORCH: RANGE_OWNER,
             RECORD_SPEC: "`docs/the-record-layout.md` §*A range owns the commits "
             "that descend from its start*",

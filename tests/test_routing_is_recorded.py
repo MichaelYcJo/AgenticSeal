@@ -831,6 +831,17 @@ def test_the_routing_shapes_read_as_the_frame_expects(name, expected):
     assert declared(name) == expected
 
 
+def test_a_declaration_below_a_comment_opener_nobody_closed_still_reads():
+    """#872 round 3, finding 10. `hooks/routing.py#shown` keeps the reading
+    it gave before #667 wherever its walk is unsure, and that reading hid
+    nothing, so a table below a line-start comment opener nobody closed
+    still declares, although a renderer hides it. R3 holds the fence half;
+    this holds the comment half, which no case did."""
+    text = "<" + "!-- nobody closed this\n\n" + two_axis_text()
+    parsed = routing.parse(text)
+    assert parsed is not None and parsed["review"] == CHAIN, parsed
+
+
 def test_the_template_and_the_committed_declarations_still_parse():
     """R10's floor, S11. `templates/sdd-routing.md` opens with a comment above
     its table and a placeholder line below it, and it still parses; the

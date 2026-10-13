@@ -160,7 +160,6 @@
 .github/scripts/rider_check.py#main@ad761ced
 .github/scripts/rider_check.py#migrate@ed0b4579
 .github/scripts/rider_check.py#new_stamp@49bdfa6a
-.github/scripts/rider_check.py#quoted_lines@b8d6b67b
 .github/scripts/rider_check.py#region_hash@bd7aa6db
 .github/scripts/rider_check.py#region_lines@a6af1658
 .github/scripts/rider_check.py#restamp@d2250e11
@@ -389,7 +388,6 @@ hooks/config.py#config_path@09093926
 hooks/config.py#config_text@974269b9
 hooks/config.py#declared_pacts@16338e3d
 hooks/config.py#doubled_row@2a8a6b7d
-hooks/config.py#hidden_lines@c76b94d3
 hooks/config.py#html_start@9031692d
 hooks/config.py#inside_the_root@5c40ddf0
 hooks/config.py#names_a_pact@3da4118e
@@ -611,10 +609,8 @@ hooks/worktree-guard.py#fmt_snippet@5a159b28
 hooks/worktree-guard.py#fresh_leases@1492baeb
 hooks/worktree-guard.py#git_at@28d2e5f8
 hooks/worktree-guard.py#git_dir@e4c6c02c
-hooks/worktree-guard.py#guard_worktree_creation@5c370c45
 hooks/worktree-guard.py#has_token@92642195
 hooks/worktree-guard.py#host_app@50dff44a
-hooks/worktree-guard.py#judge_creation@bc8a0654
 hooks/worktree-guard.py#last_active_event_epoch@e34f6778
 hooks/worktree-guard.py#last_user_snippet@9c7a62ce
 hooks/worktree-guard.py#lease_dir@33e78553
@@ -862,10 +858,7 @@ skills/code-review/scripts/survivor_check.py#a_reference_root@f4462b68
 skills/code-review/scripts/survivor_check.py#blank_released@4a6ce6aa
 skills/code-review/scripts/survivor_check.py#blank_struck@b6b96f7e
 skills/code-review/scripts/survivor_check.py#carriers@b4716ca5
-skills/code-review/scripts/survivor_check.py#corpus@31e8a379
-skills/code-review/scripts/survivor_check.py#corrected@fde86cfa
 skills/code-review/scripts/survivor_check.py#evidence@e8efd32b
-skills/code-review/scripts/survivor_check.py#examine@4ad680b7
 skills/code-review/scripts/survivor_check.py#exempted@5f2549e7
 skills/code-review/scripts/survivor_check.py#gathered_fragments@8b1644f2
 skills/code-review/scripts/survivor_check.py#git@fb4e1e13
@@ -873,13 +866,11 @@ skills/code-review/scripts/survivor_check.py#hook@2b603cc5
 skills/code-review/scripts/survivor_check.py#ledger_rows@3ed50499
 skills/code-review/scripts/survivor_check.py#local_item@cd229ab7
 skills/code-review/scripts/survivor_check.py#local_specs@3b0fc79a
-skills/code-review/scripts/survivor_check.py#main@1bd887a9
 skills/code-review/scripts/survivor_check.py#newly_released@9f729ae3
 skills/code-review/scripts/survivor_check.py#ngrams@eeb47c62
 skills/code-review/scripts/survivor_check.py#on_its_branch@537eaffb
 skills/code-review/scripts/survivor_check.py#only_released@417ace0e
 skills/code-review/scripts/survivor_check.py#paired_across_paths@53cabf4b
-skills/code-review/scripts/survivor_check.py#parse_range@8a702916
 skills/code-review/scripts/survivor_check.py#python_prose@8bdedcfe
 skills/code-review/scripts/survivor_check.py#read_blobs@7c70d4b4
 skills/code-review/scripts/survivor_check.py#read_exemptions@c12c4c2f
@@ -889,7 +880,6 @@ skills/code-review/scripts/survivor_check.py#records_a_past_state@c8dd4d40
 skills/code-review/scripts/survivor_check.py#references@d96e1682
 skills/code-review/scripts/survivor_check.py#released_lines@a98c0509
 skills/code-review/scripts/survivor_check.py#removed_ledger_rows@bab8ffb5
-skills/code-review/scripts/survivor_check.py#report@74a8bff6
 skills/code-review/scripts/survivor_check.py#resolves@fd7c55f4
 skills/code-review/scripts/survivor_check.py#retired_directories@6a368229
 skills/code-review/scripts/survivor_check.py#runs@a0aaf0d2
@@ -897,7 +887,6 @@ skills/code-review/scripts/survivor_check.py#score@8c27abd3
 skills/code-review/scripts/survivor_check.py#segments@7bcc1eea
 skills/code-review/scripts/survivor_check.py#sentences@02abcd13
 skills/code-review/scripts/survivor_check.py#shape_pattern@86a20a7e
-skills/code-review/scripts/survivor_check.py#survivors@32bc5615
 skills/code-review/scripts/survivor_check.py#tracked@4be48c62
 skills/code-review/scripts/survivor_check.py#trim@c038acbf
 skills/code-review/scripts/survivor_check.py#wanted@bb5025bd
@@ -955,7 +944,6 @@ skills/evidence-check/scripts/evidence_check.py#citation_for@41036007
 skills/evidence-check/scripts/evidence_check.py#citation_target@06260491
 skills/evidence-check/scripts/evidence_check.py#cited_row@9cec4fe5
 skills/evidence-check/scripts/evidence_check.py#citing_verb@0aebe298
-skills/evidence-check/scripts/evidence_check.py#claim_lines@e5006cc3
 skills/evidence-check/scripts/evidence_check.py#classify@39108e80
 skills/evidence-check/scripts/evidence_check.py#compound@8ca6d002
 skills/evidence-check/scripts/evidence_check.py#contained@59bfe28b
@@ -1022,7 +1010,6 @@ skills/evidence-check/scripts/evidence_check.py#planned_key@22ff7305
 skills/evidence-check/scripts/evidence_check.py#plugin_module@832215c6
 skills/evidence-check/scripts/evidence_check.py#put@584f3842
 skills/evidence-check/scripts/evidence_check.py#py_spans@8db6bdf1
-skills/evidence-check/scripts/evidence_check.py#quoted_lines@de284263
 skills/evidence-check/scripts/evidence_check.py#read@984257dd
 skills/evidence-check/scripts/evidence_check.py#read_citation@4f77a1f8
 skills/evidence-check/scripts/evidence_check.py#reading_date@a67c8ed0
@@ -1165,7 +1152,6 @@ skills/settle/scripts/fold_check.py#shape_problems@dce99d1e
 skills/settle/scripts/fold_check.py#statements@8f4adc99
 skills/settle/scripts/fold_check.py#target_problem@50308886
 skills/settle/scripts/fold_check.py#why@2bfb273a
-skills/settle/scripts/settle.py#anchored_rows@a1c9cd21
 skills/settle/scripts/settle.py#base_heading@95eb0154
 skills/settle/scripts/settle.py#below_floor@d1565fbf
 skills/settle/scripts/settle.py#citations@3dde3d61
@@ -1460,7 +1446,6 @@ skills/verify/scripts/unverified_check.py#heading_level@8d5ada2b
 skills/verify/scripts/unverified_check.py#headings@144d1fd8
 skills/verify/scripts/unverified_check.py#is_header@d5148539
 skills/verify/scripts/unverified_check.py#is_separator@1ea371ba
-skills/verify/scripts/unverified_check.py#live_lines@ad7653a3
 skills/verify/scripts/unverified_check.py#main@9e22a950
 skills/verify/scripts/unverified_check.py#merge_base@c2132f1e
 skills/verify/scripts/unverified_check.py#nearest_existing@07cf3682
@@ -1468,7 +1453,6 @@ skills/verify/scripts/unverified_check.py#open_record_rows@fc556161
 skills/verify/scripts/unverified_check.py#overviews@f8c143b4
 skills/verify/scripts/unverified_check.py#overviews_at@6a06661d
 skills/verify/scripts/unverified_check.py#parse_section@7809ee5e
-skills/verify/scripts/unverified_check.py#readable@4ee19967
 skills/verify/scripts/unverified_check.py#real@62cea863
 skills/verify/scripts/unverified_check.py#reference_rule@d15a7d9d
 skills/verify/scripts/unverified_check.py#references_at@cbfe4f5d

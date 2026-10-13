@@ -52,6 +52,22 @@ AXES = (
 ORCH = ("skills", "implement", "orchestration.md")
 SKILL = ("skills", "implement", "SKILL.md")
 
+# The shape of the asking, in the ONE spelling the orchestrator's section, the
+# block's template and its generated copy share (#911): question 1 alone, and
+# the boxes in a second call only where its answer was `per axis`, because
+# under the other two answers they mean nothing and were on screen anyway.
+# Fourteen words on purpose: at fifteen a sentence two documents share is a
+# pasted passage to `tests/test_no_passage_is_pasted_into_a_second_file.py`.
+SHAPE = "Ask question 1 alone; the boxes in a second call only under `per axis`."
+# Every count or shape the question has outgrown. The last is the sentence
+# #911 retired; a copy of it left anywhere reads as the shape.
+STALE = (
+    "two axes",
+    "three axes",
+    "three checkboxes",
+    "two questions in ONE `AskUserQuestion` call",
+)
+
 
 def read(*parts):
     with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
@@ -95,10 +111,11 @@ def checkbox_tables(text):
 def test_the_skill_asks_the_whole_question_in_the_first_batch():
     """The count moved twice and each time a stale copy survived the edit.
 
-    It was `two axes`, then `three axes`, and now it is neither: the question
-    is two questions in one call, and the boxes number four. What this case
-    pins is the SHAPE — the one call, the four answers a box can write, and
-    the moment — plus the absence of every count the shape has outgrown.
+    It was `two axes`, then `three axes`, then two questions in one call,
+    and now it is question 1 alone with the four boxes asked only under
+    `per axis` (#911). What this case pins is the SHAPE — the one sentence
+    stating it, the four answers a box can write, and the moment — plus the
+    absence of every count and shape it has outgrown.
 
     The absence half is the half that would have caught this edit. The three
     stale `three axes` copies were green under the old presence-only
@@ -108,15 +125,12 @@ def test_the_skill_asks_the_whole_question_in_the_first_batch():
     passes on the copy that should have moved.
     """
     skill = flat(read(*ORCH))
-    assert "two questions" in skill, (
-        "the section stopped naming its own shape, so a session reads a "
-        "question whose number of questions is nowhere stated"
+    assert SHAPE in skill, (
+        "the section stopped stating its own shape, so a session reads a "
+        "question whose number of calls, and when the second comes, is "
+        "nowhere stated"
     )
-    assert "ONE `AskUserQuestion` call" in skill, (
-        "the one-call sentence went, and two questions in two calls is two "
-        "waits — which is the whole thing the batch rule forbids"
-    )
-    for stale in ("two axes", "three axes", "three checkboxes"):
+    for stale in STALE:
         assert stale not in skill + flat(read(*SKILL)), (
             f"`{stale}` survived the rewrite; a count the shape outgrew reads "
             "as the shape"
@@ -418,12 +432,16 @@ def labelled_table(text, first_column, second_column):
     raise AssertionError(f"no table headed `| {first_column} | {second_column} |`")
 
 
-def test_the_question_is_two_questions_in_one_call():
-    """S1. One batch before the first edit is one WAIT, not one question.
+def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
+    """S1, and #911. One batch before the first edit, and the boxes only
+    where they mean something.
 
-    Two `AskUserQuestion` calls is two waits and the batch rule is broken by
-    the second one, whatever either call contains. So the two tables have to
-    be there AND the sentence that they go in one call.
+    The two questions used to go in one call, so a person pressing
+    `automation` or `no work item` was shown four boxes that meant nothing
+    under either answer. Question 1 now goes alone, and the boxes follow in
+    a second call only under `per axis`, at once and before the first edit.
+    So both tables have to be there AND the sentence that says when each is
+    asked.
     """
     skill = read(*ORCH)
     assert len(labelled_table(skill, "Order", "Label")) == 3, (
@@ -436,7 +454,7 @@ def test_the_question_is_two_questions_in_one_call():
     # generated copy, because `tests/test_review_axes.py` pairs the two
     # documents on this exact phrase — two spellings of one decision is
     # the drift that pair exists to catch.
-    assert "two questions in ONE `AskUserQuestion` call" in flat(skill)
+    assert SHAPE in flat(skill)
 
 
 def test_the_boxes_are_in_the_stated_order():
@@ -899,7 +917,7 @@ def test_the_smith_carries_its_own_half_and_not_the_questions():
     assert "answerer" in smith, (
         "a deferral with nobody named is how a follow-up becomes nobody's"
     )
-    for count in ("three axes", "two axes", "three checkboxes"):
+    for count in STALE:
         assert count not in smith, (
             f"`{count}` is back in `agents/smith.md`, which is the routing "
             "question in the definition of the party that does not ask it"
@@ -926,11 +944,11 @@ def test_the_preset_block_carries_it_too():
         assert "seal/specs/<work-item-id>/routing.md" in text, where
         for answer in AXES:
             assert answer in text, f"{where} lost the answer `{answer}`"
-        assert "two questions in ONE `AskUserQuestion` call" in text, (
+        assert SHAPE in text, (
             f"{where} still asks the old question, and the block is what a "
             "session in an opted-in repository always has in front of it"
         )
-        for stale in ("two axes", "three axes", "three checkboxes"):
+        for stale in STALE:
             assert stale not in text, (
                 f"`{stale}` survived in {where}, so every session reads the "
                 "shape the rest of the repository stopped describing"

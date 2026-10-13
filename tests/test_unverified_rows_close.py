@@ -17,7 +17,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from conftest import symlink_or_skip
+from conftest import posix_id, symlink_or_skip
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
@@ -1305,6 +1305,7 @@ TIP_KO = "base 브랜치의 끝"
             None,
         ),
     ],
+    ids=posix_id,
 )
 def test_the_documents_state_the_merge_base_footing(doc, tip, false_sentence):
     """Eight files told a reader that `--baseline` compares against the base

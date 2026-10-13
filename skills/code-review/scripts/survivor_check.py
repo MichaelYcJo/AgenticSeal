@@ -17,8 +17,9 @@ place at the range's tip that still carries one of them.
 
 Exit codes: **0** nothing survived. **1** survivors, each named with its path,
 the surviving text and the corrected sentence it matched. **2** unusable
-input -- a range that does not resolve, an exemption file that will not parse.
-Nothing is ever written; this reads git and prints.
+input -- a range that does not resolve, a two-dot range whose start does not
+reach its end, an exemption file that will not parse. Nothing is ever
+written; this reads git and prints.
 
 ## Why the input is the diff
 
@@ -227,6 +228,19 @@ retired work item. A repository whose own tests sit in a `specs/` directory
 loses them from the sweep under the default and gets them back with
 `Reference specs | none`.
 
+**A test durations file.** A file `GENERATED_DATA` names -- `.test_durations`,
+`pytest-split`'s timings keyed by test id -- is out of the **pool** and out of
+the **range**, on both sides of the range's path list, at any depth
+(`generated_data`). A refresh rewrites it whole, so every key it drops reads
+as a removed sentence, and a key carries the wording of whatever test it
+names: #874's second refresh brought the file under `SIZE_CAP`, and the sweep
+reported 753 places, every one with the file as the source. The size cap had
+been keeping it out by accident, so the rule is the name and never the size.
+The reader census, `undeclared_readers.txt`, is the same kind of file: its
+lines are `path#unit@hash` in the ledger's own spelling, so a line a
+declaring unit removes matched every released row citing that unit at that
+hash, three places on the same branch.
+
 Both losses go one way: a survivor hidden inside an excluded region costs
 whatever the unanswered finding was worth, and an invented survivor costs a red
 build to somebody who did not write the line. The same asymmetry
@@ -356,6 +370,15 @@ request merged, never the branch's own in-flight record.
 It reads the tip of the range, so a survivor introduced AFTER the range is
 invisible to it. It answers *did this range leave wording standing*, never *is
 the tree consistent now*, which is why the report prints what it examined.
+
+On a two-dot range it reads only what the range's own commits changed, and
+which commits those are is `docs/the-record-layout.md` §*A range owns the
+commits that descend from its start*, listed by `chain_check.py#own_commits`.
+`A...B` is read at its two ends. The limit that section states is this
+check's too: a change made only inside a merge's conflict resolution is in
+no owned commit, so on a two-dot range it is not measured (#873). What a
+two-dot range lists and does not own is not read, and the report names
+those commits on a `not read` line.
 """
 
 import argparse
@@ -412,8 +435,19 @@ FLOOR = 1.6
 # requirement lives somewhere it does not, and it hid the fact that dropping
 # the corpus scale would let a one-run coincidence through.
 
-# A blob bigger than this is not prose anybody wrote by hand.
+# A blob bigger than this is not read: past it a file is data, whoever wrote
+# it. Under it a file is read as prose unless `generated_data` names it, and
+# that is decided by name, never by size.
 SIZE_CAP = 2 * 1024 * 1024
+
+# Data files keyed by test id or by unit, by name (#874). `.test_durations` is
+# `pytest-split`'s timings keyed by test id, rewritten whole by every refresh:
+# its keys are test ids, not sentences, and the size cap had been keeping it
+# out by accident until `--clean-durations` shrank it under 2 MiB.
+# `undeclared_readers.txt` is the reader census, one `path#unit@hash` line per
+# unit that does not yet declare what it reads: a line leaves when its unit
+# declares, and it is spelled exactly as a ledger row cites that unit.
+GENERATED_DATA = (".test_durations", "undeclared_readers.txt")
 
 
 class Refused(Exception):
@@ -449,17 +483,41 @@ def resolves(root, rev):
     return text or None
 
 
+def separator(spec):
+    """`...` or `..`, whichever the range is spelled with, or None.
+
+    Reads: guess — the range a person typed, by its dots; unknown refused
+
+    The one reader of the spelling: `parse_range` resolves the ends by it and
+    `owned` decides by it which reading the range gets. Three dots are asked
+    first, because `A...B` holds `..` as well."""
+    for sep in ("...", ".."):
+        if sep in spec:
+            return sep
+    return None
+
+
 def parse_range(root, spec):
     """`A..B` or `A...B` into two resolved commits.
 
-    Both spellings are accepted and mean the same thing here, because what is
-    read is the two endpoints and never the walk between them. `A...B` is what
-    a pull request's own comparison is spelled with, and refusing it would send
-    whoever runs this at a pull request to work out the merge base by hand."""
-    for sep in ("...", ".."):
-        if sep in spec:
-            left, _, right = spec.partition(sep)
-            break
+    Reads: guess — the range a person typed, resolved by git; unknown refused
+
+    The two spellings read different things, and this unit resolves both.
+    `A...B` is read at its two ends, the start being the merge base: it is
+    what a pull request's own comparison is spelled with, and refusing it
+    would send whoever runs this at a pull request to work out the merge base
+    by hand. `A..B` is read at its two ends too, and `corrected` keeps of
+    what changed between them only what the range's own commits changed,
+    the list `owned` hands it (`docs/the-record-layout.md` §*A range owns
+    the commits that descend from its start* owns which commits those are).
+
+    A start that does not reach its end is not refused here: `whole_range`
+    resolves a declaration's range through this unit, and a row spelled that
+    way is a range this run is not over rather than one that does not
+    resolve. `owned` refuses it for the run's own `--range`."""
+    sep = separator(spec)
+    if sep is not None:
+        left, _, right = spec.partition(sep)
     else:
         raise Refused(
             f"--range {spec} is not a range. Write `A..B`, the two commits a "
@@ -476,6 +534,60 @@ def parse_range(root, spec):
         if base and base.strip():
             a = base.strip()
     return a, b
+
+
+def owned(root, spec, a, b):
+    """The commits a two-dot `--range` owns, as `chain_check.py#own_commits`
+    lists them, or None for `A...B`, which is read at its two ends.
+
+    Reads: guess — the range a person typed, by its dots, and git's ancestry of its two resolved ends through `chain_check.py`; unknown refused
+
+    The list is `own_commits`' and never a second walk here: one reader of
+    which commits a range owns, so the two cannot drift; the rule is
+    `parse_range`'s link.
+    A two-dot start that is not an ancestor of its end owns nothing, and a
+    report over it would say *0 sentence(s) the range removed* about a range
+    nobody meant, so it is refused here, before anything is examined.
+    `round_record.py#parse_range` refuses the same range for `close`."""
+    if separator(spec) != "..":
+        return None
+    loaded = chain()
+    if not loaded.is_ancestor(root, a, b):
+        raise Refused(
+            f"--range {spec}: `{a[:8]}` is not an ancestor of `{b[:8]}`, so "
+            "the range owns no commit and there is nothing it removed to look "
+            "for. Write `A...B` for a range whose start is on the base, which "
+            "is read at its two ends from the merge base, or name the commit "
+            "the fixes started from. Nothing was examined"
+        )
+    # `chain_check.py`'s git runs under a timeout and raises on its expiry
+    # rather than answering None; either is unusable input, never exit 1.
+    try:
+        commits = loaded.own_commits(root, a, b)
+    except subprocess.TimeoutExpired:
+        commits = None
+    if commits is None:
+        raise Refused(f"cannot list the commits {a[:7]}..{b[:7]} owns in {root}")
+    return commits
+
+
+def not_owned(root, a, b, own):
+    """The short SHAs of the commits `git rev-list --no-merges a..b` lists
+    that `own` does not, oldest first; empty for `A...B` (`own` None).
+
+    Reads: observed — git's list of the range's non-merge commits, against `owned`'s list; unknown refused
+
+    A two-dot range is read by the commits it owns, and what else it lists
+    is not read. `report` prints them, so a run whose start is not where the
+    person meant names the commits it left out rather than reporting a clean
+    range in silence (#873 round 1)."""
+    if own is None:
+        return []
+    out = git(root, "rev-list", "--reverse", "--no-merges", f"{a}..{b}")
+    if out is None:
+        raise Refused(f"cannot list the commits in {a[:7]}..{b[:7]} in {root}")
+    mine = {full for full, _short, _changes in own}
+    return [full[:7] for full in out.split() if full not in mine]
 
 
 def tracked(root, rev):
@@ -936,6 +1048,17 @@ def records_a_past_state(path):
     return inside == ["survivors.md"] or (len(inside) > 1 and inside[0] == "phases")
 
 
+def generated_data(path):
+    """True for a data file named in `GENERATED_DATA`, at any depth. Read on
+    both sides -- `corpus` and `corrected` -- for the reason every exclusion
+    here is: a key such a file drops is not a sentence anybody corrected, and
+    one it carries is not a place anybody can correct.
+
+    Reads: nothing — decides from the path its caller hands it
+    """
+    return path.replace("\\", "/").rsplit("/", 1)[-1] in GENERATED_DATA
+
+
 # The rest of `settle --retire-process`'s list, beside what
 # `records_a_past_state` already names: the files a work item writes for its
 # pull request, directly under its directory (#729).
@@ -1143,6 +1266,28 @@ def evidence():
     return module
 
 
+# The review chain's checker, loaded by path the way `evidence()` loads the
+# ledger checker. It owns which commits a range owns (`own_commits`) and
+# whether a start reaches its end (`is_ancestor`); the sweep asks it rather
+# than walking the range a second way.
+CHAIN = os.path.join(HERE, "chain_check.py")
+
+
+def chain():
+    """`chain_check.py`, or a sentence saying why it cannot be read.
+
+    Reads: observed — whether `chain_check.py` stands beside this script; unknown refused"""
+    if not os.path.isfile(CHAIN):
+        raise Refused(
+            f"cannot read {CHAIN}, which says which commits a two-dot range "
+            "owns. This script ships beside it under `skills/`."
+        )
+    spec = importlib.util.spec_from_file_location("specseal_chain_check", CHAIN)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 # A row's own id -- `R1`, `S3`, `G5`, `P1-1` -- heads its first cell, before
 # the ` · ` that opens the claim. A row corrected in place keeps it under the
 # same heading, whatever its anchors did. It is not always unique inside its
@@ -1279,7 +1424,11 @@ def removed_ledger_rows(root, a, b, before, after):
 def corpus(root, rev):
     """`{path: [Sentence]}` for the tree at `rev`, less what is excluded --
     what `records_a_past_state` names, the changelog fragments the tip's
-    changelogs have gathered, and the reference roots."""
+    changelogs have gathered, the reference roots, and the generated data
+    files.
+
+    Reads: guess — the prose of every tracked file at `rev`, through `read_blobs`; unknown passed
+    """
     listed = tracked(root, rev)
     gathered = gathered_fragments(root, rev, listed)
     paths = [
@@ -1288,6 +1437,7 @@ def corpus(root, rev):
         if not records_a_past_state(p)
         and not a_gathered_fragment(p, gathered)
         and not a_reference_root(root, p)
+        and not generated_data(p)
     ]
     return {
         path: sentences(path, text)
@@ -1298,9 +1448,53 @@ def corpus(root, rev):
 # --- the check -------------------------------------------------------------
 
 
-def corrected(root, a, b):
+def own_changes(root, own, paths):
+    """`(lost, gained)`: the `(path, sentence key)` pairs the range's own
+    commits removed and wrote, each commit read against its parent.
+
+    Reads: observed — each own commit's blobs and its parent's, at the paths it changed that `paths` holds; unknown refused
+
+    `own` is `owned`'s list and `paths` is `corrected`'s, already filtered,
+    so a commit's paths are intersected with it and nothing outside the range
+    as `corrected` measures it is read. A pair is counted the way `corrected`
+    counts a file between the two ends -- a key held fewer times after the
+    commit than before is lost, more times gained, and for a changelog what
+    the commit put under a version heading is held -- so on a range whose
+    every commit is its own, every sentence `corrected` counts is in a pair.
+    Each own commit has one parent: `own_commits` lists no merge."""
+    lost, gained = set(), set()
+    for full, _short, changes in own:
+        mine = sorted({path for _status, path in changes} & set(paths))
+        before = read_blobs(root, full + "^", mine)
+        after = read_blobs(root, full, mine)
+        for path in mine:
+            was = sentences(path, before[path]) if path in before else []
+            now = sentences(path, after[path]) if path in after else []
+            if a_changelog(path) and path in after:
+                now += newly_released(path, before.get(path, ""), after[path])
+            old, new = Counter(s.key for s in was), Counter(s.key for s in now)
+            lost.update((path, key) for key in old if old[key] > new[key])
+            gained.update((path, key) for key in new if new[key] > old[key])
+    return lost, gained
+
+
+def corrected(root, a, b, own=None):
     """`[Sentence]` -- what the range removed -- the n-grams it wrote, and
     the gathered n-grams that split a changelog's removed sentences alone.
+
+    Reads: guess — the prose of every file the range changed, at both ends, beside git's diff and the own commits `owned` listed; unknown refused
+
+    **On a two-dot range a removed or written sentence is kept only where
+    one of the range's own commits removed or wrote it** (#873). `own` is
+    `owned`'s list, None for `A...B`. The two ends are still what is counted;
+    `own_changes` says which of the sentences counted there an own commit
+    lost or gained at that path, and the rest -- what a merge of the base
+    brought in -- is neither removed nor written by this range. Which
+    commits are its own is `docs/the-record-layout.md` §*A range owns the
+    commits that descend from its start*, read through
+    `chain_check.py#own_commits`. Both lists, because `written` is
+    subtracted from every removed sentence's score, and the filter is applied
+    where a sentence is appended, before the pairing across paths.
 
     A sentence counts as corrected when the file holds it FEWER times at `b`
     than at `a`. Counted rather than tested for membership, so a sentence
@@ -1389,7 +1583,7 @@ def corrected(root, a, b):
     # A reference root is out on both sides as well (#688): a sentence
     # removed from a team's own `specs/` is not a correction the plugin's
     # documents owe, and one standing there is not a survivor -- `corpus`
-    # applies the same predicate.
+    # applies the same predicate. So is a generated data file (#874).
     paths = [
         path
         for path in names.split("\0")
@@ -1397,6 +1591,7 @@ def corrected(root, a, b):
         and not records_a_past_state(path)
         and not a_gathered_fragment(path, gathered)
         and not a_reference_root(root, path)
+        and not generated_data(path)
     ]
     # A retired directory is out of the range too (#517), for the reason the
     # round records are: its sentences stand in `docs/` by design, because
@@ -1425,6 +1620,10 @@ def corrected(root, a, b):
         for path, text in read_blobs(root, a, fragments).items()
         for sentence in sentences(path, text)
     }
+    # `A...B`, or a caller that names no own commits, keeps everything.
+    lost_by_own = gained_by_own = None
+    if own is not None:
+        lost_by_own, gained_by_own = own_changes(root, own, paths)
     gone, fresh, split = [], [], set()
     for path in paths:
         was = sentences(path, before[path]) if path in before else []
@@ -1440,7 +1639,9 @@ def corrected(root, a, b):
         seen, lost = Counter(), len(gone)
         for sentence in was:
             seen[sentence.key] += 1
-            if seen[sentence.key] > counted[sentence.key]:
+            if seen[sentence.key] > counted[sentence.key] and (
+                lost_by_own is None or (path, sentence.key) in lost_by_own
+            ):
                 gone.append(sentence)
         if len(gone) == lost:
             # Nothing of this file was removed, so there is nothing the moved
@@ -1466,7 +1667,9 @@ def corrected(root, a, b):
         old, new = Counter(s.key for s in was), Counter()
         for sentence in now + moved:
             new[sentence.key] += 1
-            if new[sentence.key] > old[sentence.key]:
+            if new[sentence.key] > old[sentence.key] and (
+                gained_by_own is None or (path, sentence.key) in gained_by_own
+            ):
                 fresh.append(sentence)
     # Only after every path is counted: a sentence that left one path and
     # arrived at another is a move, and neither side of it is this range's.
@@ -1710,13 +1913,16 @@ def score(gone, keep, where, weight_of, floor, split=frozenset()):
     )
 
 
-def examine(root, a, b, floor=FLOOR):
+def examine(root, a, b, floor=FLOOR, own=None):
     """The whole run: `(rows, files examined, sentences corrected)`.
+
+    Reads: observed — the range's two ends and the own commits its caller listed, through `corrected` and `corpus`; unknown refused
 
     Every caller goes through this. It returns the two counts as well as the
     rows because the report line names what was examined -- a check that says
-    only what it found cannot be told apart from one that looked at nothing."""
-    gone, written, split = corrected(root, a, b)
+    only what it found cannot be told apart from one that looked at nothing.
+    `own` is `owned`'s list, carried to `corrected`."""
+    gone, written, split = corrected(root, a, b, own)
     keep = wanted(gone, written)
     pool = corpus(root, b)
     where, files = carriers(pool, keep)
@@ -1727,9 +1933,11 @@ def examine(root, a, b, floor=FLOOR):
     )
 
 
-def survivors(root, a, b, floor=FLOOR):
-    """`examine`'s rows alone, for a caller that wants only the survivors."""
-    return examine(root, a, b, floor)[0]
+def survivors(root, a, b, floor=FLOOR, own=None):
+    """`examine`'s rows alone, for a caller that wants only the survivors.
+
+    Reads: observed — what `examine` reads, the own commits carried through; unknown refused"""
+    return examine(root, a, b, floor, own)[0]
 
 
 # --- the exemptions --------------------------------------------------------
@@ -2141,8 +2349,15 @@ def report(
     whole=None,
     unresolved=(),
     foreign=(),
+    unread=(),
 ):
     """Print the survivors and answer with the exit code.
+
+    Reads: guess — the exemption rows a person wrote, matched through `exempted`, beside the rows and counts its caller measured; unknown refused
+
+    `unread` is `not_owned`'s list: the commits a two-dot range lists and
+    does not own, printed under the examined line so a clean report says
+    what it left unread.
 
     `whole` is the `(range_spec, grounds)` declaration covering this exact
     range, and it excuses every candidate. `unresolved` is the declarations
@@ -2170,6 +2385,14 @@ def report(
         f"{corrected_count} sentence(s) the range {a[:7]}..{b[:7]} removed",
         file=out,
     )
+    if unread:
+        shown = " ".join(unread[:8]) + (" …" if len(unread) > 8 else "")
+        print(
+            f"  not read    {len(unread)} commit(s) in {a[:7]}..{b[:7]} the "
+            f"range does not own: {shown}. For a whole branch write `A...B`, "
+            "which is read at its two ends",
+            file=out,
+        )
     for spec, grounds in unresolved:
         print(
             f"  unresolved  {spec} does not resolve here, so it silences "
@@ -2226,6 +2449,9 @@ def report(
 
 
 def main(argv=None):
+    """The command, answering with the exit code the module docstring names.
+
+    Reads: guess — the arguments a person typed, through `parse_range`, `owned` and `read_exemptions`; unknown refused"""
     ap = argparse.ArgumentParser(
         prog="survivor-check",
         description="Report every place still carrying wording a range removed.",
@@ -2258,6 +2484,11 @@ def main(argv=None):
     try:
         root = os.path.abspath(args.root)
         a, b = parse_range(root, args.range)
+        # The run's own range and no declaration's: a two-dot start that does
+        # not reach its end is refused here, and `whole_range` resolves a
+        # row spelled that way exactly as before.
+        own = owned(root, args.range, a, b)
+        unread = not_owned(root, a, b, own)
         # Before the run rather than after it: an exemption file that will not
         # parse is exit 2, and finding that out after several seconds of
         # indexing prints a refusal underneath a report.
@@ -2266,7 +2497,7 @@ def main(argv=None):
         # the line above gives: a declaration is judged against the range this
         # run is actually over, and nothing here costs several seconds.
         whole, unresolved, foreign = whole_range(root, ranges, a, b)
-        rows, examined, gone = examine(root, a, b, args.floor)
+        rows, examined, gone = examine(root, a, b, args.floor, own)
         return report(
             rows,
             exemptions,
@@ -2277,6 +2508,7 @@ def main(argv=None):
             whole=whole,
             unresolved=unresolved,
             foreign=foreign,
+            unread=unread,
         )
     except Refused as exc:
         print(f"survivor-check: {exc}", file=sys.stderr)

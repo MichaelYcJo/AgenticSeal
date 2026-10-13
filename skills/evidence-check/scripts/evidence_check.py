@@ -367,6 +367,13 @@ def quoted_lines(lines):
     """The indices of LINES inside a fenced block that CLOSES, delimiters
     included — the lines a ledger walk skips.
 
+    Reads: guess — a markdown file's lines, a ledger's or any `.md` file an anchor names, by the shared fence rule; unknown refused
+
+    A line that holds a claim is read on doubt, the first of the three
+    answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
+    a deletion* gives to whether a line is live: the wrong answer is a
+    parked or malformed row reported, never one dropped.
+
     **Only a block that closes is a quotation.** A ledger line holds a claim,
     and a claim is skipped only when it is certainly quoted: an unclosed fence
     runs to the end of the file, and reading nothing from there on is the
@@ -5855,6 +5862,14 @@ def compound(name):
 def claim_lines(lines):
     """[(line number, text)] for the record lines that are read as claims,
     the text being what the line holds outside every aside and quotation.
+
+    Reads: guess — a record's lines, a session's prose in the records' template shape; unknown refused
+
+    A line that holds a claim is read on doubt, the first of the three
+    answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
+    a deletion* gives, and a line-start comment that closes is the one place
+    this reads less than the ledger walk: the wrong answer is a false
+    refusal at exit 2, which the marker answers.
 
     Three kinds of line are not. A line carrying `NAME NOT IN TREE` is the
     writer's own statement that the name on it is one the tree does not have,

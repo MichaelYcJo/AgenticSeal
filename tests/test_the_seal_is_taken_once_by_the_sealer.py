@@ -1217,6 +1217,18 @@ def config(row=True):
 
 
 SUITE_ROW = f"{sys.executable} -m pytest -q -p no:cacheprovider tests"
+
+
+def interpreter_free(value):
+    """The id of a parametrized row with `sys.executable` written `python`,
+    or None for a value that is not a string. The interpreter's path is a
+    different string on every machine, so an id carrying it is a key
+    `.test_durations` can price only where it was measured (#874)."""
+    if not isinstance(value, str):
+        return None
+    return value.replace(sys.executable, "python")
+
+
 # The same runner with no path of its own, so a run at the base collects only
 # the files the gate appends to it (#789). `failing on base too` is given only
 # where such a run collected nothing but its file; `SUITE_ROW` collects all of
@@ -1912,6 +1924,7 @@ def test_a_row_ending_in_a_single_ampersand_is_refused(repo, tmp_path):
         f"{SUITE_ROW} 2>&1",
         'grep "a & b" f && ' + SUITE_ROW,
     ],
+    ids=interpreter_free,
 )
 def test_an_ampersand_that_is_not_last_stays_allowed(value):
     """Round 1's 🟡 1, pinned as the boundary the code actually draws.
@@ -1970,6 +1983,7 @@ def test_a_refused_row_runs_no_check_and_adds_no_worktree(repo, tmp_path):
             False,
         ),
     ],
+    ids=interpreter_free,
 )
 def test_the_forms_that_stay_allowed_are_sealed_exactly_as_today(
     repo, tmp_path, value, why, needs_posix
@@ -2805,6 +2819,7 @@ def test_an_escaped_pipe_reaches_the_gate_as_the_command_it_reads_as(tmp_path):
         "sleep 1 && echo done",
         "a && b &&",
     ],
+    ids=interpreter_free,
 )
 def test_a_pair_that_closes_early_wraps_a_part_and_not_the_whole(value):
     """The boundary, read directly off the unit. A substitution the value
