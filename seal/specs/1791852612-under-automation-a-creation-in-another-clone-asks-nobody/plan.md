@@ -77,8 +77,8 @@ work (S12).
   `feature/x` branch; the copied clone has the same branch, so
   `worktree add ../wt feature/x` is a creation of an existing branch and
   needs no remote.
-- Ledger rows this work drifts: `hooks/worktree-guard.py#guard_worktree_creation@5c370c45`
-  in `seal/releases/0.9.1.md` (two rows), `0.9.4.md` (two), `0.15.5.md`,
+- Ledger rows this work drifts: `hooks/worktree-guard.py#guard_worktree_creation`, at
+  its `321e9de1` hash, in `seal/releases/0.9.1.md` (two rows), `0.9.4.md` (two), `0.15.5.md`,
   `0.15.6.md`, `0.20.0.md`; `#choose@ed62dd1a` in `0.9.1.md` and
   `#choose@108262db` in `0.21.0.md`; and under W1's default the `main@…`
   families in `0.9.1.md`, `0.15.6.md`, `0.18.3.md`, `0.20.0.md` and

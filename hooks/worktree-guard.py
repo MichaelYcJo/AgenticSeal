@@ -59,9 +59,12 @@ B) Worktree creation, whichever path it takes:
   - another Claude session inside THIS working tree -> ask (concurrent:
     justified; declining leads only to "use that session's worktree or wait",
     which is not a command this session issues, so there is no choice to offer)
-  - cannot tell                                     -> CHOICE: create it, or
-    switch in the shared tree
-  - `[worktree-ok]` given                           -> ask. NOT a choice: the
+  - only IDLE sessions, or cannot tell              -> CHOICE: create it, or
+    switch in the shared tree. Where the person pressed `automation` these
+    rows are reached only in a clone that answer was not given in and this
+    session has created no worktree in, and nobody is there to choose: a
+    `deny` to the model on every attempt instead, naming no way on (#903)
+  - `[worktree-ok]` given                          -> ask. NOT a choice: the
     token is what a completed confirmation looks like coming back through the
     guard, and declining it withdraws the token, which is the other way on.
     Still true, and still not consent for the NEXT creation: the token is
@@ -92,10 +95,13 @@ switch's clone is consented -- by that answer in the clone it was given in,
 or by this session's record in a clone it already created a worktree in --
 the reason names the way on that needs nobody: split into a worktree and
 work there by path. A switch into another clone is refused naming no split,
-because the creation rows there would put it to a person. The reason names
-no question tool and no token, and no marker is written, because no question
-was put (#896). In the clone the press was given in, the creation
-direction's two sites never run under the press: consent is read first.
+because a creation there is not consented: the creation rows there would
+refuse it, or put it to a person where another session is active. The reason
+names no question tool and no token, and no marker is written, because no
+question was put (#896). In the clone the press was given in, the creation
+direction's two sites never run under the press: consent is read first. In
+another clone, where this session has created no worktree, they deny on
+every attempt in the same register, naming no way on (#903).
 
 Creation consent is a SECOND session-scoped record and deliberately not part
 of that budget: `<git-common-dir>/specseal-worktree-consent/<session-id>`,
@@ -3206,8 +3212,10 @@ def main():
     # (`worktree_consent.automation_answered`, condition 4), or from this
     # session's record there (`worktree_consent.granted`). So the split is
     # named only where one of those holds for the switch's tree; a switch
-    # into another clone is refused naming none, because §B's choice rows
-    # would put that split to a person (round 1 of work item 1791781864).
+    # into another clone is refused naming none, because the creation there
+    # is not consented: §B's choice rows used to put that split to a person
+    # (round 1 of work item 1791781864), and since #903 they refuse it under
+    # the press, while row 1 still asks where another session is active.
     # Neither check reads the transcript.
     # The creation ladder's two choice rows say both sentences too (#903).
     press = press_sentence()

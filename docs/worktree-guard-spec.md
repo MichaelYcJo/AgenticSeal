@@ -174,8 +174,8 @@ Enforced by: tests/test_worktree_guard.py::test_a_listed_shape_is_silent_in_ever
 |---|---|
 | **consent: this session already created a worktree in this clone, or its person pressed `automation` on the routing question** | **allow** where the tool call is worktree creation and nothing else · **silent** where the command does more, and on the Agent/Task path. Read before every row below it — see §Creation consent |
 | ACTIVE session present | ask — separation justified, creation still needs a human. Declining leads to "use the worktree that session opened, or wait for it", neither of which is a command this session issues, so there is nothing to offer |
-| only IDLE sessions | **choice** — create it, or switch in the shared tree; likely single-stream |
-| detection unusable | **choice** — the same two |
+| only IDLE sessions | **choice** — create it, or switch in the shared tree; likely single-stream. Where the person pressed `automation`, this row is reached only in a clone the press was not given in and this session has created no worktree in: a deny to the model on every attempt instead, naming no way on — see §Creation consent, *A creation in another clone under the press* |
+| detection unusable | **choice** — the same two, and under the press the same deny |
 | `[worktree-ok]` given (Bash only) | ask — the token IS a completed confirmation coming back through the guard, so putting the question again asks what the user already answered. Declining withdraws the token, which is the other way on |
 | single stream, **Bash** | deny — steer to `git switch`; `[worktree-ok]` in a retry reaches the row above |
 | **Agent/Task**, no consent, any tree state | ask — the agent runs beside this session, so the call is concurrent by construction. No session is counted, no choice site is reached, and declining cancels the spawn. See below |
@@ -519,10 +519,43 @@ steers to `git switch`. The switch direction reads neither: a creation the user
 agreed to, or a run the user said should not stop, says nothing about taking
 another session's branch out from under it.
 
-**The prompt budget.** Zero for a session whose person pressed `automation`. One per session otherwise, from one per worktree unbounded — for a creation written on its own, which is the form the measured six took. Re-measured after round 2's fixes, six creations in one session on a clean single-stream tree: **deny, allow, allow, allow, allow, allow**.
+**The prompt budget.** Zero for a session whose person pressed `automation`, in the clone it was given in (another clone: below). One per session otherwise, from one per worktree unbounded — for a creation written on its own, which is the form the measured six took. Re-measured after round 2's fixes, six creations in one session on a clean single-stream tree: **deny, allow, allow, allow, allow, allow**.
 With consent, a creation written as one segment of a compound gets no allow,
 and neither does one carrying an expansion, a redirection, a wrapper or a **path-qualified command word**, because that is exactly what the bound above refuses to speak for. The guard is silent there, so what each one costs is whatever the user's own permission settings ask. The last of those is what round 2's second fix added to the list, and it moves nothing in the budget: `git worktree add …`, the same backgrounded, and the `\git` spelling all still allow.
 Enforced by: tests/test_the_guard_asks_once_per_session.py::test_the_first_creation_is_still_a_question, tests/test_the_guard_asks_once_per_session.py::test_a_second_creation_in_the_same_session_is_allowed, tests/test_the_guard_asks_once_per_session.py::test_the_measured_automation_run_is_not_stopped, tests/test_the_guard_asks_once_per_session.py::test_a_result_not_linked_to_an_ask_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_automation_on_another_question_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_an_answer_given_in_another_clone_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_the_labels_match_the_routing_question_the_orchestrator_asks, tests/test_the_guard_asks_once_per_session.py::test_a_typed_answer_that_qualifies_the_preset_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_a_shape_the_reader_did_not_expect_keeps_the_guards_deny, tests/test_the_guard_asks_once_per_session.py::test_a_switch_written_after_a_creation_is_judged, tests/test_the_guard_asks_once_per_session.py::test_the_order_of_a_switch_and_a_creation_does_not_decide, tests/test_the_guard_asks_once_per_session.py::test_a_command_with_both_is_never_weaker_than_either_alone, tests/test_the_guard_asks_once_per_session.py::test_the_command_word_class_is_what_the_allow_covers, tests/test_the_guard_asks_once_per_session.py::test_the_guard_is_never_silent_where_the_writer_records, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_files_a_creation_where_bash_runs_it, tests/test_guard_resolves_the_tree_it_judges.py::test_the_writer_files_under_the_clone_the_guard_judged, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_composes_the_creations_own_dash_c
+
+### A creation in another clone under the press
+
+<!-- specs/1791852612-under-automation-a-creation-in-another-clone-asks-nobody -->
+**Under the press, a creation in a clone the press was not given in, where
+this session has created no worktree, meets §B's two choice rows as a deny
+to the model on every attempt, naming no way on (#903).**
+Rule 4 makes the press consent only in its own clone, and the record is
+consent only where it was written, so such a creation falls past the consent
+row to §B's rows. Rows only IDLE sessions and detection unusable used to deny
+once naming `AskUserQuestion` and ask on every attempt after: a person's
+prompt in a session whose person had said nobody would answer. Under the
+press they now deny every time. The reason opens with the row's situation,
+carries the press sentence the switch rows carry, says that answer consents
+to a creation only in the clone it was given in and that nobody is at the
+keyboard to choose between splitting this tree and switching in its shared
+tree, names no way on, and says re-issuing the command unchanged meets the
+same refusal. It names no question tool, no `[worktree-ok]`, whose row is an
+`ask`, and no `[shared-tree-ok]`, because the shared tree is the call these
+rows exist to hand a person. No choice marker is written, because no
+question was put, and no record, because nothing ran.
+
+The press is read from the session's own root, by the reader the switch
+rows and the stop use, and only where one of the two rows fires: a creation
+there reads the transcript twice, once for the creation's clone at the
+consent row and once for the session's root, and every other creation
+once. What does not move: a record in that clone still outranks the rows,
+`[worktree-ok]` still reaches its `ask` above them, row ACTIVE session
+present still asks, the single-stream row still denies, and attended both
+rows are what they were, word for word. It blocks more and never allows
+more: a press read where the owner took it back costs the model a turn and
+leaves the clone untouched.
+Enforced by: tests/test_a_creation_in_another_clone_asks_nobody.py::test_under_the_press_a_creation_row_denies_every_attempt, tests/test_a_creation_in_another_clone_asks_nobody.py::test_a_record_in_the_other_clone_outranks_the_rows, tests/test_a_creation_in_another_clone_asks_nobody.py::test_the_token_still_reaches_its_own_row, tests/test_a_creation_in_another_clone_asks_nobody.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_a_creation_in_another_clone_asks_nobody.py::test_a_creation_behind_a_cd_meets_the_same_deny, tests/test_a_creation_in_another_clone_asks_nobody.py::test_the_transcript_is_read_at_most_twice_per_creation, tests/test_worktree_guard.py::test_the_attended_creation_choice_rows_are_the_bases
 
 ### Decided before git runs (#692)
 
@@ -611,7 +644,8 @@ of the two consents and the split as commands that pass as written with no
 `[worktree-ok]`: `git worktree add <wt_root>/<branch> <branch>`, or `git
 worktree add <wt_root>/<name> -b <branch> origin/main`, then `git -C` on that
 path; a branch already in a worktree needs no switch. Elsewhere it names no
-split, because §B's rows would put the creation to a person. Neither reason
+split, because a creation there is not consented: §B's rows would refuse it,
+or ask a person where another session is active. Neither reason
 names a question tool or `[shared-tree-ok]`, and both say re-issuing the command
 unchanged meets the same refusal. The press is read by the stop's reader at the
 session's own root, only where one of the two rows fires, so a command reads
@@ -620,8 +654,11 @@ later `per axis` in the same clone meets the attended first attempt. The token
 still turns both rows silent; the reason does not name it, and a model that
 appends it leaves that on the command line. In the press's own clone the
 creation direction's two sites never run under the press, because consent is
-read before them. Without the press both rows are what they were, word for word.
-Enforced by: tests/test_the_idle_session_rows_ask_nobody.py::test_under_the_press_a_choice_row_denies_every_attempt, tests/test_the_idle_session_rows_ask_nobody.py::test_the_token_still_reads_as_it_does_attended, tests/test_the_idle_session_rows_ask_nobody.py::test_the_way_on_passes_the_guard, tests/test_the_idle_session_rows_ask_nobody.py::test_a_creation_on_the_same_line_is_stopped_with_it, tests/test_the_idle_session_rows_ask_nobody.py::test_the_plain_retry_after_the_stop_meets_the_deny, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_at_most_once_per_command, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_the_idle_session_rows_ask_nobody.py::test_a_switch_into_another_clone_names_no_split_it_cannot_consent, tests/test_the_idle_session_rows_ask_nobody.py::test_a_clone_this_session_already_split_is_named_the_split, tests/test_worktree_guard.py::test_the_attended_choice_rows_are_the_bases_in_korean
+read before them. In another clone, where this session has created no
+worktree, they deny on every attempt too, naming no way on (§Creation
+consent, *A creation in another clone under the press*, #903). Without the
+press all four rows are what they were, word for word.
+Enforced by: tests/test_a_creation_in_another_clone_asks_nobody.py::test_under_the_press_a_creation_row_denies_every_attempt, tests/test_the_idle_session_rows_ask_nobody.py::test_under_the_press_a_choice_row_denies_every_attempt, tests/test_the_idle_session_rows_ask_nobody.py::test_the_token_still_reads_as_it_does_attended, tests/test_the_idle_session_rows_ask_nobody.py::test_the_way_on_passes_the_guard, tests/test_the_idle_session_rows_ask_nobody.py::test_a_creation_on_the_same_line_is_stopped_with_it, tests/test_the_idle_session_rows_ask_nobody.py::test_the_plain_retry_after_the_stop_meets_the_deny, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_at_most_once_per_command, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_the_idle_session_rows_ask_nobody.py::test_a_switch_into_another_clone_names_no_split_it_cannot_consent, tests/test_the_idle_session_rows_ask_nobody.py::test_a_clone_this_session_already_split_is_named_the_split, tests/test_worktree_guard.py::test_the_attended_choice_rows_are_the_bases_in_korean
 
 **Retry tokens, one per direction.** Both are matched as **bare words** of the
 command, never as substrings: a substring test read
@@ -966,6 +1003,13 @@ at one prompt against a wrong allow breaking another session's tree.
   `ask` otherwise, and under the press every switch without `[shared-tree-ok]`
   is row 2's deny. Read from the code; a Windows-only case in
   `tests/test_the_idle_session_rows_ask_nobody.py` measures the switch half.
+  Under the press a Bash creation in the press's own clone is consented
+  before row detection unusable is reached, and one in another clone where
+  this session has created no worktree is that row's deny, naming no way on
+  (§Creation consent, *A creation in another clone under the press*). Read
+  from the code; a Windows-only case in
+  `tests/test_a_creation_in_another_clone_asks_nobody.py` measures the
+  creation half.
 - The `automation` press is this session's, on this machine. It is read from
   this session's own main transcript (§*Creation consent*, rule 1), which the
   harness writes on the machine the session runs on, and a subagent reaches

@@ -110,16 +110,16 @@ P1 is ever answered (b), that sentence is the one to re-read.
 
 | # | Mutation | Cases | Verdict |
 |---|---|---|---|
-| A | row 3 reads the press from `top` (the creation's clone) instead of `repo_paths(cwd)[0]` | the new file, `-k idle` | red |
-| B | row 4 the same | the new file, `-k unusable` | red |
-| C | row 3 `pressed=False` | `-k 'idle or twice'` | red |
-| D | the other-clone sentence's *names no way on* reworded | `-k denies_every` | red |
-| E | `press_sentence`'s English reworded | both ladders' `denies_every` cases | red |
-| F | `reissue_sentence`'s English reworded | both ladders' `denies_every` cases | red |
-| G | row 0's consent read removed | `-k outranks` | red |
-| H | row 2 removed | `-k token_still` | red |
-| I | row 3 `pressed=True` | `-k own_root` | red |
-| J | row 3's attended question reworded | `-k attended_creation` | red |
+| A | row 3 reads the press from `top` (the creation's clone) instead of `repo_paths(cwd)[0]` | S1's idle case | red |
+| B | row 4 the same | S2's unusable case | red |
+| C | row 3 `pressed=False` | S1's idle case and S10 | red |
+| D | the other-clone sentence's *names no way on* reworded | S1 and S2 | red |
+| E | `press_sentence`'s English reworded | S1, S2 and #896's switch-side deny cases | red |
+| F | `reissue_sentence`'s English reworded | S1, S2 and #896's switch-side deny cases | red |
+| G | row 0's consent read removed | S5 | red |
+| H | row 2 removed | S6 | red |
+| I | row 3 `pressed=True` | S7 | red |
+| J | row 3's attended question reworded | S3 | red |
 
 ### What phase 2 needs
 
