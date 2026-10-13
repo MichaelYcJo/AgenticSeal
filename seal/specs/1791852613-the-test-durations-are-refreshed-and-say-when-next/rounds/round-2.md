@@ -15,7 +15,7 @@
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -30,8 +30,8 @@ Round 2 of #874, the verifying round, target 808dc814: the diff of round 1's fix
 | 🟢 | the measuring commit is reverted byte for byte | `.github/workflows/test.yml` | confirmed | executed: `git diff 34d1d1e8^ c59c7664 -- .github/workflows/test.yml` is empty |
 | 🟢 | the interpreter case is seen red with the fix removed (new unit, depth 1) | `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:232` | confirmed | executed: 8 ids red, then green restored; read: it cannot fail on Windows, where pytest doubles each backslash in an id, and ubuntu and macOS refuse the class on every pull request |
 | 🟢 | `posix_id`, `interpreter_free` and the forward-slash case (new units, depth 1) | `tests/conftest.py:1024` | confirmed | read: non-strings return None; executed: the touched modules pass and ruff passes on the eight files |
-| ⬜ 1 | three in-place rewrites left their paragraphs unwrapped: a 106-column docstring line, two half lines in `CONTRIBUTING.md` (195, 209) and one in `docs/release-checklist.md` (65) | `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:12` | open | read; the same class as round 1's ⬜ 4; `tests/test_docs_line_wrap.py` passes |
-| ⬜ 2 | the heading says the path half is held on Windows; no leg refuses a path id written with a backslash, and ubuntu and macOS only count it as unpriced | `seal/specs/1791852613-the-test-durations-are-refreshed-and-say-when-next/overview.md:38` | open | read: the paragraph's body is correct; a correction to the run's paperwork |
+| ⬜ 1 | three in-place rewrites left their paragraphs unwrapped: a 106-column docstring line, two half lines in `CONTRIBUTING.md` (195, 209) and one in `docs/release-checklist.md` (65) | `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:12` | answered | corrected at d15b93bb — the shard module's docstring, the `CONTRIBUTING.md` paragraph and the release-checklist box are rewrapped, no word changed; read; the same class as round 1's ⬜ 4; `tests/test_docs_line_wrap.py` passes |
+| ⬜ 2 | the heading says the path half is held on Windows; no leg refuses a path id written with a backslash, and ubuntu and macOS only count it as unpriced | `seal/specs/1791852613-the-test-durations-are-refreshed-and-say-when-next/overview.md:38` | answered | corrected at d15b93bb — the `overview.md` heading says no leg refuses a path id that omits `posix_id`, as its paragraph does; read: the paragraph's body is correct; a correction to the run's paperwork |
 
 ## Paste-ready fixes
 
@@ -58,8 +58,8 @@ no paste-ready fix in the report
 |---|---|---|
 | round-1 | `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:56` | round 1's 🟡 1 — fixed |
 | round-1 | `docs/release-checklist.md:55` | round 1's 🟡 2 — fixed |
-| round-1 | `seal/ledger/1791852613-the-test-durations-are-refreshed-and-say-when-next.md:7` | round 1's ⬜ 3 — open |
-| round-1 | `.github/workflows/test.yml:45` | round 1's ⬜ 4 — open |
+| round-1 | `seal/ledger/1791852613-the-test-durations-are-refreshed-and-say-when-next.md:7` | round 1's ⬜ 3 — answered |
+| round-1 | `.github/workflows/test.yml:45` | round 1's ⬜ 4 — answered |
 | round-1 | `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#collects_the_suite` | round 1's 🟢 — confirmed |
 | round-1 | `tests/conftest.py#pytest_collection_modifyitems` | round 1's 🟢 — confirmed |
 | round-1 | `.test_durations` | round 1's 🟢 — confirmed |
