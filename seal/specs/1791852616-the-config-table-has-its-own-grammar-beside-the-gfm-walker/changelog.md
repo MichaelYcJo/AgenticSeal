@@ -53,11 +53,11 @@
   at exit 2 with the walker's sentence, the ledger untouched — where the
   table holds no `Ledger frozen from` row above that line. Where it holds
   one, the freeze row is read, and the run reaches the `LEFT` line at exit
-  1 as before. A row the
-  walk read above the refused line is a value, and is used, unless the
-  same item is written again below that line. The mode gate reads a refused `Mode` row as an answer it cannot act
-  on and says nothing, as it does for a file that will not read; the prompt
-  budget of a refused table is zero.
+  1 as before. A row the walk read above the refused line is a value, and
+  is used, unless the same item is written again below that line. The mode
+  gate reads a refused `Mode` row as an answer it cannot act on and says
+  nothing, as it does for a file that will not read; the prompt budget of a
+  refused table is zero.
 - **`seal mode` no longer writes a second `Mode` row under a bare pipe
   (#871).** The writer reads the walker's table, so it overwrites the line
   the walker read as the `Mode` row, inserts a new one after the last row the
