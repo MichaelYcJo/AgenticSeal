@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #915 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `e3ae4cb685094d4aee755627f6ae7d9d92c15def..8d636bd164cca6cb7b657040af3410df943185ea`, 3 commits |
 | Contract changes | removes_section → round-1-report.md, round-1.md, removal_findings |
 | New units | strayed (depth 1); STANDING_ROW (depth 1); GONE_ROW (depth 1); test_a_table_row_under_a_sub_heading_of_removes_is_refused (depth 1); test_the_marker_exempts_no_line_of_the_removes_section (depth 1) |
