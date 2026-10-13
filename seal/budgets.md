@@ -25,6 +25,9 @@ checker names. -->
 | suite-seconds | seconds | 7862 | 5 % | gate |
 | slow-file | seconds | 120 | 10 % | gate |
 | docs-history | lines | 0 | +0 lines | gate |
+| ci-minutes:ubuntu | minutes | 15 | one-sided | gate |
+| ci-minutes:windows | minutes | 59 | one-sided | gate |
+| ci-minutes:macos | minutes | 32 | one-sided | gate |
 
 ## Price level
 

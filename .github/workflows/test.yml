@@ -211,3 +211,40 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: pip install pytest
       - run: pytest tests/test_arm_check.py -q
+
+  # The one measurement of the suite taken on every pull request: each leg's
+  # minutes in this run, summed over its pytest jobs, held to the
+  # `ci-minutes:*` rows of `seal/budgets.md`, with the billable line beside
+  # them. A run's minutes swing from one run to the next on the same code, so
+  # those rows are one-sided; `.github/scripts/budget_check.py` is the rule.
+  #
+  # After the suite, whatever its verdict: a red leg still spent its minutes.
+  # The token reads the run's own job list and nothing else, declared here
+  # because this workflow states no `permissions:` of its own.
+  #
+  # `fetch-depth: 0` is not for this job, which reads no history. It is what
+  # `tests/test_ci_gives_the_checks_what_they_need.py` asks of a job whose
+  # text names `pytest`, and `needs: pytest` does.
+  budgets:
+    needs: pytest
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: each leg's minutes in this run, against its ceiling
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
+            --paginate --jq '.jobs[]' > "$RUNNER_TEMP/jobs.jsonl"
+          python .github/scripts/budget_check.py --ci-jobs "$RUNNER_TEMP/jobs.jsonl"

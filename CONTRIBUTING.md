@@ -170,14 +170,15 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with pillow==12.3.0 --with cmar
 # or: pip install pytest markdown-it-py==4.2.0 pillow==12.3.0 cmarkgfm==2025.10.22 && python3 -m pytest tests/
 ```
 
-CI runs five jobs: lint (`ruff check` + `ruff format --check`), the suite on
+CI runs six jobs: lint (`ruff check` + `ruff format --check`), the suite on
 ubuntu, macOS and Windows at the floor stated above (macOS in three shards
 and Windows in four, each leg divided by `pytest-split` from the one
 committed `.test_durations`, #841, #864; ubuntu as one job),
 `tests/test_arm_check.py`
 at 3.13 and 3.14 (`arm-check`'s node-type tables are only as true as the
 interpreter that reads them, #684), the evidence ledger against this
-repository, and the hygiene workflow that guards releases. A change to any
+repository, each leg's minutes in that run against its `ci-minutes` row of
+`seal/budgets.md`, and the hygiene workflow that guards releases. A change to any
 hook needs a test that fails without it — see the counterfeit rule below.
 
 **A case has a budget, and so does each leg.** A case whose call runs longer

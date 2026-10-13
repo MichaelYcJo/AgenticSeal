@@ -11,6 +11,9 @@ and held to its ceiling from both sides.
   budget_check.py --base-ref BRANCH    the branch the pull request merges
                                        into; `main` is a release
   budget_check.py --root DIR           a tree other than this script's own
+  budget_check.py --ci-jobs FILE       the rows read off one CI run, and only
+                                       those, from its job list, one JSON
+                                       object a line
 
 **The band.** A row holds while `measured <= ceiling <= measured x (1 +
 slack)`, or `measured + slack` where the slack is absolute (`+N`). The left
@@ -44,6 +47,19 @@ beside the gates and never fails it.
   suite-seconds     seconds summed over `.test_durations`, rounded
   slow-file         seconds of one test file in `.test_durations`
   docs-history      history lines of one `docs/*.md` file
+  ci-minutes:<leg>  minutes of one tests run, summed over the leg's pytest
+                    jobs: `ubuntu`, `windows` or `macos`
+
+**A row read off one run is one-sided.** One run's minutes swing 1.08 to 1.21
+times from the next on the same code, and three of five quiet runs fell
+under a two-sided band on one leg, so a `ci-minutes` row's slack is
+`one-sided`: it holds while the run is under its ceiling, and nothing asks
+for it to be lowered. Only such a row may say `one-sided`. The tree's run
+shows these rows unread; the tests workflow's `budgets` job, after the
+suite, reads the run's job list with `--ci-jobs` and holds them, and prints
+the billable line: each job's minutes rounded up, at its leg's multiple of a
+Linux minute, priced at the figure #929 read, whose date nobody here has
+checked.
 
 The last two are measured per file. The family's own row in the Budgets
 table gives the unit, the slack and the kind, and its ceiling is what every
@@ -92,12 +108,14 @@ nothing was compared: `seal/budgets.md` is missing or a row of it cannot be
 read, a row names a budget no measurer here reads or a file the tree does
 not have, a family row and its file table are not both there, `CLAUDE.md` or
 `.test_durations` is missing or unreadable, the baseline does not resolve,
-`--pr-body-env` names a variable that is not set, or a sibling module this
-reads through is not beside it. Closed, never silent.
+`--pr-body-env` names a variable that is not set, the job list is missing or
+unreadable or has no pytest job on a leg a row names, or a sibling module
+this reads through is not beside it. Closed, never silent.
 """
 
 import argparse
 import collections
+import datetime
 import fractions
 import importlib.util
 import json
@@ -138,6 +156,16 @@ DOCS = "docs"
 HISTORY = re.compile(r"#\d{2,}|round \d|20\d\d-\d\d-\d\d|[Mm]easured")
 RULE_OPENER = "**"
 RULE_CLOSER = "Enforced by:"
+# The families read off one CI run rather than off the tree: measured by the
+# `budgets` job of the tests workflow from the run's job list, held to a
+# ceiling and no lower band.
+PER_RUN = ("ci-minutes",)
+ONE_SIDED = "one-sided"
+# A leg is the operating system a `pytest (<os>-latest, …)` job's name opens
+# with, and each leg's minute is billed at a multiple of a Linux minute.
+PYTEST_JOB = re.compile(r"pytest \(([a-z]+)-[^,)]*(?:,.*)?\)")
+BILLING = {"ubuntu": 1, "windows": 2, "macos": 10}
+LINUX_MINUTE_USD = 0.008
 
 # The modules this reads through, each the one reader of its input: the table
 # walker every `seal/` table is read by (#871), the meter the preload budgets
@@ -207,10 +235,12 @@ def sibling(key):
 
 def parse_slack(cell, unit):
     """The `Slack` a cell states: `N %` relative, `+N` absolute in the row's
-    unit, which it may name after the number.
+    unit, which it may name after the number, or `one-sided`, no lower band.
 
     Reads: owned — a Slack cell of `seal/budgets.md`, in the vocabulary this module defines; unknown refused"""
     text = cell.strip()
+    if text == ONE_SIDED:
+        return Slack(None, False, text)
     relative = RELATIVE_SLACK.fullmatch(text)
     if relative:
         return Slack(fractions.Fraction(relative.group(1)) / 100, False, text)
@@ -249,6 +279,17 @@ def parse_budgets(text, where):
             parsed = parse_slack(slack, unit)
         except ValueError as error:
             raise Unreadable(f"{at}: {name}'s {error}") from None
+        per_run = name.partition(":")[0] in PER_RUN
+        if per_run != (parsed.amount is None):
+            raise Unreadable(
+                f"{at}: {name}'s slack is `{slack}`, and "
+                + (
+                    f"a row read off one CI run is `{ONE_SIDED}`: a run's "
+                    "minutes swing too far for a lower band"
+                    if per_run
+                    else f"only a row read off one CI run is `{ONE_SIDED}`"
+                )
+            )
         if kind not in KINDS:
             raise Unreadable(f"{at}: {name}'s kind `{kind}` is neither gate nor report")
         out.append(Row(line, name, unit, int(ceiling), parsed, kind))
@@ -573,7 +614,7 @@ def measure(root, row, cache):
         raise Unreadable(
             f"{row.name}: no measurer here reads a budget of that name — the "
             "families are `preload:<agent>`, `preload:claude-md`, "
-            "`suite-seconds`, `slow-file` and `docs-history`"
+            "`suite-seconds`, `slow-file`, `docs-history` and `ci-minutes:<leg>`"
         )
     measurer, unit, _ = MEASURERS[family]
     if row.unit != unit:
@@ -584,9 +625,12 @@ def measure(root, row, cache):
 
 
 def top_of_band(measured, slack):
-    """The highest ceiling `measured` allows under `slack`.
+    """The highest ceiling `measured` allows under `slack`, or None for a
+    one-sided row, which has no band above its reading.
 
     Reads: nothing — a number from the numbers handed to it"""
+    if slack.amount is None:
+        return None
     if slack.absolute:
         return measured + slack.amount
     return int(measured * (1 + slack.amount))
@@ -612,11 +656,12 @@ def band(row, measured, lines=()):
     if measured > row.ceiling:
         problems.append(
             f"measured {measured:,} {row.unit} is over the ceiling {row.ceiling:,} "
-            f"by {measured - row.ceiling:,}{at_lines(lines)}. Bring it back under, "
-            f"or raise the ceiling in {BUDGETS_GIT} and write `Budget raised: "
-            f"{row.name} {row.ceiling} -> <new>: <reason>` in the pull request body"
+            f"by {round(measured - row.ceiling, 1):,}{at_lines(lines)}. Bring it "
+            f"back under, or raise the ceiling in {BUDGETS_GIT} and write `Budget "
+            f"raised: {row.name} {row.ceiling} -> <new>: <reason>` in the pull "
+            "request body"
         )
-    elif row.ceiling > top:
+    elif top is not None and row.ceiling > top:
         problems.append(
             f"the ceiling {row.ceiling:,} sits above the band: measured "
             f"{measured:,} {row.unit} at {row.slack.text} slack allows at most "
@@ -766,7 +811,13 @@ def render(results, moves, against, cache=None):
     ]
     for result in results:
         row = result.row
-        room = row.ceiling - result.measured
+        if result.measured is None:
+            lines.append(
+                f"| `{row.name}` | — (read off each run by the tests workflow's "
+                f"`budgets` job) | {row.ceiling:,} | — | {row.kind} | not this run |"
+            )
+            continue
+        room = round(row.ceiling - result.measured, 1)
         share = f"{room / row.ceiling:.1%}" if row.ceiling else "—"
         verdict = "holds" if not result.problems else "over" if room < 0 else "lower it"
         largest = " (largest unlisted)" if row.name in FILE_TABLES else ""
@@ -779,6 +830,8 @@ def render(results, moves, against, cache=None):
     if moves:
         lines += ["", "Ceilings moved since the base:", ""]
         lines += [f"- `{name}` {what}: {reason}" for name, what, reason in moves]
+    if cache.get("legs"):
+        lines += ["", billable(cache["legs"])]
     if docs:
         history = sum(len(h) for h, _ in docs.values())
         rule = sum(r for _, r in docs.values())
@@ -810,8 +863,9 @@ def write_summary(text, env):
         sys.stdout.write(text)
 
 
-def check(root, baseline=None, body="", release=False):
-    """`(problems, refusals, summary)` for the tree at `root`.
+def check(root, baseline=None, body="", release=False, ci_jobs=None):
+    """`(problems, refusals, summary)` for the tree at `root`, or, with
+    `ci_jobs`, for the rows read off that one run, and only those.
 
     Reads: guess — `seal/budgets.md` and the body its caller handed it, through the units above; unknown refused"""
     head_text = budgets_text_here(root)
@@ -820,6 +874,14 @@ def check(root, baseline=None, body="", release=False):
     names = {row.name for row in head}
     results, refusals = [], []
     cache = {"level": fractions.Fraction(level, PER_MILLE)}
+    if ci_jobs is not None:
+        cache["legs"] = leg_minutes(read_jobs(ci_jobs))
+        head = [row for row in head if row.name.partition(":")[0] in PER_RUN]
+        if not head:
+            raise Unreadable(
+                f"--ci-jobs was given and {BUDGETS_GIT} has no row read off a "
+                "run, so this run read a job list for nothing"
+            )
     moves, against, base_rows, priced = [], "no baseline", None, []
     if baseline is not None:
         base, against = base_of(root, baseline)
@@ -883,6 +945,8 @@ def measured_row(root, row, names, cache):
 
     Reads: guess — the tree, through `file_values` and `measure`; unknown refused"""
     family, _, subject = row.name.partition(":")
+    if family in PER_RUN:
+        return run_row(row, subject, cache.get("legs"))
     if family not in FILE_TABLES:
         return band(row, measure(root, row, cache))
     unit = FILE_TABLES[family][2]
@@ -908,6 +972,97 @@ def measured_row(root, row, names, cache):
     return band(row, values[subject], history.get(subject, ()))
 
 
+def read_jobs(path):
+    """The jobs of one workflow run, one JSON object a line, as `gh api
+    …/actions/runs/<id>/jobs --paginate --jq '.jobs[]'` prints them, or
+    Unreadable.
+
+    Reads: observed — the job list GitHub's API returned, written by `gh`; unknown refused"""
+    if not os.path.isfile(path):
+        raise Unreadable(f"the job list {os.path.basename(path)} is not there")
+    jobs = []
+    with open(path, encoding="utf-8", errors="replace") as handle:
+        for number, line in enumerate(handle, 1):
+            if not line.strip():
+                continue
+            try:
+                job = json.loads(line)
+            except ValueError:
+                raise Unreadable(f"line {number} of the job list is not JSON") from None
+            if not isinstance(job, dict) or not isinstance(job.get("name"), str):
+                raise Unreadable(f"line {number} of the job list is no job with a name")
+            jobs.append(job)
+    return jobs
+
+
+def leg_minutes(jobs):
+    """`{leg: [minutes of each of its pytest jobs]}` for one run. A job's leg
+    is read off its name, `pytest (<os>-latest, …)` — never off its runner's
+    name, which carries no operating system — and its minutes are its
+    `completed_at` less its `started_at`. A pytest job with no times is
+    Unreadable: the run is read after its pytest jobs end.
+
+    Reads: observed — the job list GitHub's API returned, through `read_jobs`; unknown refused"""
+    legs = collections.defaultdict(list)
+    for job in jobs:
+        match = PYTEST_JOB.fullmatch(job["name"])
+        if not match:
+            continue
+        try:
+            started = datetime.datetime.fromisoformat(job["started_at"])
+            completed = datetime.datetime.fromisoformat(job["completed_at"])
+        except (KeyError, TypeError, ValueError):
+            raise Unreadable(
+                f"the job `{job['name']}` has no start and end time, and this "
+                "reads a run after its pytest jobs have ended"
+            ) from None
+        legs[match.group(1)].append((completed - started).total_seconds() / 60)
+    return dict(legs)
+
+
+def run_row(row, leg, legs):
+    """`Result` for one `ci-minutes:<leg>` row: the leg's minutes summed over
+    its pytest jobs, held to its ceiling, or no reading where this run read
+    no job list — the tree's run, whose rows the tests workflow measures.
+
+    Reads: nothing — compares the minutes handed to it"""
+    if leg not in BILLING:
+        raise Unreadable(
+            f"{row.name}: no leg of the tests workflow is called `{leg}` — the "
+            f"legs are {', '.join(f'`ci-minutes:{name}`' for name in BILLING)}"
+        )
+    if row.unit != "minutes":
+        raise Unreadable(
+            f"{row.name}: the unit is `{row.unit}`, and ci-minutes is measured in minutes"
+        )
+    if legs is None:
+        return Result(row, None, None, [])
+    if leg not in legs:
+        raise Unreadable(f"{row.name}: no pytest job of this run ran on {leg}")
+    return band(row, round(sum(legs[leg]), 1))
+
+
+def billable(legs):
+    """The run's billable line: each job rounded up to its minute, as GitHub
+    bills it, at its leg's multiple of a Linux minute, and the dollars at the
+    price #929 read, labelled with that price's date as unverified.
+
+    Reads: nothing — formats the minutes handed to it"""
+    parts, total = [], 0
+    for leg in sorted(legs):
+        minutes = sum(math.ceil(m) for m in legs[leg])
+        factor = BILLING.get(leg)
+        if factor is None:
+            return f"Billable: no multiple is known for the {leg} leg, so no total is given."
+        total += minutes * factor
+        parts.append(f"{leg} {minutes} x {factor}")
+    return (
+        f"Billable: {' + '.join(parts)} = {total:,} Linux-equivalent minutes, "
+        f"US${total * LINUX_MINUTE_USD:,.2f} at ${LINUX_MINUTE_USD} a Linux minute "
+        "— the price #929 read in mid-2026, its date unverified (`questions.md` Q1)."
+    )
+
+
 def main(argv=None, env=None):
     """Measure, compare, print; the exit code is the verdict.
 
@@ -918,6 +1073,7 @@ def main(argv=None, env=None):
     parser.add_argument("--baseline", metavar="REF")
     parser.add_argument("--pr-body-env", metavar="VAR")
     parser.add_argument("--base-ref", metavar="BRANCH", default="")
+    parser.add_argument("--ci-jobs", metavar="FILE")
     args = parser.parse_args(argv)
     try:
         body = ""
@@ -933,6 +1089,7 @@ def main(argv=None, env=None):
             baseline=args.baseline,
             body=body,
             release=args.base_ref == RELEASE_BRANCH,
+            ci_jobs=args.ci_jobs,
         )
     except Unreadable as error:
         sys.stderr.write(f"budget-check: {error}. Nothing was compared.\n")

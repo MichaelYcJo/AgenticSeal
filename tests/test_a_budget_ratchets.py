@@ -16,11 +16,14 @@ over this repository's own tree, so the sealer's run sees the budgets before
 a push does.
 """
 
+import datetime
 import importlib.util
 import json
 import os
+import re
 import subprocess
 
+import conftest
 import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -839,3 +842,232 @@ def test_a_family_that_cannot_be_read_is_exit_2(tmp_path, capsys, head, files, s
     root = tree(tmp_path, head, files=files)
     assert run(root) == 2
     assert said in capsys.readouterr().err
+
+
+# --- phase 3: the minutes of one run --------------------------------------
+
+
+def job(name, minutes, runner="GitHub Actions 1000014373"):
+    """One job of a run as `gh api …/jobs --jq '.jobs[]'` prints it: the
+    runner's name carries no operating system, as GitHub's does not."""
+    start = datetime.datetime(2026, 10, 13, 22, 0, 0, tzinfo=datetime.UTC)
+    end = start + datetime.timedelta(minutes=minutes)
+    return {
+        "name": name,
+        "runner_name": runner,
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": start.isoformat().replace("+00:00", "Z"),
+        "completed_at": end.isoformat().replace("+00:00", "Z"),
+    }
+
+
+# ubuntu 6.5, windows 20.2 + 21.3, macOS 7.0 + 7.4 + 8.1 minutes, and two
+# jobs that run no suite.
+RUN = [
+    job("lint", 0.3),
+    job("pytest (ubuntu-latest, 3.12, 15)", 6.5),
+    job("pytest (windows-latest, 3.12, --splits 4 --group 1, 20)", 20.2),
+    job("pytest (windows-latest, 3.12, --splits 4 --group 2, 20)", 21.3),
+    job("pytest (macos-latest, 3.12, --splits 3 --group 1, 15)", 7.0),
+    job("pytest (macos-latest, 3.12, --splits 3 --group 2, 15)", 7.4),
+    job("pytest (macos-latest, 3.12, --splits 3 --group 3, 15)", 8.1),
+    job("ledger", 0.8),
+]
+
+
+def minutes(ubuntu=15, windows=59, macos=32, extra=()):
+    rows = [
+        ("ci-minutes:ubuntu", "minutes", ubuntu, "one-sided", "gate"),
+        ("ci-minutes:windows", "minutes", windows, "one-sided", "gate"),
+        ("ci-minutes:macos", "minutes", macos, "one-sided", "gate"),
+    ]
+    return budgets(*rows, *extra)
+
+
+def jobs_file(tmp_path, jobs, raw=None):
+    path = tmp_path / "jobs.jsonl"
+    path.write_text(
+        raw if raw is not None else "".join(json.dumps(j) + "\n" for j in jobs),
+        "utf-8",
+    )
+    return str(path)
+
+
+@pytest.mark.parametrize(
+    "ceilings, verdict, said",
+    [
+        (
+            {},
+            0,
+            "| `ci-minutes:windows` | 41.5 minutes | 59 | 17.5 (29.7%) | gate | holds |",
+        ),
+        (
+            {"windows": 40},
+            1,
+            "budget-check: ci-minutes:windows: measured 41.5 minutes is over the "
+            "ceiling 40 by 1.5",
+        ),
+        ({"macos": 100}, 0, "| `ci-minutes:macos` | 22.5 minutes | 100 |"),
+    ],
+    ids=["under every ceiling", "one leg over", "far under, and no lower band"],
+)
+def test_ci_minutes_sum_each_leg_off_the_job_name_and_price_the_run(
+    tmp_path, capsys, ceilings, verdict, said
+):
+    """T11, S9: each leg is the sum of its pytest jobs' minutes, the leg read
+    off the job's name; a leg over its ceiling fails and one far under it
+    holds, because a run's row has no lower band. The billable line rounds
+    each job up to its minute and prices Windows at 2 and macOS at 10 Linux
+    minutes, labelled with its price's date as unverified."""
+    root = tree(tmp_path, minutes(**ceilings))
+    assert run(root, "--ci-jobs", jobs_file(tmp_path, RUN)) == verdict
+    out = capsys.readouterr().out
+    assert said in out, out
+    assert (
+        "Billable: macos 24 x 10 + ubuntu 7 x 1 + windows 43 x 2 = 333 "
+        "Linux-equivalent minutes, US$2.66 at $0.008 a Linux minute — the price "
+        "#929 read in mid-2026, its date unverified (`questions.md` Q1)." in out
+    ), out
+
+
+def test_a_leg_no_multiple_is_known_for_gets_no_billable_total(tmp_path, capsys):
+    """A leg the billing table has no multiple for is named rather than
+    priced at a guess."""
+    root = tree(tmp_path, minutes())
+    jobs = [*RUN, job("pytest (freebsd-latest, 3.12, 15)", 3.0)]
+    assert run(root, "--ci-jobs", jobs_file(tmp_path, jobs)) == 0
+    assert (
+        "Billable: no multiple is known for the freebsd leg" in capsys.readouterr().out
+    )
+
+
+def test_a_run_row_is_shown_unread_on_the_tree_and_held_off_its_run(tmp_path, capsys):
+    """The tree's run cannot read a run's minutes, so it shows those rows
+    unread and holds the rest; the `budgets` job reads the run and holds
+    those rows alone, so a tree row it did not measure fails nothing there."""
+    root = tree(tmp_path, minutes(windows=1, extra=[warden(MEASURED - 1)]))
+    assert run(root) == 1
+    out = capsys.readouterr().out
+    assert (
+        "| `ci-minutes:windows` | — (read off each run by the tests workflow's" in out
+    )
+    assert "| not this run |" in out and "ci-minutes:windows: measured" not in out
+    assert run(root, "--ci-jobs", jobs_file(tmp_path, RUN)) == 1
+    out = capsys.readouterr().out
+    assert "budget-check: ci-minutes:windows: measured 41.5" in out, out
+    assert "preload:warden" not in out, out
+
+
+NO_TIMES = {**job("pytest (macos-latest, 3.12, 15)", 1), "completed_at": None}
+
+
+@pytest.mark.parametrize(
+    "head, jobs, raw, said",
+    [
+        (
+            budgets(("ci-minutes:ubuntu", "minutes", 15, "10 %", "gate")),
+            None,
+            None,
+            "a row read off one CI run is `one-sided`",
+        ),
+        (
+            budgets(warden(MEASURED, "one-sided")),
+            None,
+            None,
+            "only a row read off one CI run is `one-sided`",
+        ),
+        (
+            budgets(("ci-minutes:freebsd", "minutes", 15, "one-sided", "gate")),
+            None,
+            None,
+            "no leg of the tests workflow is called `freebsd`",
+        ),
+        (
+            budgets(("ci-minutes", "minutes", 15, "one-sided", "gate")),
+            None,
+            None,
+            "no leg of the tests workflow is called ``",
+        ),
+        (
+            budgets(("ci-minutes:ubuntu", "seconds", 15, "one-sided", "gate")),
+            None,
+            None,
+            "the unit is `seconds`, and ci-minutes is measured in minutes",
+        ),
+        (minutes(), "missing", None, "the job list jobs.jsonl is not there"),
+        (minutes(), RUN, "{\n", "line 1 of the job list is not JSON"),
+        (minutes(), RUN, "[1]\n", "line 1 of the job list is no job with a name"),
+        (minutes(), [*RUN, NO_TIMES], None, "has no start and end time"),
+        (minutes(), RUN[:4], None, "no pytest job of this run ran on macos"),
+        (budgets(warden(MEASURED)), RUN, None, "has no row read off a run"),
+    ],
+    ids=[
+        "a run row with a lower band",
+        "a tree row with none",
+        "an unknown leg",
+        "a run row with no leg",
+        "a run row in another unit",
+        "no job list",
+        "a job list that is no JSON",
+        "a line that is no job",
+        "a pytest job with no end",
+        "a leg the run did not run",
+        "a job list with no run row to hold",
+    ],
+)
+def test_a_run_that_cannot_be_read_is_exit_2(tmp_path, capsys, head, jobs, raw, said):
+    """S11 for the run's rows: a lower band on a row one run measures, or
+    none on a row the tree measures, an unknown leg, a job list that is not
+    there or not read, a pytest job not yet ended, a leg the run lacks, and a
+    job list read for no row are each exit 2 naming it."""
+    root = tree(tmp_path, head)
+    args = ()
+    if jobs == "missing":
+        args = ("--ci-jobs", str(tmp_path / "jobs.jsonl"))
+    elif jobs is not None:
+        args = ("--ci-jobs", jobs_file(tmp_path, jobs, raw))
+    assert run(root, *args) == 2
+    assert said in capsys.readouterr().err
+
+
+def workflow_code(name):
+    with open(os.path.join(ROOT, ".github", "workflows", name), encoding="utf-8") as f:
+        return "\n".join(conftest.code_lines(f.read()))
+
+
+def job_block(text, name):
+    """The code lines of one job under `jobs:`, to the next job's key."""
+    match = re.search(rf"^  {name}:\n((?:(?!  [A-Za-z0-9_-]+:\n).*\n?)*)", text, re.M)
+    assert match, f"no `{name}` job"
+    return match.group(1)
+
+
+def test_the_workflows_run_the_checker_where_the_plan_says():
+    """T14, S5, S9: the hygiene step reads the merge base, the base branch
+    and the body; the `budgets` job runs after every pytest leg whatever its
+    verdict, with a token that reads the run's jobs, and hands their list to
+    the checker."""
+    step = conftest.workflow_step(
+        workflow_code("hygiene.yml"),
+        "every budget holds its ceiling, and a raised ceiling says why",
+    )
+    for part in (
+        ".github/scripts/budget_check.py",
+        '--baseline "origin/${{ github.base_ref }}"',
+        '--base-ref "${{ github.base_ref }}"',
+        "--pr-body-env PR_BODY",
+        "PR_BODY: ${{ github.event.pull_request.body }}",
+    ):
+        assert part in step, part
+    budgets_job = job_block(workflow_code("test.yml"), "budgets")
+    for part in (
+        "    needs: pytest\n",
+        "    if: ${{ !cancelled() }}\n",
+        "      actions: read\n",
+        "GH_TOKEN: ${{ github.token }}",
+        "/actions/runs/${{ github.run_id }}/jobs",
+        "--paginate --jq '.jobs[]'",
+        "budget_check.py --ci-jobs",
+    ):
+        assert part in budgets_job, part
