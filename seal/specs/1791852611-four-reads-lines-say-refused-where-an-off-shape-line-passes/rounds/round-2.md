@@ -156,7 +156,7 @@ def test_a_table_in_the_next_section_is_no_strayed_row(tmp_path):
 |---|---|---|
 | round-1 | `skills/evidence-check/scripts/evidence_check.py:6053` | round 1's 🟡 1 — fixed |
 | round-1 | `skills/evidence-check/scripts/evidence_check.py:6051` | round 1's 🟡 2 — fixed |
-| round-1 | `skills/evidence-check/scripts/evidence_check.py:6127` | round 1's ⬜ 3 — open |
+| round-1 | `skills/evidence-check/scripts/evidence_check.py:6127` | round 1's ⬜ 3 — answered |
 | round-1 | `tests/test_a_record_states_what_the_tree_has.py` | round 1's 🟢 — confirmed |
 | round-1 | `docs/the-reader-registry.md:154` | round 1's 🟢 — confirmed |
 | round-1 | `seal/ledger/1791852611-four-reads-lines-say-refused-where-an-off-shape-line-passes.md` | round 1's 🟢 — confirmed |
