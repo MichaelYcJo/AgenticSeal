@@ -34,3 +34,7 @@
   - No leg's `timeout` changed. The comment beside the values now names the
     slowest run of each leg: ubuntu 9 m 43 s, a macOS shard 8 m 29 s, and a
     Windows shard 12 m 42 s.
+  - `survivor-check` leaves `.test_durations` out of the sweep by name, at
+    any depth. A refresh rewrites the file whole, and once `--clean-durations`
+    brought it under the 2 MiB size cap, every key the refresh dropped was
+    read as a corrected sentence: 753 places were reported on this branch.
