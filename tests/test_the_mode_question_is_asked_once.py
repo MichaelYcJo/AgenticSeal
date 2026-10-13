@@ -417,22 +417,18 @@ def test_seal_mode_writes_one_row_where_the_mode_row_sits_below_a_piped_row(
 BARE_TABLE = PIPED_TABLE.replace("\\|", "|")
 
 
-def test_seal_mode_still_writes_a_second_mode_row_for_a_bare_pipe(config, tmp_path):
-    """Round 1's 🟡 4 of #415 — the limitation, pinned rather than described.
+def test_seal_mode_writes_nothing_under_a_bare_pipe_and_names_the_line(
+    config, tmp_path
+):
+    """The inverse of round 1's 🟡 4 of #415, which #871 closes.
 
-    Phase 1 closed the duplication for the ESCAPED spelling. Written bare the
-    line is still not a row, so the reader still stops above the person's
-    `Mode` row, the writer stops where the reader stops, and the file comes
-    back two rows deep. Three records read as if the whole thing were closed;
-    they say this now, and this case is what keeps the sentence and the tree
-    in step — the day the bare spelling is closed, this goes red and the
-    records are found by whoever makes it go red.
-
-    **And nothing repairs a file already two rows deep.** The second write
-    below sets the FIRST row and leaves the person's own, so the file states
-    two modes and every reader takes the first. `table_span`'s own comment
-    says no command brings such a file back into agreement; this asserts it
-    rather than trusting the comment.
+    Written bare, the line was no row, so the reader stopped above the
+    person's `Mode` row, the writer stopped where the reader stopped, and the
+    file came back two rows deep -- pinned as a limitation until now. The
+    walker refuses the line instead: the `Mode` row under it is a refusal,
+    never an absent row, so the writer has no row to add, and it writes
+    nothing and names the line. Seen red against the stop rule's writer: the
+    write returned `""` and the file held two `Mode` rows.
     """
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
@@ -443,35 +439,15 @@ def test_seal_mode_still_writes_a_second_mode_row_for_a_bare_pipe(config, tmp_pa
     home = tmp_path / "seal"
     home.mkdir()
     write_config(home, BARE_TABLE)
-    assert config.declared_mode(str(home)) == ("none", ""), (
-        "the bare pipe is expected to hide the `Mode` row below it; if this "
-        "row now reads, the limitation is gone and these four records are "
-        "what has to change with this case — the work item's `changelog.md` "
-        "bullet saying it is closed for the escaped spelling only, its "
-        "`overview.md` §*Not done*, its `spec.md` §*What this repair cannot "
-        "see*, and `templates/config.md`. A limitation case's whole value is "
-        "the list it hands whoever reddens it, so all four are named here "
-        "rather than one and a pointer at the rest"
+    kind, _said = config.declared_mode(str(home))
+    assert kind == "refused", kind
+    said = seal.write_row(str(home), "shared")
+    assert said.startswith(str(home / "config.md") + " has a `Item | Value` table"), (
+        said
     )
-    assert seal.write_row(str(home), "shared") == ""
-    written = (home / "config.md").read_text(encoding="utf-8")
-    assert written.count("| Mode |") == 2, (
-        f"the bare spelling no longer duplicates:\n{written}"
-    )
-
-    assert seal.write_row(str(home), "local") == ""
-    again = (home / "config.md").read_text(encoding="utf-8")
-    assert again.count("| Mode |") == 2, (
-        f"a second run changed how many rows the file has:\n{again}"
-    )
-    assert [value for item, value in config.config_rows(again) if item == "Mode"] == [
-        "local"
-    ], "the reader takes the first row, which is the one the writer just set"
-    assert "| Mode | shared |" in again, (
-        "the person's own row below the bare pipe is still there saying "
-        "something else — a file two rows deep is repaired by nothing, and "
-        "`overview.md` §*Not done* is where that is recorded"
-    )
+    assert "stops at `| Broad gate | bin/test -q | tee out.txt |`" in said, said
+    assert said.endswith("Nothing was written"), said
+    assert (home / "config.md").read_text(encoding="utf-8") == BARE_TABLE
 
 
 def test_a_line_that_will_not_parse_is_named_and_the_hook_still_says_nothing(
@@ -630,7 +606,7 @@ def test_a_fenced_pipe_line_is_not_a_line_somebody_wrote_as_a_row(config):
     assert "ends above `| Mode | shared |`" in refusals[0], refusals
 
 
-def test_the_writer_and_the_reader_agree_about_which_row_is_the_row(tmp_path):
+def test_the_writer_and_the_reader_agree_about_which_row_is_the_row(config, tmp_path):
     """A4. `seal.py#table_span` is the third walk and it is the WRITER: it
     locates the line `with_row` overwrites. Repair the reader alone and
     `seal mode shared` rewrites the `Mode` row inside somebody's pasted
@@ -671,6 +647,50 @@ def test_the_writer_and_the_reader_agree_about_which_row_is_the_row(tmp_path):
     assert changed[0][2] == "| Mode | shared |", changed
     assert changed[0][0] > after.splitlines().index("```"), (
         "the line that changed is inside the fence, not in the live table"
+    )
+
+    # #871, S5: a table the walker refuses is one the writer refuses too,
+    # in the shape a doubled `Mode` row takes -- `(None, the sentence)` --
+    # and the file's bytes are left exactly as they were. Seen red against
+    # the stop rule's writer, which inserted a second `Mode` row under the
+    # last row above the bare pipe.
+    refused_shape = config_shapes.SHAPES[7]
+    assert seal.with_row(refused_shape, "local") == (
+        None,
+        config.config_table(refused_shape)[1][0],
+    )
+    shape_home = tmp_path / "shape-7" / "seal"
+    shape_home.mkdir(parents=True)
+    write_config(shape_home, refused_shape)
+    said = seal.write_row(str(shape_home), "local")
+    assert said.endswith("Nothing was written"), said
+    assert (shape_home / "config.md").read_text(encoding="utf-8") == refused_shape
+
+
+def test_the_writer_inserts_where_the_walk_says_the_table_ends(tmp_path):
+    """#871, S5. The writer's insertion point is read off the walk's own
+    line numbers: after the last row the walk read, or under the delimiter
+    row where the table holds no row yet; and it overwrites the one line the
+    walk read as the `Mode` row. Shape 12, whose header the stop rule's
+    pattern did not match, is one of each: seen red against the stop rule's
+    writer, which appended a second table to the end of the file."""
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
+    spec = importlib.util.spec_from_file_location("specseal_seal_for_871", path)
+    seal = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(seal)
+
+    indented = config_shapes.SHAPES[12]
+    assert seal.with_row(indented, "local") == (
+        indented.replace("| Mode | shared |", "| Mode | local |"),
+        "",
+    )
+    no_mode = indented.replace("| Mode | shared |", "| Record language | Korean |")
+    assert seal.with_row(no_mode, "local") == (no_mode + "| Mode | local |\n", "")
+    empty = "# c\n\n | Item | Value |\n|---|---|\n\nprose below.\n"
+    assert seal.with_row(empty, "local") == (
+        "# c\n\n | Item | Value |\n|---|---|\n| Mode | local |\n\nprose below.\n",
+        "",
     )
 
 
@@ -1052,9 +1072,14 @@ def test_a_piece_inside_other_inline_html_is_no_config_row(
 
 @pytest.mark.parametrize("name", ["LS", "FF"])
 def test_the_writer_reads_where_commonmark_breaks(config, tmp_path, name):
-    """#667 round 1, 🟡 1, the writer's walk: `seal.py#table_span` finds the
-    live `Mode` row under a `<!--` a renderer reads mid-line, and rewrites
-    that row in place rather than appending a second table."""
+    """#667 round 1, 🟡 1, the writer's walk: the writer never appends a
+    second table under a `<!--` a renderer reads mid-line.
+
+    Re-pinned by #871: the writer reads the table the reader reads, and the
+    walker refuses this one (`test_a_break_commonmark_does_not_honour_hides_
+    no_config_row` says why), so the writer refuses it too and the file's
+    bytes are left exactly as they were -- no second table, and no row
+    rewritten in a table the walk could not read whole."""
     from block_shapes import BREAKS, OPEN
 
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -1070,9 +1095,10 @@ def test_the_writer_reads_where_commonmark_breaks(config, tmp_path, name):
     home = tmp_path / "seal"
     home.mkdir()
     write_config(home, before)
-    assert seal.write_row(str(home), "shared") == ""
+    said = seal.write_row(str(home), "shared")
+    assert said.endswith("Nothing was written"), said
     after = (home / "config.md").read_text(encoding="utf-8")
-    assert after == before.replace("| Mode | local |", "| Mode | shared |"), after
+    assert after == before, after
 
 
 def test_a_commented_row_is_not_a_row_in_either_line_ending(config):
@@ -1141,10 +1167,14 @@ def test_a_mid_line_comment_hides_no_row_the_base_reads(config):
 
 
 def test_the_writer_leaves_a_commented_row_alone(config, tmp_path):
-    """S6, C10. `seal.py#table_span` is the third walk, and it located the
-    FIRST `Mode` line -- the commented one -- so `seal mode` rewrote a row
-    nobody reads while the live row kept its old value. Asserted on the bytes.
-    Red at base."""
+    """S6, C10. The writer's walk located the FIRST `Mode` line -- the
+    commented one -- so `seal mode` rewrote a row nobody reads while the live
+    row kept its old value. Asserted on the bytes. Red at base.
+
+    Re-pinned by #871: the comment sits directly under the delimiter row, so
+    GFM ends the table there and the live `Mode` row below it is a row the
+    walk never reaches. The reader refuses it, and the writer refuses with
+    it: neither the commented row nor the live one is rewritten."""
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
     spec = importlib.util.spec_from_file_location("specseal_seal_for_667", path)
@@ -1155,12 +1185,13 @@ def test_the_writer_leaves_a_commented_row_alone(config, tmp_path):
     home = tmp_path / "seal"
     home.mkdir()
     write_config(home, before)
-    assert seal.write_row(str(home), "shared") == ""
+    said = seal.write_row(str(home), "shared")
+    assert UNDER_THE_COMMENT.replace("shared", "local") in said, said
     after = (home / "config.md").read_text(encoding="utf-8")
-    assert after == before.replace("-->\n| Mode | local |", "-->\n| Mode | shared |"), (
-        f"the writer rewrote the commented row, or more than one line:\n{after}"
+    assert after == before, (
+        f"the writer rewrote the commented row, or the live one:\n{after}"
     )
-    assert config.declared_mode(str(home)) == ("mode", "shared")
+    assert config.declared_mode(str(home))[0] == "refused"
 
 
 # --- #871: the config table is read by the walker cmark-gfm holds ----------

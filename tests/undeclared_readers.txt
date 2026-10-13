@@ -1098,7 +1098,6 @@ skills/implement/scripts/seal.py#check@abf017d7
 skills/implement/scripts/seal.py#destination_root@85127d69
 skills/implement/scripts/seal.py#digest@889b9886
 skills/implement/scripts/seal.py#display@20f0023b
-skills/implement/scripts/seal.py#doubled_modes@daf7d478
 skills/implement/scripts/seal.py#ending_of@d61a216b
 skills/implement/scripts/seal.py#export@d689fb84
 skills/implement/scripts/seal.py#git@f605675e
@@ -1114,7 +1113,6 @@ skills/implement/scripts/seal.py#linked_path@0ebc1dda
 skills/implement/scripts/seal.py#main@2d844df6
 skills/implement/scripts/seal.py#manifest_of@7dd09c09
 skills/implement/scripts/seal.py#mode@157b7fc2
-skills/implement/scripts/seal.py#mode_refusal@ee402b06
 skills/implement/scripts/seal.py#mode_report@95353b39
 skills/implement/scripts/seal.py#no_root@f25824b4
 skills/implement/scripts/seal.py#other_worktrees@2c870020
@@ -1135,16 +1133,13 @@ skills/implement/scripts/seal.py#root_files@f77dd55b
 skills/implement/scripts/seal.py#say_report@75872b32
 skills/implement/scripts/seal.py#state_path@aea5b315
 skills/implement/scripts/seal.py#switch@0b1b6da7
-skills/implement/scripts/seal.py#table_span@a6ab86a8
 skills/implement/scripts/seal.py#tracked@a91daf95
 skills/implement/scripts/seal.py#under@06ccabfa
 skills/implement/scripts/seal.py#unsafe@357fdfa7
 skills/implement/scripts/seal.py#unused@eb454662
-skills/implement/scripts/seal.py#with_row@c3538c4e
 skills/implement/scripts/seal.py#work_item_digests@9011ba3a
 skills/implement/scripts/seal.py#work_item_of@85506870
 skills/implement/scripts/seal.py#write_members@7b13771a
-skills/implement/scripts/seal.py#write_row@4a581d7e
 skills/implement/scripts/seal.py#write_state@0f424f83
 skills/implement/scripts/seal.py#write_zip@4fc691c2
 skills/implement/scripts/seal.py#zip_stem@f775e638
