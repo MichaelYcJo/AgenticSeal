@@ -56,7 +56,10 @@ Coordinates at a8db6161, this branch after its routing commit, on
   the walk is sure, `blocks.fence_only` where it is not, and the first
   unclosed opener. Read by `fence_map` (176) and through `unfenced` by
   `config_rows`, `refusal`, `seal.py#table_span`, `routing.py#shown` and
-  `broad_gate.py` (976).
+  `broad_gate.py` (976). **Corrected 2026-10-13** by round 2's note 7:
+  `routing.py#shown` does not read through `unfenced`; it calls the walk
+  itself and keeps its own older reading, so `hidden_lines` is handed
+  `seal/config.md` lines only.
 - `unverified_check.py#readable` (733): `blank_fences(strip_comments(
   gfm_lines(text)))`. Read by `check_text` (901), `chain_check.py` (22
   sites), `round_record.py` (19 sites), `broad_gate.py` (2900),

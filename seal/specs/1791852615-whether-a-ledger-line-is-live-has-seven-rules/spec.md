@@ -148,7 +148,7 @@ unit.
 | `skills/settle/scripts/settle.py#anchored_rows` | owned — every line of every ledger the checker reads | refused — a directory an unsure line anchors into is kept | holds | a kept directory, named at exit 1 |
 | `.github/scripts/rider_check.py#quoted_lines` | guess — a markdown file's lines, through the walk | refused — where the walk is unsure the line is a rider, BROKEN at exit 2 if unstamped | holds | a quoted example reported as a rider |
 | `skills/verify/scripts/unverified_check.py#live_lines` | guess — markdown lines under an approximated block model | mixed — a disagreement parks the line: refused at the fold (a deletion at exit 1), passed at the gather and the sweep (a marker not counted, the fragment kept) | excuses | a fold reported as a deletion |
-| `hooks/config.py#hidden_lines` | guess — `seal/config.md` and `routing.md` lines, through the walk | mixed — the hook says nothing, the gate asks | declares | nothing declared; `broad-gate` names the fence |
+| `hooks/config.py#hidden_lines` | guess — `seal/config.md` and `routing.md` lines, through the walk (**corrected 2026-10-13** by round 2's note 7: `seal/config.md` lines only; `hooks/routing.py#shown` reads a `routing.md`) | mixed — the hook says nothing, the gate asks | declares | nothing declared; `broad-gate` names the fence |
 | `skills/verify/scripts/unverified_check.py#readable` | owned — a record's lines | passed — a hidden table reads as absent, and every record reader refuses an absent table | counts | a record refused as having no table |
 
 **The corpus of shapes for the direction table**, each a short markdown text

@@ -628,8 +628,8 @@ kind of line they read, with the cost each answer is chosen against.
   sure of, one opened at one to three spaces, which the delimiter rule
   closes, because a rider the walk cannot place is read as it was before the
   walk; it reads a fence inside a line-start comment that closes, which a
-  renderer shows as comment text; and it skips a fence that closes below a
-  fence nobody closed, which a renderer hides either way.
+  renderer reads as comment text, not as a fence; and it skips a fence that
+  closes below a fence nobody closed, which a renderer hides either way.
 - **A line that EXCUSES or DECLARES something — a fold marker, a
   `seal/config.md` row, a `routing.md` row — is not taken on doubt, except
   where a declaring reader keeps an older reading that took it.**

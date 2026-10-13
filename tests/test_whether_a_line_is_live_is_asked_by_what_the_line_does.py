@@ -246,9 +246,10 @@ BY_BIAS = {
     # a line inside it begins inside it.
     ("unverified_check.py#live_lines", "a fence nobody closed"),
     ("unverified_check.py#live_lines", "a comment nobody closed"),
-    # Where the walk is unsure the fence-only reading stands, and that reading
-    # hides no line for a comment of any kind.
-    ("config.py#hidden_lines", "a mid-line comment before the row"),
+    # `hidden_lines` on a mid-line comment is not here: the comment closes on
+    # the row's own line, the walk is sure of it, and the docstring states
+    # the answer -- a line is hidden only "inside a fenced block or a
+    # line-start HTML comment block that closes" (round 1's note 4).
     # "no comment text": `comment_scan` stays inside a comment to the end of
     # the file, as `blank_fences` does for a fence it says so of.
     ("unverified_check.py#readable", "a comment nobody closed"),
