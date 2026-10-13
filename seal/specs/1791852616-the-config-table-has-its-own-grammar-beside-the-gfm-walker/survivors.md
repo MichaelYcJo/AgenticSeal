@@ -13,7 +13,7 @@ carries a `Corrected ·` row citing it; where it holds, a `Re-read ·` row.
 |---|---|---|
 | `seal/releases/0.12.0.md` | The whole line is quoted rather than its first cell | Frozen. The row's claim — four cost cases read off the stopping line — is corrected by `Corrected · broad-gate tells a Broad gate row that is ABSENT from one the table walker did not read` in this item's fragment |
 | `seal/releases/0.12.0.md` | What that line cost is read off the file rather than stated flat | Frozen; the same row, corrected by the same `Corrected ·` row |
-| `seal/releases/0.12.0.md` | hooks/config.py#refusal@802c07c1 | Frozen; the same row's grounds, whose units this item removed; corrected by the same `Corrected ·` row, which grounds the claim on `missing_row`, `walker_refusal` and `refused_broad_row` |
+| `seal/releases/0.12.0.md` | hooks config py refusal 802c07c1 | Frozen; the same row's grounds, whose units this item removed; corrected by the same `Corrected ·` row, which grounds the claim on `missing_row`, `walker_refusal` and `refused_broad_row` |
 | `seal/releases/0.12.0.md` | Written with a BARE pipe it still writes one | Frozen. Corrected by `Corrected · seal mode writes nothing into a file whose Mode row sits below a line the table walker refuses` |
 | `seal/releases/0.12.0.md` | Re-read and re-executed 2026-09-17 in round 1's fix pass, for the spelling the branch did NOT close | Frozen; the same row as above, corrected by the same row |
 | `seal/releases/0.12.0.md` | each says what it is now, and the case above is what keeps the sentence and the tree in step | Frozen; the same row as above, corrected by the same row |
@@ -26,12 +26,12 @@ carries a `Corrected ·` row citing it; where it holds, a `Re-read ·` row.
 | `seal/releases/0.12.1.md` | as the only row under it gives | Frozen; R3's grounds, corrected by `Corrected · R3` |
 | `seal/releases/0.12.1.md` | The rule filters in FRONT of each walk | Frozen; R5's grounds, corrected by `Corrected · R5` |
 | `seal/releases/0.12.1.md` | A helper yielding text alone would have forced a second fence rule for the writer | Frozen; R6's grounds, corrected by `Corrected · R6` |
-| `seal/releases/0.18.2.md` | hooks/config.py#PACT_WORD@2fe2815b | Frozen. O1's claim still holds — `pact_declaration` reads a pact row in one spelling off the rows `indexed_config_rows` returns, now the walker's — and the `Re-read · Corrected · O1` row in this item's fragment re-reads its family |
+| `seal/releases/0.18.2.md` | hooks config py pact word 2fe2815b | Frozen. O1's claim still holds — `pact_declaration` reads a pact row in one spelling off the rows `indexed_config_rows` returns, now the walker's — and the `Re-read · Corrected · O1` row in this item's fragment re-reads its family |
 | `seal/releases/0.19.0.md` | seal/releases/0.18.2.md | Frozen; `Corrected · O1`'s grounds; the claim holds and is re-read as above |
-| `seal/releases/0.21.0.md` | hooks/config.py#config_text@974269b9 | Frozen; K1's grounds. Corrected by `Corrected · K1` |
-| `seal/releases/0.21.0.md` | skills/implement/scripts/seal.py#table_span@a6ab86a8 | Frozen; K6's grounds. Corrected by `Corrected · K6`, grounded on `doubled_modes`, `with_row` and `mode_refusal` |
+| `seal/releases/0.21.0.md` | hooks config py config text 974269b9 | Frozen; K1's grounds. Corrected by `Corrected · K1` |
+| `seal/releases/0.21.0.md` | seal py table span a6ab86a8 | Frozen; K6's grounds. Corrected by `Corrected · K6`, grounded on `doubled_modes`, `with_row` and `mode_refusal` |
 | `seal/releases/0.21.0.md` | answering questions.md Q2 | Frozen; K8's grounds. Corrected by `Corrected · K8` and row N8 |
-| `seal/releases/0.21.0.md` | skills/evidence-check/scripts/evidence_check.py#vendored_config_rows@62c64f6b | Frozen; K8's grounds, corrected as above |
+| `seal/releases/0.21.0.md` | evidence check py vendored config rows 62c64f6b | Frozen; K8's grounds, corrected as above |
 | `seal/releases/0.5.0.md` | Above the first row a separator and a blank line are still tolerated | Frozen. Corrected by `Corrected · 🟡 6 / 🟡 5` |
 | `seal/releases/0.5.0.md` | Both now stop at the first row | Frozen; the same row, corrected by the same row |
 | `seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-by-one-rule/spec.md` | the reader, the refusal, and the writer that locates the line it overwrites | A shipped work item's frame: a record of what that item was asked, history by design, settled by `settle --retire-process` |
