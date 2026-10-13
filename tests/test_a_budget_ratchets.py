@@ -696,7 +696,8 @@ def test_the_price_level_follows_the_durations_file_and_nothing_else(
     root = refreshed(tmp_path, cases, RESCALED + price(level))
     assert ratchet(root, "") == 1
     out = capsys.readouterr().out
-    assert "budget-check: price level: " in out and said in out, out
+    first = next(line for line in out.splitlines() if line.startswith("budget-check:"))
+    assert first.startswith("budget-check: price level: ") and said in first, out
 
 
 def test_a_refreshed_file_holds_at_the_next_pull_request(tmp_path, capsys):

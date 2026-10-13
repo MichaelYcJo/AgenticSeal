@@ -842,10 +842,11 @@ def check(root, baseline=None, body="", release=False):
             results.append(measured_row(root, row, names, cache))
         except Unreadable as error:
             refusals.append(str(error))
-    problems = [
+    # A price level left behind by a refresh comes first: every seconds row
+    # below it is read at the wrong level until it is restated.
+    problems = priced + [
         (r.row.name, p) for r in results if r.row.kind == GATE for p in r.problems
     ]
-    problems += priced
     if base_rows is not None:
         found, moves = ratchet(base_rows, head, body, release)
         problems += found
