@@ -4275,73 +4275,196 @@ FROZEN_ROW = "Ledger frozen from"
 # (#835); read by `check_records` through `cutoff_row`, as the row above is.
 REMOVES_ROW = "Removes from"
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
-CONFIG_HEADER_RE = re.compile(r"^\|\s*Item\s*\|\s*Value\s*\|\s*$")
 # A line of a two-cell row's SHAPE, which `notify_may_be_always` judges a
 # line by on its own; an empty item is that shape too.
 CONFIG_ROW_RE = re.compile(
     r"^\|\s*(?P<item>(?:[^|\\]|\\.)*?)\s*\|\s*(?P<value>(?:[^|\\]|\\.)*?)\s*\|\s*$"
 )
-# The vendored copy's twin of `hooks/config.py#CONFIG_ROW` and
-# `#CONFIG_SEPARATOR`, spelled as that file spells them (#867): the row's item
-# takes at least one character, so `|| x |` is no row in either reader.
-# `tests/test_evidence_check.py#test_the_vendored_config_rule_agrees_with_the_shared_one`
-# holds the two readers equal over the config table's own shapes.
-VENDORED_CONFIG_ROW_RE = re.compile(
-    r"^\|\s*(?P<item>(?:[^|\\]|\\.)+?)\s*\|\s*(?P<value>(?:[^|\\]|\\.)*?)\s*\|\s*$"
+# The vendored copy's twin of the table walker's line grammar,
+# `hooks/config.py#TABLE_ROW`, `#CELL_PIPE`, `#EVEN_ESCAPED_PIPE`,
+# `#DELIMITER_ROW`, `#ATX_HEADING` and `#LIST_ITEM`, spelled as that file
+# spells them (#871); `tests/test_evidence_check.py` holds each pattern equal
+# to the plugin's and the two readers equal over the config table's shapes.
+VENDORED_CELL = r"(?:[^|\\]|\\.)"
+VENDORED_TABLE_ROW = re.compile(
+    rf"^ {{0,3}}\|(?P<cells>(?:{VENDORED_CELL}|\|)*)\|[ \t]*$"
 )
-RULE_LINE_RE = re.compile(r"^\|[\s:|-]+\|$")
+VENDORED_CELL_PIPE = re.compile(rf"((?:{VENDORED_CELL})*)(\|?)")
+VENDORED_EVEN_ESCAPED_PIPE = re.compile(r"(?<!\\)(?:\\\\)+\|")
+VENDORED_DELIMITER_ROW = re.compile(
+    r"^ {0,3}\|?[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$"
+)
+VENDORED_ATX_HEADING = re.compile(r"#{1,6}(?:[ \t]|$)")
+VENDORED_LIST_ITEM = re.compile(r"(?:[-+*]|[0-9]{1,9}[.)])(?:[ \t]|$)")
+# A line that may open a block GFM hides lines in or renders no table under
+# -- a fence or HTML -- which this copy cannot follow: above the header it is
+# refused rather than read past (#871).
+VENDORED_BLOCK_OPENER = re.compile(r"^ {0,3}(?:`{3,}|~{3,}|<)")
+VENDORED_CONFIG_HEADER = ("Item", "Value")
+
+
+def vendored_cells(line):
+    """`hooks/config.py#table_cells`, for a copy with no `hooks/` beside it:
+    LINE's cells as a tuple, stripped and with `\\|` reduced to a pipe, where
+    it is written `| … |`; otherwise None.
+
+    Reads: guess — one line of a person's `config.md`, by the walker's row shape; unknown refused"""
+    match = VENDORED_TABLE_ROW.match(line)
+    if not match or VENDORED_EVEN_ESCAPED_PIPE.search(line):
+        return None
+    cells = []
+    for piece in VENDORED_CELL_PIPE.finditer(match.group("cells")):
+        cells.append(piece.group(1).strip().replace("\\|", "|"))
+        if not piece.group(2):
+            break
+    return tuple(cells)
 
 
 def vendored_config_rows(text):
-    """`hooks/config.py#config_rows`, for a copy with no `hooks/` beside it:
-    the `(item, value)` rows under the first `| Item | Value |` header, with
-    the stop rule that reader keeps — a header or a separator above the first
-    row is the table's furniture and below it ends the table, and so does any
-    other line once a row was found.
+    """`hooks/config.py#config_table`, for a copy with no `hooks/` beside it
+    (#871): `(rows, refusals)` for the `| Item | Value |` table of TEXT, rows
+    as `(index, item, value)` and refusals in the walker's own sentences.
 
-    **It differs from the plugin's reader in two ways, both stated.** It
-    does not know fences or comments, which the plugin's reader does; a
-    vendored copy reads a CI checkout's config, where the table is the
-    file's own. And it ends a line where GFM does (`gfm_lines`), where the
-    plugin's reader walks `str.splitlines` pieces, so a row holding a form
-    feed, U+2028 or another character only Python ends a line at is one row
-    here and two pieces there, neither of them a row (round 1 of #867, ⬜ 7,
-    measured over eight shapes). The equality case's table holds neither
-    shape, for those reasons. Every other shape it reads as
-    the reader does: until #867 a stray separator or a second header was
-    stepped past here, so the rows of a second table were read as this
-    one's, and an empty item was a row."""
-    found, seen = [], False
-    for line in gfm_lines(text):
-        if not seen:
-            seen = bool(CONFIG_HEADER_RE.match(line))
-            continue
-        if CONFIG_HEADER_RE.match(line) or RULE_LINE_RE.match(line.strip()):
-            if found:
-                break
-            continue
-        m = VENDORED_CONFIG_ROW_RE.match(line)
-        if not m:
-            if found:
-                break
-            continue
-        found.append(
-            (
-                m.group("item").strip().replace("\\|", "|"),
-                m.group("value").strip().replace("\\|", "|"),
-            )
+    Reads: guess — a person's `| Item | Value |` table, on the lines it can judge alone; unknown refused
+
+    **It carries the walker's table grammar on the lines it can judge alone,
+    and nothing of `hooks/blocks.py`**: the header, a delimiter row of the
+    header's width directly under it, a row of that width written `| … |`, a
+    blank line or a heading ending the table, a line written `| … |` after
+    the end refused as a row the walk never reaches, and every other line
+    refused in the sentence the walker gives it. A text holding no header is
+    `([], [])`, as the plugin's reader answers.
+
+    **Where it lacks the block state the plugin has, it refuses where the
+    plugin reads, and never reads where the plugin refuses** — the stated
+    direction, and the cheaper mistake in CI. A fence or an HTML line above
+    the header is refused, because a fenced or commented example table there
+    is not the table to the plugin. A line inside the table the walker ends
+    the table at by block state — a fence, a comment, a list item, a block
+    quote, a thematic break, an HTML block, a line four columns in — is
+    refused here as the line it is, so a row below it is never read. The
+    equality case holds the two readers equal over the config table's own
+    shapes and holds this direction over the ones that carry a comment.
+
+    It ends a line where GFM does (`gfm_lines`), where the plugin's walker
+    reads `str.splitlines` pieces, so a row holding a form feed, U+2028 or
+    another character only Python ends a line at is one line here and two
+    pieces there (round 1 of #867, ⬜ 7); the equality case holds no such
+    shape."""
+    name = " | ".join(VENDORED_CONFIG_HEADER)
+    written = "`| … | … |`"
+    lines = gfm_lines(text)
+    at = next(
+        (
+            k
+            for k, line in enumerate(lines)
+            if vendored_cells(line) == VENDORED_CONFIG_HEADER
+        ),
+        None,
+    )
+    if at is None:
+        return [], []
+    above = lines[at - 1] if at > 0 else ""
+    if lines[at][:1] == " " and any(
+        VENDORED_LIST_ITEM.match(line.lstrip(" ")) for line in lines[:at]
+    ):
+        return [], [
+            f"has a `| {name} |` header indented under a list item, which GFM "
+            "reads as more of that item where the indent reaches its text — "
+            "write the header at the start of its line"
+        ]
+    if above.strip():
+        return [], [
+            f"has a `| {name} |` header directly under `{above.strip()}`, "
+            "and GFM renders a table under a line only in some of the shapes "
+            "that line can take — leave a blank line above the header"
+        ]
+    opener = next((ln for ln in lines[:at] if VENDORED_BLOCK_OPENER.match(ln)), None)
+    if opener is not None:
+        return [], [
+            f"has a `| {name} |` header below `{opener.strip()}`, a line that "
+            "may open a block a copy of the checker with no `hooks/` beside "
+            "it cannot follow — run the plugin's own `evidence-check`, or "
+            "take that line out of this file"
+        ]
+    delimiter = lines[at + 1] if at + 1 < len(lines) else None
+    if (
+        delimiter is None
+        or not VENDORED_DELIMITER_ROW.match(delimiter)
+        or "|" not in delimiter
+    ):
+        return [], [
+            f"has a `| {name} |` header with no delimiter row under it, so "
+            "GFM renders no table there"
+        ]
+    width = delimiter.strip().strip("|").count("|") + 1
+    if width != len(VENDORED_CONFIG_HEADER):
+        return [], [
+            f"has a `| {name} |` header over a delimiter row of {width} "
+            "cells, so GFM renders no table there"
+        ]
+    rows, stray, ended = [], None, False
+    for index in range(at + 2, len(lines)):
+        line = lines[index]
+        heading = VENDORED_ATX_HEADING.match(line.lstrip(" ")) and not line.startswith(
+            ("    ", "\t")
         )
-    return found
+        if ended or not line.strip():
+            ended = True
+            if heading:
+                break
+            if line.lstrip().startswith("|"):
+                stray = (
+                    f"has a `{name}` table that ends above `{line.strip()}`, "
+                    "a row the walk never reaches — it and every row below it "
+                    "would go unread"
+                )
+                break
+            continue
+        if heading:
+            break
+        found = vendored_cells(line)
+        if VENDORED_DELIMITER_ROW.match(line):
+            stray = (
+                f"has a `{name}` table that stops at `{line.strip()}`, a "
+                "delimiter row out of place — every row below it would go unread"
+            )
+        elif found is not None and len(found) == len(VENDORED_CONFIG_HEADER):
+            rows.append((index, *found))
+            continue
+        elif "|" in line:
+            stray = (
+                f"has a `{name}` table that stops at `{line.strip()}`, which "
+                f"is not a 2-cell row written {written} — every row below it "
+                "would go unread"
+            )
+        else:
+            stray = (
+                f"has a `{name}` table that continues with `{line.strip()}`, a "
+                "line with no pipe that GFM reads as one of its rows — write "
+                f"it as {written}"
+            )
+        break
+    return rows, [stray] if stray is not None else []
 
 
-def vendored_config_value(rows, item):
-    """`hooks/config.py#value_of`, for a copy with no `hooks/` beside it: no
-    row is `(None, None)`, one row is `(its value, None)`, and a row written
-    more than once has no value and the reader's own sentence."""
-    values = [value for found, value in rows if found == item]
+def vendored_config_value(text, item):
+    """`hooks/config.py#config_value`, for a copy with no `hooks/` beside it:
+    no row is `(None, None)`, one row the walk read is `(its value, None)`, a
+    row written more than once has no value and the reader's own sentence,
+    and an item the walk did not read in a table it refused is the walker's
+    first sentence (#871). TEXT None is no file.
+
+    Reads: guess — a person's `| Item | Value |` table, through `vendored_config_rows`; unknown refused"""
+    if text is None:
+        return None, None
+    rows, refusals = vendored_config_rows(text)
+    values = [value for _index, found, value in rows if found == item]
     if len(values) > 1:
         return None, f"`{item}` appears {len(values)} times — one value"
-    return (values[0], None) if values else (None, None)
+    if values:
+        return values[0], None
+    return (None, refusals[0]) if refusals else (None, None)
 
 
 def vendored_config_text(home):
@@ -4367,16 +4490,19 @@ def vendored_config_text(home):
 
 @functools.cache
 def config_rule():
-    """`(config_text, config_rows, value_of)`: the one reader of
+    """`(config_text, config_table, config_value)`: the one reader of
     `seal/config.md`, `hooks/config.py`, where this is the plugin's own copy
     -- told apart the way `shared_reader` tells it -- and the vendored twins
-    where it is not."""
+    where it is not. The second is the walk, `(rows, refusals)`, and the
+    third the per-item answer over a text (#871).
+
+    Reads: observed — whether `hooks/config.py` and this skill's `SKILL.md` stand beside this file; unknown passed"""
     skill = os.path.join(HERE, "..", "SKILL.md")
     if os.path.isfile(CONFIG_READER) and os.path.isfile(skill):
         spec = importlib.util.spec_from_file_location("specseal_config", CONFIG_READER)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        return module.config_text, module.config_rows, module.value_of
+        return module.config_text, module.config_table, module.config_value
     return vendored_config_text, vendored_config_rows, vendored_config_value
 
 
@@ -4386,22 +4512,23 @@ def cutoff_row(root, item, binds):
     where the value is not a work-item id. `0` is a value: it binds every
     work item. BINDS says what the row binds, in the refusal's remedy.
 
-    Reads: owned — a work-item-id row of `seal/config.md`, through `config_rule`; unknown refused
+    Reads: guess — a work-item-id row of a person's `seal/config.md`, through `config_rule`; unknown refused
 
     **The one reader of a cutoff row** (#835). `Ledger frozen from` and
     `Removes from` are one shape, a work-item id whose absence means not
     checked, and two readers of one shape are how two answers about one file
-    come apart. A `config.md` that is there and will not read, and a row
-    written twice, are refusals, never an absent row (#867)."""
+    come apart. A `config.md` that is there and will not read, a row written
+    twice (#867), and a row the table walker did not read because it refused
+    a line above it (#871) are refusals, never an absent row."""
     home = seal_home(root)
     path = os.path.join(home, "config.md")
-    text_of, rows_of, value_of = config_rule()
+    text_of, _table_of, value_of = config_rule()
     text, refusal = text_of(home)
     if refusal is not None:
         return None, refusal
     if text is None:
         return None, None
-    value, refusal = value_of(rows_of(text), item)
+    value, refusal = value_of(text, item)
     if refusal is not None:
         return None, f"{display_name(path, root)}: {refusal}"
     if value is None or not value.strip():

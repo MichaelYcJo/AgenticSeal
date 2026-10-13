@@ -1583,6 +1583,34 @@ def test_a_freeze_row_written_twice_is_refused_and_nothing_is_judged(tmp_path, c
     assert "seal/config.md at " in said, said
 
 
+def test_a_freeze_row_the_walker_did_not_read_is_refused_and_nothing_is_judged(
+    tmp_path, capsys
+):
+    """S4 of #871, `correction-check`'s case. A `Ledger frozen from` row under
+    a line the table walker refuses is one it never read, so it is a refusal
+    and not an absent row: the range is refused at exit 2 in the walker's
+    sentence, naming the line, and no report is printed. Seen red against
+    the stop rule: the row under the line was not read, the freeze was off,
+    and a range editing a released file was judged."""
+    root, start = repo_at(
+        tmp_path,
+        {
+            "seal/config.md": "# config\n\n| Item | Value |\n|---|---|\n"
+            "| Record language | English |\n"
+            "| Broad gate | bin/test -q | tee out |\n"
+            "| Ledger frozen from | 1500000000 |\n",
+            RELEASED: RELEASED_TEXT,
+        },
+    )
+    head = branch_that(root, start, {RELEASED: RELEASED_TEXT.replace("Read.", "x")})
+    code, out = check(root, f"{start}...{head}")
+    said = capsys.readouterr().err
+    assert code == 2, out + said
+    assert out == "", out
+    assert "seal/config.md at " in said, said
+    assert "stops at `| Broad gate | bin/test -q | tee out |`" in said, said
+
+
 @pytest.mark.parametrize("shape", ["directory", "undecodable"])
 def test_an_unreadable_config_at_the_tip_is_refused_not_read_as_no_row(
     tmp_path, capsys, shape

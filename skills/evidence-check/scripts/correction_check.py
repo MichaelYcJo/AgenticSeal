@@ -259,7 +259,7 @@ def load_reader(path=READER):
 
 reader = load_reader()
 
-# `seal/config.md`'s one reader, `hooks/config.py#config_rows`, for the freeze
+# `seal/config.md`'s one reader, `hooks/config.py#config_value`, for the freeze
 # row (#715). Loaded by path beside the fence reader, and a copy without it is
 # refused the same way: this command ships with the plugin's `hooks/`.
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
@@ -1026,16 +1026,19 @@ def config_at(root, rev):
 def cutoff_at(root, rev):
     """The `Ledger frozen from` value at REV, or None where the row is absent
     or empty. A value that is not a whole number is `Refused`, and so is a
-    `config.md` that is there and will not read, and a row written twice
-    (#867): the freeze arm never turns off because the file could not be
+    `config.md` that is there and will not read, a row written twice (#867),
+    and a row the table walker did not read because it refused a line above
+    it (#871): the freeze arm never turns off because the file could not be
     read, which is the one direction that passes a pull request editing a
-    frozen file."""
+    frozen file.
+
+    Reads: guess — the `Ledger frozen from` row of a person's `config.md` at REV, through `hooks/config.py#config_value`; unknown refused"""
     text, refusal = config_at(root, rev)
     if refusal is not None:
         raise Refused(refusal)
     if text is None:
         return None
-    value, refusal = config.value_of(config.config_rows(text), FROZEN_ROW)
+    value, refusal = config.config_value(text, FROZEN_ROW)
     if refusal is not None:
         raise Refused(f"{CONFIG} at {rev[:12]}: {refusal}")
     if value is None or not value.strip():

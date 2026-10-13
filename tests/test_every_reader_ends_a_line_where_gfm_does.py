@@ -647,6 +647,12 @@ OUT_OF_CLASS = {
     ("skills/verify/scripts/broad_gate.py", "Check.first_lines"): (1, TOOL),
     ("skills/verify/scripts/broad_gate.py", "fence_left_open"): (1, F),
     ("skills/verify/scripts/broad_gate.py", "hidden_row_at"): (1, F),
+    # #871: the `Broad gate` line the walker did not read, the line it
+    # stopped at and what is written below that line, each read through
+    # `unfenced` on the split the walker itself numbers its rows on.
+    ("skills/verify/scripts/broad_gate.py", "refused_broad_row"): (1, F),
+    ("skills/verify/scripts/broad_gate.py", "stopping_line"): (1, F),
+    ("skills/verify/scripts/broad_gate.py", "rows_written_below"): (1, F),
     ("skills/verify/scripts/broad_gate.py", "gate"): (1, TOOL),
     ("skills/verify/scripts/broad_gate.py", "job_steps"): (1, YAML),
     ("skills/verify/scripts/broad_gate.py", "ledger_total"): (1, TOOL),
@@ -684,8 +690,6 @@ OUT_OF_CLASS.update(
             "the pieces `riders_in` read, written back each with its own end",
         ),
         ("hooks/blocks.py", "walk_text"): (1, F),
-        # The stop rule's third walk, until #871 takes its last caller.
-        ("hooks/config.py", "refusal"): (1, F),
         # Each GFM line counted in the reader's pieces of it, so a line the
         # walk took whole is told from one a `str.splitlines`-only character
         # cuts (#759).

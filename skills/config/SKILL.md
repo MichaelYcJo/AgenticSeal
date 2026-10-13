@@ -101,15 +101,27 @@ second answer.
   cell of that table ends at a bare pipe, so `bin/test -q \| tee out.txt` is
   the row that runs that command — the reader reduces exactly those two
   characters to a plain pipe before any shell sees it, and leaves every other
-  backslash alone, so a Windows path keeps its separators. Written with a
-  bare pipe the line parses as no row and `broad-gate` quotes it back. Where
-  a row above it already parsed, every row **written** below it is lost with
-  it — the reader stops reading the table there. Written as the table's first
-  row it loses only itself, because the stop rule needs a row before it can
-  stop. And written LAST in its table it loses only itself too, because there
-  is nothing under it to lose — which is the shape the row usually has, in
-  this template and in the stub `seal mode` writes, so the refusal asks what
-  was written below the line before it says anything was lost (#430).
+  backslash alone, so a Windows path keeps its separators.
+
+  **The table is read the way GitHub shows it, or refused** (#871). Each
+  refusal names its line and the fix; rows above that line still count, and
+  rows below it are refused with it, never treated as missing. Read these to
+  the person in your own words:
+
+  - a bare pipe in a value (GitHub shows the row cut off at the pipe):
+    write it `\|`;
+  - a comment or prose sitting on the header's own top edge: leave a blank
+    line above the header;
+  - an extra cell, a stray separator or prose among the rows: write it as
+    `| … | … |`, or delete it;
+  - no separator under the header, or one of the wrong width: put
+    `|---|---|` under the header;
+  - a row stranded after a comment, a fence or an empty line: move it into
+    the table.
+
+  `templates/config.md` says the same at its head. `broad-gate` and
+  `seal mode` print the refusal and run or write nothing, and a hook stays
+  silent.
 
   **The `Broad gate` row is looked at before it is run**, and a value that
   would not run as the command it reads as is refused with nothing run —

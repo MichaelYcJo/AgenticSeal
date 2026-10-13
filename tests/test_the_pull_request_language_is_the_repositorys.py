@@ -591,35 +591,53 @@ def test_the_mirrors_home_is_resolved_and_excludes_the_git_directory(parts, who)
     )
 
 
-def test_a_separator_below_the_rows_ends_the_table():
-    """tests-todo row 9, from round 2 🟡 5, first shape."""
+LANGUAGE_ROW = "Commit and pull request language"
+
+
+def test_a_separator_below_the_rows_is_refused_as_a_delimiter_row_out_of_place():
+    """tests-todo row 9, from round 2 🟡 5, first shape — shape 8 of #871.
+    cmark-gfm shows a stray separator as one of the table's rows, so the
+    walker refuses it, naming it, and an item below it is that refusal
+    rather than an absent row. The rows above it are read. Seen red against
+    the stop rule, which ended the table there in silence."""
     text = (
         "| Item | Value |\n"
         "|---|---|\n"
-        "| Commit and pull request language | Korean |\n"
+        f"| {LANGUAGE_ROW} | Korean |\n"
         "|---|---|\n"
         "| Something else | x |\n"
     )
-    assert items(text) == [("Commit and pull request language", "Korean")], (
-        "a separator below the first row was stepped past, so the rows "
-        "behind it were read as more of this table"
-    )
+    reader = _config_reader()
+    assert items(text) == [(LANGUAGE_ROW, "Korean")]
+    value, said = reader.config_value(text, "Something else")
+    assert value is None and "stops at `|---|---|`, a delimiter row out of place" in (
+        said or ""
+    ), said
 
 
-def test_a_repeated_header_ends_the_table():
-    """tests-todo row 9, second shape. An adjacent second table opens with
-    the same header this one did, and that header is what used to set the
-    flag a second time rather than end the first table."""
+def test_a_repeated_header_is_read_as_a_row_and_the_doubled_item_is_refused():
+    """tests-todo row 9, second shape — shape 9 of #871. A second
+    `| Item | Value |` line under the table with no delimiter row of its own
+    is one of this table's rows to cmark-gfm, so the walker reads it as one,
+    and the row below it with it: the language is then written twice, which
+    has no value. Seen red against the stop rule, which ended the table at
+    the repeated header and read `Korean`."""
     text = (
         "| Item | Value |\n"
         "|---|---|\n"
-        "| Commit and pull request language | Korean |\n"
+        f"| {LANGUAGE_ROW} | Korean |\n"
         "| Item | Value |\n"
-        "| Commit and pull request language | English |\n"
+        f"| {LANGUAGE_ROW} | English |\n"
     )
-    assert items(text) == [("Commit and pull request language", "Korean")], (
-        "a repeated header did not end the table, so a second table's rows "
-        "arrived as this one's"
+    reader = _config_reader()
+    assert items(text) == [
+        (LANGUAGE_ROW, "Korean"),
+        ("Item", "Value"),
+        (LANGUAGE_ROW, "English"),
+    ]
+    assert reader.config_value(text, LANGUAGE_ROW) == (
+        None,
+        f"`{LANGUAGE_ROW}` appears 2 times — one value",
     )
 
 
@@ -642,14 +660,49 @@ def test_a_mirror_named_for_a_country_is_caught():
     )
 
 
-def test_junk_above_the_first_row_is_still_tolerated():
-    """The other direction, so the fix above does not become a stricter rule
-    than the one intended: between the header and the first row, a separator
-    is the table's own furniture and a blank line is nothing."""
-    text = (
-        "| Item | Value |\n|---|---|\n\n| Commit and pull request language | Korean |\n"
-    )
-    assert items(text) == [("Commit and pull request language", "Korean")]
+def test_a_blank_line_above_the_first_row_ends_the_table_and_the_row_is_refused():
+    """#871. A blank line under the delimiter row ends the table to
+    cmark-gfm, so the row below it is not one of the table's rows: the
+    walker refuses it as a row the walk never reaches, and the item it names
+    is that refusal rather than an absent row. Seen red against the stop
+    rule, which stepped past the blank line and read `Korean`."""
+    text = f"| Item | Value |\n|---|---|\n\n| {LANGUAGE_ROW} | Korean |\n"
+    assert items(text) == []
+    value, said = _config_reader().config_value(text, LANGUAGE_ROW)
+    assert value is None and "a row the walk never reaches" in (said or ""), said
+
+
+def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
+    """S8 of #871, in `test_the_skill_names_every_way_of_not_naming_one`'s
+    pattern. `templates/config.md`, `skills/config/SKILL.md` and
+    `hooks/config.py#config_rows`' docstring each name the shapes the walker
+    refuses with the one edit for each, and none of them still says the
+    reader stops at a line and reads on, or that a row below a bad line is
+    invisible. Seen red against the stop rule's documents: none named the
+    blank line above the header, and two said the reader stops reading the
+    table there."""
+    documents = {
+        "the template": flat(*TEMPLATE),
+        "the config skill": flat("skills", "config", "SKILL.md"),
+        "the reader's docstring": " ".join(
+            _config_reader().config_rows.__doc__.split()
+        ),
+    }
+    for who, text in documents.items():
+        for edit in (
+            "leave a blank line above the header",
+            "write it `\\|`",
+            "write it as `| … | … |`",
+            "`|---|---|` under",
+            "move it into the table",
+        ):
+            assert edit in text, f"{who} does not name the edit {edit!r}"
+        for gone in (
+            "stops reading the table there",
+            "parses as no row",
+            "written under it is invisible",
+        ):
+            assert gone not in text, f"{who} still says {gone!r}"
 
 
 def test_an_unreadable_config_lands_on_english_too(tmp_path):

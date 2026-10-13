@@ -96,13 +96,6 @@ CONFIG_TABLE = ("Item", "Value")
 # `skills/evidence-check/scripts/pact_check.py#path_map`, which reads the
 # machine-local `| Remote | Path |` map with it and `CONFIG_SEPARATOR`.
 CELL = r"(?:[^|\\]|\\.)"
-# The stop rule's own header and row, read by `refusal` and
-# `skills/implement/scripts/seal.py#table_span` alone while #871 moves their
-# callers onto `config_table`; both leave with the last of them.
-CONFIG_HEADER = re.compile(r"^\|\s*Item\s*\|\s*Value\s*\|\s*$")
-CONFIG_ROW = re.compile(
-    rf"^\|\s*(?P<item>{CELL}+?)\s*\|\s*(?P<value>{CELL}*?)\s*\|\s*$"
-)
 # The config table's separator before #871, kept for one reader alone:
 # `pact_check.py#path_map`, whose map is not `seal/config.md` and is not read
 # by the walker yet. Nothing here reads it.
@@ -374,7 +367,25 @@ def config_rows(text):
     else changed; `unescaped` above says why it is those two characters
     alone. A line inside a code fence or a closed comment is not shown to the
     walk at all (`unfenced`), so an example table pasted above the live one
-    is not this reader's table (#429)."""
+    is not this reader's table (#429).
+
+    **The shapes the walker refuses, each with its one edit** — the list
+    `templates/config.md` and `skills/config/SKILL.md` give a person, kept
+    beside the reader so the three say one thing:
+
+      - a line directly above the header — a comment, prose, a row: leave a
+        blank line above the header;
+      - no delimiter row under the header, or one of another width: write
+        `|---|---|` under it;
+      - a bare pipe in a value, which GitHub shows cut off at the pipe:
+        write it `\\|`;
+      - a third cell, a stray delimiter row or prose inside the table:
+        write it as `| … | … |`, or take it out;
+      - a row under a comment, a fence or a blank line that ends the table:
+        move it into the table.
+
+    Every row below the refused line is a refusal to `config_value`, never
+    an absent row; the rows above it are read."""
     return [(item, value) for _index, item, value in config_table(text)[0]]
 
 
@@ -389,118 +400,6 @@ def indexed_config_rows(text):
     as a row from every other line of the file (#759).
     """
     return config_table(text)[0]
-
-
-def refusal(text):
-    """Everything a caller with somebody to tell needs about the lines a
-    person wrote as rows of this table and this reader will not take as ones.
-
-      refused  every such line, in order, each as (line, reached): the line
-               as written with its own indentation, and whether the reader
-               got that far before it stopped
-      below    the rows written under the STOPPING line, which never arrived
-      stopper  the refused line that ENDED the table, or None where no line
-               ended it that way
-
-    **Every value here is a fact about the TABLE, and that is the contract.**
-    This used to hand back ONE line and a flat `ended` saying whether THAT
-    line stopped the reader, and both callers then built sentences about the
-    table out of it. The first refused line and the stopping line are the
-    same line only while there is one of them. With two, the reader stops at
-    the second while the answer describes the first, and #415's own defect
-    came back in the unit that closed it, in both directions at once: the
-    rows below were lost and the refusal said they were read, and a
-    `Broad gate` row sitting under the second line was reported ABSENT
-    (round 2 🟡 1). `refused` is a list for the same reason -- the line a
-    caller is asking about may be neither the first nor the stopping one.
-
-    **`stopper` is where the reader stopped and nothing else is.**
-    `config_rows` breaks on a line it cannot parse only once it has FOUND a
-    row; with nothing found yet it steps past that line and keeps reading,
-    so every row below still arrives. A refusal that says those rows were
-    lost sends a person to reformat rows that were read correctly -- a true
-    sentence about the wrong file, which is the shape #415 was opened about
-    (round 1 🟡 1). So `stopper` is None for a file whose refused lines all
-    sit above its first parsed row, and `reached` is what tells a caller
-    which side of the stopping place its own line is on.
-
-    **It reports and it refuses nothing.** Nothing here raises, and no caller
-    becomes able to deny by importing it: it answers a question two callers
-    that already talk to a person want to ask, which is *why did that row not
-    arrive*. `hooks/mode-gate.py` deliberately does not ask it -- a
-    `PreToolUse` hook that refuses wrongly stops a session with nobody able
-    to get past it, and everything in this module fails toward silence.
-
-    **The walk is `config_rows`'s, and the one difference is that it reads
-    ON past the stopping line**, because what lies under that line is
-    exactly what a caller has to be told about. Nothing acts on those
-    values, which is what lets the walk be that tolerant; a reader whose
-    answers were acted on could not be.
-
-    A line is a refusal only when it begins with a pipe once its indentation
-    is stripped, which is how a person spells a row -- an indented row is
-    still a row somebody wrote. A blank line or a paragraph of prose is the
-    table's end rather than a refusal, and ABOVE the first parsed row it is
-    neither: `config_rows` steps past it and reads on, so this walk does too,
-    and it used to give up there instead -- which reported a refused row
-    written under a line of prose as an absent row (#415 round 2, the
-    correction). A second header or a stray separator ends the table once a
-    row has been found, and the walk stops there rather than reaching into
-    whatever table comes next (#415 round 1, the correction).
-
-    Before this existed the two states were indistinguishable to a caller:
-    `broad_gate` reported a piped `Broad gate` row as ABSENT, which is a true
-    sentence about a cause that is not the real one (#415).
-
-    **A fenced line is not a line somebody wrote as a row of this table.**
-    This walk reads what `unfenced` shows it, exactly as `config_rows` above
-    does, so a pipe-line inside a code fence reaches neither `refused` nor
-    `below` and never becomes `stopper` -- which is what stops `broad-gate`'s
-    refusal from quoting a line out of an example block back at a person as
-    their own malformed row (#429). A caller that needs to speak about a
-    fenced line asks its own question of the file; `broad_gate.py#fenced_row`
-    is the one that does. A line inside an HTML comment block that closes is
-    the same (#667): a malformed pipe-line somebody commented out is not
-    quoted back as theirs, and `broad_gate.py#commented_row` is the question
-    about it.
-    """
-    seen_header, found = False, False
-    refused, below, stopper = [], [], None
-    for _index, line in unfenced(text.splitlines(), text):
-        if not seen_header:
-            if CONFIG_HEADER.match(line):
-                seen_header = True
-            continue
-        if CONFIG_HEADER.match(line) or CONFIG_SEPARATOR.match(line.strip()):
-            if found:
-                break
-            continue
-        match = CONFIG_ROW.match(line)
-        if match:
-            found = True
-            if stopper is not None:
-                below.append(
-                    (
-                        unescaped(match.group("item").strip()),
-                        unescaped(match.group("value").strip()),
-                    )
-                )
-            continue
-        if not line.lstrip().startswith("|"):
-            if found:
-                break
-            continue
-        refused.append((line, stopper is None))
-        if found and stopper is None:
-            stopper = line
-    return refused, below, stopper
-
-
-def refused_row(text):
-    """The first refused line alone -- `refusal` above is the whole answer,
-    and its docstring is where this one's reasoning lives."""
-    refused = refusal(text)[0]
-    return refused[0][0] if refused else None
 
 
 def config_text(home):

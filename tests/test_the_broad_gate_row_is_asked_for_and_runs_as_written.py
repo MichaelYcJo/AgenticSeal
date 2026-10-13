@@ -283,10 +283,15 @@ def test_the_allowed_list_says_how_a_pipe_is_written():
 
     Three things have to survive together, because each of them alone is a
     half-truth a reader would act on wrongly: the escape is `\\|`, a BARE
-    pipe still parses as no row, and a line that does not parse still takes
-    every row below it. Drop the first and the row is unwritable again; drop
-    the second and somebody types a bare pipe expecting it to work; drop the
-    third and the cost reads as the row's own, which it is not.
+    pipe is refused, and the rows below a refused line are a refusal, not
+    absent. Drop the first and the row is unwritable again; drop the second
+    and somebody types a bare pipe expecting it to work; drop the third and
+    the cost reads as the row's own, which it is not.
+
+    **Re-pinned by #871.** The stop rule's cost — a `Mode` row under the line
+    invisible, and `seal mode` writing a second one — is gone with the stop
+    rule, and the row now says what the walker does instead: the line is
+    refused, the edit is named, and `seal mode` writes nothing.
     """
     body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
     pipe = named(table(body, "| Stays legal |"), "a pipe")
@@ -295,24 +300,21 @@ def test_the_allowed_list_says_how_a_pipe_is_written():
     assert "ends at a bare pipe" in pipe, (
         "the row does not say where a cell of this table ends"
     )
-    assert "A BARE pipe still parses as no row" in pipe, (
+    assert "A BARE pipe is refused" in pipe and "write it `\\|`" in pipe, (
         "the row promises the escape without saying the naive spelling still "
         "fails, which is the spelling somebody reaches for first"
     )
     assert "cannot reach this row at all" not in pipe, (
         "the sentence this work item removed survived beside its replacement"
     )
-    # Round 1's 🟡 2 of the previous work item, kept and narrowed: the cost is
-    # not the row's own. It is also narrower than that row claimed — the stop
-    # rule fires only once a row above has parsed, measured both ways round.
-    assert "takes every row below it" in pipe, (
+    assert "that refusal rather than an absent row" in pipe, (
         "the pipe's cost is stated as the row's alone, and it is not"
     )
-    assert "where a row above it already parsed" in pipe, (
-        "the cost is stated without the condition it actually holds under"
+    assert "`seal mode` writes nothing" in pipe, (
+        "what `seal mode` does with a `Mode` row under the line is not named"
     )
-    assert "`seal mode` writes a second one" in pipe, (
-        "the worst outcome — a person's file two `Mode` rows deep — is not named"
+    assert "writes a second one" not in pipe, (
+        "the stop rule's worst outcome is still described as the file's"
     )
 
 
@@ -355,7 +357,9 @@ def test_the_module_header_names_every_refusal_and_none_names_a_command():
     assert "refused four ways" in header, (
         "the header still describes three refusals where the gate has four"
     )
-    assert "will not parse as a row of that table" in header
+    # #871: the table walker's refusal, quoted with its own sentence.
+    assert "the table walker did not read" in header
+    assert "quotes back with the walker's sentence" in header
     assert "written inside a code fence" in header
     assert "wrapped in backticks or in `$(…)`, or ending in a single `&`" in header
     assert "names the row to write" not in header, (

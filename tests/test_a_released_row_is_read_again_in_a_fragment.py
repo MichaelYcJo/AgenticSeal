@@ -921,6 +921,31 @@ def test_a_freeze_row_written_twice_is_refused_and_nothing_is_written(repo, args
     assert not (repo / "seal" / "ledger").exists()
 
 
+def test_a_freeze_row_the_walker_did_not_read_is_refused_and_nothing_is_written(
+    repo,
+):
+    """S4 of #871, `evidence-check --reverify`'s case. A `Ledger frozen
+    from` row under a line the table walker refuses is one it never read,
+    so it is a refusal and not an absent row: `--reverify` exits 2 in the
+    walker's sentence, naming the line, and writes no ledger file. Seen red
+    against the stop rule: the row was not read, the freeze was off, and the
+    released rows were re-stamped in place."""
+    (repo / "seal" / "config.md").write_text(
+        "# Repository config\n\n| Item | Value |\n|---|---|\n"
+        "| Record language | English |\n"
+        "| Broad gate | bin/test -q | tee out |\n"
+        "| Ledger frozen from | 1 |\n",
+        encoding="utf-8",
+    )
+    two_drifted_rows(repo)
+    before = digests(repo)
+    out = run(["--reverify", "--checked", "2026-02-01", "."], repo)
+    assert out.returncode == 2, out.stdout + out.stderr
+    assert "stops at `| Broad gate | bin/test -q | tee out |`" in out.stderr, out.stderr
+    assert digests(repo) == before
+    assert not (repo / "seal" / "ledger").exists()
+
+
 @pytest.mark.parametrize("shape", ["directory", "undecodable"])
 def test_an_unreadable_config_keeps_the_freeze_on_and_is_refused(repo, shape):
     """S3 of #867, the checker's half. A `config.md` that is there and will

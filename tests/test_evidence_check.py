@@ -14,6 +14,7 @@ import os
 import subprocess
 import sys
 
+import config_shapes
 import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -582,12 +583,15 @@ def test_the_vendored_cell_rule_agrees_with_the_shared_one():
         assert ec.vendored_split_row(line) == uc.split_row(line), line
 
 
-# The config table's own shapes, for S4 of #867: every shape the vendored
-# twin can meet in a CI checkout's `seal/config.md`. **No fence and no
-# comment**, on purpose: the twin is blind to both, as inventory row E46 of
-# #834 states, and a vendored copy reads a file whose table is its own. A
-# shape added here that holds either would hold the twin to a rule it does
-# not carry.
+# The config table's own shapes, for S4 of #867 and S7 of #871: every shape
+# the vendored twin can meet in a CI checkout's `seal/config.md` that it can
+# judge line by line, the walker's refusal shapes from
+# `tests/config_shapes.py` among them. **No fence and no comment inside the
+# table**, on purpose: the twin carries no block state, and where it lacks
+# it the rule is a direction, not equality —
+# `test_the_vendored_config_rule_refuses_where_it_lacks_block_state` holds
+# that over the shapes that carry one. Shape 1's comment is a single line
+# directly above the header, which both readers refuse by the line alone.
 _HEAD = "# Repository config\n\n| Item | Value |\n|---|---|\n"
 CONFIG_SHAPES = {
     "plain": _HEAD + "| Mode | shared |\n| Broad gate | bin/test -q |\n",
@@ -607,6 +611,28 @@ CONFIG_SHAPES = {
     "a line before the first row": _HEAD + "| not a row\n| Mode | shared |\n",
     "crlf": (_HEAD + "| Mode | shared |\n| Broad gate | x |\n").replace("\n", "\r\n"),
     "no table": "# nothing here\n",
+    **{
+        f"shape {n}": config_shapes.SHAPES[n]
+        for n in (1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+    },
+}
+# The shapes where the twin lacks the block state the plugin's walker has:
+# a comment inside the table, and a fence or a comment above the header
+# that hides an example table from the plugin.
+LACKS_BLOCK_STATE = {
+    "shape 5, a comment inside the table": config_shapes.SHAPES[5],
+    "a fenced example above the live table": (
+        "# c\n\n```markdown\n\n| Item | Value |\n|---|---|\n| Mode | local |\n"
+        "```\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
+    ),
+    "a commented old table above the live one": (
+        "# c\n\n" + config_shapes.OPEN + "\n\n| Item | Value |\n|---|---|\n"
+        "| Mode | local |\n" + config_shapes.CLOSE + "\n\n"
+        "| Item | Value |\n|---|---|\n| Mode | shared |\n"
+    ),
+    "a fence directly under the last row": (
+        _HEAD + "| Mode | shared |\n```\n| Broad gate | x |\n```\n"
+    ),
 }
 
 
@@ -627,24 +653,76 @@ def test_the_vendored_config_rule_agrees_with_the_shared_one(name):
     table's own shapes, item by item. The twin's table walk had no case at
     all (inventory row E46 said it had one, and none existed), and it read a
     stray separator, a second header and an empty item differently: seen red
-    against 5623d728's `vendored_config_rows` on those three shapes."""
+    against 5623d728's `vendored_config_rows` on those three shapes.
+
+    **Since #871 both sides are the walker's**: the twin returns
+    `(rows, refusals)` on the walker's table grammar, and the rows, the
+    refusals and the per-item answer are held equal to `config_table` and
+    `config_value`. Seen red against the stop rule's twin on every refusal
+    shape: it returned rows and no refusal."""
     from conftest import load_hook_module
 
     config = load_hook_module("config.py", "specseal_config_for_the_twin")
     ec = _checker("ec_vendored_config")
     assert os.path.realpath(
         ec.config_rule()[1].__code__.co_filename
-    ) == os.path.realpath(config.config_rows.__code__.co_filename), (
+    ) == os.path.realpath(config.config_table.__code__.co_filename), (
         "the plugin's copy must ask hooks/config.py, not its vendored twin"
     )
     text = CONFIG_SHAPES[name]
-    rows = config.config_rows(text)
-    assert ec.vendored_config_rows(text) == rows, name
+    rows, refusals = config.config_table(text)
+    twin_rows, twin_refusals = ec.vendored_config_rows(text)
+    assert [(i, v) for _n, i, v in twin_rows] == [(i, v) for _n, i, v in rows], name
+    assert twin_refusals == refusals, name
     for item in ("Mode", "Broad gate", "Ledger frozen from", "x", ""):
-        assert ec.vendored_config_value(rows, item) == config.value_of(rows, item), (
+        assert ec.vendored_config_value(text, item) == config.config_value(
+            text, item
+        ), (name, item)
+
+
+@pytest.mark.parametrize("name", sorted(LACKS_BLOCK_STATE))
+def test_the_vendored_config_rule_refuses_where_it_lacks_block_state(name):
+    """S7 of #871, the stated direction. Where the plugin's walker reads a
+    line by block state the twin does not carry, the twin may refuse what
+    the plugin reads and never reads what the plugin refuses: every item is
+    the plugin's answer or a refusal, a value is never one the plugin does
+    not give, and on each of these shapes the twin refuses something. Seen
+    red against the stop rule's twin, which read the fenced example's
+    `Mode local` where the plugin reads `shared`."""
+    from conftest import load_hook_module
+
+    config = load_hook_module("config.py", "specseal_config_for_the_twin_direction")
+    ec = _checker("ec_vendored_config_direction")
+    text = LACKS_BLOCK_STATE[name]
+    assert ec.vendored_config_rows(text)[1], name
+    for item in ("Mode", "Broad gate", "Ledger frozen from"):
+        twin = ec.vendored_config_value(text, item)
+        plugin = config.config_value(text, item)
+        assert twin == plugin or (twin[0] is None and twin[1] is not None), (
             name,
             item,
+            twin,
+            plugin,
         )
+
+
+def test_the_vendored_table_grammar_is_the_walkers():
+    """S7 of #871: each pattern of the twin's line grammar is the walker's,
+    byte for byte, so the two read a line alike wherever the twin reads one."""
+    from conftest import load_hook_module
+
+    config = load_hook_module("config.py", "specseal_config_for_the_twin_grammar")
+    ec = _checker("ec_vendored_config_grammar")
+    for twin, walker in (
+        (ec.VENDORED_TABLE_ROW, config.TABLE_ROW),
+        (ec.VENDORED_CELL_PIPE, config.CELL_PIPE),
+        (ec.VENDORED_EVEN_ESCAPED_PIPE, config.EVEN_ESCAPED_PIPE),
+        (ec.VENDORED_DELIMITER_ROW, config.DELIMITER_ROW),
+        (ec.VENDORED_ATX_HEADING, config.ATX_HEADING),
+        (ec.VENDORED_LIST_ITEM, config.LIST_ITEM),
+    ):
+        assert (twin.pattern, twin.flags) == (walker.pattern, walker.flags)
+    assert ec.VENDORED_CONFIG_HEADER == config.CONFIG_TABLE
 
 
 @pytest.mark.parametrize("shape", ["absent", "readable", "directory", "undecodable"])
