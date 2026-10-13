@@ -227,6 +227,15 @@ retired work item. A repository whose own tests sit in a `specs/` directory
 loses them from the sweep under the default and gets them back with
 `Reference specs | none`.
 
+**A test durations file.** A file `GENERATED_DATA` names -- `.test_durations`,
+`pytest-split`'s timings keyed by test id -- is out of the **pool** and out of
+the **range**, on both sides of the range's path list, at any depth
+(`generated_data`). A refresh rewrites it whole, so every key it drops reads
+as a removed sentence, and a key carries the wording of whatever test it
+names: #874's second refresh brought the file under `SIZE_CAP`, and the sweep
+reported 753 places, every one with the file as the source. The size cap had
+been keeping it out by accident, so the rule is the name and never the size.
+
 Both losses go one way: a survivor hidden inside an excluded region costs
 whatever the unanswered finding was worth, and an invented survivor costs a red
 build to somebody who did not write the line. The same asymmetry
@@ -412,8 +421,16 @@ FLOOR = 1.6
 # requirement lives somewhere it does not, and it hid the fact that dropping
 # the corpus scale would let a one-run coincidence through.
 
-# A blob bigger than this is not prose anybody wrote by hand.
+# A blob bigger than this is not read: past it a file is data, whoever wrote
+# it. Under it a file can be data too, and that is decided by name, in
+# `generated_data`, never by size.
 SIZE_CAP = 2 * 1024 * 1024
+
+# Files a tool writes whole, by name. `.test_durations` is `pytest-split`'s
+# timings keyed by test id, rewritten whole by every refresh (#874): its keys
+# are test ids, not sentences, and the size cap had been keeping it out by
+# accident until `--clean-durations` shrank it under 2 MiB.
+GENERATED_DATA = (".test_durations",)
 
 
 class Refused(Exception):
@@ -936,6 +953,17 @@ def records_a_past_state(path):
     return inside == ["survivors.md"] or (len(inside) > 1 and inside[0] == "phases")
 
 
+def generated_data(path):
+    """True for a file a tool writes whole, named in `GENERATED_DATA`, at any
+    depth. Read on both sides -- `corpus` and `corrected` -- for the reason
+    every exclusion here is: a key such a file drops is not a sentence anybody
+    corrected, and one it carries is not a place anybody can correct.
+
+    Reads: nothing — decides from the path its caller hands it
+    """
+    return path.replace("\\", "/").rsplit("/", 1)[-1] in GENERATED_DATA
+
+
 # The rest of `settle --retire-process`'s list, beside what
 # `records_a_past_state` already names: the files a work item writes for its
 # pull request, directly under its directory (#729).
@@ -1279,7 +1307,11 @@ def removed_ledger_rows(root, a, b, before, after):
 def corpus(root, rev):
     """`{path: [Sentence]}` for the tree at `rev`, less what is excluded --
     what `records_a_past_state` names, the changelog fragments the tip's
-    changelogs have gathered, and the reference roots."""
+    changelogs have gathered, the reference roots, and the generated data
+    files.
+
+    Reads: guess — the prose of every tracked file at `rev`, through `read_blobs`; unknown passed
+    """
     listed = tracked(root, rev)
     gathered = gathered_fragments(root, rev, listed)
     paths = [
@@ -1288,6 +1320,7 @@ def corpus(root, rev):
         if not records_a_past_state(p)
         and not a_gathered_fragment(p, gathered)
         and not a_reference_root(root, p)
+        and not generated_data(p)
     ]
     return {
         path: sentences(path, text)
@@ -1374,7 +1407,10 @@ def corrected(root, a, b):
     fragment rewording it is still split into the runs it no longer shares,
     as a reworded release is, while no gathered text subtracts another
     file's sentence. A release that removes no live sentence writes nothing
-    at all."""
+    at all.
+
+    Reads: guess — the prose of every file the range changed, at both ends, through `read_blobs`; unknown passed
+    """
     names = git(root, "diff", "--name-only", "--no-renames", "-z", a, b)
     if names is None:
         raise Refused(f"cannot diff {a[:7]}..{b[:7]} in {root}")
@@ -1389,7 +1425,7 @@ def corrected(root, a, b):
     # A reference root is out on both sides as well (#688): a sentence
     # removed from a team's own `specs/` is not a correction the plugin's
     # documents owe, and one standing there is not a survivor -- `corpus`
-    # applies the same predicate.
+    # applies the same predicate. So is a generated data file (#874).
     paths = [
         path
         for path in names.split("\0")
@@ -1397,6 +1433,7 @@ def corrected(root, a, b):
         and not records_a_past_state(path)
         and not a_gathered_fragment(path, gathered)
         and not a_reference_root(root, path)
+        and not generated_data(path)
     ]
     # A retired directory is out of the range too (#517), for the reason the
     # round records are: its sentences stand in `docs/` by design, because

@@ -1026,7 +1026,74 @@ EXCLUSIONS = (
     "**A phase record.**",
     "**A released changelog section, and a gathered fragment.**",
     "**A reference root.**",
+    "**A test durations file.**",
 )
+
+
+# A `pytest-split` durations file under the size cap, keyed by test id, whose
+# ids carry the wording a correction removes from prose -- the shape #874's
+# refresh had once `--clean-durations` brought the file under 2 MiB.
+def durations_file(*ids):
+    rows = ",\n".join(f'    "tests/test_x.py::test_y[{node}]": 0.5' for node in ids)
+    return "{\n" + rows + "\n}"
+
+
+def test_keys_a_durations_refresh_removed_are_not_corrections(tmp_path):
+    """The range half. A refresh rewrites `.test_durations` whole, and every
+    key it drops read as a sentence somebody corrected, hunted across the
+    tree: 753 places on #874's branch. Seen red before `generated_data`."""
+    repo = tmp_path / "probe"
+    os.makedirs(repo, exist_ok=True)
+    build(
+        repo,
+        {
+            ".test_durations": durations_file(FOUND, "another case"),
+            "notes.md": f"# notes\n\nFirst statement. {FOUND}\n",
+            "guide.md": f"# guide\n\nSecond statement. {FOUND}\n",
+            "filler.md": "# filler\n\nUnrelated prose that shares nothing.\n",
+        },
+        "the claim in two files, and a durations key carrying it",
+    )
+    head = build(
+        repo,
+        {".test_durations": durations_file("another case")},
+        "the durations file refreshed, and nothing else",
+    )
+    code, text = run("--range", f"{head}^..{head}", "--root", str(repo))
+    assert code == 0, (
+        "this range only refreshed the durations file, and the check read a "
+        f"dropped key as a correction to chase; exit {code}\n{text}"
+    )
+    assert re.search(r"against 0 sentence\(s\)", text), (
+        f"a key removed from the durations file counts as removed wording:\n{text}"
+    )
+
+
+def test_a_durations_key_standing_in_the_pool_is_not_a_survivor(tmp_path):
+    """The pool half: a key that happens to carry corrected wording is not a
+    place anybody can correct, because the file is rewritten by the recipe."""
+    repo = tmp_path / "probe"
+    os.makedirs(repo, exist_ok=True)
+    files = {
+        ".test_durations": durations_file(FOUND),
+        "notes.md": f"# notes\n\nFirst statement. {FOUND}\n",
+        "guide.md": f"# guide\n\nSecond statement. {FOUND}\n",
+    }
+    for index in range(29):
+        files[f"filler-{index}.md"] = (
+            f"# filler {index}\n\nUnrelated prose number {index} that shares nothing at all.\n"
+        )
+    build(repo, files, "the claim in two files, and a durations key carrying it")
+    head = build(
+        repo,
+        {"notes.md": f"# notes\n\nFirst statement. {REPAIRED}\n"},
+        "corrected notes.md only",
+    )
+    code, text = run("--range", f"{head}^..{head}", "--root", str(repo))
+    assert code == 1, f"guide.md's copy went unreported; exit {code}\n{text}"
+    assert paths_in(text) == ["guide.md"], (
+        f"the report names a durations key as a place to correct:\n{text}"
+    )
 
 
 def test_the_docstring_names_both_sides_of_the_round_record_exclusion():

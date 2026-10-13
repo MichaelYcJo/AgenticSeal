@@ -874,8 +874,6 @@ skills/code-review/scripts/survivor_check.py#a_reference_root@f4462b68
 skills/code-review/scripts/survivor_check.py#blank_released@4a6ce6aa
 skills/code-review/scripts/survivor_check.py#blank_struck@b6b96f7e
 skills/code-review/scripts/survivor_check.py#carriers@b4716ca5
-skills/code-review/scripts/survivor_check.py#corpus@31e8a379
-skills/code-review/scripts/survivor_check.py#corrected@fde86cfa
 skills/code-review/scripts/survivor_check.py#evidence@e8efd32b
 skills/code-review/scripts/survivor_check.py#examine@4ad680b7
 skills/code-review/scripts/survivor_check.py#exempted@5f2549e7
