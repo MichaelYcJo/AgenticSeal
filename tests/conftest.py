@@ -1014,5 +1014,8 @@ def pytest_collection_modifyitems(session, items):
     `--deselect` trim the list after it as well, so the record is the whole
     collection on a shard as on ubuntu, and a case selected alone by `-k`
     still reads the suite. Under xdist each worker collects the whole suite
-    and runs this hook itself."""
+    and runs this hook itself.
+
+    Reads: observed — the items pytest collected, recorded unjudged; unknown passed
+    """
     setattr(session, COLLECTED_NODE_IDS, [item.nodeid for item in items])
