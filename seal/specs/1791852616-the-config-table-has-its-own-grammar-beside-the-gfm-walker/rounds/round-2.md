@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #925 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `4dfb3d0d9bb0a2fc4a4dec1ed4291dd53f1a87ce..40fab1ec06e7658ac941a3c46cddf1dd82ad0bed`, 11 commits |
+| Contract changes | test_a_vendored_copy_under_a_notify_row_leaves_a_row_citing_no_clause → pytest only; test_s6_a_pact_line_below_the_table_leaves_the_moved_row → pytest only; test_s9_a_vendored_copy_leaves_where_the_plugin_refuses_a_pact_line → pytest only |
+| New units | gfm_line_starts (depth 1); VENDORED_FIRST_CELL (depth 1); VENDORED_THEMATIC_BREAK (depth 1); VENDORED_PIECE_BREAK (depth 1); vendored_block_closes_below (depth 1); test_a_fold_row_written_again_below_the_stop_has_no_value (depth 1); walk_refused (depth 1); assert_refused_by_the_walk (depth 1); test_the_twin_names_an_example_table_inside_a_closed_block (depth 1); test_the_twin_does_not_call_a_block_line_a_row (depth 1); test_a_signer_after_a_break_gfm_does_not_honour_is_no_signer (depth 1); test_a_heading_after_a_break_does_not_end_the_rows_nobody_reads (depth 1); test_a_header_after_a_break_gfm_does_not_honour_is_no_table (depth 1); test_an_item_named_under_the_next_heading_is_another_tables (depth 1); test_a_line_below_the_stop_is_a_line_where_gfm_begins_one (depth 1) |
 | Fix of a fix | first — 🟡 7 at hooks/config.py#config_table, a unit round-1's fixes changed; 🟡 10 at hooks/config.py#rows_named_below, a unit round-1's fixes added; 🟡 11 at skills/evidence-check/scripts/evidence_check.py#vendored_config_rows, a unit round-1's fixes changed; 🟡 12 at skills/evidence-check/scripts/evidence_check.py#vendored_config_rows, a unit round-1's fixes changed |
 | Needs a fix | yes — 🟡 7 (a header after a break reads a table GitHub does not render), 🟡 8 (the twin reads an item the plugin refuses), 🟡 9 (fold-check reads it too), 🟡 10 (the count runs past the next heading), 🟡 11 and 🟡 12 (the twin's refusal sentences name a wrong edit), 🟡 13 (a fifth narrating docstring) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -33,13 +33,13 @@ Round 2 of #871, the verifying round, target 383d9f19: the diff of round 1's fix
 | 🟢 | round 1's first question is applied at the four named docstrings | `hooks/config.py:331` | confirmed | read: also `:257`, the walker's header comment, `broad_gate.py` `missing_row`; a fifth is 🟡 13 |
 | 🟢 | round 1's second question is answered in `config_value` | `hooks/config.py#config_value` | confirmed | executed: a row written again below a refused line has no value; its reach is 🟡 8, 🟡 9 and 🟡 10 |
 | 🟢 | the twin's block-following above the header never reads where the plugin refuses | `skills/evidence-check/scripts/evidence_check.py#vendored_block_left_open` | confirmed | executed: 12,719 documents, none; 36 where the plugin answers no table are cmark-gfm's rows, the limit `hidden_lines` documents |
-| 🟡 7 | a header or delimiter row after a form feed or U+2028 reads a table cmark-gfm does not render; the guard asks body rows only | `hooks/config.py#config_table` | open | executed: plugin reads `Mode shared`, cmark-gfm renders no table, for FF and U+2028 in both positions; the fix applied in the clone refuses all four breaks measured |
-| 🟡 8 | the vendored twin reads an item the plugin refuses as written again below the stop | `skills/evidence-check/scripts/evidence_check.py#vendored_config_value` | open | executed: plugin "`Ledger frozen from` appears 2 times — one value", twin `100`; no `CONFIG_SHAPES` shape holds it |
-| 🟡 9 | fold-check reads a row `config_value` gives no value; `broad_command`'s docstring says such a row is a value | `skills/settle/scripts/fold_check.py#config_rows` | open | executed: `declared` returns 400, `config_value` refuses; read: `broad_gate.py:840` |
-| 🟡 10 | `rows_named_below` counts past the next heading, so a notes table doubles the config row | `hooks/config.py#rows_named_below` | open | executed: `Mode` refused as "appears 2 times" over a notes table under `## Notes`; `gfm_table` stops its stray rows at a heading |
-| 🟡 11 | the twin tells a person to close a fence or a comment that closes below the header | `skills/evidence-check/scripts/evidence_check.py:4430` | open | executed: both `LACKS_BLOCK_STATE` example shapes get the never-closed sentences; no case pins either sentence |
-| 🟡 12 | the twin says a fence, list, quote, HTML or code line under the table is one of its rows and to write it as a row | `skills/evidence-check/scripts/evidence_check.py:4496` | open | executed: cmark-gfm ends the table at all six lines and the plugin reads it whole; the build's sentence, opened beside 🟡 11 |
-| 🟡 13 | `with_row`'s docstring narrates the stop rule the tree no longer has | `skills/implement/scripts/seal.py:1475` | open | read: the fifth instance of round 1's first question; no other in hooks, skills, templates, docs or agents |
+| 🟡 7 | a header or delimiter row after a form feed or U+2028 reads a table cmark-gfm does not render; the guard asks body rows only | `hooks/config.py#config_table` | **fixed** `c21fd899` | fixed at c21fd899; executed: plugin reads `Mode shared`, cmark-gfm renders no table, for FF and U+2028 in both positions; the fix applied in the clone refuses all four breaks measured |
+| 🟡 8 | the vendored twin reads an item the plugin refuses as written again below the stop | `skills/evidence-check/scripts/evidence_check.py#vendored_config_value` | **fixed** `91d9225d` | fixed at 91d9225d; executed: plugin "`Ledger frozen from` appears 2 times — one value", twin `100`; no `CONFIG_SHAPES` shape holds it |
+| 🟡 9 | fold-check reads a row `config_value` gives no value; `broad_command`'s docstring says such a row is a value | `skills/settle/scripts/fold_check.py#config_rows` | **fixed** `191b343b` | fixed at 191b343b; executed: `declared` returns 400, `config_value` refuses; read: `broad_gate.py:840` |
+| 🟡 10 | `rows_named_below` counts past the next heading, so a notes table doubles the config row | `hooks/config.py#rows_named_below` | **fixed** `176d03b5` | fixed at 176d03b5; executed: `Mode` refused as "appears 2 times" over a notes table under `## Notes`; `gfm_table` stops its stray rows at a heading |
+| 🟡 11 | the twin tells a person to close a fence or a comment that closes below the header | `skills/evidence-check/scripts/evidence_check.py:4430` | **fixed** `91d9225d` | fixed at 91d9225d; executed: both `LACKS_BLOCK_STATE` example shapes get the never-closed sentences; no case pins either sentence |
+| 🟡 12 | the twin says a fence, list, quote, HTML or code line under the table is one of its rows and to write it as a row | `skills/evidence-check/scripts/evidence_check.py:4496` | **fixed** `91d9225d` | fixed at 91d9225d; executed: cmark-gfm ends the table at all six lines and the plugin reads it whole; the build's sentence, opened beside 🟡 11 |
+| 🟡 13 | `with_row`'s docstring narrates the stop rule the tree no longer has | `skills/implement/scripts/seal.py:1475` | **fixed** `aaba2cd9` | fixed at aaba2cd9; read: the fifth instance of round 1's first question; no other in hooks, skills, templates, docs or agents |
 
 ## Paste-ready fixes
 
