@@ -542,9 +542,13 @@ def rule_lines(lines):
 def classify(text):
     """`(history line numbers, rule line count)` for one markdown document.
 
+    The lines are GFM's (`unverified_check.py#gfm_lines`), so a line number
+    is the one GitHub and `grep -n` show, and the fence and comment walk is
+    handed those lines as they stand.
+
     Reads: guess — a person's markdown, through `hooks/config.py#unfenced` and `unverified_check.py#heading_level`; unknown passed"""
-    lines = text.splitlines()
-    shown = {index for index, _ in sibling("config").unfenced(lines, text)}
+    lines = sibling("unverified_check").gfm_lines(text)
+    shown = {index for index, _ in sibling("config").unfenced(lines)}
     heading_level = sibling("unverified_check").heading_level
     rules = rule_lines(lines)
     history, rule = [], 0
@@ -694,9 +698,12 @@ def declarations(body):
     """`(raised, removed)` the body declares: `raised` maps a name to its
     `(old, new, reason)` lines, `removed` a name to its reasons.
 
+    A line is a line where GitHub renders one (`unverified_check.py#gfm_lines`),
+    so a declaration has to open a line the body shows.
+
     Reads: guess — a person's pull request body, one line at a time; unknown refused"""
     raised, removed = collections.defaultdict(list), collections.defaultdict(list)
-    for line in body.splitlines():
+    for line in sibling("unverified_check").gfm_lines(body):
         text = line.strip()
         up = RAISED.fullmatch(text)
         if up:

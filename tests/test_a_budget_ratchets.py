@@ -39,6 +39,9 @@ def _load():
 
 budget_check = _load()
 
+# U+2028, which `str.splitlines` ends a line at and GitHub does not.
+LS = chr(0x2028)
+
 # The fixture agent's two files, 600 and 400 bytes: `preload:warden` measures
 # 1,000 bytes in every tree `tree` builds. A second agent, `scout`, shares the
 # skill and measures 500, so a case can hold a row the base did not name.
@@ -199,8 +202,16 @@ RAISED_HEAD = budgets(warden(1050, "10 %"))
         "Budget raised: preload:warden 900 -> 1050: an earlier one",
         "The warden budget preload:warden moves 1000 -> 1050 here.",
         "Budget raised: preload:warden 1000 -> 1050:",
+        "Intro" + LS + "Budget raised: preload:warden 1000 -> 1050: one line to GitHub",
     ],
-    ids=["no line", "another new value", "another old value", "a mention", "no reason"],
+    ids=[
+        "no line",
+        "another new value",
+        "another old value",
+        "a mention",
+        "no reason",
+        "a line that opens no line GitHub shows",
+    ],
 )
 def test_a_raise_without_its_line_fails(tmp_path, capsys, body):
     """T4, S2: a ceiling higher than at the merge base fails unless the body
@@ -514,6 +525,7 @@ def test_the_preload_measurer_sums_the_agents_files_and_not_the_pair(tmp_path):
             [4],
         ),
         ("**The rule.** #123 grounds it.\n\nThe story of #456.\n", [3]),
+        ("One line" + LS + "of prose.\nSee #123.\n", [2]),
     ],
     ids=[
         "an issue number",
@@ -527,6 +539,7 @@ def test_the_preload_measurer_sums_the_agents_files_and_not_the_pair(tmp_path):
         "a heading",
         "a rule block to its Enforced by line",
         "a rule block to the end of its paragraph",
+        "a line GitHub does not end at U+2028",
     ],
 )
 def test_the_docs_classifier_skips_fences_comments_headings_and_rule_blocks(
