@@ -440,6 +440,27 @@ def test_s7_a_notify_row_below_the_signers_table_is_exit_2(world):
     assert "— `Pact notify`: will not parse;" in out, out
 
 
+def test_a_signer_config_the_walker_refuses_is_exit_2(world):
+    """S4 of #871, `pact-check`'s case. A signer's table is read by the
+    walker cmark-gfm holds, so a bare-piped line in it is refused in the
+    walker's sentence, naming the line, and the run exits 2. Seen red against
+    the stop rule: the line ended the table in silence and the run was
+    clean."""
+    write(
+        world["web"],
+        "seal/config.md",
+        config(("Pact", PACT_URL)) + "| Broad gate | bin/test -q | tee out |\n",
+    )
+    cite(world, clause(V2))
+    code, out = run(world)
+    assert code == 2, out
+    assert (
+        f"REFUSED {SIGNER_URL} seal/config.md — has a `Item | Value` table that "
+        "stops at `| Broad gate | bin/test -q | tee out |`, which is not a "
+        "2-cell row written `| … | … |`"
+    ) in out, out
+
+
 def test_no_pact_here_and_no_origin_are_unusable_input(world):
     """Exit 2 for the two ways the pact's repository cannot be read."""
     code, out = run(world, root=world["web"])

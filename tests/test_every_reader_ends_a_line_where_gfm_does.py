@@ -647,6 +647,12 @@ OUT_OF_CLASS = {
     ("skills/verify/scripts/broad_gate.py", "Check.first_lines"): (1, TOOL),
     ("skills/verify/scripts/broad_gate.py", "fence_left_open"): (1, F),
     ("skills/verify/scripts/broad_gate.py", "hidden_row_at"): (1, F),
+    # #871: the `Broad gate` line the walker did not read, the line it
+    # stopped at and what is written below that line, each read through
+    # `unfenced` on the split the walker itself numbers its rows on.
+    ("skills/verify/scripts/broad_gate.py", "refused_broad_row"): (1, F),
+    ("skills/verify/scripts/broad_gate.py", "stopping_line"): (1, F),
+    ("skills/verify/scripts/broad_gate.py", "rows_written_below"): (1, F),
     ("skills/verify/scripts/broad_gate.py", "gate"): (1, TOOL),
     ("skills/verify/scripts/broad_gate.py", "job_steps"): (1, YAML),
     ("skills/verify/scripts/broad_gate.py", "ledger_total"): (1, TOOL),
@@ -679,14 +685,21 @@ OUT_OF_CLASS.update(
         ),
         (".github/scripts/rider_check.py", "main"): (1, "the docstring's first line"),
         (".github/scripts/rider_check.py", "riders_in"): (1, F),
+        # #871: the walker's pieces kept with their endings, so a piece that
+        # does not begin a GFM line is told from one that does.
+        ("hooks/config.py", "gfm_line_starts"): (
+            1,
+            "the walker's pieces with their endings, each asked whether it "
+            "begins a GFM line",
+        ),
+        # The lines below the walk's last row, through `unfenced`, on the
+        # split the walker numbers its rows on.
+        ("hooks/config.py", "rows_named_below"): (1, F),
         (".github/scripts/rider_check.py", "write_block"): (
             2,
             "the pieces `riders_in` read, written back each with its own end",
         ),
         ("hooks/blocks.py", "walk_text"): (1, F),
-        # `config_rows`' walk, which keeps each row's index since #759.
-        ("hooks/config.py", "indexed_config_rows"): (1, F),
-        ("hooks/config.py", "refusal"): (1, F),
         # Each GFM line counted in the reader's pieces of it, so a line the
         # walk took whole is told from one a `str.splitlines`-only character
         # cuts (#759).
@@ -699,9 +712,9 @@ OUT_OF_CLASS.update(
             1,
             F,
         ),
-        # The one GFM table walker the pact's `Signer` table and both pact
-        # records are read through, reading what `unfenced` shows it as
-        # `config_rows` does (#647; ⬜ 21 of #735's round 3).
+        # The one GFM table walker `seal/config.md`'s table (#871), the
+        # pact's `Signer` table and both pact records are read through,
+        # reading what `unfenced` shows it (#647; ⬜ 21 of #735's round 3).
         ("hooks/config.py", "gfm_table"): (1, F),
         # A glued old header quoted as written, read back by its row number.
         ("hooks/config.py", "read_table"): (

@@ -165,11 +165,11 @@ its own root, and every 0.3.x work item carried `routing.md` (#688).
    a CI `run:` step is where one is likeliest to come from. Offer it that way
    rather than dropping the pipe or moving to the next candidate: the cell is
    markdown's, and the reader reduces `\|` to a plain pipe before any shell
-   sees it. Say why, because a bare one still parses as no row, the gate then
-   quotes that line back instead of reporting the row as absent, and — where
-   a row above it already parsed — every row written below it is lost with it.
-   `templates/config.md` §*What is refused, and what stays allowed* carries
-   the measurement.
+   sees it. Say why, because a bare one is refused: GitHub shows the row cut
+   off at the pipe, the gate quotes that line back with the edit instead of
+   reporting the row as absent, and every row written below it goes unread
+   with it. `templates/config.md` §*What is refused, and what stays allowed*
+   carries the rule.
 
    **Name the criterion; do not restate it.** `templates/config.md`
    §*Choosing a value — the criterion* owns the criterion, three rules with

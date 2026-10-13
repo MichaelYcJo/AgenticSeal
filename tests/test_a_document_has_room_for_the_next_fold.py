@@ -445,6 +445,43 @@ def test_a_row_written_twice_is_refused_and_nothing_is_checked(tmp_path, row):
     ), err
 
 
+def test_a_row_the_walker_did_not_read_is_refused_and_nothing_is_checked(tmp_path):
+    """S4 of #871, `fold-check`'s case. A `Document line ceiling` row under a
+    line the table walker refuses is one it never read, so the run exits 2
+    in the walker's sentence, naming the line, and nothing is checked. A
+    refusal below all three of this command's rows touches none of them, so
+    that table is read and checked. Seen red against the stop rule: the
+    ceiling row was not read, and the run said nothing was declared at exit
+    0."""
+    (tmp_path / "under").mkdir()
+    (tmp_path / "below").mkdir()
+    root = config_root(
+        tmp_path / "under",
+        [
+            ("Mode", "shared"),
+            ("Broad gate", "bin/test -q | tee out"),
+            ("Document line ceiling", "10"),
+        ],
+    )
+    code, out, err = command("--root", root)
+    assert code == 2 and not out, (out, err)
+    assert "stops at `| Broad gate | bin/test -q | tee out |`" in err, err
+    assert err.endswith("— nothing was checked\n"), err
+
+    root = config_root(
+        tmp_path / "below",
+        [
+            ("Fold shape from", "0"),
+            ("Document line ceiling", "10"),
+            ("Over the ceiling", "none"),
+            ("Broad gate", "bin/test -q | tee out"),
+        ],
+    )
+    code, out, err = command("--root", root)
+    assert code == 0, (out, err)
+    assert "held 1 document under docs/ to 10 lines" in out, out
+
+
 @pytest.mark.parametrize("shape", ["directory", "undecodable"])
 def test_an_unreadable_config_is_refused_not_read_as_no_row(tmp_path, shape):
     """S3 of #867, `fold-check`'s half. A `config.md` that is there and will
@@ -552,3 +589,17 @@ def test_a_listed_document_below_the_top_level_is_named_as_outside_it(tmp_path):
         "docs/deep/big.md is listed over the ceiling and is not a top-level "
         "docs/*.md, the only documents the ceiling holds"
     ], found
+
+
+def test_a_fold_row_written_again_below_the_stop_has_no_value(tmp_path):
+    """#871 round 2, yellow 9. A row read above a line the walk refused and
+    written again below it has no value, in fold-check as in
+    `config_value`. Seen red against 4dfb3d0d: `declared` returned 400."""
+    (tmp_path / "config.md").write_text(
+        "# c\n\n| Item | Value |\n|---|---|\n| Fold shape from | 100 |\n"
+        "| Document line ceiling | 400 |\n| Over the ceiling | none |\n"
+        "| a | b | c |\n| Document line ceiling | 9000 |\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(fold_check.Unusable, match="appears 2 times"):
+        fold_check.declared(str(tmp_path))

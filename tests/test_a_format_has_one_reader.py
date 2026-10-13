@@ -88,6 +88,11 @@ HEADING_EXEMPT = {
         "ATX_HEADING",
     ): "the GFM table walker's table-end rule, held to cmark-gfm (spec Out)",
     (
+        "skills/evidence-check/scripts/evidence_check.py",
+        "VENDORED_ATX_HEADING",
+    ): "the vendored twin of that table-end rule, held equal to "
+    "`hooks/config.py#ATX_HEADING` by `tests/test_evidence_check.py` (#871)",
+    (
         "skills/code-review/scripts/round_record.py",
         r"|\#{1,6}(?=\s|$)",
     ): "where a hand-wrapped paragraph ends, pinned pairwise (spec Out)",

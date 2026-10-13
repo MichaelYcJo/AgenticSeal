@@ -523,18 +523,38 @@ def config_reader():
 
 
 def config_rows(home):
-    """Every `| Item | Value |` row of `<home>/config.md`, through the one
-    table reader, `hooks/config.py#config_rows`. No root and no file are no
-    row at all; a file that is there and will not read is `Unusable`, in the
-    reader's own sentence (#867), because reading it as no row turned every
-    check this command runs off at exit 0."""
+    """Every `| Item | Value |` row of `<home>/config.md` the table walker
+    read, through the one table reader, `hooks/config.py#config_table`. No
+    root and no file are no row at all; a file that is there and will not
+    read is `Unusable`, in the reader's own sentence (#867), because reading
+    it as no row turned every check this command runs off at exit 0.
+
+    Reads: guess — a person's `| Item | Value |` table, through `hooks/config.py#config_table`; unknown refused
+
+    **A table the walker refused is `Unusable` where it did not read one of
+    the three rows this command reads** (#871), in the walker's sentence: an
+    unread row may be written below the line it stopped at, so it is not
+    absent, and reading it as absent is the same exit 0 an unreadable file
+    gave. A refusal below all three rows touches none of them, unless one of
+    them is written again below it: `config_value` gives that row no value,
+    and neither does this command."""
     if not home:
         return []
     reader = config_reader()
     text, refused = reader.config_text(home)
     if refused is not None:
         raise Unusable(refused)
-    return [] if text is None else reader.config_rows(text)
+    if text is None:
+        return []
+    rows, refusals = reader.config_table(text)
+    read = {item for _index, item, _value in rows}
+    if refusals and not {SHAPE_ROW, CEILING_ROW, OVER_ROW} <= read:
+        raise Unusable(f"the file {refusals[0]}")
+    for item in (SHAPE_ROW, CEILING_ROW, OVER_ROW) if refusals else ():
+        refused = reader.config_value(text, item)[1]
+        if refused is not None:
+            raise Unusable(refused)
+    return [(item, value) for _index, item, value in rows]
 
 
 def parse_over(value):

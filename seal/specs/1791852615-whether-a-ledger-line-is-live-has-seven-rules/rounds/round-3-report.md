@@ -125,7 +125,7 @@ otherwise. `hidden_lines` is called by `unfenced` (`hooks/config.py:176`),
 and `unfenced` is handed these files:
 
 - `seal/config.md`, by `config_rows`, `refusal`, `indexed_config_rows` and
-  `skills/implement/scripts/seal.py#table_span`;
+  `skills/implement/scripts/seal.py#table_span`; · NAME NOT IN TREE
 - `seal/pact.md`, through `hooks/config.py#pact_signers`, then
   `read_table`, then `gfm_table` (`hooks/config.py:1350`), called by
   `pact_check.py:542` and `chain_check.py:4844`;
