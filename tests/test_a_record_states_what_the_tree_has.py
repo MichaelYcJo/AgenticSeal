@@ -2026,23 +2026,35 @@ def strayed(line):
     )
 
 
+STANDING_ROW = "| y | `mod.py#old_reader` | z |"
+GONE_ROW = "| y | `mod.py#gone_reader` | z |"
+
+
 @pytest.mark.parametrize("required", [False, True], ids=["unrequired", "required"])
 @pytest.mark.parametrize(
-    ("tail", "number"),
+    ("tail", "number", "row"),
     [
-        ("| y | `mod.py#old_reader` | z |\n", 11),
-        (REMOVES_HEAD.split("\n", 4)[4] + "| y | `mod.py#old_reader` | z |\n", 13),
+        (STANDING_ROW + "\n", 11, STANDING_ROW),
+        (REMOVES_HEAD.split("\n", 4)[4] + STANDING_ROW + "\n", 13, STANDING_ROW),
+        ("Prose.\n\n### Phase 3\n\n" + STANDING_ROW + "\n", 15, STANDING_ROW),
+        (GONE_ROW + "\n", 11, GONE_ROW),
     ],
-    ids=["a row alone", "a whole second table"],
+    ids=[
+        "a row alone",
+        "a whole second table",
+        "a row under a second sub-heading",
+        "a row naming a unit that is gone",
+    ],
 )
 def test_a_table_row_under_a_sub_heading_of_removes_is_refused(
-    tmp_path, required, tail, number
+    tmp_path, required, tail, number, row
 ):
     """Round 1 of #905, 🟡 1. The section ends at any heading so prose has a
-    home, and a table row under that sub-heading is refused naming it —
-    never read by the name half alone, where a unit that still stands
-    passes. A second table's header and rule rows name no removal and are
-    not refused; its body row is."""
+    home, and a table row under that sub-heading — or under a later one,
+    before the next level-2 heading — is refused naming it, never read by
+    the name half alone, where a unit that still stands passes. A second
+    table's header and rule rows name no removal and are not refused; its
+    body row is, once: the name half does not also read a gone name on it."""
     tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
     h = home(tmp_path)
     if required:
@@ -2055,7 +2067,7 @@ def test_a_table_row_under_a_sub_heading_of_removes_is_refused(
     )
     found, _ = refusals(tmp_path)
     assert [(s, c.replace(os.sep, "/").rsplit("/", 1)[-1], d) for s, c, d in found] == [
-        ("REFUSED", f"spec.md:{number}", strayed("| y | `mod.py#old_reader` | z |"))
+        ("REFUSED", f"spec.md:{number}", strayed(row))
     ]
 
 
