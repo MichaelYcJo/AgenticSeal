@@ -624,6 +624,16 @@ CONFIG_SHAPES = {
     + "created by `seal mode`. "
     + config_shapes.CLOSE
     + "\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
+    # A fence and a one-line comment that close above the header hide
+    # nothing from GFM; each was planted after a mutation of the twin's
+    # closing check survived the shapes above.
+    "a closed fence above the header": "# c\n\n```\nan example\n```\n\n"
+    "| Item | Value |\n|---|---|\n| Mode | shared |\n",
+    "a one-line comment above the header": "# c\n\n"
+    + config_shapes.OPEN
+    + " a note "
+    + config_shapes.CLOSE
+    + "\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
     "this repository's own config": open(
         os.path.join(ROOT, "seal", "config.md"), encoding="utf-8"
     ).read(),
