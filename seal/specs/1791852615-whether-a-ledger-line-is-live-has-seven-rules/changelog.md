@@ -13,5 +13,5 @@
   holds all seven side by side on ten shapes of line, so a reader whose
   answer moves turns a named cell red. `hooks/config.py` and
   `hooks/routing.py` still read a row below a comment opener nobody closed,
-  because each keeps the reading it gave before its walk was added, and the
-  statement says so.
+  unless a fence that closes holds it, because each keeps the reading it
+  gave before its walk was added, and the statement says so.
