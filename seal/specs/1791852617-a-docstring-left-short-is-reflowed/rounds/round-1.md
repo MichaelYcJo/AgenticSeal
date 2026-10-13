@@ -15,7 +15,7 @@
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,7 +25,7 @@ Round 1 of #844, target c88d537d against `origin/release/v0.21.1` at 321e9de1, o
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| ⬜ 1 | The re-read row says #844 rewrapped "the last five lines" of the docstring; six lines were rewrapped into five, and `overview.md:16` says the same | `seal/ledger/1791852617-a-docstring-left-short-is-reflowed.md:1` | open | executed: the base docstring ends in six lines (widths 35, 76, 77, 75, 70, 12) and HEAD's in five; the diff removes six and adds five. A correction to paperwork under `seal/`, not counted in `Needs a fix` |
+| ⬜ 1 | The re-read row says #844 rewrapped "the last five lines" of the docstring; six lines were rewrapped into five, and `overview.md:16` says the same | `seal/ledger/1791852617-a-docstring-left-short-is-reflowed.md:1` | answered | corrected at 90fbe8fb — the ledger row's Read clause and `overview.md:16` say six lines rewrapped into five, round 1's paste-ready text; executed: the base docstring ends in six lines (widths 35, 76, 77, 75, 70, 12) and HEAD's in five; the diff removes six and adds five. A correction to paperwork under `seal/`, not counted in `Needs a fix` |
 | 🟢 | the docstring equals round 3's fence and changes no word and no code | `tests/test_one_word_one_meaning.py:737` | confirmed | executed: a deleted probe; lines 737–745 equal the fence from 25a05c68 byte for byte; the same 255 words in order; the body's AST and every line outside the function unchanged; `bin/test tests/test_one_word_one_meaning.py -q`, exit 0, 21 passed; `ruff check` and `ruff format --check` on the file, exit 0 |
 | 🟢 | the re-read row keeps R6's family current at the reflowed unit's hash | `seal/ledger/1791852617-a-docstring-left-short-is-reflowed.md:1` | confirmed | executed: `evidence-check --strict --ledger` on the fragment exits 0 (2 ok); on `seal/releases/0.20.0.md` and `seal/releases/0.19.0.md` each exits 0 with nothing drifted; with the fragment moved out, `seal/releases/0.20.0.md` exits 2 with `without_the_policy_span` DRIFTED in a family of three rows, so the row is what clears it |
 | 🟢 | no changelog fragment is owed for this work item | `seal/specs/1791852617-a-docstring-left-short-is-reflowed/overview.md:34` | confirmed | read: `docs/the-record-layout.md` states a commit that changes nothing a release note states owes the fragment nothing, and no document requires a fragment per work item; executed: three other live work items carry none, 1791090072 among them |
