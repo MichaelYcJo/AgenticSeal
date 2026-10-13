@@ -30,8 +30,8 @@ edits to the acts table, `docs/worktree-guard-spec.md` §*Known limits* and
 lists and the `CLAUDE.md` block touch none of what those claims state.
 
 **`bin/evidence-check --strict` refused the overview once**: it named
-`test_the_question_is_two_questions_in_one_call` on the divergence row, a
-name the tree no longer carries. The row now marks it `NAME NOT IN TREE`.
+the S1 case's old name on the divergence row, a name the tree no longer
+carries. The row now marks it `NAME NOT IN TREE`.
 After that, `--strict` over every ledger exited 0 (`8482 ok · 0 drifted ·
 0 broken`), and `unverified-check` exited 0 with three open rows, each with
 its answerer.
