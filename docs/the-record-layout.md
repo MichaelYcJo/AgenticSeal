@@ -155,6 +155,18 @@ end owns nothing, and `close` refuses it rather than writing an empty
 surface.
 Enforced by: skills/code-review/scripts/chain_check.py::own_commits, skills/code-review/scripts/round_record.py::own_units, tests/test_a_range_owns_what_git_lists_for_it.py, tests/test_the_range_rule_states_no_shape.py, tests/test_a_fragment_left_behind_is_named.py::test_a_branch_rebuilt_on_the_base_names_its_own_commits_and_not_the_siblings, tests/test_the_fixes_close_the_record.py::test_a_unit_a_merge_brought_into_a_file_an_own_commit_touched_is_not_new, tests/test_the_fixes_close_the_record.py::test_a_fixed_row_naming_a_commit_the_range_does_not_own_is_refused
 
+**The survivor sweep reads a two-dot range by its owned commits, and `A...B`
+at its two ends.** `survivor-check` counts each file's sentences at the
+range's two ends, and over `a..b` it keeps a removed or a written sentence
+only where an owned commit removed or wrote it at that path, so wording
+another work item corrected does not read as this range's (#873). `A...B`
+starts at the merge base and is read at its two ends, which is the spelling
+CI and the broad gate pass. Both limits above hold for the sweep: a change
+made only inside a merge's conflict resolution is not measured on a two-dot
+range, and a two-dot range whose start does not reach its end is refused,
+naming `A...B`.
+Enforced by: skills/code-review/scripts/survivor_check.py::corrected, skills/code-review/scripts/survivor_check.py::owned, tests/test_the_sweep_reads_a_range_as_its_own_commits.py
+
 ## docs/
 
 The standing policy. A `docs/` document outranks the work items' specs, and

@@ -1236,11 +1236,22 @@ NAMED_EXCEPTION = {
 # forms the module uses today, so a fourth call site written as a direct
 # `subprocess.run(["git", ...])` is found too.
 LISTS_PATHS = {"--name-only", "ls-files", "ls-tree"}
+# A sibling's function that hands back paths git listed, counted by the name
+# called (#873): `chain_check.py#own_commits` lists each own commit with the
+# paths it changed (`--name-status`), and the call holds no constant this
+# module could see.
+LISTS_PATHS_BY_NAME = {"own_commits"}
+# The own commits' paths are filtered by intersection rather than by the
+# predicate: `own_changes`, which `corrected` alone calls, keeps of each
+# commit's paths only those in `corrected`'s `paths`, already filtered by
+# `records_a_past_state`. So the list `owned` returns reaches no sentence
+# outside the range as `corrected` measures it.
+INTERSECTED_WITH_THE_RANGE = {"owned": "own_changes"}
 # How many path-listing calls each scope is allowed to make. Module scope is a
 # scope, and it is spelled here so a list built at import time is named rather
 # than missed.
 MODULE_SCOPE = "<module>"
-PATH_LIST_CALLS = {"corrected": 1, "tracked": 1, "whole_range": 1}
+PATH_LIST_CALLS = {"corrected": 1, "tracked": 1, "whole_range": 1, "owned": 1}
 
 
 def _path_list_words(call):
@@ -1278,12 +1289,46 @@ def _derives_a_path_list(tree):
             if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 visit(child, child.name)
                 continue
-            if isinstance(child, ast.Call) and _path_list_words(child):
+            if isinstance(child, ast.Call) and (
+                _path_list_words(child) or _called_name(child) in LISTS_PATHS_BY_NAME
+            ):
                 found[scope] = found.get(scope, 0) + 1
             visit(child, scope)
 
     visit(tree, MODULE_SCOPE)
     return found
+
+
+def _called_name(call):
+    """The name a call's function is spelled with, a module's attribute
+    included: `loaded.own_commits(...)` is `own_commits`."""
+    if isinstance(call.func, ast.Name):
+        return call.func.id
+    if isinstance(call.func, ast.Attribute):
+        return call.func.attr
+    return None
+
+
+def _intersects_with(tree, function, name):
+    """True when `function` takes `&` of something with `name` in it."""
+    return any(
+        isinstance(node, ast.BinOp)
+        and isinstance(node.op, ast.BitAnd)
+        and any(
+            isinstance(inner, ast.Name) and inner.id == name for inner in ast.walk(node)
+        )
+        for node in ast.walk(_function(tree, function))
+    )
+
+
+def _passes(tree, caller, callee, name):
+    """True when `caller` calls `callee` with `name` as an argument."""
+    return any(
+        isinstance(call, ast.Call)
+        and _called_name(call) == callee
+        and any(isinstance(arg, ast.Name) and arg.id == name for arg in call.args)
+        for call in ast.walk(_function(tree, caller))
+    )
 
 
 def _mentions(tree, function, name):
@@ -1329,7 +1374,10 @@ def test_every_path_list_this_module_derives_from_git_is_filtered_or_named():
     tree = ast.parse(source)
     derivers = _derives_a_path_list(tree)
     declared = (
-        FILTERS_ITS_OWN_LIST | set(FILTERED_BY_ITS_CALLERS) | set(NAMED_EXCEPTION)
+        FILTERS_ITS_OWN_LIST
+        | set(FILTERED_BY_ITS_CALLERS)
+        | set(NAMED_EXCEPTION)
+        | set(INTERSECTED_WITH_THE_RANGE)
     )
     assert set(derivers) == declared, (
         f"the module derives a path list from git in {sorted(derivers)} and "
@@ -1363,6 +1411,20 @@ def test_every_path_list_this_module_derives_from_git_is_filtered_or_named():
             f"{name} is reached from {sorted(_callers_of(tree, name))} and "
             f"only {sorted(callers)} are declared filtering its result, so the "
             "list now leaves this module unfiltered by one of those paths"
+        )
+    for name, intersector in INTERSECTED_WITH_THE_RANGE.items():
+        assert _callers_of(tree, intersector) == {"corrected"}, (
+            f"{intersector} keeps {name}'s paths inside the range, and it is "
+            f"reached from {sorted(_callers_of(tree, intersector))} rather "
+            "than from `corrected` alone"
+        )
+        assert _passes(tree, "corrected", intersector, "paths"), (
+            f"`corrected` no longer hands {intersector} its filtered `paths`, "
+            f"so the paths {name} lists are intersected with something else"
+        )
+        assert _intersects_with(tree, intersector, "paths"), (
+            f"{intersector} no longer intersects the own commits' paths with "
+            f"`paths`, so {name}'s list reaches paths `{PREDICATE}` refused"
         )
     for name, grounds in NAMED_EXCEPTION.items():
         assert not _mentions(tree, name, PREDICATE), (

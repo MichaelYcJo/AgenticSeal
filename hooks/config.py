@@ -186,6 +186,14 @@ def hidden_lines(lines, text=None):
     """({index: "fence" or "comment"} for every line of LINES no walk of the
     table is shown, the index of a fence opener never closed or None).
 
+    Reads: guess — the lines of `seal/config.md`, through `hooks/blocks.py#walk`; unknown mixed
+
+    A line that declares something is not taken on doubt where the older
+    reading would not take it, the second of the three answers
+    `docs/the-evidence-ledger.md` §*The fold, and what tells it from a
+    deletion* gives: a row this hides is no declaration, so a hook says
+    nothing and a gate asks, and `broad-gate` names a fence left open.
+
     **TEXT is the file LINES were split from, and every caller that has it
     passes it** (#667 round 1, 🟡 1). The readers split with
     `str.splitlines`, which ends a line at U+2028, NEL, a form feed and five

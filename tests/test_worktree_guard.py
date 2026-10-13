@@ -930,6 +930,157 @@ def test_worktree_add_active_session_asks(monkeypatch, capsys, repo):
     )
 
 
+# S3 of work item 1791852612: the creation ladder's two choice rows as
+# `321e9de1` printed them for IDLE and for detection unusable, attempt 1 and
+# attempt 2, in both languages. Without the `automation` press they move
+# nowhere; `tests/test_a_creation_in_another_clone_asks_nobody.py` holds the
+# press.
+CREATION_OPTIONS = {
+    "en": (
+        "\n"
+        "Do not choose for the user. Ask with the AskUserQuestion tool, "
+        "offering exactly these two options:\n"
+        "\n"
+        "  {question}\n"
+        '    1. "Create the worktree" — retry it and approve at the prompt — '
+        "creating a worktree always takes a confirmation, so the retry asks "
+        "once.\n"
+        '    2. "Switch in the shared tree" — run `git switch <branch>  # '
+        "[shared-tree-ok]` for an existing branch, or `git switch -c <branch> "
+        "origin/main  # [shared-tree-ok]` for a new one instead. The token "
+        "carries this answer, so the switch is not questioned again.\n"
+        "\n"
+        "Then run what they picked. Re-issuing this command before they answer "
+        "reaches the ordinary confirmation prompt instead."
+    ),
+    "ko": (
+        "\n"
+        "사용자 대신 고르지 마세요. AskUserQuestion 툴로 아래 두 선택지를 그대로 "
+        "물어보세요:\n"
+        "\n"
+        "  {question}\n"
+        '    1. "worktree 를 만든다" — 그대로 다시 시도하고 확인창에서 승인하세요 '
+        "— worktree 생성은 항상 확인을 한 번 거치므로 재시도 때 한 번 "
+        "물어봅니다.\n"
+        '    2. "공용 트리에서 브랜치만 전환한다" — 대신 기존 브랜치면 `git switch '
+        "<branch>  # [shared-tree-ok]`, 새 브랜치면 `git switch -c <branch> "
+        "origin/main  # [shared-tree-ok]` 중 하나를 실행하세요. 이 토큰이 지금 "
+        "고른 답을 담고 있어 전환할 때 다시 묻지 않습니다.\n"
+        "\n"
+        "고른 쪽을 실행하세요. 답을 받기 전에 같은 명령을 다시 내면 일반 확인창이 "
+        "뜹니다."
+    ),
+}
+CREATION_SITUATION = {
+    ("en", "idle"): (
+        "Attempting to create a worktree with `git worktree add`.\n"
+        "The only other sessions here have shown no activity (input or "
+        "transcript) for {idle_min}+ minutes — if they are forgotten tabs this "
+        "is effectively single-stream work and plain `git switch` beats a "
+        "worktree.\n"
+        "    pid 222 (Terminal terminal)  /tree\n"
+        "        terminal in/out 6.7h ago · transcript activity 1.5h ago\n"
+    ),
+    ("en", "unusable"): (
+        "Attempting to create a worktree with `git worktree add`.\n"
+        "Cannot determine whether other sessions are working here (ps/lsof "
+        "unavailable), so no automatic verdict.\n"
+    ),
+    ("ko", "idle"): (
+        "`git worktree add` 로 worktree를 만들려 합니다.\n"
+        "이 트리의 다른 세션은 {idle_min}분 이상 활동(키 입력·작업 기록)이 없는 "
+        "것뿐입니다 — 잊힌 탭이면 사실상 단건 작업이라 worktree 없이 `git switch` "
+        "가 낫습니다.\n"
+        "    pid 222 (Terminal 터미널)  /tree\n"
+        "        터미널 입력/출력 6.7시간 전 · 작업 기록(트랜스크립트) 1.5시간 전\n"
+    ),
+    ("ko", "unusable"): (
+        "`git worktree add` 로 worktree를 만들려 합니다.\n"
+        "동시 세션 여부를 확인할 수 없어(ps/lsof 사용 불가) 자동 판정을 못 합니다.\n"
+    ),
+}
+CREATION_QUESTION = {
+    ("en", "idle"): "Only idle sessions here — split into a worktree, or switch "
+    "in the shared tree?",
+    ("en", "unusable"): "No verdict is possible here — split into a worktree, or "
+    "switch in the shared tree?",
+    ("ko", "idle"): "여기엔 멈춰 있는 세션뿐입니다 — worktree 로 분리할까요, 공용 "
+    "트리에서 전환할까요?",
+    ("ko", "unusable"): "여기서는 자동 판정이 불가능합니다 — worktree 로 "
+    "분리할까요, 공용 트리에서 전환할까요?",
+}
+CREATION_FALLBACK = {
+    ("en", "idle"): (
+        "\n"
+        "Still split into a worktree? Declining switches to plain `git switch` "
+        "in the shared tree instead:\n"
+        "  git fetch origin\n"
+        "  git switch -c <branch> origin/main   # new branch\n"
+        "  git switch <branch>                  # existing branch\n"
+        "\n"
+        "If this genuinely is concurrent work needing separation, state why and "
+        "get the user's confirmation first (if the user already asked for a "
+        "worktree, retry with [worktree-ok] in the command)."
+    ),
+    ("en", "unusable"): (
+        "Confirm if this really is concurrent work; if single-stream, cancel and "
+        "use `git switch`."
+    ),
+    ("ko", "idle"): (
+        "\n"
+        "그래도 worktree 로 분리할지 확인해 주세요. 거부하면 공유 트리에서 `git "
+        "switch` 로 전환합니다:\n"
+        "  git fetch origin\n"
+        "  git switch -c <branch> origin/main   # 새 브랜치\n"
+        "  git switch <branch>                  # 기존 브랜치\n"
+        "\n"
+        "정말 동시 작업이라 분리가 필요하면 그 이유를 밝히고 사용자 확인을 먼저 "
+        "받으세요 (사용자가 이미 워크트리를 지시했다면 명령에 [worktree-ok] 를 붙여 "
+        "다시 시도)."
+    ),
+    ("ko", "unusable"): (
+        "정말 동시 작업이면 확인해 주시고, 단건이면 취소하고 `git switch` 로 "
+        "진행하세요."
+    ),
+}
+
+
+def attended_creation(module, lang, state, attempt):
+    """(decision, reason) as `321e9de1` gave it for a creation."""
+    situation = CREATION_SITUATION[lang, state].format(idle_min=module.IDLE_MIN)
+    if attempt == 1:
+        return "deny", situation + CREATION_OPTIONS[lang].format(
+            question=CREATION_QUESTION[lang, state]
+        )
+    return "ask", situation + CREATION_FALLBACK[lang, state]
+
+
+def test_the_attended_creation_choice_rows_are_the_bases(monkeypatch, capsys, repo):
+    """S3 of work item 1791852612: both creation choice rows, both attempts,
+    both languages, as `321e9de1` printed them, with no `automation` press
+    anywhere. Captured at `321e9de1` by a deleted probe; seen red through
+    `mutation-check` with one word of row 3's question changed."""
+    for lang in ("en", "ko"):
+        monkeypatch.setenv("SPECSEAL_LANG", lang)
+        module = load_hook_module("worktree-guard.py", f"wg_903_s3_{lang}")
+        for state, sessions in (
+            ("idle", ([], IDLE, True)),
+            ("unusable", ([], [], False)),
+        ):
+            for attempt in (1, 2):
+                got = said(
+                    module,
+                    monkeypatch,
+                    capsys,
+                    repo,
+                    "git worktree add ../wt feature/x",
+                    sessions,
+                    f"s3-{lang}-{state}",
+                )
+                want = attended_creation(module, lang, state, attempt)
+                assert got == want, (lang, state, attempt, got)
+
+
 # --- leases: declared work streams ----------------------------------------
 
 
