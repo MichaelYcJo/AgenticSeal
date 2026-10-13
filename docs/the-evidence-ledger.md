@@ -638,12 +638,13 @@ kind of line they read, with the cost each answer is chosen against.
   `hooks/config.py#hidden_lines`, which reads `seal/config.md`, keeps,
   wherever its walk is unsure, the fence-only reading it gave before #667:
   a row below a fence nobody closed declares nothing, and a row below a
-  comment opener nobody closed still declares, because that reading never
-  hid one and work item 1790645290 was bound to miss no row the older
-  reading saw. `hooks/routing.py#shown`, which reads a `routing.md` and is
-  not one of the seven, keeps the reading it gave before #667 the same way,
-  and that reading hid nothing: a row below a fence or a comment opener
-  nobody closed still declares there. Those rows are the places a line
+  comment opener nobody closed still declares unless a fence that closes
+  holds it, because that reading never hid one and work item 1790645290
+  was bound to miss no row the older reading saw. `hooks/routing.py#shown`,
+  which reads a `routing.md` and is not one of the seven, keeps the reading
+  it gave before #667 the same way, and that reading hid nothing: a row
+  below a fence or a comment opener nobody closed still declares there,
+  unless a fence that closes holds it. Those rows are the places a line
   nobody wrote live declares something; at every other fence or comment,
   what this protects is that nothing is excused or declared by a line
   nobody wrote live. The wrong answer is a fold reported as a deletion at
@@ -660,7 +661,7 @@ No one rule serves all three kinds. The holding bias would let a fold marker
 quoted in an example excuse a removal nothing absorbed, and the excusing bias
 would drop a parked ledger row without a word. A reader of a new kind of line
 is a fourth answer, and it is argued against these three.
-Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_each_reader_gives_its_stated_answer_on_each_shape, tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_the_statement_names_each_reader_under_its_answer
+Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_each_reader_gives_its_stated_answer_on_each_shape, tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_the_statement_names_each_reader_under_its_answer, tests/test_routing_is_recorded.py::test_the_routing_shapes_read_as_the_frame_expects, tests/test_routing_is_recorded.py::test_a_declaration_below_a_comment_opener_nobody_closed_still_reads
 
 <!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
 **A fold is not a work item, and it adds no work item's rows to the
