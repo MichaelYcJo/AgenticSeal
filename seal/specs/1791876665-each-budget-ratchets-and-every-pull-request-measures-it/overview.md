@@ -22,6 +22,9 @@ ceiling has to say why in the body.
 | The seconds rows against a refreshed `.test_durations` | `spec.md` §*The budgets*: `suite-seconds` and `slow-file:*` are seconds read off the committed file, held to the band. The orchestrator's decision of phase 2, from #931's refresh run 38475370013 (7,861.7 → 8,490.3 s, 553.9 s of it the same cases priced 1.071 higher): with `--baseline` and the file changed, divide HEAD's seconds by the seconds-weighted ratio over the shared case ids, compared in the base's prices | code (phase 2): the ratio is measured as decided, and the level it divides by is a row of `seal/budgets.md`, `## Price level`, that the refresh restates to the base's level times the ratio, per mille; the run fails naming the number where it does not | divided by the base's ratio alone, the refresh's own pull request holds, and the next pull request's base already holds the refreshed file: its ratio is 1, its seconds are in the new prices and its ceilings in the old, and `suite-seconds` fails by 7 % on every pull request after the refresh, the suite case's reading included. Executed by phase 2's probe on a scratch clone; `questions.md` Q6 |
 | The rule block of the docs classifier | `spec.md` §*The docs classifier*: "from a line opening with `**` to the next `Enforced by:` line inclusive" | code (phase 2): to that line, or to the end of the block's paragraph where no such line closes it first | read literally, a bold lead with no `Enforced by:` after it makes the rest of the document rule lines: 118 history lines over `docs/` against the frame's 246. Bounded by the paragraph, 251 at 65a0ba5f, four files one off the frame's; `phases/phase-2.md` |
 | What a per-file family row's ceiling means | `spec.md` §*Data & interfaces* names the two file tables and §*The budgets* "a file not listed that crosses 120 s fails (the list may not grow)" | code (phase 2): the family's own row in the Budgets table holds every file its table does not list — 120 s for `slow-file`, 0 lines for `docs-history` — and gives the listed files its unit, slack and kind; listing a file above that ceiling is a raise from it and needs its line | one rule for both families, and "the list may not grow" without a line becomes something the ratchet can read |
+| The band on `ci-minutes:*` | `spec.md` §*The budgets*: every row is `measured ≤ ceiling ≤ measured × (1 + slack)`, `ci-minutes` at 60 % | code (phase 3): a row read off one run has the slack `one-sided`, a ceiling and no lower band, and only such a row may | the owner's approved default for #929 Q2: one run's minutes swing 1.08 to 1.21 times, and 3 of 5 quiet runs fell under the two-sided band on one leg |
+| How the checker reads a run | `spec.md` §*Data & interfaces* lists `--ci-run <id>` | code (phase 3): `--ci-jobs FILE`, the job list the workflow step fetches with `gh api … --paginate --jq '.jobs[]'`; with it the checker holds the run's rows alone, and without it the tree's run shows them unread | the checker reads no network and needs no token, so a case drives it from a file; the step that fetches is the one place the token is used |
+| `fetch-depth: 0` on the `budgets` job | spec silent; the job reads no history | code (phase 3): set, with a comment saying why | `tests/test_ci_gives_the_checks_what_they_need.py::test_every_job_that_runs_pytest_has_the_whole_history` picks a job by the word `pytest` in its text, and `needs: pytest` is that word. #931's branch picks by a line that invokes pytest instead; whichever lands second can drop the setting |
 
 ## Not verified
 
@@ -32,11 +35,12 @@ ceiling has to say why in the body.
 | The full suite, the repository-wide lint and the typecheck at this branch's tip | the sealer, after the review rounds settle |
 | `test_the_trees_budgets_hold` and the module on the Windows and macOS legs | the pull request's `tests` run |
 | That the price level holds against a real refresh: #931's refreshed `.test_durations` beside this branch's rows, the level restated to the number the step names, and every seconds row then holding | the orchestrator, when #931 and this branch meet on the release branch |
+| The `budgets` job on this branch's pull request: it runs after the pytest legs, reads the job list with its `actions: read` token, and its summary shows three legs against 15, 59 and 32 with the billable line | the orchestrator, from the pull request's `tests` run after the push |
 
 ## Not done
 
 `--json`, which `spec.md` §*Data & interfaces* lists, is not built: no phase
-of `plan.md` names it and no case asks for it. Phases 3–4 carry the rest of
+of `plan.md` names it and no case asks for it. Phase 4 carries the rest of
 the plan.
 
 ## Fed back into the spec
