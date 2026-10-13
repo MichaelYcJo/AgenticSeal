@@ -145,8 +145,7 @@ def collects_the_suite(args, invocation_dir, rootdir):
         return False
     whole = {os.path.realpath(ROOT), os.path.realpath(SUITE)}
     for arg in args:
-        path = os.path.join(str(invocation_dir), str(arg).split("::", 1)[0])
-        if os.path.realpath(path) in whole:
+        if os.path.realpath(os.path.join(str(invocation_dir), str(arg))) in whole:
             return True
     return False
 
