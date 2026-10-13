@@ -318,12 +318,21 @@ def test_a_workflow_with_no_entry_to_read_is_refused():
         )
 
 
+# A job runs pytest where a line of its code calls it: `run: pytest …`, a line
+# of a `run: |` block, or `python -m pytest`. `needs: pytest` names the job
+# of that name and runs nothing (#931's `durations` job, which reads no SHA),
+# and `pip install pytest` installs it.
+RUNS_PYTEST = re.compile(
+    r"^\s*(?:-\s+)?(?:run:\s*)?(?:python3?\s+-m\s+)?pytest(?:\s|$)", re.M
+)
+
+
 def test_every_job_that_runs_pytest_has_the_whole_history():
     """A check that cannot resolve a SHA is not excused from resolving it."""
     offenders = []
     for name in workflows():
         for job, block in jobs(read(name)).items():
-            if "pytest " not in block and "pytest\n" not in block:
+            if not RUNS_PYTEST.search(block):
                 continue
             if "actions/checkout" not in block:
                 continue
