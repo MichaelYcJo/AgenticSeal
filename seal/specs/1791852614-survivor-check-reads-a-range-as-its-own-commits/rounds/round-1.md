@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on Opus 5.5 |
 | PR | #919 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `b6b89e8cb8e1690d047c4dde2582d73095b30f84..d3a8221f74b6c5fa304064b0ed297f24f9e1b7d1`, 2 commits |
 | Contract changes | report → report, main, post-review-check.md, round-1-report.md, round-1.md, told_now, reverify, reverify_into, pytest |
 | New units | not_owned (depth 1); test_a_two_dot_range_names_the_commits_it_does_not_read (depth 1); test_the_base_commit_a_two_dot_range_leaves_out_is_named (depth 1); test_a_range_whose_own_commits_cannot_be_listed_is_refused (depth 1) |
