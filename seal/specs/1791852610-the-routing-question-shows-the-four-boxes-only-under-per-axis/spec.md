@@ -17,8 +17,8 @@ alone as the press; it is pinned, not changed.
 | Policy clause | What it fixes for this work |
 |---|---|
 | `CLAUDE.md` §*The goal a design is chosen against — verification that runs unattended* | Between two designs that catch the same thing, the one that stops to ask is the more expensive. A box that means nothing under the answer just given is a stop with no decision in it |
-| `skills/implement/SKILL.md` §*1. Read the spec before the code* ¶*Collect what needs a person before the first edit, and ask it in one batch* | The cost of a question is when it arrives, not how many clicks it takes: a second call that follows the first immediately, before the first edit, is still the one batch. This is what makes `per axis`'s second wait acceptable (Q1 of `questions.md`) |
-| `skills/implement/orchestration.md` §*Orchestrator: how the work is routed — two questions, one call, one file* | The procedure this work rewrites. Its grounds for the one-call shape — two presets beside the boxes is five options and the harness allows four — stay true and are kept; what changes is that question 1 settles two of its three answers completely, so the boxes are asked only after the third |
+| `skills/implement/SKILL.md` §*1. Read the spec before the code* ¶*Collect what needs a person before the first edit, and ask it in one batch* | A question asked before the first edit costs a reply, and one asked at minute thirty stops the session; each interruption is a wait (*three interruptions cost three waits*). So `per axis`'s second call is a second wait, put at once and before the first edit, and accepting it is the trade #911's own *Now / After* table takes (Q1 of `questions.md`). *Corrected 2026-10-13 after round 1 (🟡 1, ⬜ 7): this row first read §1 as making a second call part of the one batch, which §1 does not say.* |
+| `skills/implement/orchestration.md` §*Orchestrator: how the work is routed — two questions, one call, one file* | The procedure this work rewrites. Its grounds for two questions rather than one — two presets beside the four boxes is six options and the harness allows four — stay true and are kept (*corrected 2026-10-13 after round 1, 🟡 3 and ⬜ 8: this row first counted five, as the section had since #88*); what changes is that question 1 settles two of its three answers completely, so the boxes are asked only after the third |
 | `skills/implement/orchestration.md` §*Question 1 — single-select* | The three labels and their order are fixed here and read by `hooks/worktree_consent.py#ROUTING_LABELS` through `tests/test_the_guard_asks_once_per_session.py#test_the_labels_match_the_routing_question_the_orchestrator_asks`. This heading and its table do not change |
 | `skills/implement/orchestration.md` §*What the answer writes* | The rows a declaration carries, and `Answer pressed`, are unchanged: `automation` writes the four party rows at their checked values, the boxes write them one by one, and `no work item` writes nothing. Splitting the call moves no row |
 | `docs/worktree-guard-spec.md` §*Creation consent — the first creation is the question, not every one*, rule 3 | What the press reader reads: one single-select question whose options' leading phrases are the three labels, answered `automation`. It names no second question, which is why question 1 alone already reads as the press. This work adds the sentence that both shapes — the boxes beside question 1, and question 1 alone — are read the same, and the case that pins it |
@@ -111,10 +111,12 @@ verbatim after whitespace is collapsed:
 The tests pin that string in `skills/implement/orchestration.md`,
 `templates/claude-md-block.md` and `CLAUDE.md`, and refuse `two questions in
 ONE `AskUserQuestion` call` in each of them and in `skills/implement/SKILL.md`.
-`tests/test_chain_hooks_hardening.py` asserts the literal `in one call` in
-`skills/implement/orchestration.md`; the rewritten section keeps it (*question
-1 goes in one call of its own* or the like), because that case is about the
-batch being one wait and still holds.
+`tests/test_chain_hooks_hardening.py` asserted the literal `in one call` in
+`skills/implement/orchestration.md`. Under `per axis` the asking is two
+calls, so that case's ground, the batch being one wait, does not hold; the
+case now asserts the sentence *Question 1 goes in one call of its own*.
+*Corrected 2026-10-13 after round 1 (🟡 2, ⬜ 8): this paragraph first kept
+the bare literal on the ground that it still held.*
 
 **Headings.** Two headings in `skills/implement/orchestration.md` move, and a
 heading is a coordinate, so the move is named here:

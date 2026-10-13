@@ -28,13 +28,9 @@ a second call only under `per axis`.
 |---|---|
 | The full suite, the repository-wide lint and the typecheck: `unverified`, because the broad run is the sealer's, once, after the rounds settle | the orchestrator, through the sealer |
 | That the harness shows a lone question 1 with no boxes on screen, and that a session following the new block puts the second call only after `per axis`. Read from the documents; no session was run against them | the orchestrator, at the next routing question it asks from a block carrying this change |
-| `plan.md`'s approval line still reads `Approved <date> by <who>`. The orchestrator asked for it to be filled; the edit was refused by the session's permission classifier and not retried | the orchestrator |
+| ✅ `plan.md`'s approval line read `Approved <date> by <who>`. The orchestrator asked for it to be filled; the edit was refused by the session's permission classifier and not retried | filled by the orchestrator at `bb9eed9b` (`plan.md:7`); round 1's ⬜ 6 |
 
 ## Not done
-
-The frame's `Ran by` rows in `phases/phase-1.md` and `phases/phase-2.md`
-read `unknown — …`: the spawn prompt named no agent or model, and the
-template says that value is the spawning session's, never the segment's own.
 
 `seal/specs/1791382684-…/inventory/6-tests.md` still names the renamed S1
 case. It is an earlier work item's inventory, read at the time it was
@@ -43,5 +39,12 @@ reason.
 
 ## Fed back into the spec
 
-none — the two spelling changes above are recorded as divergences, not
-written back into `spec.md`, which is the framer's.
+The two spelling changes above are recorded as divergences, not written back
+into `spec.md`. At the run's end, the notes commit corrected three grounds in
+the frame that round 1 found false, each marked *Corrected 2026-10-13 after
+round 1* where it stands: `spec.md`'s §1 Grounding row and `questions.md` Q1
+(§1 does not make a second call part of the one batch), the routing
+section's Grounding row (six options, not five), and §*Data & interfaces*
+on the batching case (its bare `in one call` no longer holds). These are
+corrections of the frame's reading, made after its build; a framer may
+overturn them.
