@@ -297,13 +297,14 @@ the guard's behaviour before the answer was read:
    nobody measured.
 3. **The routing question**: one single-select question whose options' leading
    phrases are exactly `automation`, `per axis` and `no work item`
-   (`skills/implement/orchestration.md` §*Question 1 — single-select*),
-   answered with the option labelled `automation`. The answer must equal one
-   of the question's option labels verbatim, because that is what a pressed
-   option writes; a typed `Other` answer is the person's own text and is not
-   read, so *automation - but ask me before each worktree* is not consent. A
-   leading phrase is the label casefolded and cut at the first ` (`, ` —` or
-   ` -`, so an option labelled `automation (Recommended)` counts.
+   (`skills/implement/orchestration.md` §*Question 1 — single-select*), answered with
+   the option labelled `automation`; a `multiSelect` question is skipped, so the boxes
+   beside question 1 or in a call of their own neither give nor take back the press.
+   The answer must equal one of the question's option labels verbatim, because that
+   is what a pressed option writes; a typed `Other` answer is the person's own text
+   and is not read, so *automation - but ask me before each worktree* is not consent.
+   A leading phrase is the label casefolded and cut at the first ` (`, ` —` or ` -`,
+   so an option labelled `automation (Recommended)` counts.
 4. **The same clone**: the result entry's own `cwd` resolves to the same common
    git directory as the creation's repository.
 5. **The last answer stands**: of every answer to the routing question from
@@ -522,7 +523,7 @@ another session's branch out from under it.
 **The prompt budget.** Zero for a session whose person pressed `automation`. One per session otherwise, from one per worktree unbounded — for a creation written on its own, which is the form the measured six took. Re-measured after round 2's fixes, six creations in one session on a clean single-stream tree: **deny, allow, allow, allow, allow, allow**.
 With consent, a creation written as one segment of a compound gets no allow,
 and neither does one carrying an expansion, a redirection, a wrapper or a **path-qualified command word**, because that is exactly what the bound above refuses to speak for. The guard is silent there, so what each one costs is whatever the user's own permission settings ask. The last of those is what round 2's second fix added to the list, and it moves nothing in the budget: `git worktree add …`, the same backgrounded, and the `\git` spelling all still allow.
-Enforced by: tests/test_the_guard_asks_once_per_session.py::test_the_first_creation_is_still_a_question, tests/test_the_guard_asks_once_per_session.py::test_a_second_creation_in_the_same_session_is_allowed, tests/test_the_guard_asks_once_per_session.py::test_the_measured_automation_run_is_not_stopped, tests/test_the_guard_asks_once_per_session.py::test_a_result_not_linked_to_an_ask_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_automation_on_another_question_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_an_answer_given_in_another_clone_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_the_labels_match_the_routing_question_the_orchestrator_asks, tests/test_the_guard_asks_once_per_session.py::test_a_typed_answer_that_qualifies_the_preset_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_a_shape_the_reader_did_not_expect_keeps_the_guards_deny, tests/test_the_guard_asks_once_per_session.py::test_a_switch_written_after_a_creation_is_judged, tests/test_the_guard_asks_once_per_session.py::test_the_order_of_a_switch_and_a_creation_does_not_decide, tests/test_the_guard_asks_once_per_session.py::test_a_command_with_both_is_never_weaker_than_either_alone, tests/test_the_guard_asks_once_per_session.py::test_the_command_word_class_is_what_the_allow_covers, tests/test_the_guard_asks_once_per_session.py::test_the_guard_is_never_silent_where_the_writer_records, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_files_a_creation_where_bash_runs_it, tests/test_guard_resolves_the_tree_it_judges.py::test_the_writer_files_under_the_clone_the_guard_judged, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_composes_the_creations_own_dash_c
+Enforced by: tests/test_the_guard_asks_once_per_session.py::test_the_first_creation_is_still_a_question, tests/test_the_guard_asks_once_per_session.py::test_a_second_creation_in_the_same_session_is_allowed, tests/test_the_guard_asks_once_per_session.py::test_the_measured_automation_run_is_not_stopped, tests/test_the_guard_asks_once_per_session.py::test_a_result_not_linked_to_an_ask_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_automation_on_another_question_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_an_answer_given_in_another_clone_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_the_labels_match_the_routing_question_the_orchestrator_asks, tests/test_the_guard_asks_once_per_session.py::test_a_typed_answer_that_qualifies_the_preset_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_question_1_alone_and_the_boxes_beside_it_read_the_same_press, tests/test_the_guard_asks_once_per_session.py::test_the_boxes_asked_alone_neither_give_nor_take_back_the_press, tests/test_the_guard_asks_once_per_session.py::test_a_shape_the_reader_did_not_expect_keeps_the_guards_deny, tests/test_the_guard_asks_once_per_session.py::test_a_switch_written_after_a_creation_is_judged, tests/test_the_guard_asks_once_per_session.py::test_the_order_of_a_switch_and_a_creation_does_not_decide, tests/test_the_guard_asks_once_per_session.py::test_a_command_with_both_is_never_weaker_than_either_alone, tests/test_the_guard_asks_once_per_session.py::test_the_command_word_class_is_what_the_allow_covers, tests/test_the_guard_asks_once_per_session.py::test_the_guard_is_never_silent_where_the_writer_records, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_files_a_creation_where_bash_runs_it, tests/test_guard_resolves_the_tree_it_judges.py::test_the_writer_files_under_the_clone_the_guard_judged, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_composes_the_creations_own_dash_c
 
 ### Decided before git runs (#692)
 
@@ -971,19 +972,17 @@ at one prompt against a wrong allow breaking another session's tree.
   harness writes on the machine the session runs on, and a subagent reaches
   it through its parent's id. A run resumed in a new session (a `/clear`, a
   new `claude` start, another machine) has no press until question 1 is put
-  through `AskUserQuestion` again, and until then every stop that reads it is
-  the person's `ask` (`skills/implement/orchestration.md` §*Orchestrator: how
-  the work is routed — two questions, one call, one file*). Nothing that
-  survives a machine move can stand in for it. The consent record and the
-  choice markers sit under the git directory, which does not travel, and
-  everything that travels is in the tree, which the model writes, so
-  `routing.md` is not read. What keeps the press is what keeps the
-  session's id: `claude --resume` and compaction both go on writing the
-  same transcript the press already sits in, and the section named above
-  holds the reading that showed it. Measured in #894: a release run resumed
-  on another machine with the answer typed, and the guard asked the owner
-  twice in a run routed `automation`; replayed up to the first of those
-  stops, the reader found no press in that session.
+  through `AskUserQuestion` again, and until then every stop that reads it is the
+  person's `ask` (`skills/implement/orchestration.md` §*Orchestrator: how the work
+  is routed*). Nothing that survives a machine move can stand in for it. The consent
+  record and the choice markers sit under the git directory, which does not travel,
+  and everything that travels is in the tree, which the model writes, so
+  `routing.md` is not read. What keeps the press is what keeps the session's id:
+  `claude --resume` and compaction both go on writing the same transcript the press
+  already sits in, and the section named above holds the reading that showed it.
+  Measured in #894: a release run resumed on another machine with the answer typed,
+  and the guard asked the owner twice in a run routed `automation`; replayed up to
+  the first of those stops, the reader found no press in that session.
 - Under the press a model that does not take the split loops on §A's choice
   rows' deny, bounded by the reason's text alone; the next `automation` run
   measures it (work item 1791781864, `questions.md` M1; P1 (c) is the lever).

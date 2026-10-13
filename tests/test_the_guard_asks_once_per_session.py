@@ -1419,6 +1419,102 @@ def test_a_multi_select_routing_shape_is_not_consent(projects, repo):
     assert not wc.automation_answered(str(repo), "me")
 
 
+BOXES_QUESTION = "Under per axis, which of these apply?"
+BOXES = (
+    "run end to end without stopping to ask",
+    "implement with smith",
+    "review with warden",
+    "open the pull request",
+)
+
+
+def with_the_boxes(entries):
+    """The same call with question 2's four boxes beside question 1.
+
+    That is the shape every session asked before #911, and the one a
+    machine whose installed block predates it still asks until
+    `/specseal:update` reaches it."""
+    use, result = (json.loads(json.dumps(e)) for e in entries)
+    boxes = {
+        "question": BOXES_QUESTION,
+        "header": "Axes",
+        "multiSelect": True,
+        "options": [{"label": b, "description": "d"} for b in BOXES],
+    }
+    use["message"]["content"][0]["input"]["questions"].append(boxes)
+    result["toolUseResult"]["questions"].append(dict(boxes))
+    result["toolUseResult"]["answers"][BOXES_QUESTION] = ", ".join(BOXES)
+    return [use, result]
+
+
+def test_question_1_alone_and_the_boxes_beside_it_read_the_same_press(projects, repo):
+    """#911 (work item 1791852610), S5. The routing question is now asked as
+    question 1 alone, and the boxes come in a second call only under
+    `per axis`; an installed block older than #911 still puts both in one
+    call. The reader has to read the two shapes the same, or an un-updated
+    machine's `automation` run meets the guard's prompt again (#894).
+
+    Seen red by a throwaway edit to `_routing_preset` that returned False
+    for a result carrying more than one question."""
+    shapes = {
+        "question 1 alone": lambda **kw: ask_entries(repo, **kw),
+        "the boxes beside it": lambda **kw: with_the_boxes(ask_entries(repo, **kw)),
+    }
+    for shape, build in shapes.items():
+        write_transcript(projects, "me", build())
+        assert wc.automation_answered(str(repo), "me") is True, shape
+        assert wc.consent(str(repo), "me") == "answer", shape
+        write_transcript(projects, "me", build(answer="per axis"))
+        assert wc.automation_answered(str(repo), "me") is False, shape
+        assert wc.consent(str(repo), "me") == "", shape
+
+    # A press given in the old shape is taken back by a later `per axis`
+    # given in the new one: the last answer from this clone stands whatever
+    # shape either was asked in.
+    earlier = with_the_boxes(ask_entries(repo, tool_id="toolu_01before"))
+    later = ask_entries(repo, answer="per axis", tool_id="toolu_02after")
+    write_transcript(projects, "me", earlier)
+    assert wc.automation_answered(str(repo), "me") is True
+    write_transcript(projects, "me", earlier + later)
+    assert wc.automation_answered(str(repo), "me") is False
+    assert wc.consent(str(repo), "me") == ""
+
+
+def boxes_alone(repo, ticked, tool_id):
+    """The second call of the new shape: the four boxes, alone."""
+    return ask_entries(
+        repo,
+        answer=", ".join(ticked),
+        options=BOXES,
+        multi=True,
+        tool_id=tool_id,
+        question=BOXES_QUESTION,
+    )
+
+
+def test_the_boxes_asked_alone_neither_give_nor_take_back_the_press(projects, repo):
+    """#911, round 1. Under `per axis` the boxes come in a second call of
+    their own. That result answers no routing question, so the `per axis`
+    before it stands however many boxes were ticked, an earlier press stays
+    taken back, and a press is not taken back by a boxes call alone.
+
+    Seen red by a throwaway edit to `_routing_answer` that returned True for
+    any result carrying a `multiSelect` question."""
+    q1 = ask_entries(repo, answer="per axis", tool_id="toolu_q1")
+    for ticked in (BOXES, BOXES[:1], ()):
+        write_transcript(projects, "me", q1 + boxes_alone(repo, ticked, "toolu_b"))
+        assert wc.automation_answered(str(repo), "me") is False, ticked
+        assert wc.consent(str(repo), "me") == "", ticked
+
+    earlier = ask_entries(repo, tool_id="toolu_earlier")
+    write_transcript(projects, "me", earlier + q1 + boxes_alone(repo, BOXES, "toolu_b"))
+    assert wc.automation_answered(str(repo), "me") is False
+
+    write_transcript(projects, "me", earlier + boxes_alone(repo, (), "toolu_b"))
+    assert wc.automation_answered(str(repo), "me") is True
+    assert wc.consent(str(repo), "me") == "answer"
+
+
 def test_a_result_before_its_question_is_not_consent(projects, repo):
     use, result = ask_entries(repo)
     write_transcript(projects, "me", [result, use])
