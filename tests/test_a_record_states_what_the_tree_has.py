@@ -2053,8 +2053,9 @@ def test_a_table_row_under_a_sub_heading_of_removes_is_refused(
     home, and a table row under that sub-heading — or under a later one,
     before the next level-2 heading — is refused naming it, never read by
     the name half alone, where a unit that still stands passes. A second
-    table's header and rule rows name no removal and are not refused; its
-    body row is, once: the name half does not also read a gone name on it."""
+    table's header — the row its rule row follows — and that rule row are
+    not refused; its body row is, once: the name half does not also read a
+    gone name on it."""
     tree(tmp_path, **{"mod.py": "def old_reader():\n    return 1\n"})
     h = home(tmp_path)
     if required:
