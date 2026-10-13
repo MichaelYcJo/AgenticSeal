@@ -6034,9 +6034,9 @@ def removes_section(lines):
     section: whether the heading is there, the claim-line numbers inside the
     section, `[(line number, cells)]` for its table's body rows, `[(line
     number, text)]` for every line in it that begins `nothing`, and `[(line
-    number, text)]` for every other line in it that is not blank and not a
-    table row — the lines its two shapes do not cover, which the caller
-    refuses (#905).
+    number, text)]` for every other line in it that is not a table row — the
+    lines its two shapes do not cover, which the caller refuses (#905).
+    `claim_lines` hands back no blank line, so none reaches either list.
 
     Reads: owned — the section's lines, on the lines `claim_lines` reads, by the template's shape; unknown refused
 
@@ -6061,7 +6061,7 @@ def removes_section(lines):
         if cells is None:
             if REMOVES_NOTHING_RE.match(text.strip()):
                 nothing.append((number, text.strip()))
-            elif text.strip():
+            else:
                 other.append((number, text.strip()))
             continue
         if all(RULE_CELL_RE.match(c) for c in cells) or cells[0] == REMOVES_HEADING:
