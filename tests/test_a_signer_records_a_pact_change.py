@@ -56,13 +56,54 @@ def walk_refused(text, vendored=False):
 
     Since #871 a command reads `Ledger frozen from` through `config_value`,
     and an item the walk did not read in a table it refused is a refusal,
-    never an absent row (spec S2 of 1791852616). So where the walk refuses,
-    `--reverify` exits 2 on the freeze row before it judges any ledger row:
-    the moved row is left as the pact refusal left it, the ledger is byte
-    for byte what it was, and no record is written, but the sentence is
-    the walker's and the exit is 2, not the `LEFT` line at exit 1."""
+    never an absent row (spec S2 of 1791852616). None of these cases' configs
+    writes a freeze row, so where the walk refuses, `--reverify` exits 2 on
+    the freeze row before it judges any ledger row: the moved row is left as
+    the pact refusal left it, the ledger is byte for byte what it was, and
+    no record is written, but the sentence is the walker's and the exit is
+    2, not the `LEFT` line at exit 1. A config whose freeze row the walk
+    reads above the refused line is a value there, and the run goes on to
+    the pact reader's `LEFT` line."""
     walked = ec.vendored_config_rows(text) if vendored else ec.config_rule()[1](text)
     return walked[1][0] if walked[1] else None
+
+
+# The cases whose config the table walk refuses, by test and case id. Written
+# out rather than asked of the walker under test, so which shapes stop
+# `--reverify` at exit 2 is pinned: a change that made the walk read one of
+# them fails here instead of moving the case to the other branch.
+STOPPED_BY_THE_WALK = {
+    "test_a_vendored_copy_under_a_notify_row_leaves_a_row_citing_no_clause": {
+        "a row after a line separator, which the walk refuses",
+    },
+    "test_s6_a_pact_line_below_the_table_leaves_the_moved_row": {
+        "a notify row below the table",
+        "a Pact row below the table",
+    },
+    "test_s9_a_vendored_copy_leaves_where_the_plugin_refuses_a_pact_line": {
+        "below the table",
+        *(
+            f"cut at U+{code:04X}"
+            for code in (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85, 0x2028, 0x2029)
+        ),
+        "no leading pipe, directly under the table",
+        "in a closed fence",
+        "round 1 of PR #793, yellow 3: a transposed table",
+        "round 2 of PR #793, yellow 1: a delimiter row with no outer pipes",
+        "round 3 of PR #793, yellow 1: a vertical tab in the delimiter row",
+        "round 3 of PR #793, yellow 1: a header a block quote continues",
+    },
+}
+
+
+def stopped_by_the_walk(request, text, vendored=False):
+    """The walker's sentence for this case where `STOPPED_BY_THE_WALK` lists
+    it, and None where it does not -- asserting first that the walk refuses
+    exactly the listed cases."""
+    listed = request.node.callspec.id in STOPPED_BY_THE_WALK[request.node.originalname]
+    said = walk_refused(text, vendored=vendored)
+    assert (said is not None) == listed, (request.node.name, listed, said)
+    return said
 
 
 def assert_refused_by_the_walk(code, out, said, ledger, ledger_rows, repo):
@@ -1493,7 +1534,7 @@ def _vendored(repo, tmp_path):
     ],
 )
 def test_a_vendored_copy_under_a_notify_row_leaves_a_row_citing_no_clause(
-    repo, tmp_path, rows
+    repo, tmp_path, rows, request
 ):
     """A copy with no `hooks/` reads no `Pact notify` value, so wherever the
     config has a `Pact notify` row a moved row citing no clause may be owed
@@ -1508,7 +1549,7 @@ def test_a_vendored_copy_under_a_notify_row_leaves_a_row_citing_no_clause(
     ledger = cite(repo, ledger_rows)
     move_serialize(repo)
     code, out = _vendored(repo, tmp_path)
-    said = walk_refused(text, vendored=True)
+    said = stopped_by_the_walk(request, text, vendored=True)
     if said is not None:
         assert_refused_by_the_walk(code, out, said, ledger, ledger_rows, repo)
         return
@@ -1643,13 +1684,14 @@ IN_A_CELL_FILE = (
     ],
 )
 def test_s6_a_pact_line_below_the_table_leaves_the_moved_row(
-    repo, rows, below, cites, why
+    repo, rows, below, cites, why, request
 ):
     """S6. A pact line under a blank line that ended the table was read as
     the default, and the moved row was re-stamped unrecorded. It is refused,
     so the row is left, the ledger byte-identical, and no record. Where the
-    table walk refuses the line too, the run stops on the freeze row with
-    the walker's sentence at exit 2 (`walk_refused`); where only the pact
+    table walk refuses the line too, and no freeze row is read above it, the
+    run stops on the freeze row with the walker's sentence at exit 2
+    (`STOPPED_BY_THE_WALK`); where only the pact
     reader refuses it, at exit 1 with the `LEFT` line naming the refused
     line. A `Pact` line refuses with no `Pact` row in the table too, and its
     clause's row is left."""
@@ -1660,7 +1702,7 @@ def test_s6_a_pact_line_below_the_table_leaves_the_moved_row(
     ledger = cite(repo, ledger_rows)
     move_serialize(repo)
     code, out = run(repo, "--into", FRAGMENT, "--checked", "2026-09-04")
-    said = walk_refused(text)
+    said = stopped_by_the_walk(request, text)
     if said is not None:
         assert_refused_by_the_walk(code, out, said, ledger, ledger_rows, repo)
         return
@@ -1736,14 +1778,15 @@ SPLITLINES_ONLY = ["\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\x85", "\u2028", "\u
     ],
 )
 def test_s9_a_vendored_copy_leaves_where_the_plugin_refuses_a_pact_line(
-    repo, tmp_path, below
+    repo, tmp_path, below, request
 ):
     """S9 (a). Where the plugin's reader refuses a line naming a pact, a
     copy with no `hooks/` leaves the moved row too: it reads the same lines
     by the same word, and it has no walk, so a plain `Pact notify` row
     anywhere beside a `Pact` value is enough. Where the copy's twin of the
-    table walk refuses the line, the run stops earlier, on the freeze row,
-    at exit 2 with nothing written (`walk_refused`). The full S2 corpus runs
+    table walk refuses the line and no freeze row is read above it, the run
+    stops earlier, on the freeze row, at exit 2 with nothing written
+    (`STOPPED_BY_THE_WALK`). The full S2 corpus runs
     through its decision in `tests/test_a_signer_declares_its_pact.py`;
     these run it end to end."""
     text = config_text(("Mode", "shared"), ("Pact", PACT_URL)) + below
@@ -1753,7 +1796,7 @@ def test_s9_a_vendored_copy_leaves_where_the_plugin_refuses_a_pact_line(
     ledger = cite(repo, ledger_rows)
     move_serialize(repo)
     code, out = _vendored(repo, tmp_path)
-    said = walk_refused(text, vendored=True)
+    said = stopped_by_the_walk(request, text, vendored=True)
     if said is not None:
         assert_refused_by_the_walk(code, out, said, ledger, ledger_rows, repo)
         return

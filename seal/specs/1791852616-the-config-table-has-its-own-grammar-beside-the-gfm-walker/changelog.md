@@ -50,7 +50,10 @@
   `correction-check`, `evidence-check --reverify` and `pact-check` judge
   nothing. So a pact line written below the table, which `--reverify` used
   to leave on a `LEFT` line at exit 1, now stops the run on the freeze row
-  at exit 2 with the walker's sentence, the ledger untouched. A row the
+  at exit 2 with the walker's sentence, the ledger untouched — where the
+  table holds no `Ledger frozen from` row above that line. Where it holds
+  one, the freeze row is read, and the run reaches the `LEFT` line at exit
+  1 as before. A row the
   walk read above the refused line is a value, and is used, unless the
   same item is written again below that line. The mode gate reads a refused `Mode` row as an answer it cannot act
   on and says nothing, as it does for a file that will not read; the prompt
