@@ -57,8 +57,9 @@ jobs:
         #          in 37700567455, the first run of the three shards; the
         #          unsharded leg they replaced took 15 m 25 s to 20 m 52 s
         #          and ran under 35)                                  -> 15
-        #   Windows, per shard: 11 m 52 s, group 4 of run 37700567455
-        #          (10 m 20 s to 11 m 27 s on the refreshed file in
+        #   Windows, per shard: 12 m 42 s, group 4 of run 37576998008
+        #          (12 m 15 s in 37577753583, 11 m 52 s in 37700567455,
+        #          10 m 20 s to 11 m 27 s on the refreshed file in
         #          38335775781; 10 m 34 s in 37469595104; 5 m 38 s to
         #          10 m 03 s in the sharded run 37465328899)          -> 20
         include:
