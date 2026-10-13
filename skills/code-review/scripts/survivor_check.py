@@ -1482,7 +1482,7 @@ def corrected(root, a, b, own=None):
     """`[Sentence]` -- what the range removed -- the n-grams it wrote, and
     the gathered n-grams that split a changelog's removed sentences alone.
 
-    Reads: observed — git's diff of the two ends, their blobs, and the own commits `owned` listed; unknown refused
+    Reads: guess — the prose of every file the range changed, at both ends, beside git's diff and the own commits `owned` listed; unknown refused
 
     **On a two-dot range a removed or written sentence is kept only where
     one of the range's own commits removed or wrote it** (#873). `own` is
@@ -1568,10 +1568,7 @@ def corrected(root, a, b, own=None):
     fragment rewording it is still split into the runs it no longer shares,
     as a reworded release is, while no gathered text subtracts another
     file's sentence. A release that removes no live sentence writes nothing
-    at all.
-
-    Reads: guess — the prose of every file the range changed, at both ends, through `read_blobs`; unknown passed
-    """
+    at all."""
     names = git(root, "diff", "--name-only", "--no-renames", "-z", a, b)
     if names is None:
         raise Refused(f"cannot diff {a[:7]}..{b[:7]} in {root}")
