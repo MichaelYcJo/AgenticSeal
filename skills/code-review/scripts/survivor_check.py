@@ -235,6 +235,10 @@ as a removed sentence, and a key carries the wording of whatever test it
 names: #874's second refresh brought the file under `SIZE_CAP`, and the sweep
 reported 753 places, every one with the file as the source. The size cap had
 been keeping it out by accident, so the rule is the name and never the size.
+The reader census, `undeclared_readers.txt`, is the same kind of file: its
+lines are `path#unit@hash` in the ledger's own spelling, so a line a
+declaring unit removes matched every released row citing that unit at that
+hash, three places on the same branch.
 
 Both losses go one way: a survivor hidden inside an excluded region costs
 whatever the unanswered finding was worth, and an invented survivor costs a red
@@ -422,15 +426,18 @@ FLOOR = 1.6
 # the corpus scale would let a one-run coincidence through.
 
 # A blob bigger than this is not read: past it a file is data, whoever wrote
-# it. Under it a file can be data too, and that is decided by name, in
-# `generated_data`, never by size.
+# it. Under it a file is read as prose unless `generated_data` names it, and
+# that is decided by name, never by size.
 SIZE_CAP = 2 * 1024 * 1024
 
-# Files a tool writes whole, by name. `.test_durations` is `pytest-split`'s
-# timings keyed by test id, rewritten whole by every refresh (#874): its keys
-# are test ids, not sentences, and the size cap had been keeping it out by
-# accident until `--clean-durations` shrank it under 2 MiB.
-GENERATED_DATA = (".test_durations",)
+# Data files keyed by test id or by unit, by name (#874). `.test_durations` is
+# `pytest-split`'s timings keyed by test id, rewritten whole by every refresh:
+# its keys are test ids, not sentences, and the size cap had been keeping it
+# out by accident until `--clean-durations` shrank it under 2 MiB.
+# `undeclared_readers.txt` is the reader census, one `path#unit@hash` line per
+# unit that does not yet declare what it reads: a line leaves when its unit
+# declares, and it is spelled exactly as a ledger row cites that unit.
+GENERATED_DATA = (".test_durations", "undeclared_readers.txt")
 
 
 class Refused(Exception):
@@ -954,10 +961,10 @@ def records_a_past_state(path):
 
 
 def generated_data(path):
-    """True for a file a tool writes whole, named in `GENERATED_DATA`, at any
-    depth. Read on both sides -- `corpus` and `corrected` -- for the reason
-    every exclusion here is: a key such a file drops is not a sentence anybody
-    corrected, and one it carries is not a place anybody can correct.
+    """True for a data file named in `GENERATED_DATA`, at any depth. Read on
+    both sides -- `corpus` and `corrected` -- for the reason every exclusion
+    here is: a key such a file drops is not a sentence anybody corrected, and
+    one it carries is not a place anybody can correct.
 
     Reads: nothing — decides from the path its caller hands it
     """

@@ -1098,6 +1098,46 @@ def test_a_durations_key_standing_in_the_pool_is_not_a_survivor(tmp_path):
     )
 
 
+def test_a_census_line_a_declaring_unit_removes_is_not_a_correction(tmp_path):
+    """The reader census is data keyed by unit in the ledger's own
+    `path#unit@hash` spelling, so a census line a unit drops when it starts
+    to declare matched every released row citing that unit at that hash:
+    three places on #874's branch. Seen red at f9034fa6."""
+    repo = tmp_path / "probe"
+    os.makedirs(repo, exist_ok=True)
+    census = [
+        "skills/x/a.py#corpus@31e8a379",
+        "skills/x/a.py#corrected@fde86cfa",
+        "skills/x/b.py#other@0a1b2c3d",
+    ]
+    files = {
+        "tests/undeclared_readers.txt": "\n".join(census) + "\n",
+        "seal/releases/0.1.0.md": (
+            "## 0.1.0\n\n### 1700000000-an-item\n\n"
+            "| R1 · the sweep reads both | `skills/x/a.py#corpus@31e8a379`, "
+            "`skills/x/a.py#corrected@fde86cfa` | read | 2026-01-01 | |\n"
+        ),
+    }
+    for index in range(29):
+        files[f"filler-{index}.md"] = (
+            f"# filler {index}\n\nUnrelated prose number {index} that shares nothing at all.\n"
+        )
+    build(repo, files, "a census and a released row citing two of its units")
+    head = build(
+        repo,
+        {"tests/undeclared_readers.txt": census[2] + "\n"},
+        "two units declare and leave the census",
+    )
+    code, text = run("--range", f"{head}^..{head}", "--root", str(repo))
+    assert code == 0, (
+        "two census lines left because their units now declare, and the check "
+        f"read them as corrected wording standing in a released row; exit {code}\n{text}"
+    )
+    assert re.search(r"against 0 sentence\(s\)", text), (
+        f"a census line removed counts as removed wording:\n{text}"
+    )
+
+
 def test_the_docstring_names_both_sides_of_the_round_record_exclusion():
     """`agent-contract` §14 -- a fix that changes a verdict pins the sentence.
 
