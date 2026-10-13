@@ -754,6 +754,44 @@ def test_a_heading_inside_the_list_item_does_not_end_it():
     assert refusals and "indented under a list item" in refusals[0], refusals
 
 
+@pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
+def test_a_signer_after_a_break_gfm_does_not_honour_is_no_signer(name):
+    """#871 round 2, the deferred half of yellow 7. A signer row after a
+    character only `str.splitlines` ends a line at is more of the row above
+    it to cmark-gfm, which shows one signer (measured for FF and U+2028 by
+    the round's reviewer). The walk reads the first and refuses the second,
+    for every table it walks, so `pact_signers` names one signer and the
+    refusal. Seen red against 4dfb3d0d: two signers, no refusal."""
+    from block_shapes import BREAKS
+
+    a, b = "https://example.com/org/a", "https://example.com/org/b"
+    text = f"# Pact\n\n| Signer |\n|---|\n| {a} |{BREAKS[name]}| {b} |\n"
+    rows, refusals = config.gfm_table(text, ("Signer",))
+    assert [c for _l, c in rows] == [(a,)], rows
+    assert refusals and "not a row of its own to GFM" in refusals[0], refusals
+    signers, said, _header = config.pact_signers(text)
+    assert [s[0] for s in signers] == [a], signers
+    assert any("not a row of its own to GFM" in s for s in said), said
+
+
+@pytest.mark.parametrize("name", ["LS", "FF"])
+def test_a_heading_after_a_break_does_not_end_the_rows_nobody_reads(name):
+    """#871 round 2, yellow 7's class after the table's end. A heading piece
+    after a character only `str.splitlines` ends a line at is more of the
+    line above to GFM, not a heading, so a line written `| … |` under it is
+    still a row nobody reads, and is refused. Seen red against 4dfb3d0d,
+    where the piece ended the walk's look for such rows."""
+    from block_shapes import BREAKS
+
+    text = (
+        "| Item | Value |\n|---|---|\n| Mode | shared |\n\n"
+        f"x{BREAKS[name]}## Notes\n| Broad gate | y |\n"
+    )
+    rows, refusals = config.gfm_table(text, ("Item", "Value"))
+    assert [c for _l, c in rows] == [("Mode", "shared")], rows
+    assert refusals and "ends above `| Broad gate | y |`" in refusals[0], refusals
+
+
 def test_a_list_marker_in_indented_code_is_no_list_item():
     """`    - x` is indented code, not a list item, so an indented table under
     it renders and is read."""

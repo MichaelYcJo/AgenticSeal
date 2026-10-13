@@ -1300,6 +1300,37 @@ def test_an_item_written_again_below_the_stopping_line_has_no_value(config):
     assert config.config_value(text, "a")[1] is not None
 
 
+@pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
+@pytest.mark.parametrize("where", ["above the header", "under the header"])
+def test_a_header_after_a_break_gfm_does_not_honour_is_no_table(config, name, where):
+    """#871 round 2, yellow 7. A header after a character only
+    `str.splitlines` ends a line at, or a delimiter row after one on the
+    header's line, is no table to cmark-gfm (measured for FF, U+2028, NEL
+    and VT by the round's reviewer). The walk reads no row and refuses, and
+    so does the vendored twin. Seen red against 4dfb3d0d: `Mode` was read
+    as `shared`."""
+    from block_shapes import BREAKS
+
+    brk = BREAKS[name]
+    text = (
+        f"# c\n\n{brk}| Item | Value |\n|---|---|\n| Mode | shared |\n"
+        if where == "above the header"
+        else f"# c\n\n| Item | Value |{brk}|---|---|\n| Mode | shared |\n"
+    )
+    assert config.config_rows(text) == [], config.config_rows(text)
+    value, said = config.config_value(text, "Mode")
+    assert value is None and "each on a line of its own" in (said or ""), said
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    path = os.path.join(
+        root, "skills", "evidence-check", "scripts", "evidence_check.py"
+    )
+    spec = importlib.util.spec_from_file_location("ec_for_871_r2_header", path)
+    ec = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ec)
+    value, said = ec.vendored_config_value(text, "Mode")
+    assert value is None and "each on a line of its own" in (said or ""), said
+
+
 def test_an_item_named_under_the_next_heading_is_another_tables(config):
     """#871 round 2, yellow 10. A table under the next heading is not below
     the line the walk stopped at, so a `Mode` cell in it does not double the
@@ -1309,6 +1340,29 @@ def test_an_item_named_under_the_next_heading_is_another_tables(config):
         "| Mode | what it means |\n|---|---|\n| local | x |\n"
     )
     assert config.config_value(text, "Mode") == ("shared", None)
+
+
+@pytest.mark.parametrize("name", ["LS", "FF"])
+def test_a_line_below_the_stop_is_a_line_where_gfm_begins_one(config, name):
+    """#871 round 2, yellow 7's class in yellow 10's count. A `| Mode | … |`
+    piece after a character only `str.splitlines` ends a line at is more of
+    the line above to GFM, so it names nothing and doubles nothing; and a
+    heading piece after one is no heading, so the count goes on past it.
+    Seen red against 4dfb3d0d on the first: "appears 2 times"."""
+    from block_shapes import BREAKS
+
+    brk = BREAKS[name]
+    cut = TABLE.format(
+        rows=f"| Mode | shared |\n| a | b | c |\nx{brk}| Mode | local |\n"
+    )
+    assert config.config_value(cut, "Mode") == ("shared", None)
+    past = TABLE.format(
+        rows=f"| Mode | shared |\n| a | b | c |\nx{brk}## y\n| Mode | local |\n"
+    )
+    assert config.config_value(past, "Mode") == (
+        None,
+        "`Mode` appears 2 times — one value",
+    )
 
 
 def test_a_refused_append_names_the_walkers_cause_not_a_defect(config, tmp_path):

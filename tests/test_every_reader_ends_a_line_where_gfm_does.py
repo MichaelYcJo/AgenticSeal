@@ -685,9 +685,9 @@ OUT_OF_CLASS.update(
         ),
         (".github/scripts/rider_check.py", "main"): (1, "the docstring's first line"),
         (".github/scripts/rider_check.py", "riders_in"): (1, F),
-        # #871 round 1: the walker's pieces kept with their endings, so a row
-        # piece that does not begin a GFM line is told from one that does.
-        ("hooks/config.py", "config_table"): (
+        # #871: the walker's pieces kept with their endings, so a piece that
+        # does not begin a GFM line is told from one that does.
+        ("hooks/config.py", "gfm_line_starts"): (
             1,
             "the walker's pieces with their endings, each asked whether it "
             "begins a GFM line",

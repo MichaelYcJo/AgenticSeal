@@ -334,12 +334,13 @@ def config_table(text):
     -- naming the line it stopped at and the edit -- and never steps past a
     line to read on below it, so no row is read under a line it refused.
 
-    **A row is a row only where it begins a line GFM begins.** The walker
-    reads `str.splitlines` pieces, and that ends a line at eight characters
-    GFM reads as part of the line -- a form feed, U+2028 and six more. A
-    piece after one of them is the tail of the row above it, which GitHub
-    shows cut off at its cells, so the walk stops there and refuses it, and
-    the row above keeps the value GitHub shows.
+    **A row is a row only where it, the header and the delimiter row each
+    begin a line GFM begins** -- the walker's rule, `gfm_line_starts`. A row
+    piece after a form feed, U+2028 or another character only Python ends a
+    line at is the tail of the row above it, which GitHub shows cut off at
+    its cells, so the walk stops there and refuses it, and the row above
+    keeps the value GitHub shows. A header or delimiter piece after one is
+    no table GitHub renders, so the walk refuses the table and reads no row.
 
     What a caller does with a refusal is its own kind's, as `config_text`
     says: a hook says nothing, and a command prints the sentence and exits 2
@@ -349,24 +350,7 @@ def config_table(text):
     rows, refusals = gfm_table(text, CONFIG_TABLE)
     if refusals and refusals[0].startswith("holds no "):
         return [], []
-    kept = text.splitlines(keepends=True)
-    for at, (line, _cells) in enumerate(rows):
-        if line > 1 and not kept[line - 2].endswith(GFM_LINE_ENDS):
-            read = [(n - 1, item, value) for n, (item, value) in rows[:at]]
-            return read, [
-                f"has a `{' | '.join(CONFIG_TABLE)}` table that stops at "
-                f"`{kept[line - 1].strip()}`, which is not a row of its own "
-                "to GFM: a form feed, U+2028 or another character only "
-                "Python ends a line at stands before it, so GitHub reads it "
-                "as more of the line above — put it on a line of its own"
-            ]
     return [(line - 1, item, value) for line, (item, value) in rows], refusals
-
-
-# Where GFM ends a line. `str.splitlines` also ends one at eight characters
-# GFM reads as part of the line, so `config_table` refuses a row piece that
-# does not begin a GFM line.
-GFM_LINE_ENDS = ("\r\n", "\n", "\r")
 
 
 def config_rows(text):
@@ -403,8 +387,8 @@ def config_rows(text):
       - a row under a comment, a fence or a blank line that ends the table:
         move it into the table; where it heads a table of something else,
         put a heading between the two tables;
-      - a row after a form feed or U+2028 on another row's line: put it on
-        a line of its own.
+      - a row, the header or the delimiter row after a form feed or U+2028
+        on another line of the table: put it on a line of its own.
 
     Every row below the refused line is a refusal to `config_value`, never
     an absent row; the rows above it are read."""
@@ -551,12 +535,15 @@ FIRST_CELL = re.compile(rf"^ {{0,3}}\|((?:{CELL})*)\|")
 def rows_named_below(text, index, item):
     """How many lines of TEXT below the line at INDEX and above the next
     heading, of those the walk is shown, name ITEM in their first cell --
-    the stretch `gfm_table` calls rows nobody reads.
+    the stretch `gfm_table` calls rows nobody reads. A piece is a line here
+    only where it begins a GFM line (`gfm_line_starts`), as it is to the
+    walk.
 
     Reads: guess — the lines of a person's `config.md` below the last row the walk read; unknown refused"""
+    begins = gfm_line_starts(text)
     count = 0
     for at, line in unfenced(text.splitlines(), text):
-        if at <= index:
+        if at <= index or not begins[at]:
             continue
         if ATX_HEADING.match(line.lstrip(" ")) and blocks.columns(line) < 4:
             break
@@ -1297,13 +1284,40 @@ def a_list_above(lines):
     return seen
 
 
+# Where GFM ends a line: LF, CR and CRLF, and nowhere else.
+GFM_LINE_ENDS = ("\r\n", "\n", "\r")
+
+
+def gfm_line_starts(text):
+    """One bool per `text.splitlines()` piece: whether that piece begins a
+    line GFM begins. `str.splitlines` also ends a line at eight characters
+    GFM reads as part of the line -- a form feed, U+2028 and six more -- so
+    a piece after one of them is more of the GFM line above it.
+
+    Reads: guess — the text of a person's markdown, split as `str.splitlines` splits it; unknown passed"""
+    pieces = text.splitlines(keepends=True)
+    return [
+        at == 0 or pieces[at - 1].endswith(GFM_LINE_ENDS) for at in range(len(pieces))
+    ]
+
+
 def gfm_table(text, header):
     """(rows, refusals) for the first GFM table in TEXT whose header row's
     cells are HEADER, a tuple of names.
 
+    Reads: guess — a person's markdown table under the header its caller names, read as cmark-gfm renders it; unknown refused
+
       rows      [(line number, cells)] for every body row read, each cells a
                 tuple as wide as HEADER, in order
       refusals  one sentence per thing that stopped the walk, naming it
+
+    **The walk reads `str.splitlines` pieces, and a piece is a line only
+    where it begins a GFM line** (`gfm_line_starts`). A header or delimiter
+    piece that does not is no table GitHub renders, and the walk refuses the
+    table; a body piece that does not is more of the row above it, and the
+    walk stops there and refuses it; after the table's end such a piece is
+    no heading, so the walk goes on past it, and one written `| … |` is
+    refused like any other row nobody reads.
 
     A header is a line written `| a | b |`, at most three spaces in; the line
     under it must be a delimiter row of the same width. Each line after that
@@ -1393,12 +1407,25 @@ def gfm_table(text, header):
             f"has a `| {name} |` header over a delimiter row of {cells} "
             "cells, so GFM renders no table there"
         ]
+    begins = gfm_line_starts(text)
+    if not (begins[head_index] and begins[delimiter[0]]):
+        return [], [
+            f"has a `| {name} |` header that shares a line with the line beside "
+            "it to GFM: a form feed, U+2028 or another character only Python "
+            "ends a line at stands between them, so GitHub renders no table "
+            "there — put the header and its delimiter row each on a line of "
+            "its own"
+        ]
     rows, stray, ended, previous = [], None, False, delimiter[0]
     for index, line in shown[at + 2 :]:
         if not ended and (index != previous + 1 or table_end(line)):
             ended = True
         if ended:
-            if ATX_HEADING.match(line.lstrip(" ")) and blocks.columns(line) < 4:
+            if (
+                begins[index]
+                and ATX_HEADING.match(line.lstrip(" "))
+                and blocks.columns(line) < 4
+            ):
                 break
             if line.lstrip().startswith("|"):
                 stray = (
@@ -1409,6 +1436,15 @@ def gfm_table(text, header):
                 break
             continue
         previous = index
+        if not begins[index]:
+            stray = (
+                f"has a `{name}` table that stops at `{line.strip()}`, which is "
+                "not a row of its own to GFM: a form feed, U+2028 or another "
+                "character only Python ends a line at stands before it, so "
+                "GitHub reads it as more of the line above — put it on a line "
+                "of its own"
+            )
+            break
         if DELIMITER_ROW.match(line):
             stray = _stops_at(name, line, "a delimiter row out of place")
             break

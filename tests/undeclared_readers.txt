@@ -389,7 +389,6 @@ hooks/config.py#config_path@09093926
 hooks/config.py#config_text@974269b9
 hooks/config.py#declared_pacts@16338e3d
 hooks/config.py#doubled_row@2a8a6b7d
-hooks/config.py#gfm_table@0f0796e9
 hooks/config.py#hidden_lines@c76b94d3
 hooks/config.py#html_start@9031692d
 hooks/config.py#inside_the_root@5c40ddf0

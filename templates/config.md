@@ -62,8 +62,9 @@ edit:
 - a row under a comment, a fence or a blank line that ends the table: move
   it into the table; where it heads a table of something else, put a
   heading between the two tables;
-- a row after a form feed or U+2028 on another row's line, which GitHub
-  shows as more of that row: put it on a line of its own.
+- a row, the header or the delimiter row after a form feed or U+2028 on
+  another line of the table, which GitHub shows as more of that line: put
+  it on a line of its own.
 
 A file `seal mode` wrote, and one copied from this template, has none of
 these shapes.
