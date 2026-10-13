@@ -168,8 +168,8 @@ its own root, and every 0.3.x work item carried `routing.md` (#688).
    sees it. Say why, because a bare one is refused: GitHub shows the row cut
    off at the pipe, the gate quotes that line back with the edit instead of
    reporting the row as absent, and every row written below it goes unread
-   with it (#871). `templates/config.md` §*What is refused, and what stays
-   allowed* carries the rule.
+   with it. `templates/config.md` §*What is refused, and what stays allowed*
+   carries the rule.
 
    **Name the criterion; do not restate it.** `templates/config.md`
    §*Choosing a value — the criterion* owns the criterion, three rules with

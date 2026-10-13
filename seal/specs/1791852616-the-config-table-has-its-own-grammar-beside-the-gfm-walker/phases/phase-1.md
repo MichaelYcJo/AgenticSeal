@@ -12,7 +12,7 @@ The one walk: `hooks/config.py#config_table` over `gfm_table(text,
 CONFIG_TABLE)`; `indexed_config_rows` and `config_rows` as its projections;
 `config_value`, `declared_value`, `declared_mode` answering per item (S2);
 `pact_declaration` and `pact_lines_not_read` reading the walker's rows and
-appending its refusals; `refusal`, `CONFIG_ROW` and `CONFIG_HEADER` removed,
+appending its refusals; `refusal`, `CONFIG_ROW` and `CONFIG_HEADER` removed, (NAME NOT IN TREE)
 `CONFIG_SEPARATOR` and `CELL` kept with a comment naming `path_map`; the
 oracle case's fourth header pass; `hooks/mode-gate.py` and
 `hooks/evidence-advisor.py` pinned silent over shapes 1, 5, 7 (S3); the
@@ -29,8 +29,9 @@ the second (`test_a_table_the_walker_refuses_is_silence_from_the_mode_gate`).
 ## What this phase found
 
 **The frame held, with one *no*: the three removals could not land in this
-phase.** `seal.py#table_span` (phase 2's) aliases `CONFIG_HEADER` and
-`CONFIG_ROW` at import, and `broad_gate.py#refusal` (phase 3's) passes
+phase.** `seal.py#table_span` (phase 2's) aliased both stop-rule patterns
+(`CONFIG_HEADER` and `CONFIG_ROW`, both gone since phase 3 · NAME NOT IN TREE)
+at import, and `broad_gate.py#refusal` (phase 3's) passes
 `hooks/config.py#refusal` through. Deleting them here leaves `seal.py`
 failing to load. So `refusal`, `refused_row` and the two patterns stay, the
 patterns under a comment saying who still reads them, and leave with their

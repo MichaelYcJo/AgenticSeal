@@ -103,7 +103,7 @@ second answer.
   characters to a plain pipe before any shell sees it, and leaves every other
   backslash alone, so a Windows path keeps its separators.
 
-  **The table is read the way GitHub shows it, or refused** (#871). Each
+  **The table is read the way GitHub shows it, or refused.** Each
   refusal names its line and the fix; rows above that line still count, and
   rows below it are refused with it, never treated as missing. Read these to
   the person in your own words:

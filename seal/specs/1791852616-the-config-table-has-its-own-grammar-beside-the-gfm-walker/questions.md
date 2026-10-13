@@ -21,7 +21,7 @@ the grounds where the owner can overturn them at the approval.
    blank line there, so only a hand-written config can be refused, and once.
    A rewrite was weighed and rejected (`plan.md` §*Alternatives*).
 2. **The prompt budget of a refusal that reaches a hook is zero.**
-   `hooks/mode-gate.py#unanswered_root` reads `declared_mode`'s `"refused"`
+   `hooks/mode-gate.py#undeclared` reads `declared_mode`'s `"refused"`
    as answered and stays silent (#867, pinned by
    `test_a_mode_row_written_twice_is_silence_not_a_question` and
    `test_a_config_nobody_can_open_is_silence_not_a_deny`); the evidence

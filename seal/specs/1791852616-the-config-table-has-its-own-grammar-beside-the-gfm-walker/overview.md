@@ -7,9 +7,9 @@ than reconstructed at the end. Facts that must outlive this work item go to the
 evidence ledger, not here. -->
 
 📋 implement applied
-· spec:     pending — filled when the build closes
-· evidence: pending — filled when the build closes
-· verified: pending — filled when the build closes
+· spec:     `spec.md` (every section, S1–S9, §*Data & interfaces*, `## Removes`), `plan.md` (phases, alternatives, operational impact), `questions.md` Q1–Q6, `docs/the-reader-registry.md` §§*The four classes*, *Who declares*, *The census*, *A frame names what its work removes*, `docs/the-evidence-ledger.md` §*A released row is read again in the branch's fragment*, `templates/config.md`, `skills/config/SKILL.md`, `skills/agent-contract/SKILL.md`
+· evidence: `seal/ledger/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker.md` — N1–N9 for the new units, sixteen `Corrected ·` rows for the released claims the stop rule's removal made false, and the `Re-read ·` rows `evidence-check --reverify --into` wrote for the rest
+· verified: executed — each phase's modules (phase records name them and their exit codes), every new case red against the tree before it, `mutation-check` over each new arm, `evidence-check --strict .`; read — the claim of every released row a drifted coordinate cites, before its re-read was written
 
 ## Why this work exists
 
@@ -22,9 +22,13 @@ is named once, with its edit, by the first command that reads it.
 
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
-| When the stop rule's names leave | `plan.md` phase 1: "`refusal`, `CONFIG_ROW` and `CONFIG_HEADER` removed" / they stayed through phases 1 and 2 | the code: removed in phase 3 with their last caller | `seal.py#table_span` (phase 2's) aliases both patterns at import and `broad_gate.py#refusal` (phase 3's) passes `refusal` through; removing them in phase 1 leaves `seal.py` failing to load. `phases/phase-1.md` |
-| Two writer cases the plan calls green | `plan.md` phase 2: "`test_the_writer_reads_where_commonmark_breaks` and `test_the_writer_leaves_a_commented_row_alone` green" / both texts are tables the walker refuses | re-pinned to *nothing written, bytes unchanged* | `spec.md` S5: "given a table the walker refuses, it writes nothing and prints the sentence". The `-->` under the first case's row is a row GFM shows, and C10's comment directly under the delimiter row ends the table as GFM ends it. `phases/phase-2.md` |
-| Two of #784's ways the walk passes a pact row by | `tests/test_a_signer_declares_its_pact.py#STRAY_WAYS` held W2 and W8 indented as refused | read, in a case of their own | a row indented one to three spaces is one cmark-gfm renders (the oracle's indentation case, all four headers); `spec.md` S1 is *cells equal cmark-gfm's or refused* |
+| When the stop rule's names leave | `plan.md` phase 1 removes `refusal` and the stop rule's two patterns / they stayed through phases 1 and 2 | the code: removed in phase 3 with their last caller | `seal.py#table_span` (phase 2's) aliased both patterns at import and `broad_gate.py#refusal` (phase 3's) passed `refusal` through; removing them in phase 1 leaves `seal.py` failing to load. `phases/phase-1.md` |
+| A removal the frame did not name | `spec.md` `## Removes` names `refusal` and not `hooks/config.py#refused_row` / `refused_row` is gone | removed | it read `refusal` and had no caller outside one test, which phase 1 re-pinned to `config_value`; `## Removes` is the frame's, so the removal is recorded here · NAME NOT IN TREE |
+| Two writer cases the plan calls green | `plan.md` phase 2: "`test_the_writer_reads_where_commonmark_breaks` and `test_the_writer_leaves_a_commented_row_alone` green" / both texts are tables the walker refuses | re-pinned to *nothing written, bytes unchanged* | `spec.md` S5: "given a table the walker refuses, it writes nothing and prints the sentence". `phases/phase-2.md` |
+| Two of #784's ways the walk passes a pact row by | `tests/test_a_signer_declares_its_pact.py#STRAY_WAYS` held W2 and W8 indented as refused | read, in a case of their own | a row indented one to three spaces is one cmark-gfm renders; `spec.md` S1 is *cells equal cmark-gfm's or refused* |
+| Shape 5 in the twin's equality table | `plan.md` phase 3: `CONFIG_SHAPES` extended with shapes 1, 3, 4, 5, 6, 7, 8, 13, 14, 16 / shape 5 holds a comment inside the table | shape 5 is in the direction case, `LACKS_BLOCK_STATE`, with three shapes carrying a fence or a comment; every other shape of the sixteen is in the equality table | `spec.md` S7: where the twin lacks block state "it may refuse what the plugin reads and never reads what the plugin refuses". The twin refuses shape 5 at the comment line, the plugin at the row under it: both refuse, in two sentences |
+| The mode gate's unit | `spec.md`, `plan.md` and `questions.md` named `hooks/mode-gate.py#unanswered_root` / the unit is `undeclared`, and no `unanswered_root` stood at 3bb2ea42 | corrected in place in the three records | `evidence-check --strict .` names it `NOT-IN-TREE`; `hooks/mode-gate.py:128` is `def undeclared` · NAME NOT IN TREE |
+| The third document | `spec.md` S8 names `templates/config.md`, `skills/config/SKILL.md` and `hooks/config.py#config_rows` / `skills/implement/orchestration.md`'s bootstrap warning still said a bare pipe parses as no row | rewritten, and its pin in `tests/test_first_setup_asks_once.py` re-pinned | found reading 0.12.0's row on *the three documents that promised the old behaviour* before re-reading it (contract §12) |
 
 ## Not verified
 
@@ -32,10 +36,18 @@ is named once, with its edit, by the first command that reads it.
 |---|---|
 | the full suite, repository-wide lint and typecheck after the rounds settle | the sealer, spawned by the orchestrator |
 | the refusal's cause where a `<!--` follows one of the eight characters only `str.splitlines` ends a line at: the walker reads Python's pieces, so it names an HTML block left open that GFM does not see. The direction is refused and no row GFM hides is read; the sentence names the wrong cause | the owner — the walker's line ending is `gfm_table`'s for all four tables, outside this work item (`tests/test_the_mode_question_is_asked_once.py#test_a_break_commonmark_does_not_honour_hides_no_config_row`) |
+| a repository's CI on a vendored `tools/evidence_check.py` keeps the stop rule's twin until `/specseal:evidence-ci` is run again | each installed repository's owner, at their next `/specseal:evidence-ci` (`plan.md` §*Operational impact*) |
 
 ## Not done
 
-Nothing yet.
+`skills/evidence-check/scripts/pact_check.py#path_map` still reads the
+machine-local `| Remote | Path |` map by the retired grammar
+(`CONFIG_SEPARATOR`, `CELL`), as `spec.md` §*Scope* puts it out; the
+orchestrator files its issue. `evidence_check.py#CONFIG_ROW_RE` and
+`notify_may_be_always` were not touched: they judge a line's shape and read
+no row's value, as `spec.md` §*Scope* says. None of `evidence_check.py`'s
+`quoted_lines`, `claim_lines`, `anchored_rows`, `live_lines`, `hidden_lines`
+or `readable` was edited (the seam with #872).
 
 ## Fed back into the spec
 

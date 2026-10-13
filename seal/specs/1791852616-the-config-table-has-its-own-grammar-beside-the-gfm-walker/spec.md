@@ -54,7 +54,7 @@ That is:
   `~/.claude/specseal/pact-paths.md` — a machine-local `| Remote | Path |`
   map, not `seal/config.md` — with `config.CELL` and `config.CONFIG_SEPARATOR`.
   It is the sibling of this issue one file over, and it is why those two
-  names stay exported after `CONFIG_ROW` and `CONFIG_HEADER` leave.
+  names stay exported after `CONFIG_ROW` and `CONFIG_HEADER` leave. · NAME NOT IN TREE
   `plan.md` §*Operational impact* carries the issue text.
 - `hooks/routing.py#table_rows` and `skills/code-review/scripts/chain_check.py#table_rows`
   (#866's seam): other files, other failure directions, put out by #867's
@@ -143,7 +143,7 @@ spells today except the four `## Removes` names, and adds one:
   stays the rule for a caller holding rows; such a caller asks
   `config_table` for the refusals and acts on them by its own kind.
 - `declared_mode` answers `"refused"` on either sentence, which the mode
-  gate already reads as silence (`hooks/mode-gate.py#unanswered_root`).
+  gate already reads as silence (`hooks/mode-gate.py#undeclared`).
 - `pact_declaration` appends the walker's refusals to the list it already
   returns, with `notify` None, so `pact-check` exits 2 and a signer's CI
   prints a notice, the split #647 decided.
