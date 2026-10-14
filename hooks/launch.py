@@ -28,6 +28,8 @@ is the harness's word for blocking the call.
 
 Exit codes: 2 for an interpreter below the floor or no script named, with
 nothing read and nothing written; otherwise the script's own.
+
+Reads: owned — the command line its wrapper writes, the script's path first; unknown passed
 """
 
 import os

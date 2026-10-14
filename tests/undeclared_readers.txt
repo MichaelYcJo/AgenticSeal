@@ -493,7 +493,6 @@ hooks/routing.py#shown@89bbc6dd
 hooks/routing.py#stray_rounds@2ed04771
 hooks/routing.py#table_rows@7d92731b
 hooks/sealer-stamp.py#drawings@5300a6cf
-hooks/sealer-stamp.py#load_stamp@ca338822
 hooks/sealer-stamp.py#main@3b223174
 hooks/sealer-stamp.py#toplevel@1fd9a8e0
 hooks/session-lease.py#git_dir@87909da9
@@ -924,7 +923,6 @@ skills/verify/scripts/broad_gate.py#handed_to_shell@387cdf6b
 skills/verify/scripts/broad_gate.py#hidden_row_at@1a7e25eb
 skills/verify/scripts/broad_gate.py#item_value@eae994f1
 skills/verify/scripts/broad_gate.py#job_steps@afc42ebb
-skills/verify/scripts/broad_gate.py#load@1472912d
 skills/verify/scripts/broad_gate.py#main@7f4f5043
 skills/verify/scripts/broad_gate.py#mirrored@553aa70b
 skills/verify/scripts/broad_gate.py#names_a_branch@d5d64ebe
@@ -1009,7 +1007,6 @@ skills/verify/scripts/payload_meter.py#_n@1edab34f
 skills/verify/scripts/payload_meter.py#_ratio_from_baseline@88eab30e
 skills/verify/scripts/payload_meter.py#_rows@5869eee2
 skills/verify/scripts/payload_meter.py#_same_spawn_over_other_bytes@6b9870b8
-skills/verify/scripts/payload_meter.py#_session_cost@ec73910e
 skills/verify/scripts/payload_meter.py#_shown@38a9f5f9
 skills/verify/scripts/payload_meter.py#_signed@2680f84f
 skills/verify/scripts/payload_meter.py#_spawn_of@be3a0e2f

@@ -305,7 +305,9 @@ def load(path, name):
     that sentence and nothing run, rather than in a traceback. The
     exception's own sentence is what the person reads; one with none is
     named by its type. A `SystemExit` is no `Exception` and keeps its own
-    exit."""
+    exit.
+
+    Reads: owned — a module this plugin ships beside this script; unknown refused"""
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None or not os.path.isfile(path):
         raise Refused(f"cannot load {path} — this copy of the plugin is missing it")
