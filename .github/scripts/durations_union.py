@@ -16,8 +16,9 @@ against `--committed`, the file the tree holds. The report goes to
 `$GITHUB_STEP_SUMMARY` when that is set and to stdout otherwise.
 
 **The union is the whole suite or nothing.** A part missing, an id in two
-parts, a part or committed file that does not parse as a durations map, or an
-empty part, and the script writes nothing and exits 2, saying which. A shard
+parts, a part or committed file that does not parse as a durations map, an
+empty part, or a `--count` below one, and the script writes nothing and
+exits 2, saying which. A shard
 killed at its `timeout` uploads no part or the committed file whole, and
 either way the parts no longer make the suite; a smaller file uploaded as the
 whole would price every case it lost at the mean on the next division.
@@ -230,6 +231,8 @@ def main(argv=None, env=None):
     args = arguments(argv)
     env = os.environ if env is None else env
     try:
+        if args.count < 1:
+            raise Refusal(f"--count is {args.count}: a union of no parts is no suite")
         found = find_parts(args.parts)
         if len(found) != args.count:
             labels = ", ".join(label for label, _ in found) or "none"

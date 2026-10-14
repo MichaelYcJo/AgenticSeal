@@ -674,6 +674,22 @@ def test_a_committed_file_that_does_not_parse_is_exit_2(tmp_path):
     assert "the committed file does not parse as JSON" in text, text
 
 
+@pytest.mark.parametrize("count", [0, -1])
+def test_a_count_below_one_is_exit_2_naming_it(tmp_path, count):
+    """Round 1's 🟡 4. `--count 0` over an empty parts directory found the
+    zero parts it asked for, unioned nothing, and divided by the union's
+    size: exit 1 with a traceback, outside the script's 0-or-2 contract. A
+    union of no parts is no suite, and the argument is refused before
+    anything is read."""
+    root, held, out = write_parts(tmp_path, {})
+    root.mkdir()
+    summary = tmp_path / "summary.md"
+    assert run_union(root, held, out, count, summary) == 2
+    assert not out.exists(), "a refused union was written"
+    text = summary.read_text(encoding="utf-8")
+    assert f"--count is {count}: a union of no parts is no suite" in text, text
+
+
 def test_the_summary_names_each_parts_seconds_the_spread_and_the_live_sum(
     tmp_path,
 ):
