@@ -195,8 +195,10 @@ def test_a_run_that_prints_nothing_is_named_by_its_exit():
     """A `mutation-check` run that ends with no output, as a process killed by
     a signal does, still gives the finding something to say: its exit."""
     first_line = case_check().first_line
-    assert first_line("\n  \n", 3) == "exit 3, and mutation-check printed nothing"
-    assert first_line("\nred: the cases failed\nmore\n", 0) == "red: the cases failed"
+    assert first_line(["", "  "], 3) == "exit 3, and mutation-check printed nothing"
+    assert (
+        first_line(["", "red: the cases failed", "more"], 0) == "red: the cases failed"
+    )
 
 
 def test_a_windows_command_line_keeps_the_backslashes_of_its_paths():

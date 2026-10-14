@@ -521,7 +521,7 @@ OUT_OF_CLASS = {
     ),
     (".github/scripts/rules.py", "main"): (1, "the docstring's first line"),
     (".github/scripts/case_check.py", "main"): (1, "the docstring's first line"),
-    (".github/scripts/case_check.py", "first_line"): (1, TOOL),
+    (".github/scripts/case_check.py", "mutation_run"): (1, TOOL),
     (".github/scripts/case_check.py", "traced_run"): (1, TOOL),
     (".github/scripts/close_issues_on_release.py", "arrived"): (2, GIT),
     (".github/scripts/issue_claims_check.py", "main"): (
