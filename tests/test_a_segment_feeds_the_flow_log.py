@@ -499,7 +499,7 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     # reworded row naming the same set stays green — and a bare `` `seal/` ``
     # is no longer the assertion, because the sentence that names the three
     # contains that substring and held the old check up on its own.
-    for path in ("`seal/specs/`", "`seal/ledger/`", "`seal/ledger.md`"):
+    for path in ("`seal/specs/`",):
         assert path in source, (
             f"the `Location` row no longer names {path} as a record path. It "
             "and `docs/review-chain-spec.md` have to enumerate the same set, "

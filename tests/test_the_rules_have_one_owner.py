@@ -202,7 +202,7 @@ RULES = {
     ),
     "8 the moratorium": (
         SPEC,
-        "no new parsed field in `round-N.md` and no new row the ledger must carry",
+        "A moratorium for 0.8.x: no new parsed field in `round-N.md`.",
         {},
     ),
     "10 every agent seals what it verified, and one seal is final": (

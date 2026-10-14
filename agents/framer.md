@@ -341,8 +341,8 @@ against.
   seeing it.
 - **What the frame says the work removes.** The `## Removes` rows, or its
   `nothing — <why>` line. A removal is named once, at the frame, and the
-  records arm reads each row as a claim of absence from the build on; one
-  left unnamed reaches the reader only as a divergence after the fact.
+  review reads each row against the diff; one left unnamed reaches the
+  reader only as a divergence after the fact.
 - **What you put out of scope, and why, one line each.** A report of what was
   decided does not surface what was left out, and left out is where a framing
   error hides. Measured on this definition's own first frame: its scope

@@ -9,7 +9,7 @@ standing statement per segment, and `settle --retire` then removes the
 directories that statement covers, along with every released one that wrote
 no `spec.md` and holds nothing open, which states no rule to fold. A
 released work item's process record does not wait for that: `rounds/`,
-`phases/`, `survivors.md` and the files written only for its pull request are
+`phases/` and the files written only for its pull request are
 removed by `settle --retire-process` at the next release, fold or no fold,
 and `routing.md` and the SDD set stay for the fold. A fold is
 not a work item and opens no directory here. `skills/settle/SKILL.md` is the
@@ -72,7 +72,6 @@ off in every clone.
 
 | Item still here | Destination |
 |---|---|
-| Verified facts (`seal/specs/<work-item-id>/evidence-todo.md`) | `seal/ledger/<work-item-id>.md` — this work item's spec-clause ↔ coordinate rows |
 | Tests to plant (`seal/specs/<work-item-id>/tests-todo.md`) | the implementation commit — or `seal/follow-up.md` if blocked on prerequisite work |
 | Open decisions | the policy document's open-questions section |
 
@@ -106,8 +105,7 @@ seal/
     ├── spec.md · plan.md · questions.md · overview.md · changelog.md
     ├── rounds/
     │   └── round-N.md     target SHA · Pass · who checked the fixes · verdicts · executed probes · inherited coordinates · deferrals
-    ├── tests-todo.md      regression tests to plant, destination file per row
-    └── evidence-todo.md   facts to merge into the evidence ledger
+    └── tests-todo.md      regression tests to plant, destination file per row
 ```
 
 There is no task list here and no directory for one. `plan.md`'s Phases table

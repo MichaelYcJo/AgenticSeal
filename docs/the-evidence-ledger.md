@@ -48,15 +48,6 @@ release file changes no row's status. The `ok` total counts a
 `(coordinate, hash)` pair once per file, so a move can change it.
 Enforced by: tests/test_a_row_points_by_content.py::test_no_ledger_row_carries_a_line_number_or_a_commit, tests/test_a_row_points_by_content.py::test_the_checker_asks_git_for_nothing
 
-<!-- specs/1788761915-a-record-states-what-nothing-reads -->
-**A work item whose ledger fragment still exists has not shipped.** The fold
-removes the fragment at the release, so the fragment's presence is the
-boundary — and it is the one a check over unshipped work items uses, rather
-than a date or a branch name. A released work item's records are records of a
-moment, and holding them to a rule written later is holding them to nobody's
-rule.
-Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_a_work_item_with_a_ledger_fragment_has_not_shipped, tests/test_a_record_states_what_the_tree_has.py::test_a_work_item_whose_fragment_was_folded_away_has_shipped
-
 <!-- specs/1790208643-the-spec-is-split-and-its-sentences-are-settled -->
 **A `|` inside a ledger cell is escaped, and a row with more cells than its
 table's header fails.** An unescaped pipe splits the row, and the text after it
@@ -105,8 +96,8 @@ by such dates is named with each of them as written, because fixing them is
 the repair.
 A `Corrected ·` row supersedes
 the family of the row it cites, whose coordinates are not checked again, and
-starts a family of its own. That is §*A correction a merge dropped*'s halves
-rule computed rather than applied by hand: two branches re-reading one row on
+starts a family of its own. That is the halves rule of a hunk-by-hunk merge
+computed rather than applied by hand: two branches re-reading one row on
 one day tie, the side that edited a unit is the side whose hash matches it,
 and where both edited it, neither matches. Its cost is stated: content that
 returns to a hash only an older reading recorded reads DRIFTED — a partial
@@ -367,69 +358,6 @@ costs one edit to the row, and the quoted line says on the row what it
 covers.
 Enforced by: tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_848_is_answered_by_a_quoted_line_that_hashes_the_function, tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_a_bare_symbol_outside_the_two_parsers_is_refused_with_the_shape, tests/test_a_unit_the_extractor_cannot_bound_is_refused.py::test_a_python_file_that_will_not_parse_is_refused_naming_the_interpreter
 
-## A correction a merge dropped
-
-<!-- specs/1789969379-a-conflict-resolved-by-side-reverts-the-other-sides-corrections -->
-**When a ledger file two branches both edited conflicts — a fragment stacked
-branches share, or a released file where the freeze is not declared —
-resolve it hunk by hunk and read both sides.** Never *ours* and never
-*theirs*. A released file under the freeze takes no edit, so it cannot
-conflict. A whole-file choice is
-wrong by construction once both branches have been correcting: the measured
-instance resolved two hunks in opposite directions, because each side was the
-superset in one of them, and taking a side reverted three corrections that had
-each turned a false claim true.
-
-**Nothing downstream can see that, which is why the reading is a person's.**
-A row reverted to a superseded state is byte-identical to a row nobody
-touched. There is no marker on it, and the hash the checker reads is correct
-for the restored text.
-
-So a second check reads the markers instead. For every merge commit in a
-range, a `Corrected <date>` or `Re-read <date>` marker present in **either
-parent's** ledger text and absent from the result, **while the row carrying
-it survives**, is reported with the file, the marker and the parent it came
-from. Row survival is the one distinction that check exists to draw: a marker
-that vanishes with its whole row is a removal and is correct; a marker that
-vanishes while its row stands is the defect. A `Corrected ·` row is the one
-whole row whose loss is also reported, because the released row it corrected
-still stands. It reports the loss after the fact and cannot prevent it.
-
-It reads the shared file, every release file and every fragment, because a
-fragment becomes part of a release file at the release and a check that
-skipped fragments would go blind exactly while the rows are being written.
-Enforced by: tests/test_a_merge_cannot_silently_drop_a_correction.py::test_a8_both_guides_send_the_reader_to_the_rules_home, tests/test_a_merge_cannot_silently_drop_a_correction.py::test_the_policy_document_owns_the_conflict_and_the_re_read
-
-<!-- specs/1790208643-the-spec-is-split-and-its-sentences-are-settled -->
-**Hunk by hunk has two halves, and only the notes are a union.** A row's
-`Re-read <date>` and `Corrected <date>` notes are both sides', because each
-records a reading somebody performed. The anchor's hash is not a union: it
-belongs to the side that edited the anchored unit, and to neither side where
-both did, because the merged unit is then content neither side hashed. A
-resolution that keeps a hash the merge made stale names content that no
-longer exists anywhere, and the marker check above cannot see it, because no
-marker was dropped. So run `evidence-check` after the resolution: a drifted
-anchor is the tool naming the row, and the row is re-read against every edit
-the merged unit carries, one side's or both, before it is re-stamped. For a
-released row under the freeze the checker computes this itself
-(§*A released row is read again in the branch's fragment*).
-Enforced by: tests/test_a_merge_cannot_silently_drop_a_correction.py
-
-<!-- specs/1789996780-the-census-and-the-tie-that-nothing-holds -->
-**A bound over the corpus is stated with its instrument and the moment it was
-taken.** A case that asserts a bound covers every candidate site takes its own
-census over the real corpus, says how the number was taken, and says what it
-does when the corpus grows past it — the property, never a spelling and never
-a bare number. A sentence stating a count with no instrument beside it is a
-claim nobody can re-derive, and two such sentences in one module were
-arithmetically false about the module's own corpus.
-
-**Where a merge has two parents and both could be named, the tie falls to the
-first.** A rule that leaves a tie unstated is a rule with a case nobody wrote.
-Enforced by: nothing — no case reads it yet. A case that read every census-taking
-case for the instrument beside its count would; the tie rule is held by
-`test_a_tie_falls_to_the_first_parent`.
-
 ## The unverified record, and the baseline it is read against
 
 <!-- specs/1788873600-the-baseline-is-the-moving-pull-request-base -->
@@ -627,7 +555,7 @@ judgment is reviewed at its pull request (#517). What it leaves already has a
 home — the marker, the pull request, git history — so it keeps no log of its
 own. A fold that opened a work item left a directory for the next fold to
 retire, and that fold opened one of its own, so no fold could ever finish.
-Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_skill_says_a_fold_is_not_a_work_item_and_owes_no_range_row, tests/test_settle_reads_before_it_removes.py::test_the_skill_says_what_a_fold_does_to_the_ledger
+Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_skill_says_a_fold_is_not_a_work_item_and_owes_no_range_row
 
 <!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
 <!-- specs/1790119502-four-shipped-work-items-wait-unfolded -->

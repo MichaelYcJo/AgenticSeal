@@ -103,15 +103,14 @@ def test_the_section_says_the_base_branch_is_what_the_refusal_is_about():
         "spec.md",
         "plan.md",
         "review round record",
-        "seal/ledger/",
         "changelog.md",
         "overview.md",
         ".claude-plugin/plugin.json",
     ],
 )
 def test_the_exemption_list_names_what_a_contribution_does_not_write(thing):
-    """A5. An outsider looking at this repository's work items, review rounds
-    and ledger has every reason to assume all of it applies to them. The list
+    """A5. An outsider looking at this repository's work items and review
+    rounds has every reason to assume all of it applies to them. The list
     is the half of the section that cannot be inferred."""
     body = guide_section()
     assert thing in body, (
@@ -129,28 +128,6 @@ def test_the_exemption_list_says_which_guard_makes_it_true():
     assert "exits 0 unless the base is `main`" in body, (
         "the exemption list does not name the guard that makes it true, so it "
         "reads as a promise rather than as a consequence of the workflow"
-    )
-
-
-def test_the_section_warns_about_the_check_that_can_still_refuse():
-    """Q4. `survivor_check.py`'s refusal tells the author to record the
-    exemption in a `survivors.md` under `seal/specs/` — a convention a
-    contribution has none of. The message is out of scope; the trap is closed
-    with a sentence instead.
-
-    Round 1's 🟡 4 found a second check of the same shape — a BROKEN ledger
-    anchor is exit 2, not a warning — so the section names two. This case
-    still pins only `survivor_check.py`'s, which is the one whose own refusal
-    names the file to create.
-    """
-    body = guide_section()
-    assert "survivors.md" in body, (
-        "the section does not mention the check whose refusal sends a "
-        "contributor into a convention they do not have"
-    )
-    assert "Do not create one" in body, (
-        "the section names `survivors.md` without telling a contributor not "
-        "to create one, which is the instruction the refusal itself gives"
     )
 
 

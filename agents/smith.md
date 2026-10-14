@@ -123,7 +123,7 @@ incorporation. This file only adds what the skill does not carry.
         below the example: one invocation for the line alone, one with
         everything above it, `_hides_a_commit` True for the file -- the same
         three answers as at `5623d728`, before that paragraph.
-        Verified 2026-10-12 against "## Phases"@7c94c8b8. -->
+        Verified 2026-10-14 against "## Phases"@3c6d9fa3. -->
 
    Left to the commit, that token stops a session that had the answer in its
    first minute — which is why the declaration is written before you are
@@ -216,42 +216,13 @@ incorporation. This file only adds what the skill does not carry.
    not: `docs/the-record-layout.md` §*A commit after the build brings its
    changelog fragment along* owns that rule.
 
-   **Once the fixes are committed, ask what they left standing**, over the
-   same range the fix table names:
-
-   ```
-   survivor-check --range <a>..<b> --exempt seal/specs/<work-item-id>/survivors.md
-   ```
-
-   You repaired the coordinate a finding named. The fact behind it is usually
-   written down in more than one place, and the copies you did not touch come
-   back as the next round — which is §12 arriving at the one moment it is
-   about. This reports each place still carrying wording your range removed,
-   with the standing text beside the sentence you corrected.
-
-   **Nobody downstream can run it for you.** §2 keeps a reviewer off the broad
-   gate, so a left-behind pin can sit red across whole rounds: one reworded
-   sentence in `agents/warden.md` did exactly that for two of them and two
-   gates (#269). Correct each report, or write it into `survivors.md` with a
-   quote from the standing text and your grounds — the quote is the anchor, so
-   the exemption stops holding as soon as that text changes. Then say in the
-   hand-back what it reported and what you did with each one.
-
-   **A range that DELETES a shipped section takes one row for the whole
-   range** instead, `| Range | Grounds |` in the same file. Every sentence of
-   the section stands in the durable copies that are supposed to survive a
-   deletion, so #293's range reported 153 places, all correct as reports and
-   none of them a defect — and 153 written rows is not an escape anybody
-   takes. That row is anchored on the range **and** on the work item it lives
-   in: it stops holding the moment the check runs over a different range, and
-   it never reaches a range that touches nothing in your own work item (in
-   local mode, one whose tip is off the branch your `routing.md` names). The
-   spelling CI passes, `origin/<base>...HEAD`, is a relation rather than a
-   range and re-resolves on every checkout, so without the second anchor one
-   merged row turned the step off for every later branch cut from the same
-   base. A declaration refused for belonging to somebody else prints under
-   `not yours` and names that work item — so if you see that line, the row is
-   not yours to lean on.
+   **Once the fixes are committed, ask what they left standing.** You
+   repaired the coordinate a finding named, and the fact behind it is usually
+   written down in more than one place: the copies you did not touch come back
+   as the next round, which is §12 arriving at the one moment it is about. For
+   each rule your range reworded or removed, find every other place stating
+   it — `git grep` its words, and the `Enforced by:` target that holds it —
+   and correct each one, or say in the hand-back why it stands.
 4. **Verify** — run the actual checks and read their output before any
    completion claim. Fresh output only; a previous run proves nothing. §2
    bounds what you run and §3 answers a prompt that orders more.

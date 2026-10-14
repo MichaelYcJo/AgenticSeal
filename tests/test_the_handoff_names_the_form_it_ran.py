@@ -49,16 +49,6 @@ def test_the_handoff_says_which_form_of_a_command_it_carries():
     )
 
 
-def test_the_handoff_names_the_measurement_that_bought_the_requirement():
-    """Every other requirement in that list carries the failure that bought
-    it. One without is a rule a reader can talk themselves out of."""
-    protocol = flat("docs", "review-handoff-protocol.md")
-    assert "fifteen drifted rows and one broken claim" in protocol, (
-        "the requirement arrives with no measurement, where the three "
-        "beside it each name theirs"
-    )
-
-
 def test_the_requirement_count_moved_with_the_requirement():
     """A fourth bullet under a sentence that says three is the list counting
     one thing and the reader counting another — and the sentence is what a
@@ -68,35 +58,3 @@ def test_the_requirement_count_moved_with_the_requirement():
     assert "Five requirements" in protocol
     assert "Three requirements, each bought" not in protocol
     assert "Four requirements, each bought" not in protocol
-
-
-def test_the_review_skill_names_both_forms_and_what_each_is_for():
-    """The orchestrator writes the spawn prompt, so the table it copies from
-    has to hold both rows. Guidance naming one form is how this happened."""
-    skill = flat("skills", "code-review", "orchestration.md")
-    assert "The check a round runs reads everything" in skill, (
-        "the skill has no section on which form of the ledger check a round is handed"
-    )
-    assert "only a write is narrowed" in skill, (
-        "the section names the read and leaves the write unexplained, which "
-        "is the half that made the narrowing right in the first place"
-    )
-    assert "keeps it off a row whose claim somebody else" in skill, (
-        "without the write's reason a reader deletes the narrowing "
-        "altogether, and `--reverify` re-stamps a false claim"
-    )
-
-
-def test_the_review_skill_refuses_the_repair_that_looks_obvious():
-    """The cheap reading of #153 is *stop narrowing*, and it reintroduces
-    the defect the narrowing was adopted to fix. The section has to say so,
-    or the next reader makes that trade without knowing it is one."""
-    skill = flat("skills", "code-review", "orchestration.md")
-    assert "do not answer this by deleting the narrowing" in skill
-
-
-def test_the_review_skill_carries_the_measurement_too():
-    """A rule with the measurement stripped out is one the next orchestrator
-    weighs against convenience. This one lost that weighing already."""
-    skill = flat("skills", "code-review", "orchestration.md")
-    assert "fifteen drifted rows and one broken claim" in skill

@@ -1161,24 +1161,6 @@ def test_no_document_says_the_fragments_are_never_gathered():
             assert old not in text, "/".join(parts) + f" still says: {old}"
 
 
-def test_the_release_sequence_names_the_fold_beside_the_gather():
-    """The sequence in `docs/branch-and-release.md` is walked by whoever cuts
-    a release, and `docs/release-checklist.md` §2 holds the commands, which
-    `CONTRIBUTING.md` sends the reader to (#715). A step that is only in a
-    workflow comment is a step that gets discovered by a red build."""
-    assert "docs/release-checklist.md` §*2. Gather, fold, bump*" in flat(
-        "CONTRIBUTING.md"
-    ), "CONTRIBUTING.md does not send the reader to the release commands"
-    for parts in (("docs", "branch-and-release.md"), ("docs", "release-checklist.md")):
-        text = flat(*parts)
-        assert "fold_ledger.py" in text, (
-            "/".join(parts) + " does not name the script that folds the ledger"
-        )
-        assert text.index("gather_changelog.py") < text.index("fold_ledger.py"), (
-            "/".join(parts) + " names the fold before the gather it belongs beside"
-        )
-
-
 THIS_WORK_ITEM = "1788326734-the-ledger-fragments-are-never-gathered"
 
 
@@ -1244,15 +1226,3 @@ def test_this_work_items_rows_are_still_found_after_the_release_folds_them(tree)
     fold(tree)
     assert not frag.exists(), "the fold removed nothing"
     this_work_items_rows_are_in_the_ledger(str(tree))
-
-
-def test_the_checklist_repairs_preparation_drift_the_way_the_freeze_accepts():
-    """Under `Ledger frozen from` plain `--reverify` writes no released file,
-    so the release checklist's §3 drift row names `--into`, the fold's own
-    fragment, and the second fold that joins it (round 1, 🟡 7)."""
-    text = flat("docs", "release-checklist.md")
-    row = next(line for line in text.split("| `evidence-check --strict` |")[1:2]).split(
-        " | "
-    )[0]
-    assert "--reverify --into seal/ledger/<unix-seconds>-fold.md --checked" in row, row
-    assert "second `fold_ledger.py --version X.Y.Z`" in row, row

@@ -30,35 +30,20 @@ Enforced by: tests/test_a_document_has_room_for_the_next_fold.py::test_every_doc
 
 ## A change writes fragments, never a shared file
 
-Two files used to take an append from every branch, and both cost a conflict
-at the worst moment — after the broad gate has run, which forces it to run
-again. So a change writes a file of its own, named for its work item:
+A file every branch appends to costs a conflict at the worst moment — after
+the broad gate has run, which forces it to run again. So a change writes its
+changelog entry into a file of its own, `seal/specs/<work-item-id>/changelog.md`,
+never under a heading of `CHANGELOG.md`. No two work items share an id, so no
+two branches share a file. A changelog fragment has no line starting `## `,
+because that line ends the released section, and the gather refuses a
+fragment that has one.
 
-| Instead of | Write |
-|---|---|
-| an entry under `CHANGELOG.md`'s `## Unreleased` | `seal/specs/<work-item-id>/changelog.md` |
-| rows appended to `seal/ledger.md` or a `seal/releases/<X.Y.Z>.md` | `seal/ledger/<work-item-id>.md` |
-| a re-read or a correction of a row in `seal/ledger.md` or a `seal/releases/<X.Y.Z>.md` | a `Re-read ·` or `Corrected ·` row in `seal/ledger/<work-item-id>.md`, citing the row |
-
-No two work items share an id, so no two branches share a file. A ledger
-fragment needs no header of its own: every row carries its own anchor and
-hash. A changelog fragment has no line starting `## `, because that line
-ends the released section, and the gather refuses a fragment that has one. What a citing row is, and how the checker reads it, is
-`docs/the-evidence-ledger.md` §*A released row is read again in the branch's
-fragment*.
-
-**Both kinds of fragment are gathered at the release, by two commands in one
-commit**, and `docs/release-checklist.md` §*2. Gather, fold, bump* holds the
-commands. The changelog fragments are concatenated into the release's own
-file, `changelog/X.Y.Z.md`, and the release's heading goes into the index,
-`CHANGELOG.md`. The ledger fragments move into that release's own file,
-`seal/releases/X.Y.Z.md`, and the fragments are removed. A fragment lives
-from the work item's first row to the release that ships it.
-Enforced by: tests/test_the_changelog_is_gathered_at_release.py::test_the_release_sequence_names_the_gather_step, tests/test_the_ledger_fragments_fold_at_release.py::test_every_row_reaches_the_ledger_byte_for_byte_and_the_fragment_is_gone
-
-A `settle` fold has no work item, so its fragment is named for the moment:
-`seal/ledger/<unix-seconds>-fold.md` (`skills/settle/SKILL.md` §*What a fold
-branch owes*). The release folds it like any other.
+**The fragments are gathered at the release, by one command in one commit**,
+and `docs/release-checklist.md` §*2. Gather, bump* holds it. The fragments are
+concatenated into the release's own file, `changelog/X.Y.Z.md`, and the
+release's heading goes into the index, `CHANGELOG.md`. A fragment lives from
+the work item's first entry to the release that ships it.
+Enforced by: tests/test_the_changelog_is_gathered_at_release.py::test_the_release_sequence_names_the_gather_step, tests/test_the_changelog_is_gathered_at_release.py::test_a_gather_writes_the_release_file_and_its_index_entry
 
 ## A commit after the build brings its changelog fragment along
 

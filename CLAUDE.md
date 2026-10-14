@@ -79,8 +79,8 @@ not the repair, the check is.
 
 ## Repo rule — commit early; on a declared branch it costs nothing
 
-`skills/implement/SKILL.md` §*2. Implement, and feed evidence back where you
-verified it* states the commit cadence and holds the reasoning, and it tells a
+`skills/implement/SKILL.md` §*2. Implement test-first, and let each rule
+name its test* states the commit cadence and holds the reasoning, and it tells a
 reader to check two conditions against their own repository; this row is that
 check for this one, and it is here because a session reaches the question
 after every edit without opening that file. Both conditions hold here: a
@@ -88,19 +88,9 @@ feature branch squashes into its release branch, and every work item commits
 its `routing.md` before the first edit. So commit as soon as a step stands on
 its own.
 
-**Commit freely: a ledger row names no commit for a squash to orphan.** How a
-coordinate names code, how a released row is read again, and what to do when
-a ledger file conflicts live in `docs/the-evidence-ledger.md` §*A row is a
-content anchor, and it names no commit*, §*A released row is read again in
-the branch's fragment* and §*A correction a merge dropped*.
-
 ## Repo rule — a change writes fragments, never the shared file
 
-Which file a change writes — its changelog entry, its ledger rows, and its
-re-reads and corrections of a released ledger row — is
+Which file a change writes its changelog entry into is
 `docs/the-record-layout.md` §*A change writes fragments, never a shared
-file*. This repository declares `Ledger frozen from` in `seal/config.md`, so
-its released ledger files never change; `docs/the-evidence-ledger.md` §*A
-released row is read again in the branch's fragment* holds what that means
-for a branch. The release gathers and folds the fragments with the commands
-in `docs/release-checklist.md` §*2. Gather, fold, bump*.
+file*. The release gathers the fragments with the command in
+`docs/release-checklist.md` §*2. Gather, bump*.

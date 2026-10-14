@@ -26,8 +26,7 @@ One work item, one directory; parallel reviews never share a file.
 ├── rounds/
 │   ├── round-1.md
 │   └── round-N.md
-├── tests-todo.md
-└── evidence-todo.md
+└── tests-todo.md
 ```
 
 In this plugin's implementation that directory is `seal/specs/<work-item-id>/`.
@@ -35,7 +34,7 @@ In this plugin's implementation that directory is `seal/specs/<work-item-id>/`.
 convention puts the files wherever its work items already live.
 
 `round-N` is the only member of this set that is plural and unbounded, so it
-gets a directory and the two todo files do not. Six records beside six other
+gets a directory and `tests-todo.md` does not. Six records beside six other
 files was the worst case measured in the reference implementation, and a
 reader scanning that directory could not tell at a glance which member grows.
 
@@ -515,12 +514,6 @@ One row per test: what it asserts · **destination file** · grounds · status.
 The reviewer prescribes; the implementer plants. Prescriptions embedded in
 fix-suggestion snippets get lost (measured) — this file is the contract.
 
-### evidence-todo.md — verified facts awaiting the ledger
-
-One row per fact: the fact · destination ledger row · status. Reviewers do
-not write the ledger directly: parallel writers clobber each other, and
-worker findings are pre-verification.
-
 ## The handoff before round 1
 
 <!-- specs/1788224363-a-subagent-rediscovers-what-the-session-established -->
@@ -560,15 +553,10 @@ Five requirements, each bought by a measured failure:
 - **A command with more than one form names the form, and says what the
   other one is for.** A flag that narrows what a check reads is right for
   one of its jobs and blinding for the other, and a handoff carrying the
-  command carries neither job. The failure that bought this: a ledger check
-  scoped to the work item's own fragment was handed to every segment of one
-  work item, because that narrowing is what keeps a re-stamp off a row whose
-  claim somebody else has to judge. Three review rounds and two fix passes
-  all ran it and all reported a clean ledger; the unscoped read at the pull
-  request found **fifteen drifted rows and one broken claim**, every one in
-  a file the branch had touched. Naming the form alone is not enough — the
-  reader who does not know what the other form buys deletes the narrowing,
-  and the write then re-stamps the false claim.
+  command carries neither job: a narrowing adopted for a write and handed
+  over as a read reports clean on what it never opened. Naming the form alone
+  is not enough — the reader who does not know what the other form buys
+  deletes the narrowing.
 - **A runner the repository ships is found, not typed into every prompt.**
   Where the repository has its own command for its suite, the handoff names
   it once and the segment finds it where the contribution guide names it
@@ -634,7 +622,7 @@ meet (issue #51, whose transcripts these numbers come from).
 | Segment | Judged on | Grounds |
 |---|---|---|
 | reviewing | tools per turn **≥ 1.8** | a review's reads are independent — coordinates inherited from earlier rounds, files named by one handoff — so they can go out together. The rounds that set the bar measured 1.29–1.89 — not the complete record: the same issue holds a 2.0 baseline and a later chain at 1.10–1.54 — and the one round instructed to batch (1.89) was the fastest measured |
-| framing | tools per turn **≥ 1.4** | a frame is a wide read of independent documents — the ticket, the policies, the ledger, the earlier work items — so its reads can go out together, and it is where a delegated build's re-reading was measured as the dominant cost (#263). The framers of 0.11.2–0.12.2 that finished read 1.46–1.79 and those of 0.15.1 read 2.3–3.1 (#548); every framer reading under the bar since 0.12.3, at 1.00–1.12, was a spawn whose prompt held its opening reads back, which `agents/framer.md` §*How a frame opens* now replaces with a bound on one call (#640) |
+| framing | tools per turn **≥ 1.4** | a frame is a wide read of independent documents — the ticket, the policies, the earlier work items — so its reads can go out together, and it is where a delegated build's re-reading was measured as the dominant cost (#263). The framers of 0.11.2–0.12.2 that finished read 1.46–1.79 and those of 0.15.1 read 2.3–3.1 (#548); every framer reading under the bar since 0.12.3, at 1.00–1.12, was a spawn whose prompt held its opening reads back, which `agents/framer.md` §*How a frame opens* now replaces with a bound on one call (#640) |
 | implementing | **`repeats = 0`** and calls per deliverable — never tools per turn | an edit-test loop is inherently serial (measured 1.08–1.17): a call whose input depends on the last result cannot go out with it, so the ratio reports task shape, not waste. What does report waste: a command re-run unchanged, and how many calls one deliverable took |
 | verifying | exempt | it targets the diff of the last fixes, and its job is the answers: whether each verdict the previous round closed is actually closed. That leaves fewer independent axes to open at once than a branch does, which is the ground #51 observation 1 recorded for the exemption |
 
@@ -745,13 +733,13 @@ A tool claiming to support this protocol:
    not re-run. This is the rule draft 0.2 made unsatisfiable by keying the
    directory to an identifier that does not exist yet.
 2. **Writes after posting** — the session that posted a review writes
-   round-N and the two todo files immediately; it is the only moment the
+   round-N and `tests-todo.md` immediately; it is the only moment the
    verdicts and probe results still exist anywhere.
 3. **Closes before merging** — every unresolved row moves to a durable home
-   (the repo's evidence ledger, follow-up list, or open-questions section),
+   (the repo's follow-up list or open-questions section),
    and the directory records what went where, or `nothing to drain`. The
    directory then stays. Merging without closing leaves prescribed tests
-   unplanted and facts unmerged, which is the failure this protocol exists to
+   unplanted, which is the failure this protocol exists to
    prevent; the closing note is what makes that visible in the diff instead of
    only in someone's memory.
 
@@ -848,7 +836,7 @@ refused at any age, the split `Contract changes` already makes.
 turned out to name a thing that can have two forms and the handoff kept
 carrying whichever one somebody last found useful. A narrowing adopted for a
 write was handed to three rounds as a read, and each of them reported clean
-on a ledger it had not opened. No conformance rule is added, for the reason
+on a corpus it had not opened. No conformance rule is added, for the reason
 0.6 gave when it added none: a spawn prompt is not a file this protocol can
 check. What a conforming handoff carries is what changes.
 

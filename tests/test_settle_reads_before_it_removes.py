@@ -960,40 +960,15 @@ def test_the_skill_says_who_judges_and_who_reads():
 
 
 def test_the_skill_says_a_fold_is_not_a_work_item_and_owes_no_range_row():
-    """#517's D1, and the sentence it retired. The skill used to hand a fold
-    branch a `survivors.md` range-row to copy, anchored on the range and on
-    the work item whose directory held it — and a fold with no work item has
-    no directory to hold one. The sweep leaves a retired directory out of its
-    range instead, so the row shape is gone and the rule that replaced it is
-    what a fold session reads."""
+    """#517's D1: a fold with no work item has no directory, so the skill
+    hands it no row shape to copy, and says how it commits instead."""
     text = flat(skill())
     assert "| Range | Grounds |" not in text, "the skill still hands a fold a range row"
-    assert "No `survivors.md` row." in text
     assert "## A fold is not a work item" in skill()
     assert "A fold opens no directory under `seal/specs/`" in text
     assert "`: '[no-review]';`" in text, "the skill does not say how a fold commits"
     assert "reviewed at its pull request" in text
     assert "keep a log of folds" in text
-
-
-def test_the_skill_says_what_a_fold_does_to_the_ledger():
-    """Q3's default. *Nothing in `seal/ledger.md` moves* was false of both
-    folds — one removed rows, the other re-verified four — and it disagreed
-    with the policy the fold works under. Since #715 the sentence has two
-    halves: under the freeze a released file does not change and the fold
-    writes a fragment of its own, and without it the old rule stands."""
-    text = flat(skill())
-    assert "Nothing in `seal/ledger.md` moves" not in text
-    assert "Where the freeze is declared, a fold writes a fragment of its own." in text
-    assert "`seal/ledger/<unix-seconds>-fold.md`" in text
-    assert "`seal/ledger.md` changes only by removal and re-verification" in text
-    assert "A fold appends nothing there" in text
-    policy = document("docs", "the-evidence-ledger.md")
-    assert (
-        "A fold is not a work item, and it adds no work item's rows to the ledger."
-        in flat(policy)
-    )
-    assert "`seal/ledger/<unix-seconds>-fold.md`" in policy
 
 
 def test_the_skill_says_the_retirement_is_the_second_half_of_the_fold():

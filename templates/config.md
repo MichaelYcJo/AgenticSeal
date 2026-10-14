@@ -35,12 +35,10 @@ neither its first nor its last: it is refused in the sentence
 "`<item>` appears N times — one value". A file that is there and cannot be
 read as UTF-8 text — a directory of that name, or bytes another encoding
 wrote — is refused naming its path; a file that is absent still declares
-nothing. A command a person runs — `evidence-check --reverify`,
-`correction-check`, `fold-check`, `broad-gate`, `seal mode`, `pact-check` —
-prints the refusal and exits 2 with nothing judged, as it does for a value it
-cannot parse. A hook says nothing: the mode gate is silent rather than
-asking, and the commit advisor keeps naming the frozen repair. Delete the
-extra row, or write the file as UTF-8.
+nothing. A command a person runs — `fold-check`, `broad-gate`, `seal mode`,
+`pact-check` — prints the refusal and exits 2 with nothing judged, as it does
+for a value it cannot parse. A hook says nothing: the mode gate is silent
+rather than asking. Delete the extra row, or write the file as UTF-8.
 
 **The table is read the way GitHub shows it, or refused.** The reader is the
 walker the plugin holds to cmark-gfm, GitHub's renderer, so a row is a row
@@ -91,8 +89,7 @@ because the reader is a model choosing prose, not a lookup table.
 
 The language the **prose** in the work-item records is written in:
 `spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, the cell
-contents of `rounds/round-N.md` and the prose beneath its tables, and the
-claim and grounds of a ledger row.
+contents of `rounds/round-N.md` and the prose beneath its tables.
 
 **Independent of the row above.** Setting one does not carry the other, for
 the reason stated at the top of this file: an absent row's default is what
@@ -141,9 +138,9 @@ every repository, whatever either row says:
   and the `nothing` in `nothing — <why>`. A translated field name is not a
   translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, a drained file's `drained` line, the `✅`
-  that closes a row and the `🔴` that opens one, a ledger anchor's
-  `path#unit@hash`, and a pact anchor's `pact:<name>/"<heading path>"@<hash>`.
+  section's `## X.Y.Z — <date>`, a drained file's `drained` line, the `✅` that
+  closes a row and the `🔴` that opens one, and a pact anchor's
+  `pact:<name>/"<heading path>"@<hash>`.
 - **The `Pact notify` values.** `always`, `when the pact is touched` and
   `never` are read literally by `hooks/config.py#pact_declaration`, so a
   translated value is refused rather than read.
@@ -393,8 +390,7 @@ reference root.
 | no `seal/` root at either place | no reference root: the repository has not opted in, and the one layout the plugin read without a root is 0.3.x, whose top-level `specs/` was its own |
 
 **What it governs.** The checks that would read a record leave a reference
-root out: `survivor-check` takes it out of its pool and its range, on both
-sides, and `unverified-check` prunes it from a directory walk while still
+root out: `unverified-check` prunes it from a directory walk while still
 reading a file named to it explicitly. A prefix naming the plugin's own root
 or anything under it is dropped, because the root's records are read whatever
 this row says; `settle --retire` removes only under `seal/specs/`. One reader
@@ -405,12 +401,6 @@ path question, `hooks/config.py#under_reference_root`.
 touches what it describes, and what was read is cited — in `spec.md`, or in
 the statement `settle` folds into `docs/` — so the next reader can open the
 same file.
-
-**The default's cost is stated rather than hidden.** A repository whose own
-tests sit under a directory named `specs/`, a BDD convention, has them out of
-the survivor sweep under the default, and nothing says so.
-`Reference specs | none`, or a row naming the real reference roots, puts
-them back.
 
 ## Pact
 

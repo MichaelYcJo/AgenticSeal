@@ -154,19 +154,18 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   `skills/code-review/orchestration.md` §*A fix of a fix twice sends the work
   item back to its framer* owns that rule.
 
-  A finding whose `Location` is under `seal/specs/`, `seal/ledger/`,
-  `seal/releases/` or `seal/ledger.md` is about the run's paperwork, not the
-  tool: report it as a correction — ⬜, with the coordinate — and leave it out
-  of `Needs a fix`. `docs/review-chain-spec.md` §*The last round verifies*
-  owns the rule. A ⬜ an earlier round of the run reported and left open is
-  carried, not re-reported: its coordinate is in your `## Inherited
-  coordinates` with its word, and it closes once at the run's end —
+  A finding whose `Location` is under `seal/specs/` is about the run's
+  paperwork, not the tool: report it as a correction — ⬜, with the coordinate
+  — and leave it out of `Needs a fix`. `docs/review-chain-spec.md` §*The last
+  round verifies* owns the rule. A ⬜ an earlier round of the run reported and
+  left open is carried, not re-reported: its coordinate is in your `##
+  Inherited coordinates` with its word, and it closes once at the run's end —
   `skills/code-review/orchestration.md` §*A note closes once, at the run's
-  end* owns that rule. And the run reopens at most once: a verifying round spawned
-  after a reopening reports what it finds as `deferred <home>` candidates
-  rather than as fixes to commission, because `docs/review-chain-spec.md`
-  §*The reopening — one, and then the run is capped* owns the bound and the
-  exit it ends in.
+  end* owns that rule. And the run reopens at most once: a verifying round
+  spawned after a reopening reports what it finds as `deferred <home>`
+  candidates rather than as fixes to commission, because
+  `docs/review-chain-spec.md` §*The reopening — one, and then the run is
+  capped* owns the bound and the exit it ends in.
 
   **A round told the run is capped still reports what it finds, at the
   severity it finds it.** What a cap decides is whether another round is
@@ -258,7 +257,7 @@ axes, probe rules, record formats. This file adds only your role boundaries.
 
   Stated intent is the sharpest case, because it is often right. If the
   behavior is called deliberate, go looking for it in the policy documents,
-  the SDD set, or the ledger. Found there, it is grounds. Found nowhere but
+  the SDD set, or the test a rule names. Found there, it is grounds. Found nowhere but
   the account, it is a question in your report — never a pass.
 
   A first round is where this costs most. There is no `round-N.md` in the
@@ -303,15 +302,15 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   for round 2, and inheriting the verdict is how that goes unseen.
 
   This is not a re-walk. Locating the code is the expensive half, and the
-  ledger and the earlier round exist so nobody pays it twice — open the
-  coordinates they hand you rather than searching for them again.
+  earlier round exists so nobody pays it twice — open the coordinates it
+  hands you rather than searching for them again.
 
   The line is whether a recorded fact can be checked for staleness, not
   whether it feels durable:
 
   | Carried, and re-derived only when its check fails | Re-derived every round |
   |---|---|
-  | Ledger coordinates — `evidence-check` fails when an anchor is gone or the content under it changed | Whether the new code satisfies the clause |
+  | A rule's `Enforced by:` target — the `enforced-unresolved` budget row fails when it is gone | Whether the new code satisfies the clause |
   | What the original does — `seal/parity.md` pins a baseline SHA, so it cannot drift under you | Whether the new code matches it |
   | Where a subsystem lives, what a helper is for | Any verdict, on any axis |
 
@@ -452,7 +451,7 @@ format it points at: in `code-review` only 🔴 blocks merge, 🟡 is *fix or
 justify*, and that skill asks for a paste-ready fix for both. A 🟡 with no fix
 beside it is the one a smith answers with grounds because there was nothing to
 paste. Separate sections for regression tests to
-plant (with destination files) and facts to feed into the evidence ledger.
+plant (with destination files).
 Findings from reading and findings from execution stay labeled apart, which
 is §4 in your own output.
 

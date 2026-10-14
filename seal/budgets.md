@@ -26,12 +26,12 @@ commit alike. -->
 
 | Budget | Unit | Ceiling | Slack | Kind |
 |---|---|---|---|---|
-| preload:framer | bytes | 99089 | 2 % | gate |
+| preload:framer | bytes | 95730 | 2 % | gate |
 | preload:scribe | bytes | 29554 | 2 % | gate |
 | preload:sealer | bytes | 36113 | 2 % | gate |
-| preload:smith | bytes | 106350 | 2 % | gate |
+| preload:smith | bytes | 101344 | 2 % | gate |
 | preload:warden | bytes | 102229 | 2 % | gate |
-| preload:claude-md | bytes | 9827 | 2 % | gate |
+| preload:claude-md | bytes | 9126 | 2 % | gate |
 | suite-seconds | seconds | 10221 | one-sided | gate |
 | slow-file | seconds | 120 | one-sided | gate |
 | docs-history | lines | 0 | +0 lines | gate |
@@ -77,7 +77,7 @@ commit alike. -->
 
 | File | Lines ceiling |
 |---|---|
-| docs/branch-and-release.md | 11 |
+| docs/branch-and-release.md | 9 |
 | docs/commit-review-gate-spec.md | 15 |
 | docs/issues-and-milestones.md | 8 |
 | docs/measuring-a-run.md | 2 |
@@ -101,14 +101,14 @@ commit alike. -->
 
 | File | Rules ceiling |
 |---|---|
-| CLAUDE.md | 8 |
-| CONTRIBUTING.md | 25 |
+| CLAUDE.md | 7 |
+| CONTRIBUTING.md | 21 |
 | agents/framer.md | 35 |
 | agents/scribe.md | 3 |
 | agents/sealer.md | 21 |
 | agents/smith.md | 11 |
 | agents/warden.md | 17 |
-| docs/branch-and-release.md | 26 |
+| docs/branch-and-release.md | 24 |
 | docs/commit-review-gate-spec.md | 20 |
 | docs/issues-and-milestones.md | 23 |
 | docs/measuring-a-run.md | 3 |
@@ -121,36 +121,36 @@ commit alike. -->
 | docs/the-agent-set.md | 6 |
 | docs/the-broad-gate.md | 5 |
 | docs/the-commit-gate-inside-git.md | 9 |
-| docs/the-evidence-ledger.md | 15 |
+| docs/the-evidence-ledger.md | 13 |
 | docs/the-pact.md | 1 |
-| docs/the-reader-registry.md | 5 |
+| docs/the-reader-registry.md | 4 |
 | docs/the-review-and-parity-arms.md | 8 |
 | docs/worktree-guard-spec.md | 43 |
 | skills/agent-contract/SKILL.md | 2 |
 | skills/audit/SKILL.md | 6 |
 | skills/build-fix/SKILL.md | 4 |
 | skills/checkpoint/SKILL.md | 4 |
-| skills/code-review/SKILL.md | 28 |
-| skills/code-review/orchestration.md | 42 |
+| skills/code-review/SKILL.md | 27 |
+| skills/code-review/orchestration.md | 41 |
 | skills/commit-pr-convention/SKILL.md | 24 |
 | skills/confidence-check/SKILL.md | 6 |
 | skills/config/SKILL.md | 13 |
 | skills/evidence-check/SKILL.md | 45 |
 | skills/evidence-ci/SKILL.md | 9 |
 | skills/gap-analysis/SKILL.md | 10 |
-| skills/implement/SKILL.md | 28 |
+| skills/implement/SKILL.md | 26 |
 | skills/implement/orchestration.md | 41 |
 | skills/learn/SKILL.md | 4 |
 | skills/legacy-parity/SKILL.md | 2 |
 | skills/parity-setup/SKILL.md | 7 |
 | skills/preset-setup/SKILL.md | 6 |
 | skills/security-audit/SKILL.md | 1 |
-| skills/settle/SKILL.md | 32 |
+| skills/settle/SKILL.md | 28 |
 | skills/update/SKILL.md | 11 |
 | skills/verify/SKILL.md | 42 |
 | skills/writing-style/SKILL.md | 40 |
 | templates/claude-md-block.md | 5 |
-| templates/config.md | 38 |
+| templates/config.md | 37 |
 | templates/ledger.md | 3 |
 | templates/sdd-plan.md | 1 |
 | templates/sdd-questions.md | 5 |

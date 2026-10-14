@@ -53,7 +53,7 @@ instead of re-inventing it.
 
 An absence you cannot demonstrate that way is `unverified` and reads "not
 found", which is a different sentence from "not there". Never promote one to
-a document — a policy or a ledger row built on a search nobody could repeat
+a document — a policy or a rule built on a search nobody could repeat
 is the same defect as a `read` reported as passing, with a longer fuse.
 
 #### `arm-check` asks condition 2 of a whole module, one arm at a time
@@ -217,8 +217,7 @@ command.
 
 Evidence attaches to a tree state, not to a session. Note the state the
 proof ran against (commit + dirty files); **any edit after the run breaks
-your seal** — re-run, don't re-tell. Same drift logic the evidence ledger
-applies to spec coordinates, applied to your own claims.
+your seal** — re-run, don't re-tell.
 
 ### 4. Executed, read, or unverified — labeled
 
@@ -425,8 +424,7 @@ Moving it ahead of the rounds means paying it twice.
 **Which base, and it is the one the merge is judged by.** The gate resolves
 `--base` once, before anything runs, to the ref CI will read: the base's
 upstream where the checkout declares one, else `origin/<base>`, else the ref
-as given. Every check it runs takes that one commit — the survivor range, the
-two baselines, the scratch worktree the base comparison checks out, and the
+as given. Every check it runs takes that one commit — the two baselines, the scratch worktree the base comparison checks out, and the
 `Broad gate` cell. A plain branch name is a LOCAL ref and a runner has no
 local branches, so a checkout one commit behind its remote used to seal green
 over a question nobody was asking while CI refused the same commit (#423).
@@ -950,7 +948,7 @@ gathers up.
 | Wall clock, routing commit to last record, build and chain apart | `git log` of the branch |
 | Commits, by kind | `git log --format=%s` |
 | Findings by severity | the records' verdict tables |
-| Findings by `Location`: record · code or tests · docs | the records' `Location` column. A record is anything under `seal/specs/`, `seal/ledger/`, `seal/releases/` or `seal/ledger.md` — the work item's own documents, the ledger, its release files and its fragments alike — because a finding in any of them is about the run's own paperwork rather than about the tool. Those four paths, not the whole of `seal/`: the root also holds `config.md`, `follow-up.md` and `README.md`, which are the repository's own and belong under `docs` |
+| Findings by `Location`: record · code or tests · docs | the records' `Location` column. A record is anything under `seal/specs/` — the work item's own documents — because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: the root also holds `config.md`, `follow-up.md` and `README.md`, which are the repository's own and belong under `docs` |
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
 | Model turns · output tokens · cache write · cache read | `session_cost.py`'s token line over the run's main transcript |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |

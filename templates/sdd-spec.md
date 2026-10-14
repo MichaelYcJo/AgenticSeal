@@ -38,10 +38,10 @@ evidence ledger's coordinates.
 | <a copy, a reader, a rule sentence, a test pin> | <path#unit, or path#"heading"[>"line"], or path#"a quoted line"> | <the file or record that now owns it, or why nothing needs to> |
 
 <!-- What this work item takes out of the tree, named once, here, before the
-     build, each row a claim of absence that `evidence-check` reads. A work
-     item that removes nothing writes one line in place of the table:
-     `nothing — <why>`. The grammar, the verdicts and the `Removes from` row
-     are `docs/the-reader-registry.md` §*A frame names what its work removes*.
+     build, each row read by the review against the diff. A work item that
+     removes nothing writes one line in place of the table: `nothing —
+     <why>`. The rule is `docs/the-reader-registry.md` §*A frame names what
+     its work removes*.
      #107 is why a removal is recorded at all, and `docs/the-agent-set.md`
      tells it: a rule taken out of `agents/smith.md` was lost between two
      phases with no record of where it went. A removal a phase makes that
