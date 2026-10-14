@@ -15,7 +15,7 @@
 | Needs a fix | yes — 🟡 1 (seconds rows fail at the first real refresh), 🟡 2 (slack widening unratcheted), 🟡 3 and 🟡 4 (the extension points), 🟡 5 (the shipped skill's count) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -30,9 +30,9 @@ Round 1 of #930 against 65e973fd on base origin/release/v0.22.0: spec compliance
 | 🟡 3 | a third `FILE_TABLES` family is measured by the docs classifier, and per-file tables are found by header alone | `.github/scripts/budget_check.py:632` | **fixed** `acaf6c30` | fixed at acaf6c30 — each `FILE_TABLES` entry carries its reader, and a per-file table is the one under its own `## title` heading; executed: a `test-lines` family read docs history; a shared header read the docs table |
 | 🟡 4 | `render` raises KeyError for a new unreadable family; the unknown-family refusal omits two families that exist | `.github/scripts/budget_check.py:934` | **fixed** `fc5921ce` | fixed at fc5921ce — an unread row of a family with no `UNREAD` reason renders with a default, and the unknown-family refusal lists `families()`, derived from `MEASURERS`, `FILE_TABLES` and `PER_RUN`; executed: KeyError on a None-returning measurer; `rounds-byte` refused with a list lacking `rounds-bytes` |
 | 🟡 5 | the shipped verify skill counts four unmirrored steps with a local answer, three of them scripts; there are five and four | `skills/verify/SKILL.md:484` | **fixed** `82b83432` | fixed at 82b83432 — the skill says five steps, four scripts, and a case holds the count to `PARTITION`; read: `PARTITION` excludes the budget step as a repository script |
-| ⬜ 6 | the `Re-read · N3` row says a claim holds whose count of four unmirrored steps is now five | `seal/ledger/1791876665-each-budget-ratchets-and-every-pull-request-measures-it.md:6` | open | read: paperwork, a correction like N10 and P2 |
-| ⬜ 7 | `spec.md` lists `--json`, which was not built | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:69` | open | read: paperwork; `overview.md` discloses it |
-| ⬜ 8 | the billable line cites the work item's `questions.md` Q1, which settle removes | `.github/scripts/budget_check.py:1227` | open | read: the sentence will dangle after the release; the fact stays true |
+| ⬜ 6 | the `Re-read · N3` row says a claim holds whose count of four unmirrored steps is now five | `seal/ledger/1791876665-each-budget-ratchets-and-every-pull-request-measures-it.md:6` | answered | corrected at 62d35d97, before rounds 2 and 3 read the tree: the `Re-read · N3` row is a `Corrected · N3` row, five unmirrored steps with a local answer, held to `PARTITION`; read: paperwork, a correction like N10 and P2 |
+| ⬜ 7 | `spec.md` lists `--json`, which was not built | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:69` | answered | corrected at 62d35d97, before rounds 2 and 3 read the tree: `spec.md` §*Data & interfaces* no longer lists `--json`, and names `--base-ref` and `--ci-jobs` as built; read: paperwork; `overview.md` discloses it |
+| ⬜ 8 | the billable line cites the work item's `questions.md` Q1, which settle removes | `.github/scripts/budget_check.py:1227` | answered | corrected at 8990d24a, before rounds 2 and 3 read the tree: the billable line says to check its price against GitHub's Actions price list, and names no file `settle` removes; read: the sentence will dangle after the release; the fact stays true |
 | 🟢 | the step counts 10/5 and 12/9, the `PARTITION` row and the N10 and P2 corrections | `skills/verify/scripts/broad_gate.py:2416` | confirmed | read: fourteen steps counted in `hygiene.yml`'s `release` job |
 | 🟢 | `edited` in the hygiene types, `--ci-jobs` in place of `--ci-run`, CRLF counted as LF, the paragraph-bounded rule block | `.github/workflows/hygiene.yml:17` | confirmed | read against the code |
 | 🟢 | no census module is broken by this diff | `tests/` | confirmed | executed: 13 modules, 1428 passed, exit 0 |

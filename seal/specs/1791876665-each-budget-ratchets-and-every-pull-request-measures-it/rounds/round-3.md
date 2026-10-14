@@ -8,7 +8,7 @@
 | PR | 938 |
 | Broad gate | not yet |
 | Fixes checked by | no fixes to check |
-| Fix range | none |
+| Fix range | `eea3dbc84d59502eaf1e1c32d4ac5f063fdaea63..eea3dbc84d59502eaf1e1c32d4ac5f063fdaea63`, 0 commits |
 | Contract changes | none |
 | New units | none |
 | Fix of a fix | no |
@@ -52,15 +52,15 @@ no paste-ready fix in the report
 | round-1 | `.github/scripts/budget_check.py:632` | round 1's 🟡 3 — fixed |
 | round-1 | `.github/scripts/budget_check.py:934` | round 1's 🟡 4 — fixed |
 | round-1 | `skills/verify/SKILL.md:484` | round 1's 🟡 5 — fixed |
-| round-1 | `seal/ledger/1791876665-each-budget-ratchets-and-every-pull-request-measures-it.md:6` | round 1's ⬜ 6 — open |
-| round-1 | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:69` | round 1's ⬜ 7 — open |
-| round-1 | `.github/scripts/budget_check.py:1227` | round 1's ⬜ 8 — open |
+| round-1 | `seal/ledger/1791876665-each-budget-ratchets-and-every-pull-request-measures-it.md:6` | round 1's ⬜ 6 — answered |
+| round-1 | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:69` | round 1's ⬜ 7 — answered |
+| round-1 | `.github/scripts/budget_check.py:1227` | round 1's ⬜ 8 — answered |
 | round-1 | `skills/verify/scripts/broad_gate.py:2416` | round 1's 🟢 — confirmed |
 | round-1 | `.github/workflows/hygiene.yml:17` | round 1's 🟢 — confirmed |
 | round-1 | `tests/` | round 1's 🟢 — confirmed |
 | round-1 | `tests/test_a_budget_ratchets.py` | round 1's ❓ — out of verified scope |
 | round-2 | `.github/scripts/budget_check.py:383` | round 2's 🟡 1 — fixed |
-| round-2 | `.github/scripts/budget_check.py:76` | round 2's ⬜ 2 — open |
+| round-2 | `.github/scripts/budget_check.py:76` | round 2's ⬜ 2 — answered |
 | round-2 | `.github/scripts/budget_check.py:324` | round 2's 🟢 — confirmed |
 | round-2 | `.github/scripts/budget_check.py:682` | round 2's 🟢 — confirmed |
 | round-2 | `.github/scripts/budget_check.py:805` | round 2's 🟢 — confirmed |

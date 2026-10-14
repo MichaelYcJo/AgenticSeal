@@ -15,7 +15,7 @@
 | Needs a fix | yes — 🟡 1 (`section` reads headings off fenced and commented lines and takes a repeated heading as its first) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -26,7 +26,7 @@ Round 2 of #930 against 6a6d4fbe: the verifying round over round 1's fix pass (8
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
 | 🟡 1 | `section` reads headings off fenced and commented lines, so a fenced `##` line inside a per-file section cuts its table off and the checker refuses a file GitHub renders; a repeated heading is read as its first | `.github/scripts/budget_check.py:383` | **fixed** `bb6cd81c` | fixed at bb6cd81c — `section` reads headings off `unverified_check.py#readable`, so a `##` line in a fence or a comment ends nothing, and a title written twice is refused; both cases planted and red before the fix; executed: a fenced heading inside `## Docs history lines` gave exit 2, "no table" |
-| ⬜ 2 | the per-file spread the ×1.3 rule cites, 0.76 to 1.16, does not reproduce | `.github/scripts/budget_check.py:76` | open | executed: 0.76 to 1.14 over files of 100 s or more, 0.46 to 1.54 over all 72; the rule still holds |
+| ⬜ 2 | the per-file spread the ×1.3 rule cites, 0.76 to 1.16, does not reproduce | `.github/scripts/budget_check.py:76` | answered | corrected at bb6cd81c and 4ddf0edb, which round 3 confirmed: the docstring, `spec.md` and `overview.md` state the set and its measured spread, 0.76 to 1.14 over the 19 test files of 100 s or more and 0.46 to 1.54 over the 72 of 10 s or more; executed: 0.76 to 1.14 over files of 100 s or more, 0.46 to 1.54 over all 72; the rule still holds |
 | 🟢 | round 1's finding 1 is closed — the seconds rows are one-sided at 1.3 times, the level is a median over files, and #931's refresh holds at the level the checker names | `.github/scripts/budget_check.py:324` | confirmed | executed: exit 1 naming 1073, then exit 0 at 1073, tightest row 0.892; the 20 listed files and every ceiling match their readings |
 | 🟢 | round 1's finding 2 is closed — a widened slack is a raise and needs its line | `.github/scripts/budget_check.py:934` | confirmed | read: `widened` and the four cases |
 | 🟢 | round 1's finding 3 is closed — each per-file family carries its reader and its table is read under its heading | `.github/scripts/budget_check.py:682` | confirmed | read and the case: a shared header reads both families |
@@ -92,9 +92,9 @@ def section(text, title):
 | round-1 | `.github/scripts/budget_check.py:632` | round 1's 🟡 3 — fixed |
 | round-1 | `.github/scripts/budget_check.py:934` | round 1's 🟡 4 — fixed |
 | round-1 | `skills/verify/SKILL.md:484` | round 1's 🟡 5 — fixed |
-| round-1 | `seal/ledger/1791876665-each-budget-ratchets-and-every-pull-request-measures-it.md:6` | round 1's ⬜ 6 — open |
-| round-1 | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:69` | round 1's ⬜ 7 — open |
-| round-1 | `.github/scripts/budget_check.py:1227` | round 1's ⬜ 8 — open |
+| round-1 | `seal/ledger/1791876665-each-budget-ratchets-and-every-pull-request-measures-it.md:6` | round 1's ⬜ 6 — answered |
+| round-1 | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:69` | round 1's ⬜ 7 — answered |
+| round-1 | `.github/scripts/budget_check.py:1227` | round 1's ⬜ 8 — answered |
 | round-1 | `skills/verify/scripts/broad_gate.py:2416` | round 1's 🟢 — confirmed |
 | round-1 | `.github/workflows/hygiene.yml:17` | round 1's 🟢 — confirmed |
 | round-1 | `tests/` | round 1's 🟢 — confirmed |
