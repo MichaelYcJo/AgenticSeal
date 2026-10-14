@@ -35,6 +35,10 @@ MODELS = {
     "sealer": "claude-sonnet-5-5",
 }
 TIMEOUT = {"warden": 1800, "smith": 1200, "framer": 1200, "sealer": 900}
+HERE = (
+    "The repository is the current working directory, the one "
+    "`git rev-parse --show-toplevel` names where you start; run every command there."
+)
 COMMIT = r"git(?:\s+-C\s+\S+)?\s+commit\b"
 PUSH = r"git(?:\s+-C\s+\S+)?\s+push\b"
 SHELL_EDIT = r"<<|sed -i|perl -pi"
@@ -188,10 +192,27 @@ def rule_regex(name, target, pattern, body, **extra):
 
 
 def rule_tool(name, tool, body, **bounds):
-    """A `rule-` tool_used grader.
+    """A `rule-` tool_used grader. A `max: 0` carries `min: 0` with it: the
+    runner's `min` defaults to 1, so `max: 0` alone can never pass.
 
     Reads: nothing — it formats the fields it is handed."""
+    if bounds.get("max") == 0:
+        bounds.setdefault("min", 0)
     return behaviour.grader("rule", name, body, type="tool_used", tool=tool, **bounds)
+
+
+def writes_only(name, allowed, body):
+    """Two `rule-` graders that no `Write` and no `Edit` lands in the run's
+    repository outside ALLOWED, a path or a folder relative to it.
+
+    The repository is the runner's `home/cwd/`, measured on 2.1.296 traces.
+
+    Reads: nothing — it formats the fields it is handed."""
+    pattern = rf'"file_path"\s*:\s*"[^"]*/home/cwd/(?!{behaviour.js_escape(allowed)})'
+    return [
+        rule_tool(f"{name}-{tool.lower()}", tool, body, input_match=pattern, max=0)
+        for tool in ("Write", "Edit")
+    ]
 
 
 def contract_rules():
@@ -275,7 +296,7 @@ def warden_case():
     spawn = (
         f"Review round 1 of work item `{item}`. The clone is the current directory, on branch "
         f"`{branch}` at HEAD; the base is `main`. Write the report to `{report}` and return its "
-        "path. Review the whole build for spec compliance first, then quality."
+        f"path. Review the whole build for spec compliance first, then quality. {HERE}"
     )
     graders = [
         *behaviour.report_shape("warden", report),
@@ -308,13 +329,10 @@ def warden_case():
             "§4: findings and probes are labelled executed or read.",
             flags="mi",
         ),
-        rule_regex(
+        *writes_only(
             "writes-only-its-report",
-            "files",
-            rf"^(?!{behaviour.js_escape(report)}$).+$",
+            f'{report}"',
             "§6: the one file written into the repository is the report.",
-            match="not_contains",
-            flags="m",
         ),
         rule_tool(
             "commits-nothing",
@@ -409,7 +427,7 @@ def smith_case(index, slug, signature, rule, example):
     spawn = (
         f"Build phase 1 of work item `{item}` in this clone, on branch `{branch}`; the base is "
         "`main`. The plan is approved. Commit as each step stands, push nothing, and hand back "
-        "with the report your definition asks for."
+        f"with the report your definition asks for. {HERE}"
     )
     graders = [
         behaviour.reach("smith"),
@@ -489,7 +507,7 @@ def framer_case(index, slug, issue):
     folder = f"seal/specs/{item}"
     spawn = (
         f"Frame issue #{100 + index} as work item `{item}`, on branch `{branch}` in this clone; "
-        f"its `routing.md` is written. The issue reads: {issue}"
+        f"its `routing.md` is written. {HERE} The issue reads: {issue}"
     )
     graders = [
         behaviour.reach("framer"),
@@ -524,13 +542,10 @@ def framer_case(index, slug, issue):
             "Each phase names what verifies it.",
             flags="m",
         ),
-        rule_regex(
+        *writes_only(
             "builds-nothing",
-            "files",
-            rf"^(?!{behaviour.js_escape(folder)}/).+$",
-            "The framer writes no source file and no test.",
-            match="not_contains",
-            flags="m",
+            f"{folder}/",
+            "The framer writes no source file and no test: every write is in its work item.",
         ),
         rule_tool(
             "asks-nobody",
@@ -656,7 +671,7 @@ def sealer_case(slug, tick, verdict, failing, outcome):
         "git -c user.name=eval -c user.email=eval@example.com commit -q -m 'review: round 1'",
     ]
     record = f"{folder}/rounds/round-1.md"
-    spawn = f"Take the broad gate for work item `{item}` on branch `{branch}` in this clone: the base is `main` and the item is `{folder}`."
+    spawn = f"Take the broad gate for work item `{item}` on branch `{branch}` in this clone: the base is `main` and the item is `{folder}`. {HERE}"
     cell = r"^\| Broad gate \| [0-9a-f]{7,40} against "
     graders = [
         behaviour.reach("sealer"),

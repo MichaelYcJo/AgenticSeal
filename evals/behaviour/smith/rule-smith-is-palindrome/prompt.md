@@ -2,6 +2,6 @@ You are the orchestrator of this repository. Spawn exactly one `specseal:smith` 
 
 BEGIN PROMPT
 
-Build phase 1 of work item `1790000014-is-palindrome` in this clone, on branch `feat/is-palindrome`; the base is `main`. The plan is approved. Commit as each step stands, push nothing, and hand back with the report your definition asks for.
+Build phase 1 of work item `1790000014-is-palindrome` in this clone, on branch `feat/is-palindrome`; the base is `main`. The plan is approved. Commit as each step stands, push nothing, and hand back with the report your definition asks for. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.
 
 END PROMPT

@@ -139,6 +139,38 @@ def test_a_behaviour_grader_names_its_kind():
     assert not gaps, gaps
 
 
+def test_a_tool_used_grader_bounded_at_zero_can_pass():
+    """The runner's `min` defaults to 1, so `max: 0` without `min: 0` reads
+    `expected 1..0` and fails every run: every one of the framer baseline's
+    eight runs failed its four such graders."""
+    gaps = []
+    for d in behaviour_cases():
+        for path in glob.glob(os.path.join(d, "graders", "*.md")):
+            with open(path, encoding="utf-8") as f:
+                head = f.read().split("---")[1]
+            if re.search(r"^max: 0$", head, re.M) and not re.search(
+                r"^min: 0$", head, re.M
+            ):
+                gaps.append(f"{rel(d)}/graders/{os.path.basename(path)}")
+    assert not gaps, gaps
+
+
+def test_a_behaviour_prompt_says_where_the_repository_is():
+    """The plugin under test sits in a directory the session can see, and it
+    is itself a SpecSeal repository: two of six sealer runs ran the gate
+    there and one handed back that failure. Each prompt names the working
+    directory as the repository."""
+    gaps = []
+    for d in behaviour_cases():
+        with open(os.path.join(d, "prompt.md"), encoding="utf-8") as f:
+            text = f.read()
+        if not re.search(
+            r"(?:repository|clone) is the current (?:working )?directory", text
+        ):
+            gaps.append(rel(d))
+    assert not gaps, gaps
+
+
 def test_the_prompt_holds_the_prompt_and_nothing_else():
     """Config lives in case.yaml. One case kept its config in the prompt's
     frontmatter, where the runner does not look for it."""

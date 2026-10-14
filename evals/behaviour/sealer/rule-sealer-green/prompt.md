@@ -2,6 +2,6 @@ You are the orchestrator of this repository. Spawn exactly one `specseal:sealer`
 
 BEGIN PROMPT
 
-Take the broad gate for work item `1790000030-broad-run-green` on branch `feat/broad-run-green` in this clone: the base is `main` and the item is `seal/specs/1790000030-broad-run-green`.
+Take the broad gate for work item `1790000030-broad-run-green` on branch `feat/broad-run-green` in this clone: the base is `main` and the item is `seal/specs/1790000030-broad-run-green`. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.
 
 END PROMPT

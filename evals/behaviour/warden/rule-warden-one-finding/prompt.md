@@ -2,6 +2,6 @@ You are the orchestrator of this repository. Spawn exactly one `specseal:warden`
 
 BEGIN PROMPT
 
-Review round 1 of work item `1790000001-shout-ends-with-one-exclamation-mark`. The clone is the current directory, on branch `feat/shout-exclaims` at HEAD; the base is `main`. Write the report to `seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1-report.md` and return its path. Review the whole build for spec compliance first, then quality.
+Review round 1 of work item `1790000001-shout-ends-with-one-exclamation-mark`. The clone is the current directory, on branch `feat/shout-exclaims` at HEAD; the base is `main`. Write the report to `seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1-report.md` and return its path. Review the whole build for spec compliance first, then quality. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.
 
 END PROMPT
