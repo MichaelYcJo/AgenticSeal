@@ -533,11 +533,21 @@ def mutation_run(root, path, old, new, tests, timeout, baseline_passed=False):
         errors="replace",
     )
     output = done.stdout + done.stderr
-    first = next(
-        (line for line in output.splitlines() if line.strip()),
-        f"exit {done.returncode}, and mutation-check printed nothing",
-    )
+    first = first_line(output, done.returncode)
     return done.returncode, first.replace(root + os.sep, "").replace(root, "."), output
+
+
+def first_line(output, code):
+    """The first line of `mutation-check`'s `output` that is not blank, or,
+    where it printed nothing, as a process a signal ended does, a line naming
+    its exit `code`, so a finding always has something to say.
+
+    Reads: observed — mutation-check's output and exit code; unknown passed
+    """
+    return next(
+        (line for line in output.splitlines() if line.strip()),
+        f"exit {code}, and mutation-check printed nothing",
+    )
 
 
 def sole_killer(killers, file, functions):

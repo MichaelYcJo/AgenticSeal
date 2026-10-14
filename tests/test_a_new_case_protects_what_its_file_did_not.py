@@ -191,16 +191,12 @@ def test_a_line_end_python_does_not_read_moves_no_function():
     assert text.endswith("    assert s")
 
 
-def test_a_run_that_prints_nothing_is_named_by_its_exit(tmp_path, monkeypatch):
+def test_a_run_that_prints_nothing_is_named_by_its_exit():
     """A `mutation-check` run that ends with no output, as a process killed by
     a signal does, still gives the finding something to say: its exit."""
-    silent = tmp_path / "silent.py"
-    silent.write_text("import sys\nsys.exit(3)\n", encoding="utf-8")
-    module = case_check()
-    monkeypatch.setattr(module, "MUTATION_CHECK", str(silent))
-    code, verdict, _ = module.mutation_run(str(tmp_path), "m.py", "a", "b", ["true"], 5)
-    assert code == 3
-    assert verdict == "exit 3, and mutation-check printed nothing"
+    first_line = case_check().first_line
+    assert first_line("\n  \n", 3) == "exit 3, and mutation-check printed nothing"
+    assert first_line("\nred: the cases failed\nmore\n", 0) == "red: the cases failed"
 
 
 def test_a_windows_command_line_keeps_the_backslashes_of_its_paths():
