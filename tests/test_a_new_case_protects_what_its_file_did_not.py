@@ -36,7 +36,13 @@ def test_each_operator_makes_one_mutant_of_its_kind():
         "condition negated": "    if not (a == b and c):",
         "`==` made `!=`": "    if a != b and c:",
         "`and` made `or`": "    if a == b or c:",
+        "the last operand of `and` dropped": "    if a == b:",
     }
+    found = dict(case_check().operators("    return x not in y, z is None"))
+    assert found["`not in` made `in`"] == "    return x in y, z is None"
+    found = dict(case_check().operators("    k = z is not None"))
+    assert found["`is not` made `is`"] == "    k = z is None"
+    assert dict(case_check().operators('    "a row",')) == {"element removed": None}
     found = dict(case_check().operators("    assert total == 3, total"))
     assert found["assertion dropped"] == "    assert True, total"
     assert found["`3` made `4`"] == "    assert total == 4, total"
@@ -85,6 +91,80 @@ def test_the_sole_killer_is_one_function_or_none():
     )
     assert module.sole_killer([f"{file}::test_c"], file, functions) is None
     assert module.sole_killer([], file, functions) is None
+
+
+THREE = "def test_a():\n    pass\n\n\ndef test_b():\n    pass\n\n\ndef test_c():\n    pass\n"
+
+
+def test_a_case_draws_first_the_lines_fewest_of_its_siblings_run(tmp_path):
+    """The draw ranks the lines a case runs by how many of its siblings run
+    them too, so a line it runs alone comes first; among as many, a changed
+    line first, then one line of each unit before a second of any. A line
+    only a sibling ran is never drawn: under its mutant only that sibling
+    runs. A changed line no case ran comes last, and runs the whole file."""
+    module = case_check()
+    lines = "".join(f"V{n} = {n}\n" for n in range(1, 6))
+    lines += "\ndef f():\n    a = 6\n    b = 7\n\ndef g():\n    c = 8\n"
+    (tmp_path / "m.py").write_text(lines, encoding="utf-8")
+    file = "tests/test_m.py"
+    m = [("m.py", n) for n in range(13)]
+    hits = {
+        f"{file}::test_a": {m[1], m[2], m[3], m[8], m[9], m[12]},
+        f"{file}::test_b": {m[1], m[2], m[3], m[4]},
+        f"{file}::test_c": {m[1]},
+    }
+    found = module.drawn(
+        str(tmp_path),
+        file,
+        "test_a",
+        module.test_functions(THREE),
+        hits,
+        {},
+        {"m.py": [3, 4, 5]},
+        cap=None,
+    )
+    order = list(dict.fromkeys(label.split(" ")[0] for label, *_ in found))
+    assert order == [f"m.py:{n}" for n in (8, 12, 9, 3, 2, 1, 5)]
+
+
+def test_a_case_draws_no_more_mutants_than_the_cap(tmp_path):
+    """A case that protects something its file did not finds it near the
+    front of a ranked draw; one that finds nothing by the cap is named, not
+    run to the bound. PR #939's first run drew 400 and more for each case."""
+    module = case_check()
+    # Two mutants on the first line and three on each after it, so the draw
+    # passes the cap inside a line and has to be cut there.
+    lines = "V1 = 1\n" + "".join(f"V{n} = {n} < x\n" for n in range(2, 40))
+    (tmp_path / "m.py").write_text(lines, encoding="utf-8")
+    file = "tests/test_m.py"
+    hits = {f"{file}::test_a": {("m.py", n) for n in range(1, 40)}}
+    found = module.drawn(
+        str(tmp_path), file, "test_a", module.test_functions(THREE), hits, {}, {}
+    )
+    assert len(found) == module.DRAW_CAP == 12
+
+
+def test_a_run_of_some_cases_keeps_the_workers_where_their_calls_pay_for_them():
+    """A run of some of a file's cases turns xdist's workers off unless the
+    traced run timed their calls at `WORKERS_PAY_S` or more together: a
+    case's mutant ran its own ids alone, and S2's 35 rows must not run one by
+    one when a sibling's mutant runs them all."""
+    module = case_check()
+    runner, file = ["py", "-m", "pytest", "-n", "4"], "tests/test_m.py"
+    slow = {"t::a": 3.0, "t::b": 1.5, "t::c": 0.1}
+    assert module.narrowed(runner, ["t::a", "t::b"], file, slow) == [
+        *runner,
+        "t::a",
+        "t::b",
+    ]
+    assert module.narrowed(runner, ["t::a", "t::c"], file, slow) == [
+        *runner,
+        "t::a",
+        "t::c",
+        "-n",
+        "0",
+    ]
+    assert module.narrowed(runner, [file], file, {}) == [*runner, file]
 
 
 def test_a_function_named_in_a_case_is_followed_through_its_helpers():
@@ -282,9 +362,12 @@ def test_a_new_case_its_file_already_covers_is_named(tmp_path, capsys):
     )
     code, out = run(root, capsys)
     assert code == 1, out
-    assert "tests/test_m.py::test_double_too: kills nothing its file does not" in out, (
-        out
-    )
+    assert (
+        "tests/test_m.py::test_double_too: kills nothing its file does not: of "
+        "the 2 mutants drawn for it, the lines fewest of its siblings run first "
+        "and at most 12, each it killed was killed by another case too, or none "
+        "was\n"
+    ) in out, out
 
 
 def test_a_mutant_of_changed_code_nothing_kills_is_reported_and_fails_nothing(

@@ -147,11 +147,14 @@ rule below.
 **A case has a budget, and so does each leg.** A case is owed by a mutant
 only it kills, and nobody writes that mutant down: the `cases` job in
 `test.yml` runs `.github/scripts/case_check.py`, which derives it. For every
-test function new or changed in a pull request it mutates the lines the case
-runs and the other cases in its file do not, the helpers it names, and the
-shipped lines the pull request changed (a changed `.md` line is mutated by
-removing it), runs the file once under each mutant, and reads which cases
-fail. A case that is not its file's only killer of any of them fails the job,
+test function new or changed in a pull request it draws at most twelve
+mutants: first of the lines the case runs, those fewest of its siblings run
+first, then of the helpers it names and the shipped lines the pull request
+changed that no case's call ran (a changed `.md` line is mutated by removing
+it). Under each mutant it runs the case, then, where the case fails, the
+other cases that ran the line (every other case where none did), until one
+mutant fails the case alone. A case
+that is not its file's only killer of any of them fails the job,
 named: it kills nothing its file does not, so make it guard something its
 siblings do not, or leave it out. A mutant of changed shipped code that
 nothing kills is listed in the job's summary, and fails nothing. The proof has

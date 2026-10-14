@@ -12,19 +12,29 @@ decorator to its last line, so a docstring-only change is a change).
 
 **Where the mutants come from.** Each file holding such a function runs once
 as it stands, under a tracer that records which lines each case runs, and
-must pass. Then, for each such function, the mutants are drawn in this order:
+must pass. Then, for each such function, at most `DRAW_CAP` mutants are
+drawn, best first:
 
-  1. the lines it runs and no other case in its file runs;
-  2. the lines of the units of its own file it names, a helper or a
-     constant, followed through the helpers they name;
-  3. the other lines it runs;
-  4. the lines the pull request changed in shipped code: a `.py` outside
-     `tests/`, and a `.md` outside `seal/`, whose mutant is the line removed.
+  1. the lines it runs, ranked by how many of its siblings run them too, so
+     a line it runs alone comes first; among lines as many run, a changed
+     line first, then one line of each unit before a second of any;
+  2. the lines no case's call ran, whose mutants run the whole file: the
+     units of its own file it names, a helper or a constant, followed
+     through the helpers they name; then the lines the pull request changed
+     in shipped code, a `.py` outside `tests/` and a `.md` outside `seal/`
+     whose mutant is the line removed, the files it names first.
 
-A test function's own lines are never mutated. On a line the operators are an
-assertion dropped, a condition negated, a comparison or a boolean flipped, a
-`return` made `return None`, an integer moved by one, and the statement
-removed; a mutant that does not parse is not run.
+A line a sibling ran and it did not is never drawn, since under that line's
+mutant only the cases that ran it run. The draw is ranked so a case that
+protects something its file did not finds it near the front; the first run
+on PR #939 drew 400 and more mutants for each case in path order and ran 23
+within the bound. A test function's own lines are never mutated. On a line
+the operators are an assertion dropped, a condition negated, the last operand
+of a condition's `and` or `or` dropped, a comparison flipped (`in` and `is`
+among them), `and` and `or` swapped, a boolean flipped, a `return` made
+`return None`, an integer moved by one, the statement removed, and an element
+of a list, a dict or a call removed; a mutant that does not parse is not
+run.
 
 How it errs. Under: a line reached only through a subprocess or a fixture's
 setup is not traced, so a case whose decision runs in a child process gets
@@ -33,23 +43,33 @@ case runs and its siblings do not may be setup only it needs, which costs a
 mutant run and proves nothing.
 
 **The pass rule.** Each such function is the only killer in its file of at
-least one mutant: the cases of its file that ran the mutant's line in their
-call run once under it, through `mutation-check --baseline-passed`, and every
-failing id belongs to that function. A case that never ran the line cannot
+least one mutant: under it, through `mutation-check --baseline-passed`, its
+own ids fail and no other case of its file that ran the mutant's line does.
+Its own ids run first, and the others only where they failed, so a mutant it
+does not kill costs one case's run. A case that never ran the line cannot
 fail under it; where no case's call ran it, as at import or in a fixture's
-setup, the whole file runs. Each file gets an equal share of the bound. One that is not is named, `kills nothing its file does not`. Its
-scope is the function's file: a case in another file that kills the same
-mutant is not seen, which is the price of running one file.
+setup, the whole file runs, since such a mutant can change which ids exist,
+and a function is alone where every failing id is its own. A run of some of a file's cases keeps xdist's
+workers only where the traced run timed their calls at `WORKERS_PAY_S` or
+more. A function's proof stops at its first such
+mutant. One whose draw runs out first is named, `kills nothing its file does
+not`. Its scope is the function's file: a case in another file that kills the
+same mutant is not seen, which is the price of running one file. The ids of
+one parametrized function are one case here: a kill they share is that
+function's own, and a row added to it is held by #930's `test-cases` budget
+row, not by a proof per row.
 
-**What nothing kills is a report, not a gate.** The mutants of the changed
-shipped lines that ran and that no run case killed are listed with their
+**What nothing kills is a report, not a gate.** Once every file's proofs are
+done, the changed shipped lines' mutants not yet run run in what is left of
+the bound. Those that ran and that no case killed are listed with their
 lines, and so are the test functions the pull request removed. A gate there
 would be red for a mutant a file this check did not run kills, and would
 send a case into this pull request's files to quiet it; a removal is proven
 by the mutation table its work item keeps.
 
 **The proof has a bound, and the job ends on it, never on a timeout.**
-`--bound` is minutes for the whole check, five by default. A file whose traced
+`--bound` is minutes for the whole check, five by default. Each file gets an
+equal share of what is left of it when its turn comes. A file whose traced
 run alone passes what is left is named, `restructure: test the decision
 directly`, and so is a function still unproven when the bound is spent: a file
 that slow is testing its decisions through the whole stack.
@@ -89,15 +109,16 @@ RED, SURVIVED, MEASURED_NOTHING = 0, 1, 2
 # The tracer the traced run loads as `-p specseal_case_trace`, written to a
 # directory of its own and put first on `PYTHONPATH`, so an xdist worker loads
 # it too. It traces each case's call, not its setup, records the lines under
-# the root outside `.venv/`, and writes one file per process at the end.
+# the root outside `.venv/` and the call's seconds, and writes one file per
+# process at the end.
 TRACER = "specseal_case_trace"
 TRACER_SOURCE = """
-import json, os, sys, threading
+import json, os, sys, threading, time
 import pytest
 
 _root = os.path.realpath(os.environ["SPECSEAL_CASE_TRACE_ROOT"]) + os.sep
 _out = os.environ["SPECSEAL_CASE_TRACE_DIR"]
-_hits, _seen, _now = {}, {}, [None]
+_hits, _seen, _now, _seconds = {}, {}, [None], {}
 
 
 def _ours(path):
@@ -129,6 +150,7 @@ def _trace(frame, event, arg):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_call(item):
     _now[0] = item.nodeid
+    began = time.monotonic()
     sys.settrace(_trace)
     threading.settrace(_trace)
     try:
@@ -137,11 +159,13 @@ def pytest_runtest_call(item):
         sys.settrace(None)
         threading.settrace(None)
         _now[0] = None
+        _seconds[item.nodeid] = time.monotonic() - began
 
 
 def pytest_sessionfinish(session):
     with open(os.path.join(_out, f"{os.getpid()}.json"), "w", encoding="utf-8") as f:
-        json.dump({k: sorted(v) for k, v in _hits.items()}, f)
+        hits = {k: sorted(v) for k, v in _hits.items()}
+        json.dump({"hits": hits, "seconds": _seconds}, f)
 """
 # Where Python's tokenizer ends a line, which is what `ast` numbers lines by.
 # `str.splitlines` also ends one at characters such as U+2028 that Python
@@ -154,9 +178,15 @@ TAIL = ["-q", "-rfE", "-p", "no:cacheprovider"]
 
 PROVED = "proved — the only killer in its file of {mutant}"
 KILLS_NOTHING_NEW = (
-    "kills nothing its file does not: of the {count} mutants drawn for it, each "
-    "it killed was killed by another case too, or none was"
+    "kills nothing its file does not: of the {count} mutants drawn for it, the "
+    "lines fewest of its siblings run first and at most {cap}, each it killed "
+    "was killed by another case too, or none was"
 )
+# The most mutants one case's draw holds. The draw is ranked, so a case that
+# protects something its file did not finds it near the front, and one that
+# has found nothing by here is named rather than run to the bound. PR #939's
+# first run drew 400 and more for each case, and ran 23.
+DRAW_CAP = 12
 FAILS_AS_IT_STANDS = (
     "its cases do not pass as they stand, so no mutant was run: {verdict}"
 )
@@ -187,11 +217,23 @@ COMPARISONS = (
     (" < ", " >= "),
     (" > ", " <= "),
 )
+# Membership and identity, the comparisons Python spells in words; the
+# longer spelling first, since ` in ` is inside ` not in `.
+MEMBERSHIPS = (
+    (" not in ", " in "),
+    (" in ", " not in "),
+    (" is not ", " is "),
+    (" is ", " is not "),
+)
+# The shapes a line ending in `,` is tried in: an element of a list, an
+# entry of a dict, an argument of a call.
+ELEMENT_SHAPES = ("[{}]", "{{{}}}", "f({})")
 
 
 def operators(line):
     """`[(label, mutated line)]` for one line of Python, without its line end:
-    at most one mutant of each kind, each at the first place it applies.
+    at most one mutant of each kind, each at the first place it applies. The
+    mutated line is `None` where the mutant removes the line.
 
     Reads: owned — one source line, matched by the patterns this module defines; unknown passed
     """
@@ -207,11 +249,29 @@ def operators(line):
     branch = re.match(r"(if|elif|while) (.+):$", text)
     if branch:
         found.append(("condition negated", f"{indent}{branch[1]} not ({branch[2]}):"))
-    for old, new in COMPARISONS:
-        if old in line:
-            label = f"`{old.strip()}` made `{new.strip()}`"
-            found.append((label, line.replace(old, new, 1)))
-            break
+        try:
+            test = ast.parse(branch[2], mode="eval").body
+        except SyntaxError:
+            test = None
+        if isinstance(test, ast.BoolOp):
+            # A case guarding the operand a sibling never makes true is told
+            # apart only by that operand gone; flipping `and` and `or` fails
+            # the siblings too.
+            word = "and" if isinstance(test.op, ast.And) else "or"
+            kept = test.values[:-1]
+            kept = kept[0] if len(kept) == 1 else ast.BoolOp(op=test.op, values=kept)
+            found.append(
+                (
+                    f"the last operand of `{word}` dropped",
+                    f"{indent}{branch[1]} {ast.unparse(kept)}:",
+                )
+            )
+    for table in (COMPARISONS, MEMBERSHIPS):
+        for old, new in table:
+            if old in line:
+                label = f"`{old.strip()}` made `{new.strip()}`"
+                found.append((label, line.replace(old, new, 1)))
+                break
     for old, new in ((" and ", " or "), (" or ", " and ")):
         if old in line:
             found.append(
@@ -242,6 +302,14 @@ def operators(line):
             pass
         else:
             found.append(("statement removed", f"{indent}pass"))
+    for shape in ELEMENT_SHAPES if text.endswith(",") else ():
+        try:
+            ast.parse(shape.format(text))
+        except SyntaxError:
+            continue
+        # `None`: the line goes, as a changed `.md` line's does.
+        found.append(("element removed", None))
+        break
     return found
 
 
@@ -483,6 +551,33 @@ def sole_killer(killers, file, functions):
     return owners.pop() if len(owners) == 1 else None
 
 
+def under(root, mutant, cases, runner, file, calls, deadline):
+    """`(exit, output)` of `mutation-check` for `cases` run under `mutant`,
+    bounded by what is left before `deadline`.
+
+    Reads: observed — mutation-check's exit code and its output; unknown refused
+    """
+    _label, path, old, new = mutant
+    code, _first, output = mutation_run(
+        root,
+        path,
+        old,
+        new,
+        [*narrowed(runner, cases, file, calls), *TAIL],
+        deadline - time.monotonic(),
+        True,
+    )
+    return code, output
+
+
+def own_ids(hits, file, functions, name):
+    """The ids of the test function `name` the traced run recorded, sorted.
+
+    Reads: nothing — compares the ids it is handed
+    """
+    return sorted(i for i in hits if sole_killer([i], file, functions) == name)
+
+
 def selected(hits, path, label):
     """The cases that ran the mutant's line during their call, sorted; none
     where no case did, as for a line run at import or in a fixture's setup.
@@ -495,21 +590,31 @@ def selected(hits, path, label):
     return sorted(nodeid for nodeid, pairs in hits.items() if (path, lineno) in pairs)
 
 
-def narrowed(runner, cases, file):
+# The seconds of the cases' calls, as the traced run measured them, below
+# which a run of some of a file's cases turns xdist's workers off: starting
+# them costs about this on a four-core runner.
+WORKERS_PAY_S = 4.0
+
+
+def narrowed(runner, cases, file, seconds=None):
     """The command for a run of `cases`: the runner and the ids, with xdist's
-    workers turned off where the runner asks for them and only some of the
-    file's cases run, since starting the workers costs more than they save.
+    workers turned off where the runner asks for them, only some of the
+    file's cases run, and their calls took under `WORKERS_PAY_S` in the
+    traced run, since starting the workers then costs more than they save.
 
     Reads: nothing — joins the words it is handed
     """
     if cases != [file] and "-n" in runner:
-        return [*runner, *cases, "-n", "0"]
+        spent = sum((seconds or {}).get(case, 0.0) for case in cases)
+        if spent < WORKERS_PAY_S:
+            return [*runner, *cases, "-n", "0"]
     return [*runner, *cases]
 
 
 def traced_run(root, file, runner, timeout):
-    """`(exit, seconds, last line, {nodeid: {(path, line)}})` of the test file
-    run once as it stands, each case's call traced.
+    """`(exit, seconds, last line, {nodeid: {(path, line)}}, {nodeid:
+    seconds})` of the test file run once as it stands, each case's call
+    traced and timed.
 
     Reads: observed — the runner's exit and output, and the tracer's JSON files it wrote; unknown refused
     """
@@ -535,47 +640,108 @@ def traced_run(root, file, runner, timeout):
                 timeout=max(timeout, 1),
             )
         except subprocess.TimeoutExpired:
-            return None, time.monotonic() - started, "timed out", {}
+            return None, time.monotonic() - started, "timed out", {}, {}
         seconds = time.monotonic() - started
-        hits = {}
+        hits, calls = {}, {}
         for name in os.listdir(out):
             try:
                 with open(os.path.join(out, name), encoding="utf-8") as f:
-                    for nodeid, pairs in json.load(f).items():
-                        hits.setdefault(nodeid, set()).update(map(tuple, pairs))
-            except (OSError, ValueError):
+                    found = json.load(f)
+                for nodeid, pairs in found["hits"].items():
+                    hits.setdefault(nodeid, set()).update(map(tuple, pairs))
+                calls.update(found["seconds"])
+            except (OSError, ValueError, KeyError, AttributeError):
                 continue
     lines = (done.stdout + done.stderr).strip().splitlines()
-    return done.returncode, seconds, lines[-1] if lines else "", hits
+    return done.returncode, seconds, lines[-1] if lines else "", hits, calls
 
 
-def drawn(root, file, name, functions, hits, units, diff):
-    """The mutants drawn for the test function `name`, in the order the module
-    docstring gives: its own lines first, then its file's units it names,
-    then the rest it runs, then the changed shipped lines.
+def drawn(root, file, name, functions, hits, units, diff, cap=DRAW_CAP):
+    """The mutants drawn for the test function `name`, best first and at most
+    `cap`, in the order the module docstring gives: the lines it ran, those
+    fewest of its siblings ran first, then the lines no case ran, its file's
+    units it names before the changed shipped lines.
 
     Reads: observed — the files the drawn lines are in, read from the root; unknown passed
     """
-    mine, others = set(), set()
+    runners = {}
     for nodeid, pairs in hits.items():
         owner = sole_killer([nodeid], file, functions)
-        (mine if owner == name else others).update(pairs)
+        for pair in pairs:
+            runners.setdefault(pair, set()).add(owner)
     spans = {
         (file, n)
         for _, (node, _text) in functions.items()
         for n in range(node.lineno, node.end_lineno + 1)
     }
-    order = sorted(mine - others - spans)
-    order += [(file, n) for n in units.get(name, []) if (file, n) not in spans]
-    order += sorted(mine - spans)
-    # A changed file the case names in its own text comes first: a case that
-    # runs a script as a child process names its path, and runs none of it
-    # where the tracer can see.
+    changed = {(path, n) for path, numbers in diff.items() for n in numbers}
+
+    tops = {}
+
+    def rank(pair):
+        # Fewer siblings under the mutant, fewer who can share its kill; a
+        # changed line before an unchanged one that as many run.
+        return len(runners[pair]), pair not in changed
+
+    def unit(pair):
+        path, lineno = pair
+        if path not in tops:
+            tops[path] = top_units(root, path)
+        return next((s for s, e in tops[path] if s <= lineno <= e), 0)
+
+    ran = sorted(
+        (p for p, who in runners.items() if name in who and p not in spans),
+        key=lambda p: (*rank(p), p),
+    )
+    # Among lines as many siblings run, one line of each unit before a second
+    # of any: a unit's lines tend to fall to the same cases, and taken in path
+    # order one unit's lines filled the whole draw.
+    taken, keyed = {}, []
+    for pair in ran:
+        group = (*rank(pair), pair[0], unit(pair))
+        taken[group] = taken.get(group, -1) + 1
+        keyed.append(((*rank(pair), taken[group], pair), pair))
+    order = [pair for _key, pair in sorted(keyed)]
+    # Then the lines no case ran in its call, whose mutants run the whole
+    # file. A changed file the case names in its own text comes first: a case
+    # that runs a script as a child process names its path, and runs none of
+    # it where the tracer can see. A line a sibling ran and this case did not
+    # is never drawn: under its mutant only the cases that ran it run.
     text = functions[name][1] if name in functions else ""
     named_first = sorted(diff, key=lambda p: (os.path.basename(p) not in text, p))
-    order += [(path, n) for path in named_first for n in diff[path]]
+    untraced = [(file, n) for n in units.get(name, [])]
+    untraced += [(path, n) for path in named_first for n in diff[path]]
+    order += [p for p in untraced if p not in runners]
+    return mutants_at(root, [p for p in order if p not in spans], cap)
+
+
+def top_units(root, path):
+    """`[(first line, last line)]` of each top-level `def` and `class` in the
+    `.py` file at `path`; none for another file or one that will not parse.
+
+    Reads: observed — the file's source, parsed by `ast`; unknown passed
+    """
+    if not path.endswith(".py"):
+        return []
+    try:
+        with open(os.path.join(root, path), encoding="utf-8") as f:
+            tree = ast.parse(f.read())
+    except (OSError, SyntaxError, ValueError):
+        return []
+    defs = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+    return [(n.lineno, n.end_lineno) for n in tree.body if isinstance(n, defs)]
+
+
+def mutants_at(root, order, cap=None):
+    """The mutants of the `(path, line)` pairs in `order`, in that order, each
+    pair once, at most `cap`; a line inside a multi-line string has none.
+
+    Reads: observed — the files the lines are in, read from the root; unknown passed
+    """
     sources, found, seen = {}, [], set()
     for path, lineno in order:
+        if cap is not None and len(found) >= cap:
+            break
         if (path, lineno) in seen:
             continue
         seen.add((path, lineno))
@@ -594,6 +760,8 @@ def drawn(root, file, name, functions, hits, units, diff):
             (label, path, old, new)
             for label, old, new in mutants_of(path, text, lineno)
         )
+    if cap is not None:
+        del found[cap:]
     return found
 
 
@@ -634,15 +802,16 @@ def check(root, baseline, runner, bound):
             removed += [
                 f"{file}::{name}" for name in base_functions(root, merge_base, file)
             ]
-    started, limit, costs = time.monotonic(), bound * 60, []
+    started, limit, costs, contexts = time.monotonic(), bound * 60, [], []
     diff_killed = {}
     for index, (file, (source, functions, names)) in enumerate(pending.items()):
         # Each file left gets an equal share of what is left of the bound, so
-        # one file's mutants cannot spend another's proof.
+        # one file's mutants cannot spend another's proof, and what one file
+        # leaves unspent goes to the files after it.
         share = (limit - (time.monotonic() - started)) / (len(pending) - index)
         deadline = time.monotonic() + share
         left = share
-        code, each, verdict, hits = traced_run(root, file, runner, left)
+        code, each, verdict, hits, calls = traced_run(root, file, runner, left)
         if code is None or each > left:
             restructure = RESTRUCTURE_FILE.format(each=each, left=left, bound=bound)
             findings.append((file, restructure))
@@ -654,6 +823,7 @@ def check(root, baseline, runner, bound):
         queues = {n: drawn(root, file, n, functions, hits, units, diff) for n in names}
         totals = {n: len(queue) for n, queue in queues.items()}
         results, proven, before, spent_out = {}, {}, time.monotonic(), False
+        tried = set()
         while not spent_out and any(n not in proven and queues[n] for n in names):
             for name in names:
                 if name in proven or not queues[name]:
@@ -669,52 +839,47 @@ def check(root, baseline, runner, bound):
                     spent_out = True
                     break
                 label, path, old, new = mutant
-                cases = selected(hits, path, label) or [file]
-                code, _verdict, output = mutation_run(
-                    root,
-                    path,
-                    old,
-                    new,
-                    [*narrowed(runner, cases, file), *TAIL],
-                    left,
-                    True,
-                )
-                killers = failed_ids(output) if code == RED else []
-                owner = sole_killer(killers, file, functions) if killers else None
-                results[mutant] = owner
-                if path in diff:
-                    diff_killed[label] = diff_killed.get(label, False) or bool(killers)
-                if owner in names and owner not in proven:
-                    proven[owner] = label
-        # The report's half: what is left of the changed shipped lines' mutants
-        # runs against this file while the bound allows, so a survivor is one
-        # that ran and that no case here killed.
-        for mutant in drawn(root, file, None, functions, {}, {}, diff):
-            label, path, old, new = mutant
-            left = deadline - time.monotonic()
-            if diff_killed.get(label):
-                continue
-            if mutant in results or left < each:
-                continue
-            cases = selected(hits, path, label) or [file]
-            code, _verdict, output = mutation_run(
-                root,
-                path,
-                old,
-                new,
-                [*narrowed(runner, cases, file), *TAIL],
-                left,
-                True,
-            )
-            results[mutant] = None
-            killed = code == RED and bool(failed_ids(output))
-            diff_killed[label] = diff_killed.get(label, False) or killed
+                mine = own_ids(hits, file, functions, name)
+                ran = selected(hits, path, label)
+                # A line no case's call ran is run at import or in a fixture,
+                # and its mutant can change which ids exist, as an element
+                # removed from a parametrization's list does: the whole file
+                # runs, never a list of ids it may no longer hold.
+                rest = [i for i in ran if i not in mine] if ran else [file]
+
+                tried.add(mutant)
+                command = (runner, file, calls, deadline)
+                # Its own ids first: it kills few of the mutants drawn for it,
+                # and a miss is then one case's run, not its siblings' too.
+                code = under(root, mutant, mine, *command)[0] if mine else SURVIVED
+                if code == RED:
+                    code, output = (
+                        under(root, mutant, rest, *command) if rest else (SURVIVED, "")
+                    )
+                    if rest == [file]:
+                        owner = sole_killer(failed_ids(output), file, functions)
+                        alone = code == RED and owner == name
+                    else:
+                        alone = code == SURVIVED
+                    if alone:
+                        results[mutant], proven[name] = name, label
+                    elif code == RED:
+                        results[mutant] = None
+                    if code in (RED, SURVIVED) and path in diff:
+                        diff_killed[label] = True
+                if code not in (RED, SURVIVED):
+                    # Timed out or measured nothing: no verdict, and the share
+                    # is spent.
+                    spent_out = True
+                    break
         for name in names:
             fid = f"{file}::{name}"
             if name in proven:
                 proved.append((fid, PROVED.format(mutant=proven[name])))
             elif not queues[name]:
-                findings.append((fid, KILLS_NOTHING_NEW.format(count=totals[name])))
+                findings.append(
+                    (fid, KILLS_NOTHING_NEW.format(count=totals[name], cap=DRAW_CAP))
+                )
             else:
                 done = totals[name] - len(queues[name])
                 restructure = RESTRUCTURE.format(
@@ -722,15 +887,36 @@ def check(root, baseline, runner, bound):
                 )
                 findings.append((fid, restructure))
         spent = time.monotonic() - before
-        costs.append(COST.format(file=file, each=each, count=len(results), spent=spent))
-    every_diff = 0
-    for path, numbers in diff.items():
-        try:
-            with open(os.path.join(root, path), encoding="utf-8") as f:
-                text = f.read()
-        except OSError:
-            continue
-        every_diff += sum(len(mutants_of(path, text, n)) for n in numbers)
+        contexts.append((file, hits, calls, results, tried, each, spent))
+    # The report's half, once every file's proofs are done: what is left of
+    # the changed shipped lines' mutants runs while the bound allows, so a
+    # survivor is one that ran and that no case killed.
+    end = started + limit
+    pairs = [(path, n) for path, numbers in diff.items() for n in numbers]
+    every_diff = mutants_at(root, pairs)
+    for file, hits, calls, results, tried, each, spent in contexts:
+        before = time.monotonic()
+        for mutant in every_diff:
+            label, path, old, new = mutant
+            left = end - time.monotonic()
+            if diff_killed.get(label) or mutant in results or left < each:
+                continue
+            cases = selected(hits, path, label) or [file]
+            code, _verdict, output = mutation_run(
+                root,
+                path,
+                old,
+                new,
+                [*narrowed(runner, cases, file, calls), *TAIL],
+                left,
+                True,
+            )
+            results[mutant] = None
+            tried.add(mutant)
+            killed = code == RED and bool(failed_ids(output))
+            diff_killed[label] = diff_killed.get(label, False) or killed
+        spent += time.monotonic() - before
+        costs.append(COST.format(file=file, each=each, count=len(tried), spent=spent))
     survivors = sorted(label for label, killed in diff_killed.items() if not killed)
     lines = [
         f"case-check against {baseline}: {len(proved)} proved, {len(findings)} "
@@ -740,8 +926,8 @@ def check(root, baseline, runner, bound):
     lines += [f"  {where}: {proof}" for where, proof in proved]
     lines += [f"  {where}: {finding}" for where, finding in findings]
     lines += [SURVIVOR.format(mutant=label) for label in survivors]
-    if every_diff > len(diff_killed):
-        lines.append(NOT_RUN.format(count=every_diff - len(diff_killed)))
+    if len(every_diff) > len(diff_killed):
+        lines.append(NOT_RUN.format(count=len(every_diff) - len(diff_killed)))
     lines += [REMOVED.format(fid=fid) for fid in sorted(removed)]
     return (1 if findings else 0), lines
 
