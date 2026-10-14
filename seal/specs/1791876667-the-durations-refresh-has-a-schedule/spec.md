@@ -11,8 +11,8 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | `CONTRIBUTING.md` §*What a change to a gate must carry* | The staleness case changes what it refuses and what it says: a test seen red, the direction (it blocks more), a prompt budget of zero, platform honesty (the parts are Windows', the union runs on ubuntu), a `Reads:` line per unit, and `## Removes` below |
 | `CONTRIBUTING.md` §*Running the checks*, the paragraph beginning *`.test_durations` goes stale as cases are added* | The recipe this work rewrites in place: the measuring shape, the 60-minute leg, the dispatch, the download-and-restore and the post-refresh `timeout` re-read all go; what stays is one sentence per fact of the new shape |
 | `docs/release-checklist.md` §*0. Before starting* | The refresh box leaves; a box a person ticks is a prompt, and 0.21.1 skipped it on its first use |
-| `docs/the-reader-registry.md` §*A frame names what its work removes* | `## Removes` is read by `evidence-check`'s records arm; `seal/config.md` declares `Removes from` 1791780031 and this item is above it |
-| `docs/the-evidence-ledger.md` §*A released row is read again in the branch's fragment*; `docs/the-record-layout.md` §*A change writes fragments, never a shared file* | 0.21.1's S1, S2 and S4 of work item 1791852613 describe the measuring recipe and the box, and 0.21.0's rows anchor `test.yml#"pytest:"`; each re-read or correction is a row in `seal/ledger/1791876667-the-durations-refresh-has-a-schedule.md` |
+| `docs/the-reader-registry.md` §*A frame names what its work removes* | `## Removes` below lists what the work takes out, and the review reads it against the diff |
+| `docs/the-record-layout.md` §*A change writes fragments, never a shared file* | The release note is this item's `changelog.md` fragment, not an edit to the shared changelog |
 | `docs/measuring-a-run.md` §*Where a reading goes* | A measurement nobody posted is one nobody has: every run writes the shards' measured seconds, the spread and the live suite seconds to its job summary |
 | `skills/agent-contract/SKILL.md` §6 | The smith pushes nothing; the session pushes and runs the workflow, and the smith hands back at each push, as #874's plan placed it |
 | `skills/implement/SKILL.md` §*3. The SDD file set* | A check's verdict and the sentence a contributor acts on change, which is the top rung |
@@ -28,7 +28,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 3. **The check is the schedule, in both directions.** `test_the_durations_file_prices_the_suite` fails when more than `STALE_SHARE` of the collected cases are unpriced — as now — **or when more than `STALE_SHARE` of the committed file's seconds belong to entries the suite no longer collects.** The first bounds growth the ratchet has not seen; the second bounds a cleanup it has not recorded, so a pull request that removes a twentieth of the suite's time brings the fresh file and #930's `suite-seconds` falls in the same pull request. Its message names the counts and the remedy: download `test-durations` from this branch's latest `tests` run (`gh run download <id> -n test-durations`), make its line ends LF, commit it. One constant, one case, fixture cases at both boundaries.
 4. **The words, rewritten in place.** `CONTRIBUTING.md`'s recipe paragraph states the new shape and nothing of the old one. `docs/release-checklist.md` §0 loses the box. `test.yml`'s comments stay true as written.
 5. **The proof, on one leg.** Phase 1 commits the first union once, so the Windows leg's division is read before and after on the same mechanism: each shard's measured seconds and spread under the committed, unsharded-measured file, then under the shard-measured one. The commit is the experiment that answers the design's one open risk (`plan.md` §*Technical context*).
-6. **The records.** `phases/phase-N.md` with the figures; the ledger fragment; `changelog.md`; `overview.md` closed.
+6. **The records.** `phases/phase-N.md` with the figures; `changelog.md`; `overview.md` closed.
 
 **Out, and whose.**
 
@@ -51,7 +51,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | S5 the remedy works and the leg divides as well | the committed union; then the case is green on every leg and the next run's Windows spread by measured seconds is within the band of the unsharded file's (1.05) plus noise | `executed`: phase 1's before and after in `phases/phase-1.md` |
 | S6 the sentences and the box | a contributor reads `CONTRIBUTING.md` §*Running the checks* and `docs/release-checklist.md` §0; then the first describes the shards' parts, the `durations` job and the download, and the second has no refresh box | `read`; T11 pins both; `bin/test tests/test_docs_line_wrap.py` green |
 | S7 nothing asks a person | the whole change; then no box, no dispatch, no measuring commit, no `AskUserQuestion`; the check prints the command | `read` over the diff; the prompt budget line in the pull request body |
-| S8 the records | the merge; then the fragment carries S1–S7, the `Re-read ·` and `Corrected ·` rows of 0.21.1's S1/S2/S4 and the `test.yml#"pytest:"` rows, and `evidence-check --strict .` exits 0 with every `## Removes` row gone | `executed`, exit read directly |
+| S8 the records | the merge; then every `## Removes` row is gone from the tree, `changelog.md` carries the numbers of phases 1 and 2, and `overview.md` is closed | `read` against the diff; `unverified_check.py --baseline` exit 0, read directly |
 
 ## Data & interfaces
 
@@ -59,7 +59,6 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 - `.github/scripts/durations_union.py`: `--parts <dir> --count <K> --committed <path> --out <path>`; exit 0 wrote the union, 2 refused; writes `$GITHUB_STEP_SUMMARY` when set, stdout otherwise; names no machine path; a `Reads:` line and the floor line. Spread is slowest shard over the mean, as #874's S5 read it.
 - `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`: `staleness(collected, durations)` gains the seconds side under the same `STALE_SHARE`; the sentence names `gh run download <id> -n test-durations`; `test_the_pytest_line_hands_the_split_to_pytest` reads the store expression after the split; new cases for the entries, the step, the job and the union script; `test_an_entry_nobody_collects_is_not_counted` keeps its name and says what the entry now counts toward.
 - `.test_durations`: same shape, written whole by the union, LF.
-- Ledger anchors this work drifts (`read` 2026-10-13 from `seal/releases/0.21.1.md` and `0.21.0.md`): `.github/workflows/test.yml#"pytest:"` (every 0.21.0 and 0.21.1 row on it); `CONTRIBUTING.md#"## Running the checks"` and the quoted line *Windows and macOS shards and drops no case. The file is the Windows leg's,*; `docs/release-checklist.md#"## 0. Before starting"`; 1791852613's S1 (measured as one job), S2 (the sentence's text) and S4 (the recipe and the box) stop holding and take `Corrected ·` rows.
 
 ## Removes
 

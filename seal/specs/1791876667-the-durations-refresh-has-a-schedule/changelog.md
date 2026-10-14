@@ -25,13 +25,16 @@
     run with `gh workflow run test.yml --ref <branch>`.
   - The checklist's refresh box, the measuring run and its recipe are gone
     from `docs/release-checklist.md` and `CONTRIBUTING.md`.
-  - The committed file is the first union, from run 38475370013: 13,930
-    entries, every collected case priced, none left over. The old file left
-    476 cases unpriced (3.4 %). Divided by the new file, the slowest Windows
-    shard ran 1.12 times the mean by pytest's own clock, inside the 1.10 to
-    1.20 the old file gave over six runs.
-  - The shards price cases 1.07 times what the single job that measured the
-    old file did, a runner's price level rather than growth in the suite;
-    the shards' part ratios move with the runner a group lands on, so no
-    scaling is applied to the union. `## Price level` in `seal/budgets.md`
-    reads 1073 per mille, the number the `budgets` step names for it.
+  - The first union, from run 38475370013, held 13,930 entries: every case
+    collected at that commit priced, none left over, where the file then
+    committed left 476 unpriced (3.4 %). Divided by the union, the slowest
+    Windows shard ran 1.12 times the mean by pytest's own clock, inside the
+    1.10 to 1.20 the unsharded file gave over six runs. The committed file
+    is still the one #944 measured; the next refresh the case asks for
+    commits a union.
+  - The shards priced cases 1.07 times what the single job that measured
+    the file before them did, a runner's price level rather than growth in
+    the suite; the shards' part ratios move with the runner a group lands
+    on, so no scaling is applied to the union. A pull request that commits
+    a union restates `## Price level` in `seal/budgets.md` to the number the
+    `budgets` step names for it.
