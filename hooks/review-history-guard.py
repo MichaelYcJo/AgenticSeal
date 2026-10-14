@@ -6,7 +6,7 @@ Three branches with different conditions — the failure modes differ:
   posting a review  → the round record MISSING is the problem
                       (this is the only moment the session still holds its
                       verdicts and probe results; remind it to write
-                      rounds/round-N.md, tests-todo.md, evidence-todo.md)
+                      rounds/round-N.md and tests-todo.md)
 
   reading a review  → a round record EXISTING but unread is the problem
                       (inline comments may not contain the todo lists at all;
@@ -184,6 +184,9 @@ def gh_segments(command):
 
 
 def main():
+    """The entry point.
+
+    Reads: guess — the hook payload and the work item's round records, through `routing.py#rounds`; unknown passed"""
     try:
         payload = json.load(sys.stdin)
     except Exception:
@@ -269,8 +272,7 @@ def main():
                 f"{os.path.join(rel, routing.ROUNDS_DIR, 'round-N.md')} (target "
                 f"SHA, verdicts, probe "
                 f"results, the Pass checkbox, and who checked the fixes), "
-                f"and {os.path.join(rel, 'tests-todo.md')} and "
-                f"{os.path.join(rel, 'evidence-todo.md')} BESIDE that "
+                f"and {os.path.join(rel, 'tests-todo.md')} BESIDE that "
                 f"directory rather than inside it, now — after this session "
                 f"ends, nobody can."
             )
@@ -279,8 +281,8 @@ def main():
             print(
                 f"[specseal] {rel}{os.sep} has no closing note. Before the merge, "
                 f"move every unresolved row to a durable home — tests to the "
-                f"implementation commit, facts to the evidence ledger, the "
-                f"rest to follow-up — and write what went where (or `nothing "
+                f"implementation commit, the rest to follow-up — and write "
+                f"what went where (or `nothing "
                 f"to drain`). The records are kept, not deleted; after the "
                 f"merge nobody is looking at these rows."
             )
@@ -288,9 +290,8 @@ def main():
         if records:
             print(
                 f"[specseal] {rel}{os.sep} holds a round record. Read it before "
-                f"acting on inline comments — tests-todo.md and "
-                f"evidence-todo.md are implementer-owned lists that the "
-                f"comments may not contain."
+                f"acting on inline comments — tests-todo.md is the "
+                f"implementer-owned list that the comments may not contain."
             )
 
 

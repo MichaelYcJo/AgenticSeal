@@ -1327,15 +1327,14 @@ def folded_items(root):
 # condition the frame recorded as a judgment the owner may overturn — nothing
 # in its record may still be open. These are the files the arm reads.
 SPEC = "spec.md"
-EVIDENCE_TODO = "evidence-todo.md"
-# The evidence-todo rule's two row shapes. `SEPARATOR` above reads one cell;
-# these read a whole line, which is what the evidence-todo reader walks.
+# The todo rule's two row shapes. `SEPARATOR` above reads one cell; these
+# read a whole line, which is what the todo reader walks.
 TODO_SEPARATOR_RE = re.compile(r"^\|(\s*:?-+:?\s*\|)+\s*$")
 DRAINED_RE = re.compile(r"^[\s*_]*drained\b", re.IGNORECASE)
 
 
 def todo_open_rows(text):
-    """Table body rows of an evidence-todo file that are still open.
+    """Table body rows of a todo file that are still open.
 
     The rule, so a person can apply it by hand: a LIVE line outside a table
     whose first word is `drained` closes the whole file; otherwise every body
@@ -1357,15 +1356,12 @@ def todo_open_rows(text):
     form feed, so a cell holding one of those followed by `drained` closed the
     file — the silent direction for a guard.
 
-    **It lives here because the rule arm's predicate reads it, and it is the
-    one spelling there is.** `skills/settle/scripts/settle.py#open_rows` asks
-    this function, and so does `.github/scripts/fold_ledger.py#open_rows`,
-    which loads this module by path the way `.github/scripts/rider_check.py`
-    loads the shipped checker. That script used to keep a copy on the ground
-    that release automation and a shipped script may not depend on each
-    other; `rider_check.py` had already taken that direction, and nothing
-    held the two copies in step (#487).
-    """
+    **It is the one spelling there is.** `skills/settle/scripts/settle.py#open_rows`
+    asks this function for a `tests-todo.md`, and so does
+    `.github/scripts/fold_ledger.py#open_rows`, which loads this module by
+    path (#487).
+
+    Reads: guess — a todo file's text its caller hands it; unknown passed"""
     lines = text.split("\n")
     live = [flag for _, flag in live_lines(lines)]
     quoted = closed_fence_lines(lines)
@@ -1431,16 +1427,17 @@ def open_record_rows(root, ref, directory):
     """`[(file, what is open)]` for a work item's record at `ref`.
 
     The rows the rule arm refuses to take with a directory: every open item in
-    `overview.md`'s `## Not verified`, and every open row of
-    `evidence-todo.md`. Each is a claim with an answerer rather than a rule,
-    and #514's frame measured the loss this prevents — the only record that a
-    production workflow was red sat in a retiring overview (its L2).
+    `overview.md`'s `## Not verified`. Each is a claim with an answerer rather
+    than a rule, and #514's frame measured the loss this prevents — the only
+    record that a production workflow was red sat in a retiring overview (its
+    L2).
 
     An overview whose section cannot be read is one entry saying so, never
     zero rows: a count this cannot read is not a count of nothing, which is
     the rule `check_text` above is written to. A base revision is read with
     the same relaxations the `--baseline` comparison gives it.
-    """
+
+    Reads: guess — a work item's `overview.md` at `ref`, through `check_text`; unknown mixed"""
     found = []
     overview = _text_at(root, ref, f"{directory}/{OVERVIEW}")
     if overview is not None:
@@ -1454,10 +1451,6 @@ def open_record_rows(root, ref, directory):
             found.append((OVERVIEW, f"cannot be read ({errors[0][1]})"))
         for _, item, _who in rows:
             found.append((OVERVIEW, item))
-    todo = _text_at(root, ref, f"{directory}/{EVIDENCE_TODO}")
-    if todo is not None:
-        for row in todo_open_rows(todo):
-            found.append((EVIDENCE_TODO, row.strip()))
     return found
 
 
@@ -1466,8 +1459,8 @@ def retired_by_rule(root, ref, directory):
 
     **The one predicate, and every reader of a retirement asks it here**:
     `settle` of the working tree (`ref` None), and `--baseline` below and
-    `chain_check.py --baseline` of the merge-base they already compute. `plan.md` §*What breaks in six months*
-    is why it is not spelled in each: the next condition added to it would
+    `chain_check.py --baseline` of the merge-base they already compute.
+    `plan.md` §*What breaks in six months* is why it is not spelled in each: the next condition added to it would
     land in one reader and not the others, and the first sign would be a fold
     pull request red in CI after `settle --retire` said the removal was fine.
 

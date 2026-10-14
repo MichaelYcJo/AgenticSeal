@@ -199,20 +199,20 @@ retires the directory. Which file each agent writes is
 | `phases/phase-N.md` | what one build phase was asked, found and removed |
 | `rounds/round-N.md` | what one review round read, found and closed |
 | `changelog.md` | this work item's entry in the next release's notes |
-| `tests-todo.md`, `evidence-todo.md` | which cases and which verified facts a review left for the implementer |
+| `tests-todo.md` | which cases a review left for the implementer |
 | `broad-gate.md` | the sealer's one broad run, where the work went straight to the pull request |
 
 **The files keep these paths and stop mattering at two different times.**
 `routing.md` and the SDD set (`spec.md`, `plan.md`, `questions.md`,
 `overview.md`, `changelog.md`) stay until the `settle` fold retires the
-directory. The process record (`rounds/`, `phases/`, the two todo files,
+directory. The process record (`rounds/`, `phases/`, `tests-todo.md`,
 `broad-gate.md`, and a `handoff.md` or `pr.*.md` where one was
 written) is read by no check after the release that ships the work item, and
 `settle --retire-process` removes it at the next release, fold or no fold, as
 the first act of `docs/release-checklist.md` §*2b*. What the SDD set still
-cites of it resolves at the tag of that release. An open todo row or an
-anchored ledger row keeps the item whole.
-Enforced by: tests/test_settle_retires_the_process_record.py::test_the_process_record_leaves_and_the_sdd_set_stays, tests/test_settle_retires_the_process_record.py::test_an_open_todo_row_keeps_the_item_whole, tests/test_settle_retires_the_process_record.py::test_a_row_anchored_inside_the_process_record_keeps_the_item
+cites of it resolves at the tag of that release. An open `tests-todo.md` row
+keeps the item whole.
+Enforced by: tests/test_settle_retires_the_process_record.py::test_the_process_record_leaves_and_the_sdd_set_stays, tests/test_settle_retires_the_process_record.py::test_an_open_todo_row_keeps_the_item_whole
 
 ## The root records
 

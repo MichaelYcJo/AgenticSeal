@@ -71,10 +71,6 @@ OVERVIEW = (
 # carry it, so a corpus of two files weighs every phrase near zero, and the
 # survivor sweep's own cases carry the same filler for the same reason.
 FILLER = "# filler\n\nUnrelated prose that shares nothing.\n"
-CLOSED_TODO = (
-    "# evidence-todo\n\n| Fact | Where it goes |\n|---|---|\n"
-    "| ✅ a fact a reviewer verified | merged into the fragment |\n"
-)
 
 
 def git(repo, *args):
@@ -127,7 +123,6 @@ def dropped(tmp_path):
     write(repo, "docs/a-policy.md", f"# a policy\n\n{DOC}\n\n{SUITE}\n")
     write(repo, "docs/another.md", f"# another\n\n{QUOTE}\n")
     write(repo, "docs/filler.md", FILLER)
-    write(repo, "seal/ledger.md", "# spec-to-code map\n")
     write(repo, f"{ITEM}/routing.md", routing())
     for name in ("spec.md", "plan.md", "questions.md", "changelog.md"):
         write(repo, f"{ITEM}/{name}", f"# alpha {name}\n\nWhat it decided.\n")
@@ -138,7 +133,6 @@ def dropped(tmp_path):
     write(repo, f"{ITEM}/handoff.md", f"# handoff\n\n{QUOTE}\n")
     write(repo, f"{ITEM}/broad-gate.md", f"# broad gate\n\n{GATE}\n")
     write(repo, f"{ITEM}/pr.ko.md", "# 본문\n\n바뀐 것을 적습니다.\n")
-    write(repo, f"{ITEM}/evidence-todo.md", CLOSED_TODO)
     commit(repo, "a released work item")
     git(repo, "switch", "-qc", BRANCH)
     r = subprocess.run(
@@ -225,7 +219,7 @@ ENTRIES = (
     ("pr.ko.md", True),
     ("pr.en.md", True),
     ("tests-todo.md", True),
-    ("evidence-todo.md", True),
+    ("evidence-todo.md", False),
     ("routing.md", False),
     ("spec.md", False),
     ("plan.md", False),

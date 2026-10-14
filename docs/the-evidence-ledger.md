@@ -538,8 +538,8 @@ Those are records of a moment, and a moment states nothing to fold — which is
 also why nothing has to be carried out of one, so `settle` prints these under
 their own heading and `settle --retire` removes them without writing a marker
 into `docs/` (#517). **One condition narrows it: nothing in the record may
-still be open.** An open `## Not verified` row or an open `evidence-todo.md`
-row is a claim with an answerer rather than a rule, so a directory holding one
+still be open.** An open `## Not verified` row is a claim with an answerer
+rather than a rule, so a directory holding one
 is kept and named with its rows, and closing each row — a row re-homed is
 closed too, ✅ naming where it went — in a pull request merged before the one
 that retires the directory is what lets the next retirement take it. The CI
@@ -549,70 +549,31 @@ base of `--released-at` and `HEAD`, which is where they look until the base
 moves past the fork and earlier after, and keeps a directory whose closure
 has reached the working branch and not that base (#602). One predicate
 decides the rule,
-and `settle`, `unverified-check`, `chain-check` and the survivor sweep all ask
-it, so the four cannot disagree about one tree. Whether the item wrote a
+and `settle`, `unverified-check` and `chain-check` all ask it, so the three
+cannot disagree about one tree. Whether the item wrote a
 `spec.md` is asked of its history, so a spec deleted in one commit, or in an
 earlier pull request, and the directory in the next is still a deletion. That
 condition is a judgment the repository owner may overturn. An ungrouped item
-that did write a `spec.md` is folded where that spec's rule belongs. One more
-reason keeps a directory: **a permanent
-ledger row anchored inside it**, which holds the directory until the row is
-answered — so a work item with a row anchored in its `rounds/` stays on disk,
-and the fold does not remove it to tidy the list. Keeping the directory rather
-than removing the row is a default, and the repository owner is who can trade
-it the other way: remove the row, carry its claim into the prose it evidences,
-and let the next `settle --retire` take the directory. For `1788184145`, the
-one directory held this way when the guard below shipped, that trade was
-taken (#517): the row was removed, and its claim stands in
-`docs/review-chain-spec.md` §*Two records, and what each of them says*.
+that did write a `spec.md` is folded where that spec's rule belongs.
 Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_rule_arm_removes_it_with_no_marker, tests/test_settle_reads_before_it_removes.py::test_a_closure_the_base_has_not_seen_keeps_the_directory
 
-<!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
-<!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
-**A retirement would break every ledger row anchored inside the directory it
-removes, so the retirement refuses that directory first.** An anchor into a
-work item's `spec.md` or its round records is a file path like any other, and
-after a removal the checker reports it broken. So `settle` reads every ledger
-the checker reads — `seal/ledger.md`, every `seal/ledger/*.md`, every
-`seal/releases/*.md` and any `docs/**/_evidence.md` — and every line of each.
-The rows above the first section marker are included because the checker
-reads those too. The rows inside a fence are included although the checker
-skips a fence that closes (#444), because a guard that reads more than the
-checker keeps a directory the checker would not break, which is the
-direction to be wrong in. It names each row anchored inside a
-released directory, and `settle --retire` keeps every directory such a row
-anchors into, removes the rest, and exits 1 naming each row (#511). It says
-per row what §*A row is a content anchor, and it names no commit* requires: a
-row whose every anchor goes is REMOVED, never re-pointed, and its claim is
-written anew where a work item still holds it; a row that keeps a live anchor
-beside the dead one loses only the dead one, and whether it should be removed
-instead is the repository owner's question, recorded against the ledger row
-that first met it. Under the freeze a row in a released file says `released`
-instead: a `Corrected ·` row in the fold's own fragment answers it, and a row
-a correction supersedes holds no directory. The command names the rows and
-edits none of them, because which row goes is a judgment about a claim.
-Enforced by: tests/test_settle_reads_before_it_removes.py::test_a_row_anchored_inside_a_candidate_keeps_that_directory
-
 <!-- specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules -->
-**Whether a line is live is asked by what the line does, and the seven
-readers that ask it give three answers.** The two statements above each state
-one direction for one reader. These are all seven readers, grouped by the
+**Whether a line is live is asked by what the line does, and the six
+readers that ask it give three answers.** These are all six readers, grouped by the
 kind of line they read, with the cost each answer is chosen against.
 
 - **A line that HOLDS something — a claim, an anchor, a rider — is read on
   doubt.** The checker's `quoted_lines`, which every walk the checker makes
-  reads through `unquoted`; the records arm's `claim_lines`;
-  `settle.py#anchored_rows`; and the rider check's `quoted_lines`. A fence
+  reads through `unquoted`; the records arm's `claim_lines`; and the rider
+  check's `quoted_lines`. A fence
   nobody closed is a malformed file whose lines are read, and a commented-out
   row is a parked claim and is read. What this protects is that a claim
   never leaves a ledger or a record in silence. The wrong answer is loud
-  instead: `BROKEN`, a refused name, a kept directory or exit 2, and a person
-  answers it with an edit or a marker. Three of the four read a different
-  amount from the checker, each for a reason its own docstring holds.
+  instead: `BROKEN`, a refused name or exit 2, and a person answers it with
+  an edit or a marker. Two of the three read a different amount from the
+  checker, each for a reason its own docstring holds.
   `claim_lines` reads a line-start comment that closes as an aside, because a
-  template's comments describe fields rather than assert units.
-  `anchored_rows` reads a fence that closes, because a guard that reads more
-  than the checker keeps a directory rather than breaking a row. The rider
+  template's comments describe fields rather than assert units. The rider
   check reads by `hooks/blocks.py#walk` rather than by the delimiter rule,
   and parts from the checker three ways: it reads a fence its walk is not
   sure of, one opened at one to three spaces, which the delimiter rule

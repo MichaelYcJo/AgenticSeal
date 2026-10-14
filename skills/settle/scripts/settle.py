@@ -41,13 +41,6 @@ rather than re-spelled: that module is the fold record's one reader, and the
 same arm of `unverified-check` is what would otherwise call a retirement this
 branch's deletion.
 
-**The guards.** A work item whose `evidence-todo.md` still has an open row is
-skipped and named, never folded and never removed. A fact a reviewer verified
-that never reached the ledger is exactly what the directory must not take
-with it. And a directory a live ledger row anchors into is kept, with the row
-named and what `docs/the-evidence-ledger.md` requires of it (#511): removing the directory
-would leave the row BROKEN, and the checker would only say so afterwards.
-
 **Two halves, and the retirement is the second.** The command lists what a
 session has to write policy for; `--retire` removes the directories whose
 policy was written, which the marker is the proof of. Nothing that states a
@@ -60,17 +53,17 @@ with nothing absorbing it, which nobody can.
 and the files written only for a pull request, and leaves
 `routing.md` and the SDD set for the fold. No check reads that part after
 the release, and removing it judges nothing, so it does not wait on the fold's
-judgment. What the SDD set still cites of it resolves at the release tag. It is an allow-list: a file on neither list is kept and named. Its
-guards are the fold's, asked per item — an open todo row, a ledger row
-anchored inside a file it would remove — and a citation into one is listed,
-never refused.
+judgment. What the SDD set still cites of it resolves at the release tag. It
+is an allow-list: a file on neither list is kept and named. An open
+`tests-todo.md` row keeps the item, and a citation into a removed file is
+listed, never refused.
 
 **The rule arm, and why it needs no marker.** A released work item that wrote
 no `spec.md` states no rule — a release entry, a renumbering, a CI repair —
 so there is nothing for a document to absorb, and #517's owner decision D3
 retires it by that rule rather than by a record. One condition narrows it:
-nothing in its record may be open, because an open `## Not verified` or
-`evidence-todo.md` row is a claim with an answerer, not a rule. Whether a
+nothing in its record may be open, because an open `## Not verified` row is a
+claim with an answerer, not a rule. Whether a
 directory qualifies is `unverified_check.py#retired_by_rule`, the predicate
 every CI reader asks of the merge-base, asked here of the working tree AND of
 the merge base of `--released-at` and `HEAD` (#602). A CI reader on a pull
@@ -78,9 +71,8 @@ request stands on the merge ref, so its merge base is the base branch's tip:
 the same commit as this one until the base moves past the fork, and a later
 one after. Past the fork the two can disagree either way. A closure the base
 took after the fork is read by CI and not here, so this keeps a directory CI
-would pass. A record file the base added to the directory after the fork, an
-open `evidence-todo.md` or a `spec.md`, is read by CI and not here, so this
-retires a directory CI refuses. A row closed on the working
+would pass. A `spec.md` the base added to the directory after the fork is
+read by CI and not here, so this retires a directory CI refuses. A row closed on the working
 branch and still open at that base is kept, under a heading of its own
 naming the base and, where the base has moved, the merge that moves it.
 
@@ -97,9 +89,9 @@ Exit codes: 0 the report was produced, or the retirement ran, or the root
 holds no work item at all — an empty or absent `seal/specs/` under a present
 `seal/` is the state a complete fold reaches — or the process arm found
 nothing left to remove · 1 a retirement was asked for
-and something refused it — a guard held a directory, or a spec-less
-directory's closure has not reached the merge base of `--released-at` and
-`HEAD`, or a guard held an item's process record · 2 the arguments or the
+and something refused it — a spec-less directory's closure has not
+reached the merge base of `--released-at` and `HEAD`, or an open todo row
+held an item's process record · 2 the arguments or the
 tree were unusable, which is seven states: a
 `--released-at` ref that does not resolve, a `--released-at` ref sharing no
 commit with `HEAD` or a clone too shallow to reach the one they share, a root
@@ -297,12 +289,10 @@ def released(root, ref):
 
 
 def open_rows(text):
-    """Table body rows of an evidence-todo file that are still open.
+    """Table body rows of a todo file that are still open.
 
     The rule is `unverified_check.py#todo_open_rows`, and its docstring says
-    how a person applies it by hand. It moved there when the rule arm's
-    predicate began reading `evidence-todo.md` too: the guard here and the
-    predicate every CI reader asks are one rule, not two copies of it.
+    how a person applies it by hand.
 
     **`.github/scripts/fold_ledger.py#open_rows` is the same function**,
     loaded by path from the shipped reader (#487). The direction that is
@@ -311,21 +301,9 @@ def open_rows(text):
     (`tests/test_the_release_check_watches_what_ships.py#SHIPS`), so a shipped
     command may not depend on IT — a user's repository has the ledger fold
     nowhere. The guard travels with the command that enforces it.
-    """
+
+    Reads: guess — a todo file's text its caller hands it, through `unverified_check.py#todo_open_rows`; unknown passed"""
     return load(READER, "specseal_unverified_reader").todo_open_rows(text)
-
-
-def open_items(root):
-    """{work item id: open row count} for every one the guard is holding."""
-    out = {}
-    for path in sorted(
-        glob.glob(os.path.join(under(root, SPECS), "*", "evidence-todo.md"))
-    ):
-        with open(path, encoding="utf-8") as f:
-            rows = open_rows(f.read())
-        if rows:
-            out[os.path.basename(os.path.dirname(path))] = len(rows)
-    return out
 
 
 # --- what groups -----------------------------------------------------------
@@ -426,44 +404,6 @@ def coordinates(root):
     return out
 
 
-# --- what a removal would break --------------------------------------------
-
-# `released` is True for a row in a released ledger file of a repository that
-# declares `Ledger frozen from` (#715): such a row is corrected, never removed.
-AnchoredRow = collections.namedtuple(
-    "AnchoredRow", "file line clause dead live items released", defaults=(False,)
-)
-
-# A cell boundary: a pipe no backslash escapes. A ledger anchor that quotes a
-# table line escapes the pipes it holds, and splitting on those would hand the
-# report a fragment of the anchor as the row's first cell.
-CELL_RE = re.compile(r"(?<!\\)\|")
-
-# What the guard prints for each verdict. Pinned by
-# `tests/test_settle_reads_before_it_removes.py`, because a person acts on it.
-REMOVED_SAYS = (
-    "REMOVED — every anchor it cites lies inside a directory a retirement "
-    "removes, and `docs/the-evidence-ledger.md` says a row whose anchor a "
-    "change removes is "
-    "REMOVED, not re-pointed; its claim is written anew where it still stands"
-)
-NARROW_SAYS = (
-    "narrow — drop the anchor{s} inside a retiring directory and keep the "
-    "{live} live one{live_s}; whether such a row is removed instead is the "
-    "repository owner's question (`seal/ledger.md` §1788354065's S12 row)"
-)
-# Where the freeze is declared, a released file is not edited after its
-# release, so the two verdicts above are not on offer for a row in one: the
-# fold corrects it from its own fragment, and the correction supersedes it.
-RELEASED_SAYS = (
-    "released — a released ledger file is not edited after its release, so "
-    "this row is never removed or narrowed: write a `Corrected ·` row citing "
-    "it into the fold's own fragment, `seal/ledger/<unix-seconds>-fold.md`, "
-    "with the claim's code as it stands now, or the citation alone where the "
-    "claim went with the directory (`docs/the-evidence-ledger.md`)"
-)
-
-
 # What a settled root prints, for the report and the retirement alike.
 SETTLED = (
     "settle: {specs}/ in {root} holds no work item — nothing to fold and "
@@ -556,149 +496,6 @@ def write_rule_kept(kept, out, base=None):
             )
 
 
-# What may stand before a row's first pipe without being part of the row: any
-# run of blockquote markers, bullet markers, ordered-list markers and comment
-# openers, in any combination and spaced or not. The class and not a list of
-# its instances (#530): round 3's paste-ready fix named five single tokens and
-# missed `> - |`, `> > |`, `1. |` and `>|`, which is how one class gets closed
-# three times (`agent-contract` §12). The empty run is in it too, so the
-# ordinary `| claim |` row takes the same arm.
-CONTAINER_RE = re.compile(r"(?:\s*(?:>|[-*+]|\d{1,9}[.)]|<!--))*\s*")
-
-
-def first_cell(line):
-    """The first cell of a table row, which names the row's claim.
-
-    A row commented out on its own line still carries an anchor the checker
-    reads, so the guard names it; the comment opener in front of it is not
-    the claim (round 2's finding 7). Nor is a blockquote or a list marker in
-    front of it (#530): what stands before the first pipe is dropped when it
-    is container syntax and nothing else, and kept as the label when it holds
-    anything else, which is what this did before."""
-    text = line.strip()
-    if text.startswith("<!--"):
-        text = text[len("<!--") :].strip()
-    cells = CELL_RE.split(text)
-    if len(cells) > 1 and CONTAINER_RE.fullmatch(cells[0]):
-        cells = cells[1:]
-    return cells[0].strip() if cells else ""
-
-
-def anchored_rows(root, work_item_ids):
-    """Every live ledger row with an anchor inside one of these directories.
-
-    Reads: owned — every line of every ledger the checker reads, by the checker's `ANCHOR_RE`; unknown refused
-
-    A line that holds an anchor is read on doubt, the first of the three
-    answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
-    a deletion* gives: the wrong answer is a directory kept and named at
-    exit 1, never a row the checker reports broken after the removal.
-
-    #511. A retirement used to remove a directory a ledger row anchored into,
-    and the checker then reported the row BROKEN — found twice on one branch,
-    both times after the fact. This is the read that answers it before
-    anything is removed.
-
-    **It is not `coordinates`, and it cannot be.** That reader attributes a
-    row to the work item whose `<!-- specs/<id> -->` section holds it, and
-    skips every row above the first marker, which is exactly where this
-    repository's one anchored row sat. What this asks is only whether an
-    anchor's PATH lies under `seal/specs/<id>/`, whoever wrote the row, so it
-    reads every ledger the checker reads, asked of the checker itself
-    (`evidence_check.py#default_patterns` — `seal/ledger.md`, every
-    `seal/ledger/*.md`, every `seal/releases/*.md`, and the pre-0.10
-    `docs/**/_evidence.md`), with the coordinate's one grammar, the
-    checker's own `ANCHOR_RE` (#867).
-
-    **Every line, a fenced or commented one included.** The checker reads a
-    commented row and a row inside a fence that never closes, so either is
-    BROKEN after the removal like any other. This used to read through
-    `unverified_check.py#live_lines`, whose ambiguous line is settled as *not
-    live*: that bias keeps a directory for the marker reader and removed one
-    here, which was #511 again one step narrower (round 1's finding 1). A
-    guard that reads fewer lines or fewer files than the checker keeps fewer
-    directories than the checker will report broken. Since #444 the checker
-    skips a row inside a fence that closes, and this still reads one, which
-    keeps a directory the checker would not break — the direction to be wrong
-    in, since a kept directory is a sentence and a removed one is not.
-
-    It reads and names; it never edits the ledger. Which row goes is a
-    judgment about a claim, and `docs/one-root-by-lifetime.md` §*What keeps
-    `settle` light* keeps that out of the command.
-    """
-    prefixes = {f"{SPECS}/{i}/": i for i in work_item_ids}
-    if not prefixes:
-        return []
-    checker = load(CHECKER, "specseal_evidence_checker")
-    sources = []
-    for path in checker.resolve_patterns(checker.default_patterns(root)):
-        rel = os.path.relpath(path, root).replace(os.sep, "/")
-        if rel not in sources:
-            sources.append(rel)
-    # A row a `Corrected ·` row supersedes is no longer read by the checker,
-    # so the removal breaks nothing (#715): its family is asked of the
-    # checker itself, over the same files, rather than worked out here.
-    view = checker.family_view([under(root, rel) for rel in sources], root, {})
-    superseded = {key for top in view.superseded for key in view.families.get(top, [])}
-    # A refusal -- a `config.md` that will not read, a freeze row written
-    # twice or not a number -- keeps the freeze ON (#867): the freeze never
-    # turns off because the file could not be read, so a released row is
-    # still answered by a `Corrected ·` row in a fragment and never by an
-    # edit to the released file.
-    cutoff, refused = checker.frozen_from(root)
-    frozen = cutoff is not None or refused is not None
-    found = []
-    for rel in sources:
-        with open(under(root, rel), encoding="utf-8") as f:
-            lines = f.read().split("\n")
-        identity = checker.file_identity(under(root, rel))
-        released = frozen and (rel == LEDGER or rel.startswith(RELEASES + "/"))
-        for number, line in enumerate(lines, start=1):
-            if (identity, number) in superseded:
-                continue
-            paths = [m.group("path") for m in checker.ANCHOR_RE.finditer(line)]
-            dead, items = [], set()
-            for path in paths:
-                for prefix, work_item_id in prefixes.items():
-                    if path.startswith(prefix):
-                        dead.append(path)
-                        items.add(work_item_id)
-            if dead:
-                found.append(
-                    AnchoredRow(
-                        rel,
-                        number,
-                        first_cell(line),
-                        dead,
-                        len(paths) - len(dead),
-                        sorted(items),
-                        released,
-                    )
-                )
-    return found
-
-
-def verdict(row):
-    """What `docs/the-evidence-ledger.md` requires of one anchored row, as a
-    person reads it."""
-    if row.released:
-        return RELEASED_SAYS
-    if not row.live:
-        return REMOVED_SAYS
-    return NARROW_SAYS.format(
-        s=plural(len(row.dead)), live=row.live, live_s=plural(row.live)
-    )
-
-
-def write_anchored(rows, out):
-    """One block per row: where it is, what it claims, where it points, and
-    what `docs/the-evidence-ledger.md` says to do with it."""
-    for row in rows:
-        out.write(f"    {row.file}:{row.line}  {row.clause}\n")
-        out.write(f"        into {', '.join(row.items)}\n")
-        out.write(f"        {verdict(row)}\n")
-
-
 def segment_of(paths):
     """`(segment, reason)` for one work item's coordinate paths.
 
@@ -759,7 +556,8 @@ def survey(root, ref):
     the rule arm asks its predicate of the base, and asking it of `None`
     would ask the working tree instead, which is the one answer #602 exists
     to stop `settle` from giving alone.
-    """
+
+    Reads: observed — the tree and git's answer at `ref`, through the units above; unknown refused"""
     present = work_items(root)
     on_base = released(root, ref)
     if on_base is None:
@@ -769,7 +567,6 @@ def survey(root, ref):
     if base is None:
         return {"base": None, "base_label": None}
     folded = reader.folded_items(root)
-    held = open_items(root)
     rows = coordinates(root)
 
     ref_commit = reader.commit_of(root, ref)
@@ -781,10 +578,8 @@ def survey(root, ref):
         "released": [i for i in present if i in on_base],
         "unreleased": [i for i in present if i not in on_base],
         "folded": [],
-        "skipped": [],
         "grouped": collections.defaultdict(list),
         "ungrouped": [],
-        "anchored": [],
         "rule": [],
         "rule_kept": [],
         "rule_base_kept": [],
@@ -793,21 +588,7 @@ def survey(root, ref):
         "citations": {},
         "readers": [],
     }
-    # Every released directory, folded or not, because this list is for the
-    # session writing the prose: a row it sees now is answered before the
-    # retirement, rather than found by a red `evidence-check` after it.
-    survey["anchored"] = anchored_rows(root, survey["released"])
     for work_item_id in survey["released"]:
-        # The guard is asked first. `spec.md` G3 says an item with an open row
-        # is skipped AND NAMED, never folded — and an item that was both
-        # folded and held used to be named under "waiting to be retired",
-        # which tells the reader to run the command that will refuse it, while
-        # the summary counted it `0 skipped`. `retire()` reads `open_items`
-        # again and keeps the directory either way; what this decides is what
-        # the reader is told before running anything.
-        if work_item_id in held:
-            survey["skipped"].append((work_item_id, held[work_item_id]))
-            continue
         if work_item_id in folded:
             survey["folded"].append(work_item_id)
             continue
@@ -840,15 +621,8 @@ def survey(root, ref):
 
     # What a retirement here would take with it, by either arm: D1's table,
     # the three things #514's frame found by hand and the command should
-    # report by itself. A directory the anchored guard holds is not retiring.
-    holding = {i for row in survey["anchored"] for i in row.items}
-    # Nor is it listed under the rule arm's heading, which says `settle
-    # --retire` removes what it lists: the anchored heading already names it
-    # as kept (round 1's finding 5).
-    survey["rule"] = [i for i in survey["rule"] if i not in holding]
-    survey["retiring"] = [
-        i for i in survey["folded"] + survey["rule"] if i not in holding
-    ]
+    # report by itself.
+    survey["retiring"] = survey["folded"] + survey["rule"]
     if survey["retiring"]:
         for work_item_id in survey["retiring"]:
             survey["takes"][work_item_id] = reader.open_record_rows(
@@ -856,10 +630,8 @@ def survey(root, ref):
             )
         survey["citations"], survey["readers"] = citations(root, survey["retiring"])
     # The process arm's dry run (#729), over every released directory, folded
-    # or not, since that arm does not wait for the fold. Its anchored rows are
-    # the ones above narrowed to the files it takes, not a second ledger read.
+    # or not, since that arm does not wait for the fold.
     survey["process"] = process_plan(root, survey["released"])
-    survey["process_anchored"] = process_anchored(survey["anchored"], survey["process"])
     return survey
 
 
@@ -950,7 +722,9 @@ def report(found, ref, out=sys.stdout):
 
     A survey with no base is refused at exit 2 with `retire`'s sentence, for
     `retire`'s reason: a caller that skips `main` would otherwise meet a
-    `KeyError` on the keys such a survey does not carry (round 1, ⬜ 4)."""
+    `KeyError` on the keys such a survey does not carry (round 1, ⬜ 4).
+
+    Reads: owned — the survey this module built; unknown passed"""
     if not found.get("base"):
         out.write(NO_BASE_SAYS)
         return 2
@@ -959,7 +733,7 @@ def report(found, ref, out=sys.stdout):
     write(
         f"released and unfolded: {foldable} work item{plural(foldable)} in "
         f"{len(found['grouped'])} segment{plural(len(found['grouped']))}, "
-        f"{len(found['ungrouped'])} ungrouped, {len(found['skipped'])} skipped\n"
+        f"{len(found['ungrouped'])} ungrouped\n"
     )
     write(
         f"(released = present at {ref}; {len(found['unreleased'])} "
@@ -983,27 +757,10 @@ def report(found, ref, out=sys.stdout):
         for work_item_id, reason in found["ungrouped"]:
             write(f"    {work_item_id}  ({reason})\n")
 
-    if found["skipped"]:
-        write("\nskipped — an evidence-todo row is still open, and a fact that\n")
-        write("never reached the ledger may not leave with the directory:\n")
-        for work_item_id, count in found["skipped"]:
-            write(
-                f"    {work_item_id}  ({count} open row{plural(count)} in "
-                f"{SPECS}/{work_item_id}/evidence-todo.md)\n"
-            )
-
     if found["folded"]:
         write("\nfolded already, waiting to be retired — `settle --retire`:\n")
         for work_item_id in found["folded"]:
             write(f"    {work_item_id}\n")
-
-    if found["anchored"]:
-        write(
-            "\nanchored — a ledger row cites a path inside a released work "
-            "item's\ndirectory, and `settle --retire` keeps that directory "
-            "until the row is answered:\n"
-        )
-        write_anchored(found["anchored"], out)
 
     if found["rule"]:
         write(f"\n{RULE_HEADING}\n")
@@ -1053,22 +810,11 @@ def retire(found, root, out=sys.stdout):
     """Remove the directories whose fold `docs/` records, and nothing else.
 
     The marker is the condition, so a directory is removed only where a
-    policy document has absorbed the work item. An item the guard is holding
-    is refused even with a marker: the fold was recorded and the fact the row
-    names still has not reached the ledger. So is an item a live ledger row
-    anchors into (#511), per directory rather than for the whole run — the
-    evidence-todo guard's shape — so one held directory does not stop the
-    others, and the run exits 1 naming every row.
+    policy document has absorbed the work item.
 
-    **The candidate set is read from the tree, not taken from `survey`.** It
-    used to be `found["folded"]`, and round 1's finding 4 moved the guard
-    ahead of the fold record in `survey` — correctly, because the REPORT must
-    say *skipped and named* rather than *waiting to be retired*. That one move
-    would have emptied `found["folded"]` of every held item and left the
-    refusal below unreachable, so the only guard on a destructive act would
-    have been a classification made for a printed list. Two readers of
-    `open_items` is the point rather than the redundancy: this one decides
-    what is removed, and it answers to the tree.
+    **The candidate set is read from the tree, not taken from `survey`**: a
+    classification made for a printed list is not a guard on a destructive
+    act, so this one decides what is removed, and it answers to the tree.
 
     `found` is still where *released* comes from, because only git can answer
     that and `survey` has already asked.
@@ -1089,7 +835,8 @@ def retire(found, root, out=sys.stdout):
     the base from `found` as it takes *released*, and asks the predicate
     itself. A `found` with no base is refused at exit 2 before anything is
     read, because the predicate asked of `None` is asked of the tree alone.
-    """
+
+    Reads: observed — the work item directories on disk and the fold record, through `unverified_check.py`; unknown refused"""
     base = found.get("base")
     if not base:
         out.write(NO_BASE_SAYS)
@@ -1099,7 +846,6 @@ def retire(found, root, out=sys.stdout):
     marked = reader.folded_items(root)
     present = set(work_items(root))
     released_at_base = set(found["released"])
-    held = open_items(root)
     # The rule arm (D3), read from the tree like the marker arm and for the
     # same reason: a released directory with no `spec.md` whose record holds
     # nothing open is a candidate with no marker, and one whose record does
@@ -1125,15 +871,8 @@ def retire(found, root, out=sys.stdout):
         for i in by_tree
         if i not in by_rule
     ]
-    candidates = sorted((marked & present & released_at_base) | set(by_rule))
-    # #511's guard, asked of the candidates themselves and read from the
-    # ledger now, for the reason the paragraph above gives for `open_items`:
-    # the report's list is not a guard on a destructive act.
-    anchored = anchored_rows(root, candidates)
-    holding = {i for row in anchored for i in row.items}
-    refused = [i for i in candidates if i in held or i in holding]
-    removable = [i for i in candidates if i not in held and i not in holding]
-    if not removable and not refused and not rule_kept and not base_kept:
+    removable = sorted((marked & present & released_at_base) | set(by_rule))
+    if not removable and not rule_kept and not base_kept:
         # THREE states, and they are told apart by what the sentence asserts
         # rather than by what happens to be empty. Round 1 split one of them
         # out of the other; round 2's finding 2 is that the split fired on
@@ -1180,29 +919,13 @@ def retire(found, root, out=sys.stdout):
             else ""
         )
         out.write(f"removed {SPECS}/{work_item_id}/{why}\n")
-    todo_kept = [i for i in refused if i in held]
-    if todo_kept:
-        out.write(
-            "\nkept, although the fold is recorded — an evidence-todo row is "
-            "still open:\n"
-        )
-        for work_item_id in todo_kept:
-            count = held[work_item_id]
-            out.write(f"    {work_item_id}  ({count} open row{plural(count)})\n")
-    if anchored:
-        out.write(
-            "\nkept — a ledger row anchors inside the directory, and removing "
-            "it would\nleave the row BROKEN. Answer each row, then run "
-            "`settle --retire` again:\n"
-        )
-        write_anchored(anchored, out)
     if rule_kept:
         out.write(f"\n{RULE_KEPT_HEADING}\n")
         write_rule_kept(rule_kept, out)
     if base_kept:
         out.write(f"\n{base_heading(found)}\n")
         write_rule_kept(base_kept, out, base=label)
-    kept = len(refused) + len(rule_kept) + len(base_kept)
+    kept = len(rule_kept) + len(base_kept)
     out.write(
         f"\nretired {len(removable)} work item{plural(len(removable))}; {kept} kept\n"
     )
@@ -1226,11 +949,9 @@ PROCESS_FILES = (
     "broad-gate.md",
     "handoff.md",
     "tests-todo.md",
-    "evidence-todo.md",
 )
-# The two whose open row keeps the whole item, read by the rule the
-# evidence-todo guard already reads (`open_rows`).
-PROCESS_TODOS = ("evidence-todo.md", "tests-todo.md")
+# The one whose open row keeps the whole item, read by `open_rows`.
+PROCESS_TODOS = ("tests-todo.md",)
 # What stays until the fold retires the directory. `routing.md` is the item's
 # identity to `chain_check`, `release_seal` and `root-migrate`; `overview.md`
 # holds the `## Not verified` rows `unverified_check --baseline` counts; and
@@ -1254,11 +975,6 @@ PROCESS_HEADING = (
 PROCESS_TODO_HEADING = (
     "kept whole — a todo file still holds an open row, and what a review left "
     "for the\nimplementer may not leave with the record:"
-)
-PROCESS_ANCHORED_HEADING = (
-    "kept whole — a ledger row anchors inside the process record, and "
-    "removing it would\nleave the row BROKEN. Answer each row, then run "
-    "`settle --retire-process` again:"
 )
 PROCESS_UNKNOWN_HEADING = (
     "not a process record — on neither of `settle`'s lists, so it is kept "
@@ -1332,30 +1048,6 @@ def taken_by(path, plan):
     return None
 
 
-def process_anchored(rows, plan):
-    """The rows of `anchored_rows` whose anchor lies inside a file this arm
-    removes, each narrowed to those anchors.
-
-    `anchored_rows` asks whether an anchor lies anywhere under the directory,
-    which is the fold's question, since the fold takes the whole of it. This
-    arm takes part, so an anchor into `spec.md` keeps resolving and holds
-    nothing; it is counted as live, and the verdict says *narrow* rather than
-    *REMOVED* where the row also cites a file that stays."""
-    found = []
-    for row in rows:
-        owners = {path: taken_by(path, plan) for path in row.dead}
-        dead = [path for path in row.dead if owners[path]]
-        if dead:
-            found.append(
-                row._replace(
-                    dead=dead,
-                    live=row.live + len(row.dead) - len(dead),
-                    items=sorted({owners[path] for path in dead}),
-                )
-            )
-    return found
-
-
 # A file or directory name as prose writes it: runs of name characters joined
 # by single dots, so it never ends in a dot. Whatever follows it in a sentence
 # — a closing `.` or `,`, a `:40`, a `#anchor`, a dash — is not part of it,
@@ -1380,10 +1072,11 @@ def cites_a_process_record(rest):
 
 def write_process_section(found, out):
     """The dry run's section: what `settle --retire-process` would take now,
-    and what it would keep."""
+    and what it would keep.
+
+    Reads: owned — the plan this module built; unknown passed"""
     plan = found["process"]
-    holding = {i for row in found.get("process_anchored", []) for i in row.items}
-    takeable = [p for p in plan if p.take and not p.todo and p.id not in holding]
+    takeable = [p for p in plan if p.take and not p.todo]
     files = sum(p.files for p in takeable)
     out.write(f"\n{PROCESS_HEADING}\n")
     out.write(
@@ -1394,11 +1087,6 @@ def write_process_section(found, out):
         for name, count in sorted(entry.todo.items()):
             out.write(
                 f"    {entry.id}  kept: {count} open row{plural(count)} in {name}\n"
-            )
-        if entry.id in holding and not entry.todo:
-            out.write(
-                f"    {entry.id}  kept: a ledger row anchors inside its "
-                "process record (named under *anchored*)\n"
             )
     for entry in plan:
         for name in entry.unknown:
@@ -1417,11 +1105,9 @@ def retire_process(found, root, out=sys.stdout):
     same test the fold uses — the directory is present at `--released-at` —
     taken from `found` because only git answers it.
 
-    **The guards are `--retire`'s, asked per item.** A todo file with an open
-    row keeps the whole item and names it, because what a review left for the
-    implementer may not leave with the record that holds it. A ledger row
-    anchored inside a file this removes keeps the item and is named with what
-    `docs/the-evidence-ledger.md` requires of it. A path outside `seal/specs/`
+    **The guard is asked per item.** A todo file with an open row keeps the
+    whole item and names it, because what a review left for the implementer
+    may not leave with the record that holds it. A path outside `seal/specs/`
     that cites into a removed file is listed and never refused, as `--retire`
     lists one: it resolves in git history at the release's tag, and the tree
     already holds citations of that kind into directories a fold retired.
@@ -1429,18 +1115,15 @@ def retire_process(found, root, out=sys.stdout):
     Exit 0 when nothing was held — including when nothing is left to remove,
     which is the state a previous run leaves, not work still to do — and 1
     when a guard kept an item.
-    """
+
+    Reads: observed — the work item directories on disk, through `process_plan`; unknown refused"""
     present = set(work_items(root))
     ids = sorted(present & set(found["released"]))
     plan = process_plan(root, ids)
-    anchored = process_anchored(
-        anchored_rows(root, [p.id for p in plan if p.take]), plan
-    )
-    holding = {i for row in anchored for i in row.items}
     held_todo = [p for p in plan if p.todo]
-    removable = [p for p in plan if p.take and not p.todo and p.id not in holding]
+    removable = [p for p in plan if p.take and not p.todo]
     unknown = [(p.id, name) for p in plan for name in p.unknown]
-    if not removable and not held_todo and not holding and not unknown:
+    if not removable and not held_todo and not unknown:
         out.write(PROCESS_DONE + "\n")
         return 0
     cited = {}
@@ -1466,9 +1149,6 @@ def retire_process(found, root, out=sys.stdout):
                 out.write(
                     f"    {entry.id}  ({count} open row{plural(count)} in {name})\n"
                 )
-    if anchored:
-        out.write(f"\n{PROCESS_ANCHORED_HEADING}\n")
-        write_anchored(anchored, out)
     if unknown:
         out.write(f"\n{PROCESS_UNKNOWN_HEADING}\n")
         for work_item_id, name in unknown:
@@ -1480,7 +1160,7 @@ def retire_process(found, root, out=sys.stdout):
                 out.write(f"    {work_item_id}\n")
                 for where in cited[work_item_id]:
                     out.write(f"        cited from {where}\n")
-    kept = len({p.id for p in held_todo} | holding)
+    kept = len({p.id for p in held_todo})
     files = sum(p.files for p in removable)
     out.write(
         f"\nretired the process record of {len(removable)} work "
@@ -1522,8 +1202,8 @@ def main(argv=None):
         help="remove the process record of every released work item — "
         "rounds/, phases/ and the files written only for a pull "
         "request — and leave routing.md and the SDD set for the fold. Writes no "
-        "prose and does not wait for the fold. An item a todo row or a ledger "
-        "row holds is kept whole, and a file on neither list is kept and named",
+        "prose and does not wait for the fold. An item a todo row holds is "
+        "kept whole, and a file on neither list is kept and named",
     )
     arms.add_argument(
         "--retire",
@@ -1531,8 +1211,7 @@ def main(argv=None):
         help="remove the directories whose fold `docs/` records, and the "
         "released ones with no spec.md and nothing open in their record. "
         "Writes no prose: what it removes is what a policy document has "
-        "already absorbed, or a record of a moment that states no rule. A "
-        "directory a ledger row anchors into is kept",
+        "already absorbed, or a record of a moment that states no rule",
     )
     args = ap.parse_args(argv)
 
