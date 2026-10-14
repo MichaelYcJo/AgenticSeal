@@ -1235,3 +1235,34 @@ def test_a_manifest_with_no_version_is_exit_2(tmp_path, capsys):
     )
     assert run(root) == 2
     assert "plugin.json states no version" in capsys.readouterr().err
+
+
+# --- round 1's fixes ---------------------------------------------------------
+
+
+def test_an_unread_row_of_a_family_without_an_unread_reason_renders(
+    tmp_path, capsys, monkeypatch
+):
+    """A family another work item adds may read nothing on a run, as
+    `ledger-rereads` does before its release; the summary shows it unread
+    with a reason of its own rather than raising."""
+    monkeypatch.setitem(
+        budget_check.MEASURERS, "later", (lambda _root, _s, _cache: None, "rows", False)
+    )
+    root = tree(tmp_path, budgets(("later", "rows", 4, "one-sided", "report")))
+    assert run(root) == 0
+    assert "| `later` | — (not read on this run) | 4 |" in capsys.readouterr().out
+
+
+def test_the_unknown_family_refusal_names_every_family(tmp_path, capsys):
+    """A misspelt family is told every family the checker reads, the list
+    derived from the families themselves, so a family added later is in it."""
+    root = tree(tmp_path, budgets(("rounds-byte", "bytes", 1, "one-sided", "report")))
+    assert run(root) == 2
+    err = capsys.readouterr().err
+    for family in [
+        *budget_check.MEASURERS,
+        *budget_check.FILE_TABLES,
+        *budget_check.PER_RUN,
+    ]:
+        assert f"`{family}" in err, (family, err)

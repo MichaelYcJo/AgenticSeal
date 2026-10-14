@@ -721,6 +721,16 @@ MEASURERS = {
 }
 
 
+def families():
+    """Every family's name as a row writes it, from the tables that define
+    them, so a family added there is named here too.
+
+    Reads: nothing — the module's own tables"""
+    named = [f"{f}:<subject>" if MEASURERS[f][2] else f for f in MEASURERS]
+    named += [*FILE_TABLES, *(f"{f}:<leg>" for f in PER_RUN)]
+    return sorted(named)
+
+
 def measure(root, row, cache):
     """What `row` measures in the tree at `root`, in the row's unit.
 
@@ -729,8 +739,7 @@ def measure(root, row, cache):
     if family not in MEASURERS or bool(subject) != MEASURERS[family][2]:
         raise Unreadable(
             f"{row.name}: no measurer here reads a budget of that name — the "
-            "families are `preload:<agent>`, `preload:claude-md`, "
-            "`suite-seconds`, `slow-file`, `docs-history` and `ci-minutes:<leg>`"
+            f"families are {', '.join(f'`{name}`' for name in families())}"
         )
     measurer, unit, _ = MEASURERS[family]
     if row.unit != unit:
@@ -931,7 +940,7 @@ def render(results, moves, against, cache=None):
     for result in results:
         row = result.row
         if result.measured is None:
-            why = UNREAD[row.name.partition(":")[0]]
+            why = UNREAD.get(row.name.partition(":")[0], "not read on this run")
             lines.append(
                 f"| `{row.name}` | — ({why}) | {row.ceiling:,} | — | {row.kind} "
                 "| not this run |"
