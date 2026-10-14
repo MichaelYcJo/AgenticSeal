@@ -330,7 +330,7 @@ def mutants_of(path, source, lineno):
     if not 0 < lineno <= len(lines) or not lines[lineno - 1].strip():
         return []
     ends = [*PYTHON_LINE_END.findall(source), ""]
-    whole = [text + end for text, end in zip(lines, ends, strict=True)]
+    whole = [lines[i] + ends[i] for i in range(len(lines))]
     line = lines[lineno - 1]
     edits = [("line removed", None)] if path.endswith(".md") else operators(line)
     start = next(

@@ -354,6 +354,11 @@ framer's to reframe, since only phase 2's row was mine to rewrite.
 
 `plan.md`'s names the tree does not hold are marked `NAME NOT IN TREE`, as
 the orchestrator decided for this file's names: the two `gh api` fields, T8
-(planted with the measurers) and T9 (phase 3). `bin/evidence-check .` and
-`bin/evidence-check --strict .` both exit 0 at the commit that carries this
-record (`executed`).
+(planted with the measurers) and T9 (phase 3). `bin/evidence-check .` exits
+1 and `bin/evidence-check --strict .` exits 2 at this branch's tip
+(`executed`). Every finding is a drifted ledger row, in the fragments and in
+`seal/releases/`, citing one of four units this branch changed:
+`CONTRIBUTING.md`'s *Running the checks*, the line-end test's
+`OUT_OF_CLASS`, and `mutation_check.py`'s and `arm_check.py`'s `main`. They
+are not read again, because #944 removes the ledger and every fragment, and
+this branch rebases onto #944 before it merges.
