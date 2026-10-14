@@ -22,7 +22,8 @@
      file.
   4. Each leg's minutes are read off the run itself by a `budgets` job
      after the suite, held to a ceiling with no lower band, and printed with
-     the run's billable minutes.
+     the run's billable minutes, priced at a figure the line says to check
+     against GitHub's price list.
   5. Two reports fail nothing: the largest round records in the tree, and
      how many rows a release re-read. A release pull request prints every
      budget against the last release tag.

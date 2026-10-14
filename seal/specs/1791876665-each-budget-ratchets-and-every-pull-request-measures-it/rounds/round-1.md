@@ -7,10 +7,10 @@
 | Ran by | warden on Opus 5.5 |
 | PR | 938 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `8e30ac1a15cbb99876aaef79363cfb7893f82780..37d95bd95172c041bf9b9831cf56da850d104acd`, 9 commits |
+| Contract changes | none |
+| New units | PRICE_FILE_FLOOR (depth 1); FileFamily (depth 1); section (depth 1); slow_file_values (depth 1); docs_history_values (depth 1); families (depth 1); widened (depth 1); test_an_unread_row_of_a_family_without_an_unread_reason_renders (depth 1); test_a_per_file_family_reads_its_own_table_with_its_own_reader (depth 1); test_a_widened_slack_on_a_gate_row_needs_its_line (depth 1); THREE (depth 1); THREE_BUDGETS (depth 1); test_files_too_small_to_say_how_the_runners_moved_leave_the_level_alone (depth 1); test_one_sided_is_the_widest_slack (depth 1); test_a_cleanup_of_one_file_under_shared_ids_holds_the_untouched_rows (depth 1); test_a_seconds_row_with_a_lower_band_is_refused (depth 1); test_the_unknown_family_refusal_names_every_family (depth 1); NUMBER_WORDS (depth 1); test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 (seconds rows fail at the first real refresh), 🟡 2 (slack widening unratcheted), 🟡 3 and 🟡 4 (the extension points), 🟡 5 (the shipped skill's count) |
 | Loses a record or crashes | no |
@@ -25,11 +25,11 @@ Round 1 of #930 against 65e973fd on base origin/release/v0.22.0: spec compliance
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | the seconds rows are two-sided at zero headroom, and fail 14 ways at #931's real refresh after the level is restated; a cleanup of one heavy file fails the untouched ones | `.github/scripts/budget_check.py:321` | open | executed: #931's 9ffc5f66 file on 65e973fd, exit 1 at the named level 1071; fixture speedup, exit 1 on untouched files |
-| 🟡 2 | a gate row's slack can be widened with no line, which turns off the lower band unseen | `.github/scripts/budget_check.py:863` | open | executed: 5 % to 50 % with cases removed holds, no move in the summary |
-| 🟡 3 | a third `FILE_TABLES` family is measured by the docs classifier, and per-file tables are found by header alone | `.github/scripts/budget_check.py:632` | open | executed: a `test-lines` family read docs history; a shared header read the docs table |
-| 🟡 4 | `render` raises KeyError for a new unreadable family; the unknown-family refusal omits two families that exist | `.github/scripts/budget_check.py:934` | open | executed: KeyError on a None-returning measurer; `rounds-byte` refused with a list lacking `rounds-bytes` |
-| 🟡 5 | the shipped verify skill counts four unmirrored steps with a local answer, three of them scripts; there are five and four | `skills/verify/SKILL.md:484` | open | read: `PARTITION` excludes the budget step as a repository script |
+| 🟡 1 | the seconds rows are two-sided at zero headroom, and fail 14 ways at #931's real refresh after the level is restated; a cleanup of one heavy file fails the untouched ones | `.github/scripts/budget_check.py:321` | **fixed** `93cbdf9d` | fixed at 93cbdf9d — `suite-seconds` and `slow-file` one-sided at 1.3 times their reading, every file whose reading × 1.3 reaches 120 s listed, and the price level the median over test files of 10 s or more; #931's 9ffc5f66 file on this tree asks for level 1073 and then holds, tightest row at 0.892 of its ceiling; 4a72f647 adds the floor's case; executed: #931's 9ffc5f66 file on 65e973fd, exit 1 at the named level 1071; fixture speedup, exit 1 on untouched files |
+| 🟡 2 | a gate row's slack can be widened with no line, which turns off the lower band unseen | `.github/scripts/budget_check.py:863` | **fixed** `01ab0714` | fixed at 01ab0714 — a wider slack, `one-sided` the widest, is a raise needing its `Budget raised:` line; a family's slack is one raise; 4a72f647 adds the widest-slack case; executed: 5 % to 50 % with cases removed holds, no move in the summary |
+| 🟡 3 | a third `FILE_TABLES` family is measured by the docs classifier, and per-file tables are found by header alone | `.github/scripts/budget_check.py:632` | **fixed** `acaf6c30` | fixed at acaf6c30 — each `FILE_TABLES` entry carries its reader, and a per-file table is the one under its own `## title` heading; executed: a `test-lines` family read docs history; a shared header read the docs table |
+| 🟡 4 | `render` raises KeyError for a new unreadable family; the unknown-family refusal omits two families that exist | `.github/scripts/budget_check.py:934` | **fixed** `fc5921ce` | fixed at fc5921ce — an unread row of a family with no `UNREAD` reason renders with a default, and the unknown-family refusal lists `families()`, derived from `MEASURERS`, `FILE_TABLES` and `PER_RUN`; executed: KeyError on a None-returning measurer; `rounds-byte` refused with a list lacking `rounds-bytes` |
+| 🟡 5 | the shipped verify skill counts four unmirrored steps with a local answer, three of them scripts; there are five and four | `skills/verify/SKILL.md:484` | **fixed** `82b83432` | fixed at 82b83432 — the skill says five steps, four scripts, and a case holds the count to `PARTITION`; read: `PARTITION` excludes the budget step as a repository script |
 | ⬜ 6 | the `Re-read · N3` row says a claim holds whose count of four unmirrored steps is now five | `seal/ledger/1791876665-each-budget-ratchets-and-every-pull-request-measures-it.md:6` | open | read: paperwork, a correction like N10 and P2 |
 | ⬜ 7 | `spec.md` lists `--json`, which was not built | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:69` | open | read: paperwork; `overview.md` discloses it |
 | ⬜ 8 | the billable line cites the work item's `questions.md` Q1, which settle removes | `.github/scripts/budget_check.py:1227` | open | read: the sentence will dangle after the release; the fact stays true |
