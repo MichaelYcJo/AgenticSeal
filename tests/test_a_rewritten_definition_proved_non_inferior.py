@@ -21,6 +21,7 @@ thing passes, which the phase's review reads.
 import importlib.util
 import json
 import os
+import re
 
 import pytest
 
@@ -242,6 +243,175 @@ def test_a_changed_preload_with_no_passing_record_is_red(tmp_path):
 
 def test_every_baseline_in_the_tree_is_answered():
     assert ni.owed_records(ROOT) == []
+
+
+# --- the numbers a side is read to -------------------------------------------
+
+
+def load_script(name):
+    path = os.path.join(ROOT, "evals", "scripts", f"{name}.py")
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+TRUTH = r"^\| (?:🔴|🟡) \d+ \|.*(?:src\/a\.py:(?:10|11|12)(?!\d))"
+
+
+def test_a_side_counts_a_finding_row_no_truth_matches_as_false():
+    """Guards pass rule 2's input: a row is false only when no truth grader's
+    pattern matches it."""
+    result = {
+        "cases": [
+            {
+                "name": "c1",
+                "graders": [
+                    {"name": "truth-1", "type": "regex", "config": {"pattern": TRUTH}},
+                    {"name": "shape-x", "type": "file_exists", "config": {}},
+                ],
+                "arms": {
+                    "with": [
+                        {
+                            "graders": [
+                                {"name": "truth-1", "passed": True},
+                                {"name": "shape-x", "passed": True},
+                            ],
+                            "specseal": {
+                                "report_rows": [
+                                    "| 🟡 1 | the bug | `src/a.py:11` | open | read |",
+                                    "| 🟡 2 | elsewhere | `src/a.py:40` | open | read |",
+                                ]
+                            },
+                        }
+                    ]
+                },
+            }
+        ]
+    }
+    numbers = ni.side_numbers(result)
+    assert (numbers["rows"], numbers["false"]) == (2, 1)
+    assert numbers["graders"][("c1", "truth-1")] == ["truth", 1, 1]
+    assert numbers["graders"][("c1", "shape-x")] == ["shape", 1, 1]
+
+
+def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
+    """Guards where the false rows come from: the session's own `cat` of the
+    report, the last one winning, and never a subagent's output."""
+    events = [
+        {
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "id": "a",
+                        "name": "Bash",
+                        "input": {"command": "cat r/round-1-report.md"},
+                    }
+                ]
+            }
+        },
+        {
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "a",
+                        "content": "| 🟡 1 | old | `x:1` | open | read |",
+                    }
+                ]
+            }
+        },
+        {
+            "parent_tool_use_id": "s",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "id": "b",
+                        "name": "Bash",
+                        "input": {"command": "cat r/round-1-report.md"},
+                    }
+                ]
+            },
+        },
+        {
+            "parent_tool_use_id": "s",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "b",
+                        "content": "| 🔴 9 | sub | `x:1` | open | read |",
+                    }
+                ]
+            },
+        },
+        {
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "id": "c",
+                        "name": "Bash",
+                        "input": {"command": "cat r/round-1-report.md"},
+                    }
+                ]
+            }
+        },
+        {
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "c",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "| 🟡 1 | new | `x:1` | open | read |\n| ⬜ 2 | note | `x:2` | open | read |",
+                            }
+                        ],
+                    }
+                ]
+            }
+        },
+    ]
+    trace = tmp_path / "trace.jsonl"
+    trace.write_text(
+        "\n".join(json.dumps(e) for e in events) + "\nnot json\n", encoding="utf-8"
+    )
+    assert ni.report_rows(str(trace)) == ["| 🟡 1 | new | `x:1` | open | read |"]
+
+
+def test_a_truth_is_a_fixed_finding_the_next_round_confirmed():
+    """Guards the replay set's ground truth: a 🟡 closed fixed and named
+    closed by the next round's 🟢 row, and no other."""
+    rt = load_script("replay_targets")
+    nxt = (
+        "| 🟢 | round 1's finding 2 is closed — x | `a.md:3` | confirmed | read |\n"
+        "| 🟢 | round 1's 🟡 4 is closed — y | `a.md:9` | confirmed | read |\n"
+        "| 🟢 | round 2's finding 3 is closed — z | `a.md:9` | confirmed | read |\n"
+        "| 🟡 5 | round 1's finding 5 is closed | `a.md:9` | open | read |\n"
+    )
+    assert rt.confirmed(nxt, 1) == {2, 4}
+
+
+def test_a_truth_pattern_holds_its_line_window_and_no_further():
+    rt = load_script("replay_targets")
+    pattern = re.compile(rt.truth_pattern("`docs/x.md:100`", "HEAD"), re.M)
+    assert pattern.search("| 🟡 1 | f | `docs/x.md:115` | open | g |")
+    assert pattern.search("| 🔴 3 | f | `docs/x.md:85-90` | open | g |")
+    assert not pattern.search("| 🟡 1 | f | `docs/x.md:116` | open | g |")
+    assert not pattern.search("| 🟡 1 | f | `docs/x.md:1000` | open | g |")
+    assert not pattern.search("| ⬜ 1 | f | `docs/x.md:100` | open | g |")
+
+
+def test_a_seed_lands_on_a_code_token_and_never_in_a_string():
+    sd = load_script("seed_defects")
+    source = 'def f(a):\n    """a == b"""\n    return a == 1\n'
+    tokens = sd.code_tokens(source)
+    assert (3, "==") in tokens
+    assert (2, "==") not in tokens
 
 
 # --- T12: the rule census ----------------------------------------------------
