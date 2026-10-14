@@ -174,11 +174,10 @@ file, because a drawing is taken once and yours would be the one that was
 never seen. Pass the `SEALED` line on as it came, whole. Wherever it names a
 values file it names `seal-stamp --from <path>` too, because the hook draws
 nothing and says nothing where it cannot — a `python3` that cannot load
-`seal_stamp.py`, a session whose working directory is outside this clone, a
-plugin older than the hook — and that command is how the person draws a stamp that did not
-appear. Where it says no Claude Code session was found, quote it as it
-stands: that line is where a reader learns the stamp will not appear by
-itself. Where you
+`seal_stamp.py`, a session run outside this clone, a plugin older than the
+hook — and that command is how the person draws a stamp that did not appear.
+Where it says no Claude Code session was found, quote it as it stands: that
+line is where a reader learns the stamp will not appear by itself. Where you
 redirect the gate's output to a file to read it, the file is
 `<scratchpad>/<work-item-id>/broad-gate.log`, its directory made first
 (`mkdir -p`, since nothing guarantees it exists on a fresh session) — a

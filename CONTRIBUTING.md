@@ -117,9 +117,9 @@ and that is the form a segment types.
 **Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/launch.py`
 so this sentence and the code state one number. Every `bin/` wrapper runs its
 script through that launcher, which refuses an older interpreter with one
-sentence before the script is read. `bin/test` builds its virtualenv with an interpreter at that floor or newer,
-refuses a `.venv` it finds below it, and where it finds neither `uv` nor such
-an interpreter it says which to install.
+sentence before the script is read. `bin/test` builds its virtualenv with an
+interpreter at that floor or newer, refuses a `.venv` it finds below it, and
+where it finds neither `uv` nor such an interpreter it says which to install.
 
 The fallback runs the suite without writing a `.venv` into the tree. It is the
 form this section used to name first, and it resolves and installs its
