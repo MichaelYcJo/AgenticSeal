@@ -33,9 +33,11 @@ case runs and its siblings do not may be setup only it needs, which costs a
 mutant run and proves nothing.
 
 **The pass rule.** Each such function is the only killer in its file of at
-least one mutant: its file runs once under the mutant through
-`mutation-check --baseline-passed`, and every failing id belongs to that
-function. One that is not is named, `kills nothing its file does not`. Its
+least one mutant: the cases of its file that ran the mutant's line in their
+call run once under it, through `mutation-check --baseline-passed`, and every
+failing id belongs to that function. A case that never ran the line cannot
+fail under it; where no case's call ran it, as at import or in a fixture's
+setup, the whole file runs. Each file gets an equal share of the bound. One that is not is named, `kills nothing its file does not`. Its
 scope is the function's file: a case in another file that kills the same
 mutant is not seen, which is the price of running one file.
 
@@ -479,6 +481,30 @@ def sole_killer(killers, file, functions):
     return owners.pop() if len(owners) == 1 else None
 
 
+def selected(hits, path, label):
+    """The cases that ran the mutant's line during their call, sorted; none
+    where no case did, as for a line run at import or in a fixture's setup.
+    A case that never runs a line cannot fail under its mutant, so where any
+    case ran it, those cases alone decide the killer set.
+
+    Reads: owned — the mutant's label, `<path>:<line> <operator>` as `mutants_of` writes it; unknown passed
+    """
+    lineno = int(label.split(" ", 1)[0].rsplit(":", 1)[1])
+    return sorted(nodeid for nodeid, pairs in hits.items() if (path, lineno) in pairs)
+
+
+def narrowed(runner, cases, file):
+    """The command for a run of `cases`: the runner and the ids, with xdist's
+    workers turned off where the runner asks for them and only some of the
+    file's cases run, since starting the workers costs more than they save.
+
+    Reads: nothing — joins the words it is handed
+    """
+    if cases != [file] and "-n" in runner:
+        return [*runner, *cases, "-n", "0"]
+    return [*runner, *cases]
+
+
 def traced_run(root, file, runner, timeout):
     """`(exit, seconds, last line, {nodeid: {(path, line)}})` of the test file
     run once as it stands, each case's call traced.
@@ -603,8 +629,12 @@ def check(root, baseline, runner, bound):
             ]
     started, limit, costs = time.monotonic(), bound * 60, []
     diff_killed = {}
-    for file, (source, functions, names) in pending.items():
-        left = limit - (time.monotonic() - started)
+    for index, (file, (source, functions, names)) in enumerate(pending.items()):
+        # Each file left gets an equal share of what is left of the bound, so
+        # one file's mutants cannot spend another's proof.
+        share = (limit - (time.monotonic() - started)) / (len(pending) - index)
+        deadline = time.monotonic() + share
+        left = share
         code, each, verdict, hits = traced_run(root, file, runner, left)
         if code is None or each > left:
             restructure = RESTRUCTURE_FILE.format(each=each, left=left, bound=bound)
@@ -626,14 +656,21 @@ def check(root, baseline, runner, bound):
                     if results[mutant] == name:
                         proven[name] = mutant[0]
                     continue
-                left = limit - (time.monotonic() - started)
+                left = deadline - time.monotonic()
                 if left < each:
                     queues[name].insert(0, mutant)
                     spent_out = True
                     break
                 label, path, old, new = mutant
+                cases = selected(hits, path, label) or [file]
                 code, _verdict, output = mutation_run(
-                    root, path, old, new, [*runner, file, *TAIL], left, True
+                    root,
+                    path,
+                    old,
+                    new,
+                    [*narrowed(runner, cases, file), *TAIL],
+                    left,
+                    True,
                 )
                 killers = failed_ids(output) if code == RED else []
                 owner = sole_killer(killers, file, functions) if killers else None
@@ -647,13 +684,20 @@ def check(root, baseline, runner, bound):
         # that ran and that no case here killed.
         for mutant in drawn(root, file, None, functions, {}, {}, diff):
             label, path, old, new = mutant
-            left = limit - (time.monotonic() - started)
+            left = deadline - time.monotonic()
             if diff_killed.get(label):
                 continue
             if mutant in results or left < each:
                 continue
+            cases = selected(hits, path, label) or [file]
             code, _verdict, output = mutation_run(
-                root, path, old, new, [*runner, file, *TAIL], left, True
+                root,
+                path,
+                old,
+                new,
+                [*narrowed(runner, cases, file), *TAIL],
+                left,
+                True,
             )
             results[mutant] = None
             killed = code == RED and bool(failed_ids(output))
