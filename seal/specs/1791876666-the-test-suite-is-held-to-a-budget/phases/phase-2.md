@@ -48,7 +48,11 @@ Also asked:
 - that any verdict from the run another agent killed (PID 46132) be discarded
   and re-run;
 - an answer to #942's Q2;
-- the splitlines finding fixed, in a commit of its own (7a6d2be3).
+- the splitlines finding fixed, in a commit of its own (7a6d2be3);
+- one launcher holding the Python floor once, every `bin/` wrapper, `.cmd`
+  twin and `hooks/hooks.json` command routed through it, the eight `FLOOR`
+  copies and their guard cases removed, and cases for the launcher written
+  in their place, each seen red first.
 
 #930's `seal/budgets.md` is not on this branch, so the five measurers and
 their rows wait for it. Phase 3 is not started.
@@ -63,16 +67,38 @@ is removed: its mutant, a misspelt `SAMPLE` name, is killed by S2's own row
 for that name, which fails on a `KeyError`. `mutation-check` with the name
 misspelt is red with T3 gone (`executed`).
 
-**What this phase removed, in one line:** the `Kills:` grammar and its lines
-on S2, T1 and T2, the eleven cases of the first case file (NAME NOT IN TREE:
-`tests/test_a_new_case_names_the_mutant_it_kills.py`),
-`tests/unguarded-files.txt`, which nothing reads once no case owes a line,
-the silent-run case with `first_line` and `mutation_run`'s first line,
-which nothing read, and the interpreter module's census of constructs above
-the floor, its four cases and its `seal/follow-up.md` row (NAME NOT IN TREE:
-`ABOVE_THE_FLOOR`, `CLASSIFIED`, `shipped_python`), because the floor rose to
-3.12 and both constructs it matched predate it: `zip`'s `strict=` is 3.10 and
-`datetime.UTC` is 3.11.
+**What this phase removed, and why:**
+
+- the `Kills:` grammar and its lines on S2, T1 and T2, and the eleven cases
+  of the first case file (NAME NOT IN TREE:
+  `tests/test_a_new_case_names_the_mutant_it_kills.py`), because the check
+  derives what a line declared;
+- `tests/unguarded-files.txt`, which nothing reads once no case owes a line;
+- the silent-run case with `first_line` and `mutation_run`'s first line,
+  which nothing read;
+- the interpreter module's census of constructs above the floor, its four
+  cases and its `seal/follow-up.md` row (NAME NOT IN TREE: `ABOVE_THE_FLOOR`,
+  `CLASSIFIED`, `shipped_python`), because the floor rose to 3.12 and both
+  constructs it matched predate it: `zip`'s `strict=` is 3.10 and
+  `datetime.UTC` is 3.11;
+- the floor's eight copies: the inline guard of `round_record.py`,
+  `settle.py`, `fold_check.py`, `broad_gate.py`, `payload_meter.py` and
+  `seal_stamp.py` (NAME NOT IN TREE: `FLOOR`, `FLOOR_TEXT`, `BELOW_FLOOR`,
+  `below_floor`, `_refusal` in each), the comments that told the next script
+  to copy them, their exit-code sentences, their census lines,
+  `claude_block.py`'s guard and `run_tests.py`'s own number. They guarded six
+  of seventeen commands and made the floor a fact with eight sources;
+  `hooks/launch.py` now holds it for every command. `claude_block.py` keeps
+  no guard, because no plugin user runs it: the hygiene workflow runs it at
+  the floor, and a contributor is told the floor by `CONTRIBUTING.md`;
+- the guard cases that pinned those copies: all 18 functions the interpreter
+  module held at 08f1c8a2, among them the sentence, ordering, docstring and copy-block cases
+  (NAME NOT IN TREE: `test_the_guard_precedes_every_other_module_level_act`,
+  `test_the_guard_block_is_the_one_round_record_says_to_copy`), and one
+  raised-floor case each in the payload-meter and `CLAUDE.md`-block modules
+  (NAME NOT IN TREE:
+  `test_a_floor_above_this_interpreter_refuses_before_anything_is_read`).
+  Five launcher cases replace them, below.
 
 **The check as built, nothing written by hand.** Each test file holding a new
 or changed function runs once as it stands, under a tracer that records the
@@ -347,6 +373,71 @@ framer's to reframe, since only phase 2's row was mine to rewrite.
   column is derived, not measured: removing ids leaves every other case's
   kills as they were. Phase 5 runs it.
 - `REGRESSED_WORDS`' released row R5 is corrected in the fragment.
+
+**One launcher holds the floor.** `hooks/launch.py` holds `FLOOR = (3, 12)`.
+Below it, it writes the refusal the guards wrote (the floor, the version and
+the executable found, *Nothing was read and nothing was written*, the macOS
+`python3` hint), its paths escaped to ASCII, and exits 2 before the script is
+read. At or above it, it runs the script with `runpy` as `__main__`, with
+`sys.argv`, `__file__` and `sys.path[0]` (the script's directory, links
+resolved) as a direct run sets them. It is in `hooks/` because every wrapper
+and hook reaches it relative to itself and `hooks/` already ships the shared
+modules; `bin/` is on the user's PATH, and a file there needs a `.cmd` twin.
+`run_tests.py` loads its `FLOOR`; `ruff.toml` is held equal by a case.
+Hook-side cost, `python3.12`, 40 runs each at load 5–6 (`executed`): an empty
+script 17.8 ms direct and 22.0 ms launched, `dispatch.py pre-bash` 105.0 ms
+and 105.8 ms, so about 1 ms on a real hook call and 4 ms at most.
+
+Routed: all 17 `bin/` wrappers and all 17 `.cmd` twins, both of a twin's
+interpreter lines.
+
+**The frame does not hold for `hooks/hooks.json`, so it is not routed.** Three
+grounds:
+
+- A hook's exit 2 is the harness's word for blocking: a `PreToolUse` call is
+  denied, and at `Stop` the turn is made to go on. Through the launcher,
+  `dispatch.py pre-bash` on `/usr/bin/python3` 3.9 exits 2 with the refusal
+  (`executed`). On POSIX the `|| py -3` fallback then fails to start and the
+  hook exits 127, a non-blocking error shown in verbose mode only. Where
+  `py -3` resolves below the floor too, every call would be blocked.
+- That contradicts two ratified sentences. `CONTRIBUTING.md` says the `||`
+  fallback is safe because it is reached only when the first interpreter
+  could not start, and `docs/commit-review-gate-spec.md` §*Registration* says
+  a failing gate is skipped, said, and the call goes ahead.
+- On 3.9 the gates decide today: `dispatch.py pre-bash` gave the same
+  verdict on 3.9 and 3.12 for an `eval $X` command in this worktree
+  (`executed`). Routing would trade that for every gate silent.
+
+So nothing protects a hook below the floor except `dispatch.py`'s own
+isolation, as before. The git hook stubs `hooks/githooks.py#stub_text`
+writes (`exec python3 "$h"`) are the same class, also not routed: a
+`pre-commit` exit 2 aborts the commit.
+
+**`seal_stamp.py`'s guard served the `Stop` hook too.** The hook loads it in
+process, so below the floor it drew nothing. Without the guard, the hook on
+3.9 draws the same message 3.12 draws (`executed` with a probe built from
+`test_the_main_sessions_stop_draws_each_undrawn_file_once`, deleted after).
+The five sentences that listed "a `python3` under 3.12" as a reason the stamp
+does not appear now say "a `python3` that cannot load `seal_stamp.py`".
+
+**The five cases**, each seen red with `mutation-check` on the launcher, the
+runner or a wrapper, and each proved by `case_check.py` at 00233d87:
+
+| Guards | Case | Seen red by |
+|---|---|---|
+| the refusal: exit 2, the sentence, nothing run | `test_below_the_floor_the_launcher_refuses_before_the_script_runs` | the `stderr.write` removed, `return 2` made `None`, `sys.exit` dropped |
+| at the floor, argv, `sys.path[0]`, `__file__`, `__name__` and the exit code as a direct run | `test_at_the_floor_the_script_runs_as_if_it_were_run_directly` | the `sys.path[0]` and `sys.argv` lines removed, `<` made `<=` |
+| ASCII whatever the paths hold | `test_the_refusal_is_ascii_whatever_path_it_names` | the escape removed |
+| one source, the runner's read and `ruff.toml` | `test_the_floor_has_one_source` | `FLOOR` moved to 3.11, a literal in `run_tests.py` |
+| every wrapper and twin goes through it, listed from `bin/` | `test_every_wrapper_runs_its_script_through_the_launcher` | one wrapper and one `.cmd` line routed around it |
+
+The refusal case asks the real `main` with its floor raised for the sentence,
+and a raised-floor copy run as a process for the exit and the moment, because
+`case_check.py` traces only in-process lines. The two checks the launcher met
+are answered by their own mechanisms: `hooks/launch.py` is classified in
+`ENTRY_POINTS_CLASSIFIED`, since it cannot import `console` before the floor
+check, and the three loaders whose docstrings lost the floor declare their
+`Reads:` lines.
 
 **The ledger.** Three changes moved cited content: S2's docstring, the
 `CONTRIBUTING.md` paragraph, and `mutation_check.py`'s `mutation_run` and
