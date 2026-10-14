@@ -82,7 +82,7 @@ commit alike. -->
 | docs/measuring-a-run.md | 2 |
 | docs/one-root-by-lifetime.ko.md | 31 |
 | docs/one-root-by-lifetime.md | 36 |
-| docs/release-checklist.md | 11 |
+| docs/release-checklist.md | 10 |
 | docs/review-chain-spec.md | 25 |
 | docs/review-handoff-protocol.md | 22 |
 | docs/round-record-spec.md | 17 |
