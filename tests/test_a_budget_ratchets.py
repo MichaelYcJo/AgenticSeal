@@ -1254,6 +1254,38 @@ def test_an_unread_row_of_a_family_without_an_unread_reason_renders(
     assert "| `later` | — (not read on this run) | 4 |" in capsys.readouterr().out
 
 
+def test_a_per_file_family_reads_its_own_table_with_its_own_reader(
+    tmp_path, capsys, monkeypatch
+):
+    """A per-file family another work item adds is one `FILE_TABLES` entry,
+    carrying the reader that measures it, and its table is the one under its
+    own heading — even where it shares the docs table's header."""
+    monkeypatch.setitem(
+        budget_check.FILE_TABLES,
+        "test-lines",
+        budget_check.FileFamily(
+            "Test lines",
+            ("File", "Lines ceiling"),
+            "lines",
+            lambda _root, _cache: {"tests/test_a.py": 7},
+        ),
+    )
+    head = (
+        budgets(
+            ("docs-history", "lines", 0, "+0 lines", "gate"),
+            ("test-lines", "lines", 0, "+0 lines", "gate"),
+        )
+        + table("Lines ceiling", [("docs/a.md", 0)])
+        + "\n## Test lines\n\n| File | Lines ceiling |\n|---|---|\n"
+        + "| tests/test_a.py | 7 |\n"
+    )
+    root = tree(tmp_path, head, files={"docs/a.md": "# A\n\nProse.\n"})
+    assert run(root) == 0, capsys.readouterr()
+    out = capsys.readouterr().out
+    assert "| `test-lines:tests/test_a.py` | 7 lines | 7 |" in out, out
+    assert "| `docs-history:docs/a.md` | 0 lines | 0 |" in out, out
+
+
 def test_the_unknown_family_refusal_names_every_family(tmp_path, capsys):
     """A misspelt family is told every family the checker reads, the list
     derived from the families themselves, so a family added later is in it."""

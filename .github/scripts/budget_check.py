@@ -154,12 +154,6 @@ RELEASE_BRANCH = "main"
 # What the summary says of a raise or a removal the body declares nothing for.
 UNDECLARED = "**not declared** — the pull request body carries no line for it"
 
-# The families measured per file: the heading and header of each one's table,
-# and the unit its family row must state.
-FILE_TABLES = {
-    "slow-file": ("Slow test files", ("File", "Seconds ceiling"), "seconds"),
-    "docs-history": ("Docs history lines", ("File", "Lines ceiling"), "lines"),
-}
 CLAUDE_MD = "claude-md"
 DURATIONS = ".test_durations"
 # The families read from `.test_durations`, compared in the prices their
@@ -217,6 +211,7 @@ SIBLINGS = {
 Row = collections.namedtuple("Row", "line name unit ceiling slack kind")
 Slack = collections.namedtuple("Slack", "amount absolute text")
 Result = collections.namedtuple("Result", "row measured top problems")
+FileFamily = collections.namedtuple("FileFamily", "title header unit reader")
 
 NAME = re.compile(r"[a-z][a-z0-9-]*(?::\S+)?")
 CEILING = re.compile(r"[0-9]+")
@@ -325,9 +320,17 @@ def parse_budgets(text, where):
             )
         out.append(Row(line, name, unit, int(ceiling), parsed, kind))
     families = {row.name: row for row in out}
-    for family, (title, header, _unit) in FILE_TABLES.items():
-        listed, refused = config.gfm_table(text, header)
+    for family, spec in FILE_TABLES.items():
+        title, header = spec.title, spec.header
         written = "`| " + " | ".join(header) + " |`"
+        under = section(text, title)
+        listed, refused = (
+            ([], [f"holds no {written} table"])
+            if under is None
+            else (config.gfm_table(under[0], header))
+        )
+        if under is not None:
+            listed = [(line + under[1], cells) for line, cells in listed]
         absent = bool(refused) and refused[0].startswith("holds no ")
         if family not in families:
             if not absent:
@@ -359,6 +362,30 @@ def parse_budgets(text, where):
                 )
             out.append(Row(line, name, head.unit, int(ceiling), head.slack, head.kind))
     return out
+
+
+def section(text, title):
+    """`(text, lines before it)` of the part of `text` under its `## title`
+    heading, to the next heading of level one or two, or None where no such
+    heading stands. A per-file table is the one under its family's heading,
+    so two families may share a header.
+
+    Reads: guess — a person's markdown, through `unverified_check.py#gfm_lines` and `#heading_level`; unknown passed"""
+    reader = sibling("unverified_check")
+    lines = reader.gfm_lines(text, keepends=True)
+    levels = [reader.heading_level(line.rstrip("\r\n")) for line in lines]
+    starts = [
+        at
+        for at, line in enumerate(lines)
+        if levels[at] == 2 and line.strip().lstrip("#").strip() == title
+    ]
+    if not starts:
+        return None
+    end = next(
+        (at for at in range(starts[0] + 1, len(lines)) if levels[at] in (1, 2)),
+        len(lines),
+    )
+    return "".join(lines[starts[0] + 1 : end]), starts[0] + 1
 
 
 def budgets_text_here(root):
@@ -623,26 +650,50 @@ def docs_lines(root):
 
 
 def file_values(root, family, cache):
-    """`{file: measured}` for a per-file family, measured once per run and
-    kept in `cache`, with the docs classification under `cache["docs"]`. A
-    test file's seconds are in the base's prices where the run read a price
-    level, and its raw seconds go to `cache["raw"]`.
+    """`{file: measured}` for a per-file family, measured once per run by the
+    reader its `FILE_TABLES` entry carries, and kept in `cache`.
 
-    Reads: guess — `.test_durations` or the documents, through `durations` and `docs_lines`; unknown refused"""
+    Reads: guess — whatever the family's reader reads, through it; unknown refused"""
     if family not in cache:
-        if family == "slow-file":
-            per_file = collections.defaultdict(float)
-            for case, value in durations(root).items():
-                per_file[case.split("::", 1)[0]] += value
-            level = cache.get("level", 1)
-            raw = cache.setdefault("raw", {})
-            for path, value in per_file.items():
-                raw[f"{family}:{path}"] = seconds(value)
-            cache[family] = {path: seconds(v / level) for path, v in per_file.items()}
-        else:
-            cache["docs"] = docs_lines(root)
-            cache[family] = {path: len(h) for path, (h, _) in cache["docs"].items()}
+        cache[family] = FILE_TABLES[family].reader(root, cache)
     return cache[family]
+
+
+def slow_file_values(root, cache):
+    """Each test file's seconds in `.test_durations`, divided by the price
+    level, with its raw seconds kept in `cache["raw"]`.
+
+    Reads: observed — `.test_durations`, through `durations`; unknown refused"""
+    per_file = collections.defaultdict(float)
+    for case, value in durations(root).items():
+        per_file[case.split("::", 1)[0]] += value
+    level = cache.get("level", 1)
+    raw = cache.setdefault("raw", {})
+    for path, value in per_file.items():
+        raw[f"slow-file:{path}"] = seconds(value)
+    return {path: seconds(v / level) for path, v in per_file.items()}
+
+
+def docs_history_values(root, cache):
+    """Each `docs/*.md` file's history lines, with the classification kept in
+    `cache["docs"]` for the summary.
+
+    Reads: guess — the documents a person writes, through `docs_lines`; unknown passed"""
+    cache["docs"] = docs_lines(root)
+    return {path: len(h) for path, (h, _) in cache["docs"].items()}
+
+
+# The families measured per file: the heading and header of each one's table,
+# the unit its family row must state, and the reader that measures its files.
+# A per-file family another work item adds is one entry here.
+FILE_TABLES = {
+    "slow-file": FileFamily(
+        "Slow test files", ("File", "Seconds ceiling"), "seconds", slow_file_values
+    ),
+    "docs-history": FileFamily(
+        "Docs history lines", ("File", "Lines ceiling"), "lines", docs_history_values
+    ),
+}
 
 
 def measure_rounds(root, _subject, cache):
@@ -802,7 +853,7 @@ def unlisted_band(row, unlisted, history):
     no lower band, because its ceiling is a threshold rather than a reading.
 
     Reads: nothing — compares the numbers handed to it"""
-    title = FILE_TABLES[row.name][0]
+    title = FILE_TABLES[row.name].title
     problems = [
         f"{path} is not listed and measures {value:,} {row.unit}, over the "
         f"{row.ceiling:,} every file `## {title}` does not list is held to"
@@ -1123,7 +1174,7 @@ def measured_row(root, row, names, cache):
     if family not in FILE_TABLES:
         value = measure(root, row, cache)
         return Result(row, None, None, []) if value is None else band(row, value)
-    unit = FILE_TABLES[family][2]
+    unit = FILE_TABLES[family].unit
     if row.unit != unit:
         raise Unreadable(
             f"{row.name}: the unit is `{row.unit}`, and {family} is measured in {unit}"
