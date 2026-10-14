@@ -6,7 +6,7 @@ the gate. -->
 
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 
-**Decided after phase 5, to build before review:** `seal.py`'s export and import still move `ledger/<id>.md` (`LEDGER_DIR`, about 60 test references). It is this item's leftover, so it leaves here, not in a new issue. The kernel stays at `skills/evidence-check/scripts/` (alternative G), so S9's remaining hits on that path are accepted and named in `overview.md`.
+**Decided after phase 5, to build before review:** `seal.py`'s export and import still move `ledger/<id>.md` (`LEDGER_DIR`, about 60 test references). It is this item's leftover, so it leaves here, not in a new issue. **The kernel also moves out of `skills/evidence-check/`** (owner, 2026-10-14), overturning alternative G: with 16 importers this is the cheapest the rename will ever be, and the old name points at a feature that no longer exists. Its new home is named for what it does, resolving `path#unit` coordinates (default `skills/verify/scripts/coordinates.py`; the smith confirms it against the import graph). The 16 importers, the wrappers, the tests and the docs move with it, and S9 then holds at zero.
 
 Q1 answered the same day: **remove** the ledger from the plugin (option 1).
 
