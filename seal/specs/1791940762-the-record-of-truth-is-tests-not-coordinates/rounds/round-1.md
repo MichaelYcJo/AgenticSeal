@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on claude-opus-5-5 |
 | PR | #950 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `5a3ffdb46ef4143063d169b63e798a91ccfc75a4..67275a502c78b802367a21f001790890b91fed16`, 8 commits |
+| Contract changes | docstring → describe, round-1-report.md, round-1.md |
+| New units | DEFINITIONS (depth 1); GATED (depth 1); test_a_target_the_resolver_finds_in_a_block_prints_its_sentence (depth 1); test_with_no_root_the_targets_resolve_where_the_command_runs (depth 1); TODO_FILE (depth 1); test_the_todo_file_sits_where_settle_looks (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1 to 🟡 8: the `rules` root and its crash, the uncounted indented rule paragraphs, the layout's stale resolver statement and its F2 citation, the *evidence feedback* sentences, the follow-up row on the sweep, and the case asserting `evidence-todo.md`'s layout |
 | Loses a record or crashes | yes — 🟡 2: `rules` exits 1 with a `StopIteration` traceback on a target defined under an `if`; nothing found loses a record |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,14 +25,14 @@ Round 1 of #944 against origin/release/v0.22.0: spec compliance and correctness,
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | `rules` defaults `--root` to the plugin's own tree, so a user's real test reads "does not exist"; the command has no README row | `.github/scripts/rules.py:139` | open | executed: from a scratch repository, `bin/rules docs/x.md` printed `tests/test_user.py does not exist` for a test the repository holds, exit 0; every case passes `--root` |
-| 🟡 2 | `rules` crashes with `StopIteration` on a target defined under an `if`, which the resolver accepts | `.github/scripts/rules.py:73` | open | executed: a scratch tree with `def` under `if sys.platform` → traceback, exit 1; the docstring promises 0 or 2 |
-| 🟡 3 | `rule_paragraphs` does not open a paragraph indented 1–3 spaces, against its docstring; 46 bold-led paragraphs in six rule files are uncounted | `.github/scripts/budget_check.py:219` | open | executed over `rule_files('.')`: 46 openers, 0 counted, among them `agents/warden.md:170`; the permissive direction for a gate |
-| 🟡 4 | the layout's resolver statement says any `def` or `class` is accepted; the resolver now refuses a name defined twice | `docs/the-record-layout.md:243` | open | read: c04e759f rewrote `fold_check.py` and `budget_check.py` docstrings and not the rule's home |
-| 🟡 5 | "evidence feedback" and "Leave evidence rows empty" still describe the implement skill's §2 | `skills/implement/orchestration.md:56` | open | read: also `skills/implement/orchestration.md:18` and `agents/smith.md:27`; none listed in `overview.md` §*Not done* |
-| 🟡 6 | a follow-up row asks the owner about the deleted survivor sweep | `seal/follow-up.md:74` | open | read: `spec.md` §*What is lost, honestly* answers its second option; `overview.md` lists `:67` and not `:74` |
-| 🟡 7 | the layout's index row cites `(F2, built)`, from a section phase 1 deleted | `docs/the-record-layout.md:17` | open | read: no `F2` remains in any rule file |
-| 🟡 8 | a case asserts `evidence-todo.md`'s layout for the deleted fold's guard, and its message names that guard | `tests/test_the_set_a_work_item_always_has.py:308` | open | read: `:372-394`; the live reader is `settle.py#PROCESS_TODOS`, `tests-todo.md` alone |
+| 🟡 1 | `rules` defaults `--root` to the plugin's own tree, so a user's real test reads "does not exist"; the command has no README row | `.github/scripts/rules.py:139` | **fixed** `89b000a9` | fixed at 89b000a9; executed: from a scratch repository, `bin/rules docs/x.md` printed `tests/test_user.py does not exist` for a test the repository holds, exit 0; every case passes `--root` |
+| 🟡 2 | `rules` crashes with `StopIteration` on a target defined under an `if`, which the resolver accepts | `.github/scripts/rules.py:73` | **fixed** `04da85ca` | fixed at 04da85ca; executed: a scratch tree with `def` under `if sys.platform` → traceback, exit 1; the docstring promises 0 or 2 |
+| 🟡 3 | `rule_paragraphs` does not open a paragraph indented 1–3 spaces, against its docstring; 46 bold-led paragraphs in six rule files are uncounted | `.github/scripts/budget_check.py:219` | **fixed** `7b8edffb` | fixed at 7b8edffb; executed over `rule_files('.')`: 46 openers, 0 counted, among them `agents/warden.md:170`; the permissive direction for a gate |
+| 🟡 4 | the layout's resolver statement says any `def` or `class` is accepted; the resolver now refuses a name defined twice | `docs/the-record-layout.md:243` | **fixed** `0bda17c7` | fixed at 0bda17c7; read: c04e759f rewrote `fold_check.py` and `budget_check.py` docstrings and not the rule's home |
+| 🟡 5 | "evidence feedback" and "Leave evidence rows empty" still describe the implement skill's §2 | `skills/implement/orchestration.md:56` | **fixed** `e28d7a5d` | fixed at e28d7a5d; read: also `skills/implement/orchestration.md:18` and `agents/smith.md:27`; none listed in `overview.md` §*Not done* |
+| 🟡 6 | a follow-up row asks the owner about the deleted survivor sweep | `seal/follow-up.md:74` | **fixed** `0c01f8ad` | fixed at 0c01f8ad; read: `spec.md` §*What is lost, honestly* answers its second option; `overview.md` lists `:67` and not `:74` |
+| 🟡 7 | the layout's index row cites `(F2, built)`, from a section phase 1 deleted | `docs/the-record-layout.md:17` | **fixed** `d978ba3d` | fixed at d978ba3d; read: no `F2` remains in any rule file |
+| 🟡 8 | a case asserts `evidence-todo.md`'s layout for the deleted fold's guard, and its message names that guard | `tests/test_the_set_a_work_item_always_has.py:308` | **fixed** `67275a50` | fixed at 67275a50; read: `:372-394`; the live reader is `settle.py#PROCESS_TODOS`, `tests-todo.md` alone |
 | ❓ | W2 and S11: each moved kernel case and each re-pointed pin was seen red by one mutation | `tests/test_a_unit_is_bounded_where_a_parser_decides.py` | ❓ out of verified scope | read only: `phases/phase-4.md` and `phases/phase-8.md` claim `mutation-check` red for each, and this round re-ran none; round 2's warden answers it with `mutation-check` on that module |
 
 ## Paste-ready fixes
