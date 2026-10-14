@@ -144,23 +144,21 @@ holds each leg's minutes in that run to its `ci-minutes` row of
 change to any hook needs a test that fails without it — see the counterfeit
 rule below.
 
-**A case has a budget, and so does each leg.** A case is owed by a mutant it
-kills, and it says which: every test function new or changed in a pull
-request carries one docstring line, `Kills: <path> "<OLD>" "<NEW>"`, the file
-the mutation is made in, from the root, and two JSON strings that
-`mutation-check <path> --replace OLD NEW` applies unchanged. The line is read
-as written in the file, so `\"` and `\n` mean the same in any docstring, and
-a case that pins prose names the document and its sentence. The `cases` job
-in `test.yml` runs `.github/scripts/case_check.py`: the case's file runs once
-under its mutant, and the failing cases must be this one alone. A case whose
-mutant another case also kills fails the job, naming that case; name a
-sentence only this case guards, or leave the case out. The proof is bounded
-at five minutes, and a file whose proof would pass that is named to
-restructure: test the decision directly, not through the whole stack. A file
-off `tests/unguarded-files.txt` carries the line on every function; the list
-names the files that do not yet, and it only shrinks. A case leaves only when
-a mutation table shows that every mutant it kills is killed by a case that
-stays, and judgment removes nothing. A case whose call runs longer
+**A case has a budget, and so does each leg.** A case is owed by a mutant
+only it kills, and nobody writes that mutant down: the `cases` job in
+`test.yml` runs `.github/scripts/case_check.py`, which derives it. For every
+test function new or changed in a pull request it mutates the lines the case
+runs and the other cases in its file do not, the helpers it names, and the
+shipped lines the pull request changed (a changed `.md` line is mutated by
+removing it), runs the file once under each mutant, and reads which cases
+fail. A case that is not its file's only killer of any of them fails the job,
+named: it kills nothing its file does not, so make it guard something its
+siblings do not, or leave it out. A mutant of changed shipped code that
+nothing kills is listed in the job's summary, and fails nothing. The proof has
+a five-minute bound, and a file whose proof would pass it is named to
+restructure: test the decision directly, not through the whole stack. A case
+leaves only when a mutation table shows that every mutant it kills is killed
+by a case that stays, and judgment removes nothing. A case whose call runs longer
 than `CASE_CEILING_S` in `tests/conftest.py` (90 s) fails with one line
 naming it and its seconds, locally as in CI. Make it cheaper, split it, or
 sample what it walks. On a machine running other suites at the same time, a

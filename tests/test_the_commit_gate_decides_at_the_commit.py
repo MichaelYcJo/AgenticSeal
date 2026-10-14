@@ -600,10 +600,7 @@ def test_s2_a_commit_bash_makes_into_an_undeclared_repository_does_not_land(
     the hook cannot see the shape, so one row per subgroup and per thing the
     hook can see is the set a defect has to pass. Of what the file holds,
     only these rows put a shell between `claude` and an emptied environment's
-    `git`, so only they need the lease walk to climb past the call's shell.
-
-    Kills: hooks/hooksession.py "def claude_ancestor(start=None, depth=20):" "def claude_ancestor(start=None, depth=2):"
-    """
+    `git`, so only they need the lease walk to climb past the call's shell."""
     _lands_nothing_undeclared(tmp_path, name)
 
 
@@ -611,10 +608,7 @@ def test_every_corpus_family_has_a_sampled_row():
     """S2 of work item 1791876666: a subgroup the corpus holds and `SAMPLE`
     does not is a kind of row S2 no longer runs, named here. A sampled name
     the corpus no longer holds needs no case of its own: S2's row for it
-    fails on the name.
-
-    Kills: tests/test_the_commit_gate_decides_at_the_commit.py "    \"#686 ;: pushd\",\n    \"#686 ;: command cd\",\n" ""
-    """
+    fails on the name."""
     missing = sorted(set(GROUPS.values()) - {GROUPS.get(n) for n in SAMPLE})
     assert not missing, missing
 
@@ -624,10 +618,7 @@ def test_a_sampled_row_that_commits_nowhere_undeclared_fails_rather_than_skips(
 ):
     """S3 of work item 1791876666: a row whose bare run lands only in the
     declared worktree, put through S2, fails naming itself, where it used to
-    skip after building its sandbox.
-
-    Kills: tests/test_the_commit_gate_decides_at_the_commit.py "    assert undeclared, (\n        f\"{name!r} {NOT_A_COMMIT}" "    if not undeclared:\n        pytest.skip(\"vacuous\")\n    assert undeclared, (\n        f\"{name!r} {NOT_A_COMMIT}"
-    """
+    skip after building its sandbox."""
     vacuous = "ns: r3: control, cd then ;"
     assert vacuous not in SAMPLE
     try:

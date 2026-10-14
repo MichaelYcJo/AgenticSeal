@@ -209,18 +209,18 @@ jobs:
           retention-days: 7
 
   # The regrowth check (#929). Each test function new or changed against the
-  # pull request's base carries one `Kills:` line in its docstring. Its file
-  # runs once as it stands, then once under each function's mutant through
-  # `mutation-check`, and the failing ids must be that function's alone. A
-  # function with no line, a line that does not land, or a mutant another
-  # case kills fails the job, named in the step summary. A file off
-  # `tests/unguarded-files.txt` has a line on every function, and the list
-  # only shrinks. The proof is bounded at five minutes, the owner's figure
-  # (2026-10-14): a file whose proof would pass it is named to restructure
-  # before any mutant runs, so the job ends on the bound and never on the
-  # timeout below. Ubuntu alone: a case guarding a Windows-only sentence
-  # proves itself on a run that skips there. The install line is the `pytest`
-  # job's, so the cases run on the versions every other run uses.
+  # pull request's base must be its file's only killer of at least one mutant,
+  # and nobody writes the mutants down: they are drawn from the lines the case
+  # runs and its siblings do not, the units it names, and the shipped lines
+  # the pull request changed, and each runs the file once through
+  # `mutation-check`. A case that kills nothing its file does not fails the
+  # job, named in the step summary; a mutant of changed code nothing kills is
+  # listed there, and fails nothing. The proof is bounded at five minutes, the
+  # owner's figure (2026-10-14): a file whose proof would pass it is named to
+  # restructure, so the job ends on the bound and never on the timeout below.
+  # Ubuntu alone: a case guarding a Windows-only sentence proves itself on a
+  # run that skips there. The install line is the `pytest` job's, so the
+  # cases run on the versions every other run uses.
   cases:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
