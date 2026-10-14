@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on claude-opus-5-5 |
 | PR | #950 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `5a3ffdb46ef4143063d169b63e798a91ccfc75a4..67275a502c78b802367a21f001790890b91fed16`, 8 commits |
 | Contract changes | docstring → describe, round-1-report.md, round-1.md |
 | New units | DEFINITIONS (depth 1); GATED (depth 1); test_a_target_the_resolver_finds_in_a_block_prints_its_sentence (depth 1); test_with_no_root_the_targets_resolve_where_the_command_runs (depth 1); TODO_FILE (depth 1); test_the_todo_file_sits_where_settle_looks (depth 1) |
