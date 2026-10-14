@@ -195,6 +195,27 @@ def test_a_constant_is_no_def_or_class(tmp_path):
     assert len(found) == 1 and "no def or class named LIMIT" in found[0], found
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        "def test_twice():\n    pass\n\n\ndef test_twice():\n    pass\n",
+        "class test_twice:\n    pass\n\n\ntest_twice = 1\n",
+    ],
+    ids=["two defs", "a class and a constant"],
+)
+def test_a_name_defined_twice_is_no_target(tmp_path, source):
+    """#944: a rule bound to an ambiguous target is not bound. A name its
+    module defines twice is no one unit — pytest collects only the last
+    `def` — so it does not resolve, in the one resolver `fold-check` and the
+    budget checker both read."""
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_y.py").write_text(source, encoding="utf-8")
+    assert target_problem(str(tmp_path), "tests/test_y.py::test_twice") == (
+        "tests/test_y.py::test_twice: test_twice is defined 2 times in "
+        "tests/test_y.py, so it names no one unit"
+    )
+
+
 def test_the_target_is_resolved_by_the_ledgers_reader():
     """D6 of #836: one resolver of `path::name`. `fold_check.py` walks no
     tree of its own for a target; it asks `named_unit`."""

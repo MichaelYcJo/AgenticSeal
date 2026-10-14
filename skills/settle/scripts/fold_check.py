@@ -14,7 +14,7 @@ is that reader, shipped.
 **The shape.** Every statement whose marker group holds a work-item id at or
 above the cutoff opens with a bold rule sentence and carries exactly one live
 `Enforced by:` line, whose targets each resolve: a file inside the repository
-and, with `::name`, a `def` or `class` in it, spelled as pytest spells a node
+and, with `::name`, a `def` or `class` it defines once, as pytest spells a node
 id — `::Class::method` for a method — and resolved by the ledger's own reader,
 `skills/evidence-check/scripts/evidence_check.py#named_unit`. Or the line says
 `nothing — <why>`, with a reason. Ids are epoch-prefixed, so the cutoff is a
@@ -280,7 +280,11 @@ def bound(ids, cutoff):
 
 
 def target_problem(root, target):
-    """Why `target` does not resolve under `root`, or None when it does."""
+    """Why `target` does not resolve under `root`, or None when it does: a
+    file inside the repository, or a `def` or `class` its Python file
+    defines once.
+
+    Reads: observed — the file the target names, through `evidence_check.py#named_unit`; unknown refused"""
     target = target.strip().strip("`")
     if not target:
         return "an empty target"
@@ -318,6 +322,13 @@ def target_problem(root, target):
             f"names `{target}`, and {path} could not be read as Python "
             f"({why(unreadable)})"
         ) from unreadable
+    if kinds is not None and len(kinds) > 1:
+        # A name defined twice is no one unit — pytest collects the last
+        # `def` — so a rule bound to it is not bound (#944).
+        return (
+            f"{target}: {name} is defined {len(kinds)} times in {path}, so it "
+            "names no one unit"
+        )
     if kinds is not None and ("def" in kinds or "class" in kinds):
         return None
     return f"{target}: no def or class named {name} in {path}"

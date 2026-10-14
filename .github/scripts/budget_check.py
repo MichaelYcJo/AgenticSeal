@@ -80,8 +80,8 @@ the one resolver `fold-check` reads with. `enforced-unresolved` reads every
 `Enforced by:` line of those files, inside a rule paragraph or not.
 `unenforced` counts `nothing — <why>` as unenforced, so the escape moves the
 number. What neither reads: whether a target runs on every leg, whether it
-asserts the rule, a name a module defines twice (the resolver passes it), and
-a rule written as a plain sentence.
+asserts the rule, and a rule written as a plain sentence. A name its module
+defines twice does not resolve, because it names no one unit.
 
 A byte is counted with each CRLF read as one LF, which is what git stores
 for these files: a Windows checkout that wrote CRLF measures the commit a

@@ -116,7 +116,7 @@ CI cost, private repository (Windows 2×, macOS 10×): deletions only. The `ledg
 | S3 a new rule without a test raises its row | a bold-led paragraph with no `Enforced by:` is appended to a file at its ceiling | exit 1 naming `unenforced:<file>`; with `Budget raised:` in the body, exit 0 |
 | S4 `nothing` is counted | a paragraph ends `Enforced by: nothing — <why>` | counted in `unenforced:<file>`, as the paragraph with no line is |
 | S5 a rule gains its test | a paragraph in the slice file gets a resolving target | exit 1 until the row is lowered, then 0 (#930's band) |
-| S6 the slice is at zero | phase 1 closes on `docs/the-record-layout.md` | `unenforced:docs/the-record-layout.md` 0; every one of its 9 rules names a resolving test or `nothing — <why>` |
+| S6 the slice is at zero | phase 1 closes on `docs/the-record-layout.md` | `unenforced:docs/the-record-layout.md` 0: every one of its rule paragraphs names a target that resolves, since `nothing — <why>` is counted (S4) |
 | S7 the ledger does not come back | a file is planted at `seal/ledger/x.md`, `seal/ledger.md` or `seal/releases/x.md` | the new case red; green on the tree (seen red by planting) |
 | S8 the gate has two arms | `broad-gate` runs on the branch | its summary lists `unverified` and `chain` and no `ledger`, `corrections` or `survivors`; `arm_check` and the stamp's arm list green |
 | S9 no reader names the ledger or the sweep | `grep -rn 'seal/ledger\|seal/releases\|evidence-check\|Re-read ·\|Corrected ·\|survivor'` over `agents skills templates docs hooks .github CLAUDE.md CONTRIBUTING.md README*.md` | nothing but `changelog/` |
