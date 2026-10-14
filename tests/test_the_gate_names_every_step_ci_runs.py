@@ -704,6 +704,29 @@ def test_every_exclusion_says_what_the_gate_cannot_reach():
     )
 
 
+NUMBER_WORDS = ("no", "one", "two", "three", "four", "five", "six", "seven")
+
+
+def test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm():
+    """The shipped verify skill counts the `release` steps that have a local
+    answer and no arm — the ones that run this repository's own script, and
+    the one written inline — and the count is `PARTITION`'s, so a step added
+    to either kind moves the sentence or fails here."""
+    scripts = sum(".github/scripts/" in reason for _, reason in reasons())
+    inline = sum("inline" in reason for _, reason in reasons())
+    with open(
+        os.path.join(ROOT, "skills", "verify", "SKILL.md"), encoding="utf-8"
+    ) as f:
+        skill = " ".join(f.read().split())
+    said = (
+        f"{NUMBER_WORDS[scripts + inline].capitalize()} steps of SpecSeal's own "
+        f"`release` job have a local answer and no arm: {NUMBER_WORDS[scripts]} "
+        "run a script under `.github/scripts/`, which no plugin ships, and "
+        f"{NUMBER_WORDS[inline]} is shell written inline in the workflow"
+    )
+    assert said in skill, said
+
+
 # --- A7: a repository with no such workflow is untouched --------------------
 
 

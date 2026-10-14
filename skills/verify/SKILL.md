@@ -481,8 +481,8 @@ steps that run only into `main`, against the opposite guard the same way. The
 cases read a guard on the base and no other kind of condition, so the class
 stays open for the next kind.
 
-**The arms the plugin ships are the arms the gate can run.** Four steps of
-SpecSeal's own `release` job have a local answer and no arm: three run a
+**The arms the plugin ships are the arms the gate can run.** Five steps of
+SpecSeal's own `release` job have a local answer and no arm: four run a
 script under `.github/scripts/`, which no plugin ships, and one is shell
 written inline in the workflow with no script either side can share. A
 repository that wants checks of its own sealed names them in the `Broad gate`
