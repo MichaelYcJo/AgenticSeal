@@ -6,15 +6,20 @@
   seconds, each slow test file, each `docs/` file's history lines, and each
   CI leg's minutes — and `.github/scripts/budget_check.py` measures them.
 
-  1. A gate row fails a pull request that takes it over its ceiling, and
-     one that leaves the ceiling far above a cleanup's new reading, so the
-     next change starts from the cleanup rather than from its headroom.
-  2. A ceiling raised since the merge base needs one line in the pull
-     request body, `Budget raised: <name> <old> -> <new>: <reason>`, read by
-     CI so that nobody is asked; a release pull request asks for none.
-  3. A refreshed `.test_durations` restates one number, its price level,
-     rather than every seconds ceiling, so a refresh on faster or slower
-     runners fails nothing.
+  1. A gate row fails a pull request that takes it over its ceiling. A row
+     the tree alone decides also fails one that leaves the ceiling far above
+     a cleanup's new reading, so the next change starts from the cleanup
+     rather than from its headroom.
+  2. A ceiling raised or a slack widened since the merge base needs one line
+     in the pull request body, `Budget raised: <name> <old> -> <new>:
+     <reason>`, read by CI so that nobody is asked; a release pull request
+     asks for none.
+  3. The suite's seconds and each slow file are read off one run's
+     `.test_durations`, so they are held to a ceiling 1.3 times their
+     reading with no lower band. A refresh restates one number, its price
+     level, rather than every seconds ceiling, so a refresh on faster or
+     slower runners fails nothing, and a cleanup of one file moves only that
+     file.
   4. Each leg's minutes are read off the run itself by a `budgets` job
      after the suite, held to a ceiling with no lower band, and printed with
      the run's billable minutes.

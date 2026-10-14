@@ -87,9 +87,12 @@ each budget of `seal/budgets.md` beside its ceiling at the last release tag
 and its reading today, printed by `budget_check.py --trend` with nothing to
 fill in. A two-sided row was lowered by the pull request that made it
 cheaper. A `one-sided` row was not, because one run is too noisy to lower it
-on: where the release's `tests` runs sit well under a `ci-minutes` ceiling,
-the preparation commit lowers it to 1.3 times the largest of those runs, the
-rule its first value was set by, and names the runs in its message.
+on. Where the release's `tests` runs sit well under a `ci-minutes` ceiling,
+the preparation commit lowers it to 1.3 times the largest of those runs and
+names the runs in its message. Where `suite-seconds` or a `slow-file` row
+reads well under its ceiling, it lowers that to 1.3 times the reading, and
+lists any test file whose reading times 1.3 now reaches the threshold. That
+is the rule each first value was set by.
 
 <!-- specs/1788326734-the-ledger-fragments-are-never-gathered -->
 **The preparation commit gathers the changelog fragments and folds the ledger

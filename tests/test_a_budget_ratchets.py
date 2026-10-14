@@ -468,7 +468,7 @@ def table(header, rows):
     return "\n".join(lines) + "\n"
 
 
-def slow(*rows, threshold=120, slack="10 %", suite=None):
+def slow(*rows, threshold=120, slack="one-sided", suite=None):
     """Budgets with the `slow-file` row and its table, and `suite-seconds`
     where `suite` is `(ceiling, slack)`."""
     head = [("slow-file", "seconds", threshold, slack, "gate")]
@@ -634,7 +634,7 @@ def test_the_suite_seconds_are_the_sum_of_every_priced_case(
     cases = {"tests/test_a.py::t1": 100.25, "tests/test_b.py::t": 80.25}
     root = tree(
         tmp_path,
-        budgets(("suite-seconds", "seconds", ceiling, "5 %", "gate")),
+        budgets(("suite-seconds", "seconds", ceiling, "one-sided", "gate")),
         files={".test_durations": json.dumps(cases)},
     )
     assert run(root) == verdict, capsys.readouterr()
@@ -680,7 +680,7 @@ def priced(scale, only=None):
     }
 
 
-RESCALED = slow(("tests/test_a.py", 130), threshold=800, suite=(980, "5 %"))
+RESCALED = slow(("tests/test_a.py", 130), threshold=800, suite=(980, "one-sided"))
 
 
 def price(per_mille):
@@ -754,18 +754,19 @@ def test_a_refreshed_file_holds_at_the_next_pull_request(tmp_path, capsys):
 
 def test_a_file_doubling_against_the_rest_still_fails_its_row(tmp_path, capsys):
     """One file twice as slow while the rest stand still is composition, not
-    price: the level moves to 1133 and the file still reads 229 seconds in
-    the ceilings' prices, over its 130."""
+    price: the median over the files stays at 1, the level at 1000, and the
+    file reads its 260 seconds against its 130. The suite grew by those 130
+    seconds too, so its row says so; no price level is asked for."""
     root = refreshed(
-        tmp_path, priced(2, only="tests/test_a.py"), RESCALED + price(1133)
+        tmp_path, priced(2, only="tests/test_a.py"), RESCALED + price(1000)
     )
     assert ratchet(root, "") == 1
     out = capsys.readouterr().out
     assert (
-        "budget-check: slow-file:tests/test_a.py: measured 229 seconds is over "
+        "budget-check: slow-file:tests/test_a.py: measured 260 seconds is over "
         "the ceiling 130" in out
     ), out
-    assert "budget-check: suite-seconds:" not in out, out
+    assert "budget-check: suite-seconds: measured 1,110 seconds is over" in out, out
     assert "budget-check: price level:" not in out, out
 
 
@@ -773,7 +774,7 @@ def test_a_file_doubling_against_the_rest_still_fails_its_row(tmp_path, capsys):
     "before, said",
     [
         ({"tests/test_z.py::t": 10.0}, "share no case id"),
-        ({case: 0.0 for case in CASES}, "at 0 seconds"),
+        ({case: 0.0 for case in CASES}, "prices no test file at 10 seconds"),
         (None, None),
     ],
     ids=["no case in common", "the base prices them at nothing", "no file at the base"],
@@ -797,7 +798,7 @@ def test_a_price_level_that_cannot_be_read_is_exit_2(tmp_path, capsys, before, s
     assert said in capsys.readouterr().err
 
 
-SUITE = budgets(("suite-seconds", "seconds", 180, "5 %", "gate"))
+SUITE = budgets(("suite-seconds", "seconds", 180, "one-sided", "gate"))
 
 
 @pytest.mark.parametrize(
@@ -809,7 +810,7 @@ SUITE = budgets(("suite-seconds", "seconds", 180, "5 %", "gate"))
             "and no `slow-file` row in its Budgets table",
         ),
         (
-            budgets(("slow-file", "seconds", 120, "10 %", "gate")),
+            budgets(("slow-file", "seconds", 120, "one-sided", "gate")),
             {},
             "has a `slow-file` row and no `## Slow test files` table",
         ),
@@ -817,7 +818,7 @@ SUITE = budgets(("suite-seconds", "seconds", 180, "5 %", "gate"))
         (slow(("tests/test_a.py", "1,0")), {}, "is not a whole number"),
         (slow(("tests/a b.py", 1)), {}, "is no file name"),
         (
-            budgets(("slow-file", "bytes", 120, "10 %", "gate"))
+            budgets(("slow-file", "bytes", 120, "one-sided", "gate"))
             + table("Seconds ceiling", []),
             {".test_durations": json.dumps(SMALL)},
             "the unit is `bytes`, and slow-file is measured in seconds",
@@ -1003,13 +1004,13 @@ NO_TIMES = {**job("pytest (macos-latest, 3.12, 15)", 1), "completed_at": None}
             budgets(("ci-minutes:ubuntu", "minutes", 15, "10 %", "gate")),
             None,
             None,
-            "a row read off one CI run is `one-sided`",
+            "a row read off one run — a CI run's minutes, or `.test_durations`",
         ),
         (
             budgets(warden(MEASURED, "one-sided")),
             None,
             None,
-            "only a row read off one CI run or a `report` row is `one-sided`",
+            "only a row read off one run or a `report` row is `one-sided`",
         ),
         (
             budgets(("ci-minutes:freebsd", "minutes", 15, "one-sided", "gate")),
@@ -1333,6 +1334,62 @@ def test_a_widened_slack_on_a_gate_row_needs_its_line(
     out = capsys.readouterr().out
     assert said in out, out
     assert "docs-history:docs/a.md: the slack" not in out, out
+
+
+THREE = {
+    "tests/test_a.py::a1": 600.0,
+    "tests/test_a.py::a2": 400.0,
+    "tests/test_b.py::b": 500.0,
+    "tests/test_c.py::c": 200.0,
+}
+THREE_BUDGETS = slow(
+    ("tests/test_a.py", 1300),
+    ("tests/test_b.py", 650),
+    ("tests/test_c.py", 260),
+    suite=(2210, "one-sided"),
+)
+
+
+def test_a_cleanup_of_one_file_under_shared_ids_holds_the_untouched_rows(
+    tmp_path, capsys
+):
+    """A pull request that halves the heaviest of three files under the same
+    case ids is a cleanup, not a change of runners: the level stays at 1000,
+    the untouched files read what they read, and the one that got faster
+    reads faster. Under a seconds-weighted level the same refresh moved to
+    0.706 and read both untouched files over their ceilings."""
+    faster = {**THREE, "tests/test_a.py::a1": 300.0, "tests/test_a.py::a2": 200.0}
+    root = tree(
+        tmp_path,
+        THREE_BUDGETS,
+        base=THREE_BUDGETS,
+        base_files={".test_durations": json.dumps(THREE)},
+        files={".test_durations": json.dumps(faster)},
+    )
+    assert ratchet(root, "") == 0, capsys.readouterr()
+    out = capsys.readouterr().out
+    assert "| `slow-file:tests/test_b.py` | 500 seconds | 650 |" in out, out
+    assert "| `slow-file:tests/test_a.py` | 500 seconds | 1,300 |" in out, out
+
+
+@pytest.mark.parametrize(
+    "head",
+    [
+        budgets(("suite-seconds", "seconds", 100, "5 %", "gate")),
+        budgets(("slow-file", "seconds", 120, "10 %", "gate"))
+        + table("Seconds ceiling", []),
+    ],
+    ids=["the suite's row", "the slow files' row"],
+)
+def test_a_seconds_row_with_a_lower_band_is_refused(tmp_path, capsys, head):
+    """A seconds row is read off one run's union, as a minutes row is off one
+    run, so it is one-sided: a lower band on it would fail every refresh
+    that moves a file against the rest."""
+    root = tree(tmp_path, head, files={".test_durations": json.dumps(SMALL)})
+    assert run(root) == 2
+    assert "a row read off one run — a CI run's minutes, or `.test_durations`" in (
+        capsys.readouterr().err
+    )
 
 
 def test_the_unknown_family_refusal_names_every_family(tmp_path, capsys):

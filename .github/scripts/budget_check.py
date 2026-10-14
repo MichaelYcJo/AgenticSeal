@@ -71,8 +71,14 @@ Linux one does.
 times from the next on the same code, and three of five quiet runs fell
 under a two-sided band on one leg, so a `ci-minutes` row's slack is
 `one-sided`: it holds while the run is under its ceiling, and nothing asks
-for it to be lowered. Only such a row may say `one-sided`. The tree's run
-shows these rows unread; the tests workflow's `budgets` job, after the
+for it to be lowered. The seconds rows are the same kind of reading:
+`.test_durations` is one run's union, and one refresh priced its test files
+0.76 to 1.16 times the level it moved the whole by, so `suite-seconds` and
+`slow-file` are `one-sided` too. Such a row's ceiling is 1.3 times its
+reading, rounded up, which holds that spread with room, and the release
+lowers it from the trend line. Only these rows and `report` rows may say
+`one-sided`. The tree's run
+shows the minutes rows unread; the tests workflow's `budgets` job, after the
 suite, reads the run's job list with `--ci-jobs` and holds them, and prints
 the billable line: each job's minutes rounded up, at its leg's multiple of a
 Linux minute, priced at the figure #929 read, whose date nobody here has
@@ -84,7 +90,9 @@ file its table does not list is held to: `## Slow test files` (`| File |
 Seconds ceiling |`) and `## Docs history lines` (`| File | Lines ceiling |`)
 list the files held to a ceiling of their own. So an unlisted test file over
 the threshold fails, and listing it is a raise from the threshold that needs
-its line, as is a row the table drops whose ceiling was under it. A docs
+its line, as is a row the table drops whose ceiling was under it. Every test
+file whose reading times 1.3 reaches the threshold is listed, so an unlisted
+one has the same room to move before it crosses. A docs
 line is a **history line** when it is not a rule line, not blank, not hidden
 in a fence or a comment and not a heading, and matches `#NN`, `round N`, a
 date or `measured`. A **rule line** is in a block from a line opening with
@@ -101,16 +109,18 @@ level` (`| Prices | Per mille |`, one row for `.test_durations`, 1000 where
 the table is absent) states how the committed file's prices stand against
 them. `suite-seconds` and every `slow-file` reading are the file's seconds
 divided by that level, and the summary prints the raw value beside it. With
-`--baseline`, the file's move is measured as the seconds-weighted ratio over
-the case ids both files hold — HEAD's seconds for those ids summed, over the
-base's — and the level here must be the base's times that ratio, rounded per
-mille, or the run fails naming the number to write. So a refresh restates
+`--baseline`, the file's move is measured over the case ids both files hold,
+as the median over the test files of 10 seconds or more of each file's
+seconds here over its seconds there, and the level here must be the base's
+times that ratio, rounded per mille, or the run fails naming the number to
+write. A median of files moves with the runners and not with one file, so a
+cleanup that speeds one file up moves only that file's reading. So a refresh restates
 one number and no `Budget raised:` line, the level cannot move without the
 file, and a later pull request reads the refreshed file at the level its
 refresh wrote. A uniform rescale holds every row; cases added, cases removed
 and one file growing against the rest move them. A file the base did not
-have is a ratio of 1, and two files sharing no case id, or a base pricing the
-shared ones at nothing, is exit 2. A suite that is slower everywhere is what
+have is a ratio of 1, and two files sharing no case id, or no test file of 10
+seconds on the shared ids, is exit 2. A suite that is slower everywhere is what
 the per-run CI minutes measure.
 
 **The summary** is a table, one line per budget — measured, ceiling, headroom,
@@ -139,6 +149,7 @@ import json
 import math
 import os
 import re
+import statistics
 import subprocess
 import sys
 
@@ -161,6 +172,9 @@ DURATIONS = ".test_durations"
 # ceilings are written in, and the table stating how the file's prices stand
 # against those, per mille.
 PRICED = ("suite-seconds", "slow-file")
+# A test file the base prices at fewer seconds than this is too noisy to say
+# how the runners moved, and is left out of the price level's median.
+PRICE_FILE_FLOOR = 10
 PRICE_TITLE = "Price level"
 PRICE_HEADER = ("Prices", "Per mille")
 PER_MILLE = 1000
@@ -306,18 +320,19 @@ def parse_budgets(text, where):
             raise Unreadable(f"{at}: {name}'s {error}") from None
         if kind not in KINDS:
             raise Unreadable(f"{at}: {name}'s kind `{kind}` is neither gate nor report")
-        per_run = name.partition(":")[0] in PER_RUN
+        family = name.partition(":")[0]
+        one_run = family in PER_RUN or family in PRICED
         one_sided = parsed.amount is None
-        if per_run and not one_sided:
+        if one_run and not one_sided:
             raise Unreadable(
-                f"{at}: {name}'s slack is `{slack}`, and a row read off one CI "
-                f"run is `{ONE_SIDED}`: a run's minutes swing too far for a "
-                "lower band"
+                f"{at}: {name}'s slack is `{slack}`, and a row read off one run "
+                f"— a CI run's minutes, or `{DURATIONS}`, one run's union — is "
+                f"`{ONE_SIDED}`: one run's prices swing too far for a lower band"
             )
-        if one_sided and not per_run and kind != REPORT:
+        if one_sided and not one_run and kind != REPORT:
             raise Unreadable(
                 f"{at}: {name}'s slack is `{slack}`, and only a row read off "
-                f"one CI run or a `{REPORT}` row is `{ONE_SIDED}`"
+                f"one run or a `{REPORT}` row is `{ONE_SIDED}`"
             )
         out.append(Row(line, name, unit, int(ceiling), parsed, kind))
     families = {row.name: row for row in out}
@@ -552,11 +567,19 @@ def durations_from(text, where):
 
 def price_level(base, head, label):
     """`(ratio, common)`: how much higher HEAD's `.test_durations` prices the
-    cases both files hold than the base's does, seconds-weighted — the sum of
-    HEAD's seconds over the common case ids divided by the base's — and how
-    many ids that is. 1 where the base has no such file, and exactly 1 where
-    the two are the same file; Unreadable where they share no case id or the
-    base prices the shared ones at nothing, since then no level can be read.
+    cases both files hold than the base's does, and how many ids that is.
+
+    The ratio is the median, over the test files the base prices at
+    `PRICE_FILE_FLOOR` seconds or more on the shared ids, of each file's
+    seconds here over its seconds there. A median of files is what moves when
+    the runners do and not when one file does: a cleanup that halves one
+    file of three leaves it at 1, where the seconds-weighted ratio fell to
+    0.706 and read every untouched file 1.42 times slower. On #931's refresh
+    the two agree, 1.073 and 1.071.
+
+    1 where the base has no such file, and exactly 1 where the two are the
+    same file; Unreadable where they share no case id or no file of that many
+    seconds, since then no level can be read.
 
     Reads: nothing — compares the two readings handed to it"""
     if base is None:
@@ -567,13 +590,19 @@ def price_level(base, head, label):
             f"{DURATIONS} here and at {label} share no case id, so no price "
             "level between them can be read"
         )
-    before = sum(base[case] for case in common)
-    if before <= 0:
+    before, after = collections.defaultdict(float), collections.defaultdict(float)
+    for case in common:
+        path = case.split("::", 1)[0]
+        before[path] += base[case]
+        after[path] += head[case]
+    ratios = [after[p] / before[p] for p in before if before[p] >= PRICE_FILE_FLOOR]
+    if not ratios:
         raise Unreadable(
-            f"{DURATIONS} at {label} prices the {len(common)} cases it shares "
-            "with this tree at 0 seconds, so no price level can be read"
+            f"{DURATIONS} at {label} prices no test file at {PRICE_FILE_FLOOR} "
+            f"seconds or more over the {len(common)} cases it shares with this "
+            "tree, so no price level can be read"
         )
-    return sum(head[case] for case in common) / before, len(common)
+    return statistics.median(ratios), len(common)
 
 
 def measure_suite(root, _subject, cache):
@@ -998,7 +1027,7 @@ def render(results, moves, against, cache=None):
     if ratio != 1:
         lines.append(
             f"`{DURATIONS}` prices the {common:,} cases it shares with the base "
-            f"x{ratio:.3f} the base's, seconds-weighted."
+            f"x{ratio:.3f} the base's, the median over its test files."
         )
     if level != 1:
         lines.append(
