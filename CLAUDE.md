@@ -43,8 +43,9 @@ record of truth is a test or a behaviour eval a rule's `Enforced by:` names,
 never coordinates somebody re-reads. A fact has one source: every other place
 links to it or derives it on demand, and never holds a second copy. A thing is
 re-checked only when it changed, by the party that knows what changed: the
-diff, CI. A change rewrites the text it amends in place; history goes to git,
-the changelog and the work record. `CONTRIBUTING.md` §*What a change to a gate
+diff, CI. A change rewrites the text it amends in place, and in the same
+commit removes what it left standing on the old fact: a check, an exception,
+a comment, a copy. History goes to git, the changelog and the work record. `CONTRIBUTING.md` §*What a change to a gate
 must carry* is where a pull request answers this rule and the goal above.
 
 ## Repo rule — the merge method is fixed per direction, and it is not a preference
