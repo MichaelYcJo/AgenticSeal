@@ -986,7 +986,6 @@ skills/verify/scripts/coordinates.py#heading_path@2297b249
 skills/verify/scripts/coordinates.py#markdown_lines@d14c1375
 skills/verify/scripts/coordinates.py#normalise@e7d71707
 skills/verify/scripts/coordinates.py#parsed_spans@2d6ca94d
-skills/verify/scripts/coordinates.py#text_regions@d2369e75
 skills/verify/scripts/coordinates.py#unescape@1c338938
 skills/verify/scripts/coordinates.py#unit_kinds@104e7fde
 skills/verify/scripts/deferral_check.py#inspect@6873bb06

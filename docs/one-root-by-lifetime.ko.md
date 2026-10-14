@@ -21,8 +21,8 @@
 따라 자리를 나눕니다.** 지금은 커밋되는 루트 둘에 사는 기간이 세 가지로 다른
 파일이 섞여 있고, 어느 루트도 그 기간으로 자리를 나누지 않습니다.
 `specs/<id>/` 에는 작업 항목의 문서와 리뷰 기록이 함께 있는데 둘은 없어지는
-시점이 다릅니다. `.specseal/` 에는 근거 대조표(스펙 조항과 코드 좌표를 짝지어
-둔 표)가 있는데, 그 행은 자기를 쓴 작업 항목보다 오래 삽니다. 그 루트를
+시점이 다릅니다. `.specseal/` 에는 follow-up 목록과 마이그레이션 설정이
+있는데, 둘 다 어느 작업 항목보다 오래 삽니다. 그 루트를
 어디에 둘지는 저장소마다 고릅니다. shared 면 커밋하고, local 이면 `.git/`
 아래에 두어 커밋하지 않습니다. 그 자리에 루트가 있다는 것이 곧 옵트인입니다.
 `specs/` 는 더 이상 SpecSeal 의 디렉터리가 아닙니다. 작업 항목의 디렉터리는
@@ -34,8 +34,7 @@
 ────                                        ──────
 specs/<id>/   spec plan questions overview   seal/specs/<id>/     작업 항목 전체, settle 이 접을 때까지
               routing rounds/ todos pr.ko
-.specseal/    map.md map/<id>.md             seal/map.md seal/map/<id>.md
-              follow-up.md parity.md         seal/follow-up.md seal/parity.md
+.specseal/    follow-up.md parity.md         seal/follow-up.md seal/parity.md
 (.specseal/ 가 있다)  = 옵트인               모드의 자리에 seal/ 이 있다  = 옵트인
 ```
 
@@ -61,7 +60,6 @@ Enforced by: tests/test_no_document_names_the_old_roots.py::test_no_shipped_docu
 |---|---|---|
 | spec · plan · questions · overview | 그것을 싣는 릴리스까지. 그 뒤로는 git 이력과 CHANGELOG 의 작업 항목 주석이 보존합니다 | `specs/<id>/` |
 | routing · rounds · todos | PR 이 열려 있는 동안. 커밋 게이트와 `chain_check.py` 가 읽습니다 | `specs/<id>/` |
-| 근거 대조표의 행 | 그 행이 가리키는 코드가 살아 있는 동안. 작업 항목보다 깁니다 | `.specseal/map/<id>.md` |
 | follow-up · parity | 저장소가 살아 있는 동안 | `.specseal/` |
 
 ### 작업의 기록과 과정의 기록, 경계는 어디에 있는가
@@ -506,9 +504,6 @@ CI 경로는 아래 순서의 3 단계에서 루트와 함께 바뀝니다.
    여기서 사람이 정할 것은 이것뿐입니다.
 1. **sealer(#30).** 티켓 중 첫 번째입니다. 그 규칙이 루트 병합을 포함해
    이제부터의 모든 작업 항목에 걸리기 때문입니다.
-2. **릴리스 자동화 작업 항목(#78)**이 "`ledger/` 를 접고, 열린 evidence-todo 행이
-   있으면 거부한다" 를 맡습니다. 루트가 병합되기 전에 지금 경로에서 할 수
-   있습니다.
 3. **0.4.0, 루트 병합(#79).** 세션 시작 훅이 한 번에 전부 옮깁니다. CI
    경로가 바뀝니다. `docs/` 와 스킬의 경로 참조가 따라갑니다. shared 모드만
    있습니다.
@@ -520,7 +515,7 @@ CI 경로는 아래 순서의 3 단계에서 루트와 함께 바뀝니다.
    `docs/` 로 접고 디렉터리를 지웁니다. `implement` 스킬의 `docs/` 설명도
    그에 맞춰 고칩니다.
 5. **나중에, 따로(#85).** 상태를 작업 트리 밖으로 완전히 꺼냅니다. orphan
-   브랜치를 대조표의 집으로 삼고 ref 로 옵트인하는 안이며, 이 이슈의 첫
+   브랜치를 그 상태의 집으로 삼고 ref 로 옵트인하는 안이며, 이 이슈의 첫
    판본이 그것이었습니다.
 
 ## 저장소가 스스로 정하는 것, 그리고 그것을 읽는 방법

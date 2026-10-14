@@ -22,8 +22,8 @@ differ, both are given.
 long it lives.** Today two committed roots hold files that live for three
 different lengths of time, and neither root sorts by that. `specs/<id>/`
 holds a work item's documents and its review records, which die at different
-times, and `.specseal/` holds the ledger (the table pairing spec clauses with
-code coordinates), whose rows outlive the work item that wrote them. Where
+times, and `.specseal/` holds the follow-up list and the migration config,
+which outlive every work item. Where
 that root sits is a per-repository choice, shared (committed)
 or local (under `.git/`, never committed), and its presence there is the
 opt-in. `specs/` stops being SpecSeal's directory. A work item's directory
@@ -35,8 +35,7 @@ today                                      after
 ─────                                      ─────
 specs/<id>/   spec plan questions overview  seal/specs/<id>/  the whole work item, until settle folds it
               routing rounds/ todos pr.ko
-.specseal/    map.md map/<id>.md            seal/map.md seal/map/<id>.md
-              follow-up.md parity.md        seal/follow-up.md seal/parity.md
+.specseal/    follow-up.md parity.md        seal/follow-up.md seal/parity.md
 (.specseal/ exists)  = opted in            seal/ exists at the mode's place = opted in
 ```
 
@@ -62,7 +61,6 @@ things with the same lifetime are split across two.**
 |---|---|---|
 | spec · plan · questions · overview | until the release that carries it; git history and the CHANGELOG's work-item comment keep it after | `specs/<id>/` |
 | routing · rounds · todos | while the pull request is open (the commit gate and `chain_check.py` read them) | `specs/<id>/` |
-| ledger rows | as long as the code they cite lives, which is longer than the work item | `.specseal/map/<id>.md` |
 | follow-up · parity | as long as the repository | `.specseal/` |
 
 ### Where the line between the SDD set and the process record runs
@@ -525,8 +523,6 @@ for one release moved to 0.5.0, because even that set is large.
    name. The only human decision here.
 1. **The sealer (#30)**, first of the tickets, because its rule applies to
    every work item from here on, the root merge included.
-2. **The release-automation item (#78)** takes "fold `ledger/`, refuse on open
-   evidence-todo rows". Doable on today's paths, before the root merges.
 3. **0.4.0: the root merge (#79).** The session-start hook moves
    everything once; CI paths change; `docs/` and the skills' path
    references follow. Shared mode only.
@@ -539,7 +535,7 @@ for one release moved to 0.5.0, because even that set is large.
    work items into `docs/` and removes their directories, and the
    `implement` skill's description of `docs/` is corrected to match.
 5. **Later and separate (#85)**: taking state out of the working tree
-   entirely, with an orphan branch as the ledger's home, opt-in by ref. That
+   entirely, with an orphan branch as its home, opt-in by ref. That
    was the first version of this issue.
 
 ## What the repository decides for itself, and how it is read

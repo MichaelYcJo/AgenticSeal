@@ -171,8 +171,8 @@ def py_spans(text):
 
     **One parse per distinct text, for the life of the process** (#519). A
     caller asks for many units of one file, and parsing it once per unit was
-    1,328 parses of 126 files in one run of the ledger's checker (`cProfile`,
-    2026-09-23). The memo is keyed on the TEXT and never on the path: one path
+    1,328 parses of 126 files in one caller's run (`cProfile`, 2026-09-23).
+    The memo is keyed on the TEXT and never on the path: one path
     read twice with different content in one process would otherwise be
     handed the first read's spans, a silent wrong answer. Each caller gets a
     fresh dict of fresh lists, so none can change the stored answer for the
@@ -267,14 +267,15 @@ def text_regions(lines, anchor, markdown=False, shown=None):
 
     **The heading rule is markdown-only.** `#` opens a comment in Python, shell
     and YAML, and reading one as a heading made a 23-line comment block resolve
-    to its first line alone. Found by migrating this repository's own ledger,
-    not by reasoning about it.
+    to its first line alone.
 
     **A heading is read on SHOWN, the lines a renderer shows** (#867):
     `markdown_lines` of the same text, which the caller passes for a markdown
     file. A `## B` quoted in a closed fence opens no section and ends none.
     The text is still matched on LINES as written, so an anchor on a line
     inside a fence finds its paragraph as it did.
+
+    Reads: guess — a file's lines its caller hands it and a person's anchor, sections by `heading_level`; unknown passed
     """
     shown = lines if shown is None else shown
     want = " ".join(anchor.split())
