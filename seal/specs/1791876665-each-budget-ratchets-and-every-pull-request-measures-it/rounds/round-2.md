@@ -7,7 +7,7 @@
 | Ran by | warden on Opus 5.5 |
 | PR | 938 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-3 |
 | Fix range | `f594450df4048bcef539519e840798661b0667d2..4ddf0edb9fa5a9823ff43a8f46f5775142aa0040`, 2 commits |
 | Contract changes | none |
 | New units | test_a_fenced_heading_inside_a_file_section_does_not_end_it (depth 1); test_a_file_section_written_twice_is_refused (depth 1) |
