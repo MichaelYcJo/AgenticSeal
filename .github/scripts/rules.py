@@ -53,7 +53,7 @@ def first_sentence(doc):
     """The first sentence of a docstring's first paragraph, its whitespace
     folded, or the whole paragraph where it holds no sentence end.
 
-    Reads: nothing — a sentence from the docstring handed to it"""
+    Reads: guess — a docstring a person wrote, handed by its caller; unknown passed"""
     paragraph = " ".join(doc.strip().split("\n\n", 1)[0].split())
     found = SENTENCE.match(paragraph)
     return found.group(1) if found else paragraph
