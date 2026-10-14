@@ -29,7 +29,9 @@
      budget against the last release tag.
 
   A contributor's pull request that touches none of the measured files sees
-  one more green step and one more green job.
+  one more green step and one more green job. `seal/budgets.md` is read as
+  GitHub renders it: a heading inside a fence or a comment is no heading,
+  and a section written twice is refused rather than read as its first.
   (`1791876665-each-budget-ratchets-and-every-pull-request-measures-it`,
   #930)
 

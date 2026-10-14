@@ -7,10 +7,10 @@
 | Ran by | warden on Opus 5.5 |
 | PR | 938 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `f594450df4048bcef539519e840798661b0667d2..4ddf0edb9fa5a9823ff43a8f46f5775142aa0040`, 2 commits |
+| Contract changes | none |
+| New units | test_a_fenced_heading_inside_a_file_section_does_not_end_it (depth 1); test_a_file_section_written_twice_is_refused (depth 1) |
 | Fix of a fix | first — 🟡 1 at .github/scripts/budget_check.py#section, a unit round-1's fixes added |
 | Needs a fix | yes — 🟡 1 (`section` reads headings off fenced and commented lines and takes a repeated heading as its first) |
 | Loses a record or crashes | no |
@@ -25,7 +25,7 @@ Round 2 of #930 against 6a6d4fbe: the verifying round over round 1's fix pass (8
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | `section` reads headings off fenced and commented lines, so a fenced `##` line inside a per-file section cuts its table off and the checker refuses a file GitHub renders; a repeated heading is read as its first | `.github/scripts/budget_check.py:383` | open | executed: a fenced heading inside `## Docs history lines` gave exit 2, "no table" |
+| 🟡 1 | `section` reads headings off fenced and commented lines, so a fenced `##` line inside a per-file section cuts its table off and the checker refuses a file GitHub renders; a repeated heading is read as its first | `.github/scripts/budget_check.py:383` | **fixed** `bb6cd81c` | fixed at bb6cd81c — `section` reads headings off `unverified_check.py#readable`, so a `##` line in a fence or a comment ends nothing, and a title written twice is refused; both cases planted and red before the fix; executed: a fenced heading inside `## Docs history lines` gave exit 2, "no table" |
 | ⬜ 2 | the per-file spread the ×1.3 rule cites, 0.76 to 1.16, does not reproduce | `.github/scripts/budget_check.py:76` | open | executed: 0.76 to 1.14 over files of 100 s or more, 0.46 to 1.54 over all 72; the rule still holds |
 | 🟢 | round 1's finding 1 is closed — the seconds rows are one-sided at 1.3 times, the level is a median over files, and #931's refresh holds at the level the checker names | `.github/scripts/budget_check.py:324` | confirmed | executed: exit 1 naming 1073, then exit 0 at 1073, tightest row 0.892; the 20 listed files and every ceiling match their readings |
 | 🟢 | round 1's finding 2 is closed — a widened slack is a raise and needs its line | `.github/scripts/budget_check.py:934` | confirmed | read: `widened` and the four cases |
