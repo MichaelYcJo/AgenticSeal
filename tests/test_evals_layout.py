@@ -1,20 +1,51 @@
-"""The eval suite has never run (early access), so its shape is what CI can check.
+"""The eval suite's shape, as `claude plugin eval` reads it.
 
-An eval that is malformed fails at the moment someone finally enables the
-feature — which is the worst moment to discover it. These assertions cost
-nothing and hold the suite to the layout `claude plugin eval` expects.
+A case is any directory under `evals/` holding `case.yaml` or `prompt.md`,
+at any depth, which is how the runner finds `<eval dir>/**/case.yaml`. These
+assertions cost nothing and hold every case to the layout the runner reads,
+so a malformed case fails here rather than at the run that costs money.
+
+The behaviour suite under `evals/behaviour/<agent>/` is held to the layout
+measured on the runner (2.1.296): `max_turns`, `timeout_seconds`, `model`
+and `allowed_tools` under `execution:`, where a top-level copy is dropped;
+`context.scaffold_script` a path to a file beside `case.yaml`; one grader
+per file, its name prefixed by its kind for `evals/scripts/noninferiority.py`.
 """
 
 import glob
 import os
+import re
 
 EVALS = os.path.join(os.path.dirname(__file__), "..", "evals")
+BEHAVIOUR = os.path.join(EVALS, "behaviour")
 
 REQUIRED = ("schema_version", "name", "runs", "max_turns", "timeout_seconds", "model")
+EXECUTION = ("max_turns", "timeout_seconds", "model", "allowed_tools")
+KINDS = ("reach", "shape", "truth", "rule")
 
 
 def case_dirs():
-    return sorted(d for d in glob.glob(os.path.join(EVALS, "*")) if os.path.isdir(d))
+    """Every directory under `evals/` holding a case file, at any depth."""
+    found = set()
+    for name in ("case.yaml", "prompt.md"):
+        for path in glob.glob(os.path.join(EVALS, "**", name), recursive=True):
+            if f"{os.sep}results{os.sep}" not in path:
+                found.add(os.path.dirname(path))
+    return sorted(found)
+
+
+def flat_cases():
+    top = os.path.normpath(EVALS)
+    return [d for d in case_dirs() if os.path.dirname(os.path.normpath(d)) == top]
+
+
+def behaviour_cases():
+    top = os.path.normpath(BEHAVIOUR)
+    return [d for d in case_dirs() if os.path.normpath(d).startswith(top + os.sep)]
+
+
+def rel(d):
+    return os.path.relpath(d, EVALS)
 
 
 def top_level_keys(path):
@@ -27,52 +58,108 @@ def top_level_keys(path):
     return keys
 
 
+def block_keys(path, block):
+    """`key:` two spaces in under the top-level `block:` line."""
+    keys, inside = [], False
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            if line[:1].isalpha():
+                inside = line.startswith(f"{block}:")
+                continue
+            m = re.match(r"^  (\w+):", line)
+            if inside and m:
+                keys.append(m.group(1))
+    return keys
+
+
 def test_every_case_declares_a_case_yaml_and_a_prompt():
     missing = []
     for d in case_dirs():
         for name in ("case.yaml", "prompt.md"):
             if not os.path.isfile(os.path.join(d, name)):
-                missing.append(f"{os.path.basename(d)}/{name}")
+                missing.append(f"{rel(d)}/{name}")
     assert not missing, missing
 
 
-def test_every_case_yaml_carries_the_required_fields():
+def test_every_flat_case_yaml_carries_the_required_fields():
     gaps = []
-    for d in case_dirs():
+    for d in flat_cases():
         path = os.path.join(d, "case.yaml")
         if not os.path.isfile(path):
             continue
         keys = top_level_keys(path)
         for field in REQUIRED:
             if field not in keys:
-                gaps.append(f"{os.path.basename(d)}: {field}")
+                gaps.append(f"{rel(d)}: {field}")
+    assert not gaps, gaps
+
+
+def test_a_behaviour_case_sets_its_bounds_where_the_runner_reads_them():
+    """A bound at the top level is dropped, and the run takes the default."""
+    gaps = []
+    for d in behaviour_cases():
+        path = os.path.join(d, "case.yaml")
+        top = top_level_keys(path)
+        inner = block_keys(path, "execution")
+        for field in ("schema_version", "name", "runs"):
+            if field not in top:
+                gaps.append(f"{rel(d)}: {field}")
+        for field in EXECUTION:
+            if field not in inner:
+                gaps.append(f"{rel(d)}: execution.{field}")
+            if field in top:
+                gaps.append(
+                    f"{rel(d)}: {field} at the top level, where the runner drops it"
+                )
+    assert behaviour_cases(), "the behaviour suite holds no case"
+    assert not gaps, gaps
+
+
+def test_a_behaviour_scaffold_is_a_file_beside_its_case():
+    """The runner reads `scaffold_script` as a path, and refuses an inline
+    script as a path that does not exist."""
+    gaps = []
+    for d in behaviour_cases():
+        path = os.path.join(d, "case.yaml")
+        if block_keys(path, "context") != ["scaffold_script"]:
+            gaps.append(f"{rel(d)}: context holds more or less than scaffold_script")
+        with open(path, encoding="utf-8") as f:
+            m = re.search(r"^  scaffold_script: (\S+)$", f.read(), re.M)
+        if not m or not os.path.isfile(os.path.join(d, m.group(1))):
+            gaps.append(f"{rel(d)}: scaffold_script names no file beside the case")
+    assert not gaps, gaps
+
+
+def test_a_behaviour_grader_names_its_kind():
+    gaps = []
+    for d in behaviour_cases():
+        for path in glob.glob(os.path.join(d, "graders", "*.md")):
+            if os.path.basename(path).split("-", 1)[0] not in KINDS:
+                gaps.append(f"{rel(d)}/graders/{os.path.basename(path)}")
     assert not gaps, gaps
 
 
 def test_the_prompt_holds_the_prompt_and_nothing_else():
     """Config lives in case.yaml. One case kept its config in the prompt's
     frontmatter, where the runner does not look for it."""
-    offenders = [
-        os.path.basename(d)
-        for d in case_dirs()
-        if open(os.path.join(d, "prompt.md"), encoding="utf-8").read().startswith("---")
-    ]
+    offenders = []
+    for d in case_dirs():
+        with open(os.path.join(d, "prompt.md"), encoding="utf-8") as f:
+            if f.read().startswith("---"):
+                offenders.append(rel(d))
     assert not offenders, offenders
 
 
 def test_every_case_has_at_least_one_grader():
     empty = [
-        os.path.basename(d)
-        for d in case_dirs()
-        if not glob.glob(os.path.join(d, "graders", "*.md"))
+        rel(d) for d in case_dirs() if not glob.glob(os.path.join(d, "graders", "*.md"))
     ]
     assert not empty, empty
 
 
-def test_the_readme_names_every_case():
+def test_the_readme_names_every_flat_case_and_the_behaviour_suite():
     with open(os.path.join(EVALS, "README.md"), encoding="utf-8") as f:
         readme = f.read()
-    unlisted = [
-        os.path.basename(d) for d in case_dirs() if os.path.basename(d) not in readme
-    ]
+    unlisted = [rel(d) for d in flat_cases() if rel(d) not in readme]
     assert not unlisted, unlisted
+    assert "behaviour/" in readme

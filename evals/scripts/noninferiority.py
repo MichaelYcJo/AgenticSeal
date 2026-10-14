@@ -1,0 +1,642 @@
+#!/usr/bin/env python3
+"""Run the behaviour suite on one side, and judge a new side against a baseline.
+
+  noninferiority.py run --agent A (--rev REV | --tree DIR) --out FILE.json
+      [--runs 2] [-j 4] [--max-cost-usd USD] [--case GLOB] [--suite-rev HEAD]
+  noninferiority.py compare --agent A --phase N --old OLD.json --new NEW.json
+      --out RECORD.md
+  noninferiority.py check RECORD.md
+
+`run` copies the plugin tree at REV (or DIR) into a temporary directory,
+puts the suite at SUITE-REV's `evals/behaviour/` into it, runs
+`claude plugin eval` over `evals/behaviour/<A>/` there, and writes the
+eval's JSON with three additions under `specseal`: the preload hashes of the
+tree it measured, each run's report rows, and whether the side was cut short.
+It removes every directory the run kept. `compare` writes the record the
+five pass rules judge; `check` recomputes a record's verdict from its numbers.
+
+Exit codes: 0 written, or the record's verdict holds · 1 the record's
+verdict is not `pass`, or it disagrees with its numbers · 2 nothing ran
+(arguments, a missing tool, an unreadable input).
+"""
+
+import argparse
+import hashlib
+import io
+import json
+import os
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import tarfile
+import tempfile
+
+ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+SUITE = "evals/behaviour"
+AGENTS = ("warden", "smith", "framer", "sealer", "scribe")
+CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
+FINDING_ROW = re.compile(r"^\| (?:🔴|🟡) \d+ \|.*$", re.M)
+FALSE_MARGIN = 0.05
+VERDICTS = ("pass", "fail", "no result")
+
+
+# --- the preload a side measured -------------------------------------------
+
+
+def preload_files(tree, agent):
+    """The files AGENT's spawn preloads in TREE: its definition and every
+    skill its `skills:` frontmatter lists.
+
+    A definition with no frontmatter stops the run.
+
+    Reads: owned — `agents/<agent>.md`'s frontmatter; unknown refused"""
+    rel = f"agents/{agent}.md"
+    with open(os.path.join(tree, rel), encoding="utf-8") as f:
+        text = f.read()
+    m = re.match(r"---\n(?P<head>.*?)\n---\n", text, re.S)
+    if not m:
+        raise SystemExit(f"{rel} has no frontmatter")
+    skills = re.search(
+        r"^skills:\n(?P<items>(?:[ \t]+- .*\n?)+)", m["head"] + "\n", re.M
+    )
+    names = re.findall(r"- (\S+)", skills["items"]) if skills else []
+    return [rel, *(f"skills/{n}/SKILL.md" for n in names)]
+
+
+def preload_hashes(tree, agent):
+    """`{path: sha256}` of AGENT's preload in TREE.
+
+    A missing file stops the run.
+
+    Reads: observed — the bytes of each file `preload_files` names; unknown refused"""
+    out = {}
+    for rel in preload_files(tree, agent):
+        with open(os.path.join(tree, rel), "rb") as f:
+            out[rel] = hashlib.sha256(f.read()).hexdigest()
+    return out
+
+
+# --- run --------------------------------------------------------------------
+
+
+def git_bytes(*args):
+    """`git -C ROOT <args>`'s stdout as bytes.
+
+    A non-zero exit stops the run.
+
+    Reads: observed — git's stdout; unknown refused"""
+    run = subprocess.run(["git", "-C", ROOT, *args], capture_output=True)
+    if run.returncode != 0:
+        raise SystemExit(
+            f"git {' '.join(args)}: {run.stderr.decode('utf-8', 'replace')}"
+        )
+    return run.stdout
+
+
+def extract(rev, paths, into):
+    """Write REV's PATHS (the whole tree when empty) under INTO.
+
+    A member that would land outside INTO stops the run.
+
+    Reads: observed — `git archive`'s tar stream; unknown refused"""
+    data = git_bytes("archive", "--format=tar", rev, *paths)
+    with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+        tar.extractall(into, filter="data")
+
+
+def side_path(tree, base_path):
+    """The PATH a side runs under: the tree's `bin/`, its `.shims/`, then
+    BASE_PATH without any installed plugin's `bin/`.
+
+    Reads: nothing — it maps the string it is handed."""
+    kept = [
+        p
+        for p in base_path.split(os.pathsep)
+        if p and "/.claude/plugins/cache/" not in p
+    ]
+    return os.pathsep.join(
+        [os.path.join(tree, "bin"), os.path.join(tree, ".shims"), *kept]
+    )
+
+
+def write_git_shim(tree):
+    """Where `/usr/bin/git` is Xcode's stub, which the eval's sandbox stops,
+    put a `git` under the tree's `.shims/` that runs the Command Line Tools'
+    binary directly.
+
+    No such binary writes no shim.
+
+    Reads: observed — whether `CLT_GIT` exists on this machine; unknown passed"""
+    if sys.platform != "darwin" or not os.path.isfile(CLT_GIT):
+        return
+    shims = os.path.join(tree, ".shims")
+    os.makedirs(shims, exist_ok=True)
+    path = os.path.join(shims, "git")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(f'#!/bin/sh\nexec {CLT_GIT} "$@"\n')
+    os.chmod(path, 0o755)
+
+
+def report_rows(trace_path):
+    """The 🔴/🟡 finding rows of the report the run's session printed with
+    `cat <…-report.md>`, the last such print winning.
+
+    A line that is not JSON is skipped, and a run that printed no report
+    gives no rows.
+
+    Reads: observed — the run's trace, one JSON event per line; unknown passed"""
+    commands, last = {}, ""
+    with open(trace_path, encoding="utf-8") as f:
+        for line in f:
+            try:
+                event = json.loads(line)
+            except ValueError:
+                continue
+            if event.get("parent_tool_use_id"):
+                continue
+            for block in (event.get("message") or {}).get("content") or []:
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "tool_use" and block.get("name") == "Bash":
+                    commands[block.get("id")] = block.get("input", {}).get(
+                        "command", ""
+                    )
+                if block.get("type") == "tool_result":
+                    command = commands.get(block.get("tool_use_id"), "")
+                    if re.match(
+                        r"\s*cat \S+-report\.md\s*$", command
+                    ) and not block.get("is_error"):
+                        content = block.get("content")
+                        if isinstance(content, list):
+                            content = "\n".join(
+                                c.get("text", "")
+                                for c in content
+                                if isinstance(c, dict)
+                            )
+                        last = content or ""
+    return FINDING_ROW.findall(last)
+
+
+def kept_root(trace_path):
+    """The directory a kept run lives in, or None when the trace sits
+    anywhere but `<tmp>/e-*/out/` or `<tmp>/claude-eval-*/out/`.
+
+    Reads: nothing — it maps the path it is handed."""
+    root = os.path.dirname(os.path.dirname(trace_path))
+    name = os.path.basename(root)
+    if os.path.basename(os.path.dirname(trace_path)) != "out":
+        return None
+    if not (name.startswith("e-") or name.startswith("claude-eval-")):
+        return None
+    return root
+
+
+def remove_kept(root):
+    """Remove a kept run's directory, which the eval leaves read-only.
+
+    Each directory is opened before it is walked; a path already gone is
+    skipped.
+
+    Reads: observed — the directory tree under ROOT; unknown passed"""
+    for path in (root, os.path.join(root, "sealed")):
+        try:
+            os.chmod(path, stat.S_IRWXU)
+        except OSError:
+            pass
+    for directory, dirs, _files in os.walk(root, topdown=True):
+        for d in dirs:
+            try:
+                os.chmod(os.path.join(directory, d), stat.S_IRWXU)
+            except OSError:
+                pass
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def annotate(result, tree, agent):
+    """Add `specseal` to an eval result: the preload hashes of TREE, each
+    run's report rows, and whether the side was cut short; then remove every
+    directory the run kept.
+
+    A run with no trace has no rows, and a run's error makes the side cut
+    short.
+
+    Reads: observed — the eval's result object and each run's trace; unknown passed"""
+    cut = bool(result.get("partial"))
+    for case in result.get("cases", []):
+        for runs in case.get("arms", {}).values():
+            for run in runs:
+                trace = run.get("tracePath") or ""
+                rows = report_rows(trace) if trace and os.path.isfile(trace) else []
+                run["specseal"] = {"report_rows": rows}
+                if run.get("error"):
+                    cut = True
+                root = kept_root(trace) if trace else None
+                if root:
+                    remove_kept(root)
+    result["specseal"] = {
+        "agent": agent,
+        "preload": preload_hashes(tree, agent),
+        "cut_short": cut,
+    }
+    return result
+
+
+def run_side(a):
+    """`run`: one side of one agent's suite.
+
+    An eval that writes no JSON stops the run.
+
+    Reads: observed — the tree at REV or DIR, the suite, the eval's JSON; unknown refused"""
+    work = tempfile.mkdtemp(prefix="specseal-eval-")
+    try:
+        tree = os.path.join(work, "tree")
+        if a.rev:
+            os.makedirs(tree)
+            extract(a.rev, [], tree)
+        else:
+            shutil.copytree(a.tree, tree, ignore=shutil.ignore_patterns(".git"))
+        shutil.rmtree(os.path.join(tree, SUITE), ignore_errors=True)
+        extract(a.suite_rev, [SUITE], tree)
+        write_git_shim(tree)
+        raw = os.path.join(work, "raw.json")
+        command = [
+            "claude", "plugin", "eval", tree,
+            "--eval-dir", f"{SUITE}/{a.agent}",
+            "--runs", str(a.runs), "-j", str(a.concurrency),
+            "--ablation", "none", "--trust-plugin", "--scaffold", "--keep-temp",
+            "--allow-tools", "Bash", "Write", "Edit",
+            "--no-publish", "--max-cost-usd", str(a.max_cost_usd),
+            "--json", raw,
+            "--output-dir", os.path.join(work, "results"),
+            "--report", os.path.join(work, "report.html"),
+        ]  # fmt: skip
+        if a.case:
+            command += ["--case", a.case]
+        env = dict(os.environ, PATH=side_path(tree, os.environ.get("PATH", "")))
+        subprocess.run(command, env=env)
+        if not os.path.isfile(raw):
+            raise SystemExit("claude plugin eval wrote no JSON")
+        with open(raw, encoding="utf-8") as f:
+            result = json.load(f)
+        result = annotate(result, tree, a.agent)
+        result["specseal"]["rev"] = a.rev or os.path.abspath(a.tree)
+        result["specseal"]["suite_rev"] = (
+            git_bytes("rev-parse", a.suite_rev).decode("utf-8").strip()
+        )
+        with open(a.out, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=1, ensure_ascii=False)
+            f.write("\n")
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return 0
+
+
+# --- compare: the numbers a record holds ------------------------------------
+
+
+def kind(name):
+    """A grader's kind, from its name's prefix, or None.
+
+    Reads: nothing — it maps the name it is handed."""
+    head = name.split("-", 1)[0]
+    return head if head in ("reach", "shape", "truth", "rule") else None
+
+
+def side_numbers(result):
+    """`{"graders": {(case, grader): [kind, passed, runs]}, "rows", "false",
+    "runs": {case: n}, "cut", "preload", "id"}` for one side.
+
+    A grader whose name carries no kind prefix is not counted.
+
+    Reads: owned — an eval result `run` wrote; unknown passed"""
+    graders, runs_per_case = {}, {}
+    rows = false = 0
+    for case in result.get("cases", []):
+        name = case["name"]
+        truths = [
+            re.compile(g["config"]["pattern"], re.M)
+            for g in case.get("graders", [])
+            if kind(g["name"]) == "truth" and g.get("type") == "regex"
+        ]
+        runs = [r for arm in case.get("arms", {}).values() for r in arm]
+        runs_per_case[name] = len(runs)
+        for g in case.get("graders", []):
+            k = kind(g["name"])
+            if k:
+                graders[(name, g["name"])] = [k, 0, len(runs)]
+        for run in runs:
+            for g in run.get("graders", []):
+                key = (name, g["name"])
+                if key in graders and g.get("passed"):
+                    graders[key][1] += 1
+            for row in (run.get("specseal") or {}).get("report_rows", []):
+                rows += 1
+                if not any(t.search(row) for t in truths):
+                    false += 1
+    meta = result.get("specseal") or {}
+    started = result.get("startedAt", "")
+    digest = hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest()[
+        :12
+    ]
+    return {
+        "graders": graders,
+        "rows": rows,
+        "false": false,
+        "runs": runs_per_case,
+        "cut": bool(meta.get("cut_short")) or bool(result.get("partial")),
+        "preload": meta.get("preload", {}),
+        "id": f"{started} {digest}",
+    }
+
+
+def verdict(numbers):
+    """`(verdict, [reason])` the five pass rules give NUMBERS, the merged
+    `{(case, grader): (kind, old passed, old runs, new passed, new runs)}`
+    under `graders` beside `old_rows`, `old_false`, `new_rows`, `new_false`,
+    `old_cut` and `new_cut`.
+
+    A missing key raises.
+
+    Reads: owned — a numbers object `merged` or `parse_record` builds; unknown refused"""
+    if numbers["old_cut"] or numbers["new_cut"]:
+        sides = [
+            s
+            for s, key in (("baseline", "old_cut"), ("new", "new_cut"))
+            if numbers[key]
+        ]
+        return "no result", [f"the {' and '.join(sides)} side was cut short"]
+    g = numbers["graders"]
+    if any(old_runs != new_runs for _k, _op, old_runs, _np, new_runs in g.values()):
+        return "no result", ["the two sides ran a case a different number of times"]
+    reasons = []
+    truths = {key: v for key, v in g.items() if v[0] == "truth"}
+    old_found = sum(v[1] for v in truths.values())
+    new_found = sum(v[3] for v in truths.values())
+    if new_found < old_found:
+        lost = sorted(key for key, v in truths.items() if v[3] < v[1])
+        noise = old_found - new_found == 1 and all(truths[key][3] >= 1 for key in lost)
+        if not noise:
+            names = ", ".join(f"{c}/{n}" for c, n in lost)
+            reasons.append(
+                f"recall fell from {old_found} to {new_found} finds: {names}"
+            )
+    old_rate = (
+        numbers["old_false"] / numbers["old_rows"] if numbers["old_rows"] else 0.0
+    )
+    new_rate = (
+        numbers["new_false"] / numbers["new_rows"] if numbers["new_rows"] else 0.0
+    )
+    if new_rate > old_rate + FALSE_MARGIN + 1e-9:
+        reasons.append(f"false-finding rate rose from {old_rate:.3f} to {new_rate:.3f}")
+    for (case, name), (k, op, oruns, np_, nruns) in sorted(g.items()):
+        if k in ("shape", "reach"):
+            if op < oruns:
+                reasons.append(
+                    f"shape grader {case}/{name} failed on the baseline ({op}/{oruns})"
+                )
+            if np_ < nruns:
+                reasons.append(
+                    f"shape grader {case}/{name} failed on the new side ({np_}/{nruns})"
+                )
+        if k == "rule" and op >= 1 and np_ == 0:
+            reasons.append(
+                f"rule grader {case}/{name}: satisfied by {op} baseline runs and no new run"
+            )
+    return ("fail" if reasons else "pass"), reasons
+
+
+def merged(old, new):
+    """The numbers `verdict` reads, from two sides' `side_numbers`.
+
+    A grader one side lacks counts zero runs there.
+
+    Reads: owned — two objects `side_numbers` built; unknown passed"""
+    keys = sorted(set(old["graders"]) | set(new["graders"]))
+    graders = {}
+    for key in keys:
+        o = old["graders"].get(key)
+        n = new["graders"].get(key)
+        k = (o or n)[0]
+        graders[key] = (
+            k,
+            o[1] if o else 0,
+            o[2] if o else 0,
+            n[1] if n else 0,
+            n[2] if n else 0,
+        )
+    return {
+        "graders": graders,
+        "old_rows": old["rows"],
+        "old_false": old["false"],
+        "new_rows": new["rows"],
+        "new_false": new["false"],
+        "old_cut": old["cut"],
+        "new_cut": new["cut"],
+    }
+
+
+# --- the record ---------------------------------------------------------------
+
+HEADER = "| Kind | Case | Grader | Old passed | Old runs | New passed | New runs |"
+
+
+def render(agent, phase, old, new):
+    """The record `compare` writes.
+
+    Reads: nothing — it formats the numbers it is handed."""
+    numbers = merged(old, new)
+    result, reasons = verdict(numbers)
+    lines = [
+        f"# {agent} — phase {phase} non-inferiority",
+        "",
+        "| Field | Value |",
+        "|---|---|",
+        f"| Agent | {agent} |",
+        f"| Phase | {phase} |",
+        f"| Baseline run | {old['id']} |",
+        f"| New run | {new['id']} |",
+        f"| Baseline cut short | {'yes' if numbers['old_cut'] else 'no'} |",
+        f"| New cut short | {'yes' if numbers['new_cut'] else 'no'} |",
+        f"| Baseline report rows | {numbers['old_rows']} |",
+        f"| Baseline false rows | {numbers['old_false']} |",
+        f"| New report rows | {numbers['new_rows']} |",
+        f"| New false rows | {numbers['new_false']} |",
+        "",
+        "## Graders",
+        "",
+        HEADER,
+        "|---|---|---|---|---|---|---|",
+    ]
+    for (case, name), (k, op, oruns, np_, nruns) in sorted(numbers["graders"].items()):
+        lines.append(f"| {k} | {case} | {name} | {op} | {oruns} | {np_} | {nruns} |")
+    lines += ["", "## New preload", "", "| File | sha256 |", "|---|---|"]
+    lines += [f"| {p} | {h} |" for p, h in sorted(new["preload"].items())]
+    lines += ["", f"Verdict: {result}", ""]
+    lines += [f"- {r}" for r in reasons] or ["- every pass rule holds"]
+    return "\n".join(lines) + "\n"
+
+
+def table(text, heading):
+    """The body rows of the first table under `## HEADING`, as cell lists.
+
+    A missing heading gives no rows.
+
+    Reads: owned — a record `render` wrote; unknown passed"""
+    m = re.search(
+        rf"^## {re.escape(heading)}\n(?P<body>.*?)(?=^## |\Z)", text, re.M | re.S
+    )
+    rows = []
+    for line in (m["body"] if m else "").split("\n"):
+        if line.startswith("|") and not re.match(r"^\|[-| ]+\|$", line):
+            rows.append([c.strip() for c in line.strip().strip("|").split("|")])
+    return rows[1:]
+
+
+def header_field(text, name):
+    """A `| NAME | value |` row of the record's header table, or None.
+
+    A missing row is None.
+
+    Reads: owned — a record `render` wrote; unknown passed"""
+    m = re.search(rf"^\| {re.escape(name)} \| (?P<v>[^|]*) \|$", text, re.M)
+    return m["v"].strip() if m else None
+
+
+def parse_record(text):
+    """`(numbers, stated verdict, new preload)` read back from a record.
+
+    A count that is not an integer raises ValueError.
+
+    Reads: owned — a record `render` wrote; unknown refused"""
+    graders = {}
+    for row in table(text, "Graders"):
+        k, case, name, op, oruns, np_, nruns = row
+        graders[(case, name)] = (k, int(op), int(oruns), int(np_), int(nruns))
+    numbers = {
+        "graders": graders,
+        "old_rows": int(header_field(text, "Baseline report rows") or 0),
+        "old_false": int(header_field(text, "Baseline false rows") or 0),
+        "new_rows": int(header_field(text, "New report rows") or 0),
+        "new_false": int(header_field(text, "New false rows") or 0),
+        "old_cut": header_field(text, "Baseline cut short") != "no",
+        "new_cut": header_field(text, "New cut short") != "no",
+    }
+    m = re.search(r"^Verdict: (?P<v>.+)$", text, re.M)
+    stated = m["v"].strip() if m else None
+    preload = {row[0]: row[1] for row in table(text, "New preload") if len(row) == 2}
+    return numbers, stated, preload
+
+
+def check_record(text):
+    """`[problem]` for a record: its stated verdict against the one its
+    numbers give, and anything but `pass`.
+
+    A record that does not parse is a problem, never a pass.
+
+    Reads: owned — a record `render` wrote; unknown refused"""
+    try:
+        numbers, stated, _preload = parse_record(text)
+    except (ValueError, TypeError) as e:
+        return [f"the record does not parse: {e}"]
+    computed, reasons = verdict(numbers)
+    problems = []
+    if stated != computed:
+        problems.append(f"it says `{stated}` and its numbers give `{computed}`")
+    if computed != "pass":
+        problems.append(f"its numbers give `{computed}`: " + "; ".join(reasons))
+    return problems
+
+
+# --- the rule census -----------------------------------------------------------
+
+CENSUS = "Rule census"
+CENSUS_HEADER = ["Rule", "Where it went", "Exercised by"]
+EXERCISED = re.compile(r"^`?[\w.-]+/[\w.-]+`?$|^not exercisable — \S.*$")
+
+
+def census_problems(text):
+    """`[problem]` for every row of a phase record's `## Rule census` whose
+    `Exercised by` cell is neither `<case>/<grader>` nor
+    `not exercisable — <why>`.
+
+    A row of another width is a problem.
+
+    Reads: owned — a phase record's census table; unknown refused"""
+    problems = []
+    for row in table(text, CENSUS):
+        if len(row) != len(CENSUS_HEADER):
+            problems.append(f"census row of {len(row)} cells: {' | '.join(row)}")
+            continue
+        if not EXERCISED.match(row[2]):
+            problems.append(f"rule `{row[0]}` names no grader and no reason")
+    return problems
+
+
+def compare(a):
+    """`compare`: write the record of one agent's phase.
+
+    A file that is not JSON stops the run.
+
+    Reads: owned — two JSON files `run` wrote; unknown refused"""
+    with open(a.old, encoding="utf-8") as f:
+        old = side_numbers(json.load(f))
+    with open(a.new, encoding="utf-8") as f:
+        new = side_numbers(json.load(f))
+    text = render(a.agent, a.phase, old, new)
+    with open(a.out, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(re.search(r"^Verdict: .*$", text, re.M)[0])
+    return 0
+
+
+def check(a):
+    """`check`: recompute a record's verdict.
+
+    A record that does not parse is reported and exits 1.
+
+    Reads: owned — the record file named; unknown refused"""
+    with open(a.record, encoding="utf-8") as f:
+        problems = check_record(f.read())
+    for p in problems:
+        print(p)
+    return 1 if problems else 0
+
+
+def main(argv=None):
+    """Parse the arguments and run one subcommand.
+
+    An unusable argument is argparse's exit 2.
+
+    Reads: owned — its own argument vector; unknown refused"""
+    p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    sub = p.add_subparsers(dest="command", required=True)
+    r = sub.add_parser("run")
+    r.add_argument("--agent", choices=AGENTS, required=True)
+    src = r.add_mutually_exclusive_group(required=True)
+    src.add_argument("--rev")
+    src.add_argument("--tree")
+    r.add_argument("--suite-rev", default="HEAD")
+    r.add_argument("--out", required=True)
+    r.add_argument("--runs", type=int, default=2)
+    r.add_argument("-j", "--concurrency", type=int, default=4)
+    r.add_argument("--max-cost-usd", type=float, default=100.0)
+    r.add_argument("--case")
+    c = sub.add_parser("compare")
+    c.add_argument("--agent", choices=AGENTS, required=True)
+    c.add_argument("--phase", type=int, required=True)
+    c.add_argument("--old", required=True)
+    c.add_argument("--new", required=True)
+    c.add_argument("--out", required=True)
+    k = sub.add_parser("check")
+    k.add_argument("record")
+    a = p.parse_args(argv)
+    if a.command == "run" and not shutil.which("claude"):
+        print("claude is not on PATH", file=sys.stderr)
+        return 2
+    return {"run": run_side, "compare": compare, "check": check}[a.command](a)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
