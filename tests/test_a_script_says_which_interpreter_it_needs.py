@@ -24,6 +24,7 @@ do it two ways, and neither settles for asserting that a constant exists:
   is to catch the raised-floor copy lying.
 """
 
+import ast
 import importlib.util
 import os
 import re
@@ -32,6 +33,7 @@ import subprocess
 import sys
 
 import pytest
+from conftest import git_listing, on_disk
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPTS = os.path.join(ROOT, "skills", "code-review", "scripts")
@@ -72,12 +74,6 @@ def generator():
     """`round_record.py`, imported. Importing it loads `chain_check.py` too,
     which is the module-level work the guard is required to precede."""
     return _load("specseal_round_record_floor", SCRIPT)
-
-
-def runner():
-    """`.github/scripts/run_tests.py`, which holds `FLOOR` for the repository
-    and which `CONTRIBUTING.md`'s floor sentence names."""
-    return _load("specseal_run_tests_floor", RUNNER)
 
 
 def source():
@@ -341,7 +337,6 @@ def test_the_guard_precedes_every_other_module_level_act():
     guard placed in `main()` would let the operator watch exactly the progress
     the ticket is about. This reads the module's own AST rather than its
     text: a comment mentioning `load(` is not an act."""
-    import ast
 
     def calls(node, name):
         """True for `name(...)` — asked of the tree, so a comment or a string
@@ -413,34 +408,55 @@ def test_the_docstring_says_what_exit_2_now_covers():
 # --- one number ------------------------------------------------------------
 
 
+def floor_carriers(root=ROOT):
+    """`{path: floor}` for every tracked `.py` on disk whose module level
+    assigns `FLOOR` a tuple, read with `ast` rather than imported, so a
+    carrier is found the day it is written and no module-level act of it
+    runs. A tracked file the working tree deleted carries nothing to compare
+    and is left out."""
+    listed, _missing = on_disk(root, git_listing(root, "ls-files", "*.py"))
+    found = {}
+    for rel in listed:
+        with open(os.path.join(root, rel), encoding="utf-8") as f:
+            text = f.read()
+        if "FLOOR" not in text:
+            continue
+        for node in ast.parse(text).body:
+            if (
+                isinstance(node, ast.Assign)
+                and any(
+                    isinstance(t, ast.Name) and t.id == "FLOOR" for t in node.targets
+                )
+                and isinstance(node.value, ast.Tuple)
+            ):
+                found[rel] = ast.literal_eval(node.value)
+    return found
+
+
 def test_the_floor_is_the_number_the_runner_and_the_linter_hold():
     """`CONTRIBUTING.md` §*Running the checks*: the floor is one number, held
     as `FLOOR` in the runner so the sentence and the code agree.
 
-    The guard is a sixth carrier of it -- after `ruff.toml`, both READMEs, the
-    CI matrix and that sentence -- and it does not import the constant: a
+    Every guard is another carrier of it, and none imports the constant: a
     fallback-safe read still has to name a floor in its `except` branch, so
-    the second spelling survives the import anyway. `spec.md` §*Where the
-    floor number lives* carries the argument. This is the pin that makes the
-    second spelling not a second number.
-
-    It also ties the repository's two floor authorities together for the first
-    time. `test_release_hygiene.py` reads `ruff.toml` and
-    `test_the_suite_has_a_command_that_is_cheap_twice.py` reads the runner,
-    and nothing read both."""
-    module = generator()
-    assert tuple(module.FLOOR) == tuple(runner().FLOOR), (
-        f"round_record.py holds {module.FLOOR} and "
-        f".github/scripts/run_tests.py holds {runner().FLOOR}; "
-        "CONTRIBUTING.md says the floor is one number"
-    )
-    assert module.FLOOR_TEXT == runner().FLOOR_TEXT
+    the second spelling survives the import anyway. So every module-level
+    `FLOOR` in the tree is found by `floor_carriers` and held to the
+    runner's and to `ruff.toml`'s `target-version`, and a carrier nobody
+    listed is pinned the day it appears."""
+    carriers = floor_carriers()
+    floor = carriers.get(os.path.relpath(RUNNER, ROOT).replace(os.sep, "/"))
+    assert floor, ".github/scripts/run_tests.py no longer assigns FLOOR"
     with open(RUFF, encoding="utf-8") as f:
         m = re.search(r'target-version = "py(\d)(\d+)"', f.read())
     assert m, "ruff.toml lost its target-version"
-    assert f"{m.group(1)}.{m.group(2)}" == module.FLOOR_TEXT, (
-        f"the guard says {module.FLOOR_TEXT} and ruff.toml lints at "
+    assert (int(m.group(1)), int(m.group(2))) == floor, (
+        f".github/scripts/run_tests.py holds {floor} and ruff.toml lints at "
         f"{m.group(1)}.{m.group(2)}"
+    )
+    apart = {rel: value for rel, value in carriers.items() if value != floor}
+    assert not apart, (
+        f"{apart} hold a floor other than .github/scripts/run_tests.py's "
+        f"{floor}; CONTRIBUTING.md says the floor is one number"
     )
 
 
@@ -549,7 +565,6 @@ def test_settles_guard_precedes_every_module_level_act():
     compiles three regular expressions and resolves two paths at import; a
     guard placed after any of them lets the operator watch progress the
     ticket is about."""
-    import ast
 
     tree = ast.parse(settle_source())
     asked = refusal = None
