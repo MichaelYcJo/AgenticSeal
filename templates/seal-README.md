@@ -5,7 +5,7 @@ root laid out by lifetime: the rows that outlive a work item at the top, and
 each work item whole under `seal/specs/<work-item-id>/`, where it waits until
 `settle` folds it. **That step exists now**: `settle` names the released work
 items whose `spec.md` no `docs/` policy has absorbed yet, a session writes one
-standing statement per segment, and `settle --retire` then removes the
+standing statement per rule, and `settle --retire` then removes the
 directories that statement covers, along with every released one that wrote
 no `spec.md` and holds nothing open, which states no rule to fold. A
 released work item's process record does not wait for that: `rounds/`,

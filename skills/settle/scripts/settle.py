@@ -9,14 +9,14 @@ the tree this shipped from, and no check reads any of it after the merge.
 **This reads, groups and records. It never writes prose and it never judges.**
 `docs/one-root-by-lifetime.md` §*What keeps `settle` light* says the step
 "moves and does not verify", and folding *only what is still true* is exactly
-a judgment about truth — so the standing statement each segment gets is
-written by the session, following `skills/settle/SKILL.md`, and this command
+a judgment about truth — so each standing statement is written by the
+session, following `skills/settle/SKILL.md`, and this command
 supplies the corpus it is written from. A script that wrote the prose itself
 would either splice 97 sentences up under their provenance comments, which is
 a move and not a compaction, or assert that each moved sentence still holds,
 which is the one thing the clause above forbids.
 
-  settle                        what would fold, grouped by segment
+  settle                        what would fold
   settle --retire               remove the directories whose fold is recorded,
                                 and the released ones with no spec.md and
                                 nothing open
@@ -26,15 +26,14 @@ which is the one thing the clause above forbids.
   settle --root DIR             a repository other than this one
 
 **Released means present on the branch the release merges to**, which is why
-`--released-at` names a ref rather than a date. The two alternatives were
-measured on this repository and both are wrong: 11 work items carry no
-`<!-- specs/<id> -->` marker in the changelog although they plainly shipped,
-and 15 carry none in `seal/ledger.md`.
+`--released-at` names a ref rather than a date. A marker in the changelog
+was measured on this repository as the alternative and is wrong: 11 work
+items carry none although they plainly shipped.
 
 **The fold record is the provenance comment, and there is no second file.**
 A folded sentence carries `<!-- specs/<work-item-id> -->` in the `docs/`
-document it landed in — the marker `.github/scripts/fold_ledger.py#marker`
-and `.github/scripts/gather_changelog.py#marker` already write — so the
+document it landed in — the marker `.github/scripts/gather_changelog.py#marker`
+already writes — so the
 record is derived from the destination and cannot disagree with it. Reading
 it is `skills/verify/scripts/unverified_check.py#folded_items`, loaded here
 rather than re-spelled: that module is the fold record's one reader, and the
@@ -102,7 +101,6 @@ and an interpreter below the floor.
 
 import argparse
 import collections
-import glob
 import importlib.util
 import os
 import re
@@ -163,44 +161,18 @@ if _refusal:
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-CHECKER = os.path.join(
-    HERE, "..", "..", "evidence-check", "scripts", "evidence_check.py"
-)
 OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
 
 # What each sibling is for, in the sentence `load` prints when it is missing.
 PURPOSES = {
     READER: "it is where the fold record is read from",
-    CHECKER: "it is what resolves a ledger row's anchor",
     OPTIN: "it is what finds the repository's seal/ root",
 }
 
 SPECS = "seal/specs"
-LEDGER = "seal/ledger.md"
-FRAGMENTS = "seal/ledger"
-RELEASES = "seal/releases"
 TESTS = "tests/"
 
 MARKER_LINE_RE = re.compile(r"^<!-- specs/(\S+) -->$", re.M)
-
-
-def coordinate_paths(line):
-    """The path of every ledger coordinate on LINE, in order, read by the
-    coordinate's one grammar, `evidence_check.py#ANCHOR_RE` (#867). Nothing
-    here opens the code a row cites, so the path is the whole of what a
-    segment is derived from. A narrowed copy of the pattern used to stand
-    here; it matched the same spans as the checker's over every released
-    ledger when it went, which is why reading the checker moved no
-    segment."""
-    global _grammar
-    if _grammar is None:
-        _grammar = load(CHECKER, "specseal_evidence_checker").ANCHOR_RE
-    return [m.group("path") for m in _grammar.finditer(line)]
-
-
-# The checker's `ANCHOR_RE`, loaded at the first line `coordinate_paths`
-# reads rather than at import, so a run that reads no ledger never loads it.
-_grammar = None
 
 
 def under(root, rel):
@@ -306,104 +278,6 @@ def open_rows(text):
     return load(READER, "specseal_unverified_reader").todo_open_rows(text)
 
 
-# --- what groups -----------------------------------------------------------
-
-
-def coordinates(root):
-    """{work item id: [the path of each ledger coordinate it wrote]}.
-
-    Three addresses hold the rows and all are read, which is what the checker
-    does: `seal/ledger.md`, the rows from before the fragments existed and,
-    in a tree from before the one-time split (#547, retired by #715), the
-    sections a release folded there; `seal/releases/<X.Y.Z>.md`, one file per release, where the fold
-    writes each work item's section under its own `<!-- specs/<id> -->`
-    marker (#547); and `seal/ledger/<id>.md`, the fragment of a work item
-    whose release has not folded it yet.
-
-    A section runs from its marker to the next marker or the next `##`
-    heading, which is exactly what `fold_ledger.py#section` writes, and a
-    release file is that section byte for byte — one `## ` line, then the
-    markers — so one loop reads the shared ledger and every release file.
-    Rows above the first marker belong to no work item — they are the rows
-    from before the fragments existed, and the ledger's own header says so.
-
-    **A line has to be live, by the one rule the reader owns.** A line anchor
-    is not a test that the line is live — round 1's finding 1, met here twice:
-    a fenced example opens no section (round 2's finding 5) and neither does a
-    marker inside a commented-out draft (round 3's finding 2). Either would
-    attribute every coordinate after it to the id in the quotation, and the
-    segment the report prints would be wrong for two work items at once.
-
-    Both loops below read through `unverified_check.py#live_lines`, the same
-    function `folded_items` reads through, rather than a copy of any part of
-    the rule. A line is live there when it BEGINS outside a fence, outside a
-    comment and outside a code span, answered by one scan carrying all three
-    states; the line comes back unchanged, and the coordinate still sits
-    inside its backticks.
-
-    The comment state cannot be asked of the raw text, which is what makes
-    the code-span state part of the same question: a ledger anchor quotes the
-    text it points at, and measured 2026-09-22 four rows of `seal/ledger.md`
-    held `<!--` inside backticks with no closer on the line — asking the
-    comment state of the file as it stood lost three real section markers.
-    The count is a reading of one day's file and grows at every release fold;
-    what the rule rests on is that such rows exist, not that there are four.
-    That reader answered this with three passes in sequence for four review
-    rounds, and each formulation had a shape it got wrong; `live_lines`'s own
-    docstring carries why a sequence could not answer it.
-
-    **A THIRD quotation is out of scope, and it is named here so it is not
-    met as a surprise:** markdown's indented code block. The fence delimiter
-    rule the ledger readers share, `unverified_check.py#fence_opener`, knows the
-    two fenced forms only, so a fragment that shows its example row indented
-    four spaces has that example counted as its own coordinate. Teaching the
-    shared rule an indented block would move `readable`, `check_text`,
-    `round_record.py` and the review-history guard at once — measured
-    2026-09-22, one such widening reddens
-    `tests/test_the_record_is_generated.py#test_a_continuation_that_looks_like_an_opener_is_still_joined`,
-    a record reader with no stake in this rule. `reader_blanking_passes` is
-    NOT that refusal and does not fire here: it reads the calls `readable`
-    makes by name, and a widened `blank_fences` leaves that set unchanged. It
-    refuses a pass ADDED to `readable`, which is a different alternative.
-    The ledger and every fragment here carry rows as tables and an example as
-    a fence, so the shape is answered by convention rather than by the reader.
-    `FOLD_MARKER` is line-anchored, so `folded_items` is not reachable this
-    way at all — measured 2026-09-22, an indented marker returns the empty
-    set. `tests/test_settle_reads_before_it_removes.py#test_an_indented_example_row_is_counted_and_the_reader_says_so`
-    pins the decision, so a session that widens the reader is told what this
-    one chose.
-    """
-    out = collections.defaultdict(list)
-    live_lines = load(READER, "specseal_unverified_reader").live_lines
-    ledgers = [
-        under(root, LEDGER),
-        *sorted(glob.glob(os.path.join(under(root, RELEASES), "*.md"))),
-    ]
-    for ledger in ledgers:
-        if not os.path.isfile(ledger):
-            continue
-        with open(ledger, encoding="utf-8") as f:
-            current = None
-            for line, live in live_lines(f.read().split("\n")):
-                if not live:
-                    continue
-                marker = MARKER_LINE_RE.match(line)
-                if marker:
-                    current = marker.group(1)
-                    continue
-                if line.startswith("## "):
-                    current = None
-                if current:
-                    out[current] += coordinate_paths(line)
-    for path in sorted(glob.glob(os.path.join(under(root, FRAGMENTS), "*.md"))):
-        work_item_id = os.path.basename(path)[: -len(".md")]
-        with open(path, encoding="utf-8") as f:
-            for line, live in live_lines(f.read().split("\n")):
-                if live:
-                    out[work_item_id] += coordinate_paths(line)
-    return out
-
-
 # What a settled root prints, for the report and the retirement alike.
 SETTLED = (
     "settle: {specs}/ in {root} holds no work item — nothing to fold and "
@@ -496,39 +370,6 @@ def write_rule_kept(kept, out, base=None):
             )
 
 
-def segment_of(paths):
-    """`(segment, reason)` for one work item's coordinate paths.
-
-    The segment is the enclosing file of the work item's ledger anchors,
-    which is what `spec.md` §*What groups* fixes, and it is decided by
-    majority rather than by the first row: a work item cites several
-    coordinates and the one it cites most is the code it is about.
-
-    **A `tests/` anchor rolls up to the segment of the code it pins**, and
-    this is the rule that decides it — Q2, against the real corpus, where 852
-    of 1,772 coordinates are under `tests/`. A case that pins
-    `round_record.py`'s behaviour is evidence about `round_record.py`, so a
-    work item's test anchors are dropped in favour of its code anchors, and
-    they carry no segment of their own.
-
-    What that leaves is named rather than guessed, which is the other half of
-    Q2's default. A work item whose anchors are ALL under `tests/` pins code
-    this file cannot name: the link from a case to the code it pins is
-    nowhere a machine reads, and inventing it from a filename is the second
-    mechanism `plan.md` rejected building before the first one exists. Such
-    an item is returned ungrouped with `tests only` as its reason, and so is
-    one with no ledger row at all.
-    """
-    if not paths:
-        return None, "no ledger row"
-    code = [p for p in paths if not p.startswith(TESTS)]
-    if not code:
-        return None, "tests only"
-    counted = collections.Counter(code)
-    best = max(counted.values())
-    return sorted(p for p in counted if counted[p] == best)[0], None
-
-
 # --- the report ------------------------------------------------------------
 
 
@@ -567,7 +408,6 @@ def survey(root, ref):
     if base is None:
         return {"base": None, "base_label": None}
     folded = reader.folded_items(root)
-    rows = coordinates(root)
 
     ref_commit = reader.commit_of(root, ref)
     survey = {
@@ -578,8 +418,7 @@ def survey(root, ref):
         "released": [i for i in present if i in on_base],
         "unreleased": [i for i in present if i not in on_base],
         "folded": [],
-        "grouped": collections.defaultdict(list),
-        "ungrouped": [],
+        "unfolded": [],
         "rule": [],
         "rule_kept": [],
         "rule_base_kept": [],
@@ -593,7 +432,7 @@ def survey(root, ref):
             survey["folded"].append(work_item_id)
             continue
         # D3: a released work item with no `spec.md` states no rule, so there
-        # is nothing to place and it is not "ungrouped". Whether the rule arm
+        # is nothing to place and it is not waiting for a fold. Whether the rule arm
         # takes it is the predicate's answer, the one every CI reader asks of
         # the merge-base, and since #602 this asks it of the merge base of the
         # ref and `HEAD` as well: a closure on the working branch that the base
@@ -613,11 +452,7 @@ def survey(root, ref):
             else:
                 survey["rule"].append(work_item_id)
             continue
-        segment, reason = segment_of(rows.get(work_item_id, []))
-        if segment is None:
-            survey["ungrouped"].append((work_item_id, reason))
-        else:
-            survey["grouped"][segment].append(work_item_id)
+        survey["unfolded"].append(work_item_id)
 
     # What a retirement here would take with it, by either arm: D1's table,
     # the three things #514's frame found by hand and the command should
@@ -718,7 +553,7 @@ def citations(root, work_item_ids, inside=None):
 
 
 def report(found, ref, out=sys.stdout):
-    """What a session reads before it writes one statement per segment.
+    """What a session reads before it writes its standing statements.
 
     A survey with no base is refused at exit 2 with `retire`'s sentence, for
     `retire`'s reason: a caller that skips `main` would otherwise meet a
@@ -729,12 +564,8 @@ def report(found, ref, out=sys.stdout):
         out.write(NO_BASE_SAYS)
         return 2
     write = out.write
-    foldable = sum(len(v) for v in found["grouped"].values())
-    write(
-        f"released and unfolded: {foldable} work item{plural(foldable)} in "
-        f"{len(found['grouped'])} segment{plural(len(found['grouped']))}, "
-        f"{len(found['ungrouped'])} ungrouped\n"
-    )
+    foldable = len(found["unfolded"])
+    write(f"released and unfolded: {foldable} work item{plural(foldable)}\n")
     write(
         f"(released = present at {ref}; {len(found['unreleased'])} "
         "unreleased and untouched)\n"
@@ -746,16 +577,12 @@ def report(found, ref, out=sys.stdout):
         f"reached {found['base_label']}\n"
     )
 
-    for segment in sorted(found["grouped"]):
-        items = found["grouped"][segment]
-        write(f"\n{segment}  ({len(items)} work item{plural(len(items))})\n")
-        for work_item_id in items:
+    if found["unfolded"]:
+        write(
+            "\nwaiting for a fold — read each `spec.md` and place what is still true:\n"
+        )
+        for work_item_id in found["unfolded"]:
             write(f"    {work_item_id}\n")
-
-    if found["ungrouped"]:
-        write("\nungrouped — no segment this can name, so a session names it:\n")
-        for work_item_id, reason in found["ungrouped"]:
-            write(f"    {work_item_id}  ({reason})\n")
 
     if found["folded"]:
         write("\nfolded already, waiting to be retired — `settle --retire`:\n")
@@ -799,7 +626,7 @@ def report(found, ref, out=sys.stdout):
 
     write(
         "\nNothing was written and nothing was removed. `skills/settle/SKILL.md`\n"
-        "is the procedure: one standing statement per segment in `docs/`, each\n"
+        "is the procedure: one standing statement per rule in `docs/`, each\n"
         "folded sentence carrying its `<!-- specs/<id> -->` comment, then\n"
         "`settle --retire` removes the directories that comment now covers.\n"
     )
@@ -1175,8 +1002,7 @@ def main(argv=None):
     Reads: guess — the arguments and the tree, through the units above; unknown refused"""
     ap = argparse.ArgumentParser(
         prog="settle",
-        description="Name the released work items a `docs/` policy has yet to "
-        "absorb, grouped by the segment their ledger rows anchor in.",
+        description="Name the released work items a `docs/` policy has yet to absorb.",
     )
     ap.add_argument(
         "--root", default=None, help="repository root (default: the one this is run in)"

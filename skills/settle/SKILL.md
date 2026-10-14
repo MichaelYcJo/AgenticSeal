@@ -21,7 +21,7 @@ process record, which no check reads after the release, and
 `settle --retire-process` takes it at every release whether or not anything
 is folded (§*The process record leaves first, fold or no fold*).
 
-**The command reads and groups; you judge and write.**
+**The command reads and lists; you judge and write.**
 `docs/one-root-by-lifetime.md` §*What keeps `settle` light* fixes the split —
 the step "moves and does not verify" — and folding *only what is still true*
 is a judgment about truth. So `settle` supplies the corpus and never writes a
@@ -30,7 +30,7 @@ session, and the command's second arm removes only what one of them already
 absorbed.
 
 ```
-settle                            what would fold, grouped by segment
+settle                            what would fold
 settle --retire                   remove the directories whose fold docs/ records
 settle --retire-process           remove every released work item's process record,
                                   fold or no fold
@@ -186,9 +186,10 @@ Local mode is refused, as it is for every arm.
 settle
 ```
 
-It prints the released, unfolded work items grouped by **segment** — the file
-their ledger coordinates anchor in — and lists beside them: the ones it cannot
-group, and the ones already folded and waiting to be retired.
+It prints the released work items no `docs/` policy has absorbed yet, and
+lists beside them the ones already folded and waiting to be retired. Which
+document each rule belongs in is yours to decide, from what its `spec.md`
+decided.
 
 Where a released item's SDD set cites one of its own round or phase records,
 `settle --retire-process` may already have taken it: read it at the tag of
@@ -241,17 +242,10 @@ when it goes. Once for the run it lists every `tests/` file that reads
 A work item is **released** when its directory is present on the branch the
 release merges to. `--released-at` names that branch.
 
-A `tests/` anchor rolls up to the code the case pins, by majority over the
-work item's own code anchors: a case pinning a checker's behaviour is evidence
-about the checker. An item whose anchors are all under `tests/`, or which
-wrote no ledger row at all, is **named rather than guessed at** — the link
-from a case to the code it pins is nowhere a machine reads. Those are yours to
-place, or to leave.
+### 2. Write one standing statement per rule
 
-### 2. Write one standing statement per segment
-
-For each segment, read the `spec.md` of every work item in it and write **what
-is still true** into `docs/`.
+Read the `spec.md` of every work item listed and write **what is still true**
+into `docs/`.
 
 - **Only what is still true.** A spec is the spec of one change, and what a
   later work item overturned goes nowhere. Deciding which sentence is which is
@@ -260,11 +254,11 @@ is still true** into `docs/`.
   reader can act on, not 97 quoted fragments under their provenance comments.
 - **Merge into a document that already exists**; create one only for an area
   that has none. `docs/` is flat — there is no `docs/policy/` directory — and
-  the file is named for the segment where a new one is needed.
+  the file is named for its subject where a new one is needed.
 - **The newest work item wins** where two say different things.
 - **A reference root is history to read, never input to fold.** A project's
   own `specs/`, as `templates/config.md` §*Reference specs* says, may say how
-  the area came to be: read it where the segment touches what it describes,
+  the area came to be: read it where the work item touches what it describes,
   and cite what you read by path in the standing statement's grounds. It
   carries no marker, so nothing in it is folded, and the
   plugin never writes there — `settle --retire` removes under `seal/specs/`

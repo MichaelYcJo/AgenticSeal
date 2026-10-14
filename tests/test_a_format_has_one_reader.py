@@ -106,10 +106,6 @@ HEADING_EXEMPT = {
     ): "the fold's demotion of a fragment's headings, which rewrites bytes; "
     "left by #867 and named in its overview",
     (
-        "skills/settle/scripts/settle.py",
-        'if line.startswith("## "):',
-    ): "the fold's own `## X.Y.Z` section line, an owned format (spec Out)",
-    (
         ".github/scripts/gather_changelog.py",
         'lines[n].startswith("## ")),',
     ): "the gathered changelog's own `## X.Y.Z` line, an owned format (spec Out)",

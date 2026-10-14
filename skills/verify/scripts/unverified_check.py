@@ -702,10 +702,8 @@ def live_lines(lines):
     Reference definitions, link destinations, raw HTML blocks and entity
     references are not modelled and none can hold a fold marker on a line of
     its own. Markdown's indented code block is the one deliberate omission
-    with a shape that could: `skills/settle/scripts/settle.py#coordinates`
-    names it and
-    `tests/test_settle_reads_before_it_removes.py#test_an_indented_example_row_is_counted_and_the_reader_says_so`
-    pins the decision.
+    with a shape that could, and `FOLD_MARKER` is line-anchored, so a marker
+    indented four spaces is not read as one.
 
     **What this may not touch.** `comment_scan`, `strip_comments`,
     `blank_fences` and `readable` serve the other gates — `check_text`,

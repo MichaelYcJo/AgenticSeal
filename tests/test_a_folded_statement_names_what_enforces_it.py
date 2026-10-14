@@ -86,7 +86,7 @@ def test_settle_owns_the_shape_rule():
     """A11. The rule is stated in the fold's procedure, the document the
     folder reads, and this module is only its reader here."""
     text = read(SETTLE)
-    section = text.split("### 2. Write one standing statement per segment")[1]
+    section = text.split("### 2. Write one standing statement per rule")[1]
     section = section.split("### 3.")[0]
     for phrase in (
         "**A standing statement has one shape: the rule, its grounds, and what "

@@ -1106,8 +1106,6 @@ skills/settle/scripts/settle.py#base_heading@95eb0154
 skills/settle/scripts/settle.py#below_floor@d1565fbf
 skills/settle/scripts/settle.py#citations@3dde3d61
 skills/settle/scripts/settle.py#cites_a_process_record@99d92036
-skills/settle/scripts/settle.py#coordinate_paths@799eb2a5
-skills/settle/scripts/settle.py#coordinates@ffd1d2c0
 skills/settle/scripts/settle.py#has_spec@9ce3bb86
 skills/settle/scripts/settle.py#is_process_record@a284035c
 skills/settle/scripts/settle.py#load@cb0e9197
@@ -1115,7 +1113,6 @@ skills/settle/scripts/settle.py#names@2255cf11
 skills/settle/scripts/settle.py#plural@f32b2578
 skills/settle/scripts/settle.py#process_plan@07f34940
 skills/settle/scripts/settle.py#released@c12899f1
-skills/settle/scripts/settle.py#segment_of@3e97cac3
 skills/settle/scripts/settle.py#taken_by@0e6005eb
 skills/settle/scripts/settle.py#tracked_text@e7f93bf5
 skills/settle/scripts/settle.py#under@fae97017

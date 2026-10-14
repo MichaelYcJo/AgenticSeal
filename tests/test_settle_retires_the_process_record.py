@@ -290,8 +290,7 @@ def test_a_survey_with_no_process_key_is_still_reported():
     found = {
         "base": "x",
         "base_label": "x",
-        "grouped": {},
-        "ungrouped": [],
+        "unfolded": [],
         "unreleased": [],
         "rule": [],
         "rule_kept": [],

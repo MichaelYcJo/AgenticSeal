@@ -12,11 +12,9 @@ ask what it removed and what it refused to remove. Nothing here asserts that
 prose was written, because the command writes none.
 """
 
-import glob
 import importlib.util
 import io
 import os
-import re
 import subprocess
 import sys
 
@@ -34,38 +32,6 @@ def load():
 
 
 settle = load()
-
-LEDGER = """# spec-to-code map
-
-| Clause | Code grounds | Verified behavior | Checked | Notes |
-|---|---|---|---|---|
-| a row from before the fragments existed | `hooks/old.py#thing@11111111` | read | 2026-01-01 | |
-
-## 0.1.0 — 2026-01-01
-
-<!-- specs/1700000001-alpha -->
-### 1700000001-alpha
-
-| Clause | Code grounds | Verified behavior | Checked | Notes |
-|---|---|---|---|---|
-| one | `hooks/a.py#one@aaaaaaaa` | read | 2026-01-01 | |
-| two | `hooks/a.py#two@bbbbbbbb` | read | 2026-01-01 | |
-| three | `tests/test_a.py#"a line"@cccccccc` | read | 2026-01-01 | |
-
-<!-- specs/1700000002-beta -->
-### 1700000002-beta
-
-| Clause | Code grounds | Verified behavior | Checked | Notes |
-|---|---|---|---|---|
-| only a case | `tests/test_b.py#test_b@dddddddd` | read | 2026-01-01 | |
-
-<!-- specs/1700000003-gamma -->
-### 1700000003-gamma
-
-| Clause | Code grounds | Verified behavior | Checked | Notes |
-|---|---|---|---|---|
-| one | `hooks/a.py#one@eeeeeeee` | read | 2026-01-01 | |
-"""
 
 CLEAN_TODO = """# evidence-todo
 
@@ -90,14 +56,13 @@ def git(repo, *args):
 def tree(tmp_path):
     """Four work items: three released, one that arrives after the commit.
 
-    `beta` is anchored only under `tests/`, and `delta` is this branch's own
-    unreleased work.
+    `delta` is this branch's own unreleased work.
     """
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "one-root.md").write_text("# a policy\n\nA rule.\n", "utf-8")
     (repo / "seal").mkdir()
-    (repo / "seal" / "ledger.md").write_text(LEDGER, encoding="utf-8")
+    (repo / "seal" / "README.md").write_text("# seal\n", encoding="utf-8")
     for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
         item = repo / "seal" / "specs" / name
         item.mkdir(parents=True)
@@ -140,24 +105,17 @@ def run(repo, *args):
 # --- A3: it names what it would fold, and folds nothing ---------------------
 
 
-def test_the_report_groups_released_work_items_by_segment(tree):
+def test_the_report_lists_each_released_unfolded_work_item(tree):
+    """#944: the report grouped these by the file their ledger rows cited,
+    and with the ledger gone every item would have been ungrouped. It lists
+    them, and the session places each one by what its `spec.md` decided."""
     code, text = run(tree)
     assert code == 0, text
-    assert "hooks/a.py" in text, text
-    assert "1700000001-alpha" in text, text
-    # The segment is the file the item's code anchors name, by majority. Two
-    # of alpha's three rows are `hooks/a.py` and the third is a case that
-    # pins it, which is Q2's rule: a test anchor rolls up to the code it
-    # pins, and never to a segment called `tests`.
-    assert "tests/test_a.py" not in text, text
-
-
-def test_an_item_anchored_only_under_tests_is_named_not_guessed(tree):
-    """Q2's other half. The link from a case to the code it pins is nowhere a
-    machine reads, so an item with no code anchor is named rather than filed
-    under a guess."""
-    _, text = run(tree)
-    assert "1700000002-beta  (tests only)" in text, text
+    assert "released and unfolded: 3 work items\n" in text, text
+    listed = text.split("waiting for a fold")[1].split("\n\n")[0] + "\n"
+    for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
+        assert f"    {name}\n" in listed, text
+    assert "segment" not in text and "ungrouped" not in text, text
 
 
 def test_the_report_writes_nothing_and_removes_nothing(tree):
@@ -327,16 +285,14 @@ def docs_text(repo):
 
 def test_a_spec_less_directory_is_listed_under_its_own_heading(tree):
     """D3: `settle` prints these under their own heading rather than as
-    *ungrouped — yours to place*, because there is nothing to place."""
+    *waiting for a fold*, because there is nothing to place."""
     moment(tree, overview=OVERVIEW_CLOSED)
     code, text = run(tree)
     assert code == 0, text
     assert "retired by the rule" in text, text
     assert MOMENT in text.split("retired by the rule")[1], text
-    ungrouped = (
-        text.split("ungrouped —")[1].split("\n\n")[0] if "ungrouped —" in text else ""
-    )
-    assert MOMENT not in ungrouped, text
+    waiting = text.split("waiting for a fold")[1].split("\n\n")[0]
+    assert MOMENT not in waiting, text
 
 
 def test_the_rule_arm_removes_it_with_no_marker(tree):
@@ -778,79 +734,8 @@ def test_a_marker_quoted_in_prose_is_not_a_fold_record(tree):
 # --- the reader's own rules ------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "paths, expected",
-    [
-        ([], (None, "no ledger row")),
-        (["tests/test_a.py"], (None, "tests only")),
-        (["hooks/a.py", "tests/test_a.py"], ("hooks/a.py", None)),
-        (["hooks/b.py", "hooks/a.py", "hooks/a.py"], ("hooks/a.py", None)),
-        # A tie is broken by path order, so the same input always gives the
-        # same segment — a grouping that depends on dict order cannot be
-        # compared with the run before it.
-        (["hooks/b.py", "hooks/a.py"], ("hooks/a.py", None)),
-    ],
-)
-def test_the_segment_rule(paths, expected):
-    assert settle.segment_of(paths) == expected
-
-
-def test_a_coordinate_is_read_out_of_a_row(tree):
-    rows = settle.coordinates(str(tree))
-    assert rows["1700000001-alpha"] == ["hooks/a.py", "hooks/a.py", "tests/test_a.py"]
-    assert rows["1700000002-beta"] == ["tests/test_b.py"]
-
-
-def test_rows_above_the_first_marker_belong_to_no_work_item(tree):
-    """The ledger's own header says the areas above the folded sections are
-    the rows from before the fragments existed. Attributing them to whichever
-    work item happens to be marked first would give that item a segment it
-    never wrote a row about."""
-    rows = settle.coordinates(str(tree))
-    assert "hooks/old.py" not in [p for paths in rows.values() for p in paths]
-
-
-RELEASE_SECTION = """## 0.2.0 — 2026-01-02
-
-<!-- specs/1700000002-beta -->
-### 1700000002-beta
-
-| Clause | Code grounds | Verified behavior | Checked | Notes |
-|---|---|---|---|---|
-| c | `hooks/b.py#thing@ffffffff` | read | 2026-01-01 | |
-"""
-
-
-def test_a_release_file_is_read_as_well_as_the_gathered_ledger(tree):
-    """#547, S4. A release file is the section byte for byte — one `## `
-    line, then the markers — so the loop that attributes `seal/ledger.md`'s
-    rows attributes a release file's rows the same way. Red before
-    `coordinates` opened `seal/releases/*.md`: beta stayed tests-only."""
-    release = tree / "seal" / "releases" / "0.2.0.md"
-    release.parent.mkdir()
-    release.write_text(RELEASE_SECTION, encoding="utf-8")
-    rows = settle.coordinates(str(tree))
-    assert rows["1700000002-beta"] == ["tests/test_b.py", "hooks/b.py"], rows
-    _, text = run(tree)
-    assert "hooks/b.py" in text, text
-    assert "1700000002-beta  (tests only)" not in text, text
-
-
-def test_a_fragment_is_read_as_well_as_the_gathered_ledger(tree):
-    fragment = tree / "seal" / "ledger"
-    fragment.mkdir()
-    (fragment / "1700000002-beta.md").write_text(
-        "| c | `hooks/b.py#thing@ffffffff` | read | 2026-01-01 | |\n", encoding="utf-8"
-    )
-    _, text = run(tree)
-    assert "hooks/b.py" in text, text
-    assert "1700000002-beta  (tests only)" not in text, text
-
-
 def test_the_checks_can_fail():
-    """A grouping that answered for everything would make every case above
-    vacuous, and so would a guard that found no row open."""
-    assert settle.segment_of([])[0] is None
+    """A guard that found no row open would make every case above vacuous."""
     assert settle.open_rows(CLEAN_TODO) == []
     assert len(settle.open_rows(OPEN_TODO)) == 1
 
@@ -874,7 +759,6 @@ def test_the_command_is_reachable_by_the_name_a_document_gives_it():
     "which, phrase",
     [
         ("READER", "it is where the fold record is read from"),
-        ("CHECKER", "it is what resolves a ledger row's anchor"),
         ("OPTIN", "it is what finds the repository's seal/ root"),
     ],
 )
@@ -883,7 +767,7 @@ def test_each_sibling_is_refused_with_its_own_purpose(
 ):
     """Round 1, ⬜ 5 — #590's second half, per file: the table entry for each
     real sibling, not an entry the case put there itself. A copy taken alone
-    stops at `OPTIN` first, so the class case never reaches the other two."""
+    stops at `OPTIN` first, so the class case never reaches the other one."""
     path = getattr(settle, which)
     real = os.path.isfile
     monkeypatch.setattr(os.path, "isfile", lambda p: False if p == path else real(p))
@@ -956,7 +840,7 @@ def test_the_skill_says_who_judges_and_who_reads():
     sentence is still true has read the one thing it may not do."""
     text = flat(skill())
     assert "moves and does not verify" in text, text[:200]
-    assert "The command reads and groups; you judge and write." in text
+    assert "The command reads and lists; you judge and write." in text
 
 
 def test_the_skill_says_a_fold_is_not_a_work_item_and_owes_no_range_row():
@@ -1281,209 +1165,6 @@ def test_the_fold_is_complete_still_prints_when_it_is(tree):
     assert "The fold is complete." in text, text
 
 
-def test_a_fenced_marker_in_the_ledger_opens_no_section(tree):
-    """Round 2, finding 5 — round 1's finding 1 one function over, and the
-    same cause: a line anchor is not a test that the line is live.
-
-    Closed by the reader this module already loads rather than by a third copy
-    of the rule. `.github/scripts/fold_ledger.py` carries the second copy and
-    #487 is the ticket for that pair; writing a third here would be the same
-    ticket again."""
-    ledger = tree / "seal" / "ledger.md"
-    ledger.write_text(
-        ledger.read_text(encoding="utf-8")
-        + "\nAn example of the convention:\n\n```markdown\n"
-        + "<!-- specs/1700000002-beta -->\n"
-        + "| q | `hooks/quoted.py#thing@99999999` | read | 2026-01-01 | |\n"
-        + "```\n",
-        encoding="utf-8",
-    )
-    rows = settle.coordinates(str(tree))
-    assert "hooks/quoted.py" not in rows["1700000002-beta"], rows["1700000002-beta"]
-    assert rows["1700000001-alpha"] == ["hooks/a.py", "hooks/a.py", "tests/test_a.py"]
-    # The fenced block sits after gamma's section, so a reader without fence
-    # tracking would have attributed the quoted coordinate to whichever id the
-    # quotation names — which is the defect, not merely a miscount.
-    _, text = run(tree)
-    assert "hooks/quoted.py" not in text, text
-
-
-def test_a_parked_marker_in_the_ledger_opens_no_section(tree):
-    """Round 3, finding 2 — the other way a line stops being live, which
-    `folded_items` had and `coordinates` did not. A marker inside a
-    commented-out draft opened a section and took the draft's coordinate with
-    it, so `segment_of` grouped that work item by a coordinate nobody wrote
-    for it. Closed by reading through the one `live_lines` the reader owns,
-    never by asking the comment state of the raw text — the case after this
-    one is why."""
-    ledger = tree / "seal" / "ledger.md"
-    ledger.write_text(
-        ledger.read_text(encoding="utf-8")
-        + "\n<!-- a draft, parked\n"
-        + "| q | `hooks/quoted.py#thing@99999999` | read | 2026-01-01 | |\n"
-        + "<!-- specs/1700000002-beta -->\n"
-        + "| r | `hooks/reopened.py#thing@66666666` | read | 2026-01-01 | |\n"
-        + "-->\n"
-        + "<!-- specs/1700000002-beta -->\n"
-        + "| after | `hooks/after.py#thing@88888888` | read | 2026-01-01 | |\n",
-        encoding="utf-8",
-    )
-    rows = settle.coordinates(str(tree))
-    assert all("hooks/quoted.py" not in paths for paths in rows.values()), dict(rows)
-    # The parked marker opened no section; the real one after the draft did.
-    assert rows["1700000002-beta"] == ["tests/test_b.py", "hooks/after.py"], rows
-    # HTML comments do not nest, so the parked marker's own `-->` closed the
-    # draft: the row after it is live again and falls to the section that was
-    # open. That is `comment_scan`'s rule, which `seal/ledger.md` pins for
-    # every record reader, and not a rule of this module.
-    assert rows["1700000003-gamma"] == ["hooks/a.py", "hooks/reopened.py"], rows
-
-
-def test_a_closer_quoted_in_prose_still_closes_a_parked_draft(tree):
-    """The span pass blanks a whole span, delimiters and all, so a draft's
-    closing delimiter quoted in a row or a sentence disappeared before the
-    comment state was asked and the draft never closed. The next real section
-    marker then began inside the draft and opened nothing — and because a
-    marker carries a closer of its own, the row below it came back live and
-    went to whichever section was open. Round 3's finding 2 again, arriving
-    through the fix for it. Inside a comment nothing is markdown, so the
-    quotation is not one and the pass must leave it alone."""
-    ledger = tree / "seal" / "ledger.md"
-    ledger.write_text(
-        ledger.read_text(encoding="utf-8")
-        + "\n<!-- a draft, parked\n"  # the quoted closer below is what ends it
-        + "the draft ends with `-->` said in prose\n"
-        + "<!-- specs/1700000002-beta -->\n"
-        + "| after | `hooks/after.py#thing@88888888` | read | 2026-01-01 | |\n",
-        encoding="utf-8",
-    )
-    rows = settle.coordinates(str(tree))
-    assert "hooks/after.py" in rows["1700000002-beta"], dict(rows)
-    assert "hooks/after.py" not in rows["1700000003-gamma"], dict(rows)
-
-
-def test_a_quoted_whole_comment_still_closes_the_draft_it_sits_in(tree):
-    """The other half of the shape above. A span quoting a COMPLETE comment
-    holds the opener, so a pass that blanks the span blanked it whole and the
-    quoted closing delimiter went with it — the draft stayed open, the next
-    real section marker began inside it and opened nothing, and the row below
-    went to whichever section was open. Inside a comment nothing is markdown,
-    so what the pass owes the comment scan is the opener blanked and the
-    closer left where it stands: the DELIMITER, not the span around it."""
-    ledger = tree / "seal" / "ledger.md"
-    ledger.write_text(
-        ledger.read_text(encoding="utf-8")
-        + "\n<!-- a draft, parked\n"  # the whole comment quoted below ends it
-        + "the draft ends with `<!-- a note -->` quoted whole\n"
-        + "<!-- specs/1700000002-beta -->\n"
-        + "| after | `hooks/after.py#thing@88888888` | read | 2026-01-01 | |\n",
-        encoding="utf-8",
-    )
-    rows = settle.coordinates(str(tree))
-    assert "hooks/after.py" in rows["1700000002-beta"], dict(rows)
-    assert "hooks/after.py" not in rows["1700000003-gamma"], dict(rows)
-
-
-def test_an_opener_after_a_quoted_closer_still_parks_the_marker_below(tree):
-    """The residue of the shape above, in the expensive direction. A pass
-    that blanked code spans before the comment state was read could not know
-    that inside a parked draft the backticks are not a span at all: the first
-    closing delimiter ends the draft and the opener after it re-opens one.
-    Blanking that opener read a parked marker as a fold record, and
-    `settle --retire` removed the directory at exit 0 with nothing having
-    absorbed it. The scan carries the comment state as it goes, so inside a
-    draft it reads no spans at all and the question does not arise."""
-    ledger = tree / "seal" / "ledger.md"
-    ledger.write_text(
-        ledger.read_text(encoding="utf-8")
-        + "\n<!-- a draft, parked\n"  # the span below ends it and re-opens it
-        + "prose that quotes `--> and then <!--` on one line\n"
-        + "<!-- specs/1700000002-beta -->\n"
-        + "| after | `hooks/after.py#thing@88888888` | read | 2026-01-01 | |\n"
-        + "-->\n",
-        encoding="utf-8",
-    )
-    rows = settle.coordinates(str(tree))
-    assert "hooks/after.py" not in rows.get("1700000002-beta", []), dict(rows)
-
-
-def test_an_indented_example_row_is_counted_and_the_reader_says_so(tree):
-    """The third quotation, pinned as read rather than as fixed. `blank_fences`
-    knows the two fenced forms and markdown's indented code block is neither,
-    so a fragment showing its example row indented has that example counted as
-    its own coordinate. Widening the fence reader would move `readable`,
-    `check_text`, `round_record.py` and the review-history guard at once —
-    measured, it reddens a record reader's continuation case with no stake in
-    this rule. `tests/test_chain_hooks.py#reader_blanking_passes` is not that
-    refusal: it reads the calls `readable` makes by name and a widened
-    `blank_fences` leaves them unchanged.
-    The case exists so a session that widens it one day is told what
-    this one decided, and why it decided it in the docstring instead of in the
-    code."""
-    fragments = tree / "seal" / "ledger"
-    fragments.mkdir()
-    (fragments / "1700000001-alpha.md").write_text(
-        "| r | `hooks/frag.py#real@12345678` | read | 2026-01-01 | |\n"
-        "\nAn example, indented rather than fenced:\n\n"
-        "    | q | `hooks/quoted.py#thing@99999999` | read | 2026-01-01 | |\n",
-        encoding="utf-8",
-    )
-    rows = settle.coordinates(str(tree))["1700000001-alpha"]
-    assert "hooks/frag.py" in rows, rows
-    assert "hooks/quoted.py" in rows, (
-        "an indented example is read as the fragment's own coordinate; the "
-        "docstring says so on purpose, so change both or neither"
-    )
-
-
-def test_an_opener_quoted_inside_a_code_span_parks_nothing(tree):
-    """Why the obvious closure is wrong. A ledger row's anchor quotes the text
-    it is anchored to, and that text is often a comment: `seal/ledger.md`
-    carries four anchors holding `<!--` with no closer on the line, and asking
-    the comment state of the file as it stands parks every section below the
-    first of them — three real markers lost, round 3's measurement and the
-    framer's at `3cdfd8ad`. So `live_lines` carries the code-span state as it
-    scans and an opener inside a span opens nothing, while the line comes back
-    unchanged — the coordinate lives inside backticks too."""
-    ledger = tree / "seal" / "ledger.md"
-    ledger.write_text(
-        ledger.read_text(encoding="utf-8")
-        + '| four | `docs/x.md#"<!-- a quoted opener"@ffffffff` | read | 2026-01-01 | |\n'
-        + "\n<!-- specs/1700000005-epsilon -->\n"
-        + "### 1700000005-epsilon\n"
-        + "| one | `hooks/e.py#one@12121212` | read | 2026-01-01 | |\n",
-        encoding="utf-8",
-    )
-    rows = settle.coordinates(str(tree))
-    assert rows["1700000005-epsilon"] == ["hooks/e.py"], dict(rows)
-    assert "docs/x.md" in rows["1700000003-gamma"], rows["1700000003-gamma"]
-
-
-def test_a_fragments_quoted_coordinates_are_not_the_fragments_own(tree):
-    """Round 3, finding 3 — the other half of round 2's finding 5.
-    `coordinates` reads two places and the fix changed both; only the ledger
-    half had a case, so reverting the fragment loop to a whole-file `finditer`
-    turned nothing red. A fragment is where a work item explains its own rows,
-    so a fenced example row or a parked draft of one is more plausible there
-    than in the shared file, not less."""
-    fragments = tree / "seal" / "ledger"
-    fragments.mkdir()
-    (fragments / "1700000001-alpha.md").write_text(
-        "| r | `hooks/frag.py#real@12345678` | read | 2026-01-01 | |\n"
-        "\nAn example of the convention:\n\n```markdown\n"
-        "| q | `hooks/quoted.py#thing@99999999` | read | 2026-01-01 | |\n"
-        "```\n"
-        "<!-- a draft, parked\n"
-        "| p | `hooks/parked.py#thing@77777777` | read | 2026-01-01 | |\n"
-        "-->\n",
-        encoding="utf-8",
-    )
-    rows = settle.coordinates(str(tree))["1700000001-alpha"]
-    assert "hooks/frag.py" in rows, rows
-    assert "hooks/quoted.py" not in rows, rows
-    assert "hooks/parked.py" not in rows, rows
-
-
 def test_an_opted_out_repository_is_told_which_state_it_is_in(tmp_path):
     """Round 2, finding 7. `home_at` answers `""` for two states — no root at
     either place, and a repository that opted out with the scratch marker —
@@ -1633,14 +1314,14 @@ def test_surveys_docstring_does_not_invite_the_mutation_that_reopens_finding_4()
 
 
 def settled_repo(tmp_path, keep_empty_dir):
-    """A repository whose fold is complete: a `seal/` root with its ledger,
+    """A repository whose fold is complete: a `seal/` root with its README,
     and `seal/specs/` either empty on disk — the tree `--retire` leaves — or
     absent, which is what a fresh checkout of that commit has."""
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "one-root.md").write_text("# a policy\n", encoding="utf-8")
     (repo / "seal").mkdir()
-    (repo / "seal" / "ledger.md").write_text("# spec-to-code map\n", encoding="utf-8")
+    (repo / "seal" / "README.md").write_text("# seal\n", encoding="utf-8")
     git(repo, "init", "-q")
     git(repo, "config", "user.email", "x@example.com")
     git(repo, "config", "user.name", "x")

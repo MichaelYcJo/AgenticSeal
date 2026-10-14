@@ -148,9 +148,8 @@ first.
 is its procedure.
 
 **Then the fold.** `settle` names the released work items whose `spec.md`
-no `docs/` policy has absorbed yet, grouped by the file their ledger rows
-anchor in. Read it, write one standing statement per segment into `docs/`,
-and hold what you wrote to the fold's two rules:
+no `docs/` policy has absorbed yet. Read it, write one standing statement per
+rule into `docs/`, and hold what you wrote to the fold's two rules:
 
 ```bash
 fold-check

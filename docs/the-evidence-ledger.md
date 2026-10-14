@@ -359,7 +359,7 @@ Enforced by: tests/test_unverified_rows_close.py::test_a_row_the_base_gained_aft
 **Every folded statement has the fold's shape: the cutoff binds every statement
 from work item `0` on.** The shape and the placement rule are stated in
 `skills/settle/SKILL.md` §*2. Write one standing statement per
-segment*, and this section holds only this repository's values for them. The
+rule*, and this section holds only this repository's values for them. The
 cutoff is the id in the marker, and ids are epoch-prefixed, so it is a
 comparison rather than a list. It was `1790154761`, the work item that gave the
 fold its shape, and the statements it did not bind had been written with no

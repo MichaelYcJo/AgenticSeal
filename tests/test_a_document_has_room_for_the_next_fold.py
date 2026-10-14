@@ -182,7 +182,7 @@ def test_settle_owns_the_placement_rule():
         os.path.join(ROOT, "skills", "settle", "SKILL.md"), encoding="utf-8"
     ) as f:
         text = f.read()
-    section = text.split("### 2. Write one standing statement per segment")[1]
+    section = text.split("### 2. Write one standing statement per rule")[1]
     section = section.split("### 3.")[0]
     for phrase in (
         "**One subject, one document, and a document over its ceiling takes no new\n"
@@ -229,7 +229,7 @@ def test_the_evidence_ledger_states_the_values_the_config_rows_hold():
     text = ledger_prose()
     section = text.split("## The fold, and what tells it from a deletion")[1]
     assert (
-        "`skills/settle/SKILL.md` §*2. Write one standing statement per\nsegment*"
+        "`skills/settle/SKILL.md` §*2. Write one standing statement per\nrule*"
         in section
     ), "the evidence ledger no longer links to settle §2, the rules' owner"
     assert not prose_disagreements(text, declared()), prose_disagreements(
