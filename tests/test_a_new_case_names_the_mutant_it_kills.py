@@ -2,8 +2,8 @@
 
 `.github/scripts/case_check.py` is the regrowth check: each test function new
 or changed against the merge base carries one `Kills: <path> "<OLD>" "<NEW>"`
-line, and `mutation-check` runs it twice, red with the function and not red
-with it deselected. Each case here builds a fixture repository with a module,
+line, and its file runs once under that mutant, which must be red with the
+function's own ids the only killers. Each case here builds a fixture repository with a module,
 a test file and, where the case needs one, `tests/unguarded-files.txt`, at a
 base commit and at HEAD, and reads what the check says. The mutations run for
 real, through the repository's own `mutation_check.py`.
@@ -88,7 +88,7 @@ def tree(tmp_path, base, head):
     return root
 
 
-def run(root, capsys):
+def run(root, capsys, *extra):
     code = case_check().main(
         [
             "--baseline",
@@ -97,6 +97,7 @@ def run(root, capsys):
             str(root),
             "--runner",
             f"{sys.executable} -m pytest -p no:xdist",
+            *extra,
         ]
     )
     return code, capsys.readouterr().out
@@ -106,7 +107,7 @@ def test_a_new_function_without_a_kills_line_is_named(tmp_path, capsys):
     """S2: a function new at HEAD with no line is exit 1 and named, though
     its file is on the list that exempts the file's existing functions.
 
-    Kills: .github/scripts/case_check.py "        return NO_LINE, None" "        return None, PROVED.format(without=ALONE)"
+    Kills: .github/scripts/case_check.py "        return NO_LINE, None" "        return BAD_LINE.format(why=\"absent\"), None"
     """
     bare_name = "\ndef test_name():\n    assert m.name() == 'a'\n"
     root = tree(
@@ -127,7 +128,7 @@ def test_a_line_whose_replacement_does_not_land_is_named(tmp_path, capsys):
     """S2: a line whose OLD occurs nowhere in its path is named with
     mutation-check's refusal, and is not read as proved.
 
-    Kills: .github/scripts/case_check.py "        return WITH_NOTHING.format(verdict=verdict), None" "        return None, PROVED.format(without=verdict)"
+    Kills: .github/scripts/case_check.py "        return NOTHING.format(verdict=verdict), None" "        return None, PROVED"
     """
     stale = (
         '\ndef test_name():\n    """Kills: m.py "return \\"z\\"" "return \\"y\\""\n'
@@ -140,16 +141,19 @@ def test_a_line_whose_replacement_does_not_land_is_named(tmp_path, capsys):
     )
     code, out = run(root, capsys)
     assert code == 1, out
-    assert "tests/test_m.py::test_name: with it: refused" in out, out
+    assert (
+        "tests/test_m.py::test_name: the run under its mutant measured nothing: refused"
+    ) in out, out
 
 
 def test_a_mutation_the_file_kills_without_the_function_is_named_with_its_killer(
     tmp_path, capsys
 ):
-    """S3: a function whose mutation its file kills without it is named,
-    with the case that already kills it.
+    """S3: a function whose mutant another function of its file kills too
+    is named, with that function. One run under the mutant, read for its
+    killers, is the whole proof.
 
-    Kills: .github/scripts/case_check.py "    if code == RED:" "    if code == RED and False:"
+    Kills: .github/scripts/case_check.py "    if rest:" "    if rest and False:"
     """
     twin = DOUBLE.replace("test_double", "test_double_too")
     root = tree(
@@ -160,18 +164,41 @@ def test_a_mutation_the_file_kills_without_the_function_is_named_with_its_killer
     code, out = run(root, capsys)
     assert code == 1, out
     assert (
-        "tests/test_m.py::test_double_too: without it: red — its file kills the "
-        "mutation without it: tests/test_m.py::test_double"
+        "tests/test_m.py::test_double_too: its file kills its mutant without it "
+        "too: tests/test_m.py::test_double"
+    ) in out, out
+
+
+def test_a_mutant_only_another_function_kills_is_named(tmp_path, capsys):
+    """S3: a function whose mutant its file kills, but not through it, is
+    named with the function that does.
+
+    Kills: .github/scripts/case_check.py "    if not own:" "    if not own and False:"
+    """
+    elsewhere = (
+        '\ndef test_name():\n    """Kills: m.py "return x * 2" "return x * 4"\n'
+        '    """\n    assert m.name() == "a"\n'
+    )
+    root = tree(
+        tmp_path,
+        {"tests/test_m.py": module_text(DOUBLE)},
+        {"tests/test_m.py": module_text(DOUBLE, elsewhere)},
+    )
+    code, out = run(root, capsys)
+    assert code == 1, out
+    assert (
+        "tests/test_m.py::test_name: red, but not by this function: "
+        "tests/test_m.py::test_double"
     ) in out, out
 
 
 def test_a_proven_function_passes_and_the_summary_lists_both_runs(
     tmp_path, capsys, monkeypatch
 ):
-    """S4: red with the function and survived without it is exit 0, and the
-    step summary says both runs. The line's quotes round-trip through JSON.
+    """S4: red under its mutant with its own ids the only killers is exit 0,
+    and the step summary says so. The line's quotes round-trip through JSON.
 
-    Kills: .github/scripts/case_check.py "PROVED = \"proved — with it: red; without it: {without}\"" "PROVED = \"proved — with it: red\""
+    Kills: .github/scripts/case_check.py "PROVED = \"proved — red under its mutant, and the killers are this function's alone\"" "PROVED = \"proved\""
     """
     named = (
         '\ndef test_name():\n    """Kills: m.py "return \\"a\\"" "return \\"b\\""\n'
@@ -185,7 +212,10 @@ def test_a_proven_function_passes_and_the_summary_lists_both_runs(
     summary = tmp_path / "summary.md"
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
     code, out = run(root, capsys)
-    line = "tests/test_m.py::test_name: proved — with it: red; without it: survived"
+    line = (
+        "tests/test_m.py::test_name: proved — red under its mutant, and the "
+        "killers are this function's alone"
+    )
     assert code == 0, out
     assert line in out, out
     assert line in summary.read_text(encoding="utf-8")
@@ -207,7 +237,7 @@ def test_a_changed_function_is_read_as_new(tmp_path, capsys):
     )
     code, out = run(root, capsys)
     assert code == 1, out
-    assert "tests/test_m.py::test_double: with it: SURVIVED" in out, out
+    assert "tests/test_m.py::test_double: SURVIVED — nothing in its file" in out, out
 
 
 def test_a_prose_pin_runs_through_the_document(tmp_path, capsys):
@@ -267,7 +297,7 @@ def test_a_file_leaves_the_list_only_when_every_function_carries_the_line(
 def test_a_run_that_prints_nothing_is_named_by_its_exit(tmp_path, monkeypatch):
     """A `mutation-check` run that ends with no output, as a process killed
     by a signal does, still gives the finding something to say: its exit.
-    Measured in this work item's phase 2, where two runs of a busy machine
+    Seen in this work item's phase 2, where two runs another process killed
     came back empty.
 
     Kills: .github/scripts/case_check.py "f\"exit {done.returncode}, and mutation-check printed nothing\"" "\"\""
@@ -279,3 +309,53 @@ def test_a_run_that_prints_nothing_is_named_by_its_exit(tmp_path, monkeypatch):
     code, verdict, _ = module.mutation_run(str(tmp_path), "m.py", "a", "b", ["true"], 5)
     assert code == 3
     assert verdict == "exit 3, and mutation-check printed nothing"
+
+
+def test_a_file_whose_proof_would_pass_the_bound_is_named_to_restructure(
+    tmp_path, capsys
+):
+    """The owner's bound (#929): the proof ends within `--bound` minutes and
+    never on a timeout. A file whose one run, times the functions it owes,
+    would pass what is left is named before any mutant runs.
+
+    Kills: .github/scripts/case_check.py "        if code is None or each + need > left:" "        if code is None:"
+    """
+    root = tree(
+        tmp_path,
+        {"tests/test_m.py": module_text(BARE_DOUBLE)},
+        {"tests/test_m.py": module_text(DOUBLE)},
+    )
+    code, out = run(root, capsys, "--bound", "0.0001")
+    assert code == 1, out
+    assert "tests/test_m.py: restructure: test the decision directly" in out, out
+    assert "proved" not in out.split("\n", 1)[1], out
+
+
+def test_a_caller_that_ran_the_baseline_skips_it_in_mutation_check(tmp_path):
+    """`mutation-check --baseline-passed` writes the mutant without running
+    the cases against the file as it is first, which is how the regrowth
+    check runs one mutant per function after one run of the file. Without
+    the option, the same failing command is `no baseline`.
+
+    Kills: skills/verify/scripts/mutation_check.py "        if baseline:\n            before, detail, output = run_cases(" "        if True:\n            before, detail, output = run_cases("
+    """
+    target = tmp_path / "x.py"
+    target.write_text("A = 1\n", encoding="utf-8")
+    script = os.path.join(ROOT, "skills", "verify", "scripts", "mutation_check.py")
+    command = f'{sys.executable} -c "raise SystemExit(1)"'
+
+    def check(*extra):
+        return subprocess.run(
+            [
+                *(sys.executable, script, str(target), "--replace", "A = 1", "A = 2"),
+                *("--tests", command, "--cwd", str(tmp_path), *extra),
+            ],
+            capture_output=True,
+            encoding="utf-8",
+        )
+
+    passed = check("--baseline-passed")
+    assert passed.returncode == 0, passed.stdout
+    assert passed.stdout.startswith("red"), passed.stdout
+    assert check().stdout.startswith("no baseline")
+    assert target.read_text(encoding="utf-8") == "A = 1\n"

@@ -151,10 +151,12 @@ the mutation is made in, from the root, and two JSON strings that
 `mutation-check <path> --replace OLD NEW` applies unchanged. The line is read
 as written in the file, so `\"` and `\n` mean the same in any docstring, and
 a case that pins prose names the document and its sentence. The `cases` job
-in `test.yml` runs `.github/scripts/case_check.py`: against its line the
-function alone must be red, and its file without it must not be. A case
-whose mutant its file kills without it fails the job, naming the case that
-does; name a sentence only this case guards, or leave the case out. A file
+in `test.yml` runs `.github/scripts/case_check.py`: the case's file runs once
+under its mutant, and the failing cases must be this one alone. A case whose
+mutant another case also kills fails the job, naming that case; name a
+sentence only this case guards, or leave the case out. The proof is bounded
+at five minutes, and a file whose proof would pass that is named to
+restructure: test the decision directly, not through the whole stack. A file
 off `tests/unguarded-files.txt` carries the line on every function; the list
 names the files that do not yet, and it only shrinks. A case leaves only when
 a mutation table shows that every mutant it kills is killed by a case that

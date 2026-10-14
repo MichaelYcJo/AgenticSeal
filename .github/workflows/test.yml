@@ -209,19 +209,22 @@ jobs:
           retention-days: 7
 
   # The regrowth check (#929). Each test function new or changed against the
-  # pull request's base carries one `Kills:` line in its docstring, and this
-  # job runs it through `mutation-check` twice: the function alone must be red,
-  # and its file with the function deselected must not be. A function with no
-  # line, a line that does not land, or a mutation its file kills without it
-  # fails the job, named in the step summary. A file off
+  # pull request's base carries one `Kills:` line in its docstring. Its file
+  # runs once as it stands, then once under each function's mutant through
+  # `mutation-check`, and the failing ids must be that function's alone. A
+  # function with no line, a line that does not land, or a mutant another
+  # case kills fails the job, named in the step summary. A file off
   # `tests/unguarded-files.txt` has a line on every function, and the list
-  # only shrinks. Ubuntu alone: a case guarding a Windows-only sentence proves
-  # itself on a run that skips there. The install line is the `pytest` job's,
-  # so the cases run on the versions every other run of the suite uses.
+  # only shrinks. The proof is bounded at five minutes, the owner's figure
+  # (2026-10-14): a file whose proof would pass it is named to restructure
+  # before any mutant runs, so the job ends on the bound and never on the
+  # timeout below. Ubuntu alone: a case guarding a Windows-only sentence
+  # proves itself on a run that skips there. The install line is the `pytest`
+  # job's, so the cases run on the versions every other run uses.
   cases:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -235,7 +238,7 @@ jobs:
       - run: |
           git config --global user.email ci@ci
           git config --global user.name ci
-      - run: python .github/scripts/case_check.py --baseline "origin/${{ github.base_ref }}" --runner "python -m pytest -n auto"
+      - run: python .github/scripts/case_check.py --baseline "origin/${{ github.base_ref }}" --runner "python -m pytest -n auto" --bound 5
 
   # `arm-check`'s node-type tables have to hold on every supported Python,
   # and whether they do depends on the interpreter reading them: 3.14 added

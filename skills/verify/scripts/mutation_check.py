@@ -18,6 +18,12 @@ has gone wrong in this repository's history:
 So this is the loop as one command:
 
     mutation-check <file> --replace OLD NEW --tests "<command>" [--timeout S]
+                   [--baseline-passed]
+
+`--baseline-passed` skips the first run below. It is for a caller that ran
+this same command against these same bytes and saw it pass, and
+`.github/scripts/case_check.py` is that caller: it runs a test file once,
+then one mutant per function against it.
 
 It refuses a replacement that does not land exactly once, before anything is
 run. It runs the command once against the file as it is, and goes on only if
@@ -291,9 +297,13 @@ def mutation_run(
     *,
     cwd: str,
     timeout: float | None = DEFAULT_TIMEOUT,
+    baseline: bool = True,
 ):
     """Run the cases against the file as it is, then write one mutation, run
-    them again, and restore. `(verdict, detail, output)`.
+    them again, and restore. `(verdict, detail, output)`. With `baseline`
+    false the first run is the caller's, already seen to pass.
+
+    Reads: observed — the file it mutates, as bytes, and the exit of the cases' command; unknown refused
 
     `Refused` before any run; `NO_BASELINE` when the cases fail before the
     write; `NotRestored` when the restore did not land, which replaces
@@ -330,7 +340,16 @@ def mutation_run(
     # restores only bytes that differ, so a baseline that leaves the file
     # alone still writes nothing.
     try:
-        before, detail, output = run_cases(command, cwd=cwd, env=env, timeout=timeout)
+        # A caller that ran this same command against these same bytes and saw
+        # it pass hands `baseline=False`, and the run against the file as it
+        # is is not repeated: `.github/scripts/case_check.py` runs a test file
+        # once and then one mutant per function against it (#929).
+        if baseline:
+            before, detail, output = run_cases(
+                command, cwd=cwd, env=env, timeout=timeout
+            )
+        else:
+            before, detail, output = SURVIVED, "", ""
         if before == RED:
             # The baseline's own exit, `(exit N)` from `run_cases`' red detail:
             # pytest's 5 and 4 are what tell a mistyped `-k` from a failing case.
@@ -386,6 +405,10 @@ def mutation_run(
 
 
 def main(argv=None) -> int:
+    """Run one mutation from the command line and print its verdict.
+
+    Reads: observed — the command line, and what `mutation_run` returns; unknown refused
+    """
     parser = argparse.ArgumentParser(
         prog="mutation-check",
         description=(
@@ -419,6 +442,14 @@ def main(argv=None) -> int:
         ),
     )
     parser.add_argument("--cwd", default=None, help="working directory for --tests")
+    parser.add_argument(
+        "--baseline-passed",
+        action="store_true",
+        help=(
+            "skip the run against the file as it is: only for a caller that "
+            "ran this same command against these same bytes and saw it pass"
+        ),
+    )
     args = parser.parse_args(argv)
     if args.timeout < 0:
         parser.error(
@@ -438,6 +469,7 @@ def main(argv=None) -> int:
             command,
             cwd=args.cwd or os.getcwd(),
             timeout=args.timeout or None,
+            **({"baseline": False} if args.baseline_passed else {}),
         )
     except Refused as exc:
         print(f"{REFUSED}: {exc}", flush=True)
