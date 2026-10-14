@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 6 |
-| Commit | a55ac12d |
+| Commit | 8b137510 |
 | Ran by | smith on Opus 5.5, as the attribution line in the spawn prompt names it |
 
 ## What this phase was asked
@@ -132,6 +132,7 @@ exclusion `overview.md` already records (executed).
 | b9a02b97 | the move to `skills/verify/scripts/coordinates.py` with `pact_check.py`, both wrappers, the loaders, the census, `.test_durations` (two ids carry their prices), three docs, `hooks/config.py`'s comments, the `unbounded` sentence and the new case |
 | 7387126d | the warden's two paragraphs, the pin's two needles, two budget rows |
 | a55ac12d | the issue template |
+| 8b137510 | seven `.test_durations` entries for ids no case collects, each naming the old directory, its wrapper or its two skills |
 
 **Verification, executed at the phase's tip unless named.** After the first
 step, `test_the_records_can_be_carried_out_and_in.py`, the census and
@@ -147,5 +148,9 @@ prices: `test_the_durations_file_prices_the_suite` passed. `budget_check.py`
 exit 0 on the tree and against `origin/release/v0.22.0`; `fold-check` exit 0
 (158 statements, 18 documents); `bin/rules docs/the-record-layout.md` exit 0;
 `rider_check.py` exit 0 (16 ok); `bin/pact-check --help` exit 0;
-`uvx ruff check` and `ruff format --check` on every Python file changed. The
-full suite is the sealer's.
+`uvx ruff check` and `ruff format --check` on every Python file changed.
+`unverified-check --baseline origin/release/v0.22.0`, `chain_check.py
+--baseline origin/release/v0.22.0` and `settle` exit 0 at `48c59749`, and the
+nine modules that read work-item records, 436 passed. After the prune, the
+budget check on the tree and against the base and the durations case again.
+The full suite is the sealer's.
