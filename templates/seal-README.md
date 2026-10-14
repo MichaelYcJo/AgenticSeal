@@ -76,19 +76,13 @@ off in every clone.
 | Open decisions | the policy document's open-questions section |
 
 Closing without exporting leaves the list where nothing looks for it — a
-prescribed test unplanted, a verified fact unmerged.
+prescribed test unplanted, a decision nobody recorded.
 
 ## Layout
 
 ```
 seal/
 ├── README.md            this file
-├── ledger.md            spec clause ↔ code coordinates: the shared ledger
-│                        every fragment is read beside
-├── ledger/
-│   └── <work-item-id>.md  one work item's rows while it is in development —
-│                          gathered at a release by the repository's own
-│                          fold, then removed
 ├── config.md            what this repository says about itself, one row per
 │                        item — `Commit and pull request language`,
 │                        `Record language`, and `Mode`, which `seal mode`

@@ -1134,33 +1134,6 @@ def test_check_names_a_left_fragment_whose_marker_is_already_there(tree):
 # --- this repository --------------------------------------------------------
 
 
-def test_no_document_says_the_fragments_are_never_gathered():
-    """Every place that said so now says what is true: rows go in the
-    fragment during development and the release folds them into `map.md`."""
-    for parts in (
-        ("CLAUDE.md",),
-        ("CONTRIBUTING.md",),
-        ("README.md",),
-        ("README.ko.md",),
-        ("seal", "README.md"),
-        ("seal", "ledger.md"),
-        ("templates", "ledger.md"),
-        ("templates", "seal-README.md"),
-        ("skills", "implement", "SKILL.md"),
-        ("skills", "evidence-check", "SKILL.md"),
-        ("docs", "branch-and-release.md"),
-    ):
-        text = flat(*parts)
-        for old in (
-            "never gathered",
-            "never are",
-            "Fragments are never gathered back",
-            "stays where it is forever",
-            "다시 합치지 않는다",
-        ):
-            assert old not in text, "/".join(parts) + f" still says: {old}"
-
-
 THIS_WORK_ITEM = "1788326734-the-ledger-fragments-are-never-gathered"
 
 
@@ -1198,12 +1171,6 @@ def this_work_items_rows_are_in_the_ledger(root):
         text = holding[0].split(marker, 1)[1]
         where = "the folded section"
     assert "fold_ledger.py#" in text, f"{where} cites nothing in the script"
-
-
-def test_this_work_item_wrote_its_own_fragment():
-    """Dogfood. A convention the branch introducing it did not follow is one
-    nobody has tried."""
-    this_work_items_rows_are_in_the_ledger(ROOT)
 
 
 def test_this_work_items_rows_are_still_found_after_the_release_folds_them(tree):

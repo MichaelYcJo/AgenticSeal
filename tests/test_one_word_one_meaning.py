@@ -800,8 +800,7 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 # word back. What it leaves alone, and why:
 #
 # - records, which keep the word they were written with: the released
-#   changelogs and ledgers, the work items' directories, and the ledger
-#   fragments, whose rows quote released claims;
+#   changelogs and the work items' directories;
 # - the compatibility cases, which spell the old header because a case taking
 #   it from `hooks/config.py#renamed_header` would pass with that constant
 #   changed while every 0.18.x pact stopped reading; and this module, whose
@@ -809,9 +808,6 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 # - the two spans `PACT_RENAMED_SPANS` names, and fold markers.
 RENAMED_RECORDS = (
     "changelog/",
-    "seal/ledger.md",
-    "seal/ledger/",
-    "seal/releases/",
     "seal/specs/",
 )
 RENAMED_COMPAT = (
@@ -845,11 +841,6 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
     for rel in (*RENAMED_COMPAT, SWEEP_MODULE, "docs/the-pact.md", "hooks/config.py"):
         assert rel in tracked, f"{rel} is excepted below and no longer tracked"
     for prefix in RENAMED_RECORDS:
-        # `seal/ledger/` holds the unreleased fragments, and the release's
-        # fold empties it on purpose: an empty fragment directory is the tree
-        # just after a release, not an exception that stopped applying.
-        if prefix == "seal/ledger/":
-            continue
         assert any(p.startswith(prefix) for p in tracked), (
             f"{prefix} is excepted below and holds no tracked file"
         )

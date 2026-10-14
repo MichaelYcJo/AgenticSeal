@@ -14,7 +14,6 @@ is found, the copy is the defect.
 
 | Kind | Home | Size target | Index |
 |---|---|---|---|
-| The evidence ledger | `seal/ledger/<work-item-id>.md` while a work item is open; `seal/releases/<X.Y.Z>.md` once its release folds it; `seal/ledger.md` for the rows from before the fragments. The rules: `docs/the-evidence-ledger.md` | each release file is under target, and its reading unit is one `### <work-item-id>` section | the file name, by version, and the `### <work-item-id>` heading inside it |
 | The changelog | `seal/specs/<work-item-id>/changelog.md` while a work item is open; `changelog/<X.Y.Z>.md`, the release's own file, once its release gathers it | each release file is under target, and is the unit | the file name, by version, and `CHANGELOG.md`, which heads each release newest first with a link to its file (F2, built) |
 | A work item's files | `seal/specs/<work-item-id>/` | each file under target | the table under *seal/specs/<work-item-id>/* below |
 | The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and the *docs/* table below |
@@ -162,10 +161,6 @@ common directory otherwise.
 | `seal/config.md` | what this repository says about itself, one row per item |
 | `seal/budgets.md` | what this repository holds its size and speed to: one row per budget, with the ceiling every pull request is held to |
 | `seal/follow-up.md` | which items wait on a named party, and who |
-| `seal/ledger.md` | the rows from before the fragments existed, and the notation. Released: it never changes |
-| `seal/ledger/<work-item-id>.md` | one open work item's ledger rows, re-reads and corrections, until its release folds them |
-| `seal/ledger/<unix-seconds>-fold.md` | a `settle` fold's readings and corrections, until the release folds them |
-| `seal/releases/<X.Y.Z>.md` | the rows one release gathered, one `### <work-item-id>` section each. Released once tagged: it never changes |
 | `seal/specs/<work-item-id>/` | one work item's records, the table below |
 
 ## seal/specs/<work-item-id>/

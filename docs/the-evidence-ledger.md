@@ -48,22 +48,6 @@ release file changes no row's status. The `ok` total counts a
 `(coordinate, hash)` pair once per file, so a move can change it.
 Enforced by: tests/test_a_row_points_by_content.py::test_no_ledger_row_carries_a_line_number_or_a_commit, tests/test_a_row_points_by_content.py::test_the_checker_asks_git_for_nothing
 
-<!-- specs/1790208643-the-spec-is-split-and-its-sentences-are-settled -->
-**A `|` inside a ledger cell is escaped, and a row with more cells than its
-table's header fails.** An unescaped pipe splits the row, and the text after it
-lands in the next column, so a claim runs into its grounds and a date into its
-notes. At `31937b9f`, 22 rows stood split that way: two of them carried a
-second date-and-notes pair in one Notes cell, and one a Notes cell split in
-three (#562; #568 joined each into one reading). A row under no header is
-counted against the five columns `templates/ledger.md` declares for a ledger
-row, because a fragment has no header by rule and the fold copies it into its
-release file as it stands — without that width, every fragment row was read
-and none was counted (#501). The shipped checker names such a row `OVERFLOW`
-in every repository that installs the plugin (#585), graded like `MALFORMED`,
-and this repository's own case holds its ledgers to that reading on every
-pull request.
-Enforced by: skills/evidence-check/scripts/evidence_check.py::overflow_rows, tests/test_release_hygiene.py::test_no_ledger_row_splits_into_more_cells_than_its_header
-
 ## A released row is read again in the branch's fragment
 
 **A released ledger file never changes.** Where `seal/config.md` declares
