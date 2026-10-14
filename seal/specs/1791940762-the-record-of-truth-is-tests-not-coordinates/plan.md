@@ -4,7 +4,9 @@
 artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
-Approved 2026-10-14 by the repository owner, when `smith` was spawned. Q1 answered the same day: **remove** the ledger from the plugin (option 1).
+Approved 2026-10-14 by the repository owner, when `smith` was spawned.
+
+Q1 answered the same day: **remove** the ledger from the plugin (option 1).
 
 ## Summary
 
