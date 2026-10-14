@@ -101,7 +101,7 @@ killers, S2 rows plus other cases.
 | m5 | the stub never sees a lease: `l=1` → `l=` in `hooks/githooks.py#_P2` | red · 21 (19 + 2) | red · 4 (2 + 2) |
 | T1 | both `#686 ;` rows taken out of `SAMPLE` | — | red · `test_every_corpus_family_has_a_sampled_row` |
 | T2 | the `pytest.skip` put back before the assertion in `_lands_nothing_undeclared` | — | red · `test_a_sampled_row_that_commits_nowhere_undeclared_fails_rather_than_skips` ("was skipped") |
-| T3 | `handed: <<<x git` misspelt in `SAMPLE` | — | red · `test_every_sampled_name_is_a_corpus_row` |
+| T3 | `handed: <<<x git` misspelt in `SAMPLE` | — | red · `test_every_sampled_name_is_a_corpus_row` · NAME NOT IN TREE: phase 2 removed it, because S2's row for the misspelt name fails on it too (`phases/phase-2.md`) |
 
 Every count of other-case killers is the same before and after. So the cases
 removed were S2 rows only, and for each mutation the remaining S2 rows still
