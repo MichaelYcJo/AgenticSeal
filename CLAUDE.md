@@ -18,8 +18,7 @@
 
 <!-- Above: a generated copy of templates/claude-md-block.md, the block
      install.sh distributes. Edit the template, then
-     `python3 .github/scripts/claude_block.py --write` regenerates this copy;
-     the hygiene workflow fails a pull request where the two differ.
+     `python3 .github/scripts/claude_block.py --write` regenerates this copy.
      Below: repo-local development rules for SpecSeal itself. -->
 
 ## The goal a design is chosen against — verification that runs unattended
@@ -41,12 +40,12 @@ is asked once, together, before the first edit, and nothing comes back mid-run.
 it costs.** Being written, shipped or documented is no reason to keep it. The
 record of truth is a test or a behaviour eval a rule's `Enforced by:` names,
 never coordinates somebody re-reads. A fact has one source: every other place
-links to it or derives it on demand, and never holds a second copy. A thing is
-re-checked only when it changed, by the party that knows what changed: the
-diff, CI. A change rewrites the text it amends in place, and in the same
-commit removes what it left standing on the old fact: a check, an exception,
-a comment, a copy. History goes to git, the changelog and the work record. `CONTRIBUTING.md` §*What a change to a gate
-must carry* is where a pull request answers this rule and the goal above.
+links to it or derives it, and never copies it. A thing is re-checked only
+when the diff or CI shows it changed. A change rewrites the text it amends in
+place, and in the same commit removes what stood on the old fact: a check, an
+exception, a comment, a copy. History goes to git, the changelog and the work
+record. `CONTRIBUTING.md` §*What a change to a gate must carry* is where a
+pull request answers this rule and the goal above.
 
 ## Repo rule — the merge method is fixed per direction, and it is not a preference
 
