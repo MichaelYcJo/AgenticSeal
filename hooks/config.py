@@ -943,13 +943,12 @@ def pact_declaration(text):
 
     **A pact row is read in one spelling, and every other line naming a pact
     is refused** (#759). A `| Pact notify | always |` written where the
-    table walk does not take it was read as the default, and under `always`
-    `evidence-check --reverify` then re-stamped a moved row citing no clause
-    with no record -- the re-stamp clears the drift that was the only
-    trigger for the record. `pact_lines_not_read` names every such line, and
-    each is refused with `notify` None. This reader alone refuses where the
-    others fail silent, and only for these two rows: no other row's default
-    loses a record that cannot be recovered.
+    table walk does not take it was read as the default, so a signer that
+    asked for `always` was read as never having asked, and the pact-change
+    record that value governs was lost. `pact_lines_not_read` names every
+    such line, and each is refused with `notify` None. This reader alone
+    refuses where the others fail silent, and only for these two rows: no
+    other row's default loses a record that cannot be recovered.
 
     Reads: guess — a signer's `| Item | Value |` table, read as cmark-gfm renders it, and every line naming a pact; unknown refused
 

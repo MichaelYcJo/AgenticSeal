@@ -124,7 +124,7 @@ BACKTICKS = re.compile(r"`+")
 # A fence delimiter line, as CommonMark 4.5 spells one: at most three spaces
 # of indentation, a run of three or more backticks or three or more tildes,
 # then the info string. `fence_opener` and `fence_closes` below are the rule
-# the ledger readers and the record readers ask — `fence_opener`'s docstring
+# the coordinate kernel and the record readers ask — `fence_opener`'s docstring
 # lists them, and the readers that still keep a rule of their own — and this
 # pattern is only their first half.
 #
@@ -330,9 +330,7 @@ def fence_opener(line):
       - `skills/code-review/scripts/round_record.py#fenced_after` applies the
         closer rule and the backtick-info rule by its own pattern and keeps
         a wider opener on purpose, so a fix fenced inside a list item still
-        reaches the record. That file keeps a vendored copy of these two
-        functions for the copy `evidence-ci` puts alone in a user
-        repository, where this module is not beside it. The fence walks in
+        reaches the record. The fence walks in
         `tests/test_docs_line_wrap.py#fenced_numbers` and
         `tests/test_handoff_outlives_the_merge.py#fenced_block_lines` ask
         these two functions with the same wider opener, a line's indentation
@@ -396,7 +394,7 @@ def fence_spans(lines):
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
     to the end, because a gate reading a record treats it as quoted and
     `round_record.py` refuses the record with a named message. A reader of a
-    line that HOLDS something — a ledger anchor, an open row — reads it,
+    line that HOLDS something — a fold marker, an open row — reads it,
     because only a block that closes is certainly a quotation
     (`docs/the-record-layout.md`'s *A marker counts only on a live line*).
 
@@ -648,11 +646,10 @@ def live_lines(lines):
     three answers `docs/the-record-layout.md` §*The fold, and what tells
     it from a deletion* gives: what this parks, the fold and `settle` refuse
     as a deletion at exit 1 and a kept directory, and the changelog gather
-    and the ledger fold pass as a line holding no marker.
+    passes as a line holding no marker.
 
     **The one rule for whether a line is live, and every reader of the fold
-    record and of the ledger sections asks it here** — `folded_items` below
-    and both loops of `skills/settle/scripts/settle.py#coordinates`. A line
+    record asks it here** — `folded_items` below. A line
     begins live when it begins outside a fenced block, outside an HTML
     comment and outside a code span. The line is handed back unchanged; what
     a caller reads out of it — a marker, a coordinate — lives inside
@@ -702,7 +699,6 @@ def live_lines(lines):
     **What this may not touch.** `comment_scan`, `strip_comments`,
     `blank_fences` and `readable` serve the other gates — `check_text`,
     `round_record.py`, `chain_check.py`, the review-history guard — and
-    `seal/ledger.md` pins `strip_comments`'s exact output while
     `tests/test_chain_hooks.py#reader_blanking_passes` pins the passes
     `readable` makes. None of them is on this path. What this scan and
     `blank_fences` DO share is the fence delimiter, `fence_opener` and
@@ -1572,14 +1568,15 @@ def show(root, ref, rel):
 
 
 def annotate(kind, path, line, message):
-    """A GitHub annotation in CI, a plain line anywhere else."""
+    """A GitHub annotation in CI, a plain line anywhere else.
+
+    Reads: observed — the `GITHUB_ACTIONS` environment variable; unknown passed"""
     if os.environ.get("GITHUB_ACTIONS"):
         # An annotation is matched against the diff by path, and GitHub spells
         # those the way git does. Every caller passes `display_path` output,
         # which is `os.sep`-spelled on purpose -- right for a line a person
         # reads, wrong for this. Unreachable while `hygiene.yml` pins
-        # `ubuntu-latest`; live the moment these tools run on the Windows leg,
-        # which is what the decision in `seal/ledger.md` points at.
+        # `ubuntu-latest`; live the moment these tools run on the Windows leg.
         where = f" file={git_path(path)},line={line}" if path else ""
         return f"::{kind}{where}::{message}"
     return f"{path}:{line}  {message}" if path else message

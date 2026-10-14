@@ -133,17 +133,16 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
     it. One function, so the class is closed by construction rather than one
     sentence at a time.
 
-    The comparison is by whole segment and literal, as
-    `evidence_check.py#display_name`'s is: nothing is case-folded, resolved or
-    normalised, so a path reached by another spelling of the repository
-    prints long and still names the file that was read. That function is not
-    reused because it keeps the caller's separators on purpose, and because
-    `load`'s sentence is printed before that module is loaded.
+    The comparison is by whole segment and literal: nothing is case-folded,
+    resolved or normalised, so a path reached by another spelling of the
+    repository prints long and still names the file that was read.
 
     FLAVOUR is the path module whose separators and drive rule apply;
     `ntpath` is what a case passes, so the Windows spelling is exercised on
     every platform rather than resting on a POSIX guarantee
     (`agent-contract` §13).
+
+    Reads: owned — the path strings its caller built from the filesystem, split on the platform's separators; unknown passed
     """
     seps = "".join(s for s in (flavour.sep, flavour.altsep) if s)
 

@@ -15,7 +15,7 @@ is that reader, shipped.
 above the cutoff opens with a bold rule sentence and carries exactly one live
 `Enforced by:` line, whose targets each resolve: a file inside the repository
 and, with `::name`, a `def` or `class` it defines once, as pytest spells a node
-id — `::Class::method` for a method — and resolved by the ledger's own reader,
+id — `::Class::method` for a method — and resolved by the coordinate kernel,
 `skills/evidence-check/scripts/evidence_check.py#named_unit`. Or the line says
 `nothing — <why>`, with a reason. Ids are epoch-prefixed, so the cutoff is a
 comparison and needs no list of exemptions, and `--shape-from 0` binds every
@@ -115,9 +115,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
 OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
-# The ledger's checker, whose `named_unit` is the one resolver of a
-# `path::name` target (#836): an `Enforced by:` line and a ledger row held by
-# a test name a unit in one grammar, so one function reads both.
+# The coordinate kernel, whose `named_unit` is the one resolver of a
+# `path::name` target (#836), so `fold-check` and `budget_check.py` read an
+# `Enforced by:` line in one grammar.
 EVIDENCE = os.path.join(
     HERE, "..", "..", "evidence-check", "scripts", "evidence_check.py"
 )
@@ -306,7 +306,7 @@ def target_problem(root, target):
     try:
         with open(full, encoding="utf-8") as f:
             text = f.read()
-        # The ledger's resolver (#836): `::A::b` is `b` inside `A`, as pytest
+        # The kernel's resolver (#836): `::A::b` is `b` inside `A`, as pytest
         # spells a method, and a name is looked up where it is defined rather
         # than anywhere in the file.
         kinds = evidence().named_unit(text, name.split("::"))

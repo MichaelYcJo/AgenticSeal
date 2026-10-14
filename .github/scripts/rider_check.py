@@ -11,25 +11,20 @@ the commits it had to name.** A fix pass runs on a feature branch, a feature
 branch squashes into its release branch, and the squash keeps none of the
 branch's own commits. The check then failed on the RELEASE branch, so whoever
 repaired it was never whoever caused it, and no mistake was required for any of
-it (#239). `skills/evidence-check/SKILL.md` already cites that exact failure as
-one of the four grounds for deriving a ledger anchor from content rather than
-writing a marker into the source, and `CLAUDE.md` states the rule that came out
-of it. The ledger got the repair; the mechanism that supplied the evidence did
-not, until here.
+it (#239).
 
 So a stamp names content:
 
     Verified 2026-09-08 against repo_root@1a2b3c4d
 
-`repo_root` is the ledger's own anchor vocabulary -- a dotted Python symbol
-name, a markdown heading path, or a quoted distinctive line -- resolved by
-`evidence_check.resolve_unit` against the rider's OWN file. The hash is
+`repo_root` is the coordinate kernel's anchor vocabulary -- a dotted Python
+symbol name, a markdown heading path, or a quoted distinctive line -- resolved
+by `evidence_check.resolve_unit` against the rider's OWN file. The hash is
 `evidence_check.content_hash` of the region that anchor names.
 
-**The path the ledger writes is left off, and that is the only departure.** A
-ledger row is not in the file it cites, so it needs one. A rider IS the
-coordinate, so the path would restate what the comment's location already says,
-and a rename would need two edits for one move.
+**The stamp names no path.** A rider IS the coordinate, so the path would
+restate what the comment's location already says, and a rename would need two
+edits for one move.
 
 ## The residual: a rider is inside the file it is about
 
@@ -76,15 +71,13 @@ to fall one way, it falls toward the silence.
   BROKEN   it resolves to nothing or to several places, or the checker
            refuses it because no rule bounds a unit in that file
 
-DRIFTED is the ledger's degradation and it is right here for a sharper reason
-than that it is right there: a drifted rider IS the rider firing. It says
-somebody edited the unit and did not answer the comment sitting in it, which is
-the arrival `seal/follow-up.md` moved riders to their coordinates to get.
+A drifted rider IS the rider firing. It says somebody edited the unit and did
+not answer the comment sitting in it, which is the arrival `seal/follow-up.md`
+moved riders to their coordinates to get.
 
-Both fail. `evidence_check` exits 1 on drift, so a rider that only warned would
-be the looser of two rules about one thing -- and answering a drifted rider is
-re-reading a comment in the file you just edited plus one command, where
-answering an orphaned commit was bookkeeping with no reading in it at all.
+Both fail. Answering a drifted rider is re-reading a comment in the file you
+just edited plus one command, where answering an orphaned commit was
+bookkeeping with no reading in it at all.
 
 **The checker's refusal is the rider's.** A rider anchored on a bare symbol in
 a file `evidence_check` has no bounding rule for — anything but `.py`, `.pyi`
@@ -670,9 +663,8 @@ def write_block(root, rider, body):
 def reverify(root, only=None, roots=RIDER_ROOTS, today=None, checker=None):
     """Recompute every resolvable hash, and move a date only where one moved.
 
-    Explicitly "I have re-read these", never something the check does — the
-    same act and the same reason as `evidence_check.py --reverify`. What it
-    may write and what it may not:
+    Explicitly "I have re-read these", never something the check does. What
+    it may write and what it may not:
 
       the HASH, wherever it has moved, because that is derived from the file
       in front of it;
@@ -685,9 +677,8 @@ def reverify(root, only=None, roots=RIDER_ROOTS, today=None, checker=None):
 
     The skip used to require the date to match too, so a rider whose content
     had not moved was rewritten because the date differed. It erased the
-    twelve original dates `--migrate` had proved, and it drifted the ledger
-    row of a unit nobody had touched, because a ledger hash covers comments
-    (round 1, findings 1, 2 and 3).
+    twelve original dates `--migrate` had proved (round 1, findings 1, 2 and
+    3).
 
     **An `only` that selects no rider is REFUSED by path**, so the run exits 1
     rather than printing a clean total. It used to print `0 restamped · 0
@@ -695,6 +686,8 @@ def reverify(root, only=None, roots=RIDER_ROOTS, today=None, checker=None):
     the answer a script reads. The reachable case is a path typed by hand, an
     absolute one, or `./hooks/…`, because the drift message prints the path a
     copy-paste always matches (round 2, finding 10).
+
+    Reads: guess — every rider comment in the tree and the file it rides in; unknown refused
     """
     checker = checker or load_checker()
     today = today or datetime.date.today().isoformat()
@@ -778,8 +771,7 @@ def inferred_anchor(checker, rel, text, rider):
 def migrate(root, roots=RIDER_ROOTS, checker=None):
     """One shot: `at <sha>` becomes `against <anchor>@<hash>`.
 
-    The old stamp's commit is consulted before anything is written, the way
-    `evidence_check.py --migrate` consults it before trusting a line number. A
+    The old stamp's commit is consulted before anything is written. A
     region that hashes at that commit to what it hashes today has not moved
     since the rider was earned, so the ORIGINAL date is kept — the reading it
     records really did happen against this content.
@@ -788,6 +780,8 @@ def migrate(root, roots=RIDER_ROOTS, checker=None):
     and named. The content moved after somebody verified it, and only a person
     re-reading the claim can say whether it still holds; writing today's date
     over it would manufacture a reading.
+
+    Reads: guess — every commit-stamped rider, its file, and that file at the stamp's commit through git; unknown refused
     """
     checker = checker or load_checker()
     written, refused = [], []

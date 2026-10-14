@@ -378,8 +378,8 @@ def evidence_check():
 
     Reads: observed — the checker's own module, executed by the interpreter; unknown refused
 
-    The census hashes a unit with the ledger's `py_spans` and `content_hash`,
-    imported and never copied, so a census line is the ledger's spelling and
+    The census hashes a unit with the kernel's `py_spans` and `content_hash`,
+    imported and never copied, so a census line is the kernel's spelling and
     `resolve_unit` finds it.
     """
     spec = importlib.util.spec_from_file_location(
@@ -435,7 +435,7 @@ def unit_hash(ec, text, name):
     """The census hash of the unit NAME in TEXT: `content_hash` over every
     span `py_spans` gives the name, in order.
 
-    Reads: nothing — hashes the text it is handed, through the ledger's two functions
+    Reads: nothing — hashes the text it is handed, through the kernel's two functions
 
     One span for every name in this tree. Several, where a module defines a
     name twice, are hashed together so that an edit to either moves it.

@@ -2119,14 +2119,10 @@ def fix_range(reader, root, rel):
     """(errors, notices) for one record's `Fix range` row, read against git.
 
     #344's class: a record is written once and the tree keeps moving, and
-    nothing read one against the other. The ledger has `evidence-check` for
-    exactly that job over content anchors; the records were left out of it,
-    and the part of a record that rots fastest is the part that is a claim
-    about COMMITS. The checker that reads such a claim has to be the one
-    already allowed to ask git, which is this one —
-    `skills/evidence-check/scripts/evidence_check.py` states the opposite bar
-    in its own test module, *no fixture here runs git, and no fixture here
-    may*.
+    nothing read one against the other. The part of a record that rots
+    fastest is the part that is a claim about COMMITS, and the checker that
+    reads such a claim has to be one already allowed to ask git, which is
+    this one.
 
     TWO halves are read, because either alone passes the record the other
     catches. The ENDS say which commits, and `round_record.parse_range`
@@ -2159,6 +2155,8 @@ def fix_range(reader, root, rel):
     is present and malformed fails on any record, because a cell nobody can
     parse is always the author's to fix, where a row that did not exist when
     the record was written is not.
+
+    Reads: guess — a round record's `Fix range` and `Fixes checked by` rows, and git's answer about the range named; unknown mixed
     """
     text = read_record(root, rel)
     if text is None:

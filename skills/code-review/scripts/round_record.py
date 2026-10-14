@@ -322,8 +322,7 @@ READ_HEADINGS = (*(h for h, _ in REPORT_TABLES), PASTE_READY)
 # It is also the shape that stops this tool during its own review rounds: a
 # reviewer of the record generator pastes record-shaped blocks, headings and
 # all, and the round that quotes the empty section's own sentence is exactly
-# the round that wrote no fixes. `seal/ledger.md` F3 names that scenario as
-# what the guard must never do.
+# the round that wrote no fixes, which the guard must never stop.
 #
 # What it gives up, stated rather than left to be found: a report that DOES
 # carry paste-ready fixes and whose heading a closed fence swallows now writes
@@ -589,7 +588,7 @@ RECORD_COMMENT_NEVER_CLOSED = (
     "the record this would write has an HTML comment that is never closed, so "
     "every line below it is blank to every reader of it -- `chain_check` at "
     "the pull request, the next round's inherited coordinates, "
-    "`evidence-check` -- and the record is written before any of them gets to "
+    "`unverified-check` -- and the record is written before any of them gets to "
     "say so. A copied cell and a copied block are SLICES of the report, so a "
     "comment the report itself balances arrives here as half of one. Close it "
     "inside the cell it opens in, or move it out of the row"
@@ -621,7 +620,7 @@ COMMENT, FENCE, STRADDLE = "comment", "fence", "straddle"
 # question shareable: the ORDER of the two passes is a property of `readable`
 # and not of any one text, so a text contributes its three sentences and
 # nothing else. The five sentences that predate #182 keep their bytes, so
-# every case and every ledger anchor naming one still stands.
+# every case naming one still stands.
 REPORT_HIDERS = {
     COMMENT: COMMENT_NEVER_CLOSED,
     FENCE: NEVER_CLOSED,

@@ -132,12 +132,10 @@
 .github/scripts/rider_check.py#load_blocks@7421654c
 .github/scripts/rider_check.py#load_checker@57b6dc4a
 .github/scripts/rider_check.py#main@ad761ced
-.github/scripts/rider_check.py#migrate@ed0b4579
 .github/scripts/rider_check.py#new_stamp@49bdfa6a
 .github/scripts/rider_check.py#region_hash@bd7aa6db
 .github/scripts/rider_check.py#region_lines@a6af1658
 .github/scripts/rider_check.py#restamp@d2250e11
-.github/scripts/rider_check.py#reverify@aac8e0e2
 .github/scripts/rider_check.py#riders_in@fc16e108
 .github/scripts/rider_check.py#stamp_pattern@2bec417e
 .github/scripts/rider_check.py#tree_files@3729ae45
@@ -631,7 +629,6 @@ skills/code-review/scripts/chain_check.py#field@804a11c7
 skills/code-review/scripts/chain_check.py#fields@d0beb4b8
 skills/code-review/scripts/chain_check.py#fix_of_a_fix@f6ebc26c
 skills/code-review/scripts/chain_check.py#fix_of_a_fix_count@ea693bb4
-skills/code-review/scripts/chain_check.py#fix_range@58aaf024
 skills/code-review/scripts/chain_check.py#fix_surface@0e66bceb
 skills/code-review/scripts/chain_check.py#floor_walks@2dd56771
 skills/code-review/scripts/chain_check.py#fof_of@d6af366f
@@ -830,7 +827,6 @@ skills/evidence-check/scripts/pact_check.py#pact_reviews@8163e54a
 skills/evidence-check/scripts/pact_check.py#path_map@3b4a8db8
 skills/evidence-check/scripts/pact_check.py#read@53358fcf
 skills/evidence-check/scripts/pact_check.py#renamed@0797d842
-skills/evidence-check/scripts/pact_check.py#shown@74191945
 skills/implement/scripts/seal.py#blocked_path@1ae38bcf
 skills/implement/scripts/seal.py#both_roots@7ebd59f1
 skills/implement/scripts/seal.py#check@abf017d7
@@ -1155,7 +1151,6 @@ skills/verify/scripts/unverified_check.py#_liveness@13b14119
 skills/verify/scripts/unverified_check.py#_paragraph_ends_at@ce0e3831
 skills/verify/scripts/unverified_check.py#_partner_ahead@00bac1d4
 skills/verify/scripts/unverified_check.py#_text_at@d603147b
-skills/verify/scripts/unverified_check.py#annotate@9a050236
 skills/verify/scripts/unverified_check.py#base_label@be240603
 skills/verify/scripts/unverified_check.py#blank_fences@d8110a00
 skills/verify/scripts/unverified_check.py#check_file@aab19743
