@@ -396,10 +396,9 @@ copy" rather than "lose it".
 - `seal export` zips `.git/seal/` alone, never the session state beside it,
   into `seal-<repo>-<date>.zip` with a manifest naming the remote URL and the
   HEAD SHA at export.
-- `seal import <zip>` never overwrites. Files are keyed by work-item id, so
-  missing ones are added; an id already present lands as
-  `<id>.incoming.md` beside the existing file, reported and not asked
-  about.
+- `seal import <zip>` never overwrites. Missing files are added; a file
+  already present with other bytes lands as `<name>.incoming<ext>` beside
+  the existing one, reported and not asked about.
 - The same pair is the mode switch: export, unzip into `<repo>/seal/`,
   commit. Or the reverse.
 - One reminder only. In local mode the release-preparation step prints

@@ -843,7 +843,6 @@ skills/implement/scripts/seal.py#indexed@1ff97a21
 skills/implement/scripts/seal.py#inside@96a840bc
 skills/implement/scripts/seal.py#install_workflow@b16c89ba
 skills/implement/scripts/seal.py#line_ending@36ba5560
-skills/implement/scripts/seal.py#linked_path@0ebc1dda
 skills/implement/scripts/seal.py#main@2d844df6
 skills/implement/scripts/seal.py#manifest_of@7dd09c09
 skills/implement/scripts/seal.py#mode@157b7fc2
@@ -872,7 +871,6 @@ skills/implement/scripts/seal.py#under@06ccabfa
 skills/implement/scripts/seal.py#unsafe@357fdfa7
 skills/implement/scripts/seal.py#unused@eb454662
 skills/implement/scripts/seal.py#work_item_digests@9011ba3a
-skills/implement/scripts/seal.py#work_item_of@85506870
 skills/implement/scripts/seal.py#write_members@7b13771a
 skills/implement/scripts/seal.py#write_state@0f424f83
 skills/implement/scripts/seal.py#write_zip@4fc691c2

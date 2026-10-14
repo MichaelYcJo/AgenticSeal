@@ -1,8 +1,8 @@
 """`seal export` and `seal import`: a copy leaves the clone, and nothing is
 overwritten taking one in.
 
-Issue #81. In local mode the ledger and the work-item records live under the
-common git directory, so a new machine or a re-clone starts with nothing.
+Issue #81. In local mode the work-item records live under the common git
+directory, so a new machine or a re-clone starts with nothing.
 Without a way to carry a copy that reads as *lose it* rather than *take a
 copy*, which is what these two commands answer.
 
@@ -24,7 +24,7 @@ name. What disqualifies it is that it overwrites, and that it writes through a
 symbolic link in the destination — the second is the escape that measured, so
 it has cases of its own AND a case that runs `extractall` against the standard
 library to show the hazard is still there. It is not only directories: round 1
-found the leaf uncovered, and a broken link named `ledger/w1.md` put a record
+found the leaf uncovered, and a broken link named `specs/w1/spec.md` put a record
 outside the root at exit 0.
 The name checks stay regardless: a defence that holds only while a
 standard-library sanitiser keeps its shape is not one this file can claim.
@@ -96,14 +96,13 @@ def git(repo, *args):
 
 
 def with_records(repo, home, item="1788000000-a-work-item"):
-    """A root holding one work item's directory and its ledger fragment."""
+    """A root holding one work item's directory and a root-level file."""
     work = home / "specs" / item
     work.mkdir(parents=True, exist_ok=True)
     (work / "spec.md").write_text("# spec\n", encoding="utf-8")
     (work / "routing.md").write_text("# routing\n", encoding="utf-8")
-    (home / "ledger").mkdir(exist_ok=True)
-    (home / "ledger" / f"{item}.md").write_text("# rows\n", encoding="utf-8")
-    (home / "ledger.md").write_text("# the ledger\n", encoding="utf-8")
+    (work / "plan.md").write_text("# rows\n", encoding="utf-8")
+    (home / "follow-up.md").write_text("# follow-up\n", encoding="utf-8")
     return home
 
 
@@ -178,8 +177,8 @@ def test_export_writes_the_zip_outside_the_working_tree(seal, repo, local, capsy
     )
     assert zipfile.ZipFile(written).namelist() == [
         "manifest.json",
-        "seal/ledger.md",
-        "seal/ledger/1788000000-a-work-item.md",
+        "seal/follow-up.md",
+        "seal/specs/1788000000-a-work-item/plan.md",
         "seal/specs/1788000000-a-work-item/routing.md",
         "seal/specs/1788000000-a-work-item/spec.md",
     ]
@@ -208,7 +207,7 @@ def test_a_second_export_on_the_same_day_does_not_overwrite_the_first(
     """Nothing this command writes ever replaces a file, and the zip is the
     first place that rule has to hold."""
     assert run(seal, ["export"], repo, capsys)[0] == 0
-    (local / "ledger.md").write_text("# changed\n", encoding="utf-8")
+    (local / "follow-up.md").write_text("# changed\n", encoding="utf-8")
     assert run(seal, ["export"], repo, capsys)[0] == 0
     zips = sorted(p for p in os.listdir(repo.parent) if p.endswith(".zip"))
     assert len(zips) == 2, zips
@@ -267,7 +266,7 @@ def test_a_link_leaves_the_digest_alone_too(seal, repo, local, capsys):
     nothing made."""
     item = local / "specs" / "1788000000-a-work-item"
     before = seal.work_item_digests(seal.root_files(str(local))[0])
-    symlink_or_skip(os.path.join("..", "..", "ledger.md"), str(item / "link.md"))
+    symlink_or_skip(os.path.join("..", "..", "follow-up.md"), str(item / "link.md"))
     after = seal.work_item_digests(seal.root_files(str(local))[0])
     assert before == after, "a symbolic link changed a work item's digest"
 
@@ -305,31 +304,31 @@ def test_missing_records_are_added(seal, carried, capsys):
     assert code == 0, out
     assert "4 files added" in out
     assert files_under(home) == [
-        "ledger.md",
-        "ledger/1788000000-a-work-item.md",
+        "follow-up.md",
+        "specs/1788000000-a-work-item/plan.md",
         "specs/1788000000-a-work-item/routing.md",
         "specs/1788000000-a-work-item/spec.md",
     ]
 
 
 def test_an_id_already_here_lands_beside_it_and_is_reported(seal, carried, capsys):
-    """S6. The design's own spelling: `<id>.incoming.md` beside the existing
-    file, reported and not asked about. The existing bytes are what the case
-    is really about — an import that overwrote them would still print a
-    perfectly good report."""
+    """S6. The design's own spelling: `<name>.incoming<ext>` beside the
+    existing file, reported and not asked about. The existing bytes are what
+    the case is really about — an import that overwrote them would still print
+    a perfectly good report."""
     zip_path, other, home = carried
-    (home / "ledger").mkdir(parents=True)
-    fragment = home / "ledger" / "1788000000-a-work-item.md"
-    fragment.write_text("# rows this clone wrote\n", encoding="utf-8")
+    (home / "specs" / "1788000000-a-work-item").mkdir(parents=True)
+    existing = home / "specs" / "1788000000-a-work-item" / "plan.md"
+    existing.write_text("# rows this clone wrote\n", encoding="utf-8")
 
     code, out = run(seal, ["import", zip_path], other, capsys)
     assert code == 0, out
-    assert fragment.read_text(encoding="utf-8") == "# rows this clone wrote\n", (
+    assert existing.read_text(encoding="utf-8") == "# rows this clone wrote\n", (
         "the import overwrote a file that was already here"
     )
-    landed = home / "ledger" / "1788000000-a-work-item.incoming.md"
+    landed = home / "specs" / "1788000000-a-work-item" / "plan.incoming.md"
     assert landed.read_text(encoding="utf-8") == "# rows\n"
-    assert "1788000000-a-work-item.incoming.md" in out
+    assert "1788000000-a-work-item/plan.incoming.md" in out
 
 
 def test_identical_bytes_are_not_a_collision(seal, carried, capsys):
@@ -348,23 +347,23 @@ def test_a_second_differing_copy_is_numbered_never_overwritten(seal, carried, ca
     """S8. Losing the second copy silently is the only outcome worse than a
     file with a long name."""
     zip_path, other, home = carried
-    (home / "ledger").mkdir(parents=True)
-    (home / "ledger" / "1788000000-a-work-item.md").write_text(
+    (home / "specs" / "1788000000-a-work-item").mkdir(parents=True)
+    (home / "specs" / "1788000000-a-work-item" / "plan.md").write_text(
         "# mine\n", encoding="utf-8"
     )
-    (home / "ledger" / "1788000000-a-work-item.incoming.md").write_text(
+    (home / "specs" / "1788000000-a-work-item" / "plan.incoming.md").write_text(
         "# earlier\n", encoding="utf-8"
     )
 
     code, out = run(seal, ["import", zip_path], other, capsys)
     assert code == 0, out
-    assert (home / "ledger" / "1788000000-a-work-item.md").read_text(
+    assert (home / "specs" / "1788000000-a-work-item" / "plan.md").read_text(
         encoding="utf-8"
     ) == "# mine\n"
-    assert (home / "ledger" / "1788000000-a-work-item.incoming.md").read_text(
+    assert (home / "specs" / "1788000000-a-work-item" / "plan.incoming.md").read_text(
         encoding="utf-8"
     ) == "# earlier\n"
-    assert (home / "ledger" / "1788000000-a-work-item.incoming-2.md").read_text(
+    assert (home / "specs" / "1788000000-a-work-item" / "plan.incoming-2.md").read_text(
         encoding="utf-8"
     ) == "# rows\n"
 
@@ -391,7 +390,7 @@ def test_into_shared_creates_the_committed_root(seal, carried, capsys):
     assert not shared.exists()
     code, out = run(seal, ["import", zip_path, "--into", "shared"], other, capsys)
     assert code == 0, out
-    assert (shared / "ledger.md").read_text(encoding="utf-8") == "# the ledger\n"
+    assert (shared / "follow-up.md").read_text(encoding="utf-8") == "# follow-up\n"
 
 
 def test_into_local_creates_the_root_under_the_git_directory(seal, carried, capsys):
@@ -400,7 +399,7 @@ def test_into_local_creates_the_root_under_the_git_directory(seal, carried, caps
     home.rmdir()
     code, out = run(seal, ["import", zip_path, "--into", "local"], other, capsys)
     assert code == 0, out
-    assert (home / "ledger.md").exists()
+    assert (home / "follow-up.md").exists()
     assert git(other, "status", "--porcelain") == "", "the import dirtied the tree"
 
 
@@ -412,7 +411,7 @@ def test_neither_root_present_defaults_to_local(seal, carried, capsys):
     home.rmdir()
     code, out = run(seal, ["import", zip_path], other, capsys)
     assert code == 0, out
-    assert (home / "ledger.md").exists()
+    assert (home / "follow-up.md").exists()
     assert not (other / "seal").exists()
 
 
@@ -433,7 +432,7 @@ def test_a_repository_with_no_commit_records_no_head(seal, tmp_path, capsys):
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
     home = local_home(repo)
     home.mkdir(parents=True, exist_ok=True)
-    (home / "ledger.md").write_text("# ledger\n", encoding="utf-8")
+    (home / "follow-up.md").write_text("# follow-up\n", encoding="utf-8")
 
     code, out = run(seal, ["export"], repo, capsys)
     assert code == 0, out
@@ -603,7 +602,7 @@ def test_the_flag_lets_an_unreadable_remote_through(seal, carried, monkeypatch, 
         seal, ["import", str(zip_path), "--allow-unreadable-remote"], other, capsys
     )
     assert code == 0, out
-    assert (home / "ledger" / "1788000000-a-work-item.md").exists(), out
+    assert (home / "specs" / "1788000000-a-work-item" / "plan.md").exists(), out
 
 
 def test_allow_other_repo_does_not_cover_an_unreadable_remote(
@@ -629,7 +628,7 @@ def test_a_clone_with_no_remote_still_imports(seal, carried, capsys):
     git(other, "remote", "remove", "origin")
     code, out = run(seal, ["import", str(zip_path)], other, capsys)
     assert code == 0, out
-    assert (home / "ledger" / "1788000000-a-work-item.md").exists(), out
+    assert (home / "specs" / "1788000000-a-work-item" / "plan.md").exists(), out
 
 
 def test_a_zip_that_records_no_remote_refuses(seal, carried, capsys):
@@ -642,7 +641,7 @@ def test_a_zip_that_records_no_remote_refuses(seal, carried, capsys):
     silent = other.parent / "no-remote.zip"
     with zipfile.ZipFile(silent, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("manifest.json", json.dumps({"format": 1}))
-        archive.writestr("seal/ledger/1788000000-a-work-item.md", "# rows\n")
+        archive.writestr("seal/specs/1788000000-a-work-item/plan.md", "# rows\n")
 
     code, out = run(seal, ["import", str(silent)], other, capsys)
     assert code == 1, out
@@ -658,11 +657,11 @@ def test_a_zip_recording_an_empty_remote_still_imports(seal, carried, capsys):
     quiet = other.parent / "empty-remote.zip"
     with zipfile.ZipFile(quiet, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("manifest.json", json.dumps({"format": 1, "remote": ""}))
-        archive.writestr("seal/ledger/1788000000-a-work-item.md", "# rows\n")
+        archive.writestr("seal/specs/1788000000-a-work-item/plan.md", "# rows\n")
 
     code, out = run(seal, ["import", str(quiet)], other, capsys)
     assert code == 0, out
-    assert (home / "ledger" / "1788000000-a-work-item.md").exists(), out
+    assert (home / "specs" / "1788000000-a-work-item" / "plan.md").exists(), out
 
 
 @pytest.mark.parametrize("value", [None, 42, [], {}, True])
@@ -682,7 +681,7 @@ def test_a_manifest_remote_of_the_wrong_type_refuses(seal, carried, capsys, valu
     bad = other.parent / f"typed-{type(value).__name__}.zip"
     with zipfile.ZipFile(bad, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("manifest.json", json.dumps({"format": 1, "remote": value}))
-        archive.writestr("seal/ledger/1788000000-a-work-item.md", "# rows\n")
+        archive.writestr("seal/specs/1788000000-a-work-item/plan.md", "# rows\n")
 
     code, out = run(seal, ["import", str(bad)], other, capsys)
     assert code == 1, out
@@ -712,7 +711,7 @@ def test_the_advice_names_the_machine_that_can_fix_it(
     silent = other.parent / "no-remote.zip"
     with zipfile.ZipFile(silent, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("manifest.json", json.dumps({"format": 1}))
-        archive.writestr("seal/ledger/1788000000-a-work-item.md", "# rows\n")
+        archive.writestr("seal/specs/1788000000-a-work-item/plan.md", "# rows\n")
 
     # Only the zip is silent.
     code, out = run(seal, ["import", str(silent)], other, capsys)
@@ -800,7 +799,7 @@ def test_a_member_declaring_more_than_a_record_refuses_the_zip(seal, carried, ca
     fat = other.parent / "fat.zip"
     with zipfile.ZipFile(fat, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("manifest.json", json.dumps({"format": 1, "remote": ""}))
-        archive.writestr("seal/ledger.md", "\0" * (40 * 1024 * 1024))
+        archive.writestr("seal/follow-up.md", "\0" * (40 * 1024 * 1024))
 
     code, out = run(seal, ["import", str(fat)], other, capsys)
     assert code == 1, out
@@ -839,9 +838,8 @@ def test_both_roots_present_refuses_and_names_which_is_read(seal, carried, capsy
 
 def test_export_in_shared_mode_writes_no_zip_and_says_why(seal, repo, capsys):
     """S12. The zip would be a second copy of committed files that nothing
-    keeps current, and git already carries the first. Exit 1 rather than 0 for
-    the reason `fold_ledger.py` exits 1 for *nothing to fold*: a caller
-    scripting `seal export && cp seal-*.zip …` must not copy nothing and
+    keeps current, and git already carries the first. Exit 1 rather than 0,
+    because a caller scripting `seal export && cp seal-*.zip …` must not copy nothing and
     report success."""
     with_records(repo, repo / "seal")
     code, out = run(seal, ["export"], repo, capsys)
@@ -882,7 +880,7 @@ def test_the_reminder_counts_an_added_and_a_removed_work_item(
     with_records(repo, local, item="1788000001-another")
     (local / "specs" / "1788000000-a-work-item" / "spec.md").unlink()
     (local / "specs" / "1788000000-a-work-item" / "routing.md").unlink()
-    (local / "ledger" / "1788000000-a-work-item.md").unlink()
+    (local / "specs" / "1788000000-a-work-item" / "plan.md").unlink()
 
     code, out = run(seal, ["export", "--check"], repo, capsys)
     assert code == 0
@@ -1039,7 +1037,7 @@ def test_a_linked_directory_in_the_destination_refuses_the_zip(seal, carried, ca
     assert code == 1, out
     assert "symbolic link" in out
     assert files_under(outside) == [], "a record was written outside the root"
-    assert not (home / "ledger.md").exists(), "a refusal wrote a file"
+    assert not (home / "follow-up.md").exists(), "a refusal wrote a file"
 
 
 def test_a_broken_link_where_a_record_goes_refuses_the_zip(seal, carried, capsys):
@@ -1056,8 +1054,8 @@ def test_a_broken_link_where_a_record_goes_refuses_the_zip(seal, carried, capsys
     zip_path, other, home = carried
     outside = other.parent / "outside"
     outside.mkdir()
-    target = outside / "ledger.md"
-    symlink_or_skip(str(target), str(home / "ledger.md"))
+    target = outside / "follow-up.md"
+    symlink_or_skip(str(target), str(home / "follow-up.md"))
     assert not target.exists(), "the link must be broken for this to be the case"
 
     code, out = run(seal, ["import", zip_path], other, capsys)
@@ -1087,17 +1085,17 @@ def test_a_broken_link_at_the_fallback_name_refuses_to_be_written_through(
     outside = other.parent / "outside"
     outside.mkdir()
     stolen = outside / "stolen.md"
-    (home / "ledger.md").write_text(
+    (home / "follow-up.md").write_text(
         "bytes that differ from the zip's\n", encoding="utf-8"
     )
-    symlink_or_skip(str(stolen), str(home / "ledger.incoming.md"))
+    symlink_or_skip(str(stolen), str(home / "follow-up.incoming.md"))
     assert not stolen.exists(), "the link must be broken for this to be the case"
 
     code, out = run(seal, ["import", zip_path], other, capsys)
     assert code == 0, out
     assert not stolen.exists(), "a record was written outside the root"
     assert files_under(outside) == [], "something was written outside the root"
-    assert (home / "ledger.incoming-2.md").exists(), (
+    assert (home / "follow-up.incoming-2.md").exists(), (
         "the copy must still land, past the name that is a link"
     )
 
@@ -1121,7 +1119,7 @@ def test_the_write_itself_refuses_a_name_that_became_a_link(
     outside = tmp_path / "outside"
     outside.mkdir()
     stolen = outside / "stolen.md"
-    symlink_or_skip(str(stolen), str(root / "ledger.md"))
+    symlink_or_skip(str(stolen), str(root / "follow-up.md"))
 
     monkeypatch.setattr(
         seal, "place", lambda destination, data: (destination, seal.ADDED)
@@ -1136,7 +1134,7 @@ def test_the_write_itself_refuses_a_name_that_became_a_link(
 
     archive_path = tmp_path / "z.zip"
     with zipfile.ZipFile(archive_path, "w") as archive:
-        archive.writestr("seal/ledger.md", "FROM THE ZIP")
+        archive.writestr("seal/follow-up.md", "FROM THE ZIP")
     with zipfile.ZipFile(archive_path) as archive:
         counts, collisions, refused = seal.write_members(archive, str(root))
 
@@ -1144,7 +1142,7 @@ def test_the_write_itself_refuses_a_name_that_became_a_link(
     assert list(outside.iterdir()) == [], "something was written outside the root"
     assert counts[seal.ADDED] == 0, "the report named a file that was not written"
     assert collisions == []
-    assert refused == ["ledger.md"], "a record was dropped without being named"
+    assert refused == ["follow-up.md"], "a record was dropped without being named"
 
 
 def test_a_link_at_the_partial_name_refuses_the_export(seal, repo, capsys):
@@ -1160,7 +1158,7 @@ def test_a_link_at_the_partial_name_refuses_the_export(seal, repo, capsys):
     """
     home = local_home(repo)
     home.mkdir(parents=True, exist_ok=True)
-    (home / "ledger.md").write_text("# ledger\n", encoding="utf-8")
+    (home / "follow-up.md").write_text("# follow-up\n", encoding="utf-8")
     outside = repo.parent / "outside"
     outside.mkdir()
     stem = the_stem_the_export_will_use(seal, repo)
@@ -1186,7 +1184,7 @@ def test_a_file_at_the_partial_name_survives_the_refusal(seal, repo, capsys):
     """
     home = local_home(repo)
     home.mkdir(parents=True, exist_ok=True)
-    (home / "ledger.md").write_text("# ledger\n", encoding="utf-8")
+    (home / "follow-up.md").write_text("# follow-up\n", encoding="utf-8")
     stem = the_stem_the_export_will_use(seal, repo)
     partial = repo.parent / f"{stem}.zip.partial"
     partial.write_text("somebody else's bytes\n", encoding="utf-8")
@@ -1214,7 +1212,7 @@ def test_the_export_refuses_the_link_where_o_excl_does_not_catch_it(
     """
     home = local_home(repo)
     home.mkdir(parents=True, exist_ok=True)
-    (home / "ledger.md").write_text("# ledger\n", encoding="utf-8")
+    (home / "follow-up.md").write_text("# follow-up\n", encoding="utf-8")
     outside = repo.parent / "outside"
     outside.mkdir()
     stem = the_stem_the_export_will_use(seal, repo)
@@ -1243,7 +1241,7 @@ def test_a_broken_link_at_the_zips_own_name_is_not_a_free_name(seal, repo, capsy
     """
     home = local_home(repo)
     home.mkdir(parents=True, exist_ok=True)
-    (home / "ledger.md").write_text("# ledger\n", encoding="utf-8")
+    (home / "follow-up.md").write_text("# follow-up\n", encoding="utf-8")
     stem = the_stem_the_export_will_use(seal, repo)
     taken = repo.parent / f"{stem}.zip"
     symlink_or_skip(str(repo.parent / "nowhere.bin"), str(taken))
@@ -1354,7 +1352,7 @@ def test_a_zip_whose_format_moved_the_names_says_so(seal, carried, capsys):
     later = other.parent / "later.zip"
     with zipfile.ZipFile(later, "w") as archive:
         archive.writestr("manifest.json", json.dumps({"format": 2, "remote": ""}))
-        archive.writestr("records/ledger.md", "moved\n")
+        archive.writestr("records/follow-up.md", "moved\n")
 
     code, out = run(seal, ["import", str(later)], other, capsys)
     assert code == 1, out
@@ -1402,7 +1400,7 @@ def test_a_manifest_with_both_fields_prints_the_time_and_the_sha(seal, carried, 
                 }
             ),
         )
-        archive.writestr("seal/ledger/w.md", "# w\n")
+        archive.writestr("seal/specs/w/spec.md", "# w\n")
 
     code, out = run(seal, ["import", str(z)], other, capsys)
     assert code == 0, out
@@ -1428,12 +1426,12 @@ def test_a_manifest_missing_exported_at_still_ends_with_a_line_of_its_own(
             "manifest.json",
             json.dumps({"format": 1, "remote": "", "head": "a" * 40}),
         )
-        archive.writestr("seal/ledger/w.md", "# w\n")
+        archive.writestr("seal/specs/w/spec.md", "# w\n")
 
     code, out = run(seal, ["import", str(z)], other, capsys)
     assert code == 0, out
     assert CLOSING in out, "the closing lines were not reached"
-    assert (home / "ledger" / "w.md").exists()
+    assert (home / "specs" / "w" / "spec.md").exists()
     # What it says instead, not only that it does not raise. Round 6 deleted
     # the whole block, then wrote a different phrase into it, and the suite
     # stayed green both times.
@@ -1474,7 +1472,7 @@ def test_a_manifest_field_of_the_wrong_type_does_not_raise(
     z = other.parent / f"bad-{field}-{type(value).__name__}.zip"
     with zipfile.ZipFile(z, "w") as archive:
         archive.writestr("manifest.json", json.dumps(manifest))
-        archive.writestr("seal/ledger/w.md", "# w\n")
+        archive.writestr("seal/specs/w/spec.md", "# w\n")
 
     past_the_guard = ["--allow-unreadable-remote"] if field == "remote" else []
     code, out = run(seal, ["import", str(z), *past_the_guard], other, capsys)
@@ -1496,7 +1494,7 @@ def test_the_manifests_other_spelling_gets_the_size_bound_too(seal, carried, cap
     with zipfile.ZipFile(z, "w") as archive:
         archive.writestr("manifest.json/", "")
         archive.writestr("manifest.json", json.dumps({"format": 1, "remote": ""}))
-        archive.writestr("seal/ledger/w.md", "# w\n")
+        archive.writestr("seal/specs/w/spec.md", "# w\n")
     # `writestr` recomputes `file_size` from the data, so the declared size has
     # to go into the central directory afterwards.
     raw = bytearray(z.read_bytes())
@@ -1528,7 +1526,7 @@ def test_a_manifest_larger_than_a_record_refuses_the_zip(seal, carried, capsys):
     fat = other.parent / "fat-manifest.zip"
     with zipfile.ZipFile(fat, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("manifest.json", "{" + " " * (40 * 1024 * 1024))
-        archive.writestr("seal/ledger.md", "row\n")
+        archive.writestr("seal/follow-up.md", "row\n")
 
     code, out = run(seal, ["import", str(fat)], other, capsys)
     assert code == 1, out
@@ -1550,7 +1548,7 @@ def test_the_data_is_read_before_the_manifest_is(seal, carried, capsys):
     broken = other.parent / "broken-manifest.zip"
     with zipfile.ZipFile(broken, "w") as archive:
         archive.writestr("manifest.json", json.dumps({"format": 1, "remote": "MARKER"}))
-        archive.writestr("seal/ledger.md", "row\n")
+        archive.writestr("seal/follow-up.md", "row\n")
     raw = bytearray(broken.read_bytes())
     at = raw.find(b"MARKER")
     assert at != -1
@@ -1573,7 +1571,7 @@ def test_a_member_this_build_cannot_decompress_refuses_the_zip(seal, carried, ca
     odd = other.parent / "odd-method.zip"
     with zipfile.ZipFile(odd, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("manifest.json", json.dumps({"format": 1, "remote": ""}))
-        archive.writestr("seal/ledger.md", "row\n")
+        archive.writestr("seal/follow-up.md", "row\n")
     # The compression method is two bytes at +8 in a local header and at +10
     # in a central-directory entry. 99 is the AES marker, which this build has
     # no decompressor for.
@@ -1715,7 +1713,7 @@ def test_a_zip_from_another_repository_refuses_and_names_the_flag(
                 {"format": 1, "remote": "git@example.com:org/somewhere-else.git"}
             ),
         )
-        archive.writestr("seal/ledger.md", "# theirs\n")
+        archive.writestr("seal/follow-up.md", "# theirs\n")
     before = files_under(home)
 
     code, out = run(seal, ["import", str(foreign)], other, capsys)
@@ -1726,7 +1724,7 @@ def test_a_zip_from_another_repository_refuses_and_names_the_flag(
 
     code, out = run(seal, ["import", str(foreign), "--allow-other-repo"], other, capsys)
     assert code == 0, out
-    assert (home / "ledger.md").read_text(encoding="utf-8") == "# theirs\n"
+    assert (home / "follow-up.md").read_text(encoding="utf-8") == "# theirs\n"
 
 
 def test_two_spellings_of_one_repository_are_one_repository(seal, carried, capsys):
@@ -1784,7 +1782,7 @@ def test_a_manifest_this_build_cannot_read_refuses(seal, carried, capsys, manife
     with zipfile.ZipFile(path, "w") as archive:
         if manifest is not None:
             archive.writestr("manifest.json", json.dumps(manifest))
-        archive.writestr("seal/ledger.md", "x")
+        archive.writestr("seal/follow-up.md", "x")
     before = files_under(home)
 
     code, out = run(seal, ["import", str(path)], other, capsys)

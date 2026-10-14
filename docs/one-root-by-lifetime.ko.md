@@ -377,9 +377,9 @@ smith 표시와 워크트리 선택 기록이 이미 있는 자리입니다. 그
 - `seal export` 는 `.git/seal/` 만 `seal-<repo>-<date>.zip` 으로 묶습니다.
   옆의 세션 상태는 넣지 않습니다. 매니페스트에 원격 URL 과 export 시점의
   HEAD SHA 를 적습니다.
-- `seal import <zip>` 은 덮어쓰지 않습니다. 파일은 작업 항목 id 로
-  구분되므로 없는 것은 추가하고, 이미 있는 id 는 기존 파일 옆에
-  `<id>.incoming.md` 로 내려놓고 알립니다. 묻지 않습니다.
+- `seal import <zip>` 은 덮어쓰지 않습니다. 없는 파일은 추가하고, 이미
+  있는데 내용이 다른 파일은 기존 파일 옆에 `<name>.incoming<ext>` 로
+  내려놓고 알립니다. 묻지 않습니다.
 - 같은 쌍이 모드 전환입니다. export 한 뒤 `<repo>/seal/` 에 풀고
   커밋합니다. 반대도 같습니다.
 - 알림은 하나뿐입니다. local 모드에서는 릴리스 준비 단계에서 "마지막 export
