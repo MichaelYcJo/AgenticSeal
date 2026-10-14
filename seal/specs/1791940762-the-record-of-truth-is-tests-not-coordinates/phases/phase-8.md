@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 8 |
-| Commit | written when the phase closes |
+| Commit | a8d02ea5 |
 | Ran by | smith on Opus 5.5, as the attribution line in the spawn prompt names it |
 
 ## What this phase was asked
@@ -49,3 +49,58 @@ does not read leaves the signer with no row at the pact's repository:
 (`skills/verify/scripts/pact_check.py#check`, held by
 `tests/test_pact_check.py::test_s11_a_relationship_recorded_on_one_side_is_refused`;
 read). So the removal's premise holds: nothing live needs the rule.
+
+**A leftover `Pact notify` row is read by nobody, and nothing names it.**
+Decided here and stated once, in `templates/config.md` §*Pact*: in the
+table, no command refuses, prints or names it, like any item no reader asks
+for; below the table and above the next heading it is the walker's
+refusal, as any row there is.
+Naming it would keep a reader alive for a row that changes nothing, and a
+refusal would stop `pact-check` at the pact's repository over it. This is
+also how phase 5 left the `Ledger frozen from` and `Removes from` rows.
+Three cases hold it, one per reader's caller, each seen red by one
+mutation that refused the row again.
+
+**One more unit stood only on the rule.** `hooks/config.py#indexed_config_rows`
+had no caller in code, and its docstring gave the rule as its one reason;
+it goes, with its assertion in `tests/test_the_mode_question_is_asked_once.py`,
+whose `config_table` assertion beside it already holds the same rows.
+`gfm_table_oracle.rows_under` stays: `tests/test_one_table_walker_reads_what_gfm_renders.py`
+calls it.
+
+**What left, by commit.**
+
+| Commit | What |
+|---|---|
+| f873c26c | the measurement above |
+| 535ccaf2 | `Pact notify` and the one-spelling machinery, with `indexed_config_rows`: `pact_declaration` returns `(pacts, refusals)` and `declared_pacts` the same or None; `chain-check`'s notice and `pact-check`'s `READ` line drop the value; `tests/test_a_signer_declares_its_pact.py` from 2,649 cases to 50, the two notify cases and #759's S7 in `tests/test_pact_check.py` and the notify parameters and #759's S8 in `tests/test_a_signers_ci_prints_its_pact.py` replaced by one leftover-row case each; the walker table's `pact_lines_not_read` row; `templates/config.md` (the table row, the vocabulary bullet, §*Pact*), `skills/config/SKILL.md` (nine rows), `docs/the-pact.md` (two statements out, one rewritten, one sentence), the routing step's row, `changelog.md`; `declared_pacts`, `doubled_row` and `chain_check.py#pact_notices` declare and leave `tests/undeclared_readers.txt`, and `pact_line_refusal` leaves it; `unenforced:templates/config.md` 34 → 31 |
+| a8d02ea5 | a doubled `Pact` row keeps the walker's refusal last, which `mutation-check` showed no case watched once the notify arm left |
+
+**What `git grep -n 'Pact notify'` still names, and why.**
+
+| Where | Why |
+|---|---|
+| `templates/config.md` §*Pact* | the leftover-row statement, the one place it is said |
+| `hooks/config.py#pact_declaration` | the docstring sentence pointing at that statement |
+| the three pact test modules | the leftover-row cases and the template pin |
+| `.test_durations`, 648 lines | ids of deleted cases; 2,609 entries for the three modules' deleted cases (55.5 s) stay for the refresh's `--clean-durations` |
+| `changelog/0.18.0.md` to `0.19.0.md` | released entries |
+| `seal/specs/*` of ten earlier work items, and this item's records | process records, retired by `settle --retire-process` |
+
+**Verification, executed unless named.** The three pact modules, the
+settings, line-end, mode-question, census and one-reader modules: 558 cases,
+three red on a first spelling whose `notify` assertion matched the test's
+own temp path, then green. Every test module naming a changed file, 66
+modules: 4,385 passed, 9 skipped. The encoding and interpreter modules: 173
+passed. `budget_check.py` exit 1 on the tree until the template's row was
+lowered, then exit 0 on the tree and against `origin/release/v0.22.0`.
+`uvx ruff check` and `ruff format --check` on every changed Python file,
+exit 0 after one `RUF005` fix. `mutation-check`, each `red`: the reader
+refusing a leftover row (five cases in three modules), `pact-check`'s `READ`
+line and `chain-check`'s notice naming the value again, the template's
+statement and the skill's `nine` reworded, the walker's refusal dropped
+from each of `pact_declaration`'s three returns, and `declared_pacts`
+returning the old `None` notify for no file.
+`test_the_durations_file_prices_the_suite` is red: 617 of 9,208 collected
+cases unpriced (6.7 %), the same refresh `overview.md` §*Not verified*
+names. The full suite is the sealer's.
