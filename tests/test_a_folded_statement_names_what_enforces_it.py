@@ -189,7 +189,7 @@ def test_a_method_spelled_with_a_dot_is_named(tmp_path):
 
 
 def test_a_constant_is_no_def_or_class(tmp_path):
-    """The ledger's resolver knows constants too; `fold-check` still accepts
+    """`named_unit` knows constants too; `fold-check` still accepts
     a `def` or a `class` and nothing else."""
     found = planted(tmp_path, "**Rule.**\nEnforced by: tests/test_x.py::LIMIT\n")
     assert len(found) == 1 and "no def or class named LIMIT" in found[0], found
@@ -216,7 +216,7 @@ def test_a_name_defined_twice_is_no_target(tmp_path, source):
     )
 
 
-def test_the_target_is_resolved_by_the_ledgers_reader():
+def test_the_target_is_resolved_by_named_unit():
     """D6 of #836: one resolver of `path::name`. `fold_check.py` walks no
     tree of its own for a target; it asks `named_unit`."""
     source = read(SCRIPT)

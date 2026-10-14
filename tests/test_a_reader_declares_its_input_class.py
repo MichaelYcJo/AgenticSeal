@@ -339,7 +339,7 @@ def test_a_tracked_file_off_disk_is_returned_as_missing(tmp_path):
     assert keys(units) == ["hooks/a.py#a"] and missing == ["hooks/b.py"]
 
 
-def test_the_census_hash_is_the_ledgers_hash_of_the_unit(tmp_path):
+def test_the_census_hash_is_content_hash_over_the_unit(tmp_path):
     """R5. A census line is the kernel's own spelling: `resolve_unit` finds
     `path#unit`, and `content_hash` over that span is the line's hash."""
     text = "import os\n\n@deco\ndef f(x):\n    return x\n"

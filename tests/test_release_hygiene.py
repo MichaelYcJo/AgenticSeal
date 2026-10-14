@@ -1788,7 +1788,9 @@ def test_the_chain_check_reuses_the_reader_rather_than_writing_a_second():
 
 
 # The places the evidence ledger lived under the `seal/` root until #944
-# took it out of the tree. Git keeps the files at `v0.21.1`.
+# took it out of the tree. Git keeps the files at `v0.21.1`. The guard stays
+# while a branch cut before #944 can still add `seal/ledger/<id>.md`: a merge
+# brings a new file back without a conflict, and this is what names it.
 LEDGER_PATHS = ("ledger.md", "ledger", "releases")
 
 

@@ -246,7 +246,7 @@ and the `enforced-unresolved` budget read it through
 `skills/settle/scripts/fold_check.py#target_problem`, which looks the name up
 through `coordinates.py#named_unit`. A name is looked up where it is
 defined, and any `def` or `class` or a file alone is accepted.
-Enforced by: tests/test_a_folded_statement_names_what_enforces_it.py::test_a_method_resolves_in_pytests_spelling, tests/test_a_folded_statement_names_what_enforces_it.py::test_the_target_is_resolved_by_the_ledgers_reader
+Enforced by: tests/test_a_folded_statement_names_what_enforces_it.py::test_a_method_resolves_in_pytests_spelling, tests/test_a_folded_statement_names_what_enforces_it.py::test_the_target_is_resolved_by_named_unit
 
 <!-- specs/1790154761-folded-statements-pile-into-one-spec -->
 **A fold into a document with a `.ko.md` edition is a fold into both, under
