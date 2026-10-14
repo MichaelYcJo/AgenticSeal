@@ -14,6 +14,8 @@ import os
 import subprocess
 import sys
 
+import pytest
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT = os.path.join(ROOT, ".github", "scripts", "case_check.py")
 
@@ -331,172 +333,130 @@ def run(root, capsys, *extra):
     return code, capsys.readouterr().out
 
 
-def test_a_new_case_that_alone_kills_a_mutant_of_changed_code_is_proved(
-    tmp_path, capsys, monkeypatch
+CHANGED = MODULE.replace("x * 2", "x + x")
+TWIN = DOUBLE.replace("test_double", "test_double_too")
+PIN = (
+    '\ndef test_doc():\n    with open("doc.md", encoding="utf-8") as f:\n'
+    '        assert "A second sentence." in f.read()\n'
+)
+S4 = "tests/test_m.py::test_double: proved — the only killer in its file of m.py:2"
+
+
+@pytest.mark.parametrize(
+    "base, head, options, code, expected",
+    [
+        pytest.param(
+            {"tests/test_m.py": module_text(NAME)},
+            {"m.py": CHANGED, "tests/test_m.py": module_text(NAME, DOUBLE)},
+            {},
+            0,
+            [S4],
+            id="S4 a new case alone kills a mutant of changed code",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(NAME)},
+            {"m.py": CHANGED, "tests/test_m.py": module_text(NAME, DOUBLE)},
+            {"newline": "\r\n"},
+            0,
+            [S4],
+            id="a checkout with CRLF line ends is mutated as its bytes stand",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(DOUBLE)},
+            {"tests/test_m.py": module_text(DOUBLE, TWIN)},
+            {},
+            1,
+            [
+                "tests/test_m.py::test_double_too: kills nothing its file does "
+                "not: of the 2 mutants drawn for it, the lines fewest of its "
+                "siblings run first and at most 12, each it killed was killed by "
+                "another case too, or none was\n"
+            ],
+            id="S3 a case its file already covers is named",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(NAME)},
+            {
+                "m.py": CHANGED + "\n\ndef unused():\n    return 7\n",
+                "tests/test_m.py": module_text(NAME, DOUBLE),
+            },
+            {},
+            0,
+            ["  survived m.py:10 `return` made `return None`"],
+            id="a mutant of changed code nothing kills is reported",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(DOUBLE)},
+            {"tests/test_m.py": module_text(DOUBLE, NAME)},
+            {},
+            0,
+            [
+                "tests/test_m.py::test_name: proved — the only killer in its file of m.py:6"
+            ],
+            id="a tests-only change draws from the lines its case runs",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(DOUBLE), "doc.md": "One sentence.\n"},
+            {
+                "doc.md": "One sentence.\nA second sentence.\n",
+                "tests/test_m.py": module_text(DOUBLE, PIN),
+            },
+            {},
+            0,
+            [
+                "tests/test_m.py::test_doc: proved — the only killer in its file "
+                "of doc.md:2 line removed"
+            ],
+            id="S5 a prose pin is proved by its sentence removed",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(DOUBLE)},
+            {
+                "tests/test_m.py": module_text(
+                    DOUBLE.replace("double(2) == 4", "double(3) == 6")
+                )
+            },
+            {},
+            0,
+            ["tests/test_m.py::test_double: proved"],
+            id="S2 a changed function is read as new",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(DOUBLE, NAME)},
+            {"tests/test_m.py": module_text(DOUBLE)},
+            {},
+            0,
+            ["  removed tests/test_m.py::test_name"],
+            id="a removed case is listed",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text()},
+            {"tests/test_m.py": module_text(DOUBLE)},
+            {"extra": ("--bound", "0.0001")},
+            1,
+            ["tests/test_m.py: restructure: test the decision directly"],
+            id="a file whose proof would pass the bound is named to restructure",
+        ),
+    ],
+)
+def test_each_real_path_end_to_end(
+    tmp_path, capsys, monkeypatch, base, head, options, code, expected
 ):
-    """S4: a pull request changes a line and adds the case that guards it; the
-    case is its file's only killer of a mutant of that line. The summary says
-    which, on stdout and in the step summary, naming no path outside the root."""
-    root = tree(
-        tmp_path,
-        {"tests/test_m.py": module_text(NAME)},
-        {
-            "m.py": MODULE.replace("x * 2", "x + x"),
-            "tests/test_m.py": module_text(NAME, DOUBLE),
-        },
-    )
+    """Each path the check takes, once, on a fixture repository at a base
+    commit and at HEAD, with real mutants through `mutation_check.py`. The
+    rows are one case on purpose: the check holds one function's ids as one
+    killer, so a path's run is not named for sharing its lines with another
+    path's. Each row's lines reach stdout and the step summary alike, and
+    neither names a path outside the root; a proof past the bound is named
+    before any mutant runs, so nothing is proved."""
+    root = tree(tmp_path, base, head, options.get("newline", "\n"))
     summary = tmp_path / "summary.md"
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
-    code, out = run(root, capsys)
-    assert code == 0, out
-    line = (
-        "tests/test_m.py::test_double: proved — the only killer in its file of m.py:2"
-    )
-    assert line in out, out
-    assert line in summary.read_text(encoding="utf-8")
+    found, out = run(root, capsys, *options.get("extra", ()))
+    assert found == code, out
+    for line in expected:
+        assert line in out, out
+        assert line in summary.read_text(encoding="utf-8")
     assert str(tmp_path) not in out, out
-
-
-def test_a_checkout_with_crlf_line_ends_is_mutated_as_its_bytes_stand(tmp_path, capsys):
-    """Windows checks a tree out with CRLF line ends, and `mutation-check`
-    matches a mutant against the file's bytes. PR #939's `windows-latest` leg
-    built every mutant `\\n`-joined, none landed, and S4 read `0 proved`."""
-    root = tree(
-        tmp_path,
-        {"tests/test_m.py": module_text(NAME)},
-        {
-            "m.py": MODULE.replace("x * 2", "x + x"),
-            "tests/test_m.py": module_text(NAME, DOUBLE),
-        },
-        newline="\r\n",
-    )
-    code, out = run(root, capsys)
-    assert code == 0, out
-    assert (
-        "tests/test_m.py::test_double: proved — the only killer in its file of m.py:2"
-        in out
-    ), out
-
-
-def test_a_new_case_its_file_already_covers_is_named(tmp_path, capsys):
-    """S3: a case that runs only what a sibling runs and asserts what it
-    asserts kills nothing its file does not, and is named."""
-    twin = DOUBLE.replace("test_double", "test_double_too")
-    root = tree(
-        tmp_path,
-        {"tests/test_m.py": module_text(DOUBLE)},
-        {"tests/test_m.py": module_text(DOUBLE, twin)},
-    )
-    code, out = run(root, capsys)
-    assert code == 1, out
-    assert (
-        "tests/test_m.py::test_double_too: kills nothing its file does not: of "
-        "the 2 mutants drawn for it, the lines fewest of its siblings run first "
-        "and at most 12, each it killed was killed by another case too, or none "
-        "was\n"
-    ) in out, out
-
-
-def test_a_mutant_of_changed_code_nothing_kills_is_reported_and_fails_nothing(
-    tmp_path, capsys
-):
-    """What nothing kills is a report: a changed line no case runs is listed
-    as a survivor, and the pull request's proved case still passes."""
-    root = tree(
-        tmp_path,
-        {"tests/test_m.py": module_text(NAME)},
-        {
-            "m.py": MODULE.replace("x * 2", "x + x")
-            + "\n\ndef unused():\n    return 7\n",
-            "tests/test_m.py": module_text(NAME, DOUBLE),
-        },
-    )
-    code, out = run(root, capsys)
-    assert code == 0, out
-    assert "  survived m.py:10 `return` made `return None`" in out, out
-
-
-def test_a_tests_only_change_draws_its_mutants_from_the_lines_it_runs(tmp_path, capsys):
-    """A pull request that changes no shipped line and adds a case: the case's
-    mutants come from what it runs and its siblings do not."""
-    root = tree(
-        tmp_path,
-        {"tests/test_m.py": module_text(DOUBLE)},
-        {"tests/test_m.py": module_text(DOUBLE, NAME)},
-    )
-    code, out = run(root, capsys)
-    assert code == 0, out
-    assert (
-        "tests/test_m.py::test_name: proved — the only killer in its file of m.py:6"
-        in out
-    ), out
-
-
-def test_a_prose_pin_is_proved_by_its_sentence_removed(tmp_path, capsys):
-    """S5: a pull request adds a sentence and the case that pins it; the
-    sentence removed is the mutant only that case kills."""
-    pin = (
-        '\ndef test_doc():\n    with open("doc.md", encoding="utf-8") as f:\n'
-        '        assert "A second sentence." in f.read()\n'
-    )
-    root = tree(
-        tmp_path,
-        {"tests/test_m.py": module_text(DOUBLE), "doc.md": "One sentence.\n"},
-        {
-            "doc.md": "One sentence.\nA second sentence.\n",
-            "tests/test_m.py": module_text(DOUBLE, pin),
-        },
-    )
-    code, out = run(root, capsys)
-    assert code == 0, out
-    assert (
-        "tests/test_m.py::test_doc: proved — the only killer in its file of doc.md:2 line removed"
-        in out
-    ), out
-
-
-def test_a_changed_function_is_read_as_new(tmp_path, capsys):
-    """S2: a function whose body changed is read, though its name is at the
-    base, so it is proved again rather than passed over."""
-    root = tree(
-        tmp_path,
-        {"tests/test_m.py": module_text(DOUBLE)},
-        {
-            "tests/test_m.py": module_text(
-                DOUBLE.replace("double(2) == 4", "double(3) == 6")
-            )
-        },
-    )
-    code, out = run(root, capsys)
-    assert code == 0, out
-    assert "tests/test_m.py::test_double: proved" in out, out
-
-
-def test_a_removed_case_is_listed(tmp_path, capsys):
-    """A removal is reported, never gated: the work item's mutation table is
-    its proof."""
-    root = tree(
-        tmp_path,
-        {"tests/test_m.py": module_text(DOUBLE, NAME)},
-        {"tests/test_m.py": module_text(DOUBLE)},
-    )
-    code, out = run(root, capsys)
-    assert code == 0, out
-    assert "  removed tests/test_m.py::test_name" in out, out
-
-
-def test_a_file_whose_proof_would_pass_the_bound_is_named_to_restructure(
-    tmp_path, capsys
-):
-    """The owner's bound (#929): the proof ends within `--bound` minutes and
-    never on a timeout. A file whose traced run alone passes what is left is
-    named before any mutant runs."""
-    root = tree(
-        tmp_path,
-        {"tests/test_m.py": module_text()},
-        {"tests/test_m.py": module_text(DOUBLE)},
-    )
-    code, out = run(root, capsys, "--bound", "0.0001")
-    assert code == 1, out
-    assert "tests/test_m.py: restructure: test the decision directly" in out, out
-    assert "proved" not in out.split("\n", 1)[1], out
+    if "extra" in options:
+        assert "proved" not in out.split("\n", 1)[1], out
