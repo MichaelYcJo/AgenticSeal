@@ -75,6 +75,11 @@ GRAMMAR = 'Kills: <path> "<OLD>" "<NEW>"'
 
 # `mutation-check`'s exit codes (`skills/verify/scripts/mutation_check.py`).
 RED, SURVIVED, MEASURED_NOTHING = 0, 1, 2
+# Where Python's tokenizer ends a line, which is what `ast` numbers lines by.
+# `str.splitlines` also ends one at characters such as U+2028 that Python
+# reads inside a string, so a file holding one would shift every later line
+# and cut a function's text short of the line its change is on.
+PYTHON_LINE_END = re.compile(r"\r\n|\r|\n")
 # What every run of a test file is handed after its path: the summary lines
 # the killer set is read from, and no cache written into the tree.
 TAIL = ["-q", "-rfE", "-p", "no:cacheprovider"]
@@ -166,7 +171,7 @@ def kills_text(source, function):
         if raw.endswith(opener.group(1)):
             raw = raw[: -len(opener.group(1))]
     found = []
-    for line in raw.splitlines():
+    for line in PYTHON_LINE_END.split(raw):
         line = line.strip()
         if line.startswith(KILLS):
             found.append(line[len(KILLS) :])
@@ -185,7 +190,7 @@ def test_functions(source):
     Reads: observed — a test module's source, parsed by `ast`; unknown refused
     """
     tree = ast.parse(source)
-    lines = source.splitlines()
+    lines = PYTHON_LINE_END.split(source)
     found = {}
 
     def add(name, node):

@@ -359,3 +359,28 @@ def test_a_caller_that_ran_the_baseline_skips_it_in_mutation_check(tmp_path):
     assert passed.stdout.startswith("red"), passed.stdout
     assert check().stdout.startswith("no baseline")
     assert target.read_text(encoding="utf-8") == "A = 1\n"
+
+
+def test_a_line_end_python_does_not_read_moves_no_function(tmp_path, capsys):
+    """A function's text is cut where Python ends a line, which is what `ast`
+    numbers lines by. A U+2028 inside a string is no line end there, so a
+    change on the function's last line is still read as a change.
+
+    Kills: .github/scripts/case_check.py "    lines = PYTHON_LINE_END.split(source)" "    lines = source.splitlines()"
+    """
+    body = (
+        '\ndef test_a():\n    """Kills: m.py "return x * 2" "return x * 3"\n'
+        '    """\n    s = "x' + chr(0x2028) + 'y"\n    assert m.double(2) == 4\n'
+    )
+    root = tree(
+        tmp_path,
+        {"tests/test_m.py": module_text(body)},
+        {
+            "tests/test_m.py": module_text(
+                body.replace("double(2) == 4", "double(0) == 0")
+            )
+        },
+    )
+    code, out = run(root, capsys)
+    assert code == 1, out
+    assert "tests/test_m.py::test_a: SURVIVED" in out, out

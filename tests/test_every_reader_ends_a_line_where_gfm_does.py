@@ -520,6 +520,13 @@ OUT_OF_CLASS = {
         "the `str.splitlines` pieces `gfm_table` numbers a row by",
     ),
     (".github/scripts/rules.py", "main"): (1, "the docstring's first line"),
+    (".github/scripts/case_check.py", "file_run"): (1, TOOL),
+    (".github/scripts/case_check.py", "main"): (1, "the docstring's first line"),
+    (".github/scripts/case_check.py", "mutation_run"): (1, TOOL),
+    (".github/scripts/case_check.py", "read_list"): (
+        1,
+        "`tests/unguarded-files.txt`, one test file path a line, not markdown",
+    ),
     (".github/scripts/close_issues_on_release.py", "arrived"): (2, GIT),
     (".github/scripts/issue_claims_check.py", "main"): (
         1,
