@@ -176,6 +176,66 @@ The survivors listed in the runs are real holes, not noise. Two examples: a
 row of the comparison table no case exercises (`case_check.py:180–184`), and
 `case_check.py:346` `and` made `or`.
 
+**After CI run 38498393195** (b2564df7), which failed three jobs. Each was
+read from its log before anything changed:
+
+- **The `cases` job** named 7 cases `restructure`: each drew 400 to 534
+  mutants in path order and ran 23 or fewer. The draw is redesigned, and
+  the bound is unchanged (cbfd322c):
+  - lines are ranked by how many siblings run them; a line only a sibling
+    ran is never drawn; ties take a changed line first, then one line per
+    unit;
+  - the draw stops at 12 (`DRAW_CAP`);
+  - the case's own ids run first and the siblings only where it failed, so
+    a miss costs one case's run;
+  - a subset keeps xdist's workers where the traced call seconds reach
+    `WORKERS_PAY_S`;
+  - a line no call ran runs the whole file, because an element removed from
+    a parametrization's list removes an id;
+  - the survivor report runs after every file's proofs.
+
+  The draw then reached the end of the operators, so four were added: the
+  last operand of `and`/`or` dropped, `in`/`not in` and `is`/`is not`
+  flipped, and an element removed.
+- **Windows** `could not start: C:hostedtoolcache…python.exe`: `shlex.split`
+  reads `\` as an escape. `arm_check.py#command_words` keeps it on Windows,
+  and `mutation-check`, `arm-check` and `case_check.py` split there
+  (c0e6cbdf).
+- **Windows** `#686: cd $W unset` landed nowhere. The cause is bash 5.3, not
+  Windows: 5.3 refuses `cd ""` (its `null directory` error). The images carry
+  5.3 on Windows, 5.2.21 on ubuntu and 3.2.57 on macOS. Seen red on macOS
+  under a bash 5.3 built from source. 7fd12bd4 skips the row by `NO_EMPTY_CD`
+  wherever the bash S2 runs refuses an empty cd. The subgroup stays in
+  `SAMPLE`. On Windows it runs no row, since its other rows cd into an
+  unquoted path.
+
+| Run, `-n 4`, 5-minute bound (the first three on states cbfd322c amended) | Load | Proved | Named | Seconds |
+|---|---|---|---|---|
+| ranked and capped | 5–8 | 12 | 9: the case file's verdicts `restructure`, the gate file's traced run 104 s, no mutant | 300 |
+| own ids first | 7–37 | 14 | 8 | 300 |
+| cap 24 probe, 10-minute bound | 10–13 | 17 | 5 | 604, the case file 495 |
+| cbfd322c, final | 7–12 | 17, every gate-file case: S2 by `:368 statement removed`, T1 by `:319 element removed`, T2 by `:598 condition negated` | 5, `kills nothing its file does not` | 299 |
+
+The five named at cbfd322c ran out of their 12-mutant draws, not the bound:
+
+- `drawn`'s order case and the silent-run case each prove at cap 24;
+- the end-to-end tests-only, changed-function and removed-case paths do not
+  prove even at 24. Their distinguishing mutants lie inside `check`, whose
+  lines all eight end-to-end cases run, so a line-level rank cannot set them
+  apart.
+
+**Whether "the only killer in its file" is the right bar.** It stays,
+at the function level. The ids of one parametrize are already one case,
+because `sole_killer` folds `[…]`, so a kill rows share is their function's
+own. A per-row bar would cost one proof per row: S2's 35 rows are 16 s a
+whole-file run on CI. Growth by rows is held by #930's `test-cases` budget
+row. Relaxing the bar to "killed nothing the base's cases kill" would pass
+two new cases that are twins of each other, which is the regrowth the check
+exists to stop. The direct tests named at CI were a gap in the draw and the
+operators, not in the bar: the sole-killer case and T1 proved once an operand
+drop and an element removal existed, and most of the rest once the draw was
+ranked. The five still named are listed above.
+
 **The cases**, each a direct test of one decision or one real path end to
 end, all passing (`executed`, 15 passed):
 
