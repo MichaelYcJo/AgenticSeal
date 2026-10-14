@@ -737,9 +737,9 @@ PACT_ROW = "Pact"
 PACT_NOTIFY_ROW = "Pact notify"
 # The separator `Over the ceiling` already uses between its entries.
 PACT_SEPARATOR = ";"
-# What a signer asks to be told about a change to the pact: which rows of its
-# records of pact changes `pact-check` reads (#647, step D;
-# `docs/the-pact.md`).
+# The `Pact notify` values. Both commands print the one a signer wrote, and
+# neither acts on it: the records of pact changes it chose rows of are no
+# longer read (`docs/the-pact.md`).
 NOTIFY_ALWAYS = "always"
 NOTIFY_TOUCHED = "when the pact is touched"
 NOTIFY_NEVER = "never"
@@ -944,11 +944,10 @@ def pact_declaration(text):
     **A pact row is read in one spelling, and every other line naming a pact
     is refused** (#759). A `| Pact notify | always |` written where the
     table walk does not take it was read as the default, so a signer that
-    asked for `always` was read as never having asked, and the pact-change
-    record that value governs was lost. `pact_lines_not_read` names every
-    such line, and each is refused with `notify` None. This reader alone
-    refuses where the others fail silent, and only for these two rows: no
-    other row's default loses a record that cannot be recovered.
+    asked for `always` was read as never having asked. `pact_lines_not_read`
+    names every such line, and each is refused with `notify` None. This
+    reader alone refuses where the others fail silent, and only for these
+    two rows.
 
     Reads: guess — a signer's `| Item | Value |` table, read as cmark-gfm renders it, and every line naming a pact; unknown refused
 

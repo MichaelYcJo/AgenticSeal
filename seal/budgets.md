@@ -144,7 +144,7 @@ commit alike. -->
 | skills/verify/SKILL.md | 42 |
 | skills/writing-style/SKILL.md | 40 |
 | templates/claude-md-block.md | 5 |
-| templates/config.md | 37 |
+| templates/config.md | 34 |
 | templates/sdd-plan.md | 1 |
 | templates/sdd-questions.md | 5 |
 | templates/sdd-round.md | 1 |

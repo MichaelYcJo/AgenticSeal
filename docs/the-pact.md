@@ -82,8 +82,8 @@ remote URL of the pact's repository, several separated by `;`, compared
 normalised; its last path segment is the name an anchor carries, so two
 pacts ending in one segment are refused. `Pact notify` is `always`,
 `when the pact is touched` or `never`, `when the pact is touched` where it
-is absent. The value decides which rows of the signer's records of pact
-changes `pact-check` reads. `hooks/config.py#pact_declaration` refuses
+is absent. Both commands print the value, and neither acts on it.
+`hooks/config.py#pact_declaration` refuses
 what will not parse in a sentence and stops nothing, so the print at a
 signer's pull request and the refusal at the pact's repository are about
 the same rows. A `Pact notify` value outside the vocabulary, or a row
