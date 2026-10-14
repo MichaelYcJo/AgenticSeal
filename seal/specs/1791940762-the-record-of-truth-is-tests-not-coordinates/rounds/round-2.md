@@ -7,10 +7,10 @@
 | Ran by | specseal:warden on claude-opus-5-5 |
 | PR | #950 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `04edf1aade6fdeb80bfc480aa3a6bf453dbe1ba8..005919e360e7631dcfdc62543f62b443ae2b7c3f`, 1 commit |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 1: `tests/test_pact_check.py`'s slow-file ceiling is listed at its reading, 121, with no headroom; it is 157 by the file's own rule, and the PR body's line moves with it |
 | Loses a record or crashes | no |
@@ -25,7 +25,7 @@ Verifying round 2 of #944: each of round 1's eight fixes over 5a3ffdb4..67275a50
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | `tests/test_pact_check.py` is listed at a ceiling equal to its reading, 0 headroom, against the 1.3-times rule its own file states, so the next refresh likely fails the gate on an unrelated pull request | `seal/budgets.md:73` | open | executed: `budget_check.py` reads 121 s (raw 137 at x1.132) against 121, 0.0 % headroom; this refresh alone moved the file 1.49 times the level; read: `seal/budgets.md:15-17` and `budget_check.py:94` give 157 |
+| 🟡 1 | `tests/test_pact_check.py` is listed at a ceiling equal to its reading, 0 headroom, against the 1.3-times rule its own file states, so the next refresh likely fails the gate on an unrelated pull request | `seal/budgets.md:73` | **fixed** `005919e3` | fixed at 005919e3; executed: `budget_check.py` reads 121 s (raw 137 at x1.132) against 121, 0.0 % headroom; this refresh alone moved the file 1.49 times the level; read: `seal/budgets.md:15-17` and `budget_check.py:94` give 157 |
 | ⬜ 2 | `overview.md` still says `.test_durations` is unrefreshed and its case red, after 8a63e245 refreshed it | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/overview.md:56` | open | executed: `test_the_durations_file_prices_the_suite` passes at the tip; also `overview.md:34` and `:77-79`; paperwork, not counted in `Needs a fix` |
 | 🟢 | round 1's finding 1 is closed — `rules` resolves in the repository it is typed in, and both READMEs carry its row | `.github/scripts/rules.py:163` | confirmed | executed: mutation red on the subdirectory case; read: `ROOT` gone, the module docstring and `README.md:260`, `README.ko.md:247` |
 | 🟢 | round 1's finding 2 is closed — a target under an `if` or a `try` prints its sentence, never a traceback | `.github/scripts/rules.py:62` | confirmed | executed: mutation red on 3 cases; the module passes |
