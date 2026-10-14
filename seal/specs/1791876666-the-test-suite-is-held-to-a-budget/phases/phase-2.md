@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 2 |
-| Commit | 74c23261 |
+| Commit | 652bf297 |
 | Ran by | smith on Opus 5.5, as `routing.md` and `handoff.md` name it |
 
 ## What this phase was asked
@@ -29,11 +29,26 @@ Asked during the phase, as owner decisions of 2026-10-14:
   proof would pass that fails the job, named and told
   `restructure: test the decision directly`, never by a timeout.
 
+Then the owner's decision that replaces the line (2026-10-14): drop the
+`Kills:` docstring line, because nobody annotates a test, and a check derives
+whatever it needs. The asks that came with it:
+
+- mutants from the pull request's diff, or, for a tests-only change, from the
+  units the new or changed cases exercise, with how that errs;
+- each such case in the killer set of at least one mutant no other case in
+  its file kills, or named;
+- the mutants of changed code nothing kills listed, as a gate or a report,
+  with the reason;
+- `tests/unguarded-files.txt` removed if nothing owes a line;
+- the plan's phase 2 row and the `CONTRIBUTING.md` paragraph rewritten in
+  place, and the removals recorded as one line.
+
 Also asked:
 
 - that any verdict from the run another agent killed (PID 46132) be discarded
   and re-run;
-- an answer to #942's Q2.
+- an answer to #942's Q2;
+- the splitlines finding fixed, in a commit of its own (7a6d2be3).
 
 #930's `seal/budgets.md` is not on this branch, so the five measurers and
 their rows wait for it. Phase 3 is not started.
@@ -42,30 +57,56 @@ their rows wait for it. Phase 3 is not started.
 
 **The frame holds, with one consequence it does not spell out.** The check
 reads every function that is new or changed against the pull request's base,
-which means phase 1's S2 and its three pins too, not only what phase 2 adds.
-Each now carries a line, proved by the check itself (below), except phase 1's
-T3, `test_every_sampled_name_is_a_corpus_row` (NAME NOT IN TREE: removed), which is removed. Its mutant, a
-misspelt `SAMPLE` name, is killed by S2's own row for that name, which fails
-on a `KeyError`. So no line could prove T3 alone. `mutation-check` with the
-name misspelt is red with T3 gone (`executed`). S2's line names the one thing
-only its rows exercise in that file: an emptied environment's `git` below a
-shell below `claude`, so the lease walk has to climb past the call's shell
-(`hooksession.claude_ancestor`'s `depth`).
+which means phase 1's S2 and its pins too, not only what phase 2 adds. Phase
+1's T3, `test_every_sampled_name_is_a_corpus_row` (NAME NOT IN TREE: removed),
+is removed: its mutant, a misspelt `SAMPLE` name, is killed by S2's own row
+for that name, which fails on a `KeyError`. `mutation-check` with the name
+misspelt is red with T3 gone (`executed`).
 
-**The grammar** (Q3): `Kills: <path> "<OLD>" "<NEW>"`, OLD and NEW as JSON
-string literals. The line is read from the docstring as written in the file,
-not as Python evaluates it, so `\"` and `\n` mean the same in a raw docstring
-and in a plain one, and `\n` is how a multi-line mutant is written. A case
-that pins prose names the document (T6).
+**What this phase removed, in one line:** the `Kills:` grammar and its lines
+on S2, T1 and T2, the eleven cases of the first case file (NAME NOT IN TREE:
+`tests/test_a_new_case_names_the_mutant_it_kills.py`), and
+`tests/unguarded-files.txt`, which nothing reads once no case owes a line.
 
-**The run model, as the owner set it.** Each touched file runs once as it
-stands, and must pass. Then each new or changed function's mutant runs once
-through `mutation-check` over the whole file. The run must be red, and its
-failing ids, read from pytest's `FAILED` and `ERROR` lines, must be the
-function's own and no other function's. A shared kill is named, never
-allowed: a mutant two cases kill is the duplication the check exists to
-refuse. A docstring-only change is a change, because the function's text
-runs from its first decorator to its last line, docstring included.
+**The check as built, nothing written by hand.** Each test file holding a new
+or changed function runs once as it stands, under a tracer that records the
+lines each case's call runs (a pytest plugin the check writes to a scratch
+directory, so an xdist worker loads it too), and must pass. For each such
+function the mutants are drawn in order:
+
+1. from the lines it runs and its siblings do not;
+2. from the units of its own file it names, followed through their names;
+3. from the other lines it runs;
+4. from the shipped lines the range changed, the changed files the case names
+   in its own text first.
+
+A test function's own lines are never mutated, and a mutant that does not
+parse is not run. The operators are an assertion dropped, a condition negated,
+a comparison or a boolean flipped, a `return` made `return None`, an integer
+moved by one, and the statement removed; a changed `.md` line is mutated by
+removing it. Under each mutant only the cases that ran its line run (the
+whole file where no case's call ran it), and a function is proved when every
+failing id is its own. A docstring-only change is a change.
+
+How it errs, stated in the module docstring:
+
+- **Under.** A line reached only through a subprocess or a fixture's setup is
+  not traced. Such a case gets its mutants from the names it uses and the
+  diff, and its mutants run the whole file.
+- **Under, again.** The operators are coarse. A case guarding a branch that
+  only a narrower mutation tells apart, such as "a changed function, not only
+  a new one, is read", can find no mutant of its own, and is named.
+- **Over.** A line one case runs and its siblings do not may be setup only
+  it needs, which costs a run and proves nothing.
+
+**The survivors are a report, not a gate.** The changed shipped lines'
+mutants that ran and that no case killed are listed, and so are the test
+functions the range removed. A gate would be red for a mutant a file the check
+did not run kills, and would send a case into the pull request's files to
+quiet it. A removal is proven by its work item's mutation table. The owner's
+condition, that protection never drops, is held by the pass rule for what is
+added and by the tables for what is removed. The check never reads which
+mutants other files kill, so it cannot hold that condition alone.
 
 **`mutation-check --baseline-passed` is new, and the model depends on it.**
 Without it every `mutation-check` call reruns its baseline, so one mutated
@@ -89,83 +130,95 @@ file holding one shifted every later line, so a change on a function's last
 line was not read as a change.
 `test_a_line_end_python_does_not_read_moves_no_function` pins it, and is the
 only killer of its mutant (`executed`). The check's other splits are a
-subprocess's output, its docstring's first line, and its own list file. Each
-is named out of class in
-`tests/test_every_reader_ends_a_line_where_gfm_does.py`'s table, since none is
-a document's lines.
+subprocess's output and its docstring's first line, each named out of class in
+`tests/test_every_reader_ends_a_line_where_gfm_does.py`'s table, since neither
+is a document's lines.
 
 **The bound.**
 
 - `--bound` is minutes for the whole check, five in the job.
-- A file's cost is its one run times the functions it owes, read before any
-  mutant is written. A file whose proof would pass what is left of the bound
-  is named with `restructure: test the decision directly`.
+- Each file gets an equal share of what is left. A file whose traced run
+  alone passes its share is named `restructure: test the decision directly`.
+  So is a function still unproven when the share is spent, with how many of
+  its mutants ran.
 - Each mutated run is capped by the time left, so a run past the bound is a
   named `timed out`, never a silent one.
 - The job's `timeout-minutes` is 15, above the bound plus setup.
-- A `cost` line in the summary gives each file's run and its mutants'
-  seconds.
+- A `cost` line gives each file's traced run and its mutants' seconds.
 
-**What the check found when run on itself** (`executed`, over this branch
-against `origin/release/v0.22.0`):
+**What the check said when run on this branch** (`executed`, against
+`origin/release/v0.22.0`, `-n 4`, near the ubuntu runner's four cores).
 
-| Run | Commit | Result | Seconds | What it named |
-|---|---|---|---|---|
-| 1, with-and-without | 314232d5 | 9 proved, 1 named | 317 | T2: its mutant (the refusal read as proved) was killed by T5 too, because T5's stale line also failed to land. T5's changed function now keeps a line that lands but that its body no longer kills |
-| 2 | 43f71101 | discarded | 217 | two without-runs came back with no verdict at all: another agent killed this worktree's `mutation_check.py` with `kill -9` (PID 46132) during the run, by the orchestrator's account. T8 now pins that such a run names its exit |
-| 3, with-and-without | abe57743 | 11 proved, 0 named | 305 | — |
-| 4, one run per mutant | a8fa6a86 | 13 proved, 1 named | 313 | T5's mutant was killed by the bound case too, because its fixture changed a function rather than adding one. The bound case now adds one |
-| 5, one run per mutant, bound 5 | 74c23261 | 11 proved, 1 named | 126 | `tests/test_the_commit_gate_decides_at_the_commit.py: restructure` — its one run took 93 s with `-n 4` at load averages 94–115, so its three functions needed 278 s against the 275 s left |
+The `Kills:` model's five runs (314232d5 to 74c23261) each found a case of
+mine whose mutant a sibling killed too, and each was fixed by narrowing a
+fixture. One of them, at 43f71101, is discarded: another agent killed this
+worktree's `mutation_check.py` (PID 46132) mid-run, and
+`test_a_run_that_prints_nothing_is_named_by_its_exit` pins that such a run
+names its exit.
 
-Runs 4 and 5 were taken with `-n 4`, near the ubuntu runner's four cores, on a
-machine shared with two other builds at load averages from 27 to 115. In run
-5 the case file cost 2 s for its one run and 23 s for its 11 mutants. Whether
-the commit-gate file fits on an idle runner is what PR #939's `cases` job
-shows (`overview.md`). The bound named the file before running it, which is
-the behaviour the owner asked for.
+The derived check's runs:
 
-**The probes the plan names** are cases that build a fixture repository at a
-base and at HEAD and run the check in process, with real mutants through the
-repository's own `mutation_check.py`. Every one passes (`executed`), and the
-check proved each on its own mutant (run 5):
+| Commit | Load averages | Proved | Named | Seconds | What changed after |
+|---|---|---|---|---|---|
+| 1c475c11 | 113–259 | 11 | 5, the commit-gate file starved | 309 | every mutant reran the whole file, and the first file took the whole bound: now a mutant runs the cases that ran its line, and each file gets an equal share |
+| 9c05ff0a | 128–211 | 12, S2 among them (`hooks/githooks.py:79 statement removed`) | 7 | 280 | a case's changed-line mutants came in path order: now the files a case names come first |
+| 652bf297 | 150–249 | 9, `test_a_caller_that_ran_the_baseline_skips_it_in_mutation_check` among them (`mutation_check.py:300`) | 9 | 280 | — |
 
-| Probe | Case | Exit |
-|---|---|---|
-| a function without a line | T1 `test_a_new_function_without_a_kills_line_is_named` | 1 |
-| a line that does not land | T2 `test_a_line_whose_replacement_does_not_land_is_named` | 1 |
-| a mutant its file kills through another function too | T3 `test_a_mutation_the_file_kills_without_the_function_is_named_with_its_killer` | 1, naming the killer |
-| a proven function | T4 `test_a_proven_function_passes_and_the_summary_lists_both_runs` | 0, the summary written |
-| a prose pin through a `.md` path | T6 `test_a_prose_pin_runs_through_the_document` | 0 |
-| a changed function with a stale line | T5 `test_a_changed_function_is_read_as_new` | 1 |
-| a file off the list, and one added to it | T7 `test_a_file_leaves_the_list_only_when_every_function_carries_the_line` | 1 |
-| a mutant only another function kills | `test_a_mutant_only_another_function_kills_is_named` | 1 |
-| a run that prints nothing | `test_a_run_that_prints_nothing_is_named_by_its_exit` | — |
-| a file whose proof would pass the bound | `test_a_file_whose_proof_would_pass_the_bound_is_named_to_restructure` | 1 |
-| `--baseline-passed` | `test_a_caller_that_ran_the_baseline_skips_it_in_mutation_check` | — |
+At these loads the case file's traced run took 2–4 s, and each of its
+mutants took about 3 s. That fit 15 to 21 mutants per case within its share,
+of 400 to 440 drawn. The commit-gate file's traced run alone took 49–105 s,
+so its three changed functions got at most one mutant. Every case it named
+was named `restructure` with its count of mutants run, not `kills nothing its
+file does not`: the bound ended the draw before any case's draw ran out. What
+the job says on an idle runner is PR #939's to show.
+
+The survivors listed in the runs are real holes, not noise. Two examples: a
+row of the comparison table no case exercises (`case_check.py:180–184`), and
+`case_check.py:346` `and` made `or`.
+
+**The cases**, each a direct test of one decision or one real path end to
+end, all passing (`executed`, 15 passed):
+
+| Decision or path | Case |
+|---|---|
+| each operator makes one mutant of its kind | `test_each_operator_makes_one_mutant_of_its_kind` |
+| a mutant lands once, and one that cannot parse is left out | `test_a_mutant_widens_until_it_lands_once_and_one_that_cannot_parse_is_left_out` |
+| the sole killer is one function or none | `test_the_sole_killer_is_one_function_or_none` |
+| a named helper is followed | `test_a_function_named_in_a_case_is_followed_through_its_helpers` |
+| where a function's text ends | `test_a_line_end_python_does_not_read_moves_no_function` |
+| a run that prints nothing | `test_a_run_that_prints_nothing_is_named_by_its_exit` |
+| `--baseline-passed` | `test_a_caller_that_ran_the_baseline_skips_it_in_mutation_check` |
+| a case that alone kills a mutant of changed code → 0, in the step summary | `test_a_new_case_that_alone_kills_a_mutant_of_changed_code_is_proved` |
+| a case its file already covers → 1 | `test_a_new_case_its_file_already_covers_is_named` |
+| a survivor of changed code → listed, 0 | `test_a_mutant_of_changed_code_nothing_kills_is_reported_and_fails_nothing` |
+| a tests-only case → proved from the lines it runs | `test_a_tests_only_change_draws_its_mutants_from_the_lines_it_runs` |
+| a prose pin → proved by its sentence removed | `test_a_prose_pin_is_proved_by_its_sentence_removed` |
+| a changed function → read | `test_a_changed_function_is_read_as_new` |
+| a removed case → listed | `test_a_removed_case_is_listed` |
+| a file past the bound → restructure | `test_a_file_whose_proof_would_pass_the_bound_is_named_to_restructure` |
 
 **#942's Q2, answered by the design and the owner's decisions.**
 
-- (i) One run per function under its mutant, read for the killer set, is
-  built. Through `--baseline-passed` a file costs 1 + N runs of itself,
-  where the pair cost 2N plus 2N of the function alone. #942's 1,554
-  ubuntu-minutes for its 14 heaviest files, read under the pair, come to
-  about half.
-- (ii) No matrix over functions. The bound is per pull request, five
-  minutes, and a file whose proof would pass it is named to restructure
-  before it runs. A matrix would spend more runner minutes on exactly the
-  files the owner reads as testing decisions through the whole stack.
-- (iii) Yes, a docstring-only change is a change. The `Kills:` line is the
-  claim, and a line added unproven is the failure the check exists for. So
-  lining a file costs one run per function, and on a heavy file that is the
-  restructure finding.
+- (i) One run per mutant, read for its killers, is built. The run is now the
+  cases that ran the mutant's line, not the file, and the baseline is the one
+  traced run.
+- (ii) No matrix over functions. The bound is per pull request, and a file
+  or a case past it is named to restructure. A matrix would spend more runner
+  minutes on the files the owner reads as testing decisions through the whole
+  stack.
+- (iii) A docstring-only change is a change, by the owner's rule, so a case
+  edited only in its docstring is proved again.
 
 **What the phases after this one take from the owner (2026-10-14).** For
 each shipped module, the old tests serve only as the baseline, their set of
 killed mutants, and as the reference, the regressions of real bugs to port.
 The redundant or heavy parts are rebuilt as direct tests of the decision, plus
 one end-to-end case per real path, and the old files are deleted. The result
-may not be weaker than today: the killed-mutant set never drops, and the
-`Kills:` lines and the tables are that proof.
+may not be weaker than today: the killed-mutant set never drops. The derived
+check proves what is added, and each phase's mutation table proves what is
+removed. Phases 3 to 6 in `plan.md` still name `Kills:` lines and
+`tests/unguarded-files.txt` (NAME NOT IN TREE: removed). They are the
+framer's to reframe, since only phase 2's row was mine to rewrite.
 
 **Carried to phase 5, the sealer file (measured before the reframe, at
 480bea69 and fcd735bc).**
