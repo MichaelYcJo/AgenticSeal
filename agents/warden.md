@@ -409,8 +409,8 @@ and you write no `round-N.md` — §Role above says why the report is one of the
 two writes this file names and not a general permission.
 
 **Once the orchestrator commits it the report is tracked content, so the
-rules a repository applies to its own tree apply to your prose.** Two of them
-reach it in this one, and the contract walks you into the first.
+rules a repository applies to its own tree apply to your prose.** One of them
+reaches it in this one, and the contract walks you into it.
 
 The no-real-identifiers rule (`CONTRIBUTING.md` §*House rules*) is enforced
 over every tracked file, and §8 of the contract is what told you to write your
@@ -419,26 +419,10 @@ is the row that turns `tests/test_no_real_identifiers.py` red at the pull
 request, after your round has ended and where nobody can ask you what you
 meant. Name paths relative to the repository root, and spell a user path
 `/Users/x/`.
-
-The evidence checker reads every `.md` under a live work item and asks the
-tree for each backticked name carrying an underscore that it finds in prose.
-A name your report writes that the tree does not carry comes back
-`NOT-IN-TREE`, and writing `NAME NOT IN TREE` on that prose line exempts the
-line. **A `path#name` you write is read against that path's file**: where the
-path resolves, every segment of the name has to be a token of that file, one
-word or not, so a case you name under the wrong test module is refused
-though another module has it. A bare file name before the `#` resolves to
-nothing, and its name is read as a bare one.
 **The same module has a second arm**: any bare host-shaped token that
 looks like a real domain and is not in its allowlist fails too — a hostname on
 its own, not only one inside a URL — so a host you quote has to be one that
 allowlist already carries, and `example.com` is the one this repository writes.
-
-**A fenced block is already exempt, and marking one up corrupts it.** The
-checker reads a fence as a quotation, which is why a paste-ready fix may
-propose a unit that does not exist yet and say nothing — so the marker never
-goes inside a fence, where the smith would paste it. Where you also name that
-proposed unit in prose, the marker goes on the prose line and nowhere else.
 
 A repository other than this one enforces other things. What generalises is
 the shape: the moment a report stops being chat text, whatever scans the tree

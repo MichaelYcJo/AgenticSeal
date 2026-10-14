@@ -30,7 +30,7 @@ commit alike. -->
 | preload:scribe | bytes | 29554 | 2 % | gate |
 | preload:sealer | bytes | 36113 | 2 % | gate |
 | preload:smith | bytes | 101344 | 2 % | gate |
-| preload:warden | bytes | 102229 | 2 % | gate |
+| preload:warden | bytes | 99690 | 2 % | gate |
 | preload:claude-md | bytes | 9027 | 2 % | gate |
 | suite-seconds | seconds | 9185 | one-sided | gate |
 | slow-file | seconds | 120 | one-sided | gate |
@@ -104,7 +104,7 @@ commit alike. -->
 | agents/scribe.md | 3 |
 | agents/sealer.md | 21 |
 | agents/smith.md | 11 |
-| agents/warden.md | 17 |
+| agents/warden.md | 16 |
 | docs/branch-and-release.md | 24 |
 | docs/commit-review-gate-spec.md | 20 |
 | docs/issues-and-milestones.md | 23 |
