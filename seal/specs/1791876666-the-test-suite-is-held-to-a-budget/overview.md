@@ -39,9 +39,10 @@ proves redundant, and lowers #930's budget rows to match.
 
 ## Not done
 
-The `slow-file` row is not lowered, because #930's `seal/budgets.md` is not on
-this branch. The figures wait in `phases/phase-1.md`, and the later of the two
-pull requests lowers the row.
+The `slow-file:tests/test_the_commit_gate_decides_at_the_commit.py` row is not
+lowered. #930's `seal/budgets.md` reached this branch with the rebase onto
+#944, and `budget_check.py` measures the file at 389 seconds against a ceiling
+of 1,479 at the 1132 price level. Phase 6 sets the rows' final ceilings.
 
 ## Fed back into the spec
 
