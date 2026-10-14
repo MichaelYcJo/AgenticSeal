@@ -9,4 +9,4 @@
 #   settle                         settle --retire
 #   settle --released-at origin/main
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../skills/settle/scripts/settle.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../skills/settle/scripts/settle.py" "$@"

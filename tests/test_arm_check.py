@@ -198,9 +198,9 @@ def test_the_classification_names_nothing_the_grammar_does_not_have():
 
 
 def run_tests_floor():
-    """`FLOOR` from `.github/scripts/run_tests.py`, the one place the
-    supported floor is held."""
-    path = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
+    """`FLOOR` from `hooks/launch.py`, the one place the supported floor is
+    held, and the number `.github/scripts/run_tests.py` builds against."""
+    path = os.path.join(ROOT, "hooks", "launch.py")
     spec = importlib.util.spec_from_file_location("specseal_floor_of_arm_check", path)
     loaded = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loaded)

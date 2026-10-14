@@ -169,8 +169,8 @@ the disc is painted, so its text is in the terminal's own colours and theme —
 dim labels, a green `✓`, the title in the seal's red — and the owner reads
 the first real seal on each background.
 **Nor is the hook's silence where it cannot draw.** It draws nothing and
-says nothing where the main session's `python3` is under 3.12, the floor
-`seal_stamp.py` refuses below (macOS ships 3.9); where that session's
+says nothing where the main session's `python3` cannot load
+`seal_stamp.py`, since no launcher stands in front of a hook; where that session's
 working directory is outside the clone the run sealed; or where its plugin
 predates the hook. A hook older than #853 refuses a values file that carries
 no numeric `scale`, so through 0.21's cycle the gate still writes `"scale":

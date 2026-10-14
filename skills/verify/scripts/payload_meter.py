@@ -43,11 +43,11 @@ subtracted from by zero.
 
 Exit codes: 0 measured · 1 the input could not be measured -- a transcript
 the calibration refuses, or no `agents/*.md` under the root · 2 nothing ran:
-the interpreter is below the floor, `--calibrate` was given and
-`session_cost.py`, the sibling it loads, is not beside this script,
-`--sections` was given and `unverified_check.py`, the fence rule it splits
-by, is not beside it, or the arguments were unusable (argparse's usage
-error).
+`--calibrate` was given and `session_cost.py`, the sibling it loads, is not
+beside this script, `--sections` was given and `unverified_check.py`, the
+fence rule it splits by, is not beside it, or the arguments were unusable
+(argparse's usage error). An interpreter below the floor never reaches this
+file through `bin/payload-meter`: `hooks/launch.py` refuses it with 2 first.
 
 Two things the ratio has to know about the machine it was measured on. A
 skill name resolves to `~/.claude/skills/<name>/SKILL.md` when the user has
@@ -81,43 +81,6 @@ import os
 import re
 import sys
 
-# **The floor is one number, and this is another carrier of it.** The block
-# below is `skills/code-review/scripts/round_record.py`'s, copied as that
-# file says it should be: after the imports, no syntax newer than the oldest
-# interpreter it means to catch, and before every other module-level act.
-# `bin/payload-meter` runs `python3`, which on macOS is 3.9, and there
-# `--sections` and `--baseline` ended in a traceback after the plain run had
-# worked (#292 round 1) -- the failure the sentence below exists to replace.
-FLOOR = (3, 12)
-FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
-BELOW_FLOOR = (
-    "payload-meter: needs python {floor} or newer, and this is python {found} "
-    "at {executable}.\n"
-    "Nothing was read and nothing was written.\n"
-    "`python3` is not always the newest interpreter installed -- macOS ships "
-    "python 3.9 under that name -- so name one explicitly, `python{floor} "
-    "<this script> ...`, or see CONTRIBUTING.md section 'Running the checks'."
-)
-
-
-def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it."""
-    version = tuple(sys.version_info[:3]) if version is None else tuple(version)
-    if version[:2] >= FLOOR:
-        return None
-    return BELOW_FLOOR.format(
-        floor=FLOOR_TEXT,
-        found=".".join(str(part) for part in version),
-        executable=sys.executable if executable is None else executable,
-    )
-
-
-_refusal = below_floor()
-if _refusal:
-    sys.stderr.write(_refusal + "\n")
-    raise SystemExit(2)
-
-
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 # The ratio an estimate rests on when nothing measured one: no `--calibrate`
@@ -144,8 +107,8 @@ def _session_cost():
     `FileNotFoundError` traceback at exit 1 -- which reads as *this
     transcript could not be measured* and sends the reader to the transcript
     (#610). A copy of this script taken without its sibling is a broken
-    plugin copy, the interpreter floor's kind of failure, so it exits 2 the
-    way the floor does: the sentence to stderr, then the int."""
+    plugin copy, where nothing ran, so it exits 2: the sentence to stderr,
+    then the int."""
     path = os.path.join(HERE, "session_cost.py")
     if not os.path.isfile(path):
         sys.stderr.write(

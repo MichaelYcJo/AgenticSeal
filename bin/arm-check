@@ -19,4 +19,4 @@
 # hash after every one. A measured run is report-only: exit 0 whether or not
 # an arm survived.
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../skills/verify/scripts/arm_check.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../skills/verify/scripts/arm_check.py" "$@"

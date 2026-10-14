@@ -91,12 +91,13 @@ nothing left to remove · 1 a retirement was asked for
 and something refused it — a spec-less directory's closure has not
 reached the merge base of `--released-at` and `HEAD`, or an open todo row
 held an item's process record · 2 the arguments or the
-tree were unusable, which is seven states: a
+tree were unusable, which is six states: a
 `--released-at` ref that does not resolve, a `--released-at` ref sharing no
 commit with `HEAD` or a clone too shallow to reach the one they share, a root
 at neither place, a root in local mode, a
-repository that opted out, a sibling script it loads that is not beside it,
-and an interpreter below the floor.
+repository that opted out, and a sibling script it loads that is not beside
+it. An interpreter below the floor never reaches this file through
+`bin/settle`: `hooks/launch.py` refuses it with 2 first.
 """
 
 import argparse
@@ -107,57 +108,6 @@ import re
 import shutil
 import subprocess
 import sys
-
-# **The interpreter floor, copied from
-# `skills/code-review/scripts/round_record.py#below_floor`**, which is written
-# to be copied and says so. Two things about its shape are load-bearing, and
-# they are the reason it is copied rather than imported. It sits after the
-# imports and not after `import sys`, because ruff's E402 is selected and
-# every shipped script is measured to compile under 3.9, so no import above it
-# can fail first. And it uses no syntax newer than the oldest interpreter it
-# means to catch — no walrus, no f-string — since a guard that cannot parse is
-# the traceback it exists to replace.
-#
-# A read that can fail gives the guard a second way to die on the one machine
-# that has no other way of being told what is wrong, which is why the floor is
-# spelled here instead of imported;
-# `tests/test_a_script_says_which_interpreter_it_needs.py` pins this number to
-# the runner's and to `ruff.toml`'s.
-FLOOR = (3, 12)
-FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
-BELOW_FLOOR = (
-    "settle: needs python {floor} or newer, and this is python {found} "
-    "at {executable}.\n"
-    "Nothing was read and nothing was written.\n"
-    "`python3` is not always the newest interpreter installed -- macOS ships "
-    "python 3.9 under that name -- so name one explicitly, `python{floor} "
-    "<this script> ...`, or see CONTRIBUTING.md section 'Running the checks'."
-)
-
-
-def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it.
-
-    Both numbers are in the sentence. A floor with no found version tells the
-    reader what is wanted and not whether they have it -- and the reader
-    whose `python3` is secretly 3.9 is exactly the one who does not know what
-    they are running. The interpreter's path is there for the same reason: on
-    macOS the surprise is not the version, it is which file `python3` was.
-    """
-    version = tuple(sys.version_info[:3]) if version is None else tuple(version)
-    if version[:2] >= FLOOR:
-        return None
-    return BELOW_FLOOR.format(
-        floor=FLOOR_TEXT,
-        found=".".join(str(part) for part in version),
-        executable=sys.executable if executable is None else executable,
-    )
-
-
-_refusal = below_floor()
-if _refusal:
-    sys.stderr.write(_refusal + "\n")
-    raise SystemExit(2)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")

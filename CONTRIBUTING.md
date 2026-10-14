@@ -114,9 +114,10 @@ warden, and `agents/sealer.md` is the agent it is assigned to. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
-**Python 3.12 is the supported floor**, held as `FLOOR` in
-`.github/scripts/run_tests.py` so this sentence and the code state one number.
-`bin/test` builds its virtualenv with an interpreter at that floor or newer,
+**Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/launch.py`
+so this sentence and the code state one number. Every `bin/` wrapper runs its
+script through that launcher, which refuses an older interpreter with one
+sentence before the script is read. `bin/test` builds its virtualenv with an interpreter at that floor or newer,
 refuses a `.venv` it finds below it, and where it finds neither `uv` nor such
 an interpreter it says which to install.
 

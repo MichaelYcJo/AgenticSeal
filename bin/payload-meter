@@ -10,4 +10,4 @@
 #   payload-meter --calibrate <main transcript.jsonl>
 #   payload-meter --baseline payload-before.json
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../skills/verify/scripts/payload_meter.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../skills/verify/scripts/payload_meter.py" "$@"

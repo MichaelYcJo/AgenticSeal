@@ -1,424 +1,164 @@
-"""A script run with whatever `python3` is on PATH says what it needs.
+"""A script run below the plugin's Python floor says what it needs.
 
-Issue #226, reported from another repository on 0.8.3. `round_record.py` uses
-`zip(..., strict=True)`, which arrived in python 3.10, and on a machine whose
-`python3` is 3.9 it died with `TypeError: zip() takes no keyword arguments` --
-after argument parsing, path resolution and the report read had all succeeded.
-So the failure read as a bug in the report, and the message named neither the
+Issue #226: `round_record.py` died on a 3.9 `python3` with `TypeError: zip()
+takes no keyword arguments`, after it had parsed its arguments and read the
+report, so the failure read as a bug in the report and named neither the
 version needed nor the flag. macOS still ships 3.9 as `/usr/bin/python3`.
 
-What is pinned here is the sentence and the moment it arrives. A person reads
-that sentence and acts on it, which is the only reason it exists, and the
-whole complaint was that it arrived too late to be about the interpreter.
+`hooks/launch.py` holds the floor once. Every `bin/` wrapper and `.cmd` twin
+runs its script through it, and below the floor it answers with one sentence
+and exit 2 before the script is read. These cases pin that sentence, the
+moment it arrives, that the launched script cannot tell it was launched, that
+the floor has one source, and that no wrapper goes around it.
 
-**Testing a version guard from an interpreter that satisfies it.** Two cases
-do it two ways, and neither settles for asserting that a constant exists:
-
-- `test_a_floor_above_this_interpreter_refuses_before_anything_is_read`
-  copies the real script into a temporary directory, raises `FLOOR` above
-  whatever is running, and runs it. Every line of the guard is the shipped
-  line; one constant moved. It never skips, so CI stands on it.
-- `test_the_script_refuses_at_entry_on_a_below_floor_interpreter` finds a
-  genuinely old interpreter on the machine and runs the real file at its real
-  path. It skips where none exists -- which is every CI runner -- and its job
-  is to catch the raised-floor copy lying.
+**Testing a floor from an interpreter above it.** A copy of the launcher with
+`FLOOR` moved is run instead of the real file: every other line is the
+shipped line. The substitution asserts it matched once, because a test whose
+edit missed passes by testing an unmodified file.
 """
 
 import ast
 import importlib.util
+import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 
-import pytest
 from conftest import git_listing, on_disk
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SCRIPTS = os.path.join(ROOT, "skills", "code-review", "scripts")
-SCRIPT = os.path.join(SCRIPTS, "round_record.py")
+BIN = os.path.join(ROOT, "bin")
+LAUNCH = os.path.join(ROOT, "hooks", "launch.py")
 RUNNER = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
 RUFF = os.path.join(ROOT, "ruff.toml")
 
-# Arguments `argparse` accepts in full, naming nothing that exists. Below the
-# floor the guard answers before any of them is looked at; above it, the
-# script gets as far as complaining about the item -- which is the contrast
-# the ticket is about, and one case asserts both halves of it.
-JUNK_ITEM = os.path.join("no", "such", "work-item")
-ARGS = (
-    "new",
-    "--item",
-    JUNK_ITEM,
-    "--round",
-    "1",
-    "--target",
-    "HEAD",
-    "--report",
-    os.path.join("no", "such", "report.md"),
-    "--asked",
-    os.path.join("no", "such", "asked.md"),
-    "--ran-by",
-    "nobody on nothing",
-)
+FLOOR_LINE = re.compile(r"^FLOOR = \(\d+, \d+\)$", re.M)
+
+# A script that says what it saw. It imports a sibling, so a launch that left
+# `sys.path[0]` on the launcher's directory fails at the import, and it
+# writes a mark before anything else, so a refusal that came after it shows.
+PROBE = """import json, os, sys
+open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ran"), "w").close()
+import probe_sibling
+print(json.dumps({
+    "argv": sys.argv, "path0": sys.path[0], "file": __file__,
+    "name": __name__, "sibling": probe_sibling.NAME,
+}))
+sys.exit(int(sys.argv[1]))
+"""
 
 
-def _load(name, path):
+def read(path):
+    with open(path, encoding="utf-8") as handle:
+        return handle.read()
+
+
+def load(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-def generator():
-    """`round_record.py`, imported. Importing it loads `chain_check.py` too,
-    which is the module-level work the guard is required to precede."""
-    return _load("specseal_round_record_floor", SCRIPT)
-
-
-def source():
-    with open(SCRIPT, encoding="utf-8") as f:
-        return f.read()
-
-
-def raised_floor(tmp_path, floor="(99, 0)"):
-    """The real script, with `FLOOR` raised above any interpreter, in a
-    directory holding its sibling checker so `HERE` still resolves.
-
-    The substitution asserts that it matched. A `sed` that misses does
-    nothing, says nothing and exits zero, and a test resting on one passes by
-    testing an unmodified file -- which is this suite's own rule about edits,
-    applied to the edit a test makes."""
-    scripts = tmp_path / "scripts"
-    shutil.copytree(SCRIPTS, scripts)
-    copy = scripts / "round_record.py"
-    text = copy.read_text(encoding="utf-8")
-    old = "FLOOR = (3, 12)"
-    assert old in text, (
-        f"round_record.py no longer spells the floor as `{old}`, so this case "
-        "has been raising a floor in a file that does not have one"
+def launcher(tmp_path, floor):
+    """A copy of the launcher holding `floor`, under `tmp_path/hooks`."""
+    text, count = FLOOR_LINE.subn(f"FLOOR = {tuple(floor)!r}", read(LAUNCH))
+    assert count == 1, (
+        f"hooks/launch.py spells its floor {count} times as `FLOOR = (x, y)`, "
+        "so this case would be moving no floor or the wrong one"
     )
-    copy.write_text(text.replace(old, f"FLOOR = {floor}"), encoding="utf-8")
+    copy = tmp_path / "hooks" / "launch.py"
+    copy.parent.mkdir()
+    copy.write_text(text, encoding="utf-8")
     return str(copy)
 
 
-def run(python, script, *extra):
+def probe(tmp_path):
+    """The probe script and its sibling, under `tmp_path/scripts`."""
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    (scripts / "probe_sibling.py").write_text('NAME = "sibling"\n', encoding="utf-8")
+    script = scripts / "probe_case.py"
+    script.write_text(PROBE, encoding="utf-8")
+    return str(script)
+
+
+def run(*command, cwd):
     return subprocess.run(
-        [python, script, *ARGS, *extra],
-        cwd=ROOT,
+        [sys.executable, *command],
+        cwd=cwd,
         capture_output=True,
         encoding="utf-8",
         errors="replace",
     )
 
 
-def version_of(python):
-    """`(major, minor, micro)` for an interpreter, or None if it will not
-    answer. Asked of the interpreter rather than read off its name: a
-    `python3.9` on PATH is a filename, not a promise."""
-    try:
-        out = subprocess.run(
-            [python, "-c", "import sys; print('%d %d %d' % sys.version_info[:3])"],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=30,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if out.returncode != 0:
-        return None
-    try:
-        return tuple(int(part) for part in out.stdout.split())
-    except ValueError:
-        return None
+# --- the sentence, and the moment it arrives ----------------------------------
 
 
-# Every plausible spelling of an older interpreter, plus the one the ticket is
-# actually about: macOS's system python, which is what `python3` resolves to
-# for anyone who has not put something else in front of it.
-CANDIDATES = (
-    "/usr/bin/python3",
-    "python3.9",
-    "python3.10",
-    "python3.11",
-    "python3.8",
-    "python3",
-    "python",
-)
+def test_below_the_floor_the_launcher_refuses_before_the_script_runs(tmp_path):
+    """Exit 2, a sentence rather than a traceback, and the script never ran.
 
-
-def an_interpreter_below(floor):
-    """`(path, version_text)` for an interpreter on this machine older than
-    `floor`, or None. CI runners have none, which is why the case using this
-    skips rather than fails."""
-    for name in CANDIDATES:
-        path = name if os.path.isabs(name) else shutil.which(name)
-        if not path:
-            continue
-        found = version_of(path)
-        if found and found[:2] < tuple(floor):
-            return path, ".".join(str(part) for part in found)
-    return None
-
-
-# --- the sentence ---------------------------------------------------------
-
-
-def test_an_interpreter_below_the_floor_gets_a_sentence():
-    """Both numbers, or the sentence cannot be acted on.
-
-    A floor with no found version tells a reader what is wanted and not
-    whether they have it -- and the reader whose `python3` is secretly 3.9 is
-    exactly the reader who does not know what they are running. The
-    interpreter's path is there for the same reason: on macOS the surprise is
-    not the version, it is which file `python3` was."""
-    module = generator()
-    sentence = module.below_floor((3, 9, 6), "/usr/bin/python3")
-    assert sentence, "an interpreter below the floor was let through"
-    assert module.FLOOR_TEXT in sentence, "the sentence does not name the floor"
-    assert "3.9.6" in sentence, (
-        "the sentence does not name the version it found, so a reader cannot "
-        "tell whether it is talking about their interpreter"
-    )
-    assert "/usr/bin/python3" in sentence, (
-        "the sentence does not name the interpreter it found, which is the "
-        "half a reader on macOS is surprised by"
-    )
-    assert "round-record" in sentence, (
-        "the sentence does not name the command, so a reader who ran it "
-        "through a wrapper cannot tell what produced it"
-    )
-
-
-def test_the_sentence_says_nothing_was_read_or_written():
-    """The ticket's complaint is that the failure read as a bug in the report.
-
-    Saying so is what tells the operator their files are untouched -- the one
-    question a mid-run traceback leaves open."""
-    sentence = generator().below_floor((3, 9, 6), "/usr/bin/python3")
-    assert re.search(r"[Nn]othing was read", sentence), (
-        "the sentence does not say nothing was read, so a reader cannot tell "
-        "a refusal at entry from a crash partway through"
-    )
-    assert re.search(r"nothing was written", sentence), (
-        "the sentence does not say nothing was written"
-    )
-
-
-def test_the_refusal_is_ascii_because_it_is_written_before_stderr_is_set_up():
-    """The one sentence that cannot rely on stderr being set up is this one.
-
-    The guard writes it at module level, and `__main__`'s
-    `reconfigure(errors="backslashreplace")` block is at the bottom of the
-    file -- so the refusal goes out under whatever encoding the machine had.
-    Under `PYTHONIOENCODING=ascii` a `§` reached the operator as `\\xa7`, in
-    the message written for the worst-configured machine, and this block is
-    documented as the one to copy into a hook whose stderr nobody watches."""
-    sentence = generator().below_floor((3, 9, 6), "/usr/bin/python3")
-    stowaways = sorted({c for c in sentence if not c.isascii()})
-    assert not stowaways, (
-        f"the refusal carries {stowaways}, which prints as an escape under an "
-        "ASCII stderr -- and it is written before anything reconfigures one"
-    )
-
-
-def test_the_floor_and_above_are_let_through():
-    """The boundary, and one above it. A floor that refuses itself would take
-    the whole repository down at the next release."""
-    module = generator()
-    floor = tuple(module.FLOOR)
-    assert module.below_floor((*floor, 0)) is None, (
-        "the floor itself is refused, so the supported interpreter cannot run"
-    )
-    assert module.below_floor((floor[0], floor[1] + 1, 0)) is None
-    assert module.below_floor((floor[0] + 1, 0, 0)) is None
-    assert module.below_floor((floor[0], floor[1] - 1, 99)) is not None, (
-        "one minor below the floor is let through, so the floor is not a floor"
-    )
-
-
-def test_this_interpreter_is_at_or_above_the_floor():
-    """The suite runs under `bin/test`, which builds at the floor or refuses.
-
-    If this fails, every other case here is measuring something else."""
-    module = generator()
-    assert module.below_floor() is None, module.below_floor()
-
-
-# --- the moment it arrives ------------------------------------------------
-
-
-def test_a_floor_above_this_interpreter_refuses_before_anything_is_read(tmp_path):
-    """The real guard, from any interpreter, by moving the floor instead.
-
-    This is the case that does not skip. What it proves is the whole ticket:
-    exit 2, a sentence rather than a traceback, and nothing said about the
-    work item -- because the guard answered before `argparse` looked at it."""
-    out = run(sys.executable, raised_floor(tmp_path))
-    running = ".".join(str(part) for part in sys.version_info[:3])
-    assert out.returncode == 2, (
-        f"exit {out.returncode}, and 2 is the code for nothing written; "
-        f"stderr was {out.stderr!r}"
-    )
-    assert "99.0" in out.stderr, "the sentence does not name the floor it holds"
-    assert running in out.stderr, "the sentence does not name this interpreter"
-    assert "Traceback" not in out.stderr, (
-        "a traceback is what the ticket is about; the guard is supposed to "
-        f"replace it: {out.stderr!r}"
-    )
-    assert JUNK_ITEM not in out.stderr + out.stdout, (
-        "the run got as far as the work item, so the guard is not at entry"
-    )
-    assert not out.stdout, f"something was printed before the refusal: {out.stdout!r}"
-
-
-def test_above_the_floor_the_same_arguments_get_past_the_guard(tmp_path):
-    """The control, and the half that keeps the case above honest.
-
-    With the floor left where it is, the same junk arguments reach the script
-    proper and it complains about the item instead. Without this, a guard that
-    refused everything would pass every assertion above."""
-    scripts = tmp_path / "scripts"
-    shutil.copytree(SCRIPTS, scripts)
-    out = run(sys.executable, str(scripts / "round_record.py"))
-    assert out.returncode != 0, "junk arguments were accepted"
-    assert "99.0" not in out.stderr
-    everything = out.stdout + out.stderr
-    assert JUNK_ITEM in everything or "item" in everything.lower(), (
-        "above the floor the script no longer reaches its own argument "
-        f"handling: {everything!r}"
-    )
-
-
-def test_the_script_refuses_at_entry_on_a_below_floor_interpreter():
-    """The genuine article, where the machine has one.
-
-    `/usr/bin/python3` is 3.9 on macOS, which is the ticket's own platform.
-    CI runners have nothing below the floor, so this skips there -- its job is
-    to catch the raised-floor copy above lying about what the real file does
-    on a real old interpreter."""
-    module = generator()
-    found = an_interpreter_below(module.FLOOR)
-    if not found:
-        pytest.skip("no interpreter below the floor on this machine")
-    python, version = found
-    out = run(python, SCRIPT)
-    assert out.returncode == 2, (
-        f"{python} ({version}) exited {out.returncode}; stderr {out.stderr!r}"
-    )
-    assert module.FLOOR_TEXT in out.stderr
-    assert version in out.stderr
-    named = re.search(r" at (\S+?)\.?\n", out.stderr)
-    assert named, f"the sentence names no interpreter: {out.stderr!r}"
-    # Not `assert python in out.stderr`. That passed here for the wrong
-    # reason: macOS resolves `/usr/bin/python3` to a shim inside Xcode, whose
-    # path ENDS with `/usr/bin/python3`, so the substring held while the
-    # message named a different file. What a reader needs is that the path
-    # printed is an interpreter, and that it is the one whose version was
-    # just reported -- so that is what is asked, of the path itself.
-    assert version_of(named.group(1)) == version_of(python), (
-        f"the sentence names {named.group(1)}, which is not the interpreter "
-        f"that ran ({python})"
-    )
+    The sentence names the floor and the version found, or a reader whose
+    `python3` is secretly 3.9 cannot tell whether it means them; the
+    interpreter's path, because on macOS the surprise is which file `python3`
+    was; the command, because a reader typed the wrapper and not the file."""
+    script = probe(tmp_path)
+    out = run(launcher(tmp_path, (99, 0)), script, "0", cwd=tmp_path)
+    found = ".".join(str(part) for part in sys.version_info[:3])
+    assert out.returncode == 2, (out.returncode, out.stderr)
+    assert out.stderr.startswith(
+        f"probe-case: needs python 99.0 or newer, and this is python {found} "
+        f"at {sys.executable}.\n"
+        "Nothing was read and nothing was written.\n"
+    ), out.stderr
+    assert "macOS ships python 3.9 under that name" in out.stderr, out.stderr
     assert "Traceback" not in out.stderr, out.stderr
-    assert "zip()" not in out.stderr, (
-        "the interpreter's own TypeError still reaches the operator, so the "
-        "guard is downstream of the sites that raise it"
-    )
-    assert JUNK_ITEM not in out.stderr + out.stdout
-
-
-def test_the_guard_precedes_every_other_module_level_act():
-    """Structure, because the two cases above cannot see ordering.
-
-    `chain = load(CHAIN, ...)` reads and executes a second file at import,
-    before `main()` is ever called, and on 3.9 that load succeeds -- so a
-    guard placed in `main()` would let the operator watch exactly the progress
-    the ticket is about. This reads the module's own AST rather than its
-    text: a comment mentioning `load(` is not an act."""
-
-    def calls(node, name):
-        """True for `name(...)` — asked of the tree, so a comment or a string
-        mentioning the call is not one."""
-        return (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id == name
-        )
-
-    tree = ast.parse(source())
-    asked = refusal = acts = None
-    for node in tree.body:
-        if isinstance(node, ast.Assign) and "below_floor" in ast.dump(node.value):
-            asked = asked or node.lineno
-        if isinstance(node, ast.If) and "SystemExit" in ast.dump(node):
-            refusal = refusal or node.lineno
-        if isinstance(node, ast.Assign) and calls(node.value, "load"):
-            acts = acts or node.lineno
-    assert asked, "nothing at module level calls `below_floor`"
-    assert refusal, "no module-level `if` raises SystemExit"
-    assert asked < refusal, "the floor is asked about after the refusal"
-    assert acts, "`chain = load(...)` is no longer a module-level assignment"
-    assert refusal < acts, (
-        f"the guard is at line {refusal} and the sibling checker is loaded at "
-        f"{acts}; the guard has to come first or the script does real work "
-        "before it says the interpreter is wrong"
-    )
-
-    # And not `load(...)` alone. This case is named for EVERY other
-    # module-level act, and a check that names one call cannot see the second
-    # one somebody adds above the guard -- an `open`, a `subprocess.run`, a
-    # constant read off the disk. So every module-level statement that calls
-    # anything sits below the refusal, less the guard's own three constants
-    # and the assignment that runs it.
-    OWN = {"FLOOR", "FLOOR_TEXT", "BELOW_FLOOR", "_refusal"}
-    for node in tree.body:
-        if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.Import)):
-            continue
-        if isinstance(node, ast.Assign) and all(
-            getattr(t, "id", None) in OWN for t in node.targets
-        ):
-            continue
-        for inner in ast.walk(node):
-            if not isinstance(inner, ast.Call):
-                continue
-            called = getattr(inner.func, "id", None) or getattr(
-                inner.func, "attr", None
-            )
-            assert node.lineno >= refusal, (
-                f"module level calls {called}() at line {node.lineno}, above "
-                f"the guard at line {refusal}; the guard has to precede every "
-                "act, not only the sibling checker's load"
-            )
-
-
-def test_the_docstring_says_what_exit_2_now_covers():
-    """A code whose meaning is written down and then quietly widened is a code
-    nobody can read. The guard exits 2, and 2 already meant one thing."""
-    head = source().split('"""')[1]
-    assert "Exit codes" in head, "the docstring no longer documents exit codes"
-    line = head[head.index("Exit codes") :]
-    assert "interpreter" in line.split("\n\n")[0], (
-        "exit 2 covers a refused interpreter now, and the docstring still "
-        "says it covers unusable input only"
+    assert not out.stdout, out.stdout
+    assert not (tmp_path / "scripts" / "ran").exists(), (
+        "the script ran before the refusal, so the refusal is not at entry"
     )
 
 
-# --- one number ------------------------------------------------------------
+def test_at_the_floor_the_script_runs_as_if_it_were_run_directly(tmp_path):
+    """At the floor itself, the launched script sees what a direct run sees:
+    its arguments, `sys.path[0]`, `__file__` and `__name__`, and its exit
+    code reaches the caller. A floor that refused itself would stop every
+    command at the next release."""
+    script = probe(tmp_path)
+    args = (script, "3", "two words", "--flag")
+    direct = run(*args, cwd=tmp_path)
+    launched = run(launcher(tmp_path, sys.version_info[:2]), *args, cwd=tmp_path)
+    assert direct.returncode == 3, direct.stderr
+    assert (launched.returncode, launched.stderr) == (3, ""), launched.stderr
+    assert json.loads(launched.stdout) == json.loads(direct.stdout)
+
+
+def test_the_refusal_is_ascii_whatever_path_it_names():
+    """The refusal is written before anything sets up stderr, so a path the
+    console cannot encode would end it in a traceback, on the machine that
+    has no other way of being told what is wrong."""
+    launch = load(LAUNCH, "specseal_launch_ascii")
+    sentence = launch.refusal(
+        "/Users/x/코드/round_record.py", (3, 9, 6), "/Users/x/파이썬/python3"
+    )
+    stowaways = sorted({c for c in sentence if not c.isascii()})
+    assert not stowaways, f"the refusal carries {stowaways}"
+
+
+# --- one number --------------------------------------------------------------
 
 
 def floor_carriers(root=ROOT):
     """`{path: floor}` for every tracked `.py` on disk whose module level
-    assigns `FLOOR` a tuple, read with `ast` rather than imported, so a
-    carrier is found the day it is written and no module-level act of it
-    runs. A tracked file the working tree deleted carries nothing to compare
-    and is left out."""
+    assigns `FLOOR` a tuple literal, read with `ast` rather than imported. A
+    tracked file the working tree deleted carries nothing and is left out."""
+
     listed, _missing = on_disk(root, git_listing(root, "ls-files", "*.py"))
     found = {}
     for rel in listed:
-        with open(os.path.join(root, rel), encoding="utf-8") as f:
-            text = f.read()
+        text = read(os.path.join(root, rel))
         if "FLOOR" not in text:
             continue
         for node in ast.parse(text).body:
@@ -433,230 +173,61 @@ def floor_carriers(root=ROOT):
     return found
 
 
-def test_the_floor_is_the_number_the_runner_and_the_linter_hold():
-    """`CONTRIBUTING.md` §*Running the checks*: the floor is one number, held
-    as `FLOOR` in the runner so the sentence and the code agree.
-
-    Every guard is another carrier of it, and none imports the constant: a
-    fallback-safe read still has to name a floor in its `except` branch, so
-    the second spelling survives the import anyway. So every module-level
-    `FLOOR` in the tree is found by `floor_carriers` and held to the
-    runner's and to `ruff.toml`'s `target-version`, and a carrier nobody
-    listed is pinned the day it appears."""
-    carriers = floor_carriers()
-    floor = carriers.get(os.path.relpath(RUNNER, ROOT).replace(os.sep, "/"))
-    assert floor, ".github/scripts/run_tests.py no longer assigns FLOOR"
-    with open(RUFF, encoding="utf-8") as f:
-        m = re.search(r'target-version = "py(\d)(\d+)"', f.read())
+def test_the_floor_has_one_source():
+    """`hooks/launch.py` is the one file that spells the floor, the runner
+    builds its virtualenv against the launcher's number, and `ruff.toml`,
+    which cannot import, lints at that number."""
+    floor = tuple(load(LAUNCH, "specseal_launch_floor").FLOOR)
+    assert floor_carriers() == {"hooks/launch.py": floor}, floor_carriers()
+    assert tuple(load(RUNNER, "specseal_runner_floor").FLOOR) == floor
+    m = re.search(r'target-version = "py(\d)(\d+)"', read(RUFF))
     assert m, "ruff.toml lost its target-version"
     assert (int(m.group(1)), int(m.group(2))) == floor, (
-        f".github/scripts/run_tests.py holds {floor} and ruff.toml lints at "
+        f"hooks/launch.py holds {floor} and ruff.toml lints at "
         f"{m.group(1)}.{m.group(2)}"
     )
-    apart = {rel: value for rel, value in carriers.items() if value != floor}
-    assert not apart, (
-        f"{apart} hold a floor other than .github/scripts/run_tests.py's "
-        f"{floor}; CONTRIBUTING.md says the floor is one number"
-    )
 
 
-# --- the second guarded script ---------------------------------------------
+# --- no way around it ---------------------------------------------------------
 
-# #458. `skills/code-review/scripts/round_record.py`'s guard block says it is
-# the spelling to copy, and `settle` is the first shipped command to copy it.
-# The three cases below are the two above plus the structural one, asked of
-# that copy: a guard that was copied and then quietly moved below an act is a
-# guard nobody would notice was gone.
-SETTLE = os.path.join(ROOT, "skills", "settle", "scripts", "settle.py")
-SETTLE_ARGS = ("--root", JUNK_ITEM)
+INTERPRETERS = {"python3", "python", "py"}
 
 
-def settle_source():
-    with open(SETTLE, encoding="utf-8") as f:
-        return f.read()
-
-
-def settle_with_raised_floor(tmp_path, floor="(99, 0)"):
-    """The real file with `FLOOR` raised above any interpreter, in a mirror of
-    the layout it resolves its siblings against.
-
-    The mirror is three files rather than the whole plugin, and it is what
-    lets the ABOVE-the-floor half of this pair say anything. Below the floor
-    the guard answers before `HERE` is computed, so the copy could sit
-    anywhere; above it the script loads `hooks/optin.py` to resolve the seal
-    root and `unverified_check.py` to read the fold record, and a copy alone
-    refuses with a missing-sibling sentence before it reaches the argument it
-    is being handed. That refusal is correct and it is not what this pair is
-    about."""
-    scripts = tmp_path / "skills" / "settle" / "scripts"
-    scripts.mkdir(parents=True)
-    for rel in (
-        ("hooks", "optin.py"),
-        ("skills", "verify", "scripts", "unverified_check.py"),
-    ):
-        target = tmp_path.joinpath(*rel)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(os.path.join(ROOT, *rel), target)
-    copy = scripts / "settle.py"
-    text = settle_source()
-    old = "FLOOR = (3, 12)"
-    assert old in text, (
-        f"settle.py no longer spells the floor as `{old}`, so this case has "
-        "been raising a floor in a file that does not have one"
-    )
-    copy.write_text(text.replace(old, f"FLOOR = {floor}"), encoding="utf-8")
-    return str(copy)
-
-
-def run_settle(python, script):
-    return subprocess.run(
-        [python, script, *SETTLE_ARGS],
-        cwd=ROOT,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-
-
-def test_settle_refuses_before_anything_is_read_below_a_raised_floor(tmp_path):
-    """Never skips, so CI stands on it. Every line of the guard is the
-    shipped line and one constant moved."""
-    out = run_settle(sys.executable, settle_with_raised_floor(tmp_path))
-    assert out.returncode == 2, out.stdout + out.stderr
-    assert "settle: needs python 99.0 or newer" in out.stderr, out.stderr
-    assert "Nothing was read and nothing was written." in out.stderr, out.stderr
-    assert "Traceback" not in out.stderr, out.stderr
-    assert JUNK_ITEM not in out.stderr + out.stdout, (
-        "the refusal reached argument handling first, which is the moment the "
-        "ticket is about"
-    )
-
-
-def test_above_the_floor_settle_gets_as_far_as_its_own_arguments(tmp_path):
-    """The contrast. The same arguments, a floor this interpreter satisfies,
-    and the refusal is about the tree rather than about python."""
-    out = run_settle(sys.executable, settle_with_raised_floor(tmp_path, "(3, 0)"))
-    assert out.returncode == 2, out.stdout + out.stderr
-    assert "needs python" not in out.stderr, out.stderr
-    assert JUNK_ITEM in out.stderr, out.stderr
-
-
-def test_settle_refuses_at_entry_on_a_below_floor_interpreter():
-    """The genuine article, where the machine has one. Its job is to catch
-    the raised-floor copy above lying about what the real file does on a real
-    old interpreter."""
-    module = generator()
-    found = an_interpreter_below(module.FLOOR)
-    if not found:
-        pytest.skip("no interpreter below the floor on this machine")
-    python, version = found
-    out = run_settle(python, SETTLE)
-    assert out.returncode == 2, (
-        f"{python} ({version}) exited {out.returncode}; stderr {out.stderr!r}"
-    )
-    assert module.FLOOR_TEXT in out.stderr, out.stderr
-    assert version in out.stderr, out.stderr
-    assert "Traceback" not in out.stderr, out.stderr
-    assert JUNK_ITEM not in out.stderr + out.stdout
-
-
-def test_settles_guard_precedes_every_module_level_act():
-    """Structure, because the cases above cannot see ordering. `settle.py`
-    compiles three regular expressions and resolves two paths at import; a
-    guard placed after any of them lets the operator watch progress the
-    ticket is about."""
-
-    tree = ast.parse(settle_source())
-    asked = refusal = None
-    for node in tree.body:
-        if isinstance(node, ast.Assign) and "below_floor" in ast.dump(node.value):
-            asked = asked or node.lineno
-        if isinstance(node, ast.If) and "SystemExit" in ast.dump(node):
-            refusal = refusal or node.lineno
-    assert asked, "nothing at module level calls `below_floor`"
-    assert refusal, "no module-level `if` raises SystemExit"
-    assert asked < refusal, "the floor is asked about after the refusal"
-
-    OWN = {"FLOOR", "FLOOR_TEXT", "BELOW_FLOOR", "_refusal"}
-    for node in tree.body:
-        if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.Import)):
+def launches(text):
+    """`[(line, first argument)]` for every line of a wrapper whose command is
+    an interpreter, after an `exec` and past `py`'s `-3`. Comments, sh's `#`
+    and cmd's `rem`, are skipped, and so is a line naming an interpreter as an
+    argument, `where /q py`."""
+    found = []
+    for line in text.split("\n"):
+        words = line.split()
+        if not words or words[0].startswith("#") or words[0].lower() == "rem":
             continue
-        if isinstance(node, ast.Assign) and all(
-            getattr(t, "id", None) in OWN for t in node.targets
-        ):
+        if words[0] == "exec":
+            words = words[1:]
+        if not words or words[0] not in INTERPRETERS:
             continue
-        for inner in ast.walk(node):
-            if not isinstance(inner, ast.Call):
-                continue
-            called = getattr(inner.func, "id", None) or getattr(
-                inner.func, "attr", None
-            )
-            assert node.lineno >= refusal, (
-                f"settle.py's module level calls {called}() at line "
-                f"{node.lineno}, above the guard at line {refusal}"
-            )
+        rest = words[1:]
+        if words[0] == "py" and rest[:1] == ["-3"]:
+            rest = rest[1:]
+        found.append((line.strip(), rest[0] if rest else ""))
+    return found
 
 
-def test_the_guard_block_is_the_one_round_record_says_to_copy():
-    """The copy and the original are the same block, so a repair to one is
-    visibly owed to the other. Only the command's own name differs, which is
-    the whole of what a copied sentence has to change."""
-    original, copy = source(), settle_source()
-    for line in (
-        "version = tuple(sys.version_info[:3]) if version is None else tuple(version)",
-        "    if version[:2] >= FLOOR:",
-        "        return None",
-        "_refusal = below_floor()",
-    ):
-        assert line in original and line in copy, line
-    assert copy.count("settle: needs python {floor} or newer") == 1
-    assert "round-record: needs python" not in copy, (
-        "the copied block still names the script it was copied from"
-    )
-
-
-# --- the third guarded script ----------------------------------------------
-
-# #566. `fold-check` copies the same block by way of `settle.py`. Below the
-# floor the guard answers before `HERE` is computed, so the copy alone is
-# enough to run.
-FOLD_CHECK = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
-
-
-def fold_check_source():
-    with open(FOLD_CHECK, encoding="utf-8") as f:
-        return f.read()
-
-
-def test_fold_check_refuses_before_anything_is_read_below_a_raised_floor(tmp_path):
-    """Never skips. Every line of the guard is the shipped line and one
-    constant moved; a junk `--root` must not be reached."""
-    text = fold_check_source()
-    old = "FLOOR = (3, 12)"
-    assert old in text, f"fold_check.py no longer spells the floor as `{old}`"
-    copy = tmp_path / "fold_check.py"
-    copy.write_text(text.replace(old, "FLOOR = (99, 0)"), encoding="utf-8")
-    out = subprocess.run(
-        [sys.executable, str(copy), "--root", JUNK_ITEM, "--ceiling", "1"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    assert out.returncode == 2, out.stdout + out.stderr
-    assert "fold-check: needs python 99.0 or newer" in out.stderr, out.stderr
-    assert "Traceback" not in out.stderr, out.stderr
-    assert JUNK_ITEM not in out.stderr + out.stdout, out.stderr
-
-
-def test_fold_checks_guard_block_is_the_one_round_record_says_to_copy():
-    original, copy = source(), fold_check_source()
-    for line in (
-        "version = tuple(sys.version_info[:3]) if version is None else tuple(version)",
-        "    if version[:2] >= FLOOR:",
-        "        return None",
-        "_refusal = below_floor()",
-    ):
-        assert line in original and line in copy, line
-    assert copy.count("fold-check: needs python {floor} or newer") == 1
-    assert "settle: needs python" not in copy
-    assert copy.index("_refusal = below_floor()") < copy.index("\nHERE = ")
+def test_every_wrapper_runs_its_script_through_the_launcher():
+    """Every file in `bin/`, found by listing it: each interpreter it starts
+    is handed the launcher first, so a wrapper added later is held the day it
+    is written."""
+    unheld = {}
+    for entry in sorted(os.listdir(BIN)):
+        text = read(os.path.join(BIN, entry))
+        if entry.endswith(".cmd"):
+            first = '"%launch%"'
+            defined = 'set "launch=%here%..\\hooks\\launch.py"' in text
+        else:
+            first, defined = '"$here/../hooks/launch.py"', True
+        found = launches(text)
+        bypass = [line for line, arg in found if arg != first]
+        if not found or bypass or not defined:
+            unheld[entry] = bypass or "starts no interpreter through the launcher"
+    assert not unheld, unheld
