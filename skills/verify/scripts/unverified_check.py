@@ -709,15 +709,6 @@ def live_lines(lines):
     split the text with `gfm_lines` (#664), except the `settle.py` caller,
     which splits newline-translated text on `"\\n"` for a byte-for-byte round
     trip and ends a line where GFM does already.
-
-    No `zip`. Ruff's B905 requires the strictness keyword on every such call,
-    that keyword arrived in python 3.10, and this script carries no
-    interpreter guard — so writing one here is the traceback on somebody's
-    3.9 `python3` that
-    `tests/test_a_script_says_which_interpreter_it_needs.py` keeps out of the
-    tree. That module reads TEXT rather than an AST, so even naming the
-    construct here reddens it, which is why this sentence goes the long way
-    round.
     """
     lines = list(lines)
     literal = _liveness(lines, spans_cross_lines=False)

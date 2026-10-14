@@ -156,7 +156,6 @@ APPLIES_THE_SHARED_GUARD = {
     "tests/test_no_document_names_the_old_roots.py#tracked": 1,
     "tests/test_release_hygiene.py#tracked": 1,
     "tests/test_a_release_is_sized_by_a_criterion.py#tracked": 1,
-    "tests/test_a_script_says_which_interpreter_it_needs.py#shipped_python": 1,
     "tests/test_a_finding_id_is_a_bare_integer.py#committed_records": 1,
     "tests/test_one_word_one_meaning.py#test_no_live_text_says_the_word_0_19_0_renamed": 1,
     # The reader itself. It lists the modules it is about to parse, and a
@@ -169,7 +168,7 @@ APPLIES_THE_SHARED_GUARD = {
     "tests/test_no_passage_is_pasted_into_a_second_file.py#corpus": 1,
     # #741's two walks, the encoding half's corpus and the hook entry points.
     # Each returns the missing half, and its liveness half hands that to
-    # `decline_if_shrunken`, the way `shipped_python` above does.
+    # `decline_if_shrunken`.
     "tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#tracked_python": 1,
     "tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#entry_points": 1,
     # #867's heading rule held to markdown-it over every tracked `.md`. Both

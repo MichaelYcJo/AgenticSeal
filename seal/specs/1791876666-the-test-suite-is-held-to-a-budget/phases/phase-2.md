@@ -67,8 +67,12 @@ misspelt is red with T3 gone (`executed`).
 on S2, T1 and T2, the eleven cases of the first case file (NAME NOT IN TREE:
 `tests/test_a_new_case_names_the_mutant_it_kills.py`),
 `tests/unguarded-files.txt`, which nothing reads once no case owes a line,
-and the silent-run case with `first_line` and `mutation_run`'s first line,
-which nothing read.
+the silent-run case with `first_line` and `mutation_run`'s first line,
+which nothing read, and the interpreter module's census of constructs above
+the floor, its four cases and its `seal/follow-up.md` row (NAME NOT IN TREE:
+`ABOVE_THE_FLOOR`, `CLASSIFIED`, `shipped_python`), because the floor rose to
+3.12 and both constructs it matched predate it: `zip`'s `strict=` is 3.10 and
+`datetime.UTC` is 3.11.
 
 **The check as built, nothing written by hand.** Each test file holding a new
 or changed function runs once as it stands, under a tracer that records the
@@ -354,11 +358,14 @@ framer's to reframe, since only phase 2's row was mine to rewrite.
 
 `plan.md`'s names the tree does not hold are marked `NAME NOT IN TREE`, as
 the orchestrator decided for this file's names: the two `gh api` fields, T8
-(planted with the measurers) and T9 (phase 3). `bin/evidence-check .` exits
-1 and `bin/evidence-check --strict .` exits 2 at this branch's tip
-(`executed`). Every finding is a drifted ledger row, in the fragments and in
-`seal/releases/`, citing one of four units this branch changed:
-`CONTRIBUTING.md`'s *Running the checks*, the line-end test's
-`OUT_OF_CLASS`, and `mutation_check.py`'s and `arm_check.py`'s `main`. They
-are not read again, because #944 removes the ledger and every fragment, and
-this branch rebases onto #944 before it merges.
+(planted with the measurers) and T9 (phase 3). `bin/evidence-check .` and
+`bin/evidence-check --strict .` both exit 2 at this branch's tip
+(`executed`). Every finding is a ledger row, in the fragments and in
+`seal/releases/`, citing a unit this branch changed or removed: drifted for
+`CONTRIBUTING.md`'s *Running the checks*, the line-end test's `OUT_OF_CLASS`,
+the shrunken-corpus test's guard table, `unverified_check.py`'s
+`live_lines`, and `mutation_check.py`'s and `arm_check.py`'s `main`; broken
+for the interpreter census's removed units, cited by released rows in
+`0.9.1.md`, `0.12.1.md` and `0.21.0.md`. They are not read again, because
+#944 removes the ledger and every fragment, and this branch rebases onto
+#944 before it merges.
