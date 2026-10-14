@@ -1124,10 +1124,10 @@ def test_the_largest_round_record_is_reported_and_never_fails(tmp_path, capsys):
         tmp_path,
         rounds_budget(),
         files={
-            "seal/specs/1-a/rounds/round-1.md": "a" * 99 + "\n",
-            "seal/specs/1-a/rounds/round-2.md": "a" * 199 + "\n",
-            "seal/specs/2-b/rounds/round-1.md": "b" * 49 + "\n",
-            "seal/specs/3-c/spec.md": "c" * 999 + "\n",
+            "seal/specs/1-small/rounds/round-1.md": "b" * 49 + "\n",
+            "seal/specs/2-large/rounds/round-1.md": "a" * 99 + "\n",
+            "seal/specs/2-large/rounds/round-2.md": "a" * 199 + "\n",
+            "seal/specs/3-none/spec.md": "c" * 999 + "\n",
         },
     )
     assert run(root) == 0
@@ -1135,9 +1135,11 @@ def test_the_largest_round_record_is_reported_and_never_fails(tmp_path, capsys):
     assert (
         "| `rounds-bytes` | 300 bytes | 10 | -290 (-2900.0%) | report | over |" in out
     )
-    assert "- `1-a`: 300 bytes over 2 files\n- `2-b`: 50 bytes over 1 files\n" in out, (
-        out
-    )
+    assert (
+        "- `2-large`: 300 bytes over 2 files\n- `1-small`: 50 bytes over 1 files\n"
+        in out
+    ), out
+    assert "`3-none`" not in out, out
 
 
 def release(version, rows):
