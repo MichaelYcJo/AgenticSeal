@@ -35,6 +35,12 @@
   - The shards priced cases 1.07 times what the single job that measured
     the file before them did, a runner's price level rather than growth in
     the suite; the shards' part ratios move with the runner a group lands
-    on, so no scaling is applied to the union. A pull request that commits
+    on, so no scaling is applied to the union. One union moves a single test
+    file 0.67 to 1.72 times the level from the next, past the 1.3 band its
+    `slow-file` row was set to, on files nobody changed. The union is what
+    makes that spread, so this change makes the `slow-file` rows of
+    `seal/budgets.md` `report` rows: each file's reading still prints in the
+    summary and fails nothing, and `suite-seconds`, the sum, stays the gate.
+    A pull request that commits
     a union restates `## Price level` in `seal/budgets.md` to the number the
     `budgets` step names for it.

@@ -672,6 +672,28 @@ def test_a_file_row_is_held_at_its_familys_ceiling_at_the_base(
     assert ratchet(root, body) == verdict, capsys.readouterr()
 
 
+def test_a_slow_file_is_reported_and_the_suite_seconds_are_gated(tmp_path, capsys):
+    """Work item 1791876667, round 3's 🟡 2: one union of the Windows shards'
+    parts moves a single test file 0.67 to 1.72 times the level from the
+    next, past any band a one-sided ceiling of 1.3 holds, so this
+    repository's `slow-file` rows are `report` rows and `suite-seconds` is
+    its gate. Under the kind `seal/budgets.md` gives the family, a listed
+    file over its ceiling is printed `over` and the run still holds."""
+    rows = {row.name: row for row in budget_check.budgets_here(ROOT)}
+    assert rows["suite-seconds"].kind == "gate"
+    kind = rows["slow-file"].kind
+    head = budgets(("slow-file", "seconds", 120, "one-sided", kind)) + table(
+        "Seconds ceiling", [("tests/test_a.py", 125)]
+    )
+    root = tree(tmp_path, head, files={".test_durations": json.dumps(SMALL)})
+    assert run(root) == 0
+    out = capsys.readouterr().out
+    assert (
+        "| `slow-file:tests/test_a.py` | 130 seconds | 125 | -5 (-4.0%) | report | over |"
+        in out
+    ), out
+
+
 def priced(scale, only=None):
     """`CASES` with every case, or the cases of the file `only`, multiplied."""
     return {

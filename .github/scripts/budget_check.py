@@ -88,13 +88,15 @@ times from the next on the same code, and three of five quiet runs fell
 under a two-sided band on one leg, so a `ci-minutes` row's slack is
 `one-sided`: it holds while the run is under its ceiling, and nothing asks
 for it to be lowered. The seconds rows are the same kind of reading:
-`.test_durations` is one run's union, and one refresh moved each of its 19
-test files of 100 seconds or more 0.76 to 1.14 times the level it moved the
-whole by (its 72 files of 10 seconds or more, 0.46 to 1.54), so `suite-seconds` and
-`slow-file` are `one-sided` too. Such a row's ceiling is 1.3 times its
-reading, rounded up, which holds that spread with room, and the release
-lowers it from the trend line. Only these rows and `report` rows may say
-`one-sided`. The tree's run
+`.test_durations` is one run's union, so `suite-seconds` and `slow-file` are
+`one-sided` too. Such a row's ceiling is 1.3 times its reading, rounded up,
+and the release lowers it from the trend line. Only these rows and `report`
+rows may say `one-sided`. A single test file moves further than that band
+from one union of the Windows shards' parts to the next: 0.67 to 1.72 times
+the level the whole moved by, over four unions of one tree (#931), where one
+unsharded refresh had moved them 0.76 to 1.14. So `seal/budgets.md` makes the
+`slow-file` rows `report` rows, printed and never failing, and the sum over
+every file, `suite-seconds`, is the gate. The tree's run
 shows the minutes rows unread; the tests workflow's `budgets` job, after the
 suite, reads the run's job list with `--ci-jobs` and holds them, and prints
 the billable line: each job's minutes rounded up, at its leg's multiple of a
@@ -107,11 +109,11 @@ table gives the unit, the slack and the kind, and its ceiling is what every
 file its table does not list is held to: `## Slow test files` (`| File |
 Seconds ceiling |`), `## Docs history lines` (`| File | Lines ceiling |`) and
 `## Unenforced rules` (`| File | Rules ceiling |`) list the files held to a
-ceiling of their own. So an unlisted test file over
-the threshold fails, and listing it is a raise from the threshold that needs
-its line, as is a row the table drops whose ceiling was under it. Every test
-file whose reading times 1.3 reaches the threshold is listed, so an unlisted
-one has the same room to move before it crosses. A docs
+ceiling of their own. So where the family is a `gate`,
+an unlisted file over the threshold fails, and listing it is a raise from the
+threshold that needs its line, as is a row the table drops whose ceiling was
+under it. Every test file whose reading times 1.3 reaches the threshold is
+listed, so an unlisted one has the same room to move before it reads over. A docs
 line is a **history line** when it is not a rule line, not blank, not hidden
 in a fence or a comment and not a heading, and matches `#NN`, `round N`, a
 date or `measured`. A **rule line** is in a block from a line opening with
