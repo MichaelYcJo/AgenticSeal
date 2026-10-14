@@ -32,24 +32,47 @@ ledger.
 | the kernel is smaller than the frame's list | `spec.md` §*What happens to each reader* lists `ANCHOR_RE` and copies of `gfm_lines` and the fence rule in the kernel / `ANCHOR_RE`, `ANCHOR_PATH`, `resolve`, the minor-level readers and every vendored copy went; `gfm_lines`, `heading_level` and the fence rule ask `unverified_check.py` | the build | the two readers of `ANCHOR_RE` were deleted here, and the vendored copies existed for `evidence-ci` running the file alone, which no command does now |
 | `root-migrate.py` loses step 6 with its mapping rows | `plan.md` phase 4 names the two mapping rows / the re-point of anchors in the old ledger went too, a 0.3.x map moves to `seal/map.md`, and both READMEs' by-hand block changed in this phase | the build | step 6 read the ledger through `ANCHOR_RE`; the by-hand block is run by `test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set`, so it moves with the hook |
 | `.test_durations` is pruned, not refreshed | `plan.md` phase 4 "`.test_durations` from the run's `test-durations` artifact" / the deleted files' entries and the cut cases' entries removed, the 54 moved and renamed cases carry their old Windows prices | the build | no run exists without a push, and the deletion alone took the unpriced share to 5.4 %; carried prices bring it to 4.97 % |
+| S9's grep cannot reach zero as written | `spec.md` S9 "`grep -rn '…evidence-check…\|survivor'` … nothing but `changelog/`" / three code files join the kernel's path `skills/evidence-check/scripts/evidence_check.py` (`rider_check.py`, `chain_check.py`, `fold_check.py`), and `arm_check.py`, `round_record.py` and `skills/verify/SKILL.md` say `survivor` for a mutation that no case killed | the build | `plan.md` alternative G keeps the kernel at its path until a later item renames it, and the mutation word is a different meaning; the grep holds with those two excluded (`phases/phase-5.md`) |
+| the census lines were removed, not re-recorded | the spawn "with their census hashes re-recorded" / the five units whose docstrings changed (`rider_check.py#reverify`, `#migrate`, `chain_check.py#fix_range`, `pact_check.py#shown`, `unverified_check.py#annotate`) declare a `Reads:` line and leave `tests/undeclared_readers.txt` | the build | the census refuses a moved hash: `test_a_reader_declares_its_input_class.py#census_unit_changed` says to declare the unit and remove its line |
+| the design record is rewritten in place | `docs/one-root-by-lifetime.md` says its 2026-09-02 text "is a record … and is not rewritten" / both editions' ledger statements rewritten to what stands, release step 1 (the fold) and its rationale removed so step 2 became 1, and two decision rows (settle's grouping, anchored rows) rewritten or removed | the owner's rule of 2026-10-13 that a document states the latest and not the history, and S9 | the statements described a ledger the tree no longer has; `unenforced` and `docs-history` for both editions lowered by the rule paragraph and history lines that left |
+| `CLAUDE.md` loses the `seal` paragraph's narrative | the spawn "cut an equivalent elsewhere in the same file" / the tenet gains the one-source sentence (+89 bytes) and the whose-rule section's account of how `seal` came to need the rule leaves (−188), keeping the pointer to `tests/test_one_word_one_meaning.py` | the build | that account is history the test module's own comment holds; `preload:claude-md` lowered 9,126 → 9,027 |
+| `templates/config.md` §*Pact* rewritten | not in the frame / its `Pact notify` paragraph named `evidence-check --reverify` as the writer and linked `docs/the-pact.md` §*A signer records a pact change*, which phase 4 removed | the build | a shipped template linked a section that is gone and a writer that is gone; the paragraph says no command writes a record and how a held one is read, under Q2's default |
+| a module phase 4 left red is repaired here | not in the frame / `tests/test_a_shrunken_corpus_declines_to_judge.py` still listed `test_the_root_migrates_itself.py#test_the_re_pointed_ledgers_are_staged_with_the_move`, which phase 4 deleted; three of its cases failed at 8cf9e1ff | the build | a defect this branch caused is fixed where it arose; phase 4's narrow runs did not include that module |
+| two `seal/follow-up.md` rows change | not in the frame / the row asking whether `CONTRIBUTING.md` gains a third arm for a drifted ledger claim is removed, and the ledger and `evidence-check` clauses leave the `hits()` and `Broad gate` rows | the build | the third-arm question has no subject without a ledger; the other two rows' questions stand without the ledger clauses |
 
 ## Not verified
 
 | Item | Who must answer |
 |---|---|
 | `bin/rules.cmd` runs on Windows: written in lockstep with `bin/fold-check.cmd`, never executed | the pull request's Windows leg |
-| the full suite, the repository-wide lint and the typecheck after phase 1 | the sealer, once, after the rounds |
+| the full suite, the repository-wide lint and the typecheck after phase 5 | the sealer, once, after the rounds |
 | `.test_durations` priced by a Windows run after phase 4: the file holds pruned entries and carried prices, 610 of 12,270 cases unpriced (4.97 %, one case from `STALE_SHARE`) | the orchestrator, by the refresh recipe in `CONTRIBUTING.md` at the pull request's run |
 | `bin/fold-check.cmd --help` from `/` on Windows: `test_bin_wrapper_resolves_the_checker_from_any_cwd` was re-pointed from the deleted `evidence-check` wrapper, executed on macOS only | the pull request's Windows leg |
 
 ## Not done
 
-Phase 5 of `plan.md`. Files those phases delete still describe the ledger,
-and cite *the ledger policy at `v0.21.1`* where they cited the deleted
-document. The test docstrings the slice's targets carry are
-read as they are: rewriting each first sentence into the rule it guards is
-written by whoever moves a rule into a test — #941 and #940 under the reader
-criterion — and by #942 when it rebuilds the tests, not here.
+What still names the ledger after phase 5, each left on purpose:
+
+- `skills/implement/scripts/seal.py` carries a work item's
+  `ledger/<id>.md` in `seal export` and `seal import` (`LEDGER_DIR`), with
+  60 mentions in `tests/test_the_records_can_be_carried_out_and_in.py`. A
+  repository with an old fragment still carries it harmlessly; removing the
+  branch is a code change with its own cases, for the orchestrator to file.
+- `skills/evidence-check/` holds only the kernel and `pact_check.py`, and
+  `pact_check.py` still globs a signer's `seal/ledger*.md` for pact anchors.
+  The directory's rename is the later item `plan.md` alternative G names;
+  the glob is Q2's.
+- Test names and docstrings that say *ledger* (for example
+  `test_the_target_is_resolved_by_the_ledgers_reader`, which
+  `docs/the-record-layout.md` names in an `Enforced by:` line) are read as
+  they are: rewriting each into the rule it guards is written by whoever
+  moves a rule into a test — #941 and #940 under the reader criterion — and
+  by #942 when it rebuilds the tests.
+- `skills/writing-style/SKILL.md`'s translation example names
+  `templates/ledger.md` as the file a translator opened; it is an example of
+  choosing a word, and the file it names is gone.
+- Records under `seal/specs/` and the released `changelog/` keep their
+  history.
 
 ## Fed back into the spec
 
