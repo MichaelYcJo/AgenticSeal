@@ -131,8 +131,6 @@ commit alike. -->
 | skills/commit-pr-convention/SKILL.md | 24 |
 | skills/confidence-check/SKILL.md | 6 |
 | skills/config/SKILL.md | 13 |
-| skills/evidence-check/SKILL.md | 45 |
-| skills/evidence-ci/SKILL.md | 9 |
 | skills/gap-analysis/SKILL.md | 10 |
 | skills/implement/SKILL.md | 26 |
 | skills/implement/orchestration.md | 41 |
@@ -147,7 +145,6 @@ commit alike. -->
 | skills/writing-style/SKILL.md | 40 |
 | templates/claude-md-block.md | 5 |
 | templates/config.md | 37 |
-| templates/ledger.md | 3 |
 | templates/sdd-plan.md | 1 |
 | templates/sdd-questions.md | 5 |
 | templates/sdd-round.md | 1 |

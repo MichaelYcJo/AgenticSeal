@@ -581,21 +581,12 @@ PACT_SECTIONS = (
         ("skills", "implement", "orchestration.md"),
         "### A work item that commits in more than one repository",
     ),
-    (
-        ("skills", "evidence-check", "SKILL.md"),
-        "## `pact-check` — the signers against the pact",
-    ),
     # Round 1's white 11: the words ship here too.
     (("templates", "config.md"), "## Pact"),
-    # #647 C and D: the act a pact review is, and the re-read that records a
-    # pact change.
+    # #647 C and D: the act a pact review is.
     (
         ("skills", "implement", "orchestration.md"),
         "### A pact review at the pact's repository",
-    ),
-    (
-        ("skills", "evidence-check", "SKILL.md"),
-        "## Re-verifying is recomputing the hash",
     ),
 )
 # Files where only the lines naming a pact are the pact's text: the cheat

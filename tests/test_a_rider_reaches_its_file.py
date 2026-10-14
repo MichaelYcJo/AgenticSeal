@@ -160,18 +160,17 @@ def test_the_riders_exist_where_the_rows_said_they_would():
         "hooks/review-history-guard.py",
         "hooks/cmdline.py",
         "hooks/worktree-guard.py",
-        "templates/evidence-check.yml",
     ):
         assert "# RIDER:" in read(os.path.join(ROOT, rel)), rel
 
 
 # Where riders are allowed to live.
 #
-# This list has now been the defect twice. `templates` was missing, so the
-# rider in `templates/evidence-check.yml` was checked by nothing at all.
-# `.github` and `tests` were missing for the same reason and cost three more:
-# `.github/scripts/fold_ledger.py` and two under `tests/`, one of which had
-# never carried a stamp in any form and so was invisible to every case here.
+# This list has now been the defect twice. `templates` was missing, so a
+# rider under it was checked by nothing at all. `.github` and `tests` were
+# missing for the same reason and cost three more, two of them under
+# `tests/`, one of which had never carried a stamp in any form and so was
+# invisible to every case here.
 #
 # The line the list draws is not "code": `agents/smith.md` and
 # `skills/implement/SKILL.md` carry real riders. It is that these roots hold
@@ -213,9 +212,7 @@ def test_no_rider_stamp_names_a_commit():
     none of the branch's own commits, so a stamp naming one resolves to
     nothing for whoever reads it next — on the RELEASE branch, where the
     person who meets it is never the person who wrote it, and with no mistake
-    required anywhere. `skills/evidence-check/SKILL.md` cites this failure as
-    grounds for the ledger's content anchors; #239 is the same repair reaching
-    the mechanism that supplied the evidence."""
+    required anywhere (#239)."""
     naming = []
     for rel, _line in rider_stamps():
         for chunk in read(os.path.join(ROOT, rel)).split(riders.MARKER)[1:]:

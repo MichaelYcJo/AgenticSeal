@@ -17,24 +17,24 @@ credit line in the advisory unless you ask for none.
 SpecSeal is a Claude Code plugin. What ships is Python that runs in two places
 a reader should keep separate:
 
-- **`skills/evidence-check/scripts/evidence_check.py`** — a checker, run from
-  CI and from a terminal, that reads an evidence ledger and the files the
-  ledger's rows cite.
+- **`skills/*/scripts/`** — the checkers, run from CI and from a terminal
+  (`fold-check`, `unverified-check`, `pact-check` and the rest), which read a
+  repository's records and the files those records name.
 - **`hooks/`** — gates the harness invokes around commits, branch switches and
   session start. Some of them run without anybody asking, which is the whole
   point of a gate and also the reason a defect in one is worth more than the
-  same defect in the checker.
+  same defect in a checker.
 
-The ledger is a committed file, so writing a row normally requires write
-access to the repository, and in an ordinary project a malicious row crosses
+The records are committed files, so writing one normally requires write
+access to the repository, and in an ordinary project a malicious record crosses
 no privilege boundary that a malicious commit does not cross already. Two
 situations break that assumption, and they are the ones worth reporting:
 
 1. **A repository whose CI runs these commands on pull requests.** A pull
-   request from a fork can add rows. What a fork's workflow run holds — a
+   request from a fork can add records. What a fork's workflow run holds — a
    token, an environment, a filesystem — is then the surface.
 2. **A developer with an untrusted repository checked out locally.** Running
-   the checker, or a hook firing on its own, acts on that repository's content
+   a checker, or a hook firing on its own, acts on that repository's content
    on a real machine. This is the case that can happen without the developer
    deciding to do anything.
 
