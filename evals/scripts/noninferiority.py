@@ -3,17 +3,21 @@
 
   noninferiority.py run --agent A (--rev REV | --tree DIR) --out FILE.json
       [--runs 2] [-j 4] [--max-cost-usd USD] [--case GLOB] [--suite-rev HEAD]
+  noninferiority.py run --from-raw FILE.raw --out FILE.json
   noninferiority.py compare --agent A --phase N --old OLD.json --new NEW.json
       --out RECORD.md
   noninferiority.py check RECORD.md
 
 `run` copies the plugin tree at REV (or DIR) into a temporary directory,
-puts the suite at SUITE-REV's `evals/behaviour/` into it, runs
-`claude plugin eval` over `evals/behaviour/<A>/` there, and writes the
-eval's JSON with three additions under `specseal`: the preload hashes of the
-tree it measured, each run's report rows, and whether the side was cut short.
-It removes every directory the run kept. `compare` writes the record the
-five pass rules judge; `check` recomputes a record's verdict from its numbers.
+puts the suite at SUITE-REV's `evals/behaviour/` into it, and runs
+`claude plugin eval` over `evals/behaviour/<A>/` there. **What the runs paid
+for is saved before anything reads it**: the eval's JSON, every run's trace
+and the measured preload go to `<out>.raw/` beside `--out`, and only then is
+each directory the eval kept removed. `--out` is the saved side with three
+additions under `specseal`: the preload hashes, each run's report rows, and
+whether the side was cut short. `run --from-raw` writes `--out` again from a
+saved side, with no eval run. `compare` writes the record the five pass
+rules judge; `check` recomputes a record's verdict from its numbers.
 
 Exit codes: 0 written, or the record's verdict holds · 1 the record's
 verdict is not `pass`, or it disagrees with its numbers · 2 nothing ran
@@ -219,41 +223,117 @@ def remove_kept(root):
     shutil.rmtree(root, ignore_errors=True)
 
 
-def annotate(result, tree, agent):
-    """Add `specseal` to an eval result: the preload hashes of TREE, each
-    run's report rows, and whether the side was cut short; then remove every
-    directory the run kept.
+def runs_of(result):
+    """`[(key, run)]` for every run of an eval result, KEY its position.
 
-    A run with no trace has no rows, and a run's error makes the side cut
-    short.
+    Reads: owned — an eval result's `cases` and `arms`; unknown passed"""
+    out = []
+    for c, case in enumerate(result.get("cases", [])):
+        for arm, runs in sorted(case.get("arms", {}).items()):
+            out += [(f"{c}|{arm}|{i}", run) for i, run in enumerate(runs)]
+    return out
 
-    Reads: observed — the eval's result object and each run's trace; unknown passed"""
+
+def saved_dir(out):
+    """The directory a side's paid output is saved in, beside OUT.
+
+    Reads: nothing — it maps the path it is handed."""
+    return os.path.splitext(out)[0] + ".raw"
+
+
+def save_side(raw, saved, meta):
+    """Save what a side's runs paid for into SAVED, then remove each kept
+    run: the eval's JSON byte for byte, every trace under `traces/`, and
+    META with the trace each run's position maps to.
+
+    A run whose trace is missing maps to none.
+
+    Reads: observed — the eval's JSON and each run's trace; unknown passed"""
+    os.makedirs(os.path.join(saved, "traces"), exist_ok=True)
+    shutil.copyfile(raw, os.path.join(saved, "raw.json"))
+    with open(raw, encoding="utf-8") as f:
+        result = json.load(f)
+    traces, kept = {}, []
+    for n, (key, run) in enumerate(runs_of(result)):
+        trace = run.get("tracePath") or ""
+        if trace and os.path.isfile(trace):
+            rel = f"traces/{n:03d}.jsonl"
+            shutil.copyfile(trace, os.path.join(saved, rel))
+            traces[key] = rel
+            kept.append(kept_root(trace))
+    meta = dict(meta, traces=traces)
+    with open(os.path.join(saved, "meta.json"), "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=1)
+        f.write("\n")
+    for root in kept:
+        if root:
+            remove_kept(root)
+
+
+def annotate(saved):
+    """The side SAVED holds, with `specseal` added: the preload hashes, each
+    run's report rows read from its saved trace, and whether the side was
+    cut short.
+
+    A run with no saved trace has no rows, and a run's error makes the side
+    cut short.
+
+    Reads: owned — a directory `save_side` wrote; unknown refused"""
+    with open(os.path.join(saved, "raw.json"), encoding="utf-8") as f:
+        result = json.load(f)
+    with open(os.path.join(saved, "meta.json"), encoding="utf-8") as f:
+        meta = json.load(f)
     cut = bool(result.get("partial"))
-    for case in result.get("cases", []):
-        for runs in case.get("arms", {}).values():
-            for run in runs:
-                trace = run.get("tracePath") or ""
-                rows = report_rows(trace) if trace and os.path.isfile(trace) else []
-                run["specseal"] = {"report_rows": rows}
-                if run.get("error"):
-                    cut = True
-                root = kept_root(trace) if trace else None
-                if root:
-                    remove_kept(root)
+    for key, run in runs_of(result):
+        rel = meta["traces"].get(key)
+        run["specseal"] = {
+            "report_rows": report_rows(os.path.join(saved, rel)) if rel else []
+        }
+        if run.get("error"):
+            cut = True
     result["specseal"] = {
-        "agent": agent,
-        "preload": preload_hashes(tree, agent),
+        "agent": meta["agent"],
+        "preload": meta["preload"],
         "cut_short": cut,
+        "rev": meta["rev"],
+        "suite_rev": meta["suite_rev"],
     }
     return result
 
 
+def write_side(saved, out):
+    """Write OUT from the side SAVED holds.
+
+    Reads: owned — a directory `save_side` wrote; unknown refused"""
+    result = annotate(saved)
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=1, ensure_ascii=False)
+        f.write("\n")
+    return 0
+
+
+def call_eval(command, env):
+    """Run `claude plugin eval` as COMMAND under ENV.
+
+    A machine with no `claude` stops the run before anything is spent.
+
+    Reads: observed — whether `claude` is on ENV's PATH; unknown refused"""
+    if not shutil.which("claude", path=env.get("PATH")):
+        print("claude is not on PATH", file=sys.stderr)
+        raise SystemExit(2)
+    subprocess.run(command, env=env)
+
+
 def run_side(a):
-    """`run`: one side of one agent's suite.
+    """`run`: one side of one agent's suite, or `--from-raw` a saved side.
 
     An eval that writes no JSON stops the run.
 
     Reads: observed — the tree at REV or DIR, the suite, the eval's JSON; unknown refused"""
+    if a.from_raw:
+        return write_side(a.from_raw, a.out)
+    if not a.agent:
+        raise SystemExit("run needs --agent, or --from-raw")
     work = tempfile.mkdtemp(prefix="specseal-eval-")
     try:
         tree = os.path.join(work, "tree")
@@ -279,23 +359,22 @@ def run_side(a):
         ]  # fmt: skip
         if a.case:
             command += ["--case", a.case]
+        meta = {
+            "agent": a.agent,
+            "preload": preload_hashes(tree, a.agent),
+            "rev": a.rev or os.path.abspath(a.tree),
+            "suite_rev": git_bytes("rev-parse", a.suite_rev).decode("utf-8").strip(),
+        }
         env = dict(os.environ, PATH=side_path(tree, os.environ.get("PATH", "")))
-        subprocess.run(command, env=env)
+        call_eval(command, env)
         if not os.path.isfile(raw):
             raise SystemExit("claude plugin eval wrote no JSON")
-        with open(raw, encoding="utf-8") as f:
-            result = json.load(f)
-        result = annotate(result, tree, a.agent)
-        result["specseal"]["rev"] = a.rev or os.path.abspath(a.tree)
-        result["specseal"]["suite_rev"] = (
-            git_bytes("rev-parse", a.suite_rev).decode("utf-8").strip()
-        )
-        with open(a.out, "w", encoding="utf-8") as f:
-            json.dump(result, f, indent=1, ensure_ascii=False)
-            f.write("\n")
+        saved = saved_dir(a.out)
+        save_side(raw, saved, meta)
+        print(f"saved the side's paid output under {saved}", file=sys.stderr)
     finally:
         shutil.rmtree(work, ignore_errors=True)
-    return 0
+    return write_side(saved, a.out)
 
 
 # --- compare: the numbers a record holds ------------------------------------
@@ -664,10 +743,11 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="command", required=True)
     r = sub.add_parser("run")
-    r.add_argument("--agent", choices=AGENTS, required=True)
+    r.add_argument("--agent", choices=AGENTS)
     src = r.add_mutually_exclusive_group(required=True)
     src.add_argument("--rev")
     src.add_argument("--tree")
+    src.add_argument("--from-raw")
     r.add_argument("--suite-rev", default="HEAD")
     r.add_argument("--out", required=True)
     r.add_argument("--runs", type=int, default=2)
@@ -683,9 +763,6 @@ def main(argv=None):
     k = sub.add_parser("check")
     k.add_argument("record")
     a = p.parse_args(argv)
-    if a.command == "run" and not shutil.which("claude"):
-        print("claude is not on PATH", file=sys.stderr)
-        return 2
     return {"run": run_side, "compare": compare, "check": check}[a.command](a)
 
 

@@ -241,6 +241,70 @@ def test_a_changed_preload_with_no_passing_record_is_red(tmp_path):
     )
 
 
+def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved(
+    tmp_path, monkeypatch
+):
+    """Guards the runs a side paid for: the eval's JSON and every trace are
+    saved beside `--out` before anything reads them, so a crash after the
+    runs loses nothing, and `run --from-raw` reads the saved side again
+    without running the eval."""
+    plugin = tmp_path / "plugin"
+    plugin.mkdir()
+    tree(plugin)
+    kept = tmp_path / "e-Fake01"
+    (kept / "out").mkdir(parents=True)
+    row = "| 🟡 1 | found | `src/a.py:3` | open | read |"
+    use = {
+        "type": "tool_use",
+        "id": "a",
+        "name": "Bash",
+        "input": {"command": "cat r/round-1-report.md"},
+    }
+    result = {"type": "tool_result", "tool_use_id": "a", "content": row}
+    (kept / "out" / "trace.jsonl").write_text(
+        json.dumps({"message": {"content": [use]}})
+        + "\n"
+        + json.dumps({"message": {"content": [result]}})
+        + "\n",
+        encoding="utf-8",
+    )
+    run = {"graders": [], "error": None, "tracePath": str(kept / "out" / "trace.jsonl")}
+    raw = {
+        "startedAt": "t",
+        "partial": False,
+        "cases": [{"name": "c1", "graders": [], "arms": {"with": [run]}}],
+    }
+
+    def paid_eval(command, env):
+        with open(command[command.index("--json") + 1], "w", encoding="utf-8") as f:
+            json.dump(raw, f)
+
+    def crash(*_args, **_kwargs):
+        raise RuntimeError("a crash after the runs")
+
+    real_annotate = ni.annotate
+    monkeypatch.setattr(ni, "call_eval", paid_eval)
+    monkeypatch.setattr(ni, "annotate", crash)
+    out = tmp_path / "baseline-warden.json"
+    with pytest.raises(RuntimeError):
+        ni.main(["run", "--agent", "warden", "--tree", str(plugin), "--out", str(out)])
+    saved = tmp_path / "baseline-warden.raw"
+    assert json.loads((saved / "raw.json").read_text(encoding="utf-8")) == raw
+    assert not kept.exists(), "the kept run was left behind"
+
+    def no_eval(command, env):
+        raise AssertionError("--from-raw ran the eval again")
+
+    monkeypatch.setattr(ni, "call_eval", no_eval)
+    monkeypatch.setattr(ni, "annotate", real_annotate)
+    assert ni.main(["run", "--from-raw", str(saved), "--out", str(out)]) == 0
+    side = json.loads(out.read_text(encoding="utf-8"))
+    assert side["cases"][0]["arms"]["with"][0]["specseal"]["report_rows"] == [row]
+    assert side["specseal"]["agent"] == "warden"
+    assert side["specseal"]["preload"] == ni.preload_hashes(str(plugin), "warden")
+    assert side["specseal"]["cut_short"] is False
+
+
 def test_every_baseline_in_the_tree_is_answered():
     assert ni.owed_records(ROOT) == []
 
