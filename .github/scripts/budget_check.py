@@ -25,8 +25,9 @@ lowers the ceiling, so the next change starts from the new number rather than
 from the old headroom.
 
 **The ratchet.** With `--baseline`, a `gate` row whose ceiling is higher here
-than at the merge base, or one that is gone or is no longer a gate, fails
-unless the pull request body carries one line for it:
+than at the merge base, or whose slack is wider (`one-sided` the widest), or
+one that is gone or is no longer a gate, fails unless the pull request body
+carries one line for it:
 
   Budget raised: <name> <old> -> <new>: <reason>
   Budget removed: <name>: <reason>
@@ -901,6 +902,15 @@ def effective(rows, others):
     return out
 
 
+def widened(old, new, at):
+    """Whether slack NEW lets a ceiling sit further over a reading of AT than
+    slack OLD does; `one-sided` is the widest.
+
+    Reads: nothing — compares the two slacks handed to it"""
+    before, after = top_of_band(at, old), top_of_band(at, new)
+    return before is not None and (after is None or after > before)
+
+
 def ratchet(base_rows, head_rows, body, release):
     """`(problems, moves)`: each gate row raised or removed since the base
     with no line for it, and every raise or removal read, as `(name, what,
@@ -921,9 +931,14 @@ def ratchet(base_rows, head_rows, body, release):
             # the one line it needs.
             continue
         if new is not None and new.kind == GATE:
-            if new.ceiling <= old.ceiling:
+            # A file row's slack is its family's, which the family row answers for.
+            file_row = bool(subject) and family in FILE_TABLES
+            wider = not file_row and widened(old.slack, new.slack, old.ceiling)
+            if new.ceiling <= old.ceiling and not wider:
                 continue
             what = f"raised {old.ceiling} -> {new.ceiling}"
+            if wider:
+                what += f", slack {old.slack.text} -> {new.slack.text}"
             lines = raised.get(old.name, [])
             match = [r for o, n, r in lines if (o, n) == (old.ceiling, new.ceiling)]
             if match or release:
@@ -931,13 +946,21 @@ def ratchet(base_rows, head_rows, body, release):
                 continue
             moves.append((old.name, what, UNDECLARED))
             wrote = "".join(f" The body's line says {o} -> {n}." for o, n, _ in lines)
+            moved = []
+            if new.ceiling > old.ceiling:
+                moved.append(
+                    f"the ceiling was raised from {old.ceiling} to {new.ceiling}"
+                )
+            if wider:
+                moved.append(
+                    f"the slack was widened from {old.slack.text} to {new.slack.text}"
+                )
             problems.append(
                 (
                     old.name,
-                    f"the ceiling was raised from {old.ceiling} to {new.ceiling} and "
-                    f"the pull request body declares no such raise.{wrote} Write "
-                    f"`Budget raised: {old.name} {old.ceiling} -> {new.ceiling}: "
-                    "<reason>` in the body",
+                    f"{' and '.join(moved)}, and the pull request body declares no "
+                    f"such raise.{wrote} Write `Budget raised: {old.name} "
+                    f"{old.ceiling} -> {new.ceiling}: <reason>` in the body",
                 )
             )
             continue

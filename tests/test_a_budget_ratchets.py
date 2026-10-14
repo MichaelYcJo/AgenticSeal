@@ -1286,6 +1286,55 @@ def test_a_per_file_family_reads_its_own_table_with_its_own_reader(
     assert "| `docs-history:docs/a.md` | 0 lines | 0 |" in out, out
 
 
+@pytest.mark.parametrize(
+    "base, head, body, verdict, said",
+    [
+        (
+            budgets(warden(MEASURED)),
+            budgets(warden(MEASURED, "50 %")),
+            "",
+            1,
+            "the slack was widened from 2 % to 50 %",
+        ),
+        (
+            budgets(warden(MEASURED)),
+            budgets(warden(MEASURED, "50 %")),
+            "Budget raised: preload:warden 1000 -> 1000: a wider band",
+            0,
+            "- `preload:warden` raised 1000 -> 1000, slack 2 % -> 50 %: a wider band",
+        ),
+        (
+            budgets(warden(MEASURED, "50 %")),
+            budgets(warden(MEASURED)),
+            "",
+            0,
+            "every gate row holds",
+        ),
+        (
+            docs_budget(("docs/a.md", 0)),
+            budgets(("docs-history", "lines", 0, "+5 lines", "gate"))
+            + table("Lines ceiling", [("docs/a.md", 0)]),
+            "",
+            1,
+            "budget-check: docs-history: the slack was widened from +0 lines to +5 lines",
+        ),
+    ],
+    ids=["widened, no line", "widened, with its line", "narrowed", "a family's slack"],
+)
+def test_a_widened_slack_on_a_gate_row_needs_its_line(
+    tmp_path, capsys, base, head, body, verdict, said
+):
+    """A wider slack lets a ceiling sit further over its reading, which is
+    the headroom the lower band exists to take back; so it is a raise and
+    needs its line, as a higher ceiling does. A narrower one needs none, and
+    a family's slack is one raise, not one per file it gives it to."""
+    root = tree(tmp_path, head, base=base, files={"docs/a.md": "# A\n\nProse.\n"})
+    assert ratchet(root, body) == verdict
+    out = capsys.readouterr().out
+    assert said in out, out
+    assert "docs-history:docs/a.md: the slack" not in out, out
+
+
 def test_the_unknown_family_refusal_names_every_family(tmp_path, capsys):
     """A misspelt family is told every family the checker reads, the list
     derived from the families themselves, so a family added later is in it."""
