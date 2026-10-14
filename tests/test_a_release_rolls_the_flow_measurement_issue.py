@@ -169,7 +169,7 @@ def test_one_open_issue_closes_it_and_opens_the_next(monkeypatch):
     calls = []
 
     def fake_try_run(*args):
-        """The durable ledger's lookup answers with an issue; every other
+        """The durable log's lookup answers with an issue; every other
         best-effort call succeeds and returns nothing readable, which is what
         `gh issue create` returns anyway."""
         calls.append(args)
@@ -209,7 +209,7 @@ def test_one_open_issue_closes_it_and_opens_the_next(monkeypatch):
         f"the create must carry the lookup key and this repository's index "
         f"label, in that order -- the first is what the roll and the skill "
         f"find the log by, the second is what puts it beside the durable "
-        f"ledger: {labels}"
+        f"log: {labels}"
     )
     assert "--milestone" in create_args, (
         f"the create must ask for the `log: measurement` milestone: {create_args}"
@@ -222,7 +222,7 @@ def test_one_open_issue_closes_it_and_opens_the_next(monkeypatch):
         f"reader of the 0.9.0 log has a path back to the 0.8.0 one: {body!r}"
     )
     assert "#51" in body, (
-        f"the new issue's body must name the durable ledger, found by the "
+        f"the new issue's body must name the durable log, found by the "
         f"`flow-baseline` label rather than hardcoded: {body!r}"
     )
     assert "since 0.7.0 shipped" in body, (
@@ -244,7 +244,7 @@ def _ladder_harness(m, monkeypatch, create_results, readings, baseline="[]"):
     succeeded, `None` for one that reported failure. `readings` is what
     `list_open_issues` answers, in order -- the first is `main`'s own lookup,
     and each later one is a read `landed_create` takes. `baseline` is what the
-    durable ledger's own lookup answers with.
+    durable log's own lookup answers with.
 
     Returns `(creates, slept)` -- the `gh issue create` argument tuples that
     were made, and the delays that were waited. The second exists because the
@@ -452,8 +452,8 @@ def test_every_attempt_failing_still_exits_loudly(monkeypatch):
     )
 
 
-def test_the_body_drops_the_ledger_clause_where_no_durable_log_exists():
-    """A durable ledger is a thing a repository may not have. The clause goes
+def test_the_body_drops_the_baseline_clause_where_no_durable_log_exists():
+    """A durable log is a thing a repository may not have. The clause goes
     rather than the roll failing, and rather than the body carrying the word
     an unguarded f-string would put there."""
     m = _roller()
@@ -463,10 +463,10 @@ def test_the_body_drops_the_ledger_clause_where_no_durable_log_exists():
         f"the body still says what stretch of work it covers: {body!r}"
     )
     assert "live in #" not in body, (
-        f"the body points at a durable ledger that does not exist: {body!r}"
+        f"the body points at a durable log that does not exist: {body!r}"
     )
     assert "None" not in body, (
-        f"the body carries the absent ledger as a word -- `#None` is what an "
+        f"the body carries the absent log as a word -- `#None` is what an "
         f"unguarded f-string writes, and it reads as an issue link: {body!r}"
     )
 
@@ -475,7 +475,7 @@ def test_the_durable_logs_lookup_answers_none_rather_than_failing(monkeypatch):
     """Three ways for the lookup to come back with nothing, and none of them
     may reach a release: the `gh` call failed, the label exists with nothing
     open, and the output is not JSON at all. All three are silent -- most
-    repositories have no durable ledger, and that is not a fault to report."""
+    repositories have no durable log, and that is not a fault to report."""
     m = _roller()
     for answer in (None, "[]", "not json"):
         monkeypatch.setattr(m, "try_run", lambda *a, _r=answer: _r)
@@ -485,7 +485,7 @@ def test_the_durable_logs_lookup_answers_none_rather_than_failing(monkeypatch):
             f"and not a truthy value the body would interpolate"
         )
         assert note is None, (
-            f"a repository with no durable ledger is the ordinary case, and "
+            f"a repository with no durable log is the ordinary case, and "
             f"a note about it would appear on every rolling log: {note!r}"
         )
     monkeypatch.setattr(m, "try_run", lambda *a: json.dumps([{"number": 51}]))
@@ -505,16 +505,16 @@ def test_two_open_durable_logs_are_named_rather_than_guessed_between(monkeypatch
     number, note = m.find_baseline_issue("example/repo")
     assert number is None, (
         f"two open `flow-baseline` issues is that invariant broken, and the "
-        f"body must not point at one of them as though it were the ledger: "
+        f"body must not point at one of them as though it were the log: "
         f"{number}"
     )
     assert note and "flow-baseline" in note, (
         f"omitting the clause with no note says the repository has no durable "
-        f"ledger, which is a different fact from having two: {note!r}"
+        f"log, which is a different fact from having two: {note!r}"
     )
 
 
-def test_the_ambiguous_ledger_note_reaches_the_issue_it_is_about(monkeypatch):
+def test_the_ambiguous_baseline_note_reaches_the_issue_it_is_about(monkeypatch):
     """The other half, and the one a mutation found. `find_baseline_issue`
     answering with a note buys nothing if `open_issue` drops it: setting the
     note aside left every case in this module green, because none of them
@@ -532,11 +532,15 @@ def test_the_ambiguous_ledger_note_reaches_the_issue_it_is_about(monkeypatch):
     body = creates[0][creates[0].index("--body") + 1]
     assert "flow-baseline" in body and "picking whichever" in body, (
         f"the note never reached the body, so the issue says nothing about "
-        f"the ledger and looks exactly like one opened in a repository that "
-        f"has none: {body!r}"
+        f"the durable log and looks exactly like one opened in a repository "
+        f"that has none: {body!r}"
+    )
+    assert "points at no durable log" in body, (
+        f"the note names the issue it cannot point at by another word than "
+        f"the one the rest of the module uses for it: {body!r}"
     )
     assert "live in #" not in body, (
-        f"the body points at a ledger anyway, which is the guess the note "
+        f"the body points at a log anyway, which is the guess the note "
         f"exists instead of: {body!r}"
     )
 
@@ -954,9 +958,10 @@ def test_the_rolled_line_names_the_issue_closed_and_the_title_opened(
 #
 # The rule lives in two places a person reads: this script's docstring, and
 # `docs/issues-and-milestones.md`, which is the tracker's own authority. Of
-# the two only the document may carry the title format -- `seal/ledger.md`'s
-# F5 row keeps every tracker convention that exists in this repository alone
-# out of `skills/verify/SKILL.md`, which ships. So the document is where a
+# the two only the document may carry the title format --
+# `test_a_segment_feeds_the_flow_log.py::test_the_shipped_skill_names_no_repository_specific_tracker_state`
+# keeps every tracker convention that exists in this repository alone out of
+# `skills/verify/SKILL.md`, which ships. So the document is where a
 # reader learns what a title means, and the cases below read it against the
 # constant the script writes titles through rather than against a literal:
 # the writer and the document drifting apart is how a person tidies a title
@@ -1011,8 +1016,9 @@ def test_the_tracker_doc_states_the_title_the_roll_writes():
     assert m.TITLE_MARKER in section, (
         f"the document never states the marker the roll writes and reads "
         f"({m.TITLE_MARKER!r}). A person retitling a log by hand has nothing "
-        f"to copy, and the shipped skill may not carry it -- `seal/ledger.md` "
-        f"F5 keeps this repository's tracker conventions out of it"
+        f"to copy, and the shipped skill may not carry it -- "
+        f"`test_the_shipped_skill_names_no_repository_specific_tracker_state` "
+        f"keeps this repository's tracker conventions out of it"
     )
     readable = [
         example

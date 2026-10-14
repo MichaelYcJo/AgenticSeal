@@ -72,7 +72,7 @@ It named a real unshipped release here for three of them (#179).
 
 `log:` is the shape that surprises people, and there is one of it:
 `log: measurement`. What it holds are not tasks. `#51` is the durable
-performance ledger whose body is the current state, and the open
+performance log whose body is the current state, and the open
 `flow-measurement` issue is this version's rolling log. Neither has a done
 condition, so neither closes, so the milestone does not either.
 Enforced by: tests/test_a_release_is_sized_by_a_criterion.py::test_the_rule_states_the_criterion_and_not_the_count, tests/test_a_release_is_sized_by_a_criterion.py::test_one_document_states_a_releases_size
@@ -373,7 +373,7 @@ which one fits depends on whether the original text is worth keeping:
   moved since it was written. #30 is the worked example: the original design
   is preserved and the block says which two things below it have changed.
 
-The exception is an issue that is a **ledger rather than a ticket** — `#51`
+The exception is an issue that is a **log rather than a ticket** — `#51`
 and the rolling `flow-measurement` log. There the body IS the current state
 and is maintained: a better baseline replaces the table, an observation that
 gets an answer is rewritten where it stands, and the comments are the evidence

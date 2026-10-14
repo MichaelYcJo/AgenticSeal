@@ -696,10 +696,10 @@ the label has any history at all:
 
 **`flow-baseline` splits the same way, and for the same reason.** Run the
 `--state all` lookup against it too. No issue has ever carried the label and
-this repository simply has no durable ledger: post the segment's own numbers
+this repository simply has no durable log: post the segment's own numbers
 to the rolling log, and leave the cross-version reading in the record that
 would have cited it. The label has a history and nothing is open, and
-somebody closed the durable ledger — name that, in the same handover and on
+somebody closed the durable log — name that, in the same handover and on
 the same grounds, and open nothing. Folding the second into the first is
 what sends a cross-version reading nowhere while everything looks fine.
 
