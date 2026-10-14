@@ -566,7 +566,12 @@ def drawn(root, file, name, functions, hits, units, diff):
     order = sorted(mine - others - spans)
     order += [(file, n) for n in units.get(name, []) if (file, n) not in spans]
     order += sorted(mine - spans)
-    order += [(path, n) for path, numbers in sorted(diff.items()) for n in numbers]
+    # A changed file the case names in its own text comes first: a case that
+    # runs a script as a child process names its path, and runs none of it
+    # where the tracer can see.
+    text = functions[name][1] if name in functions else ""
+    named_first = sorted(diff, key=lambda p: (os.path.basename(p) not in text, p))
+    order += [(path, n) for path in named_first for n in diff[path]]
     sources, found, seen = {}, [], set()
     for path, lineno in order:
         if (path, lineno) in seen:
