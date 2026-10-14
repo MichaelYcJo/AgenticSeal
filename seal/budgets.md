@@ -10,7 +10,8 @@ file their own table below does not list, and give the files it does list
 their unit, slack and kind. The seconds ceilings are written in one set of
 prices; `## Price level` says how the committed `.test_durations` prices
 stand against them, and a refresh of that file restates it to the number the
-checker names. -->
+checker names. A `bytes` row counts each CRLF as the one LF git stores, so a
+checkout on any platform measures the same commit alike. -->
 
 ## Budgets
 

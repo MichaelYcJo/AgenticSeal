@@ -88,7 +88,7 @@ def write(root, files):
     for rel, text in (files or {}).items():
         path = root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, "utf-8")
+        path.write_text(text, "utf-8", newline="\n")
 
 
 def tree(tmp_path, head, base=None, files=None, base_files=None):
@@ -97,27 +97,30 @@ def tree(tmp_path, head, base=None, files=None, base_files=None):
     `base` on a branch called `base` — or left out of it where `base` is "" —
     and `head` is committed on top, so `--baseline base` reads the two.
     `base_files` are written before the base commit and `files` after it,
-    each `{path: text}`."""
+    each `{path: text}`. Every file is written with LF line ends, whatever
+    the platform's text mode would write."""
     root = tmp_path / "repo"
     (root / "agents").mkdir(parents=True)
     (root / "skills" / "review").mkdir(parents=True)
     (root / "seal").mkdir()
-    (root / "agents" / "warden.md").write_text(_sized(AGENT_HEAD, 600), "utf-8")
-    (root / "agents" / "scout.md").write_text(_sized(SCOUT_HEAD, 100), "utf-8")
-    (root / "skills" / "review" / "SKILL.md").write_text(
-        _sized(SKILL_HEAD, 400), "utf-8"
+    write(
+        root,
+        {
+            "agents/warden.md": _sized(AGENT_HEAD, 600),
+            "agents/scout.md": _sized(SCOUT_HEAD, 100),
+            "skills/review/SKILL.md": _sized(SKILL_HEAD, 400),
+        },
     )
-    path = root / "seal" / "budgets.md"
     write(root, base_files)
     if base is not None:
         git(root, "init", "-q")
         if base:
-            path.write_text(base, "utf-8")
+            write(root, {"seal/budgets.md": base})
         git(root, "add", "-A")
         git(root, "commit", "-qm", "base")
         git(root, "branch", "base")
     if head is not None:
-        path.write_text(head, "utf-8")
+        write(root, {"seal/budgets.md": head})
     write(root, files)
     if base is not None:
         git(root, "add", "-A")
@@ -490,6 +493,24 @@ def docs_budget(*rows):
     return budgets(("docs-history", "lines", 0, "+0 lines", "gate")) + table(
         "Lines ceiling", rows
     )
+
+
+def test_a_crlf_checkout_measures_the_bytes_an_lf_one_does(tmp_path):
+    """A Windows checkout under `core.autocrlf` writes each line end as CRLF,
+    and the same commit must measure the same there: a byte budget counts a
+    CRLF as the one LF git stores, for an agent's files and for `CLAUDE.md`."""
+    root = tree(
+        tmp_path,
+        budgets(warden(MEASURED), ("preload:claude-md", "bytes", 300, "2 %", "gate")),
+    )
+    for rel in ("agents/warden.md", "skills/review/SKILL.md"):
+        path = root / rel
+        path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+    (root / "CLAUDE.md").write_bytes(b"c" * 297 + b"\r\n\r\n\r\n")
+    rows = {r.name: r for r in budget_check.budgets_here(str(root))}
+    assert budget_check.measure(str(root), rows["preload:warden"], {}) == MEASURED
+    assert budget_check.measure(str(root), rows["preload:claude-md"], {}) == 300
+    assert run(root) == 0
 
 
 def test_the_preload_measurer_sums_the_agents_files_and_not_the_pair(tmp_path):

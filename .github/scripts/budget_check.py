@@ -50,6 +50,10 @@ beside the gates and never fails it.
   ci-minutes:<leg>  minutes of one tests run, summed over the leg's pytest
                     jobs: `ubuntu`, `windows` or `macos`
 
+A byte is counted with each CRLF read as one LF, which is what git stores
+for these files: a Windows checkout that wrote CRLF measures the commit a
+Linux one does.
+
 **A row read off one run is one-sided.** One run's minutes swing 1.08 to 1.21
 times from the next on the same code, and three of five quiet runs fell
 under a two-sided band on one leg, so a `ci-minutes` row's slack is
@@ -166,6 +170,9 @@ ONE_SIDED = "one-sided"
 PYTEST_JOB = re.compile(r"pytest \(([a-z]+)-[^,)]*(?:,.*)?\)")
 BILLING = {"ubuntu": 1, "windows": 2, "macos": 10}
 LINUX_MINUTE_USD = 0.008
+# A byte budget counts a CRLF as the LF git stores, so the same commit
+# measures the same on a checkout that converted its line ends.
+NEWLINES = (b"\r\n", b"\n")
 
 # The modules this reads through, each the one reader of its input: the table
 # walker every `seal/` table is read by (#871), the meter the preload budgets
@@ -419,12 +426,15 @@ def measure_preload(root, agent, _cache):
     `preload:claude-md` is the one file every prefix carries, the
     orchestrator's included: `CLAUDE.md` at the root, by its bytes.
 
+    Each file is counted by `lf_bytes`, so a checkout that writes CRLF
+    measures what one that writes LF does.
+
     Reads: owned — an agent definition's frontmatter and the files it names, through `payload_meter`; unknown refused"""
     if agent == CLAUDE_MD:
         path = os.path.join(root, "CLAUDE.md")
         if not os.path.isfile(path):
             raise Unreadable(f"preload:{CLAUDE_MD}: CLAUDE.md is not in the tree")
-        return os.path.getsize(path)
+        return lf_bytes(path)
     meter = sibling("payload_meter")
     found = meter.agents_in(root, (agent,))
     if agent not in found:
@@ -439,7 +449,17 @@ def measure_preload(root, agent, _cache):
             f"preload:{agent}: {', '.join(missing)}, which {found[agent]} "
             "names, is not in the tree"
         )
-    return sum(row["bytes"] for row in own)
+    return sum(lf_bytes(os.path.join(root, row["path"])) for row in own)
+
+
+def lf_bytes(path):
+    """The bytes of the file at `path` with each CRLF counted as one LF:
+    what git stores for it under this repository's `eol=lf`, and what every
+    platform's checkout measures alike, whatever `core.autocrlf` wrote.
+
+    Reads: observed — the file's bytes on disk; unknown refused"""
+    with open(path, "rb") as handle:
+        return len(handle.read().replace(*NEWLINES))
 
 
 def seconds(value):
