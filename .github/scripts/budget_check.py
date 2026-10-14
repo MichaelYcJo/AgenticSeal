@@ -72,8 +72,9 @@ times from the next on the same code, and three of five quiet runs fell
 under a two-sided band on one leg, so a `ci-minutes` row's slack is
 `one-sided`: it holds while the run is under its ceiling, and nothing asks
 for it to be lowered. The seconds rows are the same kind of reading:
-`.test_durations` is one run's union, and one refresh priced its test files
-0.76 to 1.16 times the level it moved the whole by, so `suite-seconds` and
+`.test_durations` is one run's union, and one refresh moved each of its 19
+test files of 100 seconds or more 0.76 to 1.14 times the level it moved the
+whole by (its 72 files of 10 seconds or more, 0.46 to 1.54), so `suite-seconds` and
 `slow-file` are `one-sided` too. Such a row's ceiling is 1.3 times its
 reading, rounded up, which holds that spread with room, and the release
 lowers it from the trend line. Only these rows and `report` rows may say
@@ -384,19 +385,27 @@ def section(text, title):
     """`(text, lines before it)` of the part of `text` under its `## title`
     heading, to the next heading of level one or two, or None where no such
     heading stands. A per-file table is the one under its family's heading,
-    so two families may share a header.
+    so two families may share a header. A heading is one a renderer shows,
+    read off `unverified_check.py#readable`: a line in a fence or a comment
+    is none. A title written twice is refused, since then the table is not
+    one, as `round_record.py#section_body` refuses a doubled section.
 
-    Reads: guess — a person's markdown, through `unverified_check.py#gfm_lines` and `#heading_level`; unknown passed"""
+    Reads: guess — a person's markdown, through `unverified_check.py#gfm_lines`, `#readable` and `#heading_level`; unknown refused"""
     reader = sibling("unverified_check")
     lines = reader.gfm_lines(text, keepends=True)
-    levels = [reader.heading_level(line.rstrip("\r\n")) for line in lines]
+    shown = reader.readable(text)
+    levels = [reader.heading_level(line) for line in shown]
     starts = [
         at
-        for at, line in enumerate(lines)
+        for at, line in enumerate(shown)
         if levels[at] == 2 and line.strip().lstrip("#").strip() == title
     ]
     if not starts:
         return None
+    if len(starts) > 1:
+        raise Unreadable(
+            f"`## {title}` stands {len(starts)} times, so its table is not one"
+        )
     end = next(
         (at for at in range(starts[0] + 1, len(lines)) if levels[at] in (1, 2)),
         len(lines),

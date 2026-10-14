@@ -1256,6 +1256,38 @@ def test_an_unread_row_of_a_family_without_an_unread_reason_renders(
     assert "| `later` | — (not read on this run) | 4 |" in capsys.readouterr().out
 
 
+@pytest.mark.parametrize(
+    "aside",
+    ["```\n## an example heading\n```\n", "<!--\n## not a heading either\n-->\n"],
+    ids=["a fenced line", "a commented line"],
+)
+def test_a_fenced_heading_inside_a_file_section_does_not_end_it(
+    tmp_path, capsys, aside
+):
+    """A `##` line inside a fence or a comment is no heading GitHub shows,
+    so it does not end the section its family's table stands in."""
+    head = (
+        budgets(("docs-history", "lines", 0, "+0 lines", "gate"))
+        + "\n## Docs history lines\n\n"
+        + aside
+        + "\n| File | Lines ceiling |\n|---|---|\n| docs/a.md | 0 |\n"
+    )
+    root = tree(tmp_path, head, files={"docs/a.md": "# A\n\nProse.\n"})
+    assert run(root) == 0, capsys.readouterr()
+    assert "| `docs-history:docs/a.md` | 0 lines | 0 |" in capsys.readouterr().out
+
+
+def test_a_file_section_written_twice_is_refused(tmp_path, capsys):
+    """Two `## Slow test files` sections are two tables nobody can say is
+    the one, so the run refuses rather than reading the first."""
+    head = slow(("tests/test_a.py", 200)) + table(
+        "Seconds ceiling", [("tests/test_b.py", 60)]
+    )
+    root = tree(tmp_path, head, files={".test_durations": json.dumps(SMALL)})
+    assert run(root) == 2
+    assert "`## Slow test files` stands 2 times" in capsys.readouterr().err
+
+
 def test_a_per_file_family_reads_its_own_table_with_its_own_reader(
     tmp_path, capsys, monkeypatch
 ):
