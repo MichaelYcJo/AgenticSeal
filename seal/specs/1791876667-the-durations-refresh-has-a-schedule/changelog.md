@@ -6,11 +6,13 @@
   for a 35-minute measuring run a person had to dispatch.
   - Each Windows shard now runs with `--store-durations --clean-durations`
     and uploads the part it measured, and a new `durations` job unions the
-    four parts into the `test-durations` artifact, kept seven days. Its
-    summary gives each shard's measured seconds, their spread, and the union
-    against the committed file. A part that is missing, an id in two parts,
-    or a part that does not parse fails the job, and no smaller file is
-    uploaded. The job took 7 s and 11 s.
+    four parts into the `test-durations` artifact. Parts and union are kept
+    seven days, and a re-run of failed jobs replaces them, so a partial
+    re-run days later still has every part to union. Its summary gives each
+    shard's measured seconds, their spread, and the union against the
+    committed file. A part that is missing, an id in two parts, or a part
+    that does not parse fails the job, and no smaller file is uploaded. The
+    job took 7 s and 11 s.
   - `test_the_durations_file_prices_the_suite` now fails in two directions:
     when more than one collected case in twenty has no price, as before, or
     when more than one second in twenty of the file's belongs to cases the
@@ -19,6 +21,8 @@
     the refresh: `gh run download <run id> -n test-durations -D <dir>`, move
     the file over the committed one, commit it. The download needs a
     directory of its own, because `gh` will not write over an existing file.
+    A branch with no pull request, or whose run is too old to re-run, gets a
+    run with `gh workflow run test.yml --ref <branch>`.
   - The checklist's refresh box, the measuring run and its recipe are gone
     from `docs/release-checklist.md` and `CONTRIBUTING.md`.
   - The committed file is the first union, from run 38475370013: 13,930
