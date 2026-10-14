@@ -898,7 +898,6 @@ skills/verify/scripts/arm_check.py#arms@b8144598
 skills/verify/scripts/arm_check.py#arms_of_file@4f90aee4
 skills/verify/scripts/arm_check.py#clear_bytecode_cache@50dbf21b
 skills/verify/scripts/arm_check.py#counts@36c62517
-skills/verify/scripts/arm_check.py#main@af516f7e
 skills/verify/scripts/arm_check.py#mutate@f6755cbd
 skills/verify/scripts/arm_check.py#restore@9deac22d
 skills/verify/scripts/arm_check.py#run_arms@d5f109b4

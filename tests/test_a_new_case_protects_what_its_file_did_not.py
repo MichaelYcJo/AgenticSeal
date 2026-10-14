@@ -117,6 +117,40 @@ def test_a_run_that_prints_nothing_is_named_by_its_exit(tmp_path, monkeypatch):
     assert verdict == "exit 3, and mutation-check printed nothing"
 
 
+def test_a_windows_command_line_keeps_the_backslashes_of_its_paths():
+    """The `--tests` and `--runner` command lines are split by the platform's
+    rule for a backslash. On Windows it is the path separator and stays, so
+    an interpreter's path reaches the process whole; PR #939's
+    `windows-latest` leg started `C:hostedtoolcache…python.exe` and found
+    nothing. On POSIX it escapes, as `shlex.split` reads it."""
+    name = "specseal_arm_check_for_case_tests"
+    spec = importlib.util.spec_from_file_location(
+        name, os.path.join(ROOT, "skills", "verify", "scripts", "arm_check.py")
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    line = r'C:\py\python.exe -c "raise SystemExit(1)" a\ b #c'
+    assert module.command_words(line, windows=True) == [
+        r"C:\py\python.exe",
+        "-c",
+        "raise SystemExit(1)",
+        "a\\",
+        "b",
+        "#c",
+    ]
+    assert module.command_words(line, windows=False) == [
+        "C:pypython.exe",
+        "-c",
+        "raise SystemExit(1)",
+        "a b",
+        "#c",
+    ]
+    assert module.command_words(line) == module.command_words(
+        line, windows=os.name == "nt"
+    )
+
+
 def test_a_caller_that_ran_the_baseline_skips_it_in_mutation_check(tmp_path):
     """`mutation-check --baseline-passed` writes the mutant without running
     the cases against the file as it is first; without it the same failing

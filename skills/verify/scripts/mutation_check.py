@@ -99,7 +99,6 @@ import argparse
 import hashlib
 import importlib.util
 import os
-import shlex
 import signal
 import subprocess
 import sys
@@ -147,6 +146,7 @@ def _sibling(name: str, path: str):
 _ARM_CHECK = _sibling("specseal_arm_check_for_mutation_check", ARM_CHECK)
 clear_bytecode_cache = _ARM_CHECK.clear_bytecode_cache
 restore = _ARM_CHECK.restore
+command_words = _ARM_CHECK.command_words
 
 
 class Refused(Exception):
@@ -456,7 +456,7 @@ def main(argv=None) -> int:
             "--timeout takes a non-negative number of seconds, and 0 removes "
             "the bound. A negative value ends every run before it starts."
         )
-    command = shlex.split(args.tests)
+    command = command_words(args.tests)
     if not command:
         parser.error("--tests names no command")
 

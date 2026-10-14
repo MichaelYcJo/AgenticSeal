@@ -67,6 +67,7 @@ outside the root.
 
 import argparse
 import ast
+import importlib.util
 import json
 import os
 import re
@@ -80,6 +81,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MUTATION_CHECK = os.path.normpath(
     os.path.join(HERE, "..", "..", "skills", "verify", "scripts", "mutation_check.py")
 )
+ARM_CHECK = os.path.join(os.path.dirname(MUTATION_CHECK), "arm_check.py")
 
 # `mutation-check`'s exit codes (`skills/verify/scripts/mutation_check.py`).
 RED, SURVIVED, MEASURED_NOTHING = 0, 1, 2
@@ -769,6 +771,23 @@ def base_functions(root, rev, file):
         return []
 
 
+def command_words(text):
+    """`--runner`'s words, split as `mutation-check` splits `--tests`:
+    `arm_check.py#command_words`, which keeps a Windows path's backslashes.
+
+    Reads: observed — the runner's command line, through `arm_check.py`; unknown passed
+    """
+    name = "specseal_arm_check_for_case_check"
+    if name not in sys.modules:
+        # Registered before it runs: `arm_check.py`'s dataclasses resolve
+        # their annotations through `sys.modules`.
+        spec = importlib.util.spec_from_file_location(name, ARM_CHECK)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+    return sys.modules[name].command_words(text)
+
+
 def main(argv=None):
     """Run the check; the lines to stdout and the step summary.
 
@@ -793,7 +812,7 @@ def main(argv=None):
     if git(root, "rev-parse", "--git-dir") is None:
         print(f"case-check: nothing compared — `{args.root}` is no git repository")
         return 2
-    code, lines = check(root, args.baseline, shlex.split(args.runner), args.bound)
+    code, lines = check(root, args.baseline, command_words(args.runner), args.bound)
     text = "\n".join(lines) + "\n"
     sys.stdout.write(text)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
