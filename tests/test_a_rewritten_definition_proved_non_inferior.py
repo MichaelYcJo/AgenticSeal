@@ -327,6 +327,29 @@ def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
     assert ni.report_rows(str(trace)) == ["| 🟡 1 | new | `x:1` | open | read |"]
 
 
+def test_only_a_directory_the_eval_kept_is_removed():
+    """Guards the runner's cleanup: it removes a kept run's own directory and
+    nothing a trace path could name elsewhere."""
+    assert ni.kept_root("/tmp/e-Ab12cD/out/trace.jsonl") == "/tmp/e-Ab12cD"
+    assert ni.kept_root("/tmp/claude-eval-x1/out/trace.jsonl") == "/tmp/claude-eval-x1"
+    assert ni.kept_root("/Users/x/project/out/trace.jsonl") is None
+    assert ni.kept_root("/tmp/e-Ab12cD/trace.jsonl") is None
+
+
+def test_a_side_runs_the_tree_it_measures_and_no_installed_plugin():
+    """Guards which plugin a side's sessions run: the measured tree's `bin/`
+    first, and no installed plugin's `bin/` at all."""
+    path = ni.side_path(
+        "/w/tree", "/usr/bin:/Users/x/.claude/plugins/cache/p/p/1/bin:/bin"
+    )
+    assert path.split(os.pathsep) == [
+        "/w/tree/bin",
+        "/w/tree/.shims",
+        "/usr/bin",
+        "/bin",
+    ]
+
+
 def test_a_truth_is_a_fixed_finding_the_next_round_confirmed():
     """Guards the replay set's ground truth: a 🟡 closed fixed and named
     closed by the next round's 🟢 row, and no other."""
