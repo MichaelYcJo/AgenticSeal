@@ -21,6 +21,10 @@ ledger.
 | the resolver refuses a name defined twice | `spec.md` §*The replacement* item 1: "defined twice … fails the run" / `fold_check.py#target_problem` passed a name `named_unit` reports twice | the spec, by the owner's answer of 2026-10-14 | a rule bound to an ambiguous target is not bound; the one resolver both checkers read refuses it, with `tests/test_a_folded_statement_names_what_enforces_it.py::test_a_name_defined_twice_is_no_target` seen red first |
 | `## Unenforced rules` lists every rule file | `spec.md` §*The replacement* "one row per rule file at today's count" / 55 files listed, the 11 at 0 held by the family row's ceiling of 0 | the code | a listed row at 0 holds exactly what the family row holds |
 | `bin/rules <doc>` | not in the frame / built in phase 1 at the owner's direction of 2026-10-14, relayed by the orchestrator | the owner | a reader that prints and writes no record |
+| four ledger-document statements left in phase 2 | `plan.md` phase 3 moves `docs/the-evidence-ledger.md`'s fold, settle, live-lines and baseline statements / phase 2 deleted the retirement-guard statement, the records arm's ship boundary, §*A correction a merge dropped* and the lenient-reader statement, and cut `anchored_rows` from the liveness statement | the build | `enforced-unresolved` named each one's enforcers as deleted by this phase; a statement whose test is gone states a rule nothing holds |
+| six test modules deleted before phase 4 | `plan.md` phase 4 deletes the ledger-mechanics modules / phase 2 deleted `test_the_lenient_run_says_what_the_broad_gate_will_say.py`, `test_a_record_states_what_the_tree_has.py`, `test_a_merge_cannot_silently_drop_a_correction.py` and `test_the_ledger_rules_have_one_home.py` with the sweep's two | the build | each one's subject left in phase 2: the CI job and gate arm, the records arm, the correction step, the homes. W2's kernel cases are in none of them |
+| the release checklist's §2 is renamed | not in the frame / `## 2. Gather, fold, bump` became `## 2. Gather, bump` once its fold lines went, and `CLAUDE.md`, `CONTRIBUTING.md` and the layout document cite the new heading | the build | the heading named an act the section no longer holds |
+| the gate's skip-at-main machinery | `spec.md` §*What happens to each reader* names the three arms / `SKIPPED_AT_MAIN`, `skipped_at_main` and `skipped_line` went too, with a case that no mirrored step skips at `main` | the build | they existed only for the two range arms; kept, they are a branch nothing reaches |
 
 ## Not verified
 
@@ -31,7 +35,10 @@ ledger.
 
 ## Not done
 
-Phases 3–5 of `plan.md`. The test docstrings the slice's targets carry are
+Phases 3–5 of `plan.md`. `settle.py#coordinates` and `#segment_of` still
+group the fold's report by ledger rows, with their sentences in the settle
+skill, the release checklist and both READMEs; once phase 3 removes the data
+every item is ungrouped, so phase 3 or 4 removes them. The test docstrings the slice's targets carry are
 read as they are: rewriting each first sentence into the rule it guards is
 written by whoever moves a rule into a test — #941 and #940 under the reader
 criterion — and by #942 when it rebuilds the tests, not here.
