@@ -508,7 +508,7 @@ def failed_ids(output):
 
 
 def mutation_run(root, path, old, new, tests, timeout, baseline_passed=False):
-    """`(exit, first line, output)` of one `mutation-check` run.
+    """`(exit, output)` of one `mutation-check` run.
 
     Reads: observed — mutation-check's exit code and its output; unknown refused
     """
@@ -532,22 +532,7 @@ def mutation_run(root, path, old, new, tests, timeout, baseline_passed=False):
         encoding="utf-8",
         errors="replace",
     )
-    output = done.stdout + done.stderr
-    first = first_line(output.splitlines(), done.returncode)
-    return done.returncode, first.replace(root + os.sep, "").replace(root, "."), output
-
-
-def first_line(lines, code):
-    """The first of `mutation-check`'s output `lines` that is not blank, or,
-    where it printed nothing, as a process a signal ended does, a line naming
-    its exit `code`, so a finding always has something to say.
-
-    Reads: observed — mutation-check's output lines and exit code; unknown passed
-    """
-    return next(
-        (line for line in lines if line.strip()),
-        f"exit {code}, and mutation-check printed nothing",
-    )
+    return done.returncode, done.stdout + done.stderr
 
 
 def sole_killer(killers, file, functions):
@@ -575,7 +560,7 @@ def under(root, mutant, cases, runner, file, calls, deadline):
     Reads: observed — mutation-check's exit code and its output; unknown refused
     """
     _label, path, old, new = mutant
-    code, _first, output = mutation_run(
+    return mutation_run(
         root,
         path,
         old,
@@ -584,7 +569,6 @@ def under(root, mutant, cases, runner, file, calls, deadline):
         deadline - time.monotonic(),
         True,
     )
-    return code, output
 
 
 def own_ids(hits, file, functions, name):
@@ -926,7 +910,7 @@ def check(root, baseline, runner, bound):
             if diff_killed.get(label) or mutant in results or left < each:
                 continue
             cases = selected(hits, path, label) or [file]
-            code, _verdict, output = mutation_run(
+            code, output = mutation_run(
                 root,
                 path,
                 old,
