@@ -90,6 +90,35 @@ next round's confirmation, the seed's code tokens, the runner's cleanup and
 its `PATH`. Two survived first (the subagent filter, the seed tokens), and
 their cases were tightened until red.
 
+**The first baseline, 2026-10-14 10:11–10:50, run by the orchestrator, is
+not a baseline.** Three findings, each fixed in its own commit with a case
+seen red first:
+
+1. warden, smith and sealer crashed after their runs, in `report_rows`: a
+   `permission_denied` event carries `message` as a string. The temporary
+   directory holding the eval's JSON went with the crash, so those runs'
+   scores are lost; their 24 kept traces were readable and every one now
+   reads. `run` saves the eval's JSON, each trace and the measured preload
+   under `<out>.raw/` before anything reads them, and `run --from-raw`
+   reads a saved side again with no eval.
+2. Every `tool_used` grader bounded `max: 0` read `expected 1..0` and failed
+   every run: the runner's `min` defaults to 1. On the framer side that was
+   four graders of fourteen, 0/8 each. They carry `min: 0` now. The framer's
+   `files`-based "builds nothing" grader was 0/8 and its explanation does not
+   say which file it saw; both such graders now read the `Write` and `Edit`
+   calls' paths under the runner's `home/cwd/`.
+3. smith's 8 runs in 3.5 minutes and sealer's 6 in 47 seconds were real work
+   on small fixtures: 16–28 tool calls a smith run, a build, its commits and
+   its mutations; 3–6 a sealer run. But two of six sealer runs first ran
+   `broad-gate` inside the plugin's own directory, which the session can see
+   and which is a SpecSeal repository itself, and one handed back that
+   failure. Every prompt now names the working directory as the repository.
+   `Read` outside the working directory is denied under the eval's `dontAsk`
+   mode; the agents fall back to `cat`, the same on both sides.
+
+The framer side, the one that wrote its JSON, ran the old graders and
+prompts, so all four agents are re-run.
+
 **Cost of the phase's probes.** Measured: $7.66 over 15 runs (the three
 replay runs above, a first broken run that stopped with no git at $0.47,
 and eleven smoke runs at $0.77 together, $0.39 of it the two model-alias
