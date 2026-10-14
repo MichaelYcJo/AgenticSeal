@@ -131,7 +131,10 @@ def test_the_verdict_is_recomputed_from_the_records_numbers(name):
     assert ni.verdict(given)[0] == expected, ni.verdict(given)
 
 
-def side(graders, rows=20, false=2, cut=False, preload=None):
+SUITE = {"rev": "1" * 40, "tree": "2" * 40}
+
+
+def side(graders, rows=20, false=2, cut=False, preload=None, suite=None):
     return {
         "graders": {k: [v[0], v[1], v[2]] for k, v in graders.items()},
         "rows": rows,
@@ -140,6 +143,7 @@ def side(graders, rows=20, false=2, cut=False, preload=None):
         "cut": cut,
         "preload": preload or {"agents/warden.md": "a" * 64},
         "id": "2026-10-14T00:00:00Z 000000000000",
+        "suite": suite or SUITE,
     }
 
 
@@ -174,6 +178,82 @@ def test_a_cut_short_side_is_no_result_and_never_a_pass():
     text = record(g, g, cut=True)
     assert "Verdict: no result" in text
     assert ni.check_record(text), "a cut-short record was read as a result"
+
+
+def eval_side(tmp_path, name, rev, tree):
+    """A one-run side `run` could have written, run on the suite REV/TREE."""
+    run = {
+        "graders": [{"name": "shape-x", "passed": True}],
+        "specseal": {"report_rows": []},
+    }
+    case = {
+        "name": "c1",
+        "graders": [{"name": "shape-x", "type": "file_exists"}],
+        "arms": {"with": [run]},
+    }
+    meta = {
+        "agent": "warden",
+        "preload": {},
+        "cut_short": False,
+        "suite_rev": rev,
+        "suite_tree": tree,
+    }
+    path = tmp_path / f"{name}.json"
+    path.write_text(
+        json.dumps({"startedAt": name, "cases": [case], "specseal": meta}),
+        encoding="utf-8",
+    )
+    return str(path)
+
+
+def test_compare_refuses_two_sides_that_ran_different_suites(tmp_path, capsys):
+    """Guards the proof's premise: both sides ran the same cases. A baseline
+    taken before a case's prompt or graders changed is compared to nothing,
+    and the sentence names both suites."""
+    old = eval_side(tmp_path, "old", "a" * 40, "b" * 40)
+    out = tmp_path / "warden-phase-3.md"
+    other = eval_side(tmp_path, "new", "c" * 40, "d" * 40)
+    argv = [
+        "compare",
+        "--agent",
+        "warden",
+        "--phase",
+        "3",
+        "--old",
+        old,
+        "--out",
+        str(out),
+    ]
+    assert ni.main([*argv, "--new", other]) == 2
+    assert not out.exists(), "a record was written over two suites"
+    said = capsys.readouterr().err
+    assert "a" * 12 in said and "c" * 12 in said, said
+    same = eval_side(tmp_path, "same", "c" * 40, "b" * 40)
+    assert ni.main([*argv, "--new", same]) == 0, "one suite at two commits was refused"
+    assert "| Baseline suite | " + "a" * 40 + " " + "b" * 40 + " |" in out.read_text(
+        encoding="utf-8"
+    )
+    # A side written before `suite_tree` was recorded names its commit alone,
+    # and its suite is read as that commit's tree of the agent's cases.
+    head = ni.git_bytes("rev-parse", "HEAD").decode("utf-8").strip()
+    commit_only = eval_side(tmp_path, "commit-only", head, None)
+    by_tree = eval_side(tmp_path, "by-tree", "e" * 40, ni.suite_tree("HEAD", "warden"))
+    base = ["compare", "--agent", "warden", "--phase", "3", "--out", str(out)]
+    assert ni.main([*base, "--old", commit_only, "--new", by_tree]) == 0
+    assert ni.main([*base, "--old", commit_only, "--new", other]) == 2
+
+
+def test_check_refuses_a_record_whose_sides_ran_different_suites(tmp_path):
+    g = {("c1", "shape-x"): ("shape", 2, 2)}
+    text = ni.render(
+        "warden", 3, side(g), side(g, suite={"rev": "3" * 40, "tree": "4" * 40})
+    )
+    path = tmp_path / "warden-phase-3.md"
+    path.write_text(text, encoding="utf-8")
+    assert ni.main(["check", str(path)]) == 2
+    assert any("ran different suites" in p for p in ni.check_record(text))
+    unnamed = "\n".join(line for line in text.split("\n") if "suite |" not in line)
+    assert any("names no suite" in p for p in ni.check_record(unnamed))
 
 
 # --- T10: a changed preload owes a passing record --------------------------

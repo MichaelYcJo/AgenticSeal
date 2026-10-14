@@ -297,6 +297,7 @@ def annotate(saved):
         "cut_short": cut,
         "rev": meta["rev"],
         "suite_rev": meta["suite_rev"],
+        "suite_tree": meta.get("suite_tree"),
     }
     return result
 
@@ -364,6 +365,7 @@ def run_side(a):
             "preload": preload_hashes(tree, a.agent),
             "rev": a.rev or os.path.abspath(a.tree),
             "suite_rev": git_bytes("rev-parse", a.suite_rev).decode("utf-8").strip(),
+            "suite_tree": suite_tree(a.suite_rev, a.agent),
         }
         env = dict(os.environ, PATH=side_path(tree, os.environ.get("PATH", "")))
         call_eval(command, env)
@@ -432,7 +434,25 @@ def side_numbers(result):
         "cut": bool(meta.get("cut_short")) or bool(result.get("partial")),
         "preload": meta.get("preload", {}),
         "id": f"{started} {digest}",
+        "suite": {"rev": meta.get("suite_rev"), "tree": meta.get("suite_tree")},
     }
+
+
+def suite_tree(rev, agent):
+    """The git tree hash of `evals/behaviour/<agent>/` at REV: the suite's
+    identity, which a commit that leaves the cases alone does not move.
+
+    A REV or a directory git does not resolve stops the run.
+
+    Reads: observed — `git rev-parse <rev>:<path>`; unknown refused"""
+    return git_bytes("rev-parse", f"{rev}:{SUITE}/{agent}").decode("utf-8").strip()
+
+
+def suite_name(suite):
+    """`<commit> <tree>` for a side's suite, the form a record carries.
+
+    Reads: nothing — it formats the suite it is handed."""
+    return f"{suite['rev']} {suite['tree']}"
 
 
 def verdict(numbers):
@@ -541,6 +561,8 @@ def render(agent, phase, old, new):
         f"| Phase | {phase} |",
         f"| Baseline run | {old['id']} |",
         f"| New run | {new['id']} |",
+        f"| Baseline suite | {suite_name(old['suite'])} |",
+        f"| New suite | {suite_name(new['suite'])} |",
         f"| Baseline cut short | {'yes' if numbers['old_cut'] else 'no'} |",
         f"| New cut short | {'yes' if numbers['new_cut'] else 'no'} |",
         f"| Baseline report rows | {numbers['old_rows']} |",
@@ -613,6 +635,30 @@ def parse_record(text):
     return numbers, stated, preload
 
 
+def differ(old, new):
+    """The sentence that two sides ran different suites, naming both.
+
+    Reads: nothing — it formats the two suites it is handed."""
+    return (
+        f"the two sides ran different suites: the baseline at {old} and the new "
+        f"side at {new} (`<commit> <tree of {SUITE}/<agent>>`); a changed suite "
+        "needs a new baseline"
+    )
+
+
+def suite_problem(text):
+    """The problem with a record's two suites, or None: a side naming none,
+    or two different trees.
+
+    Reads: owned — a record `render` wrote; unknown refused"""
+    old, new = header_field(text, "Baseline suite"), header_field(text, "New suite")
+    if not old or not new:
+        return "the record names no suite for one of its sides"
+    if old.split()[-1] != new.split()[-1]:
+        return differ(old, new)
+    return None
+
+
 def check_record(text):
     """`[problem]` for a record: its stated verdict against the one its
     numbers give, and anything but `pass`.
@@ -626,6 +672,9 @@ def check_record(text):
         return [f"the record does not parse: {e}"]
     computed, reasons = verdict(numbers)
     problems = []
+    suites = suite_problem(text)
+    if suites:
+        problems.append(suites)
     if stated != computed:
         problems.append(f"it says `{stated}` and its numbers give `{computed}`")
     if computed != "pass":
@@ -714,6 +763,19 @@ def compare(a):
         old = side_numbers(json.load(f))
     with open(a.new, encoding="utf-8") as f:
         new = side_numbers(json.load(f))
+    for s in (old, new):
+        if not s["suite"]["rev"]:
+            print(
+                "a side records no suite_rev, so its suite is unknown", file=sys.stderr
+            )
+            return 2
+        if not s["suite"]["tree"]:
+            s["suite"]["tree"] = suite_tree(s["suite"]["rev"], a.agent)
+    if old["suite"]["tree"] != new["suite"]["tree"]:
+        print(
+            differ(suite_name(old["suite"]), suite_name(new["suite"])), file=sys.stderr
+        )
+        return 2
     text = render(a.agent, a.phase, old, new)
     with open(a.out, "w", encoding="utf-8") as f:
         f.write(text)
@@ -728,9 +790,13 @@ def check(a):
 
     Reads: owned — the record file named; unknown refused"""
     with open(a.record, encoding="utf-8") as f:
-        problems = check_record(f.read())
+        text = f.read()
+    problems = check_record(text)
     for p in problems:
         print(p)
+    old, new = header_field(text, "Baseline suite"), header_field(text, "New suite")
+    if old and new and old.split()[-1] != new.split()[-1]:
+        return 2
     return 1 if problems else 0
 
 

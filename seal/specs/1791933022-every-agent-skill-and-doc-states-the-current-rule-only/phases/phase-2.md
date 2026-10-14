@@ -119,6 +119,14 @@ seen red first:
 The framer side, the one that wrote its JSON, ran the old graders and
 prompts, so all four agents are re-run.
 
+**A changed suite means a new baseline.** `compare` and `check` exit 2,
+naming both suites, when the two sides ran different cases. A suite is the
+git tree of `evals/behaviour/<agent>/` at the side's `suite_rev`, so a
+commit that leaves the cases alone, this one among them, keeps a baseline
+valid; a side written before `suite_tree` was recorded is read through its
+commit. The re-run baseline's `suite_rev` is 2810e643, whose four agent trees
+equal this commit's.
+
 **Cost of the phase's probes.** Measured: $7.66 over 15 runs (the three
 replay runs above, a first broken run that stopped with no git at $0.47,
 and eleven smoke runs at $0.77 together, $0.39 of it the two model-alias
