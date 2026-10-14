@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# Prints a document's sections with what each `Enforced by:` target's
+# docstring says it guards, as `rules <doc>` instead of a long path. It reads
+# and prints; it writes nothing.
+#
+# Resolves the script relative to this file, not the caller's cwd, so it works
+# from any directory. Arguments pass straight through:
+#   rules docs/the-record-layout.md
+#   rules docs/x.md --root /path/to/a/clone
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec python3 "$here/../.github/scripts/rules.py" "$@"

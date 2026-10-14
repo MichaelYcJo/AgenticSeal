@@ -605,6 +605,7 @@ F = (
 )
 OUT_OF_CLASS = {
     (".github/scripts/budget_check.py", "main"): (1, "the docstring's first line"),
+    (".github/scripts/rules.py", "main"): (1, "the docstring's first line"),
     (".github/scripts/close_issues_on_release.py", "arrived"): (2, GIT),
     (".github/scripts/issue_claims_check.py", "main"): (
         1,
