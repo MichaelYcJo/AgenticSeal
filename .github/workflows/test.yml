@@ -91,10 +91,7 @@ jobs:
           - { os: macos-latest, python: "3.12", split: "--splits 3 --group 1", timeout: 15 }
           - { os: macos-latest, python: "3.12", split: "--splits 3 --group 2", timeout: 15 }
           - { os: macos-latest, python: "3.12", split: "--splits 3 --group 3", timeout: 15 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 1", timeout: 20 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 2", timeout: 20 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 3", timeout: 20 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 4", timeout: 20 }
+          - { os: windows-latest, python: "3.12", store: "--store-durations --clean-durations", timeout: 60 }
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.timeout }}
     steps:
@@ -146,7 +143,13 @@ jobs:
       # for one operating system is read off that operating system (#841).
       # `split` is empty on ubuntu, so that leg runs the whole suite as
       # before.
-      - run: pytest tests/ -q -n auto --durations=50 ${{ matrix.split }}
+      - run: pytest tests/ -q -n auto --durations=50 ${{ matrix.split }} ${{ matrix.store }}
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.store != ''
+        with:
+          name: test-durations
+          path: .test_durations
+          include-hidden-files: true
 
   # `arm-check`'s node-type tables have to hold on every supported Python,
   # and whether they do depends on the interpreter reading them: 3.14 added
