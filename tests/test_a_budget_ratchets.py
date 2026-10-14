@@ -962,7 +962,8 @@ def test_ci_minutes_sum_each_leg_off_the_job_name_and_price_the_run(
     assert (
         "Billable: macos 24 x 10 + ubuntu 7 x 1 + windows 43 x 2 = 333 "
         "Linux-equivalent minutes, US$2.66 at $0.008 a Linux minute — the price "
-        "#929 read in mid-2026, its date unverified (`questions.md` Q1)." in out
+        "#929 read in mid-2026, its date unverified: check it against GitHub's "
+        "Actions price list before quoting the dollars." in out
     ), out
 
 

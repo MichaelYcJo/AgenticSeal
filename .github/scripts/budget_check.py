@@ -1336,7 +1336,8 @@ def billable(legs):
     return (
         f"Billable: {' + '.join(parts)} = {total:,} Linux-equivalent minutes, "
         f"US${total * LINUX_MINUTE_USD:,.2f} at ${LINUX_MINUTE_USD} a Linux minute "
-        "— the price #929 read in mid-2026, its date unverified (`questions.md` Q1)."
+        "— the price #929 read in mid-2026, its date unverified: check it "
+        "against GitHub's Actions price list before quoting the dollars."
     )
 
 
