@@ -6,6 +6,8 @@ the gate. -->
 
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 
+**Decided after framing, to fold into this frame before the next smith spawns:** the owner's decisions on #923, issuecomment-6162035818 (warden report location; an agent cleans up only what it started). Until they are folded, a smith reads them there.
+
 The owner set the proof's cadence on 2026-10-14: each phase runs the behaviour cases mapped to the rules it changed, and each agent's full suite runs once at the item's end.
 
 ## Summary
