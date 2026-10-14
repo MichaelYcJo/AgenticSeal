@@ -14,6 +14,7 @@ The world each case builds:
   * `u`, a second opted-in clone, undeclared.
 """
 
+import functools
 import io
 import json
 import os
@@ -308,8 +309,8 @@ CORPUS, GROUPS = corpus()
 # one into `u`; the session found through the variable and, under `env -i`,
 # through the lease; `exec`, a pipeline, a child shell, a substitution, a
 # redirected stdin; and `LD_PRELOAD`. Every row is one whose bare run commits
-# into `main` or `u` on each leg, save the three named limits S2 skips on
-# Windows, and is built from bash, git and tools the stock macOS, ubuntu and
+# into `main` or `u` on each leg, save the four named limits S2 skips, three
+# on Windows and one under bash 5.3, and is built from bash, git and tools the stock macOS, ubuntu and
 # Git for Windows images all carry -- GNU `timeout` is not one; a row that
 # commits nowhere undeclared fails S2 rather than skipping (T2). A row taken
 # out of this list is a removal: the mutation table in the work item's phase
@@ -566,6 +567,28 @@ NO_CD_INTO_AN_UNQUOTED_PATH = (
     "unquoted path, so the cd fails and && runs no commit"
 )
 
+# A limit of the corpus row, and of the bash that runs it rather than of a
+# platform. bash 5.3 refuses `cd ""` (`null directory`), where 5.2 and 3.2
+# stay where they are, so `cd "$W"` with `W` unset fails and `&&` runs no
+# commit; the `;` form commits into `main` either way. Windows' image carries
+# 5.3, ubuntu's 5.2 and macOS's 3.2 (PR #939's CI run 38498393195), so the
+# question goes to the bash S2 runs, and a runner that moves to 5.3 skips here
+# too rather than failing. Every other `#686` row cds into an unquoted path,
+# so on Windows the subgroup runs no row; it stays in `SAMPLE` and runs on the
+# other legs.
+NO_EMPTY_CD = (
+    'known limit of the row: this bash refuses `cd ""`, as bash 5.3 does, '
+    "so the cd fails and && runs no commit"
+)
+
+
+@functools.cache
+def refuses_an_empty_cd(shell):
+    """Whether SHELL's `cd ""` fails, as bash 5.3's does."""
+    done = subprocess.run([shell, "-c", 'cd ""'], capture_output=True)
+    return done.returncode != 0
+
+
 NOT_A_COMMIT = "commits into no undeclared repository without the hooks"
 
 
@@ -578,6 +601,9 @@ def _lands_nothing_undeclared(tmp_path, name):
         pytest.skip(NO_GIT_UNDER_ENV_I)
     if os.name == "nt" and GROUPS[name] == "#686" and "{U}" in CORPUS[name]:
         pytest.skip(NO_CD_INTO_AN_UNQUOTED_PATH)
+    if GROUPS[name] == "#686" and 'cd "$W"' in CORPUS[name]:
+        if refuses_an_empty_cd(BASH):
+            pytest.skip(NO_EMPTY_CD)
     home = tmp_path / "home"
     home.mkdir()
     bare = _run_corpus_row(tmp_path / "bare", CORPUS[name], False, home)
