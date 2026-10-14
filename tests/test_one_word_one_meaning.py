@@ -595,7 +595,7 @@ PACT_LINES = (("README.md",), ("README.ko.md",), ("skills", "config", "SKILL.md"
 # The sentences a person is printed: every string constant of `pact-check`,
 # and those of `chain-check`'s pact print.
 PACT_PRINTED = (
-    (("skills", "evidence-check", "scripts", "pact_check.py"), None),
+    (("skills", "verify", "scripts", "pact_check.py"), None),
     (("skills", "code-review", "scripts", "chain_check.py"), "pact_notices"),
     (("skills", "code-review", "scripts", "chain_check.py"), "PACT_NOT_HERE"),
     # The refusals both commands print are written in `hooks/config.py`

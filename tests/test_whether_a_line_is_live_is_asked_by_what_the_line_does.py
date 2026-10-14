@@ -38,9 +38,7 @@ def _load(name, relative):
     return module
 
 
-checker = _load(
-    "specseal_checker_for_liveness", "skills/evidence-check/scripts/evidence_check.py"
-)
+checker = _load("specseal_checker_for_liveness", "skills/verify/scripts/coordinates.py")
 reader = _load(
     "specseal_reader_for_liveness", "skills/verify/scripts/unverified_check.py"
 )
@@ -174,7 +172,7 @@ R, N = "read", "not read"
 # reader: (its adapter, the answer it gives, how the statement spells it,
 #          and its answer on each shape in ORDER)
 TABLE = {
-    "evidence_check.py#quoted_lines": (
+    "coordinates.py#quoted_lines": (
         checker_quoted_lines,
         HOLDS,
         "kernel's `quoted_lines`",

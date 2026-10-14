@@ -19,8 +19,8 @@ So a stamp names content:
 
 `repo_root` is the coordinate kernel's anchor vocabulary -- a dotted Python
 symbol name, a markdown heading path, or a quoted distinctive line -- resolved
-by `evidence_check.resolve_unit` against the rider's OWN file. The hash is
-`evidence_check.content_hash` of the region that anchor names.
+by `coordinates.resolve_unit` against the rider's OWN file. The hash is
+`coordinates.content_hash` of the region that anchor names.
 
 **The stamp names no path.** A rider IS the coordinate, so the path would
 restate what the comment's location already says, and a rename would need two
@@ -80,7 +80,7 @@ just edited plus one command, where answering an orphaned commit was
 bookkeeping with no reading in it at all.
 
 **The checker's refusal is the rider's.** A rider anchored on a bare symbol in
-a file `evidence_check` has no bounding rule for — anything but `.py`, `.pyi`
+a file `coordinates.py` has no bounding rule for — anything but `.py`, `.pyi`
 and `.md` — reads that refusal as its reason, with the quoted-line anchor's
 shape on it (#870).
 
@@ -115,7 +115,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
-CHECKER = os.path.join(ROOT, "skills", "evidence-check", "scripts", "evidence_check.py")
+CHECKER = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 
 # Where a rider may live. Every root that holds something this repository
 # executes or ships, and none that holds prose ABOUT riders -- `docs/`,
@@ -145,7 +145,7 @@ OLD_STAMP = re.compile(
 
 # `Verified <date> against <anchor>@<hash>`: a coordinate minus its path, so
 # its locator and its hash are the checker's own pieces,
-# `evidence_check.py#ANCHOR_LOCATOR` and `#ANCHOR_HASH`, built into the
+# `coordinates.py#ANCHOR_LOCATOR` and `#ANCHOR_HASH`, built into the
 # pattern by `load_checker` (#867). A copy of the two alternatives stood here,
 # and a locator form the checker gained would have been a stamp this file
 # could not read.
@@ -171,8 +171,8 @@ def new_stamp():
 
 
 def load_checker(path=CHECKER):
-    """`evidence_check` as a module, or a sentence and exit 2. Loading it
-    builds the stamp pattern from its pieces (`stamp_pattern`).
+    """The coordinate kernel as a module, or a sentence and exit 2. Loading
+    it builds the stamp pattern from its pieces (`stamp_pattern`).
 
     A missing file is a sentence naming the path rather than the
     `FileNotFoundError` `spec_from_file_location` hands back for any name
@@ -180,16 +180,18 @@ def load_checker(path=CHECKER):
     and a rider asking for this one, and #590 gave it this one; copying the
     defect here to keep the two matching would have been the wrong half to be
     consistent with.
+
+    Reads: observed — the kernel at PATH, executed by the interpreter; unknown refused
     """
     global _new_stamp
     if not os.path.isfile(path):
         sys.stderr.write(
             f"rider_check: cannot find the anchor resolver at {path}. It is the "
-            "shipped `evidence_check.py`; restore it or pass the checker a "
-            "different root\n"
+            "shipped `skills/verify/scripts/coordinates.py`; restore it or pass "
+            "the checker a different root\n"
         )
         raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location("evidence_check", path)
+    spec = importlib.util.spec_from_file_location("coordinates", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     _new_stamp = stamp_pattern(module)

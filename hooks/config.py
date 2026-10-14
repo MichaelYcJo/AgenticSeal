@@ -93,7 +93,7 @@ CONFIG_TABLE = ("Item", "Value")
 # #415.
 #
 # `TABLE_ROW` and `CELL_PIPE` below are built on it, and so is
-# `skills/evidence-check/scripts/pact_check.py#path_map`, which reads the
+# `skills/verify/scripts/pact_check.py#path_map`, which reads the
 # machine-local `| Remote | Path |` map with it and `CONFIG_SEPARATOR`.
 CELL = r"(?:[^|\\]|\\.)"
 # A separator line, for one reader alone: `pact_check.py#path_map`, whose
@@ -729,7 +729,7 @@ def under_reference_root(rel, roots):
 # Two readers ask these rows and they ask THIS reader:
 # `skills/code-review/scripts/chain_check.py`, which prints the relationship
 # at a signer's pull request and refuses nothing, and
-# `skills/evidence-check/scripts/pact_check.py`, which reads every signer
+# `skills/verify/scripts/pact_check.py`, which reads every signer
 # from the pact's repository and refuses what will not parse. One reader, so
 # the print and the refusal are about the same rows.
 
@@ -749,7 +749,7 @@ NOTIFY_VALUES = (NOTIFY_ALWAYS, NOTIFY_TOUCHED, NOTIFY_NEVER)
 NOTIFY_DEFAULT = NOTIFY_TOUCHED
 # A pact's name in an anchor, `pact:<name>/"<heading path>"@<hash>`: the last
 # path segment of the pact's repository's normalised origin URL. The class is
-# `evidence_check.py#PACT_NAME`'s, which reads the anchor.
+# `skills/verify/scripts/coordinates.py#PACT_NAME`'s, which reads the anchor.
 PACT_NAME_RE = re.compile(r"[A-Za-z0-9_.-]+")
 # The word a line names a pact by: the letters `p`, `a`, `c`, `t` in that
 # order, any case, with any run of characters that are not letters between

@@ -164,9 +164,9 @@ def test_a_missing_name_is_named(tmp_path):
 
 
 def test_a_method_resolves_in_pytests_spelling(tmp_path):
-    """S10 of #836. A target is read by the ledger's resolver,
-    `evidence_check.py#named_unit`, so a method is `::Class::method`, as
-    pytest and a ledger row held by a test spell it."""
+    """S10 of #836. A target is read by the coordinate kernel's resolver,
+    `coordinates.py#named_unit`, so a method is `::Class::method`, as
+    pytest spells it."""
     body = "**Rule.**\nEnforced by: `tests/test_x.py::TestA::test_b`\n"
     assert planted(tmp_path, body) == []
 
@@ -221,7 +221,7 @@ def test_the_target_is_resolved_by_the_ledgers_reader():
     tree of its own for a target; it asks `named_unit`."""
     source = read(SCRIPT)
     assert "ast.walk" not in source
-    assert "evidence().named_unit(" in source
+    assert "coordinates().named_unit(" in source
 
 
 def test_nothing_with_a_reason_passes_and_without_one_fails(tmp_path):

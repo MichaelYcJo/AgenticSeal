@@ -780,9 +780,23 @@ def test_a_held_file_is_named_with_the_branch_holding_it():
         assert target[-1].strip() not in ("", "—"), f"no answerer: {target}"
 
 
+def test_a_missing_kernel_is_a_sentence_naming_where_it_ships(tmp_path, capsys):
+    """§14. A clone without the kernel gets one line naming the path it was
+    looked for at and the path the plugin ships it at, and exit 2."""
+    missing = str(tmp_path / "coordinates.py")
+    with pytest.raises(SystemExit) as stopped:
+        riders.load_checker(missing)
+    assert stopped.value.code == 2
+    assert capsys.readouterr().err == (
+        f"rider_check: cannot find the anchor resolver at {missing}. It is the "
+        "shipped `skills/verify/scripts/coordinates.py`; restore it or pass "
+        "the checker a different root\n"
+    )
+
+
 def test_the_stamp_is_built_from_the_checkers_own_pieces():
     """S6 of #867, the rider half. A stamp is a coordinate minus its path,
-    so its locator and hash are `evidence_check.py#ANCHOR_LOCATOR` and
+    so its locator and hash are `coordinates.py#ANCHOR_LOCATOR` and
     `#ANCHOR_HASH`, read at `load_checker`; this file kept a copy of the two.
     A locator form the checker gains is a stamp this reads. Seen red
     against 5623d728's `rider_check.py`, which has no `stamp_pattern`."""

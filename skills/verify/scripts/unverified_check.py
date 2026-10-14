@@ -197,8 +197,7 @@ def gfm_lines(text, keepends=False):
     text holding none of the eight the two splits agree, including `""`, a
     trailing newline and a final line with none.
 
-    `skills/evidence-check/scripts/evidence_check.py#gfm_lines` asks this
-    one, `hooks/blocks.py#gfm_lines` is the copy a hook keeps, and
+    `skills/verify/scripts/coordinates.py#gfm_lines` asks this one, `hooks/blocks.py#gfm_lines` is the copy a hook keeps, and
     `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds them
     equal.
 
@@ -295,7 +294,7 @@ def fence_opener(line):
     it, `blank_fences` and `closed_fence_lines`; `_liveness` and
     `_paragraph_ends_at`; and `todo_open_rows` through `closed_fence_lines`,
     which `settle.py#open_rows` is. The coordinate kernel:
-    `skills/evidence-check/scripts/evidence_check.py#quoted_lines`, which its
+    `skills/verify/scripts/coordinates.py#quoted_lines`, which its
     `unquoted` and `markdown_lines` read through. The readers #584 brought
     here: `.github/scripts/gather_changelog.py#live_markers` through
     `live_lines`, which `#ungathered` and `--check`'s count read through;
@@ -344,8 +343,7 @@ def fence_opener(line):
       - `.github/scripts/claude_block.py` reads two exact whole-line markers
         it writes itself;
       - `tests/test_release_hygiene.py#overwide_rows` keeps no fence state at
-        all, and work item A (#585) decides whether it becomes an arm of
-        `evidence_check.py`;
+        all;
       - the independent walk in `tests/test_unverified_rows_close.py` (around
         `block_ends_at`) is an oracle, kept apart from the rule it checks on
         purpose.
@@ -534,7 +532,7 @@ def heading_level(line):
     **It reads one line, so the lines it is asked of are the caller's
     business.** A renderer shows a heading only where the line is shown, so
     every reader asks it of lines with fenced blocks blanked — `readable`'s
-    here, `evidence_check.py#unquoted`'s in the checker — and a `## B`
+    here, `coordinates.py#unquoted`'s in the kernel — and a `## B`
     quoted in a closed fence is never asked. Setext headings are not read:
     every one markdown-it finds in this repository is a front-matter line
     under its `---` closer, which GitHub renders as a table.
@@ -547,7 +545,10 @@ def heading_level(line):
     `chain_check.py`, as `^#{1,6}\\s` in the checker and the payload meter,
     and as a pattern in `fold_check.py`; the first two read a `#NNN`-led
     line as a heading and ended a `## Not verified` or `## Verdicts` section
-    there."""
+    there.
+
+    Reads: owned — one line a caller handed in, held to CommonMark 4.2's ATX rule; unknown passed
+    """
     indent = len(line) - len(line.lstrip(" "))
     if indent > 3:
         return None

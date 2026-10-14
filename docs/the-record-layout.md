@@ -244,7 +244,7 @@ Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_skill_names_
 pytest spells a node id, so a method is `::Class::method`, and `fold-check`
 and the `enforced-unresolved` budget read it through
 `skills/settle/scripts/fold_check.py#target_problem`, which looks the name up
-through `evidence_check.py#named_unit`. A name is looked up where it is
+through `coordinates.py#named_unit`. A name is looked up where it is
 defined, and any `def` or `class` or a file alone is accepted.
 Enforced by: tests/test_a_folded_statement_names_what_enforces_it.py::test_a_method_resolves_in_pytests_spelling, tests/test_a_folded_statement_names_what_enforces_it.py::test_the_target_is_resolved_by_the_ledgers_reader
 

@@ -109,7 +109,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
-CHECKER = os.path.join(HERE, "evidence_check.py")
+CHECKER = os.path.join(HERE, "coordinates.py")
 PACT_FILE = "pact.md"
 CONFIG_FILE = "config.md"
 MAP_PARTS = (".claude", "specseal", "pact-paths.md")

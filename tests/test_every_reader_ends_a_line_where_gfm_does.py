@@ -42,7 +42,7 @@ from test_the_record_is_generated import (
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
-CHECKER = os.path.join(ROOT, "skills", "evidence-check", "scripts", "evidence_check.py")
+CHECKER = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 ARM_CHECK = os.path.join(ROOT, "skills", "verify", "scripts", "arm_check.py")
 FOLD_CHECK = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
 BLOCKS = os.path.join(ROOT, "hooks", "blocks.py")
@@ -622,7 +622,7 @@ OUT_OF_CLASS.update(
             "numbered on (#831)",
         ),
         # The machine-local map `pact-check` reads, the same walk (#647).
-        ("skills/evidence-check/scripts/pact_check.py", "path_map"): (1, F),
+        ("skills/verify/scripts/pact_check.py", "path_map"): (1, F),
         ("hooks/routing.py", "table_rows"): (1, F),
     }
 )

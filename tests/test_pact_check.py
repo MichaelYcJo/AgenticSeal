@@ -17,7 +17,7 @@ import sys
 import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SCRIPT = os.path.join(ROOT, "skills", "evidence-check", "scripts", "pact_check.py")
+SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py")
 WRAPPER = os.path.join(ROOT, "bin", "pact-check")
 
 PACT_URL = "git@example.com:org/orders-api.git"

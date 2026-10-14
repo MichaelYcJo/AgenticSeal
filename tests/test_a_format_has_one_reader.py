@@ -38,17 +38,17 @@ HASH_AFTER_AT = re.compile(r"@(?:\(\?P<\w+>)?\[0-9a-f\]\{6")
 COORDINATE_EXEMPT = {
     # The one grammar of the locator and the hash, and the pact anchor built
     # beside them.
-    "skills/evidence-check/scripts/evidence_check.py": "the grammar itself",
+    "skills/verify/scripts/coordinates.py": "the grammar itself",
     # A pact review's `Change` cell names a record as `<work-item-id>@<content
     # hash>`: an id, not a path and a locator, so it is no coordinate.
-    "skills/evidence-check/scripts/pact_check.py": "CHANGE_RE, a record id",
+    "skills/verify/scripts/pact_check.py": "CHANGE_RE, a record id",
 }
 
 
 def test_no_shipped_script_spells_the_coordinate_grammar_again():
     """S12 of #867, the coordinate's grep. Three scripts each kept a pattern
     ending `@[0-9a-f]{6,…}`, and `.github/scripts/rider_check.py`, the one
-    left, reads `evidence_check.py#ANCHOR_LOCATOR` and `#ANCHOR_HASH`. Seen
+    left, reads `coordinates.py#ANCHOR_LOCATOR` and `#ANCHOR_HASH`. Seen
     red against 5623d728, where it names those three."""
     found = []
     for rel, path in shipped_scripts():

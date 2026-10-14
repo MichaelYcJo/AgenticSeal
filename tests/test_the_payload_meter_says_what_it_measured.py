@@ -840,8 +840,7 @@ def test_sections_do_not_split_at_a_heading_inside_a_fence(meter, tmp_path):
 
 
 NOT_A_FENCE = {
-    # `skills/evidence-check/SKILL.md` carries this shape: a prose line that
-    # begins with a four-backtick code span. A backtick opener's info string
+    # A prose line that begins with a four-backtick code span. A backtick opener's info string
     # may not hold a backtick, so it opens nothing (CommonMark 4.5).
     "backtick info": "```` ```` ```` is how a block quoting ``` is fenced.\n",
     # Four spaces is an indented code block or a lazy continuation, never a

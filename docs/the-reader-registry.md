@@ -96,7 +96,7 @@ Enforced by: tests/test_a_reader_declares_its_input_class.py::test_a_module_body
 **`tests/undeclared_readers.txt` lists every unit undeclared when the rule
 landed, and a listed unit owes nothing until it changes.** Each line is
 `path#unit@hash`, the coordinate kernel's spelling and hash
-(`evidence_check.py`'s `py_spans` and `content_hash`), so a changed unit is a
+(`coordinates.py`'s `py_spans` and `content_hash`), so a changed unit is a
 moved hash, and the check says to declare it and remove its line. A line
 naming a unit that is gone, renamed, declared since or outside the population
 is refused, and so is a line outside the grammar. The census need not empty

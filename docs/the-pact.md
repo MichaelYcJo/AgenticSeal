@@ -123,7 +123,7 @@ Enforced by: tests/test_a_signer_declares_its_pact.py::test_s2_every_way_the_wal
 **A signer cites a clause as `pact:<name>/"<heading path>"@<hash>`.** Every
 `##` heading of `seal/pact.md` below its `| Signer |` table is a clause, and
 a `###` narrows inside one. The hash is the content hash
-`evidence_check.py#content_hash` gives the clause's region, the value a
+`coordinates.py#content_hash` gives the clause's region, the value a
 local coordinate to that heading carries. A signer writes the anchor in a
 spec's Grounding, recording what the work was built against.
 Enforced by: tests/test_pact_check.py::test_s12_a_signer_citing_the_current_clause_is_clean, tests/test_a_unit_is_bounded_where_a_parser_decides.py::test_a_word_ending_in_pact_is_not_a_pact_anchor

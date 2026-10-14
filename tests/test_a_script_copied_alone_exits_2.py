@@ -1,7 +1,7 @@
 """A shipped script copied without its sibling exits 2, with a sentence (#590, #610).
 
 Not every shipped script that loads a sibling is held here:
-`broad_gate.py` raises a refusal of its own, and `evidence_check.py` is a
+`broad_gate.py` raises a refusal of its own, and `coordinates.py` is a
 library no command runs. The ones held here load it in one of two shapes.
 `fold_check.py`, `settle.py`, `round_record.py`, `chain_check.py` and
 `payload_meter.py` import it by file path; `seal.py`

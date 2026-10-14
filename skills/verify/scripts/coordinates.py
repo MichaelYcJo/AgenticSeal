@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""evidence_check — where a unit of a file begins and ends, and the hash of
-what it holds.
+"""coordinates — where a unit of a file begins and ends, and the hash of what
+it holds.
 
-The coordinate kernel. No command runs it: the readers that name a place in
-a file by its content load this module by path and call it. They are
-`skills/settle/scripts/fold_check.py`, which resolves an `Enforced by:`
-target through `named_unit` for `fold-check` and the `enforced-unresolved`
-budget; `.github/scripts/rider_check.py`, whose stamp is a locator and a
-hash; `pact_check.py` and `chain_check.py`, which read pact anchors; and
-`tests/reader_registry.py`, whose census line is a unit's hash.
+The coordinate kernel: it resolves a `path#unit` coordinate. No command runs
+it: the readers that name a place in a file by its content load this module
+by path and call it. They are `skills/settle/scripts/fold_check.py`, which
+resolves an `Enforced by:` target through `named_unit` for `fold-check` and
+the `enforced-unresolved` budget; `.github/scripts/rider_check.py`, whose
+stamp is a locator and a hash; `pact_check.py` beside it and
+`chain_check.py`, which read pact anchors; and `tests/reader_registry.py`,
+whose census line is a unit's hash.
 
 A place is named by content, never by position. The locator is a **symbol
 name** where the language offers one, `.py` read with the stdlib `ast`, and
@@ -16,10 +17,6 @@ otherwise a **quoted line of text** or a markdown heading path. The hash
 covers the region with trailing whitespace and blank lines removed, so
 reformatting is not a change and reindenting is: in Python indentation
 carries meaning.
-
-The evidence ledger this module was the checker of left the plugin with
-#944; `git show v0.21.1:skills/evidence-check/scripts/evidence_check.py` is
-the whole of it.
 """
 
 import ast
@@ -54,10 +51,10 @@ PACT_ANCHOR_RE = re.compile(
 )
 
 # The fence, heading and line rules are the shared reader's,
-# `skills/verify/scripts/unverified_check.py`, which every reader of markdown
-# and record text asks.
+# `unverified_check.py` beside this file, which every reader of markdown and
+# record text asks.
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
+READER = os.path.join(HERE, "unverified_check.py")
 
 
 @functools.cache
@@ -375,7 +372,10 @@ def bounding_rule(path):
 
 def unbounded(path, rule, text):
     """The sentence a refused bare-symbol locator in PATH reads, naming why
-    no unit can be bounded and the anchor to write instead (#870)."""
+    no unit can be bounded and the anchor to write instead (#870).
+
+    Reads: owned — a text a caller already failed to bound, parsed again only to name the parser's error; unknown refused
+    """
     remedy = "anchor a quoted line instead"
     if rule == "ast":
         try:
@@ -398,9 +398,9 @@ def unbounded(path, rule, text):
     suffix = os.path.splitext(path)[1]
     named = f"`{suffix}`" if suffix else "a file with no suffix"
     return (
-        f"no bounding rule for {named}; {remedy}: "
-        f'`{path}#"<a line of the unit>"@00000000`, whose region is the '
-        "paragraph that line sits in, and `--reverify` fills the hash"
+        f"no bounding rule for {named}; {remedy}, "
+        '`"<a line of the unit>"`, whose region is the paragraph that line '
+        "sits in"
     )
 
 

@@ -4709,9 +4709,7 @@ FRAME_FROM = 1789518345
 
 
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
-CHECKER = os.path.join(
-    HERE, "..", "..", "evidence-check", "scripts", "evidence_check.py"
-)
+CHECKER = os.path.join(HERE, "..", "..", "verify", "scripts", "coordinates.py")
 PACT_FILE = "pact.md"
 # What every pact notice ends on, because it is what keeps a notice from
 # reading as a check: this CI reads one repository, and the reconciliation

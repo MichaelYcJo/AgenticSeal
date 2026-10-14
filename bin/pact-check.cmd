@@ -4,7 +4,7 @@ rem bare `pact-check` to this file via PATHEXT, the same way POSIX
 rem shells resolve the extensionless sibling. Kept in lockstep with it.
 setlocal
 set "here=%~dp0"
-set "script=%here%..\skills\evidence-check\scripts\pact_check.py"
+set "script=%here%..\skills\verify\scripts\pact_check.py"
 
 where /q py
 if errorlevel 1 goto usepython

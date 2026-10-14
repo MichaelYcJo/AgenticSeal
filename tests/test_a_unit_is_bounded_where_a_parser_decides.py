@@ -1,10 +1,9 @@
 """A unit of a file is bounded where a real parser decides its extent, and
 named by content (#870, #519, #867).
 
-`skills/evidence-check/scripts/evidence_check.py` is the coordinate kernel
+`skills/verify/scripts/coordinates.py` is the coordinate kernel
 `fold_check.py`, `rider_check.py`, `pact_check.py`, `chain_check.py` and the
-reader registry load. These are its cases, moved here from the ledger's
-modules when the ledger left (#944):
+reader registry load. These are its cases:
 
   the unit        a symbol through `ast`, a heading path in markdown, a
                   quoted line's paragraph anywhere, and a bare symbol refused
@@ -23,7 +22,7 @@ import sys
 import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-KERNEL = os.path.join(ROOT, "skills", "evidence-check", "scripts", "evidence_check.py")
+KERNEL = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 RIDER = os.path.join(ROOT, ".github", "scripts", "rider_check.py")
 
 
@@ -167,9 +166,9 @@ def no_rule(path, named):
     """The refusal a bare symbol in PATH reads, pinned whole (§14): why no
     unit is bounded, and the anchor's shape."""
     return (
-        f"no bounding rule for {named}; anchor a quoted line instead: "
-        f'`{path}#"<a line of the unit>"@00000000`, whose region is the '
-        "paragraph that line sits in, and `--reverify` fills the hash"
+        f"no bounding rule for {named}; anchor a quoted line instead, "
+        '`"<a line of the unit>"`, whose region is the paragraph that line '
+        "sits in"
     )
 
 

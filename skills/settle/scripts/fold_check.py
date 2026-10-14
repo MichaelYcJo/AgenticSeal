@@ -16,7 +16,7 @@ above the cutoff opens with a bold rule sentence and carries exactly one live
 `Enforced by:` line, whose targets each resolve: a file inside the repository
 and, with `::name`, a `def` or `class` it defines once, as pytest spells a node
 id — `::Class::method` for a method — and resolved by the coordinate kernel,
-`skills/evidence-check/scripts/evidence_check.py#named_unit`. Or the line says
+`skills/verify/scripts/coordinates.py#named_unit`. Or the line says
 `nothing — <why>`, with a reason. Ids are epoch-prefixed, so the cutoff is a
 comparison and needs no list of exemptions, and `--shape-from 0` binds every
 statement there is.
@@ -118,9 +118,7 @@ OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
 # The coordinate kernel, whose `named_unit` is the one resolver of a
 # `path::name` target (#836), so `fold-check` and `budget_check.py` read an
 # `Enforced by:` line in one grammar.
-EVIDENCE = os.path.join(
-    HERE, "..", "..", "evidence-check", "scripts", "evidence_check.py"
-)
+COORDINATES = os.path.join(HERE, "..", "..", "verify", "scripts", "coordinates.py")
 
 DOCS = "docs"
 CONFIG = "config.md"
@@ -188,15 +186,18 @@ def reader():
     return _loaded["reader"]
 
 
-def evidence():
-    """`evidence_check.py`, loaded once on first use, for `named_unit`."""
-    if "evidence" not in _loaded:
-        _loaded["evidence"] = load(
-            EVIDENCE,
-            "specseal_evidence_check_for_folds",
+def coordinates():
+    """`coordinates.py`, loaded once on first use, for `named_unit`.
+
+    Reads: observed — the coordinate kernel's own module, executed by the interpreter; unknown refused
+    """
+    if "coordinates" not in _loaded:
+        _loaded["coordinates"] = load(
+            COORDINATES,
+            "specseal_coordinates_for_folds",
             "it is where a `path::name` target is resolved",
         )
-    return _loaded["evidence"]
+    return _loaded["coordinates"]
 
 
 class Unusable(Exception):
@@ -284,7 +285,7 @@ def target_problem(root, target):
     file inside the repository, or a `def` or `class` its Python file
     defines once.
 
-    Reads: observed — the file the target names, through `evidence_check.py#named_unit`; unknown refused"""
+    Reads: observed — the file the target names, through `coordinates.py#named_unit`; unknown refused"""
     target = target.strip().strip("`")
     if not target:
         return "an empty target"
@@ -309,7 +310,7 @@ def target_problem(root, target):
         # The kernel's resolver (#836): `::A::b` is `b` inside `A`, as pytest
         # spells a method, and a name is looked up where it is defined rather
         # than anywhere in the file.
-        kinds = evidence().named_unit(text, name.split("::"))
+        kinds = coordinates().named_unit(text, name.split("::"))
         if kinds is None:
             ast.parse(text)
     except (OSError, ValueError, SyntaxError) as unreadable:
