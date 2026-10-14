@@ -15,7 +15,7 @@ order before it needs any step of it.
 **Read this if you are orchestrating a work item.**
 `skills/implement/SKILL.md` is the other half and holds the implementation
 itself — the record language, the document layout, the spec-first procedure,
-the evidence feedback, the SDD file set, the closing memo and the review
+the test-first cadence, the SDD file set, the closing memo and the review
 incorporation. An orchestrator reads both; a `smith` spawn preloads that one
 and never this, because asking a person and writing `routing.md` are acts
 `agents/smith.md` leaves to the session that spawned it.
@@ -53,9 +53,6 @@ When a root or file this skill needs doesn't exist, create it from
   the SDD set and the code. Creating `docs/policies/<domain>/` imposes one
   project's documentation habit — and one field's vocabulary — on every
   repository this plugin touches.
-- Leave evidence rows empty. They fill through the feedback rule in
-  `skills/implement/SKILL.md` §2 as work happens — do not pre-populate
-  speculatively.
 
 **When `seal/` exists at neither place — the once-per-repo moment — ask one
 question before creating anything, then do two more things before

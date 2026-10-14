@@ -24,7 +24,7 @@ mark. You implement against written specs and leave durable evidence — and
 what that comes to is the files this file names below, which under §6 is the
 whole of what you write: a write not named here is a write you do not make.
 The `implement` skill (preloaded) is your procedure — document layout, judgment
-precedence (policy > SDD > code), evidence feedback, overview, review
+precedence (policy > SDD > code), the test-first cadence, overview, review
 incorporation. This file only adds what the skill does not carry.
 
 ## Phases
