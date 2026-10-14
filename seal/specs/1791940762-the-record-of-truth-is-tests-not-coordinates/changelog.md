@@ -51,6 +51,16 @@
   gate arms. The pull request's own run measures the minutes saved; the
   frame's estimate is about 29 billed minutes a run.
   (`1791940762-the-record-of-truth-is-tests-not-coordinates`, #944)
+- **`pact-check` grades the pact anchors in a signer's specs and nothing
+  else (#944).** A signer's records of pact changes,
+  `seal/pact-changes/<work-item-id>.md`, were written by the ledger's
+  re-read, so nothing has written one since the ledger left. `pact-check`
+  stops reading them and the pact's reviews in `seal/pact-reviews/`, so the
+  `NOTED` line and the change counts on the `READ` line and in the summary
+  are gone. The pact review procedure and `templates/pact-review.md` go
+  with them, and `pact-check` no longer reads anchors in a signer's ledger
+  files. `Pact notify` is still read and printed, and acts on nothing.
+  (`1791940762-the-record-of-truth-is-tests-not-coordinates`, #944)
 
 ### Added
 

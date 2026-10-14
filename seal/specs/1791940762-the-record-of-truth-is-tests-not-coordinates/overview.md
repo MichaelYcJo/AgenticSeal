@@ -39,9 +39,13 @@ ledger.
 | the census lines were removed, not re-recorded | the spawn "with their census hashes re-recorded" / the five units whose docstrings changed (`rider_check.py#reverify`, `#migrate`, `chain_check.py#fix_range`, `pact_check.py#shown`, `unverified_check.py#annotate`) declare a `Reads:` line and leave `tests/undeclared_readers.txt` | the build | the census refuses a moved hash: `test_a_reader_declares_its_input_class.py#census_unit_changed` says to declare the unit and remove its line |
 | the design record is rewritten in place | `docs/one-root-by-lifetime.md` says its 2026-09-02 text "is a record … and is not rewritten" / both editions' ledger statements rewritten to what stands, release step 1 (the fold) and its rationale removed so step 2 became 1, and two decision rows (settle's grouping, anchored rows) rewritten or removed | the owner's rule of 2026-10-13 that a document states the latest and not the history, and S9 | the statements described a ledger the tree no longer has; `unenforced` and `docs-history` for both editions lowered by the rule paragraph and history lines that left |
 | `CLAUDE.md` loses the `seal` paragraph's narrative | the spawn "cut an equivalent elsewhere in the same file" / the tenet gains the one-source sentence (+89 bytes) and the whose-rule section's account of how `seal` came to need the rule leaves (−188), keeping the pointer to `tests/test_one_word_one_meaning.py` | the build | that account is history the test module's own comment holds; `preload:claude-md` lowered 9,126 → 9,027 |
-| `templates/config.md` §*Pact* rewritten | not in the frame / its `Pact notify` paragraph named `evidence-check --reverify` as the writer and linked `docs/the-pact.md` §*A signer records a pact change*, which phase 4 removed | the build | a shipped template linked a section that is gone and a writer that is gone; the paragraph says no command writes a record and how a held one is read, under Q2's default |
+| `templates/config.md` §*Pact* rewritten | not in the frame / its `Pact notify` paragraph named `evidence-check --reverify` as the writer and linked `docs/the-pact.md` §*A signer records a pact change*, which phase 4 removed | the build | a shipped template linked a section that is gone and a writer that is gone; since Q2's answer the paragraph says `Pact notify` is printed and acts on nothing |
 | a module phase 4 left red is repaired here | not in the frame / `tests/test_a_shrunken_corpus_declines_to_judge.py` still listed `test_the_root_migrates_itself.py#test_the_re_pointed_ledgers_are_staged_with_the_move`, which phase 4 deleted; three of its cases failed at 8cf9e1ff | the build | a defect this branch caused is fixed where it arose; phase 4's narrow runs did not include that module |
 | two `seal/follow-up.md` rows change | not in the frame / the row asking whether `CONTRIBUTING.md` gains a third arm for a drifted ledger claim is removed, and the ledger and `evidence-check` clauses leave the `hits()` and `Broad gate` rows | the build | the third-arm question has no subject without a ledger; the other two rows' questions stand without the ledger clauses |
+| the change-record half of the pact leaves | `spec.md` §*Scope* left `pact_check.py` as it was, and Q2's default kept the readers / `pact-check` reads only the anchors in a signer's specs; the two record readers, the review procedure, `templates/pact-review.md` and `tests/test_a_pact_review_takes_a_pact_change.py` go, and the table walker loses its two passes over the record headers (434 cases) | the owner, answering Q2 with option 1 on 2026-10-14 (7fc76195) | the records had no writer; the walker passes held headers no reader uses, which the config pass's own docstring says holds nothing |
+| `Pact notify` stays, acting on nothing | Q2's option 1 names the records' readers / the row is still parsed, refused when bad and printed, and every text says it acts on nothing | the build, pending Q3 | its one effect was choosing record rows, and the one-spelling rule of #759 was argued from it; removing either reopens that rule and about 60 cases, which is a person's decision |
+| the flow-baseline issue keeps one name | not in the frame / "durable ledger" becomes "durable log" in the roller, its issue-body notes, `skills/verify/SKILL.md`, the tracker document and two test modules | the build | the phase's five test names include two for this log; the module already called it the durable log, and two names for one thing is what the one-word rule refuses |
+| the S7 guard is kept | the spawn deletes a case that guards only ledger behaviour / `test_a_planted_ledger_file_is_named` and the tree assertion stay | the build | PRs #937 and #939, open into `release/v0.22.0` at 2026-10-14, each add a `seal/ledger/<id>.md`; a merge brings a new file back with no conflict, and this guard is what names it |
 
 ## Not verified
 
@@ -49,25 +53,30 @@ ledger.
 |---|---|
 | `bin/rules.cmd` runs on Windows: written in lockstep with `bin/fold-check.cmd`, never executed | the pull request's Windows leg |
 | the full suite, the repository-wide lint and the typecheck after phase 5 | the sealer, once, after the rounds |
-| `.test_durations` priced by a Windows run after phase 4: the file holds pruned entries and carried prices, 610 of 12,270 cases unpriced (4.97 %, one case from `STALE_SHARE`) | the orchestrator, by the refresh recipe in `CONTRIBUTING.md` at the pull request's run |
+| `.test_durations` priced by a Windows run: after phase 7 deleted 457 priced cases, 609 of 11,810 collected cases are unpriced (5.16 %), over `STALE_SHARE`, so `test_the_durations_file_prices_the_suite` is red until the file is refreshed | the orchestrator, by the refresh recipe in `CONTRIBUTING.md`, before the pull request's run |
 | `bin/fold-check.cmd --help` from `/` on Windows: `test_bin_wrapper_resolves_the_checker_from_any_cwd` was re-pointed from the deleted `evidence-check` wrapper, executed on macOS only | the pull request's Windows leg |
 | `bin/pact-check.cmd` after its script path moved to `skills\verify\scripts\pact_check.py`: edited in lockstep with `bin/pact-check`, whose `--help` exits 0 on macOS, never executed on Windows | the pull request's Windows leg |
 
 ## Not done
 
-What still names the ledger after phase 6, each left on purpose:
+What still names the ledger after phase 7, each left on purpose
+(`phases/phase-7.md` has the grounds):
 
-- `skills/verify/scripts/pact_check.py` still globs a signer's
-  `seal/ledger*.md` for pact anchors; the glob is Q2's.
-- Test names and docstrings that say *ledger* (for example
-  `test_the_target_is_resolved_by_the_ledgers_reader`, which
-  `docs/the-record-layout.md` names in an `Enforced by:` line) are read as
-  they are: rewriting each into the rule it guards is written by whoever
-  moves a rule into a test — #941 and #940 under the reader criterion — and
-  by #942 when it rebuilds the tests.
-- `skills/writing-style/SKILL.md`'s translation example names
-  `templates/ledger.md` as the file a translator opened; it is an example of
-  choosing a word, and the file it names is gone.
+- The ANSI art under `assets/seals/`: archived renders of past stamps,
+  each named in `assets/seals/README.md` with the command that drew it.
+- Three fold markers, in `docs/release-checklist.md` and
+  `docs/the-record-layout.md`: work-item ids, which name where a statement
+  came from.
+- `seal/follow-up.md`'s row on the released `changelog/0.12.2.md`: its
+  subject is a released sentence, and amending a release is the owner's.
+- `tests/test_release_hygiene.py`'s S7 guard, while a branch cut before
+  this item can add a fragment back.
+- Fixtures and comments in about 40 other test modules that use a ledger
+  file as an ordinary record or recall the ledger's history, outside the
+  phase's grep; #942 rebuilds the tests.
+- About 37 `.test_durations` entries naming ledger cases no run collects;
+  the refresh's `--clean-durations` drops them.
+- `Pact notify`, which acts on nothing now: Q3.
 - Records under `seal/specs/` and the released `changelog/` keep their
   history.
 
