@@ -75,7 +75,24 @@ it is. It is for a caller that ran the same command against the same bytes
 and saw it pass, which `case_check.py` does once per file before any mutant.
 A bare call is byte-for-byte what it was: `main` passes `baseline` only when
 the option is set. Released row L7 said the baseline always runs, so it has a
-`Corrected ·` row in the fragment.
+`Corrected ·` row in the fragment. It is the only released claim the option
+changes. Of the rows that speak of `mutation-check`, L1 says the bytecode is
+cleared before each run, the baseline and the mutated one; that still holds
+for every run that happens, and its re-read is in the fragment. L2 to L5 say
+nothing of the baseline run.
+
+**Where a function's text ends.** `case_check.py` cuts each function's text
+by the line numbers `ast` gives, so it splits Python source where Python's
+tokenizer ends a line (`\r\n`, `\r`, `\n`). `str.splitlines` also ends a line
+at U+2028 and similar characters, which Python reads inside a string. A test
+file holding one shifted every later line, so a change on a function's last
+line was not read as a change.
+`test_a_line_end_python_does_not_read_moves_no_function` pins it, and is the
+only killer of its mutant (`executed`). The check's other splits are a
+subprocess's output, its docstring's first line, and its own list file. Each
+is named out of class in
+`tests/test_every_reader_ends_a_line_where_gfm_does.py`'s table, since none is
+a document's lines.
 
 **The bound.**
 
