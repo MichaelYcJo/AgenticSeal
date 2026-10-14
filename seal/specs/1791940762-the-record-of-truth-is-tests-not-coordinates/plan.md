@@ -6,6 +6,8 @@ the gate. -->
 
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 
+**Decided after phase 5, to build before review:** `seal.py`'s export and import still move `ledger/<id>.md` (`LEDGER_DIR`, about 60 test references). It is this item's leftover, so it leaves here, not in a new issue. The kernel stays at `skills/evidence-check/scripts/` (alternative G), so S9's remaining hits on that path are accepted and named in `overview.md`.
+
 Q1 answered the same day: **remove** the ledger from the plugin (option 1).
 
 ## Summary
