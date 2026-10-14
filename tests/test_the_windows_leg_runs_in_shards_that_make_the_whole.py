@@ -282,7 +282,9 @@ REMEDY = (
     "test-durations -D <dir>`, then move <dir>/.test_durations over the "
     "committed .test_durations and commit it; its line ends are already LF. "
     "A run older than the artifact's seven days is re-run first, with "
-    "`gh run rerun <run id>` (CONTRIBUTING.md §Running the checks)."
+    "`gh run rerun <run id>`; a branch with no pull request, or whose run "
+    "is too old to re-run, gets one with `gh workflow run test.yml --ref "
+    "<branch>` (CONTRIBUTING.md §Running the checks)."
 )
 
 
@@ -381,7 +383,9 @@ def test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe():
     """S4 of work item 1791876667: the counts, the share, and the recipe,
     which is the download of the branch's own `test-durations` artifact into
     a directory of its own -- `gh run download` refuses to write over the
-    committed file -- and the re-run for an artifact past its seven days."""
+    committed file -- the re-run for an artifact past its seven days, and
+    the dispatch for a branch with no run to download from (round 1's 🟡 2):
+    a branch with no pull request runs `tests` only when dispatched."""
     collected = _collection(FIXTURE_SIZE)
     priced = {node: 1.0 for node in collected[AT_THE_SHARE + 1 :]}
     sentence = staleness(collected, priced)
@@ -391,6 +395,7 @@ def test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe():
     assert "gh run download <run id> -n test-durations -D <dir>" in sentence
     assert "move <dir>/.test_durations over the committed" in sentence
     assert "gh run rerun <run id>" in sentence
+    assert "gh workflow run test.yml --ref <branch>" in sentence
     assert "CONTRIBUTING.md §Running the checks" in sentence
     assert "First unpriced: " + collected[0] in sentence
     assert "First gone" not in sentence, sentence
@@ -751,12 +756,15 @@ def test_the_recipe_names_the_artifact_and_the_checklist_has_no_box():
         "`test-durations`",
         "`gh run download <run id> -n test-durations -D <dir>`",
         "`gh run rerun <run id>`",
+        "`gh workflow run test.yml --ref <branch>`",
         "`durations` job",
         "`STALE_SHARE`",
         "entries the suite no longer collects",
     ):
         assert said in flat, f"the recipe paragraph does not say {said}"
-    for gone in ("restore the shards", "one job again", "gh workflow run"):
+    # The measuring run's own words. A dispatch is not among them: a branch
+    # with no pull request gets its `tests` run that way (round 1's 🟡 2).
+    for gone in ("restore the shards", "one job again", "for a single run"):
         assert gone not in flat, f"the recipe paragraph still says {gone!r}"
     before = section("docs/release-checklist.md", "0. Before starting")
     assert ".test_durations" not in before, "the checklist still has a refresh box"

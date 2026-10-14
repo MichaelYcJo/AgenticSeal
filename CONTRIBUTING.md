@@ -179,7 +179,10 @@ run: `gh run download <run id> -n test-durations -D <dir>`, then move
 `<dir>/.test_durations` over the committed file and commit it. Its line
 ends are already LF. The download goes to a directory of its own because
 `gh` will not write over a file that is already there. A run older than
-seven days is re-run first, with `gh run rerun <run id>`.
+seven days is re-run first, with `gh run rerun <run id>`. A branch with no
+pull request has no `tests` run until one is dispatched, and neither has a
+branch whose run is too old to re-run:
+`gh workflow run test.yml --ref <branch>` starts one.
 
 **The suite runs with `gh` logged out, on your machine as on CI.** CI's
 pytest job has no token, so `tests/conftest.py` makes the same true locally
