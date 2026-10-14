@@ -46,9 +46,10 @@
 
   Measured against the merge base `f975ea66`: the branch is 4,302 lines in
   and 54,867 out, and 19.1 more Windows seconds left with cases cut from
-  kept modules, so the suite's priced total fell by 796.5 seconds. Also
-  gone: one ubuntu CI job per pull request, three hygiene steps and three
-  gate arms. The pull request's own run measures the minutes saved; the
+  kept modules, so the deleted cases cost 796.5 seconds at the base's
+  prices. The refreshed `.test_durations` prices the whole suite at 6,854
+  seconds against the base's 7,862. Also gone: one ubuntu CI job per pull
+  request, three hygiene steps and three gate arms. The pull request's own run measures the minutes saved; the
   frame's estimate is about 29 billed minutes a run.
   (`1791940762-the-record-of-truth-is-tests-not-coordinates`, #944)
 - **`pact-check` grades the pact anchors in a signer's specs and nothing
