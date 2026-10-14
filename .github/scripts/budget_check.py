@@ -216,7 +216,7 @@ RULE_FILES = (
 # A line opening a rule paragraph, and a line opening any list item: up to
 # three spaces, then `**`, or a list marker and `**`.
 LIST_MARKER = r"[ ]{0,3}(?:[-*+]|[0-9]+[.)])[ \t]+"
-RULE_PARAGRAPH = re.compile(rf"(?:{LIST_MARKER})?\*{{2,3}}[^*\s]")
+RULE_PARAGRAPH = re.compile(rf"(?:{LIST_MARKER}|[ ]{{0,3}})\*{{2,3}}[^*\s]")
 LIST_ITEM = re.compile(r"[ \t]*(?:[-*+]|[0-9]+[.)])[ \t]+")
 # The one target `fold_check.py#target_problem` does not read: an eval case,
 # `evals/behaviour/<agent>/<case>/`, which resolves where this file is in it.

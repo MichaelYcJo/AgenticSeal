@@ -1639,6 +1639,8 @@ def test_a_rule_that_gains_its_test_lowers_its_row(
         ("<!--\n**A comment.**\n-->\n", []),
         ("| **A cell** | x |\n|---|---|\n", []),
         ("**A rule.** Why.\n\nEnforced by: tests/x.py\n", ["**A rule.** Why."]),
+        ("- Item.\n\n  **A rule.** Why.\n", ["**A rule.** Why."]),
+        ("Text.\n\n    **An indented code line.**\n", []),
     ],
     ids=[
         "bold",
@@ -1649,11 +1651,14 @@ def test_a_rule_that_gains_its_test_lowers_its_row(
         "a comment",
         "a table",
         "a line after the blank",
+        "an indented paragraph",
+        "four spaces in",
     ],
 )
 def test_a_rule_paragraph_opens_a_block_with_a_bold_lead(text, rules):
     """The grammar #923 states: a rule paragraph opens on `**`, `- **`,
-    `* **` or `N. **`, outside fences, comments and tables, and closes at its
+    `* **` or `N. **`, up to three spaces in, so a list item's continuation
+    paragraph is one, outside fences, comments and tables, and closes at its
     `Enforced by:` line or its blank line — so a line after the blank is not
     its enforcer."""
     found = budget_check.rule_paragraphs(doc(text))

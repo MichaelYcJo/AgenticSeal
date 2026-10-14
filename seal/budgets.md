@@ -99,12 +99,12 @@ commit alike. -->
 | File | Rules ceiling |
 |---|---|
 | CLAUDE.md | 7 |
-| CONTRIBUTING.md | 21 |
+| CONTRIBUTING.md | 22 |
 | agents/framer.md | 35 |
 | agents/scribe.md | 3 |
 | agents/sealer.md | 21 |
-| agents/smith.md | 11 |
-| agents/warden.md | 16 |
+| agents/smith.md | 19 |
+| agents/warden.md | 24 |
 | docs/branch-and-release.md | 24 |
 | docs/commit-review-gate-spec.md | 20 |
 | docs/issues-and-milestones.md | 23 |
@@ -130,10 +130,10 @@ commit alike. -->
 | skills/code-review/orchestration.md | 41 |
 | skills/commit-pr-convention/SKILL.md | 24 |
 | skills/confidence-check/SKILL.md | 6 |
-| skills/config/SKILL.md | 13 |
+| skills/config/SKILL.md | 19 |
 | skills/gap-analysis/SKILL.md | 10 |
 | skills/implement/SKILL.md | 26 |
-| skills/implement/orchestration.md | 38 |
+| skills/implement/orchestration.md | 46 |
 | skills/learn/SKILL.md | 4 |
 | skills/legacy-parity/SKILL.md | 2 |
 | skills/parity-setup/SKILL.md | 7 |
@@ -141,7 +141,7 @@ commit alike. -->
 | skills/security-audit/SKILL.md | 1 |
 | skills/settle/SKILL.md | 28 |
 | skills/update/SKILL.md | 11 |
-| skills/verify/SKILL.md | 42 |
+| skills/verify/SKILL.md | 57 |
 | skills/writing-style/SKILL.md | 40 |
 | templates/claude-md-block.md | 5 |
 | templates/config.md | 31 |

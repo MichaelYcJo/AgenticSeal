@@ -77,8 +77,9 @@
   with none are counted (#944).** Two rows in `seal/budgets.md`, measured on
   every pull request: `enforced-unresolved`, a gate at 0, names each target
   that is gone, renamed, defined twice or a constant; and `unenforced:<file>`,
-  one row per rule file, counts the bold-led rule paragraphs that carry no
-  `Enforced by:` line or carry `nothing — <why>`. A new rule with no test
+  one row per rule file, counts the bold-led rule paragraphs, a list item's
+  indented continuation included, that carry no `Enforced by:` line or carry
+  `nothing — <why>`. A new rule with no test
   raises its file's row and owes a `Budget raised:` line in the pull request
   body; a rule that gains its test lowers it. An eval case directory,
   `evals/behaviour/<agent>/<case>/` holding a `case.yaml`, is a target too.
