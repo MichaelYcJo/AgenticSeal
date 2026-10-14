@@ -28,6 +28,10 @@ ledger.
 | two ledger-document statements leave instead of moving | W1's default moves every statement whose target still exists / the parse-once and quoted-line statements are removed | the build | `evidence_check.py#py_spans` and `#resolve_unit` state each rule in their docstrings, and phase 4 moves their cases to the kernel module; the layout is no home for a coordinate library's rules |
 | nothing moved into `skills/settle/SKILL.md` | the spawn names the settle skill as a home / every moved statement went to `docs/the-record-layout.md` | the build | `tests/test_docs_line_wrap.py` holds the skill to 88 columns and skips only an `Enforced by:` line inside a marked `docs/` statement, so a rule there could not name its test case |
 | the gate's skip-at-main machinery | `spec.md` §*What happens to each reader* names the three arms / `SKIPPED_AT_MAIN`, `skipped_at_main` and `skipped_line` went too, with a case that no mirrored step skips at `main` | the build | they existed only for the two range arms; kept, they are a branch nothing reaches |
+| the pact's change records lose their writer | `spec.md` §*Scope* "`pact_check.py` and the pact's hash anchors … left as they are" / `record_pact_changes` lived inside `--reverify` and leaves with it; `docs/the-pact.md` loses §*A signer records a pact change* and two statements about the writer; `pact_check.py` still reads the records, the reviews and a signer's `seal/ledger*.md` | the build | `plan.md` phase 4 deletes `--reverify`, and the recorder was triggered only by ledger rows moving; a statement whose test left states a rule nothing holds. Whether the record-and-review half of `pact-check` goes too is Q2 |
+| the kernel is smaller than the frame's list | `spec.md` §*What happens to each reader* lists `ANCHOR_RE` and copies of `gfm_lines` and the fence rule in the kernel / `ANCHOR_RE`, `ANCHOR_PATH`, `resolve`, the minor-level readers and every vendored copy went; `gfm_lines`, `heading_level` and the fence rule ask `unverified_check.py` | the build | the two readers of `ANCHOR_RE` were deleted here, and the vendored copies existed for `evidence-ci` running the file alone, which no command does now |
+| `root-migrate.py` loses step 6 with its mapping rows | `plan.md` phase 4 names the two mapping rows / the re-point of anchors in the old ledger went too, a 0.3.x map moves to `seal/map.md`, and both READMEs' by-hand block changed in this phase | the build | step 6 read the ledger through `ANCHOR_RE`; the by-hand block is run by `test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set`, so it moves with the hook |
+| `.test_durations` is pruned, not refreshed | `plan.md` phase 4 "`.test_durations` from the run's `test-durations` artifact" / the deleted files' entries and the cut cases' entries removed, the 54 moved and renamed cases carry their old Windows prices | the build | no run exists without a push, and the deletion alone took the unpriced share to 5.4 %; carried prices bring it to 4.97 % |
 
 ## Not verified
 
@@ -35,10 +39,12 @@ ledger.
 |---|---|
 | `bin/rules.cmd` runs on Windows: written in lockstep with `bin/fold-check.cmd`, never executed | the pull request's Windows leg |
 | the full suite, the repository-wide lint and the typecheck after phase 1 | the sealer, once, after the rounds |
+| `.test_durations` priced by a Windows run after phase 4: the file holds pruned entries and carried prices, 610 of 12,270 cases unpriced (4.97 %, one case from `STALE_SHARE`) | the orchestrator, by the refresh recipe in `CONTRIBUTING.md` at the pull request's run |
+| `bin/fold-check.cmd --help` from `/` on Windows: `test_bin_wrapper_resolves_the_checker_from_any_cwd` was re-pointed from the deleted `evidence-check` wrapper, executed on macOS only | the pull request's Windows leg |
 
 ## Not done
 
-Phases 4–5 of `plan.md`. Files those phases delete still describe the ledger,
+Phase 5 of `plan.md`. Files those phases delete still describe the ledger,
 and cite *the ledger policy at `v0.21.1`* where they cited the deleted
 document. The test docstrings the slice's targets carry are
 read as they are: rewriting each first sentence into the rule it guards is
