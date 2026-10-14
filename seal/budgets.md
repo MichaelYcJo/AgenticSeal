@@ -46,11 +46,7 @@ commit alike. -->
 
 | Prices | Per mille |
 |---|---|
-<<<<<<< HEAD
 | .test_durations | 1132 |
-=======
-| .test_durations | 1073 |
->>>>>>> ff6151fb (chore: seal/budgets.md's price level still read 1000 after the rebase onto #930; it reads the 1073 the budgets step names for the union (#931))
 
 ## Slow test files
 
