@@ -9,10 +9,9 @@ clauses it was built against as pact anchors,
 
   pact:<name>/"<heading path>"@<hash>
 
-in its specs' Grounding, and in ledger rows written before the ledger left
-the plugin (#944). This command reads every
-signer from the pact's repository and grades each of those anchors against
-the clause as the pact holds it now.
+in its specs' Grounding. This command reads every signer from the pact's
+repository and grades each of those anchors against the clause as the pact
+holds it now.
 
   pact-check            in the pact's repository
   pact-check ROOT       the pact's repository at ROOT
@@ -48,27 +47,6 @@ A signer neither finds is reported with the map line to add.
   BROKEN      the heading path resolves to no clause, or to more than one:
               renamed or removed. Re-coordinate the signer
 
-## What each pact change reads
-
-A signer's pact changes are rows of its `seal/pact-changes/<work-item-id>.md`.
-Their writer was the ledger's re-read, which left the plugin with #944.
-Every such record is read, following the signer's `Pact notify` as
-read now:
-
-  NOT TAKEN   a row citing a clause of this pact that no pact review here
-              has taken: the line names the record and line, the clause, the
-              work item, and the record's content hash, which is the value a
-              pact review writes. A record a review took at another hash
-              names both
-  NOTED       a `—` row from a signer whose notify is `always`, printed
-              until a pact review takes it; no exit class, because a pact
-              review is owed only where a clause is cited
-
-Under `when the pact is touched` a `—` row is not read, and under `never` no
-row is. A pact review is a row of `seal/pact-reviews/<work-item-id>.md` here
-naming the signer and `<work-item-id>@<content hash>`, verdict `holds` or
-`amended`; it takes the record at that hash and no other.
-
 Git is asked one thing: which way a mismatch points. It never decides `OK`.
 A pact under local mode has no history, so every mismatch there reads
 `UNMATCHED`, and the summary says so.
@@ -76,24 +54,20 @@ A pact under local mode has no history, so every mismatch there reads
 ## Exit codes
 
   0  every listed signer was read, and every anchor is `OK`
-  1  a `SUPERSEDED`, `NOT TAKEN` or `UNMATCHED` anchor, a `NOT TAKEN` pact
-     change, or a signer not found on this machine
+  1  a `SUPERSEDED`, `NOT TAKEN` or `UNMATCHED` anchor, or a signer not
+     found on this machine
   2  unusable input: no pact here, a pact or file that cannot be read, a
      `BROKEN` anchor, an anchor naming this pact that does not parse, a
      `Pact` row or notify value that will not parse, a relationship
-     recorded on one side only, a pact's repository with no origin
-     remote, a record of pact changes or of pact reviews that will not read
-     or parse, or a pact review row that cannot be true: a signer the
-     pact does not list, a record that signer does not hold, a verdict
-     other than `holds` and `amended`, or `amended`, at the record's
-     current hash, for a clause that still has the hash the record recorded
+     recorded on one side only, or a pact's repository with no origin
+     remote
 
 `BROKEN` is exit 2 and a mismatch is exit 1. Nothing is ever written.
 
 ## A header written through 0.18.x
 
-A pact whose table, or a pact review record whose table, is headed with the
-word 0.18.x used is read exactly as one headed `Signer`, and one line before
+A pact whose table is headed with the word 0.18.x used is read exactly as
+one headed `Signer`, and one line before
 that file's other lines names the file, both headers and the release that
 renamed them (`hooks/config.py#renamed_header`). The line is in no exit
 class: the exit is what it would be under the new header (#822).
@@ -184,14 +158,6 @@ NOT_FOUND, ONE_SIDED, REFUSED, UNREADABLE = (
     "REFUSED",
     "UNREADABLE",
 )
-# A signer's pact change that cites no clause, recorded under `Pact notify
-# | always`: printed until a pact review takes it, and in no exit class,
-# because a pact review is owed only where a clause is cited (#647's decision
-# 4).
-NOTED = "NOTED"
-# A pact review's `Change` cell: the signer's work-item id and the content
-# hash of its record.
-CHANGE_RE = re.compile(r"(?P<item>[^\s@]+)@(?P<hash>[0-9a-f]{6,12})")
 # A token that begins a pact anchor and does not complete one, so a mistyped
 # citation -- `#` for `/`, no quotes, no hash -- is named rather than passed
 # over. It is otherwise read by nobody: not here, not by the signer's own
@@ -359,12 +325,12 @@ def checkout(config, signer, root, mapped, home_dir=None):
 
 
 def anchor_files(home):
-    """Every file of a signer's root its pact anchors are read from: its
-    ledger files and every work item's `spec.md`."""
-    files = [os.path.join(home, "ledger.md")]
-    for pattern in ("ledger/*.md", "releases/*.md", "specs/*/spec.md"):
-        files.extend(sorted(glob.glob(os.path.join(home, *pattern.split("/")))))
-    return [f for f in files if os.path.lexists(f)]
+    """Every file of a signer's root its pact anchors are read from: every
+    work item's `spec.md`.
+
+    Reads: observed — the names under a signer's `seal/specs/`, by `glob`; unknown passed
+    """
+    return sorted(glob.glob(os.path.join(home, "specs", "*", "spec.md")))
 
 
 class History:
@@ -481,7 +447,10 @@ def grade(checker, pact_text, history, locator, want):
 
 
 def check(root, out=sys.stdout, home_dir=None):
-    """Read the pact at ROOT and every signer; print; return the exit."""
+    """Read the pact at ROOT and every signer; print; return the exit.
+
+    Reads: guess — the pact, each signer's config and specs, and git's answers, through `hooks/config.py` and `coordinates.py`; unknown refused
+    """
     config = load(os.path.join(HOOKS, "config.py"), "specseal_config_for_pact")
     optin = load(os.path.join(HOOKS, "optin.py"), "specseal_optin_for_pact")
     checker = load(CHECKER, "specseal_evidence_for_pact")
@@ -547,8 +516,6 @@ def check(root, out=sys.stdout, home_dir=None):
     mapped, map_refusal = path_map(config, home_dir)
     if map_refusal:
         found(REFUSED, MAP_SHOWN, "", map_refusal)
-    reviews = pact_reviews(config, home, repo, home_dir, (signers, table), (found, say))
-    changes_read = changes_taken = 0
 
     counts = dict.fromkeys((OK, SUPERSEDED, NOT_TAKEN, UNMATCHED, BROKEN), 0)
     read_count = 0
@@ -654,30 +621,17 @@ def check(root, out=sys.stdout, home_dir=None):
                     "shows the shape rather than citing a clause, put it in a "
                     "fenced code block, which nothing reads",
                 )
-        got, took = pact_changes(
-            config,
-            checker,
-            (path, their_home, signer, notify),
-            (name, pact_text, home_dir),
-            reviews,
-            found,
-        )
-        changes_read += got
-        changes_taken += took
         say(
             f"READ {written} {shown(path, home_dir=home_dir)} — "
             f"`{config.PACT_NOTIFY_ROW}`: "
             f"{notify or 'will not parse'}; {anchors} pact anchor"
-            f"{'' if anchors == 1 else 's'} naming `{name}`; {got} pact "
-            f"change{'' if got == 1 else 's'} read, {took} taken"
+            f"{'' if anchors == 1 else 's'} naming `{name}`"
         )
 
     summary = (
         f"pact-check: the pact `{name}` — {read_count} of {len(signers)} "
         f"signer{'' if len(signers) == 1 else 's'} read · "
         + " · ".join(f"{counts[s]} {s.lower()}" for s in counts)
-        + f" · {changes_read} pact change{'' if changes_read == 1 else 's'} read"
-        f" · {changes_taken} taken"
     )
     if local:
         summary += (
@@ -699,206 +653,6 @@ def renamed(config, where, header, current, say):
     old, sentence = config.renamed_header(current)
     if header is not None and header == old:
         say(f"pact-check: {where} {sentence}")
-
-
-def pact_reviews(config, home, repo, home_dir, pact, report):
-    """Every row of the pact's `seal/pact-reviews/*.md` that can be true, as
-    `(where, signer normalised, as listed, item, hash, verdict)`; every
-    row that cannot is refused through FOUND, at exit 2.
-
-    PACT is `(the pact's signers, its table's name)` and REPORT
-    `(FOUND, SAY)`; SAY prints the rename line for a record headed as 0.18.x
-    wrote it, before that record's other lines (`renamed`).
-
-    A row names a signer the pact lists, a change written
-    `<work-item-id>@<content hash>`, and `holds` or `amended`. Whether the
-    signer holds that record, and whether `amended` is true, are asked
-    where the signer is read (`pact_changes`)."""
-    signers, table = pact
-    found, say = report
-    listed = {normalised: written for written, normalised, _name in signers}
-    out = []
-    pattern = os.path.join(home, config.PACT_REVIEWS, "*.md")
-    for path in sorted(glob.glob(pattern)):
-        where = shown(path, repo, home_dir)
-        text = read(path)
-        if text is None:
-            found(UNREADABLE, where, "", "the pact review could not be read")
-            continue
-        rows, refusals, header = config.pact_reviews(text)
-        renamed(config, where, header, config.PACT_REVIEW_HEADER, say)
-        for refusal in refusals:
-            found(REFUSED, where, "", f"the record {refusal}")
-        for line, signer, change, verdict in rows:
-            at = f"{where}:{line}"
-            normalised = config.normalise_remote(signer)
-            taken = CHANGE_RE.fullmatch(change)
-            if normalised not in listed:
-                found(
-                    REFUSED,
-                    at,
-                    "",
-                    f"the pact review names `{signer}`, which the pact's "
-                    f"{table} does not list",
-                )
-            elif not taken:
-                found(
-                    REFUSED,
-                    at,
-                    "",
-                    f"the pact review's change `{change}` is not written "
-                    "`<work-item-id>@<content hash>`, as `pact-check` prints it",
-                )
-            elif verdict not in config.VERDICTS:
-                found(
-                    REFUSED,
-                    at,
-                    "",
-                    f"the pact review's verdict `{verdict}` is neither "
-                    f"`{config.VERDICT_HOLDS}` nor `{config.VERDICT_AMENDED}`",
-                )
-            else:
-                out.append(
-                    (
-                        at,
-                        normalised,
-                        listed[normalised],
-                        taken.group("item"),
-                        taken.group("hash"),
-                        verdict,
-                    )
-                )
-    return out
-
-
-def pact_changes(config, checker, signer_at, pact, reviews, found):
-    """(read, taken) for one signer's records of pact changes, printing a
-    `NOT TAKEN` or `NOTED` line for each row read that no pact review has
-    taken, and refusing what cannot be true.
-
-    SIGNER_AT is `(checkout, its seal/ root, the signer, its notify)`
-    and PACT `(this pact's name, its text, HOME_DIR)`. The signer's
-    `Pact notify`, as read now, decides what is read: a row citing a clause
-    of this pact always, unless `never`; a `—` row only under `always`. A
-    record is taken when a pact review row names the signer and its work
-    item at the record's current content hash; one taken at another hash
-    reads `NOT TAKEN` again, naming both."""
-    checkout, their_home, (written, normalised, _n), notify = signer_at
-    name, pact_text, home_dir = pact
-    mine = [r for r in reviews if r[1] == normalised]
-    held = set()
-    got = took = 0
-    pattern = os.path.join(their_home, config.PACT_CHANGES, "*.md")
-    for path in sorted(glob.glob(pattern)):
-        item = os.path.splitext(os.path.basename(path))[0]
-        held.add(item)
-        where = shown(path, checkout, home_dir)
-        text = read(path)
-        if text is None:
-            found(
-                UNREADABLE,
-                written,
-                where,
-                "the record of pact changes could not be read",
-            )
-            continue
-        rows, refusals = config.pact_changes(text)
-        for refusal in refusals:
-            found(REFUSED, written, where, f"the record {refusal}")
-        digest = checker.content_hash(checker.gfm_lines(text))
-        reviewed = [r for r in mine if r[3] == item]
-        taken = any(r[4] == digest for r in reviewed)
-        earlier = [r[4] for r in reviewed if r[4] != digest]
-        cited = []
-        for line, clause, _row, _code, _checked in rows:
-            anchors = [
-                a
-                for a in checker.PACT_ANCHOR_RE.finditer(clause)
-                if a.group("name").lower() == name
-            ]
-            if clause == config.NO_CLAUSE:
-                if notify != config.NOTIFY_ALWAYS:
-                    continue
-                status = NOTED
-            elif anchors:
-                cited.extend(anchors)
-                if notify == config.NOTIFY_NEVER:
-                    continue
-                status = NOT_TAKEN
-            elif checker.PACT_ANCHOR_RE.search(clause):
-                continue
-            else:
-                found(
-                    REFUSED,
-                    written,
-                    f"{where}:{line}",
-                    f"the record's `Clause` cell `{clause}` is neither a pact "
-                    f"anchor nor `{config.NO_CLAUSE}`",
-                )
-                continue
-            got += 1
-            if taken:
-                took += 1
-                continue
-            take = f"`{item}@{digest}`"
-            if status == NOTED:
-                found(
-                    NOTED,
-                    written,
-                    f"{where}:{line}",
-                    f"work item {item} recorded a change to code that cites no "
-                    f"clause (`{config.PACT_NOTIFY_ROW}`: always); it reads "
-                    f"noted until a pact review here takes {take}",
-                )
-            elif earlier:
-                found(
-                    NOT_TAKEN,
-                    written,
-                    f"{where}:{line} {clause}",
-                    f"a pact review took work item {item}'s record at "
-                    f"@{earlier[0]}, and it holds @{digest} now: a pact review "
-                    f"here takes it again with {take}",
-                )
-            else:
-                found(
-                    NOT_TAKEN,
-                    written,
-                    f"{where}:{line} {clause}",
-                    f"the pact has not taken work item {item}'s pact change: a "
-                    "pact review here takes it with a row naming the signer "
-                    f"and {take}",
-                )
-        for review in reviewed:
-            # Judged against the record it takes, and only that one: a review
-            # at an older hash took rows this record has since added to, and
-            # re-judging its verdict against them refuses one that was true
-            # (round 1 of PR #749, yellow 3).
-            if review[5] != config.VERDICT_AMENDED or review[4] != digest:
-                continue
-            for anchor in cited:
-                current, _why = clause_hash(checker, pact_text, anchor.group("locator"))
-                if current == anchor.group("hash"):
-                    found(
-                        REFUSED,
-                        review[0],
-                        "",
-                        f"the pact review says `{config.VERDICT_AMENDED}` for work "
-                        f"item {item} from {written}, and the clause "
-                        f"{anchor.group(0)} still has the hash the record "
-                        f"recorded: amend the clause, or say "
-                        f"`{config.VERDICT_HOLDS}`",
-                    )
-                    break
-    for review in mine:
-        if review[3] not in held:
-            found(
-                REFUSED,
-                review[0],
-                "",
-                f"the pact review takes `{review[3]}` from {written}, which "
-                f"holds no seal/{config.PACT_CHANGES}/{review[3]}.md",
-            )
-    return got, took
 
 
 def main(argv=None):

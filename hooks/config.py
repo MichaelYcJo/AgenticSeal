@@ -187,7 +187,7 @@ def hidden_lines(lines, text=None):
     """({index: "fence" or "comment"} for every line of LINES no walk of the
     table is shown, the index of a fence opener never closed or None).
 
-    Reads: guess — the lines of `seal/config.md`, `seal/pact.md`, a `seal/pact-changes/` record, a `seal/pact-reviews/` record and the machine-local pact path map, through `unfenced`, `fence_map` or directly, and `hooks/blocks.py#walk`; unknown mixed
+    Reads: guess — the lines of `seal/config.md`, `seal/pact.md` and the machine-local pact path map, through `unfenced`, `fence_map` or directly, and `hooks/blocks.py#walk`; unknown mixed
 
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers
@@ -1121,12 +1121,11 @@ def declared_pacts(home):
     return pact_declaration(text)
 
 
-# --- one GFM table walker (#647, steps C and D) -----------------------------
+# --- one GFM table walker (#647) --------------------------------------------
 #
-# Four tables are read out of markdown by name: `seal/config.md`'s
-# `| Item | Value |` (#871), the pact's `| Signer |`, a signer's record of
-# pact changes, and the pact's record of pact reviews. One walker reads all
-# four, because four walkers are four break lists to keep in step, and round
+# Two tables are read out of markdown by name: `seal/config.md`'s
+# `| Item | Value |` (#871) and the pact's `| Signer |`. One walker reads
+# both, because two walkers are two break lists to keep in step, and round
 # 3 of #735 measured exactly that drift in the one there was: an autolink
 # row ended the table, and a signer written as one was read by nobody at
 # exit 0.
@@ -1570,73 +1569,6 @@ def pact_signers(text):
     return signers, out, header
 
 
-# --- the record of pact changes a signer keeps (#647, step C) ---------------
-#
-# `seal/pact-changes/<work-item-id>.md` in a signer: one row per change of
-# code under a pact clause it cites, read by `pact-check` at the pact's
-# repository. Permanent, one file per work item, never folded
-# (`docs/the-pact.md`). Its writer was the ledger's re-read, which left the
-# plugin with #944.
-PACT_CHANGES = "pact-changes"
-PACT_CHANGE_HEADER = ("Clause", "Row", "Code", "Checked")
-# The `Clause` cell of a row recorded under `always` that cites no clause.
-NO_CLAUSE = "—"
-CHECKED_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
-
-
-def pact_changes(text):
-    """(rows, refusals) for a record of pact changes, read through
-    `gfm_table`: `rows` as `(line, clause, row, code, checked)`, one per row
-    whose four cells are filled and whose `Checked` is a date, and one
-    sentence per row that is not, reading after "the record "."""
-    rows, refusals = gfm_table(text, PACT_CHANGE_HEADER)
-    out = []
-    for line, (clause, row, code, checked) in rows:
-        if not (clause and row and code):
-            refusals.append(f"has a row at line {line} with an empty cell")
-            continue
-        if not CHECKED_DATE.fullmatch(checked):
-            refusals.append(
-                f"has a row at line {line} whose `Checked` is `{checked}`, not "
-                "a date written YYYY-MM-DD"
-            )
-            continue
-        out.append((line, clause, row, code, checked))
-    return out, refusals
-
-
-# --- the record of pact reviews the pact's repository keeps (#647, step D) --
-#
-# `seal/pact-reviews/<work-item-id>.md` at the pact's repository, begun from
-# `templates/pact-review.md`: one row per signer's record of pact changes
-# a pact review takes, naming the signer, the record as `<work-item-id>@
-# <content hash>`, and the verdict.
-PACT_REVIEWS = "pact-reviews"
-PACT_REVIEW_HEADER = ("Signer", "Change", "Verdict")
-VERDICT_HOLDS = "holds"
-VERDICT_AMENDED = "amended"
-VERDICTS = (VERDICT_HOLDS, VERDICT_AMENDED)
-
-
-def pact_reviews(text):
-    """(rows, refusals, header) for a record of pact reviews, read through
-    `gfm_table`: `rows` as `(line, signer, change, verdict)` for every row
-    whose three cells are filled, and one sentence per row that is not,
-    reading after "the record ". `header` is the header read, as
-    `pact_signers` returns it: a record a pact review wrote in 0.18.x is
-    permanent and keeps its header (`read_table`). Whether a row can be
-    true -- the signer listed, the record held, the verdict one of two -- is
-    `pact-check`'s, which has the pact and the signers to ask."""
-    rows, refusals, header = read_table(text, PACT_REVIEW_HEADER)
-    out = []
-    for line, (signer, change, verdict) in rows:
-        if not (signer and change and verdict):
-            refusals.append(f"has a row at line {line} with an empty cell")
-            continue
-        out.append((line, signer, change, verdict))
-    return out, refusals, header
-
-
 def _signer(refusal):
     """A walk refusal, in the words `pact-check` has always printed for the
     pact's table: a row it leaves unread is a signer."""
@@ -1646,10 +1578,9 @@ def _signer(refusal):
 # --- the word 0.18.x wrote (#822) ------------------------------------------
 #
 # Until 0.19.0 every repository of a work item that keeps a pact had another
-# name, and two headers carried it into files nobody regenerates: the pact's
-# one-column table and every pact review record, which is permanent. Both
-# still read (`read_table`), and both commands print the sentence below where
-# they read one. This unit is the one place the old word is written, which is
+# name, and the pact's one-column table carried it into a file nobody
+# regenerates. It still reads (`read_table`), and both commands print the
+# sentence below where they read one. This unit is the one place the old word is written, which is
 # what lets `tests/test_one_word_one_meaning.py` refuse it everywhere else and
 # exclude this unit by name (`docs/the-pact.md` §*The words*).
 RENAMED_IN = "0.19.0"

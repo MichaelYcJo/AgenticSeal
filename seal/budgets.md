@@ -118,7 +118,7 @@ commit alike. -->
 | docs/the-agent-set.md | 6 |
 | docs/the-broad-gate.md | 5 |
 | docs/the-commit-gate-inside-git.md | 9 |
-| docs/the-pact.md | 1 |
+| docs/the-pact.md | 0 |
 | docs/the-reader-registry.md | 4 |
 | docs/the-review-and-parity-arms.md | 8 |
 | docs/worktree-guard-spec.md | 43 |
@@ -133,7 +133,7 @@ commit alike. -->
 | skills/config/SKILL.md | 13 |
 | skills/gap-analysis/SKILL.md | 10 |
 | skills/implement/SKILL.md | 26 |
-| skills/implement/orchestration.md | 41 |
+| skills/implement/orchestration.md | 38 |
 | skills/learn/SKILL.md | 4 |
 | skills/legacy-parity/SKILL.md | 2 |
 | skills/parity-setup/SKILL.md | 7 |

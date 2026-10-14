@@ -572,8 +572,6 @@ def test_flat_is_what_folds_the_seam_and_it_folds_python_only():
 PACT_SWEPT = (
     ("templates", "pact.md"),
     ("docs", "the-pact.md"),
-    # #647 C and D: the record a pact review begins from.
-    ("templates", "pact-review.md"),
 )
 # The two sections that carry the words inside larger documents, read alone.
 PACT_SECTIONS = (
@@ -583,11 +581,6 @@ PACT_SECTIONS = (
     ),
     # Round 1's white 11: the words ship here too.
     (("templates", "config.md"), "## Pact"),
-    # #647 C and D: the act a pact review is.
-    (
-        ("skills", "implement", "orchestration.md"),
-        "### A pact review at the pact's repository",
-    ),
 )
 # Files where only the lines naming a pact are the pact's text: the cheat
 # sheets' row and the config skill's rows and bullet.
@@ -605,11 +598,8 @@ PACT_PRINTED = (
     (("hooks", "config.py"), "pact_signers"),
     (("hooks", "config.py"), "_stops_at"),
     # The walker every pact table is read through, and the words the
-    # `Signer` table's refusals are put in (#647, steps C and D).
+    # `Signer` table's refusals are put in (#647).
     (("hooks", "config.py"), "gfm_table"),
-    # The two records' readers (#647, steps C and D).
-    (("hooks", "config.py"), "pact_changes"),
-    (("hooks", "config.py"), "pact_reviews"),
     (("hooks", "config.py"), "_signer"),
     # The sentence both commands print where a file is headed the old way
     # (#822); one of `PACT_RENAMED_SPANS` below.
@@ -618,12 +608,9 @@ PACT_PRINTED = (
     (("hooks", "config.py"), "read_table"),
 )
 # The thread's working words, and the noun the owner withheld from the
-# repository holding the pact: each would give one thing a second name. The
-# last two are the thread's names for a pact change and a pact review
-# (#647 C and D, PR #749's `questions.md` Q2).
+# repository holding the pact: each would give one thing a second name.
 PACT_LOOSE = re.compile(
-    r"\b(?:home|member|keeper)s?\b|\bpact repo(?:sitory|sitories|s)?\b"
-    r"|\bcontract-changes?\b|\bcontract reviews?\b",
+    r"\b(?:home|member|keeper)s?\b|\bpact repo(?:sitory|sitories|s)?\b",
     re.IGNORECASE,
 )
 
@@ -792,7 +779,6 @@ RENAMED_RECORDS = (
     "seal/specs/",
 )
 RENAMED_COMPAT = (
-    "tests/test_a_pact_review_takes_a_pact_change.py",
     "tests/test_a_signer_declares_its_pact.py",
     "tests/test_a_signers_ci_prints_its_pact.py",
     "tests/test_one_table_walker_reads_what_gfm_renders.py",

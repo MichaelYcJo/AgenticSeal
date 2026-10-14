@@ -25,11 +25,10 @@ out of the shipped text.
 Enforced by: tests/test_one_word_one_meaning.py::test_the_pacts_words_keep_one_meaning, tests/test_a_signer_declares_its_pact.py::test_the_routing_step_mints_one_id_and_declares_only_in_gated_repositories
 
 <!-- specs/1791239490-a-repository-that-keeps-a-pact-is-a-signer -->
-**A pact or a pact review record headed with the word 0.18.x used still
-reads, and `pact-check` names the rename on it in no exit class.** Through
-0.18.x a signer was called a signatory, and two headers carried that word
-into files nobody regenerates: a pact's `| Signatory |` table, and a pact
-review record's `| Signatory | Change | Verdict |`, which is permanent. A
+**A pact headed with the word 0.18.x used still reads, and `pact-check`
+names the rename on it in no exit class.** Through 0.18.x a signer was
+called a signatory, and a pact's `| Signatory |` table carried that word
+into a file nobody regenerates. A
 file holding no table under the new header is read under the old one
 exactly as it would be under the new; a file holding one is read from it
 alone, and an old header beside it is refused, because its rows would
@@ -39,7 +38,7 @@ and its exit is what the new header gives; at the pact's repository
 `chain-check`'s notice carries the same sentence and its exit does not
 move. No command rewrites a pact: the line says to rename the header when
 the file is next edited, and every text this plugin ships says `signer`.
-Enforced by: tests/test_pact_check.py::test_s2_a_pact_headed_as_0_18_wrote_it_reads_the_same_and_names_it, tests/test_a_pact_review_takes_a_pact_change.py::test_s5_a_review_record_written_in_0_18_still_takes_its_change, tests/test_a_signers_ci_prints_its_pact.py::test_a_pact_headed_as_0_18_wrote_it_is_counted_and_the_rename_named, tests/test_a_signer_declares_its_pact.py::test_s4_a_pact_holding_both_tables_reads_signer_and_refuses_the_old_one, tests/test_pact_check.py::test_s4_a_pact_holding_both_tables_is_exit_2_naming_the_old_one, tests/test_one_word_one_meaning.py::test_no_pact_text_names_a_signer_the_way_0_18_did, tests/test_a_pact_review_takes_a_pact_change.py::test_s5_a_review_record_holding_both_headers_is_refused, tests/test_one_word_one_meaning.py::test_no_live_text_says_the_word_0_19_0_renamed
+Enforced by: tests/test_pact_check.py::test_s2_a_pact_headed_as_0_18_wrote_it_reads_the_same_and_names_it, tests/test_a_signers_ci_prints_its_pact.py::test_a_pact_headed_as_0_18_wrote_it_is_counted_and_the_rename_named, tests/test_a_signer_declares_its_pact.py::test_s4_a_pact_holding_both_tables_reads_signer_and_refuses_the_old_one, tests/test_pact_check.py::test_s4_a_pact_holding_both_tables_is_exit_2_naming_the_old_one, tests/test_one_word_one_meaning.py::test_no_pact_text_names_a_signer_the_way_0_18_did, tests/test_one_word_one_meaning.py::test_no_live_text_says_the_word_0_19_0_renamed
 
 ## When there is a pact at all
 
@@ -176,70 +175,6 @@ Git decides the direction and never decides `OK`. Exit 1 is a mismatch or a
 checkout not found, and exit 2 is unusable input.
 Enforced by: tests/test_pact_check.py::test_s8_a_hash_from_heads_own_history_is_superseded, tests/test_pact_check.py::test_s9_a_hash_only_another_ref_holds_is_not_taken_and_names_it, tests/test_pact_check.py::test_s10_a_heading_path_that_resolves_to_nothing_is_broken, tests/test_pact_check.py::test_s11_a_relationship_recorded_on_one_side_is_refused, tests/test_pact_check.py::test_s12_a_signer_citing_the_current_clause_is_clean
 
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**`pact-check` reads every signer's records of pact changes, following
-that signer's `Pact notify` as read now, and reports a row citing a
-clause of this pact as `NOT TAKEN`, exit 1, until a pact review here takes
-it.** This is the second source of `NOT TAKEN` that #735's frame named, and
-the report keeps its name. The line names the signer, the record and its
-line, the clause, the work item, and the record's content hash, which is the
-value a pact review writes. A `—` row from a signer whose notify is
-`always` is `NOTED`, printed until a pact review takes it and in no exit
-class, because a pact review is owed only where a clause is cited (#647's
-decision 4). Under `when the pact is touched` a `—` row is not read, and
-under `never` no row is. A record that will not read is `UNREADABLE` and one
-that will not parse `REFUSED`, both exit 2. The `READ` line and the summary
-count the pact changes read and taken.
-Enforced by: tests/test_a_pact_review_takes_a_pact_change.py::test_s12_an_untaken_pact_change_is_not_taken, tests/test_a_pact_review_takes_a_pact_change.py::test_s13_a_row_citing_no_clause_is_noted_under_always, tests/test_a_pact_review_takes_a_pact_change.py::test_s13_a_row_citing_no_clause_is_not_read_when_the_pact_is_touched, tests/test_a_pact_review_takes_a_pact_change.py::test_s13_under_never_no_row_is_read, tests/test_a_pact_review_takes_a_pact_change.py::test_s17_a_record_that_will_not_read_or_parse_is_exit_2
-
-## A pact review takes a pact change
-
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**A pact review is an ordinary work item at the pact's repository, opened
-when `pact-check` reports a `NOT TAKEN` from a pact change, and it takes a
-record by a row of `seal/pact-reviews/<work-item-id>.md` naming the
-signer and the record at its current content hash.** The row's `Change`
-is the signer's work-item id, `@`, and the content hash `pact-check`
-printed; its verdict is `holds`, the clause stands and the change keeps it,
-or `amended`, this work item amends the clause to take the change. The
-builder judges each change against its clause in the signer's checkout,
-and the review chain's warden verifies those judgments there; where the
-routing answer skips the review chain, the builder's judgment is the whole
-pact review. The record is begun from `templates/pact-review.md`.
-`skills/implement/orchestration.md` §*A pact review at the pact's
-repository* is the procedure.
-Enforced by: tests/test_a_pact_review_takes_a_pact_change.py::test_s14_a_pact_review_at_the_current_hash_takes_it, tests/test_a_pact_review_takes_a_pact_change.py::test_s16_amended_is_taken_where_the_clause_moved
-
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**A record is taken at the content hash a pact review row names and no
-other, and a row that cannot be true is refused at exit 2.** A commit SHA is
-never the key, because a signer's feature branch squashes and the SHA
-stops resolving. So a record that gains rows after its pact review reads
-`NOT TAKEN` again, naming the hash the review took and the hash it holds now,
-and a change that keeps its clause can still be taken, which a key on the
-clause's own hash would forbid. `pact-check` refuses a row naming a
-signer the pact does not list, a record that signer does not hold, a
-verdict other than the two, a change not written `<work-item-id>@<hash>`,
-and `amended`, at the record's current hash, where a clause it cites still
-has the hash the record recorded. A review at an older hash is not judged
-again against rows the record gained since: what it said was about the
-record it took. A pact review takes a whole record, one verdict for every
-row in it. A record citing a clause the pact amended beside one it kept is
-taken as `holds`, the amendment written in the pact itself; and a row that is
-not this pact's — a `—` row, or one citing another pact — still changes the
-record's hash, so a record this pact took reads `NOT TAKEN` again when one is
-added.
-Enforced by: tests/test_a_pact_review_takes_a_pact_change.py::test_s15_a_record_grown_after_its_review_is_not_taken_again, tests/test_a_pact_review_takes_a_pact_change.py::test_s16_a_pact_review_row_that_cannot_be_true_is_refused, tests/test_a_pact_review_takes_a_pact_change.py::test_s17_a_review_that_will_not_read_or_parse_is_exit_2, tests/test_a_pact_review_takes_a_pact_change.py::test_an_amended_review_at_an_older_hash_is_not_judged_again
-
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**A clause the pact's repository changes owes no pact review.** `SUPERSEDED`
-already sends every signer citing the clause to re-read it against its
-own code and re-anchor, which is checked where that code is, and nothing on
-a pull request can see which signers cite a clause (#647's decision 2).
-A pact review answers the other direction alone: a signer's code moved
-under a clause it cites.
-Enforced by: tests/test_pact_check.py::test_s8_a_hash_from_heads_own_history_is_superseded
-
 ## What this does not see
 
 <!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
@@ -255,13 +190,6 @@ signer re-reads, and renaming the heading is one each of them has to
 re-coordinate. And `pact-check` runs where a person runs it: nothing on a
 pull request reconciles anything.
 Enforced by: tests/test_pact_check.py::test_a_pact_under_local_mode_has_no_history_and_says_so, tests/test_pact_check.py::test_s10_a_hash_no_commit_gave_is_unmatched
-
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**A pact under local mode keeps its pact reviews on one machine.** It keeps
-`seal/pact-reviews/` under the git directory, so another clone of the pact's
-repository reads the same changes as `NOT TAKEN`, which is loud in the right
-direction.
-Enforced by: nothing — no pact case builds two clones of one repository
 
 <!-- specs/1791128260-a-pact-row-is-read-in-one-plain-spelling -->
 **A pact line with a letter written between the word's letters, or with a
@@ -280,12 +208,3 @@ Every spelling the review of the earlier design found is caught:
 `` `Pact notify` ``, `**Pact notify**`, `Pact` with a U+200B inside it,
 `[Pact notify](x)` and a character reference such as `P&#97;ct`.
 Enforced by: tests/test_a_signer_declares_its_pact.py::test_the_blind_side_is_read_as_no_line, tests/test_a_signer_declares_its_pact.py::test_s2_a_pact_item_spelled_another_way_is_refused
-
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**A pact review row naming a signer the pact has since taken out of its
-`Signer` table is refused at exit 2, and stays refused.** A pact review
-record is permanent, and a departed signer and a mistyped URL are the
-same text, so the refusal cannot tell them apart and does not try. Take the
-pact review rows naming a signer out with the signer, in the same
-change.
-Enforced by: tests/test_a_pact_review_takes_a_pact_change.py::test_a_review_row_naming_a_signer_since_dropped_stays_refused

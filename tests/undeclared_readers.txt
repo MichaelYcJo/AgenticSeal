@@ -356,10 +356,8 @@ hooks/config.py#doubled_row@2a8a6b7d
 hooks/config.py#html_start@9031692d
 hooks/config.py#inside_the_root@5c40ddf0
 hooks/config.py#normalise_remote@578179da
-hooks/config.py#pact_changes@a4d1f53b
 hooks/config.py#pact_line_refusal@ea7ae24d
 hooks/config.py#pact_name@0d356760
-hooks/config.py#pact_reviews@281d5c3b
 hooks/config.py#pact_signers@022bffe5
 hooks/config.py#raw_html_open@ccd7e820
 hooks/config.py#read_table@9aaa0c2b
@@ -1003,8 +1001,6 @@ skills/verify/scripts/mutation_check.py#run_cases@bbe468c8
 skills/verify/scripts/mutation_check.py#strategy@cdbec6d1
 skills/verify/scripts/mutation_check.py#timed_out_detail@93c5db51
 skills/verify/scripts/pact_check.py#History@27a91feb
-skills/verify/scripts/pact_check.py#anchor_files@a6a7facb
-skills/verify/scripts/pact_check.py#check@884190e3
 skills/verify/scripts/pact_check.py#checkout@9f62984d
 skills/verify/scripts/pact_check.py#clause_hash@c6831a9c
 skills/verify/scripts/pact_check.py#git@c63bbcb1
@@ -1013,8 +1009,6 @@ skills/verify/scripts/pact_check.py#load@00b105e0
 skills/verify/scripts/pact_check.py#main@009f2a9b
 skills/verify/scripts/pact_check.py#near_miss@fcb2fe30
 skills/verify/scripts/pact_check.py#origin@d5a55249
-skills/verify/scripts/pact_check.py#pact_changes@2b45e00f
-skills/verify/scripts/pact_check.py#pact_reviews@8163e54a
 skills/verify/scripts/pact_check.py#path_map@3b4a8db8
 skills/verify/scripts/pact_check.py#read@53358fcf
 skills/verify/scripts/pact_check.py#renamed@0797d842

@@ -271,7 +271,6 @@ BASELINE = {
     ("docs/the-agent-set.md", "skills/implement/SKILL.md"): 20,
     ("docs/the-broad-gate.md", "docs/the-pact.md"): 12,
     ("docs/the-commit-gate-inside-git.md", "docs/the-review-and-parity-arms.md"): 11,
-    ("docs/the-pact.md", "templates/pact-review.md"): 10,
     ("skills/agent-contract/SKILL.md", "skills/implement/SKILL.md"): 17,
     ("skills/code-review/SKILL.md", "skills/code-review/orchestration.md"): 5,
     ("skills/code-review/SKILL.md", "skills/implement/SKILL.md"): 9,

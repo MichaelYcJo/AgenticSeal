@@ -39,9 +39,6 @@ COORDINATE_EXEMPT = {
     # The one grammar of the locator and the hash, and the pact anchor built
     # beside them.
     "skills/verify/scripts/coordinates.py": "the grammar itself",
-    # A pact review's `Change` cell names a record as `<work-item-id>@<content
-    # hash>`: an id, not a path and a locator, so it is no coordinate.
-    "skills/verify/scripts/pact_check.py": "CHANGE_RE, a record id",
 }
 
 
