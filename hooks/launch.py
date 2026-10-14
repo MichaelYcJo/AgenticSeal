@@ -55,21 +55,25 @@ def refusal(script, version, executable):
 
     The command is the script's name the way its wrapper spells it,
     `round_record.py` as `round-record`, so a reader who typed the wrapper
-    can tell what answered. The sentence is ASCII whatever the paths hold: it
-    is written before anything sets up stderr, and a path the console cannot
-    encode would otherwise end the refusal in a traceback.
+    can tell what answered. The paths are escaped to ASCII first, and the
+    rest of the sentence is ASCII already: it is written before anything sets
+    up stderr, and a path the console cannot encode would otherwise end the
+    refusal in a traceback.
     """
+    script, executable = [
+        path.encode("ascii", "backslashreplace").decode("ascii")
+        for path in (script, executable)
+    ]
     command = os.path.basename(script)
     if command.endswith(".py"):
         command = command[: -len(".py")]
-    sentence = REFUSAL.format(
+    return REFUSAL.format(
         command=command.replace("_", "-"),
         floor=".".join(str(part) for part in FLOOR),
         found=".".join(str(part) for part in version[:3]),
         executable=executable,
         script=script,
     )
-    return sentence.encode("ascii", "backslashreplace").decode("ascii")
 
 
 def main(argv):
