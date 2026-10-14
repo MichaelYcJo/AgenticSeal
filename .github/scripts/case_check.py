@@ -319,28 +319,35 @@ def mutants_of(path, source, lineno):
     widened by the lines above it until it is unique. A `.py` mutant that does
     not parse is left out; a `.md` line's one mutant is the line removed.
 
+    Each line keeps the end it has in `source`, so `old` is the file's own
+    text: `mutation-check` matches it against the bytes on disk, and a
+    checkout with CRLF line ends, as Windows makes, held no line `\\n`-joined
+    (PR #939's `windows-latest` leg, every mutant refused).
+
     Reads: owned — the file's own text, split where Python ends a line; unknown passed
     """
     lines = PYTHON_LINE_END.split(source)
     if not 0 < lineno <= len(lines) or not lines[lineno - 1].strip():
         return []
+    ends = [*PYTHON_LINE_END.findall(source), ""]
+    whole = [text + end for text, end in zip(lines, ends, strict=True)]
     line = lines[lineno - 1]
     edits = [("line removed", None)] if path.endswith(".md") else operators(line)
     start = next(
         (
             s
             for s in range(lineno - 1, max(lineno - 5, -1), -1)
-            if source.count("\n".join(lines[s:lineno]) + "\n") == 1
+            if source.count("".join(whole[s:lineno])) == 1
         ),
         None,
     )
     if start is None:
         return []
-    old = "\n".join(lines[start:lineno]) + "\n"
-    head = "".join(above + "\n" for above in lines[start : lineno - 1])
+    old = "".join(whole[start:lineno])
+    head = "".join(whole[start : lineno - 1])
     found = []
     for label, new in edits:
-        replaced = head + ("" if new is None else new + "\n")
+        replaced = head + ("" if new is None else new + ends[lineno - 1])
         if path.endswith(".py"):
             try:
                 ast.parse(source.replace(old, replaced, 1))
@@ -747,7 +754,14 @@ def mutants_at(root, order, cap=None):
         seen.add((path, lineno))
         if path not in sources:
             try:
-                with open(os.path.join(root, path), encoding="utf-8") as f:
+                # The line ends as they stand: a mutant is matched against
+                # the file's bytes, and reading CRLF as `\n` built mutants no
+                # Windows checkout holds.
+                with open(
+                    os.path.join(root, path),
+                    encoding="utf-8",
+                    newline="",
+                ) as f:
                     text = f.read()
                 interior = string_interiors(text) if path.endswith(".py") else set()
             except (OSError, SyntaxError, ValueError):

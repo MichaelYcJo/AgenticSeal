@@ -73,6 +73,10 @@ def test_a_mutant_widens_until_it_lands_once_and_one_that_cannot_parse_is_left_o
     ]
     inside = module.mutants_of("m.py", "x = (\n    1\n)\n", 2)
     assert [label for label, _old, _new in inside] == ["m.py:2 `1` made `2`"]
+    # A line keeps the end it has in the file, as a Windows checkout's CRLF.
+    assert ("m.py:2 `2` made `3`", "y = 2\r\n", "y = 3\r\n") in module.mutants_of(
+        "m.py", "x = 1\r\ny = 2\r\n", 2
+    )
 
 
 def test_the_sole_killer_is_one_function_or_none():
@@ -285,16 +289,18 @@ def git(root, *args):
     )
 
 
-def tree(tmp_path, base, head):
+def tree(tmp_path, base, head, newline="\n"):
     """A repository whose branch `base` holds `base` and whose HEAD holds
-    `base` overlaid with `head`; a None in `head` removes the file."""
+    `base` overlaid with `head`; a None in `head` removes the file. Every file
+    ends its lines with `newline` on every platform, so a row means the same
+    bytes on Windows as on POSIX."""
     root = tmp_path / "r"
     root.mkdir()
     git(root, "init", "-q", "-b", "main")
     for path, text in {"conftest.py": "", "m.py": MODULE, **base}.items():
         target = root / path
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(text, encoding="utf-8")
+        target.write_text(text, encoding="utf-8", newline=newline)
     git(root, "add", "-A")
     git(root, "commit", "-qm", "base")
     git(root, "branch", "base")
@@ -304,7 +310,7 @@ def tree(tmp_path, base, head):
             target.unlink()
             continue
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(text, encoding="utf-8")
+        target.write_text(text, encoding="utf-8", newline=newline)
     git(root, "add", "-A")
     git(root, "commit", "-qm", "head")
     return root
@@ -349,6 +355,27 @@ def test_a_new_case_that_alone_kills_a_mutant_of_changed_code_is_proved(
     assert line in out, out
     assert line in summary.read_text(encoding="utf-8")
     assert str(tmp_path) not in out, out
+
+
+def test_a_checkout_with_crlf_line_ends_is_mutated_as_its_bytes_stand(tmp_path, capsys):
+    """Windows checks a tree out with CRLF line ends, and `mutation-check`
+    matches a mutant against the file's bytes. PR #939's `windows-latest` leg
+    built every mutant `\\n`-joined, none landed, and S4 read `0 proved`."""
+    root = tree(
+        tmp_path,
+        {"tests/test_m.py": module_text(NAME)},
+        {
+            "m.py": MODULE.replace("x * 2", "x + x"),
+            "tests/test_m.py": module_text(NAME, DOUBLE),
+        },
+        newline="\r\n",
+    )
+    code, out = run(root, capsys)
+    assert code == 0, out
+    assert (
+        "tests/test_m.py::test_double: proved — the only killer in its file of m.py:2"
+        in out
+    ), out
 
 
 def test_a_new_case_its_file_already_covers_is_named(tmp_path, capsys):
