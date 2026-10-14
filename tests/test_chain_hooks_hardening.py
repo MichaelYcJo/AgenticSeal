@@ -271,15 +271,13 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     # wrapper must resolve the script relative to itself, never the caller's
     # working directory. Windows can't run a POSIX shebang script directly,
     # so a .cmd sibling ships alongside it -- PATHEXT resolves a bare
-    # `evidence-check` to whichever one the platform can execute.
-    posix_wrapper = os.path.join(ROOT, "bin", "evidence-check")
-    windows_wrapper = os.path.join(ROOT, "bin", "evidence-check.cmd")
-    assert os.path.isfile(posix_wrapper), "bin/evidence-check missing"
-    assert os.path.isfile(windows_wrapper), "bin/evidence-check.cmd missing"
-    assert os.access(posix_wrapper, os.X_OK), "bin/evidence-check not executable"
-    target = os.path.join(
-        ROOT, "skills", "evidence-check", "scripts", "evidence_check.py"
-    )
+    # `fold-check` to whichever one the platform can execute.
+    posix_wrapper = os.path.join(ROOT, "bin", "fold-check")
+    windows_wrapper = os.path.join(ROOT, "bin", "fold-check.cmd")
+    assert os.path.isfile(posix_wrapper), "bin/fold-check missing"
+    assert os.path.isfile(windows_wrapper), "bin/fold-check.cmd missing"
+    assert os.access(posix_wrapper, os.X_OK), "bin/fold-check not executable"
+    target = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
     assert os.path.isfile(target), "wrapper points at a missing script"
     wrapper = windows_wrapper if sys.platform == "win32" else posix_wrapper
     r = subprocess.run(
@@ -290,7 +288,7 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
         errors="replace",
     )
     assert r.returncode == 0, r.stderr
-    assert "evidence_check" in r.stdout
+    assert "usage: fold-check" in r.stdout
 
 
 def test_migrated_commands_stay_user_invoked():
@@ -338,32 +336,6 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     assert "disable-model-invocation: true" in head, (
         "parity-setup writes a declaration; it must not fire on its own"
     )
-
-
-def test_ci_wiring_never_asks_for_the_plugin_path():
-    # The CI setup used to say `cp <specseal plugin>/skills/...`, a path the
-    # docs never gave — the same dead end bin/ fixed for the CLI. Whatever the
-    # instructions say, they must not send a reader hunting for the install
-    # location.
-    setup = os.path.join(ROOT, "skills", "evidence-ci", "SKILL.md")
-    assert os.path.isfile(setup), "no command wires the drift check into CI"
-    head = open(setup, encoding="utf-8").read().split("\n---\n", 1)[0]
-    assert "disable-model-invocation: true" in head, (
-        "this writes files into a repo; it must not fire on its own"
-    )
-
-    tpl = open(
-        os.path.join(ROOT, "templates", "evidence-check.yml"), encoding="utf-8"
-    ).read()
-    assert "<specseal plugin>" not in tpl, "template still names an unknown path"
-    assert "/specseal:evidence-ci" in tpl, "template should point at the command"
-    # The workflow must still do the thing it exists for.
-    assert "evidence_check.py" in tpl and "fetch-depth: 0" in tpl
-
-    skill = open(
-        os.path.join(ROOT, "skills", "evidence-check", "SKILL.md"), encoding="utf-8"
-    ).read()
-    assert "/specseal:evidence-ci" in skill, "CI section never mentions the command"
 
 
 def parity_repo(repo):
@@ -1630,7 +1602,6 @@ def test_installer_prints_commands_a_user_can_actually_type():
     bare = [
         m
         for m in re.findall(r"(?<!:)/([a-z][a-z-]+)\b", text)
-        if m
-        in {"preset-setup", "security-audit", "testing", "parity-setup", "evidence-ci"}
+        if m in {"preset-setup", "security-audit", "testing", "parity-setup"}
     ]
     assert not bare, f"un-namespaced plugin commands in install.sh: {bare}"

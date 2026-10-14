@@ -2,8 +2,8 @@
 leaves the rest of its directory for the fold (#729).
 
 A work item's directory holds two kinds of file. The SDD set and `routing.md`
-say what was decided and why; the process record — `rounds/`, `phases/`,
-`survivors.md` and the files written only for a pull request — is read by
+say what was decided and why; the process record — `rounds/`, `phases/`
+and the files written only for a pull request — is read by
 no check after the release that ships the item. Measured when this shipped, it
 was 62% of the files under `seal/specs/` and 67% of the bytes, and it waited
 on the fold, a judgment it does not need. So it leaves by an arm of its own,
@@ -76,22 +76,18 @@ PROCESS = {
     "rounds/round-1-report.md": "# report\n",
     "rounds/round-2.md": "# round 2\n",
     "phases/phase-1.md": "# phase 1\n",
-    "survivors.md": "# survivors\n",
     "broad-gate.md": "# broad gate\n",
     "handoff.md": "# handoff\n",
     "pr.ko.md": "# 본문\n",
     "tests-todo.md": CLOSED_TODO,
-    "evidence-todo.md": CLOSED_TODO,
 }
 TAKEN = (
     "rounds/",
     "phases/",
-    "survivors.md",
     "broad-gate.md",
     "handoff.md",
     "pr.ko.md",
     "tests-todo.md",
-    "evidence-todo.md",
 )
 
 
@@ -160,7 +156,7 @@ def test_the_process_record_leaves_and_the_sdd_set_stays(repo):
     assert files_of(alpha) == sorted(DURABLE), files_of(alpha)
     for taken in TAKEN:
         assert f"removed seal/specs/{ALPHA}/{taken}" in text, (taken, text)
-    assert "retired the process record of 1 work item (10 files); 0 kept" in text, text
+    assert "retired the process record of 1 work item (8 files); 0 kept" in text, text
 
 
 def test_a_directory_is_removed_with_its_file_count(repo):
@@ -186,7 +182,7 @@ def test_an_unreleased_item_is_not_touched_or_named(repo):
 # --- S3: an open todo row keeps the whole item -----------------------------
 
 
-@pytest.mark.parametrize("todo", ["evidence-todo.md", "tests-todo.md"])
+@pytest.mark.parametrize("todo", ["tests-todo.md"])
 def test_an_open_todo_row_keeps_the_item_whole(repo, todo):
     write(repo / "seal" / "specs" / ALPHA / todo, OPEN_TODO)
     alpha = repo / "seal" / "specs" / ALPHA
@@ -226,40 +222,6 @@ def test_local_mode_is_refused_and_nothing_is_removed(tmp_path):
     assert code == 2, text
     assert "which is local mode" in text, text
     assert (local / "rounds" / "round-1.md").is_file()
-
-
-# --- S9: a ledger row anchored inside a removed file keeps the item --------
-
-INSIDE_ROW = (
-    "| a claim read in a round record | "
-    f'`seal/specs/{ALPHA}/rounds/round-1.md#"# round 1"@abcdef12` '
-    "| read | 2026-01-01 | |"
-)
-SPEC_ROW = (
-    "| a claim read in a spec | "
-    f'`seal/specs/{ALPHA}/spec.md#"# {ALPHA} spec.md"@abcdef12` '
-    "| read | 2026-01-01 | |"
-)
-
-
-def test_a_row_anchored_inside_the_process_record_keeps_the_item(repo):
-    write(repo / "seal" / "ledger.md", LEDGER + INSIDE_ROW + "\n")
-    code, text = run(repo, "--retire-process")
-    assert code == 1, text
-    assert (repo / "seal" / "specs" / ALPHA / "rounds" / "round-1.md").is_file()
-    assert settle.PROCESS_ANCHORED_HEADING in text, text
-    assert "    seal/ledger.md:6  a claim read in a round record" in text, text
-    assert settle.REMOVED_SAYS in text, text
-
-
-def test_a_row_anchored_in_the_sdd_set_does_not_hold_the_process_record(repo):
-    """The file it anchors stays, so nothing it cites stops resolving — the
-    one direction `anchored_rows`' own prefix test would get wrong here."""
-    write(repo / "seal" / "ledger.md", LEDGER + SPEC_ROW + "\n")
-    code, text = run(repo, "--retire-process")
-    assert code == 0, text
-    assert not (repo / "seal" / "specs" / ALPHA / "rounds").exists()
-    assert settle.PROCESS_ANCHORED_HEADING not in text, text
 
 
 # --- D4: a citation outside seal/specs/ is listed and never refused --------
@@ -309,16 +271,16 @@ def test_the_report_says_what_the_arm_would_take(repo):
     assert code == 0, text
     assert files_of(repo) == before, "the report removed something"
     assert settle.PROCESS_HEADING in text, text
-    assert "    10 files in 1 released work item" in text, text
+    assert "    8 files in 1 released work item" in text, text
 
 
 def test_the_report_names_what_the_arm_would_keep(repo):
-    write(repo / "seal" / "specs" / ALPHA / "evidence-todo.md", OPEN_TODO)
+    write(repo / "seal" / "specs" / ALPHA / "tests-todo.md", OPEN_TODO)
     write(repo / "seal" / "specs" / ALPHA / "notes.md", "# notes\n")
     _, text = run(repo)
     section = text.split(settle.PROCESS_HEADING, 1)[1]
     assert "    0 files in 0 released work items" in section, section
-    assert f"    {ALPHA}  kept: 1 open row in evidence-todo.md" in section, section
+    assert f"    {ALPHA}  kept: 1 open row in tests-todo.md" in section, section
     assert f"    seal/specs/{ALPHA}/notes.md  not a process record, kept" in section
 
 
@@ -328,15 +290,12 @@ def test_a_survey_with_no_process_key_is_still_reported():
     found = {
         "base": "x",
         "base_label": "x",
-        "grouped": {},
-        "ungrouped": [],
-        "skipped": [],
+        "unfolded": [],
         "unreleased": [],
         "rule": [],
         "rule_kept": [],
         "rule_base_kept": [],
         "folded": [],
-        "anchored": [],
         "retiring": [],
     }
     out = io.StringIO()
@@ -358,7 +317,6 @@ def test_the_skill_quotes_every_line_the_arm_prints():
     for name in (
         "PROCESS_HEADING",
         "PROCESS_TODO_HEADING",
-        "PROCESS_ANCHORED_HEADING",
         "PROCESS_UNKNOWN_HEADING",
         "PROCESS_CITED_HEADING",
         "PROCESS_DONE",
@@ -380,7 +338,7 @@ def document(*parts):
     [
         (
             ("docs", "the-record-layout.md"),
-            "Built by #729.",
+            "`settle --retire-process` removes it at the next release, fold or no fold",
             "is decided in principle and not built (F3)",
         ),
         (
@@ -413,20 +371,6 @@ def document(*parts):
             "and `settle --retire` then removes the directories that statement "
             "covers, along with every released one that wrote no `spec.md` and "
             "holds nothing open, which states no rule to fold. A fold is",
-        ),
-        # Two copies of one sentence, in the module docstring and in
-        # `whole_range`'s, so each is pinned by the words that follow it.
-        (
-            ("skills", "code-review", "scripts", "survivor_check.py"),
-            "stands until `settle --retire-process` takes it, after the release "
-            "that ships it, so one merged row",
-            "lives until the release that ships it",
-        ),
-        (
-            ("skills", "code-review", "scripts", "survivor_check.py"),
-            "stands until `settle --retire-process` takes it, after the release "
-            "that ships it -- so one merged declaration",
-            "lives until the release that ships it",
         ),
     ],
 )
@@ -466,22 +410,21 @@ TAILS = (
 TAKEN_NAMES = (
     "rounds",
     "phases",
-    "survivors.md",
     "broad-gate.md",
     "handoff.md",
     "tests-todo.md",
-    "evidence-todo.md",
     "pr.ko.md",
 )
 NOT_TAKEN = (
     "spec.md",
     "overview.md",
     "routing.md",
+    "evidence-todo.md",
     "notes.md",
     "handoff.md.bak",
     "rounds-old",
     "phasesx",
-    "survivors.mdx",
+    "broad-gate.mdx",
 )
 
 
@@ -490,7 +433,7 @@ NOT_TAKEN = (
     "name", (*TAKEN_NAMES, "rounds/", "rounds/round-1.md", "phases/phase-2.md")
 )
 def test_a_citation_into_a_taken_file_is_read_whatever_follows_it(name, tail):
-    """Round 1, 🟡 2: `handoff.md:40`, `survivors.md.`, `pr.ko.md,` and a
+    """Round 1, 🟡 2: `handoff.md:40`, `broad-gate.md.`, `pr.ko.md,` and a
     bare `rounds` all name a file the arm takes, and were not listed."""
     assert settle.cites_a_process_record(name + tail), name + tail
 
@@ -509,7 +452,7 @@ def test_a_citation_written_as_prose_is_listed(repo):
     write(
         repo / "docs" / "one-root.md",
         "# a policy\n\nA rule.\n\n"
-        f"Measured in seal/specs/{ALPHA}/survivors.md.\n"
+        f"Measured in seal/specs/{ALPHA}/broad-gate.md.\n"
         f"See seal/specs/{ALPHA}/handoff.md:40 for it.\n"
         f"The `seal/specs/{ALPHA}/rounds` directory.\n"
         f"In seal/specs/{ALPHA}/pr.ko.md, which.\n"

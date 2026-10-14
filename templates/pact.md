@@ -11,9 +11,8 @@ on belongs in this repository's own documents, and a pact that collects those
 is a pact every signer has to re-read for changes that were never theirs.
 
 **The table below lists every OTHER signer** by its origin remote URL. The
-pact's repository does not list itself: its own citations of a clause are
-ordinary ledger coordinates, `seal/pact.md#"## Clause"@<hash>`, which its own
-`evidence-check` reads. Each signer listed here names this repository in
+pact's repository does not list itself: it cites its own clauses as it cites
+any other heading of its own. Each signer listed here names this repository in
 its own `seal/config.md`, in a `Pact` row (`templates/config.md` §*Pact*).
 `pact-check` refuses a relationship recorded on one side only.
 
@@ -23,8 +22,8 @@ narrows inside it. A signer cites a clause as
     pact:<name>/"## Clause / ### Narrower"@<hash>
 
 where `<name>` is the last path segment of this repository's normalised
-origin URL and `<hash>` is `evidence-check`'s content hash of the clause's
-region. A `SUPERSEDED` or `UNMATCHED` line from `pact-check` names the
+origin URL and `<hash>` is the content hash of the clause's region that
+`pact-check` prints. A `SUPERSEDED` or `UNMATCHED` line from `pact-check` names the
 clause's current hash, so a new citation can be written with `@00000000` and
 corrected from its first report.
 

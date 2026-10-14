@@ -176,7 +176,6 @@ COVERED = [
     # so each goes in at birth with no sweep to owe — and each is a document
     # a work item's spec was folded INTO, which is what puts the fold marker
     # above in the way of the limit.
-    "docs/the-evidence-ledger.md",
     "docs/the-broad-gate.md",
     "docs/measuring-a-run.md",
     "docs/the-agent-set.md",
@@ -351,7 +350,7 @@ def test_a_fence_is_read_by_the_shared_rule():
 # with a `::name`, the shape #565's retrofit writes into covered documents.
 WIDE_TARGET = (
     "tests/test_a_document_has_room_for_the_next_fold.py::"
-    "test_the_evidence_ledger_states_the_values_the_config_rows_hold"
+    "test_the_record_layout_states_the_values_the_config_rows_hold"
 )
 
 

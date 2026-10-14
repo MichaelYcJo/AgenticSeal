@@ -36,20 +36,17 @@ HASH_AFTER_AT = re.compile(r"@(?:\(\?P<\w+>)?\[0-9a-f\]\{6")
 
 # Where such a fragment is not a second grammar of the coordinate.
 COORDINATE_EXEMPT = {
-    # The one grammar, and the forms built from its pieces in the same file
-    # (the pact anchor, the record of pact changes' `→ @<new>`).
-    "skills/evidence-check/scripts/evidence_check.py": "the grammar itself",
-    # A pact review's `Change` cell names a record as `<work-item-id>@<content
-    # hash>`: an id, not a path and a locator, so it is no coordinate.
-    "skills/evidence-check/scripts/pact_check.py": "CHANGE_RE, a record id",
+    # The one grammar of the locator and the hash, and the pact anchor built
+    # beside them.
+    "skills/verify/scripts/coordinates.py": "the grammar itself",
 }
 
 
 def test_no_shipped_script_spells_the_coordinate_grammar_again():
-    """S12 of #867, the coordinate's grep. `correction_check.py`,
-    `settle.py` and `.github/scripts/rider_check.py` each kept a pattern
-    ending `@[0-9a-f]{6,…}` and now read `evidence_check.py#ANCHOR_RE` or
-    its pieces. Seen red against 5623d728, where it names those three."""
+    """S12 of #867, the coordinate's grep. Three scripts each kept a pattern
+    ending `@[0-9a-f]{6,…}`, and `.github/scripts/rider_check.py`, the one
+    left, reads `coordinates.py#ANCHOR_LOCATOR` and `#ANCHOR_HASH`. Seen
+    red against 5623d728, where it names those three."""
     found = []
     for rel, path in shipped_scripts():
         if rel in COORDINATE_EXEMPT:
@@ -80,39 +77,17 @@ HEADING_SPELLING = re.compile(r'#\{\d|startswith\(\(?"#')
 # (file, a piece of the line) and why.
 HEADING_EXEMPT = {
     (
-        "skills/evidence-check/scripts/evidence_check.py",
-        "GITHUB_HEADING_RE",
-    ): "the slugger: which `#slug` links resolve, not a section's end (spec Out)",
-    (
         "hooks/config.py",
         "ATX_HEADING",
     ): "the GFM table walker's table-end rule, held to cmark-gfm (spec Out)",
-    (
-        "skills/evidence-check/scripts/evidence_check.py",
-        "VENDORED_ATX_HEADING",
-    ): "the vendored twin of that table-end rule, held equal to "
-    "`hooks/config.py#ATX_HEADING` by `tests/test_evidence_check.py` (#871)",
     (
         "skills/code-review/scripts/round_record.py",
         r"|\#{1,6}(?=\s|$)",
     ): "where a hand-wrapped paragraph ends, pinned pairwise (spec Out)",
     (
-        "skills/code-review/scripts/survivor_check.py",
-        r"\#{1,6}(?=\s|$)",
-    ): "where a hand-wrapped paragraph ends, pinned pairwise (spec Out)",
-    (
         ".github/scripts/issue_claims_check.py",
         r"|\#{1,6}(?=\s|$)",
     ): "where a hand-wrapped paragraph ends, pinned pairwise (spec Out)",
-    (
-        ".github/scripts/fold_ledger.py",
-        "HEADING_RE = re.compile",
-    ): "the fold's demotion of a fragment's headings, which rewrites bytes; "
-    "left by #867 and named in its overview",
-    (
-        "skills/settle/scripts/settle.py",
-        'if line.startswith("## "):',
-    ): "the fold's own `## X.Y.Z` section line, an owned format (spec Out)",
     (
         ".github/scripts/gather_changelog.py",
         'lines[n].startswith("## ")),',
@@ -121,10 +96,6 @@ HEADING_EXEMPT = {
         ".github/scripts/gather_changelog.py",
         'line.startswith("## ")), None)',
     ): "the gathered changelog's own `## X.Y.Z` line, an owned format (spec Out)",
-    (
-        ".github/scripts/fold_ledger.py",
-        'lines[n].startswith("## ") and n not in fenced',
-    ): "the fold's own `## X.Y.Z` section line, an owned format (spec Out)",
     (
         "skills/verify/scripts/deferral_check.py",
         'rest.startswith("#")',

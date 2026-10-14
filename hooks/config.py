@@ -93,7 +93,7 @@ CONFIG_TABLE = ("Item", "Value")
 # #415.
 #
 # `TABLE_ROW` and `CELL_PIPE` below are built on it, and so is
-# `skills/evidence-check/scripts/pact_check.py#path_map`, which reads the
+# `skills/verify/scripts/pact_check.py#path_map`, which reads the
 # machine-local `| Remote | Path |` map with it and `CONFIG_SEPARATOR`.
 CELL = r"(?:[^|\\]|\\.)"
 # A separator line, for one reader alone: `pact_check.py#path_map`, whose
@@ -187,11 +187,11 @@ def hidden_lines(lines, text=None):
     """({index: "fence" or "comment"} for every line of LINES no walk of the
     table is shown, the index of a fence opener never closed or None).
 
-    Reads: guess — the lines of `seal/config.md`, `seal/pact.md`, a `seal/pact-changes/` record, a `seal/pact-reviews/` record and the machine-local pact path map, through `unfenced`, `fence_map` or directly, and `hooks/blocks.py#walk`; unknown mixed
+    Reads: guess — the lines of `seal/config.md`, `seal/pact.md` and the machine-local pact path map, through `unfenced`, `fence_map` or directly, and `hooks/blocks.py#walk`; unknown mixed
 
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers
-    `docs/the-evidence-ledger.md` §*The fold, and what tells it from a
+    `docs/the-record-layout.md` §*The fold, and what tells it from a
     deletion* gives: a row this hides is no declaration, so a hook says
     nothing and a gate asks, and `broad-gate` names a fence left open.
 
@@ -403,19 +403,6 @@ def config_rows(text):
     return [(item, value) for _index, item, value in config_table(text)[0]]
 
 
-def indexed_config_rows(text):
-    """`config_rows`' rows as (index, item, value), the index being the row's
-    line in `text.splitlines()` -- `config_table`'s rows, kept for the
-    callers that spell this name.
-
-    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
-
-    The index is what lets `pact_lines_not_read` tell a line this walk took
-    as a row from every other line of the file (#759).
-    """
-    return config_table(text)[0]
-
-
 def config_text(home):
     """(text, refusal) for `<home>/config.md` — the one place the file is
     opened, and the one place an absent file is told from an unreadable one.
@@ -434,19 +421,20 @@ def config_text(home):
     caller does with that is its own kind's call, and every caller asks this
     reader rather than opening the file a second time to find out:
 
-      - a hook that may not stop -- `hooks/mode-gate.py`,
-        `hooks/evidence-advisor.py` -- reads a refusal as nothing it can act
-        on and says nothing, because a gate that refuses wrongly is an outage
-        nobody can get past (`CONTRIBUTING.md` §*What a change to a gate must
-        carry*);
+      - a hook that may not stop -- `hooks/mode-gate.py` -- reads a refusal
+        as nothing it can act on and says nothing, because a gate that
+        refuses wrongly is an outage nobody can get past (`CONTRIBUTING.md`
+        §*What a change to a gate must carry*);
       - a command a person runs prints the sentence and exits 2 with nothing
-        judged, the shape a non-numeric `Ledger frozen from` already takes
-        (`templates/config.md` §*The ledger freeze*), because a command that
-        reads a written row as absent turns the freeze off on a decode error.
+        judged, because a command that reads a written row as absent acts as
+        if the person had written none.
 
     HOME is the seal root; a falsy one is no file. A name that `lexists` but
     will not open -- a symbolic link to nowhere -- is the second state: the
-    name is there."""
+    name is there.
+
+    Reads: observed — the bytes of `<home>/config.md`, decoded as UTF-8; unknown refused
+    """
     if not home:
         return None, None
     path = config_path(home)
@@ -472,9 +460,10 @@ def unreadable_config(path, exc):
 
 
 def doubled_row(item, count):
-    """The sentence `config_value` refuses a row written COUNT times in. It
-    is the sentence `pact_declaration` has refused a doubled `Pact notify`
-    in since round 1 of PR #756, made the one sentence for every item."""
+    """The sentence `config_value` refuses a row written COUNT times in, the
+    one sentence for every item.
+
+    Reads: owned — an item name and a count its caller holds; unknown passed"""
     return f"`{item}` appears {count} times — one value"
 
 
@@ -503,14 +492,13 @@ def config_value(text, item):
     that is not theirs; reading the item as absent is the silent default
     #415 was opened about.
 
-    **A row written twice has no value**, not its first and not its last.
-    `pact_declaration` refused a doubled `Pact notify` with *its first row is
-    not the answer* (round 1 of PR #756, yellow 2) and `docs/the-pact.md`
-    ratified it; every other reader here took the first, the checker took
-    the last, and `seal mode` wrote the first. Three answers to one file is a
-    file a person edits on the row they see while another one answers. So
-    the one answer is a refusal, and what a caller does with it is its own
-    kind's -- `config_text` says which kind does which.
+    **A row written twice has no value**, not its first and not its last:
+    its first row is not the answer. Readers that took the first, a checker
+    that took the last and a writer that wrote the first are three answers
+    to one file, which is a file a person edits on the row they see while
+    another one answers. So the one answer is a refusal, and what a caller
+    does with it is its own kind's -- `config_text` says which kind does
+    which.
 
     The rows are `config_table`'s, so a row is a row only where that walk
     reads it: one in a fence or in a closed comment is not counted, which is
@@ -665,19 +653,19 @@ def reference_roots(home):
     default. A reference root is defined against the plugin's root, and a
     repository with none has not opted in: the one layout the plugin ever
     read without a root is 0.3.x, whose top-level `specs/` was the plugin's
-    own, and the survivor sweep's pool and range and `unverified-check` still
-    read that spelling as its records — `survivor_check.py#WORK_ITEM_DIR`
-    alone no longer does, so a top-level `specs/<x>/` is never a retired
-    work item there. A person
+    own, and `unverified-check` still reads that spelling as its records. A
+    person
     joining a project runs the bootstrap, which creates the root, before any
     check reads the tree.
 
     **A refusal reads as the default** (#867): a file that will not read, as
     before, and a `Reference specs` row written twice, which `config_value`
-    gives no value. Its two callers, `unverified-check` and the survivor
-    sweep, are not among the commands `config_text` names as refusing: what
-    a refusal costs them is the reading every repository had before the row
-    existed, and no record is written or lost on it."""
+    gives no value. Its caller, `unverified-check`, is not among the commands
+    `config_text` names as refusing: what a refusal costs it is the reading
+    every repository had before the row existed, and no record is written or
+    lost on it.
+
+    Reads: guess — the `Reference specs` row of a person's `config.md`; unknown passed"""
     if not home:
         return ()
     # A refusal carries no value, so it lands with no row and an empty one.
@@ -725,91 +713,20 @@ def under_reference_root(rel, roots):
 # the repository that holds it, and the pact's repository needs no row: it is
 # identified by holding `seal/pact.md` (`docs/the-pact.md`).
 #
-# Two readers ask these rows and they ask THIS reader:
+# Two readers ask this row and they ask THIS reader:
 # `skills/code-review/scripts/chain_check.py`, which prints the relationship
 # at a signer's pull request and refuses nothing, and
-# `skills/evidence-check/scripts/pact_check.py`, which reads every signer
+# `skills/verify/scripts/pact_check.py`, which reads every signer
 # from the pact's repository and refuses what will not parse. One reader, so
-# the print and the refusal are about the same rows.
+# the print and the refusal are about the same row.
 
 PACT_ROW = "Pact"
-PACT_NOTIFY_ROW = "Pact notify"
 # The separator `Over the ceiling` already uses between its entries.
 PACT_SEPARATOR = ";"
-# What a signer asks to be told about a change to the pact: which of its
-# re-reads `evidence-check --reverify` records as pact changes, and which of
-# those `pact-check` reads (#647, steps C and D; `docs/the-pact.md`).
-NOTIFY_ALWAYS = "always"
-NOTIFY_TOUCHED = "when the pact is touched"
-NOTIFY_NEVER = "never"
-NOTIFY_VALUES = (NOTIFY_ALWAYS, NOTIFY_TOUCHED, NOTIFY_NEVER)
-# #647 recommended it and decided nothing; the frame took it, and
-# `docs/the-pact.md` states it.
-NOTIFY_DEFAULT = NOTIFY_TOUCHED
 # A pact's name in an anchor, `pact:<name>/"<heading path>"@<hash>`: the last
 # path segment of the pact's repository's normalised origin URL. The class is
-# `evidence_check.py#PACT_NAME`'s, which reads the anchor.
+# `skills/verify/scripts/coordinates.py#PACT_NAME`'s, which reads the anchor.
 PACT_NAME_RE = re.compile(r"[A-Za-z0-9_.-]+")
-# The word a line names a pact by: the letters `p`, `a`, `c`, `t` in that
-# order, any case, with any run of characters that are not letters between
-# two of them, and no letter before the `p` (#759). "Not letters between" is
-# what reads emphasis, a code span, a character reference, a format
-# character or a pipe inside the word as nothing, without parsing any of
-# them; the look-behind is what keeps `impact` and `compact` silent.
-# `evidence_check.py#PACT_WORD` is its copy, held equal by
-# `tests/test_a_signer_declares_its_pact.py`.
-PACT_WORD = re.compile(r"(?<![^\W\d_])p[\W\d_]*a[\W\d_]*c[\W\d_]*t", re.I)
-# An HTML table cell's opening tag, `<td` or `<th`, any case. GFM passes raw
-# HTML through and a renderer shows such a cell, which carries a value with
-# no `|` beside it, so in a file holding one every line naming a pact is read
-# without the pipe condition (round 1 of PR #793, yellow 2). A token, not a
-# grammar: it fails closed, refusing more where it is wrong.
-# `evidence_check.py#HTML_CELL` is its copy, held equal by
-# `tests/test_a_signer_declares_its_pact.py`.
-HTML_CELL = re.compile(r"<t[dh][\s/>]", re.I)
-# A line GFM may read as the delimiter row under a table's header, wider than
-# `DELIMITER_ROW` on purpose and fail-closed: block-quote markers and any
-# whitespace before it, a vertical tab or form feed where a space stands,
-# and no pipe at all, because a one-column table needs none. A run of
-# dashes alone is a setext underline or a thematic break and is left out.
-# The line directly above one is a header, whose cells carry the values
-# below them, so it is read whole and needs no `|` (round 3 of PR #793).
-# `evidence_check.py#UNDER_A_HEADER` is its copy, held equal by
-# `tests/test_a_signer_declares_its_pact.py`, which holds both readers to
-# every table cmark-gfm renders over a constructed delimiter row.
-UNDER_A_HEADER = re.compile(
-    r"^(?![ \t>]*-+[ \t]*$)[\s>]*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$"
-)
-
-
-def names_a_pact(text, piped=True):
-    """True where TEXT names a pact: `PACT_WORD` finds the word in TEXT as
-    written, or in TEXT decoded -- `html.unescape`, then NFKC. Where PIPED,
-    TEXT must also hold a `|`, as written or decoded.
-
-    **Both readings, as a union, so the decode can only add.** It decodes
-    more than CommonMark does (a legacy name with no `;`), and that costs
-    nothing here: `Pact&notify` names a pact as written, whatever the decode
-    makes of it (round 4 of PR #784, yellow 3).
-
-    **The pipe is the one structural condition, and it is not a grammar.** A
-    GFM table row's cells are separated by pipes, so a line with none is one
-    cell at most and carries no value: a pact row with no value is the
-    default this reader already reads. cmark-gfm was measured to give such a
-    line an empty second cell (Q2 of the work item). So a signer may name
-    its pact in prose or a comment of its own `config.md` and is not refused.
-
-    `evidence_check.py#names_a_pact` is its copy, held equal by
-    `tests/test_a_signer_declares_its_pact.py`. The two imports are here
-    rather than at the top because a `PreToolUse` hook loads this module and
-    never reads a pact."""
-    import html
-    import unicodedata
-
-    decoded = unicodedata.normalize("NFKC", html.unescape(text))
-    if piped and "|" not in text and "|" not in decoded:
-        return False
-    return bool(PACT_WORD.search(text) or PACT_WORD.search(decoded))
 
 
 def normalise_remote(url):
@@ -920,17 +837,11 @@ def remote_entries(entries, empty, named):
 
 
 def pact_declaration(text):
-    """(pacts, notify, refusals) for the `Pact` rows of a config.md's TEXT.
+    """(pacts, refusals) for the `Pact` row of a config.md's TEXT.
 
       pacts     [(as written, normalised, name)] for every entry of the
                 `Pact` row that parsed, in the order the row lists them;
                 [] where no row names a pact
-      notify    the `Pact notify` value, lowercased; `NOTIFY_DEFAULT` where a
-                `Pact` row stands with no `Pact notify`; None where no
-                `Pact` row does, because the notify row is then ignored, and
-                None where the row is refused, outside the vocabulary or
-                written more than once, and None where a line naming a pact
-                is not a pact row in the one spelling read
       refusals  one sentence per thing that would not parse, naming it
 
     **It refuses in sentences and stops nothing.** The two callers differ on
@@ -944,161 +855,33 @@ def pact_declaration(text):
     refused rather than read as absent: a signer that wrote a row and is
     read as having written none is the silence this reader exists to end.
 
-    **A pact row is read in one spelling, and every other line naming a pact
-    is refused** (#759). A `| Pact notify | always |` written where the
-    table walk does not take it was read as the default, and under `always`
-    `evidence-check --reverify` then re-stamped a moved row citing no clause
-    with no record -- the re-stamp clears the drift that was the only
-    trigger for the record. `pact_lines_not_read` names every such line, and
-    each is refused with `notify` None. This reader alone refuses where the
-    others fail silent, and only for these two rows: no other row's default
-    loses a record that cannot be recovered.
+    **Only the `Pact` row is read.** A row of any other item is no answer
+    about a pact, a `Pact notify` row an earlier release read included
+    (`templates/config.md` §*Pact*).
 
-    Reads: guess — a signer's `| Item | Value |` table, read as cmark-gfm renders it, and every line naming a pact; unknown refused
+    Reads: guess — a signer's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
 
     **A table the walker refuses is refused here too** (#871). Its
-    sentences are appended after every other refusal, with `notify` None:
-    the line it stopped at may hold the `Pact notify` row, and a row below
-    it is one the walk never read, so no value read from the table is the
-    answer. `pact-check` exits 2 on it and a signer's CI prints it, the
-    split #647 decided.
+    sentences are appended after every other refusal: a `Pact` row below
+    the line it stopped at is one the walk never read. `pact-check` exits 2
+    on it and a signer's CI prints it, the split #647 decided.
     """
     rows, walk_refusals = config_table(text)
-    pairs = [(item, value) for _i, item, value in rows]
     # A row written twice has no value, by `value_of`'s rule and in its
-    # sentence (#867): the first row is not the answer, so a caller that read
-    # it would rule `always` in or out on a row the signer also contradicted
-    # (round 1 of PR #756, yellow 2) -- and a doubled `Pact` lists no pact.
-    value, doubled_pact = value_of(pairs, PACT_ROW)
-    written, doubled_notify = value_of(pairs, PACT_NOTIFY_ROW)
-    refusals = [doubled_pact] if doubled_pact else []
-    not_read = pact_lines_not_read(text, rows)
-    # Where a line is refused only because the file holds an HTML table
-    # cell's tag, the sentence says so (round 2 of PR #793, yellow 2).
-    cell = HTML_CELL.search(text) is not None
-    refusals.extend(
-        pact_line_refusal(line, cell and not names_a_pact(line)) for line in not_read
-    )
+    # sentence (#867): the first row is not the answer, so a doubled `Pact`
+    # lists no pact.
+    value, doubled = value_of([(item, v) for _i, item, v in rows], PACT_ROW)
+    if doubled:
+        return [], [doubled, *walk_refusals]
     if not value:
-        return [], None, refusals + walk_refusals
+        return [], walk_refusals
     pacts, refused = remote_entries(
         value.split(PACT_SEPARATOR),
         f"`{PACT_ROW} | {value}` holds an empty entry — one remote URL between "
         f"each `{PACT_SEPARATOR}`",
         named=True,
     )
-    refusals.extend(refused)
-    if doubled_notify:
-        refusals.append(doubled_notify)
-        return pacts, None, refusals + walk_refusals
-    notify = " ".join((written or "").split()).lower()
-    if not notify:
-        notify = NOTIFY_DEFAULT
-    elif notify not in NOTIFY_VALUES:
-        refusals.append(
-            f"`{PACT_NOTIFY_ROW} | {written}` is not one of "
-            + ", ".join(f"`{v}`" for v in NOTIFY_VALUES)
-        )
-        notify = None
-    if not_read or walk_refusals:
-        # The line this reader does not read may be the one that says
-        # `always`, so no value read from the table is the answer (#759);
-        # and so may a line below the one the walk stopped at (#871).
-        notify = None
-    return pacts, notify, refusals + walk_refusals
-
-
-def pact_lines_not_read(text, rows):
-    """Every line of TEXT that names a pact and is not a pact row in the one
-    spelling read, as written and in file order. ROWS is
-    `config_table(text)`'s rows: the lines the walker read as rows, and no
-    line below one it refused (#871).
-
-    Reads: guess — every GFM line of a signer's config, beside the rows `config_table` read; unknown refused
-
-    **A line is one GFM line** (`blocks.gfm_lines`), the coarsest cut any
-    reader here makes, so a word can only be whole on it where it is whole on
-    a finer one. Each line is one of two cases:
-
-      - **the walk took it whole as a row**: it holds no character only
-        `str.splitlines` ends a line at, and its one piece is a row of ROWS.
-        Its ITEM alone is read. `Pact` and `Pact notify`, byte for byte, are
-        the spelling read; any other item that names a pact is refused,
-        piped or not. Its value is not read, so a `Broad gate` row running
-        `-k pact` stays silent;
-      - **every other line**: read whole, and refused where it names a pact
-        and holds a `|` (`names_a_pact`). That is a line below the table's
-        end, in a second table, a block quote, a fence or a comment, and a
-        line a `str.splitlines`-only character cuts, even where each of its
-        pieces would be a row. In a file holding an HTML table cell
-        (`HTML_CELL`) the `|` is not asked for, because such a cell carries
-        a value with no pipe beside it, and nor is it of a line directly
-        above one `UNDER_A_HEADER` matches: a table's header, whose value
-        stands in the row below (round 3 of PR #793).
-
-    **Fences and comments are read through, on purpose.** Exempting them
-    would make the refusal depend on `hidden_lines` matching GFM's block
-    grammar, which is the modelling this reader gave up, and an unclosed
-    fence there hides everything below it. An example there refuses, which is
-    the loud direction: the person deletes the example. The walk still does
-    not read it, so it is refused and never read.
-
-    **No GFM is modelled.** #784 emulated what GFM renders as the item, and
-    four review rounds each found spellings the emulation missed. Here
-    nothing is rendered: a line names a pact or it does not.
-    """
-    taken = {index: item for index, item, _value in rows}
-    piped = HTML_CELL.search(text) is None
-    found, first = [], 0
-    wholes = blocks.gfm_lines(text, keepends=True)
-    for at, whole in enumerate(wholes):
-        pieces = len(whole.splitlines())
-        index, first = first, first + pieces
-        line = whole.rstrip("\r\n")
-        under = wholes[at + 1].rstrip("\r\n") if at + 1 < len(wholes) else ""
-        header = UNDER_A_HEADER.match(under) is not None
-        if pieces == 1 and index in taken:
-            item = taken[index]
-            if item not in (PACT_ROW, PACT_NOTIFY_ROW) and names_a_pact(
-                item, piped=False
-            ):
-                found.append(line)
-        elif names_a_pact(line, piped and not header):
-            found.append(line)
-    return found
-
-
-def pact_line_refusal(line, cell=False):
-    """The sentence a line `pact_lines_not_read` names is refused in. It
-    quotes LINE stripped, with every whitespace character other than a space
-    and every format character (Unicode category Cf) shown as its code
-    point, because the character that cut the line or spelled the item
-    another way is otherwise invisible in the sentence that names it. It
-    opens lower-case and ends with no full stop, so it reads after each
-    caller's prefix: `chain-check`'s, `pact-check`'s `REFUSED` line, and the
-    writer's `LEFT` line. CELL is true where LINE holds no `|` and is refused
-    only because the file holds an HTML table cell's tag (`HTML_CELL`), and
-    then the sentence names that cause, because the line alone shows none
-    (round 2 of PR #793, yellow 2)."""
-    import unicodedata
-
-    shown = "".join(
-        f"<U+{ord(ch):04X}>"
-        if (ch.isspace() and ch != " ") or unicodedata.category(ch) == "Cf"
-        else ch
-        for ch in line.strip()
-    )
-    return (
-        f"`{shown}` names a pact and is not a `{PACT_ROW}` or "
-        f"`{PACT_NOTIFY_ROW}` row in the one spelling read: write it as "
-        f"`| {PACT_ROW} | … |` or `| {PACT_NOTIFY_ROW} | … |` inside the "
-        "`| Item | Value |` table, or take it out of this file"
-    ) + (
-        "; this file holds an HTML table cell's tag, so a line with no `|` is "
-        "refused too"
-        if cell
-        else ""
-    )
+    return pacts, refused + walk_refusals
 
 
 def declared_pacts(home):
@@ -1116,21 +899,22 @@ def declared_pacts(home):
 
     Since #867 every command reading a row takes this reader's side, and
     `config_text` is where the two states are told apart for all of them;
-    this is that answer in the shape `pact-check` has always read."""
+    this is that answer in the shape `pact-check` reads.
+
+    Reads: guess — a signer's `| Item | Value |` table, through `config_text` and `pact_declaration`; unknown refused"""
     text, refusal = config_text(home)
     if refusal is not None:
         return None
     if text is None:
-        return [], None, []
+        return [], []
     return pact_declaration(text)
 
 
-# --- one GFM table walker (#647, steps C and D) -----------------------------
+# --- one GFM table walker (#647) --------------------------------------------
 #
-# Four tables are read out of markdown by name: `seal/config.md`'s
-# `| Item | Value |` (#871), the pact's `| Signer |`, a signer's record of
-# pact changes, and the pact's record of pact reviews. One walker reads all
-# four, because four walkers are four break lists to keep in step, and round
+# Two tables are read out of markdown by name: `seal/config.md`'s
+# `| Item | Value |` (#871) and the pact's `| Signer |`. One walker reads
+# both, because two walkers are two break lists to keep in step, and round
 # 3 of #735 measured exactly that drift in the one there was: an autolink
 # row ended the table, and a signer written as one was read by nobody at
 # exit 0.
@@ -1574,73 +1358,6 @@ def pact_signers(text):
     return signers, out, header
 
 
-# --- the record of pact changes a signer keeps (#647, step C) ---------------
-#
-# `seal/pact-changes/<work-item-id>.md` in a signer: one row per ledger row
-# whose code moved under a pact clause it cites, written by
-# `evidence-check --reverify` and read by `pact-check` at the pact's
-# repository. Permanent, one file per work item, never folded, never edited
-# by hand (`docs/the-pact.md`).
-PACT_CHANGES = "pact-changes"
-PACT_CHANGE_HEADER = ("Clause", "Row", "Code", "Checked")
-# The `Clause` cell of a row recorded under `always` that cites no clause.
-NO_CLAUSE = "—"
-CHECKED_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
-
-
-def pact_changes(text):
-    """(rows, refusals) for a record of pact changes, read through
-    `gfm_table`: `rows` as `(line, clause, row, code, checked)`, one per row
-    whose four cells are filled and whose `Checked` is a date, and one
-    sentence per row that is not, reading after "the record "."""
-    rows, refusals = gfm_table(text, PACT_CHANGE_HEADER)
-    out = []
-    for line, (clause, row, code, checked) in rows:
-        if not (clause and row and code):
-            refusals.append(f"has a row at line {line} with an empty cell")
-            continue
-        if not CHECKED_DATE.fullmatch(checked):
-            refusals.append(
-                f"has a row at line {line} whose `Checked` is `{checked}`, not "
-                "a date written YYYY-MM-DD"
-            )
-            continue
-        out.append((line, clause, row, code, checked))
-    return out, refusals
-
-
-# --- the record of pact reviews the pact's repository keeps (#647, step D) --
-#
-# `seal/pact-reviews/<work-item-id>.md` at the pact's repository, begun from
-# `templates/pact-review.md`: one row per signer's record of pact changes
-# a pact review takes, naming the signer, the record as `<work-item-id>@
-# <content hash>`, and the verdict.
-PACT_REVIEWS = "pact-reviews"
-PACT_REVIEW_HEADER = ("Signer", "Change", "Verdict")
-VERDICT_HOLDS = "holds"
-VERDICT_AMENDED = "amended"
-VERDICTS = (VERDICT_HOLDS, VERDICT_AMENDED)
-
-
-def pact_reviews(text):
-    """(rows, refusals, header) for a record of pact reviews, read through
-    `gfm_table`: `rows` as `(line, signer, change, verdict)` for every row
-    whose three cells are filled, and one sentence per row that is not,
-    reading after "the record ". `header` is the header read, as
-    `pact_signers` returns it: a record a pact review wrote in 0.18.x is
-    permanent and keeps its header (`read_table`). Whether a row can be
-    true -- the signer listed, the record held, the verdict one of two -- is
-    `pact-check`'s, which has the pact and the signers to ask."""
-    rows, refusals, header = read_table(text, PACT_REVIEW_HEADER)
-    out = []
-    for line, (signer, change, verdict) in rows:
-        if not (signer and change and verdict):
-            refusals.append(f"has a row at line {line} with an empty cell")
-            continue
-        out.append((line, signer, change, verdict))
-    return out, refusals, header
-
-
 def _signer(refusal):
     """A walk refusal, in the words `pact-check` has always printed for the
     pact's table: a row it leaves unread is a signer."""
@@ -1650,10 +1367,9 @@ def _signer(refusal):
 # --- the word 0.18.x wrote (#822) ------------------------------------------
 #
 # Until 0.19.0 every repository of a work item that keeps a pact had another
-# name, and two headers carried it into files nobody regenerates: the pact's
-# one-column table and every pact review record, which is permanent. Both
-# still read (`read_table`), and both commands print the sentence below where
-# they read one. This unit is the one place the old word is written, which is
+# name, and the pact's one-column table carried it into a file nobody
+# regenerates. It still reads (`read_table`), and both commands print the
+# sentence below where they read one. This unit is the one place the old word is written, which is
 # what lets `tests/test_one_word_one_meaning.py` refuse it everywhere else and
 # exclude this unit by name (`docs/the-pact.md` §*The words*).
 RENAMED_IN = "0.19.0"

@@ -18,8 +18,7 @@
 
 <!-- Above: a generated copy of templates/claude-md-block.md, the block
      install.sh distributes. Edit the template, then
-     `python3 .github/scripts/claude_block.py --write` regenerates this copy;
-     the hygiene workflow fails a pull request where the two differ.
+     `python3 .github/scripts/claude_block.py --write` regenerates this copy.
      Below: repo-local development rules for SpecSeal itself. -->
 
 ## The goal a design is chosen against — verification that runs unattended
@@ -30,12 +29,23 @@ person is the more expensive, and the difference has to be argued rather than
 assumed. Time and stability are what the argument is being made for.
 
 This is a goal, not a rule, which is why it sits above them: it decides
-between options where no rule is broken either way. `CONTRIBUTING.md`'s *What
-a change to a gate must carry* turns it into something a pull request has to
-answer. `skills/implement/SKILL.md` §*1. Read the spec before the code* holds
-the rule this goal produces for a session, with its reasoning: whatever needs
-a person is asked once, together, before the first edit, and nothing comes
-back mid-run.
+between options where no rule is broken either way.
+`skills/implement/SKILL.md` §*1. Read the spec before the code* holds the rule
+this goal produces for a session, with its reasoning: whatever needs a person
+is asked once, together, before the first edit, and nothing comes back mid-run.
+
+## The rule a mechanism is kept against — subtract before you add
+
+**A mechanism stays only while its history shows what it caught against what
+it costs.** Being written, shipped or documented is no reason to keep it. The
+record of truth is a test or a behaviour eval a rule's `Enforced by:` names,
+never coordinates somebody re-reads. A fact has one source: every other place
+links to it or derives it, and never copies it. A thing is re-checked only
+when the diff or CI shows it changed. A change rewrites the text it amends in
+place, and in the same commit removes what stood on the old fact: a check, an
+exception, a comment, a copy. History goes to git, the changelog and the work
+record. `CONTRIBUTING.md` §*What a change to a gate must carry* is where a
+pull request answers this rule and the goal above.
 
 ## Repo rule — the merge method is fixed per direction, and it is not a preference
 
@@ -62,16 +72,13 @@ it is here because a session rewording an agent definition or a skill has no
 other reason to open that file. The concept and its format names stay bare —
 the Seal Test, a seal block — and a reference to one instance says whose.
 
-The word that bought it is `seal`: it named the warden's review mark, the
-sealer's stamp and the smith's proof block at once, two of them in files a
-reader opens together. `tests/test_one_word_one_meaning.py` is the check, and
-it holds one word per conversation somebody had — writing the rule down is
-not the repair, the check is.
+`tests/test_one_word_one_meaning.py` is the check, one word per conversation
+somebody had: writing the rule down is not the repair, the check is.
 
 ## Repo rule — commit early; on a declared branch it costs nothing
 
-`skills/implement/SKILL.md` §*2. Implement, and feed evidence back where you
-verified it* states the commit cadence and holds the reasoning, and it tells a
+`skills/implement/SKILL.md` §*2. Implement test-first, and let each rule
+name its test* states the commit cadence and holds the reasoning, and it tells a
 reader to check two conditions against their own repository; this row is that
 check for this one, and it is here because a session reaches the question
 after every edit without opening that file. Both conditions hold here: a
@@ -79,19 +86,9 @@ feature branch squashes into its release branch, and every work item commits
 its `routing.md` before the first edit. So commit as soon as a step stands on
 its own.
 
-**Commit freely: a ledger row names no commit for a squash to orphan.** How a
-coordinate names code, how a released row is read again, and what to do when
-a ledger file conflicts live in `docs/the-evidence-ledger.md` §*A row is a
-content anchor, and it names no commit*, §*A released row is read again in
-the branch's fragment* and §*A correction a merge dropped*.
-
 ## Repo rule — a change writes fragments, never the shared file
 
-Which file a change writes — its changelog entry, its ledger rows, and its
-re-reads and corrections of a released ledger row — is
+Which file a change writes its changelog entry into is
 `docs/the-record-layout.md` §*A change writes fragments, never a shared
-file*. This repository declares `Ledger frozen from` in `seal/config.md`, so
-its released ledger files never change; `docs/the-evidence-ledger.md` §*A
-released row is read again in the branch's fragment* holds what that means
-for a branch. The release gathers and folds the fragments with the commands
-in `docs/release-checklist.md` §*2. Gather, fold, bump*.
+file*. The release gathers the fragments with the command in
+`docs/release-checklist.md` §*2. Gather, bump*.

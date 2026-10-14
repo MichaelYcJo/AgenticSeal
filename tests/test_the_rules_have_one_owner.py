@@ -122,8 +122,6 @@ FRAGMENT_OWNER = (
 # scripts that read a range, and the orchestration that tells a session what
 # the fix surface holds, name the section.
 ROUND_RECORD = ("skills", "code-review", "scripts", "round_record.py")
-# The survivor sweep reads a two-dot range the same way since #873.
-SURVIVOR_CHECK = ("skills", "code-review", "scripts", "survivor_check.py")
 RANGE_OWNER = (
     "`docs/the-record-layout.md` §*A range owns the commits that descend from "
     "its start* owns"
@@ -204,7 +202,7 @@ RULES = {
     ),
     "8 the moratorium": (
         SPEC,
-        "no new parsed field in `round-N.md` and no new row the ledger must carry",
+        "A moratorium for 0.8.x: no new parsed field in `round-N.md`.",
         {},
     ),
     "10 every agent seals what it verified, and one seal is final": (
@@ -375,7 +373,6 @@ RULES = {
         {
             CHAIN_CHECK: RANGE_OWNER,
             ROUND_RECORD: RANGE_OWNER,
-            SURVIVOR_CHECK: RANGE_OWNER,
             ORCH: RANGE_OWNER,
             RECORD_SPEC: "`docs/the-record-layout.md` §*A range owns the commits "
             "that descend from its start*",
@@ -489,9 +486,8 @@ def test_the_verdict_ruling_is_against_a_vocabulary_test_not_against_reading():
     bolded section of the owner twenty lines under the paragraph overturning
     it.
 
-    `survivor-check` is exit 0 on that class and cannot see it: the diff
-    removed the sentence nowhere, so there is nothing for the range check to
-    match. This case is what a grep of the claim leaves behind.
+    No range check sees that class: the diff removed the sentence nowhere.
+    This case is what a grep of the claim leaves behind.
     """
     spec = flat(*RECORD_SPEC)
     assert "the ruling was too wide" in spec
@@ -500,7 +496,7 @@ def test_the_verdict_ruling_is_against_a_vocabulary_test_not_against_reading():
 
 
 def test_the_open_verdicts_boundary_is_not_the_shared_separators():
-    """Round 4's 🟡 2, the half `survivor-check` cannot reach either.
+    """Round 4's 🟡 2, the half a range check cannot reach either.
 
     Four live coordinates said the arm borrows the boundary `verdict_of` uses
     for its vocabulary and then borrowed `chain.SEPARATORS`, which is six

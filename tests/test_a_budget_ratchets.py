@@ -907,7 +907,7 @@ RUN = [
     job("pytest (macos-latest, 3.12, --splits 3 --group 1, 15)", 7.0),
     job("pytest (macos-latest, 3.12, --splits 3 --group 2, 15)", 7.4),
     job("pytest (macos-latest, 3.12, --splits 3 --group 3, 15)", 8.1),
-    job("ledger", 0.8),
+    job("budgets", 0.8),
 ]
 
 
@@ -1144,57 +1144,6 @@ def test_the_largest_round_record_is_reported_and_never_fails(tmp_path, capsys):
     assert "`3-none`" not in out, out
 
 
-def release(version, rows):
-    return {
-        ".claude-plugin/plugin.json": json.dumps({"version": version}),
-        f"seal/releases/{version}.md": f"## {version}\n\n### 1-a\n\n"
-        + "".join(f"| {row} | grounds | read | 2026-10-14 | note |\n" for row in rows),
-    }
-
-
-def test_the_rereads_of_a_release_are_counted_once_each_by_their_first_marker(
-    tmp_path, capsys
-):
-    """`ledger-rereads` counts the release file of the version the manifest
-    names: a row re-reading a correction is a re-read, once, and a row whose
-    cells carry an even run of backslashes before a pipe still counts by its
-    opening (`questions.md` Q4)."""
-    rows = [
-        "Re-read · A1 · a claim",
-        "Corrected · A2 · a claim",
-        "Re-read · Corrected · A3 · a claim",
-        "Corrected · A4 · a cell with `\\\\|` in it",
-        "A5 · a new claim",
-    ]
-    root = tree(
-        tmp_path,
-        budgets(("ledger-rereads", "rows", 4, "one-sided", "report")),
-        files=release("9.9.9", rows),
-    )
-    assert run(root) == 0
-    out = capsys.readouterr().out
-    assert "| `ledger-rereads` | 4 rows | 4 | 0 (0.0%) | report | holds |" in out, out
-    assert (
-        "`seal/releases/9.9.9.md`: 2 `Re-read ·`, 2 `Corrected ·` of 5 rows" in out
-    ), out
-
-
-def test_rereads_before_the_release_folds_its_file_are_unread(tmp_path, capsys):
-    """Until the release folds its ledger file there is nothing to count, so
-    the row is shown unread rather than read as 0, which would look like a
-    release that re-read nothing."""
-    root = tree(
-        tmp_path,
-        budgets(("ledger-rereads", "rows", 4, "one-sided", "report")),
-        files={".claude-plugin/plugin.json": json.dumps({"version": "9.9.9"})},
-    )
-    assert run(root) == 0
-    assert (
-        "| `ledger-rereads` | — (read once the release folds its ledger file) | 4 |"
-        in capsys.readouterr().out
-    )
-
-
 def test_a_trend_sets_each_budget_beside_its_ceiling_at_the_tag(tmp_path, capsys):
     """`--trend <tag>` prints one line per budget against the tag's file: a
     ceiling then and now with today's reading, a row new since then, and a
@@ -1227,27 +1176,14 @@ def test_a_trend_that_names_no_release_is_exit_2(tmp_path, capsys, tag, said):
     assert said in capsys.readouterr().err
 
 
-def test_a_manifest_with_no_version_is_exit_2(tmp_path, capsys):
-    """The release file is named by the manifest's version; a manifest that
-    states none names no file to count."""
-    root = tree(
-        tmp_path,
-        budgets(("ledger-rereads", "rows", 4, "one-sided", "report")),
-        files={".claude-plugin/plugin.json": "{}"},
-    )
-    assert run(root) == 2
-    assert "plugin.json states no version" in capsys.readouterr().err
-
-
 # --- round 1's fixes ---------------------------------------------------------
 
 
 def test_an_unread_row_of_a_family_without_an_unread_reason_renders(
     tmp_path, capsys, monkeypatch
 ):
-    """A family another work item adds may read nothing on a run, as
-    `ledger-rereads` does before its release; the summary shows it unread
-    with a reason of its own rather than raising."""
+    """A family another work item adds may read nothing on a run; the
+    summary shows it unread with a reason of its own rather than raising."""
     monkeypatch.setitem(
         budget_check.MEASURERS, "later", (lambda _root, _s, _cache: None, "rows", False)
     )
@@ -1473,3 +1409,283 @@ def test_the_unknown_family_refusal_names_every_family(tmp_path, capsys):
         *budget_check.PER_RUN,
     ]:
         assert f"`{family}" in err, (family, err)
+
+
+# --- #944: a rule names what holds it, and the count of those that do not ---
+#
+# `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/spec.md`
+# §*The replacement*: every `Enforced by:` target in a rule file resolves
+# (`enforced-unresolved`, ceiling 0), and each rule file's rule paragraphs with
+# no enforcer, or `nothing — <why>`, are a two-sided `+0` row
+# (`unenforced:<file>`). The fixture's own agent and skill hold no rule
+# paragraph, so every count below is the docs file's.
+
+HELD = "tests/test_x.py"
+HELD_CASE = f"{HELD}::test_held"
+TESTS = {HELD: "def test_held():\n    pass\n\n\nCONSTANT = 1\n"}
+
+
+def rules_budget(*rows):
+    """Budgets with the two rows of #944 and an `## Unenforced rules` table
+    listing `rows`, each `(file, ceiling)`."""
+    head = budgets(
+        ("enforced-unresolved", "targets", 0, "+0", "gate"),
+        ("unenforced", "rules", 0, "+0 rules", "gate"),
+    )
+    lines = ["", "## Unenforced rules", "", "| File | Rules ceiling |", "|---|---|"]
+    lines += [f"| {path} | {ceiling} |" for path, ceiling in rows]
+    return head + "\n".join(lines) + "\n"
+
+
+def rule(enforced=None, opener="**"):
+    """One rule paragraph, closed by `Enforced by: <enforced>` where given."""
+    text = f"{opener}A rule.** Its one why.\n"
+    return text if enforced is None else text + f"Enforced by: {enforced}\n"
+
+
+def doc(*paragraphs):
+    """A docs file whose paragraphs stand under `## The heading`, from line 5."""
+    return "# D\n\n## The heading\n\n" + "\n".join(paragraphs)
+
+
+@pytest.mark.parametrize(
+    "target, verdict, said",
+    [
+        (
+            "tests/test_x.py::test_gone",
+            1,
+            "docs/a.md:6 §*The heading*: tests/test_x.py::test_gone: no def or "
+            "class named test_gone in tests/test_x.py",
+        ),
+        ("tests/test_gone.py", 1, "tests/test_gone.py does not exist"),
+        (
+            "tests/test_x.py::CONSTANT",
+            1,
+            "no def or class named CONSTANT in tests/test_x.py",
+        ),
+        (f"{HELD}, tests/test_gone.py", 1, "tests/test_gone.py does not exist"),
+        (HELD_CASE, 0, "every gate row holds"),
+        (f"{HELD_CASE}, {HELD}", 0, "every gate row holds"),
+        ("nothing", 1, "nothing does not exist"),
+    ],
+    ids=[
+        "a case gone",
+        "a file gone",
+        "a constant",
+        "one of two",
+        "a case",
+        "two",
+        "nothing with no why",
+    ],
+)
+def test_an_enforced_by_target_that_does_not_resolve_fails_naming_where(
+    tmp_path, capsys, target, verdict, said
+):
+    """S1: a target that is gone, or names a constant, is exit 1 naming the
+    file, the `Enforced by:` line, the heading it stands under and why; a
+    target that resolves holds. Every target of the line is read, not the
+    first, and a `nothing` with no `— <why>` is read as a target."""
+    files = {"docs/a.md": doc(rule(target)), **TESTS}
+    root = tree(tmp_path, rules_budget(), files=files)
+    assert run(root) == verdict
+    out = capsys.readouterr().out
+    assert said in out, out
+    if verdict:
+        assert "enforced-unresolved: measured 1 targets is over the ceiling 0" in out
+
+
+def test_an_enforced_by_line_outside_a_rule_or_inside_a_fence_is_read_or_skipped(
+    tmp_path, capsys
+):
+    """S1's reach: every `Enforced by:` line a renderer shows is resolved,
+    inside a rule paragraph or not, in every rule file; one in a fence is an
+    example and is not."""
+    text = doc(
+        "A sentence that states no rule.\nEnforced by: tests/test_gone_a.py\n",
+        "```\nEnforced by: tests/test_gone_b.py\n```\n",
+    )
+    files = {"agents/warden.md": AGENT_HEAD + text, **TESTS}
+    root = tree(tmp_path, rules_budget(), files=files)
+    assert run(root) == 1
+    out = capsys.readouterr().out
+    assert (
+        "agents/warden.md:11 §*The heading*: tests/test_gone_a.py does not exist" in out
+    )
+    assert "test_gone_b" not in out, out
+
+
+@pytest.mark.parametrize(
+    "files, verdict, said",
+    [
+        ({"case.yaml": "name: a\n"}, 0, "every gate row holds"),
+        ({"prompt.md": "Review.\n"}, 1, "holds no case.yaml"),
+    ],
+    ids=["with its case.yaml", "without"],
+)
+def test_an_eval_case_directory_resolves_where_its_case_yaml_is(
+    tmp_path, capsys, files, verdict, said
+):
+    """S2: an agent's rule can be held by an eval case alone, so
+    `evals/behaviour/<agent>/<case>/` is a target, resolving where the
+    directory holds `case.yaml`."""
+    case = "evals/behaviour/warden/a-case/"
+    written = {"docs/a.md": doc(rule(case))}
+    written.update({case + name: text for name, text in files.items()})
+    root = tree(tmp_path, rules_budget(), files=written)
+    assert run(root) == verdict
+    assert said in capsys.readouterr().out
+
+
+def test_an_eval_target_that_names_no_case_is_refused(tmp_path, capsys):
+    """S2's grammar: the directory is `<agent>/<case>/`, so an agent's
+    directory alone names no case and does not resolve."""
+    written = {
+        "docs/a.md": doc(rule("evals/behaviour/warden/")),
+        "evals/behaviour/warden/case.yaml": "name: a\n",
+    }
+    root = tree(tmp_path, rules_budget(), files=written)
+    assert run(root) == 1
+    assert "is no eval case: write `evals/behaviour/<agent>/<case>/`" in (
+        capsys.readouterr().out
+    )
+
+
+def test_a_new_rule_without_a_test_raises_its_files_row(tmp_path, capsys):
+    """S3: a bold-led paragraph with no `Enforced by:` appended to a file at
+    its ceiling is exit 1 naming `unenforced:<file>` and where its unenforced
+    rules open; raising the ceiling needs its `Budget raised:` line."""
+    one = doc(rule())
+    two = doc(rule(), rule())
+    root = tree(tmp_path, rules_budget(("docs/a.md", 1)), files={"docs/a.md": two})
+    assert run(root) == 1
+    out = capsys.readouterr().out
+    assert (
+        "budget-check: unenforced:docs/a.md: measured 2 rules is over the ceiling 1 "
+        "by 1. Its unenforced rules are at lines 5, 7."
+    ) in out, out
+
+    base, head = rules_budget(("docs/a.md", 1)), rules_budget(("docs/a.md", 2))
+    root = tree(
+        tmp_path / "raised",
+        head,
+        base=base,
+        base_files={"docs/a.md": one},
+        files={"docs/a.md": two},
+    )
+    assert ratchet(root, "") == 1
+    assert "Budget raised: unenforced:docs/a.md 1 -> 2: <reason>" in (
+        capsys.readouterr().out
+    )
+    line = "Budget raised: unenforced:docs/a.md 1 -> 2: its test comes with #1"
+    assert ratchet(root, line) == 0, capsys.readouterr()
+
+
+def test_a_rule_file_not_listed_is_held_at_zero(tmp_path, capsys):
+    """S3 for a file the table does not list: the family's ceiling is 0, so
+    a new rule file with a rule and no enforcer is named."""
+    root = tree(tmp_path, rules_budget(), files={"docs/b.md": doc(rule())})
+    assert run(root) == 1
+    assert (
+        "docs/b.md is not listed and measures 1 rules, over the 0 every file "
+        "`## Unenforced rules` does not list is held to. Its unenforced rules "
+        "are at lines 5"
+    ) in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "paragraphs, counted",
+    [
+        ([rule()], 1),
+        ([rule("nothing — no case can read it")], 1),
+        ([rule(HELD_CASE)], 0),
+        ([rule(), rule("nothing — no case can read it"), rule(HELD_CASE)], 2),
+    ],
+    ids=["no line", "nothing with a why", "a target", "all three"],
+)
+def test_nothing_is_counted_as_no_enforcer_is(tmp_path, paragraphs, counted):
+    """S4: `nothing — <why>` is allowed and counted, as a paragraph with no
+    `Enforced by:` line is, so the escape moves the number a reviewer sees."""
+    root = tree(tmp_path, None, files={"docs/a.md": doc(*paragraphs), **TESTS})
+    assert budget_check.unenforced_values(str(root), {})["docs/a.md"] == counted
+
+
+@pytest.mark.parametrize(
+    "ceiling, verdict, said",
+    [
+        (1, 1, "the ceiling 1 sits above the band: measured 0 rules"),
+        (0, 0, "every gate row holds"),
+    ],
+    ids=["the row not lowered", "lowered"],
+)
+def test_a_rule_that_gains_its_test_lowers_its_row(
+    tmp_path, capsys, ceiling, verdict, said
+):
+    """S5: a rule that gains a resolving target leaves its row above the band
+    until the same pull request lowers it."""
+    files = {"docs/a.md": doc(rule(HELD_CASE)), **TESTS}
+    root = tree(tmp_path, rules_budget(("docs/a.md", ceiling)), files=files)
+    assert run(root) == verdict
+    assert said in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "text, rules",
+    [
+        ("**A rule.** Why.\n", ["**A rule.** Why."]),
+        ("- **A rule.** Why.\n* **Another.** Why.\n", ["- **A rule.**", "* **Another"]),
+        ("1. **A rule.** Why.\n2. Not one.\n", ["1. **A rule.**"]),
+        ("A sentence that wraps\n**a bold word** to the front.\n", []),
+        ("```\n**A fenced line.**\n```\n", []),
+        ("<!--\n**A comment.**\n-->\n", []),
+        ("| **A cell** | x |\n|---|---|\n", []),
+        ("**A rule.** Why.\n\nEnforced by: tests/x.py\n", ["**A rule.** Why."]),
+        ("- Item.\n\n  **A rule.** Why.\n", ["**A rule.** Why."]),
+        ("Text.\n\n    **An indented code line.**\n", []),
+    ],
+    ids=[
+        "bold",
+        "two list items",
+        "a numbered item",
+        "a wrapped bold word",
+        "a fence",
+        "a comment",
+        "a table",
+        "a line after the blank",
+        "an indented paragraph",
+        "four spaces in",
+    ],
+)
+def test_a_rule_paragraph_opens_a_block_with_a_bold_lead(text, rules):
+    """The grammar #923 states: a rule paragraph opens on `**`, `- **`,
+    `* **` or `N. **`, up to three spaces in, so a list item's continuation
+    paragraph is one, outside fences, comments and tables, and closes at its
+    `Enforced by:` line or its blank line — so a line after the blank is not
+    its enforcer."""
+    found = budget_check.rule_paragraphs(doc(text))
+    assert len(found) == len(rules), found
+    assert [p.first[: len(r)] for p, r in zip(found, rules, strict=True)] == rules
+    assert all(p.enforced is None for p in found), found
+
+
+def test_a_list_items_enforcer_closes_it_and_the_next_item_opens_another():
+    """A list item's `Enforced by:` continuation line is its enforcer, and the
+    next item is a paragraph of its own rather than the first one's tail."""
+    text = doc("- **One.** Why.\n  Enforced by: tests/x.py\n- **Two.** Why.\n")
+    found = budget_check.rule_paragraphs(text)
+    assert [(p.line, p.heading, p.enforced) for p in found] == [
+        (5, "The heading", "tests/x.py"),
+        (7, "The heading", None),
+    ], found
+
+
+def test_the_slice_document_names_what_holds_each_rule():
+    """S6: `docs/the-record-layout.md`, the document phase 1 proves the shape
+    on, has every rule paragraph closed by a target that resolves, so its
+    `unenforced` count is 0 and the budgets file does not list it."""
+    path = "docs/the-record-layout.md"
+    with open(os.path.join(ROOT, path), encoding="utf-8") as handle:
+        found = budget_check.rule_paragraphs(handle.read())
+    assert len(found) >= 7, found
+    assert budget_check.unenforced_values(ROOT, {})[path] == 0, found
+    names = {row.name for row in budget_check.budgets_here(ROOT)}
+    assert f"unenforced:{path}" not in names

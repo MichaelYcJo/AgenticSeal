@@ -28,7 +28,7 @@ A migrating project declares, committed with the repo:
 | Field | Example |
 |---|---|
 | Original repo | org/legacy-api, module `apps/foo` |
-| Baseline commit | SHA the evidence ledger's coordinates refer to |
+| Baseline commit | SHA the original's coordinates refer to |
 | Policy root | `docs/policies/` |
 | Coordinate-trust exceptions | paths whose recorded coordinates need re-verification, and why |
 
@@ -64,13 +64,12 @@ never changes the response needs no reproduction. Check git history too — if
 the original later fixed a behavior, the fix is its final intent; cloning the
 pre-fix version preserves nothing.
 
-## Evidence ledger
+## The original's coordinates
 
-`seal/ledger.md` maps spec clauses to **original**
-coordinates (`path#anchor@hash`). Start every comparison
-there instead of grepping the original; feed newly verified original behavior
-back into the row you used (see `implement`). When a coordinate is suspect,
-open the baseline commit directly: `git show <baseline>:<path>`.
+A spec's Grounding cites the **original**'s coordinates for the clauses in
+scope. Start every comparison there instead of grepping the original, and pin
+what it settles with a test (see `implement`). When a coordinate is suspect,
+open the baseline commit: `git show <baseline>:<path>`.
 
 ## Replacement annotation
 
@@ -85,7 +84,7 @@ additions, with the grounding clause.
 ## Parity review
 
 `code-review` runs as usual with one change of frame: stage 1 compares
-against **the original** (via the ledger's coordinates), not only the written
+against **the original** (via the spec's coordinates), not only the written
 spec, across the same comparison axes. Verdict labels:
 
 ```

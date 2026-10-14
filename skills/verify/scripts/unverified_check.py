@@ -82,13 +82,12 @@ SEPARATOR = re.compile(r"^:?-+:?$")
 # released work item's directory is removed by `settle` once its SDD set has
 # been folded into `docs/`, and the fold's record is the provenance comment
 # the folded prose carries there — the same marker
-# `.github/scripts/fold_ledger.py#marker` and
-# `.github/scripts/gather_changelog.py#marker` write. A record derived from
+# `.github/scripts/gather_changelog.py#marker` writes. A record derived from
 # the destination cannot disagree with the destination, which is why there is
 # no second file for this to read.
 #
-# Line-anchored, for the reason `fold_ledger.py#is_marked` already pays for:
-# every document that describes the convention quotes the marker's shape
+# Line-anchored, because every document that describes the convention quotes
+# the marker's shape
 # inline, and a substring test would read that prose as a fold and excuse a
 # removal nothing absorbed.
 #
@@ -125,7 +124,7 @@ BACKTICKS = re.compile(r"`+")
 # A fence delimiter line, as CommonMark 4.5 spells one: at most three spaces
 # of indentation, a run of three or more backticks or three or more tildes,
 # then the info string. `fence_opener` and `fence_closes` below are the rule
-# the ledger readers and the record readers ask — `fence_opener`'s docstring
+# the coordinate kernel and the record readers ask — `fence_opener`'s docstring
 # lists them, and the readers that still keep a rule of their own — and this
 # pattern is only their first half.
 #
@@ -185,8 +184,8 @@ def gfm_lines(text, keepends=False):
     **Every reader of markdown or record text reads its lines here** (#664):
     `readable` and `folded_items` below, and every script that loads this
     module and splits the same text a second time -- `round_record.py`'s
-    `raw` halves, `fold_check.py`'s marker readers, `gather_changelog.py`
-    and `survivor_check.py`. Two readers of one text that split it two ways
+    `raw` halves, `fold_check.py`'s marker readers and `gather_changelog.py`.
+    Two readers of one text that split it two ways
     disagree about which line an index names, and `round_record.py#swallowed`
     zips the two splits with `strict=True`.
 
@@ -198,10 +197,11 @@ def gfm_lines(text, keepends=False):
     text holding none of the eight the two splits agree, including `""`, a
     trailing newline and a final line with none.
 
-    `skills/evidence-check/scripts/evidence_check.py#gfm_lines` is the
-    vendored copy a checker run alone in a user's `tools/` needs, and
-    `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds the copies
-    equal."""
+    `skills/verify/scripts/coordinates.py#gfm_lines` asks this one, `hooks/blocks.py#gfm_lines` is the copy a hook keeps, and
+    `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds them
+    equal.
+
+    Reads: guess — a person's markdown text its caller hands it; unknown passed"""
     lines = GFM_LINE_RE.findall(text)
     return lines if keepends else [line.rstrip("\r\n") for line in lines]
 
@@ -293,25 +293,14 @@ def fence_opener(line):
     **The readers that ask it.** In this module: `fence_spans` and, through
     it, `blank_fences` and `closed_fence_lines`; `_liveness` and
     `_paragraph_ends_at`; and `todo_open_rows` through `closed_fence_lines`,
-    which `settle.py#open_rows` and `.github/scripts/fold_ledger.py#open_rows`
-    both are. The checker:
-    `skills/evidence-check/scripts/evidence_check.py#quoted_lines`, which its
-    four ledger walks read through, and `#claim_lines`, the records arm's
-    walk, both by way of its `fence_rule`; and `hooks/root-migrate.py#repoint`
-    through `evidence_check.py#unquoted`. The readers #584 brought here:
-    `.github/scripts/fold_ledger.py#fenced_lines` through `fence_spans`,
-    which `#demote`, `#version_headings`, `#section_heading` and `#insert`
-    read through, and its `#live_markers` through `live_lines`;
-    `.github/scripts/gather_changelog.py#live_markers` through `live_lines`,
-    which `#ungathered` and `--check`'s count read through;
-    `skills/evidence-check/scripts/correction_check.py#rows` through
-    `closed_fence_lines`; and `skills/verify/scripts/payload_meter.py#heading_starts`
+    which `settle.py#open_rows` is. The coordinate kernel:
+    `skills/verify/scripts/coordinates.py#quoted_lines`, which its
+    `unquoted` and `markdown_lines` read through. The readers #584 brought
+    here: `.github/scripts/gather_changelog.py#live_markers` through
+    `live_lines`, which `#ungathered` and `--check`'s count read through;
+    and `skills/verify/scripts/payload_meter.py#heading_starts`
     and `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py#headings`,
-    which ask the two functions directly. The readers #658 brought here:
-    `skills/code-review/scripts/survivor_check.py#read_exemptions` through
-    `readable`, which blanks an HTML comment as well as a fence, and either
-    one nobody closed to the end, because excusing a survivor is the silent
-    direction.
+    which ask the two functions directly.
 
     **The readers that keep a rule of their own, each on purpose.** #584
     brought every reader it enumerated here or answered it, and these are the
@@ -340,9 +329,7 @@ def fence_opener(line):
       - `skills/code-review/scripts/round_record.py#fenced_after` applies the
         closer rule and the backtick-info rule by its own pattern and keeps
         a wider opener on purpose, so a fix fenced inside a list item still
-        reaches the record. That file keeps a vendored copy of these two
-        functions for the copy `evidence-ci` puts alone in a user
-        repository, where this module is not beside it. The fence walks in
+        reaches the record. The fence walks in
         `tests/test_docs_line_wrap.py#fenced_numbers` and
         `tests/test_handoff_outlives_the_merge.py#fenced_block_lines` ask
         these two functions with the same wider opener, a line's indentation
@@ -356,8 +343,7 @@ def fence_opener(line):
       - `.github/scripts/claude_block.py` reads two exact whole-line markers
         it writes itself;
       - `tests/test_release_hygiene.py#overwide_rows` keeps no fence state at
-        all, and work item A (#585) decides whether it becomes an arm of
-        `evidence_check.py`;
+        all;
       - the independent walk in `tests/test_unverified_rows_close.py` (around
         `block_ends_at`) is an oracle, kept apart from the rule it checks on
         purpose.
@@ -366,7 +352,8 @@ def fence_opener(line):
     belongs in one of these two lists**, and a reviewer of one has this
     docstring to check it against — nothing else can reach a reader that
     does not exist yet.
-    """
+
+    Reads: guess — one line of a person's markdown its caller hands it; unknown passed"""
     m = FENCE_RE.match(line.rstrip("\r\n"))
     if not m:
         return None
@@ -398,16 +385,18 @@ def fence_spans(lines):
     included, with `last` None for a block that is never closed.
 
     The walk for a reader with no comment or code-span state of its own. A
-    reader that has either — `_liveness`, `claim_lines` — walks with
+    reader that has either — `_liveness` — walks with
     `fence_opener` and `fence_closes` directly, because whether a line can
     open a fence at all depends on the state it began in.
 
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
     to the end, because a gate reading a record treats it as quoted and
     `round_record.py` refuses the record with a named message. A reader of a
-    line that HOLDS something — a ledger anchor, an open row — reads it,
+    line that HOLDS something — a fold marker, an open row — reads it,
     because only a block that closes is certainly a quotation
-    (`docs/the-evidence-ledger.md` §*A marker counts only on a live line*).
+    (`docs/the-record-layout.md`'s *A marker counts only on a live line*).
+
+    Reads: guess — the lines of a person's markdown its caller hands it, by the shared fence rule; unknown mixed
     """
     spans, opener, first = [], None, None
     for n, line in enumerate(lines):
@@ -543,7 +532,7 @@ def heading_level(line):
     **It reads one line, so the lines it is asked of are the caller's
     business.** A renderer shows a heading only where the line is shown, so
     every reader asks it of lines with fenced blocks blanked — `readable`'s
-    here, `evidence_check.py#unquoted`'s in the checker — and a `## B`
+    here, `coordinates.py#unquoted`'s in the kernel — and a `## B`
     quoted in a closed fence is never asked. Setext headings are not read:
     every one markdown-it finds in this repository is a front-matter line
     under its `---` closer, which GitHub renders as a table.
@@ -556,7 +545,10 @@ def heading_level(line):
     `chain_check.py`, as `^#{1,6}\\s` in the checker and the payload meter,
     and as a pattern in `fold_check.py`; the first two read a `#NNN`-led
     line as a heading and ended a `## Not verified` or `## Verdicts` section
-    there."""
+    there.
+
+    Reads: owned — one line a caller handed in, held to CommonMark 4.2's ATX rule; unknown passed
+    """
     indent = len(line) - len(line.lstrip(" "))
     if indent > 3:
         return None
@@ -652,14 +644,13 @@ def live_lines(lines):
     Reads: guess — markdown lines, under two readings of a block model nobody computes; unknown mixed
 
     A line that excuses something is not taken on doubt, the second of the
-    three answers `docs/the-evidence-ledger.md` §*The fold, and what tells
+    three answers `docs/the-record-layout.md` §*The fold, and what tells
     it from a deletion* gives: what this parks, the fold and `settle` refuse
     as a deletion at exit 1 and a kept directory, and the changelog gather
-    and the ledger fold pass as a line holding no marker.
+    passes as a line holding no marker.
 
     **The one rule for whether a line is live, and every reader of the fold
-    record and of the ledger sections asks it here** — `folded_items` below
-    and both loops of `skills/settle/scripts/settle.py#coordinates`. A line
+    record asks it here** — `folded_items` below. A line
     begins live when it begins outside a fenced block, outside an HTML
     comment and outside a code span. The line is handed back unchanged; what
     a caller reads out of it — a marker, a coordinate — lives inside
@@ -703,24 +694,21 @@ def live_lines(lines):
     Reference definitions, link destinations, raw HTML blocks and entity
     references are not modelled and none can hold a fold marker on a line of
     its own. Markdown's indented code block is the one deliberate omission
-    with a shape that could: `skills/settle/scripts/settle.py#coordinates`
-    names it and
-    `tests/test_settle_reads_before_it_removes.py#test_an_indented_example_row_is_counted_and_the_reader_says_so`
-    pins the decision.
+    with a shape that could, and `FOLD_MARKER` is line-anchored, so a marker
+    indented four spaces is not read as one.
 
     **What this may not touch.** `comment_scan`, `strip_comments`,
     `blank_fences` and `readable` serve the other gates — `check_text`,
     `round_record.py`, `chain_check.py`, the review-history guard — and
-    `seal/ledger.md` pins `strip_comments`'s exact output while
     `tests/test_chain_hooks.py#reader_blanking_passes` pins the passes
     `readable` makes. None of them is on this path. What this scan and
     `blank_fences` DO share is the fence delimiter, `fence_opener` and
     `fence_closes`, because two spellings of it is what #491 found: the
     three-space bound had landed here and not one function over. They share
     the line split too: `readable` and every caller that hands this lines
-    split the text with `gfm_lines` (#664), except the `fold_ledger.py` and
-    `settle.py` callers, which split newline-translated text on `"\\n"` for a
-    byte-for-byte round trip and end a line where GFM does already.
+    split the text with `gfm_lines` (#664), except the `settle.py` caller,
+    which splits newline-translated text on `"\\n"` for a byte-for-byte round
+    trip and ends a line where GFM does already.
 
     No `zip`. Ruff's B905 requires the strictness keyword on every such call,
     that keyword arrived in python 3.10, and this script carries no
@@ -741,11 +729,11 @@ def live_lines(lines):
 def readable(text):
     """The lines a reader should judge: no comment text, no fenced blocks.
 
-    Reads: guess — a record's lines, a round record, an `overview.md` or a `survivors.md`; unknown mixed
+    Reads: guess — a record's lines, a round record or an `overview.md`; unknown mixed
 
     A line a record's rows are counted on is blanked the same way on both
     sides of a comparison, the third of the three answers
-    `docs/the-evidence-ledger.md` §*The fold, and what tells it from a
+    `docs/the-record-layout.md` §*The fold, and what tells it from a
     deletion* gives: a region nobody closed is blanked to the end, and the
     readers that judge a record refuse the table it hid as absent, while
     `broad_gate.py`'s label, which never stops a sealed run, is drawn
@@ -1328,15 +1316,14 @@ def folded_items(root):
 # condition the frame recorded as a judgment the owner may overturn — nothing
 # in its record may still be open. These are the files the arm reads.
 SPEC = "spec.md"
-EVIDENCE_TODO = "evidence-todo.md"
-# The evidence-todo rule's two row shapes. `SEPARATOR` above reads one cell;
-# these read a whole line, which is what the evidence-todo reader walks.
+# The todo rule's two row shapes. `SEPARATOR` above reads one cell; these
+# read a whole line, which is what the todo reader walks.
 TODO_SEPARATOR_RE = re.compile(r"^\|(\s*:?-+:?\s*\|)+\s*$")
 DRAINED_RE = re.compile(r"^[\s*_]*drained\b", re.IGNORECASE)
 
 
 def todo_open_rows(text):
-    """Table body rows of an evidence-todo file that are still open.
+    """Table body rows of a todo file that are still open.
 
     The rule, so a person can apply it by hand: a LIVE line outside a table
     whose first word is `drained` closes the whole file; otherwise every body
@@ -1358,15 +1345,10 @@ def todo_open_rows(text):
     form feed, so a cell holding one of those followed by `drained` closed the
     file — the silent direction for a guard.
 
-    **It lives here because the rule arm's predicate reads it, and it is the
-    one spelling there is.** `skills/settle/scripts/settle.py#open_rows` asks
-    this function, and so does `.github/scripts/fold_ledger.py#open_rows`,
-    which loads this module by path the way `.github/scripts/rider_check.py`
-    loads the shipped checker. That script used to keep a copy on the ground
-    that release automation and a shipped script may not depend on each
-    other; `rider_check.py` had already taken that direction, and nothing
-    held the two copies in step (#487).
-    """
+    **It is the one spelling there is.** `skills/settle/scripts/settle.py#open_rows`
+    asks this function for a `tests-todo.md` (#487).
+
+    Reads: guess — a todo file's text its caller hands it; unknown passed"""
     lines = text.split("\n")
     live = [flag for _, flag in live_lines(lines)]
     quoted = closed_fence_lines(lines)
@@ -1398,9 +1380,7 @@ def tree_at(root, ref, directory):
     """Repo-relative paths under `directory` at `ref`; the disk when `ref` is
     None. `directory` is `/`-joined, and so is every path returned.
 
-    Public because `survivor_check.py` asks it whether a directory is gone at
-    the right end of its range, which keeps that module's own path-listing
-    call sites at the count its case holds them to."""
+    Reads: observed — the paths git holds at `ref`, or the disk; unknown passed"""
     if ref is None:
         top = under_root(root, directory)
         out = []
@@ -1434,16 +1414,17 @@ def open_record_rows(root, ref, directory):
     """`[(file, what is open)]` for a work item's record at `ref`.
 
     The rows the rule arm refuses to take with a directory: every open item in
-    `overview.md`'s `## Not verified`, and every open row of
-    `evidence-todo.md`. Each is a claim with an answerer rather than a rule,
-    and #514's frame measured the loss this prevents — the only record that a
-    production workflow was red sat in a retiring overview (its L2).
+    `overview.md`'s `## Not verified`. Each is a claim with an answerer rather
+    than a rule, and #514's frame measured the loss this prevents — the only
+    record that a production workflow was red sat in a retiring overview (its
+    L2).
 
     An overview whose section cannot be read is one entry saying so, never
     zero rows: a count this cannot read is not a count of nothing, which is
     the rule `check_text` above is written to. A base revision is read with
     the same relaxations the `--baseline` comparison gives it.
-    """
+
+    Reads: guess — a work item's `overview.md` at `ref`, through `check_text`; unknown mixed"""
     found = []
     overview = _text_at(root, ref, f"{directory}/{OVERVIEW}")
     if overview is not None:
@@ -1457,10 +1438,6 @@ def open_record_rows(root, ref, directory):
             found.append((OVERVIEW, f"cannot be read ({errors[0][1]})"))
         for _, item, _who in rows:
             found.append((OVERVIEW, item))
-    todo = _text_at(root, ref, f"{directory}/{EVIDENCE_TODO}")
-    if todo is not None:
-        for row in todo_open_rows(todo):
-            found.append((EVIDENCE_TODO, row.strip()))
     return found
 
 
@@ -1468,10 +1445,9 @@ def retired_by_rule(root, ref, directory):
     """Whether the rule arm may retire `directory` as it stood at `ref`.
 
     **The one predicate, and every reader of a retirement asks it here**:
-    `settle` of the working tree (`ref` None), and `--baseline` below,
-    `chain_check.py --baseline` and `survivor_check.py --range` of the
-    merge-base they already compute. `plan.md` §*What breaks in six months*
-    is why it is not spelled in each: the next condition added to it would
+    `settle` of the working tree (`ref` None), and `--baseline` below and
+    `chain_check.py --baseline` of the merge-base they already compute.
+    `plan.md` §*What breaks in six months* is why it is not spelled in each: the next condition added to it would
     land in one reader and not the others, and the first sign would be a fold
     pull request red in CI after `settle --retire` said the removal was fine.
 
@@ -1486,7 +1462,8 @@ def retired_by_rule(root, ref, directory):
     pull request that has already merged, and the directory in the next still
     reads as a deletion. That is what makes this a rule about what the work
     item was, rather than about what it was left looking like.
-    """
+
+    Reads: observed — the tree git holds at `ref`, or the disk; unknown passed"""
     paths = tree_at(root, ref, directory)
     if not paths:
         return False
@@ -1592,14 +1569,15 @@ def show(root, ref, rel):
 
 
 def annotate(kind, path, line, message):
-    """A GitHub annotation in CI, a plain line anywhere else."""
+    """A GitHub annotation in CI, a plain line anywhere else.
+
+    Reads: observed — the `GITHUB_ACTIONS` environment variable; unknown passed"""
     if os.environ.get("GITHUB_ACTIONS"):
         # An annotation is matched against the diff by path, and GitHub spells
         # those the way git does. Every caller passes `display_path` output,
         # which is `os.sep`-spelled on purpose -- right for a line a person
         # reads, wrong for this. Unreachable while `hygiene.yml` pins
-        # `ubuntu-latest`; live the moment these tools run on the Windows leg,
-        # which is what the decision in `seal/ledger.md` points at.
+        # `ubuntu-latest`; live the moment these tools run on the Windows leg.
         where = f" file={git_path(path)},line={line}" if path else ""
         return f"::{kind}{where}::{message}"
     return f"{path}:{line}  {message}" if path else message

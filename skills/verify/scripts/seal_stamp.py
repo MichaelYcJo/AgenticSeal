@@ -6,7 +6,7 @@ side on the terminal's own background, and nothing else: at the left a wax
 disc with the disc's mark pressed into it, and three columns right of it
 the panel's text — a bold red `SEALED` and a dim rule, then what the gate
 read: the tree and its branch, the base and its ref, the work item, the
-suite's counts, the ledger's, the chain's exit, the steps CI also runs, the
+suite's counts, the chain's exit, the steps CI also runs, the
 rounds (`broad_gate.panel` owns the list). The disc is COMPUTED — `hypot`
 for its edge, its rim and its groove — and only the disc's mark is
 authored: a 28 x 28 chart in `seal-mark.txt` beside this file, read as data
@@ -659,11 +659,13 @@ def not_sealed(tree, base, failures, branch=None, ref=None):
     `failures` is a list of `(name, lines)` — the check that failed and the
     first lines of what it printed, as the gate kept them. `branch` and `ref`
     None leave their half out, which is the line a caller that names neither
-    has always got."""
+    has always got.
+
+    Reads: owned — the failing checks' first lines the gate kept; unknown passed"""
     out = [f"NOT SEALED   {sealed_names(tree, base, branch, ref)}", ""]
-    # The widest name present, not a literal 8: `survivors` is nine
-    # characters, so that one check's first line sat a column out from every
-    # other check's.
+    # The widest name present, not a literal 8: `unverified` is ten
+    # characters, so a fixed pad sets that one check's first line a column
+    # out from every other check's.
     pad = max([len(name) for name, _ in failures] + [8])
     for name, lines in failures:
         lines = list(lines) or ["(no output)"]
@@ -866,16 +868,11 @@ def label(values):
 
 # Neutral values in the panel's shape, so `seal-stamp` shows a person what the
 # gate will print without a gate having run — every row `broad_gate.panel`
-# can return, the conditional ones included, in its order. It read `lint
-# clean` from #400 to #666, which the real panel's own comment refuses as a
-# counterfeit, because nothing held the two lists together; a case in
+# can return, the conditional ones included, in its order; a case in
 # `tests/test_the_seal_is_taken_once_by_the_sealer.py` holds the labels
-# against `panel`'s now. #717 took the blank row, `chain`, the suite's `exit`
-# and the ledger's `drifted` out of it, because `panel` returned none of them.
-# Since #832 it carries the blank row, `chain` and the ledger's three counts
-# again, in the owner's shapes of 2026-10-07: the ref beside its commit, a
-# `✓` on a result row, ` · ` and `→` between parts, a dim `·` before a row
-# that is not a pass.
+# against `panel`'s. The shapes are the owner's of 2026-10-07: the ref beside
+# its commit, a `✓` on a result row, ` · ` and `→` between parts, a dim `·`
+# before a row that is not a pass.
 SAMPLE_ROWS = [
     ("SEALED", ""),
     ("tree", "c46fd2d"),
@@ -885,7 +882,6 @@ SAMPLE_ROWS = [
     ("gate", "tree 1.2.3"),
     None,
     ("suite", "✓ 768 passed · 1 skipped"),
-    ("ledger", "✓ 187 ok · 0 drifted · 0 broken"),
     ("chain", "✓ exit 0"),
     ("CI also", "· 4 more steps"),
     ("rounds", "3 · capped"),

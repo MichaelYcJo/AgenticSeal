@@ -474,9 +474,7 @@ CLASSIFIED = {
         "guarded -- it refuses at entry with a sentence naming the floor"
     ),
     ".github/scripts/gather_changelog.py": "deferred, seal/follow-up.md (#226)",
-    ".github/scripts/fold_ledger.py": "deferred, seal/follow-up.md (#226)",
     "skills/implement/scripts/seal.py": "deferred, seal/follow-up.md (#226)",
-    "hooks/root-migrate.py": "deferred, seal/follow-up.md (#226)",
     "skills/verify/scripts/session_cost.py": "deferred, seal/follow-up.md (#226)",
 }
 

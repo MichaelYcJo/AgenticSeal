@@ -84,7 +84,7 @@ Enforced by: tests/test_a_reader_declares_its_input_class.py::test_nothing_besid
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
 **A module body that reads outside every unit declares in its module
 docstring.** Statements outside any `def` or `class` belong to no unit and
-have no ledger spelling, so this is the one place K1 selects: a module whose
+have no `path#unit` spelling, so this is the one place K1 selects: a module whose
 body makes a K1 call declares for the body with the same line, and one whose
 body makes none owes nothing. A module-level read through a call K1 does not
 list is unseen, and it is the whole of what stays quiet in the first rule.
@@ -95,8 +95,8 @@ Enforced by: tests/test_a_reader_declares_its_input_class.py::test_a_module_body
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
 **`tests/undeclared_readers.txt` lists every unit undeclared when the rule
 landed, and a listed unit owes nothing until it changes.** Each line is
-`path#unit@hash`, the ledger's own spelling and hash
-(`evidence_check.py`'s `py_spans` and `content_hash`), so a changed unit is a
+`path#unit@hash`, the coordinate kernel's spelling and hash
+(`coordinates.py`'s `py_spans` and `content_hash`), so a changed unit is a
 moved hash, and the check says to declare it and remove its line. A line
 naming a unit that is gone, renamed, declared since or outside the population
 is refused, and so is a line outside the grammar. The census need not empty
@@ -114,40 +114,16 @@ Enforced by: tests/test_a_reader_declares_its_input_class.py::test_a_changed_cen
 
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
 **A `spec.md`'s `## Removes` section lists what the work takes out of the
-tree, and each row is read as a claim of absence.** A row's coordinate is the
-ledger's grammar without a hash: a function or class in a `.py` file, a
-heading path in a `.md` file, a quoted line anywhere else. `evidence-check`'s
-records arm reads the section in every live frame: a coordinate that still
-resolves is `STANDING`, and a cell the ledger would refuse is `REFUSED`, never
-read as gone — a cell that is no coordinate, a test's node id, a bare symbol
-in a file no parser bounds, a path that escapes the tree, walks through `..`
-or carries an empty or `.` segment after its first, a path that is there and
-will not read as a file, and a path carrying a `--map` prefix. A row is read in this tree and nowhere else, so neither the
-original a migration declares nor a mapped checkout answers for it; a
-directory of this tree that carries a map's name is written `./<path>`. Both
-exit 2, as a stated name the tree lacks does. A work item removing nothing
-writes `nothing — <why>`. The names on the section's lines are not read as
-stated names, because the section exists to say they are gone.
-
-The per-phase removal table this replaces recorded the same fact once per
-phase and was read by nothing. A removal a phase makes that the frame did not
-name is a divergence, and it goes to `overview.md`.
-Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_a_named_removal_that_still_stands_is_standing, tests/test_a_record_states_what_the_tree_has.py::test_a_cell_that_is_no_coordinate_is_refused_naming_the_row, tests/test_a_record_states_what_the_tree_has.py::test_a_bare_symbol_no_rule_bounds_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_coordinate_that_does_not_read_is_refused_never_read_as_gone, tests/test_a_record_states_what_the_tree_has.py::test_a_removal_is_read_in_this_tree_never_in_another_checkout, tests/test_a_record_states_what_the_tree_has.py::test_a_path_through_dot_dot_is_refused_never_read_as_gone
-
-<!-- specs/1791384152-a-reader-declares-its-input-class -->
-**Where `seal/config.md` declares `Removes from`, every frame at or above
-that work-item id carries the section.** The row is read by the same reader
-as `Ledger frozen from`: absent means presence is not checked, and a value
-that is not an id is refused naming the row. A frame below the cutoff is read
-where the section is present and not required. `templates/config.md`
-documents the row, and this repository's value is the second it was written,
-so no work item framed before it is bound.
-Enforced by: tests/test_a_record_states_what_the_tree_has.py::test_presence_is_required_at_or_above_the_cutoff, tests/test_a_released_row_is_read_again_in_a_fragment.py::test_a_removes_row_that_is_not_an_id_is_refused_in_the_freezes_shape
+tree, and the review reads it against the diff.** Each row names the thing,
+the coordinate it stood at, and where it lands or why it can go. A work item
+removing nothing writes `nothing — <why>`. A removal a phase makes that the
+frame did not name is a divergence, and it goes to `overview.md`.
+Enforced by: tests/test_a_phase_hands_the_next_one_a_record.py::test_the_spec_template_carries_the_removes_section_above_the_mark, tests/test_a_phase_hands_the_next_one_a_record.py::test_the_framer_is_told_it_writes_the_removes_section
 
 ## What neither check can read
 
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
-**Seven things pass both checks, and the reviewer is the reader of each.**
+**Six things pass the check, and the reviewer is the reader of each.**
 Stated so nobody meets the edge by surprise:
 
 1. A false declaration: `nothing` on a unit reading through a call K1 does
@@ -163,8 +139,6 @@ Stated so nobody meets the edge by surprise:
    read at its callers, so the helper's hash does not move and the diff the
    warden reads does not show its line.
 6. A census line put back by hand.
-7. A `## Removes` coordinate that never existed: the arm reads HEAD, and a
-   misspelled Python name reads as a removal that happened.
 
 Enforced by: nothing — each is the warden's reading of the diff at review, which is where a `Reads:` line and a `## Removes` row are argued
 
@@ -175,6 +149,4 @@ tree, 632 of them calling a K1 primitive as K1 stands after its first review
 (621 by the list as framed) and 194 with no docstring; two
 module bodies K1 selects; 1,683 non-test top-level functions inside the test
 modules, out by the file-name rule. Every one of the 1,587 started on the
-census. 943 of them carry 2,392 anchors in the released ledger files and 247
-carry 691 in the live fragments, which is what a docstring line written on
-each would drift. Read at 2fc65bea, the tree every sibling of #835 left.
+census. Read at 2fc65bea, the tree every sibling of #835 left.

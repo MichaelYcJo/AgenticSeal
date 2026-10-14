@@ -71,42 +71,14 @@ what to open from a clone with the plugin disabled. Every sentence below that
 says `round_record.py <something>` is describing that script, not naming a
 file you have to go and find.
 
-**Then ask what the fixes left standing, with the same range.**
-
-```
-survivor-check --range <a>..<b> --exempt seal/specs/<work-item-id>/survivors.md
-```
-
-A fix repairs the coordinate a finding named. The fact the finding was about is
-usually stated in more than one place, so the other statements survive and
-arrive as a later round — that is contract §12, and it has been re-broken seven
-times by parties that had read it. This reports every place at the range's tip
-still carrying wording the range removed, names each with the standing text and
-the corrected sentence it matched, and exits 1 while one is unanswered.
-
-Two things make it the fix pass's step rather than a round's. **No round can
-run it**: §2 leaves the broad gate to whichever definition assigns it, and no
-reviewer's does — a round is structurally unable to see what its own fix pass
-leaves behind. #269 is one sentence reworded
-whose pin stayed behind in a test module that was red from that commit through
-two rounds and past two gates. And **the range is already typed** — it is
-`close`'s own `--range`, so nothing new has to be worked out to run this.
-
-Each report is corrected, or answered in `survivors.md` with a quote from the
-standing text and the grounds. The quote is the anchor, so an exemption stops
-holding the moment the text changes.
-
-**A range that DELETES a shipped section gets one row for the whole range
-(#297)**, `| Range | Grounds |`, because per-survivor rows do not scale to
-that case: every sentence of the section stands in the durable copies that
-are supposed to survive a deletion, and #293's range reported 153 of them,
-all correct as reports and none a defect. That row is anchored on the range
-**and** on the work item it lives in — it stops holding over a different
-range, and it never reaches a range that touches nothing in its own work
-item (in local mode, one whose tip is off the branch that work item's
-`routing.md` names), because `origin/<base>...HEAD` re-resolves per
-checkout and one merged row would otherwise excuse every later branch cut
-from the same base. The grounds are still a written sentence somebody reads.
+**Then ask what the fixes left standing.** A fix repairs the coordinate a
+finding named, and the fact the finding was about is usually stated in more
+than one place, so the other statements survive and arrive as a later round —
+that is contract §12. The fix pass finds them: for each rule its range
+reworded or removed, every other place stating it is found by its words and
+by the `Enforced by:` target that holds it, and corrected, or named in the
+hand-back with why it stands. The round that follows reads that list against
+the diff.
 
 **The half of a prompt that does not change between rounds is not yours to
 type.** `skills/agent-contract/SKILL.md` reaches every agent you spawn at
@@ -193,10 +165,9 @@ it was considered and rejected. A verifying round that raises a 🟡 the smith
 answers with grounds has opened nothing needing a fix, and the run ends there.
 
 **A finding located in a record is a correction, not a round.** A finding
-whose `Location` is under `seal/specs/`, `seal/ledger/`, `seal/releases/` or
-`seal/ledger.md` owes no fix pass and no reader: what `chain_check` or
-`evidence_check` refuses is corrected in the closing commit, and what neither
-reads is prose, a ⬜ like any other. `Needs a fix` does not count it.
+whose `Location` is under `seal/specs/` owes no fix pass and no reader: what
+`chain_check` refuses is corrected in the closing commit, and what it does not
+read is prose, a ⬜ like any other. `Needs a fix` does not count it.
 `docs/review-chain-spec.md` §*The last round verifies* owns the rule and the
 count behind it — 33 of the last branch's 65 findings were located in records.
 The section below says when a ⬜ closes: once, at the run's end.
@@ -571,33 +542,6 @@ record already committed.
 **It is an answer, not a way around the sequence.** Reaching for it every round
 is the failure the row's own design anticipates, and the repair is one command
 earlier: commit the record when `new` writes it.
-
-### The check a round runs reads everything, and only a write is narrowed
-
-`evidence-check` takes `--ledger`, and the flag is right for one of its two
-jobs and blinding for the other. Hand the round the unscoped read, and keep
-the narrowing for the write:
-
-| The form | What it is for |
-|---|---|
-| `evidence_check.py .`, no `--ledger` | **reading.** It opens `seal/ledger.md` and every fragment, which is the only way a branch learns it falsified a row it does not own — and those are the rows with the longest reach, cited by work that shipped releases ago |
-| `evidence_check.py --ledger '<this work item's fragment>' --reverify --checked <YYYY-MM-DD> .` | **writing.** `--reverify` re-stamps every drifted row it reads, and `--checked` dates each one as re-read that day, so the narrowing is what keeps it off a row whose claim somebody else has to judge, and keeps that date off it too |
-
-Measured (#153): one work item's three review rounds and two fix passes all
-ran the scoped form and all reported a clean ledger. The unscoped read at the
-pull request found **fifteen drifted rows and one broken claim** — a row this
-repository's own rule says must be removed rather than re-pointed, which
-nobody had been told they had falsified.
-
-Neither instruction was wrong about its own subject. Scoping was the
-correction that shipped, for the write; it was then carried into the read,
-where it blinds. So do not answer this by deleting the narrowing — that puts
-`--reverify` back onto somebody else's false claim, which is the defect the
-scoping was adopted to fix.
-
-A session that narrows on its own initiative reads none of the above, which
-is why the tool announces it too: a `--ledger` run names the ledgers it did
-not read, and says how to read them.
 
 ## Orchestrator: the pull request opens before round 1, and a phase is re-run
 

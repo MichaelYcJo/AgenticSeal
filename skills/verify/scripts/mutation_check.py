@@ -73,7 +73,7 @@ interpreter's tag, and on the machine this was built on `python3` is 3.14
 while `bin/test`'s virtualenv reads 3.13.
 
 **`arm_check.py` is reached by path, not through `sys.path`.** Both
-functions this uses are its own, ledgered there, and a second copy is how two
+functions this uses are its own, and a second copy is how two
 loops come to disagree. A bare `from arm_check import ...` would resolve only
 while this file is run by its path with `PYTHONSAFEPATH` unset, and a case
 loading this file by an `importlib` spec meets neither condition. Every other

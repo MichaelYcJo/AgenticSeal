@@ -53,7 +53,7 @@ instead of re-inventing it.
 
 An absence you cannot demonstrate that way is `unverified` and reads "not
 found", which is a different sentence from "not there". Never promote one to
-a document — a policy or a ledger row built on a search nobody could repeat
+a document — a policy or a rule built on a search nobody could repeat
 is the same defect as a `read` reported as passing, with a longer fuse.
 
 #### `arm-check` asks condition 2 of a whole module, one arm at a time
@@ -217,8 +217,7 @@ command.
 
 Evidence attaches to a tree state, not to a session. Note the state the
 proof ran against (commit + dirty files); **any edit after the run breaks
-your seal** — re-run, don't re-tell. Same drift logic the evidence ledger
-applies to spec coordinates, applied to your own claims.
+your seal** — re-run, don't re-tell.
 
 ### 4. Executed, read, or unverified — labeled
 
@@ -425,8 +424,7 @@ Moving it ahead of the rounds means paying it twice.
 **Which base, and it is the one the merge is judged by.** The gate resolves
 `--base` once, before anything runs, to the ref CI will read: the base's
 upstream where the checkout declares one, else `origin/<base>`, else the ref
-as given. Every check it runs takes that one commit — the survivor range, the
-two baselines, the scratch worktree the base comparison checks out, and the
+as given. Every check it runs takes that one commit — the two baselines, the scratch worktree the base comparison checks out, and the
 `Broad gate` cell. A plain branch name is a LOCAL ref and a runner has no
 local branches, so a checkout one commit behind its remote used to seal green
 over a question nobody was asking while CI refused the same commit (#423).
@@ -460,29 +458,23 @@ because a number alone sends the reader back to the two files this
 declaration exists to stop them opening. A repository with no such workflow
 sees neither, and nothing else about its run changes. Both are counted over
 the steps CI runs for the base (#666): a step CI does not ask of this pull
-request — four of SpecSeal's run only on a pull request into `main`, and two
-are skipped there — is neither answered nor unanswered, so the count leaves
-it out and the line says how many it left out and why. A feature seal of
-SpecSeal itself reads `CI also · 5 more steps`, and the line says they are
-five of the ten CI runs for that base (#717); before #666 the panel read
-`8 of 13`, over four steps no run of that pull request would ask.
+request — three of SpecSeal's run only on a pull request into `main` — is
+neither answered nor unanswered, so the count leaves it out and the line says
+how many it left out and why. A feature seal of SpecSeal itself reads `CI
+also · 5 more steps`, and the line says they are five of the eight CI runs
+for that base.
 
 **What the count does not say** is whether a mirrored arm asks the same
 question its step asks. The partition says a step is on the list; two readers
-of one question can still disagree about what they are checking. **#473 is
-the work item about that class**, and it opened with one live instance in the
-repository this plugin is developed in. The gate ran the `survivors` and
-`corrections` arms on a `main` base, where SpecSeal's own workflow skips both
-steps. That instance is closed: where the base names `main` and the gated
-repository's workflow carries those steps, the gate leaves both arms out and
-says so (`broad_gate.py#SKIPPED_AT_MAIN`). A case holds that list against the
-workflow's guards, and a second case holds `broad_gate.py#ONLY_AT_MAIN`, the
-steps that run only into `main`, against the opposite guard the same way. The
-cases read a guard on the base and no other kind of condition, so the class
-stays open for the next kind.
+of one question can still disagree about what they are checking (#473). The
+gate runs every arm at every base, and a case holds that no mirrored step of
+SpecSeal's workflow skips a pull request into `main`; a second case holds
+`broad_gate.py#ONLY_AT_MAIN`, the steps that run only into `main`, against
+their guard. The cases read a guard on the base and no other kind of
+condition, so the class stays open for the next kind.
 
-**The arms the plugin ships are the arms the gate can run.** Five steps of
-SpecSeal's own `release` job have a local answer and no arm: four run a
+**The arms the plugin ships are the arms the gate can run.** Four steps of
+SpecSeal's own `release` job have a local answer and no arm: three run a
 script under `.github/scripts/`, which no plugin ships, and one is shell
 written inline in the workflow with no script either side can share. A
 repository that wants checks of its own sealed names them in the `Broad gate`
@@ -704,10 +696,10 @@ the label has any history at all:
 
 **`flow-baseline` splits the same way, and for the same reason.** Run the
 `--state all` lookup against it too. No issue has ever carried the label and
-this repository simply has no durable ledger: post the segment's own numbers
+this repository simply has no durable log: post the segment's own numbers
 to the rolling log, and leave the cross-version reading in the record that
 would have cited it. The label has a history and nothing is open, and
-somebody closed the durable ledger — name that, in the same handover and on
+somebody closed the durable log — name that, in the same handover and on
 the same grounds, and open nothing. Folding the second into the first is
 what sends a cross-version reading nowhere while everything looks fine.
 
@@ -956,7 +948,7 @@ gathers up.
 | Wall clock, routing commit to last record, build and chain apart | `git log` of the branch |
 | Commits, by kind | `git log --format=%s` |
 | Findings by severity | the records' verdict tables |
-| Findings by `Location`: record · code or tests · docs | the records' `Location` column. A record is anything under `seal/specs/`, `seal/ledger/`, `seal/releases/` or `seal/ledger.md` — the work item's own documents, the ledger, its release files and its fragments alike — because a finding in any of them is about the run's own paperwork rather than about the tool. Those four paths, not the whole of `seal/`: the root also holds `config.md`, `follow-up.md` and `README.md`, which are the repository's own and belong under `docs` |
+| Findings by `Location`: record · code or tests · docs | the records' `Location` column. A record is anything under `seal/specs/` — the work item's own documents — because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: the root also holds `config.md`, `follow-up.md` and `README.md`, which are the repository's own and belong under `docs` |
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
 | Model turns · output tokens · cache write · cache read | `session_cost.py`'s token line over the run's main transcript |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |

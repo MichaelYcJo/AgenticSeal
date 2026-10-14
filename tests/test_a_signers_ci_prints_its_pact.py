@@ -2,9 +2,8 @@
 
 #647's decision 2: there is no CI token, so a signer's pull request can
 read only its own repository. `chain_check.py` therefore prints the
-relationship its `seal/config.md` records -- the pact's repository, the
-notify value, how many pact anchors the declared work item's `spec.md`
-carries -- and says that `pact-check`, run at the pact's repository, is where
+relationship its `seal/config.md` records -- the pact's repository and how
+many pact anchors the declared work item's `spec.md` carries -- and says that `pact-check`, run at the pact's repository, is where
 the reconciliation runs. **No exit status moves on any of it**: a row that
 will not parse and an anchor naming an undeclared pact are notices too
 (S5 and S6 of the work item's `spec.md`).
@@ -148,9 +147,8 @@ def test_a_signer_prints_its_pact_and_its_exit_status_does_not_move(tmp_path, pa
     plain_code, plain_out = run(plain)
     assert code == plain_code == (0 if passed else 1), (out, plain_out)
     assert (
-        f"this repository signs the pact held at {PACT_URL} (`Pact notify`: "
-        "when the pact is touched). 2 pact anchors naming `orders-api` in "
-        f"{ITEM}/spec.md. {NOT_HERE}"
+        f"this repository signs the pact held at {PACT_URL}. 2 pact anchors "
+        f"naming `orders-api` in {ITEM}/spec.md. {NOT_HERE}"
     ) in out, out
     assert "signs the pact" not in plain_out, plain_out
 
@@ -176,16 +174,11 @@ def test_a_pull_request_declaring_nothing_still_prints_the_pact(tmp_path):
             "a `Pact` row this CI does not verify: `orders-api` is not a remote URL",
         ),
         (
-            [("Pact", PACT_URL), ("Pact notify", "sometimes")],
-            "a `Pact` row this CI does not verify: `Pact notify | sometimes` "
-            "is not one of `always`, `when the pact is touched`, `never`",
-        ),
-        (
-            [("Pact", PACT_URL), ("Pact notify", "never"), ("Pact notify", "always")],
-            "(`Pact notify`: a value that will not parse)",
+            [("Pact", "git@example.com:org/a.git"), ("Pact", PACT_URL)],
+            "a `Pact` row this CI does not verify: `Pact` appears 2 times — one value",
         ),
     ],
-    ids=["not a url", "notify outside the vocabulary", "notify written twice"],
+    ids=["not a url", "written twice"],
 )
 def test_a_row_that_will_not_parse_is_a_notice_and_never_a_failure(
     tmp_path, rows, said
@@ -223,22 +216,17 @@ def test_a_config_that_will_not_read_is_a_notice_and_never_a_crash(tmp_path, whe
     assert "signs the pact" not in out, out
 
 
-def test_s8_a_notify_row_below_the_table_is_a_notice_naming_it(tmp_path):
-    """S8 of #759. A `Pact notify` row the table walk does not reach is
-    refused by the reader; here that is a notice carrying the sentence, the
-    notify prints as no value, and the exit status does not move."""
-    rows = config(("Pact", PACT_URL)) + "\n| Pact notify | always |\n"
+def test_a_pact_notify_row_an_earlier_release_read_is_no_notice(tmp_path):
+    """`templates/config.md` §*Pact*: a `Pact notify` row left in the table
+    is read by nobody, so the signer's notice is the one a tree without it
+    prints, and no notice names the row. Seen red against the reader that
+    still refused a value outside the old vocabulary."""
+    rows = config(("Pact", PACT_URL), ("Pact notify", "sometimes"))
     code, out = run(tree(tmp_path, "signed", rows, SPEC))
     plain_code, _ = run(tree(tmp_path, "plain", config(), SPEC))
     assert code == plain_code == 0, out
-    assert (
-        "a `Pact` row this CI does not verify: `| Pact notify | always |` "
-        "names a pact and is not a `Pact` or `Pact notify` row in the one "
-        "spelling read: write it as `| Pact | … |` or `| Pact notify | … |` "
-        "inside the `| Item | Value |` table, or take it out of this file. "
-        "Printed rather than refused"
-    ) in out, out
-    assert "(`Pact notify`: a value that will not parse)" in out, out
+    assert f"this repository signs the pact held at {PACT_URL}. 1 pact" in out, out
+    assert "does not verify" not in out and "`Pact notify`" not in out, out
 
 
 def test_an_anchor_naming_an_undeclared_pact_is_a_notice(tmp_path):

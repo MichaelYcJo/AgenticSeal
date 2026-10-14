@@ -308,18 +308,18 @@ def test_the_sections_opening_sentence_names_no_single_destination():
 
 def test_the_durable_log_gets_the_same_two_zeroes():
     """The section gives both labels the same exactly-one-open invariant and
-    then hands only one of them the `--state all` split. A durable ledger
+    then hands only one of them the `--state all` split. A durable log
     somebody closed by hand then reads exactly like a repository that never
     measured, which is #136's own failure recurring one label over."""
     body = section_body()
-    assert "somebody closed the durable ledger" in body, (
+    assert "somebody closed the durable log" in body, (
         "the section never says what a `flow-baseline` label with a history "
         "and nothing open means, so the one reading that survives it -- the "
         "cross-version one -- is silently dropped"
     )
     assert "is the first of those and nothing more" not in body, (
         "the sentence folding `flow-baseline`'s zero into the harmless case "
-        "is back. It is the fold that makes a closed durable ledger "
+        "is back. It is the fold that makes a closed durable log "
         "indistinguishable from a repository that never had one"
     )
 
@@ -499,7 +499,7 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     # reworded row naming the same set stays green — and a bare `` `seal/` ``
     # is no longer the assertion, because the sentence that names the three
     # contains that substring and held the old check up on its own.
-    for path in ("`seal/specs/`", "`seal/ledger/`", "`seal/ledger.md`"):
+    for path in ("`seal/specs/`",):
         assert path in source, (
             f"the `Location` row no longer names {path} as a record path. It "
             "and `docs/review-chain-spec.md` have to enumerate the same set, "

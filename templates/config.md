@@ -35,12 +35,10 @@ neither its first nor its last: it is refused in the sentence
 "`<item>` appears N times — one value". A file that is there and cannot be
 read as UTF-8 text — a directory of that name, or bytes another encoding
 wrote — is refused naming its path; a file that is absent still declares
-nothing. A command a person runs — `evidence-check --reverify`,
-`correction-check`, `fold-check`, `broad-gate`, `seal mode`, `pact-check` —
-prints the refusal and exits 2 with nothing judged, as it does for a value it
-cannot parse. A hook says nothing: the mode gate is silent rather than
-asking, and the commit advisor keeps naming the frozen repair. Delete the
-extra row, or write the file as UTF-8.
+nothing. A command a person runs — `fold-check`, `broad-gate`, `seal mode`,
+`pact-check` — prints the refusal and exits 2 with nothing judged, as it does
+for a value it cannot parse. A hook says nothing: the mode gate is silent
+rather than asking. Delete the extra row, or write the file as UTF-8.
 
 **The table is read the way GitHub shows it, or refused.** The reader is the
 walker the plugin holds to cmark-gfm, GitHub's renderer, so a row is a row
@@ -77,7 +75,6 @@ these shapes.
 | Broad gate |  |
 | Reference specs |  |
 | Pact |  |
-| Pact notify |  |
 
 ## Commit and pull request language
 
@@ -91,8 +88,7 @@ because the reader is a model choosing prose, not a lookup table.
 
 The language the **prose** in the work-item records is written in:
 `spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, the cell
-contents of `rounds/round-N.md` and the prose beneath its tables, and the
-claim and grounds of a ledger row.
+contents of `rounds/round-N.md` and the prose beneath its tables.
 
 **Independent of the row above.** Setting one does not carry the other, for
 the reason stated at the top of this file: an absent row's default is what
@@ -141,12 +137,9 @@ every repository, whatever either row says:
   and the `nothing` in `nothing — <why>`. A translated field name is not a
   translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, a drained file's `drained` line, the `✅`
-  that closes a row and the `🔴` that opens one, a ledger anchor's
-  `path#unit@hash`, and a pact anchor's `pact:<name>/"<heading path>"@<hash>`.
-- **The `Pact notify` values.** `always`, `when the pact is touched` and
-  `never` are read literally by `hooks/config.py#pact_declaration`, so a
-  translated value is refused rather than read.
+  section's `## X.Y.Z — <date>`, a drained file's `drained` line, the `✅` that
+  closes a row and the `🔴` that opens one, and a pact anchor's
+  `pact:<name>/"<heading path>"@<hash>`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
 - **The item column of this table**, which is a key rather than prose — the
@@ -218,13 +211,6 @@ follow it and are not part of the row; the module docstring of
 running it, then asks `seal`'s refusals of the work item declared for the
 branch without writing the cell; the orchestrator runs it before the sealer
 is spawned.
-
-Two of those checks, the survivor arm and the correction arm, are left out
-where the base names `main` and the repository's `.github/workflows/hygiene.yml`
-carries their steps in its `release` job, because that workflow skips both
-steps on a pull request into `main`; the gate prints one line saying so. The
-skip is keyed on the spelling `main` or `origin/main` and on the step being
-present in the workflow, not on the guard the step carries.
 
 ```markdown
 | Broad gate | uvx ruff check . && uvx ruff format --check . && bin/test -q |
@@ -400,8 +386,7 @@ reference root.
 | no `seal/` root at either place | no reference root: the repository has not opted in, and the one layout the plugin read without a root is 0.3.x, whose top-level `specs/` was its own |
 
 **What it governs.** The checks that would read a record leave a reference
-root out: `survivor-check` takes it out of its pool and its range, on both
-sides, and `unverified-check` prunes it from a directory walk while still
+root out: `unverified-check` prunes it from a directory walk while still
 reading a file named to it explicitly. A prefix naming the plugin's own root
 or anything under it is dropped, because the root's records are read whatever
 this row says; `settle --retire` removes only under `seal/specs/`. One reader
@@ -413,15 +398,9 @@ touches what it describes, and what was read is cited — in `spec.md`, or in
 the statement `settle` folds into `docs/` — so the next reader can open the
 same file.
 
-**The default's cost is stated rather than hidden.** A repository whose own
-tests sit under a directory named `specs/`, a BDD convention, has them out of
-the survivor sweep under the default, and nothing says so.
-`Reference specs | none`, or a row naming the real reference roots, puts
-them back.
-
 ## Pact
 
-Two rows, written in a signer of a pact held in another repository
+One row, written in a signer of a pact held in another repository
 (`docs/the-pact.md`). A work item that commits in more than one repository,
 where those repositories keep a contract together, keeps the one copy of that
 contract in `seal/pact.md` in one of them. Every repository of the work item
@@ -429,58 +408,31 @@ is a signer, and every one except the pact's repository names the pact
 here. The pact's repository needs no row: it is identified by holding
 `seal/pact.md`.
 
-Both rows are written in the table at the top of this file, and nowhere
-else in it:
-
 - **`Pact`**: the origin remote URL of the pact's repository, such as
   `git@example.com:org/orders-api.git`; a signer of pacts held in more
   than one repository lists them separated by `;`. Absent: no pact is held
   elsewhere.
-- **`Pact notify`**: `always` · `when the pact is touched` · `never`.
-  Absent: `when the pact is touched` where a `Pact` row stands, and ignored
-  where none does. Written anywhere but the table above, or spelled any
-  other way, it is refused, not absent.
 
 **The URL is compared normalised**, so `git@example.com:org/orders-api.git`
 and `https://example.com/org/orders-api` name one repository. Its last path
 segment is the name a pact anchor carries, `pact:orders-api/"## A"@1a2b3c4d`,
 so two pacts whose URLs end in the same segment are refused as ambiguous.
 
-**`Pact notify` decides which of this signer's changes the pact's
-repository hears about.** `evidence-check --reverify` records a pact change
-in `seal/pact-changes/<work-item-id>.md` where `docs/the-pact.md` §*A
-signer records a pact change* says, and that section's first sentence is
-the whole trigger. `pact-check` at the pact's repository reads that record
-until a pact review there takes it:
-
-- **`when the pact is touched`** records a row citing a clause of a pact
-  the `Pact` row names, and the pact's repository reads it as `NOT TAKEN`,
-  exit 1, until a pact review takes it.
-- **`always`** records that, and every other row whose code moved, with `—`
-  for its clause; the pact's repository reads a `—` row as `NOTED`, which
-  moves no exit.
-- **`never`** records nothing, and the pact's repository reads nothing,
-  whatever an earlier value recorded.
-
 **A row that will not parse is refused in a sentence**, never read as absent.
 At this repository's pull request `chain-check` prints the sentence and its
 exit status does not move: a signer's CI prints and does not verify.
-`pact-check`, run at the pact's repository, reads the same rows through the
-same reader, `hooks/config.py#pact_declaration`, and exits 2 on them.
+`pact-check`, run at the pact's repository, reads the same row through the
+same reader, `hooks/config.py#pact_declaration`, and exits 2 on it. A `Pact`
+row the table does not hold is no row: `pact-check` then reads the signer as
+naming no pact and exits 2 on a relationship recorded on one side only.
 
-**Both rows are read only where the table above holds them, spelled exactly
-`Pact` and `Pact notify`.** Any other line of `seal/config.md` that names a
-pact and holds a pipe is refused the same way: one written under the
-table, a fenced or commented example, or a row of the table whose item says
-`pact notify`, `**Pact notify**` or `` `Pact` ``. Keep both rows in that
-table. A sentence with no pipe in it may name the pact freely, which is why
-this section is written without one: this file can be copied whole. A file
-that also holds an HTML table cell's tag, a `td` or `th` opened with a `<`,
-anywhere, a comment or a code span included, refuses such a sentence too, so
-keep that tag out of this file. So does a line directly under the sentence
-that GFM reads as a table's delimiter row, such as `:-:`, `---:` or dashes
-between two pipes, which makes the sentence a one-column table's header; a
-line of dashes alone is a heading's underline and refuses nothing.
+**A `Pact notify` row is read by nobody.** An earlier release read a second
+pact row, `Pact notify`, and nothing has acted on its value since the pact's
+records of changes left. In the table no command refuses it, prints it or
+names it, like any item no reader asks for; delete it when the file is next
+edited. It is not named because naming it would keep a reader for a row
+that changes nothing, and a refusal would stop `pact-check` at the pact's
+repository over it.
 
 ## The fold's values
 
@@ -519,69 +471,3 @@ file has now, to be written into the entry in the commit that changed them.
 The entry names its home, the issue or document that will split the file,
 and it fails once the file is back under the ceiling, so it cannot outlive the
 split.
-
-## The ledger freeze
-
-One row, read by `evidence-check` and `correction-check`. It declares that a
-released ledger file -- `seal/ledger.md`, or a `seal/releases/<X.Y.Z>.md`
-once its release is tagged -- is never edited again, and that a re-read or a
-correction of one of its rows is a citing row in the branch's own fragment
-instead (`docs/the-evidence-ledger.md`).
-
-```markdown
-| Ledger frozen from | 1790993141 |
-```
-
-| Row | Value | Absent |
-|---|---|---|
-| `Ledger frozen from` | a work-item id's epoch prefix, or `0`. A range whose added work items are all below it is read under the rule it was cut under; one adding a work item at or above it, or adding none, is held to the freeze | no released file is frozen, and `--reverify` re-stamps released rows in place |
-
-**What the row changes.** `evidence-check --reverify` writes no released file
-in a repository that declares it, whatever the value: it re-stamps the
-fragments in place, then exits 1 naming each released row it left, and
-`--reverify --into seal/ledger/<work-item-id>.md --checked YYYY-MM-DD` writes
-those rows as `Re-read ·` rows into the fragment. `correction-check --range`
-refuses a pull request that changes `seal/ledger.md`, or a release file the
-merge base already had, for work at or above the cutoff.
-
-**The comparison is on the work item, not on the merge base.** A branch cut
-before the row landed keeps its exemption after it merges the release branch
-in, because its own `routing.md` id does not move. That is why the value is
-an id rather than a date or a commit.
-
-**An absent row means not frozen, and that is the default every installed
-copy keeps.** A value that is not a whole number is refused: both commands
-exit 2 naming the row, and nothing is written. So is the row written twice,
-and so is a `config.md` that is there and will not read: the freeze never
-turns off because the file could not be read, which is the one direction
-that re-stamps a released row in place. Lowering the value to `0` once
-no branch below it is open exempts nobody who still exists, so it needs no
-follow-up.
-
-## The removal section
-
-One row, read by `evidence-check`'s records arm through the same reader as
-`Ledger frozen from`. It declares from which work item a frame, the live
-`spec.md` of a work item, must carry a `## Removes` section: what the work
-takes out of the tree, each row a claim of absence (`templates/sdd-spec.md`
-carries the section).
-
-```markdown
-| Removes from | 1791384160 |
-```
-
-| Row | Value | Absent |
-|---|---|---|
-| `Removes from` | a work-item id's epoch prefix, or `0`. A live `spec.md` of a work item at or above it with no `## Removes` section, or an empty one, is `REFUSED`; one below it is read where the section is present and not required | presence is not checked, and a section that is present is still read |
-
-**The section is read wherever it is present, whatever the row says.** A
-row whose coordinate still resolves is `STANDING`, and a row the ledger's
-grammar would refuse is `REFUSED`; both exit 2, as a stated name the tree
-does not carry does. The row decides only whether the section has to be
-there.
-
-**A value that is not a whole number is refused**, naming the row in the
-sentence `Ledger frozen from` uses, and so is the row written twice and a
-`config.md` that is there and will not read. The comparison is on the work
-item's id, for the reason the freeze gives: a branch cut before the row
-landed keeps its exemption after it merges the release branch in.

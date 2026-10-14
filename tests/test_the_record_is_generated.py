@@ -1634,6 +1634,7 @@ def test_a_flag_carrying_an_open_comment_writes_no_record(repo):
     assert text is None, "a refusal writes no record"
     assert "the record this would write" in out
     assert "never closed" in out
+    assert "`unverified-check`" in out, "it names the readers that read a record"
     assert "Ran by" in out, "the coordinate names the row the value landed in"
 
 

@@ -97,7 +97,6 @@ GROUPS = {
         "review-history-guard.py",
         "implementer-notice.py",
         "session-lease.py",
-        "evidence-advisor.py",
         "worktree_consent.py",
         "answer-clear.py",
     ),
@@ -107,14 +106,11 @@ GROUPS = {
     # cannot forge.
     "post-agent": ("worktree_consent.py",),
     "post-edit": ("lint-python.py", "session-lease.py"),
-    # The root move precedes the ledger-format migration, because the second
-    # reads the ledgers at the addresses the first creates.
-    # The git hooks are installed last, into the root the two migrations above
-    # may just have moved.
+    # The git hooks are installed last, into the root the migration above may
+    # just have moved.
     "session-start": (
         "version-check.py",
         "root-migrate.py",
-        "ledger-migrate.py",
         "hook-install.py",
     ),
     # The end of a main-session turn, where a sealed run's stamp is drawn

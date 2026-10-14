@@ -154,19 +154,18 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   `skills/code-review/orchestration.md` §*A fix of a fix twice sends the work
   item back to its framer* owns that rule.
 
-  A finding whose `Location` is under `seal/specs/`, `seal/ledger/`,
-  `seal/releases/` or `seal/ledger.md` is about the run's paperwork, not the
-  tool: report it as a correction — ⬜, with the coordinate — and leave it out
-  of `Needs a fix`. `docs/review-chain-spec.md` §*The last round verifies*
-  owns the rule. A ⬜ an earlier round of the run reported and left open is
-  carried, not re-reported: its coordinate is in your `## Inherited
-  coordinates` with its word, and it closes once at the run's end —
+  A finding whose `Location` is under `seal/specs/` is about the run's
+  paperwork, not the tool: report it as a correction — ⬜, with the coordinate
+  — and leave it out of `Needs a fix`. `docs/review-chain-spec.md` §*The last
+  round verifies* owns the rule. A ⬜ an earlier round of the run reported and
+  left open is carried, not re-reported: its coordinate is in your `##
+  Inherited coordinates` with its word, and it closes once at the run's end —
   `skills/code-review/orchestration.md` §*A note closes once, at the run's
-  end* owns that rule. And the run reopens at most once: a verifying round spawned
-  after a reopening reports what it finds as `deferred <home>` candidates
-  rather than as fixes to commission, because `docs/review-chain-spec.md`
-  §*The reopening — one, and then the run is capped* owns the bound and the
-  exit it ends in.
+  end* owns that rule. And the run reopens at most once: a verifying round
+  spawned after a reopening reports what it finds as `deferred <home>`
+  candidates rather than as fixes to commission, because
+  `docs/review-chain-spec.md` §*The reopening — one, and then the run is
+  capped* owns the bound and the exit it ends in.
 
   **A round told the run is capped still reports what it finds, at the
   severity it finds it.** What a cap decides is whether another round is
@@ -258,7 +257,7 @@ axes, probe rules, record formats. This file adds only your role boundaries.
 
   Stated intent is the sharpest case, because it is often right. If the
   behavior is called deliberate, go looking for it in the policy documents,
-  the SDD set, or the ledger. Found there, it is grounds. Found nowhere but
+  the SDD set, or the test a rule names. Found there, it is grounds. Found nowhere but
   the account, it is a question in your report — never a pass.
 
   A first round is where this costs most. There is no `round-N.md` in the
@@ -303,15 +302,15 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   for round 2, and inheriting the verdict is how that goes unseen.
 
   This is not a re-walk. Locating the code is the expensive half, and the
-  ledger and the earlier round exist so nobody pays it twice — open the
-  coordinates they hand you rather than searching for them again.
+  earlier round exists so nobody pays it twice — open the coordinates it
+  hands you rather than searching for them again.
 
   The line is whether a recorded fact can be checked for staleness, not
   whether it feels durable:
 
   | Carried, and re-derived only when its check fails | Re-derived every round |
   |---|---|
-  | Ledger coordinates — `evidence-check` fails when an anchor is gone or the content under it changed | Whether the new code satisfies the clause |
+  | A rule's `Enforced by:` target — the `enforced-unresolved` budget row fails when it is gone | Whether the new code satisfies the clause |
   | What the original does — `seal/parity.md` pins a baseline SHA, so it cannot drift under you | Whether the new code matches it |
   | Where a subsystem lives, what a helper is for | Any verdict, on any axis |
 
@@ -410,8 +409,8 @@ and you write no `round-N.md` — §Role above says why the report is one of the
 two writes this file names and not a general permission.
 
 **Once the orchestrator commits it the report is tracked content, so the
-rules a repository applies to its own tree apply to your prose.** Two of them
-reach it in this one, and the contract walks you into the first.
+rules a repository applies to its own tree apply to your prose.** One of them
+reaches it in this one, and the contract walks you into it.
 
 The no-real-identifiers rule (`CONTRIBUTING.md` §*House rules*) is enforced
 over every tracked file, and §8 of the contract is what told you to write your
@@ -420,26 +419,10 @@ is the row that turns `tests/test_no_real_identifiers.py` red at the pull
 request, after your round has ended and where nobody can ask you what you
 meant. Name paths relative to the repository root, and spell a user path
 `/Users/x/`.
-
-The evidence checker reads every `.md` under a live work item and asks the
-tree for each backticked name carrying an underscore that it finds in prose.
-A name your report writes that the tree does not carry comes back
-`NOT-IN-TREE`, and writing `NAME NOT IN TREE` on that prose line exempts the
-line. **A `path#name` you write is read against that path's file**: where the
-path resolves, every segment of the name has to be a token of that file, one
-word or not, so a case you name under the wrong test module is refused
-though another module has it. A bare file name before the `#` resolves to
-nothing, and its name is read as a bare one.
 **The same module has a second arm**: any bare host-shaped token that
 looks like a real domain and is not in its allowlist fails too — a hostname on
 its own, not only one inside a URL — so a host you quote has to be one that
 allowlist already carries, and `example.com` is the one this repository writes.
-
-**A fenced block is already exempt, and marking one up corrupts it.** The
-checker reads a fence as a quotation, which is why a paste-ready fix may
-propose a unit that does not exist yet and say nothing — so the marker never
-goes inside a fence, where the smith would paste it. Where you also name that
-proposed unit in prose, the marker goes on the prose line and nowhere else.
 
 A repository other than this one enforces other things. What generalises is
 the shape: the moment a report stops being chat text, whatever scans the tree
@@ -452,7 +435,7 @@ format it points at: in `code-review` only 🔴 blocks merge, 🟡 is *fix or
 justify*, and that skill asks for a paste-ready fix for both. A 🟡 with no fix
 beside it is the one a smith answers with grounds because there was nothing to
 paste. Separate sections for regression tests to
-plant (with destination files) and facts to feed into the evidence ledger.
+plant (with destination files).
 Findings from reading and findings from execution stay labeled apart, which
 is §4 in your own output.
 

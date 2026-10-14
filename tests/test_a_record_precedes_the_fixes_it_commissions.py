@@ -1145,31 +1145,25 @@ def test_the_declared_limit_names_what_escapes_with_the_words_unchanged():
     itself an instance of it.
 
     The measurement is one fact written into five places, so counting the
-    copies is part of the claim: if a sixth copy is added, it is added here
-    too.
+    copies is part of the claim: if a copy is added, it is added here too.
+    The ledger row was the third, and it left the tree with the ledger
+    (#944), so four remain.
 
-    The ledger copy moves once: the release folds the fragment into
-    `seal/ledger.md` under a heading named for the work item and removes the
-    file (`fold_ledger.py`), so the copy is the fragment while it exists and
-    that section after. Pinned to the fragment's path alone, this case went
-    red at the first release preparation that folded it.
-
-    **Then the work item was retired, and two of the five went with its
+    **Then the work item was retired, and two of the four went with its
     directory** (#497). The changelog fragment had been gathered, so its copy
     is the block under the item's marker in its release's file under
-    `changelog/` (#728), the same move the ledger copy makes. The overview is the memo `settle --retire` removes on
+    `changelog/` (#728). The overview is the memo `settle --retire` removes on
     purpose, and a memo is not a claim the tree makes: with it gone there are
-    four copies, and the fifth is read only while its file is still there.
+    three copies, and the fourth is read only while its file is still there.
     """
     item = "1788501054-a-check-reports-clean-while-something-is-missing"
     copies = (
         ("docs", "round-record-spec.md"),
         ("skills", "code-review", "scripts", "chain_check.py"),
-        ("seal", "ledger", f"{item}.md"),
         ("seal", "specs", item, "changelog.md"),
         ("seal", "specs", item, "overview.md"),
     )
-    assert len(copies) == 5, "the removal table in phase-7.md names five copies"
+    assert len(copies) == 4, "phase-7.md's five copies, less the ledger row"
     retired = not os.path.isdir(os.path.join(ROOT, "seal", "specs", item))
     if retired:
         assert folded_items(ROOT) >= {item}, (
@@ -1187,26 +1181,6 @@ def test_the_declared_limit_names_what_escapes_with_the_words_unchanged():
                 "carries its marker — the changelog copy was never gathered"
             )
             text = " ".join(text.split())
-        elif where[:2] == ("seal", "ledger") and not os.path.exists(
-            os.path.join(ROOT, *where)
-        ):
-            # `seal/ledger.md` until the one-time split, the release's own
-            # file under `seal/releases/` after it (#547).
-            releases = os.path.join(ROOT, "seal", "releases")
-            names = sorted(os.listdir(releases)) if os.path.isdir(releases) else []
-            corpus = [read("seal", "ledger.md")]
-            corpus += [read("seal", "releases", n) for n in names]
-            # The heading as a line of its own: a re-read row in a later
-            # release's file cites this section by a coordinate that quotes
-            # `### <item>` inside its heading path (#715), and a substring
-            # search found that row first once the fold put it in a file
-            # sorted ahead of the section's own.
-            heading = f"\n### {item}\n"
-            folded = next(t for t in corpus if heading in t)
-            start = folded.index(heading) + 1
-            rest = folded[start + 4 :]
-            end = rest.find("\n### ")
-            text = " ".join((rest if end < 0 else rest[:end]).split())
         else:
             text = flat(*where)
         assert "wider than a rewording" in text, (

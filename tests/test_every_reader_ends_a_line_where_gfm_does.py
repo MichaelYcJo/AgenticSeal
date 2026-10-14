@@ -42,7 +42,7 @@ from test_the_record_is_generated import (
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
-CHECKER = os.path.join(ROOT, "skills", "evidence-check", "scripts", "evidence_check.py")
+CHECKER = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 ARM_CHECK = os.path.join(ROOT, "skills", "verify", "scripts", "arm_check.py")
 FOLD_CHECK = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
 BLOCKS = os.path.join(ROOT, "hooks", "blocks.py")
@@ -93,11 +93,10 @@ def test_the_splitter_is_splitlines_on_a_text_without_the_eight():
 
 
 def test_every_copy_of_the_splitter_is_the_readers():
-    """S17. The checker keeps its own copy because `evidence-ci` runs it alone
-    in a user's `tools/`, `hooks/blocks.py` keeps work item F's because a hook
-    does not load a skill module on every call, and `arm_check._lines` splits
-    Python source where `ast` does, ends kept. All four are one rule, held
-    equal here."""
+    """S17. `hooks/blocks.py` keeps work item F's copy because a hook does not
+    load a skill module on every call, and `arm_check._lines` splits Python
+    source where `ast` does, ends kept. The coordinate kernel asks the reader
+    itself. All are one rule, held equal here."""
     checker = _load("specseal_checker_for_gfm_lines", CHECKER)
     arm_check = _load("specseal_arm_check_for_gfm_lines", ARM_CHECK)
     blocks = _load("specseal_blocks_for_gfm_lines", BLOCKS)
@@ -109,7 +108,6 @@ def test_every_copy_of_the_splitter_is_the_readers():
         assert checker.gfm_lines(text, keepends=True) == kept, repr(text)
         assert blocks.gfm_lines(text, keepends=True) == kept, repr(text)
         assert arm_check._lines(text) == kept, repr(text)
-    assert reader.GFM_LINE_RE.pattern == checker.GFM_LINE_RE.pattern
     assert reader.GFM_LINE_RE.pattern == blocks.GFM_LINE_RE.pattern
 
 
@@ -210,7 +208,6 @@ def test_no_one_of_the_eight_makes_a_marker_a_line(tmp_path, char):
 
 
 GATHER = os.path.join(ROOT, ".github", "scripts", "gather_changelog.py")
-SURVIVOR = os.path.join(ROOT, "skills", "code-review", "scripts", "survivor_check.py")
 
 
 def test_gathering_below_a_separator_lands_in_the_section_and_keeps_it():
@@ -295,114 +292,24 @@ def test_a_section_line_is_a_line_that_starts_one(tmp_path):
     assert gather.section_lines(str(root), "2-b") == [(3, "## one")]
 
 
-@pytest.mark.parametrize("path", ["CHANGELOG.md", "changelog/1.0.0.md"])
-def test_the_gatherer_and_the_sweep_read_one_marker_alike(monkeypatch, path):
+def test_the_gatherer_reads_a_marker_after_a_separator_as_no_line():
     """S6. A marker after a U+2028 on its line is not a line of its own to
-    GFM, so neither reader of a changelog may call the fragment gathered.
-    The sweep's side is the one that excuses a fragment, and it was red.
-
-    Both shapes the sweep reads as a changelog since #728: the root file,
-    and a release's own file. The tree is handed over rather than listed,
-    which is what lets the case stand without a repository (#728's Q8)."""
+    GFM, so the gatherer does not call the fragment gathered; the same marker
+    on a line of its own is read, so the empty answer is the separator's
+    doing."""
     gather = _load("specseal_gather_s6", GATHER)
-    survivor = _load("specseal_survivor_s6", SURVIVOR)
     text = f"# Changelog\n\n## 1.0.0 — 2026-01-01\n\nold{LS}<!-- specs/1-a -->\n"
-    asked = []
-
-    def read_blobs(root, rev, paths):
-        asked.extend(paths)
-        return {p: text for p in paths if p == path}
-
-    monkeypatch.setattr(survivor, "read_blobs", read_blobs)
-    assert survivor.gathered_fragments("unused", "HEAD", [path, "docs/a.md"]) == set()
-    assert asked == [path], asked
     assert gather.live_markers(text) == []
-    # The positive control: the same marker on a line of its own is read,
-    # so the empty set above is the separator's doing and not a reader that
-    # never looked at the file.
-    text = text.replace(LS, "\n")
-    assert survivor.gathered_fragments("unused", "HEAD", [path]) == {"1-a"}
-    assert gather.live_markers(text) == ["1-a"]
-
-
-def test_the_sweep_loads_its_reader_once_per_path(tmp_path):
-    """`segments` asks the reader for its splitter once per file of the
-    corpus, so the reader is loaded once -- and once per path, so a reader
-    that is not where `READER` now points is still refused."""
-    survivor = _load("specseal_survivor_cache", SURVIVOR)
-    assert survivor.reader() is survivor.reader()
-    survivor.READER = str(tmp_path / "gone" / "unverified_check.py")
-    with pytest.raises(survivor.Refused, match="which says what a retirement is"):
-        survivor.reader()
-
-
-def test_a_sentences_line_number_is_the_files():
-    """S7. The number is the one `grep -n` prints, and the one
-    `python_prose` and `released_lines` keep."""
-    survivor = _load("specseal_survivor_s7", SURVIVOR)
-    text = f"# A title\n\nalpha{FF}beta.\n\nThe sentence stands here.\n"
-    found = [n for n, raw in survivor.segments(text) if "sentence" in raw]
-    assert found == [5]
-
-
-def test_a_ledger_row_holding_a_separator_is_one_row_at_both_ends(monkeypatch):
-    """S8. A row with no id, whose second anchor sits after a U+2028 in its
-    notes, corrected in place to drop the anchor that left the code. Cut at
-    the separator, the row lost the anchor that still resolves, so nothing at
-    `b` could be seen citing it, and the correction was reported as a
-    removal."""
-    survivor = _load("specseal_survivor_s8", SURVIVOR)
-    module = {
-        "a": "def helper(w):\n    return w\n\n\ndef other(w):\n    return w\n",
-        "b": "def other(w):\n    return w\n",
-    }
-    monkeypatch.setattr(
-        survivor,
-        "read_blobs",
-        lambda root, rev, paths: {p: module[rev] for p in paths if p == "pkg/mod.py"},
-    )
-    head = "| Clause | Code grounds | Verified behavior | Checked | Notes |\n"
-    head += "|---|---|---|---|---|\n"
-    before = head + (
-        "| a claim with no id | `pkg/mod.py#helper@0123abcd` | read | 2026-01-01 "
-        f"| see{LS}also `pkg/mod.py#other@0123abcd` |\n"
-    )
-    # At `b` too the anchor that still resolves stands after the separator
-    # alone, so each end's split is asked on its own.
-    after = head + (
-        "| a claim with no id, corrected | the notes cite it | read "
-        f"| 2026-01-02 | see{LS}also `pkg/mod.py#other@0123abcd` |\n"
-    )
-    ledger = "seal/ledger.md"
-    removed = survivor.removed_ledger_rows(
-        "unused", "a", "b", {ledger: before}, {ledger: after}
-    )
-    assert removed == set()
+    assert gather.live_markers(text.replace(LS, "\n")) == ["1-a"]
 
 
 # --- S9-S15: the independent readers ----------------------------------------
 
 
-CORRECTION = os.path.join(
-    ROOT, "skills", "evidence-check", "scripts", "correction_check.py"
-)
 CHAIN = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
 PAYLOAD = os.path.join(ROOT, "skills", "verify", "scripts", "payload_meter.py")
 CLAIMS = os.path.join(ROOT, ".github", "scripts", "issue_claims_check.py")
 CLAUDE_BLOCK = os.path.join(ROOT, ".github", "scripts", "claude_block.py")
-
-
-def test_a_correction_after_a_separator_is_counted():
-    """S9. Cut at the separator, the note stood on a line that is no row, so
-    a merge dropping it lost nothing `correction-check` could name."""
-    correction = _load("specseal_correction_s9", CORRECTION)
-    head = "| Clause | Code grounds | Verified behavior | Checked | Notes |\n"
-    head += "|---|---|---|---|---|\n"
-    row = "| X1 · a claim | `pkg/mod.py#f@0123abcd` | read | 2026-01-01 | a note"
-    parent = head + f"{row}{LS}**Corrected 2026-09-15**: the claim was wrong |\n"
-    result = head + f"{row} |\n"
-    lost = correction.losses(parent, result)
-    assert [loss.marker for loss in lost] == [("Corrected", "2026-09-15")]
 
 
 def test_the_framers_mark_is_the_last_line_a_renderer_shows():
@@ -605,6 +512,7 @@ F = (
 )
 OUT_OF_CLASS = {
     (".github/scripts/budget_check.py", "main"): (1, "the docstring's first line"),
+    (".github/scripts/rules.py", "main"): (1, "the docstring's first line"),
     (".github/scripts/close_issues_on_release.py", "arrived"): (2, GIT),
     (".github/scripts/issue_claims_check.py", "main"): (
         1,
@@ -622,7 +530,6 @@ OUT_OF_CLASS = {
         1,
         "the `<old> <new> <ref>` lines git hands a reference-transaction hook",
     ),
-    ("hooks/ledger-migrate.py", "attempted"): (1, "a marker file of root paths"),
     ("hooks/root-migrate.py", "attempted"): (1, "a marker file of root paths"),
     ("hooks/root-migrate.py", "dirty"): (1, GIT),
     ("hooks/version-check.py", "latest"): (1, GIT),
@@ -656,7 +563,6 @@ OUT_OF_CLASS = {
     ("skills/verify/scripts/broad_gate.py", "rows_written_below"): (1, F),
     ("skills/verify/scripts/broad_gate.py", "gate"): (1, TOOL),
     ("skills/verify/scripts/broad_gate.py", "job_steps"): (1, YAML),
-    ("skills/verify/scripts/broad_gate.py", "ledger_total"): (1, TOOL),
     # The recorder's JSON Lines (#825): `json.dumps` escapes every control
     # character and every non-ASCII one, so no separator but LF is in it.
     ("skills/verify/scripts/broad_gate.py", "read_record"): (1, TOOL),
@@ -701,18 +607,6 @@ OUT_OF_CLASS.update(
             "the pieces `riders_in` read, written back each with its own end",
         ),
         ("hooks/blocks.py", "walk_text"): (1, F),
-        # Each GFM line counted in the reader's pieces of it, so a line the
-        # walk took whole is told from one a `str.splitlines`-only character
-        # cuts (#759).
-        ("hooks/config.py", "pact_lines_not_read"): (1, F),
-        # A copy with no hooks/ beside it reads `seal/config.md` on GFM's
-        # lines, and reads a line by its row shape only where no
-        # `str.splitlines`-only character cuts it, as the plugin's reader
-        # reads a walked row (#759).
-        ("skills/evidence-check/scripts/evidence_check.py", "notify_may_be_always"): (
-            1,
-            F,
-        ),
         # The one GFM table walker `seal/config.md`'s table (#871), the
         # pact's `Signer` table and both pact records are read through,
         # reading what `unfenced` shows it (#647; ⬜ 21 of #735's round 3).
@@ -724,7 +618,7 @@ OUT_OF_CLASS.update(
             "numbered on (#831)",
         ),
         # The machine-local map `pact-check` reads, the same walk (#647).
-        ("skills/evidence-check/scripts/pact_check.py", "path_map"): (1, F),
+        ("skills/verify/scripts/pact_check.py", "path_map"): (1, F),
         ("hooks/routing.py", "table_rows"): (1, F),
     }
 )

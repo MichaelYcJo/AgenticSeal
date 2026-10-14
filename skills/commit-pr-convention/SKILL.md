@@ -63,8 +63,8 @@ report posted as a pull-request comment**, which is prose for whoever opens
 that pull request.
 
 **It does not govern the work-item records.** `spec.md`, `plan.md`,
-`overview.md`, `questions.md`, `changelog.md`, `rounds/round-N.md`'s cells and
-a ledger row's prose follow a second row, `Record language`, read by the
+`overview.md`, `questions.md`, `changelog.md` and `rounds/round-N.md`'s cells
+follow a second row, `Record language`, read by the
 `implement` and `code-review` skills. The two are independent: setting one
 does not carry the other.
 

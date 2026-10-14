@@ -850,24 +850,24 @@ def test_an_unclosed_fence_is_reported_at_the_reader_line_it_starts():
     assert len(walked.kinds) == len(text.splitlines()) == 3
 
 
-def test_the_walks_line_rule_is_the_checkers():
+def test_the_walks_line_rule_is_the_readers():
     """#667 round 1, 🟡 1. `hooks/blocks.py#gfm_lines` is a copy of
-    `skills/evidence-check/scripts/evidence_check.py#gfm_lines`, the
-    precedent work item A set for #664's class: a hook imports nothing from
-    `skills/`, so the copy is held to the original here, over every break
-    `str.splitlines` makes and CommonMark does not, and the three it does."""
+    `skills/verify/scripts/unverified_check.py#gfm_lines`, the precedent work
+    item A set for #664's class: a hook imports nothing from `skills/`, so
+    the copy is held to the original here, over every break `str.splitlines`
+    makes and CommonMark does not, and the three it does."""
     import importlib.util
 
     path = os.path.join(
-        HERE, "..", "skills", "evidence-check", "scripts", "evidence_check.py"
+        HERE, "..", "skills", "verify", "scripts", "unverified_check.py"
     )
-    spec = importlib.util.spec_from_file_location("specseal_ec_for_the_walk", path)
-    checker = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(checker)
+    spec = importlib.util.spec_from_file_location("specseal_uc_for_the_walk", path)
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
     texts = ["", "a", "a\n", "a\r\nb\rc\nd", "\n\n", "a\r", "a\r\r\n"]
     texts += [f"a{brk}b\n{brk}\nc{brk}" for brk in BREAKS.values()]
     for text in texts:
         for keepends in (False, True):
-            assert blocks.gfm_lines(text, keepends) == checker.gfm_lines(
+            assert blocks.gfm_lines(text, keepends) == reader.gfm_lines(
                 text, keepends
             ), (text, keepends)

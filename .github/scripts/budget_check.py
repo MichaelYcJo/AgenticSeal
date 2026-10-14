@@ -54,14 +54,30 @@ beside the gates and never fails it.
                     jobs: `ubuntu`, `windows` or `macos`
   rounds-bytes      bytes of the largest `seal/specs/<id>/rounds/` in the
                     tree, each work item's listed in the summary
-  ledger-rereads    `Re-read ·` and `Corrected ·` rows of the release file
-                    `.claude-plugin/plugin.json`'s version names, each row
-                    counted once by the marker it opens with; unread until
-                    the release folds that file
+  enforced-unresolved  `Enforced by:` targets in the rule files that do not
+                    resolve, each named with its file, heading and why
+  unenforced        rule paragraphs of one rule file whose `Enforced by:`
+                    line is missing or says `nothing — <why>`
 
-The last two are `report` rows: their numbers are the review chain's and
-every work item's together, so no pull request has a fix for them, and a
-`report` row may be `one-sided` for that reason.
+`rounds-bytes` is a `report` row: its number is the review chain's and every
+work item's together, so no pull request has a fix for it, and a `report`
+row may be `one-sided` for that reason.
+
+**A rule is held by what its `Enforced by:` line names.** The rule files are
+`CLAUDE.md`, `CONTRIBUTING.md`, `agents/*.md`, `docs/*.md`,
+`skills/*/SKILL.md`, `skills/*/orchestration.md` and `templates/*.md`. A
+**rule paragraph** opens a block with `**`, `- **`, `* **` or `N. **`, outside
+fences and comments, and closes after its `Enforced by:` line, at a blank
+line, a heading, a table or the next list item. A target is a file, a
+`path::name` unit as pytest spells a node id, or an eval case directory
+`evals/behaviour/<agent>/<case>/` holding a `case.yaml`; every target but the
+last resolves through `skills/settle/scripts/fold_check.py#target_problem`,
+the one resolver `fold-check` reads with. `enforced-unresolved` reads every
+`Enforced by:` line of those files, inside a rule paragraph or not.
+`unenforced` counts `nothing — <why>` as unenforced, so the escape moves the
+number. What neither reads: whether a target runs on every leg, whether it
+asserts the rule, and a rule written as a plain sentence. A name its module
+defines twice does not resolve, because it names no one unit.
 
 A byte is counted with each CRLF read as one LF, which is what git stores
 for these files: a Windows checkout that wrote CRLF measures the commit a
@@ -85,11 +101,13 @@ the billable line: each job's minutes rounded up, at its leg's multiple of a
 Linux minute, priced at the figure #929 read, whose date nobody here has
 checked.
 
-The last two are measured per file. The family's own row in the Budgets
+`slow-file`, `docs-history` and `unenforced` are measured per file. The
+family's own row in the Budgets
 table gives the unit, the slack and the kind, and its ceiling is what every
 file its table does not list is held to: `## Slow test files` (`| File |
-Seconds ceiling |`) and `## Docs history lines` (`| File | Lines ceiling |`)
-list the files held to a ceiling of their own. So an unlisted test file over
+Seconds ceiling |`), `## Docs history lines` (`| File | Lines ceiling |`) and
+`## Unenforced rules` (`| File | Rules ceiling |`) list the files held to a
+ceiling of their own. So an unlisted test file over
 the threshold fails, and listing it is a raise from the threshold that needs
 its line, as is a row the table drops whose ceiling was under it. Every test
 file whose reading times 1.3 reaches the threshold is listed, so an unlisted
@@ -137,14 +155,16 @@ read, a row names a budget no measurer here reads or a file the tree does
 not have, a family row and its file table are not both there, `CLAUDE.md` or
 `.test_durations` is missing or unreadable, the baseline does not resolve,
 `--pr-body-env` names a variable that is not set, the job list is missing or
-unreadable or has no pytest job on a leg a row names, or a sibling module
-this reads through is not beside it. Closed, never silent.
+unreadable or has no pytest job on a leg a row names, an `Enforced by:`
+target names a Python file that will not parse, or a sibling module this
+reads through is not beside it. Closed, never silent.
 """
 
 import argparse
 import collections
 import datetime
 import fractions
+import glob
 import importlib.util
 import json
 import math
@@ -183,6 +203,25 @@ DOCS = "docs"
 HISTORY = re.compile(r"#\d{2,}|round \d|20\d\d-\d\d-\d\d|[Mm]easured")
 RULE_OPENER = "**"
 RULE_CLOSER = "Enforced by:"
+# Where a rule is stated, read by `rule_paragraphs` and `enforcer_lines`.
+RULE_FILES = (
+    "CLAUDE.md",
+    "CONTRIBUTING.md",
+    "agents/*.md",
+    "docs/*.md",
+    "skills/*/SKILL.md",
+    "skills/*/orchestration.md",
+    "templates/*.md",
+)
+# A line opening a rule paragraph, and a line opening any list item: up to
+# three spaces, then `**`, or a list marker and `**`.
+LIST_MARKER = r"[ ]{0,3}(?:[-*+]|[0-9]+[.)])[ \t]+"
+RULE_PARAGRAPH = re.compile(rf"(?:{LIST_MARKER}|[ ]{{0,3}})\*{{2,3}}[^*\s]")
+LIST_ITEM = re.compile(r"[ \t]*(?:[-*+]|[0-9]+[.)])[ \t]+")
+# The one target `fold_check.py#target_problem` does not read: an eval case,
+# `evals/behaviour/<agent>/<case>/`, which resolves where this file is in it.
+EVAL_CASES = "evals/behaviour/"
+EVAL_CASE = "case.yaml"
 # The families read off one CI run rather than off the tree: measured by the
 # `budgets` job of the tests workflow from the run's job list, held to a
 # ceiling and no lower band.
@@ -196,14 +235,9 @@ LINUX_MINUTE_USD = 0.008
 # A byte budget counts a CRLF as the LF git stores, so the same commit
 # measures the same on a checkout that converted its line ends.
 NEWLINES = (b"\r\n", b"\n")
-# What a released ledger row's first cell opens with when it reads an older
-# row again, in the order a row carrying both is counted by.
-REREAD_MARKS = ("Re-read · ", "Corrected · ")
-ROW_OPENER = "| "
 # Why a row is shown and not measured on a run, by family.
 UNREAD = {
     "ci-minutes": "read off each run by the tests workflow's `budgets` job",
-    "ledger-rereads": "read once the release folds its ledger file",
 }
 
 # The modules this reads through, each the one reader of its input: the table
@@ -222,12 +256,26 @@ SIBLINGS = {
         os.path.join("skills", "verify", "scripts", "unverified_check.py"),
         "it is what resolves the merge base",
     ),
+    "fold_check": (
+        os.path.join("skills", "settle", "scripts", "fold_check.py"),
+        "it is the one resolver of an `Enforced by:` target",
+    ),
 }
 
 Row = collections.namedtuple("Row", "line name unit ceiling slack kind")
 Slack = collections.namedtuple("Slack", "amount absolute text")
 Result = collections.namedtuple("Result", "row measured top problems")
-FileFamily = collections.namedtuple("FileFamily", "title header unit reader")
+# A per-file family: its table's heading and header, its unit, the reader
+# that measures its files, what a file it lists must be in, and what the lines
+# its reader keeps in `cache["at"][<family>]` are called where a file is over.
+FileFamily = collections.namedtuple(
+    "FileFamily",
+    "title header unit reader source noun",
+    defaults=(f"{DOCS}/", "history lines"),
+)
+# One rule paragraph: the line it opens on, the heading it stands under, its
+# first line, and its `Enforced by:` value, or None where it carries none.
+Paragraph = collections.namedtuple("Paragraph", "line heading first enforced")
 
 NAME = re.compile(r"[a-z][a-z0-9-]*(?::\S+)?")
 CEILING = re.compile(r"[0-9]+")
@@ -719,7 +767,176 @@ def docs_history_values(root, cache):
 
     Reads: guess — the documents a person writes, through `docs_lines`; unknown passed"""
     cache["docs"] = docs_lines(root)
+    cache.setdefault("at", {})["docs-history"] = {
+        path: h for path, (h, _) in cache["docs"].items()
+    }
     return {path: len(h) for path, (h, _) in cache["docs"].items()}
+
+
+def shown_lines(text):
+    """`[(line, shown, heading)]` for one markdown document: each GFM line
+    (`unverified_check.py#gfm_lines`), whether a renderer shows it outside a
+    fence or a comment (`hooks/config.py#unfenced`), and the text of the
+    heading it stands under, "" above the first.
+
+    Reads: guess — a person's markdown, through `unverified_check.py#gfm_lines`, `#heading_level` and `hooks/config.py#unfenced`; unknown passed"""
+    reader = sibling("unverified_check")
+    lines = reader.gfm_lines(text)
+    shown = {index for index, _ in sibling("config").unfenced(lines)}
+    out, heading = [], ""
+    for index, line in enumerate(lines):
+        visible = index in shown
+        if visible and reader.heading_level(line) is not None:
+            heading = line.strip().strip("#").strip()
+        out.append((line, visible, heading))
+    return out
+
+
+def rule_paragraphs(text):
+    """Every rule paragraph of one markdown document, as `Paragraph`s in
+    document order.
+
+    A rule paragraph opens a block — the first line, or one after a blank, a
+    heading or a hidden line, or any list item — with `**`, `- **`, `* **` or
+    `N. **`, up to three spaces in. It runs to its `Enforced by:` line, which
+    it keeps, or stops before a blank line, a heading, a table, a hidden line
+    or the next list item. A bold word that a wrap carried to the front of a
+    line inside a paragraph opens nothing.
+
+    Reads: guess — a person's markdown, through `shown_lines`; unknown passed"""
+    lines = shown_lines(text)
+    reader = sibling("unverified_check")
+    out, at, open_block = [], 0, True
+    while at < len(lines):
+        line, visible, heading = lines[at]
+        if not visible or not line.strip() or reader.heading_level(line) is not None:
+            open_block, at = True, at + 1
+            continue
+        opens = RULE_PARAGRAPH.match(line) and (open_block or LIST_ITEM.match(line))
+        open_block = False
+        if not opens:
+            at += 1
+            continue
+        start, enforced, at = at, None, at + 1
+        while at < len(lines):
+            nxt, visible, _ = lines[at]
+            stripped = nxt.strip()
+            if (
+                not visible
+                or not stripped
+                or reader.heading_level(nxt) is not None
+                or stripped.startswith("|")
+                or LIST_ITEM.match(nxt)
+            ):
+                break
+            at += 1
+            if stripped.startswith(RULE_CLOSER):
+                enforced = stripped[len(RULE_CLOSER) :].strip()
+                break
+        out.append(Paragraph(start + 1, heading, line.strip(), enforced))
+    return out
+
+
+def enforcer_lines(text):
+    """`[(line number, heading, value)]` for every `Enforced by:` line one
+    markdown document shows, inside a rule paragraph or not.
+
+    Reads: guess — a person's markdown, through `shown_lines`; unknown passed"""
+    return [
+        (index + 1, heading, line.strip()[len(RULE_CLOSER) :].strip())
+        for index, (line, visible, heading) in enumerate(shown_lines(text))
+        if visible and line.strip().startswith(RULE_CLOSER)
+    ]
+
+
+def rule_files(root):
+    """`{path: text}` of every rule file in the tree at `root`, by
+    `RULE_FILES`, its path written with `/`.
+
+    Reads: observed — the files on disk, decoded; unknown passed"""
+    out = {}
+    for pattern in RULE_FILES:
+        for path in sorted(glob.glob(os.path.join(root, *pattern.split("/")))):
+            if os.path.isfile(path):
+                rel = os.path.relpath(path, root).replace(os.sep, "/")
+                with open(path, encoding="utf-8", errors="replace") as handle:
+                    out[rel] = handle.read()
+    return out
+
+
+def targets_of(value):
+    """The targets an `Enforced by:` value names, none where it says
+    `nothing — <why>` — read by `fold_check.py#names_targets`, so the two
+    checkers split one line alike.
+
+    Reads: guess — the value of a line a person wrote; unknown passed"""
+    if not sibling("fold_check").names_targets(value):
+        return []
+    return value.split(",")
+
+
+def target_problem(root, target):
+    """Why one `Enforced by:` target does not resolve in the tree at `root`,
+    or None where it does. An eval case directory, `evals/behaviour/<agent>/
+    <case>/` with its slash, resolves where it holds `case.yaml`; every other
+    target is `fold_check.py#target_problem`'s, and a Python file it cannot
+    parse is Unreadable.
+
+    Reads: observed — the tree at `root`, through `fold_check.py#target_problem`; unknown refused"""
+    cell = target.strip().strip("`")
+    if cell.startswith(EVAL_CASES) and cell.endswith("/"):
+        parts = cell[len(EVAL_CASES) : -1].split("/")
+        if len(parts) < 2 or not all(parts):
+            return f"{cell} is no eval case: write `{EVAL_CASES}<agent>/<case>/`"
+        base = os.path.realpath(root)
+        full = os.path.realpath(os.path.join(base, *cell[:-1].split("/")))
+        if os.path.commonpath([full, base]) != base:
+            return f"{cell} is not a path inside the repository"
+        if not os.path.isfile(os.path.join(full, EVAL_CASE)):
+            return f"{cell} holds no {EVAL_CASE}"
+        return None
+    fold_check = sibling("fold_check")
+    try:
+        return fold_check.target_problem(root, cell)
+    except fold_check.Unusable as error:
+        raise Unreadable(f"enforced-unresolved: a target {error}") from None
+
+
+def measure_unresolved(root, _subject, cache):
+    """How many `Enforced by:` targets in the rule files do not resolve, each
+    kept in `cache["detail"]` as its file, heading and why.
+
+    Reads: guess — the rule files, through `rule_files`, `enforcer_lines` and `target_problem`; unknown refused"""
+    found = []
+    for path, text in rule_files(root).items():
+        for number, heading, value in enforcer_lines(text):
+            for target in targets_of(value):
+                problem = target_problem(root, target)
+                if problem:
+                    found.append(f"{path}:{number} §*{heading}*: {problem}")
+    if found:
+        cache.setdefault("detail", {})["enforced-unresolved"] = (
+            ". The targets that do not resolve: " + "; ".join(found)
+        )
+    return len(found)
+
+
+def unenforced_values(root, cache):
+    """Each rule file's rule paragraphs that carry no `Enforced by:` line or
+    one saying `nothing — <why>`, counted, with the lines they open on kept
+    in `cache["at"]["unenforced"]`.
+
+    Reads: guess — the rule files, through `rule_files` and `rule_paragraphs`; unknown passed"""
+    at, out = {}, {}
+    for path, text in rule_files(root).items():
+        lines = [
+            p.line
+            for p in rule_paragraphs(text)
+            if p.enforced is None or not targets_of(p.enforced)
+        ]
+        at[path], out[path] = lines, len(lines)
+    cache.setdefault("at", {})["unenforced"] = at
+    return out
 
 
 # The families measured per file: the heading and header of each one's table,
@@ -727,10 +944,22 @@ def docs_history_values(root, cache):
 # A per-file family another work item adds is one entry here.
 FILE_TABLES = {
     "slow-file": FileFamily(
-        "Slow test files", ("File", "Seconds ceiling"), "seconds", slow_file_values
+        "Slow test files",
+        ("File", "Seconds ceiling"),
+        "seconds",
+        slow_file_values,
+        DURATIONS,
     ),
     "docs-history": FileFamily(
         "Docs history lines", ("File", "Lines ceiling"), "lines", docs_history_values
+    ),
+    "unenforced": FileFamily(
+        "Unenforced rules",
+        ("File", "Rules ceiling"),
+        "rules",
+        unenforced_values,
+        "the rule files",
+        "unenforced rules",
     ),
 }
 
@@ -757,48 +986,6 @@ def measure_rounds(root, _subject, cache):
     return max((size for size, _ in items.values()), default=0)
 
 
-def release_file(root):
-    """`(version, path)` of the release file `.claude-plugin/plugin.json`'s
-    version names, `seal/releases/<version>.md`, or Unreadable.
-
-    Reads: observed — the version a JSON file states; unknown refused"""
-    manifest = os.path.join(root, ".claude-plugin", "plugin.json")
-    try:
-        with open(manifest, encoding="utf-8") as handle:
-            version = json.load(handle)["version"]
-    except (OSError, ValueError, KeyError, TypeError):
-        raise Unreadable(
-            "ledger-rereads: .claude-plugin/plugin.json states no version, so "
-            "no release file is named"
-        ) from None
-    return version, os.path.join(root, "seal", "releases", f"{version}.md")
-
-
-def measure_rereads(root, _subject, cache):
-    """`Re-read ·` and `Corrected ·` rows of the release file of this
-    version, each row counted once, by the marker its first cell opens with;
-    None where the release has not folded its file yet. The split goes to
-    `cache["rereads"]`.
-
-    A row is a line the fold wrote opening with `| `, and its marker is what
-    follows that: the fold's own spelling, read as written. A cell reader is
-    not asked, because a row whose cells carry an even run of backslashes
-    before a pipe is one `hooks/config.py#table_cells` declines to split, and
-    its first cell still opens with its marker.
-
-    Reads: owned — the rows the ledger's fold writes, by their opening; unknown passed"""
-    version, path = release_file(root)
-    if not os.path.isfile(path):
-        return None
-    with open(path, encoding="utf-8", errors="replace") as handle:
-        lines = sibling("unverified_check").gfm_lines(handle.read())
-    rows = [line[2:] for line in lines if line.startswith(ROW_OPENER)]
-    marks = [next((m for m in REREAD_MARKS if row.startswith(m)), None) for row in rows]
-    split = {mark: marks.count(mark) for mark in REREAD_MARKS}
-    cache["rereads"] = (version, split, len(rows))
-    return sum(split.values())
-
-
 # A budget's name is `<family>` or `<family>:<subject>`; the family picks the
 # measurer, the unit the row must state, and whether a subject is named. A
 # family another work item adds is one more entry here and, where it is read
@@ -807,7 +994,7 @@ MEASURERS = {
     "preload": (measure_preload, "bytes", True),
     "suite-seconds": (measure_suite, "seconds", False),
     "rounds-bytes": (measure_rounds, "bytes", False),
-    "ledger-rereads": (measure_rereads, "rows", False),
+    "enforced-unresolved": (measure_unresolved, "targets", False),
 }
 
 
@@ -851,19 +1038,20 @@ def top_of_band(measured, slack):
     return int(measured * (1 + slack.amount))
 
 
-def at_lines(lines):
-    """The sentence naming where a document's history lines stand, or "".
+def at_lines(lines, noun="history lines"):
+    """The sentence naming where a document's `noun` stand, or "".
 
     Reads: nothing — formats the line numbers handed to it"""
     if not lines:
         return ""
-    return f". Its history lines are at lines {', '.join(str(n) for n in lines)}"
+    return f". Its {noun} are at lines {', '.join(str(n) for n in lines)}"
 
 
-def band(row, measured, lines=()):
+def band(row, measured, detail=""):
     """`Result` for one row: what is wrong with its ceiling against
-    `measured`, from both sides. `lines` are a document's history lines, named
-    where it is over.
+    `measured`, from both sides. `detail` is the sentence naming what was
+    counted — a document's history lines, the targets that do not resolve —
+    said where it is over.
 
     Reads: nothing — compares the numbers handed to it"""
     top = top_of_band(measured, row.slack)
@@ -871,7 +1059,7 @@ def band(row, measured, lines=()):
     if measured > row.ceiling:
         problems.append(
             f"measured {measured:,} {row.unit} is over the ceiling {row.ceiling:,} "
-            f"by {round(measured - row.ceiling, 1):,}{at_lines(lines)}. Bring it "
+            f"by {round(measured - row.ceiling, 1):,}{detail}. Bring it "
             f"back under, or raise the ceiling in {BUDGETS_GIT} and write `Budget "
             f"raised: {row.name} {row.ceiling} -> <new>: <reason>` in the pull "
             "request body"
@@ -886,17 +1074,18 @@ def band(row, measured, lines=()):
     return Result(row, measured, top, problems)
 
 
-def unlisted_band(row, unlisted, history):
+def unlisted_band(row, unlisted, at):
     """`Result` for a per-file family's own row: each file its table does not
-    list, held to the row's ceiling, and named where it is over. The row has
-    no lower band, because its ceiling is a threshold rather than a reading.
+    list, held to the row's ceiling, and named where it is over with the
+    lines `at` keeps for it. The row has no lower band, because its ceiling is
+    a threshold rather than a reading.
 
     Reads: nothing — compares the numbers handed to it"""
-    title = FILE_TABLES[row.name].title
+    title, noun = FILE_TABLES[row.name].title, FILE_TABLES[row.name].noun
     problems = [
         f"{path} is not listed and measures {value:,} {row.unit}, over the "
         f"{row.ceiling:,} every file `## {title}` does not list is held to"
-        f"{at_lines(history.get(path, ()))}. Bring it under, or list it there and "
+        f"{at_lines(at.get(path, ()), noun)}. Bring it under, or list it there and "
         f"write `Budget raised: {row.name}:{path} {row.ceiling} -> <new>: "
         "<reason>` in the pull request body"
         for path, value in sorted(unlisted.items())
@@ -1081,14 +1270,6 @@ def render(results, moves, against, cache=None):
                 cache["rounds"].items(), key=lambda pair: (-pair[1][0], pair[0])
             )
         ]
-    if cache.get("rereads"):
-        version, split, total = cache["rereads"]
-        counted = ", ".join(f"{n} `{mark.strip()}`" for mark, n in split.items())
-        lines += [
-            "",
-            f"`seal/releases/{version}.md`: {counted} of {total} rows, each row "
-            "counted once, by the marker its first cell opens with.",
-        ]
     if cache.get("trend"):
         tag, then = cache["trend"]
         lines += ["", f"Against {tag}, one line per budget:", ""]
@@ -1234,28 +1415,30 @@ def measured_row(root, row, names, cache):
         return run_row(row, subject, cache.get("legs"))
     if family not in FILE_TABLES:
         value = measure(root, row, cache)
-        return Result(row, None, None, []) if value is None else band(row, value)
-    unit = FILE_TABLES[family].unit
-    if row.unit != unit:
+        if value is None:
+            return Result(row, None, None, [])
+        return band(row, value, cache.get("detail", {}).get(row.name, ""))
+    spec = FILE_TABLES[family]
+    if row.unit != spec.unit:
         raise Unreadable(
-            f"{row.name}: the unit is `{row.unit}`, and {family} is measured in {unit}"
+            f"{row.name}: the unit is `{row.unit}`, and {family} is measured in "
+            f"{spec.unit}"
         )
     values = file_values(root, family, cache)
-    history = {path: h for path, (h, _) in cache.get("docs", {}).items()}
+    at = cache.get("at", {}).get(family, {})
     if not subject:
         unlisted = {
             path: value
             for path, value in values.items()
             if f"{family}:{path}" not in names
         }
-        return unlisted_band(row, unlisted, history)
+        return unlisted_band(row, unlisted, at)
     if subject not in values:
-        source = DURATIONS if family == "slow-file" else f"{DOCS}/"
         raise Unreadable(
-            f"{row.name}: {subject} is not in {source}, so its row holds nothing "
-            "— remove it"
+            f"{row.name}: {subject} is not in {spec.source}, so its row holds "
+            "nothing — remove it"
         )
-    return band(row, values[subject], history.get(subject, ()))
+    return band(row, values[subject], at_lines(at.get(subject, ()), spec.noun))
 
 
 def read_jobs(path):

@@ -32,7 +32,7 @@ predates the question, or when the original repo changes.
    nothing, which is worse than having no parity mode at all.
 
 3. **Read the baseline.** `git -C <original> rev-parse HEAD`. This is the
-   commit the evidence ledger's coordinates will refer to, so record the SHA
+   commit the original's coordinates will refer to, so record the SHA
    and the date you read it.
 
 4. **Confirm the module.** A port often covers one directory of a larger

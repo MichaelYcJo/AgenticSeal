@@ -131,7 +131,7 @@ def reachable(text, script):
     """Whether `text` gives a reader a way to GET to `script`.
 
     Either accepted form counts. The bare command is what the documents
-    already use for `evidence-check` and `session-cost`, and is what a session
+    already use for `fold-check` and `session-cost`, and is what a session
     with the plugin enabled can type, because the loader puts `bin/` on the
     Bash tool's PATH. The repo-relative path is what a session working inside
     a clone with the plugin disabled can open.

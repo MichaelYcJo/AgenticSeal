@@ -10,9 +10,8 @@ Round 1 of the re-application found two body shapes an integer body count let
 through -- a multi-line `case` arm pattern `a )` and the glued `f(){` -- and
 both escaped a 1,790-input differential run because every wrapper in it was
 one line long and the run lived in a session scratchpad. This is that run,
-in the tree, with the multi-line wrappers, guarded the way
-`tests/test_evidence_check.py::usable_bash` guards its own bash spawns, and
-run against a single bash process so it costs one fork rather than one per
+in the tree, with the multi-line wrappers, guarded by `usable_bash` below,
+and run against a single bash process so it costs one fork rather than one per
 input.
 """
 

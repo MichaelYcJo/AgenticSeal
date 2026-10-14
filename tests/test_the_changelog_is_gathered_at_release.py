@@ -724,7 +724,7 @@ def test_a_quoted_marker_gathers_nothing(tree, shape):
     gathered, and `--check` passed a release that never shipped the entry.
     Its count was line-anchored and still read the fenced and commented
     shapes. A marker counts only on a live line
-    (`docs/the-evidence-ledger.md` §*A marker counts only on a live line*)."""
+    (`docs/the-record-layout.md` §*The fold, and what tells it from a deletion*)."""
     quoting(tree, shape)
     r = run("--check", root=tree)
     assert r.returncode == 1, r.stdout
@@ -754,34 +754,6 @@ def load(path, name):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-@pytest.mark.parametrize("shape", sorted(QUOTED_MARKER))
-def test_the_gather_and_the_survivor_check_read_one_set_of_markers(
-    tree, shape, monkeypatch
-):
-    """#584, S7. `survivor_check.py#gathered_fragments` excuses a gathered
-    fragment from its sweep, and it reads the released markers through
-    `live_lines`. The gather reading the same file by another rule is two
-    answers to *was this entry shipped*."""
-    quoting(tree, shape)
-    text = changelog(tree, "0.1.0")
-    gather_mod = load(SCRIPT, "specseal_gather_changelog")
-    survivor = load(
-        os.path.join(ROOT, "skills", "code-review", "scripts", "survivor_check.py"),
-        "specseal_survivor_check",
-    )
-    monkeypatch.setattr(
-        survivor, "read_blobs", lambda root, rev, paths: {p: text for p in paths}
-    )
-    frags = gather_mod.fragments(str(tree))
-    missing = {
-        i for i, _ in gather_mod.ungathered(gather_mod.live_markers(text), frags)
-    }
-    gathered = {i for i, _ in frags} - missing
-    paths = ["changelog/0.1.0.md"]
-    assert gathered == survivor.gathered_fragments(str(tree), "HEAD", paths)
-    assert gathered == {"1700000000-earlier"}
 
 
 # --- #586: a fragment's own `## ` line ends the released section -------------

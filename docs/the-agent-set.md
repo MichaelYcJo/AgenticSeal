@@ -63,8 +63,8 @@ The two sections are chosen against what the diff cannot show. *What this
 phase was asked* is the scope the spawn actually gave, which a later reader
 cannot otherwise tell from a scope the phase invented for itself. What a work
 item removes from the tree is not a phase's section: it is named once, in the
-frame's `## Removes` (`templates/sdd-spec.md`), where the records arm reads
-each row as a claim of absence. One phase once
+frame's `## Removes` (`templates/sdd-spec.md`), which the review reads
+against the diff. One phase once
 moved a rule into an interim home and the next removed the interim home
 before the rule had reached anywhere else, and nothing recorded that it had
 gone; a removal the frame did not name is a divergence in `overview.md`.

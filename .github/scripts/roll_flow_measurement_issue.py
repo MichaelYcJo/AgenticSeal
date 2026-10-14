@@ -91,10 +91,10 @@ A rolling log opened with `--body ""` is born with no path back to the one it
 replaced and no statement of what it is for, which is the state every log
 before this change was in (#136). The body names the issue just closed, says
 which version it covers the work since and that the next release closes it,
-and points at the durable ledger --
+and points at the durable log --
 the issue carrying `flow-baseline`, looked up the same way the rolling one is
 and never by number. Where a repository has no such issue that clause is left
-out rather than the roll failing: a durable ledger is a thing a repository may
+out rather than the roll failing: a durable log is a thing a repository may
 not have, and a release is not the place to insist on one.
 
 **The index label and the milestone are best-effort, and a failure to set
@@ -185,14 +185,14 @@ MILESTONE_NOTE = (
 
 BASELINE_AMBIGUOUS_NOTE = (
     f"More than one open `{BASELINE_LABEL}` issue, so this one points at no "
-    f"durable ledger. That label carries the same exactly-one-open invariant "
+    f"durable log. That label carries the same exactly-one-open invariant "
     f"the rolling log does, and naming a broken invariant is what this does "
     f"instead of picking whichever the search listed first."
 )
 
 INDEX_NOTE = (
     f"The `{INDEX_LABEL}` index label could not be applied either. Add it by "
-    f"hand so this issue turns up beside the durable ledger when the whole "
+    f"hand so this issue turns up beside the durable log when the whole "
     f"concern is queried by label."
 )
 
@@ -208,9 +208,11 @@ def try_run(*args):
     """`run` without the exit -- `None` where the call failed.
 
     For the parts of this script whose failure must not stop a release: the
-    durable ledger's lookup, and the best-effort arguments to the create. None
+    durable log's lookup, and the best-effort arguments to the create. None
     of them touches the exactly-one-open invariant, which is the thing worth
     failing a release over.
+
+    Reads: observed — a command's exit code and output; unknown passed
     """
     out = subprocess.run(args, capture_output=True, encoding="utf-8")
     return None if out.returncode else out.stdout
@@ -360,16 +362,16 @@ def close_issue(repo, number, shipped, comments=None):
 
 
 def find_baseline_issue(repo):
-    """The durable measurement ledger, by label: `(number, note)`.
+    """The durable measurement log, by label: `(number, note)`.
 
     Best-effort in every direction: a repository that never created
-    `flow-baseline` has no durable ledger, a `gh` failure here is not worth a
+    `flow-baseline` has no durable log, a `gh` failure here is not worth a
     release, and either way the body simply leaves the clause out. The lookup
     is the rolling log's own shape -- a label, never a number -- because a
     number goes stale the moment its issue closes, which is what `#109`
     removed from the rolling log's lookup for the same reason.
 
-    **The note separates two silences.** No durable ledger is the ordinary
+    **The note separates two silences.** No durable log is the ordinary
     case and says nothing, because a note about it would appear on every
     rolling log every repository ever opens. Two or more open is that label's
     invariant broken, and it answers `None` with a note rather than taking
@@ -377,6 +379,8 @@ def find_baseline_issue(repo):
     exactly-one-open rule and says a broken invariant is named rather than
     guessed at, and a body carrying one of two numbers looks exactly like a
     body carrying the only one.
+
+    Reads: observed — the JSON `gh issue list` writes, through `try_run`; unknown passed
     """
     out = try_run(
         "gh",
@@ -411,15 +415,17 @@ def issue_body(shipped, closed_number, baseline_number, notes=(), comments=None)
     three places that say the predecessor closed empty (#198): the new log is
     the one the next session opens to write in, and a reader there is the
     one who can still do something about a cycle that measured nothing.
+
+    Reads: nothing — it writes the body from the values its caller hands it
     """
-    ledger = (
+    baseline = (
         f"Baselines and the observations that span versions live in "
         f"#{baseline_number}; this"
         if baseline_number is not None
         else "This"
     )
     opening = (
-        f"Rolls from #{closed_number}. {ledger} issue takes one comment per "
+        f"Rolls from #{closed_number}. {baseline} issue takes one comment per "
         f"segment, covers the work done since {shipped} shipped, and is "
         f"closed by the release that ships the next version."
     )
@@ -464,9 +470,13 @@ def landed_create(repo, closed_number):
 
 
 def open_issue(repo, shipped, closed_number, comments=None):
+    """Open the next log, dropping on each rung what the rung above could not set.
+
+    Reads: observed — what `gh` answers, through `find_baseline_issue`, `try_run` and `landed_create`; unknown mixed
+    """
     title = log_title(shipped)
     baseline, baseline_note = find_baseline_issue(repo)
-    ledger_notes = (baseline_note,) if baseline_note else ()
+    baseline_notes = (baseline_note,) if baseline_note else ()
 
     # Most to least. Each rung drops the argument the rung above it could not
     # set and says so in the body; only `LABEL` is on every rung, because that
@@ -476,7 +486,7 @@ def open_issue(repo, shipped, closed_number, comments=None):
         (("--label", INDEX_LABEL), (MILESTONE_NOTE,)),
     ):
         body = issue_body(
-            shipped, closed_number, baseline, (*notes, *ledger_notes), comments
+            shipped, closed_number, baseline, (*notes, *baseline_notes), comments
         )
         if try_run(*create_args(repo, title, body, extras)) is not None:
             return title
@@ -490,7 +500,7 @@ def open_issue(repo, shipped, closed_number, comments=None):
         shipped,
         closed_number,
         baseline,
-        (MILESTONE_NOTE, INDEX_NOTE, *ledger_notes),
+        (MILESTONE_NOTE, INDEX_NOTE, *baseline_notes),
         comments,
     )
     run(*create_args(repo, title, body, ()))

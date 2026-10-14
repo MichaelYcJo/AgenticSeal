@@ -1,8 +1,8 @@
 # review chain — behavior spec
 
 Authority for the cycle contract the `code-review` and `legacy-parity` skills
-participate in, and for the review run: its bound and its end, the two records
-that say what was reviewed, and the survivor sweep. Two sibling documents
+participate in, and for the review run: its bound and its end, and the two
+records that say what was reviewed. Two sibling documents
 carry the rest of what this one used to hold.
 `docs/commit-review-gate-spec.md` is the authority for
 `hooks/commit-review-gate.py`, `hooks/review-history-guard.py` and the
@@ -237,11 +237,10 @@ nobody read*, which is narrower than *this round was silent* and is what keeps
 the bound a bound.
 
 **A finding located in a record is a correction, not a round.** A finding
-whose `Location` is under `seal/specs/`, `seal/ledger/`, `seal/releases/` or
-`seal/ledger.md` is about the run's own paperwork rather than about the tool,
-and it owes no fix pass and no reader. What `chain_check` or `evidence_check`
-refuses is corrected in the closing commit; what neither reads is prose,
-a ⬜ like any other. `Needs a fix` does not count it, so a
+whose `Location` is under `seal/specs/` is about the run's own paperwork
+rather than about the tool, and it owes no fix pass and no reader. What
+`chain_check` refuses is corrected in the closing commit; what it does not
+read is prose, a ⬜ like any other. `Needs a fix` does not count it, so a
 verifying round that finds only such things has opened nothing needing a fix.
 A ⬜ closes at the run's end through `notes`, a 🟡 in its fix table; each
 closes `answered` with `corrected at <sha>` as its grounds, never `fixed`,
@@ -318,9 +317,7 @@ a `fixed` cell — whatever its `Needs a fix` says.** The two rows answer
 different questions: `Needs a fix` is the reviewer's, *what did I open*; the
 bound needs *were fixes written that owe a reader*. They come apart in one
 sequence, and it happened: the reviewer answers `no`, judging a 🟡 answerable
-with grounds, and the orchestrator fixes it anyway because it ships — a false
-count in a ledger fragment that `fold_ledger.py` copied into the shared ledger
-at the release.
+with grounds, and the orchestrator fixes it anyway because it ships.
 The row still reads `no`, the fixes exist, and a walk reading only that row
 has no terminal record it accepts: the verifying round that reads the fixes
 is a second uncounted record after the floor, and ending without it is
@@ -844,8 +841,7 @@ nothing else of the section (`questions.md` A5 of the work item that added
 the generator, narrowed by its round 2). `close` applies the implementer's fix
 table. No orchestrator prose sits in a parsed cell.
 
-**A moratorium for 0.8.x: no new parsed field in `round-N.md` and no new row
-the ledger must carry.** Every field this document and
+**A moratorium for 0.8.x: no new parsed field in `round-N.md`.** Every field this document and
 `docs/round-record-spec.md` describe arrived with a checker arm, a template
 row, a protocol row and a cutoff, and each arm cost
 rounds of the branch that added it. The work item that added the generator
@@ -853,69 +849,10 @@ added a subcommand and a verdict word — `deferred <home>` — and no field. Wh
 a 0.8.x work item finds it needs goes to the tracker for the release after,
 with the measurement that says a field is what it needs.
 
-## The survivor sweep — a corrected sentence standing somewhere else
-
-A fix corrects one coordinate. The fact behind it is usually written down in
-more than one place, and the copies nobody touched come back as the next
-round's finding. This is the check that names them.
-
-<!-- specs/1788873640-a-corrected-sentence-survives-elsewhere-and-nothing-looks -->
-**`survivor-check --range <a>..<b>` reports every place in the tree outside
-the reference roots still carrying wording the range removed**, naming the
-path, the surviving sentence and the corrected sentence it matched. It is run
-by the party whose range it is about — the fix pass, and the implementer's
-verify phase — because nothing downstream can run it for somebody else's
-range. A survivor that is a deliberate carrier is exempted by a
-content-anchored row in the work item's own `seal/specs/<id>/survivors.md`, so
-the exemption stops holding the moment that text changes. A reference root —
-a project's own `specs/`, named by `seal/config.md`'s `Reference specs` row —
-is a document the plugin never wrote, so it is neither a place a correction
-was owed nor a source of one (#688).
-Enforced by: tests/test_a_corrected_sentence_survives_elsewhere.py::test_a_reworded_sentence_reports_the_pin_it_left_behind, tests/test_a_corrected_sentence_survives_elsewhere.py::test_the_report_names_the_sentence_that_was_corrected_too, tests/test_a_corrected_sentence_survives_elsewhere.py::test_a_team_specs_document_carrying_the_wording_is_not_a_survivor, tests/test_a_corrected_sentence_survives_elsewhere.py::test_a_team_specs_document_the_range_edited_is_not_a_source
-
-<!-- specs/1788912166-red-for-following-the-documents-green-for-ignoring-one -->
-**A range that removes a shipped section whole takes one row for the range
-instead of one per sentence.** Every sentence of a deleted section stands in
-the durable copies that are supposed to survive a deletion, so the sweep
-reports all of them and every report is correct — one real range reported
-153. Writing 153 rows is not an escape anybody takes, and the alternative to
-a range row is turning the check off. The row is anchored on the range **and**
-on the work item whose `survivors.md` holds it, so it cannot become a
-standing *check nothing*.
-Enforced by: tests/test_a_corrected_sentence_survives_elsewhere.py::test_a_whole_range_row_excuses_the_survivors_of_that_range, tests/test_a_corrected_sentence_survives_elsewhere.py::test_a_whole_range_row_does_not_reach_a_different_range
-
-<!-- specs/1790174139-survivors-md-silences-what-it-quotes -->
-<!-- specs/1790206435-the-sweep-reads-a-code-idiom-as-removed-wording -->
-**A declaration in `survivors.md` speaks to its own work item's runs and to
-no other.** A file anywhere under `seal/specs/<id>/` belongs to that work
-item, so a range row filed one directory deeper than the layout is printed
-as `not yours` over a range that touches nothing there, instead of keeping
-the unbounded reach the owner check exists to refuse. A range row that no
-longer resolves prints `unresolved` only to a run that could have used it —
-one whose range touches its work item, or one handed a file from outside any
-work item. Every shipped `survivors.md` names a release branch deleted at
-the release, and three such lines printed on every pull request and every
-sealer run of one release, addressed to nobody. An unresolved row excuses
-nothing whether printed or not, so leaving the line out costs no allow. In
-local mode, where the owner is never in a range's diff, it is the `Branch`
-row of the work item's `routing.md`: the row holds where the tip is on that
-branch and on no local branch it was cut from.
-Enforced by: skills/code-review/scripts/survivor_check.py::whole_range, skills/code-review/scripts/survivor_check.py::on_its_branch, tests/test_a_corrected_sentence_survives_elsewhere.py
-
-<!-- specs/1789211172-a-round-record-disarms-survivor-check -->
-**A round record is outside the sweep's corpus on both sides.** A record is
-the write-up of a finding rather than a carrier of the claim, so a sentence
-*removed* from one is not corrected wording any more than a sentence
-surviving in one is an uncorrected copy. Excluding only the added side left
-the check able to name a coordinate nobody should be asked to correct, which
-is worse than not looking: a false name spends a round.
-Enforced by: tests/test_a_corrected_sentence_survives_elsewhere.py::test_a_record_of_a_past_round_is_not_a_survivor, tests/test_a_corrected_sentence_survives_elsewhere.py::test_a_round_record_the_range_edited_does_not_become_a_source
-
 ### What a draft is excused, and what it is not
 
-The same work item settles an asymmetry that runs through every arm of the
-pull-request check, this document's and `docs/round-record-spec.md`'s.
-**A draft pull request is not a request to merge**, so an arm whose subject is
+An asymmetry runs through every arm of the pull-request check, this
+document's and `docs/round-record-spec.md`'s. **A draft pull request is not a request to merge**, so an arm whose subject is
 a review still in progress prints its state instead of failing — the record
 count is one of those, the way `Pass` already was. Pressing *Ready for
 review* fires the event, the workflow re-runs, and the arm applies, so nothing
@@ -929,62 +866,6 @@ reading `not yet` or whose newest entry names a SHA that precedes that
 record's own `Target SHA`, are both refused on a ready pull request and each says which of
 the two it is — one is the run that never happened, the other the run spent
 before the round it was meant to seal.
-
-### What the sweep reads, and what it counts as written
-
-<!-- specs/1790174139-survivors-md-silences-what-it-quotes -->
-<!-- specs/1790206435-the-sweep-reads-a-code-idiom-as-removed-wording -->
-**The sweep reads only wording that still instructs somebody, and it reads
-it the same way on both sides of the range and in the pool.** What is left
-out is left out by its shape, never by a list of files. A file under a work
-item that records a past state is out: a round record, the work item's own
-`survivors.md`, and everything under its `phases/`. A released section of
-a changelog — every line under a heading that names a version, in the root
-`CHANGELOG.md` or in a release's own file under `changelog/` — is out, and
-so is a fragment whose fold marker stands in either at the tip, because a
-released entry is not rewritten;
-`## Unreleased` and an ungathered fragment stay in. A ledger row the range
-removed because one of its anchors left the code is out, since its claim
-went with the code; a row corrected in place is still read where its id
-stands under the same heading, and otherwise only while a live row cites
-every anchor it kept. So one whose correction renamed an anchor goes silent
-only when both fail: the id does not name it (it has no id, as about 35% of
-rows do; its id lost a sibling; or it changed section), and no live row cites
-what it kept (every anchor was renamed, or a kept one was dropped). In a
-`.py` file only
-comments, docstrings and string literals are wording, every other token ends
-a sentence, and a file the tokenizer refuses is read whole. Each of these
-cost a check that went green by finding nothing or red over something
-nobody could correct. A committed `survivors.md` subtracted the survivors
-it quoted before `--exempt` was read and diluted the rest under the floor:
-on three pull requests of one release, 36 rows were written and 7 were
-consulted. Six of the twenty-one places the next release's four ranges
-reported were function bodies matched on loop and `if` shapes.
-Enforced by: skills/code-review/scripts/survivor_check.py::records_a_past_state, skills/code-review/scripts/survivor_check.py::a_changelog, skills/code-review/scripts/survivor_check.py::a_gathered_fragment, skills/code-review/scripts/survivor_check.py::python_prose, skills/code-review/scripts/survivor_check.py::removed_ledger_rows
-
-<!-- specs/1790206435-the-sweep-reads-a-code-idiom-as-removed-wording -->
-<!-- specs/1790221963-a-release-writes-the-gathered-text-back -->
-**Only wording the range itself wrote is subtracted from what it removed.**
-That subtraction is what makes the score mean *removed*, so the question is
-always whose writing a sentence is. A sentence moved verbatim to another
-path, by a file moved whole or a document split, is held and never written,
-because a move changes no sentence's author: a pure move removes nothing and
-is silent for that reason, and a move that rewords one sentence measures it,
-where git's rename detection hid both. A move pairs with its own origin, the
-path it shares the most sentences with, so a report names the correction and
-never the path that only moved. A fold's text carried verbatim from a retired
-work item is a move too, and the retired side leaves the range after the
-pairing. A fragment's text gathered by a
-release is held and never written, because the fragment's own branch wrote
-it. Written, it subtracted the survivor a correction in the same commit left
-in another file whenever the release also lost a sentence, and renaming
-`## Unreleased` or rewording an entry as it is released both lose one. It
-still splits a sentence the changelog holding it lost — the root file or a
-release's own file — and nothing else. A
-release that loses no live sentence writes nothing it put under a version
-heading, and that guard and the gathered-text filter are pinned by separate
-cases, because either alone kept the shape the ticket first named green.
-Enforced by: skills/code-review/scripts/survivor_check.py::corrected, skills/code-review/scripts/survivor_check.py::newly_released, skills/code-review/scripts/survivor_check.py::paired_across_paths, skills/code-review/scripts/survivor_check.py::retired_directories
 
 ## Non-goals
 

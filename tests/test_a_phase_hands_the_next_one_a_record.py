@@ -20,8 +20,8 @@ per-segment record the review chain already has in `templates/sdd-round.md`
                      a section is commented out ships a record that is
                      missing it the moment someone copies the file
   no removal table    what a work item takes out of the tree is named once,
-                     in `spec.md`'s `## Removes`, where the records arm reads
-                     it (#835); a per-phase table was a second record of the
+                     in `spec.md`'s `## Removes`, which the review reads
+                     (#835); a per-phase table was a second record of the
                      same fact that nothing read
   the measured story  each section's own comment names the failure it
                      answers, so the template does not ship a blank nobody

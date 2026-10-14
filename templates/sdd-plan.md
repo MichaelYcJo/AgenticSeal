@@ -45,7 +45,7 @@ Vertical slices — each phase ends with something runnable and verified.
 
 This table is also where the work records how far it got. There is no separate
 task list: a list of tasks is mutable progress, and a stale one asserts a state
-that is not true, which is the failure the evidence ledger exists to prevent.
+that is not true.
 
 **Status is empty, or the commit that closed the phase.** A tick is refused,
 and so is `done`: both can be typed without anything having happened, and both
@@ -69,9 +69,6 @@ The quiet half is the one that bites: this column was wrong on its own first
 use, nine SHAs deep, and only a reviewer opening them found it. **Re-read the
 column after any rebase**, or it names commits that resolve in one clone and
 nowhere else. That is tolerable because nothing measures from this column.
-The evidence ledger had the same problem and no such tolerance. It no longer
-has it at all: a ledger row names a symbol and a content hash, so there is no
-commit in it for a rebase to orphan.
 
 ## Operational impact
 

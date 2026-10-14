@@ -1,10 +1,10 @@
 """Whether a line is live is asked by what the line does (#872).
 
-Seven readers decide whether a ledger or record line is live, and they give
-three answers, because they read three kinds of line:
-`docs/the-evidence-ledger.md` §*The fold, and what tells it from a deletion*
+Five readers decide whether a record line is live, and they give three
+answers, because they read three kinds of line:
+`docs/the-record-layout.md` §*The fold, and what tells it from a deletion*
 states the rule under the marker of work item 1791852615. This module is the
-one place the seven stand side by side. Each per-reader module owns that
+one place the five stand side by side. Each per-reader module owns that
 reader's edges; this one pins only the answer each reader's docstring, or the
 statement, already gives on a small corpus of shapes, so a reader whose answer
 moves on one shape is a red cell naming the reader and the shape.
@@ -24,7 +24,7 @@ import pytest
 from conftest import load_hook_module
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
-STATEMENT_DOC = os.path.join(ROOT, "docs", "the-evidence-ledger.md")
+STATEMENT_DOC = os.path.join(ROOT, "docs", "the-record-layout.md")
 MARKER = "<!-- specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules -->"
 
 
@@ -38,20 +38,15 @@ def _load(name, relative):
     return module
 
 
-checker = _load(
-    "specseal_checker_for_liveness", "skills/evidence-check/scripts/evidence_check.py"
-)
+checker = _load("specseal_checker_for_liveness", "skills/verify/scripts/coordinates.py")
 reader = _load(
     "specseal_reader_for_liveness", "skills/verify/scripts/unverified_check.py"
 )
-settle = _load("specseal_settle_for_liveness", "skills/settle/scripts/settle.py")
 riders = _load("specseal_riders_for_liveness", ".github/scripts/rider_check.py")
 config = load_hook_module("config.py", "specseal_config_for_liveness")
 
 WORK_ITEM = "1700000001-alpha"
-# One ledger row, anchored inside a work item's directory so `anchored_rows`
-# has something to name, and spelled as a table row so every other reader
-# reads the same line.
+# One ledger row, spelled as a table row so every reader reads the same line.
 ROW = (
     f'| a claim | `seal/specs/{WORK_ITEM}/spec.md#"# alpha"@abcdef12` '
     "| read | 2026-01-01 | |"
@@ -144,25 +139,8 @@ def as_text(lines):
 
 
 def checker_quoted_lines(lines, tmp_path):
-    """Read where the index is absent from the set the ledger walk skips."""
+    """Read where the index is absent from the set `unquoted` blanks."""
     return row_index(lines) not in checker.quoted_lines(lines)
-
-
-def checker_claim_lines(lines, tmp_path):
-    """Read where a `(number, text)` pair names the row's line."""
-    number = row_index(lines) + 1
-    return any(n == number for n, _ in checker.claim_lines(lines))
-
-
-def settle_anchored_rows(lines, tmp_path):
-    """Read where the retirement guard names the row, over a ledger holding
-    the shape and a directory its anchor points into."""
-    (tmp_path / "seal" / "specs" / WORK_ITEM).mkdir(parents=True)
-    (tmp_path / "seal" / "ledger.md").write_text(as_text(lines), encoding="utf-8")
-    number = row_index(lines) + 1
-    return any(
-        row.line == number for row in settle.anchored_rows(str(tmp_path), [WORK_ITEM])
-    )
 
 
 def rider_quoted_lines(lines, tmp_path):
@@ -194,23 +172,11 @@ R, N = "read", "not read"
 # reader: (its adapter, the answer it gives, how the statement spells it,
 #          and its answer on each shape in ORDER)
 TABLE = {
-    "evidence_check.py#quoted_lines": (
+    "coordinates.py#quoted_lines": (
         checker_quoted_lines,
         HOLDS,
-        "checker's `quoted_lines`",
+        "kernel's `quoted_lines`",
         (N, R, R, R, R, R, R, N, N, R),
-    ),
-    "evidence_check.py#claim_lines": (
-        checker_claim_lines,
-        HOLDS,
-        "`claim_lines`",
-        (N, R, N, R, R, R, N, N, N, R),
-    ),
-    "settle.py#anchored_rows": (
-        settle_anchored_rows,
-        HOLDS,
-        "`settle.py#anchored_rows`",
-        (R, R, R, R, R, R, R, R, R, R),
     ),
     "rider_check.py#quoted_lines": (
         rider_quoted_lines,

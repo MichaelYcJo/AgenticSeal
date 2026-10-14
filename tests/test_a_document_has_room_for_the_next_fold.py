@@ -24,7 +24,7 @@ its line count and folds nothing.
 
 The three values are rows of `seal/config.md` — `Fold shape from`,
 `Document line ceiling`, `Over the ceiling` — which is where the shipped
-command reads them. `docs/the-evidence-ledger.md` §*The fold, and what tells
+command reads them. `docs/the-record-layout.md` §*The fold, and what tells
 it from a deletion* states them in prose, and the prose pin below reads the
 rows through the command's own reader and holds the two equal, so the prose,
 the config and the check are one set of numbers.
@@ -182,7 +182,7 @@ def test_settle_owns_the_placement_rule():
         os.path.join(ROOT, "skills", "settle", "SKILL.md"), encoding="utf-8"
     ) as f:
         text = f.read()
-    section = text.split("### 2. Write one standing statement per segment")[1]
+    section = text.split("### 2. Write one standing statement per rule")[1]
     section = section.split("### 3.")[0]
     for phrase in (
         "**One subject, one document, and a document over its ceiling takes no new\n"
@@ -193,15 +193,15 @@ def test_settle_owns_the_placement_rule():
         assert phrase in section, f"settle §2 no longer says: {phrase!r}"
 
 
-def ledger_prose():
+def layout_prose():
     with open(
-        os.path.join(ROOT, "docs", "the-evidence-ledger.md"), encoding="utf-8"
+        os.path.join(ROOT, "docs", "the-record-layout.md"), encoding="utf-8"
     ) as f:
         return f.read()
 
 
 def prose_disagreements(text, values):
-    """How the evidence-ledger prose and the declared values differ, or []."""
+    """How the record layout's prose and the declared values differ, or []."""
     cutoff, ceiling, over, _ = values
     section = text.split("## The fold, and what tells it from a deletion")[1]
     stated_cutoff = re.search(r"from work item `(\d+)` on", section)
@@ -221,17 +221,17 @@ def prose_disagreements(text, values):
     return found
 
 
-def test_the_evidence_ledger_states_the_values_the_config_rows_hold():
+def test_the_record_layout_states_the_values_the_config_rows_hold():
     """A11 and S10. The values are stated once in prose, for a reader, and
     once as `seal/config.md` rows, for the command; this case is what keeps
     the two the same numbers. The rows are read by the command's own reader,
     so a row it would not read fails here too."""
-    text = ledger_prose()
+    text = layout_prose()
     section = text.split("## The fold, and what tells it from a deletion")[1]
     assert (
-        "`skills/settle/SKILL.md` §*2. Write one standing statement per\nsegment*"
+        "`skills/settle/SKILL.md` §*2. Write one standing statement per\nrule*"
         in section
-    ), "the evidence ledger no longer links to settle §2, the rules' owner"
+    ), "the record layout no longer links to settle §2, the rules' owner"
     assert not prose_disagreements(text, declared()), prose_disagreements(
         text, declared()
     )
@@ -240,7 +240,7 @@ def test_the_evidence_ledger_states_the_values_the_config_rows_hold():
 def test_the_prose_pin_fails_when_either_side_moves_alone():
     """S10, from both sides: the rows edited with the prose left alone, and
     the prose edited with the rows left alone."""
-    text, values = ledger_prose(), declared()
+    text, values = layout_prose(), declared()
     cutoff, ceiling, over, digests = values
     assert prose_disagreements(text, (cutoff + 1, ceiling, over, digests))
     assert prose_disagreements(text, (cutoff, ceiling + 1, over, digests))

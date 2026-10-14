@@ -1447,8 +1447,8 @@ def section_end(lines, start):
     generator's `section_body` and the section-end scan inside its
     `swallowed` reach it through `chain.section_end`, and `verdict_table`
     below reads a record's `## Verdicts` by it. It used to end at any line
-    starting with `#` in all three, and the survivor sweep over the
-    generator's fix found this file's copy of the loop: a `###` a hand edit
+    starting with `#` in all three, and a sweep over the generator's fix
+    found this file's copy of the loop: a `###` a hand edit
     put between the verdict header and an open 🔴 row placed the row outside
     the section, `open_blocking` saw no blocker, and a checked `Pass` beside
     it passed — the permissive direction, on the one kind of record the
@@ -1458,7 +1458,8 @@ def section_end(lines, start):
     that changes is the deeper heading, and a `####` under a `###` under the
     section is inside it for the same reason, because the rule is *same
     level or shallower ends it* and not *one level deeper is allowed*.
-    """
+
+    Reads: guess — a round record's lines its caller hands it; unknown passed"""
     level = heading_level(lines[start]) or 1
     for i in range(start + 1, len(lines)):
         found = heading_level(lines[i])
@@ -2118,14 +2119,10 @@ def fix_range(reader, root, rel):
     """(errors, notices) for one record's `Fix range` row, read against git.
 
     #344's class: a record is written once and the tree keeps moving, and
-    nothing read one against the other. The ledger has `evidence-check` for
-    exactly that job over content anchors; the records were left out of it,
-    and the part of a record that rots fastest is the part that is a claim
-    about COMMITS. The checker that reads such a claim has to be the one
-    already allowed to ask git, which is this one —
-    `skills/evidence-check/scripts/evidence_check.py` states the opposite bar
-    in its own test module, *no fixture here runs git, and no fixture here
-    may*.
+    nothing read one against the other. The part of a record that rots
+    fastest is the part that is a claim about COMMITS, and the checker that
+    reads such a claim has to be one already allowed to ask git, which is
+    this one.
 
     TWO halves are read, because either alone passes the record the other
     catches. The ENDS say which commits, and `round_record.parse_range`
@@ -2158,6 +2155,8 @@ def fix_range(reader, root, rel):
     is present and malformed fails on any record, because a cell nobody can
     parse is always the author's to fix, where a row that did not exist when
     the record was written is not.
+
+    Reads: guess — a round record's `Fix range` and `Fixes checked by` rows, and git's answer about the range named; unknown mixed
     """
     text = read_record(root, rel)
     if text is None:
@@ -4710,9 +4709,7 @@ FRAME_FROM = 1789518345
 
 
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
-CHECKER = os.path.join(
-    HERE, "..", "..", "evidence-check", "scripts", "evidence_check.py"
-)
+CHECKER = os.path.join(HERE, "..", "..", "verify", "scripts", "coordinates.py")
 PACT_FILE = "pact.md"
 # What every pact notice ends on, because it is what keeps a notice from
 # reading as a check: this CI reads one repository, and the reconciliation
@@ -4735,13 +4732,13 @@ def pact_notices(routing, root, declarations):
     That is #647's decision 2: a signer's CI prints the relationship and
     does not verify it. The strict reading of the same rows is `pact-check`'s,
     run locally at the pact's repository, which can open every signer;
-    this check can open one. So a `Pact` row that will not parse, a notify
-    value outside the vocabulary, and an anchor naming a pact no row declares
-    are printed here exactly as a well-formed relationship is.
+    this check can open one. So a `Pact` row that will not parse and an
+    anchor naming a pact no row declares are printed here exactly as a
+    well-formed relationship is.
 
     - Where `seal/config.md` names a pact held elsewhere: one notice per pact,
-      naming the pact's repository, the notify value, and how many pact
-      anchors naming it the declared work item's `spec.md` carries.
+      naming the pact's repository and how many pact anchors naming it the
+      declared work item's `spec.md` carries.
     - Where this repository holds `seal/pact.md`: how many signers the
       pact lists, and, where its table is headed as 0.18.x wrote it, the
       sentence naming the rename (`hooks/config.py#renamed_header`, #822).
@@ -4751,6 +4748,8 @@ def pact_notices(routing, root, declarations):
     Read from HEAD, as every record here is (`read_record`), so a local-mode
     root, which commits nothing, prints nothing. A reader that will not load
     is one notice rather than exit 2, for the same decision.
+
+    Reads: guess — the `Pact` row, `seal/pact.md` and the declared work items' `spec.md` at HEAD, through `hooks/config.py` and `coordinates.py`; unknown passed
     """
     home = routing.optin.HOME
     config_rel = f"{home}/config.md"
@@ -4797,7 +4796,7 @@ def pact_notices(routing, root, declarations):
                 "notice",
             )
         )
-    pacts, notify, refusals = config.pact_declaration(config_text or "")
+    pacts, refusals = config.pact_declaration(config_text or "")
     for written, _normalised, name in pacts:
         count = sum(1 for _rel, n in cited if n == name)
         where = (
@@ -4810,9 +4809,7 @@ def pact_notices(routing, root, declarations):
             (
                 config_rel,
                 0,
-                f"this repository signs the pact held at {written} "
-                f"(`{config.PACT_NOTIFY_ROW}`: "
-                f"{notify if notify else 'a value that will not parse'}). "
+                f"this repository signs the pact held at {written}. "
                 f"{plural(count, 'pact anchor', 'pact anchors')} naming "
                 f"`{name}` in {where}. {PACT_NOT_HERE}",
             )

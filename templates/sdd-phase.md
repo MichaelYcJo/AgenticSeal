@@ -77,7 +77,7 @@ missing without a trace when the orchestrator doesn't. This section is that
 discovery's durable, committed home instead.
 
 What a work item takes out of the tree is not recorded here. It is named
-once, at the frame, in `spec.md`'s `## Removes` section, where the records
-arm of `evidence-check` reads each row as a claim of absence (#835). A
+once, at the frame, in `spec.md`'s `## Removes` section, which the review
+reads against the diff (#835). A
 removal this phase made that the frame did not name is a divergence, and it
 goes where divergences go: `overview.md`. -->

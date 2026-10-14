@@ -40,10 +40,8 @@ example, a commented-out draft or a code span is text about the convention,
 and reading it as a gathered work item passes a release that never shipped
 the entry. Every marker reader here — `ungathered` and `--check`'s count —
 asks `live_markers`, which reads through `unverified_check.py#live_lines`,
-the one function `docs/the-evidence-ledger.md` §*A marker counts only on a
-live line* names. `survivor_check.py#gathered_fragments` reads this file's
-markers through the same function, so the two cannot disagree about which
-entries shipped.
+the one function `docs/the-record-layout.md`'s *A marker counts only on a
+live line* names.
 
 **`--check` judges by the markers, not only by the fragments.** A fragment
 glob goes empty two ways: every fragment reached the file, and there are no
@@ -100,13 +98,13 @@ RELEASES = "changelog"
 # draft beside them is not read as a release.
 RELEASE_FILE_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)\.md$")
 # Markers on a line of their own, which is how `section()` writes them. The
-# line anchor is what `fold_ledger.py#is_marked` already pays for: this file's
-# own entries describe the convention, so a bare substring count reads the
-# description as a gathered work item.
+# line anchor matters because this file's own entries describe the
+# convention, so a bare substring count reads the description as a gathered
+# work item.
 MARKER_LINE_RE = re.compile(r"^<!-- specs/\S+ -->$", re.M)
 
-# The live-line rule is the shipped one, loaded by path the way
-# `fold_ledger.py#load_reader` loads it (#487, #584). A reader that is moved
+# The live-line rule is the shipped one, loaded by path (#487, #584). A
+# reader that is moved
 # or renamed stops the gather at load with a traceback, at the release, which
 # is the loud direction.
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
@@ -129,12 +127,12 @@ def live_markers(changelog_text):
     """The work item ids whose marker stands on a live line of its own, in
     file order (#584).
 
-    Lines are split by the shared reader's `gfm_lines`, as
-    `survivor_check.py#gathered_fragments` splits them, so the two readers of
-    this file see the same lines -- and the lines GFM renders, so a marker
-    standing after a U+2028 or a form feed on its line is not a line of its
-    own to either of them (#664). Every other split of this file's text and
-    of a fragment below reads the same function, for the same reason."""
+    Lines are split by the shared reader's `gfm_lines`, so this file is read
+    in the lines GFM renders: a marker standing after a U+2028 or a form feed
+    on its line is not a line of its own (#664). Every other split of this file's text and
+    of a fragment below reads the same function, for the same reason.
+
+    Reads: guess — a changelog's text its caller hands it, through `unverified_check.py#live_lines`; unknown passed"""
     return [
         line[len("<!-- specs/") : -len(" -->")]
         for line, live in reader.live_lines(reader.gfm_lines(changelog_text))

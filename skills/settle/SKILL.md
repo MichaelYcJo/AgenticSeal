@@ -5,9 +5,8 @@ description: |
   `spec.md` into a `docs/` policy document, then removing the directory.
   Use when: preparing a release and the work items have accumulated; a
   session asks what `seal/specs/` is still holding, or runs `settle`.
-  NOT for: gathering changelog or ledger fragments, which release
-  preparation already does; judging whether a ledger coordinate still
-  holds (`evidence-check`); anything in a work item that has not shipped.
+  NOT for: gathering changelog fragments, which release preparation
+  already does; anything in a work item that has not shipped.
 ---
 
 # settle — the fold a shipped spec has been waiting for
@@ -22,7 +21,7 @@ process record, which no check reads after the release, and
 `settle --retire-process` takes it at every release whether or not anything
 is folded (§*The process record leaves first, fold or no fold*).
 
-**The command reads and groups; you judge and write.**
+**The command reads and lists; you judge and write.**
 `docs/one-root-by-lifetime.md` §*What keeps `settle` light* fixes the split —
 the step "moves and does not verify" — and folding *only what is still true*
 is a judgment about truth. So `settle` supplies the corpus and never writes a
@@ -31,7 +30,7 @@ session, and the command's second arm removes only what one of them already
 absorbed.
 
 ```
-settle                            what would fold, grouped by segment
+settle                            what would fold
 settle --retire                   remove the directories whose fold docs/ records
 settle --retire-process           remove every released work item's process record,
                                   fold or no fold
@@ -56,7 +55,7 @@ that deletes.
 **By hand, named as a step in the release checklist.** It is invoked, never
 triggered: no hook runs it, no gate refuses a branch over an unfolded work
 item, and it is not part of the release-preparation commit that gathers the
-changelog and ledger fragments. Folding writes policy prose, which is a
+changelog fragments. Folding writes policy prose, which is a
 judgment act, and a release that stops for somebody to write documentation is
 a release that stops.
 
@@ -92,9 +91,8 @@ directory. The **process record** is read by no check after the release that
 ships the item, and this arm removes it from every released work item:
 
 - `rounds/` and `phases/`, whole;
-- `survivors.md`;
-- `broad-gate.md`, `handoff.md`, `pr.*.md`, `tests-todo.md` and
-  `evidence-todo.md`, the files written for a pull request that has merged.
+- `broad-gate.md`, `handoff.md`, `pr.*.md` and `tests-todo.md`, the files
+  written for a pull request that has merged.
 
 Measured when it shipped, that part was 62% of the files under `seal/specs/`
 and 67% of the bytes, and it had waited seven releases on a fold it does not
@@ -129,15 +127,11 @@ pull-request-only file is therefore printed on every run until somebody adds
 it to `PROCESS_FILES` in `skills/settle/scripts/settle.py`, and a file that
 was in fact durable is never lost.
 
-**Its guards are `--retire`'s, asked per item**, so one held item does not
-stop the others:
+**Its guard is asked per item**, so one held item does not stop the others:
 
-- a `tests-todo.md` or `evidence-todo.md` that still holds an open row keeps
-  the whole item, because what a review left for the implementer may not
-  leave with the record that holds it;
-- a ledger row anchored inside a file this arm would remove keeps the item,
-  and the row is named with what `docs/the-evidence-ledger.md` requires of it.
-  A row anchored in the SDD set holds nothing, because that file stays;
+- a `tests-todo.md` that still holds an open row keeps the whole item,
+  because what a review left for the implementer may not leave with the
+  record that holds it;
 - a path outside `seal/specs/` that cites into a removed file is listed and
   never refused. It resolves in git history at the release tag, which is the
   state a citation into a retired directory is already in.
@@ -146,14 +140,11 @@ It prints each removal, then each heading below that applies, then one count:
 
 ```
 removed seal/specs/<id>/rounds/  (12 files)
-removed seal/specs/<id>/survivors.md
+removed seal/specs/<id>/broad-gate.md
 
 kept whole — a todo file still holds an open row, and what a review left for the
 implementer may not leave with the record:
-    <id>  (1 open row in evidence-todo.md)
-
-kept whole — a ledger row anchors inside the process record, and removing it would
-leave the row BROKEN. Answer each row, then run `settle --retire-process` again:
+    <id>  (1 open row in tests-todo.md)
 
 not a process record — on neither of `settle`'s lists, so it is kept rather than
 guessed at:
@@ -195,11 +186,10 @@ Local mode is refused, as it is for every arm.
 settle
 ```
 
-It prints the released, unfolded work items grouped by **segment** — the file
-their ledger coordinates anchor in — and lists beside them: the ones it cannot
-group, the ones an open `evidence-todo.md` row is holding, the ones already
-folded and waiting to be retired, and every ledger row anchored inside a
-released directory (§4).
+It prints the released work items no `docs/` policy has absorbed yet, and
+lists beside them the ones already folded and waiting to be retired. Which
+document each rule belongs in is yours to decide, from what its `spec.md`
+decided.
 
 Where a released item's SDD set cites one of its own round or phase records,
 `settle --retire-process` may already have taken it: read it at the tag of
@@ -208,8 +198,8 @@ the release that shipped the item, `git show v<X.Y.Z>:<path>`.
 **A released work item with no `spec.md` is not yours to place.** It states
 no rule, so there is nothing to fold out of it, and `settle` prints it under
 its own heading: *retired by the rule* when nothing in its record is open,
-*kept by the rule* when something is, with every open `## Not verified` and
-`evidence-todo.md` row named. Such a row is a claim with an answerer, not a
+*kept by the rule* when something is, with every open `## Not verified` row
+named. Such a row is a claim with an answerer, not a
 rule, so it leaves by being closed (✅ with what closed it) and never with the
 directory. A row re-homed — to `seal/follow-up.md`, to an issue — is closed
 the same way, ✅ naming where it went, because a row deleted from
@@ -252,17 +242,10 @@ when it goes. Once for the run it lists every `tests/` file that reads
 A work item is **released** when its directory is present on the branch the
 release merges to. `--released-at` names that branch.
 
-A `tests/` anchor rolls up to the code the case pins, by majority over the
-work item's own code anchors: a case pinning a checker's behaviour is evidence
-about the checker. An item whose anchors are all under `tests/`, or which
-wrote no ledger row at all, is **named rather than guessed at** — the link
-from a case to the code it pins is nowhere a machine reads. Those are yours to
-place, or to leave.
+### 2. Write one standing statement per rule
 
-### 2. Write one standing statement per segment
-
-For each segment, read the `spec.md` of every work item in it and write **what
-is still true** into `docs/`.
+Read the `spec.md` of every work item listed and write **what is still true**
+into `docs/`.
 
 - **Only what is still true.** A spec is the spec of one change, and what a
   later work item overturned goes nowhere. Deciding which sentence is which is
@@ -271,13 +254,13 @@ is still true** into `docs/`.
   reader can act on, not 97 quoted fragments under their provenance comments.
 - **Merge into a document that already exists**; create one only for an area
   that has none. `docs/` is flat — there is no `docs/policy/` directory — and
-  the file is named for the segment where a new one is needed.
+  the file is named for its subject where a new one is needed.
 - **The newest work item wins** where two say different things.
 - **A reference root is history to read, never input to fold.** A project's
   own `specs/`, as `templates/config.md` §*Reference specs* says, may say how
-  the area came to be: read it where the segment touches what it describes,
+  the area came to be: read it where the work item touches what it describes,
   and cite what you read by path in the standing statement's grounds. It
-  carries no marker and no ledger row, so nothing in it is folded, and the
+  carries no marker, so nothing in it is folded, and the
   plugin never writes there — `settle --retire` removes under `seal/specs/`
   alone.
 - **Every folded sentence carries its work item's comment**, on a line of its
@@ -293,8 +276,8 @@ That comment is the provenance a reader traces back through git history once
 the directory is gone, and it is **also the fold's record**: `settle` reads it
 to know what has been folded, so there is no second file to keep in step and a
 run interrupted between writing the prose and removing the directory picks up
-where it left off. It is the same marker `.github/scripts/fold_ledger.py` and
-`.github/scripts/gather_changelog.py` already write, and it is read on a line
+where it left off. It is the same marker `.github/scripts/gather_changelog.py`
+already writes, and it is read on a line
 of its own — a marker quoted inside a sentence is a description, not a fold.
 
 **A standing statement has one shape: the rule, its grounds, and what enforces
@@ -364,7 +347,7 @@ cases did not exist. Measured on this repository before the mechanism shipped,
 **fourteen test modules read the real corpus and at least six carry a
 population floor a fold turns red** — assertions of the shape
 `assert len(records) > 200` over a walk of `seal/specs/`, and non-empty
-assertions over globs of `routing.md`, `evidence-todo.md` and `pr.*.md`. Eight
+assertions over globs of `routing.md` and `pr.*.md`. Eight
 more read it with no floor and would silently assert less.
 
 So before anything is removed, find them:
@@ -392,30 +375,7 @@ settle --retire
 
 It removes the directory of every released work item whose fold is recorded,
 and of every released one with no `spec.md` and nothing open in its record,
-and nothing else. An item the evidence-todo guard is holding is kept even when
-the marker is there: the record says the prose landed, and the row says a fact
-the reviewer verified has not reached the ledger yet.
-
-**A directory a ledger row anchors into is kept too**, and the row is named
-with its file, its line and its claim. Removing the directory would leave the
-row BROKEN, and the checker would say so only after the directory was gone.
-Every ledger `evidence-check` reads is read — `seal/ledger.md`, every
-`seal/ledger/*.md`, every `seal/releases/*.md` and any `docs/**/_evidence.md`
-— and every line of each, the ones above the first section marker and the
-ones inside a fence included. The checker skips a fence that closes (#444),
-and the guard reads it anyway, because keeping a directory the checker would
-not break is the cheaper mistake. `settle` alone names them for every
-released directory before you write any prose. Each row carries what
-`docs/the-evidence-ledger.md` §*A row is a content anchor, and it names no
-commit* requires of it: **REMOVED** when every anchor it cites goes, and
-its claim written anew where
-it still stands; **narrow** when it keeps a live anchor, with the dead one
-dropped — and whether such a row is removed instead is the repository owner's
-question. Where `seal/config.md` declares `Ledger frozen from`, a row in a
-released ledger file says **released** instead: it is never removed or
-narrowed, and a `Corrected ·` row citing it in the fold's own fragment
-supersedes it (§*What a fold branch owes*). The command edits no row. Answer
-them, and the next `settle --retire` takes the directory.
+and nothing else.
 
 **The retirement is the second half of the fold and never its own act.** A
 directory removed before a policy document absorbed it takes the reasoning
@@ -426,16 +386,7 @@ absorb, which is the whole of why it needs no marker.
 
 ## What a fold branch owes
 
-**No `survivors.md` row.** The survivor sweep leaves a directory the range
-retired — folded, or retired by the rule — out of the range on both sides, the
-way it already leaves round records out: its sentences stand in `docs/`
-because that is what a fold is, and the removed spec is not a place that still
-instructs anybody. A sentence the same branch removes from anywhere else is
-measured as before, and a survivor reported there is answered the ordinary
-way.
-
-**An answer for every check that reads the corpus** (§3), and for every row
-`settle` names as anchored (§4).
+**An answer for every check that reads the corpus** (§3).
 
 **A clean `fold-check` where either row is declared.** Run it after the prose
 is written and before `settle --retire`: it reads the statements this fold
@@ -444,32 +395,10 @@ ceiling is cheaper to fix while the spec it came from is still on disk. Where
 the repository declares neither row, the command says so and checks nothing,
 which is not a finding.
 
-**Where the freeze is declared, a fold writes a fragment of its own.** A
-repository whose `seal/config.md` carries `Ledger frozen from` does not edit
-`seal/ledger.md` or any `seal/releases/<X.Y.Z>.md` after its release, and a
-fold is no exception. A fold has no work item, so its fragment is named for
-the moment instead: `seal/ledger/<unix-seconds>-fold.md`, the seconds from
-`date +%s`, and the release folds it like any other fragment. Into it go a
-`Re-read ·` row for each row whose anchored unit the fold's own prose edited
-— `evidence-check --reverify --into seal/ledger/<unix-seconds>-fold.md
---checked <date>` writes them — and a `Corrected ·` row for each row the
-guard names `released`, citing it, with the citation alone where the claim
-went with the directory (`docs/the-evidence-ledger.md` §*A released row is
-read again in the branch's fragment*). A released row is never removed; the correction
-supersedes it, and the next `settle --retire` takes the directory. Every
-other row is a content anchor and survives the fold untouched.
-
-**Without the freeze, `seal/ledger.md` changes only by removal and
-re-verification**, and so does every `seal/releases/<X.Y.Z>.md`. A fold
-appends nothing there: it removes a row the guard named REMOVED, drops the
-dead anchor from a row it named narrow, and re-reads and re-verifies —
-`evidence-check --reverify --checked <date>`, which dates the reading — a row
-whose anchored unit its own prose edited.
-
 ## What this does not do
 
-- It does not verify. Whether a coordinate still holds is `evidence-check`'s
-  job, and folding that in would re-read the whole ledger at every release.
+- It does not verify. Whether a rule still holds is the suite's job, through
+  the test its `Enforced by:` line names.
 - It does not judge whether a sentence is still true, and it cannot: that is
   step 2, and it is why this ships as a skill with a command beside it rather
   than as a script alone.

@@ -5,8 +5,7 @@ Three subcommands over one directory. `mode` says which of the two places
 the root is at and moves it between them; `export` and `import` carry a copy
 of it to another clone.
 
-In local mode the ledger and the work-item records live under the common git
-directory, so a new machine or a re-clone starts with nothing and CI's checks
+In local mode the work-item records live under the common git directory, so a new machine or a re-clone starts with nothing and CI's checks
 cannot run. That is the mode's whole trade-off
 (`docs/one-root-by-lifetime.md`, "Shared or local"), and without a way to
 carry a copy it reads as *lose it* rather than *take a copy*. This is that
@@ -59,16 +58,16 @@ depend on the standard library's sanitiser staying what it is today.
 **Import never overwrites and never asks.** A path that is not there is
 added. A path that is there with the same bytes is left alone. A path that is
 there with different bytes gets the incoming copy beside it as
-`<name>.incoming<ext>` — `ledger/<id>.incoming.md` beside
-`ledger/<id>.md` — and the collision is reported. A copy is not a sync: which
+`<name>.incoming<ext>` — `specs/<id>/spec.incoming.md` beside
+`specs/<id>/spec.md` — and the collision is reported. A copy is not a sync: which
 of the two files is right is a judgement the person makes by reading them,
 and there is no answer this command could give that would not sometimes throw
 work away.
 
 **What the reminder counts, and what it does not.** `--check` prints
 `N work items changed since the last export`, where a work item is
-`specs/<id>/` together with `ledger/<id>.md`. Root-level files — `ledger.md`,
-`follow-up.md`, `config.md`, `parity.md` — are NOT counted, because the line
+its directory `specs/<id>/`. Root-level files — `follow-up.md`, `config.md`,
+`parity.md` — are NOT counted, because the line
 the design specifies says *work items* and this command does not get to widen
 it. So a release whose only change was to `follow-up.md` reports 0. That gap
 is Q1 in the work item's `questions.md`, with the owner named; it is written
@@ -154,11 +153,6 @@ MANIFEST = "manifest.json"
 # shared mode, into a commit.
 STATE = "specseal-last-export.json"
 
-# The root's sub-directory holding one file per work item in development.
-# `optin.WORK_ITEMS` is the other half of the pair; there is no constant for
-# this one because no hook opens it.
-LEDGER_DIR = "ledger"
-
 UNSAFE_IN_A_NAME = re.compile(r"[^A-Za-z0-9._-]")
 DRIVE = re.compile(r"^[A-Za-z]:")
 
@@ -175,7 +169,7 @@ ARCHIVE_LIMIT = 512 * 1024 * 1024
 # adds nothing to the total, so neither byte bound sees a zip that is only a
 # count: measured 2026-09-03, a 31 MB zip of 300,000 empty members wrote
 # 300,002 files into the root at exit 0, in 34.5 s. A root of records is one
-# directory per work item and one ledger fragment each.
+# directory per work item.
 MEMBER_COUNT_LIMIT = 20_000
 
 
@@ -369,15 +363,13 @@ def digest(entries):
 def work_item_of(rel):
     """The work item a root-relative path belongs to, or "".
 
-    One work item writes in two places: its directory under `specs/` and its
-    ledger fragment under `ledger/`. Both count as the same item, so a release
-    that only wrote evidence rows is still a work item that changed.
+    A work item writes in one place, its directory under `specs/`.
+
+    Reads: owned — a root-relative path `root_files` yielded, one outside `specs/<id>/` belonging to no item; unknown passed
     """
     parts = rel.split("/")
     if len(parts) >= 3 and parts[0] == optin.WORK_ITEMS:
         return parts[1]
-    if len(parts) == 2 and parts[0] == LEDGER_DIR and parts[1].endswith(".md"):
-        return parts[1][: -len(".md")]
     return ""
 
 
@@ -804,7 +796,7 @@ def linked_path(into, archive):
     item there.
 
     The leaf counts, not only the directories above it. A link named
-    `ledger/w1.md` whose target does not exist reads as absent to
+    `specs/w1/spec.md` whose target does not exist reads as absent to
     `os.path.exists`, so `place` calls the member ADDED and `open(target,
     "wb")` follows the link and writes outside the root — measured
     2026-09-03, exit 0 with no warning. A link whose target does exist is
@@ -819,6 +811,8 @@ def linked_path(into, archive):
     A link this command created is not possible — the export skips links and
     an import refuses a link member — so reaching this means someone made one
     by hand, which is exactly when a stop is worth more than a guess.
+
+    Reads: observed — whether each prefix of a member's name is a symbolic link in the destination root; unknown refused
     """
     seen = set()
     for info in archive.infolist():
@@ -974,6 +968,10 @@ def destination_root(repo, home, shared, local, into):
 
 
 def import_(args, cwd):
+    """Write a carried root's records into this clone's, overwriting nothing.
+
+    Reads: owned — a zip `seal export` wrote, its sizes, manifest and member names bounded before any member is written; unknown refused
+    """
     repo, home, shared, local, _ = resolve(cwd)
     if not repo:
         print("not inside a git repository — seal works on a clone")
@@ -1252,8 +1250,7 @@ def import_(args, cwd):
         print(f"\nExported at {stamp} from {head[:12]}.")
     print(
         "Which of a collided pair is right is a reading, not a merge — this "
-        "command overwrites nothing.\n"
-        "`evidence-check .` says which ledger rows drift against this tree."
+        "command overwrites nothing."
     )
     return 0
 

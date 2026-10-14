@@ -4,24 +4,23 @@
 
 **English** · [한국어](./README.ko.md)
 
-**Specs, sealed** — when code moves under the line a spec cites, CI says so.
-
-![SpecSeal demo: evidence-check catches spec-code drift](./assets/demo.gif)
+**Specs, sealed** — every rule names the test that holds it, and CI runs the
+test.
 
 Coding agents make claims. SpecSeal makes each claim leave something you can
 open: a **proof block** the smith prints at the end of its response, naming the
-policy files it read and what it actually ran, a **review mark**
-(`.git/specseal-reviewed`, holding the reviewed HEAD sha) that a commit hook
-looks for, and an **evidence ledger** (`seal/ledger.md`) pairing each spec
-clause with the code that grounds it.
+policy files it read, the cases it saw fail first, and what it actually ran, a
+**review mark** (`.git/specseal-reviewed`, holding the reviewed HEAD sha) that
+a commit hook looks for, and an **`Enforced by:` line** under each rule a
+policy document states, naming the test that holds it.
 
 Commit without a current review mark and the hook stops the commit and puts the
-choice in front of you. Move the lines a ledger row cites and the check script
-exits non-zero. Neither is a wall — both are a record you have to walk past
-knowingly.
+choice in front of you. Point a folded rule's `Enforced by:` line at a test
+that does not exist and `fold-check` exits non-zero. Neither is a wall — both
+are a record you have to walk past knowingly.
 
-Distributed as a Claude Code **plugin**; the ledger, the drift checker, and
-the handoff protocol work anywhere git does.
+Distributed as a Claude Code **plugin**; the handoff protocol and
+`fold-check` work anywhere git does.
 
 ## Why the always-on context is 12 lines
 
@@ -37,11 +36,11 @@ works outside the context entirely (hooks).
 | Who / what | Follows | What it concretely is |
 |---|---|---|
 | **framer** (subagent) | `agent-contract` · `implement` · `writing-style` | Writes the work item's `spec.md`, `plan.md` and `questions.md` before anybody builds, and is spawned where the SDD ladder already calls for a spec. It reads the repository widely and collects everything a person has to answer into one batch, so approving `plan.md` is the run's one interruption. It writes no code — the party that draws the contract is not the party that executes it, which is what gives the warden's *spec compliance first* a document somebody else wrote to check against |
-| **smith** (Claude Code subagent) | `agent-contract` · `implement` · `writing-style` | Implements against the spec, then prints a three-line proof block: which policy files it opened, which ledger rows it touched, what it executed versus merely read. The block is a disclosure the skill requires, not something a hook verifies — but `none — <reason>` in a row is visible to you |
+| **smith** (Claude Code subagent) | `agent-contract` · `implement` · `writing-style` | Implements against the spec, then prints a three-line proof block: which policy files it opened, which cases it added and how each was seen red, what it executed versus merely read. The block is a disclosure the skill requires, not something a hook verifies — but `none — <reason>` in a row is visible to you |
 | **warden** (subagent) | `agent-contract` · `code-review` · `writing-style` | Reviews spec compliance first, then quality. Once its report is verified the orchestrator writes the reviewed HEAD sha to `.git/specseal-reviewed`, which is what the commit gate looks for — the reviewer never writes its own mark |
 | **scribe** (subagent) | `agent-contract` · `legacy-parity` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. Appears only in repos that declare `seal/parity.md` |
 | **sealer** (subagent) | `agent-contract` | Runs the one broad gate — `broad-gate`, once, after the rounds settle — and writes the last round record's `Broad gate` cell. It reads no spec and no diff, and judges nothing: a failing check comes back with its own lines and the word `new` or `failing on base too` — or `new?` with the reason, where no run at the base measured the file — and what that means is the reader's call |
-| Skills | — | Twenty-four, in three groups. The five the agents follow are in the column to the left. Twelve more a session loads on its own when the work calls for them — `audit`, `build-fix`, `checkpoint`, `commit-pr-convention`, `confidence-check`, `debug`, `evidence-check`, `feature-planner`, `gap-analysis`, `learn`, `settle`, `verify`. Seven you invoke by name; they are in the cheat sheet below |
+| Skills | — | Twenty-two, in three groups. The five the agents follow are in the column to the left. Eleven more a session loads on its own when the work calls for them — `audit`, `build-fix`, `checkpoint`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `learn`, `settle`, `verify`. Six you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
 | CLAUDE.md block | — | 12 always-on lines — four section headings (`Tooling`, `Safety`, `Session cost`, `Git`) over eight rules: one on tooling, three on safety, one on session cost, three on git. No response-language rule — that stays yours. Its one source is `templates/claude-md-block.md`; the repository's own `CLAUDE.md` carries a generated copy, and CI fails a pull request where the two differ |
 
@@ -99,39 +98,31 @@ Stopping at a report leaves finished work where nobody will look for it;
 merging decides something that was never the chain's to decide. Whether that
 PR merges, gets another round, or gets closed is yours.
 
-## The ledger
+## Where the records live
 
 Cross-session memory lives in the repo, not the session:
 
 | Root | Lifetime | Holds |
 |---|---|---|
-| `seal/` | permanent | everything this plugin maintains — the ledger, the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence is also what opts the repository in, for the hooks that read it — the commit gate, the mode gate, the review-skill gate, the review-history guard, the two implementer hooks, the stamp hook and the version check. worktree-guard and session-lease act in every git repo regardless, and lint-python follows ruff (see Where below) |
+| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence is also what opts the repository in, for the hooks that read it — the commit gate, the mode gate, the review-skill gate, the review-history guard, the two implementer hooks, the stamp hook and the version check. worktree-guard and session-lease act in every git repo regardless, and lint-python follows ruff (see Where below) |
 | `seal/specs/<id>/` | one work item | SDD set: spec, plan, questions, and a closing memo holding only what the diff cannot show. A human approves `plan.md`, which is why this is a repository document and not tool state |
 | `docs/` | permanent | whatever policy documents the repository already keeps. A work item does not create one — the documentation convention is the project's. `settle` is the one writer that does: it folds a released work item's spec into a policy document here and then retires the directory |
 
 ```
 seal/
 ├── README.md         the export rules — what leaves a work item before it closes
-├── ledger.md         spec clause ↔ code coordinates, from before work items
-│                     started writing fragments
-├── ledger/
-│   └── <work-item-id>.md   one work item's rows — no header, folded at release
-├── releases/
-│   └── <X.Y.Z>.md    one release's rows, where the fold writes them
 ├── config.md         what this repository says about itself — two languages
 │                     and the mode. Optional, and an absent row is not an
 │                     error
 ├── parity.md         migration config, only when declared
 ├── pact.md           the pact, only in the repository that holds one
-├── pact-changes/     a signer's pact changes, a file per work item. Permanent
-├── pact-reviews/     the pact's repository's pact reviews, a file per work item. Permanent
 ├── follow-up.md      schedulable items in a repository with no tracker
 └── specs/<work-item-id>/
     ├── routing.md    which way this work item goes, written before the first edit
     ├── spec.md · plan.md · questions.md · overview.md
     ├── rounds/
     │   └── round-N.md    review rounds — committed, drained, then closed and kept
-    └── tests-todo.md · evidence-todo.md
+    └── tests-todo.md
 ```
 
 Judgment runs policy > SDD > code where a repository has policy documents, and
@@ -145,35 +136,15 @@ agent that reads and writes files in a git repo can conform. It names the
 records' home as *the directory that holds the work item*; `seal/specs/<id>/` is
 this implementation's answer to that, not the protocol.
 
-The ledger is *checked*, not merely kept. A coordinate names **content, not a
-position** — `path#unit@hash`, where the unit is a function or class for code
-and a heading for a document, and the hash covers the region under it. The
-`evidence-check` skill ships a CI-ready script that
-exits 2 when an anchor is gone or ambiguous and 1 when the content under it
-changed; both fail a default CI step, and `--strict` makes drift exit 2 too.
-**`broad-gate` is the reader that passes `--strict`**, so drift you were shown
-as exit 1 locally is what refuses the branch when the sealer runs that gate —
-and a lenient run says so on the exit code where the two readings part. What it
-proves is narrow and worth stating: that the citation still points at what it
-claimed, not that the claim it supports is still true. Specs rot silently
-everywhere else — here the rot shows up in CI.
-
-**A row carries no line number and no commit.** A line number moves for edits
-that have nothing to do with the claim, so inserting a line above a cited
-function used to leave the row pointing at the wrong lines while still reading
-OK. A unit does not move, so that edit is silent and a real change to the cited
-code is not. An anchor also degrades to *re-read this*, never to *go fix the
-ledger* — the second is the bookkeeping the design exists to remove. Nothing
-is written into a row for a rebase or a squash to
-orphan, and the check calls git for nothing — the one exception is
-`--migrate`, a one-shot writer that consults the old stamp's commit before it
-trusts a line number it is rewriting. Re-verifying a row is
-re-reading it and running `evidence-check --reverify`, which recomputes the
-hash and names what it changed. Add `--checked <YYYY-MM-DD>` and it also
-writes the date of that reading into every row whose hash it moves; without
-it the dates stay and those rows are named. The flag says every such row was
-re-read, so read each row citing a drifted coordinate first, or narrow the
-write with `--ledger`.
+**A rule names the test that holds it.** A rule a policy document states ends
+with an `Enforced by:` line naming a test as pytest spells its node id
+(`tests/test_x.py::test_y`), a unit, or a file, and CI running the suite is
+the check that the rule still holds. `fold-check` reads the statements
+`settle` folds into `docs/` and exits non-zero on a target that does not
+exist. A rule no test can hold says `Enforced by: nothing — <why>`, which
+leaves the gap where a reviewer reads it. What this proves is narrow and worth
+stating: that a named test exists and passes, not that it asserts the whole
+rule. That half is the review's.
 
 ## The gates
 
@@ -280,17 +251,16 @@ wrong for every other machine.
 
 | Command | Does |
 |---|---|
-| `evidence-check . [--strict]` | ledger drift check (the demo GIF) — works without any agent. The plugin puts it on PATH; `/specseal:evidence-ci` wires the same check into CI. It also names a ledger row that an unescaped `\|` split into more cells than its table's header (`OVERFLOW`), whose text past the last column no reader sees; `--strict` fails on it as it does on drift |
 | `deferral-check . [--kind all]` | resolve the answerer an `unverified` row names — does anything here actually run the check you are deferring? Separates *answers on pull requests* from *answers too late*, *local hook only*, and *nothing* |
 | `unverified-check . [--baseline <ref>]` | read the rows those `unverified` labels left behind — what is still open, in which work item, and who was named to answer it. Fails on a section it cannot read, because a tolerant reader reports zero and zero reads as *all closed*. With `--baseline`, it compares counts against `git merge-base <ref> HEAD`: the point where this branch forked from that ref on a branch checkout, and the base's tip in CI, which checks a pull request out already merged into the base. Either way a work item that landed on the base afterwards is not this branch's removal. A table with fewer rows than at that commit fails, as does an `overview.md` that was there and is gone. Replacing one row with another keeps the count and passes |
 | `session-cost --latest` | where a session's minutes went — command time, model time between calls, checks re-run for a result already produced, and how many tools went out per turn. Fills the seal's `cost` row, which nothing inside a session can measure |
 | `session-cost --segments <transcript>` | one row per agent the run spawned, read from that agent's own transcript: its span, calls, tools per turn, mean gap and tokens. That span is in no other column — where a harness writes a spawn's result on acceptance, the `--spawns` table reads seconds for an agent that ran twenty minutes. A resumed agent is one row per stretch of work, so no span covers the wait between two of them — whether the command is given the run's transcript or that agent's own — and a segment that spawned an agent of its own prints a line saying so. Under the table it names each row whose tools per turn sit under its kind's bar — a warden's or a framer's; a smith's edit-test loop is exempt — and counts the rows it could not grade |
-| `settle [--retire]` | what `seal/specs/` is still holding — the released work items whose spec no policy document has absorbed yet, grouped by the file their ledger rows anchor in, with the ungrouped ones named, any held by an open evidence-todo row skipped, and every ledger row anchored inside a released directory named. It writes no policy prose: that half is a judgment, and `settle` supplies the corpus a session writes it from. `--retire` then removes the directories that prose already covers, and the released ones with no `spec.md` whose record holds nothing open, because a moment states no rule to fold. A directory a ledger row anchors into stays, and so does one whose record was closed on this branch but is still open where `--released-at` and `HEAD` meet. CI asks there too until `--released-at` moves on past that commit, and once it has, `settle` names the merge that brings the closure here. `settle --retire-process` is a removal of its own and runs first at every release, fold or no fold: it takes `rounds/`, `phases/`, `survivors.md` and the files written only for a pull request from every released work item and leaves `routing.md` and the SDD set, and `settle` with no flag ends with what it would take |
+| `settle [--retire]` | what `seal/specs/` is still holding — the released work items whose spec no policy document has absorbed yet. It writes no policy prose: that half is a judgment, and `settle` supplies the corpus a session writes it from. `--retire` then removes the directories that prose already covers, and the released ones with no `spec.md` whose record holds nothing open, because a moment states no rule to fold. A directory whose record was closed on this branch but is still open where `--released-at` and `HEAD` meet stays. CI asks there too until `--released-at` moves on past that commit, and once it has, `settle` names the merge that brings the closure here. `settle --retire-process` is a removal of its own and runs first at every release, fold or no fold: it takes `rounds/`, `phases/` and the files written only for a pull request from every released work item and leaves `routing.md` and the SDD set, and `settle` with no flag ends with what it would take |
 | `fold-check [--shape-from <id>] [--ceiling <n>]` | holds the statements a fold wrote to `settle`'s two rules, over the top level of `docs/`: every statement from the cutoff on opens with a bold rule sentence and carries one `Enforced by:` line whose targets exist, and no document grows past the ceiling unless it is listed with its fold markers frozen. The cutoff, the ceiling and the listing are `seal/config.md` rows the repository writes; a row it leaves out is a check that does not run, and the output says so. A flag replaces its row for one run, so `--shape-from 0` lists every statement still missing the shape |
-| `pact-check [ROOT]` | run at the repository holding a pact (`seal/pact.md`), the one copy of a contract several repositories keep together: reads every signer the pact lists, found through `~/.claude/specseal/pact-paths.md` or a sibling checkout, checks that each names the pact in its `Pact` row, and grades every pact anchor it cites. `SUPERSEDED` says the signer was built against an older clause, `NOT TAKEN` names the branch holding a change the pact has not taken, `UNMATCHED` and `BROKEN` say read both sides or re-coordinate. It also reads each signer's pact changes, the record its `evidence-check --reverify` writes when code under a cited clause moves: each is `NOT TAKEN` until a pact review here, `seal/pact-reviews/<work-item-id>.md`, takes it at the content hash the line prints. Local only: a signer's CI can read one repository, so it prints the relationship and verifies nothing |
+| `rules <doc> [--root <dir>]` | prints each heading of a document and, under it, the targets of its `Enforced by:` lines, each with the first sentence of its test's docstring, or why the target does not resolve. A rule's text lives once, in that docstring, so this is how a document and its tests read side by side. The targets resolve in the repository the command is typed in. It writes nothing and exits 0 whatever it finds; the `enforced-unresolved` row of `seal/budgets.md` is what fails |
+| `pact-check [ROOT]` | run at the repository holding a pact (`seal/pact.md`), the one copy of a contract several repositories keep together: reads every signer the pact lists, found through `~/.claude/specseal/pact-paths.md` or a sibling checkout, checks that each names the pact in its `Pact` row, and grades every pact anchor it cites. `SUPERSEDED` says the signer was built against an older clause, `NOT TAKEN` names the branch holding a change the pact has not taken, `UNMATCHED` and `BROKEN` say read both sides or re-coordinate. Local only: a signer's CI can read one repository, so it prints the relationship and verifies nothing |
 | `payload-meter [--calibrate <main transcript>] [--baseline <run.json>]` | what each agent's startup payload is made of — its definition, every skill its `skills:` list injects, and the two `CLAUDE.md` files — in bytes, chars and tokens, with a basis on every token figure: `measured` where it came from a transcript's spawns, `estimated` from a per-agent ratio otherwise. `--baseline` prints the delta against an earlier `--json` run, which is how a trimmed payload is shown to have shrunk |
 | `/specseal:preset-setup` | approval-gated semantic merge of the CLAUDE.md block |
-| `/specseal:evidence-ci` | wire the drift check into CI — vendors the checker and writes the workflow |
 | `/specseal:parity-setup` | declare that this repo ports from another codebase — finds the original, records the baseline |
 | `/specseal:security-audit` · `/specseal:testing` | prompt checklists the model walks — an OWASP-shaped security pass and a test-strategy pass |
 | `/specseal:config` | show what this repository decided for itself — the two languages it writes in and where its records live — and change any of it. Routes a change to whatever owns that row rather than editing behind it |
@@ -378,9 +348,8 @@ opts a repository in. The old pair opts nothing in any more, so until it is
 moved every gate is silent there.
 
 The move happens once, at the first session start after updating. The hook
-renames every file with a staged `git mv` (history follows), re-points the
-ledger rows that cite a moved file with their hashes untouched, prints one
-line saying what moved, and stops there: you review `git diff --cached` and
+renames every file with a staged `git mv` (history follows), prints one line
+saying what moved, and stops there: you review `git diff --cached` and
 commit. That commit belongs to no work item, so inside a session the commit
 gate asks; waive it for that one command with
 `: '[no-review]'; git commit -m "specseal: the root move"`, and put `[no-parity]` in
@@ -391,7 +360,7 @@ Only the plugin's own work items move out of `specs/`: a directory named
 `rounds/`, directly under it. Every 0.3.x work item carried `routing.md`.
 Anything else under `specs/` is the project's own, whatever its name — a
 team's specifications are read and never taken — so it stays where it is,
-the rows that cite it keep their paths, and the line names it as left. A
+and the line names it as left. A
 repository holding nothing of the plugin's old layout — neither its old root
 nor such an entry — hears nothing at all.
 
@@ -404,13 +373,10 @@ To move by hand instead — in CI, or without waiting for a session:
 
 ```bash
 mkdir -p seal/specs
-git mv .specseal/map.md seal/ledger.md
-git mv .specseal/map seal/ledger             # if it exists
 git mv .specseal/README.md seal/README.md    # then overwrite it from templates/seal-README.md
-git mv .specseal/follow-up.md seal/          # and parity.md, and anything else in there
+git mv .specseal/* seal/                     # follow-up.md, parity.md and anything else in there
 git mv specs/<id> seal/specs/<id>            # each work item
 rmdir .specseal specs                        # git mv leaves them empty on disk; one holding something else stays
-evidence-check --reverify .                  # re-points each row citing a moved file
 ```
 
 ## First run
@@ -445,11 +411,11 @@ prose works the same way, if you prefer it:
 
 The smith reads the spec chain, implements, verifies, and hands off to the
 warden for review — you decide what happens to the report. Anything the
-layout needs and the repo lacks (`seal/ledger.md`, `seal/README.md` carrying
-the export rules) the smith creates from `templates/` as it goes.
+layout needs and the repo lacks (`seal/README.md` carrying the export rules)
+the smith creates from `templates/` as it goes.
 
-Two things work with no agent at all: the ledger drift check
-(`evidence_check.py`, the demo above) and every gate in the table.
+Two things work with no agent at all: `fold-check` and every gate in the
+table.
 
 ### Shared or local
 
@@ -564,11 +530,10 @@ ran it is the only one that can clear the failure by running it again.
 **Import never overwrites and never asks.** A file that is not there is
 added. One that is there with the same bytes is left alone, so re-importing
 the same zip writes nothing. One that is there with different bytes gets the
-incoming copy beside it — `ledger/<id>.incoming.md` next to
-`ledger/<id>.md` — and the collision is listed. Which of a pair is right is a
-reading, not a merge, and no answer the command could pick would avoid
-sometimes throwing work away. `evidence-check .` afterwards says which ledger
-rows drift against this tree.
+incoming copy beside it — `follow-up.incoming.md` next to `follow-up.md` —
+and the collision is listed. Which of a pair is
+right is a reading, not a merge, and no answer the command could pick would
+avoid sometimes throwing work away.
 
 It refuses, writing nothing, when the zip came from another repository
 (`--allow-other-repo` if the two are one repository under two spellings),
@@ -623,10 +588,9 @@ What this does not do is as load-bearing as what it does.
   command skips it outright. It is a speed bump for an agent about to commit
   unreviewed work, not a security control — anyone who can answer a prompt can
   commit.
-- **evidence-check proves a citation still resolves, not that it is true.**
-  `DRIFTED` means someone must re-verify, not that the claim is wrong. A
-  coordinate that still resolves while the code's meaning changed reports
-  `OK`.
+- **`fold-check` proves a named test exists, not that it asserts the rule.**
+  A target that resolves while the test checks something else reads clean,
+  and a rule written as `nothing — <why>` is held by nobody.
 - **The proof block is a disclosure, not enforcement.** No hook reads it. Its
   value is that a `none — <reason>` row is visible to you in the transcript.
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops
@@ -685,7 +649,7 @@ a stated failure direction, and honesty about platforms you could not test.
 [CONTRIBUTING.md](./CONTRIBUTING.md) §*Opening a pull request* holds the rest,
 including the half nobody can infer — what a contribution is **not** asked
 for. None of this repository's own workflow applies to one: no work item, no
-review round record, no ledger row, no changelog fragment, no version bump.
+review round record, no changelog fragment, no version bump.
 
 ## Language policy
 

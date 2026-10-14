@@ -3,24 +3,20 @@
 `.specseal/` and `specs/<id>/` became `seal/` in 0.4.0, and the opt-in became
 the root's presence. Nothing reads the old names after that except the hook
 under test, so a repository still holding them gets silence from every gate
-until it runs — the fail direction the design record keeps on purpose. The
-same grounds that let `hooks/ledger-migrate.py` write to a tree unasked
-apply: the tree is the plugin's own, every step is a staged `git mv` or a
-rewrite of a tracked file, and the diff is the review.
+until it runs — the fail direction the design record keeps on purpose. It
+writes to a tree unasked on three grounds: the tree is the plugin's own,
+every step is a staged `git mv` or a rewrite of a tracked file, and the diff
+is the review.
 
 Every case here is about a boundary from the spec's table of what the session
 prints and what it refuses (S5 to S9): never over uncommitted work, once per
-repository, a stopped move resumed, rows that cite a moved file following it
-with their hashes untouched, a throwaway repository left alone, and silence
-when there is nothing to do.
+repository, a stopped move resumed, a throwaway repository left alone, and
+silence when there is nothing to do.
 """
 
-import importlib.util
 import io
 import json
 import os
-import re
-import shlex
 import shutil
 import subprocess
 import sys
@@ -29,9 +25,7 @@ import pytest
 from conftest import load_hook_module, shell_probe
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-EC = os.path.join(ROOT, "skills", "evidence-check", "scripts", "evidence_check.py")
 
-SERVICE = "def handler(x):\n    return x + 1\n\n\ndef other():\n    return 0\n"
 ROUND = (
     "# round 1\n\n| Field | Value |\n|---|---|\n| Target SHA | abc |\n\n- [x] Pass\n"
 )
@@ -39,23 +33,8 @@ ROUTING = "# routing\n\n| Axis | Answer |\n|---|---|\n| Review | straight to the
 FOLLOW_UP = "# Follow-up\n\nnothing scheduled\n"
 OLD_README = "# .specseal/ — the old text, describing a layout that is gone\n"
 ITEM = "1788000000-a-work-item"
-
-
-def load_checker():
-    spec = importlib.util.spec_from_file_location("specseal_evidence_for_root", EC)
-    ec = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ec)
-    return ec
-
-
-def coordinate(repo, path, locator):
-    """`path#locator@hash` at the content the file holds right now."""
-    ec = load_checker()
-    body = (repo / path).read_text(encoding="utf-8")
-    places = ec.resolve(path, locator, body)
-    assert len(places) == 1, f"fixture anchor is not unique: {places}"
-    a, b = places[0]
-    return f"{path}#{locator}@{ec.content_hash(body.splitlines()[a - 1 : b])}"
+# 0.3.x's ledger, which moves as any other entry of the old root does.
+MAP = "# map\n\n| Clause | Coordinate |\n|---|---|\n| A | a row |\n"
 
 
 def git(repo, *args):
@@ -84,37 +63,21 @@ def write(repo, rel, text):
 
 @pytest.fixture
 def repo(tmp_path):
-    """The old layout, committed: a ledger and a fragment under `.specseal/`,
-    one work item and one foreign directory under `specs/`, and three ledger
-    rows citing a file that moves."""
+    """The old layout, committed: a map and a map directory under
+    `.specseal/` beside its README and follow-up list, and one work item and
+    one foreign directory under `specs/`."""
     d = tmp_path / "proj"
     d.mkdir()
     git(d, "init", "-q", "-b", "main")
     git(d, "config", "user.email", "t@example.com")
     git(d, "config", "user.name", "t")
-    write(d, "src/service.py", SERVICE)
     write(d, ".specseal/README.md", OLD_README)
     write(d, ".specseal/follow-up.md", FOLLOW_UP)
     write(d, f"specs/{ITEM}/routing.md", ROUTING)
     write(d, f"specs/{ITEM}/rounds/round-1.md", ROUND)
     write(d, "specs/notes/todo.md", "# not SpecSeal's\n")
-    rows = [
-        coordinate(d, "src/service.py", "handler"),
-        coordinate(d, f"specs/{ITEM}/rounds/round-1.md", '"# round 1"'),
-        coordinate(d, ".specseal/follow-up.md", '"# Follow-up"'),
-    ]
-    write(
-        d,
-        ".specseal/map.md",
-        "# map\n\n| Clause | Coordinate |\n|---|---|\n"
-        + "".join(f"| {n} | `{c}` |\n" for n, c in zip("ABC", rows, strict=True)),
-    )
-    write(
-        d,
-        f".specseal/map/{ITEM}.md",
-        f"# {ITEM}\n\n| Clause | Coordinate |\n|---|---|\n"
-        f"| D | `{coordinate(d, f'specs/{ITEM}/routing.md', '"# routing"')}` |\n",
-    )
+    write(d, ".specseal/map.md", MAP)
+    write(d, f".specseal/map/{ITEM}.md", MAP.replace("# map", f"# {ITEM}"))
     git(d, "add", "-A")
     git(d, "commit", "-qm", "the old layout, committed")
     return d
@@ -137,21 +100,6 @@ def message(out):
     return json.loads(out)["systemMessage"] if out.strip() else ""
 
 
-def check(repo, *ledgers):
-    """The checker's `total:` line, on the given ledgers or its defaults."""
-    args = [a for led in ledgers for a in ("--ledger", led)]
-    r = subprocess.run(
-        [sys.executable, EC, *args, "."],
-        cwd=str(repo),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    totals = [line for line in r.stdout.splitlines() if line.startswith("total:")]
-    assert totals, r.stdout + r.stderr
-    return totals[0]
-
-
 def stamped(hook, repo):
     try:
         with open(hook.MARKER, encoding="utf-8") as f:
@@ -169,8 +117,8 @@ def test_the_first_session_start_moves_the_tree_and_says_so_in_one_line(hook, re
     assert "review the diff and commit" in out, out
     for rel in (
         "seal/README.md",
-        "seal/ledger.md",
-        f"seal/ledger/{ITEM}.md",
+        "seal/map.md",
+        f"seal/map/{ITEM}.md",
         "seal/follow-up.md",
         f"seal/specs/{ITEM}/routing.md",
         f"seal/specs/{ITEM}/rounds/round-1.md",
@@ -193,11 +141,6 @@ def test_every_move_is_staged_and_history_follows_the_file(hook, repo):
         in staged
     ), staged
     git(repo, "commit", "-qm", "the move, reviewed")
-    # The round record, not the ledger: the ledger's rows were re-pointed in
-    # the same commit, and on a four-row fixture that is more than half the
-    # file, so git's rename detection cannot pair it. On a real ledger one
-    # row in a hundred changes and `--follow` reaches it too; the fixture
-    # pins the property on the file whose content did not move.
     log = git(
         repo,
         "log",
@@ -301,16 +244,16 @@ def test_a_git_that_cannot_answer_reads_as_dirty(hook, repo, monkeypatch):
 
 
 def test_a_move_by_hand_that_stopped_halfway_is_finished(hook, repo):
-    """The state a person leaves after moving the ledger by hand and no
-    more: `seal/` and `.specseal/` both exist. What remains moves, and the
-    marker is stamped only then."""
+    """The state a person leaves after moving one file by hand and no more:
+    `seal/` and `.specseal/` both exist. What remains moves, and the marker
+    is stamped only then."""
     (repo / "seal").mkdir()
-    git(repo, "mv", ".specseal/map.md", "seal/ledger.md")
+    git(repo, "mv", ".specseal/map.md", "seal/map.md")
     git(repo, "commit", "-qm", "half a move, by hand")
     out = message(start(hook, repo))
     assert "moved .specseal/ and 1 work item into seal/" in out, out
-    assert (repo / "seal" / "ledger.md").is_file()
-    assert (repo / "seal" / "ledger" / f"{ITEM}.md").is_file()
+    assert (repo / "seal" / "map.md").is_file()
+    assert (repo / "seal" / "map" / f"{ITEM}.md").is_file()
     assert not (repo / ".specseal").exists()
     assert stamped(hook, repo)
 
@@ -331,7 +274,7 @@ def test_a_step_that_fails_stops_the_run_and_stamps_nothing(hook, repo, monkeypa
     out = message(start(hook, repo))
     assert "moved 2 of 5 into seal/ and stopped at" in out, out
     assert "disk full" in out and "The next session start continues" in out, out
-    assert (repo / "seal" / "ledger.md").is_file()
+    assert (repo / "seal" / "follow-up.md").is_file()
     assert (repo / ".specseal").is_dir(), "the old root is still there to resume from"
     assert not stamped(hook, repo)
 
@@ -345,61 +288,21 @@ def test_a_step_that_fails_stops_the_run_and_stamps_nothing(hook, repo, monkeypa
 def test_a_directory_already_at_the_destination_is_merged_file_by_file(hook, repo):
     """`git mv dir existing-dir` puts the source INSIDE the destination. A
     resumed run meets exactly that state, so a directory is moved per file."""
-    write(repo, "seal/ledger/another.md", "# another fragment\n")
+    write(repo, "seal/map/another.md", "# another fragment\n")
     git(repo, "add", "-A")
     git(repo, "commit", "-qm", "a fragment already at the new address")
     start(hook, repo)
-    assert (repo / "seal" / "ledger" / f"{ITEM}.md").is_file()
-    assert (repo / "seal" / "ledger" / "another.md").is_file()
-    assert not (repo / "seal" / "ledger" / "map").exists(), "moved INTO the destination"
+    assert (repo / "seal" / "map" / f"{ITEM}.md").is_file()
+    assert (repo / "seal" / "map" / "another.md").is_file()
+    assert not (repo / "seal" / "map" / "map").exists(), "moved INTO the destination"
 
 
-# --- S8: rows that cite a moved file follow it --------------------------------
-
-
-def test_rows_citing_a_moved_file_are_re_pointed_with_their_hashes_untouched(
-    hook, repo
-):
-    before = (repo / ".specseal" / "map.md").read_text(encoding="utf-8")
-    totals_before = check(repo, ".specseal/map.md", ".specseal/map/*.md")
+def test_the_moved_file_is_its_old_bytes_and_nothing_is_rewritten(hook, repo):
+    """The old ledger's text moves byte for byte: nothing reads it, so
+    nothing rewrites what it says (#944)."""
     out = message(start(hook, repo))
-    assert "3 ledger rows re-pointed" in out, out
-    after = (repo / "seal" / "ledger.md").read_text(encoding="utf-8")
-    fragment = (repo / "seal" / "ledger" / f"{ITEM}.md").read_text(encoding="utf-8")
-    assert f"`seal/specs/{ITEM}/rounds/round-1.md#" in after, after
-    assert "`seal/follow-up.md#" in after, after
-    assert f"`seal/specs/{ITEM}/routing.md#" in fragment, fragment
-    assert "`src/service.py#handler@" in after, "a row under no moved prefix changed"
-    hashes = lambda t: sorted(re.findall(r"@([0-9a-f]{6,12})`", t))
-    assert hashes(before) == hashes(after) and len(hashes(after)) == 3
-    totals_after = check(repo)
-    assert totals_before == totals_after, f"{totals_before}\n{totals_after}"
-    assert "0 broken" in totals_after and "0 drifted" in totals_after, totals_after
-
-
-def test_a_fenced_example_row_is_left_byte_for_byte(hook, repo):
-    """#444, one writer over. The check skips a row inside a fenced block
-    that closes, so the re-point must not rewrite one either: an example
-    that followed the move would stop showing the layout it was written to
-    show. Seen red at `f754eafb`, where the fenced `.specseal/` path became
-    `seal/`."""
-    example = (
-        "A row looks like this:\n\n```markdown\n"
-        '| X | `.specseal/follow-up.md#"# Follow-up"@deadbeef` |\n```\n\n'
-    )
-    ledger = repo / ".specseal" / "map.md"
-    text = ledger.read_text(encoding="utf-8")
-    ledger.write_text(text.replace("# map\n\n", "# map\n\n" + example, 1), "utf-8")
-    git(repo, "commit", "-qam", "a fenced example in the ledger")
-    start(hook, repo)
-    after = (repo / "seal" / "ledger.md").read_text(encoding="utf-8")
-    assert example in after, after
-    assert "`seal/follow-up.md#" in after, "the live row did not follow the move"
-
-
-def test_the_re_pointed_ledgers_are_staged_with_the_move(hook, repo):
-    start(hook, repo)
-    assert git(repo, "diff", "--name-only").stdout.strip() == ""
+    assert "re-pointed" not in out, out
+    assert (repo / "seal" / "map.md").read_text(encoding="utf-8") == MAP
 
 
 # --- S9: a throwaway repository is not migrated ------------------------------
@@ -448,14 +351,14 @@ def test_a_marker_already_carrying_the_root_keeps_the_hook_silent(hook, repo):
     assert (repo / ".specseal").is_dir()
 
 
-def test_the_hook_is_wired_into_session_start_before_the_ledger_migration(hook):
+def test_the_hook_is_wired_into_session_start_before_the_git_hooks(hook):
     """The dispatch group is the only thing that runs hooks in production, and
-    the ledger-format migration reads the ledgers at the addresses this one
-    creates, so the order is part of the contract."""
+    the git hooks are installed into the root this one may just have moved, so
+    the order is part of the contract."""
     dispatch = load_hook_module("dispatch.py", "dispatch_for_root")
     group = dispatch.GROUPS["session-start"]
     assert "root-migrate.py" in group
-    assert group.index("root-migrate.py") < group.index("ledger-migrate.py")
+    assert group.index("root-migrate.py") < group.index("hook-install.py")
 
 
 def test_the_hook_reads_the_old_names_and_nothing_else_does(hook):
@@ -467,7 +370,7 @@ def test_the_hook_reads_the_old_names_and_nothing_else_does(hook):
     for name in sorted(os.listdir(os.path.join(ROOT, "hooks"))):
         if name.endswith(".py") and name != "root-migrate.py":
             text = open(os.path.join(ROOT, "hooks", name), encoding="utf-8").read()
-            assert ".specseal/map" not in text, f"{name} still reads the old ledger"
+            assert ".specseal/map" not in text, f"{name} still reads the old map"
 
 
 # --- round 1: what git does not track is not the hook's to move --------------
@@ -500,7 +403,7 @@ def test_a_file_named_seal_stops_with_a_line_not_an_exception(hook, repo):
     git(repo, "add", "seal")
     git(repo, "commit", "-qm", "a file in the way")
     out = message(start(hook, repo))
-    assert "stopped at .specseal/map.md" in out and "seal" in out, out
+    assert "stopped at .specseal/README.md" in out and "seal" in out, out
     assert "cannot create seal/:" in out, "the parent that could not be made is named"
     assert "by hand" in out, out
     assert (repo / ".specseal" / "map.md").is_file()
@@ -511,54 +414,18 @@ def test_a_destination_already_holding_the_file_is_named_and_left_to_the_person(
     hook, repo
 ):
     """Round 1's 🟡 3. A branch bootstrapped on the new layout merged into
-    one still on the old leaves `seal/ledger.md` beside `.specseal/map.md`.
+    one still on the old leaves `seal/map.md` beside `.specseal/map.md`.
     `git mv` failed with `destination exists` and the line promised a
     continuation that never came; the person has to keep one."""
-    write(repo, "seal/ledger.md", "# the newer ledger\n")
+    write(repo, "seal/map.md", "# the newer map\n")
     git(repo, "add", "-A")
-    git(repo, "commit", "-qm", "both ledgers")
+    git(repo, "commit", "-qm", "both maps")
     out = message(start(hook, repo))
-    assert "seal/ledger.md already exists" in out, out
+    assert "seal/map.md already exists" in out, out
     assert "keep one by hand" in out and "git rm .specseal/map.md" in out, out
     assert not out.endswith("The next session start continues."), out
     assert not stamped(hook, repo)
     assert (repo / ".specseal" / "map.md").is_file()
-
-
-def test_a_row_citing_a_foreign_specs_entry_is_left_where_it_is(hook, repo):
-    """Round 1's 🟡 4. `specs/notes/` is not a work item and stays; a row
-    citing it has to stay with it, or S8's equal totals break."""
-    ledger = repo / ".specseal" / "map.md"
-    row = coordinate(repo, "specs/notes/todo.md", '"# not SpecSeal\'s"')
-    ledger.write_text(
-        ledger.read_text(encoding="utf-8") + f"| D | `{row}` |\n", encoding="utf-8"
-    )
-    git(repo, "commit", "-qam", "a row citing a foreign entry")
-    before = check(repo, ".specseal/map.md", ".specseal/map/*.md")
-    out = message(start(hook, repo))
-    assert "3 ledger rows re-pointed" in out, out
-    after = (repo / "seal" / "ledger.md").read_text(encoding="utf-8")
-    assert "`specs/notes/todo.md#" in after and "seal/specs/notes" not in after, after
-    assert check(repo) == before
-
-
-def test_a_repoint_that_fails_after_the_moves_says_so_and_stamps_nothing(
-    hook, repo, monkeypatch
-):
-    """Round 1's 🟡 2, second half. An `OSError` out of `repoint()` used to
-    escape `main()` after every unit had moved, and the next start stamped
-    over rows still pointing at the old paths."""
-
-    def failing(root):
-        raise OSError("read-only ledger")
-
-    monkeypatch.setattr(hook, "repoint", failing)
-    out = message(start(hook, repo))
-    assert "could not re-point the ledger" in out and "read-only ledger" in out, out
-    assert "evidence-check --reverify ." in out, out
-    assert (repo / "seal" / "ledger.md").is_file()
-    assert not (repo / ".specseal").exists()
-    assert not stamped(hook, repo)
 
 
 HEADINGS = {
@@ -589,8 +456,7 @@ def test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set(
 ):
     """Round 1's P6, pinned to the document: the block a person copies is
     read out of the README and run line by line on a copy of the fixture, and
-    `git ls-files` has to agree with the hook's. `--reverify` is what closes
-    the rows the hand sequence leaves broken.
+    `git ls-files` has to agree with the hook's.
 
     The block is a `bash` block, so each line runs under `bash -c` -- not
     `shell=True`, which is `cmd.exe` on Windows and runs none of `mkdir -p`,
@@ -606,18 +472,11 @@ def test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set(
     hand = tmp_path / "hand"
     shutil.copytree(repo, hand)
     start(hook, repo)
-    # Forward slashes: inside `bash -c` a backslash escapes, so a Windows
-    # interpreter path would never resolve (`test_evidence_check.py::step`).
-    python = shlex.quote(sys.executable.replace("\\", "/"))
-    ec = shlex.quote(EC.replace("\\", "/"))
     for line in by_hand_block(readme):
         line = line.replace("<id>", ITEM)
-        line = line.replace("evidence-check ", f"{python} {ec} ")
         subprocess.run(["bash", "-c", line], cwd=str(hand), capture_output=True)
     tracked = lambda d: git(d, "ls-files").stdout.split()
     assert tracked(hand) == tracked(repo), tracked(hand)
-    totals = check(hand)
-    assert "0 broken" in totals, totals
 
 
 # --- round 2: the shapes git tracks differently ------------------------------
@@ -625,8 +484,8 @@ def test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set(
 
 def test_a_symlinked_specseal_is_refused_not_half_moved(hook, repo):
     """Round 2's 🟡 A. Git tracks a symbolic link as one blob, so the home
-    lists no units, the work items move, the marker is stamped and
-    `seal/ledger.md` never appears — a half-move reported as success. The
+    lists no units, the work items move, the marker is stamped and the
+    files behind the link never move — a half-move reported as success. The
     link is refused first, every session start, and nothing is stamped."""
     git(repo, "mv", ".specseal", "vault")
     os.symlink("vault", repo / ".specseal")
@@ -646,11 +505,10 @@ def test_a_symlinked_specseal_is_refused_not_half_moved(hook, repo):
 def test_a_symlinked_specs_holding_work_items_is_refused_not_half_moved(hook, repo):
     """Round 3's 🟡 H — 🟡 A on the other root. Git tracks `specs` as one
     blob, so it lists no work items: the home moved, the work item was called
-    "not tracked as a SpecSeal work item" and left, its rows were re-pointed
-    to a `seal/specs/<id>/` that does not exist, and the marker was stamped —
-    a half-move with the ledger left BROKEN and the next start silent. The
-    link is refused after the unit and marker checks, every session start,
-    nothing moves, no row is re-pointed and nothing is stamped."""
+    "not tracked as a SpecSeal work item" and left, and the marker was
+    stamped — a half-move with the next start silent. The link is refused
+    after the unit and marker checks, every session start, nothing moves and
+    nothing is stamped."""
     git(repo, "mv", "specs", "items")
     os.symlink("items", repo / "specs")
     git(repo, "add", "specs")
@@ -764,26 +622,6 @@ def test_a_joined_project_holding_only_its_own_specs_hears_nothing(hook, tmp_pat
     assert not stamped(hook, d)
 
 
-def test_a_row_citing_an_unmarked_id_shaped_directory_keeps_its_path(hook, repo):
-    """B2. The re-point followed the name pattern, so a row citing the team
-    directory was sent to a `seal/specs/` path that never appears. It follows
-    what moved: the row keeps its path and the totals are equal."""
-    plant_team_directory(repo)
-    ledger = repo / ".specseal" / "map.md"
-    row = coordinate(repo, f"specs/{TEAM}/spec.md", '"# the team\'s own specification"')
-    ledger.write_text(
-        ledger.read_text(encoding="utf-8") + f"| D | `{row}` |\n", encoding="utf-8"
-    )
-    git(repo, "commit", "-qam", "a row citing the team directory")
-    before = check(repo, ".specseal/map.md", ".specseal/map/*.md")
-    out = message(start(hook, repo))
-    assert "3 ledger rows re-pointed" in out, out
-    after = (repo / "seal" / "ledger.md").read_text(encoding="utf-8")
-    assert f"`specs/{TEAM}/spec.md#" in after, after
-    assert f"seal/specs/{TEAM}" not in after, after
-    assert check(repo) == before
-
-
 @pytest.mark.parametrize(
     "mark, text", [("routing.md", ROUTING), ("rounds/round-1.md", ROUND)]
 )
@@ -837,8 +675,8 @@ def test_a_git_that_cannot_list_the_marks_stamps_nothing(hook, repo, monkeypatch
     answers and `ls-files` does not."""
     (repo / "seal").mkdir()
     for src, dst in (
-        (".specseal/map.md", "seal/ledger.md"),
-        (".specseal/map", "seal/ledger"),
+        (".specseal/map.md", "seal/map.md"),
+        (".specseal/map", "seal/map"),
         (".specseal/README.md", "seal/README.md"),
         (".specseal/follow-up.md", "seal/follow-up.md"),
     ):
@@ -892,8 +730,6 @@ def test_a_move_stopped_inside_an_item_resumes_whichever_file_is_kept(hook, repo
     assert not (repo / "specs" / ITEM / "spec.md").exists()
     assert (repo / "seal" / "specs" / ITEM / "spec.md").is_file()
     assert (repo / "seal" / "specs" / ITEM / "routing.md").is_file()
-    totals = check(repo)
-    assert "0 broken" in totals, totals
 
 
 @pytest.mark.parametrize(
@@ -1038,7 +874,7 @@ def test_a_local_root_beside_an_old_layout_is_moved_into_the_tree(hook, repo):
     out = message(start(hook, repo))
     assert "moved .specseal/ and 1 work item into seal/" in out, out
     assert "review the diff and commit" in out, out
-    assert (repo / "seal" / "ledger.md").is_file()
+    assert (repo / "seal" / "map.md").is_file()
     assert not (repo / ".specseal").exists()
     assert stamped(hook, repo)
 

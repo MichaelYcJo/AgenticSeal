@@ -163,12 +163,6 @@ APPLIES_THE_SHARED_GUARD = {
     # module listed and not on disk would end the enumeration at it --
     # this case reporting no offender because it read almost nothing.
     "tests/test_a_shrunken_corpus_declines_to_judge.py#suite_modules": 1,
-    # The seventh, and it arrived after this case was written -- which is the
-    # class re-deriving itself rather than somebody remembering. It does a
-    # third thing with the missing half: neither skip nor decline, but read
-    # the index entry `git ls-files` just named, so the corpus the census is
-    # taken over stays whole in the tree state that used to truncate it.
-    "tests/test_a_merge_cannot_silently_drop_a_correction.py#ledger_corpus": 1,
     # #730's ratchet. It judges what it finds and fails only on a count that
     # rose, so a file listed and not on disk can lower a count and never
     # raise one; it skips the missing half and does not decline.
@@ -241,7 +235,6 @@ LISTS_A_FIXTURE = {
     "tests/test_the_mode_is_a_row_and_a_command.py#test_an_ignored_workflow_path_is_not_reported_as_staged": 1,
     "tests/test_the_root_migrates_itself.py#test_every_move_is_staged_and_history_follows_the_file": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readme_is_rewritten_from_the_new_template": 1,
-    "tests/test_the_root_migrates_itself.py#test_the_re_pointed_ledgers_are_staged_with_the_move": 1,
     "tests/test_the_root_migrates_itself.py#test_an_ignored_file_directly_under_the_old_root_does_not_stop_the_move": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
     # #688: both read `git diff --cached --name-only` in the fixture the case

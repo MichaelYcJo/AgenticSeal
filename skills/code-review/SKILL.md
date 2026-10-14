@@ -197,19 +197,15 @@ orchestrator **retyped** it to have a file to pass — a lossy copy of the one
 document whose whole value is that it is exact (#228). The fixer side had
 `rounds/round-N-fixes.md` all along; this is the other half of that
 convention. One of them gets a directory and
-two do not: `round-N` is the only member of the set that is plural and
-unbounded, so the two todo files sit at the work item's own level, beside
-`rounds/` rather than inside it. The release guard reads `evidence-todo.md`
-there (`.github/scripts/fold_ledger.py`, `seal/specs/*/evidence-todo.md`), and
-one written a directory deeper is one it cannot see; `tests-todo.md` keeps it
-company because the layout is one rule rather than two:
+the other does not: `round-N` is the only member of the set that is plural and
+unbounded, so `tests-todo.md` sits at the work item's own level, beside
+`rounds/` rather than inside it:
 
 | File | Contents |
 |---|---|
 | `rounds/round-N.md` | target commit SHA (mandatory — branches move between rounds), verdict table with the grounds behind each verdict, **executed probe results**, the coordinates carried in from earlier rounds, **deferrals** — what this round took out of scope and the durable home each went to — the **broad-gate state**, `not yet` or one entry per full-suite run, newest first, each the SHA it happened at and the base it was compared against, **who checked the fixes** (below), the **fix surface** — the `Contract changes` and `New units` of this round's fixes (below) — **whether anything it opened needs a fix** — the reviewer's own `Needs a fix` line, copied rather than re-derived from the verdict table — and **whether anything it found leaves the root or crashes**, the reviewer's `Loses a record or crashes` line, which is the floor under the cap, and **what ran the round** — the `Ran by` row, the agent and the model, filled by the session that spawned it (below) |
 | `rounds/round-N-report.md` | the reviewer's report as the reviewer wrote it — written by the reviewer, read by `round_record.py new`, committed by the orchestrator beside the record it produced. Not a record: nothing reads a verdict out of it, and every reader of `rounds/` selects records by name. That commit is also what puts a reviewer's prose in front of whatever scans the tree — `agents/warden.md` §Report says what it costs, and it is the reviewer who has to know |
 | `tests-todo.md` | regression tests to plant, with the destination file per row |
-| `evidence-todo.md` | verified facts to merge into `seal/ledger.md` |
 
 **A round record starts from `templates/sdd-round.md`** in shape, and
 `round_record.py new` writes it: every field named above, already spelled,
@@ -248,19 +244,19 @@ exactly how it goes unseen. Earlier verdicts set the agenda — every one needs
 an answer this round, on this round's grounds.
 
 Re-deriving the verdict is not re-walking the code. Finding the coordinates is
-the expensive half, and both the ledger and `round-N.md` exist so it is paid
-once; a later round opens what they name instead of searching again. The cost
-added is a re-read at known locations, which is what keeps a round-1 pass from
-covering for a round-2 regression.
+the expensive half, and `round-N.md` exists so it is paid once; a later round
+opens what they name instead of searching again. The cost added is a re-read
+at known locations, which is what keeps a round-1 pass from covering for a
+round-2 regression.
 
 The test for what may be carried is whether staleness is detectable, not
-whether the fact feels durable. A ledger coordinate carries because
-`evidence-check` fails when the cited lines move; what the original does
-carries because `seal/parity.md` pins the baseline SHA it was read at. Both
-are re-established when their check fails, or when `parity.md` lists the path
-under coordinate-trust exceptions. A verdict on current code carries nothing —
-no check exists that would tell you it went stale, which is exactly why the
-round has to reach it again.
+whether the fact feels durable. A rule's `Enforced by:` target carries because
+the `enforced-unresolved` budget row fails when it is gone; what the original
+does carries because `seal/parity.md` pins the baseline SHA it was read at.
+Both are re-established when their check fails, or when `parity.md` lists the
+path under coordinate-trust exceptions. A verdict on current code carries
+nothing — no check exists that would tell you it went stale, which is exactly
+why the round has to reach it again.
 ## Findings format
 
 Severity names carry the required action, not just a rank:
@@ -369,22 +365,6 @@ too many names are missing for a snippet to stand, describe the change in
 sentences and say which document would have to exist for the code to be
 written.
 
-**The same marker is what a record says a gone name with, and it is read.**
-`evidence-check` refuses a compound backticked identifier in the records of a
-work item that has not shipped, and in `seal/follow-up.md`, when nothing
-outside `seal/specs/`, `seal/ledger/` and `seal/follow-up.md` carries it
-(#190, #508) — a record naming a unit the next commit deleted is a claim nothing
-was reading. Writing `NAME NOT IN TREE` on that line is the whole of the
-exemption, in either of its two meanings: a name a fix is proposing, and a
-name a record is deliberately calling gone — *`stale_helper` deleted and its
-one call site moved — NAME NOT IN TREE*. The example name is invented on
-purpose: writing a real gone name here would put it back in the tree the
-check compares against, and silence the very records it was meant to catch.
-It exempts the LINE and not the
-name, so the same name still has to exist everywhere else it is claimed, and
-the exemption stays with the person who knows the name is absent rather than
-becoming a list in the checker.
-
 **Every one of those blocks goes under `## Paste-ready fixes`, and that is
 the only place a fix survives the session.** `round_record.py new` copies the
 report's tables and takes every fenced block under that heading; prose it
@@ -431,12 +411,11 @@ measured costing rounds.
 
 **An enumeration over an unbounded domain is a recorded limit, not a closed
 finding.** A fix that answers a finding by enumerating cases — keywords,
-spellings, constructs — from a domain nothing bounds has narrowed the
-finding, not closed it. The verdict says so, and the limit goes where it will
-be read again: the skill's Known limits, the ledger, or the record's Deferred
-row. Measured: one such rule cost three rounds and two owner decisions, and
-closed only when the uncertainty moved out of the classifier instead of being
-argued inside it.
+spellings, constructs — from a domain nothing bounds has narrowed the finding,
+not closed it. The verdict says so, and the limit goes where it will be read
+again: the skill's Known limits or the record's Deferred row. Measured: one
+such rule cost three rounds and two owner decisions, and closed only when the
+uncertainty moved out of the classifier instead of being argued inside it.
 
 **A mutation score licenses *tested*, never *safe* — say so where the number
 is reported.** A score like `12/12 killed` establishes that the pins

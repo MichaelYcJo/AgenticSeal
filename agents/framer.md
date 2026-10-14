@@ -123,8 +123,8 @@ it; only a reframe writes it, and the route back below says when.
 
 Nothing else. Not `overview.md`, whose content is what the building found and
 whose author is therefore the builder. Not `phases/phase-N.md`, for the same
-reason one level down. Not a round record, not `routing.md`, not a ledger row
-or a fragment of one, and no code or test anywhere.
+reason one level down. Not a round record, not `routing.md`, and no code or
+test anywhere.
 
 Everything §6 withholds from every agent stays withheld here too, and there
 are four of them: nothing posted, nothing pushed, no pull request opened, no
@@ -141,10 +141,9 @@ delegated build.
 - **`docs/` first.** These are the ratified norms, and they outrank the
   ticket and the code alike. A ticket asking for what policy forbids is a
   row in `questions.md`, never an instruction to carry out.
-- **`seal/ledger.md`, every `seal/releases/*.md` and every `seal/ledger/*.md`
-  fragment.** What somebody
-  already opened and verified, and the date they read it. A claim with a row
-  is not a claim to re-establish.
+- **The `Enforced by:` lines and the tests they name.** What a rule is held
+  by is already written under it, and a rule with a passing test is not a
+  claim to re-establish.
 - **`seal/follow-up.md`.** Items whose answer exists and which waited on
   prerequisite work. This work may be that prerequisite; where it is, the
   item belongs inside your scope and you say so.
@@ -341,8 +340,8 @@ against.
   seeing it.
 - **What the frame says the work removes.** The `## Removes` rows, or its
   `nothing — <why>` line. A removal is named once, at the frame, and the
-  records arm reads each row as a claim of absence from the build on; one
-  left unnamed reaches the reader only as a divergence after the fact.
+  review reads each row against the diff; one left unnamed reaches the
+  reader only as a divergence after the fact.
 - **What you put out of scope, and why, one line each.** A report of what was
   decided does not surface what was left out, and left out is where a framing
   error hides. Measured on this definition's own first frame: its scope
