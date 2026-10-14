@@ -92,6 +92,9 @@ NOT_OWN = "red, but not by this function: {killers}"
 SHARED = "its file kills its mutant without it too: {killers}"
 NO_KILLER = "a case pytest named no FAILED or ERROR line for"
 PROVED = "proved — red under its mutant, and the killers are this function's alone"
+COST = (
+    "  cost {file}: one run {each:.0f} s as it stands, {count} mutants in {spent:.0f} s"
+)
 FAILS_AS_IT_STANDS = (
     "its cases do not pass as they stand, so no mutant was run: {verdict}"
 )
@@ -413,7 +416,7 @@ def check(root, baseline, runner, bound):
                     parse_kills(kills)
                 except ValueError as error:
                     findings.append((fid, BAD_LINE.format(why=error)))
-    started, limit = time.monotonic(), bound * 60
+    started, limit, costs = time.monotonic(), bound * 60, []
     for file, mutants in pending.items():
         left = limit - (time.monotonic() - started)
         code, each, verdict = file_run(root, file, runner, left)
@@ -427,6 +430,7 @@ def check(root, baseline, runner, bound):
         if code != 0:
             findings.append((file, FAILS_AS_IT_STANDS.format(verdict=verdict)))
             continue
+        before = time.monotonic()
         for fid, (path, old, new) in mutants:
             left = limit - (time.monotonic() - started)
             run = mutation_run(
@@ -437,8 +441,12 @@ def check(root, baseline, runner, bound):
                 findings.append((fid, finding))
             else:
                 proved.append((fid, proof))
+        spent = time.monotonic() - before
+        costs.append(COST.format(file=file, each=each, count=len(mutants), spent=spent))
     lines = [
-        f"case-check against {baseline}: {len(proved)} proved, {len(findings)} named"
+        f"case-check against {baseline}: {len(proved)} proved, {len(findings)} "
+        f"named, in {time.monotonic() - started:.0f} s of a {bound:g}-minute bound",
+        *costs,
     ]
     lines += [f"  {where}: {proof}" for where, proof in proved]
     lines += [f"  {where}: {finding}" for where, finding in findings]

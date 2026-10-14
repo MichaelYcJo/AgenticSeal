@@ -322,7 +322,7 @@ def test_a_file_whose_proof_would_pass_the_bound_is_named_to_restructure(
     """
     root = tree(
         tmp_path,
-        {"tests/test_m.py": module_text(BARE_DOUBLE)},
+        {"tests/test_m.py": module_text()},
         {"tests/test_m.py": module_text(DOUBLE)},
     )
     code, out = run(root, capsys, "--bound", "0.0001")
