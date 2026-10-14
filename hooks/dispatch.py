@@ -97,7 +97,6 @@ GROUPS = {
         "review-history-guard.py",
         "implementer-notice.py",
         "session-lease.py",
-        "evidence-advisor.py",
         "worktree_consent.py",
         "answer-clear.py",
     ),

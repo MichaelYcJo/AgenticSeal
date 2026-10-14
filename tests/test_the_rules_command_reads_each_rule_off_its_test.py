@@ -161,5 +161,5 @@ def test_the_slice_document_resolves_every_target():
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
     out = rules.render(rules.checker(), ROOT, text)
-    assert out.count("  Enforced by, line ") >= 8, out
+    assert out.count("  Enforced by, line ") >= 7, out
     assert "does not resolve" not in out, out

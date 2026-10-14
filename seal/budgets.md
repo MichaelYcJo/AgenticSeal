@@ -39,7 +39,6 @@ commit alike. -->
 | ci-minutes:windows | minutes | 59 | one-sided | gate |
 | ci-minutes:macos | minutes | 32 | one-sided | gate |
 | rounds-bytes | bytes | 142823 | one-sided | report |
-| ledger-rereads | rows | 230 | one-sided | report |
 | enforced-unresolved | targets | 0 | +0 | gate |
 | unenforced | rules | 0 | +0 rules | gate |
 
@@ -151,7 +150,7 @@ commit alike. -->
 | skills/verify/SKILL.md | 42 |
 | skills/writing-style/SKILL.md | 40 |
 | templates/claude-md-block.md | 5 |
-| templates/config.md | 43 |
+| templates/config.md | 38 |
 | templates/ledger.md | 3 |
 | templates/sdd-plan.md | 1 |
 | templates/sdd-questions.md | 5 |

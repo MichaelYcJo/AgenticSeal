@@ -1026,7 +1026,7 @@ def test_the_commit_advisor_names_into_where_the_ledger_is_frozen(repo):
 
 def test_every_row_this_repository_declares_is_documented_in_the_template():
     """S15. `templates/config.md` documents every row; this repository's own
-    `seal/config.md` declares six. A row the template does not name is a row
+    `seal/config.md` declares five. A row the template does not name is a row
     another repository cannot learn to read."""
     spec = importlib.util.spec_from_file_location(
         "specseal_config", os.path.join(ROOT, "hooks", "config.py")
@@ -1042,17 +1042,13 @@ def test_every_row_this_repository_declares_is_documented_in_the_template():
     with open(os.path.join(ROOT, "templates", "config.md"), encoding="utf-8") as fh:
         template = fh.read()
     items = [item for item, _ in rows]
-    assert "Ledger frozen from" in items, items
+    assert "Mode" in items, items
     missing = [
         item
         for item in items
         if f"`{item}`" not in template and f"## {item}" not in template
     ]
     assert not missing, missing
-    assert (
-        "| Ledger frozen from | 1790993141 |"
-        in open(os.path.join(ROOT, "seal", "config.md"), encoding="utf-8").read()
-    )
 
 
 def test_a_vendored_copy_reads_the_freeze_without_the_plugin_beside_it(repo):

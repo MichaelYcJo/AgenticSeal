@@ -54,18 +54,14 @@ beside the gates and never fails it.
                     jobs: `ubuntu`, `windows` or `macos`
   rounds-bytes      bytes of the largest `seal/specs/<id>/rounds/` in the
                     tree, each work item's listed in the summary
-  ledger-rereads    `Re-read ·` and `Corrected ·` rows of the release file
-                    `.claude-plugin/plugin.json`'s version names, each row
-                    counted once by the marker it opens with; unread until
-                    the release folds that file
   enforced-unresolved  `Enforced by:` targets in the rule files that do not
                     resolve, each named with its file, heading and why
   unenforced        rule paragraphs of one rule file whose `Enforced by:`
                     line is missing or says `nothing — <why>`
 
-`rounds-bytes` and `ledger-rereads` are `report` rows: their numbers are the
-review chain's and every work item's together, so no pull request has a fix
-for them, and a `report` row may be `one-sided` for that reason.
+`rounds-bytes` is a `report` row: its number is the review chain's and every
+work item's together, so no pull request has a fix for it, and a `report`
+row may be `one-sided` for that reason.
 
 **A rule is held by what its `Enforced by:` line names.** The rule files are
 `CLAUDE.md`, `CONTRIBUTING.md`, `agents/*.md`, `docs/*.md`,
@@ -239,14 +235,9 @@ LINUX_MINUTE_USD = 0.008
 # A byte budget counts a CRLF as the LF git stores, so the same commit
 # measures the same on a checkout that converted its line ends.
 NEWLINES = (b"\r\n", b"\n")
-# What a released ledger row's first cell opens with when it reads an older
-# row again, in the order a row carrying both is counted by.
-REREAD_MARKS = ("Re-read · ", "Corrected · ")
-ROW_OPENER = "| "
 # Why a row is shown and not measured on a run, by family.
 UNREAD = {
     "ci-minutes": "read off each run by the tests workflow's `budgets` job",
-    "ledger-rereads": "read once the release folds its ledger file",
 }
 
 # The modules this reads through, each the one reader of its input: the table
@@ -995,48 +986,6 @@ def measure_rounds(root, _subject, cache):
     return max((size for size, _ in items.values()), default=0)
 
 
-def release_file(root):
-    """`(version, path)` of the release file `.claude-plugin/plugin.json`'s
-    version names, `seal/releases/<version>.md`, or Unreadable.
-
-    Reads: observed — the version a JSON file states; unknown refused"""
-    manifest = os.path.join(root, ".claude-plugin", "plugin.json")
-    try:
-        with open(manifest, encoding="utf-8") as handle:
-            version = json.load(handle)["version"]
-    except (OSError, ValueError, KeyError, TypeError):
-        raise Unreadable(
-            "ledger-rereads: .claude-plugin/plugin.json states no version, so "
-            "no release file is named"
-        ) from None
-    return version, os.path.join(root, "seal", "releases", f"{version}.md")
-
-
-def measure_rereads(root, _subject, cache):
-    """`Re-read ·` and `Corrected ·` rows of the release file of this
-    version, each row counted once, by the marker its first cell opens with;
-    None where the release has not folded its file yet. The split goes to
-    `cache["rereads"]`.
-
-    A row is a line the fold wrote opening with `| `, and its marker is what
-    follows that: the fold's own spelling, read as written. A cell reader is
-    not asked, because a row whose cells carry an even run of backslashes
-    before a pipe is one `hooks/config.py#table_cells` declines to split, and
-    its first cell still opens with its marker.
-
-    Reads: owned — the rows the ledger's fold writes, by their opening; unknown passed"""
-    version, path = release_file(root)
-    if not os.path.isfile(path):
-        return None
-    with open(path, encoding="utf-8", errors="replace") as handle:
-        lines = sibling("unverified_check").gfm_lines(handle.read())
-    rows = [line[2:] for line in lines if line.startswith(ROW_OPENER)]
-    marks = [next((m for m in REREAD_MARKS if row.startswith(m)), None) for row in rows]
-    split = {mark: marks.count(mark) for mark in REREAD_MARKS}
-    cache["rereads"] = (version, split, len(rows))
-    return sum(split.values())
-
-
 # A budget's name is `<family>` or `<family>:<subject>`; the family picks the
 # measurer, the unit the row must state, and whether a subject is named. A
 # family another work item adds is one more entry here and, where it is read
@@ -1045,7 +994,6 @@ MEASURERS = {
     "preload": (measure_preload, "bytes", True),
     "suite-seconds": (measure_suite, "seconds", False),
     "rounds-bytes": (measure_rounds, "bytes", False),
-    "ledger-rereads": (measure_rereads, "rows", False),
     "enforced-unresolved": (measure_unresolved, "targets", False),
 }
 
@@ -1321,14 +1269,6 @@ def render(results, moves, against, cache=None):
             for item, (size, count) in sorted(
                 cache["rounds"].items(), key=lambda pair: (-pair[1][0], pair[0])
             )
-        ]
-    if cache.get("rereads"):
-        version, split, total = cache["rereads"]
-        counted = ", ".join(f"{n} `{mark.strip()}`" for mark, n in split.items())
-        lines += [
-            "",
-            f"`seal/releases/{version}.md`: {counted} of {total} rows, each row "
-            "counted once, by the marker its first cell opens with.",
         ]
     if cache.get("trend"):
         tag, then = cache["trend"]

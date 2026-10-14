@@ -907,7 +907,7 @@ RUN = [
     job("pytest (macos-latest, 3.12, --splits 3 --group 1, 15)", 7.0),
     job("pytest (macos-latest, 3.12, --splits 3 --group 2, 15)", 7.4),
     job("pytest (macos-latest, 3.12, --splits 3 --group 3, 15)", 8.1),
-    job("ledger", 0.8),
+    job("budgets", 0.8),
 ]
 
 
@@ -1144,57 +1144,6 @@ def test_the_largest_round_record_is_reported_and_never_fails(tmp_path, capsys):
     assert "`3-none`" not in out, out
 
 
-def release(version, rows):
-    return {
-        ".claude-plugin/plugin.json": json.dumps({"version": version}),
-        f"seal/releases/{version}.md": f"## {version}\n\n### 1-a\n\n"
-        + "".join(f"| {row} | grounds | read | 2026-10-14 | note |\n" for row in rows),
-    }
-
-
-def test_the_rereads_of_a_release_are_counted_once_each_by_their_first_marker(
-    tmp_path, capsys
-):
-    """`ledger-rereads` counts the release file of the version the manifest
-    names: a row re-reading a correction is a re-read, once, and a row whose
-    cells carry an even run of backslashes before a pipe still counts by its
-    opening (`questions.md` Q4)."""
-    rows = [
-        "Re-read · A1 · a claim",
-        "Corrected · A2 · a claim",
-        "Re-read · Corrected · A3 · a claim",
-        "Corrected · A4 · a cell with `\\\\|` in it",
-        "A5 · a new claim",
-    ]
-    root = tree(
-        tmp_path,
-        budgets(("ledger-rereads", "rows", 4, "one-sided", "report")),
-        files=release("9.9.9", rows),
-    )
-    assert run(root) == 0
-    out = capsys.readouterr().out
-    assert "| `ledger-rereads` | 4 rows | 4 | 0 (0.0%) | report | holds |" in out, out
-    assert (
-        "`seal/releases/9.9.9.md`: 2 `Re-read ·`, 2 `Corrected ·` of 5 rows" in out
-    ), out
-
-
-def test_rereads_before_the_release_folds_its_file_are_unread(tmp_path, capsys):
-    """Until the release folds its ledger file there is nothing to count, so
-    the row is shown unread rather than read as 0, which would look like a
-    release that re-read nothing."""
-    root = tree(
-        tmp_path,
-        budgets(("ledger-rereads", "rows", 4, "one-sided", "report")),
-        files={".claude-plugin/plugin.json": json.dumps({"version": "9.9.9"})},
-    )
-    assert run(root) == 0
-    assert (
-        "| `ledger-rereads` | — (read once the release folds its ledger file) | 4 |"
-        in capsys.readouterr().out
-    )
-
-
 def test_a_trend_sets_each_budget_beside_its_ceiling_at_the_tag(tmp_path, capsys):
     """`--trend <tag>` prints one line per budget against the tag's file: a
     ceiling then and now with today's reading, a row new since then, and a
@@ -1227,27 +1176,14 @@ def test_a_trend_that_names_no_release_is_exit_2(tmp_path, capsys, tag, said):
     assert said in capsys.readouterr().err
 
 
-def test_a_manifest_with_no_version_is_exit_2(tmp_path, capsys):
-    """The release file is named by the manifest's version; a manifest that
-    states none names no file to count."""
-    root = tree(
-        tmp_path,
-        budgets(("ledger-rereads", "rows", 4, "one-sided", "report")),
-        files={".claude-plugin/plugin.json": "{}"},
-    )
-    assert run(root) == 2
-    assert "plugin.json states no version" in capsys.readouterr().err
-
-
 # --- round 1's fixes ---------------------------------------------------------
 
 
 def test_an_unread_row_of_a_family_without_an_unread_reason_renders(
     tmp_path, capsys, monkeypatch
 ):
-    """A family another work item adds may read nothing on a run, as
-    `ledger-rereads` does before its release; the summary shows it unread
-    with a reason of its own rather than raising."""
+    """A family another work item adds may read nothing on a run; the
+    summary shows it unread with a reason of its own rather than raising."""
     monkeypatch.setitem(
         budget_check.MEASURERS, "later", (lambda _root, _s, _cache: None, "rows", False)
     )
