@@ -376,7 +376,7 @@ def test_a_job_that_calls_pytest_any_way_is_held_to_the_whole_history(job):
         "      - uses: actions/checkout@v4\n"
         f"      - run: {SHALLOW_RUNNERS[job]}\n"
         "  reads-a-part:\n"
-        f"    needs: {job}\n"
+        "    needs: pytest\n"
         "    steps:\n"
         "      - uses: actions/checkout@v4\n"
         "      - run: echo needs-names-a-job\n"
