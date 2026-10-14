@@ -5,7 +5,7 @@ show; each part written when it happened. Opened at phase 1. -->
 
 📋 implement applied
 · spec:     spec.md (Scope, The removal criterion, S1–S4, S6, Removes); plan.md (Technical context, phase 1, Test rows); questions.md Q4, Q6; docs/the-evidence-ledger.md §A released row is read again in the branch's fragment; templates/sdd-phase.md
-· evidence: seal/ledger/1791876666-the-test-suite-is-held-to-a-budget.md — Re-read · G4 (seal/releases/0.17.0.md), phase 1
+· tests:    the cases phases/phase-1.md and phases/phase-2.md name, each with the mutation it was seen red by
 · verified: phases/phase-1.md, which labels each figure executed or read
 
 ## Why this work exists
@@ -24,9 +24,8 @@ proves redundant, and lowers #930's budget rows to match.
 | `test_every_sampled_name_is_a_corpus_row` removed, phase 2 (NAME NOT IN TREE) | `spec.md` §Removes names no unit; phase 1 planted it as T3 | the removal | the regrowth check reads phase 1's pins as changed functions, and T3's mutant, a misspelt `SAMPLE` name, is killed by S2's own row for that name, so no line could prove it; `mutation-check` with the name misspelt is red without T3 (`phases/phase-2.md`) |
 | A case names what it guards, and the regrowth check runs that line | `spec.md` §*A case names what it guards*: a `Kills:` line per function; §*The regrowth check*: two runs of the file per function; `tests/unguarded-files.txt` holding the files that owe lines | no line, no list: the check derives each case's mutants from the lines it runs alone, the units it names and the changed shipped lines; one run of the cases that ran a mutant's line; a case its file's only killer of one mutant, or named; survivors of changed code reported; a five-minute bound | the owner's decisions of 2026-10-14: nobody annotates a case, a check derives what it needs, one run per mutant read for its killers, the proof within five minutes |
 | The draw ranked and capped, after CI run 38498393195 | `plan.md` phase 2: mutants "drawn from the lines each runs and its siblings do not, the units of its file it names, and the shipped lines the range changed" | ranked by how many siblings run a line, a line only a sibling ran never drawn, 12 at most; the case's own ids run first; four operators added (an operand of `and`/`or` dropped, `in`/`is` flipped, an element removed) | the orchestrator's ask: redesign the draw, not the bound; the CI run drew 400 and more per case and ran 23 |
-| `mutation-check --baseline-passed` | the frame names no change to `mutation-check` | an option that skips the run against the file as it is, for a caller that ran it; a bare call is unchanged | without it one run per mutant still costs two file runs, and the five-minute bound would name files the model can afford; released row L7 is corrected in the fragment |
+| `mutation-check --baseline-passed` | the frame names no change to `mutation-check` | an option that skips the run against the file as it is, for a caller that ran it; a bare call is unchanged | without it one run per mutant still costs two file runs, and the five-minute bound would name files the model can afford |
 | The five measurers and `## Large test files` in `budget_check.py`, and the rows in `seal/budgets.md` | `plan.md` phase 2 delivers them "where #930 is in the tree" | not built in phase 2 | #930's `seal/budgets.md` and its `budget_check.py` are not on this branch; they follow #930's landing, as the orchestrator's spawn said |
-| The ledger fragment, which `plan.md` places in phase 4 | written in phase 1, with the `Re-read · G4` row S6 owes once a cited case's text moves | phase 1 | without it, CI's lenient `evidence-check` exits 1 on the drift; the orchestrator moved the fragment to phase 1, and named `plan.md`'s test-rows correction that the records arm requires |
 
 ## Not verified
 

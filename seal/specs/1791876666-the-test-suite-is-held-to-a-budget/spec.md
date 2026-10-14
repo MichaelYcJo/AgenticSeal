@@ -10,8 +10,8 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | `CLAUDE.md` §*The goal a design is chosen against* | Nothing here asks a person. A new case is proven by a run CI makes, never by a sentence in a hand-back |
 | `CONTRIBUTING.md` §*What a change to a gate must carry* | The regrowth check is a gate: a test seen red, the direction (it blocks more), a prompt budget of zero, platform honesty (it runs on ubuntu alone), a `Reads:` line per unit, `## Removes` below |
 | `CONTRIBUTING.md` §*Running the checks*, the paragraph opening `**A case has a budget, and so does each leg.**` | Rewritten in place: what a case owes (its `Kills:` line), how a case is proven redundant, and the rows that hold the suite. Nothing is appended |
-| `docs/the-evidence-ledger.md` §*A claim held by a test* | The convention this work extends to the case itself: a ledger row names the test that holds it, and the test names the mutation that holds it |
-| `docs/the-evidence-ledger.md` §*A released row is read again in the branch's fragment*; `docs/the-record-layout.md` §*A change writes fragments, never a shared file* | A removed case a released row cites gets a `Corrected ·` row, a moved one a `Re-read ·` row, in `seal/ledger/1791876666-….md`; the changelog goes to the fragment |
+| `skills/implement/SKILL.md` §*2. Implement test-first, and let each rule name its test* | The convention this work extends to the case itself: a rule's `Enforced by:` line names the test that holds it, and the test is proved by the mutation it kills |
+| `docs/the-record-layout.md` §*A change writes fragments, never a shared file* | The changelog goes to the work item's fragment; a removed or renamed case an `Enforced by:` line names moves that line to the case that holds the rule now |
 | `docs/the-reader-registry.md` §*A frame names what its work removes* | `## Removes` below; a removal a phase makes that the frame did not name is a divergence in `overview.md` |
 | `skills/agent-contract/SKILL.md` §15 | Today's rule for a new case, which the regrowth check makes a run CI performs rather than a thing a hand-back says |
 | #930's `seal/specs/1791876665-…/spec.md` §*The budgets* | The ratchet every row proposed here follows: `measured ≤ ceiling ≤ measured × (1 + slack)`; a raise is a `Budget raised:` line in the pull request body |
@@ -104,18 +104,18 @@ Proposed to #930's file, measured by this item's measurers in `budget_check.py`,
 | S6 the list only shrinks | a file leaves `tests/unguarded-files.txt` | every function in it carries the line (`case_check.py` reads the file whole); a file added to the list fails `unguarded-files` |
 | S7 a removal is proven | each phase's table | every mutation red before and after; the remaining killer named; a survivor gets a case |
 | S8 the rows move with the cut | a phase lowers `test-cases` and the others; the union downloaded from the phase's run | `budget_check.py` exit 0; `test_the_durations_file_prices_the_suite` green |
-| S9 the ledger follows | a removed function a released row cites; a moved one | `Corrected ·` and `Re-read ·` rows in the fragment; `evidence-check --strict .` exit 0 |
+| S9 the rules follow | a removed function an `Enforced by:` line names; a renamed one | the line names the case that holds the rule now; `budget_check.py`'s `enforced-unresolved` at 0 |
 | S10 docs state the rule | the `CONTRIBUTING.md` paragraph | rewritten in place; `docs-history:*` at +0 |
 | S11 nothing asks a person | the whole change | no `AskUserQuestion`, no prompt, no box |
 | S12 every new unit declares | `case_check.py` and the measurers | a `Reads:` line each; the census passes |
 
 ## Data & interfaces
 
-`.github/scripts/case_check.py` — `--baseline REF`, `--root DIR`, `--list tests/unguarded-files.txt`; stdout and `$GITHUB_STEP_SUMMARY`; names no machine path. `tests/unguarded-files.txt` — one test file path per line, sorted. `budget_check.py` — five measurers and two per-file tables (`## Large test files`, `| File | Cases ceiling | Lines ceiling |`) in the shape of `## Slow test files`. A `Kills:` docstring line per test function. Ledger rows: S1–S12 anchored to the cases and units, in `seal/ledger/1791876666-….md`.
+`.github/scripts/case_check.py` — `--baseline REF`, `--root DIR`, `--list tests/unguarded-files.txt`; stdout and `$GITHUB_STEP_SUMMARY`; names no machine path. `tests/unguarded-files.txt` — one test file path per line, sorted. `budget_check.py` — five measurers and two per-file tables (`## Large test files`, `| File | Cases ceiling | Lines ceiling |`) in the shape of `## Slow test files`. A `Kills:` docstring line per test function.
 
 ## Removes
 
-nothing — the frame names no unit: which cases leave is each phase's mutation table and which helper twins leave is the hash, so every removed test function or helper is a divergence row in `overview.md` with its `Corrected ·` ledger row where a released row cites it, as `docs/the-reader-registry.md` §*A frame names what its work removes* has it. The `CONTRIBUTING.md` paragraph is rewritten, not removed.
+nothing — the frame names no unit: which cases leave is each phase's mutation table and which helper twins leave is the hash, so every removed test function or helper is a divergence row in `overview.md`, and an `Enforced by:` line naming it moves to the case that stays, as `docs/the-reader-registry.md` §*A frame names what its work removes* has it. The `CONTRIBUTING.md` paragraph is rewritten, not removed.
 
 ## Open questions → questions.md
 

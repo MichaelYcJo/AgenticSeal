@@ -8,4 +8,4 @@
 #   rules docs/the-record-layout.md
 #   rules docs/x.md --root /path/to/a/clone
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../.github/scripts/rules.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../.github/scripts/rules.py" "$@"
