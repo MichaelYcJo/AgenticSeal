@@ -15,7 +15,7 @@
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -30,7 +30,7 @@ Round 2 of #931 against 54564029: the verifying round over round 1's fix pass (b
 | 🟢 | round 1's finding 3 is closed — pytest read as a word on every code line but `needs:` | `tests/test_ci_gives_the_checks_what_they_need.py#runs_pytest` | confirmed | executed: over every workflow the guard selects the same three jobs and not `test.yml:durations`; the four spellings round 1 named are selected |
 | 🟢 | round 1's finding 4 is closed — a `--count` below one is a refusal | `.github/scripts/durations_union.py:234-235` | confirmed | read at 91e383a8: raised before `find_parts`, exit 2, no file written; the case covers 0 and -1 |
 | 🟡 5 | a block-list `needs:` (`- pytest` on its own line), a step `name:` and an `env:` value containing pytest each make `runs_pytest` select a job that runs nothing | `tests/test_ci_gives_the_checks_what_they_need.py#runs_pytest` | answered | the shapes it names (a block-list `needs:`, a step `name:`, an `env:` value) make `runs_pytest` select a job that runs nothing, which errs toward refusing a shallow checkout and never toward silence; the base's substring rule had the same reach; no job in the tree has the shape, and #930's `budgets` job uses the one-line `needs: pytest` the guard already skips; widening the reader would add a mechanism for a shape nobody writes, against the owner's rule to subtract rather than add; executed: the block-list shape through `shallow_pytest_jobs` returns the job; fails toward refusing, the base's rule had the same reach, and no job in the tree or at PR #938's head has the shape |
-| ⬜ 6 | the re-stamped S1 claim and the changelog state that a re-run's part replaces its first, which is the open ❓ rather than a verified fact | `seal/ledger/1791876667-the-durations-refresh-has-a-schedule.md` | open | read: the evidence is the `overwrite: true` key and the action's README; whether an earlier attempt's artifact is visible to the action is unanswered |
+| ⬜ 6 | the re-stamped S1 claim and the changelog state that a re-run's part replaces its first, which is the open ❓ rather than a verified fact | `seal/ledger/1791876667-the-durations-refresh-has-a-schedule.md` | answered | executed by the orchestrator: run 38496738041, attempt 2, re-ran `pytest (windows-latest, …, --group 1, …)` alone, and attempt 2's `durations` job re-ran and succeeded, so a part uploaded under the name attempt 1 used, with `overwrite: true`, is accepted and read; the statement holds as written; read: the evidence is the `overwrite: true` key and the action's README; whether an earlier attempt's artifact is visible to the action is unanswered |
 | carried | round 1's ❓, whether `upload-artifact@v4` refuses a name an earlier attempt of the same run uploaded | `.github/workflows/test.yml:168-177`, `.github/workflows/test.yml:203-210` | deferred PR #937 | already deferred in round 1; the orchestrator answers it by a re-run on PR #937 |
 
 ## Paste-ready fixes
