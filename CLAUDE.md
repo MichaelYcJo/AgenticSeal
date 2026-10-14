@@ -30,12 +30,21 @@ person is the more expensive, and the difference has to be argued rather than
 assumed. Time and stability are what the argument is being made for.
 
 This is a goal, not a rule, which is why it sits above them: it decides
-between options where no rule is broken either way. `CONTRIBUTING.md`'s *What
-a change to a gate must carry* turns it into something a pull request has to
-answer. `skills/implement/SKILL.md` §*1. Read the spec before the code* holds
-the rule this goal produces for a session, with its reasoning: whatever needs
-a person is asked once, together, before the first edit, and nothing comes
-back mid-run.
+between options where no rule is broken either way.
+`skills/implement/SKILL.md` §*1. Read the spec before the code* holds the rule
+this goal produces for a session, with its reasoning: whatever needs a person
+is asked once, together, before the first edit, and nothing comes back mid-run.
+
+## The rule a mechanism is kept against — subtract before you add
+
+**A mechanism stays only while its history shows what it caught against what
+it costs.** Being written, shipped or documented is no reason to keep it. The
+record of truth is a test or a behaviour eval a rule's `Enforced by:` names,
+never coordinates somebody re-reads. A thing is re-checked only when it
+changed, by the party that knows what changed: the diff, CI. A change rewrites
+the text it amends in place; history goes to git, the changelog and the work
+record, one line per batch. `CONTRIBUTING.md` §*What a change to a gate must
+carry* is where a pull request answers this rule and the goal above.
 
 ## Repo rule — the merge method is fixed per direction, and it is not a preference
 

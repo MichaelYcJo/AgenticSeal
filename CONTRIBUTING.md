@@ -257,7 +257,8 @@ after the review rounds settle, and nothing edited between that run and the PR.
 ## What a change to a gate must carry
 
 The gates decide whether someone's commit or branch switch proceeds, so a
-change to one is judged by what it does when it is wrong:
+change to one is judged by what it does when it is wrong, and a change that
+adds any mechanism by what it takes away:
 
 - **A test seen red.** Write the test against the unfixed code and watch it
   fail before you fix anything. A test that has never failed proves nothing
@@ -284,15 +285,19 @@ change to one is judged by what it does when it is wrong:
   decides from, and a changed unit leaves the census when it declares.
   `docs/the-reader-registry.md` holds the grammar, and
   `tests/test_a_reader_declares_its_input_class.py` refuses a unit without it.
-- **A frame that names what it removes.** A change that takes a reader, a
-  rule or a pin out of the tree lists it under its `spec.md`'s `## Removes`,
-  where `evidence-check` reads each row as a claim that the thing is gone.
+- **What it removes.** A pull request that adds a mechanism — a gate, a
+  checker, a hook, a CI step, a rule — names the existing one it removes, or
+  says why none can go, and with either answer what that one caught against
+  what it costs. `CLAUDE.md` §*The rule a mechanism is kept against* is why.
+  What goes is listed under its `spec.md`'s `## Removes`, where
+  `evidence-check` reads each row as a claim that the thing is gone;
   `docs/the-reader-registry.md` §*A frame names what its work removes* is the
   rule.
 
-The prompt budget is the one of these a passing suite cannot report on,
-because nothing counts interruptions. It is answered in the pull request body
-or it is not answered. `skills/implement/SKILL.md` §1 holds the reasoning the
+The prompt budget and what a change removes are the two a passing suite
+cannot report on: nothing counts interruptions, and nothing weighs a
+mechanism's catches against its cost. Both are answered in the pull request
+body or they are not answered. `skills/implement/SKILL.md` §1 holds the reasoning the
 budget is drawn against: the cost of a question is not its difficulty, it is
 when it arrives.
 
