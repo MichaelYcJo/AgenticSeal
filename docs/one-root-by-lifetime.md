@@ -6,8 +6,7 @@ The design 0.4.0 starts from, gathered from issue #74 and the ten comments
 under it (2026-09-02, after the previous release shipped), plus the decisions the owner took
 after the thread while this document was reviewed: the opt-in is the root's
 presence, a work item's directory is removed only once a later `settle`
-step has folded it into `docs/` and the ledger, and 0.4.0 itself deletes
-nothing. Nothing here is for 0.3.x. Every name below is a placeholder until
+step has folded it into `docs/`, and 0.4.0 itself deletes nothing. Nothing here is for 0.3.x. Every name below is a placeholder until
 the owner decides it; where the thread leaned one way, the text says
 *recommended* and the reason. What is decided and what is still open are
 both collected at the end.
@@ -28,15 +27,15 @@ code coordinates), whose rows outlive the work item that wrote them. Where
 that root sits is a per-repository choice, shared (committed)
 or local (under `.git/`, never committed), and its presence there is the
 opt-in. `specs/` stops being SpecSeal's directory. A work item's directory
-lives until `settle` folds it into `docs/` and the ledger; 0.4.0 has no
-such step yet, so it moves everything and deletes nothing.
+lives until `settle` folds it into `docs/`; 0.4.0 has no such step yet, so
+it moves everything and deletes nothing.
 
 ```
 today                                      after
 ─────                                      ─────
 specs/<id>/   spec plan questions overview  seal/specs/<id>/  the whole work item, until settle folds it
-              routing rounds/ todos pr.ko  seal/ledger/<id>.md  its rows, until the release folds them
-.specseal/    map.md map/<id>.md            seal/ledger.md    the gathered ledger
+              routing rounds/ todos pr.ko
+.specseal/    map.md map/<id>.md            seal/map.md seal/map/<id>.md
               follow-up.md parity.md        seal/follow-up.md seal/parity.md
 (.specseal/ exists)  = opted in            seal/ exists at the mode's place = opted in
 ```
@@ -75,7 +74,7 @@ is and who reads it after the merge.
 
 | The SDD set: what was decided and why | The process record: what SpecSeal's checkers read |
 |---|---|
-| `spec.md` · `plan.md` · `questions.md` · `overview.md` · `changelog.md` | `routing.md` (read by the commit gate, the hook that stops an unrouted commit) · `rounds/round-N.md` (read by `chain_check.py`, the pull-request check that a declared review chain has its record) · `tests-todo.md` · `evidence-todo.md` |
+| `spec.md` · `plan.md` · `questions.md` · `overview.md` · `changelog.md` | `routing.md` (read by the commit gate, the hook that stops an unrouted commit) · `rounds/round-N.md` (read by `chain_check.py`, the pull-request check that a declared review chain has its record) · `tests-todo.md` |
 | exists under spec-driven development (SDD) with or without SpecSeal | exists because SpecSeal's gates read it |
 | read by people after the merge, for "why" | read by nothing after the merge |
 
@@ -90,25 +89,23 @@ simply drops with the directory (the process record).
 
 One root the plugin owns. "Plugin-owned" means the plugin creates, moves and
 folds it and its checkers define the formats, the way `.github/` is
-GitHub's. It is committed in the default mode, because the ledger and the
-round records must reach CI and other clones.
+GitHub's. It is committed in the default mode, because the round records
+must reach CI and other clones.
 
 ```
 <repo>/
 ├── seal/                          created, moved and folded by the plugin. Committed in shared mode.
 │   ├── README.md                  this folder's rules: export rules, what moves when
-│   ├── ledger.md                  the gathered ledger. Permanent
-│   ├── ledger/<id>.md             rows of work items in development. Folded into ledger.md at release, then removed
 │   ├── follow-up.md               permanent
 │   ├── parity.md                  migration projects only. Permanent
 │   ├── pact.md                    only in the repository that holds the pact. Permanent
-│   ├── pact-changes/<id>.md       a signer's pact changes, written by --reverify. Permanent
+│   ├── pact-changes/<id>.md       a signer's pact changes. Permanent
 │   ├── pact-reviews/<id>.md       the pact's repository's pact reviews. Permanent
 │   └── specs/<epoch>-<slug>/      the whole work item. Lives until settle folds it; 0.4.0 keeps it
 │       ├── spec.md plan.md questions.md overview.md      the SDD set: what was decided and why
 │       ├── changelog.md                                  gathered into CHANGELOG.md at release
 │       ├── routing.md rounds/round-N.md                  the process record: what the commit gate and CI read
-│       ├── tests-todo.md evidence-todo.md                evidence-todo must be empty before anything folds
+│       ├── tests-todo.md
 │       └── pr.ko.md
 ├── docs/                          policy, and where settle folds the SDD set. Read by people; written by people and by settle
 ├── CHANGELOG.md                   unchanged
@@ -124,8 +121,8 @@ Three lifetimes, and each has one home.
 | Lifetime | Lives in | Ends when |
 |---|---|---|
 | a session | `.git/` | the session ends |
-| between releases | `seal/ledger/<id>.md` · `seal/specs/<id>/` | the release step folds it: ledger fragments from 0.4.0 on, work items once `settle` exists |
-| permanent | `seal/ledger.md` · `follow-up.md` · `parity.md` · `docs/` · `CHANGELOG.md` | never |
+| between releases | `seal/specs/<id>/` | `settle` folds it |
+| permanent | `follow-up.md` · `parity.md` · `docs/` · `CHANGELOG.md` | never |
 
 A work item's directory has the middle lifetime, and 0.4.0 keeps it on disk
 anyway, because the step that folds it does not exist yet and deleting
@@ -139,25 +136,20 @@ the sections below carry them: the mode choice at first setup, and an
 export/import pair.
 
 **What the names say.** `seal/specs/<id>/` holds the spec and its process
-record. `seal/ledger*` is the binding of spec to code that breaks on drift —
-what the product name seals, rather than one of the seals an agent takes
+record. The binding of a rule to the code is the test its `Enforced by:` line
+names — what the product name seals, rather than one of the seals an agent takes
 (`skills/verify/SKILL.md` §*Every agent seals what it verified, and one of
 them is final*).
 
 ## What happens at a release
 
-Both accumulation problems end in the release-preparation step. The thread
-names only "the release-preparation script"; this document reads that as
-the step that already gathers `changelog.md` fragments by hand
+The accumulation of work items ends in the release-preparation step. The
+thread names only "the release-preparation script"; this document reads that
+as the step that already gathers `changelog.md` fragments by hand
 (`.github/scripts/gather_changelog.py --version`, see
 `docs/branch-and-release.md`).
 
-1. **`seal/ledger/<id>.md` folds into `seal/ledger.md`**, and the fragment
-   is removed. A work item still unmerged keeps its fragment. This is a
-   move, not a deletion: every row survives, and it is the one part of the
-   design that answers "almost every pull request touches the directory".
-   From 0.4.0.
-2. **`seal/specs/<id>/` folds into `docs/`, then the directory is
+1. **`seal/specs/<id>/` folds into `docs/`, then the directory is
    removed.** This is `settle`, a later item and not in 0.4.0. It merges
    the SDD set of each released work item into `docs/<domain>` files,
    merging into a document that already exists and creating one only for a
@@ -168,19 +160,13 @@ the step that already gathers `changelog.md` fragments by hand
    the directory: nothing reads it after the merge. This rule replaces the
    retention setting comment 4 proposed; there is nothing left to choose
    to keep, because what is worth keeping has moved.
-3. **The guard.** A sentence in a work item's `spec.md` that must outlive
-   the release has to have moved into a `docs/` policy or a ledger row
-   before the merge. `evidence-todo.md` half-enforces that today. The
-   release step refuses to run while any released work item still has an
-   open `evidence-todo.md` row (the issue says "any work item"; an unmerged
-   one is not part of the release), and `settle` skips such an item:
+2. **The guard.** A sentence in a work item's `spec.md` that must outlive
+   the release has to have moved into a `docs/` policy, with the test its
+   `Enforced by:` line names, before the merge. `settle` skips a released
+   work item whose `overview.md` still has an open `## Not verified` row:
    neither folded nor removed, named in its output. The guard is what makes
    removal safe: it is the proof that nothing permanent lives only in the
    work item.
-
-Why the rows fold rather than stay is this document's reading, not the
-thread's: the fragment layout exists to stop two branches queueing at one
-file, and after the merge there is no branch left to queue.
 
 ## The dependency rule
 
@@ -189,9 +175,7 @@ after the merge.** The directory will be removed by `settle`, so the design
 treats it as already gone for every permanent purpose. Measured against the
 code on `origin/main`, the reads of that directory fall into three groups.
 
-- **Already safe.** A ledger row carries the clause text beside the code
-  coordinate, so it never points into `spec.md`. A round record's
-  `Target SHA` is read by `chain_check.py` only while the pull request is
+- **Already safe.** A round record's `Target SHA` is read by `chain_check.py` only while the pull request is
   open. The HTML comment above a released CHANGELOG entry, and the one
   `settle` leaves in `docs/`, name the work item; a name is a pointer
   rather than a read, and it still resolves through git history when the
@@ -209,20 +193,18 @@ code on `origin/main`, the reads of that directory fall into three groups.
   fragments; after a removal it can only judge by the comment in
   `CHANGELOG.md`. Both are named here so the `settle` item starts from
   this list rather than rediscovering it.
-- **Kept on purpose.** The evidence-todo guard above; the export rules in
+- **Kept on purpose.** The guard above; the export rules in
   `seal/README.md`, which say where each kind of content must have gone
   before the work item closes; and `settle` itself, the one sanctioned
-  reader after the merge, in the same position as the ledger fold.
+  reader after the merge.
 
 A new reader of `seal/specs/<id>/` after 0.4.0 lands in the second group by
 definition, and a review should say so.
 
 **The wider rule behind it: nothing may need to be found and updated when
-something else moves.** The ledger already went through this once. A row
-cited `path:line`, a line moves for edits that have nothing to do with the
-claim, so rows were re-anchored, stamped, and orphaned by a squash. 0.2.0
-replaced the position with a content anchor (`path#unit@hash`), and a row
-now changes state only when the code it is about changes. `settle` rewrites
+something else moves.** A record that cites `path:line` breaks this: a line
+moves for edits that have nothing to do with the claim, so such a citation is
+re-anchored, stamped, and orphaned by a squash. `settle` rewrites
 `docs/` and removes directories on every release, so anything coupled to a
 path or a position inside a work item would break the same way. What still
 carries such a coupling is short: a round record's `Target SHA` (resolved
@@ -233,16 +215,16 @@ stamp to a content anchor.
 **What keeps `settle` light**, since it is the heaviest step this design
 adds:
 
-- It moves and does not verify. Whether a coordinate still holds is
-  `evidence-check`'s job; folding it in would re-read the whole ledger on
-  every release.
+- It moves and does not verify. Whether a rule still holds is the job of
+  the test its `Enforced by:` line names, which CI runs on every pull
+  request.
 - It runs incrementally. Only work items released since the last fold are
   read, and the folded ids are recorded so a second run folds nothing twice
   and an interrupted run resumes.
 - The `docs/` merge replaces by provenance id. A sentence carrying a work
   item's comment is swapped for the newer one; judgment is needed only when
   an area gets its first document.
-- An item with an open `evidence-todo.md` row is skipped and named, never
+- An item with an open `## Not verified` row is skipped and named, never
   folded or removed.
 - Its cost is measured with `session-cost`, so the release where it turns
   heavy is visible.
@@ -250,12 +232,12 @@ adds:
 ## What "spec" means after this
 
 Nothing changes here. `spec.md` was always the spec of one change. What must
-outlive the change already has two homes: the `docs/` policy (judgment order
-is policy > SDD > code) and the ledger row, which carries the clause text
-beside the code coordinate. `settle` is the step that moves it there for
-every released work item. A person checking the AI's work does it while the
-pull request is open, when `spec.md` is there. A person asking "why does
-this behave so" after the release reads `docs/` and the ledger, and `docs/`
+outlive the change already has one home: the `docs/` policy (judgment order
+is policy > SDD > code), with the test its `Enforced by:` line names.
+`settle` is the step that moves it there for every released work item. A
+person checking the AI's work does it while the pull request is open, when
+`spec.md` is there. A person asking "why does this behave so" after the
+release reads `docs/`, and `docs/`
 now holds the folded record of every change, not only the norms people
 wrote by hand.
 
@@ -339,7 +321,7 @@ it is.
 | Committed | never; nothing to gitignore either | yes |
 | Linked worktrees and parallel sessions | read each other's records, because the git dir is common to every worktree of the clone | read each other's records, because the files are committed |
 | Other machines and a re-clone | start empty; `seal export` / `seal import` carry a copy by hand | have everything |
-| CI (`ledger` and chain checks) | cannot run; the hygiene workflow is not installed | runs |
+| CI (the chain checks) | cannot run; the hygiene workflow is not installed | runs |
 | Switching later | `seal mode shared` — it moves `.git/seal/` to `<repo>/seal/`, stages it, and installs the workflow; you commit | `seal mode local` — it moves `<repo>/seal/` back, stages the removal, and takes the workflow out; you commit |
 
 The mode needs no key of its own: the hooks find `<repo>/seal/` or
@@ -386,14 +368,10 @@ The owner's summary of the two modes, corrected for that:
    uncommitted state; the per-work-item fragment layout is what keeps
    parallel items apart.
 3. Local mode never leaves that clone on that machine. A new machine or a
-   re-clone starts with no ledger and no work-item records (coordinates are
-   re-derived), and CI's ledger and chain checks cannot run. That is the
-   whole trade-off.
+   re-clone starts with no work-item records, and CI's chain checks cannot
+   run. That is the whole trade-off.
 
-**Local records can be copied to another clone by hand.** The ledger's rows
-are content anchors (`path#unit@hash`, no line, no SHA), so a copied ledger
-degrades to DRIFTED (the checker's "content changed, re-read the claim"
-state) where the other tree differs, and never breaks. Round records name
+**Local records can be copied to another clone by hand.** Round records name
 pushed commits. `.git/seal/` must be its own folder so that it alone is
 copied; the smith mark, worktree choices and session leases beside it are
 that machine's session state.
@@ -421,8 +399,7 @@ copy" rather than "lose it".
 - `seal import <zip>` never overwrites. Files are keyed by work-item id, so
   missing ones are added; an id already present lands as
   `<id>.incoming.md` beside the existing file, reported and not asked
-  about. `evidence-check` afterwards says which rows drift against this
-  tree.
+  about.
 - The same pair is the mode switch: export, unzip into `<repo>/seal/`,
   commit. Or the reverse.
 - One reminder only. In local mode the release-preparation step prints
@@ -500,13 +477,11 @@ response language and `pr.ko.md`.
   and the CHANGELOG comments keep them; under the `settle` rule they wait
   there for the first fold instead, which is what "delete nothing before
   folding" means at the switch.
-- **The move is done by the session-start hook, once.** `hooks/ledger-migrate.py`
-  already owns that moment: it migrates once per repository, never over
-  uncommitted files, and prints one line. The existing once-per-repo marker
-  (`~/.claude/specseal/ledger-migrated`) is keyed to the anchor-format
-  migration, so the path move needs a marker of its own.
-- **`.specseal/map.md` and `.specseal/map/`** become `seal/ledger.md` and
-  `seal/ledger/`. `follow-up.md` and `parity.md` move as they are.
+- **The move is done by the session-start hook, once.** `hooks/root-migrate.py`
+  owns that moment: it migrates once per repository, never over uncommitted
+  files, and prints one line.
+- **`.specseal/map.md` and `.specseal/map/`** move to `seal/map.md` and
+  `seal/map/`, as `follow-up.md` and `parity.md` do.
 - In this repository `specs/` then ends up empty and goes away.
 
 ## What it touches in this repository
@@ -516,11 +491,11 @@ area (a rough grep, not a list of edits):
 
 | Area | Files | The load-bearing ones |
 |---|---|---|
-| `hooks/` | 11 | `optin.py` (`HOME = ".specseal"` is the whole signal today), `ledger-migrate.py`, the commit gate's `routing.md` path |
-| `skills/` | 13 | `implement` (the three-axis layout table, fragment paths), `code-review`, `verify`, `evidence-check` and their scripts |
+| `hooks/` | 11 | `optin.py` (`HOME = ".specseal"` is the whole signal today), the session-start migration hook, the commit gate's `routing.md` path |
+| `skills/` | 13 | `implement` (the three-axis layout table, fragment paths), `code-review`, `verify` and their scripts |
 | `tests/` | 20 | fixtures that build `.specseal/` and `specs/<id>/` by hand |
 | `templates/` | 8 | five SDD templates (spec, plan, questions, round, routing) name their `specs/<epoch>-<slug>/` path in a header comment; `sdd-overview.md` and `map.md` name `.specseal/map` |
-| `.github/` | 2 | `hygiene.yml` passes `specs/` to `unverified_check.py`; `gather_changelog.py` globs the fragments. `test.yml`'s `ledger` job names no path (`evidence_check.py .`) and is outside the count, but the checker it runs must learn the new root |
+| `.github/` | 2 | `hygiene.yml` passes `specs/` to `unverified_check.py`; `gather_changelog.py` globs the fragments |
 | `agents/` | 3 | the smith, warden and scribe agent prompts |
 | `docs/` | 3 | `branch-and-release.md`, `review-chain-spec.md`, `review-handoff-protocol.md` |
 | root | 4 | `README.md`, `README.ko.md`, `CONTRIBUTING.md`, `CLAUDE.md` |
@@ -609,7 +584,7 @@ audiences: a pull request is read by whoever opens it, and a record by
 whoever comes back to the decision six months later.
 
 Whatever either row says, **the names a checker matches stay English** — the
-field names, the verdict words, the markers, a ledger anchor, and all code.
+field names, the verdict words, the markers, and all code.
 A translated field name is not a translation; it is a checker that stops
 reading.
 Enforced by: tests/test_the_pull_request_language_is_the_repositorys.py::test_the_template_is_one_item_value_table_whose_first_row_is_the_language, tests/test_the_pull_request_language_is_the_repositorys.py::test_every_document_that_names_a_language_row_names_the_shipped_one
@@ -652,7 +627,7 @@ them closes what was item 4 of the table below.
 | Decision | Answer | What it closes |
 |---|---|---|
 | The opt-in signal | `seal/` existing at the mode's location; no config key | comment 2's key, marker and ref candidates; the question of the key's shape |
-| What happens to a work item's directory | it lives until `settle` has folded its SDD set into `docs/` and its rows into the ledger, then it is removed; 0.4.0 has no `settle` and deletes nothing | comment 4's `retain` setting and its default; the second setup question; the existing `specs/` moves whole |
+| What happens to a work item's directory | it lives until `settle` has folded its SDD set into `docs/`, then it is removed; 0.4.0 has no `settle` and deletes nothing | comment 4's `retain` setting and its default; the second setup question; the existing `specs/` moves whole |
 | Design stance toward the directory meanwhile | nothing permanent may depend on `seal/specs/<id>/` after the merge, and nothing may need finding and updating when a path or position moves | the dependency rule; the two checks that must change before `settle` |
 | Where the folded record lives | `docs/`, defined by who reads it (people), written by people and by `settle` | the `implement` skill's "never created here" sentence, to be corrected |
 | The first-setup question's shape | one `AskUserQuestion`, **shared** first as the default. Shared creates `<repo>/seal/` in the tree and the routing commit carries it; local creates `$(git rev-parse --git-common-dir)/seal/` and touches nothing in the tree. A repository with `seal/` at either place, or still on the 0.3.x layout, is not asked | Q6 and Q7 of #80; "creates `<repo>/seal/` and commits it" above is the flow as it reads, not a commit the bootstrap makes |
@@ -683,8 +658,8 @@ shape *Decided after the thread* uses.
 | Decision | Answer | What it corrects above |
 |---|---|---|
 | What `settle` is | a skill with a command beside it, not a script. The command reads and groups; the session judges which sentences are still true and writes them. `skills/settle/SKILL.md` is the procedure, `skills/settle/scripts/settle.py` the reader, `bin/settle` the command | §*What keeps `settle` light* said the step moves and does not verify, and left open who does the moving. Nothing mechanical can decide what is still true, so the two halves have two owners |
-| Where the fold record lives | the `<!-- specs/<id> -->` comment the folded sentence already carries in its `docs/` document. No second file | §*What happens at a release* step 2 named the comment as provenance only. Deriving the record from the destination is also what makes an interrupted run resumable: folded, and folded-and-retired, are two states the tree itself answers |
-| What groups | the file a work item's ledger coordinates anchor in, by majority over its non-`tests/` anchors. A `tests/` anchor rolls up to the code the case pins; an item anchored only under `tests/`, or with no ledger row, is named rather than guessed at | nothing above said. Measured on this repository when the mechanism shipped: 97 released work items, 81 grouped into 37 segments, 16 named |
+| Where the fold record lives | the `<!-- specs/<id> -->` comment the folded sentence already carries in its `docs/` document. No second file | §*What happens at a release* step 1 named the comment as provenance only. Deriving the record from the destination is also what makes an interrupted run resumable: folded, and folded-and-retired, are two states the tree itself answers |
+| What groups | nothing: `settle` lists the released work items no fold has taken | nothing above said |
 | What a removal actually breaks | §*The dependency rule*'s two readers are **not** the whole list. Both changed — `unverified_check.py --baseline` now reads the fold record and names a folded directory instead of reporting it, and `gather_changelog.py --check` now counts the markers in `CHANGELOG.md` and refuses a corpus carrying neither. Beyond them: every check in a repository carrying a **population floor** over that corpus | §*The dependency rule* was written when this repository had 13 work items. At 98 it had 14 test modules reading the corpus and at least 6 with a floor a fold turns red. The general rule is in `skills/settle/SKILL.md`, because any repository running this methodology accumulates the same shape |
 | Who may write in `docs/` | the `implement` skill's layout table now says a work item creates no `docs/` document and `settle` is the one writer that does | the *never created here* sentence, which the table above already listed as one to correct |
 | Whether the mechanism's own release folds this repository | no. The mechanism shipped and nothing was removed; the fold of the accumulated work items is its own work item | nothing above said. Putting both in one pull request means one review round judges a mechanism and nine segments of policy prose at once, on a tree whose suite that same commit had just shortened |
@@ -698,8 +673,7 @@ same shape.
 | Decision | Answer | What it corrects above |
 |---|---|---|
 | Whether a fold is a work item | no. A fold opens no `routing.md`, spec, plan or rounds and is not asked the routing question; every commit is waived with `: '[no-review]';` in front, and its judgment is reviewed at its pull request. `skills/settle/SKILL.md` is its spec, and it keeps no log of folds | the 2026-09-22 row that made the fold of the accumulated work items its own work item. Two folds ran that way, and each left a directory for the next fold to retire, so no fold could finish |
-| A released work item that wrote no `spec.md` | retired by the rule, with no marker, when nothing in its `overview.md` or `evidence-todo.md` is open; kept and named with its rows when something is. One predicate beside the fold record decides it for `settle` and for every CI reader, asked of the merge base | nothing above said. the ledger policy had kept such items by name, and ten of them had no way out |
-| A ledger row anchored inside a retiring directory | `settle` names it and `settle --retire` keeps that directory, saying per row whether the row is removed or narrowed | the 2026-09-22 row on what a removal breaks, which listed readers of the corpus and not the ledger rows anchored in it; the first fold broke five of them |
+| A released work item that wrote no `spec.md` | retired by the rule, with no marker, when nothing in its `overview.md` is open; kept and named with its rows when something is. One predicate beside the fold record decides it for `settle` and for every CI reader, asked of the merge base | nothing above said; ten such items had been kept by name with no way out |
 
 ## Decided when a joined project's `specs/` was read and never taken (2026-10-01)
 

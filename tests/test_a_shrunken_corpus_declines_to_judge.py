@@ -235,7 +235,6 @@ LISTS_A_FIXTURE = {
     "tests/test_the_mode_is_a_row_and_a_command.py#test_an_ignored_workflow_path_is_not_reported_as_staged": 1,
     "tests/test_the_root_migrates_itself.py#test_every_move_is_staged_and_history_follows_the_file": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readme_is_rewritten_from_the_new_template": 1,
-    "tests/test_the_root_migrates_itself.py#test_the_re_pointed_ledgers_are_staged_with_the_move": 1,
     "tests/test_the_root_migrates_itself.py#test_an_ignored_file_directly_under_the_old_root_does_not_stop_the_move": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
     # #688: both read `git diff --cached --name-only` in the fixture the case

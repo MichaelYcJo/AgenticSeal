@@ -28,8 +28,8 @@ regression tests' skeleton.
 
 ## Data & interfaces
 
-Schema deltas, endpoints, payload shapes. Reference, don't duplicate, the
-evidence ledger's coordinates.
+Schema deltas, endpoints, payload shapes. Reference the code's coordinates,
+don't duplicate them.
 
 ## Removes
 

@@ -429,21 +429,18 @@ and `https://example.com/org/orders-api` name one repository. Its last path
 segment is the name a pact anchor carries, `pact:orders-api/"## A"@1a2b3c4d`,
 so two pacts whose URLs end in the same segment are refused as ambiguous.
 
-**`Pact notify` decides which of this signer's changes the pact's
-repository hears about.** `evidence-check --reverify` records a pact change
-in `seal/pact-changes/<work-item-id>.md` where `docs/the-pact.md` §*A
-signer records a pact change* says, and that section's first sentence is
-the whole trigger. `pact-check` at the pact's repository reads that record
-until a pact review there takes it:
+**`Pact notify` decides which of this signer's pact changes the pact's
+repository reads.** A pact change is a row of
+`seal/pact-changes/<work-item-id>.md`, and `pact-check` at the pact's
+repository reads that record until a pact review there takes it. No command
+of this plugin writes one; a record this signer holds is read as follows:
 
-- **`when the pact is touched`** records a row citing a clause of a pact
-  the `Pact` row names, and the pact's repository reads it as `NOT TAKEN`,
-  exit 1, until a pact review takes it.
-- **`always`** records that, and every other row whose code moved, with `—`
-  for its clause; the pact's repository reads a `—` row as `NOTED`, which
-  moves no exit.
-- **`never`** records nothing, and the pact's repository reads nothing,
-  whatever an earlier value recorded.
+- **`when the pact is touched`**: a row citing a clause of a pact the `Pact`
+  row names reads as `NOT TAKEN`, exit 1, until a pact review takes it.
+- **`always`**: that, and a row with `—` for its clause, which the pact's
+  repository reads as `NOTED`, moving no exit.
+- **`never`**: the pact's repository reads nothing, whatever an earlier
+  value recorded.
 
 **A row that will not parse is refused in a sentence**, never read as absent.
 At this repository's pull request `chain-check` prints the sentence and its

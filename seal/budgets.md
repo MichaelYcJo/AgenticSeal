@@ -79,8 +79,8 @@ commit alike. -->
 | docs/commit-review-gate-spec.md | 15 |
 | docs/issues-and-milestones.md | 8 |
 | docs/measuring-a-run.md | 2 |
-| docs/one-root-by-lifetime.ko.md | 33 |
-| docs/one-root-by-lifetime.md | 39 |
+| docs/one-root-by-lifetime.ko.md | 32 |
+| docs/one-root-by-lifetime.md | 37 |
 | docs/release-checklist.md | 11 |
 | docs/review-chain-spec.md | 25 |
 | docs/review-handoff-protocol.md | 22 |
@@ -109,8 +109,8 @@ commit alike. -->
 | docs/commit-review-gate-spec.md | 20 |
 | docs/issues-and-milestones.md | 23 |
 | docs/measuring-a-run.md | 3 |
-| docs/one-root-by-lifetime.ko.md | 38 |
-| docs/one-root-by-lifetime.md | 38 |
+| docs/one-root-by-lifetime.ko.md | 37 |
+| docs/one-root-by-lifetime.md | 37 |
 | docs/release-checklist.md | 8 |
 | docs/review-chain-spec.md | 52 |
 | docs/review-handoff-protocol.md | 42 |

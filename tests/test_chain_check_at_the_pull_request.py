@@ -3280,8 +3280,7 @@ def ranged(repo, began, rng, **kwargs):
 
 def test_a_fix_range_the_tree_contradicts_is_named(repo):
     """#344's core. A record states a range, the tree holds a different one,
-    and until now nothing compared them — `evidence-check` does exactly this
-    job for the ledger over content anchors, and the records were left out.
+    and until now nothing compared them.
 
     The count is the half that catches a row nobody can re-derive. Its ends
     still resolve; what moved is how many commits lie between them.

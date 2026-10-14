@@ -313,8 +313,7 @@ A row that states the commits a round's fixes were measured over, written by
 the generator that already resolved them and read back here against the tree.
 It is `Contract changes`'s neighbour in the field table and its model, and it
 exists for a narrower reason: **a record is written once and the tree keeps
-moving.** `evidence-check` does that job for the ledger, over content anchors,
-and the records were left out of it (#344).
+moving** (#344).
 
 What the row closes is one measured class. A fix table states its range in
 prose, and `HEAD` is not a commit — it resolves, so the sentence stays
@@ -327,8 +326,7 @@ being pointed at the prose.
 **The measurement, as a command rather than as a number.** A count over prose
 depends entirely on what counts, and this paragraph first stated one with a
 date and no method — three readers then produced three different answers from
-it, which is the rule in `seal/ledger/1789621028-nothing-reads-a-record-against-the-tree.md`
-R7 broken in the document that states it. So the method is the claim:
+it. So the method is the claim:
 
 ```sh
 for f in seal/specs/*/rounds/*-fixes.md; do

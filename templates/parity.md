@@ -12,7 +12,7 @@ would be wrong for everyone else. They live in
 | Field | Value |
 |---|---|
 | Original repo | `<org/repo>`, module `<path within it, or "whole repo">` |
-| Baseline commit | `<SHA>` — the commit the evidence ledger's coordinates refer to |
+| Baseline commit | `<SHA>` — the commit the original's coordinates refer to |
 | Policy root | `docs/policies/` |
 | Coordinate-trust exceptions | none |
 
@@ -20,7 +20,7 @@ would be wrong for everyone else. They live in
 
 Paths whose recorded coordinates need re-verification before they can be
 trusted, and why. Empty is the normal state — rows arrive when someone finds a
-coordinate that moved without the ledger noticing.
+coordinate that moved without anybody noticing.
 
 | Path | Why it needs re-verification | Noticed |
 |---|---|---|

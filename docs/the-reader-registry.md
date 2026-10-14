@@ -84,7 +84,7 @@ Enforced by: tests/test_a_reader_declares_its_input_class.py::test_nothing_besid
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
 **A module body that reads outside every unit declares in its module
 docstring.** Statements outside any `def` or `class` belong to no unit and
-have no ledger spelling, so this is the one place K1 selects: a module whose
+have no `path#unit` spelling, so this is the one place K1 selects: a module whose
 body makes a K1 call declares for the body with the same line, and one whose
 body makes none owes nothing. A module-level read through a call K1 does not
 list is unseen, and it is the whole of what stays quiet in the first rule.
@@ -95,7 +95,7 @@ Enforced by: tests/test_a_reader_declares_its_input_class.py::test_a_module_body
 <!-- specs/1791384152-a-reader-declares-its-input-class -->
 **`tests/undeclared_readers.txt` lists every unit undeclared when the rule
 landed, and a listed unit owes nothing until it changes.** Each line is
-`path#unit@hash`, the ledger's own spelling and hash
+`path#unit@hash`, the coordinate kernel's spelling and hash
 (`evidence_check.py`'s `py_spans` and `content_hash`), so a changed unit is a
 moved hash, and the check says to declare it and remove its line. A line
 naming a unit that is gone, renamed, declared since or outside the population
@@ -149,6 +149,4 @@ tree, 632 of them calling a K1 primitive as K1 stands after its first review
 (621 by the list as framed) and 194 with no docstring; two
 module bodies K1 selects; 1,683 non-test top-level functions inside the test
 modules, out by the file-name rule. Every one of the 1,587 started on the
-census. 943 of them carry 2,392 anchors in the released ledger files and 247
-carry 691 in the live fragments, which is what a docstring line written on
-each would drift. Read at 2fc65bea, the tree every sibling of #835 left.
+census. Read at 2fc65bea, the tree every sibling of #835 left.

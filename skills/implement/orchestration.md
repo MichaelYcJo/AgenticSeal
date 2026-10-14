@@ -563,7 +563,7 @@ repository's code would be wrong if it changed. Where both hold:
   both. The pact's repository needs no row, because it is identified by
   holding `seal/pact.md`;
 - each signer cites the clauses it was built against as pact anchors, in
-  its spec's Grounding and in its ledger rows, and `pact-check`, run at the
+  its spec's Grounding, and `pact-check`, run at the
   pact's repository, reads every signer and says where they disagree.
 
 Where only the first condition holds, the repositories get their
@@ -572,12 +572,11 @@ declarations and nothing else: no pact, and no `Pact` row.
 ### A pact review at the pact's repository
 
 When `pact-check` at the pact's repository reports `NOT TAKEN` from a pact
-change — a row of a signer's `seal/pact-changes/<work-item-id>.md`, which
-that signer's `evidence-check --reverify` wrote when its code moved under a
-clause it cites — open a pact review: an ordinary work item at the pact's
-repository, routed like any other, with this section's routing question asked
-once for it. `docs/the-pact.md` §*A pact review takes a pact change* holds the
-model.
+change — a row of a signer's `seal/pact-changes/<work-item-id>.md`, the
+record of a change to its code under a clause it cites — open a pact review:
+an ordinary work item at the pact's repository, routed like any other, with
+this section's routing question asked once for it. `docs/the-pact.md` §*A
+pact review takes a pact change* holds the model.
 
 **What the build does.** It judges each change against the clause it cites,
 reading the change in the signer's checkout at the paths `pact-check`
