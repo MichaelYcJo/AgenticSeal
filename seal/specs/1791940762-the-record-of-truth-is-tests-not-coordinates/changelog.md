@@ -25,10 +25,13 @@
      moved whole into `docs/the-record-layout.md`.
 
   A repository that still runs `evidence-check` from an earlier release
-  meets a wrapper that is gone; nothing reads a ledger file it keeps.
-  `skills/evidence-check/scripts/evidence_check.py` stays at its path as
-  the coordinate kernel `fold-check`, `pact-check`, `chain-check` and the
-  rider check import, cut from 7,270 lines to 545.
+  meets a wrapper that is gone; nothing reads a ledger file it keeps, and
+  `seal export --check` counts a work item by its `specs/<id>/` directory
+  alone. The coordinate kernel `fold-check`, `pact-check`, `chain-check` and
+  the rider check import, cut from 7,270 lines to 545, moves from
+  `skills/evidence-check/scripts/evidence_check.py` to
+  `skills/verify/scripts/coordinates.py`, and `pact_check.py` moves beside
+  it; `pact-check` is typed as before.
 
   | Deleted | Files | Lines | Bytes | Windows seconds |
   |---|---|---|---|---|
@@ -74,4 +77,7 @@
   ledger rows now send it to the `Enforced by:` lines and the spec's
   Grounding. A record `round-record` refuses for an unclosed comment names
   `unverified-check` among its readers, where it named `evidence-check`.
+  The warden is no longer told an evidence checker scans its committed
+  report, and a bare symbol refused in a file no parser bounds no longer
+  points at `--reverify`.
   (`1791940762-the-record-of-truth-is-tests-not-coordinates`, #944)
