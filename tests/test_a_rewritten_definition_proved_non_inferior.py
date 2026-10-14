@@ -315,8 +315,20 @@ def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
             "text": "| 🟡 1 | new | `x:1` | open | read |\n| ⬜ 2 | n | `x:2` | open | r |",
         }
     ]
+    # The shapes a 2.1.296 trace carries beside a tool call, read off the
+    # baseline's kept traces: a `permission_denied` event whose `message` is
+    # a string, and events with no `message` at all.
+    denied = {
+        "type": "system",
+        "subtype": "permission_denied",
+        "tool_name": "Read",
+        "message": "Permission to use Read has been denied",
+    }
     events = [
+        {"type": "system", "subtype": "init", "cwd": "/w"},
         *cat("a", "| 🟡 1 | old | `x:1` | open | read |"),
+        denied,
+        {"type": "assistant", "message": {"content": "plain text"}},
         *cat("c", last),
         *cat("b", "| 🔴 9 | sub | `x:1` | open | read |", parent="s"),
     ]

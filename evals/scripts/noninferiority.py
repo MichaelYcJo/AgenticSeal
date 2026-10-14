@@ -144,8 +144,10 @@ def report_rows(trace_path):
     """The 🔴/🟡 finding rows of the report the run's session printed with
     `cat <…-report.md>`, the last such print winning.
 
-    A line that is not JSON is skipped, and a run that printed no report
-    gives no rows.
+    Only an event whose `message` is an object with a list `content` holds
+    tool calls; a line that is not a JSON object, a `message` that is a
+    string (a `permission_denied` event's) and a string `content` are
+    skipped. A run that printed no report gives no rows.
 
     Reads: observed — the run's trace, one JSON event per line; unknown passed"""
     commands, last = {}, ""
@@ -155,9 +157,11 @@ def report_rows(trace_path):
                 event = json.loads(line)
             except ValueError:
                 continue
-            if event.get("parent_tool_use_id"):
+            if not isinstance(event, dict) or event.get("parent_tool_use_id"):
                 continue
-            for block in (event.get("message") or {}).get("content") or []:
+            message = event.get("message")
+            content = message.get("content") if isinstance(message, dict) else None
+            for block in content if isinstance(content, list) else []:
                 if not isinstance(block, dict):
                     continue
                 if block.get("type") == "tool_use" and block.get("name") == "Bash":
