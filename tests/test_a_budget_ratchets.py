@@ -1009,7 +1009,7 @@ NO_TIMES = {**job("pytest (macos-latest, 3.12, 15)", 1), "completed_at": None}
             budgets(warden(MEASURED, "one-sided")),
             None,
             None,
-            "only a row read off one CI run is `one-sided`",
+            "only a row read off one CI run or a `report` row is `one-sided`",
         ),
         (
             budgets(("ci-minutes:freebsd", "minutes", 15, "one-sided", "gate")),
@@ -1092,6 +1092,7 @@ def test_the_workflows_run_the_checker_where_the_plan_says():
         '--base-ref "${{ github.base_ref }}"',
         "--pr-body-env PR_BODY",
         "PR_BODY: ${{ github.event.pull_request.body }}",
+        '--trend "$(git describe --tags --abbrev=0 "origin/${{ github.base_ref }}")"',
     ):
         assert part in step, part
     budgets_job = job_block(workflow_code("test.yml"), "budgets")
@@ -1105,3 +1106,130 @@ def test_the_workflows_run_the_checker_where_the_plan_says():
         "budget_check.py --ci-jobs",
     ):
         assert part in budgets_job, part
+
+
+# --- phase 4: the two reports and the trend ---------------------------------
+
+
+def rounds_budget(ceiling=10):
+    return budgets(("rounds-bytes", "bytes", ceiling, "one-sided", "report"))
+
+
+def test_the_largest_round_record_is_reported_and_never_fails(tmp_path, capsys):
+    """`rounds-bytes` is the largest work item's `rounds/` in the tree, each
+    work item's listed largest first, and a report: over its ceiling it says
+    so and fails nothing, because no pull request has a fix for a record the
+    review chain wrote."""
+    root = tree(
+        tmp_path,
+        rounds_budget(),
+        files={
+            "seal/specs/1-a/rounds/round-1.md": "a" * 99 + "\n",
+            "seal/specs/1-a/rounds/round-2.md": "a" * 199 + "\n",
+            "seal/specs/2-b/rounds/round-1.md": "b" * 49 + "\n",
+            "seal/specs/3-c/spec.md": "c" * 999 + "\n",
+        },
+    )
+    assert run(root) == 0
+    out = capsys.readouterr().out
+    assert (
+        "| `rounds-bytes` | 300 bytes | 10 | -290 (-2900.0%) | report | over |" in out
+    )
+    assert "- `1-a`: 300 bytes over 2 files\n- `2-b`: 50 bytes over 1 files\n" in out, (
+        out
+    )
+
+
+def release(version, rows):
+    return {
+        ".claude-plugin/plugin.json": json.dumps({"version": version}),
+        f"seal/releases/{version}.md": f"## {version}\n\n### 1-a\n\n"
+        + "".join(f"| {row} | grounds | read | 2026-10-14 | note |\n" for row in rows),
+    }
+
+
+def test_the_rereads_of_a_release_are_counted_once_each_by_their_first_marker(
+    tmp_path, capsys
+):
+    """`ledger-rereads` counts the release file of the version the manifest
+    names: a row re-reading a correction is a re-read, once, and a row whose
+    cells carry an even run of backslashes before a pipe still counts by its
+    opening (`questions.md` Q4)."""
+    rows = [
+        "Re-read · A1 · a claim",
+        "Corrected · A2 · a claim",
+        "Re-read · Corrected · A3 · a claim",
+        "Corrected · A4 · a cell with `\\\\|` in it",
+        "A5 · a new claim",
+    ]
+    root = tree(
+        tmp_path,
+        budgets(("ledger-rereads", "rows", 4, "one-sided", "report")),
+        files=release("9.9.9", rows),
+    )
+    assert run(root) == 0
+    out = capsys.readouterr().out
+    assert "| `ledger-rereads` | 4 rows | 4 | 0 (0.0%) | report | holds |" in out, out
+    assert (
+        "`seal/releases/9.9.9.md`: 2 `Re-read ·`, 2 `Corrected ·` of 5 rows" in out
+    ), out
+
+
+def test_rereads_before_the_release_folds_its_file_are_unread(tmp_path, capsys):
+    """Until the release folds its ledger file there is nothing to count, so
+    the row is shown unread rather than read as 0, which would look like a
+    release that re-read nothing."""
+    root = tree(
+        tmp_path,
+        budgets(("ledger-rereads", "rows", 4, "one-sided", "report")),
+        files={".claude-plugin/plugin.json": json.dumps({"version": "9.9.9"})},
+    )
+    assert run(root) == 0
+    assert (
+        "| `ledger-rereads` | — (read once the release folds its ledger file) | 4 |"
+        in capsys.readouterr().out
+    )
+
+
+def test_a_trend_sets_each_budget_beside_its_ceiling_at_the_tag(tmp_path, capsys):
+    """`--trend <tag>` prints one line per budget against the tag's file: a
+    ceiling then and now with today's reading, a row new since then, and a
+    row gone since then."""
+    then = budgets(warden(MEASURED), ("preload:scout", "bytes", 500, "2 %", "gate"))
+    now = budgets(warden(1010), ("rounds-bytes", "bytes", 500, "one-sided", "report"))
+    root = tree(tmp_path, now, base=then)
+    git(root, "tag", "v1", "base")
+    assert run(root, "--trend", "v1") == 0
+    out = capsys.readouterr().out
+    assert "Against v1, one line per budget:" in out, out
+    assert (
+        "- `preload:warden`: ceiling 1,000; ceiling 1,010, measured 1,000 bytes" in out
+    ), out
+    assert "- `rounds-bytes`: new since then; ceiling 500, measured 0 bytes" in out, out
+    assert "- `preload:scout`: gone since then" in out, out
+
+
+@pytest.mark.parametrize(
+    "tag, said",
+    [("", "--trend names no tag"), ("v9", "git could not list seal/budgets.md at v9")],
+    ids=["an empty tag", "a tag that names nothing"],
+)
+def test_a_trend_that_names_no_release_is_exit_2(tmp_path, capsys, tag, said):
+    """The hygiene step hands `git describe`'s answer over; a base with no
+    tag hands an empty one, and the run refuses it rather than printing no
+    trend."""
+    root = tree(tmp_path, budgets(warden(MEASURED)), base=budgets(warden(MEASURED)))
+    assert run(root, "--trend", tag) == 2
+    assert said in capsys.readouterr().err
+
+
+def test_a_manifest_with_no_version_is_exit_2(tmp_path, capsys):
+    """The release file is named by the manifest's version; a manifest that
+    states none names no file to count."""
+    root = tree(
+        tmp_path,
+        budgets(("ledger-rereads", "rows", 4, "one-sided", "report")),
+        files={".claude-plugin/plugin.json": "{}"},
+    )
+    assert run(root) == 2
+    assert "plugin.json states no version" in capsys.readouterr().err

@@ -186,6 +186,11 @@ jobs:
       # its own at its own pull request, and still holds every ceiling. A
       # condition in the script is one a case can drive. The body goes
       # through `env:` for the issue-claims step's reason above.
+      #
+      # `--trend` sets each budget beside its ceiling at the last release tag
+      # the base carries, which is the line a release reads to lower a
+      # one-sided ceiling. A base with no tag gives an empty name, and the
+      # script refuses that rather than printing no trend.
       - name: every budget holds its ceiling, and a raised ceiling says why
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
@@ -194,7 +199,8 @@ jobs:
           python3 .github/scripts/budget_check.py \
             --baseline "origin/${{ github.base_ref }}" \
             --base-ref "${{ github.base_ref }}" \
-            --pr-body-env PR_BODY
+            --pr-body-env PR_BODY \
+            --trend "$(git describe --tags --abbrev=0 "origin/${{ github.base_ref }}")"
 
       # The review chain used to be enforced only at the commit, where the
       # gate could not tell "routed to the chain, not reviewed yet" from

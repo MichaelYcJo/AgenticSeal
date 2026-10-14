@@ -29,6 +29,8 @@ checkout on any platform measures the same commit alike. -->
 | ci-minutes:ubuntu | minutes | 15 | one-sided | gate |
 | ci-minutes:windows | minutes | 59 | one-sided | gate |
 | ci-minutes:macos | minutes | 32 | one-sided | gate |
+| rounds-bytes | bytes | 142823 | one-sided | report |
+| ledger-rereads | rows | 230 | one-sided | report |
 
 ## Price level
 

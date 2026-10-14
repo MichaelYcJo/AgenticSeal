@@ -14,6 +14,8 @@ and held to its ceiling from both sides.
   budget_check.py --ci-jobs FILE       the rows read off one CI run, and only
                                        those, from its job list, one JSON
                                        object a line
+  budget_check.py --trend TAG          also set each budget beside its
+                                       ceiling at TAG, one line each
 
 **The band.** A row holds while `measured <= ceiling <= measured x (1 +
 slack)`, or `measured + slack` where the slack is absolute (`+N`). The left
@@ -49,6 +51,16 @@ beside the gates and never fails it.
   docs-history      history lines of one `docs/*.md` file
   ci-minutes:<leg>  minutes of one tests run, summed over the leg's pytest
                     jobs: `ubuntu`, `windows` or `macos`
+  rounds-bytes      bytes of the largest `seal/specs/<id>/rounds/` in the
+                    tree, each work item's listed in the summary
+  ledger-rereads    `Re-read ·` and `Corrected ·` rows of the release file
+                    `.claude-plugin/plugin.json`'s version names, each row
+                    counted once by the marker it opens with; unread until
+                    the release folds that file
+
+The last two are `report` rows: their numbers are the review chain's and
+every work item's together, so no pull request has a fix for them, and a
+`report` row may be `one-sided` for that reason.
 
 A byte is counted with each CRLF read as one LF, which is what git stores
 for these files: a Windows checkout that wrote CRLF measures the commit a
@@ -137,6 +149,7 @@ BUDGETS_GIT = "seal/budgets.md"
 HEADER = ("Budget", "Unit", "Ceiling", "Slack", "Kind")
 KINDS = ("gate", "report")
 GATE = "gate"
+REPORT = "report"
 RELEASE_BRANCH = "main"
 # What the summary says of a raise or a removal the body declares nothing for.
 UNDECLARED = "**not declared** — the pull request body carries no line for it"
@@ -173,6 +186,15 @@ LINUX_MINUTE_USD = 0.008
 # A byte budget counts a CRLF as the LF git stores, so the same commit
 # measures the same on a checkout that converted its line ends.
 NEWLINES = (b"\r\n", b"\n")
+# What a released ledger row's first cell opens with when it reads an older
+# row again, in the order a row carrying both is counted by.
+REREAD_MARKS = ("Re-read · ", "Corrected · ")
+ROW_OPENER = "| "
+# Why a row is shown and not measured on a run, by family.
+UNREAD = {
+    "ci-minutes": "read off each run by the tests workflow's `budgets` job",
+    "ledger-rereads": "read once the release folds its ledger file",
+}
 
 # The modules this reads through, each the one reader of its input: the table
 # walker every `seal/` table is read by (#871), the meter the preload budgets
@@ -286,19 +308,21 @@ def parse_budgets(text, where):
             parsed = parse_slack(slack, unit)
         except ValueError as error:
             raise Unreadable(f"{at}: {name}'s {error}") from None
-        per_run = name.partition(":")[0] in PER_RUN
-        if per_run != (parsed.amount is None):
-            raise Unreadable(
-                f"{at}: {name}'s slack is `{slack}`, and "
-                + (
-                    f"a row read off one CI run is `{ONE_SIDED}`: a run's "
-                    "minutes swing too far for a lower band"
-                    if per_run
-                    else f"only a row read off one CI run is `{ONE_SIDED}`"
-                )
-            )
         if kind not in KINDS:
             raise Unreadable(f"{at}: {name}'s kind `{kind}` is neither gate nor report")
+        per_run = name.partition(":")[0] in PER_RUN
+        one_sided = parsed.amount is None
+        if per_run and not one_sided:
+            raise Unreadable(
+                f"{at}: {name}'s slack is `{slack}`, and a row read off one CI "
+                f"run is `{ONE_SIDED}`: a run's minutes swing too far for a "
+                "lower band"
+            )
+        if one_sided and not per_run and kind != REPORT:
+            raise Unreadable(
+                f"{at}: {name}'s slack is `{slack}`, and only a row read off "
+                f"one CI run or a `{REPORT}` row is `{ONE_SIDED}`"
+            )
         out.append(Row(line, name, unit, int(ceiling), parsed, kind))
     families = {row.name: row for row in out}
     for family, (title, header, _unit) in FILE_TABLES.items():
@@ -621,11 +645,79 @@ def file_values(root, family, cache):
     return cache[family]
 
 
+def measure_rounds(root, _subject, cache):
+    """The largest `seal/specs/<id>/rounds/` in the tree, in bytes counted as
+    `lf_bytes` counts them, with every work item's total and file count kept
+    in `cache["rounds"]` for the summary.
+
+    Reads: observed — the round records on disk, as bytes; unknown passed"""
+    specs = os.path.join(root, "seal", "specs")
+    items = {}
+    for item in sorted(os.listdir(specs)) if os.path.isdir(specs) else []:
+        rounds = os.path.join(specs, item, "rounds")
+        if not os.path.isdir(rounds):
+            continue
+        files = [
+            os.path.join(rounds, name)
+            for name in sorted(os.listdir(rounds))
+            if os.path.isfile(os.path.join(rounds, name))
+        ]
+        items[item] = (sum(lf_bytes(path) for path in files), len(files))
+    cache["rounds"] = items
+    return max((size for size, _ in items.values()), default=0)
+
+
+def release_file(root):
+    """`(version, path)` of the release file `.claude-plugin/plugin.json`'s
+    version names, `seal/releases/<version>.md`, or Unreadable.
+
+    Reads: observed — the version a JSON file states; unknown refused"""
+    manifest = os.path.join(root, ".claude-plugin", "plugin.json")
+    try:
+        with open(manifest, encoding="utf-8") as handle:
+            version = json.load(handle)["version"]
+    except (OSError, ValueError, KeyError, TypeError):
+        raise Unreadable(
+            "ledger-rereads: .claude-plugin/plugin.json states no version, so "
+            "no release file is named"
+        ) from None
+    return version, os.path.join(root, "seal", "releases", f"{version}.md")
+
+
+def measure_rereads(root, _subject, cache):
+    """`Re-read ·` and `Corrected ·` rows of the release file of this
+    version, each row counted once, by the marker its first cell opens with;
+    None where the release has not folded its file yet. The split goes to
+    `cache["rereads"]`.
+
+    A row is a line the fold wrote opening with `| `, and its marker is what
+    follows that: the fold's own spelling, read as written. A cell reader is
+    not asked, because a row whose cells carry an even run of backslashes
+    before a pipe is one `hooks/config.py#table_cells` declines to split, and
+    its first cell still opens with its marker.
+
+    Reads: owned — the rows the ledger's fold writes, by their opening; unknown passed"""
+    version, path = release_file(root)
+    if not os.path.isfile(path):
+        return None
+    with open(path, encoding="utf-8", errors="replace") as handle:
+        lines = sibling("unverified_check").gfm_lines(handle.read())
+    rows = [line[2:] for line in lines if line.startswith(ROW_OPENER)]
+    marks = [next((m for m in REREAD_MARKS if row.startswith(m)), None) for row in rows]
+    split = {mark: marks.count(mark) for mark in REREAD_MARKS}
+    cache["rereads"] = (version, split, len(rows))
+    return sum(split.values())
+
+
 # A budget's name is `<family>` or `<family>:<subject>`; the family picks the
-# measurer, the unit the row must state, and whether a subject is named.
+# measurer, the unit the row must state, and whether a subject is named. A
+# family another work item adds is one more entry here and, where it is read
+# per file, one more `FILE_TABLES` entry.
 MEASURERS = {
     "preload": (measure_preload, "bytes", True),
     "suite-seconds": (measure_suite, "seconds", False),
+    "rounds-bytes": (measure_rounds, "bytes", False),
+    "ledger-rereads": (measure_rereads, "rows", False),
 }
 
 
@@ -839,9 +931,10 @@ def render(results, moves, against, cache=None):
     for result in results:
         row = result.row
         if result.measured is None:
+            why = UNREAD[row.name.partition(":")[0]]
             lines.append(
-                f"| `{row.name}` | — (read off each run by the tests workflow's "
-                f"`budgets` job) | {row.ceiling:,} | — | {row.kind} | not this run |"
+                f"| `{row.name}` | — ({why}) | {row.ceiling:,} | — | {row.kind} "
+                "| not this run |"
             )
             continue
         room = round(row.ceiling - result.measured, 1)
@@ -859,6 +952,35 @@ def render(results, moves, against, cache=None):
         lines += [f"- `{name}` {what}: {reason}" for name, what, reason in moves]
     if cache.get("legs"):
         lines += ["", billable(cache["legs"])]
+    if cache.get("rounds"):
+        lines += ["", "Round records per work item, the largest first:", ""]
+        lines += [
+            f"- `{item}`: {size:,} bytes over {count} files"
+            for item, (size, count) in sorted(
+                cache["rounds"].items(), key=lambda pair: (-pair[1][0], pair[0])
+            )
+        ]
+    if cache.get("rereads"):
+        version, split, total = cache["rereads"]
+        counted = ", ".join(f"{n} `{mark.strip()}`" for mark, n in split.items())
+        lines += [
+            "",
+            f"`seal/releases/{version}.md`: {counted} of {total} rows, each row "
+            "counted once, by the marker its first cell opens with.",
+        ]
+    if cache.get("trend"):
+        tag, then = cache["trend"]
+        lines += ["", f"Against {tag}, one line per budget:", ""]
+        for result in results:
+            row = result.row
+            before = then.get(row.name)
+            now = "unread" if result.measured is None else f"{result.measured:,}"
+            was = "new since then" if before is None else f"ceiling {before.ceiling:,}"
+            lines.append(
+                f"- `{row.name}`: {was}; ceiling {row.ceiling:,}, measured {now} {row.unit}"
+            )
+        gone = sorted(set(then) - {result.row.name for result in results})
+        lines += [f"- `{name}`: gone since then" for name in gone]
     if docs:
         history = sum(len(h) for h, _ in docs.values())
         rule = sum(r for _, r in docs.values())
@@ -890,9 +1012,22 @@ def write_summary(text, env):
         sys.stdout.write(text)
 
 
-def check(root, baseline=None, body="", release=False, ci_jobs=None):
+def trend_rows(root, tag):
+    """`{name: Row}` of `seal/budgets.md` at `tag`, none where the file was
+    not there yet, or Unreadable where the tag names nothing.
+
+    Reads: guess — the file a person edits, as git holds it at a tag, through `blob_at` and `parse_budgets`; unknown refused"""
+    if not tag:
+        raise Unreadable("--trend names no tag, so nothing was compared with a release")
+    text = blob_at(root, tag, BUDGETS_GIT, tag)
+    rows = [] if text is None else parse_budgets(text, f"{BUDGETS_GIT} at {tag}")
+    return {row.name: row for row in rows}
+
+
+def check(root, baseline=None, body="", release=False, ci_jobs=None, trend=None):
     """`(problems, refusals, summary)` for the tree at `root`, or, with
-    `ci_jobs`, for the rows read off that one run, and only those.
+    `ci_jobs`, for the rows read off that one run, and only those. With
+    `trend`, the summary sets every budget beside its ceiling at that tag.
 
     Reads: guess — `seal/budgets.md` and the body its caller handed it, through the units above; unknown refused"""
     head_text = budgets_text_here(root)
@@ -909,6 +1044,8 @@ def check(root, baseline=None, body="", release=False, ci_jobs=None):
                 f"--ci-jobs was given and {BUDGETS_GIT} has no row read off a "
                 "run, so this run read a job list for nothing"
             )
+    if trend is not None:
+        cache["trend"] = (trend, trend_rows(root, trend))
     moves, against, base_rows, priced = [], "no baseline", None, []
     if baseline is not None:
         base, against = base_of(root, baseline)
@@ -975,7 +1112,8 @@ def measured_row(root, row, names, cache):
     if family in PER_RUN:
         return run_row(row, subject, cache.get("legs"))
     if family not in FILE_TABLES:
-        return band(row, measure(root, row, cache))
+        value = measure(root, row, cache)
+        return Result(row, None, None, []) if value is None else band(row, value)
     unit = FILE_TABLES[family][2]
     if row.unit != unit:
         raise Unreadable(
@@ -1101,6 +1239,7 @@ def main(argv=None, env=None):
     parser.add_argument("--pr-body-env", metavar="VAR")
     parser.add_argument("--base-ref", metavar="BRANCH", default="")
     parser.add_argument("--ci-jobs", metavar="FILE")
+    parser.add_argument("--trend", metavar="TAG")
     args = parser.parse_args(argv)
     try:
         body = ""
@@ -1117,6 +1256,7 @@ def main(argv=None, env=None):
             body=body,
             release=args.base_ref == RELEASE_BRANCH,
             ci_jobs=args.ci_jobs,
+            trend=args.trend,
         )
     except Unreadable as error:
         sys.stderr.write(f"budget-check: {error}. Nothing was compared.\n")
