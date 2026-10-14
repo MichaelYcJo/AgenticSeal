@@ -82,13 +82,12 @@ SEPARATOR = re.compile(r"^:?-+:?$")
 # released work item's directory is removed by `settle` once its SDD set has
 # been folded into `docs/`, and the fold's record is the provenance comment
 # the folded prose carries there — the same marker
-# `.github/scripts/fold_ledger.py#marker` and
-# `.github/scripts/gather_changelog.py#marker` write. A record derived from
+# `.github/scripts/gather_changelog.py#marker` writes. A record derived from
 # the destination cannot disagree with the destination, which is why there is
 # no second file for this to read.
 #
-# Line-anchored, for the reason `fold_ledger.py#is_marked` already pays for:
-# every document that describes the convention quotes the marker's shape
+# Line-anchored, because every document that describes the convention quotes
+# the marker's shape
 # inline, and a substring test would read that prose as a fold and excuse a
 # removal nothing absorbed.
 #
@@ -198,9 +197,9 @@ def gfm_lines(text, keepends=False):
     text holding none of the eight the two splits agree, including `""`, a
     trailing newline and a final line with none.
 
-    `skills/evidence-check/scripts/evidence_check.py#gfm_lines` is the
-    vendored copy a checker run alone in a user's `tools/` needs, and
-    `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds the copies
+    `skills/evidence-check/scripts/evidence_check.py#gfm_lines` asks this
+    one, `hooks/blocks.py#gfm_lines` is the copy a hook keeps, and
+    `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds them
     equal.
 
     Reads: guess — a person's markdown text its caller hands it; unknown passed"""
@@ -295,19 +294,12 @@ def fence_opener(line):
     **The readers that ask it.** In this module: `fence_spans` and, through
     it, `blank_fences` and `closed_fence_lines`; `_liveness` and
     `_paragraph_ends_at`; and `todo_open_rows` through `closed_fence_lines`,
-    which `settle.py#open_rows` and `.github/scripts/fold_ledger.py#open_rows`
-    both are. The checker:
+    which `settle.py#open_rows` is. The coordinate kernel:
     `skills/evidence-check/scripts/evidence_check.py#quoted_lines`, which its
-    four ledger walks read through, and `#claim_lines`, the records arm's
-    walk, both by way of its `fence_rule`; and `hooks/root-migrate.py#repoint`
-    through `evidence_check.py#unquoted`. The readers #584 brought here:
-    `.github/scripts/fold_ledger.py#fenced_lines` through `fence_spans`,
-    which `#demote`, `#version_headings`, `#section_heading` and `#insert`
-    read through, and its `#live_markers` through `live_lines`;
-    `.github/scripts/gather_changelog.py#live_markers` through `live_lines`,
-    which `#ungathered` and `--check`'s count read through;
-    `skills/evidence-check/scripts/correction_check.py#rows` through
-    `closed_fence_lines`; and `skills/verify/scripts/payload_meter.py#heading_starts`
+    `unquoted` and `markdown_lines` read through. The readers #584 brought
+    here: `.github/scripts/gather_changelog.py#live_markers` through
+    `live_lines`, which `#ungathered` and `--check`'s count read through;
+    and `skills/verify/scripts/payload_meter.py#heading_starts`
     and `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py#headings`,
     which ask the two functions directly.
 
@@ -397,7 +389,7 @@ def fence_spans(lines):
     included, with `last` None for a block that is never closed.
 
     The walk for a reader with no comment or code-span state of its own. A
-    reader that has either — `_liveness`, `claim_lines` — walks with
+    reader that has either — `_liveness` — walks with
     `fence_opener` and `fence_closes` directly, because whether a line can
     open a fence at all depends on the state it began in.
 
@@ -717,9 +709,9 @@ def live_lines(lines):
     `fence_closes`, because two spellings of it is what #491 found: the
     three-space bound had landed here and not one function over. They share
     the line split too: `readable` and every caller that hands this lines
-    split the text with `gfm_lines` (#664), except the `fold_ledger.py` and
-    `settle.py` callers, which split newline-translated text on `"\\n"` for a
-    byte-for-byte round trip and end a line where GFM does already.
+    split the text with `gfm_lines` (#664), except the `settle.py` caller,
+    which splits newline-translated text on `"\\n"` for a byte-for-byte round
+    trip and ends a line where GFM does already.
 
     No `zip`. Ruff's B905 requires the strictness keyword on every such call,
     that keyword arrived in python 3.10, and this script carries no
@@ -1357,9 +1349,7 @@ def todo_open_rows(text):
     file — the silent direction for a guard.
 
     **It is the one spelling there is.** `skills/settle/scripts/settle.py#open_rows`
-    asks this function for a `tests-todo.md`, and so does
-    `.github/scripts/fold_ledger.py#open_rows`, which loads this module by
-    path (#487).
+    asks this function for a `tests-todo.md` (#487).
 
     Reads: guess — a todo file's text its caller hands it; unknown passed"""
     lines = text.split("\n")

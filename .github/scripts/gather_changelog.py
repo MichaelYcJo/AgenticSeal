@@ -98,13 +98,13 @@ RELEASES = "changelog"
 # draft beside them is not read as a release.
 RELEASE_FILE_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)\.md$")
 # Markers on a line of their own, which is how `section()` writes them. The
-# line anchor is what `fold_ledger.py#is_marked` already pays for: this file's
-# own entries describe the convention, so a bare substring count reads the
-# description as a gathered work item.
+# line anchor matters because this file's own entries describe the
+# convention, so a bare substring count reads the description as a gathered
+# work item.
 MARKER_LINE_RE = re.compile(r"^<!-- specs/\S+ -->$", re.M)
 
-# The live-line rule is the shipped one, loaded by path the way
-# `fold_ledger.py#load_reader` loads it (#487, #584). A reader that is moved
+# The live-line rule is the shipped one, loaded by path (#487, #584). A
+# reader that is moved
 # or renamed stops the gather at load with a traceback, at the release, which
 # is the loud direction.
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")

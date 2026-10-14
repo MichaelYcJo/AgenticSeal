@@ -266,14 +266,6 @@ def open_rows(text):
     The rule is `unverified_check.py#todo_open_rows`, and its docstring says
     how a person applies it by hand.
 
-    **`.github/scripts/fold_ledger.py#open_rows` is the same function**,
-    loaded by path from the shipped reader (#487). The direction that is
-    closed is the other one: that script is this repository's own release
-    automation, not on the list of what the plugin ships
-    (`tests/test_the_release_check_watches_what_ships.py#SHIPS`), so a shipped
-    command may not depend on IT — a user's repository has the ledger fold
-    nowhere. The guard travels with the command that enforces it.
-
     Reads: guess — a todo file's text its caller hands it, through `unverified_check.py#todo_open_rows`; unknown passed"""
     return load(READER, "specseal_unverified_reader").todo_open_rows(text)
 
@@ -1042,8 +1034,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     root = os.path.abspath(args.root or os.getcwd())
-    # The root is resolved through the one resolver, `hooks/optin.py#home_at`,
-    # the way `evidence_check.py#seal_home` reaches it from the same depth.
+    # The root is resolved through the one resolver, `hooks/optin.py#home_at`.
     # Before this, `under(root, SPECS)` was the only place looked at, so a
     # local-mode repository holding ninety-eight work items was told it had
     # none — and the sentence written for local mode, in the `--released-at`

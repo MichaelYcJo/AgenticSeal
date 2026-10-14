@@ -1,21 +1,17 @@
 """`pact-check` reads a signer's pact changes, and a pact review takes them (#647, D).
 
-A signer's re-read records a pact change in
-`seal/pact-changes/<work-item-id>.md` (`tests/test_a_signer_records_a_
-pact_change.py`). At the pact's repository `pact-check` reads every such
-record, following the signer's `Pact notify` as read now, and reports a row
-citing a clause of this pact as `NOT TAKEN` until a row of a pact review,
+A signer's pact changes are rows of `seal/pact-changes/<work-item-id>.md`.
+At the pact's repository `pact-check` reads every such record, following
+the signer's `Pact notify` as read now, and reports a row citing a clause of
+this pact as `NOT TAKEN` until a row of a pact review,
 `seal/pact-reviews/<work-item-id>.md`, names the signer and the record at
 its current content hash. S12-S17 of the work item's `spec.md`.
 
-The two repositories are `test_pact_check.py`'s `world`; each record here is
-written by the signer's own `evidence-check --reverify`, so the format read
-is the format written.
+The two repositories are `test_pact_check.py`'s `world`. Each record here is
+written in the shape the ledger's re-read wrote it through 0.21.1; that
+writer left with the ledger (#944), and the records it wrote are
+what this reader still reads.
 """
-
-import os
-import subprocess
-import sys
 
 import pytest
 from test_pact_check import (
@@ -34,10 +30,6 @@ from test_pact_check import (
     write,
 )
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-EVIDENCE = os.path.join(
-    ROOT, "skills", "evidence-check", "scripts", "evidence_check.py"
-)
 ITEM = "1791020000-a-field-is-added"
 SOURCE = "def serialize(order):\n    return {'id': order.id}\n"
 
@@ -50,38 +42,27 @@ def unit_hash(repo):
 
 
 def record(world, cites=V2, label="O1", step=1):
-    """Have the signer's re-read record one pact change, citing the clause
-    at CITES' hash (None: no clause), and return (the anchor, the record's
-    content hash)."""
+    """Append one pact change to the signer's record, citing the clause at
+    CITES' hash (None: no clause), in the shape the ledger's re-read wrote,
+    and return (the anchor, the record's content hash)."""
     web = world["web"]
     write(web, "src/orders.py", SOURCE.replace("order.id", f"order.id + {step - 1}"))
     old = unit_hash(web)
-    anchor = f"pact:orders-api/{LOCATOR}@{clause(cites)}" if cites else None
-    grounds = (f"`{anchor}`, " if anchor else "") + f"`src/orders.py#serialize@{old}`"
-    write(
-        web,
-        f"seal/ledger/{ITEM}.md",
-        f"| {label} · the field list | {grounds} | read | 2026-09-01 | |\n",
-    )
     write(web, "src/orders.py", SOURCE.replace("order.id", f"order.id + {step}"))
-    done = subprocess.run(
-        [
-            sys.executable,
-            EVIDENCE,
-            "--reverify",
-            "--into",
-            f"seal/ledger/{ITEM}.md",
-            "--checked",
-            "2026-09-04",
-            str(web),
-        ],
-        cwd=str(web),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
+    new = unit_hash(web)
+    anchor = f"pact:orders-api/{LOCATOR}@{clause(cites)}" if cites else None
+    path = web / "seal" / "pact-changes" / f"{ITEM}.md"
+    text = (
+        path.read_text(encoding="utf-8")
+        if path.exists()
+        else f"# Pact changes — {ITEM}\n\n<!-- {ITEM}'s pact changes. -->\n\n"
+        "| Clause | Row | Code | Checked |\n|---|---|---|---|\n"
     )
-    assert "recorded" in done.stdout, done.stdout + done.stderr
-    text = (web / "seal" / "pact-changes" / f"{ITEM}.md").read_text(encoding="utf-8")
+    text += (
+        f"| {anchor or '—'} | seal/ledger/{ITEM}.md · {label} | "
+        f"`src/orders.py#serialize@{old}` → `@{new}` | 2026-09-04 |\n"
+    )
+    write(web, RECORD, text)
     return anchor, checker.content_hash(checker.gfm_lines(text))
 
 

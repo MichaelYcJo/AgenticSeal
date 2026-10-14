@@ -378,9 +378,8 @@ opts a repository in. The old pair opts nothing in any more, so until it is
 moved every gate is silent there.
 
 The move happens once, at the first session start after updating. The hook
-renames every file with a staged `git mv` (history follows), re-points the
-ledger rows that cite a moved file with their hashes untouched, prints one
-line saying what moved, and stops there: you review `git diff --cached` and
+renames every file with a staged `git mv` (history follows), prints one line
+saying what moved, and stops there: you review `git diff --cached` and
 commit. That commit belongs to no work item, so inside a session the commit
 gate asks; waive it for that one command with
 `: '[no-review]'; git commit -m "specseal: the root move"`, and put `[no-parity]` in
@@ -391,7 +390,7 @@ Only the plugin's own work items move out of `specs/`: a directory named
 `rounds/`, directly under it. Every 0.3.x work item carried `routing.md`.
 Anything else under `specs/` is the project's own, whatever its name — a
 team's specifications are read and never taken — so it stays where it is,
-the rows that cite it keep their paths, and the line names it as left. A
+and the line names it as left. A
 repository holding nothing of the plugin's old layout — neither its old root
 nor such an entry — hears nothing at all.
 
@@ -404,13 +403,10 @@ To move by hand instead — in CI, or without waiting for a session:
 
 ```bash
 mkdir -p seal/specs
-git mv .specseal/map.md seal/ledger.md
-git mv .specseal/map seal/ledger             # if it exists
 git mv .specseal/README.md seal/README.md    # then overwrite it from templates/seal-README.md
-git mv .specseal/follow-up.md seal/          # and parity.md, and anything else in there
+git mv .specseal/* seal/                     # follow-up.md, parity.md and anything else in there
 git mv specs/<id> seal/specs/<id>            # each work item
 rmdir .specseal specs                        # git mv leaves them empty on disk; one holding something else stays
-evidence-check --reverify .                  # re-points each row citing a moved file
 ```
 
 ## First run

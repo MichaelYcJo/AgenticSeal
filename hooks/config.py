@@ -434,19 +434,20 @@ def config_text(home):
     caller does with that is its own kind's call, and every caller asks this
     reader rather than opening the file a second time to find out:
 
-      - a hook that may not stop -- `hooks/mode-gate.py`,
-        `hooks/evidence-advisor.py` -- reads a refusal as nothing it can act
-        on and says nothing, because a gate that refuses wrongly is an outage
-        nobody can get past (`CONTRIBUTING.md` §*What a change to a gate must
-        carry*);
+      - a hook that may not stop -- `hooks/mode-gate.py` -- reads a refusal
+        as nothing it can act on and says nothing, because a gate that
+        refuses wrongly is an outage nobody can get past (`CONTRIBUTING.md`
+        §*What a change to a gate must carry*);
       - a command a person runs prints the sentence and exits 2 with nothing
-        judged, the shape a non-numeric `Ledger frozen from` already takes
-        (`templates/config.md` §*The ledger freeze*), because a command that
-        reads a written row as absent turns the freeze off on a decode error.
+        judged, because a command that reads a written row as absent acts as
+        if the person had written none.
 
     HOME is the seal root; a falsy one is no file. A name that `lexists` but
     will not open -- a symbolic link to nowhere -- is the second state: the
-    name is there."""
+    name is there.
+
+    Reads: observed — the bytes of `<home>/config.md`, decoded as UTF-8; unknown refused
+    """
     if not home:
         return None, None
     path = config_path(home)
@@ -736,9 +737,9 @@ PACT_ROW = "Pact"
 PACT_NOTIFY_ROW = "Pact notify"
 # The separator `Over the ceiling` already uses between its entries.
 PACT_SEPARATOR = ";"
-# What a signer asks to be told about a change to the pact: which of its
-# re-reads `evidence-check --reverify` records as pact changes, and which of
-# those `pact-check` reads (#647, steps C and D; `docs/the-pact.md`).
+# What a signer asks to be told about a change to the pact: which rows of its
+# records of pact changes `pact-check` reads (#647, step D;
+# `docs/the-pact.md`).
 NOTIFY_ALWAYS = "always"
 NOTIFY_TOUCHED = "when the pact is touched"
 NOTIFY_NEVER = "never"
@@ -756,16 +757,12 @@ PACT_NAME_RE = re.compile(r"[A-Za-z0-9_.-]+")
 # what reads emphasis, a code span, a character reference, a format
 # character or a pipe inside the word as nothing, without parsing any of
 # them; the look-behind is what keeps `impact` and `compact` silent.
-# `evidence_check.py#PACT_WORD` is its copy, held equal by
-# `tests/test_a_signer_declares_its_pact.py`.
 PACT_WORD = re.compile(r"(?<![^\W\d_])p[\W\d_]*a[\W\d_]*c[\W\d_]*t", re.I)
 # An HTML table cell's opening tag, `<td` or `<th`, any case. GFM passes raw
 # HTML through and a renderer shows such a cell, which carries a value with
 # no `|` beside it, so in a file holding one every line naming a pact is read
 # without the pipe condition (round 1 of PR #793, yellow 2). A token, not a
 # grammar: it fails closed, refusing more where it is wrong.
-# `evidence_check.py#HTML_CELL` is its copy, held equal by
-# `tests/test_a_signer_declares_its_pact.py`.
 HTML_CELL = re.compile(r"<t[dh][\s/>]", re.I)
 # A line GFM may read as the delimiter row under a table's header, wider than
 # `DELIMITER_ROW` on purpose and fail-closed: block-quote markers and any
@@ -774,9 +771,8 @@ HTML_CELL = re.compile(r"<t[dh][\s/>]", re.I)
 # dashes alone is a setext underline or a thematic break and is left out.
 # The line directly above one is a header, whose cells carry the values
 # below them, so it is read whole and needs no `|` (round 3 of PR #793).
-# `evidence_check.py#UNDER_A_HEADER` is its copy, held equal by
-# `tests/test_a_signer_declares_its_pact.py`, which holds both readers to
-# every table cmark-gfm renders over a constructed delimiter row.
+# `tests/test_a_signer_declares_its_pact.py` holds the reader to every table
+# cmark-gfm renders over a constructed delimiter row.
 UNDER_A_HEADER = re.compile(
     r"^(?![ \t>]*-+[ \t]*$)[\s>]*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$"
 )
@@ -799,10 +795,11 @@ def names_a_pact(text, piped=True):
     line an empty second cell (Q2 of the work item). So a signer may name
     its pact in prose or a comment of its own `config.md` and is not refused.
 
-    `evidence_check.py#names_a_pact` is its copy, held equal by
-    `tests/test_a_signer_declares_its_pact.py`. The two imports are here
-    rather than at the top because a `PreToolUse` hook loads this module and
-    never reads a pact."""
+    The two imports are here rather than at the top because a `PreToolUse`
+    hook loads this module and never reads a pact.
+
+    Reads: guess — a line of a person's `seal/config.md`, as written and decoded; unknown refused
+    """
     import html
     import unicodedata
 
@@ -1576,11 +1573,11 @@ def pact_signers(text):
 
 # --- the record of pact changes a signer keeps (#647, step C) ---------------
 #
-# `seal/pact-changes/<work-item-id>.md` in a signer: one row per ledger row
-# whose code moved under a pact clause it cites, written by
-# `evidence-check --reverify` and read by `pact-check` at the pact's
-# repository. Permanent, one file per work item, never folded, never edited
-# by hand (`docs/the-pact.md`).
+# `seal/pact-changes/<work-item-id>.md` in a signer: one row per change of
+# code under a pact clause it cites, read by `pact-check` at the pact's
+# repository. Permanent, one file per work item, never folded
+# (`docs/the-pact.md`). Its writer was the ledger's re-read, which left the
+# plugin with #944.
 PACT_CHANGES = "pact-changes"
 PACT_CHANGE_HEADER = ("Clause", "Row", "Code", "Checked")
 # The `Clause` cell of a row recorded under `always` that cites no clause.

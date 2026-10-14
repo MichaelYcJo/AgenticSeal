@@ -32,7 +32,7 @@ commit alike. -->
 | preload:smith | bytes | 101344 | 2 % | gate |
 | preload:warden | bytes | 102229 | 2 % | gate |
 | preload:claude-md | bytes | 9126 | 2 % | gate |
-| suite-seconds | seconds | 10221 | one-sided | gate |
+| suite-seconds | seconds | 9185 | one-sided | gate |
 | slow-file | seconds | 120 | one-sided | gate |
 | docs-history | lines | 0 | +0 lines | gate |
 | ci-minutes:ubuntu | minutes | 15 | one-sided | gate |
@@ -57,8 +57,6 @@ commit alike. -->
 | tests/test_the_fixes_close_the_record.py | 627 |
 | tests/test_chain_check_at_the_pull_request.py | 488 |
 | tests/test_a_fix_of_a_fix_is_counted.py | 431 |
-| tests/test_a_corrected_sentence_survives_elsewhere.py | 381 |
-| tests/test_a_released_row_is_read_again_in_a_fragment.py | 283 |
 | tests/test_the_record_is_generated.py | 245 |
 | tests/test_no_shape_the_base_stops_reads_silent.py | 241 |
 | tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py | 224 |

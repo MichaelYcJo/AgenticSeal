@@ -62,9 +62,9 @@ Enforced by: tests/test_a_signer_declares_its_pact.py::test_the_routing_step_min
 **The routing question is asked once, the work-item id is minted once, and
 a declaration goes into every repository the work item commits in that
 already has a `seal/` root, and into no other.** The id names the directory
-in every repository, so each share's ledger fragment, changelog fragment and
-fold marker are keyed alike, and a directory named differently in each would
-have to be renamed later, moving all three. A repository with no root is
+in every repository, so each share's changelog fragment and fold marker are
+keyed alike, and a directory named differently in each would have to be
+renamed later, moving both. A repository with no root is
 named in the handback and left alone, because writing into it would create
 its root, which is the bootstrap's decision and the person's. Nothing checks
 that every share carries one id: an id minted twice cannot be told from a
@@ -83,14 +83,13 @@ remote URL of the pact's repository, several separated by `;`, compared
 normalised; its last path segment is the name an anchor carries, so two
 pacts ending in one segment are refused. `Pact notify` is `always`,
 `when the pact is touched` or `never`, `when the pact is touched` where it
-is absent. The value decides which of the signer's re-reads leave a
-record of a pact change (§*A signer records a pact change*) and which of
-those `pact-check` reads. `hooks/config.py#pact_declaration` refuses
+is absent. The value decides which rows of the signer's records of pact
+changes `pact-check` reads. `hooks/config.py#pact_declaration` refuses
 what will not parse in a sentence and stops nothing, so the print at a
 signer's pull request and the refusal at the pact's repository are about
 the same rows. A `Pact notify` value outside the vocabulary, or a row
 written twice, has no value at all: its first row is not the answer.
-Enforced by: tests/test_a_signer_declares_its_pact.py::test_one_pact_reads_normalised_with_the_default_notify, tests/test_a_signer_declares_its_pact.py::test_a_notify_value_outside_the_vocabulary_is_refused_naming_all_three, tests/test_a_signer_declares_its_pact.py::test_a_notify_row_written_twice_has_no_value, tests/test_a_signer_declares_its_pact.py::test_a_row_that_will_not_parse_is_refused_and_never_read_as_absent, tests/test_a_signer_records_a_pact_change.py::test_s10_notify_decides_what_is_recorded
+Enforced by: tests/test_a_signer_declares_its_pact.py::test_one_pact_reads_normalised_with_the_default_notify, tests/test_a_signer_declares_its_pact.py::test_a_notify_value_outside_the_vocabulary_is_refused_naming_all_three, tests/test_a_signer_declares_its_pact.py::test_a_notify_row_written_twice_has_no_value, tests/test_a_signer_declares_its_pact.py::test_a_row_that_will_not_parse_is_refused_and_never_read_as_absent
 
 <!-- specs/1791128260-a-pact-row-is-read-in-one-plain-spelling -->
 **A pact row is read in one spelling, and every other line of `seal/config.md`
@@ -115,26 +114,19 @@ file that holds an HTML table cell's tag, `<td>` or `<th>`, anywhere, a code
 span, a fence or a comment included, a line naming a pact is refused with or
 without a `|`, because such a cell carries a value with no pipe beside it; take
 the tag out to name the pact in prose again. A refusal leaves `Pact notify`
-with no value, so `evidence-check --reverify` leaves every moved row it cannot
-rule out, `pact-check` exits 2, and a signer's CI prints a notice.
-Enforced by: tests/test_a_signer_declares_its_pact.py::test_s2_every_way_the_walk_passes_a_pact_row_by_is_refused, tests/test_a_signer_declares_its_pact.py::test_s2_a_pact_item_spelled_another_way_is_refused, tests/test_a_signer_declares_its_pact.py::test_s4_a_line_that_is_not_a_pact_row_in_another_spelling_is_silent, tests/test_a_signer_declares_its_pact.py::test_s5_a_plain_row_in_a_fence_or_a_comment_is_refused_and_not_read, tests/test_a_signer_records_a_pact_change.py::test_s6_a_pact_line_below_the_table_leaves_the_moved_row
+with no value, so `pact-check` exits 2 and a signer's CI prints a notice.
+Enforced by: tests/test_a_signer_declares_its_pact.py::test_s2_every_way_the_walk_passes_a_pact_row_by_is_refused, tests/test_a_signer_declares_its_pact.py::test_s2_a_pact_item_spelled_another_way_is_refused, tests/test_a_signer_declares_its_pact.py::test_s4_a_line_that_is_not_a_pact_row_in_another_spelling_is_silent, tests/test_a_signer_declares_its_pact.py::test_s5_a_plain_row_in_a_fence_or_a_comment_is_refused_and_not_read
 
 ## The pact anchor
 
 <!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
-**A signer cites a clause as `pact:<name>/"<heading path>"@<hash>`, and
-its own evidence check reads past it.** Every `##` heading of
-`seal/pact.md` below its `| Signer |` table is a clause, and a `###`
-narrows inside one. The hash is the content hash `evidence-check` gives the
-clause's region, the value a local coordinate to that heading carries. A
-signer writes the anchor in a spec's Grounding, recording what the work
-was built against, and in a ledger row's `Clause` cell beside its own code
-coordinate, which is the link that outlives `settle`. No coordinate pattern
-of the signer's checker matches inside the anchor, and the readers that
-blank coordinates before reading a line another way blank pact anchors
-first, so a version in a clause heading is never an old-format coordinate
-there.
-Enforced by: tests/test_a_pact_anchor_is_no_coordinate_of_the_signer.py::test_no_coordinate_pattern_matches_inside_a_pact_anchor, tests/test_a_pact_anchor_is_no_coordinate_of_the_signer.py::test_a_pact_anchor_in_the_clause_cell_leaves_the_local_coordinate_alone, tests/test_a_pact_anchor_is_no_coordinate_of_the_signer.py::test_migrate_leaves_a_pact_anchor_alone
+**A signer cites a clause as `pact:<name>/"<heading path>"@<hash>`.** Every
+`##` heading of `seal/pact.md` below its `| Signer |` table is a clause, and
+a `###` narrows inside one. The hash is the content hash
+`evidence_check.py#content_hash` gives the clause's region, the value a
+local coordinate to that heading carries. A signer writes the anchor in a
+spec's Grounding, recording what the work was built against.
+Enforced by: tests/test_pact_check.py::test_s12_a_signer_citing_the_current_clause_is_clean, tests/test_a_unit_is_bounded_where_a_parser_decides.py::test_a_word_ending_in_pact_is_not_a_pact_anchor
 
 <!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
 **A token begins a pact anchor where `pact:<name>` is followed at once by
@@ -153,94 +145,6 @@ refused, and the refusal names both ways out: quote the heading path and
 give it a hash, or, where the text shows the shape rather than citing a
 clause, put it in a fenced code block, which nothing reads.
 Enforced by: tests/test_pact_check.py::test_an_anchor_missing_its_slash_is_refused, tests/test_pact_check.py::test_a_mark_the_name_holds_is_not_a_second_name, tests/test_pact_check.py::test_the_refusal_names_both_remedies, tests/test_pact_check.py::test_prose_naming_the_pact_is_not_a_citation, tests/test_pact_check.py::test_a_pact_anchor_that_does_not_parse_is_refused
-
-## A signer records a pact change
-
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**When a signer's `evidence-check --reverify` moves the hash of a ledger
-row that cites a clause of a pact its `Pact` row declares, finds the code
-under such a row moved where `--into` refuses it a `Re-read ·` row for a
-stale `--checked`, or leaves a coordinate of one BROKEN, the same command
-records a pact change, and that test is the whole trigger.** The hash is a
-code coordinate's: a citing row's citation of a released row is a ledger
-line, so its re-stamp records nothing (#772). It needs no
-judgment: a row carrying a pact anchor and a local coordinate is the link,
-and a re-read is the one act at which a session says code under a row
-moved. The record is written in both of the re-read's forms, a re-stamp in
-place and a `Re-read ·` row under `--into`, before the hash it read is gone,
-one row per ledger row. A row `--into` refuses is recorded by the run that
-refuses it, because its repair may be a `Corrected ·` row that no later
-re-read reaches (#746). **A move `--into` records starts at the hash the
-coordinate's newest reading holds**, whether it writes the row's `Re-read ·`
-row or refuses it. That can be a later `Re-read ·` row's hash rather than the
-released row's, so code that went back to the released hash records the move
-back. A re-stamp in place records each row's move from that row's own hash
-to the hash the run writes, one move per coordinate, and BROKEN at the row's
-own hash where the run leaves it because no one place holds it: nothing is
-written for a coordinate it leaves, so no hash between the two is recorded
-(#791, #824). A coordinate in a checkout the run was not given, one whose path
-escapes the repository, and one whose text never settles are left with
-nothing recorded, because nothing is known gone.
-A move whose two hashes agree is no move and is not recorded (#774). `Pact
-notify` decides what is recorded: `when the pact is touched` records rows
-citing a clause of a declared pact, `always` also records every other row
-whose code moved, with `—` for its clause, and `never` records nothing. The
-work item the record is named for is the `--into` fragment's, else the one a
-`routing.md` declares for the branch; with neither, nothing is recorded, the
-row is named on a `LEFT` line with both ways to name one, and the exit is 1.
-Where the record is written, the ledger is written exactly as it would be
-without it. **The run records first and re-stamps after**: it plans every
-ledger write without making one, writes the pact changes the plan owes, and
-writes the plan only once every record is written. So where a change is owed
-and cannot be recorded — no work item, a record that will not read, parse or
-be written, `Pact` rows that will not read (for a moved row citing no
-clause, wherever they leave `always` possible), a copy of the checker with no
-`hooks/` — the run writes no ledger file at all, and the drift stays for the
-run that can record it. A run killed after recording leaves the record
-written and the ledger unstamped; the next run finds the change already the
-record's last word for it, records nothing twice, and re-stamps. An `--into`
-that is there and will not read is refused before anything is written.
-Enforced by: tests/test_a_signer_records_a_pact_change.py::test_s7_a_drifted_row_citing_a_clause_is_recorded, tests/test_a_signer_records_a_pact_change.py::test_s8_a_released_row_drifted_is_recorded_beside_its_reread, tests/test_a_signer_records_a_pact_change.py::test_s9_a_declared_branch_names_the_record, tests/test_a_signer_records_a_pact_change.py::test_s9_with_no_work_item_nothing_is_recorded_and_the_row_is_left, tests/test_a_signer_records_a_pact_change.py::test_s7_the_ledger_is_written_exactly_as_before, tests/test_a_signer_records_a_pact_change.py::test_a_change_left_is_recorded_by_the_remedy_it_names, tests/test_a_signer_records_a_pact_change.py::test_a_pact_row_that_will_not_read_leaves_the_row, tests/test_a_signer_records_a_pact_change.py::test_under_always_a_declaration_that_will_not_read_leaves_the_row, tests/test_a_signer_records_a_pact_change.py::test_under_the_freeze_the_reread_row_is_never_written, tests/test_a_signer_records_a_pact_change.py::test_a_run_killed_after_its_record_is_finished_by_the_next, tests/test_a_signer_records_a_pact_change.py::test_an_into_that_will_not_read_is_refused_before_anything_is_written, tests/test_a_signer_records_a_pact_change.py::test_a_row_refused_for_a_stale_date_records_its_move_once, tests/test_a_signer_records_a_pact_change.py::test_a_row_dated_after_today_has_its_move_recorded_before_its_correction, tests/test_a_signer_records_a_pact_change.py::test_a_recorded_move_starts_at_the_newest_reading, tests/test_a_signer_records_a_pact_change.py::test_a_part_whose_two_hashes_agree_is_not_recorded
-
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**A line saying the run wrote a ledger file prints only once that file is
-written, so a run that writes none claims none.** The hash lines, `rows
-re-verified`, the dated list, `wrote` and `citing rows written` used to
-print while the run planned, before anything was written; a run that then
-could not record printed them and, below them, that nothing was re-stamped.
-They now follow the record step and name only the files that landed, and a
-run that writes no ledger file has its `LEFT` lines and its closing line as
-its whole account. A file the run writes, a ledger it re-stamps or the
-record, is read strictly: one holding a byte that is not UTF-8 is named
-(`ledger unreadable`, or `the record could not be read`) and left byte for
-byte, because a lenient read replaced the byte and the write put the
-replacement back, which for a record also moved the content hash a pact
-review took it at. A file the run only reads, the code under a coordinate,
-keeps the lenient read. A ledger file that cannot be written once the
-record is written is named on a `LEFT` line with the cause, the others are
-written, and the exit is 1; it is as it was, and the record holds its moves,
-so the next run re-stamps it and records nothing twice.
-Enforced by: tests/test_a_signer_records_a_pact_change.py::test_a_run_that_writes_no_ledger_claims_no_write, tests/test_a_signer_records_a_pact_change.py::test_a_line_that_says_a_write_happened_follows_the_record, tests/test_a_signer_records_a_pact_change.py::test_a_ledger_that_will_not_decode_is_left_byte_for_byte, tests/test_a_signer_records_a_pact_change.py::test_a_record_that_will_not_decode_is_left_byte_for_byte, tests/test_a_signer_records_a_pact_change.py::test_a_ledger_step_three_cannot_write_is_named_and_the_rest_written, tests/test_a_signer_records_a_pact_change.py::test_a_run_killed_before_its_record_has_written_nothing, tests/test_a_signer_records_a_pact_change.py::test_a_run_killed_between_two_ledger_files_is_finished_by_the_next
-
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**The record is `seal/pact-changes/<work-item-id>.md` directly under the
-signer's `seal/`, permanent, one file per work item, never folded and
-never edited by hand.** It outlives its work item, so it cannot sit in
-`seal/specs/<id>/`, which `settle --retire` removes, and one file per work
-item keeps two branches from appending to one file. Each row names the
-clause as the ledger row cites it, the ledger row, what moved (each
-coordinate from its recorded hash to its current one, or `BROKEN` where the
-re-read leaves it because no one place holds it — its unit, its file or its
-quoted statement gone) and the
-date; the file's name says why, through that work item's `spec.md`. A
-coordinate whose last recorded row for the same clause and ledger row says
-the same move or the same `BROKEN` is not recorded again, compared as the
-record's reader reads a cell, so a second identical run leaves the record byte
-for byte as it was and its content hash with it; a change that comes back
-after its revert is recorded, because the record's last word for it was the
-revert. A record that will not read or parse
-is named and left, with nothing appended.
-Enforced by: tests/test_a_signer_records_a_pact_change.py::test_s11_a_broken_coordinate_is_recorded_and_the_row_left, tests/test_a_signer_records_a_pact_change.py::test_a_coordinate_the_reread_leaves_is_recorded, tests/test_a_signer_records_a_pact_change.py::test_s11_a_second_run_records_nothing_twice, tests/test_a_signer_records_a_pact_change.py::test_a_record_that_will_not_parse_is_left_and_named, tests/test_a_signer_records_a_pact_change.py::test_a_second_identical_run_leaves_the_record_byte_identical, tests/test_a_signer_records_a_pact_change.py::test_this_repositorys_own_piped_coordinates_are_recorded_once, tests/test_a_signer_records_a_pact_change.py::test_a_change_relanded_after_its_revert_is_recorded
 
 ## A signer's CI prints and verifies nothing
 
@@ -269,8 +173,7 @@ against a replaced clause; `NOT TAKEN` means only another ref did, and names
 it, so the pact has not taken the signer's recorded change; `UNMATCHED`
 means no commit did; `BROKEN` means the heading path names no single clause.
 Git decides the direction and never decides `OK`. Exit 1 is a mismatch or a
-checkout not found, and exit 2 is unusable input, the classes
-`evidence-check` keeps.
+checkout not found, and exit 2 is unusable input.
 Enforced by: tests/test_pact_check.py::test_s8_a_hash_from_heads_own_history_is_superseded, tests/test_pact_check.py::test_s9_a_hash_only_another_ref_holds_is_not_taken_and_names_it, tests/test_pact_check.py::test_s10_a_heading_path_that_resolves_to_nothing_is_broken, tests/test_pact_check.py::test_s11_a_relationship_recorded_on_one_side_is_refused, tests/test_pact_check.py::test_s12_a_signer_citing_the_current_clause_is_clean
 
 <!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
@@ -354,22 +257,11 @@ pull request reconciles anything.
 Enforced by: tests/test_pact_check.py::test_a_pact_under_local_mode_has_no_history_and_says_so, tests/test_pact_check.py::test_s10_a_hash_no_commit_gave_is_unmatched
 
 <!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**A hash edited by hand bypasses the writer, a vendored copy of
-`evidence_check.py` records nothing, and a pact under local mode keeps its pact
-reviews on one machine.** The record is written inside `--reverify`, so a
-signer that types a new hash into a ledger row leaves no pact change, and
-nothing can see that it should have. A copy of the checker with no `hooks/`
-beside it cannot read the `Pact` row; it names each row citing a pact, and each
-other moved row where `seal/config.md` holds a `Pact` row and a `Pact notify`
-row that both carry a value, holds a line that names a pact by the plugin's
-word and is neither row in the one spelling, reading a two-cell row other than
-a table's header by its item alone, as the plugin reads a walked row, or will
-not read, says it recorded nothing, and re-stamps nothing, so the plugin's own
-checker records the change where the signer is checked out. A pact under
-local mode keeps `seal/pact-reviews/` under the git directory, so another clone
-of the pact's repository reads the same changes as `NOT TAKEN`, which is loud
-in the right direction.
-Enforced by: tests/test_a_signer_records_a_pact_change.py::test_a_vendored_copy_says_it_recorded_nothing, tests/test_a_signer_records_a_pact_change.py::test_a_vendored_copy_under_a_notify_row_leaves_a_row_citing_no_clause, tests/test_a_signer_records_a_pact_change.py::test_a_vendored_copy_with_no_notify_row_restamps_a_row_citing_no_clause, tests/test_a_signer_records_a_pact_change.py::test_a_vendored_copy_whose_config_will_not_read_leaves_the_row, tests/test_a_signer_records_a_pact_change.py::test_s9_a_vendored_copy_leaves_where_the_plugin_refuses_a_pact_line, tests/test_a_signer_declares_its_pact.py::test_s10_the_reader_and_the_vendored_copy_read_one_word
+**A pact under local mode keeps its pact reviews on one machine.** It keeps
+`seal/pact-reviews/` under the git directory, so another clone of the pact's
+repository reads the same changes as `NOT TAKEN`, which is loud in the right
+direction.
+Enforced by: nothing — no pact case builds two clones of one repository
 
 <!-- specs/1791128260-a-pact-row-is-read-in-one-plain-spelling -->
 **A pact line with a letter written between the word's letters, or with a
@@ -388,17 +280,6 @@ Every spelling the review of the earlier design found is caught:
 `` `Pact notify` ``, `**Pact notify**`, `Pact` with a U+200B inside it,
 `[Pact notify](x)` and a character reference such as `P&#97;ct`.
 Enforced by: tests/test_a_signer_declares_its_pact.py::test_the_blind_side_is_read_as_no_line, tests/test_a_signer_declares_its_pact.py::test_s2_a_pact_item_spelled_another_way_is_refused
-
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
-**The record-first order holds against the process dying, and not against
-the machine losing power.** Each file is written to a temporary sibling and
-renamed over the old one, with no `fsync`, as every writer in this plugin
-writes. After a power loss the rename of a ledger can survive while the
-record's data did not, and the change is then re-stamped with no record of
-it. Two `--reverify` runs at once over one `seal/` root are not serialised
-either. A run that dies keeps the order, whatever the signal, and a run that
-loses its machine is outside it.
-Enforced by: nothing — no test can cut the power; Q3 of this item says why
 
 <!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
 **A pact review row naming a signer the pact has since taken out of its

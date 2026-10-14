@@ -1306,9 +1306,8 @@ def test_a_header_after_a_break_gfm_does_not_honour_is_no_table(config, name, wh
     """#871 round 2, yellow 7. A header after a character only
     `str.splitlines` ends a line at, or a delimiter row after one on the
     header's line, is no table to cmark-gfm (measured for FF, U+2028, NEL
-    and VT by the round's reviewer). The walk reads no row and refuses, and
-    so does the vendored twin. Seen red against 4dfb3d0d: `Mode` was read
-    as `shared`."""
+    and VT by the round's reviewer). The walk reads no row and refuses. Seen
+    red against 4dfb3d0d: `Mode` was read as `shared`."""
     from block_shapes import BREAKS
 
     brk = BREAKS[name]
@@ -1319,15 +1318,6 @@ def test_a_header_after_a_break_gfm_does_not_honour_is_no_table(config, name, wh
     )
     assert config.config_rows(text) == [], config.config_rows(text)
     value, said = config.config_value(text, "Mode")
-    assert value is None and "each on a line of its own" in (said or ""), said
-    root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    path = os.path.join(
-        root, "skills", "evidence-check", "scripts", "evidence_check.py"
-    )
-    spec = importlib.util.spec_from_file_location("ec_for_871_r2_header", path)
-    ec = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ec)
-    value, said = ec.vendored_config_value(text, "Mode")
     assert value is None and "each on a line of its own" in (said or ""), said
 
 

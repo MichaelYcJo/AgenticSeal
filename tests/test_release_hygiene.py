@@ -1859,9 +1859,8 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
 def test_the_timer_sweep_survives_a_tracked_file_the_tree_deleted(tmp_path):
     """#432's class in the module the release checklist runs at step 3.
 
-    This sweep is the one a release meets first: `fold_ledger.py` removes
-    every `seal/ledger/` fragment as its last act and the whole gate then runs
-    before anything is staged, so the index lists paths the disk does not
+    This sweep is the one a release meets first, and the whole gate runs
+    before anything is staged, so the index can list paths the disk does not
     have. The running version and the timer are both fixture values, for the
     reason `RUNNING_IN_THE_FIXTURES` already gives: a fixture that moves with
     the release proves nothing about the release after. Neither is

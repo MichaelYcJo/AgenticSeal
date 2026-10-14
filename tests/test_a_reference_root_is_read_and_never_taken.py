@@ -181,12 +181,7 @@ NOT_A_CHECK = "is not a check of the tree"
 SHIPPED = {
     "unverified-check": (PREDICATE, "the walk and the base, by one rule"),
     "settle": (PINNED, "settle.py#SPECS; its citation scan reads as a citer"),
-    "correction-check": (PINNED, "correction_check.py#LEDGER/FRAGMENTS/RELEASES"),
     "pact-check": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
-    "evidence-check": (
-        PINNED,
-        "evidence_check.py#default_patterns; the tree corpus reads as the tree",
-    ),
     "round-record": (PINNED, "writes rounds/ under seal/specs/<id>/ only"),
     "broad-gate": (NO_WALK, "hands seal/specs/ to the checks above"),
     "fold-check": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
@@ -228,32 +223,14 @@ def test_every_shipped_command_is_classified():
 def test_the_pinned_checks_read_under_the_root_alone(tmp_path):
     """Each constant a pinned check rests on, held under `seal/`. Widening one
     to a top-level `specs/` turns this red, which is the probe the plan names
-    for `SPECS`, `LEDGER`/`FRAGMENTS`/`RELEASES` and `WORK_ITEMS`."""
+    for `SPECS` and `WORK_ITEMS`."""
     settle = load_script("skills", "settle", "scripts", "settle.py")
     assert settle.SPECS == "seal/specs"
-    correction = load_script(
-        "skills", "evidence-check", "scripts", "correction_check.py"
-    )
-    for name in ("LEDGER", "FRAGMENTS", "RELEASES"):
-        assert getattr(correction, name).startswith("seal/"), name
     routing = load_hook_module("routing.py", "routing_for_reference_roots")
     assert routing.WORK_ITEMS == "seal/specs"
-    evidence = load_script("skills", "evidence-check", "scripts", "evidence_check.py")
-    (tmp_path / "seal").mkdir()
-    patterns = [
-        os.path.relpath(p, tmp_path).replace(os.sep, "/")
-        for p in evidence.default_patterns(str(tmp_path))
-    ]
-    assert patterns == [
-        "seal/ledger.md",
-        "seal/ledger/*.md",
-        "seal/releases/*.md",
-        "docs/**/_evidence.md",
-    ], patterns
 
 
-# A repository with a `seal/` root holding one work item and one ledger row,
-# built twice: once alone, and once with a team's own `specs/` planted beside
+# A repository with a `seal/` root holding one work item, built twice: once alone, and once with a team's own `specs/` planted beside
 # it — a malformed overview, a spec, and a design note, edited in the second
 # commit. Every check below must say the same thing about both.
 SERVICE = "def handler(x):\n    return x + 1\n"
@@ -279,15 +256,14 @@ def planted(where, team):
     put("src/service.py", SERVICE)
     put(f"{OURS}/routing.md", "# routing\n\n| Axis | Answer |\n|---|---|\n")
     put(f"{OURS}/overview.md", "# ours\n\n## Not verified\n\nnone — a probe\n")
-    put("seal/ledger.md", "# ledger\n\n| Clause | Coordinate |\n|---|---|\n")
     if team:
         put(f"{TEAM}/spec.md", "# the team's spec\n\nA design they own.\n")
         put(f"{TEAM}/overview.md", "# theirs\n\n## Not verified\n\nnot a table\n")
         put(f"{TEAM}/design.md", "# design\n\n| Clause | Coordinate |\n|---|---|\n")
     git("add", "-A")
     git("commit", "-qm", "base")
-    # The second commit arrives by a merge, so `correction-check` has a merge
-    # to read the ledger listing at rather than stopping before it reads.
+    # The second commit arrives by a merge, so a check reading the range
+    # meets a merge in it.
     git("switch", "-qc", "side")
     put("src/service.py", SERVICE + "\n\ndef other():\n    return 0\n")
     if team:
@@ -300,11 +276,6 @@ def planted(where, team):
 
 
 CHECKS = {
-    "evidence-check": ("skills/evidence-check/scripts/evidence_check.py", ["{r}"]),
-    "correction-check": (
-        "skills/evidence-check/scripts/correction_check.py",
-        ["--range", "HEAD~1..HEAD", "--root", "{r}"],
-    ),
     "chain_check.py": (
         "skills/code-review/scripts/chain_check.py",
         ["--baseline", "HEAD~1", "--root", "{r}"],

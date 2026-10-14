@@ -1,11 +1,10 @@
 """A shipped script copied without its sibling exits 2, with a sentence (#590, #610).
 
 Not every shipped script that loads a sibling is held here:
-`survivor_check.py` and `broad_gate.py` raise a refusal of their own, and
-`evidence_check.py` falls back by design. The ones held here load it in one
-of two shapes. `fold_check.py`, `settle.py`, `round_record.py`,
-`chain_check.py`, `payload_meter.py` and `correction_check.py` import it by
-file path; `seal.py`
+`broad_gate.py` raises a refusal of its own, and `evidence_check.py` is a
+library no command runs. The ones held here load it in one of two shapes.
+`fold_check.py`, `settle.py`, `round_record.py`, `chain_check.py` and
+`payload_meter.py` import it by file path; `seal.py`
 puts `hooks/` on `sys.path` with `sys.path.insert` and then runs a plain
 `import`, which a search for the first shape does not find. In the first
 four 1 means a finding or a refusal the command made about the tree, and in
@@ -38,9 +37,7 @@ transcript named need not exist.
 
 #584 brought the fence rule to readers that had kept their own, and a shipped
 one that now loads `unverified_check.py` joins the list:
-`correction_check.py` loads it at import, so the one required flag is all an
-invocation needs, and a copy that reaches no git repository is still stopped
-at the loader first. `payload_meter.py` loads it only under `--sections`,
+`payload_meter.py` loads it only under `--sections`,
 and `measure` calls that loader before it reads the root, so its second row
 reaches it in a directory with no `agents/` at all; its purpose must not be
 the transcript sibling's.
@@ -119,12 +116,6 @@ CASES = [
         ["--root", "{root}", "--sections"],
         "it is what says which lines of a skill stand inside a fenced example",
         "transcript",
-    ),
-    (
-        "skills/evidence-check/scripts/correction_check.py",
-        ["--range", "HEAD..HEAD", "--root", "{root}"],
-        "it is what says which ledger rows stand inside a fenced example",
-        None,
     ),
 ]
 

@@ -15,7 +15,6 @@ are that reader's (S1-S3 of the work item's `spec.md`), and the routing
 step's pinned sentences (S4).
 """
 
-import importlib.util
 import os
 import re
 import sys
@@ -795,17 +794,15 @@ def test_s4_the_configs_this_plugin_writes_or_copies_are_silent():
     )
     # Round 1 of PR #793, yellow 1: `skills/commit-pr-convention/SKILL.md`
     # tells a session to copy `templates/config.md` whole, so the template is
-    # a config too: no pact and no refusal to either reader, and `always`
+    # a config too: no pact and no refusal to the reader, and `always`
     # once its two rows are filled.
     with open(os.path.join(ROOT, "templates", "config.md"), encoding="utf-8") as f:
         template = f.read()
     assert config.pact_declaration(template) == ([], None, [])
-    assert ec.notify_may_be_always(template) is False
     filled = template.replace("| Pact |  |\n", f"| Pact | {URL} |\n", 1).replace(
         "| Pact notify |  |\n", "| Pact notify | always |\n", 1
     )
     assert config.pact_declaration(filled) == (ORDERS, config.NOTIFY_ALWAYS, [])
-    assert ec.notify_may_be_always(filled) is True
 
 
 @pytest.mark.parametrize(
@@ -904,105 +901,19 @@ def test_a_walker_refusal_follows_a_doubled_notify_row_too():
     assert refusals[1:] == walked(text) and len(refusals) == 2, refusals
 
 
-def _vendored_checker():
-    path = os.path.join(
-        ROOT, "skills", "evidence-check", "scripts", "evidence_check.py"
-    )
-    spec = importlib.util.spec_from_file_location("ec_for_one_spelling", path)
-    ec = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ec)
-    return ec
-
-
-ec = _vendored_checker()
-# Every S2 text: the ways the walk passes a row by, the cut rows, and each
-# other spelling of the item in the table and below a blank line.
-S2_TEXTS = [
-    *(text for _id, text, _lines, _pacts in STRAY_WAYS),
-    *(CONFIG + f"| Pact notify | {ch}always |\n" for ch in SPLITLINES_ONLY),
-    *(
-        CONFIG + gap + f"| {item} | always |\n"
-        for item in OTHER_ITEMS
-        for gap in ("", "\n")
-    ),
-]
-
-
-def test_s9_the_vendored_copy_cannot_rule_always_out_on_any_s2_text():
-    """S9 (a). A copy with no `hooks/` leaves a moved row citing no clause
-    wherever `Pact notify` may be `always`. Over every S2 text, under a
-    `Pact` value, its decision says it may, so each leaves the row where the
-    plugin refuses. `tests/test_a_signer_records_a_pact_change.py` runs a
-    sample of them end to end."""
-    missed = [t for t in S2_TEXTS if not ec.notify_may_be_always(t)]
-    assert missed == [], missed[:5]
-
-
-def test_s9_the_vendored_copy_reads_the_silent_set_as_the_table_says():
-    """S9 (b). Where the plugin reads no refusal, the copy is blind exactly
-    where the table's notify is `always`: a plain row of each, both carrying
-    a value. A plain notify row with no `Pact` value, the template's empty
-    pair, and this repository's own config re-stamp."""
-    for below, notify in SILENT:
-        assert ec.notify_may_be_always(CONFIG + below) == (notify == "always"), below
-    assert ec.notify_may_be_always(CONFIG_TOP + PLAIN + "\n") is False
-    assert (
-        ec.notify_may_be_always(CONFIG_TOP + "| Pact |  |\n| Pact notify |  |\n")
-        is False
-    )
-    assert ec.notify_may_be_always(None) is True
-    # Round 2 of PR #793, yellow 1: the copy reads a line as a table's header
-    # wherever the plugin's walker reads the line under it as a delimiter
-    # row. Round 3 widened the copy to what cmark-gfm renders, held in
-    # `STRAY_WAYS`, so here it is at least the walker, not exactly.
-    for d in WALKER_DELIMITERS:
-        text = CONFIG + f"\n| Mode | Pact notify |\n{d}\n| shared | always |\n"
-        assert ec.notify_may_be_always(text) is True, repr(d)
-    with open(os.path.join(ROOT, "seal", "config.md"), encoding="utf-8") as f:
-        assert ec.notify_may_be_always(f.read()) is False
-
-
 @pytest.mark.parametrize(
     "ch", SPLITLINES_ONLY, ids=[f"U+{ord(c):04X}" for c in SPLITLINES_ONLY]
 )
 def test_s9_a_pact_row_a_splitlines_character_cuts_is_no_plain_row(ch):
     """S9. A `Pact` row with a `str.splitlines`-only character in its value
     is one GFM line the walk never took, so the reader refuses it with no
-    notify row anywhere, and the vendored copy, which judges a line by its
-    row shape, does not count it as a plain row: it leaves the moved row
-    where the plugin does, though the shape alone would read a plain row."""
+    notify row anywhere."""
     line = f"| Pact | {ch}{URL} |"
     assert config.pact_declaration(CONFIG_TOP + line + "\n") == (
         [],
         None,
         [refused(line), *walked(CONFIG_TOP + line + "\n")],
     )
-    assert ec.CONFIG_ROW_RE.match(line) is not None
-    assert ec.notify_may_be_always(CONFIG_TOP + line + "\n") is True
-
-
-def test_s10_the_reader_and_the_vendored_copy_read_one_word():
-    """S10. A copy with no `hooks/` names a pact by the same word and the
-    same predicate as the plugin's reader: the patterns are equal, and the
-    two predicates answer alike on every S2 and S4 line, piped or not."""
-    assert (config.PACT_WORD.pattern, config.PACT_WORD.flags) == (
-        ec.PACT_WORD.pattern,
-        ec.PACT_WORD.flags,
-    )
-    assert (config.HTML_CELL.pattern, config.HTML_CELL.flags) == (
-        ec.HTML_CELL.pattern,
-        ec.HTML_CELL.flags,
-    )
-    assert config.UNDER_A_HEADER.pattern == ec.UNDER_A_HEADER.pattern
-    lines = {line for text in S2_TEXTS for line in text.splitlines()}
-    lines |= {line for below, _ in SILENT for line in (CONFIG + below).splitlines()}
-    lines |= set(OTHER_ITEMS)
-    for line in sorted(lines):
-        for piped in (True, False):
-            assert config.names_a_pact(line, piped) == ec.names_a_pact(line, piped), (
-                line,
-                piped,
-            )
 
 
 # A letter between the word's letters, or a look-alike letter.
@@ -1021,7 +932,7 @@ BLIND_SIDE = [
 def test_the_blind_side_is_read_as_no_line(item, gap):
     """Q1's default, stated in `docs/the-pact.md` §*What this does not see*:
     a spelling that puts a letter between the word's letters, or spells it
-    with a look-alike letter, names no pact to either reader,
+    with a look-alike letter, names no pact to the reader,
     so the table's notify is read. A change to Q1's answer turns this red.
     Below the table the line is a row the walk never reaches, which the
     walker refuses whether or not it names a pact (#871), so the notify is
@@ -1032,7 +943,6 @@ def test_the_blind_side_is_read_as_no_line(item, gap):
         assert len(walked(text)) == 1, walked(text)
     else:
         assert config.pact_declaration(text) == (ORDERS, config.NOTIFY_DEFAULT, [])
-    assert ec.notify_may_be_always(text) is False
 
 
 @pytest.mark.parametrize(

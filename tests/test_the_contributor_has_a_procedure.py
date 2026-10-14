@@ -194,9 +194,6 @@ RELEASE_BRANCH = re.compile(r"release/v\d+\.\d+\.\d+")
 RELEASE_BRANCH_HISTORY = {
     "agents/smith.md": "measurement was taken at `release/v0.9.3`",
     "docs/issues-and-milestones.md": "the branch `release/v0.3.0` shipped as 0.2.0",
-    "skills/evidence-check/scripts/correction_check.py": (
-        "opening it showed correct work: `release/v0.9.3` re-anchored a row"
-    ),
 }
 
 

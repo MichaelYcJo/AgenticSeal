@@ -616,19 +616,9 @@ PACT_PRINTED = (
     # The walker every pact table is read through, and the words the
     # `Signer` table's refusals are put in (#647, steps C and D).
     (("hooks", "config.py"), "gfm_table"),
-    # The two records' readers, and what the signer's re-read prints when
-    # it records a pact change (#647, steps C and D).
+    # The two records' readers (#647, steps C and D).
     (("hooks", "config.py"), "pact_changes"),
     (("hooks", "config.py"), "pact_reviews"),
-    (
-        ("skills", "evidence-check", "scripts", "evidence_check.py"),
-        "record_pact_changes",
-    ),
-    (("skills", "evidence-check", "scripts", "evidence_check.py"), "PACT_CHANGE_INTRO"),
-    (
-        ("skills", "evidence-check", "scripts", "evidence_check.py"),
-        "PACT_CHANGE_REPAIR",
-    ),
     (("hooks", "config.py"), "_signer"),
     # The sentence both commands print where a file is headed the old way
     # (#822); one of `PACT_RENAMED_SPANS` below.

@@ -371,8 +371,7 @@ claude plugin update specseal@specseal   # 그다음 적용 — 위 문단 참�
 모든 게이트가 침묵합니다.
 
 옮기는 일은 업데이트 뒤 첫 세션 시작 때 한 번 일어납니다. 훅이 파일마다
-`git mv` 로 스테이징된 이름 바꾸기를 하고(이력이 따라옵니다), 옮겨진 파일을
-가리키는 대조표 행의 경로를 해시는 건드리지 않은 채 고쳐 쓰고, 무엇을 옮겼는지
+`git mv` 로 스테이징된 이름 바꾸기를 하고(이력이 따라옵니다), 무엇을 옮겼는지
 한 줄 알린 뒤 멈춥니다. 그다음은 사용자 몫입니다. `git diff --cached` 를 보고
 커밋하면 됩니다. 이 커밋은 어느 작업 항목에도 속하지 않아 세션 안에서는
 커밋 게이트가 묻습니다. 그 명령 하나만 면제하려면
@@ -384,9 +383,9 @@ claude plugin update specseal@specseal   # 그다음 적용 — 위 문단 참�
 `routing.md` 나 `rounds/` 아래 파일이 있는 것만 옮깁니다. 0.3.x 의 작업
 항목은 모두 `routing.md` 를 가지고 있었습니다. 그 밖에 `specs/` 아래 있는
 것은 이름이 무엇이든 프로젝트 자신의 것으로 봅니다. 팀의 명세는 읽기만 하고
-가져가지 않으므로, 그 자리에 두고 그것을 가리키는 대조표 행의 경로도 그대로
-두며, 남겨 둔 것으로 그 줄에 이름을 알려 줍니다. 옛 루트도 없고 그런 항목도
-없어 플러그인의 옛 배치가 하나도 없는 저장소에는 아무 말도 하지 않습니다.
+가져가지 않으므로 그 자리에 두며, 남겨 둔 것으로 그 줄에 이름을 알려 줍니다.
+옛 루트도 없고 그런 항목도 없어 플러그인의 옛 배치가 하나도 없는 저장소에는
+아무 말도 하지 않습니다.
 
 옛 두 디렉터리 아래에 커밋하지 않은 변경이 있으면 먼저 커밋하라는 한 줄만
 남기고 옮기지 않으며, 다음에 깨끗한 상태로 세션을 시작하면 그때 옮깁니다.
@@ -397,13 +396,10 @@ CI 에서, 또는 다음 세션을 기다리지 않고 직접 옮기려면 이�
 
 ```bash
 mkdir -p seal/specs
-git mv .specseal/map.md seal/ledger.md
-git mv .specseal/map seal/ledger             # 있을 때만
 git mv .specseal/README.md seal/README.md    # 그다음 templates/seal-README.md 로 덮어쓴다
-git mv .specseal/follow-up.md seal/          # parity.md 와 그 안의 나머지도 같이
+git mv .specseal/* seal/                     # follow-up.md, parity.md 와 그 안의 나머지 모두
 git mv specs/<id> seal/specs/<id>            # 작업 항목마다
 rmdir .specseal specs                        # git mv 는 빈 디렉터리를 디스크에 남긴다. 다른 것이 든 쪽은 남는다
-evidence-check --reverify .                  # 옮겨진 파일을 가리키는 행을 고쳐 써 준다
 ```
 
 ## 처음 실행

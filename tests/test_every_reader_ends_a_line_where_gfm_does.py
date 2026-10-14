@@ -93,11 +93,10 @@ def test_the_splitter_is_splitlines_on_a_text_without_the_eight():
 
 
 def test_every_copy_of_the_splitter_is_the_readers():
-    """S17. The checker keeps its own copy because `evidence-ci` runs it alone
-    in a user's `tools/`, `hooks/blocks.py` keeps work item F's because a hook
-    does not load a skill module on every call, and `arm_check._lines` splits
-    Python source where `ast` does, ends kept. All four are one rule, held
-    equal here."""
+    """S17. `hooks/blocks.py` keeps work item F's copy because a hook does not
+    load a skill module on every call, and `arm_check._lines` splits Python
+    source where `ast` does, ends kept. The coordinate kernel asks the reader
+    itself. All are one rule, held equal here."""
     checker = _load("specseal_checker_for_gfm_lines", CHECKER)
     arm_check = _load("specseal_arm_check_for_gfm_lines", ARM_CHECK)
     blocks = _load("specseal_blocks_for_gfm_lines", BLOCKS)
@@ -109,7 +108,6 @@ def test_every_copy_of_the_splitter_is_the_readers():
         assert checker.gfm_lines(text, keepends=True) == kept, repr(text)
         assert blocks.gfm_lines(text, keepends=True) == kept, repr(text)
         assert arm_check._lines(text) == kept, repr(text)
-    assert reader.GFM_LINE_RE.pattern == checker.GFM_LINE_RE.pattern
     assert reader.GFM_LINE_RE.pattern == blocks.GFM_LINE_RE.pattern
 
 
@@ -308,26 +306,10 @@ def test_the_gatherer_reads_a_marker_after_a_separator_as_no_line():
 # --- S9-S15: the independent readers ----------------------------------------
 
 
-CORRECTION = os.path.join(
-    ROOT, "skills", "evidence-check", "scripts", "correction_check.py"
-)
 CHAIN = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
 PAYLOAD = os.path.join(ROOT, "skills", "verify", "scripts", "payload_meter.py")
 CLAIMS = os.path.join(ROOT, ".github", "scripts", "issue_claims_check.py")
 CLAUDE_BLOCK = os.path.join(ROOT, ".github", "scripts", "claude_block.py")
-
-
-def test_a_correction_after_a_separator_is_counted():
-    """S9. Cut at the separator, the note stood on a line that is no row, so
-    a merge dropping it lost nothing `correction-check` could name."""
-    correction = _load("specseal_correction_s9", CORRECTION)
-    head = "| Clause | Code grounds | Verified behavior | Checked | Notes |\n"
-    head += "|---|---|---|---|---|\n"
-    row = "| X1 · a claim | `pkg/mod.py#f@0123abcd` | read | 2026-01-01 | a note"
-    parent = head + f"{row}{LS}**Corrected 2026-09-15**: the claim was wrong |\n"
-    result = head + f"{row} |\n"
-    lost = correction.losses(parent, result)
-    assert [loss.marker for loss in lost] == [("Corrected", "2026-09-15")]
 
 
 def test_the_framers_mark_is_the_last_line_a_renderer_shows():
@@ -548,7 +530,6 @@ OUT_OF_CLASS = {
         1,
         "the `<old> <new> <ref>` lines git hands a reference-transaction hook",
     ),
-    ("hooks/ledger-migrate.py", "attempted"): (1, "a marker file of root paths"),
     ("hooks/root-migrate.py", "attempted"): (1, "a marker file of root paths"),
     ("hooks/root-migrate.py", "dirty"): (1, GIT),
     ("hooks/version-check.py", "latest"): (1, GIT),
@@ -630,14 +611,6 @@ OUT_OF_CLASS.update(
         # walk took whole is told from one a `str.splitlines`-only character
         # cuts (#759).
         ("hooks/config.py", "pact_lines_not_read"): (1, F),
-        # A copy with no hooks/ beside it reads `seal/config.md` on GFM's
-        # lines, and reads a line by its row shape only where no
-        # `str.splitlines`-only character cuts it, as the plugin's reader
-        # reads a walked row (#759).
-        ("skills/evidence-check/scripts/evidence_check.py", "notify_may_be_always"): (
-            1,
-            F,
-        ),
         # The one GFM table walker `seal/config.md`'s table (#871), the
         # pact's `Signer` table and both pact records are read through,
         # reading what `unfenced` shows it (#647; ⬜ 21 of #735's round 3).

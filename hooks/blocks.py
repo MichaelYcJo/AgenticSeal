@@ -107,10 +107,10 @@ CONTAINER = re.compile(r"^(?:[ \t]*(?:>|(?:[-+*]|\d{1,9}[.)])(?=[ \t]|$)))*[ \t]
 # also ends one at U+2028, U+2029, NEL, a form feed, a vertical tab and
 # `\x1c` to `\x1e`, and a `<!--` or a fence run after one of those starts a
 # line for that split and no line for a renderer (#667 round 1, 🟡 1; #664's
-# class). This and `gfm_lines` are a copy of `skills/evidence-check/scripts/
-# evidence_check.py#GFM_LINE_RE` and `#gfm_lines`, work item A's precedent:
+# class). This and `gfm_lines` are a copy of `skills/verify/scripts/
+# unverified_check.py#GFM_LINE_RE` and `#gfm_lines`, work item A's precedent:
 # a hook imports nothing from `skills/`, and `tests/test_the_hooks_hide_what_
-# a_renderer_hides.py#test_the_walks_line_rule_is_the_checkers` holds the two
+# a_renderer_hides.py#test_the_walks_line_rule_is_the_readers` holds the two
 # in step.
 GFM_LINE_RE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n)|[^\r\n]+\Z")
 # What a line that starts a block this walk does not follow looks like, once
@@ -372,7 +372,10 @@ def walk(lines):
 def gfm_lines(text, keepends=False):
     """TEXT's lines as GFM reads them, the way `str.splitlines` returns them
     otherwise: no trailing empty line, and each line's end kept only when
-    KEEPENDS asks. `evidence_check.py#gfm_lines`, copied (see `GFM_LINE_RE`)."""
+    KEEPENDS asks. `unverified_check.py#gfm_lines`, copied (see `GFM_LINE_RE`).
+
+    Reads: guess — a person's markdown text its caller hands it; unknown passed
+    """
     lines = GFM_LINE_RE.findall(text)
     return lines if keepends else [line.rstrip("\r\n") for line in lines]
 

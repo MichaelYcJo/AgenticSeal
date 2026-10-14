@@ -9,7 +9,8 @@ clauses it was built against as pact anchors,
 
   pact:<name>/"<heading path>"@<hash>
 
-in its specs' Grounding and in its ledger rows. This command reads every
+in its specs' Grounding, and in ledger rows written before the ledger left
+the plugin (#944). This command reads every
 signer from the pact's repository and grades each of those anchors against
 the clause as the pact holds it now.
 
@@ -49,10 +50,10 @@ A signer neither finds is reported with the map line to add.
 
 ## What each pact change reads
 
-A signer's re-read records a pact change in its
-`seal/pact-changes/<work-item-id>.md` (`evidence_check.py#record_pact_changes`).
-Every such record is read, following the signer's `Pact notify` as read
-now:
+A signer's pact changes are rows of its `seal/pact-changes/<work-item-id>.md`.
+Their writer was the ledger's re-read, which left the plugin with #944.
+Every such record is read, following the signer's `Pact notify` as
+read now:
 
   NOT TAKEN   a row citing a clause of this pact that no pact review here
               has taken: the line names the record and line, the clause, the
@@ -68,10 +69,9 @@ row is. A pact review is a row of `seal/pact-reviews/<work-item-id>.md` here
 naming the signer and `<work-item-id>@<content hash>`, verdict `holds` or
 `amended`; it takes the record at that hash and no other.
 
-Git is asked one thing: which way a mismatch points. It never decides `OK`,
-which is the bound `evidence-check` keeps by asking git for nothing. A pact
-under local mode has no history, so every mismatch there reads `UNMATCHED`,
-and the summary says so.
+Git is asked one thing: which way a mismatch points. It never decides `OK`.
+A pact under local mode has no history, so every mismatch there reads
+`UNMATCHED`, and the summary says so.
 
 ## Exit codes
 
@@ -88,8 +88,7 @@ and the summary says so.
      other than `holds` and `amended`, or `amended`, at the record's
      current hash, for a clause that still has the hash the record recorded
 
-These mirror `evidence-check`'s classes, where `BROKEN` is exit 2 and drift is
-exit 1. Nothing is ever written.
+`BROKEN` is exit 2 and a mismatch is exit 1. Nothing is ever written.
 
 ## A header written through 0.18.x
 
@@ -224,7 +223,7 @@ PACT_MENTION_RE = re.compile(
     r"|(?=[^\s`|/#]?@[0-9A-Fa-f]))"
     r"[^\s`|]*"
 )
-# Which exit each finding is: the classes `evidence-check` keeps.
+# Which exit each finding is.
 EXIT_ONE = frozenset({SUPERSEDED, NOT_TAKEN, UNMATCHED, NOT_FOUND})
 EXIT_TWO = frozenset({BROKEN, ONE_SIDED, REFUSED, UNREADABLE})
 

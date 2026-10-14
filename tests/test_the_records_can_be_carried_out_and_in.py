@@ -47,6 +47,11 @@ from conftest import fifo_or_skip, local_home, symlink_or_skip
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "implement", "scripts", "seal.py")
+# The import's last line: a collided pair is a reading for a person.
+CLOSING = (
+    "Which of a collided pair is right is a reading, not a merge — this "
+    "command overwrites nothing."
+)
 
 # Session state that sits BESIDE the root under the common git directory.
 # `docs/one-root-by-lifetime.md`'s tree diagram names the two agent marks and
@@ -364,15 +369,15 @@ def test_a_second_differing_copy_is_numbered_never_overwritten(seal, carried, ca
     ) == "# rows\n"
 
 
-def test_the_import_asks_nothing_and_names_the_next_command(seal, carried, capsys):
-    """S9. "reported, not asked about" — and `evidence-check` is what says
-    which rows drift against this tree, so the report names it rather than
-    running it and reporting a pass nobody read."""
+def test_the_import_asks_nothing_and_says_it_overwrote_nothing(seal, carried, capsys):
+    """S9. "reported, not asked about": the report ends saying a collided
+    pair is a reading for a person, and names no command to run after it."""
     zip_path, other, _home = carried
     code, out = run(seal, ["import", zip_path], other, capsys)
     assert code == 0
     assert "?" not in out.replace("nothing?", ""), f"the import asked something: {out}"
-    assert "evidence-check ." in out
+    assert out.rstrip().endswith(CLOSING), out
+    assert "evidence-check" not in out, out
 
 
 # --- S10, S11: the mode switch ----------------------------------------------
@@ -1427,7 +1432,7 @@ def test_a_manifest_missing_exported_at_still_ends_with_a_line_of_its_own(
 
     code, out = run(seal, ["import", str(z)], other, capsys)
     assert code == 0, out
-    assert "evidence-check" in out, "the closing lines were not reached"
+    assert CLOSING in out, "the closing lines were not reached"
     assert (home / "ledger" / "w.md").exists()
     # What it says instead, not only that it does not raise. Round 6 deleted
     # the whole block, then wrote a different phrase into it, and the suite
@@ -1443,7 +1448,7 @@ def test_a_manifest_missing_exported_at_still_ends_with_a_line_of_its_own(
 # and the loosest prints `Exported at 12345 from …`. Not added when it was
 # found, because it was found by round 7, a verifying round, and a fix there
 # needs a round of its own to read it.
-# Verified 2026-09-08 against test_a_manifest_field_of_the_wrong_type_does_not_raise@6afd8f9c.
+# Verified 2026-10-14 against test_a_manifest_field_of_the_wrong_type_does_not_raise@403be80d.
 @pytest.mark.parametrize(
     "field, value",
     [("head", 12345), ("head", True), ("remote", ["a"]), ("remote", {"a": 1})],
@@ -1474,7 +1479,7 @@ def test_a_manifest_field_of_the_wrong_type_does_not_raise(
     past_the_guard = ["--allow-unreadable-remote"] if field == "remote" else []
     code, out = run(seal, ["import", str(z), *past_the_guard], other, capsys)
     assert code == 0, out
-    assert "evidence-check" in out, "the closing lines were not reached"
+    assert CLOSING in out, "the closing lines were not reached"
 
 
 def test_the_manifests_other_spelling_gets_the_size_bound_too(seal, carried, capsys):

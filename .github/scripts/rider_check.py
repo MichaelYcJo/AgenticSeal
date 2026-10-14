@@ -102,8 +102,8 @@ rather than ignored, and a path no rider carries is refused too. Both used to
 print a clean total at exit 0 — the answer a script reads — for a run that did
 nothing the person asked for (round 2, finding 10 and its class).
 
-`--migrate` consults the old stamp's commit before it trusts anything, exactly
-as `evidence_check.py --migrate` does and for the same reason: a date says when
+`--migrate` consults the old stamp's commit before it trusts anything,
+because a date says when
 a person read the claim and a hash says what they read, so the two are true
 together or not at all. Where the region at the stamped commit still hashes to
 what it hashes today, the original date is kept, because nothing has changed
@@ -130,8 +130,8 @@ CHECKER = os.path.join(ROOT, "skills", "evidence-check", "scripts", "evidence_ch
 # description is not a rider.
 #
 # `.github` and `tests` were missing until #239. Three riders sat outside the
-# scan and were held to nothing at all: one in `.github/scripts/fold_ledger.py`
-# and two under `tests/`, one of which had never been given a stamp in any form.
+# scan and were held to nothing at all: one under `.github/scripts/` and two
+# under `tests/`, one of which had never been given a stamp in any form.
 # That is the same shape as `templates` having been missing before it, which is
 # the second time this list was the defect rather than the corpus.
 RIDER_ROOTS = (".github", "agents", "hooks", "skills", "templates", "tests")

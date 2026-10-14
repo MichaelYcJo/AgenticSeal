@@ -974,6 +974,10 @@ def destination_root(repo, home, shared, local, into):
 
 
 def import_(args, cwd):
+    """Write a carried root's records into this clone's, overwriting nothing.
+
+    Reads: owned — a zip `seal export` wrote, its sizes, manifest and member names bounded before any member is written; unknown refused
+    """
     repo, home, shared, local, _ = resolve(cwd)
     if not repo:
         print("not inside a git repository — seal works on a clone")
@@ -1252,8 +1256,7 @@ def import_(args, cwd):
         print(f"\nExported at {stamp} from {head[:12]}.")
     print(
         "Which of a collided pair is right is a reading, not a merge — this "
-        "command overwrites nothing.\n"
-        "`evidence-check .` says which ledger rows drift against this tree."
+        "command overwrites nothing."
     )
     return 0
 

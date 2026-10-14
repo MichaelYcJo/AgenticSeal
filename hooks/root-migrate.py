@@ -10,21 +10,19 @@ that release except this hook, so a repository still holding the old layout
 gets silence from every gate until this runs. That silence is the fail
 direction the design record keeps on purpose, and this hook is what ends it.
 
-`hooks/ledger-migrate.py` is the model, and the same grounds license writing
-to a tree unasked: the tree is the plugin's own, every step is a staged
-`git mv` or a rewrite of a file git already tracks, and `git diff --cached`
-shows the whole of it with the old text safe in history. The notice ends
-"review the diff and commit" because the write is the beginning of a review.
+Writing to a tree unasked is licensed on three grounds: the tree is the
+plugin's own, every step is a staged `git mv` or a rewrite of a file git
+already tracks, and `git diff --cached` shows the whole of it with the old
+text safe in history. The notice ends "review the diff and commit" because
+the write is the beginning of a review.
 
 The move, in order (`seal/specs/1788331011-…/spec.md`, "The move, in order"):
 
-  1. `.specseal/map.md`   → `seal/ledger.md`
-  2. `.specseal/map/`     → `seal/ledger/`
-  3. `.specseal/README.md` → `seal/README.md`, then overwritten from
+  1. `.specseal/README.md` → `seal/README.md`, then overwritten from
      `templates/seal-README.md` — the file is plugin-owned and its old text
      describes a layout that no longer exists
-  4. every other entry under `.specseal/` → `seal/<same name>`
-  5. each `specs/<id>/` whose name is `<unix seconds>-<slug>` AND that carries
+  2. every other entry under `.specseal/` → `seal/<same name>`
+  3. each `specs/<id>/` whose name is `<unix seconds>-<slug>` AND that carries
      one of the plugin's marks directly under it, as git tracks it —
      `routing.md`, or a file under `rounds/` — → `seal/specs/<id>/`;
      anything else under `specs/` stays and is named, because `specs/`
@@ -32,11 +30,7 @@ The move, in order (`seal/specs/1788331011-…/spec.md`, "The move, in order"):
      and a project may have had one first. A name is not the proof: a team's
      own `spec.md` and `plan.md` can sit under a directory `date +%s` could
      have named, and every 0.3.x work item carried `routing.md` (#688)
-  6. in every ledger, every anchor whose path starts with a moved prefix is
-     rewritten to the new one; the hash after `@` is not touched, because it
-     covers the cited content, which did not change. Under `specs/` the
-     prefix is a work item that moved, never a name that merely has the shape
-  7. the root is appended to `~/.claude/specseal/root-migrated`
+  4. the root is appended to `~/.claude/specseal/root-migrated`
 
 Boundaries, each pinned in `tests/test_the_root_migrates_itself.py`:
 
@@ -49,8 +43,7 @@ Boundaries, each pinned in `tests/test_the_root_migrates_itself.py`:
   - **only what carries the plugin's marks** — an id-shaped `specs/<x>/`
     where git tracks neither `routing.md` nor a file under `rounds/` is a
     team's directory, whatever an empty or ignored one on disk says: it is not
-    moved, a row citing it keeps its path, and the printed line names it with
-    that reason. A repository holding nothing else of the old layout hears
+    moved, and the printed line names it with that reason. A repository holding nothing else of the old layout hears
     nothing at all
   - **once per repository** — a completed move stamps the marker, and so does
     a repository that has nothing old left and a root at EITHER place,
@@ -77,10 +70,8 @@ Boundaries, each pinned in `tests/test_the_root_migrates_itself.py`:
 # it. A comment rather than a docstring line on purpose: a docstring survives
 # into the `.pyc`, and the rider test greps `hooks/` where a stale
 # `__pycache__` then answers for a file.
-# Verified 2026-09-08 against PREFIXES@d9524db4.
+# Verified 2026-10-14 against moves@53dab5b0.
 
-import glob
-import importlib.util
 import json
 import os
 import re
@@ -95,9 +86,6 @@ HOOKS = os.path.dirname(os.path.abspath(__file__))
 STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "specseal")
 MARKER = os.path.join(STATE_DIR, "root-migrated")
 TEMPLATE = os.path.join(HOOKS, "..", "templates", "seal-README.md")
-CHECKER = os.path.join(
-    HOOKS, "..", "skills", "evidence-check", "scripts", "evidence_check.py"
-)
 
 OLD_HOME = ".specseal"
 OLD_ITEMS = "specs"
@@ -113,14 +101,6 @@ ITEM_RE = re.compile(r"^[0-9]{9,10}-[A-Za-z0-9._-]+$")
 # sufficient — `spec.md`, `plan.md` and `overview.md` are names a team's own
 # specification may use, so they are not marks (#688).
 MARKS = ("routing.md", "rounds")
-# Longest first, so `.specseal/map.md` is not read as `.specseal/` + `map.md`.
-PREFIXES = (
-    (".specseal/map.md", f"{NEW}/ledger.md"),
-    (".specseal/map/", f"{NEW}/ledger/"),
-    (".specseal/", f"{NEW}/"),
-    ("specs/", f"{NEW}/specs/"),
-)
-LEDGER_GLOBS = (f"{NEW}/ledger.md", f"{NEW}/ledger/*.md", "docs/**/_evidence.md")
 
 
 class MoveError(Exception):
@@ -134,13 +114,6 @@ class MoveError(Exception):
         self.path = path
         self.error = error
         self.resumable = resumable
-
-
-def checker():
-    spec = importlib.util.spec_from_file_location("specseal_evidence", CHECKER)
-    ec = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ec)
-    return ec
 
 
 def attempted(root):
@@ -328,19 +301,17 @@ def old_items(root):
 def moves(root):
     """The units still to move, in the spec's order, as (kind, src, dst).
 
+    Reads: observed — what `git ls-files` lists under the old roots, through `entries` and `old_items`; unknown refused
+
     Computed from what git tracks as it stands, which is what makes a stopped
     move resume: a unit that already moved is not there to be listed.
     """
     units = []
     names = entries(root, OLD_HOME)
-    if "map.md" in names:
-        units.append(("ledger", f"{OLD_HOME}/map.md", f"{NEW}/ledger.md"))
-    if "map" in names:
-        units.append(("ledger-dir", f"{OLD_HOME}/map", f"{NEW}/ledger"))
     if "README.md" in names:
         units.append(("readme", f"{OLD_HOME}/README.md", f"{NEW}/README.md"))
     for name in names:
-        if name in ("map.md", "map", "README.md"):
+        if name == "README.md":
             continue
         units.append(("other", f"{OLD_HOME}/{name}", f"{NEW}/{name}"))
     items, _ = old_items(root)
@@ -470,90 +441,6 @@ def run_moves(root, units):
     return done, None
 
 
-def ledgers(root):
-    return sorted(
-        {
-            p
-            for pat in LEDGER_GLOBS
-            for p in glob.glob(os.path.join(root, pat), recursive=True)
-        }
-    )
-
-
-def moved_items(root):
-    """The work items now under `seal/specs/` — this run's moves and a
-    stopped run's earlier ones alike, since a resume moves only what remains
-    and the rows citing the first half still say `specs/`."""
-    try:
-        return frozenset(os.listdir(under(root, f"{NEW}/specs")))
-    except OSError:
-        return frozenset()
-
-
-def repoint_path(path, moved):
-    """The path after the move — unchanged when nothing moved it. An entry
-    under `specs/` that did not move stays where it is (step 5): a name that
-    is not a work item's, and an id-shaped directory without the marks. A
-    row citing either has to stay too, or the row breaks — so the test is
-    `moved`, the set that did move, and never the name pattern."""
-    for old, new in PREFIXES:
-        if path.startswith(old):
-            if old == f"{OLD_ITEMS}/":
-                head = path[len(old) :].split("/", 1)[0]
-                if head not in moved:
-                    return path
-            return new + path[len(old) :]
-    return path
-
-
-def repoint(root):
-    """Step 6. Every anchor under a moved prefix follows it; the hash stays.
-
-    The checker's own `ANCHOR_RE` finds the coordinates over the text the
-    check reads, `unquoted`, so the rewrite reads exactly what the check
-    reads, nothing in prose and nothing in a fenced example that closes. The count is of lines
-    changed — rows — not of anchors, since a row may cite two.
-    """
-    ec = checker()
-    moved = moved_items(root)
-    rows = 0
-    for ledger in ledgers(root):
-        text = ec.read(ledger)
-        if text is None:
-            continue
-
-        # A row inside a fenced block that closes is an example, and the
-        # check skips it (#444), so the rewrite leaves it byte for byte.
-        # Matched in the unquoted text and spliced from the original: the
-        # two have the same offsets, as in `reverify`.
-        view = ec.unquoted(text)
-        pieces, at = [], 0
-        for m in ec.ANCHOR_RE.finditer(view):
-            path = m.group("path")
-            new = repoint_path(path, moved)
-            if new != path:
-                pieces += [
-                    text[at : m.start()],
-                    new,
-                    text[m.start() + len(path) : m.end()],
-                ]
-                at = m.end()
-        new_text = "".join(pieces) + text[at:]
-        if new_text == text:
-            continue
-        # The same line count on both sides: only a path changed, never a
-        # newline, so a mismatch here would be a defect in the splice above.
-        rows += sum(
-            1
-            for a, b in zip(text.split("\n"), new_text.split("\n"), strict=True)
-            if a != b
-        )
-        with open(ledger, "w", encoding="utf-8") as f:
-            f.write(new_text)
-        git(root, "add", "--", os.path.relpath(ledger, root).replace(os.sep, "/"))
-    return rows
-
-
 def has_root(root):
     """True when `seal/` is a directory at either place the root can be."""
     if os.path.isdir(under(root, NEW)):
@@ -567,6 +454,10 @@ def say(message):
 
 
 def main():
+    """Move the old roots once, and say in one line what moved.
+
+    Reads: observed — the session-start event's `cwd`, and what git tracks under the old roots; unknown refused
+    """
     try:
         event = json.load(sys.stdin) or {}
         cwd = event.get("cwd")
@@ -581,8 +472,8 @@ def main():
         return
     if os.path.islink(under(root, OLD_HOME)):
         # Git tracks the link as one blob, so the home lists no units: the
-        # work items would move, the marker would be stamped, and
-        # `seal/ledger.md` would never appear. Refused before anything else,
+        # work items would move, the marker would be stamped, and the files
+        # behind the link would never move. Refused before anything else,
         # every session start, until the link is gone.
         say(
             f"specseal: {OLD_HOME}/ is a symbolic link, which git tracks as the "
@@ -619,8 +510,8 @@ def main():
     ):
         # The same blob on the other root. Git lists no work items behind
         # the link, so the home would move, the items would be named as
-        # "not tracked" and left, and the marker stamped over a ledger whose
-        # rows still cite the old paths. After the unit and marker checks, so
+        # "not tracked" and left, and the marker stamped over work items that
+        # never moved. After the unit and marker checks, so
         # a migrated repository stays silent; a linked `specs/` holding no
         # MARKED directory is a team's, not SpecSeal's, and is not refused.
         say(
@@ -649,17 +540,6 @@ def main():
             f"{error.path}: {error.error}. {tail}"
         )
         return
-    try:
-        rows = repoint(root)
-    except OSError as exc:
-        # Every unit has moved and the rows still say the old paths. Not
-        # stamped: the checker reports them BROKEN loudly, and the next start
-        # finds nothing old and stamps then.
-        say(
-            f"specseal: moved everything into {NEW}/ but could not re-point the "
-            f"ledger: {exc}. Run `evidence-check --reverify .`"
-        )
-        return
     stamp(root)
 
     had_home = any(kind != "item" for kind, _, _ in units)
@@ -682,15 +562,13 @@ def main():
             "no routing.md or rounds/ that git tracks — not a SpecSeal work item",
         ),
     )
-    tail = "".join(
-        f"; left {', '.join(f'{OLD_ITEMS}/{n}' for n in names)} where it is ({why})"
+    left_lines = "; ".join(
+        f"left {', '.join(f'{OLD_ITEMS}/{n}' for n in names)} where it is ({why})"
         for names, why in groups
         if names
     )
-    say(
-        f"specseal: moved {what} into {NEW}/ ({rows} ledger row"
-        f"{'' if rows == 1 else 's'} re-pointed{tail}) — review the diff and commit"
-    )
+    tail = f" ({left_lines})" if left_lines else ""
+    say(f"specseal: moved {what} into {NEW}/{tail} — review the diff and commit")
 
 
 if __name__ == "__main__":

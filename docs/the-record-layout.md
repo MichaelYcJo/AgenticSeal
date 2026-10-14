@@ -258,25 +258,22 @@ paragraph says what its English one says is review's to read.
 Enforced by: tests/test_both_editions_carry_the_same_folds.py::disagreements
 
 <!-- specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules -->
-**Whether a line is live is asked by what the line does, and the six
-readers that ask it give three answers.** These are all six readers, grouped
+**Whether a line is live is asked by what the line does, and the five
+readers that ask it give three answers.** These are all five readers, grouped
 by the kind of line they read, with the cost each answer is chosen against.
 Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_the_statement_names_each_reader_under_its_answer, tests/test_routing_is_recorded.py::test_the_routing_shapes_read_as_the_frame_expects, tests/test_routing_is_recorded.py::test_a_declaration_below_a_comment_opener_nobody_closed_still_reads
 
 - **A line that HOLDS something — a claim, an anchor, a rider — is read on
-  doubt.** The checker's `quoted_lines`, which every walk the checker makes
-  reads through `unquoted`; the records arm's `claim_lines`; and the rider
-  check's `quoted_lines`. A fence
-  nobody closed is a malformed file whose lines are read, and a commented-out
-  row is a parked claim and is read. What this protects is that a claim
-  never leaves a record in silence. The wrong answer is loud
+  doubt.** The coordinate kernel's `quoted_lines`, which its `unquoted` and
+  `markdown_lines` read through, and the rider check's `quoted_lines`. A
+  fence nobody closed is a malformed file whose lines are read, and a
+  commented-out row is a parked claim and is read. What this protects is
+  that a claim never leaves a record in silence. The wrong answer is loud
   instead: `BROKEN`, a refused name or exit 2, and a person answers it with
-  an edit or a marker. Two of the three read a different amount from the
-  checker, each for a reason its own docstring holds.
-  `claim_lines` reads a line-start comment that closes as an aside, because a
-  template's comments describe fields rather than assert units. The rider
-  check reads by `hooks/blocks.py#walk` rather than by the delimiter rule,
-  and parts from the checker three ways: it reads a fence its walk is not
+  an edit or a marker. The rider check reads a different amount from the
+  kernel, for a reason its own docstring holds: it reads by
+  `hooks/blocks.py#walk` rather than by the delimiter rule, and parts from
+  the kernel three ways: it reads a fence its walk is not
   sure of, one opened at one to three spaces, which the delimiter rule
   closes, because a rider the walk cannot place is read as it was before the
   walk; it reads a fence inside a line-start comment that closes, which a
@@ -294,7 +291,7 @@ Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
   comment opener nobody closed still declares unless a fence that closes
   holds it, because that reading never hid one and work item 1790645290
   was bound to miss no row the older reading saw. `hooks/routing.py#shown`,
-  which reads a `routing.md` and is not one of the six, keeps the reading
+  which reads a `routing.md` and is not one of the five, keeps the reading
   it gave before the walk the same way, and that reading hid nothing: a row
   below a fence or a comment opener nobody closed still declares there,
   unless a fence that closes holds it. Those rows are the places a line

@@ -1,10 +1,10 @@
 """Whether a line is live is asked by what the line does (#872).
 
-Six readers decide whether a ledger or record line is live, and they give
-three answers, because they read three kinds of line:
+Five readers decide whether a record line is live, and they give three
+answers, because they read three kinds of line:
 `docs/the-record-layout.md` §*The fold, and what tells it from a deletion*
 states the rule under the marker of work item 1791852615. This module is the
-one place the six stand side by side. Each per-reader module owns that
+one place the five stand side by side. Each per-reader module owns that
 reader's edges; this one pins only the answer each reader's docstring, or the
 statement, already gives on a small corpus of shapes, so a reader whose answer
 moves on one shape is a red cell naming the reader and the shape.
@@ -141,14 +141,8 @@ def as_text(lines):
 
 
 def checker_quoted_lines(lines, tmp_path):
-    """Read where the index is absent from the set the ledger walk skips."""
+    """Read where the index is absent from the set `unquoted` blanks."""
     return row_index(lines) not in checker.quoted_lines(lines)
-
-
-def checker_claim_lines(lines, tmp_path):
-    """Read where a `(number, text)` pair names the row's line."""
-    number = row_index(lines) + 1
-    return any(n == number for n, _ in checker.claim_lines(lines))
 
 
 def rider_quoted_lines(lines, tmp_path):
@@ -183,14 +177,8 @@ TABLE = {
     "evidence_check.py#quoted_lines": (
         checker_quoted_lines,
         HOLDS,
-        "checker's `quoted_lines`",
+        "kernel's `quoted_lines`",
         (N, R, R, R, R, R, R, N, N, R),
-    ),
-    "evidence_check.py#claim_lines": (
-        checker_claim_lines,
-        HOLDS,
-        "`claim_lines`",
-        (N, R, N, R, R, R, N, N, N, R),
     ),
     "rider_check.py#quoted_lines": (
         rider_quoted_lines,
