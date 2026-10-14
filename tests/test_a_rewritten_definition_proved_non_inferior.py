@@ -298,83 +298,27 @@ def test_a_side_counts_a_finding_row_no_truth_matches_as_false():
 def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
     """Guards where the false rows come from: the session's own `cat` of the
     report, the last one winning, and never a subagent's output."""
+
+    def cat(call_id, content, parent=None):
+        use = {"type": "tool_use", "id": call_id, "name": "Bash"}
+        use["input"] = {"command": "cat r/round-1-report.md"}
+        result = {"type": "tool_result", "tool_use_id": call_id, "content": content}
+        events = [{"message": {"content": [use]}}, {"message": {"content": [result]}}]
+        for event in events:
+            if parent:
+                event["parent_tool_use_id"] = parent
+        return events
+
+    last = [
+        {
+            "type": "text",
+            "text": "| 🟡 1 | new | `x:1` | open | read |\n| ⬜ 2 | n | `x:2` | open | r |",
+        }
+    ]
     events = [
-        {
-            "message": {
-                "content": [
-                    {
-                        "type": "tool_use",
-                        "id": "a",
-                        "name": "Bash",
-                        "input": {"command": "cat r/round-1-report.md"},
-                    }
-                ]
-            }
-        },
-        {
-            "message": {
-                "content": [
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": "a",
-                        "content": "| 🟡 1 | old | `x:1` | open | read |",
-                    }
-                ]
-            }
-        },
-        {
-            "parent_tool_use_id": "s",
-            "message": {
-                "content": [
-                    {
-                        "type": "tool_use",
-                        "id": "b",
-                        "name": "Bash",
-                        "input": {"command": "cat r/round-1-report.md"},
-                    }
-                ]
-            },
-        },
-        {
-            "parent_tool_use_id": "s",
-            "message": {
-                "content": [
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": "b",
-                        "content": "| 🔴 9 | sub | `x:1` | open | read |",
-                    }
-                ]
-            },
-        },
-        {
-            "message": {
-                "content": [
-                    {
-                        "type": "tool_use",
-                        "id": "c",
-                        "name": "Bash",
-                        "input": {"command": "cat r/round-1-report.md"},
-                    }
-                ]
-            }
-        },
-        {
-            "message": {
-                "content": [
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": "c",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": "| 🟡 1 | new | `x:1` | open | read |\n| ⬜ 2 | note | `x:2` | open | read |",
-                            }
-                        ],
-                    }
-                ]
-            }
-        },
+        *cat("a", "| 🟡 1 | old | `x:1` | open | read |"),
+        *cat("c", last),
+        *cat("b", "| 🔴 9 | sub | `x:1` | open | read |", parent="s"),
     ]
     trace = tmp_path / "trace.jsonl"
     trace.write_text(
