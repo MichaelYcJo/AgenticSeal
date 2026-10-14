@@ -46,11 +46,13 @@ ceiling has to say why in the body.
 
 ## Not done
 
-`--json`, which `spec.md` §*Data & interfaces* lists, is not built: no phase
-of `plan.md` names it and no case asks for it. The families #923 and #929
-frame — `bytes:`, `history:`, an enforcer gate, `test-cases` and
-`test-lines` — are theirs to add: each is one `MEASURERS` entry, and one
-`FILE_TABLES` entry where it is read per file.
+`--json`, which the frame listed, is not built and is no longer in
+`spec.md` §*Data & interfaces*: no phase of `plan.md` named it and nothing
+reads it. The families #923 and #929 frame — `bytes:`, `history:`, an
+enforcer gate, `test-cases` and `test-lines` — are theirs to add: each is
+one `MEASURERS` entry, or, where it is read per file, one `FILE_TABLES`
+entry carrying the reader that measures it, its table found under its own
+heading.
 
 ## Fed back into the spec
 

@@ -65,7 +65,7 @@ A line is a **rule line** from a line opening with `**` to the next `Enforced by
 
 ## Data & interfaces
 
-`seal/budgets.md` — a `## Budgets` table `| Budget | Unit | Ceiling | Slack | Kind |`, and two per-file tables, `## Slow test files` `| File | Seconds ceiling |` and `## Docs history lines` `| File | Lines ceiling |`, each read by the one checker through the repository's GFM table walker (`hooks/config.py`). `budget_check.py` — `--baseline <ref>` (merge base, as `unverified_check.py` resolves it), `--pr-body-env <VAR>`, `--ci-run <id>`, `--trend <tag>`, `--json`; writes `$GITHUB_STEP_SUMMARY` when set, stdout otherwise; names no machine path. Ledger rows: this spec's clauses anchored to the checker's units and their tests, in `seal/ledger/1791876665-….md`.
+`seal/budgets.md` — a `## Budgets` table `| Budget | Unit | Ceiling | Slack | Kind |`, and two per-file tables, `## Slow test files` `| File | Seconds ceiling |` and `## Docs history lines` `| File | Lines ceiling |`, each read by the one checker through the repository's GFM table walker (`hooks/config.py`). `budget_check.py` — `--baseline <ref>` (merge base, as `unverified_check.py` resolves it), `--pr-body-env <VAR>`, `--base-ref <branch>`, `--ci-jobs <file>`, `--trend <tag>`; writes `$GITHUB_STEP_SUMMARY` when set, stdout otherwise; names no machine path. Ledger rows: this spec's clauses anchored to the checker's units and their tests, in `seal/ledger/1791876665-….md`.
 
 ## Removes
 
