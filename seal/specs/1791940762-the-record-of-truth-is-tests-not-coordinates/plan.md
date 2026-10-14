@@ -41,7 +41,7 @@ Subtract. The ledger, its fold, its re-read and correction readers, its CI job a
 | E. The resolution gate in `fold-check` (widen `shape_problems` to every paragraph) rather than `budget_check.py` | Two readers of rule paragraphs — `fold-check`'s and #923's — disagree on what a rule paragraph is | rejected; one reader in `budget_check.py`, the resolver borrowed from `fold-check` |
 | F. Delete everything in one phase | Seven sibling branches touch the same prose files and `budgets.md`; a single large squash conflicts at every one, and nothing shows the replacement works before the old check is gone | rejected; phase 1 proves on one document |
 | H. Keep the survivor sweep through 0.22.0 because the three rewrite frames name it (this frame's first draft) | Every rewrite pull request fails hygiene: 410 non-defect places on one document with every rule kept, thousands across 19 docs, each excused by hand in a `survivors.md` nobody reads for grounds (#507, #532) | rejected 2026-10-14 under the owner's rule: existing is not a reason to keep |
-| G. Move the kernel to a new module (`coordinates.py`) now | Sixteen importers change paths across branches that are rewriting those files | rejected; the kernel stays at `evidence_check.py` and is renamed later |
+| G. Move the kernel to a new module (`coordinates.py`) now | Sixteen importers change paths across branches that are rewriting those files | chosen after phase 5 (owner, 2026-10-14); see the decision under Status |
 | **Chosen: two budget rows on #930's checker, the fold-check resolver, the readers migrated, the data and the mechanics deleted, the checker cut to its kernel at its path** | the paragraph above | — |
 
 ## Dependency and order
