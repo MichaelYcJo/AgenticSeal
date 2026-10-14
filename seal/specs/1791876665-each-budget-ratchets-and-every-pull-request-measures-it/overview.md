@@ -25,6 +25,10 @@ ceiling has to say why in the body.
 | The band on `ci-minutes:*` | `spec.md` §*The budgets*: every row is `measured ≤ ceiling ≤ measured × (1 + slack)`, `ci-minutes` at 60 % | code (phase 3): a row read off one run has the slack `one-sided`, a ceiling and no lower band, and only such a row may | the owner's approved default for #929 Q2: one run's minutes swing 1.08 to 1.21 times, and 3 of 5 quiet runs fell under the two-sided band on one leg |
 | How the checker reads a run | `spec.md` §*Data & interfaces* lists `--ci-run <id>` | code (phase 3): `--ci-jobs FILE`, the job list the workflow step fetches with `gh api … --paginate --jq '.jobs[]'`; with it the checker holds the run's rows alone, and without it the tree's run shows them unread | the checker reads no network and needs no token, so a case drives it from a file; the step that fetches is the one place the token is used |
 | `fetch-depth: 0` on the `budgets` job | spec silent; the job reads no history | code (phase 3): set, with a comment saying why | `tests/test_ci_gives_the_checks_what_they_need.py::test_every_job_that_runs_pytest_has_the_whole_history` picks a job by the word `pytest` in its text, and `needs: pytest` is that word. #931's branch picks by a line that invokes pytest instead; whichever lands second can drop the setting |
+| What a byte is | `spec.md` §*The budgets*: "bytes of `agents/<a>.md` + each `skills/<s>/SKILL.md`", read by `payload_meter.py` | code (phase 4): `payload_meter.py` names the files, and each is counted with every CRLF read as one LF | run 38485697284's Windows group 2 measured the fixture at 1,008 bytes where every other leg read 1,000: a checkout that writes CRLF counted each line end twice. The LF count is the bytes git stores under this repository's `eol=lf`, the same on every platform |
+| `rounds-bytes` over which work items | `spec.md`: "per open work item" | code (phase 4): every `seal/specs/<id>/rounds/` the tree holds, the largest the reading and each listed | a work item's records stay in the tree until `settle --retire-process` removes them after its release, so the tree is what the next reviewer inherits from; whether a released item still counts as open is not a fact the checker can read |
+| What `--trend` compares | `spec.md`: "the trend against the last release tag" | code (phase 4): each budget's ceiling at the tag beside its ceiling and reading today | a two-sided ceiling follows its reading, so the tag's ceiling is the tag's reading within its slack, read off one blob with no checkout of the tag; a one-sided row's line is what the release reads to lower it |
+| How `ledger-rereads` reads a row | spec silent | code (phase 4): a row is a line opening with `\| ` and its marker what follows | the fold writes that spelling, and `hooks/config.py#table_cells` declines one 0.21.1 row whose cells carry an even run of backslashes before a pipe, which read 26 `Corrected ·` where the file holds 27 |
 
 ## Not verified
 
@@ -35,13 +39,17 @@ ceiling has to say why in the body.
 | The full suite, the repository-wide lint and the typecheck at this branch's tip | the sealer, after the review rounds settle |
 | `test_the_trees_budgets_hold` and the module on the Windows and macOS legs | the pull request's `tests` run |
 | That the price level holds against a real refresh: #931's refreshed `.test_durations` beside this branch's rows, the level restated to the number the step names, and every seconds row then holding | the orchestrator, when #931 and this branch meet on the release branch |
-| The `budgets` job on this branch's pull request: it runs after the pytest legs, reads the job list with its `actions: read` token, and its summary shows three legs against 15, 59 and 32 with the billable line | the orchestrator, from the pull request's `tests` run after the push |
+| The `budgets` job on this branch's pull request: it runs after the pytest legs, reads the job list with its `actions: read` token, and its summary shows three legs against 15, 59 and 32 with the billable line | the orchestrator, from the pull request's `tests` run after the push; the job was green on run 38485697284, and its summary is the orchestrator's to read |
+| The two fixes of phase 4 on CI: the GFM census green on ubuntu, macOS group 2 and Windows group 1, and the byte cases green on Windows group 2 | the pull request's `tests` run at the pushed tip |
+| `--trend` on CI: the hygiene step's `git describe --tags --abbrev=0` names the base's last tag in the runner's checkout | the orchestrator, from the pull request's `hygiene` summary |
 
 ## Not done
 
 `--json`, which `spec.md` §*Data & interfaces* lists, is not built: no phase
-of `plan.md` names it and no case asks for it. Phase 4 carries the rest of
-the plan.
+of `plan.md` names it and no case asks for it. The families #923 and #929
+frame — `bytes:`, `history:`, an enforcer gate, `test-cases` and
+`test-lines` — are theirs to add: each is one `MEASURERS` entry, and one
+`FILE_TABLES` entry where it is read per file.
 
 ## Fed back into the spec
 
@@ -62,3 +70,13 @@ Inferred during implementation, phase 2:
 - A file row whose family row is gone needs no line of its own.
 - The price level: `## Price level`, its rule above, and that a refresh
   states it rather than raising every seconds ceiling.
+
+Inferred during implementation, phases 3–4:
+
+- A row read off one run is `one-sided`, and so may a `report` row be; no
+  other row may.
+- A byte is counted with each CRLF as one LF.
+- A one-sided ceiling is lowered at the release, to 1.3 times the largest of
+  the release's runs, from the trend line (`docs/release-checklist.md` §2).
+- `ledger-rereads` reads the release file `.claude-plugin/plugin.json`'s
+  version names, and is unread until that file exists.
