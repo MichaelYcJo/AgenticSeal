@@ -244,10 +244,6 @@ jobs:
   # After the suite, whatever its verdict: a red leg still spent its minutes.
   # The token reads the run's own job list and nothing else, declared here
   # because this workflow states no `permissions:` of its own.
-  #
-  # `fetch-depth: 0` is not for this job, which reads no history. It is what
-  # `tests/test_ci_gives_the_checks_what_they_need.py` asks of a job whose
-  # text names `pytest`, and `needs: pytest` does.
   budgets:
     needs: pytest
     if: ${{ !cancelled() }}
@@ -258,8 +254,6 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
