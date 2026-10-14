@@ -97,28 +97,37 @@ def run(*command, cwd):
 # --- the sentence, and the moment it arrives ----------------------------------
 
 
-def test_below_the_floor_the_launcher_refuses_before_the_script_runs(tmp_path):
+def test_below_the_floor_the_launcher_refuses_before_the_script_runs(
+    tmp_path, monkeypatch, capsys
+):
     """Exit 2, a sentence rather than a traceback, and the script never ran.
 
-    The sentence names the floor and the version found, or a reader whose
+    The process half runs a copy with its floor raised, so the exit code and
+    the moment are the shipped file's. The sentence half asks the real
+    `main` with its floor raised in place, where the decision is made. The
+    sentence names the floor and the version found, or a reader whose
     `python3` is secretly 3.9 cannot tell whether it means them; the
     interpreter's path, because on macOS the surprise is which file `python3`
     was; the command, because a reader typed the wrapper and not the file."""
     script = probe(tmp_path)
     out = run(launcher(tmp_path, (99, 0)), script, "0", cwd=tmp_path)
-    found = ".".join(str(part) for part in sys.version_info[:3])
     assert out.returncode == 2, (out.returncode, out.stderr)
-    assert out.stderr.startswith(
-        f"probe-case: needs python 99.0 or newer, and this is python {found} "
-        f"at {sys.executable}.\n"
-        "Nothing was read and nothing was written.\n"
-    ), out.stderr
-    assert "macOS ships python 3.9 under that name" in out.stderr, out.stderr
     assert "Traceback" not in out.stderr, out.stderr
     assert not out.stdout, out.stdout
+    launch = load(LAUNCH, "specseal_launch_refusal")
+    monkeypatch.setattr(launch, "FLOOR", (99, 0))
+    assert launch.main(["launch.py", script, "0"]) == 2
     assert not (tmp_path / "scripts" / "ran").exists(), (
         "the script ran before the refusal, so the refusal is not at entry"
     )
+    found = ".".join(str(part) for part in sys.version_info[:3])
+    err = capsys.readouterr().err
+    assert err.startswith(
+        f"probe-case: needs python 99.0 or newer, and this is python {found} "
+        f"at {sys.executable}.\n"
+        "Nothing was read and nothing was written.\n"
+    ), err
+    assert "macOS ships python 3.9 under that name" in err, err
 
 
 def test_at_the_floor_the_script_runs_as_if_it_were_run_directly(tmp_path):
