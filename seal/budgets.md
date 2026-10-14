@@ -31,7 +31,7 @@ commit alike. -->
 | preload:sealer | bytes | 36113 | 2 % | gate |
 | preload:smith | bytes | 101344 | 2 % | gate |
 | preload:warden | bytes | 102229 | 2 % | gate |
-| preload:claude-md | bytes | 9126 | 2 % | gate |
+| preload:claude-md | bytes | 9027 | 2 % | gate |
 | suite-seconds | seconds | 9185 | one-sided | gate |
 | slow-file | seconds | 120 | one-sided | gate |
 | docs-history | lines | 0 | +0 lines | gate |

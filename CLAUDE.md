@@ -40,11 +40,12 @@ is asked once, together, before the first edit, and nothing comes back mid-run.
 **A mechanism stays only while its history shows what it caught against what
 it costs.** Being written, shipped or documented is no reason to keep it. The
 record of truth is a test or a behaviour eval a rule's `Enforced by:` names,
-never coordinates somebody re-reads. A thing is re-checked only when it
-changed, by the party that knows what changed: the diff, CI. A change rewrites
-the text it amends in place; history goes to git, the changelog and the work
-record, one line per batch. `CONTRIBUTING.md` §*What a change to a gate must
-carry* is where a pull request answers this rule and the goal above.
+never coordinates somebody re-reads. A fact has one source: every other place
+links to it or derives it on demand, and never holds a second copy. A thing is
+re-checked only when it changed, by the party that knows what changed: the
+diff, CI. A change rewrites the text it amends in place; history goes to git,
+the changelog and the work record. `CONTRIBUTING.md` §*What a change to a gate
+must carry* is where a pull request answers this rule and the goal above.
 
 ## Repo rule — the merge method is fixed per direction, and it is not a preference
 
@@ -71,11 +72,8 @@ it is here because a session rewording an agent definition or a skill has no
 other reason to open that file. The concept and its format names stay bare —
 the Seal Test, a seal block — and a reference to one instance says whose.
 
-The word that bought it is `seal`: it named the warden's review mark, the
-sealer's stamp and the smith's proof block at once, two of them in files a
-reader opens together. `tests/test_one_word_one_meaning.py` is the check, and
-it holds one word per conversation somebody had — writing the rule down is
-not the repair, the check is.
+`tests/test_one_word_one_meaning.py` is the check, one word per conversation
+somebody had: writing the rule down is not the repair, the check is.
 
 ## Repo rule — commit early; on a declared branch it costs nothing
 
