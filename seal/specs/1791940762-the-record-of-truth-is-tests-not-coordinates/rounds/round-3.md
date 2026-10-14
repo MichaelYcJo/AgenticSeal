@@ -15,7 +15,7 @@
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -29,7 +29,7 @@ Verifying round 3 of #944: round 2's one fix at 005919e3 (test_pact_check.py's c
 | 🟢 | the overview text round 2's note 2 named now says what the tree has, in all three places | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/overview.md:34` | confirmed | executed: entries 11,863 to 9,208 across 8a63e245; no id names a missing file; the durations case passes; read: run 38646055747's Windows leg is unsharded with `--clean-durations`; the note itself is carried and closes at the run's end |
 | 🟢 | the range changes nothing beyond the fix, the overview paperwork and round 2's close | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/rounds/round-2.md:10` | confirmed | executed: `git diff --stat 04edf1aa..ce1795fa` is three files; the close's fix range holds one commit; no new unit |
 | 🟢 | the lines removed from the PR body were inert | PR #950 body | confirmed | executed: with an empty body the checker's only refusal is the `slow-file:tests/test_pact_check.py` raise |
-| ⬜ 1 | the changelog's "the suite's priced total fell by 796.5 seconds" is in the base's prices, and the refreshed `.test_durations` prices the suite at x1.132, a fall of 1,008 priced seconds against the base | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/changelog.md:49` | open | executed: totals 7,861.7 at the base, 7,066.9 before 8a63e245, 7,758.7 raw at the tip; read: the fragment last changed at 7b8edffb, before 8a63e245; paperwork, not counted in `Needs a fix` |
+| ⬜ 1 | the changelog's "the suite's priced total fell by 796.5 seconds" is in the base's prices, and the refreshed `.test_durations` prices the suite at x1.132, a fall of 1,008 priced seconds against the base | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/changelog.md:49` | answered | corrected at dfb5c7ed — dfb5c7ed; executed: totals 7,861.7 at the base, 7,066.9 before 8a63e245, 7,758.7 raw at the tip; read: the fragment last changed at 7b8edffb, before 8a63e245; paperwork, not counted in `Needs a fix` |
 
 ## Paste-ready fixes
 
@@ -70,7 +70,7 @@ Verifying round 3 of #944: round 2's one fix at 005919e3 (test_pact_check.py's c
 | round-1 | `tests/test_the_set_a_work_item_always_has.py:308` | round 1's 🟡 8 — fixed |
 | round-1 | `tests/test_a_unit_is_bounded_where_a_parser_decides.py` | round 1's ❓ — out of verified scope |
 | round-2 | `seal/budgets.md:73` | round 2's 🟡 1 — fixed |
-| round-2 | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/overview.md:56` | round 2's ⬜ 2 — open |
+| round-2 | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/overview.md:56` | round 2's ⬜ 2 — answered |
 | round-2 | `.github/scripts/rules.py:163` | round 2's 🟢 — confirmed |
 | round-2 | `.github/scripts/rules.py:62` | round 2's 🟢 — confirmed |
 | round-2 | `skills/implement/orchestration.md:18` | round 2's 🟢 — confirmed |

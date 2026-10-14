@@ -15,7 +15,7 @@
 | Needs a fix | yes — 🟡 1: `tests/test_pact_check.py`'s slow-file ceiling is listed at its reading, 121, with no headroom; it is 157 by the file's own rule, and the PR body's line moves with it |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -26,7 +26,7 @@ Verifying round 2 of #944: each of round 1's eight fixes over 5a3ffdb4..67275a50
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
 | 🟡 1 | `tests/test_pact_check.py` is listed at a ceiling equal to its reading, 0 headroom, against the 1.3-times rule its own file states, so the next refresh likely fails the gate on an unrelated pull request | `seal/budgets.md:73` | **fixed** `005919e3` | fixed at 005919e3; executed: `budget_check.py` reads 121 s (raw 137 at x1.132) against 121, 0.0 % headroom; this refresh alone moved the file 1.49 times the level; read: `seal/budgets.md:15-17` and `budget_check.py:94` give 157 |
-| ⬜ 2 | `overview.md` still says `.test_durations` is unrefreshed and its case red, after 8a63e245 refreshed it | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/overview.md:56` | open | executed: `test_the_durations_file_prices_the_suite` passes at the tip; also `overview.md:34` and `:77-79`; paperwork, not counted in `Needs a fix` |
+| ⬜ 2 | `overview.md` still says `.test_durations` is unrefreshed and its case red, after 8a63e245 refreshed it | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/overview.md:56` | answered | corrected at dfb5c7ed — fa8f9872; executed: `test_the_durations_file_prices_the_suite` passes at the tip; also `overview.md:34` and `:77-79`; paperwork, not counted in `Needs a fix` |
 | 🟢 | round 1's finding 1 is closed — `rules` resolves in the repository it is typed in, and both READMEs carry its row | `.github/scripts/rules.py:163` | confirmed | executed: mutation red on the subdirectory case; read: `ROOT` gone, the module docstring and `README.md:260`, `README.ko.md:247` |
 | 🟢 | round 1's finding 2 is closed — a target under an `if` or a `try` prints its sentence, never a traceback | `.github/scripts/rules.py:62` | confirmed | executed: mutation red on 3 cases; the module passes |
 | 🟢 | round 1's finding 3 is closed — indented rule paragraphs are counted, and six ceilings rose by 46 in total | `.github/scripts/budget_check.py:219` | confirmed | executed: mutation red; every `unenforced:` row holds; no visible paragraph opens 4 or more spaces in (§12) |
