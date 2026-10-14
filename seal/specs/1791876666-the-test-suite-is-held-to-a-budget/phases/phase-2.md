@@ -236,8 +236,45 @@ operators, not in the bar: the sole-killer case and T1 proved once an operand
 drop and an element removal existed, and most of the rest once the draw was
 ranked. The five still named are listed above.
 
+**After CI run 38518943105** (0f2b8a33). Two jobs failed, and both logs
+were read before anything changed:
+
+- **Windows, six end-to-end cases.** Every mutant was refused: `tree()`
+  wrote its fixtures with `write_text`, which writes CRLF there, and
+  `mutants_of` joined lines with `\n` while `mutation-check` matches the
+  file's bytes, so no `old` occurred once. The log is the proof: `1 of the 2
+  mutants drawn ran`, every run 0 s, and a `.md` line removed survived too,
+  which rules out stale bytecode. A CRLF fixture gives the same output on
+  macOS. Since 7177f24a a mutant keeps each line's own end, and `mutants_at`
+  reads with `newline=""`. `tree()` now writes the same bytes on every
+  platform, and a CRLF row pins the cause everywhere (contract §13).
+- **The `cases` job** proved 16 and named 6. The six were four end-to-end
+  paths and two direct tests:
+  - **The four paths** shared every kill with the other paths, because each
+    path's case runs all of `check`. The nine paths are now one parametrized
+    case with a row each (46cf830a). The check counts one function's ids as
+    one killer. The merged case is red under each mutant the old cases had
+    alone, numbered as at 0f2b8a33: `:879` condition negated, `:416` and `:326` `return None`, and
+    `:816` statement removed. Each was shown with `mutation-check`.
+  - **`drawn`'s order case** is kept. With the paths merged, a line it runs
+    has fewer siblings, and it proves by `:741 condition negated`.
+  - **The silent-run case** is kept and restructured (27803e56, db7cf728). A
+    probe of its uncapped draw found one mutant only it kills: the default
+    line of `next` removed. That mutant was 20th in its draw, behind every
+    argument of `mutation_run`'s subprocess call. The decision is now
+    `first_line`, handed the lines `mutation_run` splits, so the line-end
+    table's row for `mutation_run` stands. The case tests it directly, and
+    without the default line it is red under `mutation-check`.
+  - **What that case guards, nothing reads.** `check` discards
+    `mutation_run`'s first line in both of its calls. So `first_line([], …)`
+    at the call site survives every case (`executed`). Whether the value
+    should reach a finding or leave is the orchestrator's question.
+
+  Locally at db7cf728, `-n 4`, load 7–11: 15 proved, 0 named, in 298 s,
+  exit 0 (`executed`).
+
 **The cases**, each a direct test of one decision or one real path end to
-end, all passing (`executed`, 15 passed):
+end, all passing (`executed` at db7cf728, 20 ids passed):
 
 | Decision or path | Case |
 |---|---|
@@ -246,16 +283,9 @@ end, all passing (`executed`, 15 passed):
 | the sole killer is one function or none | `test_the_sole_killer_is_one_function_or_none` |
 | a named helper is followed | `test_a_function_named_in_a_case_is_followed_through_its_helpers` |
 | where a function's text ends | `test_a_line_end_python_does_not_read_moves_no_function` |
-| a run that prints nothing | `test_a_run_that_prints_nothing_is_named_by_its_exit` |
+| a run that prints nothing, through `first_line` | `test_a_run_that_prints_nothing_is_named_by_its_exit` |
 | `--baseline-passed` | `test_a_caller_that_ran_the_baseline_skips_it_in_mutation_check` |
-| a case that alone kills a mutant of changed code → 0, in the step summary | `test_a_new_case_that_alone_kills_a_mutant_of_changed_code_is_proved` |
-| a case its file already covers → 1 | `test_a_new_case_its_file_already_covers_is_named` |
-| a survivor of changed code → listed, 0 | `test_a_mutant_of_changed_code_nothing_kills_is_reported_and_fails_nothing` |
-| a tests-only case → proved from the lines it runs | `test_a_tests_only_change_draws_its_mutants_from_the_lines_it_runs` |
-| a prose pin → proved by its sentence removed | `test_a_prose_pin_is_proved_by_its_sentence_removed` |
-| a changed function → read | `test_a_changed_function_is_read_as_new` |
-| a removed case → listed | `test_a_removed_case_is_listed` |
-| a file past the bound → restructure | `test_a_file_whose_proof_would_pass_the_bound_is_named_to_restructure` |
+| each real path end to end, one row each: S4 → 0 in the step summary; the same on CRLF line ends; S3 → 1; a survivor listed; a tests-only case; S5's prose pin; S2's changed function; a removed case listed; a file past the bound → restructure | `test_each_real_path_end_to_end` |
 
 **#942's Q2, answered by the design and the owner's decisions.**
 

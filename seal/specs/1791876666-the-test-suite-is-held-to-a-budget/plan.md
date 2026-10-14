@@ -64,13 +64,13 @@ This table is also where the work records how far it got. **Status is empty, or 
 
 | Case | Guards | Mutation it kills |
 |---|---|---|
-| T1 `test_a_new_case_that_alone_kills_a_mutant_of_changed_code_is_proved` | S4 | a proof read off a run whose killers are not one function's alone |
-| T2 `test_a_new_case_its_file_already_covers_is_named` | S3 | a case that kills only what a sibling kills read as proved |
-| T3 `test_a_mutant_of_changed_code_nothing_kills_is_reported_and_fails_nothing` | S7 | a survivor of changed code left out of the summary, or made a failure |
-| T4 `test_a_tests_only_change_draws_its_mutants_from_the_lines_it_runs` | S4 | the traced lines a case runs alone not drawn first |
-| T5 `test_a_changed_function_is_read_as_new` | S2 | only names absent at the base read |
-| T6 `test_a_prose_pin_is_proved_by_its_sentence_removed` | S5 | a changed `.md` line not mutated |
-| T7 `test_a_file_whose_proof_would_pass_the_bound_is_named_to_restructure` | S2 | the bound read after the mutants run, or never |
+| T1 `test_each_real_path_end_to_end`, row *S4 a new case alone kills a mutant of changed code* | S4 | a proof read off a run whose killers are not one function's alone |
+| T2 `test_each_real_path_end_to_end`, row *S3 a case its file already covers is named* | S3 | a case that kills only what a sibling kills read as proved |
+| T3 `test_each_real_path_end_to_end`, row *a mutant of changed code nothing kills is reported* | S7 | a survivor of changed code left out of the summary, or made a failure |
+| T4 `test_each_real_path_end_to_end`, row *a tests-only change draws from the lines its case runs* | S4 | the traced lines a case runs alone not drawn first |
+| T5 `test_each_real_path_end_to_end`, row *S2 a changed function is read as new* | S2 | only names absent at the base read |
+| T6 `test_each_real_path_end_to_end`, row *S5 a prose pin is proved by its sentence removed* | S5 | a changed `.md` line not mutated |
+| T7 `test_each_real_path_end_to_end`, row *a file whose proof would pass the bound is named to restructure* | S2 | the bound read after the mutants run, or never |
 | T8 `test_the_five_rows_measure_the_tree_and_an_unlisted_large_file_fails` | S8 | `test-cases` counting functions instead of ids; the `≥ 200` threshold dropped · NAME NOT IN TREE: planted with the measurers, after #930 lands |
 | T9 `test_every_kind_has_a_sampled_row` (per enumeration file) | S7 | one kind's rows all removed from the sample: the kind is in the enumeration and has no representative · NAME NOT IN TREE: planted in phase 3 |
 
