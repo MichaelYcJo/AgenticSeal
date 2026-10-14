@@ -271,7 +271,10 @@ def mutation_run(root, path, old, new, tests, timeout):
         errors="replace",
     )
     output = done.stdout + done.stderr
-    first = next((line for line in output.splitlines() if line.strip()), "")
+    first = next(
+        (line for line in output.splitlines() if line.strip()),
+        f"exit {done.returncode}, and mutation-check printed nothing",
+    )
     return done.returncode, first.replace(root + os.sep, "").replace(root, "."), output
 
 

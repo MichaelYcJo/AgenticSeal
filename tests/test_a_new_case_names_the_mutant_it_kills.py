@@ -262,3 +262,20 @@ def test_a_file_leaves_the_list_only_when_every_function_carries_the_line(
         "`tests/test_p.py` is on tests/unguarded-files.txt and not on the base's copy"
         in out
     ), out
+
+
+def test_a_run_that_prints_nothing_is_named_by_its_exit(tmp_path, monkeypatch):
+    """A `mutation-check` run that ends with no output, as a process killed
+    by a signal does, still gives the finding something to say: its exit.
+    Measured in this work item's phase 2, where two runs of a busy machine
+    came back empty.
+
+    Kills: .github/scripts/case_check.py "f\"exit {done.returncode}, and mutation-check printed nothing\"" "\"\""
+    """
+    silent = tmp_path / "silent.py"
+    silent.write_text("import sys\nsys.exit(3)\n", encoding="utf-8")
+    module = case_check()
+    monkeypatch.setattr(module, "MUTATION_CHECK", str(silent))
+    code, verdict, _ = module.mutation_run(str(tmp_path), "m.py", "a", "b", ["true"], 5)
+    assert code == 3
+    assert verdict == "exit 3, and mutation-check printed nothing"
