@@ -59,7 +59,15 @@
   `NOTED` line and the change counts on the `READ` line and in the summary
   are gone. The pact review procedure and `templates/pact-review.md` go
   with them, and `pact-check` no longer reads anchors in a signer's ledger
-  files. `Pact notify` is still read and printed, and acts on nothing.
+  files. The `Pact notify` row, which chose which of those records the
+  pact's repository read, goes too: `pact-check`'s `READ` line and
+  `chain-check`'s notice no longer print a notify value, and a row left in a
+  config is read by nobody, refused by nothing and named by nothing, as
+  `templates/config.md` §*Pact* says. With it goes the rule that refused
+  every other line of `seal/config.md` naming a pact (#759), which never
+  refused a real config; a row below the table is still refused, as any row
+  there is, and a `Pact` row the table does not hold reads as no row, so
+  `pact-check` reports that signer as recorded on one side only.
   (`1791940762-the-record-of-truth-is-tests-not-coordinates`, #944)
 
 ### Added

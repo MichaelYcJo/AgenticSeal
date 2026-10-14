@@ -351,12 +351,9 @@ hooks/config.py#_signer@1378cded
 hooks/config.py#_stops_at@8d31bdd2
 hooks/config.py#a_list_above@0d1062b1
 hooks/config.py#config_path@09093926
-hooks/config.py#declared_pacts@16338e3d
-hooks/config.py#doubled_row@2a8a6b7d
 hooks/config.py#html_start@9031692d
 hooks/config.py#inside_the_root@5c40ddf0
 hooks/config.py#normalise_remote@578179da
-hooks/config.py#pact_line_refusal@ea7ae24d
 hooks/config.py#pact_name@0d356760
 hooks/config.py#pact_signers@022bffe5
 hooks/config.py#raw_html_open@ccd7e820
@@ -648,7 +645,6 @@ skills/code-review/scripts/chain_check.py#nothing_declared@03324ece
 skills/code-review/scripts/chain_check.py#open_blocking@8facae38
 skills/code-review/scripts/chain_check.py#open_row_reason@f520777e
 skills/code-review/scripts/chain_check.py#own_commits@74001584
-skills/code-review/scripts/chain_check.py#pact_notices@7a8c2642
 skills/code-review/scripts/chain_check.py#pass_boxes@e8c0e874
 skills/code-review/scripts/chain_check.py#pass_checked@1c53aa98
 skills/code-review/scripts/chain_check.py#paths_of@4561375e

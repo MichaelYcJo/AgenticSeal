@@ -557,11 +557,10 @@ repository's code would be wrong if it changed. Where both hold:
   begun from `templates/pact.md` and written by the build there, framed by
   that repository's own spec. That repository is the pact's repository;
 - every other repository of the work item is a signer too, and this step
-  writes two rows into its `seal/config.md` where they are absent: `Pact`,
-  the origin remote URL of the pact's repository, and `Pact notify`, written
-  as `when the pact is touched`. `templates/config.md` §*Pact* documents
-  both. The pact's repository needs no row, because it is identified by
-  holding `seal/pact.md`;
+  writes one row into its `seal/config.md` where it is absent: `Pact`, the
+  origin remote URL of the pact's repository. `templates/config.md` §*Pact*
+  documents it. The pact's repository needs no row, because it is
+  identified by holding `seal/pact.md`;
 - each signer cites the clauses it was built against as pact anchors, in
   its spec's Grounding, and `pact-check`, run at the
   pact's repository, reads every signer and says where they disagree.

@@ -607,10 +607,6 @@ OUT_OF_CLASS.update(
             "the pieces `riders_in` read, written back each with its own end",
         ),
         ("hooks/blocks.py", "walk_text"): (1, F),
-        # Each GFM line counted in the reader's pieces of it, so a line the
-        # walk took whole is told from one a `str.splitlines`-only character
-        # cuts (#759).
-        ("hooks/config.py", "pact_lines_not_read"): (1, F),
         # The one GFM table walker `seal/config.md`'s table (#871), the
         # pact's `Signer` table and both pact records are read through,
         # reading what `unfenced` shows it (#647; ⬜ 21 of #735's round 3).

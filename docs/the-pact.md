@@ -76,45 +76,17 @@ Enforced by: tests/test_a_signer_declares_its_pact.py::test_the_routing_step_min
 
 <!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
 **Every signer but the pact's repository names the pact in a `Pact` row
-of its `seal/config.md`, and says in `Pact notify` what it asks to be told,
-and one reader answers both rows for every caller.** `Pact` is the origin
-remote URL of the pact's repository, several separated by `;`, compared
-normalised; its last path segment is the name an anchor carries, so two
-pacts ending in one segment are refused. `Pact notify` is `always`,
-`when the pact is touched` or `never`, `when the pact is touched` where it
-is absent. Both commands print the value, and neither acts on it.
-`hooks/config.py#pact_declaration` refuses
-what will not parse in a sentence and stops nothing, so the print at a
-signer's pull request and the refusal at the pact's repository are about
-the same rows. A `Pact notify` value outside the vocabulary, or a row
-written twice, has no value at all: its first row is not the answer.
-Enforced by: tests/test_a_signer_declares_its_pact.py::test_one_pact_reads_normalised_with_the_default_notify, tests/test_a_signer_declares_its_pact.py::test_a_notify_value_outside_the_vocabulary_is_refused_naming_all_three, tests/test_a_signer_declares_its_pact.py::test_a_notify_row_written_twice_has_no_value, tests/test_a_signer_declares_its_pact.py::test_a_row_that_will_not_parse_is_refused_and_never_read_as_absent
-
-<!-- specs/1791128260-a-pact-row-is-read-in-one-plain-spelling -->
-**A pact row is read in one spelling, and every other line of `seal/config.md`
-that names a pact is refused.** The one spelling is a row of the
-`| Item | Value |` table whose item is exactly `Pact` or `Pact notify`: that
-case, one space between the words, and nothing in its cell but the item and the
-spaces around it. A line names a pact where the letters `p`, `a`, `c` and `t`
-stand in that order with only non-letters between them and no letter before the
-`p`, as written or with its character references decoded and its compatibility
-letters folded (NFKC), so a fullwidth or mathematical `Pact` names one and
-`impact` names none. On a row of the table only the item is read, so a value
-that mentions a pact is never refused. Any other line is refused where it also
-holds a `|`: a row written below the table's end, in a second table, in a block
-quote, inside a code fence or an HTML comment, or cut by a character only
-Python ends a line at. An example kept in a fence or a comment is refused too,
-because telling it from a live row would mean modelling GFM; delete it. A line
-with no `|` has no value cell, so the pact can be named in prose. A line
-standing directly over a table's delimiter row is that table's header, and a
-one-column table needs no pipe anywhere, so such a line naming a pact is
-refused with or without a `|`, inside a block quote or a list item too. In a
-file that holds an HTML table cell's tag, `<td>` or `<th>`, anywhere, a code
-span, a fence or a comment included, a line naming a pact is refused with or
-without a `|`, because such a cell carries a value with no pipe beside it; take
-the tag out to name the pact in prose again. A refusal leaves `Pact notify`
-with no value, so `pact-check` exits 2 and a signer's CI prints a notice.
-Enforced by: tests/test_a_signer_declares_its_pact.py::test_s2_every_way_the_walk_passes_a_pact_row_by_is_refused, tests/test_a_signer_declares_its_pact.py::test_s2_a_pact_item_spelled_another_way_is_refused, tests/test_a_signer_declares_its_pact.py::test_s4_a_line_that_is_not_a_pact_row_in_another_spelling_is_silent, tests/test_a_signer_declares_its_pact.py::test_s5_a_plain_row_in_a_fence_or_a_comment_is_refused_and_not_read
+of its `seal/config.md`, and one reader answers that row for every
+caller.** `Pact` is the origin remote URL of the pact's repository, several
+separated by `;`, compared normalised; its last path segment is the name an
+anchor carries, so two pacts ending in one segment are refused.
+`hooks/config.py#pact_declaration` refuses what will not parse in a
+sentence and stops nothing, so the print at a signer's pull request and the
+refusal at the pact's repository are about the same row. A `Pact` row
+written twice has no value at all: its first row is not the answer. A
+`Pact` row the config table does not hold is no row, so `pact-check` reads
+that signer as naming no pact, a relationship recorded on one side only.
+Enforced by: tests/test_a_signer_declares_its_pact.py::test_one_pact_reads_normalised, tests/test_a_signer_declares_its_pact.py::test_a_row_that_will_not_parse_is_refused_and_never_read_as_absent, tests/test_pact_check.py::test_s11_a_relationship_recorded_on_one_side_is_refused
 
 ## The pact anchor
 
@@ -152,11 +124,11 @@ Enforced by: tests/test_pact_check.py::test_an_anchor_missing_its_slash_is_refus
 many pact anchors its declared work item cites, and no exit status moves on
 anything about the pact.** There is no token for a pull request to read
 another repository with (#647, decision 2), so a signer's CI can see one
-side only. It prints the pact's repository, the notify value and the anchor
-count, a notice for a row that will not parse or an anchor naming an
-undeclared pact, and in the pact's repository how many signers the pact
-lists, and every one of them says that `pact-check` at the pact's repository
-is where the reconciliation runs.
+side only. It prints the pact's repository and the anchor count, a notice
+for a row that will not parse or an anchor naming an undeclared pact, and in
+the pact's repository how many signers the pact lists, and every one of them
+says that `pact-check` at the pact's repository is where the reconciliation
+runs.
 Enforced by: tests/test_a_signers_ci_prints_its_pact.py::test_a_signer_prints_its_pact_and_its_exit_status_does_not_move, tests/test_a_signers_ci_prints_its_pact.py::test_a_row_that_will_not_parse_is_a_notice_and_never_a_failure, tests/test_a_signers_ci_prints_its_pact.py::test_the_pacts_repository_prints_how_many_signers_it_lists
 
 ## `pact-check` reconciles, locally
@@ -190,21 +162,3 @@ signer re-reads, and renaming the heading is one each of them has to
 re-coordinate. And `pact-check` runs where a person runs it: nothing on a
 pull request reconciles anything.
 Enforced by: tests/test_pact_check.py::test_a_pact_under_local_mode_has_no_history_and_says_so, tests/test_pact_check.py::test_s10_a_hash_no_commit_gave_is_unmatched
-
-<!-- specs/1791128260-a-pact-row-is-read-in-one-plain-spelling -->
-**A pact line with a letter written between the word's letters, or with a
-look-alike letter, from another script or its own, is read as no line at all.**
-The reader names a pact by its four letters with only non-letters between them,
-so the letters of markup break the word: a tag name in `P<b></b>act`, a link
-destination in `[P](x)act`, and an entity name the decode does not know. So
-does `Pаct` spelled with a Cyrillic `а`, U+0430, and `ᴘᴀᴄᴛ` in Latin small
-capitals, which NFKC does not fold. Each such line is read as it was before
-#759, and a notify value written in one is the default. YAML front matter is
-not read either: github.com shows it as a table, cmark-gfm does not, and a line
-of it naming a pact is refused only where it holds a `|`. Catching these would
-need a grammar of GFM's markup or a table of look-alike letters, and leaving
-both out is what keeps the rule one that refuses rather than one that models.
-Every spelling the review of the earlier design found is caught:
-`` `Pact notify` ``, `**Pact notify**`, `Pact` with a U+200B inside it,
-`[Pact notify](x)` and a character reference such as `P&#97;ct`.
-Enforced by: tests/test_a_signer_declares_its_pact.py::test_the_blind_side_is_read_as_no_line, tests/test_a_signer_declares_its_pact.py::test_s2_a_pact_item_spelled_another_way_is_refused

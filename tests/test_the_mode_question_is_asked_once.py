@@ -1206,16 +1206,14 @@ def test_every_config_reader_is_one_walk_over_the_sixteen_shapes(config, number)
     the stop rule returned the same rows above the line and dropped every
     row below it in silence, which is what the refusal assertion holds; 10
     and 15 the two readers read alike. Then the walk itself: `config_table`
-    is `gfm_table` over the config header, `indexed_config_rows` is its
-    rows, every index names the line the row is written on, and the refusal
-    names where the walk stopped."""
+    is `gfm_table` over the config header, every index names the line the
+    row is written on, and the refusal names where the walk stopped."""
     text = config_shapes.SHAPES[number]
     assert config.config_rows(text) == config_shapes.READ[number]
     rows, refusals = config.config_table(text)
     walked, said = config.gfm_table(text, config.CONFIG_TABLE)
     assert rows == [(line - 1, item, value) for line, (item, value) in walked]
     assert refusals == said
-    assert config.indexed_config_rows(text) == rows
     lines = text.splitlines()
     assert all(
         config.table_cells(lines[index]) == (item, value) for index, item, value in rows

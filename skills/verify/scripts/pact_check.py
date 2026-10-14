@@ -58,7 +58,7 @@ A pact under local mode has no history, so every mismatch there reads
      found on this machine
   2  unusable input: no pact here, a pact or file that cannot be read, a
      `BROKEN` anchor, an anchor naming this pact that does not parse, a
-     `Pact` row or notify value that will not parse, a relationship
+     `Pact` row that will not parse, a relationship
      recorded on one side only, or a pact's repository with no origin
      remote
 
@@ -558,7 +558,7 @@ def check(root, out=sys.stdout, home_dir=None):
                 "could not be read",
             )
             continue
-        pacts, notify, row_refusals = declared
+        pacts, row_refusals = declared
         for refusal in row_refusals:
             found(REFUSED, written, f"seal/{CONFIG_FILE}", refusal)
         if not any(n == config.normalise_remote(mine) for _w, n, _ in pacts):
@@ -622,10 +622,8 @@ def check(root, out=sys.stdout, home_dir=None):
                     "fenced code block, which nothing reads",
                 )
         say(
-            f"READ {written} {shown(path, home_dir=home_dir)} — "
-            f"`{config.PACT_NOTIFY_ROW}`: "
-            f"{notify or 'will not parse'}; {anchors} pact anchor"
-            f"{'' if anchors == 1 else 's'} naming `{name}`"
+            f"READ {written} {shown(path, home_dir=home_dir)} — {anchors} pact "
+            f"anchor{'' if anchors == 1 else 's'} naming `{name}`"
         )
 
     summary = (

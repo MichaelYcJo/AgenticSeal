@@ -4732,13 +4732,13 @@ def pact_notices(routing, root, declarations):
     That is #647's decision 2: a signer's CI prints the relationship and
     does not verify it. The strict reading of the same rows is `pact-check`'s,
     run locally at the pact's repository, which can open every signer;
-    this check can open one. So a `Pact` row that will not parse, a notify
-    value outside the vocabulary, and an anchor naming a pact no row declares
-    are printed here exactly as a well-formed relationship is.
+    this check can open one. So a `Pact` row that will not parse and an
+    anchor naming a pact no row declares are printed here exactly as a
+    well-formed relationship is.
 
     - Where `seal/config.md` names a pact held elsewhere: one notice per pact,
-      naming the pact's repository, the notify value, and how many pact
-      anchors naming it the declared work item's `spec.md` carries.
+      naming the pact's repository and how many pact anchors naming it the
+      declared work item's `spec.md` carries.
     - Where this repository holds `seal/pact.md`: how many signers the
       pact lists, and, where its table is headed as 0.18.x wrote it, the
       sentence naming the rename (`hooks/config.py#renamed_header`, #822).
@@ -4748,6 +4748,8 @@ def pact_notices(routing, root, declarations):
     Read from HEAD, as every record here is (`read_record`), so a local-mode
     root, which commits nothing, prints nothing. A reader that will not load
     is one notice rather than exit 2, for the same decision.
+
+    Reads: guess — the `Pact` row, `seal/pact.md` and the declared work items' `spec.md` at HEAD, through `hooks/config.py` and `coordinates.py`; unknown passed
     """
     home = routing.optin.HOME
     config_rel = f"{home}/config.md"
@@ -4794,7 +4796,7 @@ def pact_notices(routing, root, declarations):
                 "notice",
             )
         )
-    pacts, notify, refusals = config.pact_declaration(config_text or "")
+    pacts, refusals = config.pact_declaration(config_text or "")
     for written, _normalised, name in pacts:
         count = sum(1 for _rel, n in cited if n == name)
         where = (
@@ -4807,9 +4809,7 @@ def pact_notices(routing, root, declarations):
             (
                 config_rel,
                 0,
-                f"this repository signs the pact held at {written} "
-                f"(`{config.PACT_NOTIFY_ROW}`: "
-                f"{notify if notify else 'a value that will not parse'}). "
+                f"this repository signs the pact held at {written}. "
                 f"{plural(count, 'pact anchor', 'pact anchors')} naming "
                 f"`{name}` in {where}. {PACT_NOT_HERE}",
             )

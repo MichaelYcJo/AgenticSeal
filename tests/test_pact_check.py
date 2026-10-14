@@ -170,8 +170,7 @@ def test_s12_a_signer_citing_the_current_clause_is_clean(world):
     code, out = run(world)
     assert code == 0, out
     assert (
-        f"READ {SIGNER_URL} {posix(world['web'])} — `Pact notify`: when the pact is "
-        "touched; 2 pact anchors naming `orders-api`"
+        f"READ {SIGNER_URL} {posix(world['web'])} — 2 pact anchors naming `orders-api`"
     ) in out, out
     assert (
         "pact-check: the pact `orders-api` — 1 of 1 signer read · 2 ok · 0 "
@@ -206,8 +205,7 @@ def test_s1_a_pact_headed_signer_reads_with_no_word_of_a_rename(world):
     code, out = run(world)
     assert code == 0, out
     assert (
-        f"READ {SIGNER_URL} {posix(world['web'])} — `Pact notify`: when the pact "
-        "is touched; 1 pact anchor naming `orders-api`"
+        f"READ {SIGNER_URL} {posix(world['web'])} — 1 pact anchor naming `orders-api`"
     ) in out, out
     assert "heads its table" not in out and "Signatory" not in out, out
 
@@ -386,56 +384,24 @@ def test_s11_a_relationship_recorded_on_one_side_is_refused(world):
 
 
 @pytest.mark.parametrize(
-    "notify, refusal",
+    "rows",
     [
-        (
-            [("Pact notify", "sometimes")],
-            "`Pact notify | sometimes` is not one of `always`, "
-            "`when the pact is touched`, `never`",
-        ),
-        (
-            [("Pact notify", "never"), ("Pact notify", "always")],
-            "`Pact notify` appears 2 times — one value",
-        ),
+        [("Pact notify", "sometimes")],
+        [("Pact notify", "never"), ("Pact notify", "always")],
     ],
-    ids=["outside the vocabulary", "written twice"],
+    ids=["a value outside the old vocabulary", "written twice"],
 )
-def test_s3_a_notify_value_outside_the_vocabulary_is_exit_2(world, notify, refusal):
-    """S3, the `pact-check` half: the reader's refusal, read strictly. A row
-    written twice has no value either, and the `READ` line says so rather
-    than printing its first row (round 2 of PR #756, white 3)."""
-    write(
-        world["web"],
-        "seal/config.md",
-        config(("Pact", PACT_URL), *notify),
-    )
+def test_a_pact_notify_row_an_earlier_release_read_is_ignored(world, rows):
+    """`templates/config.md` §*Pact*: a `Pact notify` row left in a signer's
+    table is read by nobody, so neither a value outside the vocabulary the
+    row once had nor the row written twice is refused, and the `READ` line
+    names no notify value. Seen red against the reader that still refused
+    the row: exit 2."""
+    write(world["web"], "seal/config.md", config(("Pact", PACT_URL), *rows))
     cite(world, clause(V2))
     code, out = run(world)
-    assert code == 2, out
-    assert f"REFUSED {SIGNER_URL} seal/config.md — {refusal}" in out, out
-    assert "— `Pact notify`: will not parse;" in out, out
-
-
-def test_s7_a_notify_row_below_the_signers_table_is_exit_2(world):
-    """S7 of #759. A `Pact notify` row under a blank line that ended the
-    signer's table was read as the default and the run was clean. It
-    names a pact and is not a pact row in the one spelling read, so it is
-    refused, naming the line, and the notify reads as no value."""
-    write(
-        world["web"],
-        "seal/config.md",
-        config(("Pact", PACT_URL)) + "\n| Pact notify | always |\n",
-    )
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        f"REFUSED {SIGNER_URL} seal/config.md — `| Pact notify | always |` "
-        "names a pact and is not a `Pact` or `Pact notify` row in the one "
-        "spelling read: write it as `| Pact | … |` or `| Pact notify | … |` "
-        "inside the `| Item | Value |` table, or take it out of this file"
-    ) in out, out
-    assert "— `Pact notify`: will not parse;" in out, out
+    assert code == 0, out
+    assert "REFUSED" not in out and "`Pact notify`" not in out, out
 
 
 def test_a_signer_config_the_walker_refuses_is_exit_2(world):

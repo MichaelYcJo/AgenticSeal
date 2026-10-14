@@ -75,7 +75,6 @@ these shapes.
 | Broad gate |  |
 | Reference specs |  |
 | Pact |  |
-| Pact notify |  |
 
 ## Commit and pull request language
 
@@ -141,9 +140,6 @@ every repository, whatever either row says:
   section's `## X.Y.Z — <date>`, a drained file's `drained` line, the `✅` that
   closes a row and the `🔴` that opens one, and a pact anchor's
   `pact:<name>/"<heading path>"@<hash>`.
-- **The `Pact notify` values.** `always`, `when the pact is touched` and
-  `never` are read literally by `hooks/config.py#pact_declaration`, so a
-  translated value is refused rather than read.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
 - **The item column of this table**, which is a key rather than prose — the
@@ -404,7 +400,7 @@ same file.
 
 ## Pact
 
-Two rows, written in a signer of a pact held in another repository
+One row, written in a signer of a pact held in another repository
 (`docs/the-pact.md`). A work item that commits in more than one repository,
 where those repositories keep a contract together, keeps the one copy of that
 contract in `seal/pact.md` in one of them. Every repository of the work item
@@ -412,48 +408,31 @@ is a signer, and every one except the pact's repository names the pact
 here. The pact's repository needs no row: it is identified by holding
 `seal/pact.md`.
 
-Both rows are written in the table at the top of this file, and nowhere
-else in it:
-
 - **`Pact`**: the origin remote URL of the pact's repository, such as
   `git@example.com:org/orders-api.git`; a signer of pacts held in more
   than one repository lists them separated by `;`. Absent: no pact is held
   elsewhere.
-- **`Pact notify`**: `always` · `when the pact is touched` · `never`.
-  Absent: `when the pact is touched` where a `Pact` row stands, and ignored
-  where none does. Written anywhere but the table above, or spelled any
-  other way, it is refused, not absent.
 
 **The URL is compared normalised**, so `git@example.com:org/orders-api.git`
 and `https://example.com/org/orders-api` name one repository. Its last path
 segment is the name a pact anchor carries, `pact:orders-api/"## A"@1a2b3c4d`,
 so two pacts whose URLs end in the same segment are refused as ambiguous.
 
-**`Pact notify` is read and printed, and decides nothing.** `chain-check`
-prints it at this repository's pull request and `pact-check` prints it on
-this signer's `READ` line; neither does anything different for any of the
-three values. It chose which of a signer's records of pact changes the
-pact's repository read, and those records are no longer read.
-
 **A row that will not parse is refused in a sentence**, never read as absent.
 At this repository's pull request `chain-check` prints the sentence and its
 exit status does not move: a signer's CI prints and does not verify.
-`pact-check`, run at the pact's repository, reads the same rows through the
-same reader, `hooks/config.py#pact_declaration`, and exits 2 on them.
+`pact-check`, run at the pact's repository, reads the same row through the
+same reader, `hooks/config.py#pact_declaration`, and exits 2 on it. A `Pact`
+row the table does not hold is no row: `pact-check` then reads the signer as
+naming no pact and exits 2 on a relationship recorded on one side only.
 
-**Both rows are read only where the table above holds them, spelled exactly
-`Pact` and `Pact notify`.** Any other line of `seal/config.md` that names a
-pact and holds a pipe is refused the same way: one written under the
-table, a fenced or commented example, or a row of the table whose item says
-`pact notify`, `**Pact notify**` or `` `Pact` ``. Keep both rows in that
-table. A sentence with no pipe in it may name the pact freely, which is why
-this section is written without one: this file can be copied whole. A file
-that also holds an HTML table cell's tag, a `td` or `th` opened with a `<`,
-anywhere, a comment or a code span included, refuses such a sentence too, so
-keep that tag out of this file. So does a line directly under the sentence
-that GFM reads as a table's delimiter row, such as `:-:`, `---:` or dashes
-between two pipes, which makes the sentence a one-column table's header; a
-line of dashes alone is a heading's underline and refuses nothing.
+**A `Pact notify` row is read by nobody.** An earlier release read a second
+pact row, `Pact notify`, and nothing has acted on its value since the pact's
+records of changes left. In the table no command refuses it, prints it or
+names it, like any item no reader asks for; delete it when the file is next
+edited. It is not named because naming it would keep a reader for a row
+that changes nothing, and a refusal would stop `pact-check` at the pact's
+repository over it.
 
 ## The fold's values
 
