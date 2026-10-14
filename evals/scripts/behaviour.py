@@ -51,8 +51,9 @@ def grader(kind, name, body, **fields):
     return f"{kind}-{name}.md", "\n".join(lines)
 
 
-def report_regex(kind, name, path, pattern, body):
-    """A regex grader over the file at PATH, multiline.
+def report_regex(kind, name, path, pattern, body, flags="m"):
+    """A regex grader over the file at PATH, multiline unless FLAGS says
+    otherwise.
 
     Reads: nothing — it formats the fields it is handed."""
     return grader(
@@ -62,7 +63,7 @@ def report_regex(kind, name, path, pattern, body):
         type="regex",
         target={"source": "file", "path": path},
         pattern=pattern,
-        flags="m",
+        flags=flags,
     )
 
 
@@ -79,6 +80,45 @@ def reach(agent):
         tool="Agent",
         input_match=f'"subagent_type"\\s*:\\s*"specseal:{agent}"',
     )
+
+
+def report_shape(agent, report):
+    """The reach grader and the four shape graders of a warden report at
+    REPORT: it exists, carries the verdict table in the record's columns, and
+    both terminal lines.
+
+    Reads: nothing — it formats the fields it is handed."""
+    return [
+        reach(agent),
+        grader(
+            "shape",
+            "report-exists",
+            "The report is at its path.",
+            type="file_exists",
+            path=report,
+        ),
+        report_regex(
+            "shape",
+            "verdicts-table",
+            report,
+            r"^## Verdicts\s*\n\s*\n\| # \| Finding \| Location \| Verdict \| Grounds \|",
+            "The report carries the verdict table under its heading, in the record's columns.",
+        ),
+        report_regex(
+            "shape",
+            "needs-a-fix",
+            report,
+            r"^Needs a fix: (?:no|yes)",
+            "The report carries its Needs a fix line.",
+        ),
+        report_regex(
+            "shape",
+            "loses-a-record",
+            report,
+            r"^Loses a record or crashes: (?:no|yes)",
+            "The report carries its Loses a record or crashes line.",
+        ),
+    ]
 
 
 def write_case(directory, *, name, tags, prompt, scaffold, graders, **execution):

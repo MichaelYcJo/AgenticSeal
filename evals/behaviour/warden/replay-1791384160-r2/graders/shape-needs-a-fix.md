@@ -4,4 +4,4 @@ target: {source: 'file', path: 'seal/specs/1791384160-a-fix-range-is-its-own-com
 pattern: '^Needs a fix: (?:no|yes)'
 flags: 'm'
 ---
-The report ends on its Needs a fix line.
+The report carries its Needs a fix line.

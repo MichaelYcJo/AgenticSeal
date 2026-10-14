@@ -414,37 +414,7 @@ def graders(t):
 
     Reads: nothing — it formats the target it is handed."""
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}-report.md"
-    out = [
-        behaviour.reach("warden"),
-        behaviour.grader(
-            "shape",
-            "report-exists",
-            "The report is at its path.",
-            type="file_exists",
-            path=report,
-        ),
-        behaviour.report_regex(
-            "shape",
-            "verdicts-table",
-            report,
-            r"^## Verdicts\s*\n\s*\n\| # \| Finding \| Location \| Verdict \| Grounds \|",
-            "The report carries the verdict table under its heading, in the record's columns.",
-        ),
-        behaviour.report_regex(
-            "shape",
-            "needs-a-fix",
-            report,
-            r"^Needs a fix: (?:no|yes)",
-            "The report ends on its Needs a fix line.",
-        ),
-        behaviour.report_regex(
-            "shape",
-            "loses-a-record",
-            report,
-            r"^Loses a record or crashes: (?:no|yes)",
-            "The report carries its Loses a record or crashes line.",
-        ),
-    ]
+    out = behaviour.report_shape("warden", report)
     for truth in t["truths"]:
         out.append(
             behaviour.report_regex(
