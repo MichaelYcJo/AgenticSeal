@@ -70,7 +70,7 @@ commit alike. -->
 | tests/test_a_note_closes_once_at_the_runs_end.py | 142 |
 | tests/test_settle_reads_before_it_removes.py | 140 |
 | tests/test_the_guard_asks_once_per_session.py | 128 |
-| tests/test_pact_check.py | 121 |
+| tests/test_pact_check.py | 157 |
 
 ## Docs history lines
 
