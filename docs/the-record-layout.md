@@ -14,7 +14,7 @@ is found, the copy is the defect.
 
 | Kind | Home | Size target | Index |
 |---|---|---|---|
-| The evidence ledger | `seal/ledger/<work-item-id>.md` while a work item is open; `seal/releases/<X.Y.Z>.md` once its release folds it; `seal/ledger.md` for the rows from before the fragments. The rules: `docs/the-evidence-ledger.md` | a release file is over target, and its reading unit is one `### <work-item-id>` section | the file name, by version, and the `### <work-item-id>` heading inside it |
+| The evidence ledger | `seal/ledger/<work-item-id>.md` while a work item is open; `seal/releases/<X.Y.Z>.md` once its release folds it; `seal/ledger.md` for the rows from before the fragments. The rules: `docs/the-evidence-ledger.md` | each release file is under target, and its reading unit is one `### <work-item-id>` section | the file name, by version, and the `### <work-item-id>` heading inside it |
 | The changelog | `seal/specs/<work-item-id>/changelog.md` while a work item is open; `changelog/<X.Y.Z>.md`, the release's own file, once its release gathers it | each release file is under target, and is the unit | the file name, by version, and `CHANGELOG.md`, which heads each release newest first with a link to its file (F2, built) |
 | A work item's files | `seal/specs/<work-item-id>/` | each file under target | the table under *seal/specs/<work-item-id>/* below |
 | The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and the *docs/* table below |
@@ -23,29 +23,10 @@ is found, the copy is the defect.
 
 ## The size a reader takes whole
 
-**A file a reader is meant to take whole stays at or under 1,000 lines and
-64 KB.** The line half is the ceiling `seal/config.md`'s `Document line
-ceiling` row already sets for `docs/`, and `fold-check` holds it. The byte
-half is added because a ledger row is one long line: at 233f0455 the longest
-was 8,831 characters, so a ledger file can reach megabytes under any line
-cap.
-
-One kind is over target today, and it is named here rather than
-discovered:
-
-- **A release ledger file.** 37 files at 233f0455, 2.42 MB together, the
-  largest 225 KB. They are released, so they never change (see
-  `docs/the-evidence-ledger.md`) and are not split. The reading unit is the
-  section: all 148 `### <work-item-id>` sections measured then are at most
-  58 KB, with a median of 14 KB.
-
-`CHANGELOG.md` was the second, 549 KB at 233f0455, until F2 below moved each
-release into a file of its own: 44 files at the move, the largest 525 lines
-and 33 KB.
-
-No index file is added inside `seal/releases/`. The file name is the index
-by version and the `### <work-item-id>` heading is the index inside a file;
-a separate index would be one more file every release edits.
+**A file a reader is meant to take whole stays at or under 1,000 lines.** The
+ceiling is `seal/config.md`'s `Document line ceiling` row, and `fold-check`
+holds every `docs/` document to it that `Over the ceiling` does not list.
+Enforced by: tests/test_a_document_has_room_for_the_next_fold.py::test_every_document_in_docs_is_under_the_ceiling_or_frozen
 
 ## A change writes fragments, never a shared file
 
@@ -73,6 +54,7 @@ file, `changelog/X.Y.Z.md`, and the release's heading goes into the index,
 `CHANGELOG.md`. The ledger fragments move into that release's own file,
 `seal/releases/X.Y.Z.md`, and the fragments are removed. A fragment lives
 from the work item's first row to the release that ships it.
+Enforced by: tests/test_the_changelog_is_gathered_at_release.py::test_the_release_sequence_names_the_gather_step, tests/test_the_ledger_fragments_fold_at_release.py::test_every_row_reaches_the_ledger_byte_for_byte_and_the_fragment_is_gone
 
 A `settle` fold has no work item, so its fragment is named for the moment:
 `seal/ledger/<unix-seconds>-fold.md` (`skills/settle/SKILL.md` §*What a fold
@@ -89,6 +71,7 @@ the last round, and an integration commit after a sibling's squash, which the
 orchestrator writes. A commit that changes nothing a release note states owes
 the fragment nothing. 0.18.2 shipped three fragments their own review rounds had
 made false, and #795 corrected them by hand before the release.
+Enforced by: skills/code-review/scripts/chain_check.py::fragment_left_behind, tests/test_a_fragment_left_behind_is_named.py
 
 `chain-check` names the commits a fragment was left behind by. For a work item
 declared `through the review chain`, it reads the commits that the range from
@@ -114,7 +97,6 @@ It is silent where it has no line to draw: a work item `straight to the PR`, no
 does not descend from, and no `changelog.md` at HEAD. It cannot see a
 behaviour change made only inside a merge commit, and it names a test-only
 commit outside a `tests` directory although nothing was owed.
-Enforced by: skills/code-review/scripts/chain_check.py::fragment_left_behind, tests/test_a_fragment_left_behind_is_named.py
 
 ## A range owns the commits that descend from its start
 
@@ -126,6 +108,7 @@ given history is owned is answered by running `own_commits` on that history.
 `tests/test_a_range_owns_what_git_lists_for_it.py` holds the histories the
 review of #860 built, one case each, and a history it lacks becomes a case
 there rather than a sentence here.
+Enforced by: skills/code-review/scripts/chain_check.py::own_commits, skills/code-review/scripts/round_record.py::own_units, tests/test_a_range_owns_what_git_lists_for_it.py, tests/test_the_range_rule_states_no_shape.py, tests/test_a_fragment_left_behind_is_named.py::test_a_branch_rebuilt_on_the_base_names_its_own_commits_and_not_the_siblings, tests/test_the_fixes_close_the_record.py::test_a_unit_a_merge_brought_into_a_file_an_own_commit_touched_is_not_new, tests/test_the_fixes_close_the_record.py::test_a_fixed_row_naming_a_commit_the_range_does_not_own_is_refused
 
 Two readers walked a range by the shape of its merges before this rule, and
 both read another work item's commits as this one's. `round-record close`
@@ -153,7 +136,6 @@ resolution is in no owned commit, so no reader sees it, and `close` refuses
 a `fixed` row that names the merge. A range whose start does not reach its
 end owns nothing, and `close` refuses it rather than writing an empty
 surface.
-Enforced by: skills/code-review/scripts/chain_check.py::own_commits, skills/code-review/scripts/round_record.py::own_units, tests/test_a_range_owns_what_git_lists_for_it.py, tests/test_the_range_rule_states_no_shape.py, tests/test_a_fragment_left_behind_is_named.py::test_a_branch_rebuilt_on_the_base_names_its_own_commits_and_not_the_siblings, tests/test_the_fixes_close_the_record.py::test_a_unit_a_merge_brought_into_a_file_an_own_commit_touched_is_not_new, tests/test_the_fixes_close_the_record.py::test_a_fixed_row_naming_a_commit_the_range_does_not_own_is_refused
 
 **The survivor sweep reads a two-dot range by its owned commits, and `A...B`
 at its two ends.** `survivor-check` counts each file's sentences at the
@@ -233,14 +215,17 @@ retires the directory. Which file each agent writes is
 | `tests-todo.md`, `evidence-todo.md` | which cases and which verified facts a review left for the implementer |
 | `broad-gate.md` | the sealer's one broad run, where the work went straight to the pull request |
 
-The files keep these paths and stop mattering at two different times (F3).
+**The files keep these paths and stop mattering at two different times.**
 `routing.md` and the SDD set (`spec.md`, `plan.md`, `questions.md`,
 `overview.md`, `changelog.md`) stay until the `settle` fold retires the
 directory. The process record (`rounds/`, `phases/`, `survivors.md`, the two
 todo files, `broad-gate.md`, and a `handoff.md` or `pr.*.md` where one was
 written) is read by no check after the release that ships the work item, and
-`settle --retire-process` removes it at the next release, fold or no fold.
-What the SDD set still cites of it resolves at the tag of that release.
+`settle --retire-process` removes it at the next release, fold or no fold, as
+the first act of `docs/release-checklist.md` §*2b*. What the SDD set still
+cites of it resolves at the tag of that release. An open todo row or an
+anchored ledger row keeps the item whole.
+Enforced by: tests/test_settle_retires_the_process_record.py::test_the_process_record_leaves_and_the_sdd_set_stays, tests/test_settle_retires_the_process_record.py::test_an_open_todo_row_keeps_the_item_whole, tests/test_settle_retires_the_process_record.py::test_a_row_anchored_inside_the_process_record_keeps_the_item
 
 ## The root records
 
@@ -252,85 +237,19 @@ What the SDD set still cites of it resolves at the tag of that release.
 | `changelog/<X.Y.Z>.md` | what one release changed, that release's section alone |
 | `README.md` and `README.ko.md` | what the plugin is and how to install it |
 
-## What is decided and not built yet
+**`CHANGELOG.md` and each release's own file carry that release's one
+`## X.Y.Z — <date>` line.** `changelog/<X.Y.Z>.md` opens with it, and the
+index keeps the same line above the link to the file, because the update
+skill an installed copy already carries checks that an update landed by the
+first `## ` line of `CHANGELOG.md`. The GitHub Release reads the release's
+own file.
+Enforced by: tests/test_the_changelog_is_gathered_at_release.py::test_the_index_and_the_release_files_agree
 
-Four parts of this layout were decided here, each to be built by its own
-issue. All four are built, each by the issue its paragraph names. Each says
-when, by the release it lands in relative to #716's; the issue's milestone
-names the version, so no number here goes stale when it ships.
-
-**F1 — `docs/commit-review-gate-spec.md` is cut in three (#727, in the
-release #716 ships in, after #716 lands). Built by #727.** The table below
-records the cut as it was decided, with the lines it read at 233f0455.
-#716 changes that document's reading of the commit gate
-in the same release, and a split landing first would conflict with it at its
-squash. The cut follows the document's own headings, as #526 cut
-`docs/review-chain-spec.md`:
-
-| File | Takes | Lines at 233f0455 |
-|---|---|---|
-| `docs/the-commit-gate-inside-git.md` | §*The commit gate inside git*, with *Known limits* and *Where each state of a repository stands* | 41–277 |
-| `docs/the-review-and-parity-arms.md` | §*Review arm*, *Where the marker goes*, *The declaration, and where the check went instead*, §*Parity arm* | 760–994 |
-| `docs/commit-review-gate-spec.md` | *Registration*, §*commit-review-gate (PreToolUse, Bash)* through *Why a deny*, review-history-guard, implementer-mark, and an index naming the other two | 1–40, 278–759, 995–1047 |
-
-Each part answers one question — what git decides, what the text reading
-decides, what each arm wants. Built, the parent is 586 lines, the commit gate
-inside git 254 and the arms 250, each under the ceiling of 1,000. Fold markers
-went across whole, and the `Over the ceiling` entry went with the cut in the
-same change. The row stays and reads `none`, which says the listing is empty.
-The ceiling itself is the `Document line ceiling` row, which `fold-check`
-holds every unlisted document to (`docs/the-evidence-ledger.md` §*The fold,
-and what tells it from a deletion*).
-
-**F2 — `CHANGELOG.md` becomes one file per release (#728, in the release
-after that one).** The
-target is `changelog/<X.Y.Z>.md`, with all existing sections migrated and
-`CHANGELOG.md` kept as a short index linking each one; the GitHub Release
-reads the release's own file. Migrated rather than frozen, because no branch
-writes the changelog in parallel, and a link at an old tag keeps resolving at
-that tag. Built by #728. Each file opens with its release's `## X.Y.Z —
-<date>` line, and the index keeps that same line above each link, because the
-update skill an installed copy already carries checks that an update landed
-by the first `## ` line of `CHANGELOG.md`.
-
-**F3 — a work item's directory is laid out by lifetime (#729, in the release
-after #716's). Built by #729.**
-The principle: what outlives the merge stays, or folds into `docs/` and the
-ledger; what a review run needs only while it runs leaves the tree, or
-becomes one file per run. #729's frame read the readers and chose the first.
-
-- **The paths do not change.** Ten readers and the test suite name them, and
-  a regrouping under one subdirectory would show a reader nothing a listing
-  of `rounds/` and `phases/` does not.
-- **One file per run is rejected.** The round records of 41 of 53 runs
-  measured would together exceed the 64 KB a reader takes whole.
-- **The process record leaves after the release, without waiting for the
-  fold.** Once its release has merged to `main`, no check reads it: the
-  release pull request and the release seal were its last readers. A
-  person following a reference into it from the SDD set reads it at the
-  release tag, which keeps every file the arm removes. So
-  `settle --retire-process` removes it from every released work item as the
-  first act of `docs/release-checklist.md` §*2b*, on every release, and
-  leaves `routing.md` and the SDD set for the fold. Its guards are
-  `--retire`'s: an open todo row or an anchored ledger row keeps the item.
-- **Released items are not exempt.** The ledger freeze rests on content
-  anchors and parallel re-stamps, and no ledger row anchors inside a work
-  item's directory. The first run, over every item released before it, is
-  its own pull request at a release's step 2b.
-
-**F4 — the other rules `CLAUDE.md` restates get one home each (#730, in the
-release after #716's). Built by #730.** The merge method per direction lives
-in `docs/branch-and-release.md` §*Work accumulates on a release branch*, *no
-real identifiers* in `CONTRIBUTING.md` §*House rules*, and the commit cadence
-in step 2 of `skills/implement/SKILL.md`; the batch sentence at the foot of
-`CLAUDE.md`'s goal went to that skill's step 1. A `CLAUDE.md` row that points
-at a home carries three things: the home's path and section, the moment a
-session needs the rule, and the act in one sentence of the row's own, with
-the value the act needs. It carries no table, reasoning or history. Only the
-home's sentences are pinned, so a stale value in a row is a reviewer's
-finding; `tests/test_the_rules_claude_md_names_have_one_home.py` pins the
-homes and the links. Finding a restated rule anywhere is
-`tests/test_no_passage_is_pasted_into_a_second_file.py`: no two rule
-documents may share more 15-word runs than their pair was measured at. It
-does not see a rule restated in fresh words. The copies the tree already
-held, and a one-off pass over paraphrases, are #755's.
+**A `CLAUDE.md` row that points at a home carries three things: the home's
+path and section, the moment a session needs the rule, and the act in one
+sentence of the row's own, with the value the act needs.** It carries no
+table, reasoning or history. Only the home's sentences are pinned, so a stale
+value in a row is a reviewer's finding. No two rule documents may share more
+15-word runs than their pair was measured at, which does not see a rule
+restated in fresh words.
+Enforced by: tests/test_the_rules_claude_md_names_have_one_home.py, tests/test_no_passage_is_pasted_into_a_second_file.py

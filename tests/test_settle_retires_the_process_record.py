@@ -380,7 +380,7 @@ def document(*parts):
     [
         (
             ("docs", "the-record-layout.md"),
-            "Built by #729.",
+            "`settle --retire-process` removes it at the next release, fold or no fold",
             "is decided in principle and not built (F3)",
         ),
         (
