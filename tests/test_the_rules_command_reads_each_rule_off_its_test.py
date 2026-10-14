@@ -11,6 +11,7 @@ never fails for what it finds — that row is what fails.
 
 import importlib.util
 import os
+import subprocess
 
 import pytest
 
@@ -105,6 +106,27 @@ def test_each_target_prints_its_first_sentence_or_why_it_has_none(
     assert code == 0
     assert out.startswith("# A\n  (no `Enforced by:` line)\n\n## The section\n"), out
     assert f"\n    {said}\n" in out, out
+
+
+@pytest.mark.parametrize("where", ["top", "subdirectory"])
+def test_with_no_root_the_targets_resolve_where_the_command_runs(
+    tmp_path, capsys, monkeypatch, where
+):
+    """`rules <doc>` with no `--root` resolves in the repository it is typed
+    in, from its top or a subdirectory, not in the tree the script ships in."""
+    root = tree(
+        tmp_path, "## A\n\n**Held.** Why.\nEnforced by: tests/test_x.py::test_held\n"
+    )
+    doc = "docs/a.md"
+    if where == "subdirectory":
+        subprocess.run(["git", "init", "-q", str(root)], check=True)
+        monkeypatch.chdir(root / "docs")
+        doc = "a.md"
+    else:
+        monkeypatch.chdir(root)
+    assert rules.main([doc]) == 0
+    out = capsys.readouterr().out
+    assert "    tests/test_x.py::test_held — A held rule is guarded.\n" in out, out
 
 
 def test_an_eval_case_and_a_nothing_line_are_printed_as_what_they_are(tmp_path, capsys):

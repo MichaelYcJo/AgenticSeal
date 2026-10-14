@@ -83,7 +83,8 @@
   body; a rule that gains its test lowers it. An eval case directory,
   `evals/behaviour/<agent>/<case>/` holding a `case.yaml`, is a target too.
   `bin/rules <doc>` prints a document's sections beside what each target's
-  docstring says it guards, and writes nothing.
+  docstring says it guards, resolving the targets in the repository it is
+  typed in, and writes nothing.
   (`1791940762-the-record-of-truth-is-tests-not-coordinates`, #944)
 
 ### Changed

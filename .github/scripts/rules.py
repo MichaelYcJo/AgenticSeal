@@ -3,9 +3,9 @@
 
   rules <doc>              every heading of DOC, and under each the targets
                            of its `Enforced by:` lines, each with the first
-                           sentence of its docstring
-  rules <doc> --root DIR   resolve the targets in a tree other than this
-                           script's own
+                           sentence of its docstring, resolved in the
+                           repository the current directory is in
+  rules <doc> --root DIR   resolve the targets in DIR instead
 
 A rule's text lives once, as the first sentence of the docstring of the test
 that holds it, and a document lists its tests by `Enforced by:`. This prints
@@ -32,7 +32,6 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 CHECKER = os.path.join(HERE, "budget_check.py")
 SENTENCE = re.compile(r"(.+?[.!?])(?:\s|$)")
 
@@ -136,13 +135,24 @@ def main(argv=None):
     Reads: guess — the arguments and the document they name; unknown refused"""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("doc")
-    parser.add_argument("--root", default=ROOT)
+    parser.add_argument(
+        "--root", default=None, help="the repository to resolve in (default: cwd)"
+    )
     args = parser.parse_args(argv)
     budget = checker()
     if budget is None:
         sys.stderr.write("rules: budget_check.py is not beside this script.\n")
         return 2
-    root = os.path.abspath(args.root)
+    root = os.path.abspath(args.root or os.getcwd())
+    if args.root is None:
+        # Typed anywhere inside a repository, the command reads that
+        # repository, as `fold-check` does. `bin/` is on a user's PATH, and
+        # the tree this script ships in is the plugin's, not theirs.
+        try:
+            root = budget.sibling("fold_check").optin().repo_root(root) or root
+        except budget.Unreadable as error:
+            sys.stderr.write(f"rules: {error}.\n")
+            return 2
     path = args.doc if os.path.isabs(args.doc) else os.path.join(os.getcwd(), args.doc)
     if not os.path.isfile(path):
         path = os.path.join(root, args.doc)
