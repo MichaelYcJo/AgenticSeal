@@ -21,6 +21,7 @@ verdict is not `pass`, or it disagrees with its numbers · 2 nothing ran
 """
 
 import argparse
+import glob
 import hashlib
 import io
 import json
@@ -571,6 +572,52 @@ def census_problems(text):
             continue
         if not EXERCISED.match(row[2]):
             problems.append(f"rule `{row[0]}` names no grader and no reason")
+    return problems
+
+
+def owed_records(root):
+    """`[problem]` for every agent whose preload in ROOT differs from the one
+    a work item's `evals/baseline-<agent>.json` measured, unless a record
+    beside that baseline measured this preload and its numbers give `pass`.
+
+    A baseline is the reference, so an agent with none owes nothing.
+
+    Reads: owned — baselines `run` wrote and records `render` wrote; unknown refused"""
+    problems = []
+    pattern = os.path.join(root, "seal", "specs", "*", "evals", "baseline-*.json")
+    for base in sorted(glob.glob(pattern)):
+        agent = os.path.basename(base)[len("baseline-") : -len(".json")]
+        rel = os.path.relpath(base, root)
+        with open(base, encoding="utf-8") as f:
+            measured = (json.load(f).get("specseal") or {}).get("preload")
+        if not measured:
+            problems.append(f"{rel} records no preload hashes")
+            continue
+        current = preload_hashes(root, agent)
+        if current == measured:
+            continue
+        changed = sorted(
+            p for p in set(current) | set(measured) if current.get(p) != measured.get(p)
+        )
+        found = []
+        for path in sorted(
+            glob.glob(os.path.join(os.path.dirname(base), f"{agent}-phase-*.md"))
+        ):
+            with open(path, encoding="utf-8") as f:
+                text = f.read()
+            try:
+                _numbers, _stated, preload = parse_record(text)
+            except (ValueError, TypeError):
+                preload = {}
+            if preload == current:
+                found.append((os.path.relpath(path, root), text))
+        if not found:
+            problems.append(
+                f"{agent}'s preload changed since {rel} ({', '.join(changed)}) and no "
+                f"`{agent}-phase-N.md` beside it measured the preload as it stands"
+            )
+        for path, text in found:
+            problems += [f"{path}: {p}" for p in check_record(text)]
     return problems
 
 
