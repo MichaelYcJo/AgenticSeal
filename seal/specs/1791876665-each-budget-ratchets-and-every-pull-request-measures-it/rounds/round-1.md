@@ -7,7 +7,7 @@
 | Ran by | warden on Opus 5.5 |
 | PR | 938 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `8e30ac1a15cbb99876aaef79363cfb7893f82780..37d95bd95172c041bf9b9831cf56da850d104acd`, 9 commits |
 | Contract changes | none |
 | New units | PRICE_FILE_FLOOR (depth 1); FileFamily (depth 1); section (depth 1); slow_file_values (depth 1); docs_history_values (depth 1); families (depth 1); widened (depth 1); test_an_unread_row_of_a_family_without_an_unread_reason_renders (depth 1); test_a_per_file_family_reads_its_own_table_with_its_own_reader (depth 1); test_a_widened_slack_on_a_gate_row_needs_its_line (depth 1); THREE (depth 1); THREE_BUDGETS (depth 1); test_files_too_small_to_say_how_the_runners_moved_leave_the_level_alone (depth 1); test_one_sided_is_the_widest_slack (depth 1); test_a_cleanup_of_one_file_under_shared_ids_holds_the_untouched_rows (depth 1); test_a_seconds_row_with_a_lower_band_is_refused (depth 1); test_the_unknown_family_refusal_names_every_family (depth 1); NUMBER_WORDS (depth 1); test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm (depth 1) |
