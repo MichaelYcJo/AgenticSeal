@@ -6,7 +6,7 @@ the gate. -->
 
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 
-**Phases 1 and 3–7 are re-framed against #944's merged tree before the next smith spawns.** #944 removes the ledger, `evidence-check` and `survivor-check`, moves the coordinate kernel out of `skills/evidence-check/`, and adds `bin/rules` with its `enforced-unresolved` gate and `unenforced` ratchet. So every `--reverify`, ledger-row and pin step below goes, and phase 1's enforcer gate and candidates list are built on `bin/rules`, not beside it. The baseline is taken first, on `release/v0.22.0` before #944 merges; the same suite run again on the merged tree proves #944 non-inferior, and that second side is the baseline this item's phases compare against.
+**Phases 1 and 3–7 are re-framed by `framer`, against the tree #944 and #929 leave once both merge and this branch rebases onto it, before the next smith spawns.** #944 removes the ledger, `evidence-check` and `survivor-check`, moves the coordinate kernel out of `skills/evidence-check/`, and adds `bin/rules` with its `enforced-unresolved` gate and `unenforced` ratchet. So every `--reverify`, ledger-row and pin step below goes, and phase 1's enforcer gate and candidates list are built on `bin/rules`, not beside it. 18 files of `evals/behaviour/` still cite the ledger, `evidence-check` or `survivor-check`; the re-frame rewrites those cases first, and the baseline is taken once on that tree, since a baseline taken before would run a different suite and `compare` refuses it.
 
 The owner set the proof's cadence on 2026-10-14: each phase runs the behaviour cases mapped to the rules it changed, and each agent's full suite runs once at the item's end.
 
