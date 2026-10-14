@@ -1350,6 +1350,42 @@ THREE_BUDGETS = slow(
 )
 
 
+def test_files_too_small_to_say_how_the_runners_moved_leave_the_level_alone(
+    tmp_path, capsys
+):
+    """A test file the base prices under 10 seconds is out of the level's
+    median: three one-second files tripling on a refresh say nothing about
+    the runners, and the 1,000 seconds that did not move keep the level at
+    1000."""
+    before = {**THREE, **{f"tests/test_tiny{n}.py::t": 1.0 for n in range(5)}}
+    after = {**THREE, **{f"tests/test_tiny{n}.py::t": 3.0 for n in range(5)}}
+    root = tree(
+        tmp_path,
+        THREE_BUDGETS,
+        base=THREE_BUDGETS,
+        base_files={".test_durations": json.dumps(before)},
+        files={".test_durations": json.dumps(after)},
+    )
+    assert ratchet(root, "") == 0, capsys.readouterr()
+
+
+@pytest.mark.parametrize(
+    "old, new, wider",
+    [
+        ("2 %", "one-sided", True),
+        ("2 %", "5 %", True),
+        ("5 %", "2 %", False),
+        ("+0", "+1", True),
+        ("one-sided", "2 %", False),
+    ],
+)
+def test_one_sided_is_the_widest_slack(old, new, wider):
+    """A move to `one-sided` lifts the lower band altogether, the widest a
+    slack can go, and a move away from it narrows."""
+    slack = lambda cell: budget_check.parse_slack(cell, "bytes")
+    assert budget_check.widened(slack(old), slack(new), 1000) is wider
+
+
 def test_a_cleanup_of_one_file_under_shared_ids_holds_the_untouched_rows(
     tmp_path, capsys
 ):
