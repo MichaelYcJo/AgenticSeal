@@ -460,29 +460,23 @@ because a number alone sends the reader back to the two files this
 declaration exists to stop them opening. A repository with no such workflow
 sees neither, and nothing else about its run changes. Both are counted over
 the steps CI runs for the base (#666): a step CI does not ask of this pull
-request — four of SpecSeal's run only on a pull request into `main`, and two
-are skipped there — is neither answered nor unanswered, so the count leaves
-it out and the line says how many it left out and why. A feature seal of
-SpecSeal itself reads `CI also · 5 more steps`, and the line says they are
-five of the ten CI runs for that base (#717); before #666 the panel read
-`8 of 13`, over four steps no run of that pull request would ask.
+request — three of SpecSeal's run only on a pull request into `main` — is
+neither answered nor unanswered, so the count leaves it out and the line says
+how many it left out and why. A feature seal of SpecSeal itself reads `CI
+also · 5 more steps`, and the line says they are five of the eight CI runs
+for that base.
 
 **What the count does not say** is whether a mirrored arm asks the same
 question its step asks. The partition says a step is on the list; two readers
-of one question can still disagree about what they are checking. **#473 is
-the work item about that class**, and it opened with one live instance in the
-repository this plugin is developed in. The gate ran the `survivors` and
-`corrections` arms on a `main` base, where SpecSeal's own workflow skips both
-steps. That instance is closed: where the base names `main` and the gated
-repository's workflow carries those steps, the gate leaves both arms out and
-says so (`broad_gate.py#SKIPPED_AT_MAIN`). A case holds that list against the
-workflow's guards, and a second case holds `broad_gate.py#ONLY_AT_MAIN`, the
-steps that run only into `main`, against the opposite guard the same way. The
-cases read a guard on the base and no other kind of condition, so the class
-stays open for the next kind.
+of one question can still disagree about what they are checking (#473). The
+gate runs every arm at every base, and a case holds that no mirrored step of
+SpecSeal's workflow skips a pull request into `main`; a second case holds
+`broad_gate.py#ONLY_AT_MAIN`, the steps that run only into `main`, against
+their guard. The cases read a guard on the base and no other kind of
+condition, so the class stays open for the next kind.
 
-**The arms the plugin ships are the arms the gate can run.** Five steps of
-SpecSeal's own `release` job have a local answer and no arm: four run a
+**The arms the plugin ships are the arms the gate can run.** Four steps of
+SpecSeal's own `release` job have a local answer and no arm: three run a
 script under `.github/scripts/`, which no plugin ships, and one is shell
 written inline in the workflow with no script either side can share. A
 repository that wants checks of its own sealed names them in the `Broad gate`

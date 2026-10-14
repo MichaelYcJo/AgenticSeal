@@ -173,12 +173,12 @@ def test_the_twin_and_the_block_form_have_equal_width_and_height(disc):
 
 def test_the_failure_form_lines_up_the_widest_check_name():
     """A round 1 record correction. The name column was padded to a literal
-    8 and `survivors` is nine characters, so that one check's first line sat
+    8 and `unverified` is ten characters, so that one check's first line sat
     a column out from every other check's — on the form a reader scans to
     find which check failed."""
     mod = module()
     out = mod.not_sealed(
-        "aaa1111", "bbb2222", [("suite", ["one"]), ("survivors", ["two"])]
+        "aaa1111", "bbb2222", [("suite", ["one"]), ("unverified", ["two"])]
     )
     columns = {
         line.index(word) for line, word in zip(out[2:], ("one", "two"), strict=True)
@@ -880,17 +880,37 @@ DRAWN_AT_5623D728 = {
 }
 
 
+# `seal_stamp.SAMPLE_ROWS` as it stood at 5623d728, the input the hashes
+# below were drawn from.
+SAMPLE_AT_5623D728 = [
+    ("SEALED", ""),
+    ("tree", "c46fd2d"),
+    ("", "feat/12-a-branch"),
+    ("base", "1e2bed9  origin/release/next"),
+    ("item", "#34 · 1799000000"),
+    ("gate", "tree 1.2.3"),
+    None,
+    ("suite", "✓ 768 passed · 1 skipped"),
+    ("ledger", "✓ 187 ok · 0 drifted · 0 broken"),
+    ("chain", "✓ exit 0"),
+    ("CI also", "· 4 more steps"),
+    ("rounds", "3 · capped"),
+    ("", "2 deferred → #56"),
+]
+
+
 def test_the_stamp_draws_byte_for_byte_what_it_drew_at_the_default_scale():
     """S13 (#853). The disc had one size at every scale since #832, so taking
     the scale away moves no byte: `stamp` with the disc and without it, in
     both forms, and `fitted` stepping a block from its disc to the text block
-    alone, draw what the module drew at 0.90 before #853."""
+    alone, draw what the module drew at 0.90 before #853. The rows are the
+    sample's as it stood then, so the hashes measure the drawing alone."""
     mod = module()
 
     def h(text):
         return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 
-    rows = mod.SAMPLE_ROWS
+    rows = SAMPLE_AT_5623D728
     one = "\n".join(["first", *mod.stamp(rows)])
     size = len(one.encode("utf-16-le")) // 2
     blocks = [("first", rows), ("second", rows)]
@@ -1008,7 +1028,7 @@ def test_not_sealed_carries_no_disc_and_names_every_failure():
     mod = module()
     failures = [
         ("suite", ["3 failed, 765 passed", "tests/test_x.py::test_y FAILED"]),
-        ("ledger", ["2 broken"]),
+        ("chain", ["1 error"]),
     ]
     lines = mod.not_sealed("c46fd2d", "1e2bed9", failures)
     text = "\n".join(lines)
@@ -1692,10 +1712,7 @@ def test_the_gate_row_fits_the_panel_for_a_nine_character_version(tmp_path):
     rows = gate.panel(
         "ccccccc",
         gate.Base("base", "cccccccc", "base", "cccccccc"),
-        {
-            n: gate.Check(n, 0, "", "")
-            for n in (gate.SUITE, gate.LEDGER, gate.CHAIN_NAME)
-        },
+        {n: gate.Check(n, 0, "", "") for n in (gate.SUITE, gate.CHAIN_NAME)},
         None,
         copy="tree 1.2.3-rc4",
     )
@@ -2881,10 +2898,9 @@ def test_a_green_tree_is_sealed_with_every_check_run_in_order(repo, tmp_path):
     gate = gate_module()
     order = [
         gate.SUITE,
-        gate.LEDGER,
         gate.UNVERIFIED_NAME,
         gate.CHAIN_NAME,
-        gate.SURVIVORS_NAME,
+        gate.MODE_NAME,
     ]
     kept = sorted(os.listdir(keep))
     for name in order:
@@ -2946,11 +2962,9 @@ def test_the_values_file_holds_this_runs_panel(a_sealed_run):
     row, because the fixture ships no gate; `from` and `row` are gone. No
     `CI also` row: the fixture has no workflow.
 
-    #717's A6 took `chain`, the suite's `exit` row, the ledger's `drifted`
-    row and every blank off the panel. #832's S5a, the owner's design of
-    2026-10-07, puts the result rows back in one shape: the base's ref
-    beside its commit, a blank before the results, a `✓` on each result
-    row, the ledger's three counts on one row and `chain ✓ exit 0`."""
+    #832's S5a, the owner's design of 2026-10-07, puts the result rows in
+    one shape: the base's ref beside its commit, a blank before the results,
+    a `✓` on each result row and `chain ✓ exit 0`."""
     repo, _out, values = a_sealed_run
     assert values["rows"] == [
         ("SEALED", ""),
@@ -2960,7 +2974,6 @@ def test_the_values_file_holds_this_runs_panel(a_sealed_run):
         ("item", "1799000000"),
         None,
         ("suite", "✓ 1 passed"),
-        ("ledger", "✓ 0 ok · 0 drifted · 0 broken"),
         ("chain", "✓ exit 0"),
         ("rounds", "2"),
     ], values["rows"]
@@ -3267,10 +3280,9 @@ def read_document(rel):
 # nothing ---------------------------------------------------------------------
 
 
-def checks_with(gate, suite="", ledger="", code=0):
+def checks_with(gate, suite="", code=0):
     return {
         gate.SUITE: gate.Check(gate.SUITE, code, suite, "suite.txt"),
-        gate.LEDGER: gate.Check(gate.LEDGER, code, ledger, "ledger.txt"),
         gate.CHAIN_NAME: gate.Check(gate.CHAIN_NAME, code, "", "chain.txt"),
     }
 
@@ -3289,7 +3301,6 @@ LONG_BRANCH = (
 # 1.2.3 is illustrative, not a release this repository has (`test_release_hygiene`).
 LONG_REF = "refs/remotes/other/release/v1.2.3-hotfix"
 LONG_SUITE = {"passed": 12345, "skipped": 67890, "xfailed": 12}
-LONG_LEDGER = "total: 12345 ok · 0 drifted · 0 broken · 0 external"
 
 
 def test_no_value_on_the_panel_is_wider_than_the_frame_gives(tmp_path):
@@ -3306,7 +3317,7 @@ def test_no_value_on_the_panel_is_wider_than_the_frame_gives(tmp_path):
     rows = gate.panel(
         "c46fd2db",
         gate.Base("release/v1.2.3-hotfix", "1e2bed90", LONG_REF, "1e2bed90"),
-        checks_with(gate, "", LONG_LEDGER + "\n"),
+        checks_with(gate),
         str(item),
         copy=gate.copy_origin(ROOT),
         branch=LONG_BRANCH,
@@ -3398,7 +3409,7 @@ def test_the_widest_panel_the_tree_can_produce_fits_at_the_first_rung(tmp_path):
     rows = gate.panel(
         "c46fd2db",
         gate.Base("release/v1.2.3-hotfix", "1e2bed90", LONG_REF, "1e2bed90"),
-        checks_with(gate, "", LONG_LEDGER + "\n"),
+        checks_with(gate),
         str(item),
         workflow,
         copy=gate.copy_origin(ROOT),
@@ -3488,7 +3499,7 @@ def test_a_list_too_long_for_its_row_continues_beneath_it():
 )
 def test_the_suite_carries_its_counts_and_nothing_under_them(counts, rows):
     """#717's A8, `suite`. The counts the row's pytest recorded, wrapped as
-    #666 wraps them, and the row after the last counts row is the ledger's
+    #666 wraps them, and the row after the last counts row is the chain's
     label — not `exit 0`, which a `SEALED` stamp already says. Where there
     is no record the row reads `exit N`, which is then the only statement
     of what the suite did. #832's S5a: the counts stand behind a `✓` and are
@@ -3503,7 +3514,7 @@ def test_the_suite_carries_its_counts_and_nothing_under_them(counts, rows):
     )
     at = panel.index(rows[0])
     assert panel[at : at + len(rows)] == rows, panel
-    assert panel[at + len(rows)][0] == gate.LEDGER, panel
+    assert panel[at + len(rows)][0] == gate.CHAIN_NAME, panel
 
 
 def test_the_suite_row_reads_the_record_and_nothing_the_row_printed():
@@ -3533,125 +3544,13 @@ def test_the_suite_row_reads_the_record_and_nothing_the_row_printed():
     assert not hasattr(gate, "COUNTS_RE") and not hasattr(gate, "summary_counts")
 
 
-def test_the_ledger_carries_its_three_counts_on_one_row():
-    """#717's A8, `ledger`, read from one `total:` line — and #832's S5a, the
-    owner's design of 2026-10-07, which puts back the counts #717 took off:
-    `✓ <ok> ok · <d> drifted · <b> broken` on the one row, and the row
-    after it the chain's, then `CI also` where a workflow is given. A ledger
-    output with no total line reads `exit N`, as the suite does."""
-    gate = gate_module()
-    base = gate.Base("base", "1e2bed90", "base", "1e2bed90")
-    workflow = (
-        "jobs:\n  release:\n    steps:\n"
-        "      - name: a declared review chain has the round record it claimed\n"
-    )
-    rows = gate.panel(
-        "c46fd2db",
-        base,
-        checks_with(gate, ledger="total: 187 ok · 3 drifted · 4 broken · 0 x\n"),
-        None,
-        workflow,
-    )
-    at = rows.index(("ledger", "✓ 187 ok · 3 drifted · 4 broken"))
-    assert [row[0] for row in rows[at + 1 : at + 3]] == ["chain", "CI also"], rows
-    assert sum("drifted" in row[1] for row in rows if row) == 1, rows
-    bare = gate.panel("c46fd2db", base, checks_with(gate), None)
-    assert ("ledger", "exit 0") in bare, bare
-
-
-SKIPPED_TEST = (
-    "import pytest\n\n\n@pytest.mark.skip\ndef test_skipped():\n    assert True\n"
-)
-
-
-@pytest.mark.parametrize(
-    "node, held",
-    [
-        ("tests/test_one.py::test_one", True),
-        ("tests/test_skipped.py::test_skipped", False),
-    ],
-)
-def test_the_ledger_arm_reads_the_run_it_seals(repo, node, held):
-    """S21 of #836, over a planted repository. A ledger row held by a test is
-    read against the head run's pytest record: a row naming a test the row
-    skipped fails the ledger arm, naming what was observed, and the run is
-    NOT SEALED; a row naming a test that passed leaves the arm clean."""
-    write(repo, "tests/test_skipped.py", SKIPPED_TEST)
-    write(
-        repo,
-        "seal/ledger/1799000000-a-sealed-work-item.md",
-        f"| T1 · the claim | `{node}` | seen red, then green | 2026-10-12 | |\n",
-    )
-    commit(repo, "a ledger row held by a test")
-    out = run_gate(repo)
-    ledger = (repo.parent / "out" / "ledger.txt").read_text(encoding="utf-8")
-    if held:
-        assert "MALFORMED" not in ledger, ledger
-        assert "read for existence alone" not in ledger, ledger
-        assert not [
-            line
-            for line in out.stdout.splitlines()
-            if line.strip().startswith("ledger ") and "exit 2" in line
-        ], out.stdout
-    else:
-        assert out.returncode == 1, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
-        assert "NOT SEALED" in out.stdout, out.stdout
-        assert f"MALFORMED {node}  skipped in the recorded suite" in ledger, ledger
-        assert "ledger" in out.stdout and "exit 2" in out.stdout, out.stdout
-
-
-def test_a_seal_over_existence_alone_says_so(repo):
-    """Round 3 of #836, 🟡 3: a row that replaces `PYTEST_ADDOPTS` leaves no
-    session under the key, so the ledger arm reads test rows for existence
-    alone. The run still seals, and the checker's line reaches the person
-    reading it. Red before the fix: the line was only in the kept
-    `ledger.txt`. The row sets the variable with a POSIX prefix, which
-    `cmd.exe` reads as a command name."""
-    posix_row_shell_or_skip()
-    write(
-        repo,
-        "seal/ledger/1799000000-a-sealed-work-item.md",
-        "| T1 · the claim | `tests/test_one.py::test_one` | seen red, then "
-        "green | 2026-10-08 | |\n",
-    )
-    commit(repo, "a ledger row held by a test")
-    out = run_gate(set_row(repo, f"PYTEST_ADDOPTS=-q {SUITE_ROW}"))
-    assert out.returncode == 0, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
-    assert (
-        "broad-gate: ledger: test rows were read for existence alone: no session under"
-    ) in out.stderr, out.stderr
-
-
-def test_a_failing_ledger_ends_with_its_total_line(tmp_path):
-    """A4's second half. `evidence-check` prints its `total:` line LAST and the
-    failure form quotes a check's first eight lines, so a ledger refused for
-    one drifted row reached the reader with no counts. The entry ends with
-    the total now, once — not a second time where the quoted lines already
-    hold it."""
-    gate = gate_module()
-    long_text = "\n".join(f"  DRIFTED  row {n}" for n in range(12))
-    total = "total: 9 ok · 12 drifted · 0 broken · 0 external"
-    lines = gate.failure_lines(
-        gate.Check(gate.LEDGER, 2, f"{long_text}\n{total}\n", "ledger.txt")
-    )
-    assert lines[-2:] == [total, "full output: ledger.txt"], lines
-    short_text = f"  DRIFTED  row 1\n{total}\n"
-    lines = gate.failure_lines(gate.Check(gate.LEDGER, 2, short_text, "ledger.txt"))
-    assert lines.count(total) == 1, lines
-    suite = gate.failure_lines(gate.Check(gate.SUITE, 1, f"{total}\n", "suite.txt"))
-    assert suite.count(total) == 1, (
-        "the total was added to a check that is not the ledger"
-    )
-
-
 def test_a_base_that_is_its_own_commit_has_no_ref_row_under_it():
     """A3 on the panel. A bare SHA given as `--base` resolves to itself, so
     the ref would repeat the commit; `ref_is_commit` — the one reading the
     lines use too — leaves it out. A branch-named base keeps its ref.
 
     #832's S5a: the ref stands on the `base` row, two spaces after the
-    commit, and no `""` row follows `base` either way — the name says the
-    row #666 put there, which a released ledger row cites."""
+    commit, and no `""` row follows `base` either way."""
     gate = gate_module()
     sha = "1e2bed90" + "a" * 32
     bare = gate.panel(
@@ -3675,21 +3574,21 @@ def test_the_result_rows_carry_a_tick_and_a_blank_row_stands_before_them(tmp_pat
     """#832's S5a, the owner's design of 2026-10-07, in `panel` — the one
     place that owns the rows. The identity rows (`tree` and its branch,
     `base` with its ref, `item`, `gate`) are followed by one `None`, and
-    then the result rows: the suite's counts behind a `✓`, the ledger's three
-    counts behind one, `chain ✓ exit <code>` read off the chain's own check,
+    then the result rows: the suite's counts behind a `✓`,
+    `chain ✓ exit <code>` read off the chain's own check,
     and `CI also` behind a `·`, the owner's mark for a row that is not a
     pass. `rounds` comes last, ` · capped` beside it and its homes after
     `→`. The values are the owner's characters: the twin is what maps them
     for a console that is not UTF-8 (S4).
 
-    The suite's and the ledger's checks exit 5 here and the chain's 0, so a
-    `chain` row that read another arm's exit says 5."""
+    The suite's check exits 5 here and the chain's 0, so a `chain` row that
+    read another arm's exit says 5."""
     gate = gate_module()
     workflow = (
         "jobs:\n  release:\n    steps:\n"
         "      - name: a declared review chain has the round record it claimed\n"
     )
-    checks = checks_with(gate, "", "total: 1 ok · 0 drifted · 0 broken\n", code=5)
+    checks = checks_with(gate, "", code=5)
     checks[gate.CHAIN_NAME] = gate.Check(gate.CHAIN_NAME, 0, "", "chain.txt")
     rows = gate.panel(
         "c46fd2db",
@@ -3712,7 +3611,6 @@ def test_the_result_rows_carry_a_tick_and_a_blank_row_stands_before_them(tmp_pat
         ("gate", "tree 1.2.3"),
         None,
         ("suite", "✓ 1 passed"),
-        ("ledger", "✓ 1 ok · 0 drifted · 0 broken"),
         ("chain", "✓ exit 0"),
         ("CI also", "· 0 more steps"),
         ("rounds", "0 · capped"),
@@ -3834,7 +3732,6 @@ def test_the_sample_carries_every_row_the_panel_can(tmp_path):
         "gate",
         None,
         "suite",
-        "ledger",
         "chain",
         "CI also",
         "rounds",
@@ -3903,7 +3800,7 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
     assert "fleur-de-lis" not in stamp and "stitch" not in stamp
     assert "cell's centre" not in stamp and "INTERIM" not in stamp
     assert "`o O` rope" not in stamp and "the lily's golds" not in stamp
-    assert "Since #832 it carries the blank row, `chain` and the ledger's" in stamp
+    assert "ledger" not in stamp
     assert "Since #717 there is no blank row in it, no `chain`" not in stamp
     gate = " ".join(
         read_document(
@@ -3913,7 +3810,7 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
     # #832's S5a: the module docstring and `panel`'s row diagram name the
     # rows the owner's design of 2026-10-07 put back.
     assert (
-        "the ledger's three counts, the chain's exit, how many more steps CI "
+        "the suite's counts, the chain's exit, how many more steps CI "
         "runs than this seal answers"
     ) in gate
     assert "the ledger's `ok` count, how many more steps" not in gate
@@ -4748,7 +4645,7 @@ def test_the_failure_form_counts_the_lines_of_the_record_here_it_passed_over():
     assert said not in gate.failure_lines(check, None, record)
     assert not any(
         "did not parse" in line
-        for line in gate.failure_lines(gate.Check(gate.LEDGER, 2, "", "ledger.txt"))
+        for line in gate.failure_lines(gate.Check(gate.CHAIN_NAME, 2, "", "chain.txt"))
     )
 
 
@@ -8205,7 +8102,7 @@ def test_a_green_tree_preflights_green_and_seals_nothing(repo, tmp_path):
     assert not SGR.search(out.stdout), "a preflight carries colour codes"
     assert not any(c in out.stdout for c in HALF_BLOCKS), "a preflight drew blocks"
     arms = record_arms()
-    assert len(arms) >= 6, f"the gate's record arms were not read: {arms}"
+    assert len(arms) >= 3, f"the gate's record arms were not read: {arms}"
     # Every file kept is an arm's output (#866): the chain arm no longer
     # writes a draft payload beside them, and passes `--sealing` instead.
     kept = sorted(os.listdir(keep))
@@ -9650,12 +9547,11 @@ def test_the_panel_reports_the_rows_exit_code_and_asserts_no_linter(a_sealed_run
     is. Since #666 the exit code continued under `suite` rather than on a
     `row` of its own, and since #717 it is not on the panel at all: a drawn
     panel's row came back 0 by construction, which `SEALED` says, so the row
-    after the counts is the ledger's. #832 puts a `✓` on both rows, and the
-    ledger's carries its three counts."""
+    after the counts is the chain's. #832 puts a `✓` on both rows."""
     _repo, _out, values = a_sealed_run
     rows = values["rows"]
     at = rows.index(("suite", "✓ 1 passed"))
-    assert rows[at + 1] == ("ledger", "✓ 0 ok · 0 drifted · 0 broken"), rows
+    assert rows[at + 1] == ("chain", "✓ exit 0"), rows
     assert not any("clean" in cell for row in values["rows"] if row for cell in row), (
         "the seal still asserts a linter over a row that has none in it"
     )

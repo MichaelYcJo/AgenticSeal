@@ -124,25 +124,6 @@ jobs:
           fi
           python3 .github/scripts/gather_changelog.py --check
 
-      # The other fragment a change writes is `seal/ledger/<work-item-id>.md`,
-      # its evidence rows. The release folds those into that release's own
-      # file, `seal/releases/<X.Y.Z>.md`, and removes the fragment; a fragment
-      # left behind is a directory that grows by one file per work item
-      # forever, which is issue #78. The same
-      # step refuses while any `seal/specs/<id>/evidence-todo.md` has an open row —
-      # a fact a reviewer verified that never reached the ledger — so the
-      # check reads those too: a fold done by hand still meets the guard here.
-      #
-      # Release only, for the same reason as the changelog step: on a feature
-      # pull request every fragment on the branch is legitimately unfolded.
-      - name: every ledger fragment folded into the gathered ledger
-        shell: bash
-        run: |
-          if [ "${{ github.base_ref }}" != "main" ]; then
-            echo "base is ${{ github.base_ref }} — fragments are folded when the release reaches main"; exit 0
-          fi
-          python3 .github/scripts/fold_ledger.py --check
-
       # An `unverified` row records a claim nobody proved and names who can
       # answer it. Nothing ever read those rows again — one of them said the
       # gates had never been seen rendering in a TUI, and months later the
@@ -243,103 +224,6 @@ jobs:
           python3 skills/code-review/scripts/chain_check.py \
             --baseline "origin/${{ github.base_ref }}"
 
-      # A fix pass repairs the coordinate a finding named, and the fact behind
-      # it is usually written down somewhere else too. The copies nobody
-      # touched come back as a later round — `agent-contract` §12 is the rule
-      # against it, it reaches every agent at startup, and it has been
-      # re-broken seven times by parties that had read it. So this is the
-      # check rather than an eighth sentence.
-      #
-      # It runs here as well as at the fix pass because a review round cannot
-      # run it at all: contract §2 leaves the broad gate to whichever agent
-      # definition assigns it and no reviewer's does, and #269 is one reworded
-      # sentence whose pin stayed behind
-      # in a test module that was red from that commit through two rounds and
-      # past two gates.
-      #
-      # **This one fails, where the two steps above only print, and the
-      # difference is measured.** Over four real merged pull requests it
-      # reported once, and that report is `seal/ledger.md` row R3 carrying a
-      # claim a docstring had corrected — a defect that shipped, and #267 is
-      # the ticket it became. A branch that means to keep a survivor answers it
-      # in `seal/specs/<id>/survivors.md` with a quote from the standing text
-      # and the grounds; the quote is the anchor, so the exemption stops
-      # holding once that text changes.
-      #
-      # **It runs on a pull request into a release branch and not on one into
-      # `main`, because the range decides what this check means.** The range
-      # it was calibrated over is a fix pass's — 77 real ones, and the floor of
-      # 1.6 was chosen against that curve. A release pull request's range is
-      # the union of every work item the release carries, which is a range no
-      # fix pass ever writes: the wording one item removed is measured against
-      # four other items' prose, and every one of those items was already
-      # checked at its own pull request. Measured on the release that added
-      # this step: over five work items it reported **72** places, none of them
-      # a survivor of the range that removed the wording. So the union is not
-      # a bigger version of the same question, it is a different one, and the
-      # answer to it here is silence rather than a raised floor.
-      - name: wording this branch removed is not still standing elsewhere
-        shell: bash
-        run: |
-          if [ "${{ github.base_ref }}" = "main" ]; then
-            echo "base is main — a release's range is every work item it carries, which is not a range a fix pass wrote; each of them was checked at its own pull request"; exit 0
-          fi
-          # `if`, not `&&`: an unmatched glob leaves the pattern itself as the
-          # loop's one value, and whether `set -e` forgives a failing test at
-          # the tail of an `&&` list is a rule nobody should have to recall to
-          # read this. Most branches match nothing here.
-          exempt=()
-          for file in seal/specs/*/survivors.md; do
-            if [ -e "$file" ]; then exempt+=(--exempt "$file"); fi
-          done
-          python3 skills/code-review/scripts/survivor_check.py \
-            --range "origin/${{ github.base_ref }}...HEAD" ${exempt[@]+"${exempt[@]}"}
-
-      # A `seal/ledger.md` conflict resolved by taking one side reverts the
-      # other side's corrections, and a row reverted to a superseded state is
-      # byte-identical to a row nobody touched — no marker on it, and the hash
-      # the evidence checker reads is *correct* for the restored text. #424
-      # was caught by one accident: a reviewer grepped for the marker the
-      # corrections carried and found 0 occurrences of `Corrected 2026-09-15`
-      # in a file that had had three.
-      #
-      # This reads the markers instead. Both of them — `Corrected` and
-      # `Re-read`, matched on the verb and the date and never on the sentence
-      # after it, because at least three spellings of the first one already
-      # exist; a short qualifier BEFORE the date — `Re-read again <date>`, `a
-      # third time`, `and re-executed` — is read as part of the same marker,
-      # because a minority of the file's markers are spelled that way and one
-      # row carries no other. The figures live at one site, the census note
-      # beside the check's own `MARKER`, which names the corpus and the date
-      # each is true of — this comment used to restate one of them, and it
-      # was one of the six copies #470 reported.
-      # A marker that vanished WITH its row is `REMOVED` and
-      # correct; one that vanished while its row stands is the defect, and a
-      # marker a parent deleted relative to the merge base is that parent's
-      # decision rather than the merge's.
-      #
-      # **It runs here and nowhere else, because the merges exist only here.**
-      # A feature branch squashes into its release branch, so the branch's own
-      # merge of that release branch in — which is exactly what #424's incident
-      # was — stops existing the moment the pull request merges. Measured in
-      # `tests/test_a_merge_cannot_silently_drop_a_correction.py`: reachable
-      # from the merge ref this job checks out, gone after the squash.
-      #
-      # **Release only in the other direction, like the survivor step above.**
-      # A pull request into `main` is a release, and a release branch carries
-      # squashed commits rather than its work items' merges; the range there
-      # holds merges of `main` back into the release branch, which is a
-      # different question, and every work item was already read at its own
-      # pull request.
-      - name: no merge on this branch dropped a correction the ledger had made
-        shell: bash
-        run: |
-          if [ "${{ github.base_ref }}" = "main" ]; then
-            echo "base is main — a release branch carries squashed commits, not its work items' merges; each of them was checked at its own pull request"; exit 0
-          fi
-          python3 skills/evidence-check/scripts/correction_check.py \
-            --range "origin/${{ github.base_ref }}...HEAD"
-
       # `docs/flow.md` used to ask *is everything in* as a checklist bullet a
       # person ticked, and #351 deleted the file. Nothing replaced it, and
       # nothing had ever checked it: `docs/issues-and-milestones.md` says a
@@ -354,7 +238,7 @@ jobs:
       # repaired by a person adding a label by hand, which is the act #359
       # exists to remove.
       #
-      # Release only, like the three steps above it. The head must ALSO be a
+      # Release only, like the version and changelog steps. The head must ALSO be a
       # `release/v*` branch, and that half is the script's rather than this
       # guard's: `docs/branch-and-release.md` lists a hotfix branch as the
       # other thing that reaches `main`, a hotfix carries no release

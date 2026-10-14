@@ -24,20 +24,11 @@ What it does, in order, from the repository root:
      reads as — the whole command wrapped in backticks or in `$(…)`, or
      ending in a single `&`. No refusal names a command to write: the row is
      a person's, and the message says where they answer it
-  2. `evidence-check --strict .`       the ledger's rows still anchor; and,
-     where step 1 ran the suite, `--suite-record` and `--suite-key` hand it
-     that run's pytest record, so a row held by a test is held only where
-     the test was seen passing in it (#836). A preflight runs no suite and
-     hands none, and the check reads test rows for existence alone
-  3. `unverified-check --baseline <base> seal/specs/`
-  4. `chain_check.py --baseline <base> --sealing`   judged by the pull
+  2. `unverified-check --baseline <base> seal/specs/`
+  3. `chain_check.py --baseline <base> --sealing`   judged by the pull
      request's state as the check reads it, with the `Broad gate` cell this
      run is about to write excused, because it still reads `not yet`
-  5. `survivor-check --range <base>...HEAD`, with every
-     `seal/specs/*/survivors.md` as `--exempt`
-  6. `correction_check.py --range <base>...HEAD`   no merge on this branch
-     dropped a correction the ledger had made
-  7. `seal.py mode --check`            the `Mode` row and the folder agree
+  4. `seal.py mode --check`            the `Mode` row and the folder agree
 
 **Which arms exist is declared rather than remembered** (#468). `PARTITION`
 below holds every step of `.github/workflows/hygiene.yml`'s `release` job
@@ -79,7 +70,7 @@ and the reader acts.
 **Drawn on success only, and only where a person is looking** (#400). The
 stamp — the disc and a panel carrying the tree and its branch, the base and
 the ref it came from, the work item and its pull request, the suite's counts,
-the ledger's three counts, the chain's exit, how many more steps CI runs
+the chain's exit, how many more steps CI runs
 than this seal answers, and the round count when `--record` names a work
 item — `capped` beside it and the deferred findings' homes beneath it where
 the run ended at the cap (`rounds_rows`) — a list too long for its row
@@ -114,12 +105,12 @@ discriminator, and the gate's message says which of the two happened. A seal
 over a record that says the run came too early, or over a tree the chain
 check refuses, is a stamp over a contradiction.
 
-**`--preflight` runs arms 2 to 7 alone, and seals nothing** (#638). It is the
+**`--preflight` runs arms 2 to 4 alone, and seals nothing** (#638). It is the
 orchestrator's step before it spawns the sealer: the same base resolved the
 same way, every refusal of the row applied, and then every arm above except
 the row, in the same order, with the same arguments, each output kept the
-same way. The row is read and never run, so a refusal on a record arm — a
-drifted ledger row, a chain refusal, a survivor — arrives in seconds rather
+same way. The row is read and never run, so a refusal on a record arm — an
+unverified row deleted, a chain refusal — arrives in seconds rather
 than after a whole suite. It writes no cell, no values file and no stamp,
 adds no worktree, prints no coverage line, and prints no line beginning
 `SEALED` or `NOT SEALED`: its stdout opens `PREFLIGHT PASSED` or `PREFLIGHT
@@ -165,7 +156,6 @@ with nothing run, `--record` given among the refusals.
 
 import argparse
 import functools
-import glob
 import importlib.util
 import json
 import ntpath
@@ -225,26 +215,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 STAMP = os.path.join(HERE, "seal_stamp.py")
 UNVERIFIED = os.path.join(HERE, "unverified_check.py")
-EVIDENCE = os.path.join(
-    PLUGIN, "skills", "evidence-check", "scripts", "evidence_check.py"
-)
-# The two options that hand the ledger arm the sealed run's record (#836),
-# spelled as `evidence_check.py#SUITE_RECORD_OPTION` and `#SUITE_KEY_OPTION`.
-EVIDENCE_RECORD = "--suite-record"
-EVIDENCE_KEY = "--suite-key"
-# How `evidence_check.py#existence_line` begins: the ledger arm read test rows
-# for existence alone, which the gate repeats on its own output (round 3 of
-# #836, 🟡 3).
-EXISTENCE_ALONE = "test rows were read for existence alone"
-CORRECTION = os.path.join(
-    PLUGIN, "skills", "evidence-check", "scripts", "correction_check.py"
-)
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
 CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py")
 # `chain_check.SEALING`, the flag the chain arm passes (#866). Spelled here
 # because the arm runs the check as a process; a case holds the two equal.
 CHAIN_SEALING = "--sealing"
-SURVIVOR = os.path.join(PLUGIN, "skills", "code-review", "scripts", "survivor_check.py")
 RECORD = os.path.join(PLUGIN, "skills", "code-review", "scripts", "round_record.py")
 # The branch → work item key the preflight's ask reads (#702).
 ROUTING = os.path.join(PLUGIN, "hooks", "routing.py")
@@ -254,7 +229,6 @@ SEAL_DIR = "seal"
 CONFIG = "config.md"
 ROW = "Broad gate"
 SPECS = "specs"
-SURVIVORS = "survivors.md"
 ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 
 # The checks, by the name the report prints for each. The first is the
@@ -265,15 +239,12 @@ ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 # three releases and every document that said `five` had to be found again
 # when the sixth landed — `PARTITION` below is where the list is declared, and
 # a case holds it against the workflow rather than against a number typed here.
-SUITE, LEDGER, UNVERIFIED_NAME, CHAIN_NAME, SURVIVORS_NAME = (
+SUITE, UNVERIFIED_NAME, CHAIN_NAME, MODE_NAME = (
     "suite",
-    "ledger",
     "unverified",
     "chain",
-    "survivors",
+    "mode",
 )
-# The two the workflow ran and the gate did not, until #468 (`PARTITION`).
-CORRECTIONS_NAME, MODE_NAME = "corrections", "mode"
 
 # How many lines of a failing check's output the report quotes before naming
 # the file that holds the rest.
@@ -356,8 +327,6 @@ def wrapped(label, pieces):
 # record (`failing_files`), to name the files that read `NO_RECORD_AT_HEAD`;
 # the path may hold a space (#813).
 FAILED_RE = re.compile(r"^FAILED\s+(.+?)::", re.M)
-# `evidence-check`'s total line: `total: N ok · D drifted · B broken · …`.
-LEDGER_RE = re.compile(r"total: (\d+) ok · (\d+) drifted · (\d+) broken")
 
 
 class Refused(Exception):
@@ -572,7 +541,7 @@ def redirect_line(root, shipped):
 # remote-tracking ref is the only thing that resolves there. This gate was
 # handed the ref AS TYPED and so resolved the LOCAL one, and the two part as
 # soon as the local ref falls behind — #423, where the gate sealed a branch
-# green over two excused survivors and CI refused the same commit with seven.
+# green and CI refused the same commit.
 #
 # `tests/test_the_gate_asks_the_range_ci_will_ask.py` holds this spelling
 # against the workflow's, so the two readers cannot drift apart again in
@@ -622,9 +591,7 @@ def moved_line(root, base):
     case where a sibling merges while this branch is open.
 
     **Nothing prints where the two agree.** A line on every run is a line
-    people learn to skip, which is the reasoning
-    `tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py` already
-    applies to the lenient ledger notice.
+    people learn to skip.
 
     Two fillings, because a given spelling can name no commit at all. A clone
     that never made a local branch for its base is an ordinary checkout, and
@@ -653,7 +620,8 @@ def moved_line(root, base):
     has no subject and both refs are in the sentence, so the reading that
     makes it true is the nearer noun rather than anything stated (round 1,
     finding 7).
-    """
+
+    Reads: observed — the commits `Base` carries and git's count of the commits between them; unknown passed"""
     if not base.moved:
         return None
     runner = REMOTE_LABEL.format(ref=base.given)
@@ -1735,10 +1703,6 @@ def command_names_backslashed(command, is_directory):
     return "".join(out)
 
 
-def exemptions(home):
-    return sorted(glob.glob(os.path.join(home, SPECS, "*", SURVIVORS)))
-
-
 # --- the reactive base comparison ------------------------------------------
 #
 # #825. Four designs in a row inferred which pytest process printed a line,
@@ -2363,20 +2327,19 @@ def job_steps(text, job):
 # Each row is a step of the `release` job, spelled as `hygiene.yml` spells it,
 # and then either the arm that mirrors it or the reason none does.
 #
-# **Four of the nine exclusions could not run here at all; five could.** The
+# **Four of the eight exclusions could not run here at all; four could.** The
 # measurement `questions.md` M1 asked for, taken by construction over every
 # step: three steps have no local answer (the pull request's body, the
 # remote's pull-request namespace, the tracker), one raises a warning and can
 # refuse nothing, one is shell written inline in the workflow with no script
-# to share, and four run a script that belongs to this repository rather
-# than to the plugin. The last five are the ones with a local answer, and
+# to share, and three run a script that belongs to this repository rather
+# than to the plugin. The last four are the ones with a local answer, and
 # `seal/config.md`'s `Broad gate` row is where a repository names checks of
 # its own — not the arm list of a script that ships to every repository that
 # installs the plugin.
 #
-# **Which of the steps CI runs depends on the base** (#666). Four run only
-# on a pull request into `main` (`ONLY_AT_MAIN`) and two are skipped there
-# (`SKIPPED_AT_MAIN`'s arms), so the `workflow` count is taken over
+# **Which of the steps CI runs depends on the base** (#666). Three run only
+# on a pull request into `main` (`ONLY_AT_MAIN`), so the `workflow` count is taken over
 # `steps_for(workflow, base)` rather than over this table: a step CI does not
 # ask of a pull request is neither answered nor unanswered by the sealer's run.
 PARTITION = (
@@ -2402,13 +2365,6 @@ PARTITION = (
         "own checks belong in the `Broad gate` row of `seal/config.md`",
     ),
     (
-        "every ledger fragment folded into the gathered ledger",
-        None,
-        "runs `.github/scripts/fold_ledger.py`, this repository's own script "
-        "rather than one the plugin ships, and the `Broad gate` row is where "
-        "a repository names a check of its own",
-    ),
-    (
         "the unverified record is readable, and rows leave it closed",
         UNVERIFIED_NAME,
         None,
@@ -2431,16 +2387,6 @@ PARTITION = (
     (
         "a declared review chain has the round record it claimed",
         CHAIN_NAME,
-        None,
-    ),
-    (
-        "wording this branch removed is not still standing elsewhere",
-        SURVIVORS_NAME,
-        None,
-    ),
-    (
-        "no merge on this branch dropped a correction the ledger had made",
-        CORRECTIONS_NAME,
         None,
     ),
     (
@@ -2473,36 +2419,22 @@ PARTITION = (
 # The branch a pull request into which is a release, spelled once.
 MAIN = "main"
 
-# The mirrored arms whose steps skip a pull request into `main`. In
-# `hygiene.yml` each of the two steps opens its `run:` with `if [ "${{
-# github.base_ref }}" = "main" ]; then … exit 0`, because a release branch
-# carries squashed commits and every work item was already read at its own
-# pull request. An arm that asks where its step does not ask is a second
-# reading of one question, which is what `PARTITION` exists to stop (#473).
-#
-# Held against the workflow by
-# `tests/test_the_gate_names_every_step_ci_runs.py`: for each mirrored arm,
-# its step skips at `main` exactly where this names it, so a guard added to a
-# third step, or dropped from one of these, fails the suite.
-SKIPPED_AT_MAIN = (SURVIVORS_NAME, CORRECTIONS_NAME)
-
 # The steps that run ONLY on a pull request into `main`, by step name (#666).
-# In `hygiene.yml` each of the four opens its `run:` with `if [ "${{
+# In `hygiene.yml` each of the three opens its `run:` with `if [ "${{
 # github.base_ref }}" != "main" ]; then … exit 0`: a release pull request is
-# where the version moves, the fragments are gathered and folded, and the
-# milestone is judged. On any other base CI never asks them, so a seal that
-# counted them as *not answered* counted questions nobody asks — the owner
-# read `8 of 13 not answered` on a feature seal whose honest count was `4 of
-# 9`. None of the four is mirrored, so no arm changes; what changes is the
-# denominator of the `workflow` count and the names beside it.
+# where the version moves, the fragments are gathered, and the milestone is
+# judged. On any other base CI never asks them, so a seal that counted them
+# as *not answered* would count questions nobody asks. None of the three is
+# mirrored, so no arm changes; what changes is the denominator of the
+# `workflow` count and the names beside it.
 #
 # Held against the workflow by `tests/test_the_gate_names_every_step_ci_runs.py`
-# from both sides, the way `SKIPPED_AT_MAIN` is: a `!= "main"` guard added to
-# a fifth step, or dropped from one of these, fails the suite.
+# from both sides: a `!= "main"` guard added to a fourth step, or dropped
+# from one of these, fails the suite. No step skips a pull request into
+# `main`, so every mirrored arm runs at every base.
 ONLY_AT_MAIN = (
     "a change to what ships must move the version",
     "every changelog fragment reached the released file",
-    "every ledger fragment folded into the gathered ledger",
     "the milestone this release claims is the work it carries",
 )
 
@@ -2515,14 +2447,15 @@ def mirrored():
 def base_is_main(given):
     """Whether the base the caller gave is `main`: `given`, with one leading
     `origin/` removed. This gate's one reading of the workflow's
-    `github.base_ref == "main"`, asked by `skipped_at_main` for the arms and
-    by `steps_for` for the count, so the two cannot disagree about which
-    pull request is a release (#666). None — no base known — is not `main`.
+    `github.base_ref == "main"`, asked by `steps_for` for the count (#666).
+    None — no base known — is not `main`.
 
     **The bound, named rather than claimed:** it is keyed on the spelling,
-    so `refs/heads/main` or `upstream/main` reads as not-`main`. For the arms
-    that runs both, and for the count it counts the four only-at-`main`
-    steps as running; both are the direction that over-asks."""
+    so `refs/heads/main` or `upstream/main` reads as not-`main`, and the
+    count leaves the only-at-`main` steps out, the direction that names
+    fewer steps CI asks.
+
+    Reads: guess — the base spelling the caller typed; unknown passed"""
     if given is None:
         return False
     if given.startswith("origin/"):
@@ -2534,77 +2467,32 @@ def steps_for(workflow, given):
     """The `release` job's steps CI runs for a pull request into `given`, in
     file order (#666).
 
-    Every step of the job, less `ONLY_AT_MAIN` where the base is not `main`,
-    and less the steps `SKIPPED_AT_MAIN`'s arms mirror where it is. A step
-    left out here is neither answered nor unanswered: CI does not ask it of
-    this pull request, so the sealer's run neither covers it nor misses it. `given`
-    None — no base known — leaves out what a base that is not `main` would,
-    which is what every caller that knows no base has been asked about."""
+    Every step of the job, less `ONLY_AT_MAIN` where the base is not `main`.
+    A step left out here is neither answered nor unanswered: CI does not ask
+    it of this pull request, so the sealer's run neither covers it nor misses
+    it. `given` None — no base known — leaves out what a base that is not
+    `main` would, which is what every caller that knows no base has been
+    asked about.
+
+    Reads: guess — a repository's hygiene workflow its caller hands it, through `job_steps`; unknown passed"""
     steps = job_steps(workflow, RELEASE_JOB) if workflow else []
     if base_is_main(given):
-        skipped = {name for name, arm, _ in PARTITION if arm in SKIPPED_AT_MAIN}
-        return [step for step in steps if step not in skipped]
+        return steps
     return [step for step in steps if step not in ONLY_AT_MAIN]
 
 
 def left_out_clause(workflow, given):
     """The clause the coverage line adds for the steps `steps_for` left out,
-    or "" where it left none: how many, and why (#666)."""
+    or "" where it left none: how many, and why (#666).
+
+    Reads: guess — a repository's hygiene workflow its caller hands it, through `steps_for`; unknown passed"""
     every = job_steps(workflow, RELEASE_JOB) if workflow else []
     left = len(every) - len(steps_for(workflow, given))
     if not left:
         return ""
-    why = (
-        f"{'are steps' if left > 1 else 'is a step'} CI skips on a pull request "
-        f"into `{MAIN}`"
-        if base_is_main(given)
-        else f"{'run' if left > 1 else 'runs'} only on a pull request into `{MAIN}`"
-    )
+    why = f"{'run' if left > 1 else 'runs'} only on a pull request into `{MAIN}`"
     return (
         f" {left} more {why}, so this count leaves {'them' if left > 1 else 'it'} out."
-    )
-
-
-def skipped_at_main(given, workflow):
-    """The arms this run leaves out because CI skips their steps, in
-    `PARTITION` order. Empty unless BOTH hold:
-
-      - the base the caller gave names `main`: `given`, with one leading
-        `origin/` removed, is `main`. That is this gate's reading of the
-        workflow's `github.base_ref == "main"`, keyed on what the caller
-        said the pull request merges into, as `agents/sealer.md` tells the
-        sealer to pass it; and
-      - the gated repository's workflow carries that arm's step in its
-        `release` job.
-
-    The second half is what keeps a repository with no such workflow exactly
-    as it was (`workflow_text`'s docstring): many of them merge feature
-    branches straight into `main`, and skipping there would drop two arms
-    from every run, which is the unsafe direction.
-
-    **The bound, named rather than claimed:** the skip is keyed on the
-    spelling `main` or `origin/main` and on the step being present in the
-    workflow, not on the guard the step carries, so `refs/heads/main` or
-    `upstream/main` runs both arms, the direction that over-asks. The
-    spelling is read by `base_is_main`, which the `workflow` count asks too.
-    """
-    if not workflow or not base_is_main(given):
-        return []
-    steps = set(job_steps(workflow, RELEASE_JOB))
-    return [
-        arm for name, arm, _ in PARTITION if arm in SKIPPED_AT_MAIN and name in steps
-    ]
-
-
-def skipped_line(arms):
-    """The one stderr line a run that leaves arms out prints before the
-    checks run."""
-    named = " and ".join(f"`{arm}`" for arm in arms)
-    return (
-        f"broad-gate: the base is `{MAIN}`, and {WORKFLOW} skips the steps the "
-        f"{named} {'arms mirror' if len(arms) > 1 else 'arm mirrors'} on a pull "
-        f"request into `{MAIN}`, so this run does not run "
-        f"{'them' if len(arms) > 1 else 'it'} either"
     )
 
 
@@ -2736,30 +2624,6 @@ def suite_counts(record):
         word = PLURALS.get(name, name) if count != 1 else name
         said.append(f"{count} {word}")
     return ", ".join(said)
-
-
-def ledger_counts(text):
-    """`(ok, drifted, broken)` off `evidence-check`'s `total:` line, or None.
-
-    On a drawn panel `drifted` and `broken` are both 0 by construction: the
-    gate passes `--strict`, which exits 2 on either. #666 carried them on the
-    row beneath `ok` because the owner asked for it; #717's owner took that
-    row off, and #832's owner put the three back on the one `ledger` row
-    (`spec.md` decision 6 of work item 1791270164), so `panel` prints all
-    three. The count that varies is where it varies, at the end of the
-    failure form's `ledger` entry (`failure_lines`)."""
-    m = LEDGER_RE.search(text)
-    return m.groups() if m else None
-
-
-def ledger_total(text):
-    """`evidence-check`'s own `total:` line, or None where its output has
-    none. The failure form quotes a check's FIRST lines and this line is its
-    LAST, so a refused ledger used to be reported without its counts."""
-    for line in reversed(text.splitlines()):
-        if line.startswith("total:"):
-            return line.rstrip()
-    return None
 
 
 def round_count(item):
@@ -2959,21 +2823,16 @@ def panel(
       (blank)                              `None`
       suite     ✓ <recorded counts>        joined by ` · `, wrapped onto `""`
                                            rows; `exit N` where there are none
-      ledger    ✓ <ok> ok · <d> drifted · <b> broken   `exit N` with no total
-      chain     ✓ exit <code>              read off the chain's own check
+      chain    ✓ exit <code>              read off the chain's own check
       CI also   · <n> more steps           absent without a hygiene workflow
       rounds    <R>[ · capped]             absent without --record
                 <k> deferred → <homes>     only where k > 0 (`rounds_rows`)
 
     **The result rows carry a `✓`, and the blank before them is a row**
     (#832, `spec.md` decision 6 of work item 1791270164, the owner's design
-    of 2026-10-07). #717's owner had taken `chain exit 0`, the suite's
-    `exit 0` and the ledger's `0 drifted . 0 broken` off the panel, because
-    a panel drawn on success alone says again what `SEALED` says, and the
-    sheet drew no blank line. The owner's newer design shows them, so they
-    are back in one shape: a `✓` where the arm's count or exit was read, the
-    ledger's three counts on its one row, `chain ✓ exit <code>`, and a dim
-    `·` before `CI also`'s value, the mark of a row that is not a pass.
+    of 2026-10-07): a `✓` where the arm's count or exit was read,
+    `chain ✓ exit <code>`, and a dim `·` before `CI also`'s value, the mark
+    of a row that is not a pass.
     `exit N` stays where a row has no count to print, because then it is the
     only statement of what that arm did. The failure form keeps every arm's
     exit code (`failure_lines`). The drawing does not know which label
@@ -3018,7 +2877,8 @@ def panel(
     one shell command line and nothing in it says which part is a linter
     (`templates/config.md` §*Broad gate*), so `clean` over a row with no
     linter in it is the sealer's stamp asserting a check that never ran.
-    """
+
+    Reads: owned — the checks this run kept and the record it read, through `suite_counts` and `rounds_rows`; unknown passed"""
     stamp = stamp_module()
     rows = [("SEALED", ""), ("tree", tree)]
     if branch:
@@ -3040,13 +2900,6 @@ def panel(
         rows += wrapped(SUITE, [TICK + first, *(SEP + part for part in more)])
     else:
         rows.append((SUITE, f"exit {checks[SUITE].code}"))
-    ledger = ledger_counts(checks[LEDGER].text)
-    if ledger:
-        ok, drifted, broken = ledger
-        said = f"{ok} ok{SEP}{drifted} drifted{SEP}{broken} broken"
-        rows.append((LEDGER, TICK + said))
-    else:
-        rows.append((LEDGER, f"exit {checks[LEDGER].code}"))
     rows.append((CHAIN_NAME, f"{TICK}exit {checks[CHAIN_NAME].code}"))
     # What this seal did NOT answer, which a reader otherwise reconstructs
     # from two files (#468). A COUNT, because a panel value is
@@ -3110,12 +2963,7 @@ def failure_lines(check, verdicts=None, record=None):
     the exit is not a count. Where a record holds lines that did not parse,
     `UNREAD_HERE` has already said why no count follows.
 
-    **A failing `ledger` ends with `evidence-check`'s `total:` line** (#666),
-    the way a failing `suite` ends with its counts. The check prints that
-    line LAST and this quotes its first lines, so a refusal for one drifted
-    row reached the reader with no count of how many; it is added only where
-    the quoted lines do not already hold it.
-    """
+    Reads: owned — one check this run kept and the pytest record it read; unknown passed"""
     lines = [f"exit {check.code}", *check.first_lines()]
     if verdicts:
         # Where no pytest at `HEAD` left a record the base is not run, and
@@ -3141,10 +2989,6 @@ def failure_lines(check, verdicts=None, record=None):
             lines.append(counts)
         elif record is None or not record.sessions:
             lines.append(NO_RECORD_HERE)
-    if check.name == LEDGER:
-        total = ledger_total(check.text)
-        if total and total not in lines:
-            lines.append(total)
     lines.append(f"full output: {check.path}")
     return lines
 
@@ -3315,7 +3159,9 @@ def gate(args, console_wants_letters, terminal=False):
     """The run. `terminal` is whether stdout has a person in front of it:
     only then, and only over a written cell, is the stamp drawn here, and
     every other sealed run signals instead (#400). Its default is the pipe, which is what every caller that
-    is not `__main__` — a case driving this in process — is writing to."""
+    is not `__main__` — a case driving this in process — is writing to.
+
+    Reads: guess — the arguments, a person's `config.md` and the tree, through the units above; unknown refused"""
     stamp = stamp_module()
     root = repo_root(os.path.abspath(args.root or os.getcwd()))
     if root is None:
@@ -3354,8 +3200,8 @@ def gate(args, console_wants_letters, terminal=False):
     # commit CI will compare against. The readers of `base.given`, the
     # caller's spelling, are none of them a check: `moved_line`, which exists
     # to say how that spelling differs from what it resolved to; and, through
-    # `base_is_main`, `skipped_at_main` (#473) and the `workflow` count —
-    # `coverage_line` and `panel`, through `steps_for` (#666) — because the
+    # `base_is_main`, the `workflow` count — `coverage_line` and `panel`,
+    # through `steps_for` (#666) — because the
     # workflow's guard compares a branch NAME (`github.base_ref`) and a
     # resolved commit carries no name.
     base = resolve_base(root, args.base)
@@ -3415,13 +3261,6 @@ def gate(args, console_wants_letters, terminal=False):
     )
     if coverage:
         sys.stderr.write(coverage + "\n")
-    # The arms CI's own steps skip at this base, where this repository's
-    # workflow carries those steps (#473). Neither has a panel row, and a step
-    # both sides skip is agreed rather than unanswered, so the line is the
-    # whole of what a reader sees change.
-    skipped = skipped_at_main(base.given, workflow)
-    if skipped:
-        sys.stderr.write(skipped_line(skipped) + "\n")
     # A preflight skips the row by CONDITION and keeps this assignment where it
     # stands: `PARTITION`'s cases read every `checks[...] = run(...)` in this
     # function, so a second list of arms for the preflight would be the drift
@@ -3437,27 +3276,6 @@ def gate(args, console_wants_letters, terminal=False):
             SUITE, command, root, keep, shell=True, env=recording_env(keep, head_key)
         )
         head = read_record(records_dir(keep), head_key, root)
-    # The ledger arm reads the run it seals (#836): a test row is held only
-    # where the head run's record saw its test pass. No suite ran on a
-    # preflight, so it hands no record and the arm reads existence.
-    observed = (
-        []
-        if head is None
-        else [EVIDENCE_RECORD, records_dir(keep), EVIDENCE_KEY, head_key]
-    )
-    checks[LEDGER] = run(
-        LEDGER, [py, EVIDENCE, "--strict", *observed, root], root, keep
-    )
-    # A row that left no session under the key leaves the arm reading test
-    # rows for existence alone, and the panel's `ok` cannot say so: the
-    # checker's own line goes beside the command line (round 3, 🟡 3).
-    # Found by its own start rather than by splitting the output into lines,
-    # which `OUT_OF_CLASS` would owe a reason for: the checker prints it once.
-    said = "\n" + checks[LEDGER].text
-    at = said.find("\n" + EXISTENCE_ALONE)
-    if head is not None and at >= 0:
-        line = said[at + 1 :].partition("\n")[0]
-        sys.stderr.write(f"broad-gate: {LEDGER}: {line}\n")
     checks[UNVERIFIED_NAME] = run(
         UNVERIFIED_NAME,
         [py, UNVERIFIED, "--baseline", base.commit, specs],
@@ -3475,29 +3293,6 @@ def gate(args, console_wants_letters, terminal=False):
         root,
         keep,
     )
-    if SURVIVORS_NAME not in skipped:
-        survivor_args = [
-            py,
-            SURVIVOR,
-            "--range",
-            f"{base.commit}...HEAD",
-            "--root",
-            root,
-        ]
-        for path in exemptions(home):
-            survivor_args += ["--exempt", path]
-        checks[SURVIVORS_NAME] = run(SURVIVORS_NAME, survivor_args, root, keep)
-    # The two arms #468 added, and `PARTITION` is where each says which step
-    # of the workflow it stands for. The range is the survivor arm's, spelled
-    # the same way for the same reason: both walk what this branch did
-    # relative to the commit CI will compare against.
-    if CORRECTIONS_NAME not in skipped:
-        checks[CORRECTIONS_NAME] = run(
-            CORRECTIONS_NAME,
-            [py, CORRECTION, "--range", f"{base.commit}...HEAD", "--root", root],
-            root,
-            keep,
-        )
     # No `--root`: `seal.py mode` resolves the repository from the working
     # directory, which `run` already sets to the tree being gated.
     checks[MODE_NAME] = run(MODE_NAME, [py, SEAL_SCRIPT, "mode", "--check"], root, keep)
