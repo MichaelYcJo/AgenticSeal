@@ -60,10 +60,8 @@ def refusal(script, version, executable):
     up stderr, and a path the console cannot encode would otherwise end the
     refusal in a traceback.
     """
-    script, executable = [
-        path.encode("ascii", "backslashreplace").decode("ascii")
-        for path in (script, executable)
-    ]
+    script = script.encode("ascii", "backslashreplace").decode("ascii")
+    executable = executable.encode("ascii", "backslashreplace").decode("ascii")
     command = os.path.basename(script)
     if command.endswith(".py"):
         command = command[: -len(".py")]
