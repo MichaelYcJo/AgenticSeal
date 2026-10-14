@@ -33,4 +33,5 @@
   - The shards price cases 1.07 times what the single job that measured the
     old file did, a runner's price level rather than growth in the suite;
     the shards' part ratios move with the runner a group lands on, so no
-    scaling is applied to the union.
+    scaling is applied to the union. `## Price level` in `seal/budgets.md`
+    reads 1073 per mille, the number the `budgets` step names for it.

@@ -36,17 +36,13 @@ first divergence, closed in phase 3. -->
 
 ## Not done
 
-- **`seal/budgets.md`'s `## Price level`, after the rebase onto #930.**
-  #930 (#938) lands first and adds a `## Price level` row in per mille, now
-  1000, which a pull request changing `.test_durations` sets to the number
-  its budget step reports: the seconds-weighted ratio over the ids both
-  files hold. This branch's union reads 1.0706 against the file it
-  replaced (`phases/phase-2.md`), so after the rebase the row is about 1071.
-  Neither the row nor the step is on this branch, so nothing here sets or
-  names it; `REMEDY` and the `CONTRIBUTING.md` recipe say nothing about it
-  until it reads true on the branch. The session that rebases sets the row
-  from the step's output and, if the recipe is to name it, adds the
-  sentence then.
+- **Whether the refresh recipe names `## Price level`.** After the rebase
+  onto #930 the row reads 1073, the number `budget_check.py --baseline
+  origin/release/v0.22.0` names: the median over test files of the price
+  ratio on the 13,454 ids both files hold, where `phases/phase-2.md`'s
+  seconds-weighted 1.0706 had predicted about 1071. `REMEDY` and the
+  `CONTRIBUTING.md` recipe do not name the row; the `budgets` job names it
+  on the pull request that commits a refresh, with the number to write.
 - **Q3's prices.** The job times are measured (7 s and 11 s for `durations`);
   the per-minute price page was not opened.
 - **#914.** Its `workflow_dispatch` measuring input has nothing left to run;
