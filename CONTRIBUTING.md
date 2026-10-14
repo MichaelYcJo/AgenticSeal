@@ -132,8 +132,8 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with pillow==12.3.0 --with cmar
 # or: pip install pytest markdown-it-py==4.2.0 pillow==12.3.0 cmarkgfm==2025.10.22 && python3 -m pytest tests/
 ```
 
-CI runs six jobs: lint (`ruff check` + `ruff format --check`), the suite
-on ubuntu, macOS and Windows at the floor stated above (macOS in three shards
+CI runs six jobs: lint (`ruff check` + `ruff format --check`), the suite on
+ubuntu, macOS and Windows at the floor stated above (macOS in three shards
 and Windows in four, each leg divided by `pytest-split` from the one
 committed `.test_durations`, #841, #864; ubuntu as one job), `durations`,
 which unions what the Windows shards measured (#931),
