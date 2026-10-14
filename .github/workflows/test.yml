@@ -162,8 +162,9 @@ jobs:
       # else `.test_durations` is the committed file, and a part holding the
       # whole suite would read to the union as every id in two parts. The
       # name starts with a dot, which the action skips by default. A part is
-      # read by the `durations` job of the same run and by nothing else, so
-      # one day is enough.
+      # kept as long as the union it makes: re-running failed jobs re-runs
+      # the `durations` job too, which reads every part again, and the
+      # re-run shard's part replaces the one its first attempt uploaded.
       - if: always() && matrix.store != ''
         uses: actions/upload-artifact@v4
         with:
@@ -171,7 +172,8 @@ jobs:
           path: .test_durations
           include-hidden-files: true
           if-no-files-found: error
-          retention-days: 1
+          overwrite: true
+          retention-days: 7
 
   # The four Windows parts unioned into the file the next refresh commits
   # (#931). It runs after every pytest job, green or red, unless the run was
@@ -203,6 +205,7 @@ jobs:
           path: union/.test_durations
           include-hidden-files: true
           if-no-files-found: error
+          overwrite: true
           retention-days: 7
 
   # `arm-check`'s node-type tables have to hold on every supported Python,

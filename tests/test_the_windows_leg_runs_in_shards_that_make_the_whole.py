@@ -171,7 +171,10 @@ def test_the_upload_step_runs_always_and_only_where_store_is_set():
     without it the part is skipped. `matrix.store != ''`: anywhere else the
     file is the committed one, which the union reads as every id in two
     parts. `include-hidden-files`: the action skips a name starting with a
-    dot, and uploads nothing."""
+    dot, and uploads nothing. Seven days and `overwrite` (round 1's 🟡 1):
+    re-running failed jobs re-runs the `durations` job, which reads every
+    part again, so a part is kept as long as the union it makes, and the
+    re-run shard's part replaces the one its first attempt uploaded."""
     steps = job_steps("pytest")
     (pytest_at,) = [
         i for i, (_, block) in enumerate(steps) if "run: pytest tests/" in block
@@ -184,7 +187,8 @@ def test_the_upload_step_runs_always_and_only_where_store_is_set():
     assert fields.get("path") == ".test_durations", fields
     assert fields.get("include-hidden-files") == "true", fields
     assert fields.get("name") == "test-durations-${{ strategy.job-index }}", fields
-    assert fields.get("retention-days") == "1", fields
+    assert fields.get("retention-days") == "7", fields
+    assert fields.get("overwrite") == "true", fields
 
 
 def job_keys(job):
@@ -231,6 +235,9 @@ def test_the_durations_job_needs_pytest_and_runs_unless_cancelled():
     assert out.get("path") == opts.get("--out"), (out, opts)
     assert out.get("include-hidden-files") == "true", out
     assert out.get("retention-days") == "7", out
+    assert out.get("overwrite") == "true", (
+        "a re-run attempt's union is refused under the name its first attempt uploaded"
+    )
 
 
 def test_the_durations_file_parses_and_names_cases():
