@@ -108,6 +108,48 @@ def test_each_target_prints_its_first_sentence_or_why_it_has_none(
     assert f"\n    {said}\n" in out, out
 
 
+GATED = '''import sys
+
+import pytest
+
+if sys.platform:
+
+    @pytest.mark.slow
+    def test_gated():
+        """A gated case is read. More."""
+
+
+class TestGroup:
+    try:
+
+        def test_tried(self):
+            """A tried method is read."""
+
+    except ImportError:
+        pass
+'''
+
+
+@pytest.mark.parametrize(
+    "target, said",
+    [
+        ("tests/test_g.py::test_gated", "A gated case is read."),
+        ("tests/test_g.py::TestGroup::test_tried", "A tried method is read."),
+    ],
+    ids=["under an if, decorated", "a method under a try"],
+)
+def test_a_target_the_resolver_finds_in_a_block_prints_its_sentence(
+    tmp_path, capsys, target, said
+):
+    """A unit the resolver finds inside an `if` or a `try` is described from
+    the same unit, at exit 0, never a traceback."""
+    root = tree(tmp_path, f"## A\n\n**R.** Why.\nEnforced by: {target}\n")
+    (root / "tests" / "test_g.py").write_text(GATED, "utf-8", newline="\n")
+    code, out, _ = run(root, capsys)
+    assert code == 0
+    assert f"\n    {target} — {said}\n" in out, out
+
+
 @pytest.mark.parametrize("where", ["top", "subdirectory"])
 def test_with_no_root_the_targets_resolve_where_the_command_runs(
     tmp_path, capsys, monkeypatch, where

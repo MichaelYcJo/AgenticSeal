@@ -34,6 +34,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHECKER = os.path.join(HERE, "budget_check.py")
 SENTENCE = re.compile(r"(.+?[.!?])(?:\s|$)")
+DEFINITIONS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 
 def checker():
@@ -58,25 +59,41 @@ def first_sentence(doc):
     return found.group(1) if found else paragraph
 
 
-def docstring(root, target):
+def docstring(budget, root, target):
     """The docstring a resolved target carries: a `path::name` unit's, a
     Python file's module docstring, or None where it has none or is no
     Python.
 
-    Reads: observed — the Python file the target names, parsed; unknown passed"""
+    The unit is the one the resolver found. `coordinates.py#py_spans` walks
+    the file as `coordinates.py#named_unit` does, into an `if`, a `try` or a
+    `with` and never into another `def`, so its one span for the name is the
+    unit `target_problem` accepted, and the definition read is the one that
+    starts and ends there.
+
+    Reads: observed — the Python file the target names, parsed, through `coordinates.py#py_spans`; unknown passed"""
     path, _, name = target.strip().strip("`").partition("::")
     if not path.endswith(".py"):
         return None
     with open(os.path.join(root, *path.split("/")), encoding="utf-8") as handle:
-        node = ast.parse(handle.read())
-    for part in name.split("::") if name else []:
-        node = next(
-            child
-            for child in node.body
-            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
-            and child.name == part
-        )
-    return ast.get_docstring(node)
+        text = handle.read()
+    tree = ast.parse(text)
+    if not name:
+        return ast.get_docstring(tree)
+    kernel = budget.sibling("fold_check").coordinates()
+    places = (kernel.py_spans(text) or {}).get(".".join(name.split("::")), [])
+    if len(places) != 1:
+        return None
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, DEFINITIONS)
+            and (
+                min([node.lineno] + [d.lineno for d in node.decorator_list]),
+                node.end_lineno,
+            )
+            == places[0]
+        ):
+            return ast.get_docstring(node)
+    return None
 
 
 def describe(budget, root, target):
@@ -94,7 +111,7 @@ def describe(budget, root, target):
     if cell.startswith(budget.EVAL_CASES):
         return f"{cell} — an eval case"
     try:
-        doc = docstring(root, cell)
+        doc = docstring(budget, root, cell)
     except (OSError, ValueError, SyntaxError):
         return f"{cell} — (cannot be read as Python)"
     return f"{cell} — {first_sentence(doc) if doc else '(no docstring)'}"
