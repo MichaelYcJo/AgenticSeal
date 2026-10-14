@@ -56,8 +56,8 @@ thin policy document, which a reader can see, rather than a directory deleted
 with nothing absorbing it, which nobody can.
 
 **The process arm is its own act, and the fold does not gate it (#729).**
-`--retire-process` removes a released work item's `rounds/`, `phases/`,
-`survivors.md` and the files written only for a pull request, and leaves
+`--retire-process` removes a released work item's `rounds/`, `phases/`
+and the files written only for a pull request, and leaves
 `routing.md` and the SDD set for the fold. No check reads that part after
 the release, and removing it judges nothing, so it does not wait on the fold's
 judgment. What the SDD set still cites of it resolves at the release tag. It is an allow-list: a file on neither list is kept and named. Its
@@ -1213,14 +1213,8 @@ def retire(found, root, out=sys.stdout):
 
 # What a work item's directory holds for its pull request and nothing after
 # its release: the round records and the reviewer's reports, the phase
-# records, the survivor exemptions, and the files a pull request alone reads.
-# `docs/one-root-by-lifetime.md` names the class *the process record*. The
-# first three are `skills/code-review/scripts/survivor_check.py#
-# records_a_past_state`, the survivor sweep's own definition of a record of a
-# past state, and `tests/test_settle_retires_the_process_record.py` holds the
-# two to each other. The list is not imported from there: a destructive
-# allow-list is spelled where it acts, and the sweep's predicate has no reason
-# to know about `pr.*.md`.
+# records, and the files a pull request alone reads.
+# `docs/one-root-by-lifetime.md` names the class *the process record*.
 #
 # **An allow-list, because removal is the destructive direction.** A file on
 # neither list is kept and printed, never taken: one released directory once
@@ -1229,7 +1223,6 @@ def retire(found, root, out=sys.stdout):
 # the same reason.
 PROCESS_DIRS = ("rounds", "phases")
 PROCESS_FILES = (
-    "survivors.md",
     "broad-gate.md",
     "handoff.md",
     "tests-todo.md",
@@ -1497,6 +1490,9 @@ def retire_process(found, root, out=sys.stdout):
 
 
 def main(argv=None):
+    """Survey, retire or retire the process record; the exit code is the verdict.
+
+    Reads: guess — the arguments and the tree, through the units above; unknown refused"""
     ap = argparse.ArgumentParser(
         prog="settle",
         description="Name the released work items a `docs/` policy has yet to "
@@ -1524,7 +1520,7 @@ def main(argv=None):
         "--retire-process",
         action="store_true",
         help="remove the process record of every released work item — "
-        "rounds/, phases/, survivors.md and the files written only for a pull "
+        "rounds/, phases/ and the files written only for a pull "
         "request — and leave routing.md and the SDD set for the fold. Writes no "
         "prose and does not wait for the fold. An item a todo row or a ledger "
         "row holds is kept whole, and a file on neither list is kept and named",

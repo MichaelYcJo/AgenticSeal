@@ -2,8 +2,8 @@
 leaves the rest of its directory for the fold (#729).
 
 A work item's directory holds two kinds of file. The SDD set and `routing.md`
-say what was decided and why; the process record — `rounds/`, `phases/`,
-`survivors.md` and the files written only for a pull request — is read by
+say what was decided and why; the process record — `rounds/`, `phases/`
+and the files written only for a pull request — is read by
 no check after the release that ships the item. Measured when this shipped, it
 was 62% of the files under `seal/specs/` and 67% of the bytes, and it waited
 on the fold, a judgment it does not need. So it leaves by an arm of its own,
@@ -76,7 +76,6 @@ PROCESS = {
     "rounds/round-1-report.md": "# report\n",
     "rounds/round-2.md": "# round 2\n",
     "phases/phase-1.md": "# phase 1\n",
-    "survivors.md": "# survivors\n",
     "broad-gate.md": "# broad gate\n",
     "handoff.md": "# handoff\n",
     "pr.ko.md": "# 본문\n",
@@ -86,7 +85,6 @@ PROCESS = {
 TAKEN = (
     "rounds/",
     "phases/",
-    "survivors.md",
     "broad-gate.md",
     "handoff.md",
     "pr.ko.md",
@@ -160,7 +158,7 @@ def test_the_process_record_leaves_and_the_sdd_set_stays(repo):
     assert files_of(alpha) == sorted(DURABLE), files_of(alpha)
     for taken in TAKEN:
         assert f"removed seal/specs/{ALPHA}/{taken}" in text, (taken, text)
-    assert "retired the process record of 1 work item (10 files); 0 kept" in text, text
+    assert "retired the process record of 1 work item (9 files); 0 kept" in text, text
 
 
 def test_a_directory_is_removed_with_its_file_count(repo):
@@ -309,7 +307,7 @@ def test_the_report_says_what_the_arm_would_take(repo):
     assert code == 0, text
     assert files_of(repo) == before, "the report removed something"
     assert settle.PROCESS_HEADING in text, text
-    assert "    10 files in 1 released work item" in text, text
+    assert "    9 files in 1 released work item" in text, text
 
 
 def test_the_report_names_what_the_arm_would_keep(repo):
@@ -414,20 +412,6 @@ def document(*parts):
             "covers, along with every released one that wrote no `spec.md` and "
             "holds nothing open, which states no rule to fold. A fold is",
         ),
-        # Two copies of one sentence, in the module docstring and in
-        # `whole_range`'s, so each is pinned by the words that follow it.
-        (
-            ("skills", "code-review", "scripts", "survivor_check.py"),
-            "stands until `settle --retire-process` takes it, after the release "
-            "that ships it, so one merged row",
-            "lives until the release that ships it",
-        ),
-        (
-            ("skills", "code-review", "scripts", "survivor_check.py"),
-            "stands until `settle --retire-process` takes it, after the release "
-            "that ships it -- so one merged declaration",
-            "lives until the release that ships it",
-        ),
     ],
 )
 def test_each_carrier_says_when_the_process_record_leaves(parts, standing, gone):
@@ -466,7 +450,6 @@ TAILS = (
 TAKEN_NAMES = (
     "rounds",
     "phases",
-    "survivors.md",
     "broad-gate.md",
     "handoff.md",
     "tests-todo.md",
@@ -481,7 +464,7 @@ NOT_TAKEN = (
     "handoff.md.bak",
     "rounds-old",
     "phasesx",
-    "survivors.mdx",
+    "broad-gate.mdx",
 )
 
 
@@ -490,7 +473,7 @@ NOT_TAKEN = (
     "name", (*TAKEN_NAMES, "rounds/", "rounds/round-1.md", "phases/phase-2.md")
 )
 def test_a_citation_into_a_taken_file_is_read_whatever_follows_it(name, tail):
-    """Round 1, 🟡 2: `handoff.md:40`, `survivors.md.`, `pr.ko.md,` and a
+    """Round 1, 🟡 2: `handoff.md:40`, `broad-gate.md.`, `pr.ko.md,` and a
     bare `rounds` all name a file the arm takes, and were not listed."""
     assert settle.cites_a_process_record(name + tail), name + tail
 
@@ -509,7 +492,7 @@ def test_a_citation_written_as_prose_is_listed(repo):
     write(
         repo / "docs" / "one-root.md",
         "# a policy\n\nA rule.\n\n"
-        f"Measured in seal/specs/{ALPHA}/survivors.md.\n"
+        f"Measured in seal/specs/{ALPHA}/broad-gate.md.\n"
         f"See seal/specs/{ALPHA}/handoff.md:40 for it.\n"
         f"The `seal/specs/{ALPHA}/rounds` directory.\n"
         f"In seal/specs/{ALPHA}/pr.ko.md, which.\n"

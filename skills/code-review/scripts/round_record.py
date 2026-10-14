@@ -1397,10 +1397,8 @@ def fenced_after(reader, raw, lines, heading):
 # `.github/scripts/issue_claims_check.py#BLOCK_START` segments hand-wrapped
 # prose for the same reason and pays the same price. The alternatives below
 # are its, plus the two fence openers this module needs, and the two are kept
-# spelled alike on purpose — `skills/code-review/scripts/survivor_check.py`
-# is the third carrier of the same shape. They are not shared through an
-# import: the two script roots ship on different paths and neither can reach
-# the other.
+# spelled alike on purpose. They are not shared through an import: the two
+# script roots ship on different paths and neither can reach the other.
 BLOCK_START = re.compile(
     r"^[ \t]*(?:"
     r"[-*+](?=\s)"

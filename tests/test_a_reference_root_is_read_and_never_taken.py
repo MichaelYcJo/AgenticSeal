@@ -179,7 +179,6 @@ NO_WALK = "walks no specs/ directory"
 NOT_A_CHECK = "is not a check of the tree"
 
 SHIPPED = {
-    "survivor-check": (PREDICATE, "pool and range, through a_reference_root"),
     "unverified-check": (PREDICATE, "the walk and the base, by one rule"),
     "settle": (PINNED, "settle.py#SPECS; its citation scan reads as a citer"),
     "correction-check": (PINNED, "correction_check.py#LEDGER/FRAGMENTS/RELEASES"),
@@ -191,6 +190,7 @@ SHIPPED = {
     "round-record": (PINNED, "writes rounds/ under seal/specs/<id>/ only"),
     "broad-gate": (NO_WALK, "hands seal/specs/ to the checks above"),
     "fold-check": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
+    "rules": (NO_WALK, "reads the one document it is named and its targets"),
     "arm-check": (NO_WALK, "reads the Python files it is named"),
     "mutation-check": (NO_WALK, "breaks and restores the one file it is named"),
     "deferral-check": (NO_WALK, "reads the pull request body and round records"),

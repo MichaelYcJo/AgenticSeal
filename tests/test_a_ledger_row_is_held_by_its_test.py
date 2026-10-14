@@ -1259,12 +1259,6 @@ def prose(rel):
             "loads `specseal_pytest_record` in its own test job and hands the step "
             "that run's directory and key with `--suite-record` and `--suite-key`",
         ),
-        (
-            "skills/verify/scripts/broad_gate.py",
-            "`--suite-record` and `--suite-key` hand it that run's pytest record, "
-            "so a row held by a test is held only where the test was seen passing "
-            "in it (#836).",
-        ),
     ],
 )
 def test_the_documents_state_the_test_row(rel, sentence):

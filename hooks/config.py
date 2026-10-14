@@ -665,19 +665,19 @@ def reference_roots(home):
     default. A reference root is defined against the plugin's root, and a
     repository with none has not opted in: the one layout the plugin ever
     read without a root is 0.3.x, whose top-level `specs/` was the plugin's
-    own, and the survivor sweep's pool and range and `unverified-check` still
-    read that spelling as its records — `survivor_check.py#WORK_ITEM_DIR`
-    alone no longer does, so a top-level `specs/<x>/` is never a retired
-    work item there. A person
+    own, and `unverified-check` still reads that spelling as its records. A
+    person
     joining a project runs the bootstrap, which creates the root, before any
     check reads the tree.
 
     **A refusal reads as the default** (#867): a file that will not read, as
     before, and a `Reference specs` row written twice, which `config_value`
-    gives no value. Its two callers, `unverified-check` and the survivor
-    sweep, are not among the commands `config_text` names as refusing: what
-    a refusal costs them is the reading every repository had before the row
-    existed, and no record is written or lost on it."""
+    gives no value. Its caller, `unverified-check`, is not among the commands
+    `config_text` names as refusing: what a refusal costs it is the reading
+    every repository had before the row existed, and no record is written or
+    lost on it.
+
+    Reads: guess — the `Reference specs` row of a person's `config.md`; unknown passed"""
     if not home:
         return ()
     # A refusal carries no value, so it lands with no row and an empty one.

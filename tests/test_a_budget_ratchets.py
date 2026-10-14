@@ -1744,7 +1744,7 @@ def test_the_slice_document_names_what_holds_each_rule():
     path = "docs/the-record-layout.md"
     with open(os.path.join(ROOT, path), encoding="utf-8") as handle:
         found = budget_check.rule_paragraphs(handle.read())
-    assert len(found) >= 8, found
+    assert len(found) >= 7, found
     assert budget_check.unenforced_values(ROOT, {})[path] == 0, found
     names = {row.name for row in budget_check.budgets_here(ROOT)}
     assert f"unenforced:{path}" not in names

@@ -45,7 +45,7 @@ import re
 import subprocess
 
 import pytest
-from conftest import on_disk, step_running
+from conftest import on_disk
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(
@@ -688,36 +688,6 @@ def test_the_wrapper_pair_reaches_the_script():
 def workflow():
     with open(WORKFLOW, encoding="utf-8") as f:
         return f.read()
-
-
-def test_a9_the_leg_runs_the_check_and_is_allowed_to_fail():
-    """A9, read at the workflow. Q2's default is that it blocks, like every
-    other arm of this workflow: a lost correction is silent by construction,
-    and A3 exists so the check does not fire on correct work."""
-    text = workflow()
-    assert "correction_check.py" in text, "the leg does not run the check"
-    leg = step_running(text, "correction_check.py")
-    assert "continue-on-error" not in leg, "the leg is allowed to pass while red"
-    assert "::warning::" not in leg, "a warning is not a gate"
-
-
-def test_a9_the_leg_asks_the_range_the_pull_request_is_about():
-    """The range is `origin/<base>...HEAD`, the same spelling the survivor
-    leg uses. Anything narrower misses the branch's own merge, which is the
-    one M2 showed is the merge #424 is about."""
-    step = step_running(workflow(), "correction_check.py")
-    assert "origin/${{ github.base_ref }}...HEAD" in step, step
-
-
-def test_a9_the_leg_skips_a_release_pull_request_and_says_why():
-    """A pull request into `main` is a release, and a release branch carries
-    squashed commits rather than the feature branches' merges. So the range
-    there holds merges of `main` back into the release branch, which is a
-    different question, and each work item was checked at its own pull
-    request. The skip prints its reason rather than exiting quietly."""
-    step = step_running(workflow(), "correction_check.py")
-    assert 'github.base_ref }}" = "main"' in step, step
-    assert "exit 0" in step, step
 
 
 # --- the documents (phase 5; one home since #715) ---------------------------

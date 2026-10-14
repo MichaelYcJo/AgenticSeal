@@ -97,10 +97,6 @@ HEADING_EXEMPT = {
         r"|\#{1,6}(?=\s|$)",
     ): "where a hand-wrapped paragraph ends, pinned pairwise (spec Out)",
     (
-        "skills/code-review/scripts/survivor_check.py",
-        r"\#{1,6}(?=\s|$)",
-    ): "where a hand-wrapped paragraph ends, pinned pairwise (spec Out)",
-    (
         ".github/scripts/issue_claims_check.py",
         r"|\#{1,6}(?=\s|$)",
     ): "where a hand-wrapped paragraph ends, pinned pairwise (spec Out)",

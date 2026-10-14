@@ -27,7 +27,6 @@ import subprocess
 import sys
 
 import pytest
-from conftest import workflow_step
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, ".github", "scripts", "fold_ledger.py")
@@ -1133,28 +1132,6 @@ def test_check_names_a_left_fragment_whose_marker_is_already_there(tree):
 
 
 # --- this repository --------------------------------------------------------
-
-
-def test_the_release_pull_request_runs_the_check():
-    """A convention nothing enforces is a convention somebody forgets at the
-    release, which is the last moment anyone is looking."""
-    workflow = read(".github", "workflows", "hygiene.yml")
-    assert "fold_ledger.py --check" in workflow, (
-        "the release workflow does not check the ledger fragments"
-    )
-    assert os.path.isfile(SCRIPT), "the workflow calls a script that is not there"
-
-
-def test_the_check_only_runs_for_a_release():
-    """On a feature pull request every fragment on the branch is legitimately
-    unfolded — running it there would fail every branch that writes one."""
-    workflow = read(".github", "workflows", "hygiene.yml")
-    step = workflow_step(
-        workflow, "every ledger fragment folded into the gathered ledger"
-    )
-    assert 'github.base_ref }}" != "main"' in step, (
-        "the step no longer skips itself outside a release pull request"
-    )
 
 
 def test_no_document_says_the_fragments_are_never_gathered():

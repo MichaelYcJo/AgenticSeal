@@ -2208,7 +2208,6 @@ def test_the_baseline_arm_asks_the_one_predicate(tmp_path, capsys, monkeypatch):
     "script",
     [
         ("skills", "code-review", "scripts", "chain_check.py"),
-        ("skills", "code-review", "scripts", "survivor_check.py"),
         ("skills", "settle", "scripts", "settle.py"),
     ],
 )

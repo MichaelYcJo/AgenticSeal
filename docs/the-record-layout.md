@@ -137,18 +137,6 @@ a `fixed` row that names the merge. A range whose start does not reach its
 end owns nothing, and `close` refuses it rather than writing an empty
 surface.
 
-**The survivor sweep reads a two-dot range by its owned commits, and `A...B`
-at its two ends.** `survivor-check` counts each file's sentences at the
-range's two ends, and over `a..b` it keeps a removed or a written sentence
-only where an owned commit removed or wrote it at that path, so wording
-another work item corrected does not read as this range's (#873). `A...B`
-starts at the merge base and is read at its two ends, which is the spelling
-CI and the broad gate pass. Both limits above hold for the sweep: a change
-made only inside a merge's conflict resolution is not measured on a two-dot
-range, and a two-dot range whose start does not reach its end is refused,
-naming `A...B`.
-Enforced by: skills/code-review/scripts/survivor_check.py::corrected, skills/code-review/scripts/survivor_check.py::owned, tests/test_the_sweep_reads_a_range_as_its_own_commits.py
-
 ## docs/
 
 The standing policy. A `docs/` document outranks the work items' specs, and
@@ -211,15 +199,14 @@ retires the directory. Which file each agent writes is
 | `phases/phase-N.md` | what one build phase was asked, found and removed |
 | `rounds/round-N.md` | what one review round read, found and closed |
 | `changelog.md` | this work item's entry in the next release's notes |
-| `survivors.md` | which standing copies of a removed sentence are deliberate, with the quote that anchors each |
 | `tests-todo.md`, `evidence-todo.md` | which cases and which verified facts a review left for the implementer |
 | `broad-gate.md` | the sealer's one broad run, where the work went straight to the pull request |
 
 **The files keep these paths and stop mattering at two different times.**
 `routing.md` and the SDD set (`spec.md`, `plan.md`, `questions.md`,
 `overview.md`, `changelog.md`) stay until the `settle` fold retires the
-directory. The process record (`rounds/`, `phases/`, `survivors.md`, the two
-todo files, `broad-gate.md`, and a `handoff.md` or `pr.*.md` where one was
+directory. The process record (`rounds/`, `phases/`, the two todo files,
+`broad-gate.md`, and a `handoff.md` or `pr.*.md` where one was
 written) is read by no check after the release that ships the work item, and
 `settle --retire-process` removes it at the next release, fold or no fold, as
 the first act of `docs/release-checklist.md` §*2b*. What the SDD set still

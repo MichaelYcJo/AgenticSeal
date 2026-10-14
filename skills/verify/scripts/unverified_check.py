@@ -185,8 +185,8 @@ def gfm_lines(text, keepends=False):
     **Every reader of markdown or record text reads its lines here** (#664):
     `readable` and `folded_items` below, and every script that loads this
     module and splits the same text a second time -- `round_record.py`'s
-    `raw` halves, `fold_check.py`'s marker readers, `gather_changelog.py`
-    and `survivor_check.py`. Two readers of one text that split it two ways
+    `raw` halves, `fold_check.py`'s marker readers and `gather_changelog.py`.
+    Two readers of one text that split it two ways
     disagree about which line an index names, and `round_record.py#swallowed`
     zips the two splits with `strict=True`.
 
@@ -201,7 +201,9 @@ def gfm_lines(text, keepends=False):
     `skills/evidence-check/scripts/evidence_check.py#gfm_lines` is the
     vendored copy a checker run alone in a user's `tools/` needs, and
     `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds the copies
-    equal."""
+    equal.
+
+    Reads: guess — a person's markdown text its caller hands it; unknown passed"""
     lines = GFM_LINE_RE.findall(text)
     return lines if keepends else [line.rstrip("\r\n") for line in lines]
 
@@ -307,11 +309,7 @@ def fence_opener(line):
     `skills/evidence-check/scripts/correction_check.py#rows` through
     `closed_fence_lines`; and `skills/verify/scripts/payload_meter.py#heading_starts`
     and `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py#headings`,
-    which ask the two functions directly. The readers #658 brought here:
-    `skills/code-review/scripts/survivor_check.py#read_exemptions` through
-    `readable`, which blanks an HTML comment as well as a fence, and either
-    one nobody closed to the end, because excusing a survivor is the silent
-    direction.
+    which ask the two functions directly.
 
     **The readers that keep a rule of their own, each on purpose.** #584
     brought every reader it enumerated here or answered it, and these are the
@@ -366,7 +364,8 @@ def fence_opener(line):
     belongs in one of these two lists**, and a reviewer of one has this
     docstring to check it against — nothing else can reach a reader that
     does not exist yet.
-    """
+
+    Reads: guess — one line of a person's markdown its caller hands it; unknown passed"""
     m = FENCE_RE.match(line.rstrip("\r\n"))
     if not m:
         return None
@@ -741,7 +740,7 @@ def live_lines(lines):
 def readable(text):
     """The lines a reader should judge: no comment text, no fenced blocks.
 
-    Reads: guess — a record's lines, a round record, an `overview.md` or a `survivors.md`; unknown mixed
+    Reads: guess — a record's lines, a round record or an `overview.md`; unknown mixed
 
     A line a record's rows are counted on is blanked the same way on both
     sides of a comparison, the third of the three answers
@@ -1398,9 +1397,7 @@ def tree_at(root, ref, directory):
     """Repo-relative paths under `directory` at `ref`; the disk when `ref` is
     None. `directory` is `/`-joined, and so is every path returned.
 
-    Public because `survivor_check.py` asks it whether a directory is gone at
-    the right end of its range, which keeps that module's own path-listing
-    call sites at the count its case holds them to."""
+    Reads: observed — the paths git holds at `ref`, or the disk; unknown passed"""
     if ref is None:
         top = under_root(root, directory)
         out = []
@@ -1468,9 +1465,8 @@ def retired_by_rule(root, ref, directory):
     """Whether the rule arm may retire `directory` as it stood at `ref`.
 
     **The one predicate, and every reader of a retirement asks it here**:
-    `settle` of the working tree (`ref` None), and `--baseline` below,
-    `chain_check.py --baseline` and `survivor_check.py --range` of the
-    merge-base they already compute. `plan.md` §*What breaks in six months*
+    `settle` of the working tree (`ref` None), and `--baseline` below and
+    `chain_check.py --baseline` of the merge-base they already compute. `plan.md` §*What breaks in six months*
     is why it is not spelled in each: the next condition added to it would
     land in one reader and not the others, and the first sign would be a fold
     pull request red in CI after `settle --retire` said the removal was fine.
@@ -1486,7 +1482,8 @@ def retired_by_rule(root, ref, directory):
     pull request that has already merged, and the directory in the next still
     reads as a deletion. That is what makes this a rule about what the work
     item was, rather than about what it was left looking like.
-    """
+
+    Reads: observed — the tree git holds at `ref`, or the disk; unknown passed"""
     paths = tree_at(root, ref, directory)
     if not paths:
         return False

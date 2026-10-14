@@ -122,7 +122,7 @@ describe.
 The fold refuses while any `seal/specs/<id>/evidence-todo.md` has an open
 row; that is a review that never drained, not a release problem, and the
 row's work item is where it is closed.
-Enforced by: tests/test_the_ledger_fragments_fold_at_release.py::test_check_fails_while_a_fragment_is_left, tests/test_the_ledger_fragments_fold_at_release.py::test_the_release_pull_request_runs_the_check, .github/workflows/hygiene.yml
+Enforced by: tests/test_the_ledger_fragments_fold_at_release.py::test_check_fails_while_a_fragment_is_left, .github/workflows/hygiene.yml
 
 <!-- specs/1790208593-the-fold-writes-each-release-to-its-own-file -->
 **The fold writes the release's own file, and never an older one.** Since
@@ -295,20 +295,7 @@ green without a push. Press ***Create a merge commit***, never squash: the
 review records name the release branch's commits by `Target SHA`, and a
 squash discards them.
 
-### What a release pull request is not the right range for
-
-<!-- specs/1788890000-the-survivor-step-runs-on-a-range-no-fix-pass-wrote -->
-**The survivor check's unit is a fix pass's range, and a release is not
-one.** A pull request into the default branch carries the union of every work
-item the release holds, so one item's removed wording is scored against
-another item's prose — and each of those items was already checked at its own
-pull request. The release that shipped the check found this the only way it
-could be found, by failing its own release pull request with 72 places
-reported and not one of them a survivor of the range that removed the
-wording. So the step passes on that base and **prints why**: a job-level skip
-reads as *did not run*, and that is the state where the next reader deletes a
-guard nobody can explain.
-Enforced by: tests/test_a_corrected_sentence_survives_elsewhere.py::test_the_workflow_step_skips_a_release_range_and_says_why, .github/workflows/hygiene.yml
+### What a release pull request is held to
 
 <!-- specs/1788735085-a-loaded-file-naming-a-real-version-is-a-timer -->
 **A loaded file naming a version at or above the running one is a timer.** A

@@ -274,7 +274,7 @@ record refuses. A node id is read in the Code grounds cell and nowhere else:
 `Enforced by:` line, where a coordinate's `#…@hash` shape is not — and a
 code span that is a coordinate or a pact anchor stays one, whatever its
 quoted locator holds.
-Enforced by: tests/test_a_ledger_row_is_held_by_its_test.py::test_a_test_seen_passing_is_held, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_test_the_run_did_not_hold_is_refused_by_what_was_observed, tests/test_a_ledger_row_is_held_by_its_test.py::test_round_twos_spellings_are_what_pytest_did, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_class_and_a_parametrised_function_own_their_lines, tests/test_a_ledger_row_is_held_by_its_test.py::test_the_path_is_the_records_never_rebuilt_from_the_node_id, tests/test_a_ledger_row_is_held_by_its_test.py::test_no_record_is_existence_and_says_so_once, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_record_with_no_session_under_the_key_names_the_key, tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py::test_the_gate_hands_the_ledger_arm_the_run_it_seals, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_the_ledger_arm_reads_the_run_it_seals, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_renamed_test_breaks_the_row, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_method_spelled_bare_is_named_with_its_spelling, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_node_id_outside_the_grounds_cell_is_prose, tests/test_a_ledger_row_is_held_by_its_test.py::test_reverify_writes_nothing_on_a_test_row, tests/test_a_ledger_row_is_held_by_its_test.py::test_reverify_names_a_test_that_is_gone, tests/test_a_ledger_row_is_held_by_its_test.py::test_reverify_names_what_the_record_refuses_and_writes_nothing, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_coordinate_quoting_a_scope_is_no_test, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_pact_anchor_quoting_a_scope_is_no_test
+Enforced by: tests/test_a_ledger_row_is_held_by_its_test.py::test_a_test_seen_passing_is_held, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_test_the_run_did_not_hold_is_refused_by_what_was_observed, tests/test_a_ledger_row_is_held_by_its_test.py::test_round_twos_spellings_are_what_pytest_did, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_class_and_a_parametrised_function_own_their_lines, tests/test_a_ledger_row_is_held_by_its_test.py::test_the_path_is_the_records_never_rebuilt_from_the_node_id, tests/test_a_ledger_row_is_held_by_its_test.py::test_no_record_is_existence_and_says_so_once, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_record_with_no_session_under_the_key_names_the_key, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_renamed_test_breaks_the_row, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_method_spelled_bare_is_named_with_its_spelling, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_node_id_outside_the_grounds_cell_is_prose, tests/test_a_ledger_row_is_held_by_its_test.py::test_reverify_writes_nothing_on_a_test_row, tests/test_a_ledger_row_is_held_by_its_test.py::test_reverify_names_a_test_that_is_gone, tests/test_a_ledger_row_is_held_by_its_test.py::test_reverify_names_what_the_record_refuses_and_writes_nothing, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_coordinate_quoting_a_scope_is_no_test, tests/test_a_ledger_row_is_held_by_its_test.py::test_a_pact_anchor_quoting_a_scope_is_no_test
 
 <!-- specs/1791384153-a-ledger-rows-claim-is-the-test-that-enforces-it -->
 **A row is one form or the other.** A Code grounds cell naming a test and a
@@ -314,16 +314,6 @@ through. A name is looked up where it is defined, so a method is
 Enforced by: tests/test_a_folded_statement_names_what_enforces_it.py::test_a_method_resolves_in_pytests_spelling, tests/test_a_folded_statement_names_what_enforces_it.py::test_the_target_is_resolved_by_the_ledgers_reader
 
 ## What the checker refuses, and what it says while refusing
-
-<!-- specs/1789296100-the-seal-and-ci-read-one-ledger-differently -->
-**One ledger, two readings, and the lenient one says so.** The checker's
-default reading is lenient and the broad gate runs it with `--strict`. A run
-whose answer is exit 1 — and only then — says that the strict reading would
-refuse this tree, so every reader gets it: both wrappers, the CI job, and a
-bare invocation of the script. A tool whose two callers disagree about the
-verdict, and which tells neither caller so, is a tool that reports clean to
-whoever asked first.
-Enforced by: tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py::test_a_drifted_tree_is_told_what_the_gate_would_say
 
 <!-- specs/1788686494-the-printed-ledger-name-collapses-through-relpath -->
 **A name a person reads is the file that was actually opened.** Turning a

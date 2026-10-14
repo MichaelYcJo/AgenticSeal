@@ -272,7 +272,7 @@ def test_the_walk_yields_body_rows_with_their_header():
 
 def test_a_clean_ledger_says_zero_overflow_on_both_lines(repo):
     """A8. Last on the line, so the text every reader matches today is
-    unchanged, and `broad_gate.py#LEDGER_RE` still reads the total."""
+    unchanged."""
     fragment(repo, "# frag\n\n" + HEADER + ESCAPED.format(c=good()))
     r = run(["."], repo)
     assert r.returncode == 0, r.stdout + r.stderr
@@ -281,8 +281,6 @@ def test_a_clean_ledger_says_zero_overflow_on_both_lines(repo):
     total = [ln for ln in r.stdout.splitlines() if ln.startswith("total:")]
     assert per_ledger and per_ledger[0].endswith(tail), r.stdout
     assert total and total[0].endswith(tail), r.stdout
-    gate = load(BROAD_GATE, "bg_overflow")
-    assert gate.LEDGER_RE.search(total[0]), total[0]
 
 
 # --- a line ends where GFM ends one (round 1, 🟡 1) --------------------------

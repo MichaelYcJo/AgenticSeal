@@ -210,7 +210,6 @@ def test_no_one_of_the_eight_makes_a_marker_a_line(tmp_path, char):
 
 
 GATHER = os.path.join(ROOT, ".github", "scripts", "gather_changelog.py")
-SURVIVOR = os.path.join(ROOT, "skills", "code-review", "scripts", "survivor_check.py")
 
 
 def test_gathering_below_a_separator_lands_in_the_section_and_keeps_it():
@@ -295,89 +294,15 @@ def test_a_section_line_is_a_line_that_starts_one(tmp_path):
     assert gather.section_lines(str(root), "2-b") == [(3, "## one")]
 
 
-@pytest.mark.parametrize("path", ["CHANGELOG.md", "changelog/1.0.0.md"])
-def test_the_gatherer_and_the_sweep_read_one_marker_alike(monkeypatch, path):
+def test_the_gatherer_reads_a_marker_after_a_separator_as_no_line():
     """S6. A marker after a U+2028 on its line is not a line of its own to
-    GFM, so neither reader of a changelog may call the fragment gathered.
-    The sweep's side is the one that excuses a fragment, and it was red.
-
-    Both shapes the sweep reads as a changelog since #728: the root file,
-    and a release's own file. The tree is handed over rather than listed,
-    which is what lets the case stand without a repository (#728's Q8)."""
+    GFM, so the gatherer does not call the fragment gathered; the same marker
+    on a line of its own is read, so the empty answer is the separator's
+    doing."""
     gather = _load("specseal_gather_s6", GATHER)
-    survivor = _load("specseal_survivor_s6", SURVIVOR)
     text = f"# Changelog\n\n## 1.0.0 — 2026-01-01\n\nold{LS}<!-- specs/1-a -->\n"
-    asked = []
-
-    def read_blobs(root, rev, paths):
-        asked.extend(paths)
-        return {p: text for p in paths if p == path}
-
-    monkeypatch.setattr(survivor, "read_blobs", read_blobs)
-    assert survivor.gathered_fragments("unused", "HEAD", [path, "docs/a.md"]) == set()
-    assert asked == [path], asked
     assert gather.live_markers(text) == []
-    # The positive control: the same marker on a line of its own is read,
-    # so the empty set above is the separator's doing and not a reader that
-    # never looked at the file.
-    text = text.replace(LS, "\n")
-    assert survivor.gathered_fragments("unused", "HEAD", [path]) == {"1-a"}
-    assert gather.live_markers(text) == ["1-a"]
-
-
-def test_the_sweep_loads_its_reader_once_per_path(tmp_path):
-    """`segments` asks the reader for its splitter once per file of the
-    corpus, so the reader is loaded once -- and once per path, so a reader
-    that is not where `READER` now points is still refused."""
-    survivor = _load("specseal_survivor_cache", SURVIVOR)
-    assert survivor.reader() is survivor.reader()
-    survivor.READER = str(tmp_path / "gone" / "unverified_check.py")
-    with pytest.raises(survivor.Refused, match="which says what a retirement is"):
-        survivor.reader()
-
-
-def test_a_sentences_line_number_is_the_files():
-    """S7. The number is the one `grep -n` prints, and the one
-    `python_prose` and `released_lines` keep."""
-    survivor = _load("specseal_survivor_s7", SURVIVOR)
-    text = f"# A title\n\nalpha{FF}beta.\n\nThe sentence stands here.\n"
-    found = [n for n, raw in survivor.segments(text) if "sentence" in raw]
-    assert found == [5]
-
-
-def test_a_ledger_row_holding_a_separator_is_one_row_at_both_ends(monkeypatch):
-    """S8. A row with no id, whose second anchor sits after a U+2028 in its
-    notes, corrected in place to drop the anchor that left the code. Cut at
-    the separator, the row lost the anchor that still resolves, so nothing at
-    `b` could be seen citing it, and the correction was reported as a
-    removal."""
-    survivor = _load("specseal_survivor_s8", SURVIVOR)
-    module = {
-        "a": "def helper(w):\n    return w\n\n\ndef other(w):\n    return w\n",
-        "b": "def other(w):\n    return w\n",
-    }
-    monkeypatch.setattr(
-        survivor,
-        "read_blobs",
-        lambda root, rev, paths: {p: module[rev] for p in paths if p == "pkg/mod.py"},
-    )
-    head = "| Clause | Code grounds | Verified behavior | Checked | Notes |\n"
-    head += "|---|---|---|---|---|\n"
-    before = head + (
-        "| a claim with no id | `pkg/mod.py#helper@0123abcd` | read | 2026-01-01 "
-        f"| see{LS}also `pkg/mod.py#other@0123abcd` |\n"
-    )
-    # At `b` too the anchor that still resolves stands after the separator
-    # alone, so each end's split is asked on its own.
-    after = head + (
-        "| a claim with no id, corrected | the notes cite it | read "
-        f"| 2026-01-02 | see{LS}also `pkg/mod.py#other@0123abcd` |\n"
-    )
-    ledger = "seal/ledger.md"
-    removed = survivor.removed_ledger_rows(
-        "unused", "a", "b", {ledger: before}, {ledger: after}
-    )
-    assert removed == set()
+    assert gather.live_markers(text.replace(LS, "\n")) == ["1-a"]
 
 
 # --- S9-S15: the independent readers ----------------------------------------

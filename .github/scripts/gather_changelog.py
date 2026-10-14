@@ -41,9 +41,7 @@ and reading it as a gathered work item passes a release that never shipped
 the entry. Every marker reader here — `ungathered` and `--check`'s count —
 asks `live_markers`, which reads through `unverified_check.py#live_lines`,
 the one function `docs/the-evidence-ledger.md` §*A marker counts only on a
-live line* names. `survivor_check.py#gathered_fragments` reads this file's
-markers through the same function, so the two cannot disagree about which
-entries shipped.
+live line* names.
 
 **`--check` judges by the markers, not only by the fragments.** A fragment
 glob goes empty two ways: every fragment reached the file, and there are no
@@ -129,12 +127,12 @@ def live_markers(changelog_text):
     """The work item ids whose marker stands on a live line of its own, in
     file order (#584).
 
-    Lines are split by the shared reader's `gfm_lines`, as
-    `survivor_check.py#gathered_fragments` splits them, so the two readers of
-    this file see the same lines -- and the lines GFM renders, so a marker
-    standing after a U+2028 or a form feed on its line is not a line of its
-    own to either of them (#664). Every other split of this file's text and
-    of a fragment below reads the same function, for the same reason."""
+    Lines are split by the shared reader's `gfm_lines`, so this file is read
+    in the lines GFM renders: a marker standing after a U+2028 or a form feed
+    on its line is not a line of its own (#664). Every other split of this file's text and
+    of a fragment below reads the same function, for the same reason.
+
+    Reads: guess — a changelog's text its caller hands it, through `unverified_check.py#live_lines`; unknown passed"""
     return [
         line[len("<!-- specs/") : -len(" -->")]
         for line, live in reader.live_lines(reader.gfm_lines(changelog_text))

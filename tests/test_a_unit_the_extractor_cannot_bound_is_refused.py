@@ -38,7 +38,6 @@ import pytest
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "evidence-check", "scripts", "evidence_check.py")
 RIDER = os.path.join(ROOT, ".github", "scripts", "rider_check.py")
-SURVIVOR = os.path.join(ROOT, "skills", "code-review", "scripts", "survivor_check.py")
 
 
 def _load(name, path):
@@ -254,12 +253,10 @@ def test_every_caller_reads_the_refusal_from_resolve_unit_and_derives_none():
     found = {
         "evidence_check": callers(SCRIPT, "resolve_unit"),
         "rider_check": callers(RIDER, "resolve_unit"),
-        "survivor_check": callers(SURVIVOR, "resolve_unit"),
     }
     assert {k: sorted(v) for k, v in found.items()} == {
         "evidence_check": ["judge", "read_citation", "removal_findings", "resolve"],
         "rider_check": ["region_lines"],
-        "survivor_check": ["resolves"],
     }, found
     for module, funcs in found.items():
         for name, source in funcs.items():
@@ -284,7 +281,7 @@ def test_no_reader_of_a_resurrection_flag_is_left():
     assert unit.places == [(1, 2)] and unit.refused is None
     with pytest.raises(TypeError):
         _places, _ = unit
-    for path in (SCRIPT, RIDER, SURVIVOR):
+    for path in (SCRIPT, RIDER):
         assert "resurrected" not in open(path, encoding="utf-8").read(), path
     assert [len(u) for u in ec.file_units("a.py", "def f():\n    pass\n")] == [2]
 
@@ -318,14 +315,6 @@ def test_a_citation_of_a_released_row_by_a_bare_symbol_is_refused(tmp_path):
     verdict, at = ec.read_citation(cite, "Re-read", str(tmp_path), {}, None, load)
     assert verdict.status == "BROKEN" and at is None, verdict
     assert verdict.detail == ec.resolve_unit("x.md", "Rows", body).refused, verdict
-
-
-def test_the_survivor_sweep_reads_a_refused_anchor_as_not_resolving():
-    """A refused anchor resolves at neither end of a range, so it never
-    counts as one the range removed. The sweep reads `resolve_unit`'s places,
-    which a refusal leaves empty."""
-    assert not ec.resolve_unit("bad.py", "f", UNPARSEABLE).places
-    assert not ec.resolve_unit("svc.rb", "render", RUBY).places
 
 
 # --- S8: one suffix table, three answers -----------------------------------

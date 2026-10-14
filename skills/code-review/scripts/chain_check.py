@@ -1447,8 +1447,8 @@ def section_end(lines, start):
     generator's `section_body` and the section-end scan inside its
     `swallowed` reach it through `chain.section_end`, and `verdict_table`
     below reads a record's `## Verdicts` by it. It used to end at any line
-    starting with `#` in all three, and the survivor sweep over the
-    generator's fix found this file's copy of the loop: a `###` a hand edit
+    starting with `#` in all three, and a sweep over the generator's fix
+    found this file's copy of the loop: a `###` a hand edit
     put between the verdict header and an open 🔴 row placed the row outside
     the section, `open_blocking` saw no blocker, and a checked `Pass` beside
     it passed — the permissive direction, on the one kind of record the
@@ -1458,7 +1458,8 @@ def section_end(lines, start):
     that changes is the deeper heading, and a `####` under a `###` under the
     section is inside it for the same reason, because the rule is *same
     level or shallower ends it* and not *one level deeper is allowed*.
-    """
+
+    Reads: guess — a round record's lines its caller hands it; unknown passed"""
     level = heading_level(lines[start]) or 1
     for i in range(start + 1, len(lines)):
         found = heading_level(lines[i])

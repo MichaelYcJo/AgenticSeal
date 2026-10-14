@@ -45,7 +45,7 @@ try:
 except ImportError as missing:
     # `hooks/config.py` raises the same sentence for the same reason: this is
     # a module gates and scripts import, and a script that loads it by path
-    # (`chain_check.py`, `round_record.py`, `survivor_check.py`) catches the
+    # (`chain_check.py`, `round_record.py`) catches the
     # error or names the file first.
     raise ImportError(
         "cannot read "
