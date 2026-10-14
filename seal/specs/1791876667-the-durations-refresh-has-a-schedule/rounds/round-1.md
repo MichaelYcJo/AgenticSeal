@@ -7,7 +7,7 @@
 | Ran by | warden on Opus 5.5 |
 | PR | 937 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-2 |
 | Fix range | `b16bee7f3e0d3a3627d8da009da8bca5f3e592a0..524c9783b69f673dd624c14525a47dcec7202739`, 7 commits |
 | Contract changes | none |
 | New units | runs_pytest (depth 1); shallow_pytest_jobs (depth 1); SHALLOW_RUNNERS (depth 1); test_a_job_that_calls_pytest_any_way_is_held_to_the_whole_history (depth 1); test_a_count_below_one_is_exit_2_naming_it (depth 1) |
