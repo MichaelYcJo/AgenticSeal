@@ -205,6 +205,7 @@ common directory otherwise.
 |---|---|
 | `seal/README.md` | the export rules, for a session that never loads a skill |
 | `seal/config.md` | what this repository says about itself, one row per item |
+| `seal/budgets.md` | what this repository holds its size and speed to: one row per budget, with the ceiling every pull request is held to |
 | `seal/follow-up.md` | which items wait on a named party, and who |
 | `seal/ledger.md` | the rows from before the fragments existed, and the notation. Released: it never changes |
 | `seal/ledger/<work-item-id>.md` | one open work item's ledger rows, re-reads and corrections, until its release folds them |

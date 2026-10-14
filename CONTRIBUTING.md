@@ -49,8 +49,12 @@ and ledger-fold steps belong to a release and exit early on any base but
 `main`. The others run on every pull request. Three of them pass for a different
 reason — they ask nothing of a branch that declared nothing: the round-record
 check, the unverified-record tally and the issue-claim report. The remaining
-two, the ledger and the survivor sweep, are always-on and CAN refuse a
-contribution; the heading below counts both and says what each asks.
+three, the ledger, the survivor sweep and the budgets, are always-on and CAN
+refuse a contribution. The budget step asks only for what is yours to write:
+a ceiling in `seal/budgets.md` moved in the same pull request as the change
+that moved the measurement, and for a raise a `Budget raised:` line in your
+description, as the step's message spells it. The heading below counts the
+other two and says what each asks.
 Each row below gives its own reason, and a maintainer adding a CI step should
 read the row rather than this sentence.
 
@@ -166,14 +170,15 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with pillow==12.3.0 --with cmar
 # or: pip install pytest markdown-it-py==4.2.0 pillow==12.3.0 cmarkgfm==2025.10.22 && python3 -m pytest tests/
 ```
 
-CI runs five jobs: lint (`ruff check` + `ruff format --check`), the suite on
+CI runs six jobs: lint (`ruff check` + `ruff format --check`), the suite on
 ubuntu, macOS and Windows at the floor stated above (macOS in three shards
 and Windows in four, each leg divided by `pytest-split` from the one
 committed `.test_durations`, #841, #864; ubuntu as one job),
 `tests/test_arm_check.py`
 at 3.13 and 3.14 (`arm-check`'s node-type tables are only as true as the
 interpreter that reads them, #684), the evidence ledger against this
-repository, and the hygiene workflow that guards releases. A change to any
+repository, each leg's minutes in that run against its `ci-minutes` row of
+`seal/budgets.md`, and the hygiene workflow that guards releases. A change to any
 hook needs a test that fails without it — see the counterfeit rule below.
 
 **A case has a budget, and so does each leg.** A case whose call runs longer

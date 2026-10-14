@@ -2363,18 +2363,18 @@ def job_steps(text, job):
 # Each row is a step of the `release` job, spelled as `hygiene.yml` spells it,
 # and then either the arm that mirrors it or the reason none does.
 #
-# **Four of the eight exclusions could not run here at all; four could.** The
-# measurement `questions.md` M1 asked for, taken by construction over all
-# thirteen: three steps have no local answer (the pull request's body, the
+# **Four of the nine exclusions could not run here at all; five could.** The
+# measurement `questions.md` M1 asked for, taken by construction over every
+# step: three steps have no local answer (the pull request's body, the
 # remote's pull-request namespace, the tracker), one raises a warning and can
 # refuse nothing, one is shell written inline in the workflow with no script
-# to share, and three run a script that belongs to this repository rather
-# than to the plugin. The last four are the ones with a local answer, and
+# to share, and four run a script that belongs to this repository rather
+# than to the plugin. The last five are the ones with a local answer, and
 # `seal/config.md`'s `Broad gate` row is where a repository names checks of
 # its own — not the arm list of a script that ships to every repository that
 # installs the plugin.
 #
-# **Which of the thirteen CI runs depends on the base** (#666). Four run only
+# **Which of the steps CI runs depends on the base** (#666). Four run only
 # on a pull request into `main` (`ONLY_AT_MAIN`) and two are skipped there
 # (`SKIPPED_AT_MAIN`'s arms), so the `workflow` count is taken over
 # `steps_for(workflow, base)` rather than over this table: a step CI does not
@@ -2412,6 +2412,14 @@ PARTITION = (
         "the unverified record is readable, and rows leave it closed",
         UNVERIFIED_NAME,
         None,
+    ),
+    (
+        "every budget holds its ceiling, and a raised ceiling says why",
+        None,
+        "runs `.github/scripts/budget_check.py` over this repository's own "
+        "`seal/budgets.md`, and reads a raise from the body of the pull "
+        "request, which a gate run on a branch does not have. The tree's half "
+        "is a case in this repository's suite, which its `Broad gate` row runs",
     ),
     (
         "the pull request heads a round record may name",
@@ -2636,6 +2644,8 @@ def unanswered(text, given):
 def coverage_line(text, given):
     """One line naming the steps this seal did not answer, or None.
 
+    Reads: guess — a repository's hygiene workflow its caller hands it, through `job_steps` and `steps_for`; unknown passed
+
     **Over the steps CI runs for this base** (#666, `steps_for`), and one
     clause saying how many it left out and why (`left_out_clause`): a step CI
     does not ask of this pull request is not a step the sealer's run failed
@@ -2644,7 +2654,7 @@ def coverage_line(text, given):
 
     **Names here, a count on the panel** (`questions.md` W1).
     The panel gives a value `PANEL_VALUE_WIDTH` columns (23 when this was
-    written, 41 since #832), which thirteen step
+    written, 41 since #832), which the step
     names do not fit and a count does — and a reader who is told only a number
     has to reconstruct WHICH from two files, which is the reconstruction this
     work item exists to remove. So the panel carries the number and this
@@ -2655,7 +2665,7 @@ def coverage_line(text, given):
     `PARTITION` describes SpecSeal's own `release` job; in another repository
     whose workflow happens to carry that job name, every step is unclassified
     and none of them has a reason written anywhere. Pointing that reader at
-    `PARTITION` sends them to thirteen rows about a workflow they do not run,
+    `PARTITION` sends them to a row per step of a workflow they do not run,
     which is the reconstruction from two files this work item exists to
     remove, arriving one level further out (round 1, finding 3).
     """

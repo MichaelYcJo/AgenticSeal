@@ -463,8 +463,8 @@ the steps CI runs for the base (#666): a step CI does not ask of this pull
 request — four of SpecSeal's run only on a pull request into `main`, and two
 are skipped there — is neither answered nor unanswered, so the count leaves
 it out and the line says how many it left out and why. A feature seal of
-SpecSeal itself reads `CI also · 4 more steps`, and the line says they are
-four of the nine CI runs for that base (#717); before #666 the panel read
+SpecSeal itself reads `CI also · 5 more steps`, and the line says they are
+five of the ten CI runs for that base (#717); before #666 the panel read
 `8 of 13`, over four steps no run of that pull request would ask.
 
 **What the count does not say** is whether a mirrored arm asks the same
@@ -481,8 +481,8 @@ steps that run only into `main`, against the opposite guard the same way. The
 cases read a guard on the base and no other kind of condition, so the class
 stays open for the next kind.
 
-**The arms the plugin ships are the arms the gate can run.** Four steps of
-SpecSeal's own `release` job have a local answer and no arm: three run a
+**The arms the plugin ships are the arms the gate can run.** Five steps of
+SpecSeal's own `release` job have a local answer and no arm: four run a
 script under `.github/scripts/`, which no plugin ships, and one is shell
 written inline in the workflow with no script either side can share. A
 repository that wants checks of its own sealed names them in the `Broad gate`
