@@ -406,7 +406,9 @@ def fence_spans(lines):
     `round_record.py` refuses the record with a named message. A reader of a
     line that HOLDS something — a ledger anchor, an open row — reads it,
     because only a block that closes is certainly a quotation
-    (`docs/the-evidence-ledger.md` §*A marker counts only on a live line*).
+    (`docs/the-record-layout.md`'s *A marker counts only on a live line*).
+
+    Reads: guess — the lines of a person's markdown its caller hands it, by the shared fence rule; unknown mixed
     """
     spans, opener, first = [], None, None
     for n, line in enumerate(lines):
@@ -651,7 +653,7 @@ def live_lines(lines):
     Reads: guess — markdown lines, under two readings of a block model nobody computes; unknown mixed
 
     A line that excuses something is not taken on doubt, the second of the
-    three answers `docs/the-evidence-ledger.md` §*The fold, and what tells
+    three answers `docs/the-record-layout.md` §*The fold, and what tells
     it from a deletion* gives: what this parks, the fold and `settle` refuse
     as a deletion at exit 1 and a kept directory, and the changelog gather
     and the ledger fold pass as a line holding no marker.
@@ -742,7 +744,7 @@ def readable(text):
 
     A line a record's rows are counted on is blanked the same way on both
     sides of a comparison, the third of the three answers
-    `docs/the-evidence-ledger.md` §*The fold, and what tells it from a
+    `docs/the-record-layout.md` §*The fold, and what tells it from a
     deletion* gives: a region nobody closed is blanked to the end, and the
     readers that judge a record refuse the table it hid as absent, while
     `broad_gate.py`'s label, which never stops a sealed run, is drawn

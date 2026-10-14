@@ -25,7 +25,7 @@ once, at 0.15.1's preparation, by a `--split` that has since been retired.
 **A released file never changes** (#715). Once its release is tagged, a
 release file and `seal/ledger.md` are not edited again: a re-read or a
 correction of one of their rows is a citing row in the branch's own fragment
-(`docs/the-evidence-ledger.md`). So the fold writes only the newest
+(the ledger policy, at `v0.21.1`). So the fold writes only the newest
 version's file, and refuses `--version` older than the newest release file,
 writing nothing.
 
@@ -85,7 +85,7 @@ both lines. A marker quoted elsewhere in a fragment is text and is copied.
 (#584). Every reader of a marker here — the fold's refusal, `--check`'s
 doubled-marker report and its count — asks
 `unverified_check.py#live_lines`, the one function
-`docs/the-evidence-ledger.md` §*A marker counts only on a live line* names,
+`docs/the-record-layout.md`'s *A marker counts only on a live line* names,
 so a marker quoted in a fenced example, a commented-out draft or a code span
 is not a fold. Every reader of a `## ` line — `version_headings`,
 `section_heading` and `insert`'s walk to the next section — skips a line

@@ -2,7 +2,7 @@
 
 Six readers decide whether a ledger or record line is live, and they give
 three answers, because they read three kinds of line:
-`docs/the-evidence-ledger.md` §*The fold, and what tells it from a deletion*
+`docs/the-record-layout.md` §*The fold, and what tells it from a deletion*
 states the rule under the marker of work item 1791852615. This module is the
 one place the six stand side by side. Each per-reader module owns that
 reader's edges; this one pins only the answer each reader's docstring, or the
@@ -24,7 +24,7 @@ import pytest
 from conftest import load_hook_module
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
-STATEMENT_DOC = os.path.join(ROOT, "docs", "the-evidence-ledger.md")
+STATEMENT_DOC = os.path.join(ROOT, "docs", "the-record-layout.md")
 MARKER = "<!-- specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules -->"
 
 

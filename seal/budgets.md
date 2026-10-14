@@ -90,7 +90,6 @@ commit alike. -->
 | docs/the-agent-set.md | 0 |
 | docs/the-broad-gate.md | 0 |
 | docs/the-commit-gate-inside-git.md | 8 |
-| docs/the-evidence-ledger.md | 4 |
 | docs/the-pact.md | 0 |
 | docs/the-reader-registry.md | 2 |
 | docs/the-record-layout.md | 8 |
@@ -121,7 +120,6 @@ commit alike. -->
 | docs/the-agent-set.md | 6 |
 | docs/the-broad-gate.md | 5 |
 | docs/the-commit-gate-inside-git.md | 9 |
-| docs/the-evidence-ledger.md | 13 |
 | docs/the-pact.md | 1 |
 | docs/the-reader-registry.md | 4 |
 | docs/the-review-and-parity-arms.md | 8 |

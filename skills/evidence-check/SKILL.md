@@ -279,8 +279,7 @@ test that exists is `OK`, and one line beside the totals says the test rows
 were read for existence alone. Write the test where it holds the claim, and
 `path#anchor@hash` where none does. A node id outside the Code grounds cell,
 or inside a coordinate's quoted locator, is prose. A superseded row's tests
-are not read again, as its hashes are not. `docs/the-evidence-ledger.md` §*A
-claim held by a test* is the rule.
+are not read again, as its hashes are not.
 
 **An ambiguous MAJOR unit is BROKEN, loudly, and never a measurement.** With
 two places to look, an `OK` would be a claim about whichever one the code
@@ -449,9 +448,7 @@ never changes, and a re-read of one of its rows is written into your own
 fragment: `evidence-check --reverify --into seal/ledger/<work-item-id>.md
 --checked <YYYY-MM-DD> .` writes one `Re-read ·` row per drifted released
 row, and plain `--reverify` writes no released file and names each row it
-left. What a citing row is, and how the checker reads a released row with
-the rows that cite it, is `docs/the-evidence-ledger.md` §*A released row is
-read again in the branch's fragment*.
+left.
 
 The row is read by `seal/config.md`'s one reader, `hooks/config.py`, or by
 its twins in a vendored copy, and the freeze never turns off because the
@@ -476,8 +473,7 @@ rows of one file, the file conflicts, and resolving it by taking a side
 reverts whatever the other side had corrected. Where `seal/config.md`
 declares `Ledger frozen from`, a released row is read again and corrected by
 a citing row in the branch's own fragment instead, and a released file takes
-no edit to conflict on — `docs/the-evidence-ledger.md` §*A released row is
-read again in the branch's fragment* is the rule.
+no edit to conflict on.
 
 **This check cannot see that, and neither can anything else here.** A row
 reverted to a superseded state is byte-identical to a row nobody touched:
@@ -635,7 +631,7 @@ and an anchor stamp `path#unit@hash` resolved exactly as a ledger row's is. A
 single word in backticks is prose far more often than it is a unit. A FENCED
 line is a quotation — a paste-ready fix is code the tree does not have yet —
 and an HTML comment that begins a line is an aside; neither is read. Of the
-three answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
+three answers `docs/the-record-layout.md` §*The fold, and what tells it from
 a deletion* gives to whether a line is live, this arm gives the one for a line
 that holds a claim, which is read wherever there is doubt; the comment that
 begins a line and closes is the one place it reads less than the ledger walk.

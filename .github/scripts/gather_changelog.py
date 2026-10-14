@@ -40,7 +40,7 @@ example, a commented-out draft or a code span is text about the convention,
 and reading it as a gathered work item passes a release that never shipped
 the entry. Every marker reader here — `ungathered` and `--check`'s count —
 asks `live_markers`, which reads through `unverified_check.py#live_lines`,
-the one function `docs/the-evidence-ledger.md` §*A marker counts only on a
+the one function `docs/the-record-layout.md`'s *A marker counts only on a
 live line* names.
 
 **`--check` judges by the markers, not only by the fragments.** A fragment

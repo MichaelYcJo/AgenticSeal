@@ -238,7 +238,7 @@ def quoted_lines(lines, text=None):
     Reads: guess — a markdown file's lines, through `hooks/blocks.py#walk`; unknown refused
 
     A line that holds a rider is read on doubt, the first of the three
-    answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
+    answers `docs/the-record-layout.md` §*The fold, and what tells it from
     a deletion* gives: the wrong answer is a quoted example reported as a
     rider, `BROKEN` at exit 2 where it carries no stamp.
 

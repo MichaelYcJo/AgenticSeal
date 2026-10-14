@@ -618,7 +618,7 @@ def test_a_marker_quoted_in_a_fence_is_not_a_fold(tree):
     """#584, S3. `is_marked` read a line-anchored marker wherever it stood,
     so one quoted in a fenced example in a release file refused the fold as
     already done — with advice to remove the fragment, the only copy of its
-    rows. A marker counts only on a live line (`docs/the-evidence-ledger.md`
+    rows. A marker counts only on a live line (`docs/the-record-layout.md`
     §*A marker counts only on a live line*)."""
     release_file(tree, "0.3.0").parent.mkdir()
     release_file(tree, "0.3.0").write_text(

@@ -370,7 +370,7 @@ def quoted_lines(lines):
     Reads: guess — a markdown file's lines, a ledger's or any `.md` file an anchor names, by the shared fence rule; unknown refused
 
     A line that holds a claim is read on doubt, the first of the three
-    answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
+    answers `docs/the-record-layout.md` §*The fold, and what tells it from
     a deletion* gives to whether a line is live: the wrong answer is a
     parked or malformed row reported, never one dropped.
 
@@ -379,7 +379,7 @@ def quoted_lines(lines):
     runs to the end of the file, and reading nothing from there on is the
     silent direction on a file whose author made a mistake. So an unclosed
     block's lines are read, as they were before #444
-    (`docs/the-evidence-ledger.md` §*A marker counts only on a live line*
+    (`docs/the-record-layout.md`'s *A marker counts only on a live line*
     carries the direction rule). An HTML comment is read too: a commented-out
     row is a claim somebody parked, and dropping it is silent.
     """
@@ -2204,8 +2204,8 @@ def malformed_rows(text):
 # hold its claim, in pytest's own node-id spelling, each in backticks:
 # `tests/test_x.py::test_y`, or `tests/test_x.py::TestA::test_b` for a method.
 # Such a row has no hash, so nothing in it drifts: this reads that each test
-# is there, and the suite reads that it passes. `docs/the-evidence-ledger.md`
-# §*A claim held by a test* is the rule.
+# is there, and the suite reads that it passes. The ledger policy's §*A claim
+# held by a test*, at `v0.21.1`, is the rule.
 #
 # **Only a code span in the Code grounds cell is read**, through
 # `grounds_cells`: `a::b` is a spelling prose uses -- a C++ scope, a Rust path,
@@ -2572,12 +2572,14 @@ def overflow_rows(text):
     its own header keeps its own width, however wide.
 
     **Only more cells.** A short row hides nothing -- every cell of it is
-    rendered -- and the rule in `docs/the-evidence-ledger.md` says *more*.
+    rendered -- and the ledger policy at `v0.21.1` says *more*.
 
     Its own verdict and not `MALFORMED`, which names a `Code grounds` text
     nothing can parse: the coordinate in a split row usually parses, and the
     remedy is to escape a pipe. Graded as `MALFORMED` is, for the reason
     `exit_code` gives. One finding per line, so the coordinate is the line.
+
+    Reads: guess — a ledger file's text its caller hands it, through `ledger_table_rows`; unknown refused
     """
     findings = []
     for n, header, cells in ledger_table_rows(text):
@@ -2613,7 +2615,7 @@ def overflow_rows(text):
 # one of those. Of the members that record a code coordinate, only the
 # readings with the newest `Checked` date count, ties kept as a union, and the
 # coordinate is OK when one of them recorded what it holds now. That is the
-# halves rule of `docs/the-evidence-ledger.md` computed rather than applied by
+# halves rule of the ledger policy at `v0.21.1` computed rather than applied by
 # hand to a released file: two same-day re-reads tie, the side that edited a
 # unit is the side whose hash matches it, and where both sides edited it,
 # neither matches and the row is DRIFTED. The cost: content back at a hash
@@ -4994,7 +4996,7 @@ INTO_HELD = (
     "  a claim a test holds can move onto it once instead: a `Corrected ·` row "
     "citing the released row and naming that test in Code grounds, "
     "`tests/test_x.py::test_y`, retires the row's hashes, and no later edit "
-    "drifts it (docs/the-evidence-ledger.md)"
+    "drifts it (skills/evidence-check/SKILL.md)"
 )
 
 
@@ -5866,7 +5868,7 @@ def claim_lines(lines):
     Reads: guess — a record's lines, a session's prose in the records' template shape; unknown refused
 
     A line that holds a claim is read on doubt, the first of the three
-    answers `docs/the-evidence-ledger.md` §*The fold, and what tells it from
+    answers `docs/the-record-layout.md` §*The fold, and what tells it from
     a deletion* gives, and a line-start comment that closes is the one place
     this reads less than the ledger walk: the wrong answer is a false
     refusal at exit 2, which the marker answers.

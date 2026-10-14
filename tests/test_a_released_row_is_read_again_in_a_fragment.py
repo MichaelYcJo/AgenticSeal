@@ -2158,19 +2158,6 @@ def test_a_refusal_names_the_newest_of_the_readings_that_outrank_the_row(repo):
     "where, sentence",
     [
         (
-            "docs/the-evidence-ledger.md",
-            "the run writes no row for it, still records the pact changes its "
-            "moved coordinates owe, names it with both dates and the place of the "
-            "later reading, and exits 1. Read the code "
-            "again and date that reading; a date equal to the newest ties and is "
-            "written",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "a newest reading dated after today, which no `--checked` reaches, "
-            "takes a `Corrected ·` row",
-        ),
-        (
             "skills/evidence-check/scripts/evidence_check.py",
             "A row a reading dated after --checked outranks gets no Re-read row, "
             "is named, and the run exits 1.",
@@ -2202,8 +2189,6 @@ def test_a_refusal_names_the_newest_of_the_readings_that_outrank_the_row(repo):
         ),
     ],
     ids=[
-        "the home: the refusal",
-        "the home: after today",
         "the usage",
         "the pact's trigger",
         "the usage: the signer's record",
@@ -2222,7 +2207,7 @@ def test_the_home_and_the_usage_say_a_stale_row_is_left(where, sentence):
 
 # --- what no re-read clears (#746, ⬜ 11) ------------------------------------
 #
-# `docs/the-evidence-ledger.md` names five things `--reverify` leaves at exit 0
+# The ledger policy at `v0.21.1` named five things `--reverify` leaves at exit 0
 # while `--strict` exits 2: a double correction, a BROKEN coordinate, a family
 # rooted in a fragment whose anchored statement is gone, a citing row refused
 # MALFORMED, and a citation whose released line changed. Each case below holds
@@ -2997,58 +2982,6 @@ def test_one_unfrozen_run_names_a_citing_row_it_left_whole_once(repo):
     ), fix.stdout
 
 
-@pytest.mark.parametrize(
-    "sentence",
-    [
-        "**Five things `--reverify` leaves at exit 0 while `--strict` exits 2.**",
-        "A released row corrected by two `Corrected ·` rows.",
-        "Only where a released row carries it under the freeze does `--reverify` "
-        "name it, with the `Corrected ·` repair, and exit 1.",
-        "A family rooted in a fragment, a `Corrected ·` row there, whose anchored "
-        "statement is gone.",
-        "A citing row refused `MALFORMED`: one without its marker, or one whose "
-        "citation names a fragment row.",
-        "A citation whose released line changed under it.",
-        "Without the freeze it is not among them: one run over every ledger "
-        "re-stamps a released row and every citation of it that it moves, "
-        "because it hashes each coordinate naming a ledger line, a citation or "
-        "any other, against the text the run will write there (#772, #824).",
-        "A release file citing a row of itself, which a second fold writes, "
-        "settles in that same run.",
-        "A run narrowed with `--ledger` that moves a line cited from a file it "
-        "left out names the citing row on a `LEFT` line and exits 1, and so does "
-        "one moving a line that any other coordinate of a row in such a file "
-        "names.",
-        "Each repair is an edit or a correction, which a person makes.",
-        "Nor is a coordinate naming text that every re-stamp of it moves again, "
-        "its own row's line or a row that names it back: the run leaves it at "
-        "the hash its row recorded, says on a `LEFT` line that it does not "
-        "settle, and exits 1.",
-    ],
-    ids=[
-        "the five",
-        "double correction",
-        "broken",
-        "statement gone",
-        "malformed",
-        "citation",
-        "one unfrozen run",
-        "a file citing itself",
-        "a narrowed unfrozen run",
-        "the lead: a person repairs each",
-        "not among them: a coordinate that does not settle",
-    ],
-)
-def test_the_home_names_each_thing_no_re_read_clears(sentence):
-    """§14 for ⬜ 11: the paragraph a person reads before trusting a
-    `--reverify` that exited 0, pinned sentence by sentence (#746)."""
-    with open(
-        os.path.join(ROOT, "docs", "the-evidence-ledger.md"), encoding="utf-8"
-    ) as handle:
-        text = " ".join(handle.read().split())
-    assert sentence in text, sentence
-
-
 # --- an in-place re-stamp leaves a reading its family already holds (#785) ---
 #
 # The family paragraph counts only a coordinate's newest readings, so a
@@ -3508,17 +3441,6 @@ def test_a_held_ledger_coordinate_the_run_moves_is_re_stamped(repo):
     "where, sentence",
     [
         (
-            "docs/the-evidence-ledger.md",
-            "No such reading is owed where the family already holds a coordinate, "
-            "or where a `Corrected ·` row supersedes the family, so an in-place "
-            "re-stamp leaves that coordinate's hash and date as they are (#785).",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "On a row it dates for another coordinate it moves a held one's hash "
-            "too, since that date makes the row its newest reading.",
-        ),
-        (
             "skills/evidence-check/SKILL.md",
             "**Where no re-read is owed, the hash and the date stay** (#785).",
         ),
@@ -3539,8 +3461,6 @@ def test_a_held_ledger_coordinate_the_run_moves_is_re_stamped(repo):
         ),
     ],
     ids=[
-        "the home: no re-read owed",
-        "the home: a dated row",
         "the skill: the hash and the date stay",
         "the skill: a dated row",
         "the usage text",
@@ -3685,31 +3605,6 @@ def test_a_family_no_remedy_clears_is_named_without_one(repo):
     "where, sentence",
     [
         (
-            "docs/the-evidence-ledger.md",
-            "The line names a remedy per coordinate, by why the family is still "
-            "owed one (#792).",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "Only where a newest reading of it sits in a file the run did not "
-            "write does it say to run without `--ledger`.",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "Where the run left the coordinate itself, on a `left` line or by "
-            "leaving its row whole for want of a date cell, the line says so and "
-            "points at the line naming why, and a run over every ledger names "
-            "such a family too.",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "A `left` line names why in the sentence `--strict` prints for that "
-            "coordinate (#824): a path outside the repository or any known "
-            "checkout, a file not found, no one place holding the unit, or a "
-            "quoted statement its file no longer has.",
-        ),
-        ("docs/the-evidence-ledger.md", "Where neither is found it names no remedy."),
-        (
             "skills/evidence-check/scripts/evidence_check.py",
             "**Every `left` line carries the check's own sentence**, so the two "
             "commands cannot describe one row two ways (#809).",
@@ -3756,11 +3651,6 @@ def test_a_family_no_remedy_clears_is_named_without_one(repo):
         ),
     ],
     ids=[
-        "the home: per coordinate",
-        "the home: --ledger only outside",
-        "the home: left by the run",
-        "the home: every left reason",
-        "the home: neither",
         "reverify's docstring: the check's sentence",
         "reverify's docstring: judged once",
         "reverify's docstring: a cycle left the round it rewrites its row",

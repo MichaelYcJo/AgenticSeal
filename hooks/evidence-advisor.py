@@ -132,7 +132,7 @@ FROZEN_REPAIR = (
     "or, where a test holds the claim, names that test instead, "
     "`tests/test_x.py::test_y`, and no later edit drifts it; "
     "and drift is re-read with `--reverify --into seal/ledger/<work-item-id>.md "
-    "--checked YYYY-MM-DD` (docs/the-evidence-ledger.md)."
+    "--checked YYYY-MM-DD` (skills/evidence-check/SKILL.md)."
 )
 
 

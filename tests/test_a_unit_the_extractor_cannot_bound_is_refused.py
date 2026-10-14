@@ -563,7 +563,6 @@ def test_migrate_leaves_a_row_in_a_refused_file_with_the_refusal(repo):
 # --- S11, S12: what a person reads says what the code does ----------------
 
 SKILL = os.path.join(ROOT, "skills", "evidence-check", "SKILL.md")
-POLICY = os.path.join(ROOT, "docs", "the-evidence-ledger.md")
 FRAGMENT = os.path.join(
     ROOT,
     "seal",
@@ -588,7 +587,6 @@ def test_the_skill_no_longer_describes_the_indentation_rule():
     a quoted line is instead."""
     texts = {
         "SKILL.md": flat(SKILL),
-        "the-evidence-ledger.md": flat(POLICY),
         "rider_check.py": " ".join(module_docstring(RIDER).split()),
     }
     for where, text in texts.items():
@@ -609,24 +607,6 @@ def test_the_skill_no_longer_describes_the_indentation_rule():
     assert "a unit with blank lines inside it is cited one quote per paragraph" in (
         skill
     )
-
-
-def test_the_policy_paragraph_names_the_cases_that_enforce_it():
-    policy = open(POLICY, encoding="utf-8").read()
-    marker = "<!-- specs/1791384159-a-unit-the-extractor-cannot-bound-is-refused -->"
-    paragraph = policy.split(marker, 1)[1].split("\n\n", 1)[0]
-    enforced = [
-        line for line in paragraph.splitlines() if line.startswith("Enforced by:")
-    ]
-    assert len(enforced) == 1, paragraph
-    for case in (
-        "test_848_is_answered_by_a_quoted_line_that_hashes_the_function",
-        "test_a_bare_symbol_outside_the_two_parsers_is_refused_with_the_shape",
-    ):
-        assert (
-            f"test_a_unit_the_extractor_cannot_bound_is_refused.py::{case}"
-            in (enforced[0])
-        ), case
 
 
 def test_the_changelog_fragment_tells_an_installer_what_to_run():

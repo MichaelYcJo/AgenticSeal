@@ -301,7 +301,7 @@ def committed_round_records_on_disk(root):
     carries at HEAD, as `/`-joined repository paths, sorted.
 
     **The independent listing a population floor over the records is replaced
-    by** (`skills/settle/SKILL.md` §3, `docs/the-evidence-ledger.md`
+    by** (`skills/settle/SKILL.md` §3, `docs/the-record-layout.md`
     §*A population floor over the records is replaced, never lowered*). A
     sweep lists its corpus through `git ls-tree`; this reaches the same
     population from the other side — a walk of the disk, then `git cat-file
@@ -315,6 +315,8 @@ def committed_round_records_on_disk(root):
     scope that derives a path list from git, and `cat-file` asks about one
     path it was handed. A record on disk and not yet committed is the
     ordinary state of a round mid-flight, and it is left out.
+
+    Reads: observed — the disk under `seal/specs/` and `git cat-file -e` per path; unknown passed
     """
     specs = os.path.join(root, "seal", "specs")
     if not os.path.isdir(specs):

@@ -952,7 +952,6 @@ skills/evidence-check/scripts/evidence_check.py#notify_may_be_always@4911e64d
 skills/evidence-check/scripts/evidence_check.py#observed@49b9e51f
 skills/evidence-check/scripts/evidence_check.py#old_format_rows@4c870ab2
 skills/evidence-check/scripts/evidence_check.py#on_a_cycle@7a91acb6
-skills/evidence-check/scripts/evidence_check.py#overflow_rows@0d1ff79d
 skills/evidence-check/scripts/evidence_check.py#pact_change_item@e771e66d
 skills/evidence-check/scripts/evidence_check.py#parsed_spans@2d6ca94d
 skills/evidence-check/scripts/evidence_check.py#place@9917ee93
@@ -1358,7 +1357,6 @@ skills/verify/scripts/unverified_check.py#comment_scan@ba5c99ab
 skills/verify/scripts/unverified_check.py#commit_of@c581f1bd
 skills/verify/scripts/unverified_check.py#display_path@57d28236
 skills/verify/scripts/unverified_check.py#fence_closes@fedc1bc8
-skills/verify/scripts/unverified_check.py#fence_spans@4469f557
 skills/verify/scripts/unverified_check.py#folded_items@c7822cbd
 skills/verify/scripts/unverified_check.py#git_path@58691134
 skills/verify/scripts/unverified_check.py#heading_level@8d5ada2b
@@ -1416,7 +1414,6 @@ tests/conftest.py#build_tracked_tree@2d0b8e18
 tests/conftest.py#ceiling_from@1a5971ed
 tests/conftest.py#code_line@1cf405fa
 tests/conftest.py#code_lines@7f9638ce
-tests/conftest.py#committed_round_records_on_disk@6d9566c9
 tests/conftest.py#cutoff_item_is_traceable@805e189b
 tests/conftest.py#decision_of@79f2c477
 tests/conftest.py#declare_routing@ae0c1556

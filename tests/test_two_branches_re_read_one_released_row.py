@@ -5,7 +5,7 @@ OWN fragment with `evidence-check --reverify --into`. No file is written by
 both, so git merges them with no conflict, and the merged tree reads the row
 as one family (S6). Where both edited the same unit, neither reading holds
 the merged content and the row is DRIFTED: the halves rule of
-`docs/the-evidence-ledger.md`, computed (S7). The control is the rule this
+the ledger policy at `v0.21.1`, computed (S7). The control is the rule this
 replaces: the same two re-reads written in place into the released file
 conflict on the row's line.
 

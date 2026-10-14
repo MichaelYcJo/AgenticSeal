@@ -191,7 +191,7 @@ def hidden_lines(lines, text=None):
 
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers
-    `docs/the-evidence-ledger.md` §*The fold, and what tells it from a
+    `docs/the-record-layout.md` §*The fold, and what tells it from a
     deletion* gives: a row this hides is no declaration, so a hook says
     nothing and a gate asks, and `broad-gate` names a fence left open.
 

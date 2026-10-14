@@ -13,7 +13,7 @@ is this repository's `Fold shape from` row in `seal/config.md`. The row is
 line, so the real-tree case below binds every statement under `docs/`.
 Work-item ids are epoch-prefixed, so the cutoff is a comparison and needs no
 list of exemptions.
-`docs/the-evidence-ledger.md` states the value in prose, and
+`docs/the-record-layout.md` states the value in prose, and
 `tests/test_a_document_has_room_for_the_next_fold.py` pins the prose against
 that row.
 

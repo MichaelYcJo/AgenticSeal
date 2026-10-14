@@ -17,7 +17,7 @@ test is there, and the suite reads that it passes.
   S11  a ledger with no node id reads as it always did
   S12  the copy `evidence-ci` vendors alone reads S1-S5 the same way
 
-`docs/the-evidence-ledger.md` §*A claim held by a test* is the rule, and
+The ledger policy's §*A claim held by a test*, at `v0.21.1`, is the rule, and
 `seal/specs/1791384153-a-ledger-rows-claim-is-the-test-that-enforces-it/
 spec.md` holds the decisions. No fixture here runs git.
 """
@@ -390,7 +390,7 @@ HELD_OPTION = (
     "  a claim a test holds can move onto it once instead: a `Corrected ·` row "
     "citing the released row and naming that test in Code grounds, "
     "`tests/test_x.py::test_y`, retires the row's hashes, and no later edit "
-    "drifts it (docs/the-evidence-ledger.md)"
+    "drifts it (skills/evidence-check/SKILL.md)"
 )
 
 
@@ -1162,23 +1162,6 @@ def prose(rel):
     "rel, sentence",
     [
         (
-            "docs/the-evidence-ledger.md",
-            "**A row may name the test that holds its claim instead of a hash over "
-            "the code.**",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "**The checker reads that the test is there, and the sealed run's record "
-            "says whether it passed.**",
-        ),
-        ("docs/the-evidence-ledger.md", "**A row is one form or the other.**"),
-        (
-            "docs/the-evidence-ledger.md",
-            "**A released row moves onto its test by one `Corrected ·` row, written "
-            "when an edit reaches it, and never in bulk by a feature branch.**",
-        ),
-        ("docs/the-evidence-ledger.md", "**`path::name` has one resolver.**"),
-        (
             "templates/ledger.md",
             "| <claim> | `tests/test_x.py::test_y`, … | how the test was seen red | "
             "<date seen red, then green> | |",
@@ -1207,38 +1190,8 @@ def prose(rel):
             "an older vendored copy reads it as `MALFORMED`, *cites no coordinate*",
         ),
         # Round 1, 🔴 1.
-        (
-            "docs/the-evidence-ledger.md",
-            "the superseded row's tests are not read again, as its hashes are not.",
-        ),
         # The reframe after round 2 (S23).
-        (
-            "docs/the-evidence-ledger.md",
-            "Reading the row's file establishes one thing for certain, and the "
-            "checker reads that alone: a `def` or `class` of the cited name is "
-            "defined in the cited file once.",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "a test row is `OK` there only where every line the record holds for "
-            "the cited test says `passed`",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "test rows are read for existence alone, and the run says so in one "
-            "line beside its totals;",
-        ),
         # Round 3, 🟡 3 and ⬜ 6.
-        (
-            "docs/the-evidence-ledger.md",
-            "a gate whose row loaded no recorder reads the same way and prints "
-            "that line on its own output.",
-        ),
-        (
-            "docs/the-evidence-ledger.md",
-            "The run that is sealed decides a skipped test: a `skipif` true on the "
-            "sealing machine reads *skipped* and holds nothing there",
-        ),
         (
             "skills/evidence-check/SKILL.md",
             "a test is `OK` only where every line the pytest recorder wrote for it "

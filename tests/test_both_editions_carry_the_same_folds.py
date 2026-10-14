@@ -25,7 +25,7 @@ compared (#565).
 Markers are read with the fold's own reader —
 `skills/verify/scripts/unverified_check.py#live_lines` and `#FOLD_MARKER` —
 so a marker this counts is exactly one the fold would count
-(`docs/the-evidence-ledger.md` §*The fold, and what tells it from a
+(`docs/the-record-layout.md` §*The fold, and what tells it from a
 deletion*: one function decides what live means). A heading is a live line
 matching `^ {0,3}#{1,6}` followed by a space, a tab or the end of the line
 (CommonMark allows up to three spaces of indentation). A digit straight

@@ -338,7 +338,7 @@ def test_a_closed_row_is_told_to_merge_before_its_directory_goes(tree):
         "pull request, which the CI readers refuse at the merge base"
     )
     assert "in a pull request merged before the one that retires" in document(
-        "docs", "the-evidence-ledger.md"
+        "docs", "the-record-layout.md"
     )
 
 
@@ -455,7 +455,7 @@ def test_the_documents_say_the_closure_has_to_reach_the_base():
     assert "*kept: the closure has not reached <base>*" in text, text
     assert "Merged first means merged to the branch the release merges to" in text
     assert "the merge base of `--released-at` and `HEAD`" in text
-    policy = flat(document("docs", "the-evidence-ledger.md"))
+    policy = flat(document("docs", "the-record-layout.md"))
     assert "`settle` asks it at the merge base of `--released-at` and `HEAD`" in policy
     # Round 1, 🟡 1: that merge base is CI's only until the base moves.
     assert "until the base moves past the fork" in policy, policy
@@ -701,7 +701,7 @@ def test_the_documents_say_a_spec_less_directory_is_retired_by_the_rule():
     """§14's half of D3. The policy said such an item *is kept by name*, and
     the skill offered it as *yours to place*; both are overturned, and the one
     condition the frame added is stated where the owner can overturn it."""
-    policy = document("docs", "the-evidence-ledger.md")
+    policy = document("docs", "the-record-layout.md")
     assert "and it is kept by name" not in policy, (
         "the policy still keeps a spec-less directory by name"
     )
