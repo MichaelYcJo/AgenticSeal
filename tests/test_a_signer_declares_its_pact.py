@@ -200,6 +200,13 @@ def test_a_signer_config_the_walker_refuses_is_refused_after_the_pact():
         [],
         [BARE_PIPE],
     )
+    # The arm a doubled `Pact` returns from early keeps the walker's sentence
+    # last too: seen red by `mutation-check` dropping it on that arm alone.
+    doubled = CONFIG + "| Pact | git@example.com:org/b.git |\n" + bad
+    assert config.pact_declaration(doubled) == (
+        [],
+        ["`Pact` appears 2 times — one value", BARE_PIPE],
+    )
 
 
 def _broad_gate_block():
