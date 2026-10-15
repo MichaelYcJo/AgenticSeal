@@ -607,6 +607,7 @@ def test_each_real_path_end_to_end(
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
     found, out = run(root, capsys, *options.get("extra", ()))
     assert found == code, out
+    assert "-minute bound, the proofs in " in out.split("\n", 1)[0], out
     for line in expected:
         assert line in out, out
         assert line in summary.read_text(encoding="utf-8")

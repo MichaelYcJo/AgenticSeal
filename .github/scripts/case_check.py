@@ -982,6 +982,7 @@ def check(root, baseline, runner, bound):
     # The report's half, once every file's proofs are done: what is left of
     # the changed shipped lines' mutants runs while the bound allows, so a
     # survivor is one that ran and that no case killed.
+    proofs = time.monotonic() - started
     end = started + limit
     pairs = [(path, n) for path, numbers in diff.items() for n in numbers]
     every_diff = mutants_at(root, pairs)
@@ -1011,7 +1012,8 @@ def check(root, baseline, runner, bound):
     survivors = sorted(label for label, killed in diff_killed.items() if not killed)
     lines = [
         f"case-check against {baseline}: {len(proved)} proved, {len(findings)} "
-        f"named, in {time.monotonic() - started:.0f} s of a {bound:g}-minute bound",
+        f"named, in {time.monotonic() - started:.0f} s of a {bound:g}-minute "
+        f"bound, the proofs in {proofs:.0f} s",
         *costs,
     ]
     lines += [f"  {where}: {proof}" for where, proof in proved]
