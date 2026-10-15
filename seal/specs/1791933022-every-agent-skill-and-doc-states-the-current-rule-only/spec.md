@@ -92,9 +92,9 @@ Every grader is mechanical: `regex` over a file or the last message, `file_exist
 4. **cost falls**: the preload bytes of the new side are below the old (deterministic, always true of a rewrite that shrank the file), and the new side's pooled tokens read and spend are not more than 1.1 × the old's — a compaction that leaves the agent wandering shows up as spend before it shows up as findings. Wall seconds are written and never judged, because the machine's load is in them;
 5. a side whose runs were cut by `--max-cost-usd` or a timeout is no result, and the test refuses the record.
 
-The fix on a failure is to restore the rule the output lost, in the shape; the bar never moves in a rewrite phase. Each phase runs the sets of the agents whose preload it changed; the contract phase runs all four; the close runs all four once more on the finished tree against the same baseline.
+The fix on a failure is to restore the rule the output lost, in the shape; the bar never moves in a rewrite phase. Each phase runs the sets of the agents whose preload it changed; the contract phase runs all four. Each agent's last rewrite is therefore already proved on its finished preload, so the close runs an agent's set again only if a file in its preload changed after that agent's last passing record (owner, 2026-10-15).
 
-**Cost of the proof** (from phase 2's measurements; nothing else has run): the baseline ≈ 16 warden runs at ≈ $2.5 plus 22 cheap runs, ≈ $45 and ≈ 1.5 h at `-j 4`; a warden phase the same 16 runs; the contract phase every agent; the close every agent — ≈ 120 runs and ≈ $150 over the item on the orchestrator's account. CI runs none of it.
+**Cost of the proof** (from phase 2's measurements; nothing else has run): the baseline ≈ 16 warden runs at ≈ $2.5 plus 22 cheap runs, ≈ $45 and ≈ 1.5 h at `-j 4`; a warden phase the same 16 runs; the contract phase every agent; the close none unless a preload changed after its agent's last record — ≈ 80 runs and ≈ $105 over the item, from the owner's subscription on the orchestrator's account. CI runs none of it.
 
 ## Scope
 
