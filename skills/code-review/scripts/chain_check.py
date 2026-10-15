@@ -579,7 +579,7 @@ def open_findings(reader, lines, rel):
 
     One fact per row: its `Verdict` cell begins with a word of
     `CLOSED_WORDS`, and a `deferred` names a home, or the row is open —
-    whatever mark its first cell carries. That cell, the `#` cell of the
+    whatever mark its first cell carries. That cell, headed `#` in the
     five-column table, only names the row; an empty one is `the row`.
 
     Reads: guess — the warden's record, through `verdict_table`; unknown refused"""

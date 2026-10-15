@@ -32,7 +32,8 @@ the warden's as ` · fix pass: <what was done, or why not>`:
   `answered`           the finding does not hold; the grounds say why
   `deferred <home>`    the issue or file it went to, by the filing ladder
 A 🟢 row reads `confirmed`; a ❓ row reads `❓ out of verified scope`. A
-ready pull request fails while any 🔴 or 🟡 row reads anything else. -->
+ready pull request fails while any row, whatever its mark, reads a word
+other than these five. -->
 
 ## Paste-ready fixes
 

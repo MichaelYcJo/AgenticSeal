@@ -179,7 +179,7 @@ item writes `seal/specs/<id>/routing.md` before its first edit — which way it 
 and whether it opens a pull request — and the gate reads that instead of
 guessing from the absence of a mark. The check moved to the pull request: CI
 reads the same file out of the diff and, for anything routed through the
-chain, requires a committed round record with no 🔴 or 🟡 row left open. A
+chain, requires a committed round record with no row left open. A
 pull request that declared neither way is not failed; it gets a notice saying
 nothing was checked.
 

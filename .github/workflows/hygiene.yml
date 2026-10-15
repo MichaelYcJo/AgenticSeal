@@ -166,8 +166,8 @@ jobs:
       # goes red for one teaches people to write none. It fails for what the
       # author can fix: a declaration that says "through the review chain"
       # with no committed round record, a declaration that cannot be read,
-      # and — on a pull request that is not a draft — a 🔴 or 🟡 row still
-      # open, a last record behind HEAD, no `broad-gate.md` at HEAD, or no
+      # and — on a pull request that is not a draft — a verdict row of any
+      # mark still open, a last record behind HEAD, no `broad-gate.md` at HEAD, or no
       # `guarantee.md` reading `sound` at HEAD (`docs/the-review-record.md`
       # §*What the check reads at the pull request*).
       #
