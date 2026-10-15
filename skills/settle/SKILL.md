@@ -91,8 +91,8 @@ directory. The **process record** is read by no check after the release that
 ships the item, and this arm removes it from every released work item:
 
 - `rounds/` and `phases/`, whole;
-- `broad-gate.md`, `handoff.md`, `pr.*.md` and `tests-todo.md`, the files
-  written for a pull request that has merged.
+- `broad-gate.md`, `handoff.md` and `pr.*.md`, the files written for a pull
+  request that has merged.
 
 Measured when it shipped, that part was 62% of the files under `seal/specs/`
 and 67% of the bytes, and it had waited seven releases on a fold it does not
@@ -127,24 +127,15 @@ pull-request-only file is therefore printed on every run until somebody adds
 it to `PROCESS_FILES` in `skills/settle/scripts/settle.py`, and a file that
 was in fact durable is never lost.
 
-**Its guard is asked per item**, so one held item does not stop the others:
-
-- a `tests-todo.md` that still holds an open row keeps the whole item,
-  because what a review left for the implementer may not leave with the
-  record that holds it;
-- a path outside `seal/specs/` that cites into a removed file is listed and
-  never refused. It resolves in git history at the release tag, which is the
-  state a citation into a retired directory is already in.
+**A path outside `seal/specs/` that cites into a removed file is listed and
+never refused.** It resolves in git history at the release tag, which is the
+state a citation into a retired directory is already in.
 
 It prints each removal, then each heading below that applies, then one count:
 
 ```
 removed seal/specs/<id>/rounds/  (12 files)
 removed seal/specs/<id>/broad-gate.md
-
-kept whole — a todo file still holds an open row, and what a review left for the
-implementer may not leave with the record:
-    <id>  (1 open row in tests-todo.md)
 
 not a process record — on neither of `settle`'s lists, so it is kept rather than
 guessed at:
@@ -155,20 +146,18 @@ the tag of the release that shipped it:
     <id>
         cited from docs/<file>.md:<line>
 
-retired the process record of 1 work item (13 files); 1 kept
+retired the process record of 1 work item (13 files)
 ```
 
-Exit 0 when nothing was kept, and 1 when a guard kept an item. A run with
-nothing left to remove exits 0 as well, because that is the state a previous
-run leaves rather than work still to do, and it says so:
+Exit 0. A run with nothing left to remove exits 0 as well, because that is
+the state a previous run leaves rather than work still to do, and it says so:
 
 ```
 nothing left to retire: no released work item still holds a process record.
 ```
 
 `settle` with no flag ends with this arm's dry run. It counts the files and
-items the arm would take, and names each item it would keep and each file on
-neither list:
+items the arm would take, and names each file on neither list:
 
 ```
 the process record — no check reads it after its work item's release, so

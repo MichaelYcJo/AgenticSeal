@@ -119,26 +119,19 @@ every repository, whatever either row says:
 - **Branch names.** Still `<prefix>/<kebab-case-slug>` in ASCII: a branch
   name is typed into a shell and pasted into a URL.
 - **The field names, section headings and vocabulary a checker or a pinned
-  case reads literally** — a round record's `Target SHA`, `PR`, `Broad gate`,
-  `Fixes checked by`, `Contract changes`, `New units` and the `depth` its
-  entries carry, `Needs a fix`, `Loses a record or crashes` with the `no` and
-  `yes` its answer is written in, `Fix of a fix` with its `first` and
-  `second`, and the `Pass`
-  checkbox; its `## Verdicts`, `## Executed probes`, `## Inherited
-  coordinates` and `## Deferred` headings, and the `Verdict` column of the
-  first; the verdict words `fixed`, `answered`, `withdrawn`, `not a defect`,
-  `agreed, fixed`, `out of verified scope` and the `deferred` in
-  `deferred <home>`; `round-N`, `none`,
-  `no fixes to check` and `nobody` in
-  `nobody — <why>`; `Ran by` with the `on` that joins its two halves and the
-  `unknown` in `unknown — <why>`; an `overview.md`'s `## Not verified`
-  heading with its
-  `Item` and `Who must answer` columns; a `spec.md`'s `## Removes` heading
-  and the `nothing` in `nothing — <why>`. A translated field name is not a
+  case reads literally** — a round record's `Target SHA`; its `## Verdicts`,
+  `## Paste-ready fixes` and `## Executed probes` headings, and the `Verdict`
+  and `Grounds` columns of the first; the verdict words `open`, `fixed`,
+  `answered`, `confirmed`, `out of verified scope` and the `deferred` in
+  `deferred <home>`, and `withdrawn`, `not a defect` and `agreed, fixed`,
+  which records written before them still carry; a `broad-gate.md`'s
+  `Broad gate`; an `overview.md`'s `## Not verified` heading with its `Item`
+  and `Who must answer` columns; a `spec.md`'s `## Removes` heading and the
+  `nothing` in `nothing — <why>`. A translated field name is not a
   translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, a drained file's `drained` line, the `✅` that
-  closes a row and the `🔴` that opens one, and a pact anchor's
+  section's `## X.Y.Z — <date>`, the `✅` that closes a row, the `🔴` and
+  `🟡` that open a finding, and a pact anchor's
   `pact:<name>/"<heading path>"@<hash>`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.

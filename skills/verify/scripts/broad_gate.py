@@ -3258,6 +3258,8 @@ def common_dir(root):
 def signal(stamp, root, tree, base, item, rows, branch=None):
     """The one line a sealed run prints where nobody can see a drawing.
 
+    Reads: observed — the session id in the environment; unknown passed
+
     It starts with `SEALED` and carries `<branch> @ <tree> against <ref> @
     <base commit>` (`seal_stamp.sealed_names`), the way the failure form
     starts `NOT SEALED`. On a recorded seal it writes the panel's `rows` to a
@@ -3311,7 +3313,9 @@ def signal(stamp, root, tree, base, item, rows, branch=None):
 def main(argv=None, console_wants_letters=None, console_is_terminal=None):
     """`console_wants_letters` is `pick_shape` asked of stdout as the process
     found it, and `console_is_terminal` is `is_terminal` asked of it —
-    `__main__` asks both before it reconfigures the streams."""
+    `__main__` asks both before it reconfigures the streams.
+
+    Reads: guess — the arguments and the tree, through `gate`; unknown refused"""
     try:
         stamp = load(STAMP, "specseal_seal_stamp_for_broad_gate")
     except Refused as exc:

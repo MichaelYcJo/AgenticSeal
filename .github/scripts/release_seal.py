@@ -135,7 +135,7 @@ PANEL_VALUE_WIDTH = 23
 # (`questions.md` Q8).
 NOT_READ = "not read"
 # The label the review chain puts on a pull request whose run ended at the
-# round cap (`docs/review-chain-spec.md`).
+# round cap (`docs/the-review-record.md`).
 CAPPED_LABEL = "chain: capped"
 
 
@@ -315,6 +315,8 @@ def chain_counts(root, pulls):
     """`(items, rounds, capped, deferred)` for the release's pull requests,
     each a number or None for not read, with the log saying why.
 
+    Reads: guess — the work items' round records, through `chain_check.verdict_table`, and the pull requests' labels; unknown refused
+
     `capped` counts the pull requests labelled `CAPPED_LABEL`. A pull request
     is a work item where exactly one `routing.md` under `root` names its head
     branch (`hooks/routing.py#item_dir`), and its rounds are
@@ -338,7 +340,7 @@ def chain_counts(root, pulls):
         routing, chain, reader = readers()
     except Exception as problem:
         print(
-            f"the chain rows are not read: the round-record readers did not load ({problem})"
+            f"the chain rows are not read: the round record's readers did not load ({problem})"
         )
         return None, None, capped, None
     if not routing.declarations(root):

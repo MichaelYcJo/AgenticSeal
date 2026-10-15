@@ -182,7 +182,6 @@ SHIPPED = {
     "unverified-check": (PREDICATE, "the walk and the base, by one rule"),
     "settle": (PINNED, "settle.py#SPECS; its citation scan reads as a citer"),
     "pact-check": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
-    "round-record": (PINNED, "writes rounds/ under seal/specs/<id>/ only"),
     "broad-gate": (NO_WALK, "hands seal/specs/ to the checks above"),
     "fold-check": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
     "rules": (NO_WALK, "reads the one document it is named and its targets"),

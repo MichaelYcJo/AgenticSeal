@@ -33,20 +33,6 @@ def load():
 
 settle = load()
 
-CLEAN_TODO = """# evidence-todo
-
-| Fact | Where it goes |
-|---|---|
-| ✅ something a reviewer verified | merged into the fragment |
-"""
-
-OPEN_TODO = """# evidence-todo
-
-| Fact | Where it goes |
-|---|---|
-| a fact that never reached the ledger | the work item's fragment |
-"""
-
 
 def git(repo, *args):
     subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
@@ -139,50 +125,6 @@ def test_a_ref_that_does_not_resolve_is_refused_rather_than_empty(tree):
     every work item look unreleased, and the report would then say there is
     nothing to fold."""
     assert settle.survey(str(tree), "no/such/ref") is None
-
-
-# --- A5: the guard stops one item and not the run --------------------------
-
-
-def test_a_drained_line_closes_the_file(tree):
-    """The rule a person can apply by hand, and the one shape that closes a
-    file without marking every row."""
-    assert settle.open_rows(OPEN_TODO)
-    assert not settle.open_rows(OPEN_TODO + "\ndrained — every row is in the ledger\n")
-
-
-QUOTED_DRAINED = (
-    "\nThe file closes with a line like this:\n\n"
-    "```markdown\ndrained — every row is in the ledger\n```\n"
-    "\n<!-- a draft of the closing line\ndrained — not yet\n-->\n"
-)
-
-
-def test_a_quoted_drained_line_closes_nothing():
-    """S7, the `settle` half (#487). `drained` EXCUSES a whole file, so it
-    counts only on a live line: one quoted in a fence or parked in a comment
-    closes nothing, and gamma's open row still keeps its directory. Seen red
-    against `c52e8350`, where either quotation closed the file and gamma was
-    offered for the fold."""
-    assert settle.open_rows(OPEN_TODO + QUOTED_DRAINED)
-
-
-def test_a_fenced_example_row_is_not_an_open_row():
-    """The other half of the direction rule: a ROW holds a fact, so it is
-    skipped only when it is certainly quoted — inside a fence that closes.
-    One in a fence nobody closed, or parked in a comment, is still open."""
-    example = (
-        "# evidence-todo\n\nA row looks like this:\n\n```markdown\n"
-        "| Fact | Where it goes |\n|---|---|\n| an example | nowhere |\n```\n"
-    )
-    assert settle.open_rows(example) == []
-    unclosed = example[: -len("```\n")]
-    assert unclosed.endswith("| an example | nowhere |\n"), unclosed
-    assert len(settle.open_rows(unclosed)) == 1
-    parked = (
-        "# evidence-todo\n\n<!--\n| Fact | Where |\n|---|---|\n| parked | x |\n-->\n"
-    )
-    assert len(settle.open_rows(parked)) == 1
 
 
 # --- A4: a second run folds nothing twice ----------------------------------
@@ -729,15 +671,6 @@ def test_a_marker_quoted_in_prose_is_not_a_fold_record(tree):
     assert "folded already" not in text, text
     code, _ = run(tree, "--retire")
     assert code == 1
-
-
-# --- the reader's own rules ------------------------------------------------
-
-
-def test_the_checks_can_fail():
-    """A guard that found no row open would make every case above vacuous."""
-    assert settle.open_rows(CLEAN_TODO) == []
-    assert len(settle.open_rows(OPEN_TODO)) == 1
 
 
 # --- what ships ------------------------------------------------------------

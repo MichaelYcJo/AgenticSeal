@@ -45,8 +45,7 @@ try:
 except ImportError as missing:
     # `hooks/config.py` raises the same sentence for the same reason: this is
     # a module gates and scripts import, and a script that loads it by path
-    # (`chain_check.py`, `round_record.py`) catches the
-    # error or names the file first.
+    # (`chain_check.py`) catches the error or names the file first.
     raise ImportError(
         "cannot read "
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")
@@ -393,13 +392,11 @@ ROUNDS_DIR = "rounds"
 def round_number(name):
     """The N in `round-N.md`, or None when the name is not one.
 
-    The one place the ordering rule lives. `skills/code-review/scripts/chain_check.py`
-    calls this rather than writing the pattern again -- the two readers had
-    two orders, this one by name and that one numerically, and the docstring
-    of one called the other a defect. Nothing noticed, because
-    `review-history-guard` reads every record rather than the last. At ten
-    rounds they split, and the reader that takes the LAST record would take
-    `round-9.md`.
+    The one place the ordering rule lives: `skills/code-review/scripts/chain_check.py`
+    calls this rather than writing the pattern again, so records sort by
+    number and `round-10.md` comes after `round-9.md`.
+
+    Reads: owned — a record's file name, spelled by this plugin's convention; unknown refused
     """
     m = ROUND_RE.fullmatch(os.path.basename(name))
     return int(m.group(1)) if m else None

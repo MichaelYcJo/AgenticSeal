@@ -45,20 +45,6 @@ LEDGER = """# spec-to-code map
 | a row from before the fragments existed | `hooks/old.py#thing@11111111` | read | 2026-01-01 | |
 """
 
-CLOSED_TODO = """# todo
-
-| Fact | Where it goes |
-|---|---|
-| ✅ something a reviewer left | merged into the fragment |
-"""
-
-OPEN_TODO = """# todo
-
-| Fact | Where it goes |
-|---|---|
-| something a reviewer left that never landed | the work item's fragment |
-"""
-
 OVERVIEW = "# overview\n\nWhy.\n\n## Not verified\n\nnone — every item was run\n"
 
 # What stays until the fold, and what this arm takes: spec D4, spelled out
@@ -79,7 +65,6 @@ PROCESS = {
     "broad-gate.md": "# broad gate\n",
     "handoff.md": "# handoff\n",
     "pr.ko.md": "# 본문\n",
-    "tests-todo.md": CLOSED_TODO,
 }
 TAKEN = (
     "rounds/",
@@ -87,7 +72,6 @@ TAKEN = (
     "broad-gate.md",
     "handoff.md",
     "pr.ko.md",
-    "tests-todo.md",
 )
 
 
@@ -156,7 +140,7 @@ def test_the_process_record_leaves_and_the_sdd_set_stays(repo):
     assert files_of(alpha) == sorted(DURABLE), files_of(alpha)
     for taken in TAKEN:
         assert f"removed seal/specs/{ALPHA}/{taken}" in text, (taken, text)
-    assert "retired the process record of 1 work item (8 files); 0 kept" in text, text
+    assert "retired the process record of 1 work item (7 files)" in text, text
 
 
 def test_a_directory_is_removed_with_its_file_count(repo):
@@ -177,22 +161,6 @@ def test_an_unreleased_item_is_not_touched_or_named(repo):
     assert code == 0, text
     assert files_of(beta) == before
     assert BETA not in text, text
-
-
-# --- S3: an open todo row keeps the whole item -----------------------------
-
-
-@pytest.mark.parametrize("todo", ["tests-todo.md"])
-def test_an_open_todo_row_keeps_the_item_whole(repo, todo):
-    write(repo / "seal" / "specs" / ALPHA / todo, OPEN_TODO)
-    alpha = repo / "seal" / "specs" / ALPHA
-    before = files_of(alpha)
-    code, text = run(repo, "--retire-process")
-    assert code == 1, text
-    assert files_of(alpha) == before, "a held item lost part of its record"
-    assert settle.PROCESS_TODO_HEADING in text, text
-    assert f"    {ALPHA}  (1 open row in {todo})" in text, text
-    assert "retired the process record of 0 work items (0 files); 1 kept" in text
 
 
 # --- S4: a file on neither list stays and is named --------------------------
@@ -271,16 +239,14 @@ def test_the_report_says_what_the_arm_would_take(repo):
     assert code == 0, text
     assert files_of(repo) == before, "the report removed something"
     assert settle.PROCESS_HEADING in text, text
-    assert "    8 files in 1 released work item" in text, text
+    assert "    7 files in 1 released work item" in text, text
 
 
 def test_the_report_names_what_the_arm_would_keep(repo):
-    write(repo / "seal" / "specs" / ALPHA / "tests-todo.md", OPEN_TODO)
     write(repo / "seal" / "specs" / ALPHA / "notes.md", "# notes\n")
     _, text = run(repo)
     section = text.split(settle.PROCESS_HEADING, 1)[1]
-    assert "    0 files in 0 released work items" in section, section
-    assert f"    {ALPHA}  kept: 1 open row in tests-todo.md" in section, section
+    assert "    7 files in 1 released work item" in section, section
     assert f"    seal/specs/{ALPHA}/notes.md  not a process record, kept" in section
 
 
@@ -316,7 +282,6 @@ def test_the_skill_quotes_every_line_the_arm_prints():
     assert "settle --retire-process" in text
     for name in (
         "PROCESS_HEADING",
-        "PROCESS_TODO_HEADING",
         "PROCESS_UNKNOWN_HEADING",
         "PROCESS_CITED_HEADING",
         "PROCESS_DONE",
@@ -412,14 +377,13 @@ TAKEN_NAMES = (
     "phases",
     "broad-gate.md",
     "handoff.md",
-    "tests-todo.md",
     "pr.ko.md",
 )
 NOT_TAKEN = (
     "spec.md",
     "overview.md",
     "routing.md",
-    "evidence-todo.md",
+    "tests-todo.md",
     "notes.md",
     "handoff.md.bak",
     "rounds-old",

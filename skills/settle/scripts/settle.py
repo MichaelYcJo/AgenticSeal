@@ -53,9 +53,8 @@ and the files written only for a pull request, and leaves
 `routing.md` and the SDD set for the fold. No check reads that part after
 the release, and removing it judges nothing, so it does not wait on the fold's
 judgment. What the SDD set still cites of it resolves at the release tag. It
-is an allow-list: a file on neither list is kept and named. An open
-`tests-todo.md` row keeps the item, and a citation into a removed file is
-listed, never refused.
+is an allow-list: a file on neither list is kept and named. A citation into
+a removed file is listed, never refused.
 
 **The rule arm, and why it needs no marker.** A released work item that wrote
 no `spec.md` states no rule — a release entry, a renumbering, a CI repair —
@@ -89,8 +88,7 @@ holds no work item at all — an empty or absent `seal/specs/` under a present
 `seal/` is the state a complete fold reaches — or the process arm found
 nothing left to remove · 1 a retirement was asked for
 and something refused it — a spec-less directory's closure has not
-reached the merge base of `--released-at` and `HEAD`, or an open todo row
-held an item's process record · 2 the arguments or the
+reached the merge base of `--released-at` and `HEAD` · 2 the arguments or the
 tree were unusable, which is six states: a
 `--released-at` ref that does not resolve, a `--released-at` ref sharing no
 commit with `HEAD` or a clone too shallow to reach the one they share, a root
@@ -140,11 +138,12 @@ def load(path, name):
     """Import a sibling script by path, or refuse with a sentence saying what
     the missing file is for — its `PURPOSES` entry — and exit 2.
 
+    Reads: owned — a module this plugin ships beside this script; unknown refused
+
     Not a bare `exec_module`: `spec_from_file_location` hands back a spec for
     any path ending in `.py`, present or not, so a missing reader reaches the
     loader and raises `FileNotFoundError` — a traceback where this file's
-    whole contract is that every failure is a sentence. `round_record.py#load`
-    had that shape until #590 gave all three loaders this one.
+    whole contract is that every failure is a sentence.
 
     Exit 2 and not 1, because nothing about the tree has been read and 1 here
     means a retirement was refused. It used to be `SystemExit(<sentence>)`,
@@ -208,16 +207,6 @@ def released(root, ref):
             if "/" in rest:
                 found.add(rest.split("/", 1)[0])
     return found
-
-
-def open_rows(text):
-    """Table body rows of a todo file that are still open.
-
-    The rule is `unverified_check.py#todo_open_rows`, and its docstring says
-    how a person applies it by hand.
-
-    Reads: guess — a todo file's text its caller hands it, through `unverified_check.py#todo_open_rows`; unknown passed"""
-    return load(READER, "specseal_unverified_reader").todo_open_rows(text)
 
 
 # What a settled root prints, for the report and the retirement alike.
@@ -717,10 +706,7 @@ PROCESS_DIRS = ("rounds", "phases")
 PROCESS_FILES = (
     "broad-gate.md",
     "handoff.md",
-    "tests-todo.md",
 )
-# The one whose open row keeps the whole item, read by `open_rows`.
-PROCESS_TODOS = ("tests-todo.md",)
 # What stays until the fold retires the directory. `routing.md` is the item's
 # identity to `chain_check`, `release_seal` and `root-migrate`; `overview.md`
 # holds the `## Not verified` rows `unverified_check --baseline` counts; and
@@ -741,10 +727,6 @@ PROCESS_HEADING = (
     "the process record — no check reads it after its work item's release, so\n"
     "`settle --retire-process` takes it now, fold or no fold:"
 )
-PROCESS_TODO_HEADING = (
-    "kept whole — a todo file still holds an open row, and what a review left "
-    "for the\nimplementer may not leave with the record:"
-)
 PROCESS_UNKNOWN_HEADING = (
     "not a process record — on neither of `settle`'s lists, so it is kept "
     "rather than\nguessed at:"
@@ -758,10 +740,9 @@ PROCESS_DONE = (
 )
 
 # One released item's process record, as the tree holds it now. `take` is
-# `(name, is_dir, file count)` per top-level entry the arm removes, `todo`
-# `{name: open rows}` for a todo file still open, and `unknown` the entries on
-# neither list.
-ProcessItem = collections.namedtuple("ProcessItem", "id take files todo unknown")
+# `(name, is_dir, file count)` per top-level entry the arm removes, and
+# `unknown` the entries on neither list.
+ProcessItem = collections.namedtuple("ProcessItem", "id take files unknown")
 
 
 def is_process_record(name, is_dir):
@@ -774,6 +755,8 @@ def is_process_record(name, is_dir):
 def process_plan(root, work_item_ids):
     """`[ProcessItem]` for each of these directories still on disk.
 
+    Reads: observed — the work item directories' listings; unknown refused
+
     Read from the tree each time it is asked. The report asks it for its
     section and the retirement asks it again, for `retire`'s reason: a
     classification made for a printed list is not a guard on a destructive
@@ -784,7 +767,7 @@ def process_plan(root, work_item_ids):
         top = under(root, f"{SPECS}/{work_item_id}")
         if not os.path.isdir(top):
             continue
-        take, todo, unknown = [], {}, []
+        take, unknown = [], []
         for name in sorted(os.listdir(top)):
             path = os.path.join(top, name)
             is_dir = os.path.isdir(path) and not os.path.islink(path)
@@ -793,15 +776,10 @@ def process_plan(root, work_item_ids):
                     sum(len(files) for _, _, files in os.walk(path)) if is_dir else 1
                 )
                 take.append((name, is_dir, count))
-                if name in PROCESS_TODOS:
-                    with open(path, encoding="utf-8") as f:
-                        rows = open_rows(f.read())
-                    if rows:
-                        todo[name] = len(rows)
             elif is_dir or name not in DURABLE:
                 unknown.append(name + ("/" if is_dir else ""))
         plan.append(
-            ProcessItem(work_item_id, take, sum(c for _, _, c in take), todo, unknown)
+            ProcessItem(work_item_id, take, sum(c for _, _, c in take), unknown)
         )
     return plan
 
@@ -845,18 +823,13 @@ def write_process_section(found, out):
 
     Reads: owned — the plan this module built; unknown passed"""
     plan = found["process"]
-    takeable = [p for p in plan if p.take and not p.todo]
+    takeable = [p for p in plan if p.take]
     files = sum(p.files for p in takeable)
     out.write(f"\n{PROCESS_HEADING}\n")
     out.write(
         f"    {files} file{plural(files)} in {len(takeable)} released work "
         f"item{plural(len(takeable))}\n"
     )
-    for entry in plan:
-        for name, count in sorted(entry.todo.items()):
-            out.write(
-                f"    {entry.id}  kept: {count} open row{plural(count)} in {name}\n"
-            )
     for entry in plan:
         for name in entry.unknown:
             out.write(f"    {SPECS}/{entry.id}/{name}  not a process record, kept\n")
@@ -874,25 +847,21 @@ def retire_process(found, root, out=sys.stdout):
     same test the fold uses — the directory is present at `--released-at` —
     taken from `found` because only git answers it.
 
-    **The guard is asked per item.** A todo file with an open row keeps the
-    whole item and names it, because what a review left for the implementer
-    may not leave with the record that holds it. A path outside `seal/specs/`
-    that cites into a removed file is listed and never refused, as `--retire`
-    lists one: it resolves in git history at the release's tag, and the tree
-    already holds citations of that kind into directories a fold retired.
+    A path outside `seal/specs/` that cites into a removed file is listed and
+    never refused, as `--retire` lists one: it resolves in git history at the
+    release's tag, and the tree already holds citations of that kind into
+    directories a fold retired.
 
-    Exit 0 when nothing was held — including when nothing is left to remove,
-    which is the state a previous run leaves, not work still to do — and 1
-    when a guard kept an item.
+    Exit 0, including when nothing is left to remove, which is the state a
+    previous run leaves, not work still to do.
 
     Reads: observed — the work item directories on disk, through `process_plan`; unknown refused"""
     present = set(work_items(root))
     ids = sorted(present & set(found["released"]))
     plan = process_plan(root, ids)
-    held_todo = [p for p in plan if p.todo]
-    removable = [p for p in plan if p.take and not p.todo]
+    removable = [p for p in plan if p.take]
     unknown = [(p.id, name) for p in plan for name in p.unknown]
-    if not removable and not held_todo and not unknown:
+    if not removable and not unknown:
         out.write(PROCESS_DONE + "\n")
         return 0
     cited = {}
@@ -911,13 +880,6 @@ def retire_process(found, root, out=sys.stdout):
             else:
                 os.remove(path)
                 out.write(f"removed {SPECS}/{entry.id}/{name}\n")
-    if held_todo:
-        out.write(f"\n{PROCESS_TODO_HEADING}\n")
-        for entry in held_todo:
-            for name, count in sorted(entry.todo.items()):
-                out.write(
-                    f"    {entry.id}  ({count} open row{plural(count)} in {name})\n"
-                )
     if unknown:
         out.write(f"\n{PROCESS_UNKNOWN_HEADING}\n")
         for work_item_id, name in unknown:
@@ -929,13 +891,12 @@ def retire_process(found, root, out=sys.stdout):
                 out.write(f"    {work_item_id}\n")
                 for where in cited[work_item_id]:
                     out.write(f"        cited from {where}\n")
-    kept = len({p.id for p in held_todo})
     files = sum(p.files for p in removable)
     out.write(
         f"\nretired the process record of {len(removable)} work "
-        f"item{plural(len(removable))} ({files} file{plural(files)}); {kept} kept\n"
+        f"item{plural(len(removable))} ({files} file{plural(files)})\n"
     )
-    return 1 if kept else 0
+    return 0
 
 
 def main(argv=None):
@@ -970,8 +931,8 @@ def main(argv=None):
         help="remove the process record of every released work item — "
         "rounds/, phases/ and the files written only for a pull "
         "request — and leave routing.md and the SDD set for the fold. Writes no "
-        "prose and does not wait for the fold. An item a todo row holds is "
-        "kept whole, and a file on neither list is kept and named",
+        "prose and does not wait for the fold. A file on neither list is kept "
+        "and named",
     )
     arms.add_argument(
         "--retire",

@@ -26,8 +26,7 @@ records that this session has been told here; a second commit says nothing, and
 an unwritable marker counts as already told — one missed reminder beats a line
 printed after every commit for the rest of a session.
 
-**Which repository.** The session's own, resolved from `cwd`, the same key
-`review-history-guard.py` uses. A commit aimed at another repository with
+**Which repository.** The session's own, resolved from `cwd`. A commit aimed at another repository with
 `git -C` is not judged here: following it would mean re-deriving every target
 the commit gate derives, to decide whether to print one line.
 
@@ -145,6 +144,8 @@ def already_told(cwd, session):
 def notify(cwd, session):
     """The one line for a commit that happened in `cwd`, or "".
 
+    Reads: observed — the routing declaration and the session's marker, through `routing`; unknown passed
+
     Called by `hooks/git/post-commit.py`, where git running the hook is the
     fact that a commit happened, in the worktree it landed in (#692), and by
     `main` below for a clone whose hooks slot is foreign.
@@ -164,8 +165,8 @@ def notify(cwd, session):
         return ""
 
     # The path a person has to recognise, spelled the way their platform
-    # spells it — `os.path.join`, not a literal `/`, for the reason
-    # `review-history-guard.py` gives: half of one path in each dialect.
+    # spells it — `os.path.join`, not a literal `/`, which beside a joined
+    # root prints half of one path in each dialect.
     item = routing.item_dir(top, branch)
     where = (
         os.path.join(os.path.relpath(item, top), routing.FILENAME)

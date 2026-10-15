@@ -94,7 +94,6 @@ GROUPS = {
     "pre-agent": ("worktree-guard.py", "implementer-mark.py"),
     "pre-skill": ("review-skill-gate.py",),
     "post-bash": (
-        "review-history-guard.py",
         "implementer-notice.py",
         "session-lease.py",
         "worktree_consent.py",

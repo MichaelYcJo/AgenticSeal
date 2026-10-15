@@ -366,12 +366,12 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
         f"the message does not name the form that works, or why -- {message}"
     )
 
-    record = "skills/code-review/scripts/round_record.py"
+    arms = "skills/verify/scripts/arm_check.py"
     with pytest.raises(AssertionError) as raised:
         test_a_document_naming_a_wrapped_script_says_how_to_reach_it(
-            ("README.md", record)
+            ("README.md", arms)
         )
-    assert "the command `round-record`" in str(raised.value), (
+    assert "the command `arm-check`" in str(raised.value), (
         "a hyphenated command still has both accepted forms offered"
     )
 
@@ -416,7 +416,7 @@ def test_a_half_shipped_pair_is_not_a_wrapped_script(monkeypatch):
     Windows cannot run, and would take the script out of the classification
     rule that would otherwise have caught the missing twin.
     """
-    script = "skills/code-review/scripts/round_record.py"
+    script = "skills/verify/scripts/arm_check.py"
     _, windows = wrapper_pair(script)
     assert is_wrapped(script), "the fixture is stale: this pair should be whole"
     real = os.path.isfile

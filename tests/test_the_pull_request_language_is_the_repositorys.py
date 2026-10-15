@@ -1050,48 +1050,20 @@ def test_the_templates_check_reads_prose_only_and_descends(repo):
 
 
 # Hand-copied from `templates/sdd-round.md` and checked against it, so this
-# list is the EXPECTATION and the template is what is checked. It is not a
-# reading of `skills/code-review/SKILL.md`: round 4's census found four of the
-# eleven then in this list absent from that file, and two more matching only
-# as substrings. Naming it after the skill was the overclaim; the list is fine.
+# list is the EXPECTATION and the template is what is checked.
 ROUND_RECORD_FIELDS = [
     "Target SHA",
-    "PR",
-    "Broad gate",
-    "Fixes checked by",
-    "Contract changes",
-    "New units",
-    "Needs a fix",
-    "Loses a record or crashes",
-    "Ran by",
     "## Verdicts",
+    "## Paste-ready fixes",
     "## Executed probes",
-    "## Inherited coordinates",
-    "## Deferred",
 ]
 
 
 @pytest.mark.parametrize("field", ROUND_RECORD_FIELDS)
 def test_the_round_template_carries_the_fields_it_is_expected_to(field):
-    """tests-todo row 13, from round 3 finding 3, narrowed by round 4's 2.
-
-    `ROUND_RECORD_FIELDS` is hand-copied from `templates/sdd-round.md` and
-    checked against `templates/sdd-round.md`, so what runs is that the
-    template still carries the fields THIS LIST expects — a pin on the
-    template, and on nothing else.
-
-    It used to call them "the fields the skill names", and round 4's census
-    found four of the eleven absent from `skills/code-review/SKILL.md`, with
-    `PR` and `## Verdicts` matching only as substrings. Round 3's own finding
-    had said the template carries `PR` where the skill's row does not list
-    it, and `PR` went into this list anyway. Nothing about the check changed
-    here; the claim came down to it.
-
-    What that gives up, so nobody reads more into it: drift on the SKILL side
-    is invisible to this case. Closing that needs a second list and a second
-    direction, which is a new unit — round 4 forbids one, and round 5 is the
-    place to weigh whether it is worth having at all.
-    """
+    """`ROUND_RECORD_FIELDS` is checked against `templates/sdd-round.md`, so
+    what runs is that the template still carries the fields this list
+    expects — a pin on the template, and on nothing else."""
     assert field in read("templates", "sdd-round.md"), (
         f"{field!r} is a field a round record is expected to carry and is "
         "not in `templates/sdd-round.md`, the file a round starts from"
@@ -1216,27 +1188,11 @@ def _literal_strings():
     found = {
         chain.VERDICTS,
         chain.VERDICT_COLUMN,
+        chain.GROUNDS_COLUMN,
         chain.TARGET,
-        chain.CHECKED_BY,
-        chain.CONTRACT,
-        chain.NEW_UNITS,
-        chain.DEPTH_WORD,
-        chain.FLOOR,
-        chain.NEEDS,
-        chain.FLOOR_NO,
-        chain.FLOOR_YES,
-        chain.NONE_WORD,
-        chain.NO_FIXES,
-        chain.NOBODY,
-        chain.RAN_BY,
-        chain.UNKNOWN_WORD,
-        chain.ON_WORD,
-        chain.BLOCKING,
-        chain.PR_FIELD,
-        chain.FIX_OF_A_FIX,
-        chain.FOF_NO,
-        chain.FOF_FIRST,
-        chain.FOF_SECOND,
+        chain.BROAD_GATE,
+        chain.OPEN,
+        *chain.FINDINGS,
         unverified.HEADING,
         unverified.CLOSED,
         *unverified.HEADER,

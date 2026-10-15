@@ -67,8 +67,8 @@ DEFERRED = "deferred"
 OUT_OF_SCOPE = "out of verified scope"
 # What closes a finding. `fixed`, `answered` and `deferred <home>` are the fix
 # pass's words, `confirmed` the warden's, `out of verified scope` the ❓ row's.
-# `withdrawn`, `not a defect` and `agreed, fixed` are read so that records
-# written before 0.22.0 read as they were written.
+# `withdrawn`, `not a defect` and `agreed, fixed` are read so that records the
+# generator wrote read as they were written.
 CLOSED_WORDS = {
     "fixed",
     "answered",
@@ -791,13 +791,16 @@ def declared_for_this_branch(root, routing):
         if home:
             return [], (
                 f"this repository keeps its root at {home} — local mode, where "
-                "nothing under the root is committed, so the check examined "
-                "nothing. `seal mode shared` moves the root into the tree"
+                "nothing under the root is committed. So no routing declaration "
+                f"for `{branch}` can be read from what git carries, and the "
+                "review-chain check examined nothing. `seal mode shared` moves "
+                "the root into the tree and gets the check running."
             )
         return [], (
             "this pull request declared neither way, so the review-chain check "
-            f"examined nothing: nothing git carries under `{routing.WORK_ITEMS}/` "
-            f"declares `{branch}`"
+            f"examined nothing. Nothing git carries under `{routing.WORK_ITEMS}/` "
+            f"declares `{branch}`. Add {routing.WORK_ITEMS}/<work-item>/"
+            f"{routing.FILENAME} to declare."
         )
     return matching, ""
 
@@ -887,7 +890,14 @@ def main(argv=None):
             if said:
                 notices.append((rel, 0, said))
             else:
-                problems.append((rel, 0, "git does not carry this declaration at HEAD"))
+                problems.append(
+                    (
+                        rel,
+                        0,
+                        "git does not carry this file at HEAD: a declaration CI "
+                        "cannot open is not a declaration",
+                    )
+                )
             continue
         declared = routing.parse(text)
         if declared is None:
