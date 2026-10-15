@@ -394,8 +394,11 @@ def ruff_targets(path=RUFF):
 
 def matches(pattern, rel):
     """Whether ruff's glob `pattern` names `rel`. Its `*` crosses a `/`, as
-    ruff's does: `"hooks/*.py"` lints `hooks/git/pre-commit.py` too."""
-    return fnmatch.fnmatchcase(rel, pattern)
+    ruff's does: `"hooks/*.py"` lints `hooks/git/pre-commit.py` too. Ruff
+    also matches the pattern against the file's name, so one with no `/`,
+    `"seal_stamp.py"`, names that file in any directory; a name holds no `/`
+    for a pattern's `/` to match."""
+    return any(fnmatch.fnmatchcase(p, pattern) for p in (rel, posixpath.basename(rel)))
 
 
 def test_what_runs_before_any_floor_needs_nothing_its_python3_lacks():
@@ -422,6 +425,7 @@ def test_what_runs_before_any_floor_needs_nothing_its_python3_lacks():
     assert loaded_by("hooks/c.py", loads, tracked) == tracked - {"hooks/c.py"}
     assert matches("hooks/*.py", "hooks/git/pre-commit.py")
     assert not matches("hooks/*.py", "skills/verify/scripts/broad_gate.py")
+    assert matches("seal_stamp.py", "skills/verify/scripts/seal_stamp.py")
     unfloored, missing = before_any_floor()
     targets = ruff_targets()
     assert {"hooks/dispatch.py", "hooks/launch.py"} <= unfloored, unfloored
