@@ -698,9 +698,11 @@ def test_an_unlisted_slow_file_under_a_report_row_is_named(tmp_path, capsys):
     """Work item 1791876667, round 5's 🟡 3: a test file that crosses the
     threshold unlisted under a `report` family fails nothing, and the summary
     still names it, because the family's own line reads only the largest
-    unlisted value and the path is in the row's problem alone."""
+    unlisted value and the path is in the row's problem alone. Neither that
+    problem nor a listed file's asks for a `Budget raised:` line, which
+    `ratchet` reads for a gate row alone."""
     head = budgets(("slow-file", "seconds", 120, "one-sided", "report")) + table(
-        "Seconds ceiling", []
+        "Seconds ceiling", [("tests/test_b.py", 40)]
     )
     root = tree(tmp_path, head, files={".test_durations": json.dumps(SMALL)})
     assert run(root) == 0
@@ -709,6 +711,13 @@ def test_an_unlisted_slow_file_under_a_report_row_is_named(tmp_path, capsys):
     assert (
         "- `slow-file`: tests/test_a.py is not listed and measures 130 seconds" in out
     ), out
+    assert "list it there; a report row's listing needs no `Budget raised:` line" in out
+    assert (
+        "- `slow-file:tests/test_b.py`: measured 50 seconds is over the ceiling 40 "
+        "by 10. Bring it back under, or raise the ceiling in seal/budgets.md; a "
+        "report row's raise needs no `Budget raised:` line" in out
+    ), out
+    assert "pull request body" not in out, out
 
 
 def priced(scale, only=None):

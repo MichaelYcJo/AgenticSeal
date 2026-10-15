@@ -1065,12 +1065,17 @@ def band(row, measured, detail=""):
     top = top_of_band(measured, row.slack)
     problems = []
     if measured > row.ceiling:
+        # `ratchet` reads a raise line for a gate row alone.
+        line = (
+            f" and write `Budget raised: {row.name} {row.ceiling} -> <new>: "
+            "<reason>` in the pull request body"
+            if row.kind == GATE
+            else "; a report row's raise needs no `Budget raised:` line"
+        )
         problems.append(
             f"measured {measured:,} {row.unit} is over the ceiling {row.ceiling:,} "
             f"by {round(measured - row.ceiling, 1):,}{detail}. Bring it "
-            f"back under, or raise the ceiling in {BUDGETS_GIT} and write `Budget "
-            f"raised: {row.name} {row.ceiling} -> <new>: <reason>` in the pull "
-            "request body"
+            f"back under, or raise the ceiling in {BUDGETS_GIT}{line}"
         )
     elif top is not None and row.ceiling > top:
         problems.append(
@@ -1090,12 +1095,17 @@ def unlisted_band(row, unlisted, at):
 
     Reads: nothing — compares the numbers handed to it"""
     title, noun = FILE_TABLES[row.name].title, FILE_TABLES[row.name].noun
+    gate = row.kind == GATE
     problems = [
         f"{path} is not listed and measures {value:,} {row.unit}, over the "
         f"{row.ceiling:,} every file `## {title}` does not list is held to"
-        f"{at_lines(at.get(path, ()), noun)}. Bring it under, or list it there and "
-        f"write `Budget raised: {row.name}:{path} {row.ceiling} -> <new>: "
-        "<reason>` in the pull request body"
+        f"{at_lines(at.get(path, ()), noun)}. Bring it under, or list it there"
+        + (
+            f" and write `Budget raised: {row.name}:{path} {row.ceiling} -> "
+            "<new>: <reason>` in the pull request body"
+            if gate
+            else "; a report row's listing needs no `Budget raised:` line"
+        )
         for path, value in sorted(unlisted.items())
         if value > row.ceiling
     ]
