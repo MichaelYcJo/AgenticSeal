@@ -221,8 +221,8 @@ jobs:
   # Ubuntu alone: a case none of whose ids ran its body here, because pytest
   # never started its call or its own stop ended it, is named `not proved`
   # and fails the job; an expected failure that runs its body is a run. The
-  # install line is the `pytest`
-  # job's, so the cases run on the versions every other run uses.
+  # install line is the `pytest` job's, so the cases run on the versions
+  # every other run uses.
   cases:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
