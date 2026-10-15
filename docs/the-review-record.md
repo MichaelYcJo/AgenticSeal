@@ -72,8 +72,10 @@ does not close it.** The check reads one fact per row: its `Verdict` cell
 begins with `fixed`, `answered`, `deferred <home>`, `confirmed` or `out of
 verified scope` (or a word the old generator's records used), or the row is
 open. The mark at the head of the row — 🔴, 🟡, 🟢, ❓, an old record's ⬜, a
-bare number or nothing — changes nothing; it only names the row in the
-refusal. So a 🟢 row left at `open` fails, and a 🔴 row that reads
+bare number or nothing — changes nothing. It names the row in the refusal
+and picks the words the refusal lists: a fix pass's three for 🔴 and 🟡,
+`confirmed` for 🟢, `❓ out of verified scope` for ❓, and all of them for
+any other mark. So a 🟢 row left at `open` fails, and a 🔴 row that reads
 `confirmed` passes the check: the next round's warden and the sealer read
 the record, and that is where such a row is caught.
 Enforced by: tests/test_chain_check.py::TestOpenFindings, tests/test_chain_check.py::TestMain

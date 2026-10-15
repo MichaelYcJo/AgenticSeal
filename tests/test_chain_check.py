@@ -524,7 +524,11 @@ class TestMain:
         assert code == 1
         line = next(ln for ln in out.splitlines() if "🔴 1" in ln)
         assert line.startswith(f"{rel}:")
-        assert "`open`, which closes no finding: a fix pass writes" in line
+        assert (
+            "`open`, which does not close it: a 🔴 or 🟡 row closes by "
+            "`fixed <commit>`, `answered` or `deferred <home>`"
+        ) in line
+        assert "🟢" not in line
         event = pathlib.Path(os.environ["GITHUB_EVENT_PATH"])
         event.write_text(
             json.dumps({"pull_request": {"draft": True}}), encoding="utf-8"
@@ -532,6 +536,44 @@ class TestMain:
         code, out = check(root, capsys)
         assert code == 0
         assert any("🔴 1" in ln and "`open`" in ln for ln in out.splitlines())
+
+    def test_the_refusal_names_the_words_that_close_a_row_of_its_mark(
+        self, branch, ready, capsys
+    ):
+        """S3: a 🟢 row is told `confirmed` and a ❓ row `❓ out of verified
+        scope`, never a fix pass's words; a mark outside the template's four
+        is told every kind's. The mark picks the message only: each row
+        fails by its word."""
+        root, code_sha = branch
+        rel = f"{ITEM}/rounds/round-1.md"
+        rows = [
+            "| 🟡 2 | wrong | `f.txt:1` | open | g |",
+            "| 🟢 | matches | `f.txt:1` | open | g |",
+            "| ❓ | unjudged | `f.txt:1` | pending | g |",
+            "| 9 | wrong | `f.txt:1` | open | g |",
+        ]
+        write(root, rel, record(code_sha, rows))
+        commit(root, "the record, four rows open")
+        code, out = check(root, capsys)
+        assert code == 1
+        named = [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")]
+        assert len(named) == 4, out
+        yellow, green, question, bare = named
+        fix_pass = (
+            "a 🔴 or 🟡 row closes by `fixed <commit>`, `answered` or `deferred <home>`"
+        )
+        assert f"🟡 2 reads `open`, which does not close it: {fix_pass}" in yellow
+        assert "🟢 reads `open`, which does not close it: a 🟢 row closes by " in green
+        assert green.endswith("`confirmed`")
+        assert "answered" not in green
+        assert question.endswith(
+            "❓ reads `pending`, which does not close it: a ❓ row closes by "
+            "`❓ out of verified scope`"
+        )
+        assert "answered" not in question
+        assert fix_pass in bare
+        assert "a 🟢 row closes by `confirmed`" in bare
+        assert "a ❓ row closes by `❓ out of verified scope`" in bare
 
     def test_the_last_record_is_at_head_or_only_record_commits_follow(
         self, branch, ready, capsys

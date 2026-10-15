@@ -72,11 +72,24 @@ UNDECIDABLE = "undecidable"
 EARLIER_RUN = "; earlier run: "
 
 # The severities the warden writes at the head of a verdict row: a 🔴 or 🟡
-# row is a finding a fix pass answers. The check judges no row by its mark;
-# these stay as the record's vocabulary, which no `Record language` translates.
+# row is a finding a fix pass answers. The check judges no row by its mark,
+# and only the refusal's wording reads it; these stay as the record's
+# vocabulary, which no `Record language` translates.
 BLOCKING = "🔴"
 SHOULD = "🟡"
 FINDINGS = (BLOCKING, SHOULD)
+# What the refusal tells a row it closes by, keyed by the mark at its head; a
+# mark outside these is told every kind's words. It picks the message only:
+# a row passes or fails by its word.
+CLOSES_BY = (
+    (
+        FINDINGS,
+        "a 🔴 or 🟡 row closes by `fixed <commit>`, `answered` or `deferred <home>`",
+    ),
+    (("🟢",), "a 🟢 row closes by `confirmed`"),
+    (("❓",), "a ❓ row closes by `❓ out of verified scope`"),
+)
+EVERY_CLOSE = "; ".join(words for _marks, words in CLOSES_BY)
 
 DEFERRED = "deferred"
 OUT_OF_SCOPE = "out of verified scope"
@@ -738,7 +751,8 @@ def frame(reader, routing, root, item, declared):
 
 def records(reader, routing, root, item, rel, base):
     """[(path, line, problem)] for a work item declared through the review
-    chain: no record, an open finding, a last record behind HEAD.
+    chain: no record, a row whose verdict does not close it, a last record
+    behind HEAD. A row is named with the words `CLOSES_BY` gives its mark.
 
     Reads: guess — the warden's records, through `open_findings` and `target_of`; unknown refused"""
     found = round_records(routing, root, item)
@@ -758,12 +772,16 @@ def records(reader, routing, root, item, rel, base):
         still_open, errors = open_findings(reader, lines, path)
         problems.extend(errors)
         for line, mark, word in still_open:
+            closes = next(
+                (words for marks, words in CLOSES_BY if mark.startswith(marks)),
+                EVERY_CLOSE,
+            )
             problems.append(
                 (
                     path,
                     line,
-                    f"{mark} reads `{word or 'empty'}`, which closes no finding: a "
-                    "fix pass writes `fixed <commit>`, `answered` or `deferred <home>`",
+                    f"{mark} reads `{word or 'empty'}`, which does not close it: "
+                    f"{closes}",
                 )
             )
     last = found[-1]

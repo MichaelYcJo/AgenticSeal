@@ -29,8 +29,11 @@
   `plan.md` and its mark. A declared review chain left at least one round,
   every row of every round reads a word that closes it, whatever mark the
   row carries: `fixed`, `answered`, `deferred <home>`, `confirmed` or
-  `out of verified scope`. The last round's commit is HEAD or only the work
-  item's own records follow it. `broad-gate.md` names HEAD.
+  `out of verified scope`. A refusal names the words for the row's mark:
+  a fix pass's three for a 🔴 or 🟡 row, `confirmed` for a 🟢 row, and
+  `❓ out of verified scope` for a ❓ row. The last round's commit is HEAD
+  or only the work item's own records follow it. `broad-gate.md` names
+  HEAD.
   `guarantee.md` names HEAD and reads `sound`. A draft prints every refusal
   and fails nothing. A declaration that reached the branch inside another
   pull request's squash, a commit GitHub made with a subject ending `(#N)`,
@@ -87,16 +90,16 @@
 
   | File | Lines before | Lines after |
   |---|---|---|
-  | `skills/code-review/scripts/chain_check.py` | 6,153 | 1,110 |
+  | `skills/code-review/scripts/chain_check.py` | 6,153 | 1,128 |
   | `skills/code-review/scripts/round_record.py` | 5,596 | gone |
   | `skills/verify/scripts/broad_gate.py` | 3,648 | 3,400 |
   | `hooks/review-history-guard.py` | 303 | gone |
   | `templates/sdd-round.md` | 460 | 46 |
-  | the three record documents | 2,725 | 230, one document |
+  | the three record documents | 2,725 | 232, one document |
   | `agents/sealer.md` | 268 | 147 |
 
   Counted against `origin/release/v0.22.0` at `ce448bbe`. The suite holds
   143 test modules where it held 167, and 31,996 lines of tests left
-  against 3,091 added.
+  against 3,133 added.
   (`1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
   #923)
