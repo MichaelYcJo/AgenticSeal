@@ -534,13 +534,15 @@ def target_of(reader, text):
 
 
 def newest_run(reader, text):
-    """The first SHA-shaped word of `broad-gate.md`'s `Broad gate` row, or None.
+    """The commit the newest run of `broad-gate.md`'s `Broad gate` row was
+    taken at — the first word of its first entry, where that word is
+    SHA-shaped — or None.
 
     Reads: owned — the file `broad_gate.py` writes; unknown refused"""
     rows = table_rows(reader, reader.readable(text or ""))
     cell = reader.visible(field(rows, BROAD_GATE) or "")
-    found = SHA_RE.search(cell.split(EARLIER_RUN)[0])
-    return found.group(0) if found else None
+    words = EMPHASIS.sub("", cell.split(EARLIER_RUN)[0]).split()
+    return words[0] if words and SHA_RE.fullmatch(words[0]) else None
 
 
 def is_ancestor(root, sha, ref):
