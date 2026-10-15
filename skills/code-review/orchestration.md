@@ -161,11 +161,17 @@ then it audits the work against the issue and the tree and writes
 it returns; you do not take the run yourself.
 
 **Commit the sealer's two files together; a verdict other than `sound` keeps
-the pull request a draft.** `not sound` names the claim and the coordinate:
-fix that, commit, and spawn the sealer again at the new HEAD. `undecidable`
-is a question for the owner, put after the run rather than during it; write
-the answer under the verdict as `Answered <date> by <who>: <answer>`, commit,
-and spawn the sealer again.
+the pull request a draft.** `not sound` names the claim and the coordinate.
+Where the repair touches only the work item's own records — a phase record,
+the changelog fragment — or the pull request body, make it, commit, and spawn
+the sealer again at the new HEAD. Where it touches any other file it is a fix
+nobody reviewed: commit it, spawn a verifying round on its diff, and spawn
+the sealer once that round's record is committed. The sealer's broad run
+asks the records arm first, and that arm refuses a commit outside the work
+item after the last round's `Target SHA`, so a sealer spawned straight after
+the fix returns the same verdict. `undecidable` is a question for the owner,
+put after the run rather than during it; write the answer under the verdict
+as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
 
 **The preflight is yours, and it is not the broad gate (#638).** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
