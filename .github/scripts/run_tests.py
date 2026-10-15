@@ -82,10 +82,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-# The supported floor, read from `hooks/launch.py`, its one source and the
-# file `bin/test` runs this one through. The virtualenv is built and adopted
-# against it. Loaded by path, because `hooks/` is not on this file's
-# `sys.path`.
+# The supported floor, read from `hooks/launch.py`, its one source. The
+# virtualenv is built and adopted against it. `bin/test` runs this file on
+# whatever `python3` it finds, not through the launcher, whose docstring says
+# why. Loaded by path, because `hooks/` is not on this file's `sys.path`.
 _LAUNCH = importlib.util.spec_from_file_location(
     "specseal_launch_for_run_tests",
     os.path.join(

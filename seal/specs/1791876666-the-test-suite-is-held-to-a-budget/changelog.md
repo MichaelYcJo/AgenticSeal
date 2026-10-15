@@ -1,17 +1,19 @@
 ### Changed
 
-- **Every `bin/` command refuses a Python older than 3.12 the same way,
-  before it reads anything (#929).** Six commands — `round-record`,
+- **Every `bin/` command but `bin/test` refuses a Python older than 3.12 the
+  same way, before it reads anything (#929).** Six commands — `round-record`,
   `settle`, `fold-check`, `broad-gate`, `payload-meter` and `seal-stamp` —
-  each carried its own copy of that refusal, and the other nine ran on
-  whatever `python3` they found. All fifteen wrappers and their `.cmd` twins
+  each carried its own copy of that refusal, and eight others ran on
+  whatever `python3` they found. All fourteen wrappers and their `.cmd` twins
   now run their script through one launcher, `hooks/launch.py`, which holds
   the floor once. Below 3.12 it prints the sentence the six printed: the
   floor, the version and interpreter it found, *Nothing was read and nothing
   was written*, and the hint that macOS ships python 3.9 as `python3`. Then
   it exits 2 before the script is read. At or above the floor the script
-  runs exactly as if it had been run directly. The plugin's hooks do not go
-  through the launcher, so a hook on an older `python3` behaves as before.
+  runs exactly as if it had been run directly. `bin/test` still starts on
+  any `python3`, because its runner is what builds a virtualenv at the floor
+  from an older one. The plugin's hooks do not go through the launcher, so a
+  hook on an older `python3` behaves as before.
   (`1791876666-the-test-suite-is-held-to-a-budget`, #929)
 - **The Stop hook draws the sealer's stamp on a `python3` older than 3.12
   too (#929).** The hook loads `seal_stamp.py` in its own process, and that

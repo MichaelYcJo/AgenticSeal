@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """Run a SpecSeal script on an interpreter at or above the plugin's floor.
 
-Every `bin/` wrapper, and its `.cmd` twin, runs its script through this file:
+Every `bin/` wrapper but `bin/test`, and its `.cmd` twin, runs its script
+through this file:
 
     python3 hooks/launch.py <script> [arguments...]
+
+`bin/test` hands `.github/scripts/run_tests.py` to the interpreter itself,
+because that script's job begins below the floor: on an older `python3` it
+builds a virtualenv at or above `FLOOR`, with `uv` or a newer interpreter it
+finds, and runs the suite there. A refusal at entry would stop the one script
+written to get past an old `python3`.
 
 Below `FLOOR` it writes one sentence naming the floor, the version it found
 and the interpreter it found it at, and exits 2 before the script is read.
@@ -19,8 +26,8 @@ reads `FLOOR` from it. `ruff.toml`'s `target-version` cannot import, so
 keyword-only, and no import above the check that a new release added: a
 launcher that cannot parse is the traceback it exists to replace.
 
-It sits in `hooks/` because every wrapper reaches it relative to itself, as
-`$here/../hooks/launch.py`, and `hooks/` already ships the modules the
+It sits in `hooks/` because each wrapper it serves reaches it relative to
+itself, as `$here/../hooks/launch.py`, and `hooks/` already ships the modules the
 scripts share. `hooks/hooks.json` does not run through it: a gate that fails
 is skipped and said, and the call goes ahead
 (`docs/commit-review-gate-spec.md` §*Registration*), where exit 2 from a hook

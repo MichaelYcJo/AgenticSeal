@@ -11,13 +11,12 @@ if not exist "%script%" (
   exit /b 2
 )
 
-set "launch=%here%..\hooks\launch.py"
-
+rem Not through hooks\launch.py, alone of bin\: its docstring says why.
 where /q py
 if errorlevel 1 goto usepython
-py -3 "%launch%" "%script%" %*
+py -3 "%script%" %*
 exit /b %errorlevel%
 
 :usepython
-python "%launch%" "%script%" %*
+python "%script%" %*
 exit /b %errorlevel%

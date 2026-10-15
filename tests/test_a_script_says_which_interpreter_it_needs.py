@@ -5,11 +5,12 @@ takes no keyword arguments`, after it had parsed its arguments and read the
 report, so the failure read as a bug in the report and named neither the
 version needed nor the flag. macOS still ships 3.9 as `/usr/bin/python3`.
 
-`hooks/launch.py` holds the floor once. Every `bin/` wrapper and `.cmd` twin
-runs its script through it, and below the floor it answers with one sentence
-and exit 2 before the script is read. These cases pin that sentence, the
-moment it arrives, that the launched script cannot tell it was launched, that
-the floor has one source, and that no wrapper goes around it.
+`hooks/launch.py` holds the floor once. Every `bin/` wrapper but `bin/test`,
+and its `.cmd` twin, runs its script through it, and below the floor it
+answers with one sentence and exit 2 before the script is read. These cases
+pin that sentence, the moment it arrives, that the launched script cannot
+tell it was launched, that the floor has one source, and that no wrapper but
+`bin/test` goes around it.
 
 **Testing a floor from an interpreter above it.** A copy of the launcher with
 `FLOOR` moved is run instead of the real file: every other line is the
@@ -223,14 +224,24 @@ def launches(text):
     return found
 
 
+# The one pair that hands its interpreter the runner itself, and what it hands
+# it: `hooks/launch.py`'s docstring says why `bin/test` is not launched.
+RUNS_ITS_RUNNER_DIRECTLY = {"test": '"$script"', "test.cmd": '"%script%"'}
+
+
 def test_every_wrapper_runs_its_script_through_the_launcher():
     """Every file in `bin/`, found by listing it: each interpreter it starts
     is handed the launcher first, so a wrapper added later is held the day it
-    is written."""
+    is written. `bin/test` and its twin are the one exception, held the other
+    way: each interpreter they start is handed the runner, so a launcher put
+    back in front of it refuses the old `python3` the runner exists to get
+    past."""
     unheld = {}
     for entry in sorted(os.listdir(BIN)):
         text = read(os.path.join(BIN, entry))
-        if entry.endswith(".cmd"):
+        if entry in RUNS_ITS_RUNNER_DIRECTLY:
+            first, defined = RUNS_ITS_RUNNER_DIRECTLY[entry], True
+        elif entry.endswith(".cmd"):
             first = '"%launch%"'
             defined = 'set "launch=%here%..\\hooks\\launch.py"' in text
         else:

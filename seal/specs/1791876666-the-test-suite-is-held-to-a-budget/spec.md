@@ -28,7 +28,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 1. **One module compacted, proven by mutation.** `tests/test_the_commit_gate_decides_at_the_commit.py` replays `SAMPLE`, one or more representatives of each corpus subgroup, where it replayed the whole corpus (phase 1). The sealer file's six corpus layouts that differ from a kept twin only by a junit option leave with their 12 ids (f13b0dfa). Each removal meets `## The removal criterion`.
 2. **Change how a case is added**, so the suite does not regrow: a new or changed case must be its file's only killer of a mutant the tree yields, and CI derives and runs that mutant (`## What a case owes`, `## The regrowth check`). This lands in 0.22.0.
 3. **The rows the cuts moved are lowered** in #930's `seal/budgets.md` (`## Rows for seal/budgets.md`).
-4. **One launcher holds the Python floor.** `hooks/launch.py` holds `FLOOR`, and every `bin/` wrapper and its `.cmd` twin runs its script through it. Below the floor it refuses with one sentence and exits 2 before the script is read; at or above it the script runs as if run directly. The floor's eight copies and the cases that pinned them leave (`## Removes`).
+4. **One launcher holds the Python floor.** `hooks/launch.py` holds `FLOOR`, and every `bin/` wrapper but `bin/test`, and its `.cmd` twin, runs its script through it; `bin/test`'s runner starts on any `python3` because it builds the virtualenv at the floor (`hooks/launch.py`'s docstring). Below the floor it refuses with one sentence and exits 2 before the script is read; at or above it the script runs as if run directly. The floor's eight copies and the cases that pinned them leave (`## Removes`).
 
 **Out, and whose.**
 
@@ -119,7 +119,7 @@ The `ci-minutes:*` rows are read off a CI run, not off the tree, so the release 
 | S11 nothing asks a person | the whole change | no `AskUserQuestion`, no prompt, no box |
 | S12 every new unit declares | `case_check.py` and `hooks/launch.py` | a `Reads:` line each; the census passes |
 | S13 a file past the bound | a file whose proof would take longer than its share of five minutes | named, `restructure: test the decision directly`; the job ends on the bound |
-| S14 below the floor | any `bin/` command run on a Python older than 3.12 | the launcher's one sentence, exit 2, the script never read |
+| S14 below the floor | any `bin/` command but `bin/test` run on a Python older than 3.12 | the launcher's one sentence, exit 2, the script never read |
 | S15 at the floor | the same command on 3.12 or newer | the script runs with the arguments, `sys.path[0]`, `__file__` and exit code a direct run gives |
 
 ## Data & interfaces
