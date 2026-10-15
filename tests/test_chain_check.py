@@ -190,10 +190,10 @@ class TestChanged:
     def test_a_move_not_yet_committed_is_read_from_the_files(
         self, tmp_path, monkeypatch
     ):
-        """Under `--worktree` git names no blob for the working tree's side,
-        so the moved file's bytes are hashed to pair it."""
+        """Under `--worktree` an untracked file has no blob git can name, so
+        the moved file's bytes are hashed to pair it."""
         d, _old = two_declarations(tmp_path)
-        git(d, "mv", "seal/specs/1788000000-old", "seal/specs/1788000000-moved")
+        os.rename(d / "seal/specs/1788000000-old", d / "seal/specs/1788000000-moved")
         monkeypatch.setattr(chain, "WORKTREE", True)
         _paths, renamed = chain.changed(str(d), "main")
         assert renamed == {
