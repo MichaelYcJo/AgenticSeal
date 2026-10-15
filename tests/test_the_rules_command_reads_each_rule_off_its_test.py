@@ -1,16 +1,20 @@
-"""`rules <doc>` prints each section with what its tests say they guard.
+"""`rules <doc>` prints each section with what its tests say they guard, and
+`rules --check` fails where a target does not resolve.
 
-Work item 1791940762 (#944), the owner's decision of 2026-10-14: a rule's text
-lives once, as the first sentence of the docstring of the test that holds it,
-and a document lists its tests by `Enforced by:`. `.github/scripts/rules.py`
-reads the two together and prints them; it writes nothing, because a
-committed copy would be a second source. A target is resolved by the
-resolver the `enforced-unresolved` budget row reads with, and the command
-never fails for what it finds — that row is what fails.
+A rule's text lives once, as the first sentence of the docstring of the test
+that holds it, and a document lists its tests by `Enforced by:` (#944).
+`.github/scripts/rules.py` reads the two together and prints them; it writes
+nothing, because a committed copy would be a second source. `rules <doc>`
+never fails for what it finds; `rules --check` reads every rule file and is
+exit 1 where a target is gone, and one case here runs it over the tree, so
+the suite is where the fact is read (#923 item 3).
 """
 
+import fnmatch
 import importlib.util
 import os
+import re
+import shutil
 import subprocess
 
 import pytest
@@ -43,6 +47,9 @@ class TestGroup:
     def test_inner(self):
         """An inner case
         wraps its sentence."""
+
+
+CONSTANT = 1
 '''
 
 
@@ -218,12 +225,197 @@ def test_a_document_that_cannot_be_read_is_exit_2(tmp_path, capsys):
 
 
 def test_the_slice_document_resolves_every_target():
-    """`docs/the-record-layout.md`, the document #944's phase 1 takes to no
-    unenforced rule, prints a section line for each of its targets and none
+    """`docs/the-record-layout.md`, the document #944's phase 1 gave every
+    rule its test, prints a section line for each of its targets and none
     that does not resolve."""
     path = os.path.join(ROOT, "docs", "the-record-layout.md")
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
-    out = rules.render(rules.checker(), ROOT, text)
+    out = rules.render(ROOT, text)
     assert out.count("  Enforced by, line ") >= 7, out
     assert "does not resolve" not in out, out
+
+
+# --- `rules --check` -------------------------------------------------------
+
+HELD = "tests/test_x.py"
+HELD_CASE = f"{HELD}::test_held"
+
+
+def rule(enforced):
+    """One rule paragraph closed by `Enforced by: <enforced>`."""
+    return f"**A rule.** Its one why.\nEnforced by: {enforced}\n"
+
+
+def doc(*paragraphs):
+    """A rule file whose paragraphs stand under `## The heading`, from line 5."""
+    return "# D\n\n## The heading\n\n" + "\n".join(paragraphs)
+
+
+def checked(tmp_path, files, capsys):
+    """`(exit, stdout)` of `rules --check` over a tree holding the test module
+    and `files`, each `{path: text}`."""
+    for rel, text in {HELD: TESTS, **files}.items():
+        path = tmp_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, "utf-8", newline="\n")
+    code = rules.main(["--check", "--root", str(tmp_path)])
+    return code, capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "target, verdict, said",
+    [
+        (
+            "tests/test_x.py::test_gone",
+            1,
+            "rules: docs/a.md:6 §*The heading*: tests/test_x.py::test_gone: no def "
+            "or class named test_gone in tests/test_x.py",
+        ),
+        ("tests/test_gone.py", 1, "tests/test_gone.py does not exist"),
+        (
+            "tests/test_x.py::CONSTANT",
+            1,
+            "no def or class named CONSTANT in tests/test_x.py",
+        ),
+        (f"{HELD}, tests/test_gone.py", 1, "tests/test_gone.py does not exist"),
+        (HELD_CASE, 0, "rules: all 1 `Enforced by:` targets in 1 rule files resolve."),
+        (
+            f"{HELD_CASE}, {HELD}",
+            0,
+            "rules: all 2 `Enforced by:` targets in 1 rule files resolve.",
+        ),
+        ("nothing", 1, "nothing does not exist"),
+    ],
+    ids=[
+        "a case gone",
+        "a file gone",
+        "a constant",
+        "one of two",
+        "a case",
+        "two",
+        "nothing with no why",
+    ],
+)
+def test_an_enforced_by_target_that_does_not_resolve_fails_naming_where(
+    tmp_path, capsys, target, verdict, said
+):
+    """A target that is gone, or names a constant, is exit 1 naming the file,
+    the `Enforced by:` line, the heading it stands under and why; a target
+    that resolves holds. Every target of the line is read, not the first, and
+    a `nothing` with no `— <why>` is read as a target."""
+    code, out = checked(tmp_path, {"docs/a.md": doc(rule(target))}, capsys)
+    assert code == verdict, out
+    assert said in out, out
+    if verdict:
+        assert "rules: 1 of " in out and " do not resolve." in out, out
+
+
+def test_an_enforced_by_line_outside_a_rule_or_inside_a_fence_is_read_or_skipped(
+    tmp_path, capsys
+):
+    """Every `Enforced by:` line a renderer shows is resolved, inside a rule
+    paragraph or not, in every rule file; one in a fence is an example and
+    is not, and `nothing — <why>` names no target."""
+    text = doc(
+        "A sentence that states no rule.\nEnforced by: tests/test_gone_a.py\n",
+        "```\nEnforced by: tests/test_gone_b.py\n```\n",
+        "Enforced by: nothing — only a reader can tell\n",
+    )
+    code, out = checked(tmp_path, {"agents/warden.md": text}, capsys)
+    assert code == 1, out
+    assert (
+        "agents/warden.md:6 §*The heading*: tests/test_gone_a.py does not exist" in out
+    )
+    assert "test_gone_b" not in out, out
+    assert "rules: 1 of 1 `Enforced by:` targets in 1 rule files" in out, out
+
+
+@pytest.mark.parametrize(
+    "files, verdict, said",
+    [
+        ({"case.yaml": "name: a\n"}, 0, "rules: all 1 `Enforced by:` targets"),
+        ({"prompt.md": "Review.\n"}, 1, "holds no case.yaml"),
+    ],
+    ids=["with its case.yaml", "without"],
+)
+def test_an_eval_case_directory_resolves_where_its_case_yaml_is(
+    tmp_path, capsys, files, verdict, said
+):
+    """An agent's rule can be held by an eval case alone, so
+    `evals/behaviour/<agent>/<case>/` is a target, resolving where the
+    directory holds `case.yaml`."""
+    case = "evals/behaviour/warden/a-case/"
+    written = {"docs/a.md": doc(rule(case))}
+    written.update({case + name: text for name, text in files.items()})
+    code, out = checked(tmp_path, written, capsys)
+    assert code == verdict, out
+    assert said in out, out
+
+
+def test_an_eval_target_that_names_no_case_is_refused(tmp_path, capsys):
+    """The directory is `<agent>/<case>/`, so an agent's directory alone names
+    no case and does not resolve."""
+    written = {
+        "docs/a.md": doc(rule("evals/behaviour/warden/")),
+        "evals/behaviour/warden/case.yaml": "name: a\n",
+    }
+    code, out = checked(tmp_path, written, capsys)
+    assert code == 1, out
+    assert "is no eval case: write `evals/behaviour/<agent>/<case>/`" in out, out
+
+
+def test_a_check_and_a_document_together_or_neither_is_exit_2(tmp_path, capsys):
+    """`--check` reads every rule file and a document names one, so asking for
+    both, or for neither, is a usage error and reads nothing."""
+    root = tree(tmp_path, rule(HELD_CASE))
+    assert rules.main(["--check", "docs/a.md", "--root", str(root)]) == 2
+    assert rules.main(["--root", str(root)]) == 2
+    captured = capsys.readouterr()
+    assert captured.out == "", captured.out
+    assert "rules: name a document, or --check, and not both." in captured.err
+
+
+def test_every_enforced_by_target_in_the_tree_resolves(tmp_path, capsys):
+    """The fact read on every pull request: `rules --check` over this tree is
+    exit 0. On a scratch copy of what the check reads — the rule files and
+    the files their targets name — one target renamed is exit 1 naming its
+    line, and so is a gone target planted in a file of every other rule-file
+    glob, so a walk that read `docs/*.md` alone, or read a renamed target as
+    resolving, goes red here."""
+    assert rules.main(["--check", "--root", ROOT]) == 0, capsys.readouterr().out
+    capsys.readouterr()
+    files = rules.rule_files(ROOT)
+    named, renamed = {}, None
+    for rel, text in files.items():
+        held = [(n, rules.targets_of(v)) for n, _, v in rules.enforcer_lines(text)]
+        for target in (t for _, targets in held for t in targets):
+            cell = target.strip().strip("`")
+            source = cell + rules.EVAL_CASE if cell.endswith("/") else cell
+            source = source.partition("::")[0]
+            destination = tmp_path / source
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(os.path.join(ROOT, *source.split("/")), destination)
+        pattern = next(p for p in rules.RULE_FILES if fnmatch.fnmatchcase(rel, p))
+        line = next((n for n, targets in held if targets), None)
+        if renamed is None and line is not None:
+            lines = text.split("\n")
+            first = rules.targets_of(lines[line - 1].split(":", 1)[1].strip())[0]
+            lines[line - 1] = lines[line - 1].replace(
+                first.strip(), f"{first.strip()}_renamed_away", 1
+            )
+            text, renamed, named[pattern] = "\n".join(lines), rel, rel
+        elif pattern not in named:
+            text += "\n\nEnforced by: tests/test_planted_and_gone.py\n"
+            named[pattern] = rel
+        destination = tmp_path / rel
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(text, "utf-8", newline="\n")
+    assert renamed is not None, "no rule file in the tree names a target"
+    assert set(named) == set(rules.RULE_FILES), named
+    assert rules.main(["--check", "--root", str(tmp_path)]) == 1
+    out = capsys.readouterr().out
+    assert re.search(rf"^rules: {re.escape(renamed)}:\d+ §\*.*_renamed_away", out, re.M)
+    for rel in named.values():
+        assert re.search(rf"^rules: {re.escape(rel)}:\d+ §\*", out, re.M), (rel, out)
+    assert f"rules: {len(named)} of " in out, out
