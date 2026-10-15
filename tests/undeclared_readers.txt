@@ -871,7 +871,6 @@ skills/verify/scripts/session_cost.py#post@8cb47ede
 skills/verify/scripts/session_cost.py#read_says@7f4f80fe
 skills/verify/scripts/session_cost.py#report@76e36439
 skills/verify/scripts/session_cost.py#report_breaches@2afea406
-skills/verify/scripts/session_cost.py#report_grades@84cda12a
 skills/verify/scripts/session_cost.py#report_segments@9eca4924
 skills/verify/scripts/session_cost.py#report_spawns@cd336642
 skills/verify/scripts/session_cost.py#report_tokens@3b4bed25
@@ -889,7 +888,6 @@ skills/verify/scripts/session_cost.py#spawn_labels@daa3eba6
 skills/verify/scripts/session_cost.py#strip_pipe@82b0813e
 skills/verify/scripts/session_cost.py#subagent_transcripts@469d2608
 skills/verify/scripts/session_cost.py#token_thirds@25a4cd22
-skills/verify/scripts/session_cost.py#token_totals@d6239cb8
 skills/verify/scripts/session_cost.py#tool_name@c9a85bac
 skills/verify/scripts/session_cost.py#widest_idle_gap@37c18ac6
 skills/verify/scripts/session_cost.py#without_comments@c614eab4
@@ -983,7 +981,6 @@ tests/conftest.py#posix_row_shell_or_skip@10db297d
 tests/conftest.py#ps_names_the_parent_or_skip@7f806e0e
 tests/conftest.py#pytest_runtest_makereport@755e0a5e
 tests/conftest.py#repo@4e93e675
-tests/conftest.py#review_chain_text@4aa16f9c
 tests/conftest.py#rounds_dir@ba44ad6d
 tests/conftest.py#run_hook@3ceeaf41
 tests/conftest.py#shell_probe@498bd763

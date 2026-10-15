@@ -36,7 +36,10 @@ REVIEW_CHAIN_DOCS = (
 
 
 def review_chain_text(root):
-    """The four documents under `root`, each whitespace-collapsed, joined."""
+    """The review chain's documents under `root`, each whitespace-collapsed,
+    joined.
+
+    Reads: owned — this repository's documents; unknown refused"""
     texts = []
     for parts in REVIEW_CHAIN_DOCS:
         with open(os.path.join(root, *parts), encoding="utf-8") as handle:

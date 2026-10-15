@@ -1888,7 +1888,9 @@ def token_totals(paths):
     opened and yielded nothing is counted here and is invisible in the totals —
     so a line covering one file for a run that spawned six is visibly wrong to
     the person who spawned them, and `turns` is where a run's messages being
-    counted twice would show. They are the only reader who can tell either."""
+    counted twice would show. They are the only reader who can tell either.
+
+    Reads: observed — the harness's transcript files; unknown passed"""
     totals = {
         "transcripts": 0,
         "turns": 0,
@@ -2519,7 +2521,9 @@ def report_grades(rows):
 
     It refuses nothing and the exit code stays 0. The bar is a lens, and a
     grade that failed a run would be the refusal threshold the protocol says
-    it never is."""
+    it never is.
+
+    Reads: owned — the segment rows this script built; unknown passed"""
     graded = [row for row in rows if row["bar"] is not None and row["numbers"]]
     under = [
         row for row in graded if round(row["numbers"]["tools_per_turn"], 2) < row["bar"]
