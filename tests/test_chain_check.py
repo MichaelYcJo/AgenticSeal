@@ -294,9 +294,9 @@ class TestCarriedBy:
         self, branch, monkeypatch
     ):
         """The item's own branch, a squash a person committed with a subject
-        naming an issue the way this repository's commits do, and GitHub's
-        commit with no pull request number each leave the declaration this
-        pull request's."""
+        naming an issue the way this repository's commits do, GitHub's commit
+        whose subject does not end with a pull request number, and a path no
+        commit touched each leave the declaration this pull request's."""
         root, _code = branch
         monkeypatch.setattr(chain, "WORKTREE", False)
         rel = f"{ITEM}/routing.md"
@@ -304,8 +304,9 @@ class TestCarriedBy:
         released(root, committer={"GIT_COMMITTER_EMAIL": "t@t"}, keep=True)
         assert chain.carried_by(str(root), "main", rel) is None
         git(root, "reset", "-q", "--hard", "main")
-        squash(root, "feature/x", "feat: a work item")
+        squash(root, "feature/x", "feat: a work item (#7), edited")
         assert chain.carried_by(str(root), "main", rel) is None
+        assert chain.carried_by(str(root), "main", "seal/specs/none/routing.md") is None
 
 
 # --- verdict_of ---------------------------------------------------------------
