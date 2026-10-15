@@ -56,8 +56,7 @@ mutant. One whose draw runs out first is named, `kills nothing its file does
 not`. Its scope is the function's file: a case in another file that kills the
 same mutant is not seen, which is the price of running one file. The ids of
 one parametrized function are one case here: a kill they share is that
-function's own, and a row added to it is held by #930's `test-cases` budget
-row, not by a proof per row.
+function's own, so a row added to it is not proved on its own.
 
 **What nothing kills is a report, not a gate.** Once every file's proofs are
 done, the changed shipped lines' mutants not yet run run in what is left of
