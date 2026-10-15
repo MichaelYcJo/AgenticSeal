@@ -864,15 +864,15 @@ Enforced by: skills/code-review/scripts/round_record.py::kept_broad_gate
 ### What it refuses before anything is written
 
 <!-- specs/1788789985-round-record-dies-on-python-3-9 -->
-**An interpreter below the supported floor is refused at entry**, in a
+**An interpreter below the supported floor is refused at entry**, by
+`hooks/launch.py`, which `bin/round-record` runs the script through: a
 sentence naming the floor, the version it found and the interpreter it found
-it at — before argument parsing, before the sibling checker is loaded, and
-before anything is read or written. Dying partway through on a construct the
-old interpreter does not know tells the reader about the construct rather
-than about the floor, and the floor is the fact they need. The repository's
-supported floor is stated once, in `.github/scripts/run_tests.py`, and the
-guard names that number rather than a second copy of it.
-Enforced by: skills/code-review/scripts/round_record.py::below_floor, tests/test_a_script_says_which_interpreter_it_needs.py::test_the_script_refuses_at_entry_on_a_below_floor_interpreter, tests/test_a_script_says_which_interpreter_it_needs.py::test_the_floor_is_the_number_the_runner_and_the_linter_hold
+it at, before the script is read, so before argument parsing, before the
+sibling checker is loaded, and before anything is read or written. Dying
+partway through on a construct the old interpreter does not know tells the
+reader about the construct rather than about the floor, and the floor is the
+fact they need. The floor is stated once, as `FLOOR` in the launcher.
+Enforced by: hooks/launch.py::main, tests/test_a_script_says_which_interpreter_it_needs.py::test_below_the_floor_the_launcher_refuses_before_the_script_runs, tests/test_a_script_says_which_interpreter_it_needs.py::test_the_floor_has_one_source
 
 <!-- specs/1788817290-the-derivation-misreads-and-the-record-refuses-the-id -->
 **A finding id is a bare integer, behind an optional severity marker, in both

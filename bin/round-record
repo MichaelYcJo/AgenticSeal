@@ -16,4 +16,4 @@
 #   round-record close --item <dir> --round N --fixes <file> --range <a>..<b>
 #   round-record seal --item <dir> --broad-gate "<sha> against <base>"
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../skills/code-review/scripts/round_record.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../skills/code-review/scripts/round_record.py" "$@"

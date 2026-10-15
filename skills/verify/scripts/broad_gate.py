@@ -168,42 +168,6 @@ import subprocess
 import sys
 import tempfile
 
-# --- the interpreter floor -----------------------------------------------
-#
-# Copied from `skills/code-review/scripts/round_record.py`, whose comment says
-# this block is the spelling to copy. It sits after the imports, uses no syntax
-# newer than the interpreter it means to catch, and precedes every other act
-# at module level.
-FLOOR = (3, 12)
-FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
-BELOW_FLOOR = (
-    "broad-gate: needs python {floor} or newer, and this is python {found} "
-    "at {executable}.\n"
-    "Nothing was read and nothing was written.\n"
-    "`python3` is not always the newest interpreter installed -- macOS ships "
-    "python 3.9 under that name -- so name one explicitly, `python{floor} "
-    "<this script> ...`, or see CONTRIBUTING.md section 'Running the checks'."
-)
-
-
-def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it."""
-    version = tuple(sys.version_info[:3]) if version is None else tuple(version)
-    if version[:2] >= FLOOR:
-        return None
-    return BELOW_FLOOR.format(
-        floor=FLOOR_TEXT,
-        found=".".join(str(part) for part in version),
-        executable=sys.executable if executable is None else executable,
-    )
-
-
-_refusal = below_floor()
-if _refusal:
-    sys.stderr.write(_refusal + "\n")
-    raise SystemExit(2)
-
-
 # --- where the pieces are ------------------------------------------------
 #
 # Resolved relative to this file, never to the caller's cwd, so the command
@@ -340,8 +304,10 @@ def load(path, name):
     for one that is not in shape, which then ends the gate at exit 2 with
     that sentence and nothing run, rather than in a traceback. The
     exception's own sentence is what the person reads; one with none is
-    named by its type. A `SystemExit` — a sibling's interpreter floor — is
-    no `Exception` and keeps its own exit."""
+    named by its type. A `SystemExit` is no `Exception` and keeps its own
+    exit.
+
+    Reads: owned — a module this plugin ships beside this script; unknown refused"""
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None or not os.path.isfile(path):
         raise Refused(f"cannot load {path} — this copy of the plugin is missing it")
@@ -3463,9 +3429,9 @@ NO_SESSION_FOUND = (
     "`seal-stamp --from {command}` draws it"
 )
 # The recovery is named on this line too (round 1's 🟡 1). The hook draws
-# nothing, and says nothing, where it cannot: a `python3` under
-# `seal_stamp.py`'s 3.12 floor, a main session whose working directory is
-# outside this clone, or a plugin older than the hook. The gate cannot see any
+# nothing, and says nothing, where it cannot: a `python3` that cannot load
+# `seal_stamp.py`, a main session whose working directory is outside this
+# clone, or a plugin older than the hook. The gate cannot see any
 # of those, so it names the way to draw the stamp by hand on every line that
 # names a values file. `NOTHING_RECORDED` and `VALUES_UNWRITTEN` name none,
 # because neither run left a drawing to recover.

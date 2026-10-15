@@ -9,4 +9,4 @@
 #   pact-check                in the pact's repository
 #   pact-check /Users/x/work/orders-api
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../skills/verify/scripts/pact_check.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../skills/verify/scripts/pact_check.py" "$@"

@@ -1184,7 +1184,38 @@ def _report(path, verdicts, refused, counted, echo, *, of_total=None):
     return len(survivors)
 
 
+def command_words(text, windows=None):
+    """The words of the command line `text`: `shlex.split`'s reading, save
+    that on Windows a backslash is a character of the word it is in.
+
+    `shlex.split` reads `\\` as an escape, which is a POSIX shell's rule and
+    takes every separator out of a Windows path: `C:\\py\\python.exe` came
+    back `C:pypython.exe`, and nothing could start it (PR #939's
+    `windows-latest` leg). There a backslash is the path separator, so it is
+    kept, and a quote still groups a word. How it errs: on Windows a `\\"`
+    is not an escaped quote. `mutation-check`'s and `arm-check`'s `--tests`
+    are split here.
+
+    `windows` defaults to this machine's, and is an argument so both
+    readings can be driven from either platform.
+
+    Reads: observed — a command line its caller was handed; unknown passed
+    """
+    if windows is None:
+        windows = os.name == "nt"
+    lexer = shlex.shlex(text, posix=True)
+    lexer.whitespace_split = True
+    lexer.commenters = ""
+    if windows:
+        lexer.escape = ""
+    return list(lexer)
+
+
 def main(argv=None):
+    """Enumerate a module's arms, or run them, from the command line.
+
+    Reads: observed — the command line, and what `run_arms` returns; unknown refused
+    """
     parser = argparse.ArgumentParser(
         prog="arm-check",
         description=(
@@ -1251,7 +1282,7 @@ def main(argv=None):
     try:
         verdicts, refused = run_arms(
             args.module,
-            shlex.split(args.tests),
+            command_words(args.tests),
             only=args.only,
             cwd=args.cwd or os.getcwd(),
             timeout=args.timeout or None,

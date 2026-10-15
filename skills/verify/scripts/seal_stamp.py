@@ -71,8 +71,10 @@ repository's own and the plugin ships nothing that runs it. The command
 exists so a person can see the drawing without running a gate, and so a
 values file no hook drew can still be drawn by hand.
 
-Exit codes: 0 printed · 2 refused — an interpreter under the floor, or a
-values file that is unreadable or drawn already; nothing was written on 2.
+Exit codes: 0 printed · 2 refused — a values file that is unreadable or
+drawn already; nothing was written on 2. An interpreter below the floor never
+reaches this file through `bin/seal-stamp`: `hooks/launch.py` refuses it with
+2 first.
 """
 
 import argparse
@@ -83,42 +85,6 @@ import os
 import re
 import sys
 import time
-
-# --- the interpreter floor -----------------------------------------------
-#
-# Copied from `skills/code-review/scripts/round_record.py`, whose comment says
-# this block is the spelling to copy. It sits after the imports, uses no syntax
-# newer than the interpreter it means to catch, and precedes every other act
-# at module level.
-FLOOR = (3, 12)
-FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
-BELOW_FLOOR = (
-    "seal-stamp: needs python {floor} or newer, and this is python {found} "
-    "at {executable}.\n"
-    "Nothing was read and nothing was written.\n"
-    "`python3` is not always the newest interpreter installed -- macOS ships "
-    "python 3.9 under that name -- so name one explicitly, `python{floor} "
-    "<this script> ...`, or see CONTRIBUTING.md section 'Running the checks'."
-)
-
-
-def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it."""
-    version = tuple(sys.version_info[:3]) if version is None else tuple(version)
-    if version[:2] >= FLOOR:
-        return None
-    return BELOW_FLOOR.format(
-        floor=FLOOR_TEXT,
-        found=".".join(str(part) for part in version),
-        executable=sys.executable if executable is None else executable,
-    )
-
-
-_refusal = below_floor()
-if _refusal:
-    sys.stderr.write(_refusal + "\n")
-    raise SystemExit(2)
-
 
 # --- the disc's colours --------------------------------------------------
 #

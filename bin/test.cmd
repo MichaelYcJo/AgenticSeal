@@ -11,6 +11,7 @@ if not exist "%script%" (
   exit /b 2
 )
 
+rem Not through hooks\launch.py, alone of bin\: its docstring says why.
 where /q py
 if errorlevel 1 goto usepython
 py -3 "%script%" %*

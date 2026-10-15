@@ -57,7 +57,8 @@ Exit codes: 0 nothing found, including the run where nothing is declared ·
 1 at least one problem, each on a line of its own · 2 the root, a value or a
 file it had to read was unusable — a document that is not UTF-8, a `::name`
 target that will not parse — and no result was printed, or a sibling script it
-loads is not beside it, or the interpreter is below the floor.
+loads is not beside it. An interpreter below the floor never reaches this file
+through `bin/fold-check`: `hooks/launch.py` refuses it with 2 first.
 """
 
 import argparse
@@ -68,48 +69,6 @@ import io
 import os
 import re
 import sys
-
-# **The interpreter floor, copied from
-# `skills/code-review/scripts/round_record.py#below_floor`**, which is written
-# to be copied and says so, by way of `skills/settle/scripts/settle.py`. Two
-# things about its shape are load-bearing, and they are the reason it is
-# copied rather than imported. It sits after the imports and not after
-# `import sys`, because ruff's E402 is selected and every shipped script is
-# measured to compile under 3.9, so no import above it can fail first. And it
-# uses no syntax newer than the oldest interpreter it means to catch — no
-# walrus, no f-string — since a guard that cannot parse is the traceback it
-# exists to replace.
-#
-# `tests/test_a_script_says_which_interpreter_it_needs.py` pins this number
-# to the runner's and to `ruff.toml`'s.
-FLOOR = (3, 12)
-FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
-BELOW_FLOOR = (
-    "fold-check: needs python {floor} or newer, and this is python {found} "
-    "at {executable}.\n"
-    "Nothing was read and nothing was written.\n"
-    "`python3` is not always the newest interpreter installed -- macOS ships "
-    "python 3.9 under that name -- so name one explicitly, `python{floor} "
-    "<this script> ...`, or see CONTRIBUTING.md section 'Running the checks'."
-)
-
-
-def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it."""
-    version = tuple(sys.version_info[:3]) if version is None else tuple(version)
-    if version[:2] >= FLOOR:
-        return None
-    return BELOW_FLOOR.format(
-        floor=FLOOR_TEXT,
-        found=".".join(str(part) for part in version),
-        executable=sys.executable if executable is None else executable,
-    )
-
-
-_refusal = below_floor()
-if _refusal:
-    sys.stderr.write(_refusal + "\n")
-    raise SystemExit(2)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")

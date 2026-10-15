@@ -9,4 +9,4 @@
 #   deferral-check .              deferral-check . --kind all
 #   deferral-check --kind lint /path/to/repo
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../skills/verify/scripts/deferral_check.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../skills/verify/scripts/deferral_check.py" "$@"

@@ -14,6 +14,7 @@ The world each case builds:
   * `u`, a second opted-in clone, undeclared.
 """
 
+import functools
 import io
 import json
 import os
@@ -260,20 +261,31 @@ import test_no_shape_the_base_stops_reads_silent as ns  # noqa: E402
 
 
 def corpus():
-    rows = {}
+    """(rows, groups): every command shape the text readers' corpora hold,
+    name to command, and each name's subgroup -- its family, and where a
+    family is drawn from several sources, the source. The subgroup is what
+    `SAMPLE` is held to."""
+    rows, groups = {}, {}
+
+    def add(group, name, cmd):
+        rows[name] = cmd
+        groups[name] = group
+
     for name, cmd in ns.corpus("{W}", "{M}", "{U}"):
-        rows["ns: " + name] = cmd
-    for name, (cmd, _) in {**wr.WRAPPED, **rw.SHAPES}.items():
-        rows["shape: " + name] = cmd
-    for name, cmd in {
-        **wr.HANDED,
-        **wr.SUBSTITUTED,
-        **wr.REDIRECTED,
-        **rw.EVALS,
-    }.items():
-        rows["handed: " + name] = cmd
+        add("ns: " + name.split(":")[0], "ns: " + name, cmd)
+    for source, table in (("wrapped", wr.WRAPPED), ("reserved", rw.SHAPES)):
+        for name, (cmd, _) in table.items():
+            add("shape: " + source, "shape: " + name, cmd)
+    for source, table in (
+        ("HANDED", wr.HANDED),
+        ("SUBSTITUTED", wr.SUBSTITUTED),
+        ("REDIRECTED", wr.REDIRECTED),
+        ("EVALS", rw.EVALS),
+    ):
+        for name, cmd in table.items():
+            add("handed: " + source, "handed: " + name, cmd)
     for name, fn in wr.POSITIONS.items():
-        rows["position: " + name] = fn(wr.C)
+        add("position", "position: " + name, fn(wr.C))
     for name, pre in {
         "builtin cd": "builtin cd {U}",
         "command cd": "command cd {U}",
@@ -282,12 +294,64 @@ def corpus():
         "cd $W unset": 'cd "$W"',
         "2>&1 cd": "2>&1 cd {U}",
     }.items():
-        rows["#686: " + name] = f"{pre} && {wr.C}"
-        rows["#686 ;: " + name] = f"{pre} ; {wr.C}"
-    return rows
+        add("#686", "#686: " + name, f"{pre} && {wr.C}")
+        add("#686 ;", "#686 ;: " + name, f"{pre} ; {wr.C}")
+    return rows, groups
 
 
-CORPUS = corpus()
+CORPUS, GROUPS = corpus()
+
+# The rows S2 runs. The hook judges inside git, in the worktree the commit
+# lands in, so the text's shape is not what it sees (the module docstring);
+# what a row can change for it is where the commit lands, the environment
+# the hook inherits and the processes above it. So the sample holds at least
+# one row of every subgroup (T1), and across them: a commit into `main` and
+# one into `u`; the session found through the variable and, under `env -i`,
+# through the lease; `exec`, a pipeline, a child shell, a substitution, a
+# redirected stdin; and `LD_PRELOAD`. Every row is one whose bare run commits
+# into `main` or `u` on each leg, save the four named limits S2 skips, three
+# on Windows and one under bash 5.3, and is built from bash, git and tools the stock macOS, ubuntu and
+# Git for Windows images all carry -- GNU `timeout` is not one; a row that
+# commits nowhere undeclared fails S2 rather than skipping (T2). A row taken
+# out of this list is a removal: the mutation table in the work item's phase
+# record is what says the rest still kill what it killed.
+SAMPLE = (
+    "ns: measured: a body line equal to the delimiter ends it early",
+    "ns: r1: do -C w, then $'…'",
+    "ns: r2: control, bash reads stdin",
+    "ns: r2: mv, then cd",
+    "ns: r3: an invalid name prefix",
+    "ns: r3: a prefix, then a cd",
+    "shape: exec",
+    "shape: nice",
+    "shape: xargs -I",
+    "shape: stdbuf",
+    "shape: env -i",
+    "shape: for",
+    "shape: an if condition",
+    "shape: a subshell in a body",
+    "handed: bash -c",
+    "handed: sh -c",
+    "handed: xargs sh -c",
+    "handed: env -S",
+    "handed: env -iS, a cluster",
+    "handed: $( )",
+    "handed: backticks",
+    "handed: <( )",
+    "handed: <f git",
+    "handed: <<<x git",
+    "handed: &>f git",
+    "handed: !",
+    "handed: a subshell",
+    "handed: a function body",
+    "position: P10, glued to (",
+    "position: P8, a function body",
+    "position: followed by 2>&1 | tail",
+    "#686: builtin cd",
+    "#686: cd $W unset",
+    "#686 ;: pushd",
+    "#686 ;: command cd",
+)
 
 
 def _sandbox(base, with_hooks, home):
@@ -486,24 +550,111 @@ def test_a_command_windows_runs_no_hook_for_is_not_plain(command):
     assert not tokens.is_plain(command)
 
 
-@pytest.mark.parametrize("name", sorted(CORPUS))
+# #692's Windows pass, beside S9's emptied-environment case: Git for Windows'
+# `env -i` cannot find `git` on a `;`-separated PATH, so the row commits
+# nowhere there.
+NO_GIT_UNDER_ENV_I = (
+    "known limit: on Windows `env -i` finds no git on the emptied PATH, so "
+    "the row commits nowhere"
+)
+
+# A limit of the corpus row, not of the gate. The `#686` rows write `{U}`
+# unquoted, so on Windows bash takes the backslashes out of the path, the
+# `cd` fails, and `&&` runs no commit; the `;` forms commit into `main`
+# instead (PR #939's CI run 38477955404).
+NO_CD_INTO_AN_UNQUOTED_PATH = (
+    "known limit of the row: on Windows bash strips the backslashes of the "
+    "unquoted path, so the cd fails and && runs no commit"
+)
+
+# A limit of the corpus row, and of the bash that runs it rather than of a
+# platform. bash 5.3 refuses `cd ""` (`null directory`), where 5.2 and 3.2
+# stay where they are, so `cd "$W"` with `W` unset fails and `&&` runs no
+# commit; the `;` form commits into `main` either way. Windows' image carries
+# 5.3, ubuntu's 5.2 and macOS's 3.2 (PR #939's CI run 38498393195), so the
+# question goes to the bash S2 runs, and a runner that moves to 5.3 skips here
+# too rather than failing. Every other `#686` row cds into an unquoted path,
+# so on Windows the subgroup runs no row; it stays in `SAMPLE` and runs on the
+# other legs.
+NO_EMPTY_CD = (
+    'known limit of the row: this bash refuses `cd ""`, as bash 5.3 does, '
+    "so the cd fails and && runs no commit"
+)
+
+
+@functools.cache
+def refuses_an_empty_cd(shell):
+    """Whether SHELL's `cd ""` fails, as bash 5.3's does."""
+    done = subprocess.run([shell, "-c", 'cd ""'], capture_output=True)
+    return done.returncode != 0
+
+
+NOT_A_COMMIT = "commits into no undeclared repository without the hooks"
+
+
+def _lands_nothing_undeclared(tmp_path, name):
+    """S2 for the corpus row NAME. A row whose bare run commits into neither
+    `main` nor `u` asserts nothing, and is a failure naming it."""
+    if os.name == "nt" and CORPUS[name].startswith("stdbuf "):
+        pytest.skip(NO_HOOK_UNDER_LD_PRELOAD)
+    if os.name == "nt" and CORPUS[name].startswith("env -i"):
+        pytest.skip(NO_GIT_UNDER_ENV_I)
+    if os.name == "nt" and GROUPS[name] == "#686" and "{U}" in CORPUS[name]:
+        pytest.skip(NO_CD_INTO_AN_UNQUOTED_PATH)
+    if GROUPS[name] == "#686" and 'cd "$W"' in CORPUS[name]:
+        if refuses_an_empty_cd(BASH):
+            pytest.skip(NO_EMPTY_CD)
+    home = tmp_path / "home"
+    home.mkdir()
+    bare = _run_corpus_row(tmp_path / "bare", CORPUS[name], False, home)
+    undeclared = bare & {"main", "u"}
+    assert undeclared, (
+        f"{name!r} {NOT_A_COMMIT} (it landed in {sorted(bare)}), so it "
+        "asserts nothing: put another row of its subgroup in SAMPLE"
+    )
+    hooked = _run_corpus_row(tmp_path / "hooked", CORPUS[name], True, home)
+    assert not (hooked & undeclared), (name, sorted(hooked))
+
+
+@pytest.mark.parametrize("name", sorted(SAMPLE))
 def test_s2_a_commit_bash_makes_into_an_undeclared_repository_does_not_land(
     tmp_path, name
 ):
     """M6's oracle as a case: where bash commits into `main` or `u` with no
     hooks, the same command with the hooks lands nothing there. The base's
-    verdict is not asked -- every stop it made on a real commit is in this
-    set, and so is every commit it missed."""
-    if os.name == "nt" and CORPUS[name].startswith("stdbuf "):
-        pytest.skip(NO_HOOK_UNDER_LD_PRELOAD)
-    home = tmp_path / "home"
-    home.mkdir()
-    bare = _run_corpus_row(tmp_path / "bare", CORPUS[name], False, home)
-    undeclared = bare & {"main", "u"}
-    if not undeclared:
-        pytest.skip("bash commits into no undeclared repository with this command")
-    hooked = _run_corpus_row(tmp_path / "hooked", CORPUS[name], True, home)
-    assert not (hooked & undeclared), (name, sorted(hooked))
+    verdict is not asked. It runs `SAMPLE`, the corpus's representatives:
+    the hook cannot see the shape, so one row per subgroup and per thing the
+    hook can see is the set a defect has to pass. Of what the file holds,
+    only these rows put a shell between `claude` and an emptied environment's
+    `git`, so only they need the lease walk to climb past the call's shell."""
+    _lands_nothing_undeclared(tmp_path, name)
+
+
+def test_every_corpus_family_has_a_sampled_row():
+    """S2 of work item 1791876666: a subgroup the corpus holds and `SAMPLE`
+    does not is a kind of row S2 no longer runs, named here. A sampled name
+    the corpus no longer holds needs no case of its own: S2's row for it
+    fails on the name."""
+    missing = sorted(set(GROUPS.values()) - {GROUPS.get(n) for n in SAMPLE})
+    assert not missing, missing
+
+
+def test_a_sampled_row_that_commits_nowhere_undeclared_fails_rather_than_skips(
+    tmp_path,
+):
+    """S3 of work item 1791876666: a row whose bare run lands only in the
+    declared worktree, put through S2, fails naming itself, where it used to
+    skip after building its sandbox."""
+    vacuous = "ns: r3: control, cd then ;"
+    assert vacuous not in SAMPLE
+    try:
+        _lands_nothing_undeclared(tmp_path, vacuous)
+    except AssertionError as failed:
+        assert NOT_A_COMMIT in str(failed), failed
+    except pytest.skip.Exception:
+        pytest.fail("a row that commits nowhere undeclared was skipped")
+    else:
+        pytest.fail("a row that commits nowhere undeclared passed")
 
 
 # --- S3: --no-verify ----------------------------------------------------------

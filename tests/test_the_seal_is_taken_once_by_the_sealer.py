@@ -7248,7 +7248,11 @@ def test_a_relative_kept_directory_still_receives_the_record_under_a_cd(tmp_path
 # round 2, R from round 3, N from the post-review check), under the row the
 # record ran it with and under the same row handing pytest no path of its
 # own. `phases/phase-2.md` of this work item holds the table of words at
-# a3aa139a, at the first build's last gate and here.
+# a3aa139a, at the first build's last gate and here. A layout that differed
+# from one kept here only by a junit option -- on the row, in the
+# environment, in `pytest.ini` -- is not kept: since #825 nothing the gate or
+# its recorder runs reads junit output, and work item 1791876666's phase 2
+# mutation table shows each such row killed exactly what its twin kills.
 
 CORPUS_MIXIN = (
     "class Shared:\n"
@@ -7477,28 +7481,6 @@ REGRESSED = [
     ),
     ("Q5", SUITE_XDIST, P1_AT_BASE, P1_ON_FEATURE, {}),
     (
-        "Q8",
-        f"sh -c '{SUITE_ROW} --junitxml=own.xml' && cd sub && {SUITE_ROW}",
-        P3_AT_BASE,
-        P3_ON_FEATURE,
-        {"posix": True},
-    ),
-    ("Qf-row", f"{SUITE_ROW} -o junit_family=xunit2", P1_AT_BASE, P1_ON_FEATURE, {}),
-    (
-        "Qf-env",
-        SUITE_ROW,
-        P1_AT_BASE,
-        P1_ON_FEATURE,
-        {"env": {"PYTEST_ADDOPTS": "-o junit_family=xunit2"}},
-    ),
-    (
-        "Qf-ini",
-        SUITE_ROW,
-        {**P1_AT_BASE, "pytest.ini": "[pytest]\njunit_family = xunit2\n"},
-        P1_ON_FEATURE,
-        {},
-    ),
-    (
         "Qs2",
         f"sh -c '{SUITE_ROW}' && cd sub && {SUITE_ROW}",
         P3_AT_BASE,
@@ -7508,14 +7490,6 @@ REGRESSED = [
             "env": {"PYTEST_ADDOPTS": "-p no:cacheprovider"},
             "keep": "o u t",
         },
-    ),
-    ("R1-row", f"{SUITE_ROW} --junit-prefix=pfx", P1_AT_BASE, P1_ON_FEATURE, {}),
-    (
-        "R1-ini",
-        SUITE_ROW,
-        {**P1_AT_BASE, "pytest.ini": "[pytest]\naddopts = --junit-prefix=pfx\n"},
-        P1_ON_FEATURE,
-        {},
     ),
     (
         "R2",
@@ -7662,20 +7636,8 @@ REGRESSED_WORDS = {
     ("Q4", "files"): {"tests/test_two.py": NOT_REACHED_1},
     ("Q5", "own"): P1_SHAPE,
     ("Q5", "files"): P1_SHAPE,
-    ("Q8", "own"): {"tests/test_two.py": "new"},
-    ("Q8", "files"): {"tests/test_two.py": "new"},
-    ("Qf-row", "own"): P1_SHAPE,
-    ("Qf-row", "files"): P1_SHAPE,
-    ("Qf-env", "own"): P1_SHAPE,
-    ("Qf-env", "files"): P1_SHAPE,
-    ("Qf-ini", "own"): P1_SHAPE,
-    ("Qf-ini", "files"): P1_SHAPE,
     ("Qs2", "own"): {"tests/test_two.py": "new"},
     ("Qs2", "files"): {"tests/test_two.py": "new"},
-    ("R1-row", "own"): P1_SHAPE,
-    ("R1-row", "files"): P1_SHAPE,
-    ("R1-ini", "own"): P1_SHAPE,
-    ("R1-ini", "files"): P1_SHAPE,
     ("R2", "own"): P1_SHAPE,
     ("R2", "files"): P1_SHAPE,
     ("R2b", "own"): {"tests/test_two.py": NOT_REACHED_1},

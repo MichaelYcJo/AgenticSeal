@@ -198,9 +198,9 @@ def test_the_classification_names_nothing_the_grammar_does_not_have():
 
 
 def run_tests_floor():
-    """`FLOOR` from `.github/scripts/run_tests.py`, the one place the
-    supported floor is held."""
-    path = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
+    """`FLOOR` from `hooks/launch.py`, the one place the supported floor is
+    held, and the number `.github/scripts/run_tests.py` builds against."""
+    path = os.path.join(ROOT, "hooks", "launch.py")
     spec = importlib.util.spec_from_file_location("specseal_floor_of_arm_check", path)
     loaded = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loaded)
@@ -1364,6 +1364,34 @@ def test_a_separator_the_tokenizer_ignores_does_not_move_a_spliced_arm(label, so
     for arm in (first, second):
         ast.parse(ARM.mutate(source, arm))
         ast.parse(ARM.mutate(source, arm, "remove"))
+
+
+# --- the command line is split by the platform's rule ---------------------
+
+
+def test_a_windows_command_line_keeps_the_backslashes_of_its_paths():
+    """The `--tests` command line is split by the platform's rule for a
+    backslash. On Windows it is the path separator and stays, so an
+    interpreter's path reaches the process whole; PR #939's `windows-latest`
+    leg started `C:hostedtoolcache…python.exe` and found nothing. On POSIX it
+    escapes, as `shlex.split` reads it."""
+    line = r'C:\py\python.exe -c "raise SystemExit(1)" a\ b #c'
+    assert ARM.command_words(line, windows=True) == [
+        r"C:\py\python.exe",
+        "-c",
+        "raise SystemExit(1)",
+        "a\\",
+        "b",
+        "#c",
+    ]
+    assert ARM.command_words(line, windows=False) == [
+        "C:pypython.exe",
+        "-c",
+        "raise SystemExit(1)",
+        "a b",
+        "#c",
+    ]
+    assert ARM.command_words(line) == ARM.command_words(line, windows=os.name == "nt")
 
 
 # --- the command that decides the verdict can hang or fail to start -------

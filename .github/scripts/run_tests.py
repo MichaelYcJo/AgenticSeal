@@ -75,16 +75,26 @@ which `tests/gfm_table_oracle.py` reads to hold the table walker in
 `hooks/config.py` to what GitHub renders. Test-only, on the parser's terms.
 """
 
+import importlib.util
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-# CONTRIBUTING.md's stated floor, and the version CI runs the suite at. Named
-# once, so raising it is one edit -- and so the comparison below is against a
-# constant rather than a literal ruff would read as always-false at py312.
-FLOOR = (3, 12)
+# The supported floor, read from `hooks/launch.py`, its one source. The
+# virtualenv is built and adopted against it. `bin/test` runs this file on
+# whatever `python3` it finds, not through the launcher, whose docstring says
+# why. Loaded by path, because `hooks/` is not on this file's `sys.path`.
+_LAUNCH = importlib.util.spec_from_file_location(
+    "specseal_launch_for_run_tests",
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "launch.py"
+    ),
+)
+_launch = importlib.util.module_from_spec(_LAUNCH)
+_LAUNCH.loader.exec_module(_launch)
+FLOOR = tuple(_launch.FLOOR)
 FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
 
 # The CommonMark parser the suite's oracle reads (`tests/commonmark_oracle.py`,
