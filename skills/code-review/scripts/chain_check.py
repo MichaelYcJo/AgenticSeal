@@ -14,7 +14,8 @@ judged (`carried_by`). The arms are five:
                 `spec.md` ends with the framer's mark, and every `Reframed`
                 line under it names the framer
   records       `Review | through the review chain`: `rounds/` holds at least
-                one `round-N.md`; no 🔴 or 🟡 row of any record reads open;
+                one `round-N.md`; every row of every record reads a closing
+                word, whatever its mark;
                 the last record's `Target SHA` is HEAD, or every commit after
                 it touches only the work item's own directory
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
@@ -70,22 +71,20 @@ UNDECIDABLE = "undecidable"
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
 EARLIER_RUN = "; earlier run: "
 
-# The severities a verdict row opens with. A 🔴 or 🟡 row is a finding a fix
-# pass answers; a 🟢 row confirms, and a ❓ row is out of verified scope.
+# The severities the warden writes at the head of a verdict row: a 🔴 or 🟡
+# row is a finding a fix pass answers. The check judges no row by its mark;
+# these stay as the record's vocabulary, which no `Record language` translates.
 BLOCKING = "🔴"
 SHOULD = "🟡"
 FINDINGS = (BLOCKING, SHOULD)
-# The marks that open a row which is no finding: 🟢 and ❓, and an old
-# record's ⬜ note.
-NOT_FINDINGS = ("🟢", "❓", "⬜")
-ID_COLUMN = "#"
 
 DEFERRED = "deferred"
 OUT_OF_SCOPE = "out of verified scope"
-# What closes a finding. `fixed`, `answered` and `deferred <home>` are the fix
-# pass's words, `confirmed` the warden's, `out of verified scope` the ❓ row's.
-# `withdrawn`, `not a defect` and `agreed, fixed` are read so that records the
-# generator wrote read as they were written.
+# What closes a row, whatever its mark. `fixed`, `answered` and
+# `deferred <home>` are the fix pass's words, `confirmed` the warden's,
+# `out of verified scope` the ❓ row's. `withdrawn`, `not a defect` and
+# `agreed, fixed` are read so that records the generator wrote read as they
+# were written.
 CLOSED_WORDS = {
     "fixed",
     "answered",
@@ -96,9 +95,6 @@ CLOSED_WORDS = {
     "not a defect",
     "agreed, fixed",
 }
-# What closes a 🔴 or 🟡 row: `confirmed` and `out of verified scope` are a
-# 🟢 and a ❓ row's words, and answer no finding.
-FINDING_CLOSES = CLOSED_WORDS - {"confirmed", OUT_OF_SCOPE}
 # The closing words that close nothing without a home after them.
 HOME_WORDS = {DEFERRED}
 NO_HOME = "(no home)"
@@ -577,45 +573,24 @@ def issue_of(home):
     return int(found.group(1)) if found else None
 
 
-def severity_of(seen, col=0):
-    """The severity a verdict row's `#` cell opens with, or "".
-
-    Reads: guess — the `#` cell a person wrote; unknown passed"""
-    cell = seen[col].strip() if len(seen) > col else ""
-    found = MARKER.match(cell)
-    lead = found.group(0) if found else ""
-    for mark in FINDINGS + NOT_FINDINGS:
-        if mark in lead:
-            return mark
-    return ""
-
-
 def open_findings(reader, lines, rel):
-    """([(line, the `#` cell, the verdict word)], errors) for every row that
-    is, or may be, a finding and whose verdict does not close it.
+    """([(line, the row's first cell, the verdict word)], errors) for every
+    row whose verdict does not close it.
 
-    The `#` column is found by its header, the first column where there is
-    none. A row whose `#` cell opens with 🔴 or 🟡 closes only by a fix
-    pass's word, never by `confirmed` or `out of verified scope`; one opening
-    with 🟢, ❓ or ⬜ is no finding. Any other row — an empty `#` cell, a
-    number or a word with no severity before it — is a finding whose
-    severity was lost, and closes only by a word that closes something.
+    One fact per row: its `Verdict` cell begins with a word of
+    `CLOSED_WORDS`, and a `deferred` names a home, or the row is open —
+    whatever mark its first cell carries. That cell, the `#` cell of the
+    five-column table, only names the row; an empty one is `the row`.
 
     Reads: guess — the warden's record, through `verdict_table`; unknown refused"""
-    rows, col, header, errors = verdict_table(reader, lines, rel)
+    rows, col, _header, errors = verdict_table(reader, lines, rel)
     if col < 0:
         return [], errors
-    id_col = header.index(ID_COLUMN) if ID_COLUMN in header else 0
     found = []
     for line, seen in rows:
         word = verdict_of(seen, col)
-        severity = severity_of(seen, id_col)
-        if severity in NOT_FINDINGS:
-            continue
-        closes = FINDING_CLOSES if severity in FINDINGS else CLOSED_WORDS
-        if word not in closes:
-            cell = seen[id_col].strip() if len(seen) > id_col else ""
-            found.append((line, cell or "the row", word))
+        if word not in CLOSED_WORDS:
+            found.append((line, seen[0].strip() or "the row", word))
     return found, errors
 
 

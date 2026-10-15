@@ -380,99 +380,57 @@ class TestVerdictTable:
 
 
 class TestOpenFindings:
-    def test_a_closed_blocking_row_and_rows_that_are_no_finding_pass(self):
-        lines = reader.readable(
-            record(
-                "abc1234",
-                [
-                    "| 🔴 1 | x | `a:1` | fixed abc1234 | g |",
-                    "| 🟡 2 | x | `a:2` | deferred #9 | g |",
-                    "| 🟢 | x | `a:3` | confirmed | g |",
-                    "| ❓ | x | `a:4` | ❓ out of verified scope | g |",
-                    "| ⬜ 3 | an old record's note | `a:5` | open | g |",
-                ],
-            )
-        )
-        found, errors = chain.open_findings(reader, lines, "r.md")
-        assert (found, errors) == ([], [])
-
-    def test_an_open_red_or_yellow_row_is_named_by_line_id_and_word(self):
-        lines = reader.readable(
-            record(
-                "abc1234",
-                [
-                    "| 🔴 1 | x | `a:1` | open | g |",
-                    "| 🟡 2 | x | `a:2` | deferred | g |",
-                ],
-            )
-        )
+    def test_every_row_closes_by_a_closing_word_whatever_its_id_cell(self):
+        """S3 (T19): the check reads one fact per row, its `Verdict` cell.
+        A row of any mark at `open`, at a word outside `CLOSED_WORDS` or at
+        `deferred` with no home is named, by its line, its first cell (or
+        `the row` where that cell is empty) and the word."""
+        rows = [
+            "| 🔴 1 | x | `a:1` | open | g |",
+            "| 🟡 2 | x | `a:2` | deferred | g |",
+            "| 🟢 | marked green and left open | `a:3` | open | g |",
+            "| ❓ | a question nobody closed | `a:4` | pending | g |",
+            "| ⬜ 3 | an old record's note | `a:5` | open | g |",
+            "| 4 | 🔴 the severity in the Finding cell | `a:6` | open | g |",
+            "|  | an empty id cell | `a:7` | open | g |",
+        ]
+        lines = reader.readable(record("abc1234", rows))
         found, errors = chain.open_findings(reader, lines, "r.md")
         assert errors == []
         assert [(mark, word) for _line, mark, word in found] == [
             ("🔴 1", "open"),
             ("🟡 2", "deferred (no home)"),
-        ]
-        assert found[0][0] == lines.index("| 🔴 1 | x | `a:1` | open | g |") + 1
-
-    def test_a_row_whose_id_cell_carries_no_severity_closes_only_by_a_closing_word(
-        self,
-    ):
-        lines = reader.readable(
-            record(
-                "abc1234",
-                [
-                    "| 1 | 🔴 the severity in the Finding cell | `a:1` | open | g |",
-                    "|  | 🟡 an empty id cell | `a:2` | open | g |",
-                    "| carried | 🔴 a worded id cell | `a:3` | open | g |",
-                    "| 4 | no severity anywhere | `a:4` | open | g |",
-                    "| 5 | x | `a:5` | fixed abc1234 | g |",
-                    "| 🟢 | round 1's 🔴 2 is closed | `a:6` | confirmed | g |",
-                    "| ⬜ 7 | an old note naming 🟡 2 | `a:7` | open | g |",
-                ],
-            )
-        )
-        found, errors = chain.open_findings(reader, lines, "r.md")
-        assert errors == []
-        assert [(mark, word) for _line, mark, word in found] == [
-            ("1", "open"),
-            ("the row", "open"),
-            ("carried", "open"),
+            ("🟢", "open"),
+            ("❓", "pending"),
+            ("⬜ 3", "open"),
             ("4", "open"),
+            ("the row", "open"),
+        ]
+        assert [line for line, _mark, _word in found] == [
+            lines.index(row) + 1 for row in rows
         ]
 
-    def test_a_red_or_yellow_row_closes_only_by_a_fix_pass_word(self):
+    def test_a_closing_word_closes_a_row_of_any_mark(self):
+        """S3, S11 (T20): a word of `CLOSED_WORDS` closes the row whatever
+        mark its first cell carries, so a 🔴 row the warden closed with a 🟢
+        row's word passes here and is read by the next round instead."""
         lines = reader.readable(
             record(
                 "abc1234",
                 [
                     "| 🔴 1 | x | `a:1` | confirmed | g |",
                     "| 🟡 2 | x | `a:2` | ❓ out of verified scope | g |",
-                    "| 🔴 3 | x | `a:3` | answered | g |",
+                    "| 🟢 | x | `a:3` | fixed abc1234 | g |",
+                    "| ❓ | x | `a:4` | answered | g |",
+                    "| ⬜ 3 | an old note | `a:5` | deferred #9 | g |",
+                    "| 4 | a bare number | `a:6` | fixed abc1234 | g |",
+                    "| carried | 🔴 a worded id cell | `a:7` | withdrawn | g |",
+                    "|  | an empty id cell | `a:8` | deferred `seal/follow-up.md` | g |",
                 ],
             )
         )
         found, errors = chain.open_findings(reader, lines, "r.md")
-        assert errors == []
-        assert [(mark, word) for _line, mark, word in found] == [
-            ("🔴 1", "confirmed"),
-            ("🟡 2", "out of verified scope"),
-        ]
-
-    def test_the_id_column_is_found_by_its_header(self):
-        lines = reader.readable(
-            "# r\n\n## Verdicts\n\n"
-            "| Finding | # | Location | Verdict | Grounds |\n"
-            "|---|---|---|---|---|\n"
-            "| x | 🔴 1 | `a:1` | open | g |\n"
-            "| x | 🟡 2 | `a:2` | confirmed | g |\n"
-            "| x | 🟢 | `a:3` | confirmed | g |\n"
-        )
-        found, errors = chain.open_findings(reader, lines, "r.md")
-        assert errors == []
-        assert [(mark, word) for _line, mark, word in found] == [
-            ("🔴 1", "open"),
-            ("🟡 2", "confirmed"),
-        ]
+        assert (found, errors) == ([], [])
 
 
 # --- follows ------------------------------------------------------------------
