@@ -32,12 +32,16 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 | A floor the budget step kept | not in §*Removes* / `test_the_workflow_reader_finds_the_env_assignment_the_file_already_has` held at least four base spellings in `hygiene.yml`, and the budget step was the fourth | the reader's count is held against an independent listing of the file's code lines naming a base | a floor on the tree's count stops being true when a step leaves; the listing holds at any count |
 | Where the release table is read | `plan.md` row 2: `docs/release-checklist.md:82–93` rewritten in place / that paragraph sat in §2, the preparation commit, before the release pull request exists | the paragraph is in §5, *The release pull request* | the table prints only on the pull request into `main` |
 | T6's reach | `plan.md` T6: a renamed target on a scratch copy of the tree / every target the tree shows is in `docs/*.md`, so a rename alone passes a walk of `docs/*.md` alone | a gone target is also planted in a file of each other glob | the case has to be red under the mutation T6 names |
-| When a fix of a fix stops the passes | `spec.md` S9 and §*What leaves*: "at the second such round in a run the orchestrator runs no fix pass" / `questions.md` Q1, answered after the frame: "a fix of a fix stops the fix passes before round 3 as well, and the item goes back to its framer" | any round carrying the mark stops the passes (`docs/the-review-record.md` §*The run*) | Q1 is the owner's answer and postdates the frame; the phase 3 spawn names it as governing |
+| When a fix of a fix stops the passes | `spec.md` S9 and §*What leaves*: "at the second such round in a run the orchestrator runs no fix pass" / `questions.md` Q1, answered after the frame: "a fix of a fix stops the fix passes before round 3 as well, and the item goes back to its framer" | any round carrying the mark stops the passes (`docs/the-review-record.md` §*The run*); `spec.md` S9 and its two §*What leaves* rows rewritten to it at 1912e63d | Q1 is the owner's answer and postdates the frame; the phase 3 spawn names it as governing |
 | Where T15 lives | `plan.md` T15: `tests/test_broad_gate.py::test_a_file_naming_another_commit_fails_a_ready_pull_request` / the arm that fails is `chain_check.py`'s | `tests/test_chain_check.py::TestMain::test_a_broad_gate_file_naming_another_commit_fails_a_ready_pull_request` | #942: a test sits in the file of the module it exercises |
 | The check's cutoffs and the approval notice | the old check grandfathered items by `*_FROM` ids and printed a notice for an unfilled `plan.md` approval line / `spec.md` §*Data & interfaces* names five arms and neither | both left with the rebuild | neither is among the arms the spec names; every item a cutoff excused is merged and is not judged again |
 | The panel's `item` and `rounds` rows | `spec.md` §*Data & interfaces*: "the panel and the stamp values are unchanged" / `item` read `#<pr> · <id>` from the record's `PR` row, and `rounds` appended `· capped` from `Needs a fix` | `item` is the id alone; `rounds` counts every record's deferrals and carries no `capped` | both fields leave the record by the same spec; nothing else holds what they read |
 | Which SHA is a broad-gate run | the old reader took the first SHA-shaped word of the cell / a cell whose tree word is not a SHA then reads the base as the run | the first word of the newest entry, where it is SHA-shaped | found by `tests/test_broad_gate.py::TestSpelling` while building; reading the base as the run passes a stale gate |
 | `⬜` outside the records | S10 lists `⬜` / 19 code comments cite a past finding as `round 1's ⬜ 4`, and `questions.md` and `## Not verified` use `⬜` as an open status | left | neither is the severity the record removed; the citations are history in comments, #940's and #942's when those files are rewritten |
+| The two hook test modules | §*Removes*: `tests/test_chain_hooks.py` and `tests/test_chain_hooks_hardening.py` leave whole / they held 77 cases on the commit gate, the lease, `hooks.json` and the READMEs beside 21 on the guard | restored at ed63c3af without the guard's cases | the frame's coordinate was wider than its reason, "the check at the pull request" replaces a reminder, not the commit gate; deleting them left `docs/the-review-and-parity-arms.md`'s `Enforced by:` resolving nowhere |
+| S10's other spellings | S10: none of the fields outside `seal/specs/` and `changelog/` / history in test docstrings (`tests-todo row 5`), the replay cases' quoted prompts, `truth-2`'s citation of `docs/round-record-spec.md:693` at its clone's commit, stale `.test_durations` entries | left | each records a past state that is true as written; rewriting a replay's prompt or truth would change what the case replays (`phases/phase-3.md`) |
+| A pact print at the pull request | §*Removes* lists `chain_check.py#pact_notices` / `docs/the-pact.md` §*A signer's CI prints and verifies nothing* still stated the print and its three cases | the section states that nothing reads the pact at a pull request, enforced by nothing | the arm and its module left with phase 3's first half; the document had kept their rule |
+| The em-dash console case | not in §*Removes* / `test_console_is_not_utf8.py`'s plain-text case drove the guard's reminder | removed | no plain-text post-bash gate prints non-ASCII now; the dispatcher's `reconfigure` is unchanged and its JSON cases stay |
 
 ## Not verified
 
@@ -49,15 +53,18 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 | ✅ The five pre-existing cases under `evals/*/` hold their bounds at the top level, and four of them an inline scaffold, both of which the runner drops | removed at c7d8bcc8, each on the grounds in its divergence row; `tests/test_evals_layout.py` now holds every case under `evals/` to that schema |
 | A bare session's use of a skill the rewrites change: implement and code-review invoked from their descriptions, and a PR body written to writing-style. No case reads either once the five cases left, and every case runs through an agent | the orchestrator, at the phase that rewrites each skill |
 | The `release-report` job on GitHub: its shell step, the `gh api` calls and the summary append ran nowhere; the script ran locally against v0.21.1 with that tag commit's real job list | 0.22.0's release pull request into `main`, the job's first run |
+| S12's seconds over the modules naming `chain_check` or `broad_gate`: 1,482 s read from `.test_durations`, whose entries predate this phase and hold none for `test_chain_check.py` or `test_broad_gate.py` | the sealer's broad run, which measures them |
+| How the eval runner grades `not_contains` on a file that was never written, which the sealer's two non-green cases ask of `broad-gate.md` | phase 4, which replaces the three cases |
+| Whether the old check also paired a deleted declaration with an added one as a rename (`chain_check.py#changed` diffs with `-M`) | the repository owner, at phase 4's arm work |
 
 ## Not done
 
 The baseline, which is the orchestrator's act. The changelog fragment, which
-is phase 5's. Phase 3 is part-built: the check, the template, the broad
-gate's file, the removal of the generator, the guard and the todo reader, and
-`docs/the-review-record.md` are committed; the three record documents, the
-orchestration and skill sections, the two agents' sections, the eval graders
-and `phases/phase-3.md` are not, and the phase 3 spawn's hand-back lists them.
+is phase 5's. The hygiene step that fetches `refs/pull/*/head`, which the
+rebuilt check no longer needs: removing it reaches `broad_gate.py`'s step
+list, two test modules and two release documents (`phases/phase-3.md`).
+`evals/scripts/replay_targets.py` reads a round's asked paragraph from a
+section new records do not carry (part B).
 
 ## Fed back into the spec
 
