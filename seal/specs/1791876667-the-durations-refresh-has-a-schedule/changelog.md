@@ -41,9 +41,9 @@
     on, so no scaling is applied to the union. One union moves a single test
     file 0.67 to 1.72 times the level from the next, past the 1.3 band its
     `slow-file` row was set to, on files nobody changed. The union is what
-    makes that spread, so this change makes the `slow-file` rows of
-    `seal/budgets.md` `report` rows: each file's reading still prints in the
-    summary and fails nothing, and `suite-seconds`, the sum, stays the gate.
+    makes that spread, so the `slow-file` rows of `seal/budgets.md` are
+    `report` rows: each file's reading prints in the summary and fails
+    nothing, and `suite-seconds`, the sum, is the gate.
     A file that crosses the threshold unlisted is named in the summary's
     list of report rows past their band, which every report row's problems
     now print to.
