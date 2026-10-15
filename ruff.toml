@@ -38,7 +38,8 @@ extend-exclude = ["*.md"]
 # Linted at 3.9, B905 does not ask its `zip` for `strict=` (3.10) and UP017
 # does not spell `timezone.utc` as `datetime.UTC` (3.11).
 # tests/test_a_script_says_which_interpreter_it_needs.py derives that set,
-# holds every file of it to this table, and holds each to this version.
+# holds every file of it to this table, and refuses in each the syntax and the
+# two constructs above that this version lacks; nothing runs it at 3.9.
 [per-file-target-version]
 "hooks/*.py" = "py39"  # its `*` crosses a `/`, so hooks/git/ too
 ".github/scripts/run_tests.py" = "py39"

@@ -126,7 +126,11 @@ interpreter it says which to install. What runs before any floor is checked
 of them loads in its own process — runs on whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
 names, and `tests/test_a_script_says_which_interpreter_it_needs.py` derives
-the set and holds every file of it to that version.
+the set, holds every file of it to that table, and refuses in it the syntax
+`ast` rejects at that version and the two constructs ruff pushes toward above
+it, `zip(..., strict=)` and `datetime.UTC`. Nothing runs that code at that
+version, so a standard-library module or an annotation only a newer
+`python3` has, as `tomllib` or `str | None` in a signature, passes both.
 
 The fallback runs the suite without writing a `.venv` into the tree. It is the
 form this section used to name first, and it resolves and installs its
