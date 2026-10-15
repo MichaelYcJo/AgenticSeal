@@ -2,7 +2,7 @@
 
 📋 implement applied
 · spec:     `spec.md` §*Non-inferiority, proved per phase*, §*Scope*, S9–S13, S16, §*Data & interfaces*; `plan.md` phase 2, T10–T12, E1/E7; `questions.md` Q6, Q7; `agents/warden.md` §*Report*; `docs/the-reader-registry.md` through `tests/reader_registry.py#GRAMMAR`
-· evidence: none yet — the ledger fragment is phase 7's (`plan.md` phase 7)
+· evidence: none — the ledger left the tree in 0.22.0 (#944)
 · verified: executed — the Q7 probe (three replay runs), every scaffold, the three sealer fixtures through `broad-gate`, 26 mutations, the census and layout modules; read — the eval runner's grader and case schema from the binary's own authoring prompt
 
 ## Why this work exists

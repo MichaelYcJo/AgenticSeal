@@ -627,10 +627,10 @@ What this does not do is as load-bearing as what it does.
   verified on POSIX by removing the first name from PATH. The console-encoding
   defect that stood beside it is closed: a plain `pytest tests/` on
   a Korean cp949 console passes whole, with no `PYTHONUTF8=1`.
-- **The conformance evals have never run.** `evals/` is written against
-  `claude plugin eval`, which is early access; the suite awaits enablement.
-  CI checks their shape — required fields, a grader per case — which is what
-  can be checked without the runner. Treat them as authored, not as passing.
+- **The behaviour evals run on the owner's account, not in CI.**
+  `evals/behaviour/` holds the cases each agent's rewrite is proved on with
+  `claude plugin eval`; CI checks their shape, and a rewrite's record says
+  what its runs found.
 
 ## Contributing
 
