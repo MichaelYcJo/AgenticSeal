@@ -10,6 +10,7 @@ Approved 2026-10-15 by the repository owner, for the replanned phases 1–7, whe
 Approved 2026-10-15 by the repository owner, for the new-slate frame split into parts A and B, when `smith` was spawned for phase 3.
 Approved 2026-10-15 by the repository owner, for the repair after round 2, when `smith` was spawned for phase 5a.
 Approved 2026-10-15 by the repository owner, for the repair after round 4, when `smith` was spawned for phase 5b.
+Approved 2026-10-15 by the repository owner, for the repair after round 5, when `smith` was spawned for phase 5c.
 
 Reframed 2026-10-15 as a new slate, from phase 3 on, against #923's body as
 the owner rewrote it that day. Phases 1 and 2 are closed and keep their rows
