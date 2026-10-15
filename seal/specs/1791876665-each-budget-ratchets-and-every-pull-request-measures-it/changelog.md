@@ -24,9 +24,9 @@
      after the suite, held to a ceiling with no lower band, and printed with
      the run's billable minutes, priced at a figure the line says to check
      against GitHub's price list.
-  5. Three reports fail nothing: each slow test file, the largest round
-     records in the tree, and how many rows a release re-read. A release
-     pull request prints every budget against the last release tag.
+  5. Two reports fail nothing: each slow test file, and the largest round
+     records in the tree. A release pull request prints every budget
+     against the last release tag.
 
   A contributor's pull request that touches none of the measured files sees
   one more green step and one more green job. `seal/budgets.md` is read as

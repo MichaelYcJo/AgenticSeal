@@ -616,8 +616,10 @@ def test_a_docs_file_that_gains_a_history_line_fails_naming_it_and_the_line(
 def test_an_unlisted_file_over_the_threshold_fails_and_a_listed_one_may_not_grow(
     tmp_path, capsys, rows, verdict, said
 ):
-    """T10, S7: a test file over the threshold that the table does not list
-    fails, naming it; a listed one is held to its own ceiling."""
+    """T10, S7 under a `gate` family: a test file over the threshold that
+    the table does not list fails, naming it; a listed one is held to its
+    own ceiling. This repository's family is a `report` row, which
+    `test_an_unlisted_slow_file_under_a_report_row_is_named` holds."""
     root = tree(tmp_path, slow(*rows), files={".test_durations": json.dumps(SMALL)})
     assert run(root) == verdict
     assert said in capsys.readouterr().out

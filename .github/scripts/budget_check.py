@@ -112,12 +112,13 @@ table gives the unit, the slack and the kind, and its ceiling is what every
 file its table does not list is held to: `## Slow test files` (`| File |
 Seconds ceiling |`), `## Docs history lines` (`| File | Lines ceiling |`) and
 `## Unenforced rules` (`| File | Rules ceiling |`) list the files held to a
-ceiling of their own. So where the family is a `gate`,
-an unlisted file over the threshold fails, and listing it is a raise from the
-threshold that needs its line, as is a row the table drops whose ceiling was
-under it. Where the family is a `report`, that file fails nothing and the
+ceiling of their own. So where the family is a `gate`, an unlisted file
+over the threshold fails, and listing it is a raise from the threshold
+that needs its line, as is a row the table drops whose ceiling was under
+it. Where the family is a `report`, that file fails nothing and the
 summary names it in the list of report rows past their band. Every test
-file whose reading times 1.3 reaches the threshold is listed, so an unlisted one has the same room to move before it reads over. A docs
+file whose reading times 1.3 reaches the threshold is listed, so an
+unlisted one has the same room to move before it reads over. A docs
 line is a **history line** when it is not a rule line, not blank, not hidden
 in a fence or a comment and not a heading, and matches `#NN`, `round N`, a
 date or `measured`. A **rule line** is in a block from a line opening with
@@ -1228,8 +1229,8 @@ def ratchet(base_rows, head_rows, body, release):
 def render(results, moves, against, cache=None):
     """The summary as markdown: one line per budget, each report row's
     problems, the raises read, the price level the seconds rows were read
-    at, and where the docs were
-    classified, each document's history and rule lines.
+    at, and where the docs were classified, each document's history and
+    rule lines.
 
     Reads: nothing — formats the results handed to it"""
     cache = cache or {}
