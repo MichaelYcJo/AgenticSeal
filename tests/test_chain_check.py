@@ -206,6 +206,16 @@ class TestVerdictTable:
         assert header[col] == "verdict"
         assert [seen[0] for _n, seen in rows] == ["🔴 1"]
 
+    def test_the_template_is_the_table_the_check_reads(self):
+        text = (ROOT / "templates" / "sdd-round.md").read_text(encoding="utf-8")
+        found, errors = chain.open_findings(reader, reader.readable(text), "t")
+        assert errors == []
+        assert [(mark, word) for _n, mark, word in found] == [("🔴 1", "open")]
+        head = text.split(chain.VERDICTS)[0]
+        rows = chain.table_rows(reader, reader.readable(head))
+        labels = [c[0].strip() for c in rows if "-" not in c[0]]
+        assert labels == ["Field", "Target SHA"]
+
     def test_a_record_with_no_verdicts_section_is_an_error(self):
         lines = reader.readable("# r\n\n| Field | Value |\n|---|---|\n")
         rows, col, _header, errors = chain.verdict_table(reader, lines, "r.md")
