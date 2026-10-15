@@ -7,13 +7,14 @@
 | Ran by | specseal:warden on claude-opus-5-5 |
 | PR | #939 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `9f9c9ed9261a709e321f3e163f00fbca6752956d..5ee4b39ef82f0b3f074eeb568b8d75542afd1e1d`, 9 commits |
+| Contract changes | none |
+| New units | NEVER_RAN (depth 1); unrun (depth 1); test_what_was_not_run_counts_only_the_changed_lines_mutants (depth 1); ELSEWHERE (depth 1); RUNS_ITS_RUNNER_DIRECTLY (depth 1); PLUGIN_SCRIPT (depth 1); ASSIGNED (depth 1); VARIABLE (depth 1); BARE_SCRIPT (depth 1); NEWER (depth 1); handed_first (depth 1); loaded_by (depth 1); before_any_floor (depth 1); newer_than (depth 1); ruff_targets (depth 1); matches (depth 1); test_what_runs_before_any_floor_needs_nothing_its_python3_lacks (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🔴 1 (`bin/test` refused below the floor before its runner can bootstrap), 🟡 2 (hook-run code unguarded after the census removal), 🟡 3 (a case that skips on ubuntu is misnamed and fails the job), 🟡 4 (the not-run count) |
 | Loses a record or crashes | no |
+<!-- New units: .github/workflows/test.yml, bin/test, bin/test.cmd, ruff.toml read by the diff-line heuristic and not by the AST -->
 
 - [ ] Pass
 
@@ -25,10 +26,10 @@ Round 1 of #929 at 692cef31 against origin/release/v0.22.0 (5b1f6fae), the item 
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🔴 1 | `bin/test` runs its runner through the launcher, so a `python3` below 3.12 is refused before `run_tests.py` can build the 3.12+ virtualenv it exists to build; the sealer's `Broad gate` row runs `bin/test -q` | `bin/test:35`, `bin/test.cmd:14` | open | executed: base on 3.9.6 built `.venv` with uv and passed 13 (exit 0); tip through the launcher exit 2; tip direct exit 0 |
-| 🟡 2 | The interpreter census was removed because the floor rose to 3.12, yet hooks and the modules they load run on the harness's `python3`; nothing now keeps `zip(strict=)` or `X.UTC` out of them, and ruff B905 and UP017 push toward both | `tests/test_a_script_says_which_interpreter_it_needs.py:185`, `skills/verify/scripts/unverified_check.py:641` | open | read: `hooks/dispatch.py:602-604`, `hooks/review-history-guard.py:85`, `ruff.toml` selects B and UP; executed: the Stop hook on 3.9 now loads and draws with `seal_stamp.py`; the pattern finds no hook-run file today |
-| 🟡 3 | A new case whose every id skips on ubuntu has no traced call, survives every mutant, and is named `kills nothing its file does not`; the job exits 1 for a reason that is false, contradicting spec.md:91 and test.yml:161 | `.github/scripts/case_check.py:861` | open | executed: fixture with a `skipif(os.name != "nt")` case, `main` returned 1 with that sentence |
-| 🟡 4 | A proof-loop kill is recorded for any mutant in a changed file, not on a changed line, so the `not run within the bound` count understates and can vanish | `.github/scripts/case_check.py:875` | open | read: `path in diff` at :875 against `len(every_diff) - len(diff_killed)` at :936 |
+| 🔴 1 | `bin/test` runs its runner through the launcher, so a `python3` below 3.12 is refused before `run_tests.py` can build the 3.12+ virtualenv it exists to build; the sealer's `Broad gate` row runs `bin/test -q` | `bin/test:35`, `bin/test.cmd:14` | **fixed** `1df94b1d` | fixed at 1df94b1d; executed: base on 3.9.6 built `.venv` with uv and passed 13 (exit 0); tip through the launcher exit 2; tip direct exit 0 |
+| 🟡 2 | The interpreter census was removed because the floor rose to 3.12, yet hooks and the modules they load run on the harness's `python3`; nothing now keeps `zip(strict=)` or `X.UTC` out of them, and ruff B905 and UP017 push toward both | `tests/test_a_script_says_which_interpreter_it_needs.py:185`, `skills/verify/scripts/unverified_check.py:641` | **fixed** `2e3b2ef7` | fixed at 2e3b2ef7; read: `hooks/dispatch.py:602-604`, `hooks/review-history-guard.py:85`, `ruff.toml` selects B and UP; executed: the Stop hook on 3.9 now loads and draws with `seal_stamp.py`; the pattern finds no hook-run file today |
+| 🟡 3 | A new case whose every id skips on ubuntu has no traced call, survives every mutant, and is named `kills nothing its file does not`; the job exits 1 for a reason that is false, contradicting spec.md:91 and test.yml:161 | `.github/scripts/case_check.py:861` | **fixed** `e96f533c` | fixed at e96f533c; executed: fixture with a `skipif(os.name != "nt")` case, `main` returned 1 with that sentence |
+| 🟡 4 | A proof-loop kill is recorded for any mutant in a changed file, not on a changed line, so the `not run within the bound` count understates and can vanish | `.github/scripts/case_check.py:875` | **fixed** `a936870b` | fixed at a936870b; read: `path in diff` at :875 against `len(every_diff) - len(diff_killed)` at :936 |
 | ⬜ 5 | Phase 2's record names a dangling commit, phases and a ledger fragment that no longer exist, 17 wrappers, and a `test-cases` row that was never built | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/phases/phase-2.md:6` | open | executed: 25 of 29 cited SHAs are off-branch; read: `:57`, `:261`, `:328`, `:391`, `:442`; `phases/phase-1.md:154` |
 | ⬜ 6 | The overview cites a removed ledger document and keeps open rows that CI run 38658107547 has answered | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/overview.md:7` | open | read; the document is absent at the tip |
 | ⬜ 7 | The mutant rule was prepended into the case-ceiling paragraph rather than given its own; ragged wrap | `CONTRIBUTING.md:146` | open | read |
