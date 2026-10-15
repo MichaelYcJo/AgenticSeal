@@ -15,7 +15,7 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
 | Phase order | `plan.md` orders the check (phase 1) before the harness (phase 2) / phase 2 was built first | phase 2 first | the orchestrator's decision at this spawn: phase 1 is #930's checker and waits for #930's branch to settle, and phase 2 depends on none of it |
-| S10's first variant | S10: the warden "with its `## Report` fence deleted … the comparator writes `Verdict: fail`" / that side wrote the same table and the comparator wrote `pass` | the measurement stands; S10 is shown by its second variant, the `Needs a fix:` rule removed, which is `fail` | `evals/q7-fence-deleted.md` and `evals/q7-needs-a-fix-removed.md`; the fence has copies the warden reads (`phases/phase-2.md`) |
+| S10's first variant | S10: the warden "with its `## Report` fence deleted … the comparator writes `Verdict: fail`" / that side wrote the same table and the comparator wrote `pass` | the measurement stands; S10 is shown by its second variant, the `Needs a fix:` rule removed, which is `fail` | `evals/q7-fence-deleted.md` and `evals/q7-needs-a-fix-removed.md`; the fence has copies the warden reads (`phases/phase-2-suite-build.md`) |
 | T10's reading | `spec.md`: the test recomputes "for every `agents/*.md` and preloaded skill that differs from the merge base" / it compares each agent's preload hashes with the ones the baseline recorded | hashes | spec silent on how the merge base is found; a hash comparison needs none, holds on a worktree and in CI, and an edit after a passing record makes the record stale |
 | Scaffold field | `plan.md`: each case carries `scaffold.sh` / the runner reads `context.scaffold_script` as a path | `scaffold.sh` named by that field | measured: an inline script is refused as a path that does not exist |
 | Case bounds | `plan.md`: `case.yaml` carries `runs`, `max_turns`, `timeout_seconds`, `model` / the runner reads the last three under `execution:` only | under `execution:` | measured: top-level copies are dropped |
@@ -33,7 +33,7 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 
 | Item | Who must answer |
 |---|---|
-| The baseline: the four agents' suites run twice on the merge base, none cut short | the orchestrator, at the phase boundary (`phases/phase-2.md`, the hand-back's command) |
+| The baseline: the four agents' suites run twice on the merge base, none cut short | the orchestrator, at the phase boundary (`phases/phase-2-suite-build.md`, the hand-back's command) |
 | A smith, framer or sealer case run through the eval: their scaffolds and the sealer's gate outcomes were run, their sessions were not | the orchestrator's baseline run, which is their first |
 | The full suite, the repository-wide lint and the typecheck over this branch | the sealer, once the rounds settle |
 | ✅ The five pre-existing cases under `evals/*/` hold their bounds at the top level, and four of them an inline scaffold, both of which the runner drops | removed at c7d8bcc8, each on the grounds in its divergence row; `tests/test_evals_layout.py` now holds every case under `evals/` to that schema |
@@ -41,11 +41,8 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 
 ## Not done
 
-Phase 1's Status cell and its phase record. Both acts of `plan.md`'s row 1
-are built; the orchestrator's spawn for act (ii) keeps the phase open until
-phase 3's baseline and warden rewrite, which the row itself does not say. The
-baseline, which is the orchestrator's act. The changelog fragment, which is
-phase 7's.
+The baseline, which is the orchestrator's act. The changelog fragment, which
+is phase 7's.
 
 ## Fed back into the spec
 
