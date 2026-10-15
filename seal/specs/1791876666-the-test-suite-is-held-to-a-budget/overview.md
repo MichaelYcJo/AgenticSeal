@@ -30,6 +30,7 @@ the cleanup is #942's.
 | `mutation-check --baseline-passed` | the frame names no change to `mutation-check` | an option that skips the run against the file as it is, for a caller that ran it; a bare call is unchanged | without it one run per mutant still costs two file runs, and the five-minute bound would name files the model can afford |
 | `bin/test` outside the launcher, round 1 | `spec.md` §Scope item 4 as framed: "every `bin/` wrapper and its `.cmd` twin runs its script through it" | every wrapper but `bin/test` and its twin, which hand `run_tests.py` to the interpreter themselves; `spec.md` names the exception now | round 1's 🔴 1: on `/usr/bin/python3` 3.9.6 the launcher refused `run_tests.py` with exit 2 before it could build the 3.12+ virtualenv it exists to build, and the `Broad gate` row runs `bin/test -q` |
 | A census of what runs before any floor, round 1 | `spec.md` §Removes: the census of constructs above the floor leaves, on the grounds that the floor rose to 3.12 | the census over every shipped file stays removed; a narrower one replaces it, over the files a hook, a git hook or a `bin/` wrapper hands an interpreter with no floor checked and every module they load, derived from `hooks/hooks.json`, `hooks/githooks.py` and `bin/`; `ruff.toml` lints that set at 3.9 through `per-file-target-version`, and the census reads its version there | round 1's 🟡 2: hooks run on the harness's `python3`, 3.9 on a stock macOS, and `ruff.toml`'s B905 and UP017 at `py312` push toward `zip(strict=)` and `datetime.UTC`; the Stop hook loads `seal_stamp.py` on 3.9 since its guard left |
+| A fourth phase-3 case, and a `tryfirst` wrapper | `plan.md` phase 3 names three end-to-end rows, and round 3's paste-ready wrapper is a plain `hookwrapper` | the three rows, and `test_a_traced_run_that_times_out_hands_back_nothing_it_traced` beside them; the wrapper `tryfirst` | no case reached `traced_run`'s timeout branch, so a five-element return there survived `mutation-check`, and the case is red under two mutants of it; `tests/conftest.py`'s own `makereport` wrapper is registered after the tracer and would otherwise read the report after it, against `spec.md`'s *after every other implementation* (`phases/phase-3.md`) |
 
 ## Not verified
 
@@ -40,11 +41,13 @@ the cleanup is #942's.
 | The phase-1 file's Windows seconds after the sample | #931's next refresh, or a `workflow_dispatch` of `test.yml` on the branch; CI run 38658107547's `budgets` job printed only that every gate row holds, and its Windows legs print no per-file seconds |
 | ✅ What the `cases` job says on a CI runner after the end-to-end paths became one case (853f2f28) and the silent-run case left with the value it guarded (f564f644). CI run 38518943105 at 0f2b8a33 (now 341f4941) proved 16 and named 6 in 297 s. Locally at 06f499d3 (now f564f644), `-n 4`, load 4–10: 14 of 14 proved in 298 s, exit 0 | CI run 38658107547 at 692cef31, its `cases` job's log read: 19 proved, 0 named, in 299 s of the 5-minute bound, the job green |
 | ✅ That on `windows-latest` the case file passes now that a mutant keeps each line's own end (cc931b37). CI run 38518943105 failed six end-to-end cases there, every mutant refused against CRLF bytes. macOS gives the same output with a CRLF fixture, and passes after the fix | CI run 38658107547 at 692cef31: all four `windows-latest` shards passed, and the four shards hold every id (`tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`), so the case file passed there; read from the jobs' conclusions, its own ids not named in the quiet logs |
+| What the `cases` job says on a CI runner at phase 3's tip. Locally at d0429bfd, `-n auto`: 22 proved, 0 named, in 299 s, exit 0 | the orchestrating session, which pushes the branch; PR #939's next CI run |
 
 ## Not done
 
 The owner closed this item at phase 2 on 2026-10-15. Phases 3–6 of the plan
-went to #942, and with them:
+as it stood then went to #942; the reframe after round 3 gave the number 3 to
+the stopped-short rule. With them went:
 
 - the three enumeration files (`test_a_signer_declares_its_pact.py`,
   `test_one_table_walker_reads_what_gfm_renders.py`,
@@ -61,8 +64,8 @@ went to #942, and with them:
   `test-lines`, `test-cases:<file>`, `test-lines:<file>` — with their
   measurers in `budget_check.py`, a per-file table for them, and their
   ceilings;
-- the cases T8 and T9 would have been, which pinned those measurers and the
-  per-kind sample.
+- the cases that plan's T8 and T9 would have been, which pinned those
+  measurers and the per-kind sample.
 
 `unguarded-files` is not among them: the list it would have counted was
 dropped by the owner's decisions of 2026-10-14, and nothing owes a line.
