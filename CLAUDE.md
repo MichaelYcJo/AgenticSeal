@@ -41,9 +41,11 @@ it costs**; existing is no reason to keep it. A rule's proof is the test or
 behaviour eval its `Enforced by:` names. A fact has one source, and every
 other place links to it. A check gates only a fact it reads; a noisy reading,
 or one guessed from words, is a report. Nothing is kept beside the tree to
-stay in step with it, such as a stored count or coordinate. When fixes chase
-one mechanism's edge cases, ask what it decides; if every outcome is the
-same, remove it. A thing is re-checked only when the diff or CI shows it
+stay in step with it, such as a stored count or coordinate. Do not avoid the
+change a problem calls for: before a fix adapts to an existing structure, ask
+whether the structure should change, and when fixes chase one mechanism's
+edge cases, ask what it decides; what exists is a reference, not a
+constraint. A thing is re-checked only when the diff or CI shows it
 changed. A change rewrites the text it amends in place, and in the same
 commit removes what stood on the old fact: a check, an exception, a comment,
 a copy. History goes to git, the changelog and the work record.
