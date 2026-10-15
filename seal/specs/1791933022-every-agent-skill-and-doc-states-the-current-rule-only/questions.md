@@ -37,6 +37,20 @@ considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
 - The three record documents are replaced by one; `docs/the-agent-set.md`,
   `docs/the-record-layout.md` and `docs/the-broad-gate.md` are rewritten where
   this item makes them false, and otherwise left to #941.
+- (reframe after round 2) The check reads one fact per verdict row, the
+  `Verdict` cell, and sorts no row into finding or non-finding by its `#`
+  cell or its text: both sortings were guesses from words, each had an edge
+  the next round found, and the finding-only word set caught nothing in the 36
+  records in the tree (`spec.md` §*What leaves*; alternative R). What that
+  gives up — a 🔴 row closed `confirmed` passes the check — is written there,
+  with who reads it instead.
+- (reframe after round 2) `.test_durations`' staleness is decided by
+  collection, which the durations case already reads; the fix is in the data
+  (the dead entries pruned, nothing re-measured) and not in
+  `release_report.py`, which sums the file as it is (alternatives S, T, U).
+  No `tests` run of this branch exists to download a measured file from
+  (`gh run list`, `gh pr list` on 2026-10-15: none), so the refresh that
+  prices the 229 unpriced cases waits for the pull request's first run.
 - Answered by the owner before this frame and still standing: the proof's run
   budget (≈ 120 runs, ≈ $150; 2026-10-14), the tree's
   `skills/writing-style/SKILL.md` as the one source (2026-10-13), no
