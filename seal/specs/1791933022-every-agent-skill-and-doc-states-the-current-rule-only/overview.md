@@ -1,14 +1,27 @@
 # 1791933022-every-agent-skill-and-doc-states-the-current-rule-only — overview
 
 📋 implement applied
-· spec:     `spec.md` §*Non-inferiority, proved per phase*, §*Scope*, S9–S13, S16, §*Data & interfaces*; `plan.md` phase 2, T10–T12, E1/E7; `questions.md` Q6, Q7; `agents/warden.md` §*Report*; `docs/the-reader-registry.md` through `tests/reader_registry.py#GRAMMAR`
-· evidence: none — the ledger left the tree in 0.22.0 (#944)
-· verified: executed — the Q7 probe (three replay runs), every scaffold, the three sealer fixtures through `broad-gate`, 26 mutations, the census and layout modules; read — the eval runner's grader and case schema from the binary's own authoring prompt
+· spec:     #923's body; `spec.md` §*The review record, designed anew*, §*The sealer*, §*How the change reaches users of the plugin*, S19; `plan.md` rows 3–5 and §*The split*; `questions.md` Q1, Q7; `docs/the-review-record.md`; `skills/settle/SKILL.md` §*Released means*
+· tests:    phase 5 added `tests/test_chain_check.py::TestCarriedBy` (two cases) and two `TestMain` cases; three were red before `carried_by` existed, and the fourth, which pins today's behaviour, went red under the mutation that reads only the oldest commit; eight mutations of `carried_by` and its call, each `red`
+· verified: executed — the Q7 probe on a scratch squash of this branch into `release/v0.22.0`, the modules reading the changed files, `rules --check`, `chain_check.py` against the release branch, ruff; read — every earlier phase's record, which carries its own
 
 ## Why this work exists
 
-A rewrite of an agent's preload is judged against today's definitions by a
-suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
+The review chain's bookkeeping cost more turns than the reviews, so part A
+replaces it with one record the warden writes, a check that reads five facts
+and a sealer that guarantees the work independently, and gives part B a
+suite that scores a rewritten agent on outcome and cost.
+
+## Part A and part B
+
+Part A is phases 1–5 of this work item: the proof made light (1), the budget
+concept gone with `rules --check` and the release table kept (2), the record
+and the five-arm check (3), the sealer as guarantor (4), and the close with
+Q7's default built (5). Part B, phases 6–9, writes the contract and the five
+definitions anew and takes the baseline. It is a second work item under #923,
+cut from the release branch after this one merges, and it has not started:
+its rows in `plan.md` stand so the design reads in one place, with empty
+Status cells that part B's work item fills.
 
 ## Where spec and implementation diverged
 
@@ -46,30 +59,43 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 | The new sealer's opening | `spec.md` §*Every agent definition*: the job in one sentence, then where it works / `agents/sealer.md` opens with the contract paragraph the other four carry | the contract paragraph kept, word for word | `tests/test_every_agent_reads_the_contract.py` holds that paragraph in every definition and `docs/the-agent-set.md` states it; part B rewrites all five at once, and one definition dropping it would split a rule the set shares |
 | Sealer pins that named the gate's panel | not in §*Removes* / seven cases in four modules pinned the old sealer's sentences on the panel's `gate`, `base`, `rounds` and `CI also` rows, the `Broad gate` cell write and the `SEALED` line's second line | the sealer halves dropped, the documents' halves kept; the copy-line, capture-file, four-conditions and §6 cases re-pointed at the new text (`phases/phase-4.md`) | the guarantor relays the gate's lines as printed and explains no panel row; the documents that explain them still carry each sentence |
 | Phase 3's two red cases | not in phase 4's row / `tests/test_a_reader_declares_its_input_class.py` (three units phase 3 re-pointed went off the census) and `tests/test_dispatch.py`'s post-bash case (the reminder left with its hook) were red at cba5e0cd | fixed at 5bb3d4c2 | both were defects this branch caused, found by this phase's module run |
+| What Q7 is built into | `plan.md` row 5: the close, no code / the phase 5 spawn: build Q7's default in `chain_check.py` | built at 27dd748d | the orchestrator took Q7's default under the owner's `automation` routing; without it the release pull request into `main` fails its review-chain step on every 0.22.0 item (`phases/phase-4.md`) |
+| How "its own commits" is told from a squash | `questions.md` Q7: "the declarations naming its own branch and the ones its own commits changed, never an item merged by squash" / git holds no record of which pull request carried a commit | a declaration not naming the head branch is carried where every commit after the base that touched it is GitHub's (committer `noreply@github.com`) with a subject ending `(#N)` | this repository's own commits end `(#<issue>)` too, so the subject alone would read an item branch's commits as squashes; the committer alone would not tell a squash from GitHub's other commits. Errs loud for a squash a person committed, and passes unread a commit forged under GitHub's identity (`docs/the-review-record.md`) |
+| Where the Q7 rule applies | Q7: "a pull request into `main`" / `carried_by` reads every pull request | every pull request | the principle is "an item is judged at the pull request that carries it"; an item branch's range holds no GitHub squash its base lacks, so the rule changes nothing there, and no branch name is written into a check that ships to repositories whose release target is not `main` |
+| What the changelog fragment states | the phase 5 spawn: the fragment covers "the budget concept gone, `rules --check`, the release table" / `1791876665…/changelog.md` states `rules --check` and the release table (phase 2 rewrote it, attributed #930 and #923), and no released version carried a budget (`seal/budgets.md` absent at v0.21.1) | this fragment states neither | a fact has one source, and a release note naming a budget's removal tells a 0.21.1 user about something they never had |
+| A fragment to rewrite in place | the phase 5 spawn: "this item's `changelog.md` fragment rewritten in place" / no `changelog.md` existed in this work item | written new | nothing to rewrite; the phase 4 overview already said the fragment was phase 5's |
 
 ## Not verified
 
 | Item | Who must answer |
 |---|---|
-| The baseline: the four agents' suites run twice on the merge base, none cut short | the orchestrator, at the phase boundary (`phases/phase-2-suite-build.md`, the hand-back's command) |
-| A smith, framer or sealer case run through the eval: their scaffolds and the sealer's gate outcomes were run, their sessions were not | the orchestrator's baseline run, which is their first |
+| The baseline: the four agents' suites run twice on the merge base, none cut short | the orchestrator, at part B's phase 6, on the tree after this item merges (`plan.md` row 6) |
+| A smith, framer or sealer case run through the eval: their scaffolds and the sealer's gate outcomes were run, their sessions were not | the orchestrator's baseline run in part B, which is their first |
 | The full suite, the repository-wide lint and the typecheck over this branch | the sealer, once the rounds settle |
 | ✅ The five pre-existing cases under `evals/*/` hold their bounds at the top level, and four of them an inline scaffold, both of which the runner drops | removed at c7d8bcc8, each on the grounds in its divergence row; `tests/test_evals_layout.py` now holds every case under `evals/` to that schema |
-| A bare session's use of a skill the rewrites change: implement and code-review invoked from their descriptions, and a PR body written to writing-style. No case reads either once the five cases left, and every case runs through an agent | the orchestrator, at the phase that rewrites each skill |
+| A bare session's use of a skill the rewrites change: implement and code-review invoked from their descriptions, and a PR body written to writing-style. No case reads either once the five cases left, and every case runs through an agent | the orchestrator, at the part B phase that rewrites each skill (7 and 8) |
 | The `release-report` job on GitHub: its shell step, the `gh api` calls and the summary append ran nowhere; the script ran locally against v0.21.1 with that tag commit's real job list | 0.22.0's release pull request into `main`, the job's first run |
 | S12's seconds over the modules naming `chain_check` or `broad_gate`: 1,482 s read from `.test_durations`, whose entries predate this phase and hold none for `test_chain_check.py` or `test_broad_gate.py` | the sealer's broad run, which measures them |
 | ✅ How the eval runner grades `not_contains` on a file that was never written, which the sealer's two non-green cases ask of `broad-gate.md` | no case asks it now: the three guarantor cases at e8155d0d grade `guarantee.md`'s verdict line with a positive pattern, so a file never written fails them |
 | ✅ Whether the old check also paired a deleted declaration with an added one as a rename (`chain_check.py#changed` diffs with `-M`) | read: `-M` and the `R100` exemption date from #90 (95e32588), so the old check paired them the same way. The check reads with `--no-renames` since 35a50e34, and an exact move is paired by its bytes |
 | The three guarantor cases run against a model, and what one guarantor run costs (`questions.md` Q2) | the orchestrator, at the sealer's first run on this branch; the scaffolds and the tree's `broad-gate` over the sound fixture were run, the sessions were not |
-| A release pull request into `main` reading squashed items (`questions.md` Q7) | the repository owner |
+| ✅ A release pull request into `main` reading squashed items (`questions.md` Q7) | built on Q7's default at 27dd748d and probed on a scratch squash of this branch into `release/v0.22.0` (`phases/phase-5.md`); the owner's confirmation is the next row's |
+| Q7's default on GitHub: the hygiene step on 0.22.0's release pull request reading the real squashes, and the owner confirming the default. The probe made its squash locally under GitHub's committer identity; no GitHub squash of this reading has run, and the four 0.22.0 squashes it named were read from the release branch | 0.22.0's release pull request into `main`, the step's first run; the repository owner, for the default |
+| This branch's own review chain on the new record, and `chain_check.py` exiting 0 on its records at its ready pull request (`plan.md` row 5) | the orchestrator, after the rounds and the sealer |
+| The release table on this item's pull request (`plan.md` row 5): its pull request is into the release branch, and the table prints only on one into `main` | 0.22.0's release pull request into `main` |
 
 ## Not done
 
-The baseline, which is the orchestrator's act. The changelog fragment, which
-is phase 5's. `evals/scripts/replay_targets.py` reads a round's asked
-paragraph from a section new records do not carry (part B). The release pull
-request's reading of squashed items, which waits on `questions.md` Q7.
+Part B, phases 6–9: the contract and the five definitions written anew, the
+`skills:` lists cut to the contract, the baseline and the per-phase proof. It
+is a second work item, not started. `evals/scripts/replay_targets.py` reads a
+round's asked paragraph from a section new records do not carry, which is
+part B's. Q2's cost of a guarantor run waits on this branch's first sealer
+spawn, which is the orchestrator's.
 
 ## Fed back into the spec
 
-none
+- `docs/the-review-record.md` §*What the check reads at the pull request*,
+  *An item is judged at the pull request that carries it*: inferred during
+  implementation from `questions.md` Q7's default, which the orchestrator
+  took under `automation`; the owner may overturn it.
