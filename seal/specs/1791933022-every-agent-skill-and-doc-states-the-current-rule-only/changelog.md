@@ -27,11 +27,11 @@
   naming the pull request's branch and every one its own commits add or
   change. The declaration has to parse. A declared framer left `spec.md`,
   `plan.md` and its mark. A declared review chain left at least one round,
-  every row of every round reads a word that closes it, whatever mark the
-  row carries: `fixed`, `answered`, `deferred <home>`, `confirmed` or
-  `out of verified scope`. A refusal names the words for the row's mark:
-  a fix pass's three for a 🔴 or 🟡 row, `confirmed` for a 🟢 row, and
-  `❓ out of verified scope` for a ❓ row. The last round's commit is HEAD
+  and every row of every round reads a word that closes it. A 🔴 or 🟡 row
+  closes only by the fix pass's three, `fixed <commit>`, `answered` or
+  `deferred <home>`, so a finding closed `confirmed` fails. A 🟢 row's word
+  is `confirmed` and a ❓ row's `❓ out of verified scope`. A refusal names
+  the words for the row's mark. The last round's commit is HEAD
   or only the work item's own records follow it. `broad-gate.md` names
   HEAD.
   `guarantee.md` names HEAD and reads `sound`. A draft prints every refusal
@@ -59,11 +59,8 @@
   runs the broad gate, then re-runs a sample of the smith's `executed` and
   `seen red` claims, chosen where the evidence is thinnest. It confirms each
   `fixed <commit>` is on the branch and touches the location it fixes, and
-  that nothing this release removed has come back. It reads every 🔴 and 🟡
-  row of every round: the check passes one closed `confirmed` or `out of
-  verified scope`, so the sealer writes each such row into `guarantee.md`'s
-  `## Claims re-run`, and its verdict is `not sound` unless a later round
-  answers it. It reads the spec, the build, the warden's last round,
+  that nothing this release removed has come back. It reads the spec, the
+  build, the warden's last round,
   the changelog fragment and the pull request body as one story and names
   the party the issue and the tree contradict. It does not re-judge the
   design or the code's quality. Its

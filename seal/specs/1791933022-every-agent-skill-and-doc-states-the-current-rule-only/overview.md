@@ -14,14 +14,16 @@ suite that scores a rewritten agent on outcome and cost.
 
 ## Part A and part B
 
-Part A is phases 1–5, 5a and 5b of this work item: the proof made light (1),
+Part A is phases 1–5, 5a, 5b and 5c of this work item: the proof made light (1),
 the budget concept gone with `rules --check` and the release table kept (2),
 the record and the five-arm check (3), the sealer as guarantor (4), the close
 with Q7's default built (5), the repair after round 2, where the check reads
 one word per verdict row and `.test_durations` is pruned by collection (5a),
-and the repair after round 4, where the sealer's acts are listed once, in its
+the repair after round 4, where the sealer's acts are listed once, in its
 definition, and the stored counts leave this item's two builder documents
-(5b). Part B, phases 6–9, writes the contract and the five
+(5b), and the repair after round 5, where a 🔴 or 🟡 row closes only by the
+fix pass's three and the sealer's duty over such a row leaves (5c). Part B,
+phases 6–9, writes the contract and the five
 definitions anew and takes the baseline. It is a second work item under #923,
 cut from the release branch after this one merges, and it has not started:
 its rows in `plan.md` stand so the design reads in one place, with empty
@@ -70,6 +72,7 @@ Status cells that part B's work item fills.
 | What the changelog fragment states | the phase 5 spawn: the fragment covers "the budget concept gone, `rules --check`, the release table" / `1791876665…/changelog.md` states `rules --check` and the release table (phase 2 rewrote it, attributed #930 and #923), and no released version carried a budget (`seal/budgets.md` absent at v0.21.1) | this fragment states neither | a fact has one source, and a release note naming a budget's removal tells a 0.21.1 user about something they never had |
 | What the class check for the sealer's acts finds | `plan.md` row 5b: `git grep -n "fixed <commit>"` outside `seal/specs/` and `changelog/` finds only `docs/the-review-record.md` §*The round record*, `templates/sdd-round.md` and `agents/sealer.md` step 3 / it also finds the refusal's words in `chain_check.py#CLOSES_BY`, their two pins in `tests/test_chain_check.py`, and the strings T22 and T23 assert absent | those lines left | none of them lists what the sealer does: the refusal names the words a fix pass writes, which is the record's vocabulary, and the test lines are pins. A list of the sealer's acts stands in step 3 alone (`phases/phase-5b.md`) |
 | A fragment to rewrite in place | the phase 5 spawn: "this item's `changelog.md` fragment rewritten in place" / no `changelog.md` existed in this work item | written new | nothing to rewrite; the phase 4 overview already said the fragment was phase 5's |
+| The sealer's duty phase 5b built | phase 5b's row: `agents/sealer.md` step 3 writes each 🔴 or 🟡 row closed by another kind's word into `## Claims re-run`, pinned by T21 at 1011463b / the reframe after round 5: the check refuses such a row, and the duty leaves (`spec.md` §*Removes*) | the check reads it at dea5471a; the duty, T21 and round 3's pin left at 2fab5421 | round 5's 🟡 1 found the duty's `Result` cell in two shapes, the third repair of one trade made after round 2. Whether a finding took the fix pass's words is a fact `chain_check.py` reads from the row, so the check refuses it and the sealer has nothing to read for (`phases/phase-5c.md`) |
 
 ## Not verified
 
