@@ -694,6 +694,23 @@ def test_a_slow_file_is_reported_and_the_suite_seconds_are_gated(tmp_path, capsy
     ), out
 
 
+def test_an_unlisted_slow_file_under_a_report_row_is_named(tmp_path, capsys):
+    """Work item 1791876667, round 5's 🟡 3: a test file that crosses the
+    threshold unlisted under a `report` family fails nothing, and the summary
+    still names it, because the family's own line reads only the largest
+    unlisted value and the path is in the row's problem alone."""
+    head = budgets(("slow-file", "seconds", 120, "one-sided", "report")) + table(
+        "Seconds ceiling", []
+    )
+    root = tree(tmp_path, head, files={".test_durations": json.dumps(SMALL)})
+    assert run(root) == 0
+    out = capsys.readouterr().out
+    assert "Report rows past their band, failing nothing:" in out, out
+    assert (
+        "- `slow-file`: tests/test_a.py is not listed and measures 130 seconds" in out
+    ), out
+
+
 def priced(scale, only=None):
     """`CASES` with every case, or the cases of the file `only`, multiplied."""
     return {

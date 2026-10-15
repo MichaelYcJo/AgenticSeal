@@ -115,8 +115,9 @@ Seconds ceiling |`), `## Docs history lines` (`| File | Lines ceiling |`) and
 ceiling of their own. So where the family is a `gate`,
 an unlisted file over the threshold fails, and listing it is a raise from the
 threshold that needs its line, as is a row the table drops whose ceiling was
-under it. Every test file whose reading times 1.3 reaches the threshold is
-listed, so an unlisted one has the same room to move before it reads over. A docs
+under it. Where the family is a `report`, that file fails nothing and the
+summary names it in the list of report rows past their band. Every test
+file whose reading times 1.3 reaches the threshold is listed, so an unlisted one has the same room to move before it reads over. A docs
 line is a **history line** when it is not a rule line, not blank, not hidden
 in a fence or a comment and not a heading, and matches `#NN`, `round N`, a
 date or `measured`. A **rule line** is in a block from a line opening with
@@ -1215,8 +1216,9 @@ def ratchet(base_rows, head_rows, body, release):
 
 
 def render(results, moves, against, cache=None):
-    """The summary as markdown: one line per budget, the raises read, the
-    price level the seconds rows were read at, and where the docs were
+    """The summary as markdown: one line per budget, each report row's
+    problems, the raises read, the price level the seconds rows were read
+    at, and where the docs were
     classified, each document's history and rule lines.
 
     Reads: nothing — formats the results handed to it"""
@@ -1269,6 +1271,17 @@ def render(results, moves, against, cache=None):
             f"| `{row.name}` | {result.measured:,} {row.unit}{largest} | "
             f"{row.ceiling:,} | {room:,} ({share}) | {row.kind} | {verdict} |"
         )
+    # A report row fails nothing, so its problems are not the run's; they
+    # print here, because a family's line above names no file.
+    noted = [
+        (result.row.name, problem)
+        for result in results
+        if result.row.kind == REPORT
+        for problem in result.problems
+    ]
+    if noted:
+        lines += ["", "Report rows past their band, failing nothing:", ""]
+        lines += [f"- `{name}`: {problem}" for name, problem in noted]
     if moves:
         lines += ["", "Ceilings moved since the base:", ""]
         lines += [f"- `{name}` {what}: {reason}" for name, what, reason in moves]

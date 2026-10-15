@@ -44,6 +44,9 @@
     makes that spread, so this change makes the `slow-file` rows of
     `seal/budgets.md` `report` rows: each file's reading still prints in the
     summary and fails nothing, and `suite-seconds`, the sum, stays the gate.
+    A file that crosses the threshold unlisted is named in the summary's
+    list of report rows past their band, which every report row's problems
+    now print to.
     A pull request that commits
     a union restates `## Price level` in `seal/budgets.md` in the same
     commit, and nobody copies the number: the new
