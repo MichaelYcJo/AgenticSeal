@@ -487,3 +487,62 @@ class TestMain:
         code = chain.main(["--baseline", "no-such-ref", "--root", str(root)])
         assert code == 2
         assert "does not resolve" in capsys.readouterr().err
+
+
+# --- retired ------------------------------------------------------------------
+
+OLD_ITEM = "seal/specs/1788000000-an-earlier-item"
+
+
+def remove_an_earlier_item(root, marker):
+    """Declare an earlier work item on `main`, bring it into the branch, and
+    remove its directory there, with or without the `docs/` marker a fold
+    writes."""
+    git(root, "switch", "-q", "main")
+    # The filler keeps `git diff -M` from pairing this deletion with the
+    # branch's own added declaration as one rename, which would hide it.
+    filler = "".join(f"A line of its own, number {n}.\n" for n in range(40))
+    write(
+        root,
+        f"{OLD_ITEM}/routing.md",
+        ROUTING.format(review="straight to the PR", planning="the session")
+        + "\n"
+        + filler,
+    )
+    # A spec at the merge base keeps the rule arm (`retired_by_rule`) from
+    # excusing the removal, so only the marker can.
+    write(root, f"{OLD_ITEM}/spec.md", "# a spec\n\nA rule.\n")
+    commit(root, "an earlier item, declared")
+    git(root, "switch", "-q", "feature/x")
+    git(root, "merge", "-q", "--no-edit", "main")
+    git(root, "rm", "-rq", OLD_ITEM)
+    if marker:
+        write(
+            root,
+            "docs/policy.md",
+            "<!-- specs/1788000000-an-earlier-item -->\nA rule.\n",
+        )
+    commit(root, "the earlier item leaves")
+
+
+class TestRetired:
+    def test_a_declaration_a_fold_retired_is_not_one_this_branch_made(
+        self, branch, draft, capsys
+    ):
+        """A `routing.md` that `settle --retire` removed is a deletion in the
+        diff, and the work item it declared was reviewed at its own pull
+        request; the `docs/` marker is what tells it from a deletion."""
+        root, _code = branch
+        remove_an_earlier_item(root, marker=True)
+        _code, out = check(root, capsys)
+        assert "retired:" in out and "1788000000-an-earlier-item" in out
+        assert "does not carry this file at HEAD" not in out
+
+    def test_a_declaration_deleted_with_nothing_absorbing_it_is_refused(
+        self, branch, draft, capsys
+    ):
+        root, _code = branch
+        remove_an_earlier_item(root, marker=False)
+        _code, out = check(root, capsys)
+        assert "does not carry this file at HEAD" in out
+        assert "retired:" not in out
