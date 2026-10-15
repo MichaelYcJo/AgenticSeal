@@ -31,31 +31,26 @@ def flat(*parts):
 # --- the handoff before round 1 ---------------------------------------------
 
 
+PROTOCOL = ("docs", "the-review-record.md")
+
+
 def test_the_protocol_carries_the_handoff_before_round_one():
-    protocol = flat("docs", "review-handoff-protocol.md")
-    assert "The handoff before round 1" in protocol, (
-        "the protocol hands state between rounds and says nothing about the "
-        "handoff that starts the work"
+    protocol = flat(*PROTOCOL)
+    assert "## The handoff" in read(*PROTOCOL), (
+        "the record's document says nothing about the handoff that starts the work"
     )
-    assert "coordinates rather than prose" in protocol
-    assert "executed / read / unverified" in protocol, (
+    assert "coordinates, never prose" in protocol
+    assert "`executed`, `read` or `unverified`" in protocol, (
         "the labels a handoff fact carries are verify's three, by name — a "
         "fact with none is an assertion nobody has opened"
     )
-    assert "an aggregate is not a coordinate" in protocol, (
+    assert "An aggregate is not a coordinate" in protocol, (
         "the measured failure went: a count travelled as if it were a "
         "checkable fact, and the claim it stood for was wrong"
     )
-    assert "where to measure" in protocol, (
+    assert "where it is measured" in protocol, (
         "a claim that flips on measurement point needs the point, not just "
         "the place — two findings flipped on it in one work item"
-    )
-
-
-def test_the_draft_number_moved_for_the_new_section():
-    protocol = read("docs", "review-handoff-protocol.md")
-    assert "draft 0.6" in protocol or "Draft 0.6" in protocol, (
-        "a changed layout or rule moves the draft"
     )
 
 
@@ -82,63 +77,14 @@ def test_the_implementer_documents_point_at_the_section():
     )
 
 
-# --- the interim home stops being one ---------------------------------------
-
-
-def pointer_section(text):
-    """The body of `## What every spawn prompt used to carry`, heading to the
-    next `## `. Scoped rather than whole-file on purpose: the sentence this
-    pins is also stated in `## Status`, so a document-wide search would stay
-    green with the section itself gutted -- which is the one edit this case
-    exists to catch."""
-    match = re.search(
-        r"^## What every spawn prompt used to carry$(.*?)(?=^## )",
-        text,
-        re.M | re.S,
-    )
-    assert match, (
-        "the pointer section is gone or renamed. It replaced the interim home "
-        "that carried the method half of every spawn prompt (#107 phase 5); a "
-        "rename has to bring this case with it"
-    )
-    return " ".join(match.group(1).split())
-
-
-def test_the_protocol_points_at_the_contract_instead_of_restating_it():
-    """#107 phase 5. The section named itself an interim home and named the
-    issue that would end it. It now points at the two files that carry those
-    rules, and the sentence a prompt is actually governed by is what stands
-    in its place.
-
-    Both halves matter and only the second is unusual. A pointer that keeps
-    the rules beside it is two answers in front of one reader, which is the
-    duplication the move was made to end -- so the absence half is asserted
-    as hard as the presence half."""
-    section = pointer_section(read("docs", "review-handoff-protocol.md"))
-    assert "a prompt carries what is specific to the round and nothing else" in (
-        section.lower()
-    ), (
-        "the section stopped saying what a prompt is left holding, which is "
-        "the one rule that stayed here when the rest moved"
-    )
-    assert "skills/agent-contract/SKILL.md" in section, (
-        "the pointer names no contract, so a reader arriving for the rules "
-        "leaves with neither them nor the path to them"
-    )
-    assert "agents/<name>.md" in section, (
-        "the pointer names the shared half and not the per-agent half, which "
-        "is half of the three-layer split"
-    )
+# --- the rules a prompt no longer carries -----------------------------------
 
 
 def test_the_protocol_no_longer_states_the_rules_it_points_at():
-    """The restatement check, one phrase per list that used to sit here.
-
-    Each is verbatim from what phase 5 removed, so a paste-back is red rather
-    than invisible -- the same reasoning `test_a_moved_rule_leaves_its_
-    definition.py` applies to the agent definitions, applied to the document
-    those rules were moved OUT of."""
-    protocol = flat("docs", "review-handoff-protocol.md")
+    """The restatement check: each rule below is the contract's or a
+    definition's, and a copy of it in the record's document is a second
+    source a paste-back would bring."""
+    protocol = flat(*PROTOCOL)
     for phrase, whose in (
         ("never `cmd | tail; echo $?`", "the contract's §1"),
         ("enumerate the class, do not fix the coordinate", "the contract's §12"),
@@ -208,7 +154,7 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
 
 
 def test_the_protocol_names_the_progress_channel_and_the_stall_signal():
-    protocol = flat("docs", "review-handoff-protocol.md")
+    protocol = flat(*PROTOCOL)
     assert "Status column" in protocol, (
         "the readout the implementer already writes during the run has to be "
         "named where the orchestrator reads, or git log stays the only answer"
@@ -360,7 +306,7 @@ def test_the_protocol_names_a_bar_per_segment_kind():
     """One bar misread two of the three segment kinds: the ratio that judges
     a reviewer is the wrong question for an edit-test loop, and the meter's
     numbers had no written rule at all about what they mean."""
-    protocol = flat("docs", "review-handoff-protocol.md")
+    protocol = flat(*PROTOCOL)
     assert "tools per turn **≥ 1.8**" in protocol, "the reviewing bar went"
     assert "never tools per turn" in protocol, (
         "the implementing row must say which number does NOT judge it"
@@ -374,12 +320,6 @@ def test_the_protocol_names_a_bar_per_segment_kind():
         "the framing bar went, and `--segments` grades framer rows against a "
         "number no policy states"
     )
-    # Round 1's ⬜ 4. The prohibition lived in prompts and in no file, so the
-    # row says what the definition does now, not that it stopped doing it.
-    assert "which `agents/framer.md` no longer does" not in protocol, (
-        "the framing row says the definition once held a framer's reads back"
-    )
-    assert "now replaces with a bound on one call" in protocol
     assert "never a refusal threshold" in protocol, (
         "the bar is a lens for rounds of ordinary size — a 23-call round "
         "read 1.64 doing everything right, and a gate failing it would "
@@ -388,15 +328,15 @@ def test_the_protocol_names_a_bar_per_segment_kind():
 
 
 def bars_section(text):
-    """The body of `### After the run — the per-segment bars`, heading to the
-    next heading of any level.
+    """The body of `### The per-segment bars`, heading to the next heading of
+    any level or the end of the document.
 
-    Scoped rather than whole-file, for the reason `pointer_section` above is:
-    the document names `session_cost.py` two sections up, so a document-wide
-    search would stay green with this section saying nothing about the
-    run-level table -- which is the one edit this case exists to catch."""
+    Scoped rather than whole-file: the document names `session_cost.py` a
+    section up, so a document-wide search would stay green with this section
+    saying nothing about the run-level table -- which is the one edit this
+    case exists to catch."""
     match = re.search(
-        r"^### After the run — the per-segment bars$(.*?)(?=^#{2,3} )",
+        r"^### The per-segment bars$(.*?)(?=^#{2,3} |\Z)",
         text,
         re.M | re.S,
     )
@@ -415,7 +355,7 @@ def test_the_tying_paragraph_says_which_reading_applies_the_bars():
     joined to. The plain reading still cannot tell, which is why its
     advisory stays where it is and why the sentence is narrowed to it rather
     than removed."""
-    section = bars_section(read("docs", "review-handoff-protocol.md"))
+    section = bars_section(read(*PROTOCOL))
     assert "`--segments` applies the bars above by kind" in section, (
         "the paragraph does not say the page grades a row, so a reader meets "
         "a named row under a bar with no policy saying where it came from"
@@ -451,7 +391,7 @@ def test_the_bars_and_the_run_level_table_judge_different_things():
     rolling log the measurement section already names, so a sentence that
     reads as a new home for a reading is the other way this paragraph can go
     wrong."""
-    section = bars_section(read("docs", "review-handoff-protocol.md"))
+    section = bars_section(read(*PROTOCOL))
     assert (
         "The bars judge a segment against its kind; the run-level table "
         "judges a run against the last run measured." in section
@@ -542,22 +482,6 @@ def test_the_refused_rows_are_the_owners_own():
         )
 
 
-def test_the_title_and_the_status_section_agree_on_the_draft():
-    """🔴 1 of the work item's round 1: the title moved to draft 0.8 while
-    the Status section still opened with 0.7 — one document naming two
-    current drafts, and Status is what a conformance reader opens. This
-    case was planted against exactly that state and seen red."""
-    text = read("docs", "review-handoff-protocol.md")
-    title = re.search(r"^# Review Handoff Protocol — draft (\d+\.\d+)", text, re.M)
-    status = re.search(r"^Draft (\d+\.\d+), extracted", text, re.M)
-    assert title, "the title moved off its `draft N.N` pattern"
-    assert status, "the Status opening moved off its `Draft N.N, extracted` pattern"
-    assert title.group(1) == status.group(1), (
-        f"the title says draft {title.group(1)} and the Status section says "
-        f"{status.group(1)} — a draft bump rewrites both lines or neither"
-    )
-
-
 def test_the_scripts_bars_are_the_protocols():
     """#640. The bars live in the protocol's table and, since `--segments`
     grades by kind, in `session_cost.py`'s `SEGMENT_BARS` too -- constants,
@@ -568,7 +492,7 @@ def test_the_scripts_bars_are_the_protocols():
     The implementing row is held too: the protocol says it is never judged
     on tools per turn, and the script's entry for it is the exemption."""
     script = read("skills", "verify", "scripts", "session_cost.py")
-    protocol = read("docs", "review-handoff-protocol.md")
+    protocol = read(*PROTOCOL)
     for kind, segment in (("warden", "reviewing"), ("framer", "framing")):
         constant = re.search(rf'"{kind}": \("{segment}", ([\d.]+)\)', script)
         assert constant, f"`SEGMENT_BARS` lost its {kind} entry or its shape"
@@ -610,7 +534,7 @@ def test_the_advisory_and_the_tying_paragraph_name_one_value():
     # places it prints, so the pattern reads the rounded comparison.
     threshold = re.search(r'round\(data\["tools_per_turn"\], 2\) < ([\d.]+)', script)
     assert threshold, "the advisory threshold moved off its pattern in session_cost.py"
-    protocol = flat("docs", "review-handoff-protocol.md")
+    protocol = flat(*PROTOCOL)
     assert (
         f"batching advisory below {threshold.group(1)} and stays there" in protocol
     ), (
