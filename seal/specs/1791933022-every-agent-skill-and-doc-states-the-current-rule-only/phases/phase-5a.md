@@ -61,7 +61,7 @@ writes both files anew. The class was also searched past the four patterns,
 for `closes no finding`, `is no finding` and `open finding`. That search
 found the comments over the constants, which are rewritten, and the refusal
 message `… which closes no finding: a fix pass writes …`, which is left. That
-message is pinned at `tests/test_chain_check.py:569`. Most rows it names are
+message is pinned at `tests/test_chain_check.py:527`. Most rows it names are
 🔴 or 🟡 rows, and for those the fix pass's words it lists are the right
 ones; whether a 🟢 row left at `open` needs other words is the next round's
 to judge.

@@ -50,7 +50,7 @@ considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
   `release_report.py`, which sums the file as it is (alternatives S, T, U).
   No `tests` run of this branch exists to download a measured file from
   (`gh run list`, `gh pr list` on 2026-10-15: none), so the refresh that
-  prices the 229 unpriced cases waits for the pull request's first run.
+  prices the 226 unpriced cases waits for the pull request's first run.
 - Answered by the owner before this frame and still standing: the proof's run
   budget (≈ 120 runs, ≈ $150; 2026-10-14), the tree's
   `skills/writing-style/SKILL.md` as the one source (2026-10-13), no
