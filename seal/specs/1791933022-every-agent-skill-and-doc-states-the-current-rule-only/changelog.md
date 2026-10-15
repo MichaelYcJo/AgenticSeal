@@ -84,16 +84,16 @@
 
   | File | Lines before | Lines after |
   |---|---|---|
-  | `skills/code-review/scripts/chain_check.py` | 6,153 | 1,135 |
+  | `skills/code-review/scripts/chain_check.py` | 6,153 | 1,110 |
   | `skills/code-review/scripts/round_record.py` | 5,596 | gone |
   | `skills/verify/scripts/broad_gate.py` | 3,648 | 3,400 |
   | `hooks/review-history-guard.py` | 303 | gone |
-  | `templates/sdd-round.md` | 460 | 45 |
-  | the three record documents | 2,725 | 228, one document |
+  | `templates/sdd-round.md` | 460 | 46 |
+  | the three record documents | 2,725 | 230, one document |
   | `agents/sealer.md` | 268 | 143 |
 
   Counted against `origin/release/v0.22.0` at `ce448bbe`. The suite holds
-  143 test modules where it held 167, and 31,995 lines of tests left
-  against 3,117 added.
+  143 test modules where it held 167, and 31,996 lines of tests left
+  against 3,076 added.
   (`1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
   #923)
