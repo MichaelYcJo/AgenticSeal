@@ -157,9 +157,29 @@ def _trace(frame, event, arg):
     return line
 
 
+def _watch_expected(item):
+    # The stdlib takes whatever a marked body raises for its expected
+    # failure, pytest's own skip and xfail stops included, and pytest's
+    # unittest plugin then reports an xfail; the exception it is handed says
+    # which it was.
+    add = getattr(item, "addExpectedFailure", None)
+    case = getattr(item, "instance", None)
+    if add is None or not isinstance(case, unittest.TestCase):
+        return
+
+    def watched(testcase, rawexcinfo, *rest, **named):
+        raised = rawexcinfo[1] if isinstance(rawexcinfo, tuple) else None
+        if isinstance(raised, (pytest.skip.Exception, pytest.xfail.Exception)):
+            _skipped.add(item.nodeid)
+        return add(testcase, rawexcinfo, *rest, **named)
+
+    item.addExpectedFailure = watched
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_call(item):
     _now[0] = item.nodeid
+    _watch_expected(item)
     began = time.monotonic()
     sys.settrace(_trace)
     threading.settrace(_trace)
@@ -178,9 +198,10 @@ def pytest_runtest_call(item):
 # so every other implementation has written it, and pytest's xfail stop is a
 # run only where its unittest plugin raised it for an expected failure: a
 # `TestCase` whose instance or method carries the stdlib's mark, the two
-# places the stdlib reads it from. The stopped ids are written apart, and
-# their lines are kept: a case that asserted and then stopped fails under a
-# mutant of what it asserted.
+# places the stdlib reads it from, and whose body raised other than pytest's
+# own stop, which `_watch_expected` reads. The stopped ids are written apart,
+# and their lines are kept: a case that asserted and then stopped fails under
+# a mutant of what it asserted.
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):
     report = (yield).get_result()

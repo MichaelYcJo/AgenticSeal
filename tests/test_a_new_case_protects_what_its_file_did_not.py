@@ -379,6 +379,11 @@ ELSEWHERE = (
     "@unittest.expectedFailure\n"
     "def test_by_xfail_under_a_unittest_mark():\n"
     '    pytest.xfail("another platform")\n    assert m.double(2) == 4\n'
+    "\n\n\n@unittest.expectedFailure\n"
+    "class TestUnderAClassMark(unittest.TestCase):\n"
+    "    def test_by_skip_under_a_unittest_mark(self):\n"
+    '        pytest.skip("another platform")\n'
+    "        assert m.double(2) == 4\n"
 )
 NEVER_STARTED = [
     "test_by_a_mark",
@@ -389,6 +394,7 @@ NEVER_STARTED = [
     "TestUnittest::test_by_skiptest",
     "test_by_xfail",
     "test_by_xfail_under_a_unittest_mark",
+    "TestUnderAClassMark::test_by_skip_under_a_unittest_mark",
 ]
 NEVER_RAN = (
     "not proved: none of its ids ran its call to the end on this runner "
