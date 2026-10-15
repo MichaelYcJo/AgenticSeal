@@ -14,9 +14,12 @@ Usage:
                                          mutation it would carry
   seed_defects.py --count 4 [--out DIR]  write the COUNT smallest under DIR
                                          (evals/behaviour/warden/)
+  seed_defects.py --case NAME [--out DIR]
+                                         write the named case alone
+                                         (`seeded-<commit[:8]>`); repeatable
 
-Exit codes: 0 written or listed · 1 fewer cases than --count · 2 the
-arguments were unusable.
+Exit codes: 0 written or listed · 1 fewer cases than --count, or a named
+case not on the list · 2 the arguments were unusable.
 """
 
 import argparse
@@ -277,6 +280,7 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
     p.add_argument("--count", type=int, default=4)
+    p.add_argument("--case", action="append", default=[])
     p.add_argument("--out", default=OUT)
     p.add_argument("--model", default=rt.MODEL)
     p.add_argument("--timeout", type=int, default=2400)
@@ -291,6 +295,9 @@ def main(argv=None):
             print(f"{commit[:8]} left out: {why}")
         return 0
     chosen = sorted(kept, key=lambda t: (t["size"], t["commit"]))[: a.count]
+    if a.case:
+        chosen = [t for t in kept if case_name(t) in a.case]
+        a.count = len(a.case)
     url = rt.origin_url()
     for t in chosen:
         report = f"seal/specs/{t['item']}/rounds/round-1-report.md"

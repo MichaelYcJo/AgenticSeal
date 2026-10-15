@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/specs/1791852614-survivor-check-reads-a-range-as-its-own-commits/rounds/round-1-report.md'}
+target: {source: 'file', path: 'seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1-report.md'}
 pattern: '^Loses a record or crashes: (?:no|yes)'
 flags: 'm'
 ---

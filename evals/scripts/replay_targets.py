@@ -15,9 +15,13 @@ Usage:
   replay_targets.py --count 4 [--out DIR]  write the COUNT smallest targets,
                                            one per work item, under DIR
                                            (evals/behaviour/warden/)
+  replay_targets.py --case NAME [--out DIR]
+                                           write the named case alone, as
+                                           `--list` shows it (`replay-<id>-rN`);
+                                           repeatable
 
-Exit codes: 0 written or listed · 1 fewer targets than --count · 2 the
-arguments were unusable.
+Exit codes: 0 written or listed · 1 fewer targets than --count, or a
+named case not on the list · 2 the arguments were unusable.
 """
 
 import argparse
@@ -444,6 +448,7 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
     p.add_argument("--count", type=int, default=4)
+    p.add_argument("--case", action="append", default=[])
     p.add_argument("--out", default=OUT)
     p.add_argument("--model", default=MODEL)
     p.add_argument("--timeout", type=int, default=2400)
@@ -462,6 +467,9 @@ def main(argv=None):
             items.add(t["item"])
         if len(chosen) == a.count:
             break
+    if a.case:
+        chosen = [t for t in kept if case_name(t) in a.case]
+        a.count = len(a.case)
     url = origin_url()
     for t in chosen:
         name = case_name(t)
