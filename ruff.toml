@@ -40,8 +40,7 @@ extend-exclude = ["*.md"]
 # tests/test_a_script_says_which_interpreter_it_needs.py derives that set,
 # holds every file of it to this table, and holds each to this version.
 [per-file-target-version]
-"hooks/*.py" = "py39"
-"hooks/git/*.py" = "py39"
+"hooks/*.py" = "py39"  # its `*` crosses a `/`, so hooks/git/ too
 ".github/scripts/run_tests.py" = "py39"
 "skills/verify/scripts/seal_stamp.py" = "py39"
 "skills/verify/scripts/unverified_check.py" = "py39"

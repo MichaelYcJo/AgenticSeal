@@ -19,6 +19,7 @@ edit missed passes by testing an unmodified file.
 """
 
 import ast
+import fnmatch
 import importlib.util
 import json
 import os
@@ -392,9 +393,9 @@ def ruff_targets(path=RUFF):
 
 
 def matches(pattern, rel):
-    """Whether ruff's glob `pattern` names `rel`; `*` stops at a `/`."""
-    regex = "".join("[^/]*" if c == "*" else re.escape(c) for c in pattern)
-    return re.fullmatch(regex, rel) is not None
+    """Whether ruff's glob `pattern` names `rel`. Its `*` crosses a `/`, as
+    ruff's does: `"hooks/*.py"` lints `hooks/git/pre-commit.py` too."""
+    return fnmatch.fnmatchcase(rel, pattern)
 
 
 def test_what_runs_before_any_floor_needs_nothing_its_python3_lacks():
@@ -410,6 +411,14 @@ def test_what_runs_before_any_floor_needs_nothing_its_python3_lacks():
     assert {what for _, what in newer_than(planted, (3, 9))} == set(NEWER)
     assert newer_than(planted, (3, 11)) == []
     assert newer_than("match x:\n    case 1:\n        pass\n", (3, 9))
+    loads = (
+        'import a\nfrom e import f\nG = ("b.py",)\n'
+        'D = os.path.join(H, "..", "s", "d.py")\n'
+    )
+    tracked = {"hooks/a.py", "hooks/b.py", "hooks/c.py", "hooks/e.py", "s/d.py"}
+    assert loaded_by("hooks/c.py", loads, tracked) == tracked - {"hooks/c.py"}
+    assert matches("hooks/*.py", "hooks/git/pre-commit.py")
+    assert not matches("hooks/*.py", "skills/verify/scripts/broad_gate.py")
     unfloored, missing = before_any_floor()
     targets = ruff_targets()
     assert {"hooks/dispatch.py", "hooks/launch.py"} <= unfloored, unfloored
