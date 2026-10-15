@@ -33,14 +33,17 @@
   file it names, and the shipped lines the pull request changed. Under each
   mutant it runs the cases that ran that line. A case passes when it is its
   file's only killer of at least one mutant; otherwise the job names it and
-  fails. The job runs on ubuntu, so a case that is skipped there, such as a
-  Windows-only one, is named for never having run rather than for killing
-  nothing, and fails it too. Mutants of changed code that no case kills are listed and fail
-  nothing. The proof is bounded at five minutes, and a file whose proof
-  would take longer is named with `restructure: test the decision directly`.
-  Nothing is annotated by hand, and `CONTRIBUTING.md` says what a case owes.
-  `mutation-check --baseline-passed` skips the run against the unmutated
-  file for a caller that has already run it; a call without it is unchanged.
+  fails. The job runs on ubuntu. A case that does not run to its end there
+  is named for never having run rather than for killing nothing, and fails
+  the job too: one skipped by a mark, by a fixture or in its body, as a
+  Windows-only case is, and every case of a file skipped at import. An
+  expected failure that runs its body counts as a run. Mutants of changed
+  code that no case kills are listed and fail nothing. The proof is bounded
+  at five minutes, and a file whose proof would take longer is named with
+  `restructure: test the decision directly`. Nothing is annotated by hand,
+  and `CONTRIBUTING.md` says what a case owes. A caller that has already run
+  the cases against the unmutated file passes `--baseline-passed` to
+  `mutation-check` to skip that run; a call without the flag is unchanged.
   (`1791876666-the-test-suite-is-held-to-a-budget`, #929)
 
 ### Fixed
@@ -61,13 +64,13 @@
   fails when a subgroup has no sampled row. A table of five mutations of the
   gate, the stub installer, the lease reader and the stub's shell shows each
   still caught after the cut. The file holds 178 cases where it held 367, and
-  its price in `.test_durations` fell from 1,334 to 441 Windows seconds. The sealer
-  file's six corpus layouts that differed from a kept twin only by a junit
-  option leave with their 12 ids, and so do the floor-guard cases the
-  launcher replaced. 227 ids leave `.test_durations`. The interpreter census
-  over every shipped file gives way to one over the code that runs before any
-  floor is checked: the hooks, the git hooks, the launcher, `bin/test`'s
-  runner and every module they load, which `ruff.toml` now lints at Python
-  3.9, so the linter no longer asks that code for a `zip(strict=)` or a
-  `datetime.UTC` its `python3` may lack.
+  its price in `.test_durations` fell from 1,334 to 441 Windows seconds.
+  The sealer file's six corpus layouts that differed from a kept twin only
+  by a junit option leave with their 12 ids, and so do the floor-guard cases
+  the launcher replaced. 227 ids leave `.test_durations`. The interpreter
+  census over every shipped file gives way to one over the code that runs
+  before any floor is checked: the hooks, the git hooks, the launcher,
+  `bin/test`'s runner and every module they load, which `ruff.toml` now
+  lints at Python 3.9, so the linter no longer asks that code for a
+  `zip(strict=)` or a `datetime.UTC` its `python3` may lack.
   (`1791876666-the-test-suite-is-held-to-a-budget`, #929)

@@ -73,10 +73,16 @@ run alone passes what is left is named, `restructure: test the decision
 directly`, and so is a function still unproven when the bound is spent: a file
 that slow is testing its decisions through the whole stack.
 
-It runs on ubuntu alone. A case none of whose ids runs its call there, as one
-that skips off Windows, can fail under no mutant, so it is named for that,
-`not proved: none of its ids ran its call on this runner`, and the job fails
-as it does for any case not proved.
+It runs on ubuntu alone. A case none of whose ids runs its call to the end
+there is named for that, `not proved: none of its ids ran its call to the end
+on this runner`, and no mutant is run against it; the job fails as it does
+for any case not proved. That is a case skipped by a mark, by a fixture, by
+`pytest.skip()`, `pytest.importorskip` or `skipTest` in its body, one an
+`xfail(run=False)` never starts, one deselected, and every case of a file
+skipped at import, whose run collects none and still counts as passing. An
+expected failure that runs its body is a run: a mutant fails it by making a
+strict one pass or by raising other than the exception its mark names, and
+one whose mark does neither is named for killing nothing.
 
   case_check.py --baseline REF [--root DIR] [--runner CMD] [--bound MIN]
 
@@ -106,12 +112,15 @@ ARM_CHECK = os.path.join(os.path.dirname(MUTATION_CHECK), "arm_check.py")
 
 # `mutation-check`'s exit codes (`skills/verify/scripts/mutation_check.py`).
 RED, SURVIVED, MEASURED_NOTHING = 0, 1, 2
+# pytest's exit code for a run that collected no case, as a file skipped at
+# import leaves it.
+NONE_COLLECTED = 5
 
 # The tracer the traced run loads as `-p specseal_case_trace`, written to a
 # directory of its own and put first on `PYTHONPATH`, so an xdist worker loads
 # it too. It traces each case's call, not its setup, records the lines under
 # the root outside `.venv/` and the call's seconds, and writes one file per
-# process at the end.
+# process at the end, without the lines of a call that ended in a skip.
 TRACER = "specseal_case_trace"
 TRACER_SOURCE = """
 import json, os, sys, threading, time
@@ -119,7 +128,7 @@ import pytest
 
 _root = os.path.realpath(os.environ["SPECSEAL_CASE_TRACE_ROOT"]) + os.sep
 _out = os.environ["SPECSEAL_CASE_TRACE_DIR"]
-_hits, _seen, _now, _seconds = {}, {}, [None], {}
+_hits, _seen, _now, _seconds, _skipped = {}, {}, [None], {}, set()
 
 
 def _ours(path):
@@ -163,9 +172,20 @@ def pytest_runtest_call(item):
         _seconds[item.nodeid] = time.monotonic() - began
 
 
+# A call that skipped in its body, as `pytest.skip()`, `importorskip` or
+# `skipTest` there, started, so its first lines are traced, but it ran short
+# of its assertions: its lines are dropped, and the check names it as one
+# that never ran. An expected failure reports as skipped too and is kept,
+# since its body ran.
+def pytest_runtest_logreport(report):
+    if report.when == "call" and report.skipped:
+        if not hasattr(report, "wasxfail"):
+            _skipped.add(report.nodeid)
+
+
 def pytest_sessionfinish(session):
     with open(os.path.join(_out, f"{os.getpid()}.json"), "w", encoding="utf-8") as f:
-        hits = {k: sorted(v) for k, v in _hits.items()}
+        hits = {k: sorted(v) for k, v in _hits.items() if k not in _skipped}
         json.dump({"hits": hits, "seconds": _seconds}, f)
 """
 # Where Python's tokenizer ends a line, which is what `ast` numbers lines by.
@@ -184,8 +204,8 @@ KILLS_NOTHING_NEW = (
     "was killed by another case too, or none was"
 )
 NEVER_RAN = (
-    "not proved: none of its ids ran its call on this runner, skipped or "
-    "deselected, so no mutant can fail it here"
+    "not proved: none of its ids ran its call to the end on this runner "
+    "(skipped, deselected or not collected), so no mutant was run against it"
 )
 # The most mutants one case's draw holds. The draw is ranked, so a case that
 # protects something its file did not finds it near the front, and one that
@@ -839,12 +859,12 @@ def check(root, baseline, runner, bound):
             restructure = RESTRUCTURE_FILE.format(each=each, left=left, bound=bound)
             findings.append((file, restructure))
             continue
-        if code != 0:
+        if code not in (0, NONE_COLLECTED):
             findings.append((file, FAILS_AS_IT_STANDS.format(verdict=verdict)))
             continue
-        # One none of whose ids ran its call here, skipped on this runner or
-        # deselected, can fail under no mutant, and is named for that rather
-        # than for killing nothing its siblings do not.
+        # One none of whose ids ran its call to the end here, skipped,
+        # deselected or in a file that collected nothing, is named for that
+        # rather than for killing nothing its siblings do not.
         never_ran = [n for n in names if not own_ids(hits, file, functions, n)]
         findings += [(f"{file}::{n}", NEVER_RAN) for n in never_ran]
         names = [n for n in names if n not in never_ran]

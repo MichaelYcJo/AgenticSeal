@@ -344,9 +344,46 @@ PIN = (
     '        assert "A second sentence." in f.read()\n'
 )
 S4 = "tests/test_m.py::test_double: proved — the only killer in its file of m.py:2"
+# Every way a case's call ends short of its body on this runner: a mark, a
+# skip in its body, `importorskip`, a fixture's skip, an `xfail` that never
+# starts it, and unittest's `skipTest`.
 ELSEWHERE = (
-    '\nimport pytest\n\n\n@pytest.mark.skip(reason="another platform")\n'
-    "def test_double_elsewhere():\n    assert m.double(2) == 4\n"
+    "\nimport unittest\n\nimport pytest\n\n\n"
+    '@pytest.mark.skip(reason="another platform")\n'
+    "def test_by_a_mark():\n    assert m.double(2) == 4\n\n\n"
+    "def test_in_its_body():\n    if True:\n"
+    '        pytest.skip("another platform")\n    assert m.double(2) == 4\n\n\n'
+    "def test_by_importorskip():\n"
+    '    pytest.importorskip("a_module_no_runner_has")\n'
+    "    assert m.double(2) == 4\n\n\n"
+    '@pytest.fixture\ndef elsewhere():\n    pytest.skip("another platform")\n\n\n'
+    "def test_by_a_fixture(elsewhere):\n    assert m.double(2) == 4\n\n\n"
+    "@pytest.mark.xfail(run=False)\n"
+    "def test_by_an_xfail_never_started():\n    assert m.double(2) == 4\n\n\n"
+    "class TestUnittest(unittest.TestCase):\n"
+    "    def test_by_skiptest(self):\n"
+    '        self.skipTest("another platform")\n'
+    "        assert m.double(2) == 4\n"
+)
+NEVER_STARTED = [
+    "test_by_a_mark",
+    "test_in_its_body",
+    "test_by_importorskip",
+    "test_by_a_fixture",
+    "test_by_an_xfail_never_started",
+    "TestUnittest::test_by_skiptest",
+]
+NEVER_RAN = (
+    "not proved: none of its ids ran its call to the end on this runner "
+    "(skipped, deselected or not collected), so no mutant was run against it"
+)
+# A file skipped at import, whose run collects no case at all.
+AT_IMPORT = '\nimport pytest\n\npytest.importorskip("a_module_no_runner_has")\n'
+# An expected failure runs its body, and a mutant that raises other than the
+# exception its mark names fails it.
+EXPECTED = (
+    "\nimport pytest\n\n\n@pytest.mark.xfail(raises=AssertionError)\n"
+    "def test_double_xfail():\n    assert m.double(2) + 1 == 4\n"
 )
 
 
@@ -387,11 +424,27 @@ ELSEWHERE = (
             {"m.py": CHANGED, "tests/test_m.py": module_text(NAME, ELSEWHERE)},
             {},
             1,
+            [f"tests/test_m.py::{name}: {NEVER_RAN}\n" for name in NEVER_STARTED],
+            id="every way a case skips here names it as one that never ran",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(NAME)},
+            {"m.py": CHANGED, "tests/test_m.py": module_text(AT_IMPORT, NAME, DOUBLE)},
+            {},
+            1,
+            [f"tests/test_m.py::test_double: {NEVER_RAN}\n"],
+            id="a file skipped at import names its new case as one that never ran",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(NAME)},
+            {"m.py": CHANGED, "tests/test_m.py": module_text(NAME, EXPECTED)},
+            {},
+            0,
             [
-                "tests/test_m.py::test_double_elsewhere: not proved: none of "
-                "its ids ran its call on this runner"
+                "tests/test_m.py::test_double_xfail: proved — the only killer in "
+                "its file of m.py:2 `return` made `return None`"
             ],
-            id="a case that ran nowhere here is named for that",
+            id="an expected failure that runs its body is a run",
         ),
         pytest.param(
             {"tests/test_m.py": module_text(NAME)},
