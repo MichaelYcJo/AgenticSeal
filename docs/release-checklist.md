@@ -64,19 +64,6 @@ this branch and a squash merge like any other work.
 
 ## 2. Gather, bump
 
-**Read one line per budget first, and lower a one-sided ceiling here.** The
-release pull request's `hygiene` summary carries, under *Against vA.B.C*,
-each budget of `seal/budgets.md` beside its ceiling at the last release tag
-and its reading today, printed by `budget_check.py --trend` with nothing to
-fill in. A two-sided row was lowered by the pull request that made it
-cheaper. A `one-sided` row was not, because one run is too noisy to lower it
-on. Where the release's `tests` runs sit well under a `ci-minutes` ceiling,
-the preparation commit lowers it to 1.3 times the largest of those runs and
-names the runs in its message. Where `suite-seconds` or a `slow-file` row
-reads well under its ceiling, it lowers that to 1.3 times the reading, and
-lists any test file whose reading times 1.3 now reaches the threshold. That
-is the rule each first value was set by.
-
 <!-- specs/1788326734-the-ledger-fragments-are-never-gathered -->
 **The preparation commit gathers the changelog fragments.**
 
@@ -234,6 +221,14 @@ Its hygiene checks fail until step 4 is squashed in, by design. Then they go
 green without a push. Press ***Create a merge commit***, never squash: the
 review records name the release branch's commits by `Target SHA`, and a
 squash discards them.
+
+**Read the release table before the merge.** The pull request's `tests` run
+carries it in the `release-report` job's summary, under *Against vA.B.C*:
+each agent's preload bytes, the suite's seconds, each leg's minutes and each
+document's bytes, beside the same reading at the last release tag. It fails
+nothing. A preload or a document that grew is a question the pull request's
+body answers, or an issue it opens. A leg's minutes compare one run with one
+run and swing on the same code, so they are read and never acted on alone.
 
 ### What a release pull request is held to
 

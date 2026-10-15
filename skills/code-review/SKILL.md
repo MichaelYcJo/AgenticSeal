@@ -251,7 +251,7 @@ round-2 regression.
 
 The test for what may be carried is whether staleness is detectable, not
 whether the fact feels durable. A rule's `Enforced by:` target carries because
-the `enforced-unresolved` budget row fails when it is gone; what the original
+`rules --check` fails the suite when it is gone; what the original
 does carries because `seal/parity.md` pins the baseline SHA it was read at.
 Both are re-established when their check fails, or when `parity.md` lists the
 path under coordinate-trust exceptions. A verdict on current code carries

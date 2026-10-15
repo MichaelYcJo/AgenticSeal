@@ -2293,13 +2293,13 @@ def job_steps(text, job):
 # Each row is a step of the `release` job, spelled as `hygiene.yml` spells it,
 # and then either the arm that mirrors it or the reason none does.
 #
-# **Four of the eight exclusions could not run here at all; four could.** The
+# **Four of the seven exclusions could not run here at all; three could.** The
 # measurement `questions.md` M1 asked for, taken by construction over every
 # step: three steps have no local answer (the pull request's body, the
 # remote's pull-request namespace, the tracker), one raises a warning and can
 # refuse nothing, one is shell written inline in the workflow with no script
-# to share, and three run a script that belongs to this repository rather
-# than to the plugin. The last four are the ones with a local answer, and
+# to share, and two run a script that belongs to this repository rather
+# than to the plugin. The last three are the ones with a local answer, and
 # `seal/config.md`'s `Broad gate` row is where a repository names checks of
 # its own — not the arm list of a script that ships to every repository that
 # installs the plugin.
@@ -2334,14 +2334,6 @@ PARTITION = (
         "the unverified record is readable, and rows leave it closed",
         UNVERIFIED_NAME,
         None,
-    ),
-    (
-        "every budget holds its ceiling, and a raised ceiling says why",
-        None,
-        "runs `.github/scripts/budget_check.py` over this repository's own "
-        "`seal/budgets.md`, and reads a raise from the body of the pull "
-        "request, which a gate run on a branch does not have. The tree's half "
-        "is a case in this repository's suite, which its `Broad gate` row runs",
     ),
     (
         "the pull request heads a round record may name",

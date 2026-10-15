@@ -6,7 +6,7 @@ The coordinate kernel: it resolves a `path#unit` coordinate. No command runs
 it: the readers that name a place in a file by its content load this module
 by path and call it. They are `skills/settle/scripts/fold_check.py`, which
 resolves an `Enforced by:` target through `named_unit` for `fold-check` and
-the `enforced-unresolved` budget; `.github/scripts/rider_check.py`, whose
+`rules --check`; `.github/scripts/rider_check.py`, whose
 stamp is a locator and a hash; `pact_check.py` beside it and
 `chain_check.py`, which read pact anchors; and `tests/reader_registry.py`,
 whose census line is a unit's hash.
@@ -534,8 +534,8 @@ def named_unit(text, names):
     Reads: observed — the Python text it is handed, parsed by the running interpreter's `ast`; unknown refused
 
     **The one resolver of `path::name`** (#836): `fold_check.py#target_problem`
-    reads an `Enforced by:` target through it, for `fold-check` and for the
-    `enforced-unresolved` budget, and decides what it accepts.
+    reads an `Enforced by:` target through it, for `fold-check` and for
+    `rules --check`, and decides what it accepts.
     """
     kinds = unit_kinds(text)
     if kinds is None:

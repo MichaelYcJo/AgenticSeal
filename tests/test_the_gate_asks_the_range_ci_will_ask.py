@@ -938,9 +938,17 @@ def test_the_workflow_reader_sees_every_shape_a_base_is_spelled_in():
 
 def test_the_workflow_reader_finds_the_env_assignment_the_file_already_has():
     """The `BASE:` shape, over the real file rather than over a sample — it is
-    the one the plan counts and the old pattern could not see."""
+    the one the plan counts and the old pattern could not see. The count is
+    held against an independent listing of the file's code lines naming a
+    base, so it holds as steps come and go."""
     found = workflow_base_arguments()
-    assert len(found) >= 4, f"the workflow names {len(found)} bases: {found}"
+    listed = [
+        line
+        for line in read(HYGIENE).split("\n")
+        if not line.lstrip().startswith("#")
+        and re.search(r"--baseline\b|\bBASE:", line)
+    ]
+    assert len(found) == len(listed), f"the workflow names {len(found)} bases: {found}"
     assert any(spelling == REMOTE_TRACKING for spelling in found), (
         f"no bare `{REMOTE_TRACKING}` among {found} — the `BASE:` assignment is unread"
     )

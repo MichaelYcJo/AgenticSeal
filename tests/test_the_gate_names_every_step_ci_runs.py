@@ -3,7 +3,7 @@ remembered, and nothing held the two lists against each other (#468).
 
 `skills/verify/scripts/broad_gate.py#gate` runs a handful of arms so the
 sealer's one run says what CI will say. `.github/workflows/hygiene.yml`'s
-`release` job runs eleven named steps. #424 added one of them and the gate
+`release` job runs ten named steps. #424 added one of them and the gate
 was not extended, so from that merge onward a green seal covered a
 shorter list than the merge is judged by — and no case in the suite went red
 for it.
@@ -970,7 +970,6 @@ def test_the_count_cannot_be_asked_without_a_base():
 
 FEATURE_UNANSWERED = (
     "every issue this pull request claims, and every one it only names",
-    "every budget holds its ceiling, and a raised ceiling says why",
     "the pull request heads a round record may name",
     "the CLAUDE.md block is the template's, line for line",
     "both READMEs move together",
@@ -988,8 +987,8 @@ def real_panel_workflow_row(given):
 
 def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     """A11 over this repository's own workflow. Against a base that is not
-    `main` CI runs 8 of the 11 steps and the gate mirrors 3, so the panel
-    reads `CI also · 5 more steps`; the line names the five unanswered steps
+    `main` CI runs 7 of the 10 steps and the gate mirrors 3, so the panel
+    reads `CI also · 4 more steps`; the line names the four unanswered steps
     CI runs and none of the three only-at-`main` ones, and says three were
     left out and why. Pinned verbatim (`agent-contract` §14)."""
     assert gate.steps_for(read(HYGIENE), "release/x") == [
@@ -997,10 +996,10 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
         for step in gate.job_steps(read(HYGIENE), gate.RELEASE_JOB)
         if step not in gate.ONLY_AT_MAIN
     ]
-    assert real_panel_workflow_row("release/x") == "· 5 more steps"
+    assert real_panel_workflow_row("release/x") == "· 4 more steps"
     said = gate.coverage_line(read(HYGIENE), "release/x")
     assert said.startswith(
-        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 8 steps for this base "
+        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 7 steps for this base "
         "and this seal answers 3. 3 more run only on a pull request into `main`, "
         "so this count leaves them out."
     ), said
@@ -1011,14 +1010,14 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
 
 
 def test_a_release_seal_counts_every_step_ci_runs_for_it():
-    """A12. Against `main` CI runs every one of the 11 steps and the gate
-    mirrors 3, so the panel reads `CI also · 8 more steps` and the line
+    """A12. Against `main` CI runs every one of the 10 steps and the gate
+    mirrors 3, so the panel reads `CI also · 7 more steps` and the line
     leaves no step out."""
     for given in ("main", "origin/main"):
-        assert real_panel_workflow_row(given) == "· 8 more steps", given
+        assert real_panel_workflow_row(given) == "· 7 more steps", given
         said = gate.coverage_line(read(HYGIENE), given)
         assert said.startswith(
-            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 11 steps for this "
+            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 10 steps for this "
             "base and this seal answers 3."
         ), said
         assert "leaves" not in said.split("Not answered", 1)[0], said

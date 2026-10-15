@@ -89,7 +89,7 @@ laid out by **lifetime**, not by who wrote it:
 |---|---|---|---|
 | `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them. A work item does not create one: the documentation convention is the project's. The one writer that does is `settle`, which folds a released work item's spec into a `docs/` policy and then retires the directory — and a session running it is following `skills/settle/SKILL.md`, not this one |
 | `seal/specs/<work-item-id>/` | One work item | Its role ends when this work ships (SDD, overview, round records) | The contract this work executes against. A human approves `plan.md`, which is why this is a repository document and not tool state |
-| `seal/`, everything above `specs/` | Permanent | Everything this plugin maintains | Written and read by machines: the budgets, the migration config, the follow-up list |
+| `seal/`, everything above `specs/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
 
 A `specs/` the project kept before the plugin is neither root: it is a
 **reference root**, as `templates/config.md` §*Reference specs* says — history
@@ -253,8 +253,7 @@ states or changes ends with `Enforced by:` naming that case — in its home
 under `docs/`, or in the *Verifiable how* cell of the spec's scenario table —
 so the case is the record that the rule holds, and CI running the suite is
 the check. A rule no case can hold says `Enforced by: nothing — <why>`, and
-the `unenforced` row of `seal/budgets.md` counts it, so the escape moves a
-number a reviewer sees.
+the why is what a reviewer reads it by.
 
 This is the input for the reviewer and the next ticket: a case somebody can
 run rather than a reading somebody did. A judgment settled by opening code

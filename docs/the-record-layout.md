@@ -242,7 +242,7 @@ Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_skill_names_
 <!-- specs/1791384153-a-ledger-rows-claim-is-the-test-that-enforces-it -->
 **`path::name` has one resolver.** An `Enforced by:` target names a unit as
 pytest spells a node id, so a method is `::Class::method`, and `fold-check`
-and the `enforced-unresolved` budget read it through
+and `rules --check` read it through
 `skills/settle/scripts/fold_check.py#target_problem`, which looks the name up
 through `coordinates.py#named_unit`. A name is looked up where it is
 defined. A `def` or `class` its file defines once is accepted, and so is a
@@ -381,7 +381,6 @@ common directory otherwise.
 |---|---|
 | `seal/README.md` | the export rules, for a session that never loads a skill |
 | `seal/config.md` | what this repository says about itself, one row per item |
-| `seal/budgets.md` | what this repository holds its size and speed to: one row per budget, with the ceiling every pull request is held to |
 | `seal/follow-up.md` | which items wait on a named party, and who |
 | `seal/specs/<work-item-id>/` | one work item's records, the table below |
 

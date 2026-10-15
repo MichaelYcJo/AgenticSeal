@@ -10,10 +10,10 @@ on:
     # no `synchronize` fires, nothing re-runs, and the draft's green stays on
     # that SHA through the merge. Two clicks, no commit.
     #
-    # `edited` is here for the budget step below, which reads a raise from
-    # the pull request body. Writing that line is an edit and no commit, and
-    # a re-run replays the event the run began with, body and all, so without
-    # it the line the step asked for is never read until the next push.
+    # `edited` is here for the issue-claims step below, which reads the pull
+    # request body. Rewriting the body is an edit and no commit, and a re-run
+    # replays the event the run began with, body and all, so without it the
+    # split it reports is the old body's until the next push.
     types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
 
 # Stated rather than inherited, since #359. Before it this file declared no
@@ -154,34 +154,6 @@ jobs:
         run: |
           python3 skills/verify/scripts/unverified_check.py \
             --baseline "origin/${{ github.base_ref }}" seal/specs/
-
-      # `seal/budgets.md` names what this repository holds its size and speed
-      # to, and nothing else reads it. This measures every row from the tree,
-      # holds it to its ceiling from both sides, and fails a ceiling raised
-      # since the merge base unless the body says `Budget raised: <name> <old>
-      # -> <new>: <reason>` — the one place a raise is declared, read by CI so
-      # that nobody is asked. The script's docstring is the rule.
-      #
-      # The base goes in as `--base-ref` rather than as a shell guard: against
-      # `main` the script asks for no line, because each work item carried
-      # its own at its own pull request, and still holds every ceiling. A
-      # condition in the script is one a case can drive. The body goes
-      # through `env:` for the issue-claims step's reason above.
-      #
-      # `--trend` sets each budget beside its ceiling at the last release tag
-      # the base carries, which is the line a release reads to lower a
-      # one-sided ceiling. A base with no tag gives an empty name, and the
-      # script refuses that rather than printing no trend.
-      - name: every budget holds its ceiling, and a raised ceiling says why
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-        shell: bash
-        run: |
-          python3 .github/scripts/budget_check.py \
-            --baseline "origin/${{ github.base_ref }}" \
-            --base-ref "${{ github.base_ref }}" \
-            --pr-body-env PR_BODY \
-            --trend "$(git describe --tags --abbrev=0 "origin/${{ github.base_ref }}")"
 
       # The review chain used to be enforced only at the commit, where the
       # gate could not tell "routed to the chain, not reviewed yet" from

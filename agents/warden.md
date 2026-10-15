@@ -310,7 +310,7 @@ axes, probe rules, record formats. This file adds only your role boundaries.
 
   | Carried, and re-derived only when its check fails | Re-derived every round |
   |---|---|
-  | A rule's `Enforced by:` target — the `enforced-unresolved` budget row fails when it is gone | Whether the new code satisfies the clause |
+  | A rule's `Enforced by:` target — `rules --check` fails the suite when it is gone | Whether the new code satisfies the clause |
   | What the original does — `seal/parity.md` pins a baseline SHA, so it cannot drift under you | Whether the new code matches it |
   | Where a subsystem lives, what a helper is for | Any verdict, on any axis |
 

@@ -74,19 +74,13 @@
 
 ### Added
 
-- **Every `Enforced by:` target in a rule file must resolve, and the rules
-  with none are counted (#944).** Two rows in `seal/budgets.md`, measured on
-  every pull request: `enforced-unresolved`, a gate at 0, names each target
-  that is gone, renamed, defined twice or a constant; and `unenforced:<file>`,
-  one row per rule file, counts the bold-led rule paragraphs, a list item's
-  indented continuation included, that carry no `Enforced by:` line or carry
-  `nothing — <why>`. A new rule with no test
-  raises its file's row and owes a `Budget raised:` line in the pull request
-  body; a rule that gains its test lowers it. An eval case directory,
-  `evals/behaviour/<agent>/<case>/` holding a `case.yaml`, is a target too.
-  `bin/rules <doc>` prints a document's sections beside what each target's
-  docstring says it guards, resolving the targets in the repository it is
-  typed in, and writes nothing.
+- **A rule names the test that holds it, and `bin/rules <doc>` prints the
+  two side by side (#944).** A rule file's `Enforced by:` line names tests,
+  or an eval case directory, `evals/behaviour/<agent>/<case>/` holding a
+  `case.yaml`. `bin/rules <doc>` prints a document's sections beside what
+  each target's docstring says it guards, resolving the targets in the
+  repository it is typed in, and writes nothing. That every target resolves
+  is what `bin/rules --check` holds.
   (`1791940762-the-record-of-truth-is-tests-not-coordinates`, #944)
 
 ### Changed

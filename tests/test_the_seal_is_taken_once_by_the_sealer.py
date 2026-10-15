@@ -3839,7 +3839,7 @@ def test_the_documents_name_the_ci_also_row():
         read_document(os.path.join("skills", "verify", "SKILL.md")).split()
     )
     assert "the panel carries a `CI also` row — *· <n> more steps* —" in verify
-    assert "A feature seal of SpecSeal itself reads `CI also · 5 more steps`" in verify
+    assert "A feature seal of SpecSeal itself reads `CI also · 4 more steps`" in verify
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
     assert "the panel carries a `workflow` row" not in verify

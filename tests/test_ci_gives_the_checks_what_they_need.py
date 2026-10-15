@@ -322,9 +322,9 @@ def test_a_workflow_with_no_entry_to_read_is_refused():
 # …`, `uvx --with pytest pytest`, `uv run pytest`, `PYTHONPATH=x pytest`,
 # `cd sub && pytest`, `python -m pytest`, a line of a `run: |` block. This is
 # the reach the old substring test had. `needs: pytest` names the job of that
-# name and runs nothing (#931's `durations` job and #930's `budgets`, neither
-# of which reads a SHA), so a `needs:` line is not read; comments are off
-# before this reads a line.
+# name and runs nothing (#931's `durations` job and the `release-report` job,
+# neither of which runs the suite), so a `needs:` line is not read; comments
+# are off before this reads a line.
 RUNS_PYTEST = re.compile(r"(?<![\w.-])pytest(?:\s|$)")
 
 

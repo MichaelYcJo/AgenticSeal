@@ -75,7 +75,7 @@ READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.p
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
 OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
 # The coordinate kernel, whose `named_unit` is the one resolver of a
-# `path::name` target (#836), so `fold-check` and `budget_check.py` read an
+# `path::name` target (#836), so `fold-check` and `rules --check` read an
 # `Enforced by:` line in one grammar.
 COORDINATES = os.path.join(HERE, "..", "..", "verify", "scripts", "coordinates.py")
 

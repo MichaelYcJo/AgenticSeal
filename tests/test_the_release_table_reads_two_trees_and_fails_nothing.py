@@ -206,7 +206,7 @@ def job_block(text, name):
 def test_the_tests_workflow_prints_the_table_only_into_main_after_the_suite():
     """S9's job: after the suite whatever its verdict, on a pull request into
     `main` alone, with the whole history to find the tag in, and its output
-    appended to the step summary. No `budgets` job is left."""
+    appended to the step summary."""
     with open(WORKFLOW, encoding="utf-8") as handle:
         text = handle.read()
     code = "\n".join(
@@ -218,4 +218,3 @@ def test_the_tests_workflow_prints_the_table_only_into_main_after_the_suite():
     assert "fetch-depth: 0" in block, block
     assert "python .github/scripts/release_report.py" in block, block
     assert '>> "$GITHUB_STEP_SUMMARY"' in block, block
-    assert not re.search(r"(?m)^  budgets:", code), "the budgets job is still there"
