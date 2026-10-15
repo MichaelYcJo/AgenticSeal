@@ -157,6 +157,7 @@ class TestVerdictsOf:
         ):
             found = chain.verdicts_of(reader, guarantee("abc1234", said))
             assert [chain.verdict_word(v) for _n, v in found] == [word], said
+        assert chain.verdict_word("sound, but the README is stale") != chain.SOUND
 
     def test_a_verdict_in_a_comment_is_not_read_and_two_lines_are_two(self):
         text = guarantee("abc1234", "sound").replace(
@@ -185,6 +186,11 @@ class TestGuarantee:
         commit(root, "the template, unfilled")
         problems = chain.guarantee(reader, str(root), ITEM, "main")
         assert any("no SHA" in why for _p, _n, why in problems)
+        head = git(root, "rev-parse", "HEAD")
+        write(root, rel, guarantee(head, "sound") + "Verdict: sound\n")
+        commit(root, "two verdicts")
+        [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        assert "2 `Verdict:` lines" in why
         git(root, "rm", "-q", rel)
         commit(root, "no guarantee")
         [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
