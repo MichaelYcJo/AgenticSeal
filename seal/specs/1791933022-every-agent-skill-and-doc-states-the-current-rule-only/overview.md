@@ -42,6 +42,10 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 | S10's other spellings | S10: none of the fields outside `seal/specs/` and `changelog/` / history in test docstrings (`tests-todo row 5`), the replay cases' quoted prompts, `truth-2`'s citation of `docs/round-record-spec.md:693` at its clone's commit, stale `.test_durations` entries | left | each records a past state that is true as written; rewriting a replay's prompt or truth would change what the case replays (`phases/phase-3.md`) |
 | A pact print at the pull request | §*Removes* lists `chain_check.py#pact_notices` / `docs/the-pact.md` §*A signer's CI prints and verifies nothing* still stated the print and its three cases | the section states that nothing reads the pact at a pull request, enforced by nothing | the arm and its module left with phase 3's first half; the document had kept their rule |
 | The em-dash console case | not in §*Removes* / `test_console_is_not_utf8.py`'s plain-text case drove the guard's reminder | removed | no plain-text post-bash gate prints non-ASCII now; the dispatcher's `reconfigure` is unchanged and its JSON cases stay |
+| What may follow the guarantee | `spec.md` §*The sealer*: the check fails where `guarantee.md` "names a commit other than HEAD" / the file cannot name the commit that adds it | HEAD, or commits touching only `broad-gate.md` and `guarantee.md` after it (`chain_check.py#guarantee`, `SEALERS_FILES`) | literal HEAD is unreachable; the broad-gate arm's looser rule, any file of the work item, would let a phase record, a round or the changelog change after the sealer audited them |
+| The new sealer's opening | `spec.md` §*Every agent definition*: the job in one sentence, then where it works / `agents/sealer.md` opens with the contract paragraph the other four carry | the contract paragraph kept, word for word | `tests/test_every_agent_reads_the_contract.py` holds that paragraph in every definition and `docs/the-agent-set.md` states it; part B rewrites all five at once, and one definition dropping it would split a rule the set shares |
+| Sealer pins that named the gate's panel | not in §*Removes* / seven cases in four modules pinned the old sealer's sentences on the panel's `gate`, `base`, `rounds` and `CI also` rows, the `Broad gate` cell write and the `SEALED` line's second line | the sealer halves dropped, the documents' halves kept; the copy-line, capture-file, four-conditions and §6 cases re-pointed at the new text (`phases/phase-4.md`) | the guarantor relays the gate's lines as printed and explains no panel row; the documents that explain them still carry each sentence |
+| Phase 3's two red cases | not in phase 4's row / `tests/test_a_reader_declares_its_input_class.py` (three units phase 3 re-pointed went off the census) and `tests/test_dispatch.py`'s post-bash case (the reminder left with its hook) were red at cba5e0cd | fixed at 5bb3d4c2 | both were defects this branch caused, found by this phase's module run |
 
 ## Not verified
 
@@ -54,17 +58,17 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 | A bare session's use of a skill the rewrites change: implement and code-review invoked from their descriptions, and a PR body written to writing-style. No case reads either once the five cases left, and every case runs through an agent | the orchestrator, at the phase that rewrites each skill |
 | The `release-report` job on GitHub: its shell step, the `gh api` calls and the summary append ran nowhere; the script ran locally against v0.21.1 with that tag commit's real job list | 0.22.0's release pull request into `main`, the job's first run |
 | S12's seconds over the modules naming `chain_check` or `broad_gate`: 1,482 s read from `.test_durations`, whose entries predate this phase and hold none for `test_chain_check.py` or `test_broad_gate.py` | the sealer's broad run, which measures them |
-| How the eval runner grades `not_contains` on a file that was never written, which the sealer's two non-green cases ask of `broad-gate.md` | phase 4, which replaces the three cases |
-| Whether the old check also paired a deleted declaration with an added one as a rename (`chain_check.py#changed` diffs with `-M`) | the repository owner, at phase 4's arm work |
+| ✅ How the eval runner grades `not_contains` on a file that was never written, which the sealer's two non-green cases ask of `broad-gate.md` | no case asks it now: the three guarantor cases at e8155d0d grade `guarantee.md`'s verdict line with a positive pattern, so a file never written fails them |
+| ✅ Whether the old check also paired a deleted declaration with an added one as a rename (`chain_check.py#changed` diffs with `-M`) | read: `-M` and the `R100` exemption date from #90 (95e32588), so the old check paired them the same way. The check reads with `--no-renames` since 35a50e34, and an exact move is paired by its bytes |
+| The three guarantor cases run against a model, and what one guarantor run costs (`questions.md` Q2) | the orchestrator, at the sealer's first run on this branch; the scaffolds and the tree's `broad-gate` over the sound fixture were run, the sessions were not |
+| A release pull request into `main` reading squashed items (`questions.md` Q7) | the repository owner |
 
 ## Not done
 
 The baseline, which is the orchestrator's act. The changelog fragment, which
-is phase 5's. The hygiene step that fetches `refs/pull/*/head`, which the
-rebuilt check no longer needs: removing it reaches `broad_gate.py`'s step
-list, two test modules and two release documents (`phases/phase-3.md`).
-`evals/scripts/replay_targets.py` reads a round's asked paragraph from a
-section new records do not carry (part B).
+is phase 5's. `evals/scripts/replay_targets.py` reads a round's asked
+paragraph from a section new records do not carry (part B). The release pull
+request's reading of squashed items, which waits on `questions.md` Q7.
 
 ## Fed back into the spec
 
