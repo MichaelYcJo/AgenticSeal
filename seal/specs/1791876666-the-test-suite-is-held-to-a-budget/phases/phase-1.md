@@ -3,8 +3,11 @@
 | Field | Value |
 |---|---|
 | Phase | 1 |
-| Commit | cf77665c |
+| Commit | 610a9273 |
 | Ran by | smith on Opus 5.5, as `routing.md` and `handoff.md` name it |
+
+A commit named `X (now Y)` is a state something ran on before this branch was
+rebased onto #944, and `Y` is that commit on the branch.
 
 ## What this phase was asked
 
@@ -24,7 +27,7 @@ started.
 
 ## What this phase found
 
-**Whether the frame holds.** Most of it holds. At b93109a7 the file is 297
+**Whether the frame holds.** Most of it holds. At b93109a7 (now fcba6e1f) the file is 297
 passed and 70 skipped. All 70 skips are S2 rows, and the frame's m1 and m2
 reproduce (below). One part does not hold: S3's "the sample's rows all land in
 `main` or `u` without hooks", read as true on every leg. Which rows are
@@ -49,7 +52,7 @@ named Windows skip, `NO_GIT_UNDER_ENV_I`, beside the existing
 `NO_HOOK_UNDER_LD_PRELOAD`. Every other row that commits nowhere undeclared
 fails the test (T2).
 
-**What CI found, and the fix.** PR #939's run 38477955404 at 480bea69
+**What CI found, and the fix.** PR #939's run 38477955404 at 480bea69 (now cb8e236e)
 answered the ubuntu question and found three rows that T2 failed by name.
 Every other job passed, ubuntu included.
 
@@ -73,8 +76,8 @@ Every other job passed, ubuntu included.
 - The prices in `.test_durations` are no oracle for this. They put both
   Windows `&&` rows in the two-sandbox band, and CI says neither ran there.
 
-The fix is badc0bd4. `.test_durations` drops the two ids that left the
-sample and takes the two that came in at their b93109a7 prices, so the file
+The fix is 249bd6d2. `.test_durations` drops the two ids that left the
+sample and takes the two that came in at their b93109a7 (now fcba6e1f) prices, so the file
 reads 366.94 s. The file gives 179 passed (`executed`). The mutation table
 holds: `mutation-check` with m1 and with m3 over the two new rows is red, with
 both rows failing each time. No `env -i` row changed, so m4 and m5 are as
@@ -92,7 +95,7 @@ change, so the sample keeps two of them.
 cases under `bin/test … -q -rf`. Each cell is the verdict and the number of
 killers, S2 rows plus other cases.
 
-| # | Mutation | Before, b93109a7 | After, cf77665c |
+| # | Mutation | Before, b93109a7 (now fcba6e1f) | After, cf77665c (now 610a9273) |
 |---|---|---|---|
 | m1 | the review arm never missing: `and not routing.declared(cwd, top)` → `and False and …` in `hooks/gate.py#arms_missing` | red · 204 (156 + 48) | red · 83 (35 + 48) |
 | m2 | a declaration ignored: the same clause → `and True` | red · 5 (0 + 5) | red · 5 (0 + 5) |
@@ -131,8 +134,8 @@ beside each run.
 
 | | Result | Wall | CPU (user + sys) | Load average |
 |---|---|---|---|---|
-| before, b93109a7 | 297 passed, 70 skipped | 87.61 s | 444.6 s (173.0 + 271.6) | 13.4 → 29.2 |
-| after, cf77665c | 179 passed, 0 skipped | 29.18 s | 143.1 s (58.9 + 84.2) | 9.9 → 14.0 |
+| before, b93109a7 (now fcba6e1f) | 297 passed, 70 skipped | 87.61 s | 444.6 s (173.0 + 271.6) | 13.4 → 29.2 |
+| after, cf77665c (now 610a9273) | 179 passed, 0 skipped | 29.18 s | 143.1 s (58.9 + 84.2) | 9.9 → 14.0 |
 
 **Windows seconds, the committed `.test_durations`** (`read`; the ids were
 removed by a script that asserted 191 ids and that each was present; the diff

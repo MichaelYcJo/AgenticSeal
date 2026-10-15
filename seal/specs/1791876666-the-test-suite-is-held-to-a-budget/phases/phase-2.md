@@ -3,12 +3,15 @@
 | Field | Value |
 |---|---|
 | Phase | 2 |
-| Commit | 652bf297 |
+| Commit | 692cef31 |
 | Ran by | smith on Opus 5.5, as `routing.md` and `handoff.md` name it |
+
+A commit named `X (now Y)` is a state something ran on before this branch was
+rebased onto #944, and `Y` is that commit on the branch.
 
 ## What this phase was asked
 
-Phase 2 of the reframed plan (d1b981ce, approved at cc4ab070), the regrowth
+Phase 2 of the reframed plan (07e9a5fa, approved at 2ccd5cdf), the regrowth
 check:
 
 - `.github/scripts/case_check.py`, the `Kills:` docstring grammar,
@@ -48,7 +51,7 @@ Also asked:
 - that any verdict from the run another agent killed (PID 46132) be discarded
   and re-run;
 - an answer to #942's Q2;
-- the splitlines finding fixed, in a commit of its own (7a6d2be3);
+- the splitlines finding fixed, in a commit of its own (edcbe7b8);
 - one launcher holding the Python floor once, every `bin/` wrapper, `.cmd`
   twin and `hooks/hooks.json` command routed through it, the eight `FLOOR`
   copies and their guard cases removed, and cases for the launcher written
@@ -92,7 +95,7 @@ misspelt is red with T3 gone (`executed`).
   no guard, because no plugin user runs it: the hygiene workflow runs it at
   the floor, and a contributor is told the floor by `CONTRIBUTING.md`;
 - the guard cases that pinned those copies: all 18 functions the interpreter
-  module held at 08f1c8a2, among them the sentence, ordering, docstring and copy-block cases
+  module held at 08f1c8a2 (now e8c81511), among them the sentence, ordering, docstring and copy-block cases
   (NAME NOT IN TREE: `test_the_guard_precedes_every_other_module_level_act`,
   `test_the_guard_block_is_the_one_round_record_says_to_copy`), and one
   raised-floor case each in the payload-meter and `CLAUDE.md`-block modules
@@ -181,18 +184,18 @@ is a document's lines.
 **What the check said when run on this branch** (`executed`, against
 `origin/release/v0.22.0`, `-n 4`, near the ubuntu runner's four cores).
 
-The `Kills:` model's five runs (314232d5 to 74c23261) each found a case of
+The `Kills:` model's five runs (314232d5 to 74c23261, now 8094f523 to a6bacece) each found a case of
 mine whose mutant a sibling killed too, and each was fixed by narrowing a
-fixture. One of them, at 43f71101, is discarded: another agent killed this
+fixture. One of them, at 43f71101 (now 520c7067), is discarded: another agent killed this
 worktree's `mutation_check.py` (PID 46132) mid-run.
 
 The derived check's runs:
 
 | Commit | Load averages | Proved | Named | Seconds | What changed after |
 |---|---|---|---|---|---|
-| 1c475c11 | 113–259 | 11 | 5, the commit-gate file starved | 309 | every mutant reran the whole file, and the first file took the whole bound: now a mutant runs the cases that ran its line, and each file gets an equal share |
-| 9c05ff0a | 128–211 | 12, S2 among them (`hooks/githooks.py:79 statement removed`) | 7 | 280 | a case's changed-line mutants came in path order: now the files a case names come first |
-| 652bf297 | 150–249 | 9, `test_a_caller_that_ran_the_baseline_skips_it_in_mutation_check` among them (`mutation_check.py:300`) | 9 | 280 | — |
+| 1c475c11 (now 52438db7) | 113–259 | 11 | 5, the commit-gate file starved | 309 | every mutant reran the whole file, and the first file took the whole bound: now a mutant runs the cases that ran its line, and each file gets an equal share |
+| 9c05ff0a (now b9c90f25) | 128–211 | 12, S2 among them (`hooks/githooks.py:79 statement removed`) | 7 | 280 | a case's changed-line mutants came in path order: now the files a case names come first |
+| 652bf297 (now d23a8d2e) | 150–249 | 9, `test_a_caller_that_ran_the_baseline_skips_it_in_mutation_check` among them (`mutation_check.py:300`) | 9 | 280 | — |
 
 At these loads the case file's traced run took 2–4 s, and each of its
 mutants took about 3 s. That fit 15 to 21 mutants per case within its share,
@@ -206,12 +209,12 @@ The survivors listed in the runs are real holes, not noise. Two examples: a
 row of the comparison table no case exercises (`case_check.py:180–184`), and
 `case_check.py:346` `and` made `or`.
 
-**After CI run 38498393195** (b2564df7), which failed three jobs. Each was
+**After CI run 38498393195** (b2564df7, now 61725f42), which failed three jobs. Each was
 read from its log before anything changed:
 
 - **The `cases` job** named 7 cases `restructure`: each drew 400 to 534
   mutants in path order and ran 23 or fewer. The draw is redesigned, and
-  the bound is unchanged (cbfd322c):
+  the bound is unchanged (daec6f81):
   - lines are ranked by how many siblings run them; a line only a sibling
     ran is never drawn; ties take a changed line first, then one line per
     unit;
@@ -230,23 +233,23 @@ read from its log before anything changed:
 - **Windows** `could not start: C:hostedtoolcache…python.exe`: `shlex.split`
   reads `\` as an escape. `arm_check.py#command_words` keeps it on Windows,
   and `mutation-check`, `arm-check` and `case_check.py` split there
-  (c0e6cbdf).
+  (5a62bb3e).
 - **Windows** `#686: cd $W unset` landed nowhere. The cause is bash 5.3, not
   Windows: 5.3 refuses `cd ""` (its `null directory` error). The images carry
   5.3 on Windows, 5.2.21 on ubuntu and 3.2.57 on macOS. Seen red on macOS
-  under a bash 5.3 built from source. 7fd12bd4 skips the row by `NO_EMPTY_CD`
+  under a bash 5.3 built from source. 3485af38 skips the row by `NO_EMPTY_CD`
   wherever the bash S2 runs refuses an empty cd. The subgroup stays in
   `SAMPLE`. On Windows it runs no row, since its other rows cd into an
   unquoted path.
 
-| Run, `-n 4`, 5-minute bound (the first three on states cbfd322c amended) | Load | Proved | Named | Seconds |
+| Run, `-n 4`, 5-minute bound (the first three on states cbfd322c, now daec6f81, amended) | Load | Proved | Named | Seconds |
 |---|---|---|---|---|
 | ranked and capped | 5–8 | 12 | 9: the case file's verdicts `restructure`, the gate file's traced run 104 s, no mutant | 300 |
 | own ids first | 7–37 | 14 | 8 | 300 |
 | cap 24 probe, 10-minute bound | 10–13 | 17 | 5 | 604, the case file 495 |
-| cbfd322c, final | 7–12 | 17, every gate-file case: S2 by `:368 statement removed`, T1 by `:319 element removed`, T2 by `:598 condition negated` | 5, `kills nothing its file does not` | 299 |
+| cbfd322c (now daec6f81), final | 7–12 | 17, every gate-file case: S2 by `:368 statement removed`, T1 by `:319 element removed`, T2 by `:598 condition negated` | 5, `kills nothing its file does not` | 299 |
 
-The five named at cbfd322c ran out of their 12-mutant draws, not the bound:
+The five named at cbfd322c (now daec6f81) ran out of their 12-mutant draws, not the bound:
 
 - `drawn`'s order case and the silent-run case each prove at cap 24;
 - the end-to-end tests-only, changed-function and removed-case paths do not
@@ -266,7 +269,7 @@ operators, not in the bar: the sole-killer case and T1 proved once an operand
 drop and an element removal existed, and most of the rest once the draw was
 ranked. The five still named are listed above.
 
-**After CI run 38518943105** (0f2b8a33). Two jobs failed, and both logs
+**After CI run 38518943105** (0f2b8a33, now 341f4941). Two jobs failed, and both logs
 were read before anything changed:
 
 - **Windows, six end-to-end cases.** Every mutant was refused: `tree()`
@@ -275,21 +278,21 @@ were read before anything changed:
   file's bytes, so no `old` occurred once. The log is the proof: `1 of the 2
   mutants drawn ran`, every run 0 s, and a `.md` line removed survived too,
   which rules out stale bytecode. A CRLF fixture gives the same output on
-  macOS. Since 7177f24a a mutant keeps each line's own end, and `mutants_at`
+  macOS. Since cc931b37 a mutant keeps each line's own end, and `mutants_at`
   reads with `newline=""`. `tree()` now writes the same bytes on every
   platform, and a CRLF row pins the cause everywhere (contract §13).
 - **The `cases` job** proved 16 and named 6. The six were four end-to-end
   paths and two direct tests:
   - **The four paths** shared every kill with the other paths, because each
     path's case runs all of `check`. The nine paths are now one parametrized
-    case with a row each (46cf830a). The check counts one function's ids as
+    case with a row each (853f2f28). The check counts one function's ids as
     one killer. The merged case is red under each mutant the old cases had
-    alone, numbered as at 0f2b8a33: `:879` condition negated, `:416` and `:326` `return None`, and
+    alone, numbered as at 0f2b8a33 (now 341f4941): `:879` condition negated, `:416` and `:326` `return None`, and
     `:816` statement removed. Each was shown with `mutation-check`.
   - **`drawn`'s order case** is kept. With the paths merged, a line it runs
     has fewer siblings, and it proves by `:741 condition negated`.
   - **The silent-run case** is removed, with the value it guarded
-    (06f499d3). A probe of its uncapped draw found one mutant only it kills:
+    (f564f644). A probe of its uncapped draw found one mutant only it kills:
     the default line of `next` removed, the line naming a run that printed
     nothing. It fed `mutation_run`'s first line, and `check` discarded that
     value in both of its calls, so `first_line([], …)` at the call site
@@ -297,11 +300,11 @@ were read before anything changed:
     exit and its output, `first_line` is gone, and so is the line-end
     table's row for `mutation_run`, whose `splitlines` call it named.
 
-  Locally at 06f499d3, `-n 4`, load 4–10: 14 proved, 0 named, in 298 s,
+  Locally at 06f499d3 (now f564f644), `-n 4`, load 4–10: 14 proved, 0 named, in 298 s,
   exit 0 (`executed`).
 
 **The cases**, each a direct test of one decision or one real path end to
-end, all passing (`executed` at 06f499d3, 19 ids passed):
+end, all passing (`executed` at 06f499d3, now f564f644, 19 ids passed):
 
 | Decision or path | Case |
 |---|---|
@@ -337,17 +340,17 @@ removed. Phases 3 to 6 in `plan.md` still name `Kills:` lines and
 framer's to reframe, since only phase 2's row was mine to rewrite.
 
 **Carried to phase 5, the sealer file (measured before the reframe, at
-480bea69 and fcd735bc).**
+480bea69 and fcd735bc, now cb8e236e and f13b0dfa).**
 
 - Q5's inventory: 105 test functions reach the gate, and their first gate
   runs have 100 distinct signatures (the tree built, the gate call, the
   environment). The read-only cases that share one are about 6 Windows
   seconds, so a memoized run per signature saves almost nothing there.
-- fcd735bc removed six corpus layouts (`Qf-row`, `Qf-env`, `Qf-ini`,
+- f13b0dfa removed six corpus layouts (`Qf-row`, `Qf-env`, `Qf-ini`,
   `R1-row`, `R1-ini`, `Q8`; 12 ids, 56.49 Windows seconds). Each differs from
   a kept layout only by a junit option, and nothing the gate or its recorder
   runs reads junit output.
-- The battery at 480bea69 (`executed`) was twelve mutations of
+- The battery at 480bea69 (now cb8e236e, `executed`) was twelve mutations of
   `broad_gate.py`'s words and the recorder (`base_word`'s five rows, the
   record key, `realpath`, `unended`, `PYTEST_ADDOPTS`, the collecting module,
   a failed collection's path, the failing gate's exit). Every one was red:
@@ -369,7 +372,7 @@ framer's to reframe, since only phase 2's row was mine to rewrite.
 
 - The removed rows' kill vectors equal their kept twins' (P1's for the Qf and
   R1 rows, P3-sh's for Q8), so each mutation keeps its killers.
-- The after battery at fcd735bc was stopped by the reframe, so the after
+- The after battery at fcd735bc (now f13b0dfa) was stopped by the reframe, so the after
   column is derived, not measured: removing ids leaves every other case's
   kills as they were. Phase 5 runs it.
 - `REGRESSED_WORDS`' released row R5 is corrected in the fragment.
@@ -421,7 +424,7 @@ The five sentences that listed "a `python3` under 3.12" as a reason the stamp
 does not appear now say "a `python3` that cannot load `seal_stamp.py`".
 
 **The five cases**, each seen red with `mutation-check` on the launcher, the
-runner or a wrapper, and each proved by `case_check.py` at 00233d87:
+runner or a wrapper, and each proved by `case_check.py` at 00233d87 (now 62a0f92f):
 
 | Guards | Case | Seen red by |
 |---|---|---|

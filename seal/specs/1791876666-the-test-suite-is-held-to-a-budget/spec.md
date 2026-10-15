@@ -32,7 +32,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 
 **Out, and whose.**
 
-- **A case whose assertion reads this tree's prose** — `agents/`, `skills/*/SKILL.md`, `orchestration.md`, `docs/`, `README*`, `CONTRIBUTING.md`, `CLAUDE.md`, `templates/` — is #923's and moves with that text. By function body or a constant or helper the function names (`executed` at fcd735bc, `plan.md` §*Technical context*): 1,201 functions, 1,586 collected cases, in 135 files; the measure errs over, counting a case that writes `docs/` into a fixture tree. A cut that opens a file lists which of its cases it left to #923.
+- **A case whose assertion reads this tree's prose** — `agents/`, `skills/*/SKILL.md`, `orchestration.md`, `docs/`, `README*`, `CONTRIBUTING.md`, `CLAUDE.md`, `templates/` — is #923's and moves with that text. By function body or a constant or helper the function names (`executed` at fcd735bc, now f13b0dfa, `plan.md` §*Technical context*): 1,201 functions, 1,586 collected cases, in 135 files; the measure errs over, counting a case that writes `docs/` into a fixture tree. A cut that opens a file lists which of its cases it left to #923.
 - **Which legs run on a pull request** — #943 (item B); every leg on every pull request until it is framed.
 - **The rest of the cleanup — #942.** The three enumeration files that hold 31 % of the cases, the 249 byte-identical helper twins, the sealer file's inventory of its `run_gate` call sites and its mutation battery, and every test file this item did not open, each under `## The removal criterion`. With them go the rows the frame proposed for `seal/budgets.md` — `test-cases`, `test-lines`, `test-cases:<file>` and `test-lines:<file>`, their measurers in `budget_check.py` and a per-file table for them — whose ceilings are #942's to set from its own tables.
 - **`unguarded-files` and `tests/unguarded-files.txt`** — not built and not moved. The list was to hold the files whose cases still owed a written line, and no case owes one (the owner's decisions of 2026-10-14).
@@ -42,7 +42,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 
 ## What the suite is
 
-`executed` 2026-10-14 at fcd735bc on macOS arm64 unless labelled; commands in `plan.md` §*Technical context*.
+`executed` 2026-10-14 at fcd735bc, before the rebase onto #944 (now f13b0dfa), on macOS arm64 unless labelled; commands in `plan.md` §*Technical context*.
 
 | | Value |
 |---|---|
