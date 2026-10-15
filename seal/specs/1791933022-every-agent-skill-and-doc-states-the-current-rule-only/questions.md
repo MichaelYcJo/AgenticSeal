@@ -78,6 +78,32 @@ considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
   Q8 and part B's fourth sealer case (`spec.md` §*What leaves*, S3, S20;
   alternatives AA, AB). The 83 🔴 and 🟡 rows of the 40 records in the tree
   at 81e8d785 all read one of the three, so no record is refused by it.
+- (reframe after round 6) The round record is designed anew from its jobs,
+  not patched a fifth time (owner, 2026-10-16). A finding is a `###` section
+  of `## Findings` with `Severity:`, `Location:`, `Verdict:` and, where it
+  applies, `Fix of a fix:` lines, its fenced fix inside it and the fix pass's
+  `Answer:` line after it; a confirmation and a not-judged item are rows of
+  `## Confirmations` and `## Not judged`; the probes are `## Probes`. The
+  check reads one line per finding, `Verdict: <value>`, accepts four shapes,
+  verifies a `fixed` commit is on the branch, and refuses by name whatever it
+  cannot read — a value outside the four, emphasis, a missing or doubled
+  line, a line outside `## Findings`, no `## Findings`. Severity is for
+  people and the check ignores it; the emoji vocabulary leaves the record
+  (`spec.md` §*What a round records*; alternatives AD–AL). The grounds for
+  each rejected shape are in the Alternatives rows, and no person was asked.
+- (reframe after round 6) No reader for the old shape: the check judges only
+  the items the pull request's own commits declare or change, so the other
+  0.22.0 items' records are read by nothing again; this item's six records
+  are rewritten mechanically in phase 5d-i; the corpus test goes (alternative
+  AJ); the old generator's words leave the accepted set (AK); the release
+  seal and the panel report a record they cannot read as *not read*.
+  `guarantee.md`'s `Verdict:` reader is left as it stands (AM).
+- (reframe after round 6) The redesign is two spawns, 5d-i and 5d-ii, split
+  where the tree has to be green between them: the reader, the template, the
+  six records and every test and document `bin/test` and `rules --check`
+  read in the first; the parties' instructions, the eval graders and the
+  builder's documents in the second. One spawn hit 800K tokens once on a
+  single phase in this run.
 - Answered by the owner before this frame and still standing: the proof's run
   budget (≈ 120 runs, ≈ $150; 2026-10-14), the tree's
   `skills/writing-style/SKILL.md` as the one source (2026-10-13), no
@@ -92,6 +118,7 @@ considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
 | Q4 | What are the real tokens a spawn reads after the rewrites, per agent? | a measurement — part B's baseline traces carry `usage`; `compare` writes both sides' pooled tokens | — | `payload_meter`'s estimate at 3.2 B/token, labelled estimated | ⬜ |
 | Q5 | Of the pins the 52 test modules hold on `agents/*.md`, which pin a rule and which pin narration? | the work — each part B phase sorts its agent's and lists the dropped ones in its phase record and `overview.md` | — | — | ⬜ |
 | Q6 | Which fields of the eval's per-run JSON and of the trace's `result` event carry a run's spend, seconds and tokens, on a real run? | a measurement — the first saved `raw.json` of part B's baseline, read against what `run` records (`total_cost_usd`, `duration_ms`, `usage.*`) | — | the names above | ⬜ |
+| Q9 | Does the sentence **"a gate fails closed: input it cannot read is refused, never passed"** go into `CLAUDE.md` §*The rule a mechanism is kept against*? The round record's new shape embodies it (`spec.md` §*What a round records*): the check reads one `Verdict:` line per finding and refuses every spelling outside four. `CLAUDE.md` already says *a check gates only a fact it reads; a noisy reading, or one guessed from words, is a report*, which says what a gate may read and not which way an unreadable input falls, and the four misses of this run (rounds 1, 2, 5, 6) each fell to the passing side. Writing it into `CLAUDE.md` makes it a rule every check in the tree is judged against, and `chain_check.py#verdicts_of` (the guarantee's `Verdict:` line, read through emphasis) and `unverified_check.py`'s tolerant readings would be the first to meet it. The tree cannot answer whether a repository-wide rule is wanted; that is the owner's | a person — the owner | **not in `CLAUDE.md` in this item**: the record design embodies the rule, `docs/the-review-record.md` states it for the record, and a later item folds it over the tree's other readers if the owner wants the rule general · **into `CLAUDE.md`**, one sentence in §*The rule a mechanism is kept against*, in a commit of its own, with the readers that then fall short named in an issue | not in `CLAUDE.md` in this item; the record design embodies it. `CLAUDE.md` is not edited by phase 5d | ⬜ |
 | Q7 | How does a pull request into `main` read a work item that was squashed into the release branch? The check judges every `routing.md` a pull request adds, and a squashed item's last `Target SHA`, `broad-gate.md` run and `guarantee.md` commit are not ancestors of the release branch's HEAD, so the records, broad-gate and guarantee arms refuse each one (`executed` at cba5e0cd on this branch, `chain_check.py --baseline origin/main` with `GITHUB_HEAD_REF=release/v0.22.0`: four squashed 0.22.0 items each named *which HEAD does not descend from*, and none of the four carrying a `broad-gate.md`). `skills/settle/SKILL.md` says those records are still read at the release pull request | a person — the owner, who decides what a release pull request re-proves | **judge at the item's own pull request only**: the release pull request judges the declarations naming its own branch and the ones its own commits changed, never an item merged by squash · **resolve the commit elsewhere**: what the removed pull-head fetch did, and a branch deleted or squashed is again a reason to fail · **the release pull request reads the release's own guarantee**: the release seal is one guarantee over the release, and the items' files are history | the first — an item is proved at the pull request that carries it | ✅ answered by default, by the orchestrator under automation on 2026-10-15, for the owner to confirm: an item is judged at the pull request that carries it. Built in phase 5 at 27dd748d: a declaration every commit after the base touched as a GitHub squash merge (committer `noreply@github.com`, subject ending `(#N)`) is named and not judged (`chain_check.py#carried_by`, `docs/the-review-record.md` §*What the check reads at the pull request*). Probed on a scratch squash of this branch into `release/v0.22.0`: the check at af4d0c31 exits 1 naming all five items, the new one exits 0 naming each with its squash, and a commit made on the release branch itself that changes this item's `routing.md` is judged and exits 1 (`phases/phase-5.md`). Overturning it is a change to `carried_by` and its four cases |
 
 Q8 (reframe after round 4) asked the owner whether a behaviour eval of the
@@ -100,5 +127,7 @@ removed the duty, so the row is gone: the rule is the check's and its proof is
 `tests/test_chain_check.py` (alternatives Z, AA). Nothing was asked of anyone.
 
 No row blocks the build. Q7's default is built and stands until the owner
-confirms or overturns it. Q2, Q4 and Q6 are a measurement's; Q5 is the
-work's, in part B.
+confirms or overturns it. Q9's default continues the build without touching
+`CLAUDE.md`, and either answer leaves phase 5d's code the same, so it waits
+for the owner without stopping anything. Q2, Q4 and Q6 are a measurement's;
+Q5 is the work's, in part B.
