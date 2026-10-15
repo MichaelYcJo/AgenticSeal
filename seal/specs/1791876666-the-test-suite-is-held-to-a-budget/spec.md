@@ -88,7 +88,7 @@ A case is removed only when a mutation table shows it guards nothing alone: a ba
 - **The bound.** `--bound` is five minutes for the whole check, each file taking an equal share of what is left. A file whose proof would pass it is named, `restructure: test the decision directly`, so the job ends on the bound and never on its timeout.
 - **Exit 0** every new or changed function proved, **1** one named, **2** nothing compared. Gate, not report: a report read by nobody is the mechanism #908's table already had.
 
-How it errs: under, because a line reached only through a subprocess or a fixture's setup is not traced, so such a case gets its mutants from the names it uses and from the diff alone; over, because a line one case runs alone may be setup only it needs. Its scope is the function's file: a case in another file that kills the same mutant is not seen. Platform honesty: a case guarding a Windows-only sentence proves itself on a run that skips there.
+How it errs: under, because a line reached only through a subprocess or a fixture's setup is not traced, so such a case gets its mutants from the names it uses and from the diff alone; over, because a line one case runs alone may be setup only it needs. Its scope is the function's file: a case in another file that kills the same mutant is not seen. Platform honesty: on ubuntu, a case none of whose ids runs its call, as one skipped off Windows, can fail under no mutant, so it is named `not proved: none of its ids ran its call on this runner` and the job fails; whether such a case should be a report line instead is `questions.md` Q7.
 
 ## Rows for `seal/budgets.md`
 

@@ -328,6 +328,10 @@ PIN = (
     '        assert "A second sentence." in f.read()\n'
 )
 S4 = "tests/test_m.py::test_double: proved — the only killer in its file of m.py:2"
+ELSEWHERE = (
+    '\nimport pytest\n\n\n@pytest.mark.skip(reason="another platform")\n'
+    "def test_double_elsewhere():\n    assert m.double(2) == 4\n"
+)
 
 
 @pytest.mark.parametrize(
@@ -361,6 +365,17 @@ S4 = "tests/test_m.py::test_double: proved — the only killer in its file of m.
                 "another case too, or none was\n"
             ],
             id="S3 a case its file already covers is named",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(NAME)},
+            {"m.py": CHANGED, "tests/test_m.py": module_text(NAME, ELSEWHERE)},
+            {},
+            1,
+            [
+                "tests/test_m.py::test_double_elsewhere: not proved: none of "
+                "its ids ran its call on this runner"
+            ],
+            id="a case that ran nowhere here is named for that",
         ),
         pytest.param(
             {"tests/test_m.py": module_text(NAME)},
@@ -435,8 +450,9 @@ def test_each_real_path_end_to_end(
     rows are one case on purpose: the check holds one function's ids as one
     killer, so a path's run is not named for sharing its lines with another
     path's. Each row's lines reach stdout and the step summary alike, and
-    neither names a path outside the root; a proof past the bound is named
-    before any mutant runs, so nothing is proved."""
+    neither names a path outside the root; each function gets one verdict;
+    a proof past the bound is named before any mutant runs, so nothing is
+    proved."""
     root = tree(tmp_path, base, head, options.get("newline", "\n"))
     summary = tmp_path / "summary.md"
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
@@ -446,5 +462,7 @@ def test_each_real_path_end_to_end(
         assert line in out, out
         assert line in summary.read_text(encoding="utf-8")
     assert str(tmp_path) not in out, out
+    verdicts = [v.strip().split(": ", 1)[0] for v in out.split("\n") if "::" in v]
+    assert len(verdicts) == len(set(verdicts)), out
     if "extra" in options:
         assert "proved" not in out.split("\n", 1)[1], out

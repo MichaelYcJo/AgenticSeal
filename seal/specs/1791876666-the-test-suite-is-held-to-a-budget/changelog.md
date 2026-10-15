@@ -33,7 +33,9 @@
   file it names, and the shipped lines the pull request changed. Under each
   mutant it runs the cases that ran that line. A case passes when it is its
   file's only killer of at least one mutant; otherwise the job names it and
-  fails. Mutants of changed code that no case kills are listed and fail
+  fails. The job runs on ubuntu, so a case that is skipped there, such as a
+  Windows-only one, is named for never having run rather than for killing
+  nothing, and fails it too. Mutants of changed code that no case kills are listed and fail
   nothing. The proof is bounded at five minutes, and a file whose proof
   would take longer is named with `restructure: test the decision directly`.
   Nothing is annotated by hand, and `CONTRIBUTING.md` says what a case owes.

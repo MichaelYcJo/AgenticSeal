@@ -218,9 +218,9 @@ jobs:
   # listed there, and fails nothing. The proof is bounded at five minutes, the
   # owner's figure (2026-10-14): a file whose proof would pass it is named to
   # restructure, so the job ends on the bound and never on the timeout below.
-  # Ubuntu alone: a case guarding a Windows-only sentence proves itself on a
-  # run that skips there. The install line is the `pytest` job's, so the
-  # cases run on the versions every other run uses.
+  # Ubuntu alone: a case that runs on no id here, as one skipped off Windows,
+  # is named `not proved` and fails the job. The install line is the `pytest`
+  # job's, so the cases run on the versions every other run uses.
   cases:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

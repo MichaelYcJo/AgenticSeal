@@ -73,8 +73,10 @@ run alone passes what is left is named, `restructure: test the decision
 directly`, and so is a function still unproven when the bound is spent: a file
 that slow is testing its decisions through the whole stack.
 
-It runs on ubuntu alone: a case guarding a Windows-only sentence proves itself
-on a run that skips there.
+It runs on ubuntu alone. A case none of whose ids runs its call there, as one
+that skips off Windows, can fail under no mutant, so it is named for that,
+`not proved: none of its ids ran its call on this runner`, and the job fails
+as it does for any case not proved.
 
   case_check.py --baseline REF [--root DIR] [--runner CMD] [--bound MIN]
 
@@ -180,6 +182,10 @@ KILLS_NOTHING_NEW = (
     "kills nothing its file does not: of the {count} mutants drawn for it, the "
     "lines fewest of its siblings run first and at most {cap}, each it killed "
     "was killed by another case too, or none was"
+)
+NEVER_RAN = (
+    "not proved: none of its ids ran its call on this runner, skipped or "
+    "deselected, so no mutant can fail it here"
 )
 # The most mutants one case's draw holds. The draw is ranked, so a case that
 # protects something its file did not finds it near the front, and one that
@@ -826,6 +832,12 @@ def check(root, baseline, runner, bound):
         if code != 0:
             findings.append((file, FAILS_AS_IT_STANDS.format(verdict=verdict)))
             continue
+        # One none of whose ids ran its call here, skipped on this runner or
+        # deselected, can fail under no mutant, and is named for that rather
+        # than for killing nothing its siblings do not.
+        never_ran = [n for n in names if not own_ids(hits, file, functions, n)]
+        findings += [(f"{file}::{n}", NEVER_RAN) for n in never_ran]
+        names = [n for n in names if n not in never_ran]
         units = named_units(source, {n: functions[n] for n in names})
         queues = {n: drawn(root, file, n, functions, hits, units, diff) for n in names}
         totals = {n: len(queue) for n, queue in queues.items()}
