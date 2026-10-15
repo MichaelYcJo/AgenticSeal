@@ -2,20 +2,14 @@
 
 `evals/scripts/noninferiority.py` judges a new side of the behaviour suite
 against a baseline by five pass rules and writes `evals/<agent>-phase-N.md`
-under the work item. This module holds three things:
+under the work item. The verdict is the five rules applied to the record's
+own numbers, outcome first and then cost, so a record saying `pass` over
+failing numbers is red; and a run's cost is read off its trace's `result`
+event, so a run with none is no result rather than free.
 
-- T10: an agent whose preload — its definition and the skills its
-  `skills:` list names — differs from the one a work item's
-  `evals/baseline-<agent>.json` measured owes a record beside it that
-  measured the preload as it stands, and whose numbers give `pass`.
-- T11: the verdict is the five rules applied to the record's own numbers,
-  so a record saying `pass` over failing numbers is red.
-- T12: a phase record's `## Rule census` names, for every rule, a grader
-  that exercises it or `not exercisable — <why>`.
-
-What it cannot see: an agent with no baseline owes nothing, so the proof
-starts when the baseline is committed; and a grader that matches the wrong
-thing passes, which the phase's review reads.
+What it cannot see: a grader that matches the wrong thing passes, which the
+phase's review reads; and nothing here makes a later edit of a definition
+owe a run, by design.
 """
 
 import importlib.util
@@ -43,14 +37,14 @@ ni = load()
 
 
 def numbers(**over):
-    """Numbers every rule passes: two truths found twice a side, no false
-    rows, every shape grader green, a rule grader held on both sides."""
+    """Numbers every rule passes: two truths found twice a side, a tenth of
+    the rows false, every shape grader green, and a new side that read the
+    same tokens and spent the same from a preload half the size."""
     graders = {
         ("c1", "truth-1"): ("truth", 2, 2, 2, 2),
         ("c1", "truth-2"): ("truth", 2, 2, 2, 2),
         ("c1", "shape-report-exists"): ("shape", 2, 2, 2, 2),
         ("c1", "reach-warden"): ("reach", 2, 2, 2, 2),
-        ("c2", "rule-bare-integer-id"): ("rule", 1, 2, 1, 2),
     }
     graders.update(over.pop("graders", {}))
     base = {
@@ -61,6 +55,14 @@ def numbers(**over):
         "new_false": 2,
         "old_cut": False,
         "new_cut": False,
+        "old_spend": 10.0,
+        "new_spend": 10.0,
+        "old_tokens": 1000000,
+        "new_tokens": 1000000,
+        "old_seconds": 600.0,
+        "new_seconds": 600.0,
+        "old_bytes": 100000,
+        "new_bytes": 50000,
     }
     base.update(over)
     return base
@@ -103,20 +105,39 @@ CASES = {
         numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 2, 2)}),
         "fail",
     ),
-    "rule 4: a rule every old run met and no new run met, recall up": (
-        numbers(
-            graders={
-                ("c2", "rule-bare-integer-id"): ("rule", 2, 2, 0, 2),
-                ("c1", "truth-3"): ("truth", 0, 2, 2, 2),
-            }
-        ),
+    "rule 4: spend 1.2 times the baseline's, outcome equal": (
+        numbers(new_spend=12.0),
         "fail",
     ),
-    "rule 4: a rule no old run met is no loss": (
-        numbers(graders={("c2", "rule-bare-integer-id"): ("rule", 0, 2, 0, 2)}),
+    "rule 4: spend at exactly 1.1 times the baseline's": (
+        numbers(new_spend=11.0),
+        "pass",
+    ),
+    "rule 4: tokens read 1.2 times the baseline's, outcome equal": (
+        numbers(new_tokens=1200000),
+        "fail",
+    ),
+    "rule 4: tokens read at exactly 1.1 times the baseline's": (
+        numbers(new_tokens=1100000),
+        "pass",
+    ),
+    "rule 4: a preload no smaller than the baseline's": (
+        numbers(new_bytes=100000),
+        "fail",
+    ),
+    "rule 4: wall seconds doubled are written and not judged": (
+        numbers(new_seconds=1200.0),
         "pass",
     ),
     "rule 5: the new side cut short": (numbers(new_cut=True), "no result"),
+    "rule 5: a side with a run whose cost is unknown": (
+        numbers(new_spend=None, new_tokens=None, new_seconds=None),
+        "no result",
+    ),
+    "rule 5: a side whose preload bytes are unknown": (
+        numbers(old_bytes=None),
+        "no result",
+    ),
     "rule 5: the baseline cut short": (numbers(old_cut=True), "no result"),
     "rule 5: the sides ran a case a different number of times": (
         numbers(graders={("c1", "truth-1"): ("truth", 2, 2, 1, 1)}),
@@ -134,7 +155,18 @@ def test_the_verdict_is_recomputed_from_the_records_numbers(name):
 SUITE = {"rev": "1" * 40, "tree": "2" * 40}
 
 
-def side(graders, rows=20, false=2, cut=False, preload=None, suite=None):
+def side(
+    graders,
+    rows=20,
+    false=2,
+    cut=False,
+    preload=None,
+    suite=None,
+    spend=10.0,
+    tokens=1000000,
+    seconds=600.0,
+    size=100000,
+):
     return {
         "graders": {k: [v[0], v[1], v[2]] for k, v in graders.items()},
         "rows": rows,
@@ -144,21 +176,59 @@ def side(graders, rows=20, false=2, cut=False, preload=None, suite=None):
         "preload": preload or {"agents/warden.md": "a" * 64},
         "id": "2026-10-14T00:00:00Z 000000000000",
         "suite": suite or SUITE,
+        "spend": spend,
+        "tokens": tokens,
+        "seconds": seconds,
+        "bytes": size,
     }
 
 
 def record(old_graders, new_graders, **new):
+    new.setdefault("size", 50000)
     return ni.render("warden", 3, side(old_graders), side(new_graders, **new))
 
 
 def test_a_record_reads_back_to_the_numbers_it_was_written_from():
+    """Guards S1: the record carries both sides' spend, tokens read, wall
+    seconds and preload bytes, and they read back to the numbers the
+    verdict was computed from, so editing one is judged again."""
     g = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "shape-x"): ("shape", 2, 2)}
-    text = record(g, g)
+    text = record(g, g, spend=10.123456, tokens=900000, seconds=512.34)
     numbers_back, stated, preload = ni.parse_record(text)
     assert stated == "pass"
     assert ni.verdict(numbers_back)[0] == "pass"
     assert preload == {"agents/warden.md": "a" * 64}
     assert ni.check_record(text) == []
+    assert {k: numbers_back[k] for k in ni.COST_FIELDS} == {
+        "old_spend": 10.0,
+        "new_spend": 10.1235,
+        "old_tokens": 1000000,
+        "new_tokens": 900000,
+        "old_seconds": 600.0,
+        "new_seconds": 512.3,
+        "old_bytes": 100000,
+        "new_bytes": 50000,
+    }
+    dearer = text.replace("| New spend USD | 10.1235 |", "| New spend USD | 12.0000 |")
+    assert dearer != text
+    problems = ni.check_record(dearer)
+    assert any("says `pass` and its numbers give `fail`" in p for p in problems), (
+        problems
+    )
+    assert any("spend rose" in p and "rule 4" in p for p in problems), problems
+
+
+def test_a_costlier_side_fails_naming_rule_4_and_wall_seconds_never_judge():
+    """Guards S3: a new side whose pooled spend is 1.2 times the baseline's,
+    outcome equal, fails and says which rule; wall seconds are written and
+    never a reason."""
+    g = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "shape-x"): ("shape", 2, 2)}
+    text = record(g, g, spend=12.0, seconds=6000.0)
+    assert "Verdict: fail" in text
+    assert "| New wall seconds | 6000.0 |" in text
+    reasons = text.split("Verdict: fail", 1)[1]
+    assert "rule 4" in reasons and "spend rose from $10.0000 to $12.0000" in reasons
+    assert "seconds" not in reasons, reasons
 
 
 def test_a_record_saying_pass_over_failing_numbers_is_red():
@@ -256,7 +326,7 @@ def test_check_refuses_a_record_whose_sides_ran_different_suites(tmp_path):
     assert any("names no suite" in p for p in ni.check_record(unnamed))
 
 
-# --- T10: a changed preload owes a passing record --------------------------
+# --- what a side's run saves and records -------------------------------------
 
 
 def tree(tmp_path, skill_text="# code-review\n"):
@@ -273,52 +343,92 @@ def tree(tmp_path, skill_text="# code-review\n"):
     return tmp_path
 
 
-def baseline(root):
-    evals = root / "seal" / "specs" / "1-item" / "evals"
-    evals.mkdir(parents=True)
-    data = {
-        "specseal": {
-            "agent": "warden",
-            "preload": ni.preload_hashes(str(root), "warden"),
-        }
+def run_one_side(tmp_path, monkeypatch, events):
+    """`run` over a one-agent plugin tree with the eval replaced by one run
+    whose trace holds EVENTS; the side `--out` holds, read back."""
+    plugin = tmp_path / "plugin"
+    plugin.mkdir()
+    tree(plugin)
+    kept = tmp_path / "e-Cost01"
+    (kept / "out").mkdir(parents=True)
+    (kept / "out" / "trace.jsonl").write_text(
+        "".join(json.dumps(e) + "\n" for e in events), encoding="utf-8"
+    )
+    run = {
+        "graders": [{"name": "shape-x", "passed": True}],
+        "error": None,
+        "tracePath": str(kept / "out" / "trace.jsonl"),
     }
-    (evals / "baseline-warden.json").write_text(json.dumps(data), encoding="utf-8")
-    return evals
+    raw = {
+        "startedAt": "t",
+        "partial": False,
+        "cases": [
+            {
+                "name": "c1",
+                "graders": [{"name": "shape-x", "type": "file_exists"}],
+                "arms": {"with": [run]},
+            }
+        ],
+    }
+
+    def paid_eval(command, env):
+        with open(command[command.index("--json") + 1], "w", encoding="utf-8") as f:
+            json.dump(raw, f)
+
+    monkeypatch.setattr(ni, "call_eval", paid_eval)
+    out = tmp_path / "side.json"
+    argv = ["run", "--agent", "warden", "--tree", str(plugin), "--out", str(out)]
+    assert ni.main(argv) == 0
+    return json.loads(out.read_text(encoding="utf-8")), plugin
 
 
-def passing_record(root, cut=False):
-    g = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "shape-x"): ("shape", 2, 2)}
-    new = side(g, cut=cut, preload=ni.preload_hashes(str(root), "warden"))
-    return ni.render("warden", 3, side(g), new)
+RESULT = {
+    "type": "result",
+    "subtype": "success",
+    "total_cost_usd": 2.5,
+    "duration_ms": 412000,
+    "usage": {
+        "input_tokens": 40,
+        "cache_creation_input_tokens": 60000,
+        "cache_read_input_tokens": 900000,
+        "output_tokens": 7000,
+    },
+}
 
 
-def test_a_changed_preload_with_no_passing_record_is_red(tmp_path):
-    root = tree(tmp_path)
-    evals = baseline(root)
-    assert ni.owed_records(str(root)) == [], "an unchanged preload owes nothing"
-
-    (root / "skills" / "code-review" / "SKILL.md").write_text(
-        "# shorter\n", encoding="utf-8"
+def test_a_run_records_what_it_cost(tmp_path, monkeypatch):
+    """Guards S1 and Q12: each run's spend, seconds and usage are read off
+    its trace's top-level `result` event and pooled per side, tokens read
+    being input plus cache creation plus cache read; a subagent's event is
+    not the session's; and a trace with no `result` event is a side whose
+    cost is unknown, which the verdict refuses as no result, never free."""
+    sub = dict(RESULT, total_cost_usd=99.0, parent_tool_use_id="s")
+    events = [{"type": "system", "subtype": "init"}, sub, RESULT]
+    data, plugin = run_one_side(tmp_path, monkeypatch, events)
+    cost = data["cases"][0]["arms"]["with"][0]["specseal"]["cost"]
+    assert cost == {
+        "total_cost_usd": 2.5,
+        "duration_ms": 412000,
+        "usage": RESULT["usage"],
+    }
+    size = sum(
+        os.path.getsize(plugin / p) for p in ni.preload_files(str(plugin), "warden")
     )
-    problems = ni.owed_records(str(root))
-    assert problems and "skills/code-review/SKILL.md" in problems[0], problems
+    assert data["specseal"]["preload_bytes"] == size
+    numbers_one = ni.side_numbers(data)
+    assert (numbers_one["spend"], numbers_one["tokens"]) == (2.5, 960040)
+    assert (numbers_one["seconds"], numbers_one["bytes"]) == (412.0, size)
 
-    (evals / "warden-phase-3.md").write_text(passing_record(root), encoding="utf-8")
-    assert ni.owed_records(str(root)) == []
-
-    (evals / "warden-phase-3.md").write_text(
-        passing_record(root, cut=True), encoding="utf-8"
-    )
-    assert ni.owed_records(str(root)), "a cut-short record was read as a result"
-
-    (evals / "warden-phase-3.md").write_text(passing_record(root), encoding="utf-8")
-    (root / "agents" / "warden.md").write_text(
-        "---\nname: warden\nskills:\n  - code-review\n---\n\n# edited after\n",
-        encoding="utf-8",
-    )
-    assert ni.owed_records(str(root)), (
-        "a record of an earlier preload was read as this one's"
-    )
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    data, _ = run_one_side(bare, monkeypatch, [{"type": "system"}, sub])
+    assert data["cases"][0]["arms"]["with"][0]["specseal"]["cost"] is None
+    unknown = ni.side_numbers(data)
+    assert unknown["spend"] is None and unknown["tokens"] is None
+    merged = ni.merged(numbers_one, unknown)
+    verdict, reasons = ni.verdict(merged)
+    assert verdict == "no result", (verdict, reasons)
+    assert any("cost" in r for r in reasons), reasons
 
 
 def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved(
@@ -383,10 +493,6 @@ def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved
     assert side["specseal"]["agent"] == "warden"
     assert side["specseal"]["preload"] == ni.preload_hashes(str(plugin), "warden")
     assert side["specseal"]["cut_short"] is False
-
-
-def test_every_baseline_in_the_tree_is_answered():
-    assert ni.owed_records(ROOT) == []
 
 
 # --- the numbers a side is read to -------------------------------------------
@@ -535,37 +641,3 @@ def test_a_seed_lands_on_a_code_token_and_never_in_a_string():
     tokens = sd.code_tokens(source)
     assert (3, "==") in tokens
     assert (2, "==") not in tokens
-
-
-# --- T12: the rule census ----------------------------------------------------
-
-
-CENSUS = """## Rule census
-
-| Rule | Where it went | Exercised by |
-|---|---|---|
-| A finding id is a bare integer | `agents/warden.md` §Report | `rule-warden/rule-bare-integer-id` |
-| The report is written to its path | `agents/warden.md` §Report | replay-x/shape-report-exists |
-| Nothing commits | `## Removes` row 2 | not exercisable — no output shows it |
-"""
-
-
-def test_the_census_refuses_a_rule_with_neither_grader_nor_reason():
-    assert ni.census_problems(CENSUS) == []
-    empty = CENSUS + "| A rule nobody can observe | `agents/warden.md` §Role |  |\n"
-    assert ni.census_problems(empty), "an empty Exercised by cell passed"
-    bare = CENSUS + "| A rule | `agents/warden.md` §Role | not exercisable |\n"
-    assert ni.census_problems(bare), "a reason-less not-exercisable passed"
-
-
-def test_every_census_in_the_tree_names_a_grader_or_a_reason():
-    problems = []
-    specs = os.path.join(ROOT, "seal", "specs")
-    for item in sorted(os.listdir(specs)) if os.path.isdir(specs) else []:
-        phases = os.path.join(specs, item, "phases")
-        for name in sorted(os.listdir(phases)) if os.path.isdir(phases) else []:
-            with open(os.path.join(phases, name), encoding="utf-8") as f:
-                problems += [
-                    f"{item}/phases/{name}: {p}" for p in ni.census_problems(f.read())
-                ]
-    assert not problems, problems

@@ -13,11 +13,13 @@ puts the suite at SUITE-REV's `evals/behaviour/` into it, and runs
 `claude plugin eval` over `evals/behaviour/<A>/` there. **What the runs paid
 for is saved before anything reads it**: the eval's JSON, every run's trace
 and the measured preload go to `<out>.raw/` beside `--out`, and only then is
-each directory the eval kept removed. `--out` is the saved side with three
-additions under `specseal`: the preload hashes, each run's report rows, and
-whether the side was cut short. `run --from-raw` writes `--out` again from a
-saved side, with no eval run. `compare` writes the record the five pass
-rules judge; `check` recomputes a record's verdict from its numbers.
+each directory the eval kept removed. `--out` is the saved side with these
+additions under `specseal`: the preload's hashes and bytes, each run's
+report rows and cost (its trace's `result` event: `total_cost_usd`,
+`duration_ms`, `usage`), and whether the side was cut short. `run
+--from-raw` writes `--out` again from a saved side, with no eval run.
+`compare` writes the record the five pass rules judge, outcome first and
+then cost; `check` recomputes a record's verdict from its numbers.
 
 Exit codes: 0 written, or the record's verdict holds · 1 the record's
 verdict is not `pass`, or it disagrees with its numbers · 2 nothing ran
@@ -25,7 +27,6 @@ verdict is not `pass`, or it disagrees with its numbers · 2 nothing ran
 """
 
 import argparse
-import glob
 import hashlib
 import io
 import json
@@ -44,6 +45,17 @@ AGENTS = ("warden", "smith", "framer", "sealer", "scribe")
 CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
 FINDING_ROW = re.compile(r"^\| (?:🔴|🟡) \d+ \|.*$", re.M)
 FALSE_MARGIN = 0.05
+COST_MARGIN = 1.1
+COST_FIELDS = (
+    "old_spend",
+    "new_spend",
+    "old_tokens",
+    "new_tokens",
+    "old_seconds",
+    "new_seconds",
+    "old_bytes",
+    "new_bytes",
+)
 VERDICTS = ("pass", "fail", "no result")
 
 
@@ -81,6 +93,17 @@ def preload_hashes(tree, agent):
         with open(os.path.join(tree, rel), "rb") as f:
             out[rel] = hashlib.sha256(f.read()).hexdigest()
     return out
+
+
+def preload_bytes(tree, agent):
+    """The bytes of AGENT's preload in TREE, every file summed.
+
+    A missing file stops the run.
+
+    Reads: observed — the size of each file `preload_files` names; unknown refused"""
+    return sum(
+        os.path.getsize(os.path.join(tree, rel)) for rel in preload_files(tree, agent)
+    )
 
 
 # --- run --------------------------------------------------------------------
@@ -188,6 +211,43 @@ def report_rows(trace_path):
     return FINDING_ROW.findall(last)
 
 
+def run_cost(trace_path):
+    """`{"total_cost_usd", "duration_ms", "usage"}` from the session's last
+    `result` event in the run's trace, or None where it has none.
+
+    A subagent's event, one carrying `parent_tool_use_id`, is not the
+    session's; a line that is not a JSON object is skipped; a `result` event
+    missing any of the three fields is no cost.
+
+    Reads: observed — the run's trace, one JSON event per line; unknown refused"""
+    cost = None
+    with open(trace_path, encoding="utf-8") as f:
+        for line in f:
+            try:
+                event = json.loads(line)
+            except ValueError:
+                continue
+            if not isinstance(event, dict) or event.get("parent_tool_use_id"):
+                continue
+            if event.get("type") != "result":
+                continue
+            usage = event.get("usage")
+            spend, ms = event.get("total_cost_usd"), event.get("duration_ms")
+            if isinstance(usage, dict) and spend is not None and ms is not None:
+                cost = {"total_cost_usd": spend, "duration_ms": ms, "usage": usage}
+            else:
+                cost = None
+    return cost
+
+
+def tokens_read(usage):
+    """The tokens a run read: input, cache creation and cache read.
+
+    Reads: owned — a `usage` object `run_cost` kept; unknown passed"""
+    keys = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
+    return sum(int(usage.get(k) or 0) for k in keys)
+
+
 def kept_root(trace_path):
     """The directory a kept run lives in, or None when the trace sits
     anywhere but `<tmp>/e-*/out/` or `<tmp>/claude-eval-*/out/`.
@@ -271,12 +331,12 @@ def save_side(raw, saved, meta):
 
 
 def annotate(saved):
-    """The side SAVED holds, with `specseal` added: the preload hashes, each
-    run's report rows read from its saved trace, and whether the side was
-    cut short.
+    """The side SAVED holds, with `specseal` added: the preload's hashes and
+    bytes, each run's report rows and cost read from its saved trace, and
+    whether the side was cut short.
 
-    A run with no saved trace has no rows, and a run's error makes the side
-    cut short.
+    A run with no saved trace has no rows and no cost, and a run's error
+    makes the side cut short.
 
     Reads: owned — a directory `save_side` wrote; unknown refused"""
     with open(os.path.join(saved, "raw.json"), encoding="utf-8") as f:
@@ -286,14 +346,17 @@ def annotate(saved):
     cut = bool(result.get("partial"))
     for key, run in runs_of(result):
         rel = meta["traces"].get(key)
+        trace = os.path.join(saved, rel) if rel else None
         run["specseal"] = {
-            "report_rows": report_rows(os.path.join(saved, rel)) if rel else []
+            "report_rows": report_rows(trace) if trace else [],
+            "cost": run_cost(trace) if trace else None,
         }
         if run.get("error"):
             cut = True
     result["specseal"] = {
         "agent": meta["agent"],
         "preload": meta["preload"],
+        "preload_bytes": meta.get("preload_bytes"),
         "cut_short": cut,
         "rev": meta["rev"],
         "suite_rev": meta["suite_rev"],
@@ -363,6 +426,7 @@ def run_side(a):
         meta = {
             "agent": a.agent,
             "preload": preload_hashes(tree, a.agent),
+            "preload_bytes": preload_bytes(tree, a.agent),
             "rev": a.rev or os.path.abspath(a.tree),
             "suite_rev": git_bytes("rev-parse", a.suite_rev).decode("utf-8").strip(),
             "suite_tree": suite_tree(a.suite_rev, a.agent),
@@ -387,18 +451,22 @@ def kind(name):
 
     Reads: nothing — it maps the name it is handed."""
     head = name.split("-", 1)[0]
-    return head if head in ("reach", "shape", "truth", "rule") else None
+    return head if head in ("reach", "shape", "truth") else None
 
 
 def side_numbers(result):
     """`{"graders": {(case, grader): [kind, passed, runs]}, "rows", "false",
-    "runs": {case: n}, "cut", "preload", "id"}` for one side.
+    "runs": {case: n}, "cut", "preload", "id", "spend", "tokens", "seconds",
+    "bytes"}` for one side, the last four pooled over every run.
 
-    A grader whose name carries no kind prefix is not counted.
+    A grader whose name carries no kind prefix is not counted. A side with
+    a run whose cost is unknown has no spend, tokens or seconds, and one
+    whose preload bytes were not recorded has no bytes: each is None.
 
     Reads: owned — an eval result `run` wrote; unknown passed"""
     graders, runs_per_case = {}, {}
     rows = false = 0
+    costs = []
     for case in result.get("cases", []):
         name = case["name"]
         truths = [
@@ -421,6 +489,8 @@ def side_numbers(result):
                 rows += 1
                 if not any(t.search(row) for t in truths):
                     false += 1
+            costs.append((run.get("specseal") or {}).get("cost"))
+    known = bool(costs) and all(costs)
     meta = result.get("specseal") or {}
     started = result.get("startedAt", "")
     digest = hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest()[
@@ -435,6 +505,10 @@ def side_numbers(result):
         "preload": meta.get("preload", {}),
         "id": f"{started} {digest}",
         "suite": {"rev": meta.get("suite_rev"), "tree": meta.get("suite_tree")},
+        "spend": sum(c["total_cost_usd"] for c in costs) if known else None,
+        "tokens": sum(tokens_read(c["usage"]) for c in costs) if known else None,
+        "seconds": sum(c["duration_ms"] for c in costs) / 1000 if known else None,
+        "bytes": meta.get("preload_bytes"),
     }
 
 
@@ -459,9 +533,10 @@ def verdict(numbers):
     """`(verdict, [reason])` the five pass rules give NUMBERS, the merged
     `{(case, grader): (kind, old passed, old runs, new passed, new runs)}`
     under `graders` beside `old_rows`, `old_false`, `new_rows`, `new_false`,
-    `old_cut` and `new_cut`.
+    `old_cut`, `new_cut` and every name in `COST_FIELDS`.
 
-    A missing key raises.
+    A missing key raises. A side whose spend, tokens or preload bytes are
+    None is no result; wall seconds are never judged.
 
     Reads: owned — a numbers object `merged` or `parse_record` builds; unknown refused"""
     if numbers["old_cut"] or numbers["new_cut"]:
@@ -474,6 +549,16 @@ def verdict(numbers):
     g = numbers["graders"]
     if any(old_runs != new_runs for _k, _op, old_runs, _np, new_runs in g.values()):
         return "no result", ["the two sides ran a case a different number of times"]
+    unknown = [
+        s
+        for s, side in (("baseline", "old"), ("new", "new"))
+        if any(numbers[f"{side}_{k}"] is None for k in ("spend", "tokens", "bytes"))
+    ]
+    if unknown:
+        return "no result", [
+            f"the {' and '.join(unknown)} side records no cost for every run "
+            "or no preload bytes"
+        ]
     reasons = []
     truths = {key: v for key, v in g.items() if v[0] == "truth"}
     old_found = sum(v[1] for v in truths.values())
@@ -504,15 +589,28 @@ def verdict(numbers):
                 reasons.append(
                     f"shape grader {case}/{name} failed on the new side ({np_}/{nruns})"
                 )
-        if k == "rule" and op >= 1 and np_ == 0:
+    if numbers["new_bytes"] >= numbers["old_bytes"]:
+        reasons.append(
+            f"the new preload is {numbers['new_bytes']} bytes, not below the "
+            f"baseline's {numbers['old_bytes']} (rule 4)"
+        )
+    for key, label, shown in (
+        ("tokens", "tokens read", "{:d}"),
+        ("spend", "spend", "${:.4f}"),
+    ):
+        old, new = numbers[f"old_{key}"], numbers[f"new_{key}"]
+        if new > old * COST_MARGIN + 1e-9:
             reasons.append(
-                f"rule grader {case}/{name}: satisfied by {op} baseline runs and no new run"
+                f"{label} rose from {shown.format(old)} to {shown.format(new)}, "
+                f"past {COST_MARGIN} times the baseline's (rule 4)"
             )
     return ("fail" if reasons else "pass"), reasons
 
 
 def merged(old, new):
-    """The numbers `verdict` reads, from two sides' `side_numbers`.
+    """The numbers `verdict` reads, from two sides' `side_numbers`, spend
+    rounded to four places and seconds to one, the precision a record
+    carries, so a record reads back to the numbers it was judged on.
 
     A grader one side lacks counts zero runs there.
 
@@ -538,12 +636,51 @@ def merged(old, new):
         "new_false": new["false"],
         "old_cut": old["cut"],
         "new_cut": new["cut"],
+        **{
+            f"{prefix}_{key}": rounded(s[key], places)
+            for prefix, s in (("old", old), ("new", new))
+            for key, places in (
+                ("spend", 4),
+                ("tokens", 0),
+                ("seconds", 1),
+                ("bytes", 0),
+            )
+        },
     }
+
+
+def rounded(value, places):
+    """VALUE at PLACES decimals, an integer at none; None stays None.
+
+    Reads: nothing — it maps the number it is handed."""
+    if value is None:
+        return None
+    return int(value) if places == 0 else round(float(value), places)
 
 
 # --- the record ---------------------------------------------------------------
 
 HEADER = "| Kind | Case | Grader | Old passed | Old runs | New passed | New runs |"
+COST_ROWS = (
+    ("spend", "spend USD", "{:.4f}", float),
+    ("tokens", "tokens read", "{:d}", int),
+    ("seconds", "wall seconds", "{:.1f}", float),
+    ("bytes", "preload bytes", "{:d}", int),
+)
+
+
+def cost_rows(numbers):
+    """The record's header rows for both sides' cost, `unknown` where a
+    number is None.
+
+    Reads: nothing — it formats the numbers it is handed."""
+    lines = []
+    for key, label, shown, _parse in COST_ROWS:
+        for side, name in (("old", "Baseline"), ("new", "New")):
+            value = numbers[f"{side}_{key}"]
+            cell = "unknown" if value is None else shown.format(value)
+            lines.append(f"| {name} {label} | {cell} |")
+    return lines
 
 
 def render(agent, phase, old, new):
@@ -569,6 +706,7 @@ def render(agent, phase, old, new):
         f"| Baseline false rows | {numbers['old_false']} |",
         f"| New report rows | {numbers['new_rows']} |",
         f"| New false rows | {numbers['new_false']} |",
+        *cost_rows(numbers),
         "",
         "## Graders",
         "",
@@ -613,7 +751,8 @@ def header_field(text, name):
 def parse_record(text):
     """`(numbers, stated verdict, new preload)` read back from a record.
 
-    A count that is not an integer raises ValueError.
+    A count that is not an integer raises ValueError; a cost row that is
+    missing or says `unknown` reads as None.
 
     Reads: owned — a record `render` wrote; unknown refused"""
     graders = {}
@@ -629,6 +768,12 @@ def parse_record(text):
         "old_cut": header_field(text, "Baseline cut short") != "no",
         "new_cut": header_field(text, "New cut short") != "no",
     }
+    for key, label, _shown, parse in COST_ROWS:
+        for side, name in (("old", "Baseline"), ("new", "New")):
+            cell = header_field(text, f"{name} {label}")
+            numbers[f"{side}_{key}"] = (
+                None if cell in (None, "unknown") else parse(cell)
+            )
     m = re.search(r"^Verdict: (?P<v>.+)$", text, re.M)
     stated = m["v"].strip() if m else None
     preload = {row[0]: row[1] for row in table(text, "New preload") if len(row) == 2}
@@ -679,77 +824,6 @@ def check_record(text):
         problems.append(f"it says `{stated}` and its numbers give `{computed}`")
     if computed != "pass":
         problems.append(f"its numbers give `{computed}`: " + "; ".join(reasons))
-    return problems
-
-
-# --- the rule census -----------------------------------------------------------
-
-CENSUS = "Rule census"
-CENSUS_HEADER = ["Rule", "Where it went", "Exercised by"]
-EXERCISED = re.compile(r"^`?[\w.-]+/[\w.-]+`?$|^not exercisable — \S.*$")
-
-
-def census_problems(text):
-    """`[problem]` for every row of a phase record's `## Rule census` whose
-    `Exercised by` cell is neither `<case>/<grader>` nor
-    `not exercisable — <why>`.
-
-    A row of another width is a problem.
-
-    Reads: owned — a phase record's census table; unknown refused"""
-    problems = []
-    for row in table(text, CENSUS):
-        if len(row) != len(CENSUS_HEADER):
-            problems.append(f"census row of {len(row)} cells: {' | '.join(row)}")
-            continue
-        if not EXERCISED.match(row[2]):
-            problems.append(f"rule `{row[0]}` names no grader and no reason")
-    return problems
-
-
-def owed_records(root):
-    """`[problem]` for every agent whose preload in ROOT differs from the one
-    a work item's `evals/baseline-<agent>.json` measured, unless a record
-    beside that baseline measured this preload and its numbers give `pass`.
-
-    A baseline is the reference, so an agent with none owes nothing.
-
-    Reads: owned — baselines `run` wrote and records `render` wrote; unknown refused"""
-    problems = []
-    pattern = os.path.join(root, "seal", "specs", "*", "evals", "baseline-*.json")
-    for base in sorted(glob.glob(pattern)):
-        agent = os.path.basename(base)[len("baseline-") : -len(".json")]
-        rel = os.path.relpath(base, root)
-        with open(base, encoding="utf-8") as f:
-            measured = (json.load(f).get("specseal") or {}).get("preload")
-        if not measured:
-            problems.append(f"{rel} records no preload hashes")
-            continue
-        current = preload_hashes(root, agent)
-        if current == measured:
-            continue
-        changed = sorted(
-            p for p in set(current) | set(measured) if current.get(p) != measured.get(p)
-        )
-        found = []
-        for path in sorted(
-            glob.glob(os.path.join(os.path.dirname(base), f"{agent}-phase-*.md"))
-        ):
-            with open(path, encoding="utf-8") as f:
-                text = f.read()
-            try:
-                _numbers, _stated, preload = parse_record(text)
-            except (ValueError, TypeError):
-                preload = {}
-            if preload == current:
-                found.append((os.path.relpath(path, root), text))
-        if not found:
-            problems.append(
-                f"{agent}'s preload changed since {rel} ({', '.join(changed)}) and no "
-                f"`{agent}-phase-N.md` beside it measured the preload as it stands"
-            )
-        for path, text in found:
-            problems += [f"{path}: {p}" for p in check_record(text)]
     return problems
 
 
