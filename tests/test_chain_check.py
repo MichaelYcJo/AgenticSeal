@@ -261,6 +261,18 @@ class TestFollows:
         assert found[0] == "after" and found[1] == later and found[2] == "f.txt"
         assert chain.follows(str(root), "0" * 40, "main", ITEM)[0] == "unseen"
 
+    def test_another_items_records_and_a_commit_off_the_branch_are_named(self, branch):
+        root, code = branch
+        write(root, "seal/specs/1791999998-another-item/routing.md", "x\n")
+        later = commit(root, "another work item's file")
+        found = chain.follows(str(root), code, "main", ITEM)
+        assert found[:2] == ("after", later)
+        git(root, "switch", "-q", "main")
+        write(root, "g.txt", "elsewhere\n")
+        off = commit(root, "a commit the branch never had")
+        git(root, "switch", "-q", "feature/x")
+        assert chain.follows(str(root), off, "main", ITEM)[0] == "off"
+
 
 # --- frame --------------------------------------------------------------------
 
