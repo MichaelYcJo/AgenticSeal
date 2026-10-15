@@ -37,54 +37,47 @@ is asked once, together, before the first edit, and nothing comes back mid-run.
 ## The rule a mechanism is kept against — subtract before you add
 
 **A mechanism stays only while its history shows what it caught against what
-it costs.** Being written, shipped or documented is no reason to keep it. The
-record of truth is a test or a behaviour eval a rule's `Enforced by:` names,
-never coordinates somebody re-reads. A fact has one source: every other place
-links to it or derives it, and never copies it. A thing is re-checked only
-when the diff or CI shows it changed. A change rewrites the text it amends in
-place, and in the same commit removes what stood on the old fact: a check, an
-exception, a comment, a copy. History goes to git, the changelog and the work
-record. `CONTRIBUTING.md` §*What a change to a gate must carry* is where a
-pull request answers this rule and the goal above.
+it costs**; existing is no reason to keep it. A rule's proof is the test or
+behaviour eval its `Enforced by:` names. A fact has one source, and every
+other place links to it. A check gates only a fact it reads; a noisy reading,
+or one guessed from words, is a report. Nothing is kept beside the tree to
+stay in step with it, such as a stored count or coordinate. When fixes chase
+one mechanism's edge cases, ask what it decides; if every outcome is the
+same, remove it. A thing is re-checked only when the diff or CI shows it
+changed. A change rewrites the text it amends in place, and in the same
+commit removes what stood on the old fact: a check, an exception, a comment,
+a copy. History goes to git, the changelog and the work record.
+`CONTRIBUTING.md` §*What a change to a gate must carry* is where a pull
+request answers this rule and the goal above.
 
 ## Repo rule — the merge method is fixed per direction, and it is not a preference
 
-`docs/branch-and-release.md` §*Work accumulates on a release branch* states
-this rule in its *Which button, for each direction* table and holds the
-reasoning; this row is the link, and it is here because a session about to
-merge a pull request has no other reason to open that file. A pull request
-into `release/vX.Y.Z` is squashed and one into `main` takes a merge commit,
-whichever button a page happens to offer first.
+A pull request into `release/vX.Y.Z` is squashed and one into `main` takes a
+merge commit, whichever button a page offers first. The rule and its reasons
+are `docs/branch-and-release.md` §*Work accumulates on a release branch*.
 
 ## Repo rule — no real identifiers in examples or fixtures
 
-`CONTRIBUTING.md` §*House rules* states this rule in its *No real
-identifiers* bullet and holds the reasoning; this row is the link, and it is
-here because a session writing an example, a fixture or a document has no
-other reason to open that file. A domain written there is `example.com` and a
-user path is `/Users/x/`, never a real domain, path or organisation name.
+A domain in an example or fixture is `example.com` and a user path is
+`/Users/x/`, never a real domain, path or organisation name
+(`CONTRIBUTING.md` §*House rules*).
 
 ## Repo rule — a thing more than one party can have is named with whose
 
-`skills/writing-style/SKILL.md` §*여럿이 가질 수 있는 것은 누구 것인지
-밝힌다* states this rule and holds the reasoning; this row is the link, and
-it is here because a session rewording an agent definition or a skill has no
-other reason to open that file. The concept and its format names stay bare —
-the Seal Test, a seal block — and a reference to one instance says whose.
+The concept and its format names stay bare — the Seal Test, a seal block —
+and a reference to one instance says whose (`skills/writing-style/SKILL.md`
+§*여럿이 가질 수 있는 것은 누구 것인지 밝힌다*).
 
 `tests/test_one_word_one_meaning.py` is the check, one word per conversation
 somebody had: writing the rule down is not the repair, the check is.
 
 ## Repo rule — commit early; on a declared branch it costs nothing
 
-`skills/implement/SKILL.md` §*2. Implement test-first, and let each rule
-name its test* states the commit cadence and holds the reasoning, and it tells a
-reader to check two conditions against their own repository; this row is that
-check for this one, and it is here because a session reaches the question
-after every edit without opening that file. Both conditions hold here: a
-feature branch squashes into its release branch, and every work item commits
-its `routing.md` before the first edit. So commit as soon as a step stands on
-its own.
+Both conditions `skills/implement/SKILL.md` §*2. Implement test-first, and
+let each rule name its test* asks of a repository hold here: a feature branch
+squashes into its release branch, and every work item commits its
+`routing.md` before the first edit. So commit as soon as a step stands on its
+own.
 
 ## Repo rule — a change writes fragments, never the shared file
 
