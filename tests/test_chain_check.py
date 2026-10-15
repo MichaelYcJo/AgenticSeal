@@ -562,7 +562,9 @@ class TestMain:
         fix_pass = (
             "a 🔴 or 🟡 row closes by `fixed <commit>`, `answered` or `deferred <home>`"
         )
-        assert f"🟡 2 reads `open`, which does not close it: {fix_pass}" in yellow
+        assert yellow.endswith(
+            f"🟡 2 reads `open`, which does not close it: {fix_pass}"
+        )
         assert "🟢 reads `open`, which does not close it: a 🟢 row closes by " in green
         assert green.endswith("`confirmed`")
         assert "answered" not in green

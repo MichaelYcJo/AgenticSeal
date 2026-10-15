@@ -100,6 +100,6 @@
 
   Counted against `origin/release/v0.22.0` at `ce448bbe`. The suite holds
   143 test modules where it held 167, and 31,996 lines of tests left
-  against 3,133 added.
+  against 3,135 added.
   (`1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
   #923)
