@@ -189,6 +189,16 @@ def test_a_run_of_some_cases_keeps_the_workers_where_their_calls_pay_for_them():
     assert module.narrowed(runner, [file], file, {}) == [*runner, file]
 
 
+def test_a_traced_run_that_times_out_hands_back_nothing_it_traced(tmp_path):
+    """A traced run past its timeout returns no exit, no lines and no stopped
+    ids, in the shape `check` unpacks, so the file is named to restructure
+    rather than the check stopping on the tuple."""
+    sleep = [sys.executable, "-c", "import time; time.sleep(30)"]
+    found = case_check().traced_run(str(tmp_path), "tests/test_m.py", sleep, 0)
+    assert found[0] is None and found[2] == "timed out"
+    assert found[3:] == ({}, {}, set())
+
+
 def test_a_function_named_in_a_case_is_followed_through_its_helpers():
     module = case_check()
     source = (
