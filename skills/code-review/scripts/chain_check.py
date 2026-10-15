@@ -568,6 +568,55 @@ def findings(reader, lines, rel):
     return found, errors
 
 
+def unclosed(reader, text, rel):
+    """[(rel, line, why)] for a `<!--` comment or a fence in `text` that
+    never closes, at the line that opened it.
+
+    `reader.readable` blanks such a region to the end of the file, so every
+    `### ` heading and `Verdict:` line after it would vanish and the record
+    would read as having nothing open. The walk is `readable`'s own, in its
+    order: comments on the raw lines, then fences on what the comments left.
+
+    Reads: guess — the warden's record, through the shared reader's walks; unknown refused"""
+    raw = reader.gfm_lines(text or "")
+    # `comment_scan` says which state each line began in; a blank line after
+    # the last says whether the file ended inside a comment, and the last line
+    # that began outside one and ended inside is where it opened.
+    began = [outside for outside, _kept in reader.comment_scan([*raw, ""])]
+    errors = []
+    if not began[-1]:
+        opened = max(i for i in range(len(raw)) if began[i] and not began[i + 1])
+        errors.append(
+            (
+                rel,
+                opened + 1,
+                "a `<!--` comment opened here never closes, so every line after "
+                "it is hidden from the check",
+            )
+        )
+    for first, last in reader.fence_spans(reader.strip_comments(raw)):
+        if last is None:
+            errors.append(
+                (
+                    rel,
+                    first + 1,
+                    "a fence opened here never closes, so every line after it is "
+                    "hidden from the check",
+                )
+            )
+    return errors
+
+
+def record_findings(reader, text, rel):
+    """`findings` over a record's text, with `unclosed`'s refusals first:
+    the one reader the arm, the panel and the release seal read a record
+    through, so a region that hides findings fails closed for each of them.
+
+    Reads: guess — the warden's record, through `unclosed` and `findings`; unknown refused"""
+    found, errors = findings(reader, reader.readable(text or ""), rel)
+    return found, unclosed(reader, text, rel) + errors
+
+
 def target_of(reader, text):
     """The first SHA-shaped word of a record's `Target SHA` row, or None.
 
@@ -716,7 +765,7 @@ def records(reader, routing, root, item, rel, base):
     a `fixed` naming a commit HEAD does not descend from; a last record
     behind HEAD. A finding is named by its line and its heading.
 
-    Reads: guess — the warden's records, through `findings` and `target_of`; unknown refused"""
+    Reads: guess — the warden's records, through `record_findings` and `target_of`; unknown refused"""
     found = round_records(routing, root, item)
     if not found:
         return [
@@ -730,8 +779,7 @@ def records(reader, routing, root, item, rel, base):
     problems = []
     for path in found:
         text = read_record(root, path)
-        lines = reader.readable(text or "")
-        read, errors = findings(reader, lines, path)
+        read, errors = record_findings(reader, text, path)
         problems.extend(errors)
         for line, heading, (kind, commit) in read:
             if kind == OPEN:

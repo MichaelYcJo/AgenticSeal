@@ -37,7 +37,7 @@ Then why it matters and the grounds, executed and read labelled apart; the
 paste-ready fix in a fenced block, the artefact itself; and `Answer:`, which
 the fix pass fills. A ready pull request fails while a finding reads `open`,
 and while any `Verdict:` reads a value outside the four, a finding has none
-or two, or one stands outside a finding. -->
+or two, one stands outside a finding, or a fence or comment never closes. -->
 
 ### 1. <what is wrong, as a symptom, in one line>
 

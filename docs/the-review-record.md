@@ -82,12 +82,13 @@ no `Verdict:` line at all; a finding with no such line or with two; one
 outside a finding; a record with no `## Findings` section, or two; a `fixed`
 naming a commit HEAD does not descend from. A `Verdict:` inside a fence or a
 comment is not a line, so a finding whose only verdict stands in its fix
-block has none. Each refusal names the record, the line and the finding's
-heading. No emoji, severity or table cell is read for the decision. It errs
+block has none, and a fence or a comment that never closes, which would hide
+every finding after it, is refused at the line that opened it. Each refusal
+names the record, the line and the finding's heading. No emoji, severity or table cell is read for the decision. It errs
 where the shape holds and the fact does not: a `fixed` whose commit is on the
 branch and touches nothing of the finding passes, and the sealer reads that
 commit against the finding's `Location:`.
-Enforced by: tests/test_chain_check.py::TestFindings::test_what_the_check_cannot_read_is_refused_by_name, tests/test_chain_check.py::TestMain::test_an_open_finding_fails_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_a_fixed_commit_head_does_not_descend_from_is_refused
+Enforced by: tests/test_chain_check.py::TestFindings::test_what_the_check_cannot_read_is_refused_by_name, tests/test_chain_check.py::TestRecordFindings::test_a_fence_or_comment_that_never_closes_is_refused_by_its_opener, tests/test_chain_check.py::TestMain::test_an_open_finding_fails_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_a_fixed_commit_head_does_not_descend_from_is_refused
 
 **The last record is at HEAD, or only the work item's own records follow
 it.** A commit after the last record's `Target SHA` that touches a file

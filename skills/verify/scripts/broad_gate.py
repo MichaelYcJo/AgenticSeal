@@ -2613,7 +2613,7 @@ def rounds_rows(item):
     """The `rounds` row and, where a finding was deferred, the row beneath it.
 
     `<R>` is the count of round records. The row beneath counts the findings
-    of every record that `chain_check.findings` reads as `deferred`, and
+    of every record that `chain_check.record_findings` reads as `deferred`, and
     lists their distinct homes after `→` in the order met. A home reaches
     the panel as ASCII, anything outside it reading `?`, because the letter
     twin maps only the owner's characters. A record the check's reader
@@ -2631,10 +2631,10 @@ def rounds_rows(item):
     for path in records:
         try:
             with open(path, encoding="utf-8") as handle:
-                lines = reader.readable(handle.read())
+                text = handle.read()
         except (OSError, UnicodeDecodeError):
             continue
-        found, errors = chain.findings(reader, lines, path)
+        found, errors = chain.record_findings(reader, text, path)
         for _line, _heading, (kind, home) in [] if errors else found:
             if kind != chain.DEFERRED:
                 continue

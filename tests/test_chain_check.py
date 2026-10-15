@@ -524,6 +524,42 @@ class TestFindings:
         assert errors == [] and [v for _l, _h, v in found] == [(chain.OPEN, None)]
 
 
+# --- record_findings ----------------------------------------------------------
+
+
+class TestRecordFindings:
+    def test_a_record_whose_regions_close_reads_as_findings_reads_it(self):
+        text = record("abc1234", [finding(1, "open"), finding(2, "answered")])
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert errors == []
+        assert found == chain.findings(reader, reader.readable(text), "r.md")[0]
+
+    def test_a_fence_or_comment_that_never_closes_is_refused_by_its_opener(self):
+        """A fence or a comment that never closes hides every line after it,
+        so the findings below it would vanish and the record would pass. The
+        record is refused at the opener's line instead, and what the reader
+        could still see is read as well."""
+        hidden = finding(2, "open")
+        # A `~~~` fence, so the backtick fence of the finding below it is
+        # content and cannot close it.
+        for opener, why in (("~~~python\n", "fence"), ("<!-- a note\n", "comment")):
+            text = record(
+                "abc1234",
+                [finding(1, "answered").replace("Answer: \n", opener), hidden],
+            )
+            found, errors = chain.record_findings(reader, text, "r.md")
+            lines = text.splitlines()
+            second = lines.index("### 2. the parser drops a row")
+            line = 1 + max(
+                i for i, ln in enumerate(lines[:second]) if ln == opener.rstrip("\n")
+            )
+            assert [(rel, n) for rel, n, _why in errors] == [("r.md", line)], errors
+            assert why in errors[0][2] and "never closes" in errors[0][2]
+            assert [heading for _line, heading, _v in found] == [
+                "### 1. the parser drops a row"
+            ]
+
+
 # --- follows ------------------------------------------------------------------
 
 
@@ -716,6 +752,28 @@ class TestMain:
         code, out = check(root, capsys)
         assert code == 1
         assert f"{rel}:0" in out and chain.NO_FINDINGS in out
+
+    def test_an_unclosed_fence_hiding_an_open_finding_fails_a_ready_pull_request(
+        self, branch, ready, capsys
+    ):
+        """A fence the warden never closed hides the open finding below it;
+        the check names the fence's opener rather than passing the record."""
+        root, code_sha = branch
+        rel = f"{ITEM}/rounds/round-1.md"
+        text = record(
+            code_sha,
+            [
+                finding(1, "answered").replace("Answer: \n", "~~~python\n"),
+                finding(2, "open"),
+            ],
+        )
+        write(root, rel, text)
+        commit(root, "a record with a fence left open")
+        seal(root)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        opener = text.splitlines().index("~~~python")
+        assert f"{rel}:{opener + 1}" in out, out
 
     def test_a_broad_gate_file_naming_another_commit_fails_a_ready_pull_request(
         self, branch, ready, capsys
