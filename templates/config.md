@@ -201,9 +201,8 @@ root by `broad-gate` once the review rounds settle. The plugin's own checks
 follow it and are not part of the row; the module docstring of
 `skills/verify/scripts/broad_gate.py` lists them, in the order they run.
 `broad-gate --preflight` runs those checks alone, reading the row and not
-running it, then asks `seal`'s refusals of the work item declared for the
-branch without writing the cell; the orchestrator runs it before the sealer
-is spawned.
+running it, and writes nothing; the orchestrator runs it before the sealer is
+spawned.
 
 ```markdown
 | Broad gate | uvx ruff check . && uvx ruff format --check . && bin/test -q |

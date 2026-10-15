@@ -97,7 +97,7 @@ edit and asking for `[no-review]` as well is asking for the same answer twice.
 | The declaration says | At the commit | At the pull request |
 |---|---|---|
 | through the review chain | silent | a committed `rounds/round-N.md` with every 🔴 and 🟡 row closed, the last record's `Target SHA` at HEAD or followed only by the work item's own records, and the sealer's `broad-gate.md` beside it |
-| straight to the PR | silent | the sealer's `broad-gate.md` in the work item's directory — the one broad run, at a SHA the tree can see, against the base — and nothing else: the answer turns off the reviewer alone. A draft pull request prints instead of failing, and the declaration is printed either way, because a decision nobody sees is not a record |
+| straight to the PR | silent | `broad-gate.md` beside the work item's records, naming the one broad run the sealer took at a SHA the tree can see, and nothing else: the answer turns off the reviewer alone. A draft pull request prints instead of failing, and the declaration is printed either way, because a decision nobody sees is not a record |
 | nothing readable, or no file | today's behavior — deny once, then ask | pass, with a notice saying nothing was checked |
 
 What the check reads of each round record under the first answer is

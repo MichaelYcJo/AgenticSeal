@@ -82,55 +82,17 @@ def test_the_broad_gate_section_states_its_own_timing():
     )
 
 
-# The row that says the rounds settled, and the one sentence every carrier
-# points at instead of restating it.
-ROW = "`rounds/round-N.md`'s `Pass` box"
-POINTS_AT_THE_OWNER = (
-    "`skills/verify/SKILL.md` §*The broad gate — after the rounds, then "
-    "compare against the base* says which row and why not `Needs a fix`"
-)
-CARRIERS = (
-    ("agents", "warden.md"),
-    ("agents", "smith.md"),
-    ("agents", "sealer.md"),
-    ("skills", "code-review", "orchestration.md"),
-)
-
-
 def test_the_owner_names_the_row_the_phrase_stood_for():
     """*After the rounds settle* names no particular rounds. A work item has
     build phases with a progression of their own and a review chain with its
-    own, and a reader deciding whether the gate is due has to pick one.
-
-    The condition is a row a machine already reads, and phase 5 of #30 made
-    it the `Pass` box rather than `Needs a fix`: a capped run closes its last
-    finding `deferred <home>`, which checks the box, while the reviewer's own
-    row keeps the `yes` it had while the round ran. Both halves are asserted
-    — the row, and why the other row is not it — because the row alone would
-    go green over a document that had quietly gone back to reading the
-    reviewer's answer."""
+    own, and a reader deciding whether the gate is due has to pick one. The
+    condition is the last round record with no finding open, which the check
+    at the pull request reads."""
     owner = flat("skills", "verify", "SKILL.md")
-    assert f"the last {ROW} is checked" in owner, (
+    assert "the last `rounds/round-N.md` has no finding open" in owner, (
         "the broad gate's own section stopped naming the row, and the phrase "
         "it leaves behind names no particular rounds"
     )
-    assert "`Needs a fix: no` is the ordinary way a run arrives at a checked" in owner
-    assert "the box is what says the run ended" in owner
-
-
-def test_every_carrier_names_the_row_and_links_rather_than_restating_it():
-    """Four documents tell an agent when the gate is due. Each names the row
-    — a reader who has only that file still knows what to look at — and each
-    points at the one section that says why that row and not the other,
-    rather than carrying the reasoning a fifth time."""
-    for parts in CARRIERS:
-        text = flat(*parts)
-        assert ROW in text, f"{'/'.join(parts)} names the moment and not the row"
-        assert POINTS_AT_THE_OWNER in text, (
-            f"{'/'.join(parts)} states the condition without naming the "
-            "section that owns it, which is a second statement of the rule "
-            "rather than a link to the one that owns it"
-        )
 
 
 def test_the_seal_block_asks_for_the_row_too():
@@ -138,7 +100,7 @@ def test_the_seal_block_asks_for_the_row_too():
     may load nothing else. It used to read `due after the rounds settle`,
     which is the phrase this change exists to replace."""
     block = flat("skills", "verify", "SKILL.md")
-    assert "due when the last round record's `Pass` is checked" in block
+    assert "due when the last round record has no finding open" in block
     assert "not yet — due after the rounds settle" not in block
 
 
@@ -486,72 +448,12 @@ def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
 
 def test_the_broad_gate_state_survives_a_handoff():
     """A session joining at round 3 cannot see which commands were run."""
-    assert "| Broad gate |" in read("docs", "review-handoff-protocol.md"), (
-        "round-N.md lost the field that tells the next session whether the one "
+    assert "`broad-gate.md`" in read("docs", "the-review-record.md"), (
+        "the record lost the file that tells the next session whether the one "
         "broad run already happened"
-    )
-    assert "broad-gate state" in read("skills", "code-review", "SKILL.md"), (
-        "the reference implementation stopped recording what the protocol wants"
     )
     assert "broad gate:" in read("skills", "verify", "SKILL.md"), (
         "the seal block stopped carrying the state the record needs"
-    )
-
-
-def test_the_reviewer_carries_the_gate_state_into_a_section_its_report_has():
-    """Round 1, finding 3 of #120, and it is two defects in one sentence.
-
-    `agents/warden.md` told the reviewer to carry the broad-gate state into
-    `round-N.md`, which is a record §6 forbids it to write -- forty lines after
-    the same file says the report and the parity mark are the two writes it
-    names and there is no third. And the destination it did name has no field:
-    the report's tables are `## Verdicts`, `## Executed probes` and
-    `## Deferred`, and the file's own rule is that an answer the report format
-    has no field for is a decision that lives in a transcript.
-
-    `## Executed probes` is the section that has a row for it, and it is one
-    `round_record.py new` parses and copies into the record, so the state
-    reaches the record by the route §6 already permits.
-
-    The second half is newer than the finding's first: the `Broad gate` cell
-    now has a named owner one file over, and two definitions naming one cell is
-    exactly the state §6's rewrite exists to make impossible."""
-    warden = flat("agents", "warden.md")
-    assert "Carry the broad-gate state into your report" in warden, (
-        "the reviewer is told to write the state into a record again, which "
-        "§6 does not name among its writes"
-    )
-    assert "under `## Executed probes`" in warden, (
-        "the destination lost the section that has a row for it, and an "
-        "answer with no field is a decision that lives in a transcript"
-    )
-    assert "`Broad gate` cell itself is not yours" in warden, (
-        "the reviewer stopped being told the cell has another owner, so two "
-        "definitions name one cell"
-    )
-    # Round 2, finding 7: the destination is right and its columns read
-    # `What was run | Result`, while the value the reviewer most often has is
-    # `not yet`. Nothing ships broken -- the cell is written by
-    # `broad-gate --record` and never from this table -- but §4 is about not
-    # letting what ran and what did not share a label, so the definition says
-    # how to spell the row rather than leaving a not-run item under a heading
-    # that claims one.
-    assert "spell it so the row cannot be read as a run" in warden, (
-        "the reviewer is sent to a table headed `What was run` with no word "
-        "about how to write a `not yet` into it, which is the label §4 says "
-        "must not be shared"
-    )
-    assert "§4 is the rule under it" in warden, (
-        "the grounds went, and a spelling rule with no rule behind it is the "
-        "first thing a later edit tidies away"
-    )
-    # The named section has to be one the generator actually reads, or the
-    # redirect moves the answer somewhere the record never sees.
-    assert 'PROBES = "## Executed probes"' in read(
-        "skills", "code-review", "scripts", "round_record.py"
-    ), (
-        "the generator no longer parses the section the definition sends the "
-        "state to, so the state stops at the report"
     )
 
 
@@ -689,67 +591,3 @@ def test_the_skill_says_the_preflight_is_not_the_broad_gate():
     assert "--preflight" not in read("agents", "sealer.md"), (
         "the sealer's definition names the preflight"
     )
-
-
-# --- 1790835051: the preflight asks `seal`'s own refusals (#702) -------------
-
-ASK = "`round_record.py seal --check`"
-REFUSALS = "`seal`'s refusals"
-
-
-def preflight_paragraph():
-    """The paragraph of the spawn section that opens *The preflight is
-    yours*, as one joined line."""
-    body = section(read("skills", "code-review", "orchestration.md"), SPAWN_SECTION)
-    start = next(
-        i for i, line in enumerate(body) if line.startswith("**The preflight is yours")
-    )
-    end = next((i for i in range(start + 1, len(body)) if not body[i].strip()), None)
-    return joined(body[start:end])
-
-
-def test_the_orchestrator_is_told_the_preflight_asks_seals_refusals():
-    """S11. The orchestrator types the same command, and is told what it now
-    asks: `seal --check` of the work item declared for the branch, and where
-    a `seal` line under `PREFLIGHT FAILED` sends it — the verifying round
-    where the last record reads `nobody`, the open finding where `Pass` is
-    unchecked, which are `seal`'s own sentences."""
-    text = preflight_paragraph()
-    assert ASK in text, "the paragraph does not name the ask"
-    assert "declared for the branch" in text, text
-    assert "verifying round" in text and "`Pass` is unchecked" in text, text
-    assert "writes no cell" in text or "nothing is written" in text, text
-
-
-def test_the_acts_table_grounds_name_the_ask():
-    """S11. The row stays `still a sentence` and its grounds name the ask, so
-    the sentence about what a skipped preflight costs counts `seal`'s
-    refusals among what the sealer asks after its suite."""
-    rows = [
-        line
-        for line in read("skills", "implement", "orchestration.md").splitlines()
-        if line.startswith(f"| {SPAWN_SECTION} |")
-    ]
-    assert len(rows) == 1, f"{len(rows)} acts-table rows name the section"
-    assert "| still a sentence |" in rows[0], rows[0]
-    assert ASK in rows[0], "the row's grounds do not name the ask"
-
-
-def test_the_skill_and_the_template_say_the_preflight_asks_seals_refusals():
-    """S11. `verify` §*The broad gate* and `templates/config.md` §*Broad gate*
-    each carry the preflight sentence, and each says it asks `seal`'s
-    refusals without writing — beside what already keeps it from being taken
-    for the run."""
-    verify = joined(
-        section(
-            read("skills", "verify", "SKILL.md"),
-            "The broad gate — after the rounds, then compare against the base",
-        )
-    )
-    at = verify.index(PREFLIGHT)
-    said = verify[at : at + 400]
-    assert REFUSALS in said and "runs no suite" in said, said
-    template = joined(section(read("templates", "config.md"), "Broad gate"))
-    lead = template.split("```")[0]
-    at = lead.index(PREFLIGHT)
-    assert REFUSALS in lead[at : at + 400], lead[at : at + 400]

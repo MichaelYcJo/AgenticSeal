@@ -15,8 +15,8 @@ copies or derives any part of it.
 Enforced by: tests/test_chain_check.py::TestVerdictTable
 
 **The vocabulary is four severities and five verdict words.** 🔴 blocks
-merge, 🟡 fix or justify, 🟢 matches, ❓ out of verified scope. A 🔴 or 🟡 row
-carries a bare-integer id and opens at `open`; the fix pass closes it
+merge, 🟡 fix or justify, 🟢 matches, ❓ out of verified scope. 🔴 and 🟡 rows
+take a bare-integer id and start `open`; the fix pass closes each
 `fixed <commit>`, `answered` or `deferred <home>`. A 🟢 row reads `confirmed`
 and a ❓ row `❓ out of verified scope`. A wrong sentence an agent reads and
 acts on is a 🟡; a sentence in a record that merely reads badly is not a
@@ -80,9 +80,9 @@ Enforced by: tests/test_chain_check.py::TestMain
 
 **A run ends with a verifying round.** It is spawned after the last fixes are
 committed; its target is the diff of those fixes, new units included; it
-answers whether each closed finding is actually closed. A round that opens
-nothing needing a fix does not count toward the cap, because the cap stops a
-loop that is not converging and such a round is the loop having converged.
+asks of every finding marked closed whether the fix holds. A round opening
+nothing that needs a fix does not count toward the cap: the cap stops a loop
+that is not converging, and such a round is the loop having converged.
 Enforced by: tests/test_chain_check.py::TestFollows
 
 **A run has three finding rounds by default, and extends one round at a time

@@ -123,7 +123,7 @@ incorporation. This file only adds what the skill does not carry.
         below the example: one invocation for the line alone, one with
         everything above it, `_hides_a_commit` True for the file -- the same
         three answers as at `5623d728`, before that paragraph.
-        Verified 2026-10-14 against "## Phases"@3c6d9fa3. -->
+        Verified 2026-10-15 against "## Phases"@9fbd2579. -->
 
    Left to the commit, that token stops a session that had the answer in its
    first minute — which is why the declaration is written before you are

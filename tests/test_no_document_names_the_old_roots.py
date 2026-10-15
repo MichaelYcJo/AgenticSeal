@@ -12,8 +12,7 @@ below with its reason, so the allowlist cannot grow without one:
   - the design record and its Korean twin, which name both trees because
     the move is what they are about;
   - a marker or a retired key, which is read by a script or kept as
-    history — the `<!-- specs/<id> -->` text in the changelog and the ledger,
-    the `.specseal/handoff/PR-<n>/` directory that was never created;
+    history — the `<!-- specs/<id> -->` text in the changelog and the ledger;
   - a sentence about the migration itself, worded as past.
 
 `hooks/root-migrate.py` reads the old names on purpose and is a `.py` file,
@@ -60,7 +59,6 @@ DESIGN_RECORD = {"docs/one-root-by-lifetime.md", "docs/one-root-by-lifetime.ko.m
 # A line carrying one of these keeps the old name on purpose. Each entry is
 # checked to still occur somewhere, so a reason cannot outlive its line.
 KEEP = {
-    ".specseal/handoff": "the retired handoff key, named where the reason it moved is kept",
     "<!-- specs/<work-item-id> -->": "the marker text in the changelog and the ledger is unchanged (Q2)",
     "`.specseal/scratch`": "the predecessor of `.git/specseal-scratch`, named as past",
     "`.specseal/` or a top-level `specs/`": "the README saying what nothing reads any more",

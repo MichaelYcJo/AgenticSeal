@@ -849,17 +849,6 @@ def test_the_implement_skill_names_the_one_writer_of_docs():
     assert "The one writer that does is `settle`" in text
 
 
-def test_the_handoff_protocol_separates_the_two_deadlines():
-    """Closing before the merge is the implementer's and is the protocol's;
-    retiring after the release is `settle`'s and is the implementation's. The
-    document said the directory outlives the merge and is not deleted, with
-    nothing distinguishing the deadline draft 0.1 got wrong from the one that
-    comes years later."""
-    text = document("docs", "review-handoff-protocol.md")
-    assert "Outliving the merge is not outliving the release" in text
-    assert "It is deleted eventually, and that is a different deadline." in text
-
-
 @pytest.mark.parametrize(
     "parts, heading",
     [

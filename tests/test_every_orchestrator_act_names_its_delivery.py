@@ -362,14 +362,14 @@ def test_a_row_naming_no_heading_is_named(tmp_path):
 def test_a_named_path_is_resolved_against_the_tree_under_check(tmp_path):
     """Round 1's finding 3, as the case that keeps the leak from returning.
 
-    `bin/round-record` exists in this repository and not in a planted tree,
+    `bin/broad-gate` exists in this repository and not in a planted tree,
     so resolving against `ROOT` reports nothing here and resolving against
     the given root names it. A path absent from BOTH trees — which is what
     `test_a_named_command_must_exist` uses — cannot tell the two apart, which
     is why that direction was red for the wrong reason.
     """
-    assert os.path.exists(os.path.join(ROOT, "bin", "round-record")), (
-        "this case needs a path the repository carries; `bin/round-record` "
+    assert os.path.exists(os.path.join(ROOT, "bin", "broad-gate")), (
+        "this case needs a path the repository carries; `bin/broad-gate` "
         "was it, and the tree no longer has it"
     )
     root = _tree(
@@ -378,16 +378,16 @@ def test_a_named_path_is_resolved_against_the_tree_under_check(tmp_path):
             (
                 ACT,
                 "skills/implement/orchestration.md",
-                "command: `bin/round-record`",
+                "command: `bin/broad-gate`",
                 "",
             ),
             SELF,
         ],
     )
-    assert not os.path.exists(os.path.join(root, "bin", "round-record"))
+    assert not os.path.exists(os.path.join(root, "bin", "broad-gate"))
     found = findings(root)
     assert len(found) == 1, found
-    assert "bin/round-record" in found[0]
+    assert "bin/broad-gate" in found[0]
     assert "reads as delivered" in found[0]
 
 

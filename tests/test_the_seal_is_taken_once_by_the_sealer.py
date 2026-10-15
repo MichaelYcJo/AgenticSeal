@@ -3240,17 +3240,14 @@ def test_the_documents_name_the_line_that_says_to_commit_the_cell():
     exists and is passed on, and the orchestrator is told what to do with
     it — the commit is the orchestrator's act."""
     sealer = " ".join(sealer_text().split())
-    assert "one more line says the `Broad gate` cell is written and not committed" in (
-        sealer
-    )
+    assert "one more line says `broad-gate.md` is written and not committed" in (sealer)
     assert "naming the branch and the tree, the ref and the base commit" in sealer
     orchestration = " ".join(
         read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
     )
     assert (
-        "the line under it says the `Broad gate` cell is written and not "
-        "committed: CI reads the record at HEAD, so commit the cell before the "
-        "pull request is marked ready"
+        "the line under it says `broad-gate.md` is written and not committed: "
+        "CI reads HEAD, so commit it before the pull request is marked ready"
     ) in orchestration
 
 
@@ -3660,11 +3657,10 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     above = source.split("GATE_REL = ", 1)[0][-1500:].splitlines()
     comment = " ".join(" ".join(line.lstrip("# ") for line in above).split())
     assert "or where no invoked copy was handed over to compare" in comment
-    # Phase 3's row, in #832's separators; and the ref beside its commit.
-    assert (
-        "`rounds` row reads `<R> · capped` where the last record's `Needs a fix`"
-        in (sealer)
-    )
+    # The `rounds` row counts the records and carries no `capped` since
+    # 0.22.0 (#923); and the ref beside its commit.
+    assert "`rounds` row counts the records" in sealer
+    assert "· capped" not in sealer
     assert "the `base` row carries the ref beside the commit it came from" in sealer
     assert "the row under `base` carries the ref" not in sealer
     assert "counts the findings closed `deferred` and names their homes" in sealer
@@ -8399,13 +8395,13 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     every assertion below is unchanged and only the name and the grounds are."""
     text = " ".join(sealer_text().split())
     assert "§6" in text, "the sealer cannot reach the rule that names its one write"
-    assert "round_record.py seal" in text, (
-        "the sealer's one write does not name the subcommand that makes it, "
+    assert "through `broad-gate --record`" in text, (
+        "the sealer's one write does not name the command that makes it, "
         "so the write is described rather than bounded"
     )
-    assert "`Broad gate`" in text, (
-        "the exception does not say WHICH cell, and an exception without a "
-        "boundary is a general permission"
+    assert "You write one file: the work item's `broad-gate.md`" in text, (
+        "the permission does not say WHICH file, and a permission without a "
+        "boundary is a general one"
     )
 
 

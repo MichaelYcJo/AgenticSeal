@@ -252,8 +252,8 @@ they are the two to name rather than some new mark invented for it.
   the broad seal and the PR* is a rule about that one seal and about no other.
 - **Form.** Every other seal is text. The sealer's is the only one drawn, and
   only over a run that earned it: `broad-gate` draws the stamp, or writes the
-  values it is drawn from, when every check passed and the cell was written,
-  and on no other path. It draws on a person's terminal itself; anywhere
+  values it is drawn from, when every check passed and `broad-gate.md` was
+  written, and on no other path. It draws on a person's terminal itself; anywhere
   else the `Stop` hook draws those values at the end of the turn of the
   session that spawned the sealer. So seeing the drawing means the last seal
   was earned.

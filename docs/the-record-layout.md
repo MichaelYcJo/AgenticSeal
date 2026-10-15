@@ -55,7 +55,8 @@ the last round, and an integration commit after a sibling's squash, which the
 orchestrator writes. A commit that changes nothing a release note states owes
 the fragment nothing. 0.18.2 shipped three fragments their own review rounds had
 made false, and #795 corrected them by hand before the release.
-Enforced by: nothing — the next round's warden reads the fragment against the diff, and the sealer reads the changelog against the tree
+Enforced by: nothing — the next round's warden reads the fragment against the
+diff, and the sealer reads the changelog against the tree.
 
 ## The fold, and what tells it from a deletion
 

@@ -60,7 +60,9 @@ def test_the_implementer_documents_point_at_the_section():
     there — which is how session_cost.py went unused for a day."""
     for parts in (("skills", "implement", "SKILL.md"), ("agents", "smith.md")):
         text = flat(*parts)
-        assert "handoff before round 1" in text, "/".join(parts)
+        assert "`docs/the-review-record.md`" in text and "handoff" in text, "/".join(
+            parts
+        )
 
     # Phase 4 of #107 re-pointed the second half. The rule that a fact with
     # no coordinate and no label is an assertion nobody has opened is §5 of

@@ -312,8 +312,8 @@ def document(*parts):
             "the honest answer on a busy release is to skip this step",
         ),
         (
-            ("docs", "review-handoff-protocol.md"),
-            "The round records leave first, with the rest of the process record",
+            ("docs", "the-review-record.md"),
+            "`settle --retire-process` removes them after the release",
             "and the whole directory, round records included, is then removed",
         ),
         (

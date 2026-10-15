@@ -55,7 +55,7 @@ Enforced by: tests/test_chain_check.py::TestFrame
 **A review round is one file the warden writes, the fix pass fills two cells
 of each open row, and the sealer's broad run writes `broad-gate.md`.**
 `docs/the-review-record.md` holds what each of those files carries.
-Enforced by: tests/test_chain_check.py::TestVerdictTable, tests/test_broad_gate.py::TestGate
+Enforced by: tests/test_chain_check.py::TestVerdictTable
 
 <!-- specs/1788445862-a-phase-hands-the-next-one-a-record -->
 **A build phase leaves a record, the way a review round does.** What a phase
