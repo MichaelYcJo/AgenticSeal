@@ -37,7 +37,7 @@ commit alike. -->
 | preload:smith | bytes | 101344 | 2 % | gate |
 | preload:warden | bytes | 99690 | 2 % | gate |
 | preload:claude-md | bytes | 9027 | 2 % | gate |
-| suite-seconds | seconds | 9185 | one-sided | gate |
+| suite-seconds | seconds | 7841 | one-sided | gate |
 | slow-file | seconds | 120 | one-sided | report |
 | docs-history | lines | 0 | +0 lines | gate |
 | ci-minutes:ubuntu | minutes | 15 | one-sided | gate |
@@ -57,8 +57,8 @@ commit alike. -->
 
 | File | Seconds ceiling |
 |---|---|
-| tests/test_the_seal_is_taken_once_by_the_sealer.py | 1538 |
-| tests/test_the_commit_gate_decides_at_the_commit.py | 1479 |
+| tests/test_the_seal_is_taken_once_by_the_sealer.py | 1190 |
+| tests/test_the_commit_gate_decides_at_the_commit.py | 506 |
 | tests/test_the_fixes_close_the_record.py | 627 |
 | tests/test_chain_check_at_the_pull_request.py | 488 |
 | tests/test_a_fix_of_a_fix_is_counted.py | 431 |

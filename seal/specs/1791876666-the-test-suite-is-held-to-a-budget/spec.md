@@ -9,32 +9,36 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 |---|---|
 | `CLAUDE.md` §*The goal a design is chosen against* | Nothing here asks a person. A new case is proven by a run CI makes, never by a sentence in a hand-back |
 | `CONTRIBUTING.md` §*What a change to a gate must carry* | The regrowth check is a gate: a test seen red, the direction (it blocks more), a prompt budget of zero, platform honesty (it runs on ubuntu alone), a `Reads:` line per unit, `## Removes` below |
-| `CONTRIBUTING.md` §*Running the checks*, the paragraph opening `**A case has a budget, and so does each leg.**` | Rewritten in place: what a case owes (its `Kills:` line), how a case is proven redundant, and the rows that hold the suite. Nothing is appended |
-| `skills/implement/SKILL.md` §*2. Implement test-first, and let each rule name its test* | The convention this work extends to the case itself: a rule's `Enforced by:` line names the test that holds it, and the test is proved by the mutation it kills |
+| `CONTRIBUTING.md` §*Running the checks*, the paragraph opening `**A case has a budget, and so does each leg.**` | Rewritten in place: what a case owes (a mutant only it kills in its file, which the `cases` job derives), how a case is proven redundant, and the budget each case and leg keeps. Nothing is appended |
+| `skills/implement/SKILL.md` §*2. Implement test-first, and let each rule name its test* | The convention this work extends to the case itself: a rule's `Enforced by:` line names the test that holds it, and the test is proved by a mutant it alone kills |
 | `docs/the-record-layout.md` §*A change writes fragments, never a shared file* | The changelog goes to the work item's fragment; a removed or renamed case an `Enforced by:` line names moves that line to the case that holds the rule now |
-| `docs/the-reader-registry.md` §*A frame names what its work removes* | `## Removes` below; a removal a phase makes that the frame did not name is a divergence in `overview.md` |
+| `docs/the-reader-registry.md` §*A frame names what its work removes* | `## Removes` below; a removal the frame did not name is a divergence in `overview.md` |
+| `docs/commit-review-gate-spec.md` §*Registration* | A hook that fails is skipped and said, and the call goes ahead. That is why the launcher stands in front of the `bin/` wrappers and not in front of `hooks/hooks.json`, where exit 2 blocks the call |
 | `skills/agent-contract/SKILL.md` §15 | Today's rule for a new case, which the regrowth check makes a run CI performs rather than a thing a hand-back says |
-| #930's `seal/specs/1791876665-…/spec.md` §*The budgets* | The ratchet every row proposed here follows: `measured ≤ ceiling ≤ measured × (1 + slack)`; a raise is a `Budget raised:` line in the pull request body |
-| #931's `seal/specs/1791876667-…/spec.md` §*Scope* item 3 | A pull request that removes a twentieth of the suite's seconds brings the fresh `.test_durations` from its own run; `suite-seconds` falls in the same pull request |
+| #930's `seal/specs/1791876665-…/spec.md` §*The budgets* | The ratchet the rows this item lowers stand under: `measured ≤ ceiling`, a `one-sided` row's ceiling 1.3 times its reading, rounded up; a lowering needs no `Budget raised:` line |
+| #931's `seal/specs/1791876667-…/spec.md` §*Scope* item 3 | A pull request that removes a twentieth of the suite's seconds brings the `.test_durations` its cut leaves; `suite-seconds` falls in the same pull request |
 | `skills/implement/SKILL.md` §*3. The SDD file set* | A check's verdict and a sentence a contributor acts on change, which is the top rung |
 
 ## Scope
 
-**The problem.** The suite grew by appending: every fix planted cases and nothing took any out. Whether 13,714 cases guard 13,714 things is unknown, and nothing stops the next pull request from adding 44 more that guard nothing new. Time was the first frame's measure; it is a consequence here.
+**The problem.** The suite grew by appending: every fix planted cases and nothing took any out. Whether 13,714 cases guard 13,714 things is unknown, and nothing stopped the next pull request from adding 44 more that guard nothing new. Time was the first frame's measure; it is a consequence here.
 
-**In.** Three parts, in the owner's order.
+**In.** What this item ships. The owner closed it at phase 2 on 2026-10-15, and the rest of the plan went to #942.
 
-1. **Compact what exists, proven by mutation.** A case guards a sentence of the unit under test, and it says which (`## A case names what it guards`). A case is removed only when a mutation table shows that every mutation it kills is killed by a case that stays (`## The removal criterion`). The whole suite is in scope, not the slow files; this item takes the module already done, the three enumeration files that hold 31 % of the cases, the byte-identical helper twins and the sealer file, and item C takes the long tail under the same rule (`plan.md` §*Alternatives considered* H).
-2. **Change how a case is added**, so the suite does not regrow: a new or changed case carries a `Kills:` line, and CI runs it — red with the case, not red without it (`## The regrowth check`). This lands in 0.22.0 whatever else does.
-3. **Hold it there.** Rows for #930's `seal/budgets.md`: `test-cases`, `test-lines`, `test-cases:<file>`, `test-lines:<file>`, `unguarded-files`, each a ratchet with its measurer in `budget_check.py` (`## Rows for seal/budgets.md`).
+1. **One module compacted, proven by mutation.** `tests/test_the_commit_gate_decides_at_the_commit.py` replays `SAMPLE`, one or more representatives of each corpus subgroup, where it replayed the whole corpus (phase 1). The sealer file's six corpus layouts that differ from a kept twin only by a junit option leave with their 12 ids (f13b0dfa). Each removal meets `## The removal criterion`.
+2. **Change how a case is added**, so the suite does not regrow: a new or changed case must be its file's only killer of a mutant the tree yields, and CI derives and runs that mutant (`## What a case owes`, `## The regrowth check`). This lands in 0.22.0.
+3. **The rows the cuts moved are lowered** in #930's `seal/budgets.md` (`## Rows for seal/budgets.md`).
+4. **One launcher holds the Python floor.** `hooks/launch.py` holds `FLOOR`, and every `bin/` wrapper and its `.cmd` twin runs its script through it. Below the floor it refuses with one sentence and exits 2 before the script is read; at or above it the script runs as if run directly. The floor's eight copies and the cases that pinned them leave (`## Removes`).
 
 **Out, and whose.**
 
-- **A case whose assertion reads this tree's prose** — `agents/`, `skills/*/SKILL.md`, `orchestration.md`, `docs/`, `README*`, `CONTRIBUTING.md`, `CLAUDE.md`, `templates/` — is #923's and moves with that text. By function body or a constant or helper the function names (`executed` at fcd735bc, `plan.md` §*Technical context*): 1,201 functions, 1,586 collected cases, in 135 files; the measure errs over, counting a case that writes `docs/` into a fixture tree. Every other case — 12,128 — is this item's. A phase that opens a file lists which of its cases it left to #923 in `phases/phase-N.md`.
-- **Which legs run on a pull request** — item B, as before (`plan.md` D1–D4); D4 until it is framed.
-- **The long tail of the cleanup** — item C: every test file this item's phases do not open, under the criterion and the `Kills:` convention this item ships, held by the rows this item adds.
-- **`.test_durations`' cadence** (#931) and **the budget mechanism** (#930): read, not changed. A measurer this item adds to `budget_check.py` is a row's, not the ratchet's.
-- **A suite-wide mutation census as a CI job.** The regrowth check runs a new case's own mutation; nothing re-runs every case's. Item C's tables are where the existing cases meet theirs.
+- **A case whose assertion reads this tree's prose** — `agents/`, `skills/*/SKILL.md`, `orchestration.md`, `docs/`, `README*`, `CONTRIBUTING.md`, `CLAUDE.md`, `templates/` — is #923's and moves with that text. By function body or a constant or helper the function names (`executed` at fcd735bc, `plan.md` §*Technical context*): 1,201 functions, 1,586 collected cases, in 135 files; the measure errs over, counting a case that writes `docs/` into a fixture tree. A cut that opens a file lists which of its cases it left to #923.
+- **Which legs run on a pull request** — #943 (item B); every leg on every pull request until it is framed.
+- **The rest of the cleanup — #942.** The three enumeration files that hold 31 % of the cases, the 249 byte-identical helper twins, the sealer file's inventory of its `run_gate` call sites and its mutation battery, and every test file this item did not open, each under `## The removal criterion`. With them go the rows the frame proposed for `seal/budgets.md` — `test-cases`, `test-lines`, `test-cases:<file>` and `test-lines:<file>`, their measurers in `budget_check.py` and a per-file table for them — whose ceilings are #942's to set from its own tables.
+- **`unguarded-files` and `tests/unguarded-files.txt`** — not built and not moved. The list was to hold the files whose cases still owed a written line, and no case owes one (the owner's decisions of 2026-10-14).
+- **`hooks/hooks.json` and the git hook stubs** stay outside the launcher. A hook below the floor is protected by `dispatch.py`'s own isolation, as before (`phases/phase-2.md` gives the grounds).
+- **`.test_durations`' cadence** (#931) and **the budget mechanism** (#930): read, not changed. This item adds no row and no measurer.
+- **A suite-wide mutation census as a CI job.** The regrowth check derives a new case's mutants; nothing re-runs every case's. #942's tables are where the existing cases meet theirs.
 
 ## What the suite is
 
@@ -48,7 +52,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | Where the lines are | 18 files have over 40 lines per case; `test_the_seal_is_taken_once_by_the_sealer.py` is 10,142 lines for 457 cases |
 | Guarded units | 1,529 top-level units in 65 shipped modules; 971 are named by a test function in a file that loads the module, 558 by none (36 %); 41 units are named by over 100 functions each (`hooks/gate.py#git` by 902) — the count reads names, not calls, so it errs both ways |
 | Helpers | 1,770 top-level helpers in test files, 1,140 names; 249 are byte-identical twins of another file's (1,413 lines): `read` ×64 in 12 bodies, `flat` ×44 in 13, `repo` ×36 in 16, `git` ×30 in 11, `write` ×25 in 6; 64 files run `git init` themselves beside `conftest.py`'s 50 fixtures |
-| Dead parametrizations | 3 `pytest.param` rows marked skip; 44 files carry `skipif` or `pytest.skip`; which rows never run on any leg is each phase's `-rs` to read |
+| Dead parametrizations | 3 `pytest.param` rows marked skip; 44 files carry `skipif` or `pytest.skip`; which rows never run on any leg is a cut's `-rs` to read |
 | Time | 7,035 s priced over 13,279 entries (Windows, the committed file); 7,746 entries (58 %) under 0.05 s. #931's union prices 13,930 at 1.07× |
 | CI minutes | medians of the last five green runs: ubuntu 9.9, Windows 42.4, macOS 21.6; `gh api …/jobs` on 38480484016, 38477758775, 38475370013, 38378390028, 38360379166 |
 
@@ -66,56 +70,75 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 
 So the case count is not where the guarding is. The 904-row enumeration kills none of the four `table_end` mutations, because its property lets the walker refuse; each sentence there is held by one function, and three sentences in two fast modules are held by nothing. Phase 1 found the other shape: 156 of 226 corpus rows killed one mutant. Compact means both — rows that kill what a sibling kills leave, and a sentence nobody kills gets one case.
 
-## A case names what it guards
+## What a case owes
 
-Every test function carries one `Kills:` line in its docstring: the path of a unit under test and one replacement that `mutation-check <path> --replace OLD NEW` applies unchanged, such that the file's cases are red with this function and not red without it. One line per function; a parametrized function's rows share it. For a case that pins prose, the path is the document and OLD is the sentence. The grammar round-trips any string and is the work's to fix (`questions.md`). A file whose every function carries the line is out of `tests/unguarded-files.txt`; the list holds the 185 files at this frame and only shrinks (the shape of `tests/undeclared_readers.txt`).
+Nobody writes down what a case guards. A test function is owed by a mutant that it alone, in its file, kills: under that mutant its own ids fail, and no other case of its file that ran the mutated line fails. The ids of one parametrized function are one case, so a kill its rows share is the function's own. The mutant is derived from the tree, never named by hand (`## The regrowth check`). A case that pins prose is owed by its sentence removed. These are the owner's decisions of 2026-10-14, recorded as a divergence in `overview.md`.
 
 ## The removal criterion
 
-A case is removed only when a mutation table shows it guards nothing alone: a battery of mutations of the unit under test, each killed (`mutation-check` exit 0) by the file as it stands, is still killed by the file without the case. The battery is drawn from what the file's cases say they guard — each case's `Kills:` line, or its docstring where it has none yet — and for an enumeration it holds one mutation per kind the enumeration names, so a row that a kind's mutation needs stays. A candidate whose guarded sentence no mutation negates gets its mutation added before anything is removed; a sentence the battery shows unguarded gets one case, which the suite may grow by. A case whose bare run shows it asserts nothing is removed on that showing. A byte-identical helper twin is removed on the hash alone. Judgment removes nothing. The table — mutation · killed before · killed after · the sentence's one remaining killer — is in each phase's `phases/phase-N.md`, and every kept case leaves the phase with its `Kills:` line.
+A case is removed only when a mutation table shows it guards nothing alone: a battery of mutations of the unit under test, each killed (`mutation-check` exit 0) by the file as it stands, is still killed by the file without the case. The battery is drawn from what the file's docstrings say its cases guard, and for an enumeration it holds one mutation per kind the enumeration names, so a row that a kind's mutation needs stays. A candidate whose guarded sentence no mutation negates gets its mutation added before anything is removed; a sentence the battery shows unguarded gets one case, which the suite may grow by. A case whose bare run shows it asserts nothing is removed on that showing. A byte-identical helper twin is removed on the hash alone. Judgment removes nothing. The table — mutation · killed before · killed after · the sentence's one remaining killer — is in the record of the phase that made the cut: phase 1's in `phases/phase-1.md`, the sealer cut's in `phases/phase-2.md`.
 
 ## The regrowth check
 
-A new or changed test function — new at HEAD against the merge base by id, or whose source differs — is read by `.github/scripts/case_check.py`, a job of `test.yml` on ubuntu after collection. For each, it runs the function's file twice through `mutation-check`: with the function, which must be red, and with it deselected, which must not be. A function with no `Kills:` line, a line whose replacement does not land, a mutation the function does not kill, or one the file kills without it fails the job naming the function. Exit 0 every function proved, 1 a function named, 2 nothing compared. Gate, not report: a report that is read by nobody is the mechanism #908's table already had. Platform honesty: it runs on ubuntu alone; a case guarding a Windows-only sentence proves itself on a run that skips there, which the line's path cannot fix and the phase record says. Its scope is the function's file: a case in another file that kills the same mutation is not seen, and the frozen list is where the suite-wide question is answered, file by file.
+`.github/scripts/case_check.py`, the `cases` job of `test.yml`, on ubuntu, on pull requests. It reads every test function new at HEAD against the merge base with `--baseline`, or whose text differs from the base's, docstring included.
+
+- **Where the mutants come from.** Each file holding such a function runs once as it stands, under a tracer that records which lines each case runs, and must pass. For each function at most twelve mutants are drawn, best first: the lines it runs, those fewest of its siblings run first; then the units of its own file it names, followed through the helpers they name; then the lines the pull request changed in shipped code, a `.py` outside `tests/` or a `.md` outside `seal/`. A line a sibling ran and it did not is never drawn, a test function's own lines are never mutated, and a changed `.md` line is mutated by removing it.
+- **The pass rule.** Under each mutant, through `mutation-check --baseline-passed`, the function's own ids run first, and where they fail, the other cases that ran the line (every other case of the file where no call ran it). The function is proved at its first mutant that fails it alone. A function whose draw runs out first is named, `kills nothing its file does not`.
+- **What nothing kills is a report.** The changed shipped lines' mutants that no case killed are listed, and so are the test functions the pull request removed. Neither fails the job: a gate there would be red for a mutant a file outside the run kills.
+- **The bound.** `--bound` is five minutes for the whole check, each file taking an equal share of what is left. A file whose proof would pass it is named, `restructure: test the decision directly`, so the job ends on the bound and never on its timeout.
+- **Exit 0** every new or changed function proved, **1** one named, **2** nothing compared. Gate, not report: a report read by nobody is the mechanism #908's table already had.
+
+How it errs: under, because a line reached only through a subprocess or a fixture's setup is not traced, so such a case gets its mutants from the names it uses and from the diff alone; over, because a line one case runs alone may be setup only it needs. Its scope is the function's file: a case in another file that kills the same mutant is not seen. Platform honesty: a case guarding a Windows-only sentence proves itself on a run that skips there.
 
 ## Rows for `seal/budgets.md`
 
-Proposed to #930's file, measured by this item's measurers in `budget_check.py`, each a `gate` under the ratchet. Ceilings at this frame; targets at this item's close, re-set from each phase's table where the table shows less.
+This item adds no row. It lowers the `one-sided` rows its cuts moved, each to 1.3 times its reading at the 1132 price level, rounded up, the rule `seal/budgets.md` states:
 
-| Row | Measured as | Ceiling now | Target · slack |
-|---|---|---|---|
-| `test-cases` | ids `pytest --collect-only -q` lists | 13,714 | ≤ 10,500 · 2 % |
-| `test-lines` | lines of `tests/*.py` | 160,228 | ≤ 150,000 · 2 % |
-| `test-cases:<file>` | one file's collected ids, listed at ≥ 200 | the eight files at ≥ 200 | the three enumeration files ≤ 400 each · 5 % |
-| `test-lines:<file>` | one file's lines, listed at ≥ 2,000 | the 15 files at ≥ 2,000 | the sealer file ≤ 7,000 · 5 % |
-| `unguarded-files` | lines of `tests/unguarded-files.txt` | 185 | ≤ 175 · +0 |
+| Row | Reading at the base | Reading at this branch | Ceiling before | Ceiling now |
+|---|---|---|---|---|
+| `suite-seconds` | 6,854 | 6,031 | 9,185 | 7,841 |
+| `slow-file:tests/test_the_commit_gate_decides_at_the_commit.py` | 1,178 | 389 | 1,479 | 506 |
+| `slow-file:tests/test_the_seal_is_taken_once_by_the_sealer.py` | 946 | 915 | 1,538 | 1,190 |
 
-`suite-seconds`, `slow-file:*` and `ci-minutes:*` stay #930's and fall as a consequence: each cut pull request brings the union from its own run (#931), so the rows move with the cut.
+The `ci-minutes:*` rows are read off a CI run, not off the tree, so the release lowers them from the trend line. The rows the frame proposed are #942's (`## Scope`).
 
 ## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
-| S1 one module first | phase 1's record stands: 367 → 179 cases, 1,137 → 368 Windows seconds, m1–m5 red before and after, the mutation table in `phases/phase-1.md` | `read`; the enumeration phase repeats the shape on `test_a_signer_declares_its_pact.py`: cases, lines, seconds and the table before and after |
-| S2 a new case without its line | a pull request adds a test function with no `Kills:` line | `case_check.py` exit 1 naming the function; the job is red |
-| S3 a new case that kills nothing new | the line's mutation is red with the function deselected | exit 1 naming the function and the case that already kills it |
-| S4 a new case proven | red with, green without | exit 0; the summary lists each function and its two runs |
-| S5 a case that pins prose | the line's path is a `.md` and OLD its sentence | S4 holds through `mutation-check` on the document |
-| S6 the list only shrinks | a file leaves `tests/unguarded-files.txt` | every function in it carries the line (`case_check.py` reads the file whole); a file added to the list fails `unguarded-files` |
-| S7 a removal is proven | each phase's table | every mutation red before and after; the remaining killer named; a survivor gets a case |
-| S8 the rows move with the cut | a phase lowers `test-cases` and the others; the union downloaded from the phase's run | `budget_check.py` exit 0; `test_the_durations_file_prices_the_suite` green |
-| S9 the rules follow | a removed function an `Enforced by:` line names; a renamed one | the line names the case that holds the rule now; `budget_check.py`'s `enforced-unresolved` at 0 |
+| S1 one module first | phase 1's record stands: 367 → 179 cases, 1,137 → 368 Windows seconds, m1–m5 red before and after, the mutation table in `phases/phase-1.md` | `read` |
+| S2 a changed function is read as new | a pull request edits an existing test function, its docstring alone included | `case_check.py` reads it and proves it as it proves a new one |
+| S3 a case its file already covers | every mutant drawn for a new case is killed by a sibling too | exit 1 naming the function, `kills nothing its file does not`; the job is red |
+| S4 a new case proven | a mutant of changed code fails the new case alone | exit 0; the summary names the function and the line of its mutant |
+| S5 a case that pins prose | the pull request changes a `.md` line a new case reads | the line removed is a mutant, and the case proves by it |
+| S6 what nothing kills is reported | a mutant of changed shipped code no case kills; a test function the pull request removed | both listed in the summary; the exit is unchanged |
+| S7 a removal is proven | each cut's table | every mutation red before and after; the remaining killer named |
+| S8 the rows move with the cut | the cut's `.test_durations` in the tree | `suite-seconds` and the two `slow-file` rows lowered to 1.3 times their readings; `budget_check.py` exit 0; `test_the_durations_file_prices_the_suite` green |
+| S9 the rules follow | a removed case an `Enforced by:` line names | the line names the case that holds the rule now; `budget_check.py`'s `enforced-unresolved` at 0 |
 | S10 docs state the rule | the `CONTRIBUTING.md` paragraph | rewritten in place; `docs-history:*` at +0 |
 | S11 nothing asks a person | the whole change | no `AskUserQuestion`, no prompt, no box |
-| S12 every new unit declares | `case_check.py` and the measurers | a `Reads:` line each; the census passes |
+| S12 every new unit declares | `case_check.py` and `hooks/launch.py` | a `Reads:` line each; the census passes |
+| S13 a file past the bound | a file whose proof would take longer than its share of five minutes | named, `restructure: test the decision directly`; the job ends on the bound |
+| S14 below the floor | any `bin/` command run on a Python older than 3.12 | the launcher's one sentence, exit 2, the script never read |
+| S15 at the floor | the same command on 3.12 or newer | the script runs with the arguments, `sys.path[0]`, `__file__` and exit code a direct run gives |
 
 ## Data & interfaces
 
-`.github/scripts/case_check.py` — `--baseline REF`, `--root DIR`, `--list tests/unguarded-files.txt`; stdout and `$GITHUB_STEP_SUMMARY`; names no machine path. `tests/unguarded-files.txt` — one test file path per line, sorted. `budget_check.py` — five measurers and two per-file tables (`## Large test files`, `| File | Cases ceiling | Lines ceiling |`) in the shape of `## Slow test files`. A `Kills:` docstring line per test function.
+- `.github/scripts/case_check.py --baseline REF [--root DIR] [--runner CMD] [--bound MIN]` — stdout and `$GITHUB_STEP_SUMMARY`; names no path outside the root; exit 0/1/2 as above.
+- The `cases` job in `.github/workflows/test.yml` — pull requests only, `ubuntu-latest`, `contents: read`, `--bound 5`, a 15-minute timeout.
+- `mutation-check --baseline-passed` — skips the run against the unmutated file, for a caller that already ran it; a call without it is unchanged.
+- `hooks/launch.py <script> [arguments...]` — `FLOOR = (3, 12)`, the floor's one source; `.github/scripts/run_tests.py` reads it, and a case holds `ruff.toml` equal. Exit 2 below the floor or with no script named; otherwise the script's own.
+- `seal/budgets.md` — three ceilings lowered; no row, table or measurer added.
 
 ## Removes
 
-nothing — the frame names no unit: which cases leave is each phase's mutation table and which helper twins leave is the hash, so every removed test function or helper is a divergence row in `overview.md`, and an `Enforced by:` line naming it moves to the case that stays, as `docs/the-reader-registry.md` §*A frame names what its work removes* has it. The `CONTRIBUTING.md` paragraph is rewritten, not removed.
+- The floor's eight copies: the guard (`FLOOR`, `FLOOR_TEXT`, `BELOW_FLOOR`, `below_floor`) in `skills/code-review/scripts/round_record.py`, `skills/settle/scripts/settle.py`, `skills/settle/scripts/fold_check.py`, `skills/verify/scripts/broad_gate.py`, `skills/verify/scripts/payload_meter.py`, `skills/verify/scripts/seal_stamp.py` and `.github/scripts/claude_block.py`, and `run_tests.py`'s own `FLOOR` number, which now reads the launcher's.
+- The cases that pinned those copies: the 18 functions `tests/test_a_script_says_which_interpreter_it_needs.py` held, its census of constructs above the floor (`ABOVE_THE_FLOOR`, `CLASSIFIED`, `shipped_python`) with the `seal/follow-up.md` row it fed, and the raised-floor case in each of the payload-meter and `CLAUDE.md`-block modules. Five launcher cases replace them.
+- 191 parametrized ids of `test_s2_a_commit_bash_makes_into_an_undeclared_repository_does_not_land`, which now runs `SAMPLE`, and phase 1's `test_every_sampled_name_is_a_corpus_row`, whose mutant S2's own row kills.
+- The sealer file's six junit-twin layouts (`Qf-row`, `Qf-env`, `Qf-ini`, `R1-row`, `R1-ini`, `Q8`) and their 12 ids.
+- The 227 ids those removals take out of `.test_durations`, and the 13 lines of `tests/undeclared_readers.txt` whose units were removed or now declare their `Reads:` line.
+
+Each of these that the frame did not name is a divergence row in `overview.md`; the `Enforced by:` line that named the removed guard cases names the launcher and its cases now (`docs/round-record-spec.md` §*What it refuses before anything is written*). The `CONTRIBUTING.md` paragraph is rewritten, not removed.
 
 ## Open questions → questions.md
 
