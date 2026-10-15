@@ -5,7 +5,7 @@ extracted so nothing ships on a silent assumption. -->
 
 **Judgments the tickets left open that the tree answered** — listed so nobody reopens them; the grounds are in `spec.md` and `plan.md` §*Alternatives considered*.
 
-- Gate or report, per budget: gate for every number the pull request's own files determine (`preload:*`, `docs-history:*`, `suite-seconds`, `slow-file:*`) and for the one per-run number of the suite (`ci-minutes:*`, with a 1.3× noise allowance); report for `rounds-bytes` and `ledger-rereads`, whose numbers the pull request cannot fix without rewriting a committed record.
+- Gate or report, per budget: gate for every number the pull request's own files determine (`preload:*`, `docs-history:*`, `suite-seconds`) and for the one per-run number of the suite (`ci-minutes:*`, with a 1.3× noise allowance); report for `rounds-bytes` and `ledger-rereads`, whose numbers the pull request cannot fix without rewriting a committed record, and for `slow-file:*`, because one union of the Windows shards' parts moves a single file 0.67 to 1.72 times the level from the next (#931), past the 1.3 band, while `suite-seconds` gates the sum.
 - The unit is bytes, not tokens; the calibration is stated once in `spec.md` (alternative E).
 - Where the file lives: `seal/budgets.md`, beside `seal/config.md`, whose `Document line ceiling` row is the precedent for a ceiling a reader holds; the reader is this repository's own, under `.github/scripts/`, because the budgets are this repository's.
 - How a raise is declared: a `Budget raised:` line in the pull request body, read through `env:` as the issue-claims step reads it; a release pull request is exempt as the survivor step is.

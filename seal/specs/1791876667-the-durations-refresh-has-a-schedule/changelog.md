@@ -20,7 +20,9 @@
     suite's time therefore brings the fresh file with it. Its message gives
     the refresh: `gh run download <run id> -n test-durations -D <dir>`, move
     the file over the committed one, write its price level with
-    `budget_check.py --restate-price`, commit both. The download needs a
+    `python3 .github/scripts/budget_check.py --baseline origin/<base>
+    --restate-price`, where `<base>` is the branch the pull request merges
+    into, and commit both. The download needs a
     directory of its own, because `gh` will not write over an existing file.
     A branch with no pull request, or whose run is too old to re-run, gets a
     run with `gh workflow run test.yml --ref <branch>`.
