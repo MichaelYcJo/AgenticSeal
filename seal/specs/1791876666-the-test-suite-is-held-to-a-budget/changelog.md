@@ -23,28 +23,6 @@
   and says nothing.
   (`1791876666-the-test-suite-is-held-to-a-budget`, #929)
 
-### Added
-
-- **A new or changed test case has to prove itself on the pull request
-  (#929).** A `cases` job in the test workflow runs
-  `.github/scripts/case_check.py` against the base branch. For each test
-  function the pull request adds or changes, it draws up to twelve mutants:
-  from the lines the case runs and its siblings do not, the units of its own
-  file it names, and the shipped lines the pull request changed. Under each
-  mutant it runs the cases that ran that line. A case passes when it is its
-  file's only killer of at least one mutant; otherwise the job names it and
-  fails. The job runs on ubuntu. A case none of whose ids ran its body
-  there, because pytest never started its call or its own stop ended it, is
-  named for never having run rather than for killing nothing, and fails the
-  job too. An expected failure that runs its body counts as a run. Mutants
-  of changed code that no case kills are listed and fail nothing. The proof
-  is bounded at five minutes, and a file whose proof would take longer is
-  named with `restructure: test the decision directly`. Nothing is
-  annotated by hand, and `CONTRIBUTING.md` says what a case owes.
-  `mutation-check --baseline-passed` skips the run against the unmutated
-  file for a caller that has already run it; a call without it is unchanged.
-  (`1791876666-the-test-suite-is-held-to-a-budget`, #929)
-
 ### Fixed
 
 - **On Windows, `mutation-check` and `arm-check` kept a `--tests` command's
