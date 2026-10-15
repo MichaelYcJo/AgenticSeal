@@ -6,6 +6,7 @@ the gate. -->
 
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 Approved 2026-10-14 by the repository owner, when `smith` was spawned for the reframed plan.
+Approved 2026-10-15 by the orchestrating session under the owner's `automation` routing, when `smith` was spawned for the reframe after round 3.
 
 ## Summary
 
