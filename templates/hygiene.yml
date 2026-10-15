@@ -80,7 +80,8 @@ jobs:
       # record it claimed. It never fails a pull request that declared
       # nothing; once the pull request is no longer a draft it fails a
       # declaration with no committed round, a 🔴 or 🟡 row still open, a
-      # last record behind HEAD, and no `broad-gate.md` at HEAD. A round's
+      # last record behind HEAD, no `broad-gate.md` at HEAD, and no
+      # `guarantee.md` reading `sound` at HEAD. A round's
       # `Target SHA` is read only as HEAD or an ancestor of it, so the check
       # needs no ref the checkout does not already carry.
       - name: a declared review chain has the round record it claimed

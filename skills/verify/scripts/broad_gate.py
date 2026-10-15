@@ -27,7 +27,8 @@ What it does, in order, from the repository root:
   2. `unverified-check --baseline <base> seal/specs/`
   3. `chain_check.py --baseline <base> --sealing`   judged by the pull
      request's state as the check reads it, with `broad-gate.md`, which this
-     run is about to write, printed rather than judged
+     run is about to write, and `guarantee.md`, which the sealer writes after
+     it, printed rather than judged
   4. `seal.py mode --check`            the `Mode` row and the folder agree
 
 **Which arms exist is declared rather than remembered** (#468). `PARTITION`

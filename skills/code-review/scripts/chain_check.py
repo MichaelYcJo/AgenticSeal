@@ -4,7 +4,7 @@ are in the tree and agree with HEAD.
 
 Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
 every `seal/specs/<id>/routing.md` the pull request adds or changes, and the
-one naming the pull request's branch, through four arms:
+one naming the pull request's branch, through five arms:
 
   declaration   the file parses as a routing declaration; one the pull
                 request removed is accepted where the work item was retired
@@ -17,6 +17,9 @@ one naming the pull request's branch, through four arms:
                 it touches only the work item's own directory
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
                 touches only the work item's own directory
+  guarantee     `guarantee.md` names HEAD, or every commit after it touches
+                only the sealer's two files, and its one `Verdict:` line
+                reads `sound`
 
 A ready pull request fails on any of them. A draft, or a run that observed no
 pull request, prints the same lines and exits 0. `docs/the-review-record.md`
@@ -27,8 +30,8 @@ Usage:
 
 `--worktree` reads the records from the working tree instead of HEAD, for a
 check before the commit; CI never passes it. `--sealing` is the broad gate's
-own run, before it writes `broad-gate.md`: the broad-gate arm prints and does
-not fail.
+own run, before it writes `broad-gate.md` and the sealer `guarantee.md`: those
+two arms print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run.
@@ -53,6 +56,14 @@ GROUNDS_COLUMN = "Grounds"
 TARGET = "Target SHA"
 BROAD_GATE = "Broad gate"
 BROAD_GATE_FILE = "broad-gate.md"
+GUARANTEE_FILE = "guarantee.md"
+# The sealer's two files: the only ones that may follow the commit its
+# guarantee names, since it audited everything else on the branch.
+SEALERS_FILES = (BROAD_GATE_FILE, GUARANTEE_FILE)
+VERDICT_LINE = re.compile(r"^Verdict:\s*(.*?)\s*$")
+SOUND = "sound"
+NOT_SOUND = "not sound"
+UNDECIDABLE = "undecidable"
 # What a broad-gate entry is separated from the run behind it by. The newest
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
 EARLIER_RUN = "; earlier run: "
@@ -100,8 +111,9 @@ REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(\d+)\
 VERIFYING_ROUND = "a verifying round is owed"
 SEALING = "--sealing"
 SEALING_SAYS = (
-    f"{SEALING}: `{BROAD_GATE_FILE}` is the file this run writes, so its arm "
-    "prints and does not fail"
+    f"{SEALING}: `{BROAD_GATE_FILE}` is the file this run writes and "
+    f"`{GUARANTEE_FILE}` the one the sealer writes after it, so their arms "
+    "print and do not fail"
 )
 UNSEEN_SAYS = (
     "the pull request's state is unknown, and it is not judged as a ready "
@@ -569,17 +581,19 @@ def is_ancestor(root, sha, ref):
     return r.returncode == 0
 
 
-def follows(root, sha, base, item):
+def follows(root, sha, base, item, only=None):
     """None where `sha` is HEAD or every commit after it on the branch
-    touches only `item/`; else why not.
+    touches only `item/` — only the files of `item/` named in `only`, where
+    it is given; else why not.
 
     `("unseen", sha, "")` for a commit this repository cannot resolve,
     `("off", sha, "")` for one HEAD does not descend from, `("after",
     commit, path)` for the first commit after it, oldest first, touching
-    `path` outside `item/`. Merge commits and the base's own commits are not
-    the branch's.
+    `path` outside what may follow. Merge commits and the base's own commits
+    are not the branch's.
 
     Reads: observed — `git rev-parse`, `rev-list` and `diff-tree`; unknown refused"""
+    allowed = None if only is None else {f"{item}/{name}" for name in only}
     full = git(root, "rev-parse", "--verify", "--quiet", f"{sha}^{{commit}}")
     if full is None:
         return ("unseen", sha, "")
@@ -594,12 +608,16 @@ def follows(root, sha, base, item):
             root, "diff-tree", "--no-commit-id", "--name-only", "-r", "-z", later
         )
         for path in (touched or "").split("\0"):
-            if path and not path.startswith(f"{item}/"):
+            if not path:
+                continue
+            if not path.startswith(f"{item}/") or (
+                allowed is not None and path not in allowed
+            ):
                 return ("after", later, path)
     return None
 
 
-def follows_reason(found, what):
+def follows_reason(found, what, outside="the work item's records"):
     """The sentence `follows`'s answer is refused with, about `what`.
 
     Reads: nothing — formats the answer its caller hands it"""
@@ -610,7 +628,7 @@ def follows_reason(found, what):
         return f"{what} names `{sha}`, which HEAD does not descend from"
     return (
         f"{what} is behind HEAD: commit {sha[:8]} after it touches `{path}`, "
-        "outside the work item's records"
+        f"outside {outside}"
     )
 
 
@@ -744,6 +762,88 @@ def broad_gate(reader, root, item, base):
     if behind is None:
         return []
     return [(rel, 0, follows_reason(behind, "the newest broad-gate run"))]
+
+
+def verdicts_of(reader, text):
+    """[(line number, value)] for every `Verdict:` line outside comments and
+    fences, emphasis removed from the value.
+
+    Reads: guess — `guarantee.md`, which the sealer writes; unknown refused"""
+    found = []
+    for i, line in enumerate(reader.readable(text or "")):
+        m = VERDICT_LINE.match(EMPHASIS.sub("", reader.visible(line)))
+        if m:
+            found.append((i + 1, m.group(1).strip()))
+    return found
+
+
+def verdict_word(value):
+    """`sound`, `not sound` or `undecidable` where the value begins with one
+    of them, else the value as it reads.
+
+    Reads: nothing — maps the value `verdicts_of` read"""
+    s = value.strip().lower()
+    if s == SOUND:
+        return SOUND
+    for word in (NOT_SOUND, UNDECIDABLE):
+        if s == word or s.startswith(word + " "):
+            return word
+    return value.strip()
+
+
+def guarantee(reader, root, item, base):
+    """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
+    commit, a commit with anything but the sealer's two files after it, or
+    one `Verdict:` line that does not read `sound`.
+
+    Reads: guess — the file the sealer writes, through `target_of` and `verdicts_of`; unknown refused"""
+    rel = f"{item}/{GUARANTEE_FILE}"
+    text = read_record(root, rel)
+    if text is None:
+        return [
+            (
+                rel,
+                0,
+                "git carries no guarantee file: the sealer writes it from "
+                "`templates/sdd-guarantee.md` after its broad run",
+            )
+        ]
+    problems = []
+    sha = target_of(reader, text)
+    if sha is None:
+        problems.append((rel, 0, f"no SHA in its `{TARGET}` row"))
+    else:
+        behind = follows(root, sha, base, item, only=SEALERS_FILES)
+        if behind is not None:
+            problems.append(
+                (
+                    rel,
+                    0,
+                    follows_reason(behind, "the guarantee", "the sealer's two files")
+                    + ("; the sealer runs again" if behind[0] == "after" else ""),
+                )
+            )
+    verdicts = verdicts_of(reader, text)
+    if len(verdicts) != 1:
+        problems.append(
+            (
+                rel,
+                verdicts[1][0] if verdicts else 0,
+                f"{len(verdicts)} `Verdict:` lines; the guarantee carries one",
+            )
+        )
+    elif verdict_word(verdicts[0][1]) != SOUND:
+        line, value = verdicts[0]
+        problems.append(
+            (
+                rel,
+                line,
+                f"the sealer's verdict reads `{value}`, and a ready pull request "
+                f"needs `{SOUND}`: fix what it names, or answer its question "
+                "under it, and the sealer runs again at the new HEAD",
+            )
+        )
+    return problems
 
 
 def local_root(root, routing):
@@ -929,6 +1029,7 @@ def main(argv=None):
         if declared["review"] == routing.CHAIN:
             problems.extend(records(reader, routing, root, item, rel, args.baseline))
         gate = broad_gate(reader, root, item, args.baseline)
+        gate += guarantee(reader, root, item, args.baseline)
         if args.sealing:
             notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
         else:

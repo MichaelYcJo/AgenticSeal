@@ -63,6 +63,7 @@ PROCESS = {
     "rounds/round-2.md": "# round 2\n",
     "phases/phase-1.md": "# phase 1\n",
     "broad-gate.md": "# broad gate\n",
+    "guarantee.md": "# guarantee\n",
     "handoff.md": "# handoff\n",
     "pr.ko.md": "# 본문\n",
 }
@@ -70,6 +71,7 @@ TAKEN = (
     "rounds/",
     "phases/",
     "broad-gate.md",
+    "guarantee.md",
     "handoff.md",
     "pr.ko.md",
 )
@@ -140,7 +142,7 @@ def test_the_process_record_leaves_and_the_sdd_set_stays(repo):
     assert files_of(alpha) == sorted(DURABLE), files_of(alpha)
     for taken in TAKEN:
         assert f"removed seal/specs/{ALPHA}/{taken}" in text, (taken, text)
-    assert "retired the process record of 1 work item (7 files)" in text, text
+    assert "retired the process record of 1 work item (8 files)" in text, text
 
 
 def test_a_directory_is_removed_with_its_file_count(repo):
@@ -239,14 +241,14 @@ def test_the_report_says_what_the_arm_would_take(repo):
     assert code == 0, text
     assert files_of(repo) == before, "the report removed something"
     assert settle.PROCESS_HEADING in text, text
-    assert "    7 files in 1 released work item" in text, text
+    assert "    8 files in 1 released work item" in text, text
 
 
 def test_the_report_names_what_the_arm_would_keep(repo):
     write(repo / "seal" / "specs" / ALPHA / "notes.md", "# notes\n")
     _, text = run(repo)
     section = text.split(settle.PROCESS_HEADING, 1)[1]
-    assert "    7 files in 1 released work item" in section, section
+    assert "    8 files in 1 released work item" in section, section
     assert f"    seal/specs/{ALPHA}/notes.md  not a process record, kept" in section
 
 
@@ -376,6 +378,7 @@ TAKEN_NAMES = (
     "rounds",
     "phases",
     "broad-gate.md",
+    "guarantee.md",
     "handoff.md",
     "pr.ko.md",
 )

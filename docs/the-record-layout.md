@@ -336,12 +336,14 @@ retires the directory. Which file each agent writes is
 | `rounds/round-N.md` | what one review round read, found and closed |
 | `changelog.md` | this work item's entry in the next release's notes |
 | `broad-gate.md` | the sealer's one broad run, on either routing answer |
+| `guarantee.md` | whether the sealer found the work sound, against the issue and the tree |
 
 **The files keep these paths and stop mattering at two different times.**
 `routing.md` and the SDD set (`spec.md`, `plan.md`, `questions.md`,
 `overview.md`, `changelog.md`) stay until the `settle` fold retires the
-directory. The process record (`rounds/`, `phases/`, `broad-gate.md`, and a
-`handoff.md` or `pr.*.md` where one was written) is read by no check after
+directory. The process record (`rounds/`, `phases/`, `broad-gate.md`,
+`guarantee.md`, and a `handoff.md` or `pr.*.md` where one was written) is
+read by no check after
 the release that ships the work item, and `settle --retire-process` removes
 it at the next release, fold or no fold, as the first act of
 `docs/release-checklist.md` §*2b*. What the SDD set still cites of it

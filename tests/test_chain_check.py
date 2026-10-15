@@ -90,6 +90,15 @@ def gate_file(sha):
     )
 
 
+def guarantee_file(sha, verdict="sound"):
+    return (
+        "# 1791999999-a-work-item — guarantee\n\n"
+        "| Field | Value |\n|---|---|\n"
+        f"| Target SHA | {sha} against main |\n\n"
+        f"Verdict: {verdict}\n"
+    )
+
+
 SPEC = "# spec\n\nbody\n\nFramed 2026-10-15 by framer, before the build.\n"
 
 
@@ -122,15 +131,26 @@ def branch(tmp_path):
         f"{ITEM}/rounds/round-1.md",
         record(code, ["| 🔴 1 | wrong | `f.txt:1` | fixed " + code[:8] + " | g |"]),
     )
+    reviewed = commit(d, "the round record")
     # Two runs, newest first: the earlier one names a commit nobody can see,
     # so a reader that took any run but the first would refuse the file.
     write(
         d,
         f"{ITEM}/broad-gate.md",
-        gate_file(f"{code} against main; earlier run: {'1' * 40}"),
+        gate_file(f"{reviewed} against main; earlier run: {'1' * 40}"),
     )
-    commit(d, "the round record and the broad gate")
+    write(d, f"{ITEM}/guarantee.md", guarantee_file(reviewed))
+    commit(d, "the sealer's two files")
     return d, code
+
+
+def seal(d):
+    """The sealer's two files naming HEAD, committed: what a branch carries
+    once the sealer has audited what is on it."""
+    head = git(d, "rev-parse", "HEAD")
+    write(d, f"{ITEM}/broad-gate.md", gate_file(f"{head} against main"))
+    write(d, f"{ITEM}/guarantee.md", guarantee_file(head))
+    commit(d, "the sealer's two files, again")
 
 
 @pytest.fixture
@@ -437,10 +457,12 @@ class TestMain:
         root, _code = branch
         write(root, f"{ITEM}/overview.md", "# overview\n")
         commit(root, "a record commit")
+        seal(root)
         code, out = check(root, capsys)
         assert code == 0, out
         write(root, "f.txt", "three\n")
         later = commit(root, "a fix after the last round")
+        seal(root)
         code, out = check(root, capsys)
         assert code == 1
         assert later[:8] in out and "a verifying round is owed" in out
@@ -500,6 +522,7 @@ class TestMain:
             ),
         )
         commit(root, "the newest record in the tree, copied")
+        seal(root)
         code, out = check(root, capsys)
         assert code == 0, out
 
@@ -518,7 +541,7 @@ class TestMain:
         code, out = check(root, capsys, "--sealing")
         assert code == 0 and rel in out
 
-    def test_a_straight_to_the_pr_item_owes_the_broad_gate_file(
+    def test_a_straight_to_the_pr_item_owes_the_sealers_two_files(
         self, branch, ready, capsys
     ):
         root, _code = branch
@@ -527,12 +550,18 @@ class TestMain:
             f"{ITEM}/routing.md",
             ROUTING.format(review="straight to the PR", planning="the session"),
         )
-        git(root, "rm", "-rq", f"{ITEM}/rounds", f"{ITEM}/broad-gate.md")
+        git(
+            root,
+            "rm",
+            "-rq",
+            f"{ITEM}/rounds",
+            f"{ITEM}/broad-gate.md",
+            f"{ITEM}/guarantee.md",
+        )
         commit(root, "direct, and no run")
         code, out = check(root, capsys)
-        assert code == 1 and "broad-gate.md" in out
-        write(root, f"{ITEM}/broad-gate.md", gate_file(git(root, "rev-parse", "HEAD")))
-        commit(root, "the run")
+        assert code == 1 and "broad-gate.md" in out and "guarantee.md" in out
+        seal(root)
         code, out = check(root, capsys)
         assert code == 0, out
 

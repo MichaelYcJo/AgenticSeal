@@ -91,8 +91,8 @@ directory. The **process record** is read by no check after the release that
 ships the item, and this arm removes it from every released work item:
 
 - `rounds/` and `phases/`, whole;
-- `broad-gate.md`, `handoff.md` and `pr.*.md`, the files written for a pull
-  request that has merged.
+- `broad-gate.md`, `guarantee.md`, `handoff.md` and `pr.*.md`, the files
+  written for a pull request that has merged.
 
 Measured when it shipped, that part was 62% of the files under `seal/specs/`
 and 67% of the bytes, and it had waited seven releases on a fold it does not

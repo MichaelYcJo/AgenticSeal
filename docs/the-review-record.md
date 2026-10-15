@@ -46,8 +46,8 @@ Enforced by: tests/test_chain_check.py::TestFollows
 
 ## What the check reads at the pull request
 
-**`chain_check.py` reads the declaration, the frame, the records and the
-broad gate's file, and nothing else of a round record.** It judges every
+**`chain_check.py` reads the declaration, the frame, the records, the broad
+gate's file and the sealer's guarantee, and nothing else of a round record.** It judges every
 `routing.md` the pull request adds or changes and the one naming its branch.
 A ready pull request fails on any refusal, each named `path:line  why`; a
 draft, or a run that observed no pull request, prints the same lines and
@@ -75,6 +75,53 @@ Enforced by: tests/test_broad_gate.py::TestGate, tests/test_broad_gate.py::TestK
 and the verdict table of every record in the tree, and refuses nothing for
 the fields it no longer judges.
 Enforced by: tests/test_chain_check.py::TestMain
+
+**The check reads the diff as declarations, not as file identity.** It diffs
+without rename detection, so a deleted declaration beside a similar added one
+is two declarations and the deletion is judged. A declaration moved with its
+bytes unchanged is neither judged nor missed, because the pull request that
+only moved it did not make it.
+Enforced by: tests/test_chain_check.py::TestChanged, tests/test_chain_check.py::TestRetired
+
+## The guarantee
+
+**The sealer is the final, independent guarantor: it verifies, independently
+of the smith and the warden, that the work before it is sound.** Its
+reference is the issue body and the tree, never an agent's word or the
+orchestrator's summary. It runs after the pull request body and the
+changelog fragment are written, on both routing answers, and its order of
+work is `agents/sealer.md`'s.
+
+**It checks a claim against the fact, and the parties against each other.**
+It re-runs a sample of the smith's `executed` and `seen red` claims, chosen
+where the evidence is thinnest or the outcome rests on it; confirms each
+`fixed <commit>` commit is on the branch and touches its `Location`; and
+confirms nothing removed in this release stands in the tree. It reads the
+spec, the build, the warden's last record, the changelog fragment and the
+pull request body as one story, and where two disagree it names the one the
+issue and the tree contradict. It does not re-judge the design or the code's
+quality.
+
+**Its verdict is `guarantee.md`, from `templates/sdd-guarantee.md`**: the
+commit and base, the broad gate's result, the claims re-run, the parties
+compared, and one `Verdict:` line — `sound`, `not sound — <what>`, or
+`undecidable — <question>`. An undecidable question is the owner's: the
+answer goes on a line under the verdict, and the sealer runs again at the
+new HEAD.
+Enforced by: tests/test_the_sealer_guarantees.py::TestTemplate, tests/test_the_sealer_guarantees.py::TestDefinition
+
+**A ready pull request passes only where `guarantee.md` names HEAD and reads
+`sound`.** Only the sealer's two files, `broad-gate.md` and `guarantee.md`,
+may follow the commit it names, since every other file on the branch is one
+it audited. `not sound`, `undecidable`, an unfilled template, two `Verdict:`
+lines or a stale commit each fail naming the file; a draft prints them.
+Enforced by: tests/test_the_sealer_guarantees.py::test_a_verdict_other_than_sound_fails_a_ready_pull_request, tests/test_the_sealer_guarantees.py::TestGuarantee
+
+**How it errs.** It samples, so a false claim outside the sample passes, and
+the sample is written in the file so the miss can be found afterwards.
+Whether five stories agree is a judgment, so a disagreement it does not see
+is missed.
+Enforced by: nothing — the guarantee's own tables are what a reader audits
 
 ## The run
 

@@ -167,9 +167,9 @@ jobs:
       # author can fix: a declaration that says "through the review chain"
       # with no committed round record, a declaration that cannot be read,
       # and — on a pull request that is not a draft — a 🔴 or 🟡 row still
-      # open, a last record behind HEAD, or no `broad-gate.md` at HEAD
-      # (`docs/the-review-record.md` §*What the check reads at the pull
-      # request*).
+      # open, a last record behind HEAD, no `broad-gate.md` at HEAD, or no
+      # `guarantee.md` reading `sound` at HEAD (`docs/the-review-record.md`
+      # §*What the check reads at the pull request*).
       #
       # The draft state comes from GITHUB_EVENT_PATH, which this runner
       # already sets. A review still running opens its pull request as a

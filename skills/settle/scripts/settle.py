@@ -705,6 +705,7 @@ def retire(found, root, out=sys.stdout):
 PROCESS_DIRS = ("rounds", "phases")
 PROCESS_FILES = (
     "broad-gate.md",
+    "guarantee.md",
     "handoff.md",
 )
 # What stays until the fold retires the directory. `routing.md` is the item's
