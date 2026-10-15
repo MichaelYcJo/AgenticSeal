@@ -1393,7 +1393,9 @@ def check(
             cache["price"] = (ratio, common)
             priced = price_problems(base_level, ratio, common, level)
             if restate and priced:
-                level = restate_price(root, head_text, seconds(base_level * ratio))
+                level = restate_price(
+                    root, head_text, expected_level(base_level, ratio)
+                )
                 cache["level"] = fractions.Fraction(level, PER_MILLE)
                 cache["restated"] = level
                 priced = []
@@ -1413,6 +1415,15 @@ def check(
     return problems, refusals, render(results, moves, against, cache)
 
 
+def expected_level(base_level, ratio):
+    """The price level here, per mille: the base's times the ratio the
+    durations file moved by, rounded. The one expression of it, so the
+    level `--restate-price` writes is the level `price_problems` demands.
+
+    Reads: nothing — a number from the numbers handed to it"""
+    return seconds(base_level * ratio)
+
+
 def price_problems(base_level, ratio, common, level):
     """The one problem a price level that does not follow the durations file
     is, or none: the level here has to be the base's times the ratio the
@@ -1420,7 +1431,7 @@ def price_problems(base_level, ratio, common, level):
     number and no other edit can move it.
 
     Reads: nothing — compares the numbers handed to it"""
-    expected = seconds(base_level * ratio)
+    expected = expected_level(base_level, ratio)
     if level == expected:
         return []
     return [

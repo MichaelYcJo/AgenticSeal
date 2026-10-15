@@ -281,7 +281,9 @@ REMEDY = (
     "unioned the Windows shards' parts: `gh run download <run id> -n "
     "test-durations -D <dir>`, then move <dir>/.test_durations over the "
     "committed .test_durations, write the price level it implies into "
-    "seal/budgets.md with `budget_check.py --restate-price`, and commit both; "
+    "seal/budgets.md with `python3 .github/scripts/budget_check.py "
+    "--baseline origin/<base> --restate-price`, where <base> is the branch "
+    "the pull request merges into, and commit both; "
     "the file's line ends are already LF. "
     "A run older than the artifact's seven days is re-run first, with "
     "`gh run rerun <run id>`; a branch with no pull request, or whose run "
@@ -389,7 +391,9 @@ def test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe():
     the dispatch for a branch with no run to download from (round 1's 🟡 2):
     a branch with no pull request runs `tests` only when dispatched. The
     price level is written by the checker that holds it, in the same commit
-    (round 3's 🟡 1), so no person copies a number out of a failing run."""
+    (round 3's 🟡 1), so no person copies a number out of a failing run, and
+    the command is the whole one the checker runs: without `--baseline` it
+    refuses with exit 2 (round 4's 🟡 1)."""
     collected = _collection(FIXTURE_SIZE)
     priced = {node: 1.0 for node in collected[AT_THE_SHARE + 1 :]}
     sentence = staleness(collected, priced)
@@ -398,7 +402,11 @@ def test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe():
     assert f"({(AT_THE_SHARE + 1) / FIXTURE_SIZE:.1%})" in sentence
     assert "gh run download <run id> -n test-durations -D <dir>" in sentence
     assert "move <dir>/.test_durations over the committed" in sentence
-    assert "`budget_check.py --restate-price`, and commit both" in sentence
+    assert (
+        "`python3 .github/scripts/budget_check.py --baseline origin/<base> "
+        "--restate-price`, where <base> is the branch the pull request merges "
+        "into, and commit both" in sentence
+    )
     assert "gh run rerun <run id>" in sentence
     assert "gh workflow run test.yml --ref <branch>" in sentence
     assert "CONTRIBUTING.md §Running the checks" in sentence
