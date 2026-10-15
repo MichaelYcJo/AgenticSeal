@@ -2564,13 +2564,6 @@ def round_records(item):
     return [os.path.join(item, "rounds", n) for _, n in found]
 
 
-def round_count(item):
-    """How many round records `item` holds.
-
-    Reads: observed — through `round_records`; unknown passed"""
-    return len(round_records(item))
-
-
 def kept_runs(held, value):
     """`value` in front of the runs the `Broad gate` cell `held` records,
     newest first. A held entry equal to `value` — the same commit against

@@ -382,9 +382,11 @@ and an `Answered <date> by <who>: …` line under it where the owner answered.
 `broad_gate`, `guarantee`; exit 0 · 1 naming `path:line: why` · 2 unreadable;
 a draft prints every arm and exits 0. `skills/verify/scripts/broad_gate.py`:
 `--record <item>` writes `broad-gate.md` (`<sha> against <base>`, newest first,
-earlier runs kept) on both routing answers; `seal_home`, `round_count`,
-`rounds_rows`, `sealed_record`, `kept_broad_gate` and the `round_record`
-import leave; the panel and the stamp values are unchanged.
+earlier runs kept) on both routing answers; `round_count`, `sealed_record`,
+`kept_broad_gate`, the `round_record` import and `round_record.seal_home`'s
+call leave; `seal_home`, the root resolver, stays; the panel and the stamp
+values are unchanged, so `rounds_rows`, which draws the panel's `rounds` row,
+stays and reads only the verdict tables.
 `agents/sealer.md`: frontmatter `model: opus`. `docs/the-review-record.md`:
 the record, the four run rules, the handoff rule, the sealer's check, each
 with `Enforced by:`. `skills/code-review/orchestration.md`: §*the run ends
@@ -417,7 +419,7 @@ a live file.
 | four sections of the record | `templates/sdd-round.md` §*What this round was asked*, §*Inherited coordinates*, §*Deferred*, the `## Fixes` table shape | copies of what the pull request, the spawn prompt and the earlier records show; a deferral is a verdict word |
 | the ⬜ severity and the notes machinery | `skills/code-review/SKILL.md` §*Findings format* ⬜ line; `round_record.py notes`; `chain_check.py#notes_of`, `#carried_notes`, `#open_notes`; `skills/code-review/orchestration.md` §*A note closes once, at the run's end* | a wrong sentence an agent acts on is 🟡; a sentence in a record is not a finding |
 | the chain check's arms over removed fields | `chain_check.py#fix_range`, `#fix_surface`, `#depth_problems`, `#fix_of_a_fix`, `#fix_of_a_fix_count`, `#floor_walks`, `#stopping_floor`, `#written_late`, `#ran_by`, `#runner_problem`, `#checked_by`, `#pass_boxes`, `#pass_checked`, `#says_reopened`, `#cut_runs`, `#pact_notices`, `#fragment_left_behind`, `#direct_seal`, `#stray_records`, `#doubled_grounds`, `#doubled_fields` and what only they call | the five arms of §*Data & interfaces* are what the pull request needs |
-| the broad gate's record arms | `broad_gate.py#seal_home`, `#round_count`, `#rounds_rows`, `#sealed_record`, `#kept_broad_gate`-through-`round_record`, the `Broad gate` cell write | `broad-gate.md`, one home |
+| the broad gate's record arms | `broad_gate.py#round_count`, `#sealed_record`, `#kept_broad_gate`-through-`round_record`, the `round_record.seal_home` call, the `Broad gate` cell write | `broad-gate.md`, one home; `#seal_home`, the root resolver the gate reads `config.md` through, and `#rounds_rows`, the panel's `rounds` row that §*Data & interfaces* keeps, stay |
 | the review reminder hook | `hooks/review-history-guard.py` (303 lines), its `hooks.json` dispatch, `tests/test_chain_hooks.py`, `tests/test_chain_hooks_hardening.py`, `tests/test_handoff_outlives_the_merge.py` and the cases of three other modules that read it | the check at the pull request |
 | `tests-todo.md` | the file kind; `docs/the-record-layout.md` row; `skills/implement/SKILL.md` §5 table row; `settle.py`'s reading | a prescribed test is a 🟡 row |
 | the three record documents | `docs/round-record-spec.md`, `docs/review-chain-spec.md`, `docs/review-handoff-protocol.md` | `docs/the-review-record.md`; the handoff rule in the orchestration file |
