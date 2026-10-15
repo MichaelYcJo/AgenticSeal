@@ -430,6 +430,12 @@ def test_a_run_records_what_it_cost(tmp_path, monkeypatch):
     assert verdict == "no result", (verdict, reasons)
     assert any("cost" in r for r in reasons), reasons
 
+    # One run of two with no cost leaves the side's pooled cost unknown,
+    # not the other run's cost alone.
+    runs = data["cases"][0]["arms"]["with"]
+    runs.append({"graders": [], "specseal": {"cost": cost, "report_rows": []}})
+    assert ni.side_numbers(data)["spend"] is None
+
 
 def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved(
     tmp_path, monkeypatch
