@@ -880,7 +880,9 @@ def check(root, baseline, runner, bound):
                 command = (runner, file, calls, deadline)
                 # Its own ids first: it kills few of the mutants drawn for it,
                 # and a miss is then one case's run, not its siblings' too.
-                code = under(root, mutant, mine, *command)[0] if mine else SURVIVED
+                # `mine` is never empty here: a function none of whose ids
+                # ran was named before the draw.
+                code = under(root, mutant, mine, *command)[0]
                 if code == RED:
                     code, output = (
                         under(root, mutant, rest, *command) if rest else (SURVIVED, "")
