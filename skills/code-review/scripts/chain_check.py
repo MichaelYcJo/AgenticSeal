@@ -3,8 +3,10 @@
 are in the tree and agree with HEAD.
 
 Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
-every `seal/specs/<id>/routing.md` the pull request adds or changes, and the
-one naming the pull request's branch, through five arms:
+the `seal/specs/<id>/routing.md` naming the pull request's branch and every
+one its own commits add or change. One that reached the branch inside another
+pull request's squash was judged at that pull request and is named, not
+judged (`carried_by`). The arms are five:
 
   declaration   the file parses as a routing declaration; one the pull
                 request removed is accepted where the work item was retired
@@ -123,6 +125,13 @@ GH_DRAFT = ["gh", "pr", "view", "--json", "isDraft"]
 GH_TIMEOUT = 30
 NO_PAYLOAD = "no pull-request event payload"
 REGULAR = ("100644", "100755")
+# A squash merge on GitHub: the server commits it, and the subject ends with
+# the number of the pull request it carried (`carried_by`).
+SQUASH_COMMITTER = "noreply@github.com"
+SQUASH_SUBJECT = re.compile(r"\(#\d+\)$")
+CARRIED_SAYS = (
+    "judged at its own pull request: {sha} `{subject}` squashed it onto this branch"
+)
 
 
 def load(path, name):
@@ -223,6 +232,47 @@ def changed_routing(paths, moved, work_items):
         and os.path.basename(p) == "routing.md"
         and p not in moved
     )
+
+
+def carried_by(root, base, rel):
+    """`(commit, subject)` of the squash that carried `rel` onto this branch
+    for another pull request, or None where this pull request's own commits
+    changed it.
+
+    A declaration is judged at the pull request that carries it. Where every
+    commit after `base` touching `rel` is a squash merge GitHub committed —
+    committer `noreply@github.com`, subject ending `(#N)` — the declaration
+    reached this branch inside that pull request, which judged it; the newest
+    such commit is returned. Any other commit, an uncommitted change under
+    `WORKTREE`, no commit at all, or git failing leaves it this pull
+    request's.
+
+    Reads: observed — `git log`'s committer and subject; unknown refused"""
+    if WORKTREE:
+        dirty = git(root, "status", "--porcelain", "--", rel)
+        if dirty is None or dirty.strip():
+            return None
+    out = git(
+        root,
+        "log",
+        "--no-merges",
+        "-z",
+        "--format=%H%x1f%ce%x1f%s",
+        f"{base}..HEAD",
+        "--",
+        rel,
+    )
+    commits = [e.split("\x1f") for e in (out or "").split("\0") if e.strip()]
+    if not commits:
+        return None
+    for entry in commits:
+        if (
+            len(entry) != 3
+            or entry[1].strip().lower() != SQUASH_COMMITTER
+            or not SQUASH_SUBJECT.search(entry[2].strip())
+        ):
+            return None
+    return commits[0][0].strip(), commits[0][2].strip()
 
 
 def tracked_files(root, where):
@@ -974,9 +1024,17 @@ def main(argv=None):
         return 2
     paths, moved = diff
     own, why = declared_for_this_branch(root, routing)
-    declarations = sorted(
-        set(changed_routing(paths, moved, routing.WORK_ITEMS)) | set(own)
-    )
+    # A declaration naming this branch is always this pull request's; any
+    # other one another pull request's squash carried was judged there.
+    declarations, carried = set(own), []
+    for rel in changed_routing(paths, moved, routing.WORK_ITEMS):
+        by = None if rel in own else carried_by(root, args.baseline, rel)
+        if by:
+            said = CARRIED_SAYS.format(sha=by[0][:8], subject=by[1])
+            carried.append((rel, 0, said))
+        else:
+            declarations.add(rel)
+    declarations = sorted(declarations)
 
     state, where = pull_request_state(root)
     unseen = state == "unknown" and not event_payload_present()
@@ -989,6 +1047,8 @@ def main(argv=None):
     )
     if WORKTREE:
         print("chain-check: reading the working tree (--worktree); CI reads HEAD")
+    for rel, line, message in carried:
+        print(reader.annotate("notice", rel, line, message))
     if not declarations:
         print(reader.annotate("notice", "", 0, why))
         return 0

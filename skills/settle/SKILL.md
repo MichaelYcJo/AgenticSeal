@@ -107,8 +107,10 @@ Run `settle` first; its last section is this arm's dry run.
 
 **Released means what it means for the fold**: present at `--released-at`.
 The items of the release being prepared are not on `main` yet, so they are
-not taken. Their records are still read at the release pull request into
-`main` and when the release seal is drawn, and they leave at the next
+not taken. Their records are still read when the release seal is drawn, and
+the release pull request into `main` carries them without judging them again:
+each item was judged at its own pull request (`docs/the-review-record.md`
+§*What the check reads at the pull request*). They leave at the next
 release's step 2b. After that they are in git history, at the release tag.
 
 **The SDD set that stays still points into what left.** A released item's

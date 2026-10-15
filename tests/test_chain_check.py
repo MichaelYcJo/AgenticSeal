@@ -243,6 +243,71 @@ class TestChanged:
         ]
 
 
+# --- carried_by ---------------------------------------------------------------
+
+RELEASE = "release/v9.9.9"
+GITHUB = {"GIT_COMMITTER_NAME": "GitHub", "GIT_COMMITTER_EMAIL": "noreply@github.com"}
+
+
+def squash(d, source, subject, committer=None):
+    """Squash `source` onto the checked-out branch as GitHub's merge button
+    does: one commit, committed by GitHub, its subject ending with the pull
+    request's number. `committer` replaces GitHub's identity."""
+    git(d, "merge", "--squash", "-q", source)
+    subprocess.run(
+        ["git", "-C", str(d), "commit", "-qm", subject],
+        check=True,
+        capture_output=True,
+        env={**os.environ, **(committer or GITHUB)},
+    )
+    return git(d, "rev-parse", "HEAD")
+
+
+def released(root, subject="feat: a work item (#7)", committer=None, keep=False):
+    """`release/v9.9.9` cut from `main` with `feature/x` squashed into it and
+    the feature branch deleted, so the item's records name commits HEAD does
+    not descend from — what a release pull request into `main` carries."""
+    git(root, "switch", "-q", "-c", RELEASE, "main")
+    squash(root, "feature/x", subject, committer)
+    if not keep:
+        git(root, "branch", "-q", "-D", "feature/x")
+
+
+class TestCarriedBy:
+    def test_a_declaration_only_a_squash_merge_touched_is_that_pull_requests(
+        self, branch, monkeypatch
+    ):
+        root, _code = branch
+        monkeypatch.setattr(chain, "WORKTREE", False)
+        released(root)
+        rel = f"{ITEM}/routing.md"
+        sha, subject = chain.carried_by(str(root), "main", rel)
+        assert sha == git(root, "rev-parse", "HEAD")
+        assert subject == "feat: a work item (#7)"
+        # Under `--worktree` an edit not yet committed is this branch's own.
+        monkeypatch.setattr(chain, "WORKTREE", True)
+        assert chain.carried_by(str(root), "main", rel) is not None
+        write(root, rel, (root / rel).read_text(encoding="utf-8") + "\nA note.\n")
+        assert chain.carried_by(str(root), "main", rel) is None
+
+    def test_the_items_own_commits_a_persons_squash_and_an_unnumbered_one_are_not(
+        self, branch, monkeypatch
+    ):
+        """The item's own branch, a squash a person committed with a subject
+        naming an issue the way this repository's commits do, and GitHub's
+        commit with no pull request number each leave the declaration this
+        pull request's."""
+        root, _code = branch
+        monkeypatch.setattr(chain, "WORKTREE", False)
+        rel = f"{ITEM}/routing.md"
+        assert chain.carried_by(str(root), "main", rel) is None
+        released(root, committer={"GIT_COMMITTER_EMAIL": "t@t"}, keep=True)
+        assert chain.carried_by(str(root), "main", rel) is None
+        git(root, "reset", "-q", "--hard", "main")
+        squash(root, "feature/x", "feat: a work item")
+        assert chain.carried_by(str(root), "main", rel) is None
+
+
 # --- verdict_of ---------------------------------------------------------------
 
 
@@ -577,6 +642,43 @@ class TestMain:
         commit(root, "no work item")
         code, out = check(root, capsys)
         assert code == 0 and "declared neither way" in out
+
+    def test_a_release_pull_request_leaves_a_squashed_item_to_its_own_pull_request(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """Q7: a pull request into `main` from the release branch carries every
+        item squashed into it, whose records name commits the squash orphaned.
+        Each was judged at the pull request that carried it, so the release
+        pull request passes and names each item it left with its squash."""
+        root, _code = branch
+        released(root)
+        monkeypatch.setenv("GITHUB_HEAD_REF", RELEASE)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        line = next(ln for ln in out.splitlines() if f"{ITEM}/routing.md" in ln)
+        assert "judged at its own pull request" in line and "(#7)" in line
+        assert "does not descend from" not in out
+        # A declaration naming the head branch is judged however it arrived.
+        monkeypatch.setenv("GITHUB_HEAD_REF", "feature/x")
+        code, out = check(root, capsys)
+        assert code == 1 and "does not descend from" in out
+        assert "judged at its own pull request" not in out
+
+    def test_an_item_the_release_pull_requests_own_commit_changes_is_judged(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """Q7: a commit made on the release branch itself is the release pull
+        request's own, so the declaration it changed is judged there."""
+        root, _code = branch
+        released(root)
+        monkeypatch.setenv("GITHUB_HEAD_REF", RELEASE)
+        rel = f"{ITEM}/routing.md"
+        write(root, rel, (root / rel).read_text(encoding="utf-8") + "\nA note.\n")
+        commit(root, "a change on the release branch itself (#8)")
+        code, out = check(root, capsys)
+        assert code == 1
+        assert "does not descend from" in out
+        assert "judged at its own pull request" not in out
 
     def test_a_baseline_that_does_not_resolve_is_exit_2(self, branch, capsys):
         root, _code = branch

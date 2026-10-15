@@ -47,12 +47,25 @@ Enforced by: tests/test_chain_check.py::TestFollows
 ## What the check reads at the pull request
 
 **`chain_check.py` reads the declaration, the frame, the records, the broad
-gate's file and the sealer's guarantee, and nothing else of a round record.** It judges every
-`routing.md` the pull request adds or changes and the one naming its branch.
-A ready pull request fails on any refusal, each named `path:line  why`; a
-draft, or a run that observed no pull request, prints the same lines and
-exits 0.
+gate's file and the sealer's guarantee, and nothing else of a round record.** It judges the
+`routing.md` naming the pull request's branch and every one its own commits
+add or change. A ready pull request fails on any refusal, each named
+`path:line  why`; a draft, or a run that observed no pull request, prints the
+same lines and exits 0.
 Enforced by: tests/test_chain_check.py::TestMain
+
+**An item is judged at the pull request that carries it.** A declaration
+that reached the branch inside another pull request's squash, where every
+commit after the base that touched it is a squash merge GitHub committed with
+a subject ending `(#N)`, was judged at that pull request. The check names it
+with the squash and judges nothing else of it. So the release pull request
+into `main` judges the declarations naming the release branch and those a
+commit made on the release branch itself changed, never an item squashed into
+it, whose records name commits the squash orphaned. It errs both ways, by
+the commit's signature: a squash a person committed, or one whose subject
+lost its number, reads as the branch's own and is refused loudly, and a
+commit someone makes under GitHub's identity with a number reads as carried.
+Enforced by: tests/test_chain_check.py::TestCarriedBy, tests/test_chain_check.py::TestMain::test_a_release_pull_request_leaves_a_squashed_item_to_its_own_pull_request, tests/test_chain_check.py::TestMain::test_an_item_the_release_pull_requests_own_commit_changes_is_judged
 
 **A ready pull request fails while any 🔴 or 🟡 row of any record reads a
 word that closes nothing.**
