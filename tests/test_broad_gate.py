@@ -107,43 +107,48 @@ class TestWriteGateFile:
 # --- rounds_rows and item_value -----------------------------------------------
 
 
-def a_record(verdicts):
+def a_record(*verdicts):
+    """A round record in `templates/sdd-round.md`'s shape, one finding per
+    `Verdict:` value."""
+    found = "".join(
+        f"### {n}. x\n\nSeverity: fix or justify\nLocation: `a:{n}`\n"
+        f"Verdict: {verdict}\n\nwhy\n\nAnswer: \n\n"
+        for n, verdict in enumerate(verdicts, 1)
+    )
     return (
         "# r — review round 1\n\n| Field | Value |\n|---|---|\n"
-        "| Target SHA | abc1234 against base |\n\n## Verdicts\n\n"
-        "| # | Finding | Location | Verdict | Grounds |\n|---|---|---|---|---|\n"
-        f"{verdicts}\n"
+        f"| Target SHA | abc1234 against base |\n\n## Findings\n\n{found}"
+        "## Probes\n\n| Command | Result |\n|---|---|\n"
     )
+
+
+# The table the old generator's records carried, which no reader reads.
+OLD_RECORD = (
+    "# r — review round 1\n\n## Verdicts\n\n"
+    "| # | Finding | Location | Verdict | Grounds |\n|---|---|---|---|---|\n"
+    "| 🟡 1 | x | `a:1` | deferred #9 | g |\n"
+)
 
 
 class TestRoundsRows:
     def test_the_count_and_every_records_deferred_homes(self, tmp_path):
+        """S11 (T30): `deferred` is counted through the check's reader, so a
+        record it refuses — one finding at a homeless `deferred` or an
+        emphasised one, or the old table's shape — adds nothing beneath
+        `rounds`, and the records it reads add every home they name."""
         item = tmp_path / "1799000002-x"
-        write(
-            item,
-            "rounds/round-1.md",
-            a_record("| 🔴 1 | x | `a:1` | deferred #7 | g |"),
-        )
-        write(
-            item,
-            "rounds/round-2.md",
-            a_record("| 🟡 1 | x | `a:1` | deferred #8 | g |"),
-        )
+        write(item, "rounds/round-1.md", a_record("deferred #7", "fixed abc1234"))
+        write(item, "rounds/round-2.md", a_record("deferred #8"))
+        write(item, "rounds/round-3.md", a_record("deferred #9", "deferred"))
+        write(item, "rounds/round-4.md", a_record("**deferred** #9"))
+        write(item, "rounds/round-5.md", OLD_RECORD)
         rows = gate.rounds_rows(str(item))
-        assert rows[0] == ("rounds", "2")
-        assert "2 deferred" in "".join(value for _label, value in rows[1:])
-        assert "#7" in "".join(v for _l, v in rows) and "#8" in "".join(
-            v for _l, v in rows
-        )
+        assert rows == [("rounds", "5"), ("", "2 deferred → #7, #8")], rows
 
     def test_no_record_and_no_deferral_print_the_count_alone(self, tmp_path):
         item = tmp_path / "1799000003-y"
         assert gate.rounds_rows(str(item)) == [("rounds", "0")]
-        write(
-            item,
-            "rounds/round-1.md",
-            a_record("| 🔴 1 | x | `a:1` | fixed abc1234 | g |"),
-        )
+        write(item, "rounds/round-1.md", a_record("fixed abc1234"))
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
     def test_the_item_row_is_the_ids_digits(self):

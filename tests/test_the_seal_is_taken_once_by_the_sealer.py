@@ -1153,21 +1153,31 @@ PASSING_TEST = "def test_one():\n    assert True\n"
 FAILING_TEST = "def test_two():\n    assert False, 'planted'\n"
 OVERVIEW = "# overview\n\n## Not verified\n\nnone — the fixture verifies nothing\n"
 
-VERDICT_HEADER = (
-    "| # | Finding | Location | Verdict | Grounds |\n|---|---|---|---|---|\n"
-)
-OPEN_ROW = "| 🔴 1 | the parser drops a row | `f.py:1` | open | executed |\n"
+
+def finding(n, verdict, what="the parser drops a row", location="`f.py:1`"):
+    """One `### ` section of `## Findings`, its `Verdict:` line `verdict`."""
+    return (
+        f"### {n}. {what}\n\n"
+        f"Severity: blocks merge\nLocation: {location}\nVerdict: {verdict}\n\n"
+        "executed\n\nAnswer: \n\n"
+    )
 
 
-def record_text(n, target, verdicts):
-    """A round record in `templates/sdd-round.md`'s shape."""
+OPEN_FINDING = finding(1, "open")
+
+
+def record_text(n, target, findings, confirmations=""):
+    """A round record in `templates/sdd-round.md`'s shape: `findings` are
+    `finding()` sections, `confirmations` rows of `## Confirmations`."""
     return (
         f"# {os.path.basename(ITEM)} — review round {n}\n\n"
         "| Field | Value |\n|---|---|\n"
         f"| Target SHA | {target} against base |\n\n"
-        f"## Verdicts\n\n{VERDICT_HEADER}{verdicts}\n"
-        "## Paste-ready fixes\n\n"
-        "## Executed probes\n\n| What was run | Result |\n|---|---|\n"
+        f"## Findings\n\n{findings}"
+        "## Confirmations\n\n| What holds | Location | Grounds |\n|---|---|---|\n"
+        f"{confirmations}\n"
+        "## Not judged\n\n| What | Location | Who answers |\n|---|---|---|\n\n"
+        "## Probes\n\n| Command | Result |\n|---|---|\n"
         "| `pytest tests/test_one.py -q` | 1 passed |\n"
     )
 
@@ -3277,9 +3287,9 @@ def test_no_value_on_the_panel_is_wider_than_the_frame_gives(tmp_path):
     record_of(
         item,
         deferring_record(
-            "| 🟡 1 | a | `f.py:1` | deferred seal/follow-up.md | why |\n"
-            "| 🟡 2 | b | `f.py:2` | deferred #12345 | why |\n"
-            "| 🟡 3 | c | `f.py:3` | deferred #12346 | why |\n"
+            finding(1, "deferred seal/follow-up.md")
+            + finding(2, "deferred #12345")
+            + finding(3, "deferred #12346")
         ),
     )
     rows = gate.panel(
@@ -3355,8 +3365,7 @@ def test_the_widest_panel_the_tree_can_produce_fits_at_the_first_rung(tmp_path):
     gate, mod = gate_module(), module()
     item = tmp_path / "1799000000-an-item-with-a-long-name"
     verdicts = "".join(
-        f"| 🟡 {n} | a | `f.py:{n}` | deferred {home} | why |\n"
-        for n, home in enumerate(EIGHT_HOMES, 1)
+        finding(n, f"deferred {home}") for n, home in enumerate(EIGHT_HOMES, 1)
     )
     with open(
         os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
@@ -3786,14 +3795,13 @@ def test_the_documents_name_the_ci_also_row():
 # --- `rounds` counts the records and the deferred findings -------------------
 
 
-def deferring_record(verdicts=None):
+def deferring_record(findings=None, confirmations=""):
     """A round record whose two findings were closed `deferred #664`."""
-    if verdicts is None:
-        verdicts = (
-            "| 🟡 1 | a docstring claim | `f.py:1` | deferred #664 | why |\n"
-            "| 🟡 2 | its wording | `f.py:2` | **deferred** #664 | why |\n"
+    if findings is None:
+        findings = finding(1, "deferred #664", "a docstring claim") + finding(
+            2, "deferred #664", "its wording", "`f.py:2`"
         )
-    return record_text(3, "abc1234", verdicts)
+    return record_text(3, "abc1234", findings, confirmations)
 
 
 def record_of(item, text, name="round-3.md"):
@@ -3817,13 +3825,13 @@ def rounds_of(tmp_path, text, rounds=3):
     "text, rows",
     [
         (deferring_record(), [("rounds", "3"), ("", "2 deferred → #664")]),
-        # Three homes, in table order, too long for one row.
+        # Three homes, in the order met, too long for one row.
         (
             deferring_record(
-                "| 🟡 1 | a | `f.py:1` | deferred seal/follow-up.md | why |\n"
-                "| 🟡 2 | b | `f.py:2` | deferred #664 | why |\n"
-                "| 🟡 3 | c | `f.py:3` | deferred #664 | why |\n"
-                "| 🟡 4 | d | `f.py:4` | deferred docs/the-broad-gate.md | why |\n"
+                finding(1, "deferred seal/follow-up.md")
+                + finding(2, "deferred #664")
+                + finding(3, "deferred #664")
+                + finding(4, "deferred docs/the-broad-gate.md")
             ),
             [
                 ("rounds", "3"),
@@ -3831,63 +3839,50 @@ def rounds_of(tmp_path, text, rounds=3):
                 ("", "docs/the-broad-gate.md"),
             ],
         ),
-        # A bare `deferred` is counted and names no home.
+        # A bare `deferred` is a value the reader refuses, so its record
+        # adds nothing, the deferral beside it included.
+        (
+            deferring_record(finding(1, "deferred #664") + finding(2, "deferred")),
+            [("rounds", "3")],
+        ),
         (
             deferring_record(
-                "| 🟡 1 | a | `f.py:1` | deferred #664 | why |\n"
-                "| 🟡 2 | b | `f.py:2` | deferred | why |\n"
+                "", confirmations="| round 2's 1 is closed | `f.py:1` | why |\n"
             ),
-            [("rounds", "3"), ("", "2 deferred → #664")],
-        ),
-        (
-            deferring_record("| 🟡 1 | a | `f.py:1` | deferred | why |\n"),
-            [("rounds", "3"), ("", "1 deferred")],
-        ),
-        (
-            deferring_record("| 🟢 | a | `f.py:1` | confirmed | why |\n"),
             [("rounds", "3")],
         ),
         (deferring_record(""), [("rounds", "3")]),
     ],
 )
 def test_rounds_counts_the_records_and_what_was_deferred(tmp_path, text, rows):
-    """The row beneath `rounds` counts the verdicts `chain_check.verdict_of`
-    calls `deferred` and lists their homes, read through `chain_check`'s own
-    readers; a record they cannot read adds nothing."""
+    """The row beneath `rounds` counts the findings `chain_check.findings`
+    reads as `deferred` and lists their homes; a record it refuses adds
+    nothing."""
     assert rounds_of(tmp_path, text) == rows
 
 
 @pytest.mark.parametrize(
-    "cell, home",
+    "value, home",
     [
         ("deferred #664", "#664"),
-        ("**deferred** #664.", "#664"),
-        ("deferred #854 — the run is capped", "#854"),
-        # A file keeps its underscores (round 2's 🟡 2 of #666).
-        ("deferred `tests/test_a_b.py`", "tests/test_a_b.py"),
+        ("deferred `tests/test_a_b.py`", "`tests/test_a_b.py`"),
         ("deferred the frame", "the frame"),
         # Prose prints as the prose it is: the panel used to find `#664` and
         # `#97` inside these two (#866).
         ("deferred to #664", "to #664"),
-        (
-            "deferred — issue #97 already holds this axis",
-            "issue #97 already holds this axis",
-        ),
+        ("deferred #854 — the run is capped", "#854 ? the run is capped"),
         # ASCII on the panel, anything else reading `?`.
         ("deferred → #664", "? #664"),
     ],
 )
-def test_the_panels_home_is_the_gates_home(tmp_path, cell, home):
+def test_the_panels_home_is_the_gates_home(tmp_path, value, home):
     """#866 S2 on the panel: the homes after `→` are
     `chain_check.deferred_home`'s answers, in ASCII because the letter twin
-    maps only the owner's characters. The fourteen prose shapes this case
-    replaces read an issue or a path out of the rest of the cell, which no
-    other reader of the cell did."""
+    maps only the owner's characters. A home is the whole of what follows
+    `deferred`, as the check reads it."""
     chain = check_module()
-    assert chain.deferred_home(cell) is not None, cell
-    rows = rounds_of(
-        tmp_path, deferring_record(f"| 🟡 1 | a | `f.py:1` | {cell} | why |\n")
-    )
+    assert chain.deferred_home(value) is not None, value
+    rows = rounds_of(tmp_path, deferring_record(finding(1, value)))
     assert rows[0] == ("rounds", "3"), rows
     # A home too long for one row continues beneath (`wrapped`).
     assert all(label == "" for label, _ in rows[1:]), rows
@@ -8059,11 +8054,15 @@ def declaration(review="through the review chain"):
     )
 
 
-def generate(repo, n, verdicts, target=None):
+def generate(repo, n, findings, target=None, confirmations=""):
     """The warden's record for round `n` at `target` (HEAD by default),
     written and committed."""
     target = target or git(repo, "rev-parse", "HEAD").stdout.strip()
-    write(repo, f"{ROUNDS}/round-{n}.md", record_text(n, target, verdicts))
+    write(
+        repo,
+        f"{ROUNDS}/round-{n}.md",
+        record_text(n, target, findings, confirmations),
+    )
     commit(repo, f"round {n}")
     return repo / ROUNDS / f"round-{n}.md"
 
@@ -8074,16 +8073,16 @@ def declared(repo):
 
 
 def close_round(repo, n, finding, verdict):
-    """The fix pass: finding `finding`'s `Verdict` cell in round `n` set to
+    """The fix pass: finding `finding`'s `Verdict:` line in round `n` set to
     `verdict`, then committed."""
     path = repo / ROUNDS / f"round-{n}.md"
     text = path.read_text(encoding="utf-8")
     closed = re.sub(
-        rf"^(\| \S+ {finding} \|[^|\n]*\|[^|\n]*\|) open \|",
-        rf"\1 {verdict} |",
+        rf"(^### {finding}\. (?:(?!^### ).)*?^)Verdict: open$",
+        rf"\g<1>Verdict: {verdict}",
         text,
         count=1,
-        flags=re.M,
+        flags=re.M | re.S,
     )
     assert closed != text, f"round {n} has no open finding {finding}"
     path.write_text(closed, encoding="utf-8")
@@ -8095,14 +8094,15 @@ def settled_item(repo):
     landed and the fix pass closed it, and round 2 verified the fix at HEAD.
     Returns (round-1, round-2)."""
     declared(repo)
-    one = generate(repo, 1, OPEN_ROW)
+    one = generate(repo, 1, OPEN_FINDING)
     write(repo, "f.py", "x = 2\n")
     b = commit(repo, "fix")
     close_round(repo, 1, 1, f"fixed {b[:7]}")
     two = generate(
         repo,
         2,
-        "| 🟢 | round 1's fix holds | `f.py:1` | confirmed | read |\n",
+        "",
+        confirmations="| round 1's fix holds | `f.py:1` | read |\n",
     )
     return one, two
 
@@ -8111,7 +8111,7 @@ def capped_item(repo):
     """A run that ended at the cap: round 1's finding was deferred to an
     issue, and the record is at HEAD. Returns the record."""
     declared(repo)
-    one = generate(repo, 1, OPEN_ROW)
+    one = generate(repo, 1, OPEN_FINDING)
     close_round(repo, 1, 1, "deferred #999")
     return one
 

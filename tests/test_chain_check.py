@@ -10,7 +10,6 @@ import importlib.util
 import json
 import os
 import pathlib
-import re
 import subprocess
 
 import pytest
@@ -65,21 +64,49 @@ ROUTING = """# a work item -- routing
 """
 
 
-def record(target, rows):
-    """A round record in the new shape, with `rows` as its verdict rows."""
-    body = "\n".join(rows)
+def finding(n, verdict, severity="blocks merge", title="the parser drops a row"):
+    """One `### ` section of `## Findings`, in `templates/sdd-round.md`'s
+    shape, its `Verdict:` line reading `verdict`."""
+    return (
+        f"### {n}. {title}\n\n"
+        f"Severity: {severity}\n"
+        "Location: `f.txt:1`\n"
+        f"Verdict: {verdict}\n\n"
+        "Why it matters. read: `f.txt:1`.\n\n"
+        "```python\nx = 1\n```\n\n"
+        "Answer: \n"
+    )
+
+
+def record(target, findings=(), confirmations=""):
+    """A round record in `templates/sdd-round.md`'s shape: `findings` are
+    `finding()` sections, `confirmations` rows of `## Confirmations`."""
     return (
         "# 1791999999-a-work-item — review round 1\n\n"
         "| Field | Value |\n|---|---|\n"
         f"| Target SHA | {target} against main |\n\n"
-        "## Verdicts\n\n"
-        "| # | Finding | Location | Verdict | Grounds |\n"
-        "|---|---|---|---|---|\n"
-        f"{body}\n\n"
-        "## Paste-ready fixes\n\n"
-        "## Executed probes\n\n"
-        "| What was run | Result |\n|---|---|\n"
+        "## Findings\n\n" + "\n".join(findings) + "\n## Confirmations\n\n"
+        "| What holds | Location | Grounds |\n|---|---|---|\n"
+        f"{confirmations}\n"
+        "## Not judged\n\n"
+        "| What | Location | Who answers |\n|---|---|---|\n\n"
+        "## Probes\n\n"
+        "| Command | Result |\n|---|---|\n"
     )
+
+
+# The table the old generator's records carried, which nothing reads again:
+# a merged item keeps one in the fixture, and the check must never open it.
+OLD_RECORD = (
+    "# 1788999999-a-merged-item — review round 1\n\n"
+    "| Field | Value |\n|---|---|\n"
+    "| Target SHA | 0000000 against main |\n\n"
+    "## Verdicts\n\n"
+    "| # | Finding | Location | Verdict | Grounds |\n"
+    "|---|---|---|---|---|\n"
+    "| 🔴 1 | wrong | `f.txt:1` | open | g |\n"
+)
+MERGED_ITEM = "seal/specs/1788999999-a-merged-item"
 
 
 def gate_file(sha):
@@ -106,8 +133,10 @@ SPEC = "# spec\n\nbody\n\nFramed 2026-10-15 by framer, before the build.\n"
 def branch(tmp_path):
     """A repository whose `feature/x` declares a work item and reviewed it.
 
-    `main` holds one file. `feature/x` adds the declaration, a code commit,
-    the round record at that commit with every finding closed, and
+    `main` holds one file and a work item another pull request merged, its
+    declaration naming another branch and its one record in the old table's
+    shape with a finding open (S11). `feature/x` adds the declaration, a code
+    commit, the round record at that commit with every finding closed, and
     `broad-gate.md` naming the code commit. Returns `(root, code commit)`.
     """
     d = tmp_path / "r"
@@ -116,6 +145,14 @@ def branch(tmp_path):
     git(d, "config", "user.email", "t@t")
     git(d, "config", "user.name", "t")
     write(d, "f.txt", "one\n")
+    write(
+        d,
+        f"{MERGED_ITEM}/routing.md",
+        ROUTING.format(
+            review="through the review chain", planning="the session"
+        ).replace("feature/x", "feature/merged"),
+    )
+    write(d, f"{MERGED_ITEM}/rounds/round-1.md", OLD_RECORD)
     commit(d, "base")
     git(d, "switch", "-q", "-c", "feature/x")
     write(
@@ -129,7 +166,7 @@ def branch(tmp_path):
     write(
         d,
         f"{ITEM}/rounds/round-1.md",
-        record(code, ["| 🔴 1 | wrong | `f.txt:1` | fixed " + code[:8] + " | g |"]),
+        record(code, [finding(1, f"fixed {code[:8]}")]),
     )
     reviewed = commit(d, "the round record")
     # Two runs, newest first: the earlier one names a commit nobody can see,
@@ -313,21 +350,37 @@ class TestCarriedBy:
 
 
 class TestVerdictOf:
-    def test_a_closing_word_is_read_through_emphasis_and_a_commit(self):
-        for cell, word in (
-            ("fixed 1a2b3c4d", "fixed"),
-            ("**fixed** `1a2b3c4d`", "fixed"),
-            ("answered", "answered"),
-            ("deferred #12", "deferred"),
-            ("confirmed", "confirmed"),
-            ("❓ out of verified scope", "out of verified scope"),
+    def test_the_four_values_read_and_nothing_else_does(self):
+        """S3 (T25): a `Verdict:` value is one of four shapes, read as it is
+        written. Anything else is None, which the arm refuses by name."""
+        sha = "1a2b3c4d" * 5
+        for value, read in (
+            ("open", (chain.OPEN, None)),
+            ("fixed abc1234", (chain.FIXED, "abc1234")),
+            (f"fixed {sha}", (chain.FIXED, sha)),
+            ("answered", (chain.ANSWERED, None)),
+            ("deferred #12", (chain.DEFERRED, "#12")),
+            ("deferred the frame", (chain.DEFERRED, "the frame")),
         ):
-            assert chain.verdict_of([cell], 0) == word
-            assert chain.verdict_of([cell], 0) in chain.CLOSED_WORDS
-
-    def test_open_an_unknown_word_and_a_homeless_deferral_stay_open(self):
-        for cell in ("open", "not fixed", "deferred", "deferred —", ""):
-            assert chain.verdict_of([cell], 0) not in chain.CLOSED_WORDS
+            assert chain.verdict_of(value) == read, value
+        for value in (
+            "Fixed abc1234",
+            "fixed",
+            "fixed abc1234.",
+            "fixed abc123",
+            f"fixed {sha}0",
+            "fixed ABC1234",
+            "fixed abc1234 · fix pass: done",
+            "deferred",
+            "deferred ",
+            "confirmed",
+            "**fixed** abc1234",
+            "open — see below",
+            "Open",
+            " answered",
+            "",
+        ):
+            assert chain.verdict_of(value) is None, value
 
 
 # --- deferred_home and issue_of -----------------------------------------------
@@ -337,113 +390,138 @@ class TestDeferredHome:
     def test_the_home_after_the_word_is_read(self):
         assert chain.deferred_home("deferred #12") == "#12"
         assert chain.issue_of(chain.deferred_home("deferred #12")) == 12
-        assert chain.deferred_home("deferred `seal/follow-up.md`") == (
-            "seal/follow-up.md"
-        )
+        assert chain.deferred_home("deferred the frame") == "the frame"
 
     def test_no_home_and_prose_name_no_issue(self):
         assert chain.deferred_home("deferred") is None
         assert chain.deferred_home("deferredness #12") is None
         assert chain.deferred_home("fixed abc1234") is None
         assert chain.issue_of(chain.deferred_home("deferred to #664")) is None
+        assert chain.issue_of(chain.deferred_home("deferred #12.")) is None
 
 
 # --- verdict_table ------------------------------------------------------------
 
 
-class TestVerdictTable:
-    def test_the_rows_under_the_heading_are_read(self):
-        lines = reader.readable(record("abc1234", ["| 🔴 1 | x | `a:1` | open | g |"]))
-        rows, col, header, errors = chain.verdict_table(reader, lines, "r.md")
+class TestFindings:
+    def test_each_finding_is_read_by_its_one_verdict_line(self):
+        """A finding's `### ` heading names it, its one `Verdict:` line
+        decides it, and nothing else of the record is read: a severity, a
+        location, an answer, a confirmation."""
+        text = record(
+            "abc1234",
+            [
+                finding(1, "open"),
+                finding(2, "fixed abc1234", severity="fix or justify"),
+                finding(3, "deferred #12", severity="anything at all"),
+            ],
+            confirmations="| round 1's 2 is closed | `f.txt:1` | read |\n",
+        )
+        lines = reader.readable(text)
+        found, errors = chain.findings(reader, lines, "r.md")
         assert errors == []
-        assert header[col] == "verdict"
-        assert [seen[0] for _n, seen in rows] == ["🔴 1"]
+        assert found == [
+            (
+                lines.index("Verdict: open") + 1,
+                "### 1. the parser drops a row",
+                (chain.OPEN, None),
+            ),
+            (
+                lines.index("Verdict: fixed abc1234") + 1,
+                "### 2. the parser drops a row",
+                (chain.FIXED, "abc1234"),
+            ),
+            (
+                lines.index("Verdict: deferred #12") + 1,
+                "### 3. the parser drops a row",
+                (chain.DEFERRED, "#12"),
+            ),
+        ]
+        empty = reader.readable(record("abc1234"))
+        assert chain.findings(reader, empty, "r.md") == ([], [])
 
-    def test_the_template_is_the_table_the_check_reads(self):
+    def test_what_the_check_cannot_read_is_refused_by_name(self):
+        """S3, S11 (T26): what the reader cannot read is an error naming the
+        path, the line and the finding's heading, never a pass — a finding
+        with no `Verdict:` line, with two, with its only one inside the fix
+        block, in another case or under emphasis; a value outside the four;
+        a `Verdict:` line above the first finding or under another section;
+        no `## Findings`, or two."""
+        sections = [
+            finding(1, "answered").replace("Verdict: answered\n", ""),
+            finding(2, "answered").replace(
+                "Verdict: answered\n", "Verdict: answered\nVerdict: open\n"
+            ),
+            finding(3, "answered")
+            .replace("Verdict: answered\n", "")
+            .replace("x = 1\n", "Verdict: answered\n"),
+            finding(4, "answered").replace("Verdict:", "verdict:"),
+            finding(5, "answered").replace("Verdict:", "**Verdict:**"),
+            finding(6, "confirmed"),
+            finding(7, "answered"),
+        ]
+        text = record(
+            "abc1234",
+            sections,
+            confirmations="| holds | `f.txt:1` | read |\n\nVerdict: answered\n",
+        ).replace("## Findings\n\n", "## Findings\n\nVerdict: answered\n\n")
+        lines = reader.readable(text)
+        found, errors = chain.findings(reader, lines, "r.md")
+        assert [heading for _line, heading, _v in found] == [
+            "### 7. the parser drops a row"
+        ]
+        heads = [i + 1 for i, ln in enumerate(lines) if ln.startswith("### ")]
+        verdicts = [i + 1 for i, ln in enumerate(lines) if ln.startswith("Verdict: ")]
+        assert [(rel, line) for rel, line, _why in errors] == [
+            ("r.md", verdicts[0]),
+            ("r.md", heads[0]),
+            ("r.md", verdicts[2]),
+            ("r.md", heads[2]),
+            ("r.md", heads[3]),
+            ("r.md", heads[4]),
+            ("r.md", verdicts[3]),
+            ("r.md", verdicts[5]),
+        ], errors
+        said = [why for _rel, _line, why in errors]
+        assert "outside a finding" in said[0] and "outside a finding" in said[-1]
+        for why, n in zip(said[1:6], (1, 2, 3, 4, 5), strict=True):
+            assert f"### {n}. the parser drops a row" in why, why
+        assert "2 `Verdict:` lines" in said[2]
+        assert "no `Verdict:` line" in said[1] and "no `Verdict:` line" in said[3]
+        assert "`Verdict: confirmed`" in said[6] and "### 6." in said[6]
+        assert "`fixed <commit>`" in said[6] and "`deferred <home>`" in said[6]
+        assert chain.findings(
+            reader, reader.readable("# r\n\n## Probes\n"), "r.md"
+        ) == (
+            [],
+            [("r.md", 0, chain.NO_FINDINGS)],
+        )
+        two = reader.readable(record("abc1234") + "\n## Findings\n")
+        second = [i + 1 for i, ln in enumerate(two) if ln == "## Findings"][1]
+        _found, errors = chain.findings(reader, two, "r.md")
+        assert [(line, why) for _rel, line, why in errors] == [
+            (second, chain.TWO_FINDINGS)
+        ]
+
+    def test_the_template_is_the_record_the_check_reads(self):
+        """S1 (T29): `templates/sdd-round.md` is a record the check reads —
+        `Target SHA` its one field row, one finding at `open`, and a
+        `Verdict:` written inside its fix block not read as a line."""
         text = (ROOT / "templates" / "sdd-round.md").read_text(encoding="utf-8")
-        found, errors = chain.open_findings(reader, reader.readable(text), "t")
+        found, errors = chain.findings(reader, reader.readable(text), "t")
         assert errors == []
-        assert [(mark, word) for _n, mark, word in found] == [("🔴 1", "open")]
-        head = text.split(chain.VERDICTS)[0]
+        assert [verdict for _line, _heading, verdict in found] == [(chain.OPEN, None)]
+        assert found[0][1].startswith("### 1. ")
+        head = text.split(chain.FINDINGS_HEADING)[0]
         rows = chain.table_rows(reader, reader.readable(head))
         labels = [c[0].strip() for c in rows if "-" not in c[0]]
         assert labels == ["Field", "Target SHA"]
-
-    def test_a_record_with_no_verdicts_section_is_an_error(self):
-        lines = reader.readable("# r\n\n| Field | Value |\n|---|---|\n")
-        rows, col, _header, errors = chain.verdict_table(reader, lines, "r.md")
-        assert rows == [] and col == -1
-        assert "no `## Verdicts` section" in errors[0][2]
-
-
-# --- open_findings ------------------------------------------------------------
-
-
-class TestOpenFindings:
-    def test_every_row_closes_by_a_closing_word_whatever_its_id_cell(self):
-        """S3 (T19): the check reads one fact per row, its `Verdict` cell.
-        A row of any mark at `open`, at a word outside `CLOSED_WORDS` or at
-        `deferred` with no home is named, by its line, its first cell (or
-        `the row` where that cell is empty) and the word."""
-        rows = [
-            "| 🔴 1 | x | `a:1` | open | g |",
-            "| 🟡 2 | x | `a:2` | deferred | g |",
-            "| 🟢 | marked green and left open | `a:3` | open | g |",
-            "| ❓ | a question nobody closed | `a:4` | pending | g |",
-            "| ⬜ 3 | an old record's note | `a:5` | open | g |",
-            "| 4 | 🔴 the severity in the Finding cell | `a:6` | open | g |",
-            "|  | an empty id cell | `a:7` | open | g |",
-        ]
-        lines = reader.readable(record("abc1234", rows))
-        found, errors = chain.open_findings(reader, lines, "r.md")
-        assert errors == []
-        assert [(mark, word) for _line, mark, word in found] == [
-            ("🔴 1", "open"),
-            ("🟡 2", "deferred (no home)"),
-            ("🟢", "open"),
-            ("❓", "pending"),
-            ("⬜ 3", "open"),
-            ("4", "open"),
-            ("the row", "open"),
-        ]
-        assert [line for line, _mark, _word in found] == [
-            lines.index(row) + 1 for row in rows
-        ]
-
-    def test_a_finding_row_closes_only_by_a_fix_passs_word(self):
-        """S3, S20, S11 (T24): a row whose first cell opens with 🔴 or 🟡
-        closes only by `fixed <commit>`, `answered` or `deferred <home>`, so
-        a finding the warden closed with a 🟢 or ❓ row's word, or a `fixed`
-        naming no commit, is named. Every other row closes by any word of
-        `CLOSED_WORDS`, whatever its first cell carries."""
-        named = [
-            "| 🔴 1 | x | `a:1` | confirmed | g |",
-            "| 🟡 2 | x | `a:2` | ❓ out of verified scope | g |",
-            "| 🔴 3 | x | `a:3` | fixed | g |",
-        ]
-        passing = [
-            "| 🟢 | x | `a:4` | confirmed | g |",
-            "| ❓ | x | `a:5` | ❓ out of verified scope | g |",
-            "| ⬜ 3 | an old note | `a:6` | answered | g |",
-            "| 4 | a bare number | `a:7` | fixed abc1234 | g |",
-            "| carried | 🔴 a worded id cell | `a:8` | withdrawn | g |",
-            "|  | an empty id cell | `a:9` | deferred `seal/follow-up.md` | g |",
-            "| 🟡 5 | x | `a:10` | deferred the frame | g |",
-            "| 🔴 6 | x | `a:11` | fixed abc1234 | g |",
-            "| 🟡 7 | x | `a:12` | answered | g |",
-            "| 🟢 | x | `a:13` | fixed abc1234 | g |",
-        ]
-        lines = reader.readable(record("abc1234", named + passing))
-        found, errors = chain.open_findings(reader, lines, "r.md")
-        assert errors == []
-        assert [(mark, word) for _line, mark, word in found] == [
-            ("🔴 1", "confirmed"),
-            ("🟡 2", "out of verified scope"),
-            ("🔴 3", "fixed"),
-        ]
-        assert [line for line, _mark, _word in found] == [
-            lines.index(row) + 1 for row in named
-        ]
+        assert chain.target_of(reader, text.replace("<sha>", "abc1234", 1))
+        fence = text.index("```", text.index("### 1. "))
+        line_end = text.index("\n", fence) + 1
+        fenced = text[:line_end] + "Verdict: answered\n" + text[line_end:]
+        found, errors = chain.findings(reader, reader.readable(fenced), "t")
+        assert errors == [] and [v for _l, _h, v in found] == [(chain.OPEN, None)]
 
 
 # --- follows ------------------------------------------------------------------
@@ -516,83 +594,76 @@ class TestFrame:
 
 class TestMain:
     def test_a_reviewed_branch_passes_a_ready_pull_request(self, branch, ready, capsys):
+        """S11: the merged item's old-shape record, a finding open in it, is
+        never opened — the check judges only what this pull request carries."""
         root, _code = branch
         code, out = check(root, capsys)
         assert code == 0, out
+        assert MERGED_ITEM not in out
 
-    def test_an_open_verdict_fails_a_ready_pull_request(
-        self, branch, ready, capsys, monkeypatch
-    ):
-        """S3 (T11): the rows decide, the row id and the word are named, and a
-        draft prints the same line and passes."""
+    def test_an_open_finding_fails_a_ready_pull_request(self, branch, ready, capsys):
+        """S3 (T27): the `Verdict:` lines decide, the line and the finding's
+        heading are named, and a draft prints the same line and passes. A
+        finding's `Severity:` decides nothing."""
         root, code_sha = branch
         rel = f"{ITEM}/rounds/round-1.md"
-        write(
-            root,
-            rel,
-            record(code_sha, ["| 🔴 1 | wrong | `f.txt:1` | open | g |"]),
-        )
+        write(root, rel, record(code_sha, [finding(1, "open")]))
         commit(root, "the record, still open")
         code, out = check(root, capsys)
         assert code == 1
-        line = next(ln for ln in out.splitlines() if "🔴 1" in ln)
-        assert line.startswith(f"{rel}:")
+        line = next(ln for ln in out.splitlines() if "### 1." in ln)
+        number = reader.readable(record(code_sha, [finding(1, "open")])).index(
+            "Verdict: open"
+        )
+        assert line.startswith(f"{rel}:{number + 1}"), line
+        assert "### 1. the parser drops a row" in line
         assert (
-            "`open`, which does not close it: a 🔴 or 🟡 row closes by "
-            "`fixed <commit>`, `answered` or `deferred <home>`"
+            "reads `Verdict: open`: the fix pass answers it with `fixed <commit>`, "
+            "`answered` or `deferred <home>`"
         ) in line
-        assert "🟢" not in line
         event = pathlib.Path(os.environ["GITHUB_EVENT_PATH"])
         event.write_text(
             json.dumps({"pull_request": {"draft": True}}), encoding="utf-8"
         )
         code, out = check(root, capsys)
         assert code == 0
-        assert any("🔴 1" in ln and "`open`" in ln for ln in out.splitlines())
+        assert any("### 1." in ln and "Verdict: open" in ln for ln in out.splitlines())
+        event.write_text(
+            json.dumps({"pull_request": {"draft": False}}), encoding="utf-8"
+        )
+        write(root, rel, record(code_sha, [finding(1, "answered")]))
+        commit(root, "the record, answered at the most severe severity")
+        seal(root)
+        code, out = check(root, capsys)
+        assert code == 0, out
 
-    def test_the_refusal_names_the_words_that_close_a_row_of_its_mark(
+    def test_a_fixed_commit_head_does_not_descend_from_is_refused(
         self, branch, ready, capsys
     ):
-        """S3, S20: a 🔴 or 🟡 row is told the fix pass's three, including one
-        closed by a 🟢 row's word; a 🟢 row is told `confirmed` and a ❓ row
-        `❓ out of verified scope`, never a fix pass's words; a mark outside
-        the template's four is told every kind's."""
+        """S3 (T28): `fixed <commit>` names a commit on this branch. One this
+        repository cannot resolve, and one on another branch, are refused by
+        the finding's line and heading; the fixture's own code commit is not."""
         root, code_sha = branch
+        git(root, "switch", "-q", "main")
+        write(root, "g.txt", "elsewhere\n")
+        off = commit(root, "a commit the branch never had")
+        git(root, "switch", "-q", "feature/x")
         rel = f"{ITEM}/rounds/round-1.md"
-        rows = [
-            "| 🔴 1 | wrong | `f.txt:1` | confirmed | g |",
-            "| 🟡 2 | wrong | `f.txt:1` | open | g |",
-            "| 🟢 | matches | `f.txt:1` | open | g |",
-            "| ❓ | unjudged | `f.txt:1` | pending | g |",
-            "| 9 | wrong | `f.txt:1` | open | g |",
+        sections = [
+            finding(1, "fixed 0000000"),
+            finding(2, f"fixed {off[:8]}"),
+            finding(3, f"fixed {code_sha[:8]}"),
         ]
-        write(root, rel, record(code_sha, rows))
-        commit(root, "the record, five rows open")
+        write(root, rel, record(code_sha, sections))
+        commit(root, "the record, three fixes")
+        seal(root)
         code, out = check(root, capsys)
         assert code == 1
         named = [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")]
-        assert len(named) == 5, out
-        red, yellow, green, question, bare = named
-        fix_pass = (
-            "a 🔴 or 🟡 row closes by `fixed <commit>`, `answered` or `deferred <home>`"
-        )
-        assert red.endswith(
-            f"🔴 1 reads `confirmed`, which does not close it: {fix_pass}"
-        )
-        assert yellow.endswith(
-            f"🟡 2 reads `open`, which does not close it: {fix_pass}"
-        )
-        assert "🟢 reads `open`, which does not close it: a 🟢 row closes by " in green
-        assert green.endswith("`confirmed`")
-        assert "answered" not in green
-        assert question.endswith(
-            "❓ reads `pending`, which does not close it: a ❓ row closes by "
-            "`❓ out of verified scope`"
-        )
-        assert "answered" not in question
-        assert fix_pass in bare
-        assert "a 🟢 row closes by `confirmed`" in bare
-        assert "a ❓ row closes by `❓ out of verified scope`" in bare
+        assert len(named) == 2, out
+        assert "### 1." in named[0] and "`0000000`" in named[0]
+        assert "### 2." in named[1] and f"`{off[:8]}`" in named[1]
+        assert all("HEAD does not descend from" in ln for ln in named), named
 
     def test_the_last_record_is_at_head_or_only_record_commits_follow(
         self, branch, ready, capsys
@@ -631,45 +702,20 @@ class TestMain:
         code, out = check(root, capsys)
         assert code == 0 and "holds no `round-N.md`" in out
 
-    def test_a_record_written_by_the_old_generator_reads(self, branch, ready, capsys):
-        """S11 (T13): every round record committed in this repository reads
-        under the new check — its `Target SHA` and its verdict table, with
-        no finding left open — and the newest of them, copied in as the last
-        record with its target moved to the fixture's reviewed commit, passes
-        the whole check: the fields it no longer judges refuse nothing."""
+    def test_an_old_shape_record_under_the_declared_item_is_refused(
+        self, branch, ready, capsys
+    ):
+        """S11: nothing reads the old table. A record of that shape under the
+        item this pull request declares has no `## Findings`, and is refused
+        by name rather than read as a record with nothing open."""
         root, code_sha = branch
-        corpus = sorted(
-            (
-                p
-                for p in (ROOT / "seal" / "specs").glob("*/rounds/round-*.md")
-                if re.fullmatch(r"round-\d+\.md", p.name)
-            ),
-            key=lambda p: (p.parent.parent.name, int(re.findall(r"\d+", p.name)[0])),
-        )
-        assert corpus, "no round record in the tree to read"
-        for path in corpus:
-            text = path.read_text(encoding="utf-8")
-            assert chain.target_of(reader, text), f"{path}: no Target SHA read"
-            found, errors = chain.open_findings(reader, reader.readable(text), "r")
-            assert (found, errors) == ([], []), f"{path}: {found} {errors}"
-        newest = corpus[-1].read_text(encoding="utf-8")
-        assert "| Needs a fix |" in newest
         rel = f"{ITEM}/rounds/round-1.md"
-        write(
-            root,
-            rel,
-            re.sub(
-                r"^\| Target SHA \|[^\n]*$",
-                f"| Target SHA | {code_sha} |",
-                newest,
-                count=1,
-                flags=re.M,
-            ),
-        )
-        commit(root, "the newest record in the tree, copied")
+        write(root, rel, OLD_RECORD.replace("0000000", code_sha))
+        commit(root, "an old-shape record")
         seal(root)
         code, out = check(root, capsys)
-        assert code == 0, out
+        assert code == 1
+        assert f"{rel}:0" in out and chain.NO_FINDINGS in out
 
     def test_a_broad_gate_file_naming_another_commit_fails_a_ready_pull_request(
         self, branch, ready, capsys

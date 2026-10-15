@@ -14,10 +14,12 @@ judged (`carried_by`). The arms are five:
                 `spec.md` ends with the framer's mark, and every `Reframed`
                 line under it names the framer
   records       `Review | through the review chain`: `rounds/` holds at least
-                one `round-N.md`; every row of every record reads a closing
-                word, and a 🔴 or 🟡 row one of the fix pass's three;
-                the last record's `Target SHA` is HEAD, or every commit after
-                it touches only the work item's own directory
+                one `round-N.md`; each holds one `## Findings` section whose
+                every `### ` finding carries one `Verdict:` line reading
+                `fixed <commit HEAD descends from>`, `answered` or
+                `deferred <home>`, and whatever the reader cannot read is
+                refused; the last record's `Target SHA` is HEAD, or every
+                commit after it touches only the work item's own directory
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
                 touches only the work item's own directory
   guarantee     `guarantee.md` names HEAD, or every commit after it touches
@@ -53,9 +55,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "routing.py")
 
-VERDICTS = "## Verdicts"
-VERDICT_COLUMN = "Verdict"
-GROUNDS_COLUMN = "Grounds"
 TARGET = "Target SHA"
 BROAD_GATE = "Broad gate"
 BROAD_GATE_FILE = "broad-gate.md"
@@ -71,58 +70,39 @@ UNDECIDABLE = "undecidable"
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
 EARLIER_RUN = "; earlier run: "
 
-# The severities the warden writes at the head of a verdict row: a 🔴 or 🟡
-# row is a finding a fix pass answers, and it closes only by the fix pass's
-# words (`FINDING_WORDS`). No other mark narrows a row's words. These stay as
-# the record's vocabulary, which no `Record language` translates.
-BLOCKING = "🔴"
-SHOULD = "🟡"
-FINDINGS = (BLOCKING, SHOULD)
-# What the refusal tells a row it closes by, keyed by the mark at its head; a
-# mark outside these is told every kind's words. Only the first entry's words
-# are also the rule (`FINDING_WORDS`); a 🟢 or ❓ row passes by any closing
-# word, and the rest of this table picks the message only.
-CLOSES_BY = (
-    (
-        FINDINGS,
-        "a 🔴 or 🟡 row closes by `fixed <commit>`, `answered` or `deferred <home>`",
-    ),
-    (("🟢",), "a 🟢 row closes by `confirmed`"),
-    (("❓",), "a ❓ row closes by `❓ out of verified scope`"),
-)
-EVERY_CLOSE = "; ".join(words for _marks, words in CLOSES_BY)
-
-DEFERRED = "deferred"
-FIXED = "fixed"
-OUT_OF_SCOPE = "out of verified scope"
-# What closes a 🔴 or 🟡 row: the fix pass's words, `fixed` with the commit
-# in the cell, `answered`, and `deferred <home>`.
-FINDING_WORDS = {FIXED, "answered", DEFERRED}
-# What closes a row of any other mark. `confirmed` is the warden's,
-# `out of verified scope` the ❓ row's. `withdrawn`, `not a defect` and
-# `agreed, fixed` are read so that records the generator wrote read as they
-# were written.
-CLOSED_WORDS = {
-    *FINDING_WORDS,
-    "confirmed",
-    OUT_OF_SCOPE,
-    "withdrawn",
-    "not a defect",
-    "agreed, fixed",
-}
-# The closing words that close nothing without a home after them.
-HOME_WORDS = {DEFERRED}
-NO_HOME = "(no home)"
+# A round record's findings: the one `## Findings` section, a `### ` section
+# per finding, and in each exactly one line `Verdict: <value>` — at the start
+# of the line, no emphasis, no table cell. That line is the one fact the
+# check reads of a finding, and a spelling it does not read is refused by
+# name, never passed (`findings`). These stay as the record's vocabulary,
+# which no `Record language` translates.
+FINDINGS_HEADING = "## Findings"
+FINDING_LEVEL = 3
+VERDICT = "Verdict:"
+VERDICT_LABEL = re.compile(r"^" + re.escape(VERDICT) + r" (.*)$")
 OPEN = "open"
-EMPHASIS = re.compile(r"[*_`]+")
-MARKER = re.compile(r"^(?:[^\w\s]+\s*)+")
-VOCAB = sorted(CLOSED_WORDS, key=len, reverse=True)
-SEPARATORS = " " + chr(0x2014) + chr(0x2013) + "-:,"
+FIXED = "fixed"
+ANSWERED = "answered"
+DEFERRED = "deferred"
+# `fixed <commit>`: seven to forty lowercase hex digits and nothing after;
+# `deferred <home>`: a home after the word, beginning and ending with a
+# character that is not a space.
+FIXED_VALUE = re.compile(r"^fixed ([0-9a-f]{7,40})$")
+DEFERRED_VALUE = re.compile(r"^deferred (\S(?:.*\S)?)$")
+SHAPES = "`open`, `fixed <commit>`, `answered` or `deferred <home>`"
+ANSWERS = "`fixed <commit>`, `answered` or `deferred <home>`"
+NO_FINDINGS = (
+    f"no `{FINDINGS_HEADING}` section: a round record holds one, with a "
+    "`### ` section and one `Verdict:` line per finding"
+)
+TWO_FINDINGS = f"a second `{FINDINGS_HEADING}` section; a round record holds one"
+OUTSIDE = (
+    f"a `Verdict:` line outside a finding: the check reads one inside each "
+    f"`### ` section of `{FINDINGS_HEADING}`, and none elsewhere"
+)
 DASH = chr(0x2014)
-HOME_END = f" {DASH} "
-HOME_MARKS = re.compile(r"`|\*+|(?<!\w)_+|_+(?!\w)")
+EMPHASIS = re.compile(r"[*_`]+")
 ISSUE_RE = re.compile(r"#(\d+)")
-DEFERRED_HEAD_RE = re.compile(r"^\W*?[*_`]*" + DEFERRED + r"[*_`]*", re.IGNORECASE)
 SHA_RE = re.compile(r"\b[0-9a-f]{7,40}\b")
 
 MARK_RE = re.compile(r"^Framed\s+(.+?)\s+by\s+(.+?),\s+before the build\.$")
@@ -478,106 +458,30 @@ def section_end(reader, lines, start):
     return len(lines)
 
 
-def verdict_table(reader, lines, rel):
-    """(rows, the Verdict column's index, the header, errors) for `## Verdicts`.
+def verdict_of(value):
+    """`(kind, its commit or home)` for one `Verdict:` value, or None.
 
-    Rows are `(line number, cells run through reader.visible)`, header and
-    separator dropped. The table is found by its heading and read with the
-    shared reader, so a row inside a comment or a fence is not a finding.
+    The four shapes, read as written and nothing else: `open`, `answered`,
+    `fixed <commit>` with seven to forty lowercase hex digits, and
+    `deferred <home>`. A different case, emphasis, a trailing word or mark,
+    a bare `fixed` or `deferred` is None, which the arm refuses by name.
 
-    Reads: guess — the warden's record, a person-written table; unknown refused"""
-    starts = reader.sections(lines, VERDICTS)
-    if not starts:
-        return [], -1, [], [(rel, 0, f"no `{VERDICTS}` section")]
-    if len(starts) > 1:
-        return [], -1, [], [(rel, starts[1] + 1, f"more than one `{VERDICTS}` section")]
-    start = starts[0]
-    end = section_end(reader, lines, start)
-    rows = [(i + 1, reader.split_row(lines[i])) for i in range(start + 1, end)]
-    rows = [(n, c) for n, c in rows if c is not None]
-    if not rows:
-        return [], -1, [], [(rel, start + 1, f"`{VERDICTS}` holds no table")]
-    header = [reader.visible(c).casefold() for c in rows[0][1]]
-    if VERDICT_COLUMN.casefold() not in header:
-        return (
-            [],
-            -1,
-            header,
-            [
-                (
-                    rel,
-                    rows[0][0],
-                    f"the verdict table has no `{VERDICT_COLUMN}` column; its "
-                    f"header is |{'|'.join(rows[0][1])}|",
-                )
-            ],
-        )
-    col = header.index(VERDICT_COLUMN.casefold())
-    seen_rows, errors = [], []
-    for line_no, cells in rows[1:]:
-        seen = [reader.visible(c) for c in cells]
-        if reader.is_separator(seen) or [c.casefold() for c in seen] == header:
-            continue
-        if len(cells) <= col:
-            errors.append(
-                (
-                    rel,
-                    line_no,
-                    f"{len(cells)} cells, and the `{VERDICT_COLUMN}` column is "
-                    f"number {col + 1}",
-                )
-            )
-            continue
-        seen_rows.append((line_no, seen))
-    return seen_rows, col, header, errors
+    Reads: owned — one value `findings` cut from its line; unknown refused"""
+    if value in (OPEN, ANSWERED):
+        return value, None
+    for kind, shape in ((FIXED, FIXED_VALUE), (DEFERRED, DEFERRED_VALUE)):
+        found = shape.match(value)
+        if found:
+            return kind, found.group(1)
+    return None
 
 
-def verdict_of(seen, col):
-    """One row's verdict word, or the normalized cell where no closing word
-    begins it.
+def deferred_home(value):
+    """The home a `deferred <home>` value names, or None.
 
-    Emphasis and a leading marker come off, then the first word of
-    `CLOSED_WORDS` the cell begins with is the verdict, so `fixed 1a2b3c4`
-    is `fixed`. A `deferred` with nothing after it is `deferred (no home)`,
-    which closes nothing.
-
-    Reads: guess — a verdict cell a person wrote; unknown refused"""
-    s = EMPHASIS.sub("", seen[col]).lower().strip().rstrip(".").strip()
-    head = MARKER.sub("", s)
-    if head:
-        s = head
-    for word in VOCAB:
-        if s == word or s.startswith(word + " ") or s.startswith(word + ","):
-            if word in HOME_WORDS and not s[len(word) :].strip(SEPARATORS):
-                return f"{word} {NO_HOME}"
-            return word
-    return s
-
-
-def deferred_parts(cell):
-    """(home, note) for a `deferred <home>` verdict cell, or (None, "").
-
-    The home is what follows the word up to the first ` — `, its code marks
-    removed; the note is what follows that.
-
-    Reads: guess — a verdict cell a person wrote; unknown refused"""
-    if verdict_of([cell], 0) != DEFERRED:
-        return None, ""
-    cell = cell.strip()
-    head = DEFERRED_HEAD_RE.match(cell)
-    if head is None:
-        return None, ""
-    rest = cell[head.end() :].strip(SEPARATORS)
-    home, _cut, note = rest.partition(HOME_END)
-    home = HOME_MARKS.sub("", home).strip().rstrip(".").strip()
-    return (home or None), (note.strip() if home else "")
-
-
-def deferred_home(cell):
-    """The home a `deferred <home>` verdict cell names, or None.
-
-    Reads: guess — through `deferred_parts`; unknown refused"""
-    return deferred_parts(cell)[0]
+    Reads: owned — through `verdict_of`; unknown refused"""
+    verdict = verdict_of(value)
+    return verdict[1] if verdict and verdict[0] == DEFERRED else None
 
 
 def issue_of(home):
@@ -588,33 +492,79 @@ def issue_of(home):
     return int(found.group(1)) if found else None
 
 
-def open_findings(reader, lines, rel):
-    """([(line, the row's first cell, the verdict word)], errors) for every
-    row whose verdict does not close it.
+def findings(reader, lines, rel):
+    """`([(line, heading, verdict)], errors)` for a record's findings.
 
-    A row whose first cell opens with a mark of `FINDINGS` is a finding, and
-    it closes only by the fix pass's words, `FINDING_WORDS`: `fixed` with a
-    commit in the cell, `answered`, or `deferred` naming a home. Every other
-    row closes where its `Verdict` cell begins with a word of `CLOSED_WORDS`
-    and a `deferred` names a home, whatever its first cell carries. That
-    cell, headed `#` in the five-column table, also names the row; an empty
-    one is `the row`.
+    `lines` are `reader.readable`'s, so a `Verdict:` inside a fence or a
+    comment is no line. The one `## Findings` section is split at its `### `
+    headings, and each holds exactly one line `VERDICT_LABEL` matches, its
+    value read by `verdict_of`. Everything the reader cannot read is an
+    error `(rel, line, why)` naming the finding's heading, in line order: no
+    `## Findings` section or two, a finding with no `Verdict:` line or with
+    two, a value outside the four shapes, a `Verdict:` line outside a
+    finding. Nothing else of the record is read — not a severity, a
+    location, an answer or another section's table.
 
-    Reads: guess — the warden's record, through `verdict_table`; unknown refused"""
-    rows, col, _header, errors = verdict_table(reader, lines, rel)
-    if col < 0:
-        return [], errors
-    found = []
-    for line, seen in rows:
-        word = verdict_of(seen, col)
-        if seen[0].strip().startswith(FINDINGS):
-            closes = word in FINDING_WORDS and (
-                word != FIXED or SHA_RE.search(seen[col]) is not None
+    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    starts = reader.sections(lines, FINDINGS_HEADING)
+    if not starts:
+        return [], [(rel, 0, NO_FINDINGS)]
+    if len(starts) > 1:
+        return [], [(rel, starts[1] + 1, TWO_FINDINGS)]
+    start = starts[0]
+    end = section_end(reader, lines, start)
+    heads = [
+        i
+        for i in range(start + 1, end)
+        if reader.heading_level(lines[i]) == FINDING_LEVEL
+    ]
+    spans = list(zip(heads, [*heads[1:], end], strict=False))
+    inside = {i for first, stop in spans for i in range(first, stop)}
+    found, errors = [], []
+    for i, line in enumerate(lines):
+        if VERDICT_LABEL.match(line) and i not in inside:
+            errors.append((rel, i + 1, OUTSIDE))
+    for first, stop in spans:
+        heading = lines[first].strip()
+        said = [
+            (i, VERDICT_LABEL.match(lines[i]).group(1))
+            for i in range(first + 1, stop)
+            if VERDICT_LABEL.match(lines[i])
+        ]
+        if not said:
+            errors.append(
+                (
+                    rel,
+                    first + 1,
+                    f"{heading} {DASH} no `Verdict:` line: a finding carries one, "
+                    f"at the start of a line and with no emphasis, reading {SHAPES}",
+                )
             )
-        else:
-            closes = word in CLOSED_WORDS
-        if not closes:
-            found.append((line, seen[0].strip() or "the row", word))
+            continue
+        if len(said) > 1:
+            errors.append(
+                (
+                    rel,
+                    said[1][0] + 1,
+                    f"{heading} {DASH} {len(said)} `Verdict:` lines; a finding "
+                    "carries one",
+                )
+            )
+            continue
+        i, value = said[0]
+        verdict = verdict_of(value)
+        if verdict is None:
+            errors.append(
+                (
+                    rel,
+                    i + 1,
+                    f"{heading} {DASH} reads `Verdict: {value}`, which the check "
+                    f"cannot read: a verdict is {SHAPES}",
+                )
+            )
+            continue
+        found.append((i + 1, heading, verdict))
+    errors.sort(key=lambda error: error[1])
     return found, errors
 
 
@@ -762,10 +712,11 @@ def frame(reader, routing, root, item, declared):
 
 def records(reader, routing, root, item, rel, base):
     """[(path, line, problem)] for a work item declared through the review
-    chain: no record, a row whose verdict does not close it, a last record
-    behind HEAD. A row is named with the words `CLOSES_BY` gives its mark.
+    chain: no record; a record `findings` cannot read; a finding at `open`;
+    a `fixed` naming a commit HEAD does not descend from; a last record
+    behind HEAD. A finding is named by its line and its heading.
 
-    Reads: guess — the warden's records, through `open_findings` and `target_of`; unknown refused"""
+    Reads: guess — the warden's records, through `findings` and `target_of`; unknown refused"""
     found = round_records(routing, root, item)
     if not found:
         return [
@@ -780,21 +731,28 @@ def records(reader, routing, root, item, rel, base):
     for path in found:
         text = read_record(root, path)
         lines = reader.readable(text or "")
-        still_open, errors = open_findings(reader, lines, path)
+        read, errors = findings(reader, lines, path)
         problems.extend(errors)
-        for line, mark, word in still_open:
-            closes = next(
-                (words for marks, words in CLOSES_BY if mark.startswith(marks)),
-                EVERY_CLOSE,
-            )
-            problems.append(
-                (
-                    path,
-                    line,
-                    f"{mark} reads `{word or 'empty'}`, which does not close it: "
-                    f"{closes}",
+        for line, heading, (kind, commit) in read:
+            if kind == OPEN:
+                problems.append(
+                    (
+                        path,
+                        line,
+                        f"{heading} {DASH} reads `Verdict: {OPEN}`: the fix pass "
+                        f"answers it with {ANSWERS}",
+                    )
                 )
-            )
+            elif kind == FIXED and not is_ancestor(root, commit, "HEAD"):
+                problems.append(
+                    (
+                        path,
+                        line,
+                        f"{heading} {DASH} reads `Verdict: {FIXED} {commit}`, and "
+                        f"HEAD does not descend from `{commit}`: a `{FIXED}` names "
+                        "a commit on this branch",
+                    )
+                )
     last = found[-1]
     target = target_of(reader, read_record(root, last))
     if target is None:

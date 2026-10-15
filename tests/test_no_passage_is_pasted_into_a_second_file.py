@@ -255,12 +255,10 @@ BASELINE = {
     ("skills/agent-contract/SKILL.md", "skills/implement/SKILL.md"): 17,
     ("skills/code-review/SKILL.md", "skills/code-review/orchestration.md"): 5,
     ("skills/code-review/SKILL.md", "skills/implement/SKILL.md"): 9,
-    ("skills/code-review/SKILL.md", "templates/sdd-round.md"): 30,
     ("skills/code-review/orchestration.md", "skills/implement/SKILL.md"): 22,
     ("skills/code-review/orchestration.md", "skills/implement/orchestration.md"): 7,
     ("skills/code-review/orchestration.md", "skills/verify/SKILL.md"): 5,
     ("skills/code-review/orchestration.md", "templates/sdd-phase.md"): 20,
-    ("skills/code-review/orchestration.md", "templates/sdd-round.md"): 83,
     ("skills/commit-pr-convention/SKILL.md", "templates/config.md"): 9,
     ("skills/confidence-check/SKILL.md", "skills/feature-planner/SKILL.md"): 6,
     ("skills/config/SKILL.md", "skills/implement/SKILL.md"): 1,
@@ -269,11 +267,9 @@ BASELINE = {
     ("skills/implement/SKILL.md", "skills/implement/orchestration.md"): 1,
     ("skills/implement/SKILL.md", "skills/legacy-parity/SKILL.md"): 1,
     ("skills/implement/SKILL.md", "templates/sdd-overview.md"): 4,
-    ("skills/implement/orchestration.md", "templates/sdd-round.md"): 5,
     ("skills/implement/orchestration.md", "templates/sdd-routing.md"): 10,
     ("skills/verify/SKILL.md", "templates/sdd-phase.md"): 10,
     ("skills/writing-style/SKILL.md", "skills/writing-style/outside-the-review.md"): 3,
-    ("templates/sdd-phase.md", "templates/sdd-round.md"): 9,
 }
 
 

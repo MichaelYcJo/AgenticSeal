@@ -1053,9 +1053,15 @@ def test_the_templates_check_reads_prose_only_and_descends(repo):
 # list is the EXPECTATION and the template is what is checked.
 ROUND_RECORD_FIELDS = [
     "Target SHA",
-    "## Verdicts",
-    "## Paste-ready fixes",
-    "## Executed probes",
+    "## Findings",
+    "Severity:",
+    "Location:",
+    "Verdict:",
+    "Fix of a fix:",
+    "Answer:",
+    "## Confirmations",
+    "## Not judged",
+    "## Probes",
 ]
 
 
@@ -1186,17 +1192,17 @@ def _literal_strings():
         "unverified_check", "skills", "verify", "scripts", "unverified_check.py"
     )
     found = {
-        chain.VERDICTS,
-        chain.VERDICT_COLUMN,
-        chain.GROUNDS_COLUMN,
+        chain.FINDINGS_HEADING,
+        chain.VERDICT,
         chain.TARGET,
         chain.BROAD_GATE,
         chain.OPEN,
-        *chain.FINDINGS,
+        chain.FIXED,
+        chain.ANSWERED,
+        chain.DEFERRED,
         unverified.HEADING,
         unverified.CLOSED,
         *unverified.HEADER,
-        *chain.CLOSED_WORDS,
     }
     return sorted(found)
 
@@ -1206,10 +1212,9 @@ def test_the_exclusion_list_holds_every_string_a_checker_matches(literal):
     """S6. The list's grounds are *what a checker reads literally*, so it is
     checked against the checkers rather than against itself.
 
-    Two were missing when this case was written — `## Verdicts` and
-    `## Not verified` — and a repository that set `Record language` to another
-    language would have translated both: the first makes `chain_check.py`
-    report a record that says nothing about what it found, and the second
+    A repository that set `Record language` to another language and
+    translated `## Findings` or `Verdict:` would have every round record
+    refused by `chain_check.py`, and one that translated `## Not verified`
     turns `unverified_check.py` red on every pull request.
     """
     # Backticked, because the section spells every literal that way and a

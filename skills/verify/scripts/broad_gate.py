@@ -2612,13 +2612,12 @@ def write_gate_file(item, tree, base):
 def rounds_rows(item):
     """The `rounds` row and, where a finding was deferred, the row beneath it.
 
-    `<R>` is the count of round records. The row beneath counts the verdict
-    rows of every record that `chain_check.verdict_of` reads as `deferred` or
-    `deferred (no home)`, and lists the distinct homes after `→` in the order
-    met, a homeless deferral counted and naming none. A home is
-    `chain_check.deferred_home`'s answer and reaches the panel as ASCII,
-    anything outside it reading `?`, because the letter twin maps only the
-    owner's characters. A record the check cannot read adds nothing beneath.
+    `<R>` is the count of round records. The row beneath counts the findings
+    of every record that `chain_check.findings` reads as `deferred`, and
+    lists their distinct homes after `→` in the order met. A home reaches
+    the panel as ASCII, anything outside it reading `?`, because the letter
+    twin maps only the owner's characters. A record the check's reader
+    refuses anything of adds nothing beneath.
 
     Reads: guess — the warden's records, through `chain_check.py`; unknown passed"""
     records = round_records(item)
@@ -2635,16 +2634,13 @@ def rounds_rows(item):
                 lines = reader.readable(handle.read())
         except (OSError, UnicodeDecodeError):
             continue
-        found, col, _header, _errors = chain.verdict_table(reader, lines, path)
-        for _line, seen in found if col >= 0 else []:
-            word = chain.verdict_of(seen, col)
-            if word == chain.DEFERRED:
-                home = chain.deferred_home(seen[col])
-                home = home.encode("ascii", "replace").decode("ascii") if home else None
-                if home and home not in homes:
-                    homes.append(home)
-            elif word != f"{chain.DEFERRED} {chain.NO_HOME}":
+        found, errors = chain.findings(reader, lines, path)
+        for _line, _heading, (kind, home) in [] if errors else found:
+            if kind != chain.DEFERRED:
                 continue
+            home = home.encode("ascii", "replace").decode("ascii")
+            if home not in homes:
+                homes.append(home)
             count += 1
     if count and homes:
         pieces = [f"{count} deferred {ARROW}", f" {homes[0]}"]

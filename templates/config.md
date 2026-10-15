@@ -87,8 +87,9 @@ because the reader is a model choosing prose, not a lookup table.
 ## Record language
 
 The language the **prose** in the work-item records is written in:
-`spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, the cell
-contents of `rounds/round-N.md` and the prose beneath its tables.
+`spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, and in
+`rounds/round-N.md` each finding's heading, account and `Answer:`, and the
+cells of its tables.
 
 **Independent of the row above.** Setting one does not carry the other, for
 the reason stated at the top of this file: an absent row's default is what
@@ -105,8 +106,9 @@ not a rule.
 
 **The review splits across the two rows on purpose.** The report posted to a
 pull request is prose for whoever opens it, and follows the row above.
-`rounds/round-N.md` is half structure — its field names and verdict vocabulary
-are read literally by `chain_check.py` — and its prose follows this one.
+`rounds/round-N.md` is half structure — its headings, its labelled lines and
+the four verdict values are read literally by `chain_check.py` — and its
+prose follows this one.
 
 ## What no row governs
 
@@ -119,20 +121,19 @@ every repository, whatever either row says:
 - **Branch names.** Still `<prefix>/<kebab-case-slug>` in ASCII: a branch
   name is typed into a shell and pasted into a URL.
 - **The field names, section headings and vocabulary a checker or a pinned
-  case reads literally** — a round record's `Target SHA`; its `## Verdicts`,
-  `## Paste-ready fixes` and `## Executed probes` headings, and the `Verdict`
-  and `Grounds` columns of the first; the verdict words `open`, `fixed`,
-  `answered`, `confirmed`, `out of verified scope` and the `deferred` in
-  `deferred <home>`, and `withdrawn`, `not a defect` and `agreed, fixed`,
-  which records written before them still carry; a `broad-gate.md`'s
-  `Broad gate`; an `overview.md`'s `## Not verified` heading with its `Item`
-  and `Who must answer` columns; a `spec.md`'s `## Removes` heading and the
+  case reads literally** — a round record's `Target SHA`; its `## Findings`
+  heading and each finding's `Verdict:` line, with its four values `open`,
+  `fixed`, `answered` and the `deferred` in `deferred <home>`; the labels
+  the parties and the eval graders read, `Severity:`, `Location:`,
+  `Fix of a fix:` and `Answer:`, and the `## Confirmations`, `## Not judged`
+  and `## Probes` headings; a `broad-gate.md`'s `Broad gate`; an
+  `overview.md`'s `## Not verified` heading with its `Item` and
+  `Who must answer` columns; a `spec.md`'s `## Removes` heading and the
   `nothing` in `nothing — <why>`. A translated field name is not a
   translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, the `✅` that closes a row, the `🔴` and
-  `🟡` that open a finding, and a pact anchor's
-  `pact:<name>/"<heading path>"@<hash>`.
+  section's `## X.Y.Z — <date>`, the `✅` that closes a row, and a pact
+  anchor's `pact:<name>/"<heading path>"@<hash>`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
 - **The item column of this table**, which is a key rather than prose — the

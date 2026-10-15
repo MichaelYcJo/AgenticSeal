@@ -9,27 +9,31 @@ produce and what holds them.
 
 **A round is one file the warden writes.** `seal/specs/<id>/rounds/round-N.md`,
 from `templates/sdd-round.md`, in the branch worktree under review: `Target
-SHA`, the five-column `## Verdicts` table, `## Paste-ready fixes` and
-`## Executed probes`. No report file stands beside it and nothing generates,
-copies or derives any part of it.
-Enforced by: tests/test_chain_check.py::TestVerdictTable
+SHA`, then `## Findings` with one `### <n>. <symptom>` section per finding,
+`## Confirmations`, `## Not judged` and `## Probes`. A finding holds its
+`Severity:`, `Location:` and `Verdict:` lines, a `Fix of a fix:` line where
+it applies, why it matters with its grounds, the paste-ready fix in a fenced
+block, and its `Answer:` line. No report file stands beside it and nothing
+generates, copies or derives any part of it.
+Enforced by: tests/test_chain_check.py::TestFindings::test_the_template_is_the_record_the_check_reads
 
-**The vocabulary is four severities and five verdict words.** 🔴 blocks
-merge, 🟡 fix or justify, 🟢 matches, ❓ out of verified scope. 🔴 and 🟡 rows
-take a bare-integer id and start `open`; the fix pass closes each
-`fixed <commit>`, `answered` or `deferred <home>`. A 🟢 row reads `confirmed`
-and a ❓ row `❓ out of verified scope`. A wrong sentence an agent reads and
-acts on is a 🟡; a sentence in a record that merely reads badly is not a
-finding.
-Enforced by: tests/test_chain_check.py::TestVerdictOf, tests/test_chain_check.py::TestOpenFindings, tests/test_chain_check.py::TestOpenFindings::test_a_finding_row_closes_only_by_a_fix_passs_word
+**A finding's `Verdict:` reads one of four values, and severity is for
+people.** The warden writes `open`; the fix pass answers with
+`fixed <commit>`, `answered` or `deferred <home>`. `Severity:` reads
+`blocks merge` or `fix or justify`, and no check reads it. What this round
+confirmed holds is a row of `## Confirmations`, and what it could not judge
+a row of `## Not judged` with who answers it; neither is a finding. A wrong
+sentence an agent reads and acts on is `fix or justify`; a sentence in a
+record that merely reads badly is not a finding.
+Enforced by: tests/test_chain_check.py::TestVerdictOf::test_the_four_values_read_and_nothing_else_does
 
-**The fix pass fills two cells per open row and nothing else in the file.**
-`Verdict` takes the closing verdict, with the commit for `fixed`; `Grounds`
-keeps the warden's text and adds the fix pass's after it as
-` · fix pass: <what was done, or why not>`. A correction to a record, or a
-repair made outside the tree, produced no commit on the branch and closes
-`answered` with where the repair is.
-Enforced by: nothing — the next round's warden reads the cells against the commits, and the sealer re-checks every `fixed <commit>`
+**The fix pass writes two lines per finding and nothing else in the file.**
+It rewrites the finding's `Verdict:` line, with the commit for `fixed`, and
+writes its `Answer:` line: what was done, why the finding does not hold, or
+where it went. A correction to a record, or a repair made outside the tree,
+produced no commit on the branch and closes `answered` with where the repair
+is.
+Enforced by: nothing — the next round's warden reads the answers against the commits, and the sealer reads every `fixed <commit>` against its finding's `Location:`
 
 **Every round file stays, so a finding can be followed from the round that
 found it to the commit that closed it.** The next round's warden reads the
@@ -67,20 +71,23 @@ lost its number, reads as the branch's own and is refused loudly, and a
 commit someone makes under GitHub's identity with a number reads as carried.
 Enforced by: tests/test_chain_check.py::TestCarriedBy, tests/test_chain_check.py::TestMain::test_a_release_pull_request_leaves_a_squashed_item_to_its_own_pull_request, tests/test_chain_check.py::TestMain::test_an_item_the_release_pull_requests_own_commit_changes_is_judged
 
-**A ready pull request fails while any row of any record reads a word that
-does not close it.** A row whose first cell opens with 🔴 or 🟡 is a
-finding, and it closes only by the fix pass's three: `fixed` with the commit
-in the cell, `answered`, or `deferred <home>`. Any other row — 🟢, ❓, an old
-record's ⬜, a bare number or nothing — closes where its `Verdict` cell
-begins with one of those, `confirmed` or `out of verified scope` (or a word
-the old generator's records used), and is open otherwise. The refusal names
-the row and lists the words that close a row of its mark: the fix pass's
-three for 🔴 and 🟡, `confirmed` for 🟢, `❓ out of verified scope` for ❓,
-and all of them for any other mark. So a 🟢 row left at `open` fails, and so
-does a 🔴 row that reads `confirmed` or a bare `fixed`. It errs where a row's
-severity stands only in its Finding cell: that row has no mark in its first
-cell, and it closes by any closing word.
-Enforced by: tests/test_chain_check.py::TestOpenFindings, tests/test_chain_check.py::TestOpenFindings::test_a_finding_row_closes_only_by_a_fix_passs_word, tests/test_chain_check.py::TestMain
+**Of a round record the check reads one line per finding, and refuses what
+it cannot read.** The line is `Verdict: <value>` at the start of a line,
+inside a `### ` section of the one `## Findings` section, with no emphasis
+and in no table cell. A ready pull request fails while a finding reads
+`open`, and for anything the check cannot read: a value outside `open`,
+`fixed <commit>` (seven to forty lowercase hex digits), `answered` and
+`deferred <home>`; a `Verdict:` in another case or under emphasis, which is
+no `Verdict:` line at all; a finding with no such line or with two; one
+outside a finding; a record with no `## Findings` section, or two; a `fixed`
+naming a commit HEAD does not descend from. A `Verdict:` inside a fence or a
+comment is not a line, so a finding whose only verdict stands in its fix
+block has none. Each refusal names the record, the line and the finding's
+heading. No emoji, severity or table cell is read for the decision. It errs
+where the shape holds and the fact does not: a `fixed` whose commit is on the
+branch and touches nothing of the finding passes, and the sealer reads that
+commit against the finding's `Location:`.
+Enforced by: tests/test_chain_check.py::TestFindings::test_what_the_check_cannot_read_is_refused_by_name, tests/test_chain_check.py::TestMain::test_an_open_finding_fails_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_a_fixed_commit_head_does_not_descend_from_is_refused
 
 **The last record is at HEAD, or only the work item's own records follow
 it.** A commit after the last record's `Target SHA` that touches a file
@@ -95,10 +102,14 @@ a ready pull request its newest run is HEAD, or only the work item's records
 follow it.
 Enforced by: tests/test_broad_gate.py::TestGate, tests/test_broad_gate.py::TestKeptRuns, tests/test_chain_check.py::TestMain
 
-**A record the generator wrote reads under the check.** It reads `Target SHA`
-and the verdict table of every record in the tree, and refuses nothing for
-the fields it no longer judges.
-Enforced by: tests/test_chain_check.py::TestMain
+**Nothing reads a record of the old table's shape.** The check opens the
+records of the work items this pull request's own commits declare or change
+and no other, so a record a merged pull request left behind is read by
+nothing again, whatever its shape. One of the old shape under an item this
+pull request carries has no `## Findings` section, and is refused by name. A
+work item in flight across the update rewrites its records into the shape
+before its pull request goes ready.
+Enforced by: tests/test_chain_check.py::TestMain::test_a_reviewed_branch_passes_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_an_old_shape_record_under_the_declared_item_is_refused
 
 **The check reads the diff as declarations, not as file identity.** It diffs
 without rename detection, so a deleted declaration beside a similar added one
@@ -168,9 +179,9 @@ At the cap every finding still open takes the filing ladder below and reads
 `deferred <home>`. No person is asked mid-run.
 Enforced by: nothing — the orchestrator applies it, and the sealer reads the count and the extension lines
 
-**A fix of a fix stops the fix passes, at any round.** The warden marks
-`fix of a fix` in a finding's `Finding` cell where its unit is one the fixes
-under review added or changed. A round carrying the mark gets no fix pass:
+**A fix of a fix stops the fix passes, at any round.** The warden writes a
+finding's `Fix of a fix:` line, naming the unit, where that unit is one the
+fixes under review added or changed. A round carrying the mark gets no fix pass:
 the work item goes back to its framer, who writes `Reframed <date> by <who>,
 after round <N>.` under the mark at the foot of `spec.md`.
 Enforced by: nothing — the orchestrator applies it, and the sealer reads the mark in the records
