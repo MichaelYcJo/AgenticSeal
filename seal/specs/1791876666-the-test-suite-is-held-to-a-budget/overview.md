@@ -4,7 +4,7 @@
 show; each part written when it happened. Opened at phase 1. -->
 
 📋 implement applied
-· spec:     spec.md (Scope, The removal criterion, S1–S4, S6, Removes); plan.md (Technical context, phase 1, Test rows); questions.md Q4, Q6; docs/the-evidence-ledger.md §A released row is read again in the branch's fragment; templates/sdd-phase.md
+· spec:     spec.md (Scope, The removal criterion, S1–S4, S6, Removes); plan.md (Technical context, phase 1, Test rows); questions.md Q4, Q6; templates/sdd-phase.md
 · tests:    the cases phases/phase-1.md and phases/phase-2.md name, each with the mutation it was seen red by
 · verified: phases/phase-1.md, which labels each figure executed or read
 
@@ -35,11 +35,11 @@ the cleanup is #942's.
 
 | Item | Who must answer |
 |---|---|
-| ✅ Whether each of the 35 sampled rows lands in `main` or `u` without hooks on ubuntu-latest. Only macOS was executed, and Windows was read from `.test_durations`; G4 records 145 rows landing on Linux in 2026-10, not which ones | PR #939's CI run 38477955404 at 480bea69: every ubuntu job passed; three rows failed on macOS and Windows and were fixed at badc0bd4 (`phases/phase-1.md`) |
-| ✅ That on `macos-latest` and `windows-latest` the fixed sample lands where badc0bd4 says: `shape: nice` and `#686: cd $W unset` run, and `#686: builtin cd` skips on Windows by `NO_CD_INTO_AN_UNQUOTED_PATH` | CI run 38498393195 at b2564df7: macOS passed; on Windows `#686: cd $W unset` landed nowhere, because the image's bash 5.3 refuses `cd ""`. Seen red locally under a bash 5.3 built from source; 7fd12bd4 skips it by `NO_EMPTY_CD` wherever the bash refuses an empty cd |
-| The phase-1 file's Windows seconds after the sample | #931's next refresh, or a `workflow_dispatch` of `test.yml` on the branch |
-| What the `cases` job says on a CI runner after the end-to-end paths became one case (46cf830a) and the silent-run case left with the value it guarded (06f499d3). CI run 38518943105 at 0f2b8a33 proved 16 and named 6 in 297 s. Locally at 06f499d3, `-n 4`, load 4–10: 14 of 14 proved in 298 s, exit 0 | the next run of the `cases` job on PR #939, read by the orchestrator (`phases/phase-2.md`, *After CI run 38518943105*) |
-| That on `windows-latest` the case file passes now that a mutant keeps each line's own end (7177f24a). CI run 38518943105 failed six end-to-end cases there, every mutant refused against CRLF bytes. macOS gives the same output with a CRLF fixture, and passes after the fix | the next `windows-latest` run on PR #939, read by the orchestrator |
+| ✅ Whether each of the 35 sampled rows lands in `main` or `u` without hooks on ubuntu-latest. Only macOS was executed, and Windows was read from `.test_durations`; G4 records 145 rows landing on Linux in 2026-10, not which ones | PR #939's CI run 38477955404 at 480bea69 (now cb8e236e): every ubuntu job passed; three rows failed on macOS and Windows and were fixed at 249bd6d2 (`phases/phase-1.md`) |
+| ✅ That on `macos-latest` and `windows-latest` the fixed sample lands where 249bd6d2 says: `shape: nice` and `#686: cd $W unset` run, and `#686: builtin cd` skips on Windows by `NO_CD_INTO_AN_UNQUOTED_PATH` | CI run 38498393195 at b2564df7 (now 61725f42): macOS passed; on Windows `#686: cd $W unset` landed nowhere, because the image's bash 5.3 refuses `cd ""`. Seen red locally under a bash 5.3 built from source; 3485af38 skips it by `NO_EMPTY_CD` wherever the bash refuses an empty cd |
+| The phase-1 file's Windows seconds after the sample | #931's next refresh, or a `workflow_dispatch` of `test.yml` on the branch; CI run 38658107547's `budgets` job printed only that every gate row holds, and its Windows legs print no per-file seconds |
+| ✅ What the `cases` job says on a CI runner after the end-to-end paths became one case (853f2f28) and the silent-run case left with the value it guarded (f564f644). CI run 38518943105 at 0f2b8a33 (now 341f4941) proved 16 and named 6 in 297 s. Locally at 06f499d3 (now f564f644), `-n 4`, load 4–10: 14 of 14 proved in 298 s, exit 0 | CI run 38658107547 at 692cef31, its `cases` job's log read: 19 proved, 0 named, in 299 s of the 5-minute bound, the job green |
+| ✅ That on `windows-latest` the case file passes now that a mutant keeps each line's own end (cc931b37). CI run 38518943105 failed six end-to-end cases there, every mutant refused against CRLF bytes. macOS gives the same output with a CRLF fixture, and passes after the fix | CI run 38658107547 at 692cef31: all four `windows-latest` shards passed, and the four shards hold every id (`tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`), so the case file passed there; read from the jobs' conclusions, its own ids not named in the quiet logs |
 
 ## Not done
 
