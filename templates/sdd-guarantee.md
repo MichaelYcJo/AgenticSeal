@@ -12,9 +12,9 @@ sealer alone and committed by the orchestrator beside `broad-gate.md`.
 
 ## Claims re-run
 
-<!-- One row per act of `agents/sealer.md` step 3, whatever the act. `Result`
-reads `holds`, or `does not hold — <what came back>`, and a `does not hold`
-is what the verdict names. -->
+<!-- One row per act of `agents/sealer.md` step 3, whatever the act, and one
+per thing the act checks. `Result` reads `holds`, or `does not hold — <what
+came back>`, and a `does not hold` is what the verdict names. -->
 
 | Claim | Source | Command | Result |
 |---|---|---|---|

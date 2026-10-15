@@ -272,37 +272,6 @@ class TestDefinition:
         assert "`outputs kept under broad-gate-<random>/`" in text
         assert "`seal-stamp --from <path>`" in text
 
-    def test_the_sealer_reads_every_red_and_yellow_row_not_only_fixed_ones(self):
-        """The check reads a row's word and not its mark, so a 🔴 or 🟡 row
-        closed `confirmed` passes it. `docs/the-review-record.md` names the
-        sealer as where such a row is caught, and on the last round nobody
-        else reads it; this holds the sentence that tells the sealer to."""
-        text = " ".join(SEALER.read_text(encoding="utf-8").split())
-        assert "Read every 🔴 and 🟡 row of every record" in text
-        assert (
-            "closed `confirmed` or `❓ out of verified scope` passes it and "
-            "answers nothing"
-        ) in text
-        assert (
-            "unless a later round's row answers it, the verdict is `not sound`"
-        ) in text
-
-    def test_the_sealer_names_such_a_row_in_the_claims_table(self):
-        """T21: a 🔴 or 🟡 row closed by another kind's word is written into
-        `guarantee.md`'s `## Claims re-run`, so the file has a place for it;
-        its `Result` is the later round's row that answers it, or
-        `does not hold`."""
-        step = between(
-            SEALER,
-            "3. **A claim against the fact.**",
-            "4. **The parties against each other.**",
-        )
-        assert "Read every 🔴 and 🟡 row of every record" in step
-        assert "each one as a row of `## Claims re-run`" in step
-        assert (
-            "its `Result` the later round's row that answers it or `does not hold`"
-        ) in step
-
 
 # --- the document that states the guarantee ------------------------------------
 

@@ -21,7 +21,7 @@ take a bare-integer id and start `open`; the fix pass closes each
 and a ❓ row `❓ out of verified scope`. A wrong sentence an agent reads and
 acts on is a 🟡; a sentence in a record that merely reads badly is not a
 finding.
-Enforced by: tests/test_chain_check.py::TestVerdictOf, tests/test_chain_check.py::TestOpenFindings
+Enforced by: tests/test_chain_check.py::TestVerdictOf, tests/test_chain_check.py::TestOpenFindings, tests/test_chain_check.py::TestOpenFindings::test_a_finding_row_closes_only_by_a_fix_passs_word
 
 **The fix pass fills two cells per open row and nothing else in the file.**
 `Verdict` takes the closing verdict, with the commit for `fixed`; `Grounds`
@@ -68,18 +68,19 @@ commit someone makes under GitHub's identity with a number reads as carried.
 Enforced by: tests/test_chain_check.py::TestCarriedBy, tests/test_chain_check.py::TestMain::test_a_release_pull_request_leaves_a_squashed_item_to_its_own_pull_request, tests/test_chain_check.py::TestMain::test_an_item_the_release_pull_requests_own_commit_changes_is_judged
 
 **A ready pull request fails while any row of any record reads a word that
-does not close it.** The check reads one fact per row: its `Verdict` cell
-begins with `fixed`, `answered`, `deferred <home>`, `confirmed` or `out of
-verified scope` (or a word the old generator's records used), or the row is
-open. The mark at the head of the row — 🔴, 🟡, 🟢, ❓, an old record's ⬜, a
-bare number or nothing — changes nothing. It names the row in the refusal
-and picks the words the refusal lists: a fix pass's three for 🔴 and 🟡,
-`confirmed` for 🟢, `❓ out of verified scope` for ❓, and all of them for
-any other mark. So a 🟢 row left at `open` fails, and a 🔴 row that reads
-`confirmed` passes the check: the next round's warden reads the record, and
-the sealer writes such a row into `guarantee.md`'s `## Claims re-run` and
-reads the verdict as `not sound` unless a later round answers it.
-Enforced by: tests/test_chain_check.py::TestOpenFindings, tests/test_chain_check.py::TestMain, tests/test_the_sealer_guarantees.py::TestDefinition::test_the_sealer_names_such_a_row_in_the_claims_table
+does not close it.** A row whose first cell opens with 🔴 or 🟡 is a
+finding, and it closes only by the fix pass's three: `fixed` with the commit
+in the cell, `answered`, or `deferred <home>`. Any other row — 🟢, ❓, an old
+record's ⬜, a bare number or nothing — closes where its `Verdict` cell
+begins with one of those, `confirmed` or `out of verified scope` (or a word
+the old generator's records used), and is open otherwise. The refusal names
+the row and lists the words that close a row of its mark: the fix pass's
+three for 🔴 and 🟡, `confirmed` for 🟢, `❓ out of verified scope` for ❓,
+and all of them for any other mark. So a 🟢 row left at `open` fails, and so
+does a 🔴 row that reads `confirmed` or a bare `fixed`. It errs where a row's
+severity stands only in its Finding cell: that row has no mark in its first
+cell, and it closes by any closing word.
+Enforced by: tests/test_chain_check.py::TestOpenFindings, tests/test_chain_check.py::TestOpenFindings::test_a_finding_row_closes_only_by_a_fix_passs_word, tests/test_chain_check.py::TestMain
 
 **The last record is at HEAD, or only the work item's own records follow
 it.** A commit after the last record's `Target SHA` that touches a file
