@@ -7,10 +7,10 @@
 | Ran by | specseal:warden on claude-opus-5-5 |
 | PR | #937 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `bbf2daa3204ffab9d706dee8a2a4b5b84de11575..af18ab2e7d831b4ab39d467c78035011b3897bec`, 5 commits |
+| Contract changes | none |
+| New units | test_an_unlisted_slow_file_under_a_report_row_is_named (depth 1) |
 | Fix of a fix | no |
 | Needs a fix | yes — 🟡 3, a report row's problems are never printed, so an unlisted slow file is not named; 🟡 1 and 🟡 2 are record corrections that `Needs a fix` does not count |
 | Loses a record or crashes | no |
@@ -25,9 +25,9 @@ Round 5 of #931, the first after the reframe: phase 4 over 179e8ef3..a6919ade ag
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | work item 1791876665's S7 still says an unlisted slow file is "exit 1 naming the file"; the family is a `report` row and the tree exits 0; round 4's ⬜ 3 is closed at `spec.md:36` and `questions.md:8` and not here | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:59` | open | executed: an unlisted file at 266 s gives exit 0 and an `over` report line; read: `spec.md:59`, S9 of this item's spec; a record correction, which `Needs a fix` does not count |
-| 🟡 2 | work item 1791876665's changelog fragment says each slow file is "held to a ceiling" and "Two reports fail nothing"; 0.22.0 ships `slow-file` as a third report, and the fragment is gathered verbatim | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/changelog.md:17` | open | read: `:17-19`, `:27`, `seal/budgets.md:41`; `docs/the-record-layout.md` §*A commit after the build brings its changelog fragment along*; a record correction, which `Needs a fix` does not count |
-| 🟡 3 | a `report` row's problems are never printed, so an unlisted file past the `slow-file` threshold is not named anywhere; the PR body, this item's changelog and `seal/budgets.md` say each file's reading prints | `.github/scripts/budget_check.py:1410` | open | executed: an unlisted file at 266 s gives `266 seconds (largest unlisted) … report \| over` and no path in the output; read: `render` `:1265`, `unlisted_band`; the fix tried in the clone, its case red without it |
+| 🟡 1 | work item 1791876665's S7 still says an unlisted slow file is "exit 1 naming the file"; the family is a `report` row and the tree exits 0; round 4's ⬜ 3 is closed at `spec.md:36` and `questions.md:8` and not here | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:59` | **fixed** `4a61fb66` | fixed at 4a61fb66; executed: an unlisted file at 266 s gives exit 0 and an `over` report line; read: `spec.md:59`, S9 of this item's spec; a record correction, which `Needs a fix` does not count |
+| 🟡 2 | work item 1791876665's changelog fragment says each slow file is "held to a ceiling" and "Two reports fail nothing"; 0.22.0 ships `slow-file` as a third report, and the fragment is gathered verbatim | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/changelog.md:17` | **fixed** `a3df4afd` | fixed at a3df4afd; read: `:17-19`, `:27`, `seal/budgets.md:41`; `docs/the-record-layout.md` §*A commit after the build brings its changelog fragment along*; a record correction, which `Needs a fix` does not count |
+| 🟡 3 | a `report` row's problems are never printed, so an unlisted file past the `slow-file` threshold is not named anywhere; the PR body, this item's changelog and `seal/budgets.md` say each file's reading prints | `.github/scripts/budget_check.py:1410` | **fixed** `21ffe7fb` | fixed at 21ffe7fb; executed: an unlisted file at 266 s gives `266 seconds (largest unlisted) … report \| over` and no path in the output; read: `render` `:1265`, `unlisted_band`; the fix tried in the clone, its case red without it |
 | ⬜ 4 | this item's closing memo lists S1–S8 and phases 1–3 and phase 1–2 mutation counts; the reframed spec has S9 and the plan phase 4 | `seal/specs/1791876667-the-durations-refresh-has-a-schedule/overview.md:7` | open | read: `overview.md:7-8`, `spec.md` S9, `plan.md` row 4, `phases/phase-4.md` |
 | 🟢 | round 4's blocking finding is closed — the staleness message gives the whole restate command, and the case asserts it | `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:284` | confirmed | executed: the command as typed exits 1 and writes one line, exit 0 with the PR body; the case exits 1 against 9021bc49's `REMEDY` |
 | 🟢 | round 4's note 2 is closed — the price level has one expression, which the writer and the check both call | `.github/scripts/budget_check.py:1418` | confirmed | executed: the grep prints `:1424` alone; `+ 1` on its `return` turns 3 cases red, among them the writer's and the check's |
