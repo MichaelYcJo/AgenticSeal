@@ -281,8 +281,8 @@ reviewer does not measure an implementer.
 The prose in the records follows `Record language` in `config.md` under the
 `seal/` root — English when the row is absent, which is what every repository
 had before it existed. What stays English regardless: the field names and
-vocabulary a checker reads (`Target SHA`, `Fixes checked by`, the verdict
-words, the `Pass` checkbox, the `<!-- -->` markers), and
+vocabulary a checker reads (`Target SHA`, the verdict words, the `<!-- -->`
+markers), and
 all code. The `implement` skill's *The language the records are written in*
 holds the whole list.
 

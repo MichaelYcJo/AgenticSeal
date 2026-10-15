@@ -116,18 +116,15 @@ seal/
     ├── spec.md · plan.md · questions.md · overview.md
     ├── rounds/
     │   └── round-N.md    리뷰 회차 — 커밋해 두었다가 다 옮기고 나면 닫고 남긴다
-    └── tests-todo.md
+    └── broad-gate.md     한 번의 전체 실행 — 어느 커밋에서, 어느 기준과 견주어
 ```
 
 판단 순서는 정책서가 있는 레포에서는 정책서 > SDD > 코드이고, 없으면 SDD >
 코드입니다. 대부분의 레포가 후자이며, 플러그인이 전자를 만들어 내지 않습니다.
 
-없는 파일은 `templates/` 에서 만들어집니다. 인계 규약은
-[docs/review-handoff-protocol.md](./docs/review-handoff-protocol.md) 에 특정
-도구를 전제하지 않고 적혀 있습니다. git 레포의 파일을 읽고 쓸 수 있는
-에이전트라면 무엇이든 그대로 따를 수 있습니다. 규약이 말하는 자리는 **작업
-항목이 사는 디렉터리 옆**이고, `seal/specs/<id>/` 는 이 저장소가 그 자리를 어디로
-잡았는지일 뿐 규약 자체는 아닙니다.
+없는 파일은 `templates/` 에서 만들어집니다. 리뷰 회차가 트리에 무엇을 남기는지,
+PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어떻게 넘기는지는
+[docs/the-review-record.md](./docs/the-review-record.md) 에 있습니다.
 
 **규칙은 자기를 지키는 테스트를 적어 둡니다.** 정책서가 적은 규칙은
 `Enforced by:` 줄로 끝나고, 그 줄에는 pytest 가 쓰는 테스트 이름
@@ -153,7 +150,7 @@ seal/
 [docs/commit-review-gate-spec.md](./docs/commit-review-gate-spec.md) ·
 [docs/the-commit-gate-inside-git.md](./docs/the-commit-gate-inside-git.md) ·
 [docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
-[docs/review-chain-spec.md](./docs/review-chain-spec.md)
+[docs/the-review-record.md](./docs/the-review-record.md)
 
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|

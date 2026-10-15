@@ -37,8 +37,8 @@ incorporation. This file only adds what the skill does not carry.
    `templates/config.md` §*Reference specs* says — is read where the work
    touches what it describes, and you cite it where `spec.md` cites it; you
    never write there, and never move, edit or copy a file out of one.
-   §5 reaches you through the handoff before round 1
-   (`docs/review-handoff-protocol.md`), which is the shape your prompt's
+   §5 reaches you through the handoff
+   (`docs/the-review-record.md` §*The handoff*), which is the shape your prompt's
    facts arrive in and the document that says what one must carry. Open the
    coordinates before you build on them. Where a claim flips on measurement
    point, measure where the handoff says, and say so.
@@ -187,34 +187,14 @@ incorporation. This file only adds what the skill does not carry.
    `skills/implement/SKILL.md` §3 says what belongs in each section and what
    stays out because this file, the skill, and the contract already carry it.
 
-   **A fix pass is not a phase, and its record is the round record.** It
-   hands over a fix table under `## Fixes` — `| # | Verdict | Commit or grounds |`,
-   one row per OPEN finding of the round it answers, the verdict `fixed` with the
-   commit, `answered` with the grounds, or `deferred <home>` with the issue
-   or the file it went to — and writes no `phases/phase-N.md` and no
-   `plan.md` row: `round_record.py close` — the generator at
-   `skills/code-review/scripts/round_record.py`, which the review
-   orchestrator runs as `round-record` — applies that table to
-   `rounds/round-N.md`, and refuses a row for a finding the reviewer already
-   closed, because that row would overwrite the reviewer's verdict with
-   yours. A correction — a finding located in a record — closes `answered`
-   with `corrected at <sha>` as its grounds, never `fixed`: `fixed`
-   commissions the reader a correction does not owe
-   (`docs/review-chain-spec.md` §*The last round verifies* owns the rule).
-   A repair you made outside the tree — a `gh issue edit`, an edit to a pull
-   request body — takes the same shape for the same reason: it produced no
-   commit in the range, and a commit somebody can open is the whole of what
-   `fixed` asserts. The Verdict cell holds the word alone in both cases;
-   only `deferred` carries its own suffix.
-   A ⬜ takes no row at all: `close` leaves a note open and refuses a row for
-   one, and the run's notes close once at its end, through `round-record
-   notes` — `skills/code-review/orchestration.md` §*A note closes once, at
-   the run's end* owns that rule.
+   **A fix pass is not a phase, and its record is the round record:** it
+   fills the `Verdict` and `Grounds` cells of each open row of
+   `rounds/round-N.md` and nothing else, and writes no `phases/phase-N.md`
+   and no `plan.md` row (`docs/the-review-record.md` §*The round record*).
    The build's phases keep theirs.
    A fix that changes what the work item ships brings the work item's
-   `changelog.md` along in its range, and `chain-check` names one that did
-   not: `docs/the-record-layout.md` §*A commit after the build brings its
-   changelog fragment along* owns that rule.
+   `changelog.md` along in its range: `docs/the-record-layout.md` §*A commit
+   after the build brings its changelog fragment along* owns that rule.
 
    **Once the fixes are committed, ask what they left standing.** You
    repaired the coordinate a finding named, and the fact behind it is usually
@@ -232,13 +212,9 @@ incorporation. This file only adds what the skill does not carry.
    has a command that is cheap on the second call, and a segment that
    assembles its own instead pays for an environment on every run. Type the
    narrow form, one module: the full suite is the sealer's, once, after the
-   rounds settle. `docs/review-handoff-protocol.md` §*The handoff before round
-   1* owns that rule, and it is why a prompt that carries no incantation is
-   not a prompt that is missing one. **That last phrase is a row rather than
-   a moment** — the last `rounds/round-N.md`'s `Pass` box, checked — and
-   `skills/verify/SKILL.md` §*The broad gate — after the rounds, then compare
-   against the base* says which row and why not `Needs a fix`. Your phases
-   have a progression of their own, and it is not the one that row counts.
+   rounds settle. `docs/the-review-record.md` §*The handoff* owns that rule,
+   and it is why a prompt that carries no incantation is not a prompt that is
+   missing one.
 
    **One broad-looking run is not a seal, and it is yours to take.** Asking
    *does anything already catch this* is a question about the cases rather
@@ -287,12 +263,8 @@ incorporation. This file only adds what the skill does not carry.
    requirements read is the one with no excuse.
 
 Implementation done ≠ chain done: verification and review follow without
-being asked, and the review run is bounded — **three rounds, then it ends
-whether or not everything was resolved; five while a 🔴 is open, and only to
-close it** (`docs/review-chain-spec.md`). A fourth round with no 🔴 open is
-the loop failing to converge, which is a question for a person rather than
-another fix. Five is a ceiling, not a target: the run ends when the last 🔴
-closes, and 🟡 findings left over are handed over rather than chased.
+being asked, and the review run is bounded as `docs/the-review-record.md`
+§*The run* states.
 
 **Your last set of fixes is read by somebody, and that is what ends the run.**
 A round's findings are closed by fixes you write after it ends, and the round
@@ -301,51 +273,11 @@ does. So the run ends with a **verifying round**: spawned after your fixes are
 committed, targeted at the diff of those fixes, asking whether each closed
 finding is actually closed. A round that opens nothing needing a fix **does
 not consume the cap**, because the cap counts rounds that found something and
-a round that finds nothing is the loop having converged. The three above are
-unchanged.
+a round that finds nothing is the loop having converged.
 
-Then the record says so. `round-N.md` carries `| Fixes checked by |` beside
-`Pass`, naming a later round, `no fixes to check`, or `nobody — <why>`. It is
-not yours to write — `round_record.py new` sets it on the previous record
-when the next round posts — but it is what your
-fixes are answering to, and a run whose last cell reads `nobody` is one whose
-last fixes nobody opened. That pair, `nobody` beside a checked `Pass` on the
-last record, **fails a ready pull request** for any work item begun after the
-rule landed. On a draft it prints and names the verifying round, and *Ready
-for review* re-runs the check; the way out is the verifying round above,
-which costs no round.
-
-**A capped run does not end your fixes.** What the cap bounds is rounds: a
-finding inside a unit this run's own fixes created is yours to fix whatever
-round it surfaced in, and one in code that stood before the run takes a home
-instead. `docs/review-chain-spec.md` §*The cap bounds rounds, and not the
-fixes of the round it stopped* owns the rule, and it names the records' `New
-units` rows as where the evidence for that question already sits — so filing
-a repair you could make is a decision to check rather than a default.
-
-**A unit you may not add has somewhere to go.** It is deferred with a named
-answerer, or becomes an issue — the same homes the paragraph below gives
-everything else the run could not close. Then the bound: **A fix pass may add
-a unit. That unit's fix may not.** Fixing a finding in code that predates the
-run, you may add the helper or the case that pins it. Fixing a finding inside
-a unit an earlier round's fixes created, you may not add another to pin that
-one; it takes the exit instead.
-
-The reason is in your own commits. Your fix is read by the round that follows,
-the unit you added to pin it is read by nobody, and the two go in together.
-Across four rounds of #82 three consecutive rounds found their finding inside
-the previous round's fixes, every time in the unit rather than in the fix. The
-depth is measured rather than declared: `round_record.py close` reads what
-your fix range added from its diff, writes each unit into `round-N.md`'s
-`New units` row at the depth it finds, and refuses a unit at depth 2 before
-any cell is written — so a unit you may not add is not one to describe in the
-hand-back; it takes the exit above. One level above the depth, a fix pass may
-not add mechanism at all — a rule, a checker, a template section, a walk —
-and a finding closable only by one takes the ladder below rather than an
-issue by default, its row `deferred <home>`;
-`skills/code-review/orchestration.md` §*A fix pass adds the unit that pins
-it, and that unit ships unreviewed* owns that rule and the measurement
-behind it.
+A ready pull request fails while a commit outside the work item's records
+follows the last round's `Target SHA` (`docs/the-review-record.md` §*What the
+check reads at the pull request*).
 
 What is unresolved at that point is handed over, not carried: a finding you
 neither fixed nor answered goes to `seal/follow-up.md`, a decision only a
@@ -358,9 +290,8 @@ one that fits: what the branch owns it fixes, what an open issue already owns
 gets a comment there, a new issue or a `seal/follow-up.md` row is for a
 finding that names a party who will act, and what names nobody stays in the
 round record and the pull request body.
-`docs/review-chain-spec.md` §*Where a leftover goes — the ladder, and why a
-new issue is not the default* owns the rule, and the test is the one
-`seal/follow-up.md` already applies to its own rows.
+`docs/the-review-record.md` §*The run* owns the ladder, and the test is the
+one `seal/follow-up.md` already applies to its own rows.
 
 Then the sealer takes the broad gate once — the orchestrator spawns it with
 the base and the item, and it is not yours to run — and the change opens as a

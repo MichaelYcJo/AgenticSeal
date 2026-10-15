@@ -48,9 +48,14 @@ work nobody has started.
 an agent this plugin spawns, so a framer meeting a missing routing
 declaration reports it rather than writing one, and the question is put by
 the session that spawns the work, before the first edit.
-Enforced by: tests/test_chain_check_at_the_pull_request.py::test_a_declared_framer_with_no_spec_is_refused, tests/test_chain_check_at_the_pull_request.py::test_a_spec_with_no_mark_is_refused
+Enforced by: tests/test_chain_check.py::TestFrame
 
 ## What each party writes, and when
+
+**A review round is one file the warden writes, the fix pass fills two cells
+of each open row, and the sealer's broad run writes `broad-gate.md`.**
+`docs/the-review-record.md` holds what each of those files carries.
+Enforced by: tests/test_chain_check.py::TestVerdictTable, tests/test_broad_gate.py::TestGate
 
 <!-- specs/1788445862-a-phase-hands-the-next-one-a-record -->
 **A build phase leaves a record, the way a review round does.** What a phase

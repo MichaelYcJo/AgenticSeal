@@ -1,9 +1,9 @@
 # commit-review-gate — behavior spec
 
-Authority for `hooks/commit-review-gate.py`, `hooks/review-history-guard.py`
-and the implementer mark: how the hooks are registered, what the PreToolUse
-reading decides where git cannot and which repository it judges a commit
-against, and what the review-history guard and the implementer notice say.
+Authority for `hooks/commit-review-gate.py` and the implementer mark: how the
+hooks are registered, what the PreToolUse reading decides where git cannot
+and which repository it judges a commit against, and what the implementer
+notice says.
 Two sibling documents carry the rest of what this one used to hold, one
 question each:
 
@@ -14,9 +14,9 @@ question each:
   the parity arm, and the routing declaration that moves the review arm's
   check to the pull request.
 
-The review run those hooks serve is `docs/review-chain-spec.md`'s, and what
-the pull-request check reads of a round record is `docs/round-record-spec.md`'s.
-Update spec and code together.
+The review run those hooks serve, and what the pull-request check reads of a
+round record, are `docs/the-review-record.md`'s. Update spec and code
+together.
 
 ## Registration — gates run in groups, not one process each
 
@@ -577,29 +577,6 @@ questions inside a single AskUserQuestion call rather than one question with
 four combined options. The arms are waived independently, so combining them
 makes every label carry two facts and multiplies the option count; one call
 still costs one interruption.
-
-## review-history-guard (PostToolUse, Bash)
-
-<!-- specs/1788844300-the-guards-cases-cannot-observe-what-they-guard -->
-**A session that posts a review is reminded to write the round record, and
-one that reads a review is reminded to read the record first.**
-Two branches with **opposite conditions** — the failure modes differ:
-
-| Trigger | Condition | Reminder |
-|---|---|---|
-| review posted (`gh pr review/comment`, `gh api -X POST …/pulls/N/(reviews\|comments)`) | the work item's `rounds/` holds **no** `round-*.md` | write `rounds/round-N.md`, and `tests-todo.md` beside `rounds/` rather than inside it, now — the posting session is the only one that still holds its verdicts and probe results |
-| review read (`gh pr view --json …comments`, `gh api …/pulls/N/(comments\|reviews)` without POST) | a round record **exists** | read it before acting on inline comments — the todo list may not be in the comments at all |
-
-Which work item: the one whose `seal/specs/<id>/routing.md` names the checked-out
-branch — the same key the commit gate reads. The records used to be keyed by
-the pull request number, at `.specseal/handoff/PR-<n>/`, and that directory
-was never once created in this repository: the number does not exist while the
-rounds that would fill it are running. One key instead of two costs this
-reminder the case where `gh pr merge` runs from a branch that declared
-nothing. What replaced the deadline is the pull-request check in CI, not this.
-
-Reminder-only (PostToolUse cannot block). Same `seal/` opt-in as the gate.
-Enforced by: tests/test_chain_hooks.py::test_history_guard_reminds_posting_without_record, tests/test_chain_hooks.py::test_history_guard_reminds_reading_with_record
 
 ## implementer-mark · implementer-notice (PreToolUse Agent|Task · PostToolUse Bash)
 

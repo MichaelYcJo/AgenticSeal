@@ -124,17 +124,13 @@ seal/
     ├── rounds/
     │   └── round-N.md    one review round — closed at merge, removed by
     │                     `settle --retire-process` after its release
-    └── tests-todo.md
+    └── broad-gate.md     the one broad run, written by `broad-gate --record`
 ```
 
 The review round records live beside the work item they are about, with the
-routing declaration and the rest of the SDD set. They used to sit under the
-plugin's own directory, keyed by a pull request number that does not exist
-while the rounds that would fill it are running.
-No correct session could create that directory, and none ever did
-(`docs/review-handoff-protocol.md` carries the whole reasoning). A work
-item's directory exists from its first commit, because routing is written
-into it before the first edit.
+routing declaration and the rest of the SDD set (`docs/the-review-record.md`).
+A work item's directory exists from its first commit, because routing is
+written into it before the first edit.
 
 **Nothing else follows them, because there is nothing else.** A round record
 carries the SHA it reviewed, so it never asserts a present state and can live
@@ -173,8 +169,8 @@ it or dropping it.
 - Verify clause numbers a ticket cites. Tickets are written before (or drift
   from) the documents they cite; a missing clause means writing it is part of
   this work, with a freshly allocated number.
-- A spawn prompt's facts arrive under `docs/review-handoff-protocol.md`'s
-  handoff before round 1: coordinates rather than prose, each fact labelled
+- A spawn prompt's facts arrive under `docs/the-review-record.md`'s
+  handoff: coordinates rather than prose, each fact labelled
   executed, read, or unverified. A fact with no coordinate and no label is an
   assertion nobody has opened — open it before building on it, however
   confident the prompt that carried it. An aggregate (a count, a total) is
@@ -367,7 +363,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`skills/code-review/orchestration.md` §*A fix of a fix twice sends the work item back to its framer* owns that rule) | before implementing |
+| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` §*The run* owns that rule) | before implementing |
 | `plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
 | `questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `overview.md` | `templates/sdd-overview.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
@@ -478,19 +474,9 @@ and findings from execution are labeled separately.
 
 ### 5. Incorporate review — read the round records first
 
-A session fixing review feedback starts at `seal/specs/<work-item-id>/`,
-**not** at the inline comments. One of its files is owned by the implementer:
-
-| File | Written by | Acted on by |
-|---|---|---|
-| `round-N.md` | `round_record.py new`, run by the review orchestrator; `close` applies the fix table | next review round |
-| `tests-todo.md` | review orchestrator | **implementer** — plant each test in the file the row names |
-
-Inline comments may not contain this list at all. Fixing only the comments
-ships the code change and silently drops the tests.
-
-The generator that row names is `skills/code-review/scripts/round_record.py`,
-and the review orchestrator types it as `round-record`.
+A session fixing review feedback starts at `seal/specs/<work-item-id>/rounds/`,
+**not** at the inline comments: the warden writes `round-N.md`, and the next
+review round reads it (`docs/the-review-record.md` §*The round record*).
 
 A finding is a claim too, and it arrives from someone who did not write the
 code. Open the coordinate and judge it yourself: fix what holds, and where it
@@ -502,34 +488,10 @@ handoff of judgment.
 Probes already run by a previous round (listed in `round-N.md`) are not
 rebuilt — only re-checked for whether the finding is now fixed.
 
-**A fix pass hands over a fix table and writes no phase record.** The table
-sits under `## Fixes` as `| # | Verdict | Commit or grounds |`, one row per
-OPEN finding of the round it answers: `fixed` with the commit, `answered` with
-the grounds, `deferred <home>` with the issue or file it went to — a finding
-the reviewer closed in the report takes no row, and `close` refuses one. A ⬜
-note takes none either: `close` leaves it open and refuses a row for it, and
-the run's notes close once at its end through `round-record notes`
-(`skills/code-review/orchestration.md` §*A note closes once, at the run's
-end* owns that rule).
-**The Verdict cell holds the word alone**, and everything after it goes in
-`Commit or grounds`; only `deferred` carries its own suffix, because the home
-is what makes a deferral readable. Two things that are not `fixed` although
-they feel like it: a correction to a record, and a repair made outside the
-tree by editing a ticket or a pull request body. Neither produces a commit in
-the fix range, which is what `fixed` asserts, so both close `answered` with
-where the repair is in the grounds (`docs/review-chain-spec.md` §*The last
-round verifies*). The pass
-writes no `phases/phase-N.md` and no `plan.md` row — `round_record.py close`
-applies the table to `rounds/round-N.md` and measures the fix surface from
-the range of fix commits, so the round record is the pass's record. The
-build's phases keep theirs. Nor does a fix pass add mechanism — a rule, a
-checker, a template section, a walk — and a finding closable only by one
-takes the filing ladder rather than an issue by default, its verdict
-`deferred <home>` (`docs/review-chain-spec.md` §*Where a leftover goes — the
-ladder, and why a new issue is not the default*);
-`skills/code-review/orchestration.md` §*A fix
-pass adds the unit that pins it, and that unit ships unreviewed* owns that
-rule.
+**A fix pass fills the `Verdict` and `Grounds` cells of each open row of
+`rounds/round-N.md` and writes no phase record** — `docs/the-review-record.md`
+§*The round record* names the three closing verdicts. The build's phases keep
+theirs.
 
 A fix that changes what the work item ships brings the work item's
 `changelog.md` along, because the release gathers that fragment as it stands;
@@ -538,7 +500,7 @@ fragment along* owns that rule.
 
 ### 6. Close before merge — drain the rows, keep the records
 
-Before the PR merges, every unresolved (⬜) row must move out:
+Before the PR merges, every unresolved row must move out:
 
 | Remaining item | Destination |
 |---|---|
@@ -546,7 +508,7 @@ Before the PR merges, every unresolved (⬜) row must move out:
 | Waiting on prerequisite work | `seal/follow-up.md` |
 | Needs a decision | The policy document's open-questions section |
 
-Then say so in the round record: what went where, or `nothing to drain`. The
+Each finding that moves out reads `deferred <home>` in its round record. The
 records themselves stay through the merge. `settle --retire-process` removes
 them after the release, when no round is left to inherit from them. The
 directory used to be deleted here, and deletion was buying
@@ -555,10 +517,6 @@ more than it bought: rows left for durable homes because the directory was
 about to disappear, and those homes are outside what the next reviewer reads.
 A deferral that leaves the round records leaves the inheritance range with
 it, and comes back as a finding next round.
-
-A finding deferred mid-change is a row in `round-N.md`'s Deferred field as
-well, naming where it went. That field is the one-line version of this table,
-in the file the next round already opens.
 
 ## Proof block
 

@@ -6,11 +6,10 @@ writes, which commits they judge and which they leave to a person or to git,
 what they cannot see, and which reading judges a commit in each state of a
 repository. What a stop asks about, the two opt-in arms and the routing
 declaration, is `docs/the-review-and-parity-arms.md`'s. The PreToolUse
-reading that judges where git cannot, the registration of the hooks, the
-review-history guard and the implementer mark are
-`docs/commit-review-gate-spec.md`'s. The review run those hooks serve is
-`docs/review-chain-spec.md`'s, and what the pull-request check reads of a
-round record is `docs/round-record-spec.md`'s. Update spec and code together.
+reading that judges where git cannot, the registration of the hooks and the
+implementer mark are `docs/commit-review-gate-spec.md`'s. The review run
+those hooks serve, and what the pull-request check reads of a round record,
+are `docs/the-review-record.md`'s. Update spec and code together.
 
 ## The commit gate inside git (pre-commit · reference-transaction · post-commit)
 

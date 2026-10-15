@@ -122,19 +122,16 @@ seal/
     ├── spec.md · plan.md · questions.md · overview.md
     ├── rounds/
     │   └── round-N.md    review rounds — committed, drained, then closed and kept
-    └── tests-todo.md
+    └── broad-gate.md     the one broad run, at a SHA, against the base
 ```
 
 Judgment runs policy > SDD > code where a repository has policy documents, and
 SDD > code where it does not. Most repositories are the second kind, and the
 plugin does not manufacture the first.
 
-Missing files bootstrap from `templates/`. The handoff convention is
-specified tool-agnostically in
-[docs/review-handoff-protocol.md](./docs/review-handoff-protocol.md) — any
-agent that reads and writes files in a git repo can conform. It names the
-records' home as *the directory that holds the work item*; `seal/specs/<id>/` is
-this implementation's answer to that, not the protocol.
+Missing files bootstrap from `templates/`. What a review round leaves in the
+tree, what the pull-request check reads of it, and how a session hands work
+to an agent are in [docs/the-review-record.md](./docs/the-review-record.md).
 
 **A rule names the test that holds it.** A rule a policy document states ends
 with an `Enforced by:` line naming a test as pytest spells its node id
@@ -159,7 +156,7 @@ tables:
 [docs/commit-review-gate-spec.md](./docs/commit-review-gate-spec.md) ·
 [docs/the-commit-gate-inside-git.md](./docs/the-commit-gate-inside-git.md) ·
 [docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
-[docs/review-chain-spec.md](./docs/review-chain-spec.md).
+[docs/the-review-record.md](./docs/the-review-record.md).
 
 | Gate | Fires | Does | Where |
 |---|---|---|---|

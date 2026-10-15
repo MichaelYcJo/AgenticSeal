@@ -471,7 +471,7 @@ Enforced by: tests/test_first_setup_asks_once.py::test_each_option_says_what_it_
 | `templates/` | 8 | SDD 템플릿 다섯(spec, plan, questions, round, routing)의 머리 주석에 `specs/<epoch>-<slug>/` 경로가 있다. `sdd-overview.md` 와 `map.md` 는 `.specseal/map` 을 가리킨다 |
 | `.github/` | 2 | `hygiene.yml` 이 `unverified_check.py` 에 `specs/` 를 넘긴다. `gather_changelog.py` 가 조각을 glob 한다 |
 | `agents/` | 3 | smith, warden, scribe 에이전트의 프롬프트 |
-| `docs/` | 3 | `branch-and-release.md`, `review-chain-spec.md`, `review-handoff-protocol.md` |
+| `docs/` | 3 | `branch-and-release.md`, 그리고 그 뒤 `the-review-record.md` 로 대체된 리뷰 체인 문서 둘 |
 | 루트 | 4 | `README.md`, `README.ko.md`, `CONTRIBUTING.md`, `CLAUDE.md` |
 
 CI 경로는 아래 순서의 3 단계에서 루트와 함께 바뀝니다.

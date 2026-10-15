@@ -492,7 +492,7 @@ area (a rough grep, not a list of edits):
 | `templates/` | 8 | five SDD templates (spec, plan, questions, round, routing) name their `specs/<epoch>-<slug>/` path in a header comment; `sdd-overview.md` and `map.md` name `.specseal/map` |
 | `.github/` | 2 | `hygiene.yml` passes `specs/` to `unverified_check.py`; `gather_changelog.py` globs the fragments |
 | `agents/` | 3 | the smith, warden and scribe agent prompts |
-| `docs/` | 3 | `branch-and-release.md`, `review-chain-spec.md`, `review-handoff-protocol.md` |
+| `docs/` | 3 | `branch-and-release.md`, and the two review-chain documents `the-review-record.md` has since replaced |
 | root | 4 | `README.md`, `README.ko.md`, `CONTRIBUTING.md`, `CLAUDE.md` |
 
 The CI paths change in step 3 of the order below, together with the root.
