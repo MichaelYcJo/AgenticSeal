@@ -41,9 +41,9 @@
   code that no case kills are listed and fail nothing. The proof is bounded
   at five minutes, and a file whose proof would take longer is named with
   `restructure: test the decision directly`. Nothing is annotated by hand,
-  and `CONTRIBUTING.md` says what a case owes. A caller that has already run
-  the cases against the unmutated file passes `--baseline-passed` to
-  `mutation-check` to skip that run; a call without the flag is unchanged.
+  and `CONTRIBUTING.md` says what a case owes.
+  `mutation-check --baseline-passed` skips the run against the unmutated
+  file for a caller that has already run it; a call without it is unchanged.
   (`1791876666-the-test-suite-is-held-to-a-budget`, #929)
 
 ### Fixed
