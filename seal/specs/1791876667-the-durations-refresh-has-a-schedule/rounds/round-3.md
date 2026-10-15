@@ -7,7 +7,7 @@
 | Ran by | specseal:warden on claude-opus-5-5 |
 | PR | #937 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fixes checked by | round-4 |
 | Fix range | `5c93835ea279898eb9e5a5ea3602164f3dfec6b0..2ce9df3341490229b66f5dc2b713639662c338aa`, 3 commits |
 | Contract changes | check → main, check, spec.md, 6-tests.md, 7-records.md, plural, pytest |
 | New units | restate_price (depth 1); test_a_slow_file_is_reported_and_the_suite_seconds_are_gated (depth 1); test_restate_price_writes_the_level_a_refresh_implies (depth 1); test_restate_price_with_nothing_to_restate_against_or_into_is_exit_2 (depth 1) |
@@ -15,7 +15,7 @@
 | Needs a fix | yes — 🟡 1, the refresh recipe and `REMEDY` omit the price level and the `slow-file` rows the refresh commit is refused for; 🟡 2, the `slow-file` band does not hold a union refresh's spread (a decision between forms (a) and (b), and which branch carries it). |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -27,8 +27,8 @@ Round 3 of #931 after its rebase onto #944 (5b1f6fae): the conflict resolutions,
 |---|---|---|---|---|
 | 🟡 1 | the refresh recipe and `REMEDY` end at "commit it", and the hygiene budget step refuses that commit: for the price level on every refresh, and for a `slow-file` row on every refresh measured; neither text names either step | `CONTRIBUTING.md:177` | **fixed** `2ce9df33` | fixed at 2ce9df33; executed: run 38655519975's union over the tip's file, `budget_check.py --baseline 5b1f6fae` exit 1 naming level 1136 and unlisted `tests/test_worktree_guard.py` at 124 s; with 1136 written, still exit 1 on that file; `REMEDY` at `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:279` read |
 | 🟡 2 | a union refresh moves single test files 0.67–1.72 times the level, past the 1.3 one-sided `slow-file` band that was set from one refresh's 0.76–1.14, so every refresh needs `Budget raised:` lines for files nobody changed | `.github/scripts/budget_check.py:91` | **fixed** `e16fcabb` | fixed at e16fcabb; executed: eight pairs through `price_level`; one unsharded pair 0.80–1.19 with none over; seven union refreshes each trip a `slow-file` row, two of them run through the gate; the choice between (a) and (b), and which branch carries it, is the orchestrator's |
-| ⬜ 3 | `spec.md` Data & interfaces says parts are kept 1 day; the code keeps them 7 with `overwrite: true`, and `overview.md` has no divergence row | `seal/specs/1791876667-the-durations-refresh-has-a-schedule/spec.md:58` | open | read: `.github/workflows/test.yml:176`, `:209`; round 1's finding 1 decided seven days |
-| ⬜ 4 | the changelog and overview say the `budgets` job names the price level; that job runs `--ci-jobs`, which keeps only `ci-minutes` rows | `seal/specs/1791876667-the-durations-refresh-has-a-schedule/changelog.md:40` | open | read: `.github/scripts/budget_check.py:1341-1351`; the step that names it is `.github/workflows/hygiene.yml:175-184`; `overview.md:43` says the same |
+| ⬜ 3 | `spec.md` Data & interfaces says parts are kept 1 day; the code keeps them 7 with `overwrite: true`, and `overview.md` has no divergence row | `seal/specs/1791876667-the-durations-refresh-has-a-schedule/spec.md:58` | answered | written at aecf9656, inside the tree round 4 read: spec.md says seven days; read: `.github/workflows/test.yml:176`, `:209`; round 1's finding 1 decided seven days |
+| ⬜ 4 | the changelog and overview say the `budgets` job names the price level; that job runs `--ci-jobs`, which keeps only `ci-minutes` rows | `seal/specs/1791876667-the-durations-refresh-has-a-schedule/changelog.md:40` | answered | written at fae2679c, inside the tree round 4 read: the hygiene budget step names the level; read: `.github/scripts/budget_check.py:1341-1351`; the step that names it is `.github/workflows/hygiene.yml:175-184`; `overview.md:43` says the same |
 | 🟢 | the rebase's conflict resolutions mean what both sides mean: nothing #944 removed came back, and the job count, recipe, budgets row and checklist hold | `.github/workflows/test.yml`, `CONTRIBUTING.md:135`, `seal/budgets.md:85` | confirmed | executed: `budget_check.py --baseline 5b1f6fae` at the tip, exit 0; read: the diff against 5b1f6fae, `git grep` for the old recipe |
 | 🟢 | e14cdff4 rewrites the live records in place and leaves history records as history | `seal/specs/1791876667-the-durations-refresh-has-a-schedule/` | confirmed | read: `git show e14cdff4`; phases and rounds untouched |
 | 🟢 | round 1's finding 1 is closed — parts and union kept seven days with `overwrite: true` | `.github/workflows/test.yml:168-176` | confirmed | read at e14cdff4; the two cases assert both keys and pass (executed) |
