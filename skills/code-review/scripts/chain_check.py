@@ -15,7 +15,7 @@ judged (`carried_by`). The arms are five:
                 line under it names the framer
   records       `Review | through the review chain`: `rounds/` holds at least
                 one `round-N.md`; every row of every record reads a closing
-                word, whatever its mark;
+                word, and a 🔴 or 🟡 row one of the fix pass's three;
                 the last record's `Target SHA` is HEAD, or every commit after
                 it touches only the work item's own directory
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
@@ -72,15 +72,16 @@ UNDECIDABLE = "undecidable"
 EARLIER_RUN = "; earlier run: "
 
 # The severities the warden writes at the head of a verdict row: a 🔴 or 🟡
-# row is a finding a fix pass answers. The check judges no row by its mark,
-# and only the refusal's wording reads it; these stay as the record's
-# vocabulary, which no `Record language` translates.
+# row is a finding a fix pass answers, and it closes only by the fix pass's
+# words (`FINDING_WORDS`). No other mark narrows a row's words. These stay as
+# the record's vocabulary, which no `Record language` translates.
 BLOCKING = "🔴"
 SHOULD = "🟡"
 FINDINGS = (BLOCKING, SHOULD)
 # What the refusal tells a row it closes by, keyed by the mark at its head; a
-# mark outside these is told every kind's words. It picks the message only:
-# a row passes or fails by its word.
+# mark outside these is told every kind's words. Only the first entry's words
+# are also the rule (`FINDING_WORDS`); a 🟢 or ❓ row passes by any closing
+# word, and the rest of this table picks the message only.
 CLOSES_BY = (
     (
         FINDINGS,
@@ -92,16 +93,17 @@ CLOSES_BY = (
 EVERY_CLOSE = "; ".join(words for _marks, words in CLOSES_BY)
 
 DEFERRED = "deferred"
+FIXED = "fixed"
 OUT_OF_SCOPE = "out of verified scope"
-# What closes a row, whatever its mark. `fixed`, `answered` and
-# `deferred <home>` are the fix pass's words, `confirmed` the warden's,
+# What closes a 🔴 or 🟡 row: the fix pass's words, `fixed` with the commit
+# in the cell, `answered`, and `deferred <home>`.
+FINDING_WORDS = {FIXED, "answered", DEFERRED}
+# What closes a row of any other mark. `confirmed` is the warden's,
 # `out of verified scope` the ❓ row's. `withdrawn`, `not a defect` and
 # `agreed, fixed` are read so that records the generator wrote read as they
 # were written.
 CLOSED_WORDS = {
-    "fixed",
-    "answered",
-    DEFERRED,
+    *FINDING_WORDS,
     "confirmed",
     OUT_OF_SCOPE,
     "withdrawn",
@@ -590,10 +592,13 @@ def open_findings(reader, lines, rel):
     """([(line, the row's first cell, the verdict word)], errors) for every
     row whose verdict does not close it.
 
-    One fact per row: its `Verdict` cell begins with a word of
-    `CLOSED_WORDS`, and a `deferred` names a home, or the row is open —
-    whatever mark its first cell carries. That cell, headed `#` in the
-    five-column table, only names the row; an empty one is `the row`.
+    A row whose first cell opens with a mark of `FINDINGS` is a finding, and
+    it closes only by the fix pass's words, `FINDING_WORDS`: `fixed` with a
+    commit in the cell, `answered`, or `deferred` naming a home. Every other
+    row closes where its `Verdict` cell begins with a word of `CLOSED_WORDS`
+    and a `deferred` names a home, whatever its first cell carries. That
+    cell, headed `#` in the five-column table, also names the row; an empty
+    one is `the row`.
 
     Reads: guess — the warden's record, through `verdict_table`; unknown refused"""
     rows, col, _header, errors = verdict_table(reader, lines, rel)
@@ -602,7 +607,13 @@ def open_findings(reader, lines, rel):
     found = []
     for line, seen in rows:
         word = verdict_of(seen, col)
-        if word not in CLOSED_WORDS:
+        if seen[0].strip().startswith(FINDINGS):
+            closes = word in FINDING_WORDS and (
+                word != FIXED or SHA_RE.search(seen[col]) is not None
+            )
+        else:
+            closes = word in CLOSED_WORDS
+        if not closes:
             found.append((line, seen[0].strip() or "the row", word))
     return found, errors
 

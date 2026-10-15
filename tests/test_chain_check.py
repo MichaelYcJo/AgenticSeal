@@ -410,27 +410,40 @@ class TestOpenFindings:
             lines.index(row) + 1 for row in rows
         ]
 
-    def test_a_closing_word_closes_a_row_of_any_mark(self):
-        """S3, S11 (T20): a word of `CLOSED_WORDS` closes the row whatever
-        mark its first cell carries, so a 🔴 row the warden closed with a 🟢
-        row's word passes here and is read by the next round instead."""
-        lines = reader.readable(
-            record(
-                "abc1234",
-                [
-                    "| 🔴 1 | x | `a:1` | confirmed | g |",
-                    "| 🟡 2 | x | `a:2` | ❓ out of verified scope | g |",
-                    "| 🟢 | x | `a:3` | fixed abc1234 | g |",
-                    "| ❓ | x | `a:4` | answered | g |",
-                    "| ⬜ 3 | an old note | `a:5` | deferred #9 | g |",
-                    "| 4 | a bare number | `a:6` | fixed abc1234 | g |",
-                    "| carried | 🔴 a worded id cell | `a:7` | withdrawn | g |",
-                    "|  | an empty id cell | `a:8` | deferred `seal/follow-up.md` | g |",
-                ],
-            )
-        )
+    def test_a_finding_row_closes_only_by_a_fix_passs_word(self):
+        """S3, S20, S11 (T24): a row whose first cell opens with 🔴 or 🟡
+        closes only by `fixed <commit>`, `answered` or `deferred <home>`, so
+        a finding the warden closed with a 🟢 or ❓ row's word, or a `fixed`
+        naming no commit, is named. Every other row closes by any word of
+        `CLOSED_WORDS`, whatever its first cell carries."""
+        named = [
+            "| 🔴 1 | x | `a:1` | confirmed | g |",
+            "| 🟡 2 | x | `a:2` | ❓ out of verified scope | g |",
+            "| 🔴 3 | x | `a:3` | fixed | g |",
+        ]
+        passing = [
+            "| 🟢 | x | `a:4` | confirmed | g |",
+            "| ❓ | x | `a:5` | ❓ out of verified scope | g |",
+            "| ⬜ 3 | an old note | `a:6` | answered | g |",
+            "| 4 | a bare number | `a:7` | fixed abc1234 | g |",
+            "| carried | 🔴 a worded id cell | `a:8` | withdrawn | g |",
+            "|  | an empty id cell | `a:9` | deferred `seal/follow-up.md` | g |",
+            "| 🟡 5 | x | `a:10` | deferred the frame | g |",
+            "| 🔴 6 | x | `a:11` | fixed abc1234 | g |",
+            "| 🟡 7 | x | `a:12` | answered | g |",
+            "| 🟢 | x | `a:13` | fixed abc1234 | g |",
+        ]
+        lines = reader.readable(record("abc1234", named + passing))
         found, errors = chain.open_findings(reader, lines, "r.md")
-        assert (found, errors) == ([], [])
+        assert errors == []
+        assert [(mark, word) for _line, mark, word in found] == [
+            ("🔴 1", "confirmed"),
+            ("🟡 2", "out of verified scope"),
+            ("🔴 3", "fixed"),
+        ]
+        assert [line for line, _mark, _word in found] == [
+            lines.index(row) + 1 for row in named
+        ]
 
 
 # --- follows ------------------------------------------------------------------
@@ -540,27 +553,31 @@ class TestMain:
     def test_the_refusal_names_the_words_that_close_a_row_of_its_mark(
         self, branch, ready, capsys
     ):
-        """S3: a 🟢 row is told `confirmed` and a ❓ row `❓ out of verified
-        scope`, never a fix pass's words; a mark outside the template's four
-        is told every kind's. The mark picks the message only: each row
-        fails by its word."""
+        """S3, S20: a 🔴 or 🟡 row is told the fix pass's three, including one
+        closed by a 🟢 row's word; a 🟢 row is told `confirmed` and a ❓ row
+        `❓ out of verified scope`, never a fix pass's words; a mark outside
+        the template's four is told every kind's."""
         root, code_sha = branch
         rel = f"{ITEM}/rounds/round-1.md"
         rows = [
+            "| 🔴 1 | wrong | `f.txt:1` | confirmed | g |",
             "| 🟡 2 | wrong | `f.txt:1` | open | g |",
             "| 🟢 | matches | `f.txt:1` | open | g |",
             "| ❓ | unjudged | `f.txt:1` | pending | g |",
             "| 9 | wrong | `f.txt:1` | open | g |",
         ]
         write(root, rel, record(code_sha, rows))
-        commit(root, "the record, four rows open")
+        commit(root, "the record, five rows open")
         code, out = check(root, capsys)
         assert code == 1
         named = [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")]
-        assert len(named) == 4, out
-        yellow, green, question, bare = named
+        assert len(named) == 5, out
+        red, yellow, green, question, bare = named
         fix_pass = (
             "a 🔴 or 🟡 row closes by `fixed <commit>`, `answered` or `deferred <home>`"
+        )
+        assert red.endswith(
+            f"🔴 1 reads `confirmed`, which does not close it: {fix_pass}"
         )
         assert yellow.endswith(
             f"🟡 2 reads `open`, which does not close it: {fix_pass}"
