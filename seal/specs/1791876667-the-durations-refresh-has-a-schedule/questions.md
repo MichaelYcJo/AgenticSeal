@@ -3,7 +3,7 @@
 <!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
 extracted so nothing ships on a silent assumption. -->
 
-Framed by `framer` on Fable 5.1, 2026-10-13, under `routing.md`'s `automation`. No row blocks the build.
+Framed by `framer` on Fable 5.1, 2026-10-13, under `routing.md`'s `automation`. No row blocks the build. Reframed 2026-10-15 after round 4: the three findings it deferred to the frame (the restate command the message gives, the price level written as one expression, 1791876665's record of the `slow-file` family) are the tree's to answer and are answered in `spec.md` In 3 and In 7; no row was opened.
 
 **Judgments the issue left open that the tree answered** — listed so nobody reopens them; the grounds are in `spec.md` §*Scope* and `plan.md` §*Alternatives considered*.
 
