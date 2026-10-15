@@ -22,11 +22,13 @@ import ast
 import importlib.util
 import json
 import os
+import posixpath
 import re
 import subprocess
 import sys
+import tomllib
 
-from conftest import git_listing, on_disk
+from conftest import decline_if_shrunken, git_listing, on_disk
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BIN = os.path.join(ROOT, "bin")
@@ -251,3 +253,181 @@ def test_every_wrapper_runs_its_script_through_the_launcher():
         if not found or bypass or not defined:
             unheld[entry] = bypass or "starts no interpreter through the launcher"
     assert not unheld, unheld
+
+
+# --- what runs before any floor is checked -------------------------------------
+
+# Where a hook command names its script.
+PLUGIN_SCRIPT = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/([\w./-]+\.py)")
+# A wrapper's own variables, sh's `name="value"` and cmd's `set "name=value"`.
+ASSIGNED = re.compile(r'^\s*(?:set ")?(\w+)="?([^"\n]*?)"?\s*$', re.M)
+VARIABLE = re.compile(r"\$(\w+)|%(\w+)%")
+# A file named by itself, as `hooks/dispatch.py` names its gates.
+BARE_SCRIPT = re.compile(r"[\w-]+\.py")
+# The two constructs ruff pushes toward at the floor, and the version each
+# needs: B905 asks every `zip` for `strict=`, and UP017 spells `timezone.utc`
+# as `datetime.UTC`. A syntax newer than the version is `ast`'s to refuse.
+NEWER = {"`zip(..., strict=...)`": (3, 10), "`datetime.UTC`": (3, 11)}
+
+
+def handed_first(text):
+    """The repository paths a `bin/` wrapper's text hands its interpreters
+    first, with the wrapper's own variables filled in and its `here` read as
+    `bin/`."""
+    values = {name: value for name, value in ASSIGNED.findall(text)}
+    values["here"] = "bin/"
+    found = set()
+    for _line, arg in launches(text):
+        path = arg.strip('"')
+        for _ in range(len(values)):
+            path = VARIABLE.sub(lambda m: values.get(m[1] or m[2], m[0]), path)
+        found.add(posixpath.normpath(path.replace("\\", "/")))
+    return found
+
+
+def loaded_by(rel, text, tracked):
+    """The tracked `.py` files the module at `rel` loads in its own process:
+    one it imports that sits beside it or in `hooks/`, where a hook's
+    `sys.path[0]` is; a bare `<name>.py` beside it; and the path an
+    `os.path.join` spells whose last string part ends in `.py`, `..` left
+    out. A module that does not parse here loads nothing."""
+    here = posixpath.dirname(rel)
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return set()
+    found = set()
+    for node in ast.walk(tree):
+        names = []
+        if isinstance(node, ast.Import):
+            names = [alias.name.split(".")[0] for alias in node.names]
+        elif isinstance(node, ast.ImportFrom) and not node.level and node.module:
+            names = [node.module.split(".")[0]]
+        found |= {posixpath.join(d, f"{n}.py") for n in names for d in (here, "hooks")}
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if BARE_SCRIPT.fullmatch(node.value):
+                found.add(posixpath.join(here, node.value))
+        if isinstance(node, ast.Call) and getattr(node.func, "attr", "") == "join":
+            parts = [
+                a.value
+                for a in node.args
+                if isinstance(a, ast.Constant) and isinstance(a.value, str)
+            ]
+            if parts and parts[-1].endswith(".py"):
+                tail = "/".join(p for p in parts if p not in ("..", "."))
+                found |= {t for t in tracked if t == tail or t.endswith("/" + tail)}
+    return found & tracked
+
+
+def before_any_floor(root=ROOT):
+    """`(paths, missing)`: every tracked `.py` an interpreter may run before
+    any floor is checked, and the tracked paths the working tree deleted.
+
+    It starts from what is handed an interpreter with nothing in front of it:
+    each script `hooks/hooks.json` names, each git hook a stub runs
+    (`hooks/githooks.py#entry_point`), and the file each `bin/` wrapper hands
+    its interpreter first. Then it follows `loaded_by` until nothing new is
+    found. It errs over, since a string can name a file nothing loads, and
+    under, for a module reached by a path built any other way."""
+    listed, missing = on_disk(root, git_listing(root, "ls-files", "*.py"))
+    tracked = set(listed)
+    start = set(PLUGIN_SCRIPT.findall(read(os.path.join(root, "hooks", "hooks.json"))))
+    hooks = os.path.join(root, "hooks")
+    sys.path.insert(0, hooks)  # its sibling imports, as a hook's process has them
+    try:
+        githooks = load(os.path.join(hooks, "githooks.py"), "specseal_githooks")
+    finally:
+        sys.path.remove(hooks)
+    start |= {
+        os.path.relpath(githooks.entry_point(hook, root), root).replace(os.sep, "/")
+        for hook in githooks.HOOKS
+    }
+    for entry in sorted(os.listdir(os.path.join(root, "bin"))):
+        start |= handed_first(read(os.path.join(root, "bin", entry)))
+    seen, todo = set(), sorted(start & tracked)
+    while todo:
+        rel = todo.pop()
+        if rel not in seen:
+            seen.add(rel)
+            todo += sorted(loaded_by(rel, read(os.path.join(root, rel)), tracked))
+    return seen, missing
+
+
+def newer_than(text, version):
+    """`[(line, construct)]` in a module's text that a `python3` at
+    `version` cannot run: a syntax `ast` refuses at that version, or one of
+    `NEWER`'s constructs where it needs a later one."""
+    try:
+        tree = ast.parse(text, feature_version=version)
+    except SyntaxError as error:
+        return [(error.lineno, f"syntax: {error.msg}")]
+    found = []
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "zip"
+            and any(k.arg == "strict" for k in node.keywords)
+        ):
+            found.append((node.lineno, "`zip(..., strict=...)`"))
+        elif (
+            isinstance(node, ast.Attribute)
+            and node.attr == "UTC"
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "datetime"
+        ) or (
+            isinstance(node, ast.ImportFrom)
+            and node.module == "datetime"
+            and any(a.name == "UTC" for a in node.names)
+        ):
+            found.append((node.lineno, "`datetime.UTC`"))
+    return [(line, what) for line, what in found if NEWER[what] > tuple(version)]
+
+
+def ruff_targets(path=RUFF):
+    """`{pattern: (major, minor)}`, `ruff.toml`'s `per-file-target-version`."""
+    with open(path, "rb") as handle:
+        table = tomllib.load(handle).get("per-file-target-version", {})
+    return {p: (int(v[2]), int(v[3:])) for p, v in table.items()}
+
+
+def matches(pattern, rel):
+    """Whether ruff's glob `pattern` names `rel`; `*` stops at a `/`."""
+    regex = "".join("[^/]*" if c == "*" else re.escape(c) for c in pattern)
+    return re.fullmatch(regex, rel) is not None
+
+
+def test_what_runs_before_any_floor_needs_nothing_its_python3_lacks():
+    """The launcher holds the floor for `bin/`, and nothing holds it for a
+    hook, a git hook, the launcher itself or `bin/test`'s runner: each runs on
+    whatever `python3` starts it, 3.9 on a stock macOS, and so does every
+    module it loads in its own process. A hook that raises there fails open,
+    and the Stop hook loses the stamp it claimed. `ruff.toml` lints that set
+    at the version its `per-file-target-version` names, so B905 and UP017 do
+    not ask it for `zip`'s `strict=` or `datetime.UTC`, and this case holds
+    every file of the set to that table and to that version."""
+    planted = "import datetime\nzip(a, b, strict=True)\ndatetime.UTC\n"
+    assert {what for _, what in newer_than(planted, (3, 9))} == set(NEWER)
+    assert newer_than(planted, (3, 11)) == []
+    assert newer_than("match x:\n    case 1:\n        pass\n", (3, 9))
+    unfloored, missing = before_any_floor()
+    targets = ruff_targets()
+    assert {"hooks/dispatch.py", "hooks/launch.py"} <= unfloored, unfloored
+    unlinted = sorted(r for r in unfloored if not any(matches(p, r) for p in targets))
+    assert not unlinted, (
+        f"{unlinted} run before any floor is checked and ruff lints them at the "
+        "floor; add them to ruff.toml's per-file-target-version"
+    )
+    found = {
+        rel: newer
+        for rel in sorted(unfloored)
+        for version in [min(v for p, v in targets.items() if matches(p, rel))]
+        if (newer := newer_than(read(os.path.join(ROOT, rel)), version))
+    }
+    assert not found, (
+        f"{found} run on whatever `python3` starts them, and need a newer one"
+    )
+    stale = sorted(p for p in targets if not any(matches(p, r) for r in unfloored))
+    if stale:
+        decline_if_shrunken(missing, "the liveness half of per-file-target-version")
+    assert not stale, f"ruff.toml lints {stale} as if a floor-less run reached them"

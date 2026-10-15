@@ -61,6 +61,11 @@
   still caught after the cut. The file holds 178 cases where it held 367, and
   its price in `.test_durations` fell from 1,334 to 441 Windows seconds. The sealer
   file's six corpus layouts that differed from a kept twin only by a junit
-  option leave with their 12 ids, and so do the interpreter census and the
-  floor-guard cases the launcher replaced. 227 ids leave `.test_durations`.
+  option leave with their 12 ids, and so do the floor-guard cases the
+  launcher replaced. 227 ids leave `.test_durations`. The interpreter census
+  over every shipped file gives way to one over the code that runs before any
+  floor is checked: the hooks, the git hooks, the launcher, `bin/test`'s
+  runner and every module they load, which `ruff.toml` now lints at Python
+  3.9, so the linter no longer asks that code for a `zip(strict=)` or a
+  `datetime.UTC` its `python3` may lack.
   (`1791876666-the-test-suite-is-held-to-a-budget`, #929)

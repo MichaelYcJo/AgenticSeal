@@ -121,7 +121,12 @@ interpreter with one sentence before the script is read. `bin/test` starts on
 whatever `python3` it finds, because its runner is what gets past an old one:
 it builds its virtualenv with an interpreter at that floor or newer, refuses a
 `.venv` it finds below it, and where it finds neither `uv` nor such an
-interpreter it says which to install.
+interpreter it says which to install. What runs before any floor is checked
+— a hook, a git hook, the launcher, `bin/test`'s runner, and every module one
+of them loads in its own process — runs on whatever `python3` starts it.
+`ruff.toml` lints that code at the version its `per-file-target-version`
+names, and `tests/test_a_script_says_which_interpreter_it_needs.py` derives
+the set and holds every file of it to that version.
 
 The fallback runs the suite without writing a `.venv` into the tree. It is the
 form this section used to name first, and it resolves and installs its
