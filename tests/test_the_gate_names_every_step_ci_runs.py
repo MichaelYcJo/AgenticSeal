@@ -970,7 +970,6 @@ def test_the_count_cannot_be_asked_without_a_base():
 
 FEATURE_UNANSWERED = (
     "every issue this pull request claims, and every one it only names",
-    "the pull request heads a round record may name",
     "the CLAUDE.md block is the template's, line for line",
     "both READMEs move together",
 )
@@ -987,8 +986,8 @@ def real_panel_workflow_row(given):
 
 def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     """A11 over this repository's own workflow. Against a base that is not
-    `main` CI runs 7 of the 10 steps and the gate mirrors 3, so the panel
-    reads `CI also · 4 more steps`; the line names the four unanswered steps
+    `main` CI runs 6 of the 9 steps and the gate mirrors 3, so the panel
+    reads `CI also · 3 more steps`; the line names the three unanswered steps
     CI runs and none of the three only-at-`main` ones, and says three were
     left out and why. Pinned verbatim (`agent-contract` §14)."""
     assert gate.steps_for(read(HYGIENE), "release/x") == [
@@ -996,10 +995,10 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
         for step in gate.job_steps(read(HYGIENE), gate.RELEASE_JOB)
         if step not in gate.ONLY_AT_MAIN
     ]
-    assert real_panel_workflow_row("release/x") == "· 4 more steps"
+    assert real_panel_workflow_row("release/x") == "· 3 more steps"
     said = gate.coverage_line(read(HYGIENE), "release/x")
     assert said.startswith(
-        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 7 steps for this base "
+        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 6 steps for this base "
         "and this seal answers 3. 3 more run only on a pull request into `main`, "
         "so this count leaves them out."
     ), said
@@ -1010,14 +1009,14 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
 
 
 def test_a_release_seal_counts_every_step_ci_runs_for_it():
-    """A12. Against `main` CI runs every one of the 10 steps and the gate
-    mirrors 3, so the panel reads `CI also · 7 more steps` and the line
+    """A12. Against `main` CI runs every one of the 9 steps and the gate
+    mirrors 3, so the panel reads `CI also · 6 more steps` and the line
     leaves no step out."""
     for given in ("main", "origin/main"):
-        assert real_panel_workflow_row(given) == "· 7 more steps", given
+        assert real_panel_workflow_row(given) == "· 6 more steps", given
         said = gate.coverage_line(read(HYGIENE), given)
         assert said.startswith(
-            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 10 steps for this "
+            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 9 steps for this "
             "base and this seal answers 3."
         ), said
         assert "leaves" not in said.split("Not answered", 1)[0], said

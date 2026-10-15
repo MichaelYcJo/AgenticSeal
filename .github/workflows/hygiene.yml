@@ -173,24 +173,9 @@ jobs:
       #
       # The draft state comes from GITHUB_EVENT_PATH, which this runner
       # already sets. A review still running opens its pull request as a
-      # draft, where every refusal prints and none fails.
-      # `chain_check.py` looks for a round's `Target SHA` on HEAD, on the
-      # branch the declaration names, and on the pull request head that
-      # carried it. Only the last one survives: a squash discards the reviewed
-      # commits and a branch is a name anything can delete — five were, by
-      # hand, and a release pull request went red naming six commits
-      # that were all still sitting on a `refs/pull/<N>/head`.
-      #
-      # `actions/checkout` fetches branches and tags, never this namespace, so
-      # it is fetched here rather than depended on. `--no-tags` because the
-      # tags are already there and a tag in the candidate set is the failure
-      # `chain_check.py` records for resolving a bare name.
-      - name: the pull request heads a round record may name
-        shell: bash
-        run: |
-          git fetch --no-tags --quiet origin \
-            '+refs/pull/*/head:refs/remotes/pull/*/head'
-
+      # draft, where every refusal prints and none fails. A round's `Target
+      # SHA` is read only as HEAD or an ancestor of it, so the check needs no
+      # ref the checkout does not already carry.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |

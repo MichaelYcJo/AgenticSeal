@@ -171,7 +171,6 @@ python3 .github/scripts/gather_changelog.py --check
 uvx ruff check . && uvx ruff format --check .
 bin/test -q
 python3 skills/verify/scripts/unverified_check.py --baseline origin/main seal/specs/
-git fetch origin '+refs/pull/*/head:refs/remotes/pull/*/head'
 python3 skills/code-review/scripts/chain_check.py --baseline origin/main
 ```
 
@@ -181,7 +180,6 @@ What each one has caught, so a failure is recognised rather than debugged:
 |---|---|
 | the full suite | a gathered entry prescribed a `git mv` whose destination nothing creates |
 | `test_no_loaded_file_names_a_version_at_or_above_the_running_one` | living prose that named the release by number the moment it became the running one. Since #179 it also names one written *ahead* of the release, which used to be green until the day it shipped — a document had carried an unshipped version for three releases that way. Records of a moment are listed in the test; everything else is reworded to name the change, or to the illustrative version the test's own message points at. Since #363 a version this repository has *tagged* is history and may be named — the shipped set is read from the root's `v*` tags, never from this file, because this commit writes the heading and the bump together and the version being cut is the timer |
-| `chain_check --baseline origin/main` | exit 1 in a checkout that never fetched `refs/pull/*/head` — the fetch line above is the fix, not a lost commit. CI fetches it itself |
 
 Enforced by: tests/test_a_shrunken_corpus_declines_to_judge.py::test_no_scope_in_the_suite_lists_paths_from_git_without_a_guard, tests/test_a_shrunken_corpus_declines_to_judge.py::test_declining_raises_the_skip_carrying_that_reason
 

@@ -76,21 +76,13 @@ jobs:
           python3 "$RUNNER_TEMP/specseal/skills/verify/scripts/unverified_check.py" \
             --baseline "origin/${{ github.base_ref }}" seal/specs/
 
-      # `chain_check.py` looks for a round's `Target SHA` on HEAD, on the
-      # branch the declaration names, and on the pull request head that
-      # carried it. Only the last one survives a squash and a deleted branch,
-      # and `actions/checkout` never fetches that namespace.
-      - name: the pull request heads a round record may name
-        shell: bash
-        run: |
-          git fetch --no-tags --quiet origin \
-            '+refs/pull/*/head:refs/remotes/pull/*/head'
-
       # A work item routed "through the review chain" has to carry the round
       # record it claimed. It never fails a pull request that declared
       # nothing; once the pull request is no longer a draft it fails a
       # declaration with no committed round, a 🔴 or 🟡 row still open, a
-      # last record behind HEAD, and no `broad-gate.md` at HEAD.
+      # last record behind HEAD, and no `broad-gate.md` at HEAD. A round's
+      # `Target SHA` is read only as HEAD or an ancestor of it, so the check
+      # needs no ref the checkout does not already carry.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |

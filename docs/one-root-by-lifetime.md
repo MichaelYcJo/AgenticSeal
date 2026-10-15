@@ -203,8 +203,8 @@ moves for edits that have nothing to do with the claim, so such a citation is
 re-anchored, stamped, and orphaned by a squash. `settle` rewrites
 `docs/` and removes directories on every release, so anything coupled to a
 path or a position inside a work item would break the same way. What still
-carries such a coupling is short: a round record's `Target SHA` (resolved
-through `refs/pull/<N>/head`, and gone with the record). A `# RIDER:`
+carries such a coupling is short: a round record's `Target SHA` (read while
+its pull request is open, and gone with the record). A `# RIDER:`
 comment's stamp named a commit too, until work item `1788826000` moved every
 stamp to a content anchor.
 

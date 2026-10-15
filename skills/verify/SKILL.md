@@ -449,7 +449,7 @@ the steps CI runs for the base (#666): a step CI does not ask of this pull
 request — three of SpecSeal's run only on a pull request into `main` — is
 neither answered nor unanswered, so the count leaves it out and the line says
 how many it left out and why. A feature seal of SpecSeal itself reads `CI
-also · 4 more steps`, and the line says they are four of the seven CI runs
+also · 3 more steps`, and the line says they are three of the six CI runs
 for that base.
 
 **What the count does not say** is whether a mirrored arm asks the same

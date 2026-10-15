@@ -2265,10 +2265,10 @@ def job_steps(text, job):
 # Each row is a step of the `release` job, spelled as `hygiene.yml` spells it,
 # and then either the arm that mirrors it or the reason none does.
 #
-# **Four of the seven exclusions could not run here at all; three could.** The
+# **Three of the six exclusions could not run here at all; three could.** The
 # measurement `questions.md` M1 asked for, taken by construction over every
-# step: three steps have no local answer (the pull request's body, the
-# remote's pull-request namespace, the tracker), one raises a warning and can
+# step: two steps have no local answer (the pull request's body and the
+# tracker), one raises a warning and can
 # refuse nothing, one is shell written inline in the workflow with no script
 # to share, and two run a script that belongs to this repository rather
 # than to the plugin. The last three are the ones with a local answer, and
@@ -2306,13 +2306,6 @@ PARTITION = (
         "the unverified record is readable, and rows leave it closed",
         UNVERIFIED_NAME,
         None,
-    ),
-    (
-        "the pull request heads a round record may name",
-        None,
-        "fetches the remote's pull-request namespace. The gate seals the tree "
-        "that is already here and fetches nothing, so a ref only a fetch "
-        "would bring is a ref it cannot reach",
     ),
     (
         "a declared review chain has the round record it claimed",
