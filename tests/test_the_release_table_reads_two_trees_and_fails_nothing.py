@@ -124,12 +124,18 @@ def test_the_release_table_reads_two_trees_and_fails_nothing(tmp_path, capsys):
 
 @pytest.mark.parametrize(
     "lines",
-    ["", "not json\n", '{"id": 1}\n'],
-    ids=["empty", "not json", "no name"],
+    [
+        "",
+        "not json\n",
+        '{"id": 1}\n',
+        json.dumps(job("pytest (ubuntu-latest, 3.12)", 9)) + "\nnot json\n",
+    ],
+    ids=["empty", "not json", "no name", "a job, then a line that is none"],
 )
 def test_a_job_list_that_holds_no_run_reads_no_run_found(tmp_path, capsys, lines):
-    """A job list that is empty or is no job list is no reading, never a
-    traceback, and the table still prints at exit 0."""
+    """A job list that is empty or is no job list `gh` wrote, even after a
+    job that reads, is no reading, never a traceback or a part of a run, and
+    the table still prints at exit 0."""
     at = tree(tmp_path / "at", "", {"t::a": 1.0}, {})
     jobs = tmp_path / "jobs.jsonl"
     jobs.write_text(lines, "utf-8")
