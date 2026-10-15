@@ -969,7 +969,6 @@ tests/conftest.py#declare_routing@ae0c1556
 tests/conftest.py#decline_if_shrunken@6a48d192
 tests/conftest.py#fifo_or_skip@c3e19b41
 tests/conftest.py#fired@179899d8
-tests/conftest.py#gathered_entry@1e956cbf
 tests/conftest.py#gh_answers@6d9e59c6
 tests/conftest.py#git_hooks_installed@116c0c70
 tests/conftest.py#git_listing@7f569607

@@ -357,7 +357,7 @@ def test_no_instructing_document_leaves_an_instance_anonymous():
 # --- "segment" — one agent's stretch of a chain, never a spawn cycle -------
 
 # The seventh word, and the one this repository's own measurement vocabulary
-# rests on: the per-segment bars in `docs/review-handoff-protocol.md`,
+# rests on: the per-segment bars in `docs/the-review-record.md`,
 # `skills/verify/SKILL.md` §*Measure the segment*, and the flow log all read
 # `segment` as one agent's own stretch of a chain.
 #
@@ -430,8 +430,8 @@ def test_no_shipped_document_calls_a_spawn_cycle_a_segment():
 def test_the_sweep_reads_across_a_string_literal_seam():
     """The shape the deleted output pin caught and the file sweep did not.
 
-    `round_record.py` builds every refusal out of wrapped literals and where
-    the wrap falls is decided by line length, so an anonymous instance
+    `round_record.py` built every refusal out of wrapped literals and where
+    the wrap fell was decided by line length, so an anonymous instance
     straddling a seam is an ordinary edit rather than an exotic one. Round 1
     measured it: the pinned spelling kept, a second anonymous instance added
     across two literals, 86 passed in both modules, and the refusal a person

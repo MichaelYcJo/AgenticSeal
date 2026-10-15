@@ -229,8 +229,8 @@ def test_the_leavings_rule_says_whose_leaving_it_is():
 
 
 def test_the_method_lessons_moved_in():
-    """Q3 answered A: the four lessons from `docs/review-handoff-protocol.md`
-    are sections here. Their stories came with them."""
+    """Q3 answered A: four method lessons are sections of the contract, each
+    with its story."""
     found = bodies(read())
     assert "one name apart each time" in found[12]
     assert "Seven rounds" in found[13]

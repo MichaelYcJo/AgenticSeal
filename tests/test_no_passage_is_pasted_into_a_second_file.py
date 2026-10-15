@@ -228,7 +228,6 @@ BASELINE = {
     ("agents/framer.md", "templates/sdd-spec.md"): 8,
     ("agents/sealer.md", "skills/code-review/orchestration.md"): 3,
     ("agents/sealer.md", "skills/verify/SKILL.md"): 1,
-    ("agents/smith.md", "docs/review-chain-spec.md"): 3,
     ("agents/smith.md", "skills/code-review/orchestration.md"): 14,
     ("agents/smith.md", "skills/implement/SKILL.md"): 46,
     ("agents/smith.md", "skills/implement/orchestration.md"): 1,

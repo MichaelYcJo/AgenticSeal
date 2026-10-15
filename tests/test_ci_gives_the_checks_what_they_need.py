@@ -11,11 +11,11 @@ name* and the rider test goes red on every matrix leg.
 
 **Which pull-request events run.** `on: pull_request:` with no `types:` runs
 on `opened`, `synchronize` and `reopened` — and on nothing else. A review that
-has not finished opens its pull request as a DRAFT, which `chain_check.py`
-excuses the checked `Pass` for. Pressing *Ready for review* adds no commit, so
-`synchronize` never fires, the workflow never re-runs, and the green the draft
-earned stays on that SHA through the merge. The one requirement this branch
-added is voided by two clicks and no commit.
+has not finished opens its pull request as a DRAFT, on which `chain_check.py`
+prints its refusals and fails nothing. Pressing *Ready for review* adds no
+commit, so `synchronize` never fires, the workflow never re-runs, and the green
+the draft earned stays on that SHA through the merge. Every refusal the check
+holds for a ready pull request is voided by two clicks and no commit.
 
 These are assertions about YAML, which is not this repository's usual shape
 for a test. They are here because the alternative is a comment in the workflow
@@ -32,8 +32,8 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 WORKFLOWS = os.path.join(ROOT, ".github", "workflows")
 
 # Events GitHub does NOT include by default and that this repository needs,
-# because a draft is the documented way past `chain_check.py`'s `Pass`
-# requirement (`docs/round-record-spec.md` §`Pass` has to be checked).
+# because a draft is the documented way past `chain_check.py`'s refusals
+# (`docs/the-review-record.md` §*What the check reads at the pull request*).
 DRAFT_EVENTS = ("ready_for_review", "converted_to_draft")
 
 
@@ -411,7 +411,7 @@ def test_every_job_that_runs_pytest_has_the_whole_history():
 def test_a_pull_request_workflow_reruns_when_a_draft_becomes_ready():
     """Otherwise the draft excuse is permanent rather than temporary.
 
-    `chain_check.py` lets a draft pull request open with an unchecked `Pass`
+    `chain_check.py` lets a draft pull request through with an open finding
     because a review still running has to have somewhere to be. That excuse is
     meant to end when the pull request stops being a draft. Without these two
     event types it never does — no commit is needed to leave draft state, and

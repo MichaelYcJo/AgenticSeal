@@ -2264,7 +2264,7 @@ def test_an_indented_delimiter_is_not_a_fence_for_the_gates_reader():
     """S4. Four spaces before a run of backticks is an indented code block or
     a lazy continuation line, never a delimiter (CommonMark 4.5). Read as one,
     it opens a fence nobody closes and every row below it disappears from
-    `check_text`, `chain_check.py` and `round_record.py` at once. Seen red
+    `check_text` and `chain_check.py` at once. Seen red
     against `c52e8350`'s `blank_fences`, whose `^\\s*` took the line as an
     opener and blanked the table."""
     text = "A fence opens with\n\n    ```\n\n| a | b |\n|---|---|\n| c | d |\n"

@@ -538,7 +538,7 @@ def test_a_segment_of_a_segment_is_still_part_of_the_run(tmp_path):
 
 def test_the_token_turns_and_tools_per_turn_count_different_things(tmp_path):
     """`tools_per_turn`'s denominator counts messages carrying a tool call,
-    and the per-segment bars in `docs/review-handoff-protocol.md` are
+    and the per-segment bars in `docs/the-review-record.md` are
     calibrated against that ratio. The token line's turn count is assistant
     messages carrying `usage` — a turn that only thought is still a turn the
     run paid for. This fixture separates them: two turns sent a call, a third
@@ -3240,7 +3240,7 @@ def test_no_existing_printed_line_moves_when_the_mode_is_not_asked_for(
 
 # --- the grade: each row against its kind's bar (#640) ----------------------
 #
-# The bars are `docs/review-handoff-protocol.md`'s, per segment kind, and until
+# The bars are `docs/the-review-record.md`'s, per segment kind, and until
 # #640 they were nowhere on the page that prints the ratio they judge. A row's
 # kind is the `subagent_type` of the spawn it was joined to, so `--segments`
 # can grade where the plain reading cannot: a lone transcript carries no kind.

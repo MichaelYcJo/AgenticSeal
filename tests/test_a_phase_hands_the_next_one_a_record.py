@@ -10,11 +10,10 @@ so they live only in a transcript the next phase's session never opens.
 
 `templates/sdd-phase.md` gives the build side the same committed,
 per-segment record the review chain already has in `templates/sdd-round.md`
-(`docs/review-handoff-protocol.md` §Files). This module pins:
+(`docs/the-review-record.md` §*The round record*). This module pins:
 
   the field table    `Phase`, `Commit` — nothing more, because a phase has
-                     no `Target SHA` to squash away and no `Pass` checkbox
-                     to answer
+                     no `Target SHA` to squash away
   the two sections    ship outside HTML comments, as placeholders rather
                      than filled claims — a template whose only mention of
                      a section is commented out ships a record that is
@@ -306,7 +305,7 @@ def test_skill_says_what_is_copied_into_what_this_phase_was_asked():
 # `skills/implement/SKILL.md` — uses the bracket-free form the file is
 # actually created with, `phase-N.md`, matching how those same three files
 # already write `round-N.md` for the sibling record
-# (`docs/review-handoff-protocol.md`, `skills/code-review/SKILL.md`,
+# (`docs/the-review-record.md`, `skills/code-review/SKILL.md`,
 # `agents/warden.md` never write `round-<N>.md` in prose either).
 
 PROSE_CARRIERS = (

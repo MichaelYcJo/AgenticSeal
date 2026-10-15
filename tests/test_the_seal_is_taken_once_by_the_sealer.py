@@ -8,14 +8,13 @@ the disc is data; the disc has one size; and the failure form carries no
 drawing at all, because a picture that says *sealed* beside a word that says
 *not* is the two-things-disagreeing defect this repository keeps paying for.
 
-Part 2 pins the gate command, `skills/verify/scripts/broad_gate.py`, and the
-`seal` subcommand of `round_record.py`, on fixture repositories built and
-driven from Python (`agent-contract` §8): the `Broad gate` row is read and
-its absence is a refusal with nothing run; every check runs in order and its
-exit code is read directly; a failing test is compared against the base in a
-scratch worktree, reactively, and reported as `new` or `failing on base
-too`; the stamp prints on success only; and the one write sets the last
-record's cell and nothing else, refusing while its `Pass` box is unchecked.
+Part 2 pins the gate command, `skills/verify/scripts/broad_gate.py`, on
+fixture repositories built and driven from Python (`agent-contract` §8): the
+`Broad gate` row is read and its absence is a refusal with nothing run; every
+check runs in order and its exit code is read directly; a failing test is
+compared against the base in a scratch worktree, reactively, and reported as
+`new` or `failing on base too`; the stamp prints on success only; and the one
+write, through `--record`, is the work item's `broad-gate.md`.
 
 Part 3 — the agent and the owner sentences — arrives with the phase that
 builds them.
@@ -1469,8 +1468,8 @@ def a_sealed_run(tmp_path_factory, _template):
     Under a directory whose name holds a space, for the reason
     `test_a_recorded_seal_on_a_pipe_signals_and_draws_nothing` gives. A
     module-scoped fixture is set up before `_no_ambient_pull_request` runs,
-    which costs nothing here: every script this run starts (`round_record.py`
-    and the gate) is given `env_without_a_pull_request()`.
+    which costs nothing here: every script this run starts is given
+    `env_without_a_pull_request()`.
 
     Returns (the repository, the completed process, the values)."""
     scratch = tmp_path_factory.mktemp("sealed-once")
