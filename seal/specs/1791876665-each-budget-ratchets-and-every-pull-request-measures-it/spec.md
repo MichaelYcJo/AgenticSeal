@@ -56,7 +56,7 @@ A line is a **rule line** from a line opening with `**` to the next `Enforced by
 | S4 a cleanup lands | the file shrinks below the band; the ceiling is unchanged | exit 1 saying lower the ceiling to ≤ `measured × (1 + slack)` |
 | S5 every pull request reads its numbers | any run | the job summary holds one line per budget: measured, ceiling, headroom, kind |
 | S6 a pull request into `main` | a release pull request whose ceilings differ from `main`'s | no body line is asked for; measured-vs-ceiling still holds; the trend against the last release tag is in the summary |
-| S7 a slow file appears | a test file not listed reaches ≥ 120 s in `.test_durations` | exit 1 naming the file |
+| S7 a slow file appears | a test file not listed reaches ≥ 120 s in `.test_durations` | exit 0: the family is a `report` row (#931), so its summary line reads `over` and the list of report rows past their band names the file |
 | S8 a docs file gains a narrative line | a `docs/*.md` line citing `#NNN` is added | exit 1 naming the file and the line |
 | S9 the suite's minutes | a `test.yml` run completes its `pytest` jobs | the `budgets` job sums each leg and compares; red past a ceiling; the summary carries the billable-minute line labelled with its price date as unverified |
 | S10 nothing asks a person | the whole change | no `AskUserQuestion`, no `input()`, no `read` from a terminal in anything added; every check exits and prints |
