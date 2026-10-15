@@ -56,10 +56,13 @@
   runs the broad gate, then re-runs a sample of the smith's `executed` and
   `seen red` claims, chosen where the evidence is thinnest. It confirms each
   `fixed <commit>` is on the branch and touches the location it fixes, and
-  that nothing this release removed has come back. It reads the spec, the
-  build, the warden's last round, the changelog fragment and the pull
-  request body as one story and names the party the issue and the tree
-  contradict. It does not re-judge the design or the code's quality. Its
+  that nothing this release removed has come back. It reads every 🔴 and 🟡
+  row of every round: the check passes one closed `confirmed` or `out of
+  verified scope`, and the sealer's verdict is `not sound` unless a later
+  round answers it. It reads the spec, the build, the warden's last round,
+  the changelog fragment and the pull request body as one story and names
+  the party the issue and the tree contradict. It does not re-judge the
+  design or the code's quality. Its
   verdict is `seal/specs/<id>/guarantee.md`, from
   `templates/sdd-guarantee.md`: the claims it re-ran, the parties it
   compared and one `Verdict:` line, `sound`, `not sound — <what>` or
@@ -90,10 +93,10 @@
   | `hooks/review-history-guard.py` | 303 | gone |
   | `templates/sdd-round.md` | 460 | 46 |
   | the three record documents | 2,725 | 230, one document |
-  | `agents/sealer.md` | 268 | 143 |
+  | `agents/sealer.md` | 268 | 147 |
 
   Counted against `origin/release/v0.22.0` at `ce448bbe`. The suite holds
   143 test modules where it held 167, and 31,996 lines of tests left
-  against 3,076 added.
+  against 3,091 added.
   (`1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
   #923)
