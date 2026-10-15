@@ -170,7 +170,7 @@ Enforced by: nothing — the orchestrator applies it, and the sealer reads the c
 under review added or changed. A round carrying the mark gets no fix pass:
 the work item goes back to its framer, who writes `Reframed <date> by <who>,
 after round <N>.` under the mark at the foot of `spec.md`.
-Enforced by: tests/test_chain_check.py::TestFrame
+Enforced by: nothing — the orchestrator applies it, and the sealer reads the mark in the records
 
 **A leftover finding takes the first rung that fits.** A new issue is the
 third rung, not the default:
