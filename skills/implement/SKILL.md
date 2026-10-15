@@ -124,7 +124,8 @@ seal/
     ├── rounds/
     │   └── round-N.md    one review round — closed at merge, removed by
     │                     `settle --retire-process` after its release
-    └── broad-gate.md     the one broad run, written by `broad-gate --record`
+    ├── broad-gate.md     the one broad run, written by `broad-gate --record`
+    └── guarantee.md      the sealer's verdict, from `templates/sdd-guarantee.md`
 ```
 
 The review round records live beside the work item they are about, with the

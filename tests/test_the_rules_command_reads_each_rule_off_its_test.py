@@ -398,7 +398,9 @@ def test_every_enforced_by_target_in_the_tree_resolves(tmp_path, capsys):
             shutil.copyfile(os.path.join(ROOT, *source.split("/")), destination)
         pattern = next(p for p in rules.RULE_FILES if fnmatch.fnmatchcase(rel, p))
         line = next((n for n, targets in held if targets), None)
-        if renamed is None and line is not None:
+        # One file per glob carries the planted defect, so a glob whose first
+        # file names no target is planted there, not renamed in a later one.
+        if renamed is None and line is not None and pattern not in named:
             lines = text.split("\n")
             first = rules.targets_of(lines[line - 1].split(":", 1)[1].strip())[0]
             lines[line - 1] = lines[line - 1].replace(

@@ -39,7 +39,7 @@ works outside the context entirely (hooks).
 | **smith** (Claude Code subagent) | `agent-contract` · `implement` · `writing-style` | Implements against the spec, then prints a three-line proof block: which policy files it opened, which cases it added and how each was seen red, what it executed versus merely read. The block is a disclosure the skill requires, not something a hook verifies — but `none — <reason>` in a row is visible to you |
 | **warden** (subagent) | `agent-contract` · `code-review` · `writing-style` | Reviews spec compliance first, then quality. Once its report is verified the orchestrator writes the reviewed HEAD sha to `.git/specseal-reviewed`, which is what the commit gate looks for — the reviewer never writes its own mark |
 | **scribe** (subagent) | `agent-contract` · `legacy-parity` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. Appears only in repos that declare `seal/parity.md` |
-| **sealer** (subagent) | `agent-contract` | Runs the one broad gate — `broad-gate`, once, after the rounds settle — and writes the work item's `broad-gate.md`. It reads no spec and no diff, and judges nothing: a failing check comes back with its own lines and the word `new` or `failing on base too` — or `new?` with the reason, where no run at the base measured the file — and what that means is the reader's call |
+| **sealer** (subagent, Opus) | `agent-contract` | The final, independent guarantor. After the rounds settle and the pull request body and changelog are written, it runs the one broad gate (`broad-gate`, which writes `broad-gate.md`), re-runs a sample of the implementer's claims, and reads the spec, the build, the last review, the changelog and the pull request body against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sound`, `not sound` naming what the tree contradicts, or a question for the owner. It does not re-judge the design or the code's quality |
 | Skills | — | Twenty-two, in three groups. The five the agents follow are in the column to the left. Eleven more a session loads on its own when the work calls for them — `audit`, `build-fix`, `checkpoint`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `learn`, `settle`, `verify`. Six you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
 | CLAUDE.md block | — | 12 always-on lines — four section headings (`Tooling`, `Safety`, `Session cost`, `Git`) over eight rules: one on tooling, three on safety, one on session cost, three on git. No response-language rule — that stays yours. Its one source is `templates/claude-md-block.md`; the repository's own `CLAUDE.md` carries a generated copy, and CI fails a pull request where the two differ |
@@ -122,7 +122,8 @@ seal/
     ├── spec.md · plan.md · questions.md · overview.md
     ├── rounds/
     │   └── round-N.md    review rounds — committed, drained, then closed and kept
-    └── broad-gate.md     the one broad run, at a SHA, against the base
+    ├── broad-gate.md     the one broad run, at a SHA, against the base
+    └── guarantee.md      the sealer's verdict on the work, at a SHA
 ```
 
 Judgment runs policy > SDD > code where a repository has policy documents, and

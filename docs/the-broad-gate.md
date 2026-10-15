@@ -20,10 +20,11 @@ whose whole procedure is that run, and the assignment lives in that agent's
 own definition rather than in the shared rules, which is where the next such
 assignment will live too.
 
-That agent judges nothing. It runs the repository's broad command, reports
-what the commands said, and writes the work item's `broad-gate.md`.
-A run that judges is a run whose verdict nobody can separate from its
-measurement.
+The run judges nothing. `broad-gate` runs the repository's broad command,
+reports what the commands said, and writes the work item's `broad-gate.md`;
+the sealer's own verdict, which follows the run, is a separate file
+(`docs/the-review-record.md` §*The guarantee*). A run that judges is a run
+whose verdict nobody can separate from its measurement.
 Enforced by: tests/test_broad_gate_rule.py::test_only_one_definition_assigns_the_broad_gate, tests/test_broad_gate_rule.py::test_the_prohibition_itself_has_one_home_and_it_is_the_contract
 
 <!-- specs/1789034970-the-contract-is-settled-against-the-agents-that-exist -->

@@ -1026,16 +1026,11 @@ def test_a_release_seal_counts_every_step_ci_runs_for_it():
 
 def test_the_documents_say_the_count_is_over_the_steps_ci_runs():
     """S5's documentation (`agent-contract` §14): the skill section that
-    explains the count, the sealer's release paragraph and the partition's
-    policy paragraph each say a step CI does not run for the base is outside
-    the count."""
+    explains the count and the partition's policy paragraph each say a step
+    CI does not run for the base is outside the count. The sealer relays the
+    gate's line and explains none of it, so its definition is not asked."""
     verify = " ".join(read(os.path.join(ROOT, "skills", "verify", "SKILL.md")).split())
     assert "counted over the steps CI runs for the base" in verify
-    sealer = " ".join(read(os.path.join(ROOT, "agents", "sealer.md")).split())
-    # #717 renamed the row the count is on.
-    assert "the `CI also` count leaves out the steps CI does not run for the base" in (
-        sealer
-    )
     broad = " ".join(read(os.path.join(ROOT, "docs", "the-broad-gate.md")).split())
     assert "A step CI does not run for the base is neither answered nor unanswered" in (
         broad

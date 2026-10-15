@@ -97,7 +97,8 @@ seal/
     ├── spec.md · plan.md · questions.md · overview.md · changelog.md
     ├── rounds/
     │   └── round-N.md     target SHA · verdicts · paste-ready fixes · executed probes
-    └── broad-gate.md      the one broad run, at a SHA, against the base
+    ├── broad-gate.md      the one broad run, at a SHA, against the base
+    └── guarantee.md       the sealer's verdict on the work, at a SHA
 ```
 
 There is no task list here and no directory for one. `plan.md`'s Phases table

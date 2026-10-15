@@ -238,3 +238,15 @@ class TestDefinition:
         assert "templates/sdd-guarantee.md" in text
         assert "broad-gate --base <base> --record <item>" in text
         assert "judges nothing" not in text
+
+    def test_the_sealer_quotes_what_only_the_gate_can_tell(self):
+        """The moved base, the copy of the gate that ran, the outputs
+        directory and the stamp's command are lines a reader learns from
+        nowhere else, and the scratch log carries the work item's id so two
+        sealers of one session never share it."""
+        text = " ".join(SEALER.read_text(encoding="utf-8").split())
+        assert "<scratchpad>/<work-item-id>/broad-gate.log" in text
+        assert "where resolving the base moved it" in text.lower()
+        assert "the tree's copy of the gate" in text
+        assert "`outputs kept under broad-gate-<random>/`" in text
+        assert "`seal-stamp --from <path>`" in text

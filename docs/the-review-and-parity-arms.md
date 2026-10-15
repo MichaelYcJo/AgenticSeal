@@ -96,8 +96,8 @@ edit and asking for `[no-review]` as well is asking for the same answer twice.
 
 | The declaration says | At the commit | At the pull request |
 |---|---|---|
-| through the review chain | silent | a committed `rounds/round-N.md` with every 🔴 and 🟡 row closed, the last record's `Target SHA` at HEAD or followed only by the work item's own records, and the sealer's `broad-gate.md` beside it |
-| straight to the PR | silent | `broad-gate.md` beside the work item's records, naming the one broad run the sealer took at a SHA the tree can see, and nothing else: the answer turns off the reviewer alone. A draft pull request prints instead of failing, and the declaration is printed either way, because a decision nobody sees is not a record |
+| through the review chain | silent | a committed `rounds/round-N.md` with every 🔴 and 🟡 row closed, the last record's `Target SHA` at HEAD or followed only by the work item's own records, and the sealer's `broad-gate.md` and `guarantee.md` beside it |
+| straight to the PR | silent | `broad-gate.md` beside the work item's records, naming the one broad run the sealer took at a SHA the tree can see, and the sealer's `guarantee.md` reading `sound` at HEAD: the answer turns off the reviewer alone. A draft pull request prints instead of failing, and the declaration is printed either way, because a decision nobody sees is not a record |
 | nothing readable, or no file | today's behavior — deny once, then ask | pass, with a notice saying nothing was checked |
 
 What the check reads of each round record under the first answer is
@@ -105,8 +105,8 @@ What the check reads of each round record under the first answer is
 Enforced by: tests/test_routing_is_recorded.py::test_a_declared_chain_item_commits_without_a_prompt, tests/test_routing_is_recorded.py::test_a_declared_direct_item_commits_without_a_prompt, tests/test_chain_check.py::TestMain
 
 <!-- specs/1790173106-a-bare-yes-sets-the-run-length-and-a-session-review-has-no-row -->
-**`straight to the PR` owes the sealer's `broad-gate.md` and turns off the
-reviewer alone, and `Review` has two answers, not three.**
+**`straight to the PR` owes the sealer's `broad-gate.md` and `guarantee.md`
+and turns off the reviewer alone, and `Review` has two answers, not three.**
 
 **Two answers, and not three.** A session that wrote a change and then checked
 it itself has asked for a third — *reviewed by the session* — with a record of
@@ -122,7 +122,7 @@ to the PR` and takes the broad run; what that answer turns off is the reviewer,
 and nothing else. A change belonging to no work item at all is the routing
 question's third answer, `no work item`, whose recorded form is `[no-review]`
 in front of each commit — there is no value meaning no enforcement anywhere.
-Enforced by: tests/test_chain_check.py::TestMain::test_a_straight_to_the_pr_item_owes_the_broad_gate_file
+Enforced by: tests/test_chain_check.py::TestMain::test_a_straight_to_the_pr_item_owes_the_sealers_two_files
 
 <!-- specs/1789518345-who-asks-the-routing-question-and-what-checks-the-answer -->
 **A declaration the pull request RETIRED is not one it made**, and neither is

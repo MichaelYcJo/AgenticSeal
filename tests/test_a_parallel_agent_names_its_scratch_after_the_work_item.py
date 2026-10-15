@@ -81,10 +81,13 @@ def test_the_sealers_capture_file_carries_the_work_item_id():
     under broad-gate-<random>/` line is quoted in the report, so a capture
     that was overwritten can still be told apart — which is how the 0.15.0
     sealers were not misread."""
-    command = section(SEALER, "The command")
-    assert "<scratchpad>/<work-item-id>/" in command, (
-        "agents/sealer.md §The command names no capture file carrying the "
+    command = section(SEALER, "Order of work") + section(SEALER, "Rules")
+    assert "<scratchpad>/<work-item-id>/broad-gate.log" in command, (
+        "agents/sealer.md §Order of work names no capture file carrying the "
         "work item id, so two parallel sealers write one file over each other"
+    )
+    assert "<scratchpad>/<work-item-id>/at-base/" in command, (
+        "the clone a `seen red` is re-run in is not named for the work item"
     )
     assert "outputs kept under" in command, (
         "the section does not tell the sealer to quote the gate's `outputs "

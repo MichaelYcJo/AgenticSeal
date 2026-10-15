@@ -151,11 +151,21 @@ exempt.
 **`broad-gate.md` is read at a READY pull request.** So the sequence has two
 more steps before the draft goes ready: a run of the record arms, which is
 yours, and then a spawn. **Run `broad-gate --preflight --base <base>`, and on
-its exit 0 spawn `sealer`, with the base and the work item's directory.** The
-sealer runs `broad-gate --base <base> --record <item>`, which takes the one
-broad pass now that the rounds have settled and, on a green run, writes
-`broad-gate.md` (`docs/the-review-record.md` §*What the check reads at the
-pull request*). You read what it returns; you do not take the run yourself.
+its exit 0 spawn `sealer`, with the base and the work item's directory**, the
+issue and the pull request, once the pull request body and the work item's
+`changelog.md` are written, since the sealer audits both. The sealer runs
+`broad-gate --base <base> --record <item>`, which takes the one broad pass
+now that the rounds have settled and, on a green run, writes `broad-gate.md`;
+then it audits the work against the issue and the tree and writes
+`guarantee.md` (`docs/the-review-record.md` §*The guarantee*). You read what
+it returns; you do not take the run yourself.
+
+**Commit the sealer's two files together; a verdict other than `sound` keeps
+the pull request a draft.** `not sound` names the claim and the coordinate:
+fix that, commit, and spawn the sealer again at the new HEAD. `undecidable`
+is a question for the owner, put after the run rather than during it; write
+the answer under the verdict as `Answered <date> by <who>: <answer>`, commit,
+and spawn the sealer again.
 
 **The preflight is yours, and it is not the broad gate (#638).** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the

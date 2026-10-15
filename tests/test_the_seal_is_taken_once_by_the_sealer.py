@@ -1720,24 +1720,6 @@ def test_the_gate_row_fits_the_panel_for_a_nine_character_version(tmp_path):
     assert ("gate", "tree 1.2.3-rc4") in rows
 
 
-def test_the_sealer_is_told_the_gate_says_which_copy_ran():
-    """A11. The gate line is the same kind of line as the moved-base one: a
-    fact about the run a reader learns nowhere else, quoted by the sealer and
-    judged by nobody. The definition says the gate prints which copy ran,
-    what a `tree` value means, and that the line is quoted in the report."""
-    text = " ".join(sealer_text().split())
-    assert "which copy of itself ran" in text, (
-        "the sealer's definition does not say the gate reports which copy ran"
-    )
-    assert "measured by the gate it ships" in text, (
-        "the definition does not say what a `tree` value on the stamp means"
-    )
-    assert "Quote the gate line" in text, (
-        "the definition does not tell the sealer to quote the gate line the "
-        "way it quotes the moved-base line"
-    )
-
-
 # --- S3 no row ---------------------------------------------------------------
 
 
@@ -3236,12 +3218,10 @@ def test_the_failure_form_takes_the_same_names():
 
 
 def test_the_documents_name_the_line_that_says_to_commit_the_cell():
-    """S2's documentation (`agent-contract` §14). The sealer is told the line
-    exists and is passed on, and the orchestrator is told what to do with
-    it — the commit is the orchestrator's act."""
-    sealer = " ".join(sealer_text().split())
-    assert "one more line says `broad-gate.md` is written and not committed" in (sealer)
-    assert "naming the branch and the tree, the ref and the base commit" in sealer
+    """S2's documentation (`agent-contract` §14). The orchestrator is told
+    what to do with the line — the commit is the orchestrator's act. The
+    sealer passes the gate's lines on as they came and is told no line's
+    wording (`tests/test_the_sealer_guarantees.py::TestDefinition`)."""
     orchestration = " ".join(
         read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
     )
@@ -3636,15 +3616,10 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     # #832's S5a: the ref stands beside the commit on the `base` row.
     assert "names the ref beside the commit on the `base` row" in verify
     assert "names the ref on the row under the commit" not in verify
-    sealer = " ".join(sealer_text().split())
-    assert "The stamp carries a `gate` row only where the copy that ran is not" in (
-        sealer
-    )
-    assert "a stamp with no `gate` row was measured by the copy you invoked" in sealer
     # Round 1's 🟡 4 and ⬜ 5: the third arm, which fires on every seal an
     # installed copy older than #666 redirects, because it hands over no
-    # invoked path to compare against.
-    assert "or where nothing told it which copy you invoked" in sealer
+    # invoked path to compare against. The sealer describes no panel row
+    # since it became the guarantor (#923), so the documents that do are read.
     assert (
         "or where the tree's copy ran with no invoked copy named to compare against"
     ) in broad
@@ -3657,13 +3632,6 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     above = source.split("GATE_REL = ", 1)[0][-1500:].splitlines()
     comment = " ".join(" ".join(line.lstrip("# ") for line in above).split())
     assert "or where no invoked copy was handed over to compare" in comment
-    # The `rounds` row counts the records and carries no `capped` since
-    # 0.22.0 (#923); and the ref beside its commit.
-    assert "`rounds` row counts the records" in sealer
-    assert "· capped" not in sealer
-    assert "the `base` row carries the ref beside the commit it came from" in sealer
-    assert "the row under `base` carries the ref" not in sealer
-    assert "counts the findings closed `deferred` and names their homes" in sealer
 
 
 def test_the_sample_carries_every_row_the_panel_can(tmp_path):
@@ -3812,9 +3780,8 @@ def test_the_documents_name_the_ci_also_row():
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
     assert "the panel carries a `workflow` row" not in verify
-    sealer = " ".join(sealer_text().split())
-    assert "On any base the `CI also` count leaves out the steps" in sealer
-    assert "the `workflow` count" not in sealer
+    # The sealer relays the gate's lines and names no panel row (#923).
+    assert "the `workflow` count" not in " ".join(sealer_text().split())
 
 
 # --- `rounds` counts the records and the deferred findings -------------------
@@ -8392,14 +8359,17 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     Before #120 the same case read `as its own exception`, because §6 carved
     exceptions and pointed at the definition holding each one. The mechanism
     did not move -- it stopped being the exception and became the rule -- so
-    every assertion below is unchanged and only the name and the grounds are."""
+    every assertion below is unchanged and only the name and the grounds are.
+
+    Since the sealer became the guarantor (#923) its one write is
+    `guarantee.md`, and `broad-gate.md` is the gate's, through its command."""
     text = " ".join(sealer_text().split())
     assert "§6" in text, "the sealer cannot reach the rule that names its one write"
     assert "through `broad-gate --record`" in text, (
-        "the sealer's one write does not name the command that makes it, "
-        "so the write is described rather than bounded"
+        "the gate's file does not name the command that makes it, so the "
+        "sealer cannot tell its own write from the gate's"
     )
-    assert "You write one file: the work item's `broad-gate.md`" in text, (
+    assert "`guarantee.md` is the whole of what you may write" in text, (
         "the permission does not say WHICH file, and a permission without a "
         "boundary is a general one"
     )

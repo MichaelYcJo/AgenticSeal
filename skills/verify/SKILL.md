@@ -393,14 +393,15 @@ particular rounds — a work item has build phases with a progression of their
 own and a review chain with its own — so a reader who reaches for the moment
 has to guess, and one who reaches for the record does not.
 
-**It belongs to the `sealer`, and the four conditions above are its whole
-procedure.** The rule used to say when the gate fires and which agents may not
+**It belongs to the `sealer`, and the four conditions above are the whole of
+the run.** The rule used to say when the gate fires and which agents may not
 take it, and named nobody who may — so it was assembled from these sentences
 by whichever session remembered them, differently each time. `agents/sealer.md`
 is the agent, `broad-gate --base <base> --record <item>` is the command, and
 `skills/code-review/orchestration.md` §*Orchestrator: the pull request opens
-before round 1, and a phase is re-run* owns when it is spawned. What the
-sealer returns is a report; it judges no failure and fixes none.
+before round 1, and a phase is re-run* owns when it is spawned. The run
+judges no failure and fixes none; what the sealer guarantees after it is
+`docs/the-review-record.md` §*The guarantee*.
 `broad-gate --preflight`, which the orchestrator runs before that spawn, is
 not this run: it runs the gate's record arms, runs no suite, and seals
 nothing (#638).

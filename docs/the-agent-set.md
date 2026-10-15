@@ -53,9 +53,19 @@ Enforced by: tests/test_chain_check.py::TestFrame
 ## What each party writes, and when
 
 **A review round is one file the warden writes, the fix pass fills two cells
-of each open row, and the sealer's broad run writes `broad-gate.md`.**
-`docs/the-review-record.md` holds what each of those files carries.
+of each open row, the sealer's broad run writes `broad-gate.md`, and the
+sealer's verdict is `guarantee.md`.** `docs/the-review-record.md` holds what
+each of those files carries.
 Enforced by: tests/test_chain_check.py::TestVerdictTable
+
+**The last party audits the others, and is independent of them.** The
+sealer's reference is the issue body and the tree, so a pull request body, a
+phase record or a review verdict that says what the tree does not is caught
+by a party that wrote none of them. It re-judges neither the frame nor the
+code's quality, which stay the framer's and the warden's, and it runs on
+Opus, the level of the agents it audits. `docs/the-review-record.md` §*The
+guarantee* holds the rule.
+Enforced by: tests/test_the_sealer_guarantees.py::TestDefinition
 
 <!-- specs/1788445862-a-phase-hands-the-next-one-a-record -->
 **A build phase leaves a record, the way a review round does.** What a phase

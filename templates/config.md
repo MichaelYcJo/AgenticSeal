@@ -220,7 +220,7 @@ reported.
 **There is no default, and the reason is the Seal Test.** `verify` names the
 counterfeit: a check that cannot fail. A default of `pytest` seals a
 repository that runs `npm test`; a default of `true` seals everything. The
-sealer judges nothing, so it cannot pick a command either — a row is a
+sealer does not pick a command either — a row is a
 thing a person wrote, and what the sealer's seal covers is exactly that. What the
 row's command does is the repository's own claim: a command that exits 0
 without running anything gets a stamp over nothing, and *the narrow command
