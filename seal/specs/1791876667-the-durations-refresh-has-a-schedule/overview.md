@@ -1,12 +1,12 @@
 # 1791876667-the-durations-refresh-has-a-schedule — overview
 
 <!-- The closing memo (implement skill, step 4). Opened in phase 1 at the
-first divergence, closed in phase 3. -->
+first divergence, closed in phase 4, the reframe after round 4. -->
 
 📋 implement applied
-· spec:     `spec.md` (Grounding, Scope, S1–S8, Data & interfaces, Removes), `plan.md` (phases 1–3, test rows), `questions.md` Q1–Q5, `CONTRIBUTING.md` §Running the checks, `docs/release-checklist.md` §0, `docs/the-reader-registry.md` §*The four classes*
-· evidence: the cases T1–T11 of `plan.md`'s test rows and `test_a_job_that_calls_pytest_any_way_is_held_to_the_whole_history`, each seen red through `mutation-check` (34 breaks in phase 1, 14 in phase 2)
-· verified: executed — the narrow modules of each phase, runs 38475370013 and 38477758775 read and their unions reproduced; read — #930's normalisation; unverified — the full suite (the sealer)
+· spec:     `spec.md` (Grounding, Scope, S1–S9, Data & interfaces, Removes), `plan.md` (phases 1–4, test rows), `questions.md` Q1–Q5, `CONTRIBUTING.md` §Running the checks, `docs/release-checklist.md` §0, `docs/the-reader-registry.md` §*The four classes*
+· evidence: the cases T1–T11 of `plan.md`'s test rows and `test_a_job_that_calls_pytest_any_way_is_held_to_the_whole_history`, each seen red through `mutation-check` (34 breaks in phase 1, 14 in phase 2); in phase 4, T8's whole-command assertion red against 9021bc49's `REMEDY`, and `expected_level` broken once, 10 of 159 cases red (`phases/phase-4.md`)
+· verified: executed — the narrow modules of each phase, runs 38475370013 and 38477758775 read and their unions reproduced, the restate command as `REMEDY` gives it (phase 4); read — #930's normalisation; unverified — the full suite (the sealer)
 
 ## Why this work exists
 
