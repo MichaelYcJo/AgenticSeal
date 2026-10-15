@@ -375,6 +375,9 @@ ELSEWHERE = (
     '        self.skipTest("another platform")\n'
     "        assert m.double(2) == 4\n\n\n"
     "def test_by_xfail():\n"
+    '    pytest.xfail("another platform")\n    assert m.double(2) == 4\n\n\n'
+    "@unittest.expectedFailure\n"
+    "def test_by_xfail_under_a_unittest_mark():\n"
     '    pytest.xfail("another platform")\n    assert m.double(2) == 4\n'
 )
 NEVER_STARTED = [
@@ -385,6 +388,7 @@ NEVER_STARTED = [
     "test_by_an_xfail_never_started",
     "TestUnittest::test_by_skiptest",
     "test_by_xfail",
+    "test_by_xfail_under_a_unittest_mark",
 ]
 NEVER_RAN = (
     "not proved: none of its ids ran its call to the end on this runner "
@@ -406,6 +410,14 @@ UNITTEST_EXPECTED = (
     "\nimport unittest\n\n\nclass TestExpected(unittest.TestCase):\n"
     "    @unittest.expectedFailure\n"
     "    def test_by_expected_failure(self):\n"
+    "        assert m.double(2) == 5\n"
+)
+# The same expected failure marked on its class, which the stdlib reads off
+# the instance as it reads the method.
+CLASS_EXPECTED = (
+    "\nimport unittest\n\n\n@unittest.expectedFailure\n"
+    "class TestClassExpected(unittest.TestCase):\n"
+    "    def test_by_class_expected_failure(self):\n"
     "        assert m.double(2) == 5\n"
 )
 # A sibling that asserts on the unit and then skips the rest on this runner:
@@ -485,6 +497,17 @@ PARTIAL = (
                 "nothing its file does not"
             ],
             id="a unittest expected failure whose body raised is a run",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(NAME)},
+            {"tests/test_m.py": module_text(NAME, CLASS_EXPECTED)},
+            {},
+            1,
+            [
+                "tests/test_m.py::TestClassExpected::"
+                "test_by_class_expected_failure: kills nothing its file does not"
+            ],
+            id="a unittest expected failure marked on its class is a run",
         ),
         pytest.param(
             {"tests/test_m.py": module_text(PARTIAL)},

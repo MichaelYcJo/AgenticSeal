@@ -123,7 +123,7 @@ NONE_COLLECTED = 5
 # process at the end, every id's lines and, apart, the ids that stopped short.
 TRACER = "specseal_case_trace"
 TRACER_SOURCE = """
-import json, os, sys, threading, time
+import json, os, sys, threading, time, unittest
 import pytest
 
 _root = os.path.realpath(os.environ["SPECSEAL_CASE_TRACE_ROOT"]) + os.sep
@@ -176,9 +176,11 @@ def pytest_runtest_call(item):
 # it, and ran its body when the call ended any other way, an expected failure
 # whose body raised included. This reads the finished call report, outermost
 # so every other implementation has written it, and pytest's xfail stop is a
-# run only where its unittest plugin raised it for an expected failure. The
-# stopped ids are written apart, and their lines are kept: a case that
-# asserted and then stopped fails under a mutant of what it asserted.
+# run only where its unittest plugin raised it for an expected failure: a
+# `TestCase` whose instance or method carries the stdlib's mark, the two
+# places the stdlib reads it from. The stopped ids are written apart, and
+# their lines are kept: a case that asserted and then stopped fails under a
+# mutant of what it asserted.
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):
     report = (yield).get_result()
@@ -187,8 +189,10 @@ def pytest_runtest_makereport(item, call):
     stop = call.excinfo is not None and call.excinfo.errisinstance(
         pytest.xfail.Exception
     )
-    expected = getattr(
-        getattr(item, "obj", None), "__unittest_expecting_failure__", False
+    case = getattr(item, "instance", None)
+    expected = isinstance(case, unittest.TestCase) and any(
+        getattr(holder, "__unittest_expecting_failure__", False)
+        for holder in (case, getattr(item, "obj", None))
     )
     if not hasattr(report, "wasxfail") or (stop and not expected):
         _skipped.add(report.nodeid)
