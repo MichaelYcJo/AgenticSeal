@@ -19,7 +19,8 @@
     suite no longer collects. A pull request that removes a twentieth of the
     suite's time therefore brings the fresh file with it. Its message gives
     the refresh: `gh run download <run id> -n test-durations -D <dir>`, move
-    the file over the committed one, commit it. The download needs a
+    the file over the committed one, write its price level with
+    `budget_check.py --restate-price`, commit both. The download needs a
     directory of its own, because `gh` will not write over an existing file.
     A branch with no pull request, or whose run is too old to re-run, gets a
     run with `gh workflow run test.yml --ref <branch>`.
@@ -42,5 +43,8 @@
     `seal/budgets.md` `report` rows: each file's reading still prints in the
     summary and fails nothing, and `suite-seconds`, the sum, stays the gate.
     A pull request that commits
-    a union restates `## Price level` in `seal/budgets.md` to the number the
-    hygiene workflow's budget step names for it.
+    a union restates `## Price level` in `seal/budgets.md` in the same
+    commit, and nobody copies the number: the new
+    `budget_check.py --baseline origin/<base> --restate-price` writes the
+    level the hygiene workflow's budget step holds the refresh to, and the
+    recipe and the failing case's message both give that command.

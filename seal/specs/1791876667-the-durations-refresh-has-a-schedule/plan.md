@@ -81,6 +81,6 @@ This table is also where the work records how far it got. **Status is empty, or 
 
 - `test.yml` gains one step per Windows shard and one job; no new scope: downloading an artifact of the same run needs nothing beyond the default token. One more green job on every pull request, under a minute.
 - `.test_durations` is committed once by phase 1 (about 330 KB packed) and afterwards only when the check asks, which at today's slope is about once a release cycle, or in a pull request that cuts a twentieth of the suite's time.
-- A contributor who meets the red runs one `gh run download` and one commit; no measuring commit, no dispatch, no restore. The run's artifacts outlive the pull request by 7 days; past that, `gh run rerun`.
+- A contributor who meets the red runs one `gh run download`, one `budget_check.py --restate-price` and one commit; no measuring commit, no dispatch, no restore. The run's artifacts outlive the pull request by 7 days; past that, `gh run rerun`.
 - A fresh file can move `suite-seconds` past its ceiling, and the pull request that brings it carries the `Budget raised:` line with the growth named — or lowers the ceiling, where a cut brought it. The `slow-file:*` rows are `report` rows: one union moves a single file 0.67 to 1.72 times the level from the next, so they print and fail nothing.
 - No new dependency; the script is stdlib at the floor; `pytest-split` is already pinned on the pip line.

@@ -16,6 +16,9 @@ and held to its ceiling from both sides.
                                        object a line
   budget_check.py --trend TAG          also set each budget beside its
                                        ceiling at TAG, one line each
+  budget_check.py --restate-price      with --baseline, first write the
+                                       price level `.test_durations`
+                                       implies into `seal/budgets.md`
 
 **The band.** A row holds while `measured <= ceiling <= measured x (1 +
 slack)`, or `measured + slack` where the slack is absolute (`+N`). The left
@@ -134,7 +137,8 @@ divided by that level, and the summary prints the raw value beside it. With
 as the median over the test files of 10 seconds or more of each file's
 seconds here over its seconds there, and the level here must be the base's
 times that ratio, rounded per mille, or the run fails naming the number to
-write. A median of files moves with the runners and not with one file, so a
+write. `--restate-price` writes that number into the table's one row before
+anything is measured, which is how a refresh is committed. A median of files moves with the runners and not with one file, so a
 cleanup that speeds one file up moves only that file's reading. So a refresh restates
 one number and no `Budget raised:` line, the level cannot move without the
 file, and a later pull request reads the refreshed file at the level its
@@ -156,7 +160,8 @@ nothing was compared: `seal/budgets.md` is missing or a row of it cannot be
 read, a row names a budget no measurer here reads or a file the tree does
 not have, a family row and its file table are not both there, `CLAUDE.md` or
 `.test_durations` is missing or unreadable, the baseline does not resolve,
-`--pr-body-env` names a variable that is not set, the job list is missing or
+`--pr-body-env` names a variable that is not set, `--restate-price` has no
+`--baseline` or no `## Price level` table to write into, the job list is missing or
 unreadable or has no pytest job on a leg a row names, an `Enforced by:`
 target names a Python file that will not parse, or a sibling module this
 reads through is not beside it. Closed, never silent.
@@ -1235,6 +1240,11 @@ def render(results, moves, against, cache=None):
             f"that `## {PRICE_TITLE}` states, into the prices their ceilings are "
             "written in."
         )
+    if "restated" in cache:
+        lines.append(
+            f"`--restate-price` wrote {cache['restated']} per mille into "
+            f"`## {PRICE_TITLE}` of `{BUDGETS_GIT}`; commit it with the file."
+        )
     lines += [
         "",
         "| Budget | Measured | Ceiling | Headroom | Kind | Verdict |",
@@ -1328,12 +1338,27 @@ def trend_rows(root, tag):
     return {row.name: row for row in rows}
 
 
-def check(root, baseline=None, body="", release=False, ci_jobs=None, trend=None):
+def check(
+    root,
+    baseline=None,
+    body="",
+    release=False,
+    ci_jobs=None,
+    trend=None,
+    restate=False,
+):
     """`(problems, refusals, summary)` for the tree at `root`, or, with
     `ci_jobs`, for the rows read off that one run, and only those. With
     `trend`, the summary sets every budget beside its ceiling at that tag.
+    With `restate`, a price level that does not follow the durations file is
+    written into `seal/budgets.md` rather than failed.
 
     Reads: guess — `seal/budgets.md` and the body its caller handed it, through the units above; unknown refused"""
+    if restate and baseline is None:
+        raise Unreadable(
+            "--restate-price was given without --baseline, and the level it "
+            "writes is the base's times how far the durations file moved from it"
+        )
     head_text = budgets_text_here(root)
     head = parse_budgets(head_text, BUDGETS_GIT)
     level = stated_price(head_text, BUDGETS_GIT)
@@ -1367,6 +1392,11 @@ def check(root, baseline=None, body="", release=False, ci_jobs=None, trend=None)
             ratio, common = price_level(before, durations(root), against)
             cache["price"] = (ratio, common)
             priced = price_problems(base_level, ratio, common, level)
+            if restate and priced:
+                level = restate_price(root, head_text, seconds(base_level * ratio))
+                cache["level"] = fractions.Fraction(level, PER_MILLE)
+                cache["restated"] = level
+                priced = []
     for row in head:
         try:
             results.append(measured_row(root, row, names, cache))
@@ -1404,6 +1434,28 @@ def price_problems(base_level, ratio, common, level):
             "moves it",
         )
     ]
+
+
+def restate_price(root, text, expected):
+    """Write `expected` into the one row of `## Price level` in the
+    `seal/budgets.md` at `root`, whose text is `text`, changing that line and
+    no other, and return it; Unreadable where no such table is there.
+
+    Reads: guess — a person's markdown table, through `hooks/config.py#gfm_table`; unknown refused"""
+    rows, refused = sibling("config").gfm_table(text, PRICE_HEADER)
+    if refused or len(rows) != 1:
+        raise Unreadable(
+            f"--restate-price has no `## {PRICE_TITLE}` table "
+            f"`| {' | '.join(PRICE_HEADER)} |` with one row in {BUDGETS_GIT} "
+            f"to write {expected} into"
+        )
+    line = rows[0][0]
+    lines = text.splitlines(keepends=True)
+    end = lines[line - 1][len(lines[line - 1].rstrip("\r\n")) :]
+    lines[line - 1] = f"| {DURATIONS} | {expected} |{end}"
+    with open(os.path.join(root, BUDGETS), "w", encoding="utf-8", newline="") as out:
+        out.write("".join(lines))
+    return expected
 
 
 def measured_row(root, row, names, cache):
@@ -1547,6 +1599,7 @@ def main(argv=None, env=None):
     parser.add_argument("--base-ref", metavar="BRANCH", default="")
     parser.add_argument("--ci-jobs", metavar="FILE")
     parser.add_argument("--trend", metavar="TAG")
+    parser.add_argument("--restate-price", action="store_true")
     args = parser.parse_args(argv)
     try:
         body = ""
@@ -1564,6 +1617,7 @@ def main(argv=None, env=None):
             release=args.base_ref == RELEASE_BRANCH,
             ci_jobs=args.ci_jobs,
             trend=args.trend,
+            restate=args.restate_price,
         )
     except Unreadable as error:
         sys.stderr.write(f"budget-check: {error}. Nothing was compared.\n")

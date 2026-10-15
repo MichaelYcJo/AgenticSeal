@@ -176,9 +176,15 @@ entries the suite no longer collects.
 case alone against the whole collection, and naming one module skips it.
 To refresh the file, take the artifact from your branch's latest `tests`
 run: `gh run download <run id> -n test-durations -D <dir>`, then move
-`<dir>/.test_durations` over the committed file and commit it. Its line
-ends are already LF. The download goes to a directory of its own because
-`gh` will not write over a file that is already there. A run older than
+`<dir>/.test_durations` over the committed file. Its line ends are already
+LF. The download goes to a directory of its own because `gh` will not
+write over a file that is already there. Then run
+`python3 .github/scripts/budget_check.py --baseline origin/<base> --restate-price`,
+where `<base>` is the branch your pull request merges into, and commit
+`.test_durations` and `seal/budgets.md` together: the command writes the
+`## Price level` the new file implies, which the hygiene workflow's budget
+step holds the refresh to, and its exit 0 is the verdict that step will
+give. A run older than
 seven days is re-run first, with `gh run rerun <run id>`. A branch with no
 pull request has no `tests` run until one is dispatched, and neither has a
 branch whose run is too old to re-run:

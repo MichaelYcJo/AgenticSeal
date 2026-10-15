@@ -27,6 +27,7 @@ first divergence, closed in phase 3. -->
 | The ledger records | `spec.md` In 6 and S8, as framed: a ledger fragment, `Re-read ·` and `Corrected ·` rows, `survivors.md`, `evidence-check --strict` exit 0 | removed when the branch was rebased onto #944, which took the ledger, `evidence-check` and `survivor-check` out of the plugin; `spec.md` and `plan.md` phase 3 rewritten to the records that remain | nothing reads a ledger fragment or a `survivors.md` on the release branch; `phases/phase-3.md` keeps what the ledger work found as the history of that phase |
 
 | The `slow-file` rows | `spec.md` Out, as framed: "this item decides when that is, and changes nothing in #930's mechanism" | the `slow-file` family is a `report` row in `seal/budgets.md`; `suite-seconds` stays a gate | round 3's 🟡 2, executed: four unions of one tree moved single test files 0.67 to 1.72 times the level, and every union refresh measured put one past the 1.3 band; `slow_file_values` reads only `.test_durations`, so a gate there could fire only on the refresh pull request, which never causes the growth |
+| The price level a refresh commits | `spec.md` In 3, as framed: the remedy is "download …, make its line ends LF, commit it" | the remedy and the `CONTRIBUTING.md` recipe also run `budget_check.py --baseline origin/<base> --restate-price`, a flag added to #930's checker, and commit `seal/budgets.md` with the file | round 3's 🟡 1, executed: the tip's union over the tree failed the hygiene workflow's budget step until `## Price level` was restated, and the number to write was printed only in that failure; the flag writes the number `price_problems` computes, so the level has one source and no person copies it |
 
 ## Not verified
 
@@ -39,14 +40,6 @@ first divergence, closed in phase 3. -->
 
 ## Not done
 
-- **Whether the refresh recipe names `## Price level`.** The row reads
-  1132, the level #944 wrote for its unsharded refresh, and this branch
-  changes neither the file nor the row. `REMEDY` and the `CONTRIBUTING.md`
-  recipe do not name the row; the hygiene workflow's budget step names it
-  on the pull request that commits a refresh, with the number to write — the median
-  over test files of the new file's price ratio against the base's. The
-  union of run 38475370013 read 1073 against the file before #944's, where
-  `phases/phase-2.md`'s seconds-weighted 1.0706 had predicted about 1071.
 - **Q3's prices.** The job times are measured (7 s and 11 s for `durations`);
   the per-minute price page was not opened.
 - **#914.** Its `workflow_dispatch` measuring input has nothing left to run;

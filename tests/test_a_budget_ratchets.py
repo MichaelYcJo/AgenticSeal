@@ -759,6 +759,53 @@ def test_the_price_level_follows_the_durations_file_and_nothing_else(
     assert first.startswith("budget-check: price level: ") and said in first, out
 
 
+def test_restate_price_writes_the_level_a_refresh_implies(tmp_path, capsys):
+    """Work item 1791876667, round 3's 🟡 1: committing a union used to
+    fail until a person copied the level out of the run's message.
+    `--restate-price` writes the number the check would have named into the
+    one row of `## Price level`, changes no other line, and the run that
+    wrote it holds, as the hygiene workflow's step will on that commit."""
+    root = refreshed(tmp_path, priced(1.07), RESCALED + price(1000))
+    assert ratchet(root, "", "--restate-price") == 0, capsys.readouterr()
+    written = (root / "seal" / "budgets.md").read_text("utf-8")
+    assert written == RESCALED + price(1070), written
+    out = capsys.readouterr().out
+    assert (
+        "`--restate-price` wrote 1070 per mille into `## Price level` of "
+        "`seal/budgets.md`; commit it with the file." in out
+    ), out
+    assert ratchet(root, "") == 0, capsys.readouterr()
+
+
+@pytest.mark.parametrize(
+    "head, args, said",
+    [
+        (
+            RESCALED + price(1000),
+            ("--restate-price",),
+            "--restate-price was given without --baseline",
+        ),
+        (
+            RESCALED,
+            ("--baseline", "base", "--restate-price"),
+            "--restate-price has no `## Price level` table",
+        ),
+    ],
+    ids=["no baseline", "no table to write into"],
+)
+def test_restate_price_with_nothing_to_restate_against_or_into_is_exit_2(
+    tmp_path, capsys, head, args, said
+):
+    """The level written is the base's times the file's move, so with no
+    baseline there is nothing to write; and a tree with no `## Price level`
+    table has no row to write it into. Both are exit 2 naming why, and the
+    file is left as it was."""
+    root = refreshed(tmp_path, priced(1.07), head)
+    assert run(root, *args) == 2
+    assert said in capsys.readouterr().err
+    assert (root / "seal" / "budgets.md").read_text("utf-8") == head
+
+
 def test_a_refreshed_file_holds_at_the_next_pull_request(tmp_path, capsys):
     """After a refresh lands with its level, the next pull request's base
     holds the refreshed file: the ratio is 1 and the rows are read at the

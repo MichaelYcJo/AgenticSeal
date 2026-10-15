@@ -22,7 +22,8 @@ printed in every summary and fails nothing, and `suite-seconds`, the sum
 that averages that spread out, is the gate. The seconds ceilings are
 written in one set of prices; `## Price level` says how the committed
 `.test_durations` prices stand against them, and a refresh of that file
-restates it to the number the checker names. A `bytes` row counts each CRLF
+restates it with `budget_check.py --restate-price`, as `CONTRIBUTING.md`
+§*Running the checks* gives the command. A `bytes` row counts each CRLF
 as the one LF git stores, so a checkout on any platform measures the same
 commit alike. -->
 

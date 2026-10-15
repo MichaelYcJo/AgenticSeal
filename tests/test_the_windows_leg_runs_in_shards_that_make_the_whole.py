@@ -280,7 +280,9 @@ REMEDY = (
     "Refresh it from this branch's latest `tests` run, whose `durations` job "
     "unioned the Windows shards' parts: `gh run download <run id> -n "
     "test-durations -D <dir>`, then move <dir>/.test_durations over the "
-    "committed .test_durations and commit it; its line ends are already LF. "
+    "committed .test_durations, write the price level it implies into "
+    "seal/budgets.md with `budget_check.py --restate-price`, and commit both; "
+    "the file's line ends are already LF. "
     "A run older than the artifact's seven days is re-run first, with "
     "`gh run rerun <run id>`; a branch with no pull request, or whose run "
     "is too old to re-run, gets one with `gh workflow run test.yml --ref "
@@ -385,7 +387,9 @@ def test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe():
     a directory of its own -- `gh run download` refuses to write over the
     committed file -- the re-run for an artifact past its seven days, and
     the dispatch for a branch with no run to download from (round 1's 🟡 2):
-    a branch with no pull request runs `tests` only when dispatched."""
+    a branch with no pull request runs `tests` only when dispatched. The
+    price level is written by the checker that holds it, in the same commit
+    (round 3's 🟡 1), so no person copies a number out of a failing run."""
     collected = _collection(FIXTURE_SIZE)
     priced = {node: 1.0 for node in collected[AT_THE_SHARE + 1 :]}
     sentence = staleness(collected, priced)
@@ -394,6 +398,7 @@ def test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe():
     assert f"({(AT_THE_SHARE + 1) / FIXTURE_SIZE:.1%})" in sentence
     assert "gh run download <run id> -n test-durations -D <dir>" in sentence
     assert "move <dir>/.test_durations over the committed" in sentence
+    assert "`budget_check.py --restate-price`, and commit both" in sentence
     assert "gh run rerun <run id>" in sentence
     assert "gh workflow run test.yml --ref <branch>" in sentence
     assert "CONTRIBUTING.md §Running the checks" in sentence
@@ -763,8 +768,10 @@ def test_the_recipe_names_the_artifact_and_the_checklist_has_no_box():
     """S6 of work item 1791876667. The paragraph a contributor meets when
     the staleness case goes red names the artifact and the download that
     works -- into a directory of its own, because `gh` will not overwrite --
-    and nothing of the measuring run it replaced. The release checklist has
-    no refresh box: a box a person ticks was the schedule 0.21.1 skipped."""
+    and nothing of the measuring run it replaced, and the command that writes
+    the price level the refresh is held to (round 3's 🟡 1). The release
+    checklist has no refresh box: a box a person ticks was the schedule
+    0.21.1 skipped."""
     running = section("CONTRIBUTING.md", "Running the checks")
     (recipe,) = [p for p in running.split("\n\n") if "goes stale" in p]
     flat = " ".join(recipe.split())
@@ -773,6 +780,9 @@ def test_the_recipe_names_the_artifact_and_the_checklist_has_no_box():
         "`gh run download <run id> -n test-durations -D <dir>`",
         "`gh run rerun <run id>`",
         "`gh workflow run test.yml --ref <branch>`",
+        "`python3 .github/scripts/budget_check.py --baseline origin/<base> "
+        "--restate-price`",
+        "commit `.test_durations` and `seal/budgets.md` together",
         "`durations` job",
         "`STALE_SHARE`",
         "entries the suite no longer collects",
