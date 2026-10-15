@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: "smith rule-smith-truncate"
-tags: ["behaviour", "smith", "rule"]
+tags: ["behaviour", "smith", "fixture"]
 runs: 2
 context:
   scaffold_script: scaffold.sh

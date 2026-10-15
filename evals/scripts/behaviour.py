@@ -5,14 +5,14 @@ A case is a directory `claude plugin eval` reads: `case.yaml` (config under
 and `model`), `prompt.md` (the prompt and nothing else), `scaffold.sh` (named
 by `context.scaffold_script`, a path relative to the case) and one file per
 grader under `graders/`. A grader's file name is its name, and its prefix is
-its kind for `noninferiority.py`: `reach-`, `shape-`, `truth-`, `rule-`.
+its kind for `noninferiority.py`: `reach-`, `shape-`, `truth-`.
 """
 
 import json
 import os
 import shutil
 
-KINDS = ("reach", "shape", "truth", "rule")
+KINDS = ("reach", "shape", "truth")
 ORCHESTRATOR_TOOLS = ("Agent", "Task", "Bash", "Read", "Write", "Edit", "Glob", "Grep")
 
 

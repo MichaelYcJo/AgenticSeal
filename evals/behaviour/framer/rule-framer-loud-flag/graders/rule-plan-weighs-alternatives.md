@@ -1,7 +1,0 @@
----
-type: 'regex'
-target: {source: 'file', path: 'seal/specs/1790000021-loud-flag/plan.md'}
-pattern: '^## Alternatives considered'
-flags: 'm'
----
-`plan.md` weighs alternatives with their failure scenarios.

@@ -21,7 +21,7 @@ BEHAVIOUR = os.path.join(EVALS, "behaviour")
 
 REQUIRED = ("schema_version", "name", "runs", "max_turns", "timeout_seconds", "model")
 EXECUTION = ("max_turns", "timeout_seconds", "model", "allowed_tools")
-KINDS = ("reach", "shape", "truth", "rule")
+KINDS = ("reach", "shape", "truth")
 
 
 def case_dirs():

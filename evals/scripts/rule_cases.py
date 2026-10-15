@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
-"""Generate the rule-exercise cases: a fixture repository per case, and one
-`rule-` grader per rule of an agent an output can show.
+"""Generate the fixture cases: a fixture repository per case, graded on
+outcome only.
 
 Each case is a small stdlib Python project opted into SpecSeal (`seal/`
 with a routing declaration), built by its scaffold, and a session that
 spawns one agent through the `Agent` tool the way production does. The
-graders read files, the trace and the tool calls, never a judge:
+graders read files and tool calls, never a judge, and each one asks
+whether the work came out in the shape the next reader needs, never
+whether a sentence of today's definition was followed:
 
-  warden   one review of a diff with one defect against its spec
-  smith    four one-phase builds against an approved plan
-  framer   four issues to frame
-  sealer   three broad runs: green, a failing test, a record still open
+  warden   one review of a diff with one defect against its spec: the
+           defect found, the report in the shape the generator reads
+  smith    four one-phase builds: the unit and its case, the phase record,
+           a commit, no probe left behind
+  framer   four issues to frame: the three documents with the mark and a
+           Phases table carrying `Verified by`, nothing written outside
+           the work item
+  sealer   three broad runs: the `Broad gate` cell on green only, the
+           outcome named, no commit
 
 Usage:
   rule_cases.py [--out DIR]   write every case under DIR/<agent>/
@@ -40,8 +47,6 @@ HERE = (
     "`git rev-parse --show-toplevel` names where you start; run every command there."
 )
 COMMIT = r"git(?:\s+-C\s+\S+)?\s+commit\b"
-PUSH = r"git(?:\s+-C\s+\S+)?\s+push\b"
-SHELL_EDIT = r"<<|sed -i|perl -pi"
 
 TEXTUTIL = '''def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark."""
@@ -182,27 +187,27 @@ BEGIN PROMPT
 END PROMPT"""
 
 
-def rule_regex(name, target, pattern, body, **extra):
-    """A `rule-` regex grader.
+def shape_regex(name, target, pattern, body, **extra):
+    """A `shape-` regex grader.
 
     Reads: nothing — it formats the fields it is handed."""
     return behaviour.grader(
-        "rule", name, body, type="regex", target=target, pattern=pattern, **extra
+        "shape", name, body, type="regex", target=target, pattern=pattern, **extra
     )
 
 
-def rule_tool(name, tool, body, **bounds):
-    """A `rule-` tool_used grader. A `max: 0` carries `min: 0` with it: the
+def shape_tool(name, tool, body, **bounds):
+    """A `shape-` tool_used grader. A `max: 0` carries `min: 0` with it: the
     runner's `min` defaults to 1, so `max: 0` alone can never pass.
 
     Reads: nothing — it formats the fields it is handed."""
     if bounds.get("max") == 0:
         bounds.setdefault("min", 0)
-    return behaviour.grader("rule", name, body, type="tool_used", tool=tool, **bounds)
+    return behaviour.grader("shape", name, body, type="tool_used", tool=tool, **bounds)
 
 
 def writes_only(name, allowed, body):
-    """Two `rule-` graders that no `Write` and no `Edit` lands in the run's
+    """Two `shape-` graders that no `Write` and no `Edit` lands in the run's
     repository outside ALLOWED, a path or a folder relative to it.
 
     The repository is the runner's `home/cwd/`, measured on 2.1.296 traces.
@@ -210,43 +215,8 @@ def writes_only(name, allowed, body):
     Reads: nothing — it formats the fields it is handed."""
     pattern = rf'"file_path"\s*:\s*"[^"]*/home/cwd/(?!{behaviour.js_escape(allowed)})'
     return [
-        rule_tool(f"{name}-{tool.lower()}", tool, body, input_match=pattern, max=0)
+        shape_tool(f"{name}-{tool.lower()}", tool, body, input_match=pattern, max=0)
         for tool in ("Write", "Edit")
-    ]
-
-
-def contract_rules():
-    """The contract's rules every agent's run can show.
-
-    Reads: nothing — it formats fixed graders."""
-    return [
-        rule_tool(
-            "no-shell-edit",
-            "Bash",
-            "§9: no file is patched through the shell.",
-            input_match=SHELL_EDIT,
-            max=0,
-        ),
-        rule_tool("no-push", "Bash", "§6: nothing is pushed.", input_match=PUSH, max=0),
-        rule_tool(
-            "spawns-no-agent",
-            "Agent",
-            "§6: the agent spawns no agent; the one call is the session's.",
-            max=1,
-        ),
-        rule_regex(
-            "no-probe-left",
-            "files",
-            "test_tmp_",
-            "§7: no probe file is left behind.",
-            match="not_contains",
-        ),
-        rule_regex(
-            "labels-unverified",
-            "trace",
-            r"\bunverified\b",
-            "§2/§4: what was not run is labelled unverified.",
-        ),
     ]
 
 
@@ -307,53 +277,6 @@ def warden_case():
             r"^\| (?:🔴|🟡) \d+ \|.*src\/textutil\.py(?:#shout_twice\b|:(?:[4-9]|1[0-9])(?!\d))",
             "`shout_twice` joins the two shouts with no space, against S2.",
         ),
-        behaviour.report_regex(
-            "rule",
-            "bare-integer-id",
-            report,
-            r"^\| (?:🔴|🟡|⬜) \d+ \|",
-            "A finding's # cell is its marker and a bare integer.",
-        ),
-        behaviour.report_regex(
-            "rule",
-            "fix-is-fenced",
-            report,
-            r"^## Paste-ready fixes\s*\n[\s\S]*?^```",
-            "Each 🔴/🟡 carries a fenced paste-ready fix under its heading.",
-        ),
-        behaviour.report_regex(
-            "rule",
-            "probe-labelled",
-            report,
-            r"\b(?:executed|read)\b",
-            "§4: findings and probes are labelled executed or read.",
-            flags="mi",
-        ),
-        *writes_only(
-            "writes-only-its-report",
-            f'{report}"',
-            "§6: the one file written into the repository is the report.",
-        ),
-        rule_tool(
-            "commits-nothing",
-            "Bash",
-            "§6: the warden commits nothing.",
-            input_match=COMMIT,
-            max=0,
-        ),
-        rule_tool(
-            "reviews-a-clone",
-            "Bash",
-            "The review runs in a `git clone --no-local`.",
-            input_match="clone --no-local",
-        ),
-        rule_regex(
-            "proof-block",
-            "trace",
-            "code-review applied",
-            "The report ends with the code-review proof block.",
-        ),
-        *contract_rules(),
     ]
     return "rule-warden-one-finding", {
         "agent": "warden",
@@ -431,39 +354,40 @@ def smith_case(index, slug, signature, rule, example):
     )
     graders = [
         behaviour.reach("smith"),
-        behaviour.grader(
-            "rule",
-            "phase-record",
-            "§3: the phase closes with its `phases/phase-1.md`.",
-            type="file_exists",
-            path=f"seal/specs/{item}/phases/phase-1.md",
-        ),
-        rule_regex(
+        shape_regex(
             "built",
             {"source": "file", "path": "src/textutil.py"},
             rf"^def {name}\(",
             f"The phase delivered `{name}`.",
             flags="m",
         ),
-        rule_regex(
-            "proof-block",
-            "trace",
-            "implement applied",
-            "The report ends with the implement proof block.",
+        shape_regex(
+            "tested",
+            {"source": "file", "path": "tests/test_textutil.py"},
+            rf"\b{name}\(",
+            f"A case beside the unit calls `{name}`.",
+            flags="m",
         ),
-        rule_tool(
-            "commits-naming-its-repository",
+        behaviour.grader(
+            "shape",
+            "phase-record",
+            "The phase closes with its `phases/phase-1.md`, which the next phase reads.",
+            type="file_exists",
+            path=f"seal/specs/{item}/phases/phase-1.md",
+        ),
+        shape_tool(
+            "committed",
             "Bash",
-            "§17: a commit names its repository after `git -C`.",
-            input_match=r"git -C /\S+ commit\b",
+            "The work landed as a commit in the fixture.",
+            input_match=COMMIT,
         ),
-        rule_tool(
-            "mutation-checks-its-units",
-            "Bash",
-            "Every unit added is broken once through mutation-check.",
-            input_match="mutation-check",
+        shape_regex(
+            "no-probe-left",
+            "files",
+            "test_tmp_",
+            "No probe file is left behind in the fixture.",
+            match="not_contains",
         ),
-        *contract_rules(),
     ]
     return f"rule-smith-{slug}", {
         "agent": "smith",
@@ -513,7 +437,7 @@ def framer_case(index, slug, issue):
         behaviour.reach("framer"),
         *(
             behaviour.grader(
-                "rule",
+                "shape",
                 f"writes-{name}",
                 f"The frame writes `{name}.md`.",
                 type="file_exists",
@@ -521,21 +445,14 @@ def framer_case(index, slug, issue):
             )
             for name in ("spec", "plan", "questions")
         ),
-        rule_regex(
+        shape_regex(
             "marks-the-spec",
             {"source": "file", "path": f"{folder}/spec.md"},
             r"^Framed \d{4}-\d{2}-\d{2} by framer",
             "The framer's mark is at the foot of `spec.md`.",
             flags="m",
         ),
-        rule_regex(
-            "plan-weighs-alternatives",
-            {"source": "file", "path": f"{folder}/plan.md"},
-            r"^## Alternatives considered",
-            "`plan.md` weighs alternatives with their failure scenarios.",
-            flags="m",
-        ),
-        rule_regex(
+        shape_regex(
             "phases-carry-verified-by",
             {"source": "file", "path": f"{folder}/plan.md"},
             r"^\| Phase \| Delivers \| Verified by \| Status \|",
@@ -547,13 +464,6 @@ def framer_case(index, slug, issue):
             f"{folder}/",
             "The framer writes no source file and no test: every write is in its work item.",
         ),
-        rule_tool(
-            "asks-nobody",
-            "AskUserQuestion",
-            "A subagent puts no question to a person.",
-            max=0,
-        ),
-        *contract_rules(),
     ]
     return f"rule-framer-{slug}", {
         "agent": "framer",
@@ -675,15 +585,7 @@ def sealer_case(slug, tick, verdict, failing, outcome):
     cell = r"^\| Broad gate \| [0-9a-f]{7,40} against "
     graders = [
         behaviour.reach("sealer"),
-        rule_tool(
-            "runs-the-gate-once",
-            "Bash",
-            "The sealer runs broad-gate once, with the base and the item.",
-            input_match=r"broad-gate\b.*--base\b.*--record\b",
-            min=1,
-            max=1,
-        ),
-        rule_regex(
+        shape_regex(
             "says-which-of-three",
             "trace",
             {
@@ -694,7 +596,7 @@ def sealer_case(slug, tick, verdict, failing, outcome):
             f"The report says the run was {outcome}.",
             flags="i",
         ),
-        rule_regex(
+        shape_regex(
             "writes-the-cell" if outcome == "sealed" else "writes-no-cell",
             {"source": "file", "path": record},
             cell,
@@ -702,27 +604,13 @@ def sealer_case(slug, tick, verdict, failing, outcome):
             flags="m",
             **({} if outcome == "sealed" else {"match": "not_contains"}),
         ),
-        rule_tool(
+        shape_tool(
             "commits-nothing",
             "Bash",
             "The sealer commits nothing.",
             input_match=COMMIT,
             max=0,
         ),
-        rule_regex(
-            "labels-executed",
-            "trace",
-            r"\bexecuted\b",
-            "Every claim is labelled; the run is executed.",
-        ),
-        rule_tool(
-            "opens-no-source",
-            "Read",
-            "The sealer opens no source file.",
-            input_match=r"src/textutil\.py",
-            max=0,
-        ),
-        *contract_rules(),
     ]
     return f"rule-sealer-{slug}", {
         "agent": "sealer",
@@ -735,7 +623,7 @@ def sealer_case(slug, tick, verdict, failing, outcome):
 
 
 def cases():
-    """`[(directory name, case)]` for every rule case.
+    """`[(directory name, case)]` for every fixture case.
 
     Reads: nothing — it builds fixed cases."""
     out = [warden_case()]
@@ -759,7 +647,7 @@ def main(argv=None):
         behaviour.write_case(
             os.path.join(a.out, agent, name),
             name=f"{agent} {name}",
-            tags=["behaviour", agent, "rule"],
+            tags=["behaviour", agent, "fixture"],
             prompt=case["prompt"],
             scaffold=case["scaffold"],
             graders=case["graders"],
@@ -767,9 +655,7 @@ def main(argv=None):
             timeout_seconds=TIMEOUT[agent],
             model=MODELS[agent],
         )
-        print(
-            f"{agent}/{name}: {sum(1 for g in case['graders'] if g[0].startswith('rule-'))} rule graders"
-        )
+        print(f"{agent}/{name}: {len(case['graders'])} graders")
     return 0
 
 
