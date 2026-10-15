@@ -42,8 +42,8 @@ first divergence, closed in phase 3. -->
 - **Whether the refresh recipe names `## Price level`.** The row reads
   1132, the level #944 wrote for its unsharded refresh, and this branch
   changes neither the file nor the row. `REMEDY` and the `CONTRIBUTING.md`
-  recipe do not name the row; the `budgets` job names it on the pull
-  request that commits a refresh, with the number to write — the median
+  recipe do not name the row; the hygiene workflow's budget step names it
+  on the pull request that commits a refresh, with the number to write — the median
   over test files of the new file's price ratio against the base's. The
   union of run 38475370013 read 1073 against the file before #944's, where
   `phases/phase-2.md`'s seconds-weighted 1.0706 had predicted about 1071.

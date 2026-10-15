@@ -43,4 +43,4 @@
     summary and fails nothing, and `suite-seconds`, the sum, stays the gate.
     A pull request that commits
     a union restates `## Price level` in `seal/budgets.md` to the number the
-    `budgets` step names for it.
+    hygiene workflow's budget step names for it.
