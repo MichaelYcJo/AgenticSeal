@@ -7,13 +7,14 @@
 | Ran by | specseal:warden on claude-opus-5-5 |
 | PR | #939 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | nobody — the fixes are written and no round has opened them |
+| Fix range | `0235b297658bbab936a1abbf67adbafbba6c04e4..ad4149b1ddfa0a9b90eefe64984caff8780acca8`, 6 commits |
+| Contract changes | none |
+| New units | NONE_COLLECTED (depth 1); NEVER_STARTED (depth 1); NEVER_RAN (depth 1); AT_IMPORT (depth 1); EXPECTED (depth 1) |
 | Fix of a fix | first — 🟡 1 at .github/scripts/case_check.py#check, a unit round-1's fixes changed |
 | Needs a fix | yes — 🟡 1 (a case that skips in its body is still named for killing nothing), 🟡 2 (the census is said to hold hook code to 3.9 and holds two constructs and the syntax) |
 | Loses a record or crashes | no |
+<!-- New units: .github/workflows/test.yml, ruff.toml read by the diff-line heuristic and not by the AST -->
 
 - [ ] Pass
 
@@ -25,8 +26,8 @@ Verifying round 2 of #929: round 1's fixes over 9f9c9ed9..5ee4b39e (bin/test out
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | A new case that calls `pytest.skip()` in its body still starts its call, so it is in `hits`, escapes `NEVER_RAN`, and is named `kills nothing its file does not`; round 1's 🟡 3 is closed only for a marker skip, and the docstring, `test.yml:161` and `spec.md:91` are false for this spelling | `.github/scripts/case_check.py:848` | open | executed: fixture with an in-body skip, `main` returned 1 with the false reason; the paste-ready fix applied in the clone names it `not proved` and the module's 21 cases pass |
-| 🟡 2 | `CONTRIBUTING.md` and `ruff.toml` say the census holds every hook-run file to 3.9; it holds 3.9's syntax as `ast` sees it and two constructs, and `import tomllib` or a `str \| None` signature passes it and ruff and dies on 3.9 | `CONTRIBUTING.md:128`, `ruff.toml:41` | open | executed: planted file, `newer_than` returned `[]`, ruff passed, 3.9.6 raised on import; no hook-run file does this today (39 compile on 3.9.6, grep clean) |
+| 🟡 1 | A new case that calls `pytest.skip()` in its body still starts its call, so it is in `hits`, escapes `NEVER_RAN`, and is named `kills nothing its file does not`; round 1's 🟡 3 is closed only for a marker skip, and the docstring, `test.yml:161` and `spec.md:91` are false for this spelling | `.github/scripts/case_check.py:848` | **fixed** `7f457f6d` | fixed at 7f457f6d; executed: fixture with an in-body skip, `main` returned 1 with the false reason; the paste-ready fix applied in the clone names it `not proved` and the module's 21 cases pass |
+| 🟡 2 | `CONTRIBUTING.md` and `ruff.toml` say the census holds every hook-run file to 3.9; it holds 3.9's syntax as `ast` sees it and two constructs, and `import tomllib` or a `str \| None` signature passes it and ruff and dies on 3.9 | `CONTRIBUTING.md:128`, `ruff.toml:41` | **fixed** `448bea20` | fixed at 448bea20; executed: planted file, `newer_than` returned `[]`, ruff passed, 3.9.6 raised on import; no hook-run file does this today (39 compile on 3.9.6, grep clean) |
 | ⬜ 3 | The census case's docstring ends on the same claim as 🟡 2, softened by the sentence before it | `tests/test_a_script_says_which_interpreter_it_needs.py:409` | open | read |
 | ⬜ 4 | `matches` says it answers whether ruff's glob names a path, but ruff also matches a slash-less pattern against the basename; the census then refuses a table ruff honours, and is never more lenient than ruff | `tests/test_a_script_says_which_interpreter_it_needs.py:395` | open | executed: ruff 0.17.0 with a basename pattern linted the file at py39; `matches` returned False |
 | ⬜ 5 | Q7 is listed as waiting on the owner, and the tree answers it: the case rule has no platform exception, a report line would let more through with the bypass Q7 itself names, and no status check is required on the release branch | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/questions.md:25` | open | read: `CONTRIBUTING.md` §*A case is owed by a mutant only it kills* and §*What a change to a gate must carry*, `CLAUDE.md`, the branch ruleset |
