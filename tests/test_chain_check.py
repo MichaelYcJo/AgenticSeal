@@ -414,6 +414,66 @@ class TestOpenFindings:
         ]
         assert found[0][0] == lines.index("| 🔴 1 | x | `a:1` | open | g |") + 1
 
+    def test_a_row_whose_id_cell_carries_no_severity_closes_only_by_a_closing_word(
+        self,
+    ):
+        lines = reader.readable(
+            record(
+                "abc1234",
+                [
+                    "| 1 | 🔴 the severity in the Finding cell | `a:1` | open | g |",
+                    "|  | 🟡 an empty id cell | `a:2` | open | g |",
+                    "| carried | 🔴 a worded id cell | `a:3` | open | g |",
+                    "| 4 | no severity anywhere | `a:4` | open | g |",
+                    "| 5 | x | `a:5` | fixed abc1234 | g |",
+                    "| 🟢 | round 1's 🔴 2 is closed | `a:6` | confirmed | g |",
+                    "| ⬜ 7 | an old note naming 🟡 2 | `a:7` | open | g |",
+                ],
+            )
+        )
+        found, errors = chain.open_findings(reader, lines, "r.md")
+        assert errors == []
+        assert [(mark, word) for _line, mark, word in found] == [
+            ("1", "open"),
+            ("the row", "open"),
+            ("carried", "open"),
+            ("4", "open"),
+        ]
+
+    def test_a_red_or_yellow_row_closes_only_by_a_fix_pass_word(self):
+        lines = reader.readable(
+            record(
+                "abc1234",
+                [
+                    "| 🔴 1 | x | `a:1` | confirmed | g |",
+                    "| 🟡 2 | x | `a:2` | ❓ out of verified scope | g |",
+                    "| 🔴 3 | x | `a:3` | answered | g |",
+                ],
+            )
+        )
+        found, errors = chain.open_findings(reader, lines, "r.md")
+        assert errors == []
+        assert [(mark, word) for _line, mark, word in found] == [
+            ("🔴 1", "confirmed"),
+            ("🟡 2", "out of verified scope"),
+        ]
+
+    def test_the_id_column_is_found_by_its_header(self):
+        lines = reader.readable(
+            "# r\n\n## Verdicts\n\n"
+            "| Finding | # | Location | Verdict | Grounds |\n"
+            "|---|---|---|---|---|\n"
+            "| x | 🔴 1 | `a:1` | open | g |\n"
+            "| x | 🟡 2 | `a:2` | confirmed | g |\n"
+            "| x | 🟢 | `a:3` | confirmed | g |\n"
+        )
+        found, errors = chain.open_findings(reader, lines, "r.md")
+        assert errors == []
+        assert [(mark, word) for _line, mark, word in found] == [
+            ("🔴 1", "open"),
+            ("🟡 2", "confirmed"),
+        ]
+
 
 # --- follows ------------------------------------------------------------------
 
@@ -506,7 +566,7 @@ class TestMain:
         assert code == 1
         line = next(ln for ln in out.splitlines() if "🔴 1" in ln)
         assert line.startswith(f"{rel}:")
-        assert "`open`" in line
+        assert "`open`, which closes no finding: a fix pass writes" in line
         event = pathlib.Path(os.environ["GITHUB_EVENT_PATH"])
         event.write_text(
             json.dumps({"pull_request": {"draft": True}}), encoding="utf-8"

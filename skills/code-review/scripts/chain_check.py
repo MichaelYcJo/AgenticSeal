@@ -75,6 +75,10 @@ EARLIER_RUN = "; earlier run: "
 BLOCKING = "🔴"
 SHOULD = "🟡"
 FINDINGS = (BLOCKING, SHOULD)
+# The marks that open a row which is no finding: 🟢 and ❓, and an old
+# record's ⬜ note.
+NOT_FINDINGS = ("🟢", "❓", "⬜")
+ID_COLUMN = "#"
 
 DEFERRED = "deferred"
 OUT_OF_SCOPE = "out of verified scope"
@@ -92,6 +96,9 @@ CLOSED_WORDS = {
     "not a defect",
     "agreed, fixed",
 }
+# What closes a 🔴 or 🟡 row: `confirmed` and `out of verified scope` are a
+# 🟢 and a ❓ row's words, and answer no finding.
+FINDING_CLOSES = CLOSED_WORDS - {"confirmed", OUT_OF_SCOPE}
 # The closing words that close nothing without a home after them.
 HOME_WORDS = {DEFERRED}
 NO_HOME = "(no home)"
@@ -570,32 +577,45 @@ def issue_of(home):
     return int(found.group(1)) if found else None
 
 
-def severity_of(seen):
+def severity_of(seen, col=0):
     """The severity a verdict row's `#` cell opens with, or "".
 
     Reads: guess — the `#` cell a person wrote; unknown passed"""
-    cell = seen[0].strip() if seen else ""
+    cell = seen[col].strip() if len(seen) > col else ""
     found = MARKER.match(cell)
     lead = found.group(0) if found else ""
-    for mark in (BLOCKING, SHOULD):
+    for mark in FINDINGS + NOT_FINDINGS:
         if mark in lead:
             return mark
     return ""
 
 
 def open_findings(reader, lines, rel):
-    """([(line, the `#` cell, the verdict word)], errors) for every 🔴 or 🟡
-    row whose verdict closes nothing.
+    """([(line, the `#` cell, the verdict word)], errors) for every row that
+    is, or may be, a finding and whose verdict does not close it.
+
+    The `#` column is found by its header, the first column where there is
+    none. A row whose `#` cell opens with 🔴 or 🟡 closes only by a fix
+    pass's word, never by `confirmed` or `out of verified scope`; one opening
+    with 🟢, ❓ or ⬜ is no finding. Any other row — an empty `#` cell, a
+    number or a word with no severity before it — is a finding whose
+    severity was lost, and closes only by a word that closes something.
 
     Reads: guess — the warden's record, through `verdict_table`; unknown refused"""
-    rows, col, _header, errors = verdict_table(reader, lines, rel)
+    rows, col, header, errors = verdict_table(reader, lines, rel)
     if col < 0:
         return [], errors
-    found = [
-        (line, seen[0].strip(), verdict_of(seen, col))
-        for line, seen in rows
-        if severity_of(seen) in FINDINGS and verdict_of(seen, col) not in CLOSED_WORDS
-    ]
+    id_col = header.index(ID_COLUMN) if ID_COLUMN in header else 0
+    found = []
+    for line, seen in rows:
+        word = verdict_of(seen, col)
+        severity = severity_of(seen, id_col)
+        if severity in NOT_FINDINGS:
+            continue
+        closes = FINDING_CLOSES if severity in FINDINGS else CLOSED_WORDS
+        if word not in closes:
+            cell = seen[id_col].strip() if len(seen) > id_col else ""
+            found.append((line, cell or "the row", word))
     return found, errors
 
 
@@ -767,8 +787,8 @@ def records(reader, routing, root, item, rel, base):
                 (
                     path,
                     line,
-                    f"{mark} reads `{word or 'empty'}`, which closes nothing: a fix "
-                    "pass writes `fixed <commit>`, `answered` or `deferred <home>`",
+                    f"{mark} reads `{word or 'empty'}`, which closes no finding: a "
+                    "fix pass writes `fixed <commit>`, `answered` or `deferred <home>`",
                 )
             )
     last = found[-1]

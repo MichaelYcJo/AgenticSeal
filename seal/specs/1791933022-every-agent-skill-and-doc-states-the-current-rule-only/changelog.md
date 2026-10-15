@@ -27,8 +27,10 @@
   naming the pull request's branch and every one its own commits add or
   change. The declaration has to parse. A declared framer left `spec.md`,
   `plan.md` and its mark. A declared review chain left at least one round,
-  no 🔴 or 🟡 row reads `open`, and the last round's commit is HEAD or only
-  the work item's own records follow it. `broad-gate.md` names HEAD.
+  every 🔴 or 🟡 row reads `fixed`, `answered` or `deferred <home>`, and the
+  last round's commit is HEAD or only the work item's own records follow it.
+  A row whose `#` cell lost its severity, empty or a bare number, counts as
+  a finding too. `broad-gate.md` names HEAD.
   `guarantee.md` names HEAD and reads `sound`. A draft prints every refusal
   and fails nothing. A declaration that reached the branch inside another
   pull request's squash, a commit GitHub made with a subject ending `(#N)`,

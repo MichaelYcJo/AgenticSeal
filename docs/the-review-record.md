@@ -68,7 +68,12 @@ commit someone makes under GitHub's identity with a number reads as carried.
 Enforced by: tests/test_chain_check.py::TestCarriedBy, tests/test_chain_check.py::TestMain::test_a_release_pull_request_leaves_a_squashed_item_to_its_own_pull_request, tests/test_chain_check.py::TestMain::test_an_item_the_release_pull_requests_own_commit_changes_is_judged
 
 **A ready pull request fails while any 🔴 or 🟡 row of any record reads a
-word that closes nothing.**
+word that closes no finding.** A row is a finding by its `#` cell, the column
+headed `#`. One opening with 🔴 or 🟡 closes only by `fixed`, `answered` or
+`deferred <home>`, never by `confirmed` or `out of verified scope`; one
+opening with 🟢, ❓ or an old record's ⬜ is no finding. Any other `#` cell —
+empty, a bare number, a word — is a finding whose severity was lost, and it
+fails unless its verdict closes something.
 Enforced by: tests/test_chain_check.py::TestOpenFindings, tests/test_chain_check.py::TestMain
 
 **The last record is at HEAD, or only the work item's own records follow
