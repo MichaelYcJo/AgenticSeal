@@ -156,6 +156,73 @@ def check(root, capsys, *extra):
     return code, capsys.readouterr().out
 
 
+# --- changed ------------------------------------------------------------------
+
+
+def two_declarations(tmp_path):
+    """`main` holds one declaration; `feature/y` checked out, nothing yet."""
+    d = tmp_path / "c"
+    d.mkdir()
+    git(d, "init", "-q", "-b", "main")
+    git(d, "config", "user.email", "t@t")
+    git(d, "config", "user.name", "t")
+    old = ROUTING.format(review="straight to the PR", planning="the session")
+    write(d, "seal/specs/1788000000-old/routing.md", old)
+    commit(d, "base")
+    git(d, "switch", "-q", "-c", "feature/y")
+    return d, old
+
+
+class TestChanged:
+    def test_a_declaration_moved_unchanged_is_neither_judged_nor_missed(self, tmp_path):
+        """A move of the whole root renames every declaration at once, and a
+        declaration the pull request only moved is not one it made (#90)."""
+        d, _old = two_declarations(tmp_path)
+        git(d, "mv", "seal/specs/1788000000-old", "seal/specs/1788000000-moved")
+        commit(d, "moved")
+        paths, renamed = chain.changed(str(d), "main")
+        assert renamed == {
+            "seal/specs/1788000000-old/routing.md",
+            "seal/specs/1788000000-moved/routing.md",
+        }
+        assert chain.changed_routing(paths, renamed, "seal/specs") == []
+
+    def test_a_move_not_yet_committed_is_read_from_the_files(
+        self, tmp_path, monkeypatch
+    ):
+        """Under `--worktree` git names no blob for the working tree's side,
+        so the moved file's bytes are hashed to pair it."""
+        d, _old = two_declarations(tmp_path)
+        git(d, "mv", "seal/specs/1788000000-old", "seal/specs/1788000000-moved")
+        monkeypatch.setattr(chain, "WORKTREE", True)
+        _paths, renamed = chain.changed(str(d), "main")
+        assert renamed == {
+            "seal/specs/1788000000-old/routing.md",
+            "seal/specs/1788000000-moved/routing.md",
+        }
+
+    def test_a_deletion_beside_a_similar_addition_is_not_read_as_a_rename(
+        self, tmp_path
+    ):
+        """Two declarations from one template differ in a row or two, which
+        git's rename detection pairs. The check reads declarations, not file
+        identity, so the deletion is seen."""
+        d, old = two_declarations(tmp_path)
+        git(d, "rm", "-q", "seal/specs/1788000000-old/routing.md")
+        write(
+            d,
+            "seal/specs/1791999999-new/routing.md",
+            old.replace("feature/x", "feature/y"),
+        )
+        commit(d, "one leaves, one arrives")
+        paths, renamed = chain.changed(str(d), "main")
+        assert renamed == set()
+        assert chain.changed_routing(paths, renamed, "seal/specs") == [
+            "seal/specs/1788000000-old/routing.md",
+            "seal/specs/1791999999-new/routing.md",
+        ]
+
+
 # --- verdict_of ---------------------------------------------------------------
 
 
@@ -499,15 +566,12 @@ def remove_an_earlier_item(root, marker):
     remove its directory there, with or without the `docs/` marker a fold
     writes."""
     git(root, "switch", "-q", "main")
-    # The filler keeps `git diff -M` from pairing this deletion with the
-    # branch's own added declaration as one rename, which would hide it.
-    filler = "".join(f"A line of its own, number {n}.\n" for n in range(40))
+    # Close enough to the branch's own declaration for git's rename detection
+    # to pair the two, which `changed` reads without.
     write(
         root,
         f"{OLD_ITEM}/routing.md",
-        ROUTING.format(review="straight to the PR", planning="the session")
-        + "\n"
-        + filler,
+        ROUTING.format(review="straight to the PR", planning="the session"),
     )
     # A spec at the merge base keeps the rule arm (`retired_by_rule`) from
     # excusing the removal, so only the marker can.

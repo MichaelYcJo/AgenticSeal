@@ -143,52 +143,65 @@ def git(root, *args):
 WORKTREE = False
 
 
+NO_BLOB = re.compile(r"^0+$")
+
+
 def changed(root, base):
-    """`(paths, renamed)` this pull request adds or changes, or None.
+    """`(paths, moved)` this pull request adds, changes or deletes, or None.
 
-    Every path the diff `base...HEAD` names under its new name, and the
-    subset that arrived as an exact rename. Under `WORKTREE` the diff is
-    against the working tree and untracked files count as added.
+    Every path the diff `base...HEAD` names, read with `--no-renames`: the
+    check reads declarations, not file identity, so a deleted declaration
+    is never paired away with a similar added one. `moved` is both names of
+    every exact move — a deleted file whose bytes an added file of the same
+    name carries — which is what the root move of #90 does to every
+    declaration at once. Under `WORKTREE` the diff is against the working
+    tree and untracked files count as added.
 
-    Reads: observed — `git diff --name-status -z`; unknown refused"""
+    Reads: observed — `git diff --raw -z --no-renames`; unknown refused"""
     if WORKTREE:
         fork = git(root, "merge-base", base, "HEAD")
         if fork is None:
             return None
-        out = git(root, "diff", "--name-status", "-z", "-M", fork.strip())
+        out = git(
+            root, "diff", "--raw", "-z", "--no-renames", "--no-abbrev", fork.strip()
+        )
         untracked = git(root, "ls-files", "--others", "--exclude-standard", "-z")
         if out is None or untracked is None:
             return None
-        out += "".join(f"A\0{p}\0" for p in untracked.split("\0") if p)
+        out += "".join(f":0 0 0 0 A\0{p}\0" for p in untracked.split("\0") if p)
     else:
-        out = git(root, "diff", "--name-status", "-z", "-M", f"{base}...HEAD")
+        out = git(
+            root, "diff", "--raw", "-z", "--no-renames", "--no-abbrev", f"{base}...HEAD"
+        )
     if out is None:
         return None
     fields = out.split("\0")
-    paths, renamed = [], set()
-    i = 0
-    while i < len(fields):
-        status = fields[i]
-        if not status:
-            i += 1
+    paths, deleted, added = [], {}, []
+    for i in range(0, len(fields) - 1, 2):
+        meta = fields[i].split()
+        if len(meta) < 5:
             continue
-        if status[0] in "RC":
-            if i + 2 >= len(fields):
-                break
-            paths.append(fields[i + 2])
-            if status == "R100":
-                renamed.add(fields[i + 2])
-            i += 3
+        path = fields[i + 1]
+        paths.append(path)
+        if meta[4] == "D":
+            deleted.setdefault(os.path.basename(path), {})[meta[2]] = path
+        elif meta[4] == "A":
+            added.append((path, meta[3]))
+    moved = set()
+    for path, blob in added:
+        same_name = deleted.get(os.path.basename(path))
+        if not same_name:
             continue
-        if i + 1 >= len(fields):
-            break
-        paths.append(fields[i + 1])
-        i += 2
-    return paths, renamed
+        if NO_BLOB.match(blob):
+            hashed = git(root, "hash-object", "--", path)
+            blob = hashed.strip() if hashed else blob
+        if blob in same_name:
+            moved.update((path, same_name[blob]))
+    return paths, moved
 
 
-def changed_routing(paths, renamed, work_items):
-    """The routing declarations among `paths` that were not only renamed.
+def changed_routing(paths, moved, work_items):
+    """The routing declarations among `paths` that were not only moved.
 
     Reads: nothing — filters the paths `changed` handed it"""
     return sorted(
@@ -196,7 +209,7 @@ def changed_routing(paths, renamed, work_items):
         for p in paths
         if p.startswith(f"{work_items}/")
         and os.path.basename(p) == "routing.md"
-        and p not in renamed
+        and p not in moved
     )
 
 
@@ -859,10 +872,10 @@ def main(argv=None):
     if diff is None:
         print(f"chain-check: cannot diff against {args.baseline}", file=sys.stderr)
         return 2
-    paths, renamed = diff
+    paths, moved = diff
     own, why = declared_for_this_branch(root, routing)
     declarations = sorted(
-        set(changed_routing(paths, renamed, routing.WORK_ITEMS)) | set(own)
+        set(changed_routing(paths, moved, routing.WORK_ITEMS)) | set(own)
     )
 
     state, where = pull_request_state(root)
