@@ -165,14 +165,15 @@ jobs:
       # reasoning the step above gives for an honest open row: a build that
       # goes red for one teaches people to write none. It fails for what the
       # author can fix: a declaration that says "through the review chain"
-      # with no committed round record, a declaration that cannot be read, a
-      # round record whose `Pass` is checked while a 🔴 in its own verdict
-      # table is still open, and — on a pull request that is not a draft — a
-      # last round whose `Pass` was never checked at all.
+      # with no committed round record, a declaration that cannot be read,
+      # and — on a pull request that is not a draft — a 🔴 or 🟡 row still
+      # open, a last record behind HEAD, or no `broad-gate.md` at HEAD
+      # (`docs/the-review-record.md` §*What the check reads at the pull
+      # request*).
       #
       # The draft state comes from GITHUB_EVENT_PATH, which this runner
       # already sets. A review still running opens its pull request as a
-      # draft; that is the only way past the `Pass` requirement.
+      # draft, where every refusal prints and none fails.
       # `chain_check.py` looks for a round's `Target SHA` on HEAD, on the
       # branch the declaration names, and on the pull request head that
       # carried it. Only the last one survives: a squash discards the reviewed

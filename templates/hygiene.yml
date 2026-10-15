@@ -88,9 +88,9 @@ jobs:
 
       # A work item routed "through the review chain" has to carry the round
       # record it claimed. It never fails a pull request that declared
-      # nothing; it fails a declaration with no committed round, a round whose
-      # `Pass` is checked over an open 🔴, and — once the pull request is no
-      # longer a draft — a last round whose `Pass` was never checked.
+      # nothing; once the pull request is no longer a draft it fails a
+      # declaration with no committed round, a 🔴 or 🟡 row still open, a
+      # last record behind HEAD, and no `broad-gate.md` at HEAD.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |

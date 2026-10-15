@@ -72,7 +72,7 @@ off in every clone.
 
 | Item still here | Destination |
 |---|---|
-| Tests to plant (`seal/specs/<work-item-id>/tests-todo.md`) | the implementation commit — or `seal/follow-up.md` if blocked on prerequisite work |
+| A finding still open in `seal/specs/<work-item-id>/rounds/round-N.md`, a test to plant among them | the implementation commit — or `seal/follow-up.md` if blocked on prerequisite work |
 | Open decisions | the policy document's open-questions section |
 
 Closing without exporting leaves the list where nothing looks for it — a
@@ -96,8 +96,8 @@ seal/
     ├── routing.md         which way it was routed, written before the first edit
     ├── spec.md · plan.md · questions.md · overview.md · changelog.md
     ├── rounds/
-    │   └── round-N.md     target SHA · Pass · who checked the fixes · verdicts · executed probes · inherited coordinates · deferrals
-    └── tests-todo.md      regression tests to plant, destination file per row
+    │   └── round-N.md     target SHA · verdicts · paste-ready fixes · executed probes
+    └── broad-gate.md      the one broad run, at a SHA, against the base
 ```
 
 There is no task list here and no directory for one. `plan.md`'s Phases table

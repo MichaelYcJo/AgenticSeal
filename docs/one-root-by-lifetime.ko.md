@@ -71,7 +71,7 @@ Enforced by: tests/test_no_document_names_the_old_roots.py::test_no_shipped_docu
 
 | 작업의 기록(SDD 문서): 무엇을 왜 만들기로 했는가 | 과정의 기록: SpecSeal 의 검사기가 읽는 것 |
 |---|---|
-| `spec.md` · `plan.md` · `questions.md` · `overview.md` · `changelog.md` | `routing.md`(경로를 정하지 않은 커밋을 멈추는 훅인 커밋 게이트가 읽음) · `rounds/round-N.md`(선언한 리뷰 체인에 기록이 있는지 PR 에서 확인하는 `chain_check.py` 가 읽음) · `tests-todo.md` |
+| `spec.md` · `plan.md` · `questions.md` · `overview.md` · `changelog.md` | `routing.md`(경로를 정하지 않은 커밋을 멈추는 훅인 커밋 게이트가 읽음) · `rounds/round-N.md`(선언한 리뷰 체인에 기록이 있는지 PR 에서 확인하는 `chain_check.py` 가 읽음) · `broad-gate.md` |
 | 스펙 주도 개발(SDD)이면 SpecSeal 이 없어도 있다 | SpecSeal 의 게이트가 읽기 때문에 있다 |
 | 병합 뒤에 사람이 "왜" 를 알려고 읽는다 | 병합 뒤에는 아무것도 읽지 않는다 |
 
@@ -100,7 +100,7 @@ CI 와 다른 클론에 닿아야 하기 때문입니다.
 │       ├── spec.md plan.md questions.md overview.md      작업의 기록: 무엇을 왜 만들기로 했는가
 │       ├── changelog.md                                  릴리스 때 CHANGELOG.md 로 모은다
 │       ├── routing.md rounds/round-N.md                  과정의 기록: 커밋 게이트와 CI 가 읽는 것
-│       ├── tests-todo.md
+│       ├── broad-gate.md
 │       └── pr.ko.md
 ├── docs/                          정책서, 그리고 settle 이 작업의 기록을 접어 넣는 자리. 사람이 읽고, 사람과 settle 이 쓴다
 ├── CHANGELOG.md                   그대로

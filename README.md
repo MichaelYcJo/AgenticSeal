@@ -162,7 +162,6 @@ tables:
 |---|---|---|---|
 | git hooks (`pre-commit`, `reference-transaction`, `post-commit`) | inside git, in every opted-in clone a session reaches | judge a commit in the worktree it lands in, from inside the commit rather than from the command's text, so no shell construct moves one around the judgment. A worktree creation and a branch switch are still judged before the command runs, by the worktree guard below. The commit gate's arms are the ones in the next row; a stop is the hook refusing with the ways on in the command's output, and `git -c specseal.waive=review commit …` is the waiver in git's own spelling. A person's own commit, with no Claude session behind it, is not judged. Installed into the clone's common `hooks/` directory, marked so a hook somebody else wrote is never overwritten — where one is, or `core.hooksPath` is set, the clone keeps the next row's reading | `docs/the-commit-gate-inside-git.md` §The commit gate inside git |
 | commit-review-gate | before `git commit` | stops the commit when `.git/specseal-reviewed` does not hold the current HEAD sha, and puts the two ways on to you as options: run the review chain, or commit with `[no-review]` (which stays visible in the command). In a repo that declares `seal/parity.md` it also stops a code commit with no `.git/specseal-parity` for this HEAD — compare against the original, or `[no-parity]`. Both arms are put up together, in one question each. **Once per session per repository** — after that it is the plain confirmation, where approving is the waiver. Where you pressed `automation` on the routing question, no prompt reaches you at all: every stop goes back to the model as a refusal naming the ways on that need nobody. The repository judged is the one the command commits **into** — `git -C <path> commit` is judged at `<path>`, not where the shell sits. A `-C` the gate cannot resolve to a repository (a shell variable, since the gate reads the command before the shell expands it) stops the commit rather than passing it: it was never looked at, and that used to be indistinguishable from having passed | `seal/` at the root, or under the common git dir in local mode — silent elsewhere. A migration config lives inside it, so declaring one opts into both arms; waive the review arm per command with `[no-review]`, typed in FRONT of the command — `: '[no-review]'; git commit …`, quotes included |
-| review-history-guard | after posting/reading a PR review via `gh` | reminds to write / read `seal/specs/<work-item>/rounds/round-N.md` and the two todo files beside `rounds/`. It also names any record left at the old flat location, since nothing reads one there. It finds the work item the way the commit gate does — through the routing declaration that names this branch — so a branch that declared nothing is not reminded | same opt-in |
 | implementer-mark | before an Agent/Task call whose `subagent_type` is `framer` or `smith` (`specseal:smith`, or a project-local `smith`) | writes the checked-out branch name to `.git/specseal-planner` or `.git/specseal-implementer`, one file per axis. It prints nothing, so it can neither deny nor ask; it is the trace the notice below reads. Written before the group decides, so a spawn the worktree guard then stops still leaves one | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
 | implementer-notice | after a command that actually runs `git commit` | where this branch's `routing.md` answers `Planning` with `framer` or `Implementation` with `smith` and no mark of that axis stands for this branch, prints one line naming the file — **one line for both axes**, never one each. Nothing is said for an axis whose mark stands, whose row is absent or unreadable, or which answers `the session`. **Once per session per repository**, and it never blocks — a declared agent nobody spawned is a session forgetting its own answer, and a reminder is what that costs | same opt-in |
 | review-skill-gate | before the model opens a skill named `code-review` | puts the choice to you rather than making it: that name is Claude Code's built-in, not this plugin's. The built-in sweeps the diff for bugs and cleanup; `specseal:code-review` judges spec compliance first and inherits earlier rounds' verdicts. Fires **once per session per working tree**, so picking the built-in and retrying goes straight through. A skill you invoke yourself never routes through here | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
@@ -186,20 +185,15 @@ gets a notice saying nothing was checked.
 Each round record also has to say **who opened the fixes** that closed what it
 found. A round's findings are closed after it ends, by whoever writes the
 fixes, and the round that follows is what reads them — except after the last
-round, where nobody did and the box saying the review passed was ticked by the
-session that had just written them. So a run ends with a **verifying round**:
+round, where nobody did. So a run ends with a **verifying round**:
 spawned after those fixes are committed, pointed at their diff rather than at
-the branch, and asking whether each closed finding is actually closed. A round
+the branch, and asking of each finding marked closed whether its fix holds. A round
 that opens nothing needing a fix does not spend one of the three.
 
-The record's `Fixes checked by` row is where that lands. It names a later
-round, or says there was nothing to check, or says `nobody` and why. The last
-of those prints on every run, and on the run's last record beside a checked
-`Pass` it fails a ready pull request — a review cannot have passed while the
-fixes that closed its findings went unread. On a draft that pair prints and
-names the verifying round. Work items begun before the rule landed
-are excused and only print, so a run that already shipped that way says so in
-the diff instead of in a session that has ended.
+A ready pull request fails while a commit outside the work item's records
+follows the last record's `Target SHA` — a review cannot have passed while the
+fixes that closed its findings went unread. On a draft it prints and names the
+verifying round.
 
 No gate transmits your code, your paths, or your prompts anywhere. Four side
 effects are worth stating outright: session-lease writes a timestamp file under
@@ -592,18 +586,13 @@ What this does not do is as load-bearing as what it does.
   value is that a `none — <reason>` row is visible to you in the transcript.
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops
   a session from running the full suite mid-round; what exists is the
-  instruction, the warden's audit of the smith's seal, and the `round-N.md` field that
+  instruction, the warden's audit of the smith's seal, and `broad-gate.md`, which
   makes a repeat visible. A hook could not tell the difference anyway —
   whether the rounds have settled is not a property of the command being run.
-- **`Fixes checked by: nobody` prints everywhere and fails in one place.** On
-  the run's last record, beside a checked `Pass`, it fails a ready pull
-  request: a review cannot have passed while the fixes that closed its
-  findings went unread. On a draft that pair prints and names the verifying
-  round, and *Ready for review* re-runs the check. Anywhere else it only
-  prints. Work items begun before this rule landed are excused entirely,
-  because a check whose first act is red on merged history nobody can repair
-  is a check people learn to skip. The way out costs no round — one verifying
-  round at the diff of those fixes.
+- **Unread last fixes fail in one place.** A commit after the last record's
+  `Target SHA` fails a ready pull request; on a draft it prints and names the
+  verifying round, and *Ready for review* re-runs the check. The way out costs
+  no round — one verifying round at the diff of those fixes.
 - **A parity mark says someone compared, not that they compared well.** The
   gate checks that a comparison was recorded for this HEAD; the quality of
   that comparison is the reviewer's, and writing the mark for work you did not

@@ -72,7 +72,7 @@ is and who reads it after the merge.
 
 | The SDD set: what was decided and why | The process record: what SpecSeal's checkers read |
 |---|---|
-| `spec.md` · `plan.md` · `questions.md` · `overview.md` · `changelog.md` | `routing.md` (read by the commit gate, the hook that stops an unrouted commit) · `rounds/round-N.md` (read by `chain_check.py`, the pull-request check that a declared review chain has its record) · `tests-todo.md` |
+| `spec.md` · `plan.md` · `questions.md` · `overview.md` · `changelog.md` | `routing.md` (read by the commit gate, the hook that stops an unrouted commit) · `rounds/round-N.md` (read by `chain_check.py`, the pull-request check that a declared review chain has its record) · `broad-gate.md` |
 | exists under spec-driven development (SDD) with or without SpecSeal | exists because SpecSeal's gates read it |
 | read by people after the merge, for "why" | read by nothing after the merge |
 
@@ -101,7 +101,7 @@ must reach CI and other clones.
 │       ├── spec.md plan.md questions.md overview.md      the SDD set: what was decided and why
 │       ├── changelog.md                                  gathered into CHANGELOG.md at release
 │       ├── routing.md rounds/round-N.md                  the process record: what the commit gate and CI read
-│       ├── tests-todo.md
+│       ├── broad-gate.md
 │       └── pr.ko.md
 ├── docs/                          policy, and where settle folds the SDD set. Read by people; written by people and by settle
 ├── CHANGELOG.md                   unchanged

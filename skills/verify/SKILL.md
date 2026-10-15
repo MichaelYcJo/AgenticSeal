@@ -60,12 +60,12 @@ is the same defect as a `read` reported as passing, with a longer fuse.
 
 Condition 2 is asked of the case in front of you. **A module has arms nobody
 ever asked it of**, and counting them by hand is how the count rots: #262's
-own table says 33 arms where `hooks/review-history-guard.py` now has 31,
-because the file changed twice after the count was taken.
+own table said 33 arms where the module it counted had 31, because the file
+changed twice after the count was taken.
 
 ```
-arm-check hooks/review-history-guard.py
-arm-check hooks/review-history-guard.py --tests "bin/test tests/test_chain_hooks.py -q"
+arm-check hooks/commit-review-gate.py
+arm-check hooks/commit-review-gate.py --tests "bin/test tests/test_chain_hooks.py -q"
 ```
 
 With no `--tests` it lists the arms and mutates nothing. With `--tests` it
@@ -91,7 +91,7 @@ is #313.
 **There are two ways to be wrong and the counts differ by a lot**, so the
 report keeps them apart and the number you quote has to say which one it is:
 
-| Operator | Asks | Measured 2026-09-09 on `hooks/review-history-guard.py` |
+| Operator | Asks | Measured 2026-09-09 on the review-history guard, a hook since removed |
 |---|---|---|
 | `invert` | would a case notice this test being **backwards** | 0 of 29 survived |
 | `remove` | would a case notice this arm being **absent** | 12 of 32 survived |
