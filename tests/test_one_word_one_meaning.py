@@ -469,7 +469,7 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
 
     WHY SEVEN PHRASES ARE THE WHOLE OF WHAT IS AT RISK, which is a fact about
     the MEMBER lists rather than about the phrases: `flat` folds the seam for
-    `.py` members only, and across both sweeps five members are `.py`. Every
+    `.py` members only, and across both sweeps four members are `.py`. Every
     other phrase these sweeps look for is searched in a markdown member, where
     the fold never runs at all. That makes this a closed set and not a short
     list of examples — and because the closure rests on the member lists, it
