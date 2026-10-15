@@ -73,16 +73,16 @@ run alone passes what is left is named, `restructure: test the decision
 directly`, and so is a function still unproven when the bound is spent: a file
 that slow is testing its decisions through the whole stack.
 
-It runs on ubuntu alone. A case none of whose ids runs its call to the end
-there is named for that, `not proved: none of its ids ran its call to the end
-on this runner`, and no mutant is run against it; the job fails as it does
-for any case not proved. That is a case skipped by a mark, by a fixture, by
-`pytest.skip()`, `pytest.importorskip` or `skipTest` in its body, one an
-`xfail(run=False)` never starts, one deselected, and every case of a file
-skipped at import, whose run collects none and still counts as passing. An
-expected failure that runs its body is a run: a mutant fails it by making a
-strict one pass or by raising other than the exception its mark names, and
-one whose mark does neither is named for killing nothing.
+It runs on ubuntu alone. A case none of whose ids ran its body there, because
+pytest never started its call or its own stop ended it, is named for that,
+`not proved: none of its ids ran its call to the end on this runner`, and no
+mutant is run against it; the job fails as it does for any case not proved.
+The tracer decides it once per id from pytest's call report, and only that
+naming reads it: a case that asserted and then stopped keeps its traced
+lines, so it is drawn from and run under mutants like any other. An expected
+failure that runs its body is a run: a mutant fails it by making a strict one
+pass or by raising other than the exception its mark names, and one whose
+mark does neither is named for killing nothing.
 
   case_check.py --baseline REF [--root DIR] [--runner CMD] [--bound MIN]
 
@@ -120,7 +120,7 @@ NONE_COLLECTED = 5
 # directory of its own and put first on `PYTHONPATH`, so an xdist worker loads
 # it too. It traces each case's call, not its setup, records the lines under
 # the root outside `.venv/` and the call's seconds, and writes one file per
-# process at the end, without the lines of a call that ended in a skip.
+# process at the end, every id's lines and, apart, the ids that stopped short.
 TRACER = "specseal_case_trace"
 TRACER_SOURCE = """
 import json, os, sys, threading, time
@@ -172,21 +172,32 @@ def pytest_runtest_call(item):
         _seconds[item.nodeid] = time.monotonic() - began
 
 
-# A call that skipped in its body, as `pytest.skip()`, `importorskip` or
-# `skipTest` there, started, so its first lines are traced, but it ran short
-# of its assertions: its lines are dropped, and the check names it as one
-# that never ran. An expected failure reports as skipped too and is kept,
-# since its body ran.
-def pytest_runtest_logreport(report):
-    if report.when == "call" and report.skipped:
-        if not hasattr(report, "wasxfail"):
-            _skipped.add(report.nodeid)
+# An id stopped short when pytest's own stop ended its call, whatever spelled
+# it, and ran its body when the call ended any other way, an expected failure
+# whose body raised included. This reads the finished call report, outermost
+# so every other implementation has written it, and pytest's xfail stop is a
+# run only where its unittest plugin raised it for an expected failure. The
+# stopped ids are written apart, and their lines are kept: a case that
+# asserted and then stopped fails under a mutant of what it asserted.
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    report = (yield).get_result()
+    if report.when != "call" or not report.skipped:
+        return
+    stop = call.excinfo is not None and call.excinfo.errisinstance(
+        pytest.xfail.Exception
+    )
+    expected = getattr(
+        getattr(item, "obj", None), "__unittest_expecting_failure__", False
+    )
+    if not hasattr(report, "wasxfail") or (stop and not expected):
+        _skipped.add(report.nodeid)
 
 
 def pytest_sessionfinish(session):
     with open(os.path.join(_out, f"{os.getpid()}.json"), "w", encoding="utf-8") as f:
-        hits = {k: sorted(v) for k, v in _hits.items() if k not in _skipped}
-        json.dump({"hits": hits, "seconds": _seconds}, f)
+        hits = {k: sorted(v) for k, v in _hits.items()}
+        json.dump({"hits": hits, "seconds": _seconds, "short": sorted(_skipped)}, f)
 """
 # Where Python's tokenizer ends a line, which is what `ast` numbers lines by.
 # `str.splitlines` also ends one at characters such as U+2028 that Python
@@ -649,8 +660,9 @@ def narrowed(runner, cases, file, seconds=None):
 
 def traced_run(root, file, runner, timeout):
     """`(exit, seconds, last line, {nodeid: {(path, line)}}, {nodeid:
-    seconds})` of the test file run once as it stands, each case's call
-    traced and timed.
+    seconds}, {nodeid})` of the test file run once as it stands, each case's
+    call traced and timed; the last are the ids pytest stopped short of their
+    body, empty on a timeout.
 
     Reads: observed — the runner's exit and output, and the tracer's JSON files it wrote; unknown refused
     """
@@ -676,9 +688,9 @@ def traced_run(root, file, runner, timeout):
                 timeout=max(timeout, 1),
             )
         except subprocess.TimeoutExpired:
-            return None, time.monotonic() - started, "timed out", {}, {}
+            return None, time.monotonic() - started, "timed out", {}, {}, set()
         seconds = time.monotonic() - started
-        hits, calls = {}, {}
+        hits, calls, short = {}, {}, set()
         for name in os.listdir(out):
             try:
                 with open(os.path.join(out, name), encoding="utf-8") as f:
@@ -686,10 +698,11 @@ def traced_run(root, file, runner, timeout):
                 for nodeid, pairs in found["hits"].items():
                     hits.setdefault(nodeid, set()).update(map(tuple, pairs))
                 calls.update(found["seconds"])
-            except (OSError, ValueError, KeyError, AttributeError):
+                short.update(found["short"])
+            except (OSError, ValueError, KeyError, AttributeError, TypeError):
                 continue
     lines = (done.stdout + done.stderr).strip().splitlines()
-    return done.returncode, seconds, lines[-1] if lines else "", hits, calls
+    return done.returncode, seconds, lines[-1] if lines else "", hits, calls, short
 
 
 def drawn(root, file, name, functions, hits, units, diff, cap=DRAW_CAP):
@@ -854,7 +867,7 @@ def check(root, baseline, runner, bound):
         share = (limit - (time.monotonic() - started)) / (len(pending) - index)
         deadline = time.monotonic() + share
         left = share
-        code, each, verdict, hits, calls = traced_run(root, file, runner, left)
+        code, each, verdict, hits, calls, short = traced_run(root, file, runner, left)
         if code is None or each > left:
             restructure = RESTRUCTURE_FILE.format(each=each, left=left, bound=bound)
             findings.append((file, restructure))
@@ -862,10 +875,12 @@ def check(root, baseline, runner, bound):
         if code not in (0, NONE_COLLECTED):
             findings.append((file, FAILS_AS_IT_STANDS.format(verdict=verdict)))
             continue
-        # One none of whose ids ran its call to the end here, skipped,
-        # deselected or in a file that collected nothing, is named for that
-        # rather than for killing nothing its siblings do not.
-        never_ran = [n for n in names if not own_ids(hits, file, functions, n)]
+        # One none of whose ids ran its body here is named for that rather
+        # than for killing nothing its siblings do not. Only this reads the
+        # stopped ids: the draw and the cases run under a mutant read every
+        # traced line, a stopped call's included.
+        through = {i: pairs for i, pairs in hits.items() if i not in short}
+        never_ran = [n for n in names if not own_ids(through, file, functions, n)]
         findings += [(f"{file}::{n}", NEVER_RAN) for n in never_ran]
         names = [n for n in names if n not in never_ran]
         units = named_units(source, {n: functions[n] for n in names})

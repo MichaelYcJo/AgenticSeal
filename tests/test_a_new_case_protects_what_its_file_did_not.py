@@ -344,9 +344,9 @@ PIN = (
     '        assert "A second sentence." in f.read()\n'
 )
 S4 = "tests/test_m.py::test_double: proved — the only killer in its file of m.py:2"
-# Every way a case's call ends short of its body on this runner: a mark, a
-# skip in its body, `importorskip`, a fixture's skip, an `xfail` that never
-# starts it, and unittest's `skipTest`.
+# Cases pytest stops before their bodies run on this runner, one of each
+# spelling a fixture can hold today. The check reads no list of them: the
+# tracer reads pytest's call report, and these rows show what it decides.
 ELSEWHERE = (
     "\nimport unittest\n\nimport pytest\n\n\n"
     '@pytest.mark.skip(reason="another platform")\n'
@@ -363,7 +363,9 @@ ELSEWHERE = (
     "class TestUnittest(unittest.TestCase):\n"
     "    def test_by_skiptest(self):\n"
     '        self.skipTest("another platform")\n'
-    "        assert m.double(2) == 4\n"
+    "        assert m.double(2) == 4\n\n\n"
+    "def test_by_xfail():\n"
+    '    pytest.xfail("another platform")\n    assert m.double(2) == 4\n'
 )
 NEVER_STARTED = [
     "test_by_a_mark",
@@ -372,6 +374,7 @@ NEVER_STARTED = [
     "test_by_a_fixture",
     "test_by_an_xfail_never_started",
     "TestUnittest::test_by_skiptest",
+    "test_by_xfail",
 ]
 NEVER_RAN = (
     "not proved: none of its ids ran its call to the end on this runner "
@@ -384,6 +387,22 @@ AT_IMPORT = '\nimport pytest\n\npytest.importorskip("a_module_no_runner_has")\n'
 EXPECTED = (
     "\nimport pytest\n\n\n@pytest.mark.xfail(raises=AssertionError)\n"
     "def test_double_xfail():\n    assert m.double(2) + 1 == 4\n"
+)
+# A unittest expected failure whose body raised: pytest's unittest plugin
+# raises its own xfail stop on the body's behalf, and the case still ran. No
+# mutant makes it pass, so it kills nothing, and it is never named as one
+# that did not run.
+UNITTEST_EXPECTED = (
+    "\nimport unittest\n\n\nclass TestExpected(unittest.TestCase):\n"
+    "    @unittest.expectedFailure\n"
+    "    def test_by_expected_failure(self):\n"
+    "        assert m.double(2) == 5\n"
+)
+# A sibling that asserts on the unit and then skips the rest on this runner:
+# under the mutant it fails at its assertion, so it kills what it asserted.
+PARTIAL = (
+    "\nimport pytest\n\n\ndef test_partial():\n    assert m.double(2) == 4\n"
+    '    pytest.skip("the rest runs on another platform")\n'
 )
 
 
@@ -445,6 +464,25 @@ EXPECTED = (
                 "its file of m.py:2 `return` made `return None`"
             ],
             id="an expected failure that runs its body is a run",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(NAME)},
+            {"tests/test_m.py": module_text(NAME, UNITTEST_EXPECTED)},
+            {},
+            1,
+            [
+                "tests/test_m.py::TestExpected::test_by_expected_failure: kills "
+                "nothing its file does not"
+            ],
+            id="a unittest expected failure whose body raised is a run",
+        ),
+        pytest.param(
+            {"tests/test_m.py": module_text(PARTIAL)},
+            {"tests/test_m.py": module_text(PARTIAL, DOUBLE)},
+            {},
+            1,
+            ["tests/test_m.py::test_double: kills nothing its file does not"],
+            id="a sibling that skips after its assertions still kills",
         ),
         pytest.param(
             {"tests/test_m.py": module_text(NAME)},
