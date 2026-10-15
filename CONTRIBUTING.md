@@ -152,24 +152,26 @@ holds each leg's minutes in that run to its `ci-minutes` row of
 change to any hook needs a test that fails without it — see the counterfeit
 rule below.
 
-**A case has a budget, and so does each leg.** A case is owed by a mutant
-only it kills, and nobody writes that mutant down: the `cases` job in
-`test.yml` runs `.github/scripts/case_check.py`, which derives it. For every
-test function new or changed in a pull request it draws at most twelve
-mutants: first of the lines the case runs, those fewest of its siblings run
-first, then of the helpers it names and the shipped lines the pull request
-changed that no case's call ran (a changed `.md` line is mutated by removing
-it). Under each mutant it runs the case, then, where the case fails, the
-other cases that ran the line (every other case where none did), until one
-mutant fails the case alone. A case
-that is not its file's only killer of any of them fails the job,
-named: it kills nothing its file does not, so make it guard something its
-siblings do not, or leave it out. A mutant of changed shipped code that
-nothing kills is listed in the job's summary, and fails nothing. The proof has
-a five-minute bound, and a file whose proof would pass it is named to
-restructure: test the decision directly, not through the whole stack. A case
-leaves only when a mutation table shows that every mutant it kills is killed
-by a case that stays, and judgment removes nothing. A case whose call runs longer
+**A case is owed by a mutant only it kills**, and nobody writes that mutant
+down: the `cases` job in `test.yml` runs `.github/scripts/case_check.py`,
+which derives it. For every test function new or changed in a pull request it
+draws at most twelve mutants: first of the lines the case runs, those fewest
+of its siblings run first, then of the helpers it names and the shipped lines
+the pull request changed that no case's call ran (a changed `.md` line is
+mutated by removing it). Under each mutant it runs the case, then, where the
+case fails, the other cases that ran the line (every other case where none
+did), until one mutant fails the case alone. A case that is not its file's
+only killer of any of them fails the job, named: it kills nothing its file
+does not, so make it guard something its siblings do not, or leave it out. A
+mutant of changed shipped code that nothing kills is listed in the job's
+summary, and fails nothing. The proof has a five-minute bound, and a file
+whose proof would pass it is named to restructure: test the decision
+directly, not through the whole stack. A case leaves only when a mutation
+table shows that every mutant it kills is killed by a case that stays, and
+judgment removes nothing.
+Enforced by: .github/scripts/case_check.py::check
+
+**A case has a budget, and so does each leg.** A case whose call runs longer
 than `CASE_CEILING_S` in `tests/conftest.py` (90 s) fails with one line
 naming it and its seconds, locally as in CI. Make it cheaper, split it, or
 sample what it walks. On a machine running other suites at the same time, a
