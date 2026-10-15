@@ -99,6 +99,22 @@ def test_the_sole_killer_is_one_function_or_none():
     assert module.sole_killer([], file, functions) is None
 
 
+def test_what_was_not_run_counts_only_the_changed_lines_mutants():
+    """A proof's kill of a mutant on an unchanged line of a changed file does
+    not make a changed line's mutant count as run, so the summary's `not run
+    within the bound` line neither shrinks nor goes."""
+    every_diff = [
+        ("m.py:6 `return` made `return None`", "m.py", "a", "b"),
+        ("m.py:7 statement removed", "m.py", "c", "d"),
+        ("m.py:8 statement removed", "m.py", "e", "f"),
+    ]
+    killed = {
+        "m.py:2 `return` made `return None`": True,
+        "m.py:8 statement removed": False,
+    }
+    assert case_check().unrun(every_diff, killed) == 2
+
+
 THREE = "def test_a():\n    pass\n\n\ndef test_b():\n    pass\n\n\ndef test_c():\n    pass\n"
 
 
@@ -434,10 +450,13 @@ ELSEWHERE = (
         ),
         pytest.param(
             {"tests/test_m.py": module_text()},
-            {"tests/test_m.py": module_text(DOUBLE)},
+            {"m.py": CHANGED, "tests/test_m.py": module_text(DOUBLE)},
             {"extra": ("--bound", "0.0001")},
             1,
-            ["tests/test_m.py: restructure: test the decision directly"],
+            [
+                "tests/test_m.py: restructure: test the decision directly",
+                "  not run within the bound: ",
+            ],
             id="a file whose proof would pass the bound is named to restructure",
         ),
     ],

@@ -596,6 +596,16 @@ def selected(hits, path, label):
     return sorted(nodeid for nodeid, pairs in hits.items() if (path, lineno) in pairs)
 
 
+def unrun(every_diff, diff_killed):
+    """How many of the changed shipped lines' mutants no run gave a verdict.
+    A proof's kill is recorded for any line of a changed file, so one on an
+    unchanged line is in `diff_killed` and is not one of these.
+
+    Reads: nothing — compares the labels it is handed
+    """
+    return sum(1 for label, *_rest in every_diff if label not in diff_killed)
+
+
 # The seconds of the cases' calls, as the traced run measured them, below
 # which a run of some of a file's cases turns xdist's workers off: starting
 # them costs about this on a four-core runner.
@@ -945,8 +955,8 @@ def check(root, baseline, runner, bound):
     lines += [f"  {where}: {proof}" for where, proof in proved]
     lines += [f"  {where}: {finding}" for where, finding in findings]
     lines += [SURVIVOR.format(mutant=label) for label in survivors]
-    if len(every_diff) > len(diff_killed):
-        lines.append(NOT_RUN.format(count=len(every_diff) - len(diff_killed)))
+    if unrun(every_diff, diff_killed):
+        lines.append(NOT_RUN.format(count=unrun(every_diff, diff_killed)))
     lines += [REMOVED.format(fid=fid) for fid in sorted(removed)]
     return (1 if findings else 0), lines
 
