@@ -6,6 +6,7 @@ the gate. -->
 
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 Approved 2026-10-15 by the repository owner, when `smith` was spawned for the reframed plan.
+Approved 2026-10-15 by the repository owner, for the replanned phases 1–7, when `smith` was spawned for phase 1's second act.
 
 Reframed on 2026-10-15 against the tree after #930 and #944 merged, with #923's body as the one source of what the owner decided. Replanned the same day, at 2062d9b2, for the owner's decisions of 2026-10-15 (#923 item 3 and the two test rules): the budget concept leaves, one fact check and one release table stay, and there is no history-line check. No phase has closed, so every row below replaces one; phase 1's first act is built and its row says so.
 
