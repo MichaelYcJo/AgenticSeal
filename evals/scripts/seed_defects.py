@@ -254,7 +254,7 @@ def prompt(t):
     """The case prompt: the orchestrator's one spawn of a fresh round 1.
 
     Reads: nothing — it formats the target it is handed."""
-    report = f"seal/specs/{t['item']}/rounds/round-1-report.md"
+    report = f"seal/specs/{t['item']}/rounds/round-1.md"
     return f"""You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
 
 BEGIN PROMPT
@@ -300,7 +300,7 @@ def main(argv=None):
         a.count = len(a.case)
     url = rt.origin_url()
     for t in chosen:
-        report = f"seal/specs/{t['item']}/rounds/round-1-report.md"
+        report = f"seal/specs/{t['item']}/rounds/round-1.md"
         graders = [
             *behaviour.report_shape("warden", report),
             behaviour.report_regex(

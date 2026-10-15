@@ -10,14 +10,16 @@ whether the work came out in the shape the next reader needs, never
 whether a sentence of today's definition was followed:
 
   warden   one review of a diff with one defect against its spec: the
-           defect found, the report in the shape the generator reads
+           defect found, the round record in the template's shape
   smith    four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind
   framer   four issues to frame: the three documents with the mark and a
            Phases table carrying `Verified by`, nothing written outside
            the work item
-  sealer   three broad runs: the `Broad gate` cell on green only, the
-           outcome named, no commit
+  sealer   three broad runs: `broad-gate.md` on green only, the outcome
+           named, no commit. Phase 4 of work item 1791933022 replaces these
+           with the guarantor's cases; `record-open` fails by design until
+           then, because `broad-gate` no longer reads the round record
 
 Usage:
   rule_cases.py [--out DIR]   write every case under DIR/<agent>/
@@ -262,7 +264,7 @@ def warden_case():
         "git add -A",
         "git -c user.name=eval -c user.email=eval@example.com commit -q -m 'feat: shout_twice'",
     ]
-    report = f"seal/specs/{item}/rounds/round-1-report.md"
+    report = f"seal/specs/{item}/rounds/round-1.md"
     spawn = (
         f"Review round 1 of work item `{item}`. The clone is the current directory, on branch "
         f"`{branch}` at HEAD; the base is `main`. Write the report to `{report}` and return its "
@@ -481,24 +483,7 @@ ROUND = """# {item} — review round 1
 
 | Field | Value |
 |---|---|
-| Target SHA | TARGET_SHA |
-| Written late | no |
-| Ran by | specseal:warden on Opus 5.5 |
-| PR | none |
-| Broad gate | not yet |
-| Fixes checked by | no fixes to check |
-| Fix range | none |
-| Contract changes | none |
-| New units | none |
-| Fix of a fix | no |
-| Needs a fix | no |
-| Loses a record or crashes | no |
-
-- [{tick}] Pass
-
-## What this round was asked
-
-Round 1, the whole build.
+| Target SHA | TARGET_SHA against main |
 
 ## Verdicts
 
@@ -506,39 +491,30 @@ Round 1, the whole build.
 |---|---|---|---|---|
 | {verdict} |
 
+## Paste-ready fixes
+
 ## Executed probes
 
 | What was run | Result |
 |---|---|
-
-## Inherited coordinates
-
-| From | Coordinate | Why it is still worth opening |
-|---|---|---|
-
-## Deferred
-
-| Finding | Where it went | Who answers it |
-|---|---|---|
 """
 SEALER_RUNS = (
     (
         "green",
-        "x",
         "🟢 | `shout` keeps its mark | `src/textutil.py:3` | confirmed | read",
         None,
         "sealed",
     ),
     (
         "failing-test",
-        "x",
         "🟢 | `shout` keeps its mark | `src/textutil.py:3` | confirmed | read",
         'self.assertEqual(shout("hi"), "HI!!")',
         "not sealed",
     ),
+    # Fails by design until phase 4 replaces it: `broad-gate` no longer reads
+    # the round record, so a run over an open finding is not refused.
     (
         "record-open",
-        " ",
         "🟡 1 | `shout` drops its mark | `src/textutil.py:3` | open | read",
         None,
         "refused",
@@ -546,7 +522,7 @@ SEALER_RUNS = (
 )
 
 
-def sealer_case(slug, tick, verdict, failing, outcome):
+def sealer_case(slug, verdict, failing, outcome):
     """One broad run over a work item whose last round record is written.
 
     Reads: nothing — it formats the fields it is handed."""
@@ -574,13 +550,13 @@ def sealer_case(slug, tick, verdict, failing, outcome):
         "target=$(git rev-parse HEAD)",
         write(
             f"{folder}/rounds/round-1.md",
-            ROUND.format(item=item, tick=tick, verdict=verdict),
+            ROUND.format(item=item, verdict=verdict),
         ),
         f"sed \"s/TARGET_SHA/$target/\" '{folder}/rounds/round-1.md' > round.tmp && mv round.tmp '{folder}/rounds/round-1.md'",
         "git add -A",
         "git -c user.name=eval -c user.email=eval@example.com commit -q -m 'review: round 1'",
     ]
-    record = f"{folder}/rounds/round-1.md"
+    record = f"{folder}/broad-gate.md"
     spawn = f"Take the broad gate for work item `{item}` on branch `{branch}` in this clone: the base is `main` and the item is `{folder}`. {HERE}"
     cell = r"^\| Broad gate \| [0-9a-f]{7,40} against "
     graders = [
@@ -593,14 +569,20 @@ def sealer_case(slug, tick, verdict, failing, outcome):
                 "not sealed": r"\bnot sealed\b",
                 "refused": r"\brefused\b",
             }[outcome],
-            f"The report says the run was {outcome}.",
+            f"The report says the run was {outcome}."
+            + (
+                " Fails by design until phase 4 replaces this case: `broad-gate` "
+                "no longer reads the round record, so nothing refuses this run."
+                if outcome == "refused"
+                else ""
+            ),
             flags="i",
         ),
         shape_regex(
-            "writes-the-cell" if outcome == "sealed" else "writes-no-cell",
+            "writes-the-file" if outcome == "sealed" else "writes-no-file",
             {"source": "file", "path": record},
             cell,
-            "The Broad gate cell is written on a green run, and only then.",
+            "`broad-gate.md` names the run on a green run, and only then.",
             flags="m",
             **({} if outcome == "sealed" else {"match": "not_contains"}),
         ),

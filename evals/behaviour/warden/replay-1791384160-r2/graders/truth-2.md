@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2-report.md'}
+target: {source: 'file', path: 'seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md'}
 pattern: '^\| (?:🔴|🟡) \d+ \|.*(?:skills\/code-review\/orchestration\.md:(?:355|356|357|358|359|360|361|362|363|364|365|366|367|368|369|370|371|372|373|374|375|376|377|378|379|380|381|382|383|384|385)(?!\d))'
 flags: 'm'
 ---

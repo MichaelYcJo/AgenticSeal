@@ -101,9 +101,15 @@ CASES = {
         numbers(graders={("c1", "reach-warden"): ("reach", 2, 2, 1, 2)}),
         "fail",
     ),
-    "rule 3: a shape grader short on the baseline": (
+    # Rule 3 reads the new side alone (#923): the record's shape moves
+    # between the sides, so a baseline's shape is not the new tree's defect.
+    "rule 3: a shape grader short on the baseline is not judged": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 2, 2)}),
-        "fail",
+        "pass",
+    ),
+    "rule 3: a shape grader only the baseline carried is not judged": (
+        numbers(graders={("c1", "shape-needs-a-fix"): ("shape", 2, 2, 0, 0)}),
+        "pass",
     ),
     "rule 4: spend 1.2 times the baseline's, outcome equal": (
         numbers(new_spend=12.0),
@@ -553,11 +559,12 @@ def test_a_side_counts_a_finding_row_no_truth_matches_as_false():
 
 def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
     """Guards where the false rows come from: the session's own `cat` of the
-    report, the last one winning, and never a subagent's output."""
+    report, the last one winning, and never a subagent's output. A record
+    printed as `rounds/round-N.md` (0.22.0, #923) is read as a report is."""
 
-    def cat(call_id, content, parent=None):
+    def cat(call_id, content, parent=None, path="r/round-1-report.md"):
         use = {"type": "tool_use", "id": call_id, "name": "Bash"}
-        use["input"] = {"command": "cat r/round-1-report.md"}
+        use["input"] = {"command": f"cat {path}"}
         result = {"type": "tool_result", "tool_use_id": call_id, "content": content}
         events = [{"message": {"content": [use]}}, {"message": {"content": [result]}}]
         for event in events:
@@ -585,7 +592,7 @@ def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
         *cat("a", "| 🟡 1 | old | `x:1` | open | read |"),
         denied,
         {"type": "assistant", "message": {"content": "plain text"}},
-        *cat("c", last),
+        *cat("c", last, path="seal/specs/i/rounds/round-1.md"),
         *cat("b", "| 🔴 9 | sub | `x:1` | open | read |", parent="s"),
     ]
     trace = tmp_path / "trace.jsonl"

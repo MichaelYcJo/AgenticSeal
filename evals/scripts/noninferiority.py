@@ -168,8 +168,9 @@ def write_git_shim(tree):
 
 
 def report_rows(trace_path):
-    """The 🔴/🟡 finding rows of the report the run's session printed with
-    `cat <…-report.md>`, the last such print winning.
+    """The 🔴/🟡 finding rows of the round record the run's session printed
+    with `cat <…/round-N.md>` (`<…-report.md>` on a run taken before 0.22.0),
+    the last such print winning.
 
     Only an event whose `message` is an object with a list `content` holds
     tool calls; a line that is not a JSON object, a `message` that is a
@@ -198,7 +199,7 @@ def report_rows(trace_path):
                 if block.get("type") == "tool_result":
                     command = commands.get(block.get("tool_use_id"), "")
                     if re.match(
-                        r"\s*cat \S+-report\.md\s*$", command
+                        r"\s*cat \S+(?:-report|/round-\d+)\.md\s*$", command
                     ) and not block.get("is_error"):
                         content = block.get("content")
                         if isinstance(content, list):
@@ -547,7 +548,14 @@ def verdict(numbers):
         ]
         return "no result", [f"the {' and '.join(sides)} side was cut short"]
     g = numbers["graders"]
-    if any(old_runs != new_runs for _k, _op, old_runs, _np, new_runs in g.values()):
+    # A shape or reach grader one side lacks is the record's shape moving
+    # between the two sides (0.22.0's round record dropped two), not a case
+    # run a different number of times; rule 3 below reads the new side alone.
+    if any(
+        old_runs != new_runs
+        for k, _op, old_runs, _np, new_runs in g.values()
+        if not (k in ("shape", "reach") and 0 in (old_runs, new_runs))
+    ):
         return "no result", ["the two sides ran a case a different number of times"]
     unknown = [
         s
@@ -579,16 +587,11 @@ def verdict(numbers):
     )
     if new_rate > old_rate + FALSE_MARGIN + 1e-9:
         reasons.append(f"false-finding rate rose from {old_rate:.3f} to {new_rate:.3f}")
-    for (case, name), (k, op, oruns, np_, nruns) in sorted(g.items()):
-        if k in ("shape", "reach"):
-            if op < oruns:
-                reasons.append(
-                    f"shape grader {case}/{name} failed on the baseline ({op}/{oruns})"
-                )
-            if np_ < nruns:
-                reasons.append(
-                    f"shape grader {case}/{name} failed on the new side ({np_}/{nruns})"
-                )
+    for (case, name), (k, _op, _oruns, np_, nruns) in sorted(g.items()):
+        if k in ("shape", "reach") and np_ < nruns:
+            reasons.append(
+                f"shape grader {case}/{name} failed on the new side ({np_}/{nruns})"
+            )
     if numbers["new_bytes"] >= numbers["old_bytes"]:
         reasons.append(
             f"the new preload is {numbers['new_bytes']} bytes, not below the "

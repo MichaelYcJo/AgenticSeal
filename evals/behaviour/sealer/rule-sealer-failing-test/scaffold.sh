@@ -140,24 +140,7 @@ cat > 'seal/specs/1790000030-broad-run-failing-test/rounds/round-1.md' <<'SPECSE
 
 | Field | Value |
 |---|---|
-| Target SHA | TARGET_SHA |
-| Written late | no |
-| Ran by | specseal:warden on Opus 5.5 |
-| PR | none |
-| Broad gate | not yet |
-| Fixes checked by | no fixes to check |
-| Fix range | none |
-| Contract changes | none |
-| New units | none |
-| Fix of a fix | no |
-| Needs a fix | no |
-| Loses a record or crashes | no |
-
-- [x] Pass
-
-## What this round was asked
-
-Round 1, the whole build.
+| Target SHA | TARGET_SHA against main |
 
 ## Verdicts
 
@@ -165,20 +148,12 @@ Round 1, the whole build.
 |---|---|---|---|---|
 | 🟢 | `shout` keeps its mark | `src/textutil.py:3` | confirmed | read |
 
+## Paste-ready fixes
+
 ## Executed probes
 
 | What was run | Result |
 |---|---|
-
-## Inherited coordinates
-
-| From | Coordinate | Why it is still worth opening |
-|---|---|---|
-
-## Deferred
-
-| Finding | Where it went | Who answers it |
-|---|---|---|
 SPECSEAL_EOF
 sed "s/TARGET_SHA/$target/" 'seal/specs/1790000030-broad-run-failing-test/rounds/round-1.md' > round.tmp && mv round.tmp 'seal/specs/1790000030-broad-run-failing-test/rounds/round-1.md'
 git add -A

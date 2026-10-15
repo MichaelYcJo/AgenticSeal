@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1-report.md'}
+target: {source: 'file', path: 'seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md'}
 pattern: '^\| (?:🔴|🟡) \d+ \|.*src\/textutil\.py(?:#shout_twice\b|:(?:[4-9]|1[0-9])(?!\d))'
 flags: 'm'
 ---

@@ -83,9 +83,9 @@ def reach(agent):
 
 
 def report_shape(agent, report):
-    """The reach grader and the four shape graders of a warden report at
-    REPORT: it exists, carries the verdict table in the record's columns, and
-    both terminal lines.
+    """The reach grader and the two shape graders of a warden round record
+    at REPORT: it exists, and carries the verdict table in the record's
+    columns.
 
     Reads: nothing — it formats the fields it is handed."""
     return [
@@ -103,20 +103,6 @@ def report_shape(agent, report):
             report,
             r"^## Verdicts\s*\n\s*\n\| # \| Finding \| Location \| Verdict \| Grounds \|",
             "The report carries the verdict table under its heading, in the record's columns.",
-        ),
-        report_regex(
-            "shape",
-            "needs-a-fix",
-            report,
-            r"^Needs a fix: (?:no|yes)",
-            "The report carries its Needs a fix line.",
-        ),
-        report_regex(
-            "shape",
-            "loses-a-record",
-            report,
-            r"^Loses a record or crashes: (?:no|yes)",
-            "The report carries its Loses a record or crashes line.",
         ),
     ]
 

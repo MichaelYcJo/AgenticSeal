@@ -5,7 +5,7 @@ A replay case is a historical review target: the clone at a round record's
 `Target SHA`, the base its `## What this round was asked` paragraph names,
 and that paragraph as the round's spawn prompt. Its truth is every 🔴 or 🟡
 the round closed `fixed` that the next round's 🟢 row confirmed closed; each
-is a `truth-` grader over the report the warden writes. Round records come
+is a `truth-` grader over the round record the warden writes. Round records come
 from the working tree and from the last two release tags
 (`git show <tag>:seal/specs/<id>/rounds/round-N.md`).
 
@@ -383,7 +383,7 @@ def prompt(t):
     back so the run's trace holds it.
 
     Reads: nothing — it formats the target it is handed."""
-    report = f"seal/specs/{t['item']}/rounds/round-{t['n']}-report.md"
+    report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
     base = f"`{t['base_ref']}` at `{t['base']}`" if t["base_ref"] else f"`{t['base']}`"
     asked = " ".join(t["asked"].split())
     return f"""You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
@@ -417,7 +417,7 @@ def graders(t):
     """Reach, shape and truth graders for one target.
 
     Reads: nothing — it formats the target it is handed."""
-    report = f"seal/specs/{t['item']}/rounds/round-{t['n']}-report.md"
+    report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
     out = behaviour.report_shape("warden", report)
     for truth in t["truths"]:
         out.append(
