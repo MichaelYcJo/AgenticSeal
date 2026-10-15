@@ -1366,6 +1366,34 @@ def test_a_separator_the_tokenizer_ignores_does_not_move_a_spliced_arm(label, so
         ast.parse(ARM.mutate(source, arm, "remove"))
 
 
+# --- the command line is split by the platform's rule ---------------------
+
+
+def test_a_windows_command_line_keeps_the_backslashes_of_its_paths():
+    """The `--tests` command line is split by the platform's rule for a
+    backslash. On Windows it is the path separator and stays, so an
+    interpreter's path reaches the process whole; PR #939's `windows-latest`
+    leg started `C:hostedtoolcache…python.exe` and found nothing. On POSIX it
+    escapes, as `shlex.split` reads it."""
+    line = r'C:\py\python.exe -c "raise SystemExit(1)" a\ b #c'
+    assert ARM.command_words(line, windows=True) == [
+        r"C:\py\python.exe",
+        "-c",
+        "raise SystemExit(1)",
+        "a\\",
+        "b",
+        "#c",
+    ]
+    assert ARM.command_words(line, windows=False) == [
+        "C:pypython.exe",
+        "-c",
+        "raise SystemExit(1)",
+        "a b",
+        "#c",
+    ]
+    assert ARM.command_words(line) == ARM.command_words(line, windows=os.name == "nt")
+
+
 # --- the command that decides the verdict can hang or fail to start -------
 
 # A command that passes against the module as it is and never returns against
