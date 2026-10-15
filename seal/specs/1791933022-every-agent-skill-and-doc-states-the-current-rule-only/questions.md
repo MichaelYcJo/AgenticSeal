@@ -28,8 +28,9 @@ considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
 - Every agent preloads the contract alone and opens its skill at the step; a
   case that shows the opened form falls short sends that skill back to the
   list (#923 item 4; alternative L).
-- The contract numbers its rules anew; the 35 citations outside the rewritten
-  files are rewritten in the same commit.
+- The contract numbers its rules anew; the citations outside the rewritten
+  files (35 at 680142f2; part B counts them on its own tree) are rewritten in
+  the same commit.
 - The record lands first and the agents second, in two work items under one
   design, because the diff and the proof's baseline both ask for it
   (`plan.md` §*The split*; alternatives J, K). Overturnable at the approval
@@ -50,7 +51,21 @@ considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
   `release_report.py`, which sums the file as it is (alternatives S, T, U).
   No `tests` run of this branch exists to download a measured file from
   (`gh run list`, `gh pr list` on 2026-10-15: none), so the refresh that
-  prices the 226 unpriced cases waits for the pull request's first run.
+  prices the unpriced cases waits for the pull request's first run.
+- (reframe after round 4) The sealer's acts are listed once, in
+  `agents/sealer.md` step 3, and a 🔴 or 🟡 row the check passed on another
+  kind's word lands as a row of `guarantee.md`'s `## Claims re-run`;
+  `docs/the-review-record.md` §*The guarantee* and the template point at step
+  3 and list no act (`spec.md` §*The sealer*; alternatives V, W). Round 4's
+  paste, which extended the list in all three files to four acts, was the
+  pattern that let the fourth act reach one file of three.
+- (reframe after round 4) A figure in this item's five living documents is a
+  measurement naming its moment, a bound naming its check, or gone; a count of
+  what the tree holds now is kept nowhere (`spec.md` §*A number in this frame
+  names its moment or its bound*; alternatives X, Y). The frame's own three
+  documents were rewritten to it at the reframe, and phase 5b rewrites the
+  builder's two. A check for it is refused: it would sort figures by their
+  sentences, which `CLAUDE.md` calls a report.
 - Answered by the owner before this frame and still standing: the proof's run
   budget (≈ 120 runs, ≈ $150; 2026-10-14), the tree's
   `skills/writing-style/SKILL.md` as the one source (2026-10-13), no
@@ -66,7 +81,9 @@ considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
 | Q5 | Of the pins the 52 test modules hold on `agents/*.md`, which pin a rule and which pin narration? | the work — each part B phase sorts its agent's and lists the dropped ones in its phase record and `overview.md` | — | — | ⬜ |
 | Q6 | Which fields of the eval's per-run JSON and of the trace's `result` event carry a run's spend, seconds and tokens, on a real run? | a measurement — the first saved `raw.json` of part B's baseline, read against what `run` records (`total_cost_usd`, `duration_ms`, `usage.*`) | — | the names above | ⬜ |
 | Q7 | How does a pull request into `main` read a work item that was squashed into the release branch? The check judges every `routing.md` a pull request adds, and a squashed item's last `Target SHA`, `broad-gate.md` run and `guarantee.md` commit are not ancestors of the release branch's HEAD, so the records, broad-gate and guarantee arms refuse each one (`executed` at cba5e0cd on this branch, `chain_check.py --baseline origin/main` with `GITHUB_HEAD_REF=release/v0.22.0`: four squashed 0.22.0 items each named *which HEAD does not descend from*, and none of the four carrying a `broad-gate.md`). `skills/settle/SKILL.md` says those records are still read at the release pull request | a person — the owner, who decides what a release pull request re-proves | **judge at the item's own pull request only**: the release pull request judges the declarations naming its own branch and the ones its own commits changed, never an item merged by squash · **resolve the commit elsewhere**: what the removed pull-head fetch did, and a branch deleted or squashed is again a reason to fail · **the release pull request reads the release's own guarantee**: the release seal is one guarantee over the release, and the items' files are history | the first — an item is proved at the pull request that carries it | ✅ answered by default, by the orchestrator under automation on 2026-10-15, for the owner to confirm: an item is judged at the pull request that carries it. Built in phase 5 at 27dd748d: a declaration every commit after the base touched as a GitHub squash merge (committer `noreply@github.com`, subject ending `(#N)`) is named and not judged (`chain_check.py#carried_by`, `docs/the-review-record.md` §*What the check reads at the pull request*). Probed on a scratch squash of this branch into `release/v0.22.0`: the check at af4d0c31 exits 1 naming all five items, the new one exits 0 naming each with its squash, and a commit made on the release branch itself that changes this item's `routing.md` is judged and exits 1 (`phases/phase-5.md`). Overturning it is a change to `carried_by` and its four cases |
+| Q8 | Is a behaviour eval owed in part A for the sealer's step-3 duty — a 🔴 or 🟡 row the last round closed `confirmed`, which the sealer must name and read as `not sound` — or does part B's sealer phase carry it? Round 4's ❓: the wording pins show the sentence is in the definition, not that a sealer acts on it; `evals/behaviour/sealer/` holds no case with such a row. The tree cannot answer it because the cost is the owner's eval budget (≈ 120 runs, ≈ $150, answered 2026-10-14), and one more case is two runs now and two more at each part B re-run of the sealer set | a person — the owner, whose budget the run spends | **part B**: phase 9 adds `rule-sealer-closed-by-another-kinds-word` to `rule_cases.py#SEALER_RUNS` and runs it with the sealer set, so the case is run once against the definition part B ships; part A ships the three wording pins · **part A, now**: the case is added in phase 5b and run twice on this branch, and run again in part B | part B | ⬜ the build proceeds on the default; `plan.md` row 9 carries the case, and the owner can bring it forward by one line here |
 
-No row waits on a person; Q7's default is built and stands until the owner
-confirms or overturns it. Q2, Q4 and Q6 are a measurement's; Q5 is the
-work's, in part B.
+No row blocks the build. Q7's default is built and stands until the owner
+confirms or overturns it; Q8's default is written into part B's row 9 and
+stands the same way. Q2, Q4 and Q6 are a measurement's; Q5 is the work's, in
+part B.
