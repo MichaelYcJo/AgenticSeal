@@ -61,8 +61,9 @@
   `fixed <commit>` is on the branch and touches the location it fixes, and
   that nothing this release removed has come back. It reads every 🔴 and 🟡
   row of every round: the check passes one closed `confirmed` or `out of
-  verified scope`, and the sealer's verdict is `not sound` unless a later
-  round answers it. It reads the spec, the build, the warden's last round,
+  verified scope`, so the sealer writes each such row into `guarantee.md`'s
+  `## Claims re-run`, and its verdict is `not sound` unless a later round
+  answers it. It reads the spec, the build, the warden's last round,
   the changelog fragment and the pull request body as one story and names
   the party the issue and the tree contradict. It does not re-judge the
   design or the code's quality. Its

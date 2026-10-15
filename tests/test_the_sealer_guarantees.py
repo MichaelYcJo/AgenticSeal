@@ -19,7 +19,15 @@ CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
 TEMPLATE = ROOT / "templates" / "sdd-guarantee.md"
 SEALER = ROOT / "agents" / "sealer.md"
+DOCUMENT = ROOT / "docs" / "the-review-record.md"
 ITEM = "seal/specs/1791999990-a-guaranteed-item"
+
+
+def between(path, start, end):
+    """The text of `path` from `start` to `end`, whitespace collapsed."""
+    text = " ".join(path.read_text(encoding="utf-8").split())
+    head = text.index(start)
+    return text[head : text.index(end, head)]
 
 
 def load(path, name):
@@ -143,6 +151,19 @@ class TestTemplate:
         verdicts = chain.verdicts_of(reader, text)
         assert len(verdicts) == 1 and verdicts[0][1] != chain.SOUND
 
+    def test_the_claims_table_takes_a_row_per_act_of_step_3_and_lists_none(self):
+        """T22: the sealer's acts are listed once, in `agents/sealer.md` step
+        3. The comment over `## Claims re-run` points there and names no act,
+        so a duty added to the definition has a row here without a second
+        list to keep in step."""
+        comment = between(TEMPLATE, "## Claims re-run", "| Claim |")
+        assert "One row per act of `agents/sealer.md` step 3, whatever the act" in (
+            comment
+        )
+        assert "`does not hold — <what came back>`" in comment
+        for act in ("`fixed <commit>`", "sampled", "removal", "🔴"):
+            assert act not in comment, act
+
 
 # --- verdicts_of ---------------------------------------------------------------
 
@@ -265,3 +286,36 @@ class TestDefinition:
         assert (
             "unless a later round's row answers it, the verdict is `not sound`"
         ) in text
+
+    def test_the_sealer_names_such_a_row_in_the_claims_table(self):
+        """T21: a 🔴 or 🟡 row closed by another kind's word is written into
+        `guarantee.md`'s `## Claims re-run`, so the file has a place for it;
+        its `Result` is the later round's row that answers it, or
+        `does not hold`."""
+        step = between(
+            SEALER,
+            "3. **A claim against the fact.**",
+            "4. **The parties against each other.**",
+        )
+        assert "Read every 🔴 and 🟡 row of every record" in step
+        assert "each one as a row of `## Claims re-run`" in step
+        assert (
+            "its `Result` the later round's row that answers it or `does not hold`"
+        ) in step
+
+
+# --- the document that states the guarantee ------------------------------------
+
+
+class TestDocument:
+    def test_the_guarantee_section_points_at_step_3_and_lists_no_act(self):
+        """T23: `docs/the-review-record.md` §*The guarantee* points at the
+        definition's steps 3 and 4 for the acts and lists none of them. The
+        record's vocabulary in §*The round record* keeps `fixed <commit>`,
+        and is outside the slice read here."""
+        section = between(DOCUMENT, "## The guarantee", "## The run")
+        assert "`agents/sealer.md` step 3" in section
+        assert "step 4" in section
+        assert "one row of `## Claims re-run` or `## The parties`" in section
+        for act in ("`fixed <commit>`", "re-runs a sample", "stands in the tree"):
+            assert act not in section, act

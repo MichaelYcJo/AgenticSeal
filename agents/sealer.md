@@ -63,8 +63,10 @@ that file.
    closed `fixed <commit>`, confirm the commit is on the branch and touches
    the row's `Location`. Read every 🔴 and 🟡 row of every record: the
    check reads a row's word and not its mark, so one closed `confirmed` or
-   `❓ out of verified scope` passes it and answers nothing. Name each one;
-   unless a later round's row answers it, the verdict is `not sound`. For
+   `❓ out of verified scope` passes it and answers nothing. Write each one
+   as a row of `## Claims re-run`, its `Result` the later round's row that
+   answers it or `does not hold`; unless a later round's row answers it, the
+   verdict is `not sound`. For
    every `## Removes` row of `spec.md` and every removal the changelog names,
    confirm nothing of it stands in the tree.
 4. **The parties against each other.** The spec (scope, `Removes`), the build

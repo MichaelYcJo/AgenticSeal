@@ -76,9 +76,10 @@ bare number or nothing — changes nothing. It names the row in the refusal
 and picks the words the refusal lists: a fix pass's three for 🔴 and 🟡,
 `confirmed` for 🟢, `❓ out of verified scope` for ❓, and all of them for
 any other mark. So a 🟢 row left at `open` fails, and a 🔴 row that reads
-`confirmed` passes the check: the next round's warden and the sealer read
-the record, and that is where such a row is caught.
-Enforced by: tests/test_chain_check.py::TestOpenFindings, tests/test_chain_check.py::TestMain
+`confirmed` passes the check: the next round's warden reads the record, and
+the sealer writes such a row into `guarantee.md`'s `## Claims re-run` and
+reads the verdict as `not sound` unless a later round answers it.
+Enforced by: tests/test_chain_check.py::TestOpenFindings, tests/test_chain_check.py::TestMain, tests/test_the_sealer_guarantees.py::TestDefinition::test_the_sealer_names_such_a_row_in_the_claims_table
 
 **The last record is at HEAD, or only the work item's own records follow
 it.** A commit after the last record's `Target SHA` that touches a file
@@ -115,14 +116,11 @@ changelog fragment are written, on both routing answers, and its order of
 work is `agents/sealer.md`'s.
 
 **It checks a claim against the fact, and the parties against each other.**
-It re-runs a sample of the smith's `executed` and `seen red` claims, chosen
-where the evidence is thinnest or the outcome rests on it; confirms each
-`fixed <commit>` commit is on the branch and touches its `Location`; and
-confirms nothing removed in this release stands in the tree. It reads the
-spec, the build, the warden's last record, the changelog fragment and the
-pull request body as one story, and where two disagree it names the one the
-issue and the tree contradict. It does not re-judge the design or the code's
-quality.
+The acts are `agents/sealer.md` step 3's and step 4's, and this section
+names none of them, so the list has one home. Each act is one row of
+`## Claims re-run` or `## The parties` in `guarantee.md`. It does not
+re-judge the design or the code's quality.
+Enforced by: tests/test_the_sealer_guarantees.py::TestDocument::test_the_guarantee_section_points_at_step_3_and_lists_no_act
 
 **Its verdict is `guarantee.md`, from `templates/sdd-guarantee.md`**: the
 commit and base, the broad gate's result, the claims re-run, the parties
