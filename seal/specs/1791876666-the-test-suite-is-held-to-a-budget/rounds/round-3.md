@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on claude-opus-5-5 |
 | PR | #939 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `de0dfef5604a2860fe6df3101503b7ba090c324c..de0dfef5604a2860fe6df3101503b7ba090c324c`, 0 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | second — 🟡 1 at .github/scripts/case_check.py#TRACER_SOURCE, a unit round-2's fixes changed; 🟡 2 at .github/scripts/case_check.py#TRACER_SOURCE, a unit round-2's fixes changed; the fix passes stop here and the work item goes back to its framer |
 | Needs a fix | yes — 🟡 1 (a sibling that asserts then skips is no longer run under a mutant, so a case it covers is reported proved), 🟡 2 (an imperative `pytest.xfail()` is named for killing nothing) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,9 +25,9 @@ Verifying round 3 of #929, the run's last, on the tree rebased onto #931: round 
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | The tracer drops a skipped call's lines from `hits`, and `selected` reads the same `hits`, so a sibling that asserts and then skips its tail is never run under a mutant; a new case that sibling covers is reported `proved — the only killer in its file` | `.github/scripts/case_check.py:188` | open | executed: fixture with `test_partial` in the base and `test_double` added, exit 0 and `proved` at `e90c90d3`, exit 1 and `kills nothing` with the file as it stood before round 2's fix; a fix of a fix in the tracer round 2's fixes changed |
-| 🟡 2 | An imperative `pytest.xfail()` in the body carries `wasxfail`, so the hook keeps it as a run and it is named `kills nothing its file does not`; the docstring, `test.yml:221` and `spec.md:91` say such a case is named for never having run | `.github/scripts/case_check.py:180` | open | executed: fixture with `test_by_xfail`, exit 1 with the wrong reason at `e90c90d3`; the fix below names it `not proved` and keeps `@unittest.expectedFailure` a run |
-| ⬜ 3 | The `hygiene` workflow's `release` job is red: round 2's `Target SHA` `fffee6b2` is on no ref after the rebase onto #931 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/rounds/round-2.md:5` | open | read: run 38668484688 at `e90c90d3`; `chain_check.py` judges the last record, so round 3's record should clear it, not executed |
+| 🟡 1 | The tracer drops a skipped call's lines from `hits`, and `selected` reads the same `hits`, so a sibling that asserts and then skips its tail is never run under a mutant; a new case that sibling covers is reported `proved — the only killer in its file` | `.github/scripts/case_check.py:188` | deferred the frame | the frame — the second fix of a fix in this run stops the fix passes; the reframe takes it; executed: fixture with `test_partial` in the base and `test_double` added, exit 0 and `proved` at `e90c90d3`, exit 1 and `kills nothing` with the file as it stood before round 2's fix; a fix of a fix in the tracer round 2's fixes changed |
+| 🟡 2 | An imperative `pytest.xfail()` in the body carries `wasxfail`, so the hook keeps it as a run and it is named `kills nothing its file does not`; the docstring, `test.yml:221` and `spec.md:91` say such a case is named for never having run | `.github/scripts/case_check.py:180` | deferred the frame | the frame — the second fix of a fix in this run stops the fix passes; the reframe takes it; executed: fixture with `test_by_xfail`, exit 1 with the wrong reason at `e90c90d3`; the fix below names it `not proved` and keeps `@unittest.expectedFailure` a run |
+| ⬜ 3 | The `hygiene` workflow's `release` job is red: round 2's `Target SHA` `fffee6b2` is on no ref after the rebase onto #931 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/rounds/round-2.md:5` | answered | the release job was red on round 2 naming a pre-rebase target; round 3 records a reachable target; read: run 38668484688 at `e90c90d3`; `chain_check.py` judges the last record, so round 3's record should clear it, not executed |
 | 🟢 | round 2's finding 1 is closed for every spelling it listed — a mark, a body skip, `importorskip`, a fixture skip, `xfail(run=False)`, `skipTest`, and a file skipped at import | `.github/scripts/case_check.py:862` | confirmed | executed: the module's 23 cases pass at `e90c90d3`; a probe added a `@unittest.skip` class and a module `pytestmark` skipif, both named `not proved`; the two spellings that still slip are 🟡 1 and 🟡 2 |
 | 🟢 | round 2's finding 2 is closed — the census's claims say what it checks | `CONTRIBUTING.md:124`, `ruff.toml:35` | confirmed | read at `e90c90d3` |
 | 🟢 | the `seal/budgets.md` conflict is resolved as both sides meant: this branch's three lowered ceilings, #931's `report` kind | `seal/budgets.md:40`, `seal/budgets.md:60` | confirmed | executed: `budget_check.py --baseline origin/release/v0.22.0` exit 0; readings recomputed from `.test_durations` at both revisions |
@@ -114,15 +114,15 @@ def pytest_runtest_makereport(item, call):
 | round-1 | `tests/test_a_script_says_which_interpreter_it_needs.py:185`, `skills/verify/scripts/unverified_check.py:641` | round 1's 🟡 2 — fixed |
 | round-1 | `.github/scripts/case_check.py:861` | round 1's 🟡 3 — fixed |
 | round-1 | `.github/scripts/case_check.py:875` | round 1's 🟡 4 — fixed |
-| round-1 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/phases/phase-2.md:6` | round 1's ⬜ 5 — open |
-| round-1 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/overview.md:7` | round 1's ⬜ 6 — open |
-| round-1 | `CONTRIBUTING.md:146` | round 1's ⬜ 7 — open |
+| round-1 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/phases/phase-2.md:6` | round 1's ⬜ 5 — answered |
+| round-1 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/overview.md:7` | round 1's ⬜ 6 — answered |
+| round-1 | `CONTRIBUTING.md:146` | round 1's ⬜ 7 — answered |
 | round-1 | CI run 38658107547 | round 1's ❓ — out of verified scope |
 | round-2 | `.github/scripts/case_check.py:848` | round 2's 🟡 1 — fixed |
 | round-2 | `CONTRIBUTING.md:128`, `ruff.toml:41` | round 2's 🟡 2 — fixed |
-| round-2 | `tests/test_a_script_says_which_interpreter_it_needs.py:409` | round 2's ⬜ 3 — open |
-| round-2 | `tests/test_a_script_says_which_interpreter_it_needs.py:395` | round 2's ⬜ 4 — open |
-| round-2 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/questions.md:25` | round 2's ⬜ 5 — open |
+| round-2 | `tests/test_a_script_says_which_interpreter_it_needs.py:409` | round 2's ⬜ 3 — answered |
+| round-2 | `tests/test_a_script_says_which_interpreter_it_needs.py:395` | round 2's ⬜ 4 — answered |
+| round-2 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/questions.md:25` | round 2's ⬜ 5 — answered |
 | round-2 | `bin/test:36`, `bin/test.cmd:17` | round 2's 🟢 — confirmed |
 | round-2 | `tests/test_a_script_says_which_interpreter_it_needs.py:401`, `ruff.toml:42` | round 2's 🟢 — confirmed |
 | round-2 | `.github/scripts/case_check.py:599` | round 2's 🟢 — confirmed |

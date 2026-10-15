@@ -16,7 +16,7 @@
 | Loses a record or crashes | no |
 <!-- New units: .github/workflows/test.yml, ruff.toml read by the diff-line heuristic and not by the AST -->
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -28,9 +28,9 @@ Verifying round 2 of #929: round 1's fixes over 9f9c9ed9..5ee4b39e (bin/test out
 |---|---|---|---|---|
 | 🟡 1 | A new case that calls `pytest.skip()` in its body still starts its call, so it is in `hits`, escapes `NEVER_RAN`, and is named `kills nothing its file does not`; round 1's 🟡 3 is closed only for a marker skip, and the docstring, `test.yml:161` and `spec.md:91` are false for this spelling | `.github/scripts/case_check.py:848` | **fixed** `7f457f6d` | fixed at 7f457f6d; executed: fixture with an in-body skip, `main` returned 1 with the false reason; the paste-ready fix applied in the clone names it `not proved` and the module's 21 cases pass |
 | 🟡 2 | `CONTRIBUTING.md` and `ruff.toml` say the census holds every hook-run file to 3.9; it holds 3.9's syntax as `ast` sees it and two constructs, and `import tomllib` or a `str \| None` signature passes it and ruff and dies on 3.9 | `CONTRIBUTING.md:128`, `ruff.toml:41` | **fixed** `448bea20` | fixed at 448bea20; executed: planted file, `newer_than` returned `[]`, ruff passed, 3.9.6 raised on import; no hook-run file does this today (39 compile on 3.9.6, grep clean) |
-| ⬜ 3 | The census case's docstring ends on the same claim as 🟡 2, softened by the sentence before it | `tests/test_a_script_says_which_interpreter_it_needs.py:409` | open | read |
-| ⬜ 4 | `matches` says it answers whether ruff's glob names a path, but ruff also matches a slash-less pattern against the basename; the census then refuses a table ruff honours, and is never more lenient than ruff | `tests/test_a_script_says_which_interpreter_it_needs.py:395` | open | executed: ruff 0.17.0 with a basename pattern linted the file at py39; `matches` returned False |
-| ⬜ 5 | Q7 is listed as waiting on the owner, and the tree answers it: the case rule has no platform exception, a report line would let more through with the bypass Q7 itself names, and no status check is required on the release branch | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/questions.md:25` | open | read: `CONTRIBUTING.md` §*A case is owed by a mutant only it kills* and §*What a change to a gate must carry*, `CLAUDE.md`, the branch ruleset |
+| ⬜ 3 | The census case's docstring ends on the same claim as 🟡 2, softened by the sentence before it | `tests/test_a_script_says_which_interpreter_it_needs.py:409` | answered | written before the rebase (aba50999), inside the tree round 3 read: the census docstring states what it checks; read |
+| ⬜ 4 | `matches` says it answers whether ruff's glob names a path, but ruff also matches a slash-less pattern against the basename; the census then refuses a table ruff honours, and is never more lenient than ruff | `tests/test_a_script_says_which_interpreter_it_needs.py:395` | answered | written before the rebase (3cd5b1a0), inside the tree round 3 read: matches reads the basename as ruff does; executed: ruff 0.17.0 with a basename pattern linted the file at py39; `matches` returned False |
+| ⬜ 5 | Q7 is listed as waiting on the owner, and the tree answers it: the case rule has no platform exception, a report line would let more through with the bypass Q7 itself names, and no status check is required on the release branch | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/questions.md:25` | answered | written before the rebase (fe79b12e), inside the tree round 3 read: Q7 closed as answered by the tree; read: `CONTRIBUTING.md` §*A case is owed by a mutant only it kills* and §*What a change to a gate must carry*, `CLAUDE.md`, the branch ruleset |
 | 🟢 | round 1's blocking finding 1 is closed — `bin/test` and its twin hand `run_tests.py` to the interpreter directly | `bin/test:36`, `bin/test.cmd:17` | confirmed | executed: from `/usr/bin/python3` 3.9.6, `bin/test` built a 3.13.9 `.venv` and passed 27, exit 0; the 14 other sh wrappers exit 2 with the refusal |
 | 🟢 | round 1's finding 2 is closed — hook-run code is derived, linted at py39, and kept free of `zip(..., strict=)` and `datetime.UTC` | `tests/test_a_script_says_which_interpreter_it_needs.py:401`, `ruff.toml:42` | confirmed | executed: the census found a planted `os.path.join` load and its transitive imports and went red; ruff at py39 silences B905 and UP017 under `hooks/git/` |
 | 🟢 | round 1's finding 3 is closed for a case skipped by a marker | `.github/scripts/case_check.py:848` | confirmed | executed at fffee6b2 by the row `a case that ran nowhere here is named for that`; the body-skip half is 🟡 1 |
@@ -124,9 +124,9 @@ version, so a standard-library module or an annotation only a newer
 | round-1 | `tests/test_a_script_says_which_interpreter_it_needs.py:185`, `skills/verify/scripts/unverified_check.py:641` | round 1's 🟡 2 — fixed |
 | round-1 | `.github/scripts/case_check.py:861` | round 1's 🟡 3 — fixed |
 | round-1 | `.github/scripts/case_check.py:875` | round 1's 🟡 4 — fixed |
-| round-1 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/phases/phase-2.md:6` | round 1's ⬜ 5 — open |
-| round-1 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/overview.md:7` | round 1's ⬜ 6 — open |
-| round-1 | `CONTRIBUTING.md:146` | round 1's ⬜ 7 — open |
+| round-1 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/phases/phase-2.md:6` | round 1's ⬜ 5 — answered |
+| round-1 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/overview.md:7` | round 1's ⬜ 6 — answered |
+| round-1 | `CONTRIBUTING.md:146` | round 1's ⬜ 7 — answered |
 | round-1 | CI run 38658107547 | round 1's ❓ — out of verified scope |
 
 ## Deferred

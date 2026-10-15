@@ -16,7 +16,7 @@
 | Loses a record or crashes | no |
 <!-- New units: .github/workflows/test.yml, bin/test, bin/test.cmd, ruff.toml read by the diff-line heuristic and not by the AST -->
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -30,9 +30,9 @@ Round 1 of #929 at 692cef31 against origin/release/v0.22.0 (5b1f6fae), the item 
 | 🟡 2 | The interpreter census was removed because the floor rose to 3.12, yet hooks and the modules they load run on the harness's `python3`; nothing now keeps `zip(strict=)` or `X.UTC` out of them, and ruff B905 and UP017 push toward both | `tests/test_a_script_says_which_interpreter_it_needs.py:185`, `skills/verify/scripts/unverified_check.py:641` | **fixed** `2e3b2ef7` | fixed at 2e3b2ef7; read: `hooks/dispatch.py:602-604`, `hooks/review-history-guard.py:85`, `ruff.toml` selects B and UP; executed: the Stop hook on 3.9 now loads and draws with `seal_stamp.py`; the pattern finds no hook-run file today |
 | 🟡 3 | A new case whose every id skips on ubuntu has no traced call, survives every mutant, and is named `kills nothing its file does not`; the job exits 1 for a reason that is false, contradicting spec.md:91 and test.yml:161 | `.github/scripts/case_check.py:861` | **fixed** `e96f533c` | fixed at e96f533c; executed: fixture with a `skipif(os.name != "nt")` case, `main` returned 1 with that sentence |
 | 🟡 4 | A proof-loop kill is recorded for any mutant in a changed file, not on a changed line, so the `not run within the bound` count understates and can vanish | `.github/scripts/case_check.py:875` | **fixed** `a936870b` | fixed at a936870b; read: `path in diff` at :875 against `len(every_diff) - len(diff_killed)` at :936 |
-| ⬜ 5 | Phase 2's record names a dangling commit, phases and a ledger fragment that no longer exist, 17 wrappers, and a `test-cases` row that was never built | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/phases/phase-2.md:6` | open | executed: 25 of 29 cited SHAs are off-branch; read: `:57`, `:261`, `:328`, `:391`, `:442`; `phases/phase-1.md:154` |
-| ⬜ 6 | The overview cites a removed ledger document and keeps open rows that CI run 38658107547 has answered | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/overview.md:7` | open | read; the document is absent at the tip |
-| ⬜ 7 | The mutant rule was prepended into the case-ceiling paragraph rather than given its own; ragged wrap | `CONTRIBUTING.md:146` | open | read |
+| ⬜ 5 | Phase 2's record names a dangling commit, phases and a ledger fragment that no longer exist, 17 wrappers, and a `test-cases` row that was never built | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/phases/phase-2.md:6` | answered | written before the rebase (ad83cfc0) and carried into the tree round 3 read: phase records cite resolving commits; executed: 25 of 29 cited SHAs are off-branch; read: `:57`, `:261`, `:328`, `:391`, `:442`; `phases/phase-1.md:154` |
+| ⬜ 6 | The overview cites a removed ledger document and keeps open rows that CI run 38658107547 has answered | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/overview.md:7` | answered | written before the rebase (6ccc8f31) and carried into the tree round 3 read: the memo cites no removed document; read; the document is absent at the tip |
+| ⬜ 7 | The mutant rule was prepended into the case-ceiling paragraph rather than given its own; ragged wrap | `CONTRIBUTING.md:146` | answered | written before the rebase (2b166b1e) and carried into the tree round 3 read: the case rule is its own paragraph; read |
 | ❓ | Whether the tip's `windows-latest` and `macos-latest` legs pass | CI run 38658107547 | ❓ out of verified scope | pending when read; the orchestrator reads the run |
 
 ## Paste-ready fixes
