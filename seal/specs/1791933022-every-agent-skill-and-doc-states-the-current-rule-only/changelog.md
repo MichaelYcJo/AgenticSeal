@@ -89,18 +89,17 @@
   `docs/round-record-spec.md`, `docs/review-chain-spec.md` and
   `docs/review-handoff-protocol.md` give way to `docs/the-review-record.md`.
 
-  | File | Lines before | Lines after |
-  |---|---|---|
-  | `skills/code-review/scripts/chain_check.py` | 6,153 | 1,128 |
-  | `skills/code-review/scripts/round_record.py` | 5,596 | gone |
-  | `skills/verify/scripts/broad_gate.py` | 3,648 | 3,400 |
-  | `hooks/review-history-guard.py` | 303 | gone |
-  | `templates/sdd-round.md` | 460 | 46 |
-  | the three record documents | 2,725 | 232, one document |
-  | `agents/sealer.md` | 268 | 147 |
+  | File | Lines before, at `ce448bbe` |
+  |---|---|
+  | `skills/code-review/scripts/chain_check.py` | 6,153 |
+  | `skills/code-review/scripts/round_record.py` | 5,596, gone |
+  | `skills/verify/scripts/broad_gate.py` | 3,648 |
+  | `hooks/review-history-guard.py` | 303, gone |
+  | `templates/sdd-round.md` | 460 |
+  | the three record documents | 2,725, one document now |
+  | `agents/sealer.md` | 268 |
 
-  Counted against `origin/release/v0.22.0` at `ce448bbe`. The suite holds
-  143 test modules where it held 167, and 31,996 lines of tests left
-  against 3,135 added.
+  Counted on `origin/release/v0.22.0` at `ce448bbe`, before this work item;
+  `wc -l <file>` in this release gives a kept file's size after.
   (`1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
   #923)
