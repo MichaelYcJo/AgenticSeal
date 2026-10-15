@@ -32,6 +32,12 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 | A floor the budget step kept | not in §*Removes* / `test_the_workflow_reader_finds_the_env_assignment_the_file_already_has` held at least four base spellings in `hygiene.yml`, and the budget step was the fourth | the reader's count is held against an independent listing of the file's code lines naming a base | a floor on the tree's count stops being true when a step leaves; the listing holds at any count |
 | Where the release table is read | `plan.md` row 2: `docs/release-checklist.md:82–93` rewritten in place / that paragraph sat in §2, the preparation commit, before the release pull request exists | the paragraph is in §5, *The release pull request* | the table prints only on the pull request into `main` |
 | T6's reach | `plan.md` T6: a renamed target on a scratch copy of the tree / every target the tree shows is in `docs/*.md`, so a rename alone passes a walk of `docs/*.md` alone | a gone target is also planted in a file of each other glob | the case has to be red under the mutation T6 names |
+| When a fix of a fix stops the passes | `spec.md` S9 and §*What leaves*: "at the second such round in a run the orchestrator runs no fix pass" / `questions.md` Q1, answered after the frame: "a fix of a fix stops the fix passes before round 3 as well, and the item goes back to its framer" | any round carrying the mark stops the passes (`docs/the-review-record.md` §*The run*) | Q1 is the owner's answer and postdates the frame; the phase 3 spawn names it as governing |
+| Where T15 lives | `plan.md` T15: `tests/test_broad_gate.py::test_a_file_naming_another_commit_fails_a_ready_pull_request` / the arm that fails is `chain_check.py`'s | `tests/test_chain_check.py::TestMain::test_a_broad_gate_file_naming_another_commit_fails_a_ready_pull_request` | #942: a test sits in the file of the module it exercises |
+| The check's cutoffs and the approval notice | the old check grandfathered items by `*_FROM` ids and printed a notice for an unfilled `plan.md` approval line / `spec.md` §*Data & interfaces* names five arms and neither | both left with the rebuild | neither is among the arms the spec names; every item a cutoff excused is merged and is not judged again |
+| The panel's `item` and `rounds` rows | `spec.md` §*Data & interfaces*: "the panel and the stamp values are unchanged" / `item` read `#<pr> · <id>` from the record's `PR` row, and `rounds` appended `· capped` from `Needs a fix` | `item` is the id alone; `rounds` counts every record's deferrals and carries no `capped` | both fields leave the record by the same spec; nothing else holds what they read |
+| Which SHA is a broad-gate run | the old reader took the first SHA-shaped word of the cell / a cell whose tree word is not a SHA then reads the base as the run | the first word of the newest entry, where it is SHA-shaped | found by `tests/test_broad_gate.py::TestSpelling` while building; reading the base as the run passes a stale gate |
+| `⬜` outside the records | S10 lists `⬜` / 19 code comments cite a past finding as `round 1's ⬜ 4`, and `questions.md` and `## Not verified` use `⬜` as an open status | left | neither is the severity the record removed; the citations are history in comments, #940's and #942's when those files are rewritten |
 
 ## Not verified
 
@@ -47,7 +53,11 @@ suite nobody scores by hand, so compacting cannot ship a worse agent unseen.
 ## Not done
 
 The baseline, which is the orchestrator's act. The changelog fragment, which
-is phase 7's.
+is phase 5's. Phase 3 is part-built: the check, the template, the broad
+gate's file, the removal of the generator, the guard and the todo reader, and
+`docs/the-review-record.md` are committed; the three record documents, the
+orchestration and skill sections, the two agents' sections, the eval graders
+and `phases/phase-3.md` are not, and the phase 3 spawn's hand-back lists them.
 
 ## Fed back into the spec
 
