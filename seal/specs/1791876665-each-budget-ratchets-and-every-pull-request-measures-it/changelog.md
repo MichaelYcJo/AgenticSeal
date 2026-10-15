@@ -15,18 +15,18 @@
      <reason>`, read by CI so that nobody is asked; a release pull request
      asks for none.
   3. The suite's seconds and each slow file are read off one run's
-     `.test_durations`, so they are held to a ceiling 1.3 times their
-     reading with no lower band. A refresh restates one number, its price
-     level, rather than every seconds ceiling, so a refresh on faster or
-     slower runners fails nothing, and a cleanup of one file moves only that
-     file.
+     `.test_durations`, so each has a ceiling 1.3 times its reading with no
+     lower band. The suite's seconds are a gate, and each slow file is a
+     report. A refresh restates one number, its price level, rather than
+     every seconds ceiling, so a refresh on faster or slower runners fails
+     nothing, and a cleanup of one file moves only that file.
   4. Each leg's minutes are read off the run itself by a `budgets` job
      after the suite, held to a ceiling with no lower band, and printed with
      the run's billable minutes, priced at a figure the line says to check
      against GitHub's price list.
-  5. Two reports fail nothing: the largest round records in the tree, and
-     how many rows a release re-read. A release pull request prints every
-     budget against the last release tag.
+  5. Two reports fail nothing: each slow test file, and the largest round
+     records in the tree. A release pull request prints every budget
+     against the last release tag.
 
   A contributor's pull request that touches none of the measured files sees
   one more green step and one more green job. `seal/budgets.md` is read as

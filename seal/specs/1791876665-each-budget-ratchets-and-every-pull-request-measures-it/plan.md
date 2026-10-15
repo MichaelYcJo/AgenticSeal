@@ -71,7 +71,7 @@ This table is also where the work records how far it got. **Status is empty, or 
 | T7 `test_a_new_row_needs_no_line` | the first pull request | a new row treated as a raise |
 | T8 `test_the_preload_measurer_sums_the_agents_files_and_not_the_pair` | `preload:*` | the `CLAUDE.md` pair row included: a hand-built tree with known sizes gives a different sum |
 | T9 `test_the_docs_classifier_skips_fences_comments_headings_and_rule_blocks` | S8 | each exclusion dropped, one parametrised case per exclusion; the history regex narrowed to `#\d+` alone |
-| T10 `test_an_unlisted_file_over_the_threshold_fails_and_a_listed_one_may_not_grow` | S7 | the threshold check removed; the per-file compare removed |
+| T10 `test_an_unlisted_file_over_the_threshold_fails_and_a_listed_one_may_not_grow`, `test_an_unlisted_slow_file_under_a_report_row_is_named` | S7 (the first under a `gate` family, the second under the `report` kind this repository gives it) | the threshold check removed; the per-file compare removed; `render`'s list of report rows' problems removed, or a report row's problem asking for a `Budget raised:` line |
 | T11 `test_ci_minutes_sum_each_leg_off_the_job_name_and_price_the_run` | S9 | leg read off `runner_name` instead of the job name (fixture names carry one, not the other); the 2×/10× factors swapped |
 | T12 `test_the_summary_goes_to_the_step_file_when_set_and_names_no_path` | S5 | writing to stdout when `GITHUB_STEP_SUMMARY` is set; a machine path in the summary |
 | T13 `test_the_trees_budgets_hold` | the gate, locally | none — this is the gate's local form, as `test_every_document_in_docs_is_under_the_ceiling_or_frozen` is; its value is that the sealer's run sees the tree's own budgets |

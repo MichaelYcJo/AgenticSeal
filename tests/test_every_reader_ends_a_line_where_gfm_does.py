@@ -512,6 +512,13 @@ F = (
 )
 OUT_OF_CLASS = {
     (".github/scripts/budget_check.py", "main"): (1, "the docstring's first line"),
+    # #931: the pieces `hooks/config.py#gfm_table` numbers its rows by, so the
+    # line `--restate-price` overwrites is the row the walk read, as
+    # `seal.py#with_row` writes its `Mode` row.
+    (".github/scripts/budget_check.py", "restate_price"): (
+        1,
+        "the `str.splitlines` pieces `gfm_table` numbers a row by",
+    ),
     (".github/scripts/rules.py", "main"): (1, "the docstring's first line"),
     (".github/scripts/close_issues_on_release.py", "arrived"): (2, GIT),
     (".github/scripts/issue_claims_check.py", "main"): (

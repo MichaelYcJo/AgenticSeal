@@ -14,7 +14,8 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   # A pushed branch measured without a pull request (#841): a branch whose
   # routing stops before the pull request runs nothing on push, and the
-  # Windows leg's own `--durations` table is the only per-case figure for it.
+  # Windows leg's own `--durations` table and the `durations` job's
+  # `test-durations` artifact are the only per-case figures for it.
   workflow_dispatch:
 
 jobs:
@@ -88,13 +89,21 @@ jobs:
           # Measured in run 37700567455: the slowest macOS shard took 6 m 56 s,
           # and the three ran 12,827 cases between them, ubuntu's count at
           # the same SHA. ubuntu stays one job.
+          #
+          # `store`: every Windows shard measures the file as it runs (#931).
+          # `--store-durations --clean-durations` makes pytest-split write
+          # exactly its own session's cases to `.test_durations`, which on a
+          # shard is its group, so the four parts are the whole suite. The
+          # step after the pytest line uploads each part, and the
+          # `durations` job below unions them into the `test-durations`
+          # artifact. The file is the Windows leg's, so only Windows stores.
           - { os: macos-latest, python: "3.12", split: "--splits 3 --group 1", timeout: 15 }
           - { os: macos-latest, python: "3.12", split: "--splits 3 --group 2", timeout: 15 }
           - { os: macos-latest, python: "3.12", split: "--splits 3 --group 3", timeout: 15 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 1", timeout: 20 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 2", timeout: 20 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 3", timeout: 20 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 4", timeout: 20 }
+          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 1", store: "--store-durations --clean-durations", timeout: 20 }
+          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 2", store: "--store-durations --clean-durations", timeout: 20 }
+          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 3", store: "--store-durations --clean-durations", timeout: 20 }
+          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 4", store: "--store-durations --clean-durations", timeout: 20 }
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.timeout }}
     steps:
@@ -145,8 +154,59 @@ jobs:
       # `--durations=50`: each leg prints its own slowest cases, so a figure
       # for one operating system is read off that operating system (#841).
       # `split` is empty on ubuntu, so that leg runs the whole suite as
-      # before.
-      - run: pytest tests/ -q -n auto --durations=50 ${{ matrix.split }}
+      # before. `store` is empty everywhere but Windows, and it follows the
+      # split because it is about the session the split leaves.
+      - run: pytest tests/ -q -n auto --durations=50 ${{ matrix.split }} ${{ matrix.store }}
+      # A shard's part, uploaded whether its cases passed or failed: a red
+      # case still has a price. Only where `store` is set, because anywhere
+      # else `.test_durations` is the committed file, and a part holding the
+      # whole suite would read to the union as every id in two parts. The
+      # name starts with a dot, which the action skips by default. A part is
+      # kept as long as the union it makes: re-running failed jobs re-runs
+      # the `durations` job too, which reads every part again, and the
+      # re-run shard's part replaces the one its first attempt uploaded.
+      - if: always() && matrix.store != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-durations-${{ strategy.job-index }}
+          path: .test_durations
+          include-hidden-files: true
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 7
+
+  # The four Windows parts unioned into the file the next refresh commits
+  # (#931). It runs after every pytest job, green or red, unless the run was
+  # cancelled, and it is red whenever the parts cannot make the whole -- a
+  # part missing, an id in two parts, a part that does not parse -- so no
+  # smaller file is ever uploaded as the suite. Its summary reports each
+  # shard's measured seconds, the spread, and the union against the
+  # committed file. Downloading an artifact of the same run needs nothing
+  # beyond the default token. `--count` is the number of entries above that
+  # carry `store`.
+  durations:
+    needs: pytest
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: test-durations-*
+          path: parts
+      - run: python .github/scripts/durations_union.py --parts parts --count 4 --committed .test_durations --out union/.test_durations
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-durations
+          path: union/.test_durations
+          include-hidden-files: true
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 7
 
   # `arm-check`'s node-type tables have to hold on every supported Python,
   # and whether they do depends on the interpreter reading them: 3.14 added
@@ -184,10 +244,6 @@ jobs:
   # After the suite, whatever its verdict: a red leg still spent its minutes.
   # The token reads the run's own job list and nothing else, declared here
   # because this workflow states no `permissions:` of its own.
-  #
-  # `fetch-depth: 0` is not for this job, which reads no history. It is what
-  # `tests/test_ci_gives_the_checks_what_they_need.py` asks of a job whose
-  # text names `pytest`, and `needs: pytest` does.
   budgets:
     needs: pytest
     if: ${{ !cancelled() }}
@@ -198,8 +254,6 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

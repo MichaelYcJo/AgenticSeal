@@ -616,8 +616,10 @@ def test_a_docs_file_that_gains_a_history_line_fails_naming_it_and_the_line(
 def test_an_unlisted_file_over_the_threshold_fails_and_a_listed_one_may_not_grow(
     tmp_path, capsys, rows, verdict, said
 ):
-    """T10, S7: a test file over the threshold that the table does not list
-    fails, naming it; a listed one is held to its own ceiling."""
+    """T10, S7 under a `gate` family: a test file over the threshold that
+    the table does not list fails, naming it; a listed one is held to its
+    own ceiling. This repository's family is a `report` row, which
+    `test_an_unlisted_slow_file_under_a_report_row_is_named` holds."""
     root = tree(tmp_path, slow(*rows), files={".test_durations": json.dumps(SMALL)})
     assert run(root) == verdict
     assert said in capsys.readouterr().out
@@ -670,6 +672,54 @@ def test_a_file_row_is_held_at_its_familys_ceiling_at_the_base(
         tmp_path, head, base=base, base_files={".test_durations": json.dumps(SMALL)}
     )
     assert ratchet(root, body) == verdict, capsys.readouterr()
+
+
+def test_a_slow_file_is_reported_and_the_suite_seconds_are_gated(tmp_path, capsys):
+    """Work item 1791876667, round 3's 🟡 2: one union of the Windows shards'
+    parts moves a single test file 0.67 to 1.72 times the level from the
+    next, past any band a one-sided ceiling of 1.3 holds, so this
+    repository's `slow-file` rows are `report` rows and `suite-seconds` is
+    its gate. Under the kind `seal/budgets.md` gives the family, a listed
+    file over its ceiling is printed `over` and the run still holds."""
+    rows = {row.name: row for row in budget_check.budgets_here(ROOT)}
+    assert rows["suite-seconds"].kind == "gate"
+    kind = rows["slow-file"].kind
+    head = budgets(("slow-file", "seconds", 120, "one-sided", kind)) + table(
+        "Seconds ceiling", [("tests/test_a.py", 125)]
+    )
+    root = tree(tmp_path, head, files={".test_durations": json.dumps(SMALL)})
+    assert run(root) == 0
+    out = capsys.readouterr().out
+    assert (
+        "| `slow-file:tests/test_a.py` | 130 seconds | 125 | -5 (-4.0%) | report | over |"
+        in out
+    ), out
+
+
+def test_an_unlisted_slow_file_under_a_report_row_is_named(tmp_path, capsys):
+    """Work item 1791876667, round 5's 🟡 3: a test file that crosses the
+    threshold unlisted under a `report` family fails nothing, and the summary
+    still names it, because the family's own line reads only the largest
+    unlisted value and the path is in the row's problem alone. Neither that
+    problem nor a listed file's asks for a `Budget raised:` line, which
+    `ratchet` reads for a gate row alone."""
+    head = budgets(("slow-file", "seconds", 120, "one-sided", "report")) + table(
+        "Seconds ceiling", [("tests/test_b.py", 40)]
+    )
+    root = tree(tmp_path, head, files={".test_durations": json.dumps(SMALL)})
+    assert run(root) == 0
+    out = capsys.readouterr().out
+    assert "Report rows past their band, failing nothing:" in out, out
+    assert (
+        "- `slow-file`: tests/test_a.py is not listed and measures 130 seconds" in out
+    ), out
+    assert "list it there; a report row's listing needs no `Budget raised:` line" in out
+    assert (
+        "- `slow-file:tests/test_b.py`: measured 50 seconds is over the ceiling 40 "
+        "by 10. Bring it back under, or raise the ceiling in seal/budgets.md; a "
+        "report row's raise needs no `Budget raised:` line" in out
+    ), out
+    assert "pull request body" not in out, out
 
 
 def priced(scale, only=None):
@@ -735,6 +785,53 @@ def test_the_price_level_follows_the_durations_file_and_nothing_else(
     out = capsys.readouterr().out
     first = next(line for line in out.splitlines() if line.startswith("budget-check:"))
     assert first.startswith("budget-check: price level: ") and said in first, out
+
+
+def test_restate_price_writes_the_level_a_refresh_implies(tmp_path, capsys):
+    """Work item 1791876667, round 3's 🟡 1: committing a union used to
+    fail until a person copied the level out of the run's message.
+    `--restate-price` writes the number the check would have named into the
+    one row of `## Price level`, changes no other line, and the run that
+    wrote it holds, as the hygiene workflow's step will on that commit."""
+    root = refreshed(tmp_path, priced(1.07), RESCALED + price(1000))
+    assert ratchet(root, "", "--restate-price") == 0, capsys.readouterr()
+    written = (root / "seal" / "budgets.md").read_text("utf-8")
+    assert written == RESCALED + price(1070), written
+    out = capsys.readouterr().out
+    assert (
+        "`--restate-price` wrote 1070 per mille into `## Price level` of "
+        "`seal/budgets.md`; commit it with the file." in out
+    ), out
+    assert ratchet(root, "") == 0, capsys.readouterr()
+
+
+@pytest.mark.parametrize(
+    "head, args, said",
+    [
+        (
+            RESCALED + price(1000),
+            ("--restate-price",),
+            "--restate-price was given without --baseline",
+        ),
+        (
+            RESCALED,
+            ("--baseline", "base", "--restate-price"),
+            "--restate-price has no `## Price level` table",
+        ),
+    ],
+    ids=["no baseline", "no table to write into"],
+)
+def test_restate_price_with_nothing_to_restate_against_or_into_is_exit_2(
+    tmp_path, capsys, head, args, said
+):
+    """The level written is the base's times the file's move, so with no
+    baseline there is nothing to write; and a tree with no `## Price level`
+    table has no row to write it into. Both are exit 2 naming why, and the
+    file is left as it was."""
+    root = refreshed(tmp_path, priced(1.07), head)
+    assert run(root, *args) == 2
+    assert said in capsys.readouterr().err
+    assert (root / "seal" / "budgets.md").read_text("utf-8") == head
 
 
 def test_a_refreshed_file_holds_at_the_next_pull_request(tmp_path, capsys):

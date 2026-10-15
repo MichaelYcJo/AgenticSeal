@@ -16,6 +16,9 @@ and held to its ceiling from both sides.
                                        object a line
   budget_check.py --trend TAG          also set each budget beside its
                                        ceiling at TAG, one line each
+  budget_check.py --restate-price      with --baseline, first write the
+                                       price level `.test_durations`
+                                       implies into `seal/budgets.md`
 
 **The band.** A row holds while `measured <= ceiling <= measured x (1 +
 slack)`, or `measured + slack` where the slack is absolute (`+N`). The left
@@ -88,13 +91,15 @@ times from the next on the same code, and three of five quiet runs fell
 under a two-sided band on one leg, so a `ci-minutes` row's slack is
 `one-sided`: it holds while the run is under its ceiling, and nothing asks
 for it to be lowered. The seconds rows are the same kind of reading:
-`.test_durations` is one run's union, and one refresh moved each of its 19
-test files of 100 seconds or more 0.76 to 1.14 times the level it moved the
-whole by (its 72 files of 10 seconds or more, 0.46 to 1.54), so `suite-seconds` and
-`slow-file` are `one-sided` too. Such a row's ceiling is 1.3 times its
-reading, rounded up, which holds that spread with room, and the release
-lowers it from the trend line. Only these rows and `report` rows may say
-`one-sided`. The tree's run
+`.test_durations` is one run's union, so `suite-seconds` and `slow-file` are
+`one-sided` too. Such a row's ceiling is 1.3 times its reading, rounded up,
+and the release lowers it from the trend line. Only these rows and `report`
+rows may say `one-sided`. A single test file moves further than that band
+from one union of the Windows shards' parts to the next: 0.67 to 1.72 times
+the level the whole moved by, over four unions of one tree (#931), where one
+unsharded refresh had moved them 0.76 to 1.14. So `seal/budgets.md` makes the
+`slow-file` rows `report` rows, printed and never failing, and the sum over
+every file, `suite-seconds`, is the gate. The tree's run
 shows the minutes rows unread; the tests workflow's `budgets` job, after the
 suite, reads the run's job list with `--ci-jobs` and holds them, and prints
 the billable line: each job's minutes rounded up, at its leg's multiple of a
@@ -107,11 +112,13 @@ table gives the unit, the slack and the kind, and its ceiling is what every
 file its table does not list is held to: `## Slow test files` (`| File |
 Seconds ceiling |`), `## Docs history lines` (`| File | Lines ceiling |`) and
 `## Unenforced rules` (`| File | Rules ceiling |`) list the files held to a
-ceiling of their own. So an unlisted test file over
-the threshold fails, and listing it is a raise from the threshold that needs
-its line, as is a row the table drops whose ceiling was under it. Every test
-file whose reading times 1.3 reaches the threshold is listed, so an unlisted
-one has the same room to move before it crosses. A docs
+ceiling of their own. So where the family is a `gate`, an unlisted file
+over the threshold fails, and listing it is a raise from the threshold
+that needs its line, as is a row the table drops whose ceiling was under
+it. Where the family is a `report`, that file fails nothing and the
+summary names it in the list of report rows past their band. Every test
+file whose reading times 1.3 reaches the threshold is listed, so an
+unlisted one has the same room to move before it reads over. A docs
 line is a **history line** when it is not a rule line, not blank, not hidden
 in a fence or a comment and not a heading, and matches `#NN`, `round N`, a
 date or `measured`. A **rule line** is in a block from a line opening with
@@ -132,7 +139,8 @@ divided by that level, and the summary prints the raw value beside it. With
 as the median over the test files of 10 seconds or more of each file's
 seconds here over its seconds there, and the level here must be the base's
 times that ratio, rounded per mille, or the run fails naming the number to
-write. A median of files moves with the runners and not with one file, so a
+write. `--restate-price` writes that number into the table's one row before
+anything is measured, which is how a refresh is committed. A median of files moves with the runners and not with one file, so a
 cleanup that speeds one file up moves only that file's reading. So a refresh restates
 one number and no `Budget raised:` line, the level cannot move without the
 file, and a later pull request reads the refreshed file at the level its
@@ -154,7 +162,8 @@ nothing was compared: `seal/budgets.md` is missing or a row of it cannot be
 read, a row names a budget no measurer here reads or a file the tree does
 not have, a family row and its file table are not both there, `CLAUDE.md` or
 `.test_durations` is missing or unreadable, the baseline does not resolve,
-`--pr-body-env` names a variable that is not set, the job list is missing or
+`--pr-body-env` names a variable that is not set, `--restate-price` has no
+`--baseline` or no `## Price level` table to write into, the job list is missing or
 unreadable or has no pytest job on a leg a row names, an `Enforced by:`
 target names a Python file that will not parse, or a sibling module this
 reads through is not beside it. Closed, never silent.
@@ -1057,12 +1066,17 @@ def band(row, measured, detail=""):
     top = top_of_band(measured, row.slack)
     problems = []
     if measured > row.ceiling:
+        # `ratchet` reads a raise line for a gate row alone.
+        line = (
+            f" and write `Budget raised: {row.name} {row.ceiling} -> <new>: "
+            "<reason>` in the pull request body"
+            if row.kind == GATE
+            else "; a report row's raise needs no `Budget raised:` line"
+        )
         problems.append(
             f"measured {measured:,} {row.unit} is over the ceiling {row.ceiling:,} "
             f"by {round(measured - row.ceiling, 1):,}{detail}. Bring it "
-            f"back under, or raise the ceiling in {BUDGETS_GIT} and write `Budget "
-            f"raised: {row.name} {row.ceiling} -> <new>: <reason>` in the pull "
-            "request body"
+            f"back under, or raise the ceiling in {BUDGETS_GIT}{line}"
         )
     elif top is not None and row.ceiling > top:
         problems.append(
@@ -1082,12 +1096,17 @@ def unlisted_band(row, unlisted, at):
 
     Reads: nothing — compares the numbers handed to it"""
     title, noun = FILE_TABLES[row.name].title, FILE_TABLES[row.name].noun
+    gate = row.kind == GATE
     problems = [
         f"{path} is not listed and measures {value:,} {row.unit}, over the "
         f"{row.ceiling:,} every file `## {title}` does not list is held to"
-        f"{at_lines(at.get(path, ()), noun)}. Bring it under, or list it there and "
-        f"write `Budget raised: {row.name}:{path} {row.ceiling} -> <new>: "
-        "<reason>` in the pull request body"
+        f"{at_lines(at.get(path, ()), noun)}. Bring it under, or list it there"
+        + (
+            f" and write `Budget raised: {row.name}:{path} {row.ceiling} -> "
+            "<new>: <reason>` in the pull request body"
+            if gate
+            else "; a report row's listing needs no `Budget raised:` line"
+        )
         for path, value in sorted(unlisted.items())
         if value > row.ceiling
     ]
@@ -1208,9 +1227,10 @@ def ratchet(base_rows, head_rows, body, release):
 
 
 def render(results, moves, against, cache=None):
-    """The summary as markdown: one line per budget, the raises read, the
-    price level the seconds rows were read at, and where the docs were
-    classified, each document's history and rule lines.
+    """The summary as markdown: one line per budget, each report row's
+    problems, the raises read, the price level the seconds rows were read
+    at, and where the docs were classified, each document's history and
+    rule lines.
 
     Reads: nothing — formats the results handed to it"""
     cache = cache or {}
@@ -1232,6 +1252,11 @@ def render(results, moves, against, cache=None):
             f"The seconds rows are divided by the price level x{float(level):.3f} "
             f"that `## {PRICE_TITLE}` states, into the prices their ceilings are "
             "written in."
+        )
+    if "restated" in cache:
+        lines.append(
+            f"`--restate-price` wrote {cache['restated']} per mille into "
+            f"`## {PRICE_TITLE}` of `{BUDGETS_GIT}`; commit it with the file."
         )
     lines += [
         "",
@@ -1257,6 +1282,17 @@ def render(results, moves, against, cache=None):
             f"| `{row.name}` | {result.measured:,} {row.unit}{largest} | "
             f"{row.ceiling:,} | {room:,} ({share}) | {row.kind} | {verdict} |"
         )
+    # A report row fails nothing, so its problems are not the run's; they
+    # print here, because a family's line above names no file.
+    noted = [
+        (result.row.name, problem)
+        for result in results
+        if result.row.kind == REPORT
+        for problem in result.problems
+    ]
+    if noted:
+        lines += ["", "Report rows past their band, failing nothing:", ""]
+        lines += [f"- `{name}`: {problem}" for name, problem in noted]
     if moves:
         lines += ["", "Ceilings moved since the base:", ""]
         lines += [f"- `{name}` {what}: {reason}" for name, what, reason in moves]
@@ -1326,12 +1362,27 @@ def trend_rows(root, tag):
     return {row.name: row for row in rows}
 
 
-def check(root, baseline=None, body="", release=False, ci_jobs=None, trend=None):
+def check(
+    root,
+    baseline=None,
+    body="",
+    release=False,
+    ci_jobs=None,
+    trend=None,
+    restate=False,
+):
     """`(problems, refusals, summary)` for the tree at `root`, or, with
     `ci_jobs`, for the rows read off that one run, and only those. With
     `trend`, the summary sets every budget beside its ceiling at that tag.
+    With `restate`, a price level that does not follow the durations file is
+    written into `seal/budgets.md` rather than failed.
 
     Reads: guess — `seal/budgets.md` and the body its caller handed it, through the units above; unknown refused"""
+    if restate and baseline is None:
+        raise Unreadable(
+            "--restate-price was given without --baseline, and the level it "
+            "writes is the base's times how far the durations file moved from it"
+        )
     head_text = budgets_text_here(root)
     head = parse_budgets(head_text, BUDGETS_GIT)
     level = stated_price(head_text, BUDGETS_GIT)
@@ -1365,6 +1416,13 @@ def check(root, baseline=None, body="", release=False, ci_jobs=None, trend=None)
             ratio, common = price_level(before, durations(root), against)
             cache["price"] = (ratio, common)
             priced = price_problems(base_level, ratio, common, level)
+            if restate and priced:
+                level = restate_price(
+                    root, head_text, expected_level(base_level, ratio)
+                )
+                cache["level"] = fractions.Fraction(level, PER_MILLE)
+                cache["restated"] = level
+                priced = []
     for row in head:
         try:
             results.append(measured_row(root, row, names, cache))
@@ -1381,6 +1439,15 @@ def check(root, baseline=None, body="", release=False, ci_jobs=None, trend=None)
     return problems, refusals, render(results, moves, against, cache)
 
 
+def expected_level(base_level, ratio):
+    """The price level here, per mille: the base's times the ratio the
+    durations file moved by, rounded. The one expression of it, so the
+    level `--restate-price` writes is the level `price_problems` demands.
+
+    Reads: nothing — a number from the numbers handed to it"""
+    return seconds(base_level * ratio)
+
+
 def price_problems(base_level, ratio, common, level):
     """The one problem a price level that does not follow the durations file
     is, or none: the level here has to be the base's times the ratio the
@@ -1388,7 +1455,7 @@ def price_problems(base_level, ratio, common, level):
     number and no other edit can move it.
 
     Reads: nothing — compares the numbers handed to it"""
-    expected = seconds(base_level * ratio)
+    expected = expected_level(base_level, ratio)
     if level == expected:
         return []
     return [
@@ -1402,6 +1469,28 @@ def price_problems(base_level, ratio, common, level):
             "moves it",
         )
     ]
+
+
+def restate_price(root, text, expected):
+    """Write `expected` into the one row of `## Price level` in the
+    `seal/budgets.md` at `root`, whose text is `text`, changing that line and
+    no other, and return it; Unreadable where no such table is there.
+
+    Reads: guess — a person's markdown table, through `hooks/config.py#gfm_table`; unknown refused"""
+    rows, refused = sibling("config").gfm_table(text, PRICE_HEADER)
+    if refused or len(rows) != 1:
+        raise Unreadable(
+            f"--restate-price has no `## {PRICE_TITLE}` table "
+            f"`| {' | '.join(PRICE_HEADER)} |` with one row in {BUDGETS_GIT} "
+            f"to write {expected} into"
+        )
+    line = rows[0][0]
+    lines = text.splitlines(keepends=True)
+    end = lines[line - 1][len(lines[line - 1].rstrip("\r\n")) :]
+    lines[line - 1] = f"| {DURATIONS} | {expected} |{end}"
+    with open(os.path.join(root, BUDGETS), "w", encoding="utf-8", newline="") as out:
+        out.write("".join(lines))
+    return expected
 
 
 def measured_row(root, row, names, cache):
@@ -1545,6 +1634,7 @@ def main(argv=None, env=None):
     parser.add_argument("--base-ref", metavar="BRANCH", default="")
     parser.add_argument("--ci-jobs", metavar="FILE")
     parser.add_argument("--trend", metavar="TAG")
+    parser.add_argument("--restate-price", action="store_true")
     args = parser.parse_args(argv)
     try:
         body = ""
@@ -1562,6 +1652,7 @@ def main(argv=None, env=None):
             release=args.base_ref == RELEASE_BRANCH,
             ci_jobs=args.ci_jobs,
             trend=args.trend,
+            restate=args.restate_price,
         )
     except Unreadable as error:
         sys.stderr.write(f"budget-check: {error}. Nothing was compared.\n")

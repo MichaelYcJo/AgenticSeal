@@ -15,10 +15,15 @@ gains its test lowers its file's row in the same pull request.
 A row read off one run — a CI run's minutes, or `.test_durations` — is
 `one-sided`: its ceiling is 1.3 times its reading, rounded up, every test
 file whose reading times 1.3 reaches the 120 s threshold is listed, and the
-release lowers these ceilings from the trend line. The seconds ceilings are
+release lowers these ceilings from the trend line. The `slow-file` rows are
+`report` rows: one union of the Windows shards' parts moves a single test
+file 0.67 to 1.72 times the level from the next, so each file's reading is
+printed in every summary and fails nothing, and `suite-seconds`, the sum
+that averages that spread out, is the gate. The seconds ceilings are
 written in one set of prices; `## Price level` says how the committed
 `.test_durations` prices stand against them, and a refresh of that file
-restates it to the number the checker names. A `bytes` row counts each CRLF
+restates it with `budget_check.py --restate-price`, as `CONTRIBUTING.md`
+§*Running the checks* gives the command. A `bytes` row counts each CRLF
 as the one LF git stores, so a checkout on any platform measures the same
 commit alike. -->
 
@@ -33,7 +38,7 @@ commit alike. -->
 | preload:warden | bytes | 99690 | 2 % | gate |
 | preload:claude-md | bytes | 9027 | 2 % | gate |
 | suite-seconds | seconds | 9185 | one-sided | gate |
-| slow-file | seconds | 120 | one-sided | gate |
+| slow-file | seconds | 120 | one-sided | report |
 | docs-history | lines | 0 | +0 lines | gate |
 | ci-minutes:ubuntu | minutes | 15 | one-sided | gate |
 | ci-minutes:windows | minutes | 59 | one-sided | gate |
@@ -82,7 +87,7 @@ commit alike. -->
 | docs/measuring-a-run.md | 2 |
 | docs/one-root-by-lifetime.ko.md | 31 |
 | docs/one-root-by-lifetime.md | 36 |
-| docs/release-checklist.md | 11 |
+| docs/release-checklist.md | 10 |
 | docs/review-chain-spec.md | 25 |
 | docs/review-handoff-protocol.md | 22 |
 | docs/round-record-spec.md | 17 |

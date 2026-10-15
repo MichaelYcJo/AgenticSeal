@@ -318,17 +318,80 @@ def test_a_workflow_with_no_entry_to_read_is_refused():
         )
 
 
+# A job runs pytest where a line of its code names it as a word: `run: pytest
+# …`, `uvx --with pytest pytest`, `uv run pytest`, `PYTHONPATH=x pytest`,
+# `cd sub && pytest`, `python -m pytest`, a line of a `run: |` block. This is
+# the reach the old substring test had. `needs: pytest` names the job of that
+# name and runs nothing (#931's `durations` job and #930's `budgets`, neither
+# of which reads a SHA), so a `needs:` line is not read; comments are off
+# before this reads a line.
+RUNS_PYTEST = re.compile(r"(?<![\w.-])pytest(?:\s|$)")
+
+
+def runs_pytest(block):
+    """Whether a line of `block`'s code, other than its `needs:`, names
+    pytest as a word."""
+    return any(
+        RUNS_PYTEST.search(line)
+        for line in block.splitlines()
+        if not re.match(r"^\s*needs:", line)
+    )
+
+
+def shallow_pytest_jobs(text):
+    """The jobs of a workflow's code (comments already off) that run pytest
+    on a checkout without the whole history."""
+    found = []
+    for job, block in jobs(text).items():
+        if not runs_pytest(block):
+            continue
+        if "actions/checkout" not in block:
+            continue
+        if "fetch-depth: 0" not in block:
+            found.append(job)
+    return found
+
+
+# Every way a job here has been seen to call pytest, each on a shallow
+# checkout, and one that only names the job: round 1's 🟡 3 of work item
+# 1791876667 found the first four unselected. Neutral values only
+# (`CONTRIBUTING.md` §*House rules*, *No real identifiers*).
+SHALLOW_RUNNERS = {
+    "uvx-pytest": "uvx --with pytest pytest tests/ -q",
+    "uv-run-pytest": "uv run pytest tests/ -q",
+    "env-prefixed": "PYTHONPATH=x pytest tests/ -q",
+    "cd-and-pytest": "cd sub && pytest -q",
+    "plain-pytest": "pytest tests/ -q",
+    "python-m-pytest": "python -m pytest tests/ -q",
+}
+
+
+@pytest.mark.parametrize("job", sorted(SHALLOW_RUNNERS))
+def test_a_job_that_calls_pytest_any_way_is_held_to_the_whole_history(job):
+    workflow = (
+        "on: push\n"
+        "jobs:\n"
+        f"  {job}:\n"
+        "    runs-on: example-os\n"
+        "    steps:\n"
+        "      - uses: actions/checkout@v4\n"
+        f"      - run: {SHALLOW_RUNNERS[job]}\n"
+        "  reads-a-part:\n"
+        "    needs: pytest\n"
+        "    steps:\n"
+        "      - uses: actions/checkout@v4\n"
+        "      - run: echo needs-names-a-job\n"
+    )
+    assert shallow_pytest_jobs(strip_comments(workflow)) == [job]
+
+
 def test_every_job_that_runs_pytest_has_the_whole_history():
     """A check that cannot resolve a SHA is not excused from resolving it."""
-    offenders = []
-    for name in workflows():
-        for job, block in jobs(read(name)).items():
-            if "pytest " not in block and "pytest\n" not in block:
-                continue
-            if "actions/checkout" not in block:
-                continue
-            if "fetch-depth: 0" not in block:
-                offenders.append(f"{name}:{job}")
+    offenders = [
+        f"{name}:{job}"
+        for name in workflows()
+        for job in shallow_pytest_jobs(read(name))
+    ]
     assert not offenders, (
         f"jobs that run pytest on a shallow checkout: {offenders}. "
         "At depth 1 a ref this repository's own records name is MISSING "
