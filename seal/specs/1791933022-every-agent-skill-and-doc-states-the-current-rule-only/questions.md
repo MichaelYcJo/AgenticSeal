@@ -3,34 +3,54 @@
 <!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
 extracted so nothing ships on a silent assumption. -->
 
-**Judgments the ticket left open that the tree answered** — listed so nobody reopens them; the grounds are in `spec.md` and `plan.md` §*Alternatives considered*. Re-read on 2026-10-15 against #923's body as rewritten that day, items 1–5.
+**Judgments the ticket left open that the tree answered** — listed so nobody
+reopens them; the grounds are in `spec.md` and `plan.md` §*Alternatives
+considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
 
-- The frame is about the agents, not about budgets: a restated rule, a stale concept and a story under a rule are defects (`spec.md` §*What a definition is*); the bytes and tokens are the second axis.
-- The proof is a few real cases per agent on outcome and cost, taken against a baseline once; the sentence graders, the rule census and the owed-record coupling are gone (alternatives B, C, J; built at a4952d90..7f4b3046). What stays is the runner, the comparator, the outcome graders and the record test.
-- Nothing holds a size or a history count (#923 item 3, the owner): the budget concept leaves whole, and with it any `history` family (alternatives M, O). What holds the result is the contract's rewrite-in-place rule, the warden's read of each document hunk for an append, and the release table, which fails nothing.
-- The one fact still checked on every pull request — every `Enforced by:` target resolves — lives in `rules.py --check`, this repository's own walker of `Enforced by:` lines, resolving through `fold_check.py#target_problem`, and runs as one suite case rather than a hygiene step (alternatives P, Q): the suite already runs on every pull request and under the sealer, and a step would be the second reading of one fact with two lists to keep in step.
-- The release table runs after the suite in `test.yml` on a pull request into `main` only, because the run's minutes are known nowhere else (alternative R); its document rows are `docs/*.md`, `CLAUDE.md` and `CONTRIBUTING.md` (alternative T).
-- Phase 2 comes before the first rewrite: a rewrite under the live byte gate would have to lower `preload:warden` and `unenforced:agents/warden.md` in the same change, rows phase 2 deletes, and the baseline waits on #939 anyway. The rows are in arrival order, so phase 1's acts are the proof made light and the five pre-0.22.0 cases, phase 2 the subtraction, phase 3 the baseline and the warden.
-- The phase order after that: the contract, which every spawn carries; then the implementer's pair, then the framer and the sealer. The warden comes first among the rewrites because it is the most often spawned (81 of 185 spawns in four sessions, the previous frame's measurement) and its cases are the real-defect ones.
-- The fourth rule the orchestrator proposed (an agent that concludes nothing should change checks the premise first) is §5 applied to one's own conclusion, so it is a clause of §5's rewrite and not a new section — the owner's own rule that two rules reaching one conclusion are one rule. The three rules that are new sections — own cleanup, a check refusing correct code, rewrite in place — follow §17 and keep every existing number.
-- `scribe` runs no case: no parity fixture exists, the definition is 3,763 B of the shape already, and its preload changes only through the contract phase, which runs the other four.
-- #915's paragraph in `agents/warden.md`: kept in the shape where it has merged before phase 3's rewrite; where it has not, #915 rebases onto a file with no ceiling and meets only the review.
-- The two docs sentences that say no definition pins a model, and the budget sentences in `docs/release-checklist.md`, `docs/the-record-layout.md` and both READMEs, are rewritten here, not in #941 or #940: this item makes them false, and a change removes what stood on the old fact in the same commit (`CLAUDE.md`).
-- The boundary with #940, #941, #945: `plan.md` §*The split*. The round records and `seal/specs/` stay out with the reasons in `spec.md` §*Scope*.
+- The agent set stays five: every job needing judgment has one of them, and
+  the fix pass, the broad run and the pull-request check need no sixth
+  (`spec.md` §*The jobs*; alternative N).
+- The record is the warden's one file, and the smith's fix pass writes two
+  cells per open row. No generator, no copy, no derived field: each of the
+  eleven removed fields is judged in `spec.md` §*What leaves, what stays*
+  against the 19 records of 0.22.0 (alternatives B, D, E, F, O, P, Q).
+- ⬜ leaves the vocabulary; a wrong sentence an agent acts on is 🟡 and a
+  sentence in a record is not a finding (alternative Q).
+- The `fix of a fix` stop is the warden's mark and the orchestrator's rule; the
+  cap is one orchestrator rule with one number; neither is a check at the pull
+  request until a run shows the need (alternatives E, F, M).
+- The broad gate's one home is `broad-gate.md` on both routing answers.
+- The sealer's verdict is a file in the tree, `guarantee.md`, read by the
+  check; an owner's answer to `undecidable` is a line under the verdict, then
+  the sealer runs again at the new HEAD (alternative I).
+- The sealer pins `model: opus`; no other definition pins a model (owner,
+  2026-10-15, #923 item 2).
+- Every agent preloads the contract alone and opens its skill at the step; a
+  case that shows the opened form falls short sends that skill back to the
+  list (#923 item 4; alternative L).
+- The contract numbers its rules anew; the 35 citations outside the rewritten
+  files are rewritten in the same commit.
+- The record lands first and the agents second, in two work items under one
+  design, because the diff and the proof's baseline both ask for it
+  (`plan.md` §*The split*; alternatives J, K). Overturnable at the approval
+  of this plan.
+- The three record documents are replaced by one; `docs/the-agent-set.md`,
+  `docs/the-record-layout.md` and `docs/the-broad-gate.md` are rewritten where
+  this item makes them false, and otherwise left to #941.
+- Answered by the owner before this frame and still standing: the proof's run
+  budget (≈ 120 runs, ≈ $150; 2026-10-14), the tree's
+  `skills/writing-style/SKILL.md` as the one source (2026-10-13), no
+  restatement report row (2026-10-15), `docs/one-root-by-lifetime.md` rewritten
+  in #941 (2026-10-14).
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
-| Q1 | `docs/one-root-by-lifetime.md` and its `.ko.md` describe themselves as "the design 0.4.0 starts from". Rewrite the pair to the current rule, retire it, or leave it? | a person — the owner keeps the Korean edition | rewrite · retire · leave | — | ✅ answered 2026-10-14 by the repository owner: **rewritten** to the current rule, in #941 |
-| Q2 | What are the real tokens per preload after the rewrites? | a measurement — each run's trace carries `usage`; `compare` writes both sides' pooled tokens read from the baseline on (phase 3) | — | the `payload_meter` estimate at 3.2 B/token, labelled estimated, until the baseline | ⬜ |
-| Q3 | Of the 88 literals 40 modules pin in `agents/warden.md`, which pin a rule and which pin narration? | the work — phase 3 sorts them as it rewrites and lists the dropped ones in `phases/phase-3.md` and `overview.md` | — | — | ⬜ |
-| Q4 | How many lines would four widened history marks add per file, and would any over-count a rule? | — | — | — | ✅ closed 2026-10-15 by the frame: there is no history-line check (alternative M); the question has no work behind it |
-| Q5 | Is 16,000 B the right family ceiling for an unlisted per-file `bytes:` row? | — | — | — | ✅ closed 2026-10-15 by the frame: there is no ceiling of any kind (#923 item 3) |
-| Q6 | Is the proof's run budget accepted? | a person — the owner pays for the runs and set the condition | accept · halve the warden set · N = 1 | accept | ✅ answered 2026-10-14 by the repository owner: **accept**. Restated on 2026-10-15 for the lighter suite: ≈ 120 runs and ≈ $150 over the item, warden 8 cases, smith 4, framer 4, sealer 3, N = 2 |
-| Q7 | Does `claude plugin eval` run on the owner's account, and does a case's session spawn `specseal:warden` through the `Agent` tool as production does? | a measurement | — | — | ✅ answered 2026-10-14 by measurement (`phases/phase-2-suite-build.md`, the suite build's record): it runs, and the session reaches the agent through the `Agent` tool; a preload with two terminal-line rules removed is `Verdict: fail` |
-| Q8 | Which paraphrase pairs are one rule, and where does each home go? | — | — | — | ✅ answered 2026-10-15 by measurement (`spec.md` §*The problem, measured*): eight in-context pairs and four cross-spawn pairs, each with its home named in the phase that rewrites its files |
-| Q9 | `skills/writing-style/SKILL.md` is the owner's own style canon, mirrored from `~/.claude/skills/writing-style/` (26,422 B there, 21,000 B in the tree). #923's body names it in the set. After the rewrite, which copy is the source? | a person — the owner keeps the mirror outside the repository | **rewrite the tree's copy and the owner refreshes the mirror from it**: one source, the one every spawn reads · **the mirror is the source and the tree's copy follows it unchanged**: the file stays at 21,000 B in every smith, warden and framer spawn and the item leaves its one history line and comment block in place | rewrite the tree's copy; the mirror is the owner's to refresh | ✅ answered by the owner before this frame (2026-10-13): the personal copy is deleted, so the tree's `skills/writing-style/SKILL.md` is the one source and is rewritten here; `~/.claude/skills/writing-style/` no longer exists (executed, `ls`, 2026-10-15) |
-| Q10 | Should the restatement count (cross-file paragraph pairs at Jaccard ≥ 0.35 inside one spawn's preload) become a report row printed on every pull request? | a person — the owner, who refused mechanism before the improvement | **no**: the frame measured it once, each phase removes its files' pairs, the close re-counts it into the changelog · **yes**: a row that never fails, a number on every pull request with no catch history yet | no | ✅ answered 2026-10-15 by the repository owner (#923 item 3): **no row**. A count stored per file is a second record beside the tree, and the file that would have held a report row leaves; the close re-counts the pairs once into the changelog fragment and nothing in CI reads it |
-| Q11 | Which rounds replace `replay-1791852615-r2`, and which seed replaces `seeded-770d721f`? | the work — phase 1 reads `replay_targets.py --list` and `seed_defects.py --list` and takes the smallest whose truth stands on the tree | — | — | ✅ answered 2026-10-15 by phase 1's first act (bb519165): **`replay-1791382684-r2`** (3 truths, 198 lines) and **`seeded-279a580b`** (`chain_check.py#note_rows`, `or` made `and`). Truth 1 of the replay sits in `skills/evidence-check/scripts/correction_check.py`, which #944 removed; it was kept because what it finds is a `Reads:` line naming a read its unit never makes, a rule `docs/the-reader-registry.md` still states, and the case runs the target clone where the file exists. Both written by the generators' `--case NAME` |
-| Q12 | Which fields of the eval's `--json` per-run object and of the trace's `result` event carry a run's spend, seconds and tokens? | a measurement — the baseline's first saved `raw.json` and trace, read against what `run` records (built, 7f4b3046: `total_cost_usd`, `duration_ms`, `usage.*`) | — | the names above | ⬜ |
+| Q1 | How many finding rounds may a run take before it stops and every open finding is deferred with a home? 0.22.0's runs: #944 two finding rounds then a verifying one, #930 two then one, #931 five then one, #929 six then one and the item was closed unfinished. The number is a cost a person is accountable for, and the tree holds no measurement that picks one | a person — the owner, who pays for the rounds | **3**: a run of #931's shape stops after its third finding round and defers the rest · **5**: #931 completes, #929 stops one round earlier than it did · **no cap**: the sealer and the person reading the pull request are the only bound | 3 | ⬜ |
+| Q2 | What does one guarantor run cost — spend, seconds, tokens — on a real item? | a measurement — phase 4's first run of the three sealer cases, and part A's own sealer spawn | — | the estimate in `spec.md` §*The sealer*: ≈ $2–4, 5–10 min | ⬜ |
+| Q3 | Which of the 70 test modules naming the three scripts keep a case in `test_chain_check.py` or `test_broad_gate.py`, and which leave whole? | the work — phase 3 sorts them as it rebuilds the arms and lists every deletion's guard in `phases/phase-3.md` | — | — | ⬜ |
+| Q4 | What are the real tokens a spawn reads after the rewrites, per agent? | a measurement — part B's baseline traces carry `usage`; `compare` writes both sides' pooled tokens | — | `payload_meter`'s estimate at 3.2 B/token, labelled estimated | ⬜ |
+| Q5 | Of the pins the 52 test modules hold on `agents/*.md`, which pin a rule and which pin narration? | the work — each part B phase sorts its agent's and lists the dropped ones in its phase record and `overview.md` | — | — | ⬜ |
+| Q6 | Which fields of the eval's per-run JSON and of the trace's `result` event carry a run's spend, seconds and tokens, on a real run? | a measurement — the first saved `raw.json` of part B's baseline, read against what `run` records (`total_cost_usd`, `duration_ms`, `usage.*`) | — | the names above | ⬜ |
 
-No row waits on a person: Q1, Q6, Q9 and Q10 are answered. Q2 and Q12 are a measurement's, taken at the baseline (phase 3); Q3 is the work's, sorted by the warden rewrite.
+One row waits on a person, Q1, and the build proceeds on its default. Q2, Q4
+and Q6 are a measurement's; Q3 and Q5 are the work's.

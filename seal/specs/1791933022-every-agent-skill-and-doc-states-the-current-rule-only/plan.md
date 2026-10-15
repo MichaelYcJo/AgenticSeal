@@ -8,110 +8,187 @@ Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 Approved 2026-10-15 by the repository owner, when `smith` was spawned for the reframed plan.
 Approved 2026-10-15 by the repository owner, for the replanned phases 1–7, when `smith` was spawned for phase 1's second act.
 
-Reframed on 2026-10-15 against the tree after #930 and #944 merged, with #923's body as the one source of what the owner decided. Replanned the same day, at 2062d9b2, for the owner's decisions of 2026-10-15 (#923 item 3 and the two test rules): the budget concept leaves, one fact check and one release table stay, and there is no history-line check. No phase has closed, so every row below replaces one; phase 1's first act is built and its row says so.
+Reframed 2026-10-15 as a new slate, from phase 3 on, against #923's body as
+the owner rewrote it that day. Phases 1 and 2 are closed and keep their rows
+and commits; every row from 3 on replaces the earlier plan's.
 
 ## Summary
 
-The rewrite is the work. Each rewrite phase takes one or two files an agent preloads and rewrites them to `spec.md` §*The shape of a compact file*: every rule once, a restated rule made one home and one link, every story out, each rule that a test holds given its `Enforced by:` line. The proof is a small set of real behaviour cases per agent run on both sides — outcome first (the defects found, the false findings, the shape the generator reads), then cost (tokens, spend, bytes) — taken once as a baseline and once per phase for the agents the phase touched. What holds the result is not a ceiling: the contract's rule that a change rewrites in place, the warden reading each document hunk for an append, and one table on the release pull request that fails nothing. One fact stays checked on every pull request — every `Enforced by:` target resolves — by `rules --check`, run as one suite case. The budget concept, which measured results and kept their numbers beside the tree, leaves before the first rewrite reaches a preload, so no rewrite ever moves a ceiling that is about to be deleted. Nothing asks a person, and no test in the tree makes a later edit owe a paid run.
+The review chain is designed from the jobs. A round record is one file the
+warden writes — the commit it reviewed, its findings in the five-column table
+it already writes, its probes and its paste-ready fixes — and the smith's fix
+pass closes each open row with two cells. Nothing is generated, copied or
+derived: `round_record.py`, eleven fields, four sections, the ⬜ severity and
+the reviewer's separate report leave, and the check at the pull request reads
+five facts — the declaration, the frame, the records, the broad gate's file,
+the sealer's verdict. The sealer becomes the final independent guarantor on
+Opus: it runs the gate, re-runs a sample of the smith's claims, and reads the
+framer's, the smith's, the warden's, the changelog's and the pull request's
+stories against the issue and the tree, writing `guarantee.md`. Then the five
+definitions and the contract are written anew from their jobs, preloading the
+contract alone and opening each skill at the step that needs it, each phase
+proved on the agents' behaviour cases against a baseline taken once. The
+agents are written once, against the new record, which is why the record
+comes first and the agents second, as a second work item.
 
 ## Technical context
 
-Read at 2062d9b2; `executed` where `spec.md` §*The problem, measured* says so.
+Read at 680142f2; `executed` where `spec.md` §*The chain as it stands,
+measured* says so.
 
-- `.github/scripts/rules.py` (#944): `rules <doc> [--root DIR]` loads `budget_check.py` by path for `sibling`, `shown_lines`, `targets_of`, `target_problem`, `RULE_CLOSER`, `EVAL_CASES` and `Unreadable`, and prints each heading with its `Enforced by:` targets described; exit 0 whatever it finds. `bin/rules` and `bin/rules.cmd` exec it. Phase 2 moves those units into it and adds `--check`.
-- `.github/scripts/budget_check.py` (#930): `RULE_FILES` (the seven globs), `shown_lines` (GFM lines through `unverified_check.py#gfm_lines`, visibility through `hooks/config.py#unfenced`, the heading each line stands under), `enforcer_lines`, `targets_of` (through `fold_check.py#names_targets`), `target_problem` (the `evals/behaviour/<agent>/<case>/` arm, then `fold_check.py#target_problem`), `measure_unresolved` — the fact check as it stands, 0.62 s over the tree. Everything else in the file measures a row.
-- `skills/settle/scripts/fold_check.py#target_problem` (#836, #944): the one resolver of a file or a `path::name` unit defined once, through `coordinates.py#named_unit`; `Unusable` for a file that will not parse. Shipped with the plugin and read by `fold-check` over `docs/` under `seal/config.md`'s `Fold shape from | 0`.
-- `skills/verify/scripts/payload_meter.py`: `agents_in(root, names)`, `composition(root, root, agent, path, False)` → rows with `share` and `path`; `--root DIR --agent NAME --json`. The release table reads preload bytes through it, as `measure_preload` did.
-- `.github/workflows/test.yml#budgets` (#930): `needs: pytest`, `if: ${{ !cancelled() }}`, `permissions: actions: read`, reads `/actions/runs/${{ github.run_id }}/jobs` with `--paginate --jq '.jobs[]'`; `on: pull_request` and `push: branches: [main]`, so the tag commit of a release has a run whose `head_sha` is the tag's. `.github/workflows/hygiene.yml`: the budget step at 158–184; `edited` in `types:` with a comment naming the budget step as its reason; the issue-claims step at 57–61 also reads the body through `PR_BODY`. `tests/test_ci_gives_the_checks_what_they_need.py::test_every_job_that_runs_pytest_has_the_whole_history` asks `fetch-depth: 0` of a job whose text names `pytest`.
-- `skills/verify/scripts/broad_gate.py#PARTITION` and `#ONLY_AT_MAIN`: the seal counts hygiene steps it does not answer; `tests/test_the_gate_names_every_step_ci_runs.py#FEATURE_UNANSWERED` lists five and pins `· 5 more steps` (feature base) and `· 8 more steps` (`main`).
-- `tests/test_a_budget_ratchets.py`: 57 functions; the four at 1481–1539 read `Enforced by:` resolution through the checker's exit and summary (`"enforced-unresolved: measured 1 targets is over the ceiling 0"`), and move with their `doc`, `rule`, `tree`, `TESTS`, `HELD`, `HELD_CASE` fixtures re-pointed at `rules.main(["--check", "--root", root])`.
-- `tests/test_the_rules_command_reads_each_rule_off_its_test.py`: 9 functions, the `rules` module's group; `test_the_slice_document_resolves_every_target` already reads one document over the real tree. The tree-level case lands here.
-- `tests/test_every_reader_ends_a_line_where_gfm_does.py#OUT_OF_CLASS`: one row for `budget_check.py#main` and one for `rules.py#main`; a deleted module's row goes.
-- `evals/scripts/noninferiority.py` (phase 1, built): `run` records `total_cost_usd`, `duration_ms`, `usage`; a run with no cost pools to unknown and the side is `no result`; `compare` and `verdict` carry rule 4; `check_record` recomputes. `replay_targets.py --case NAME`, `seed_defects.py --case NAME`. `tests/test_evals_layout.py` holds the layout and refuses a `rule-` grader; it reads `evals/behaviour/` and has to read every case under `evals/` (#946).
-- The five pre-0.22.0 cases: `evals/{commit-gate,implement-proof,lint-hook,pr-body-style,review-verdicts}/case.yaml`, bounds at the top level and four with an inline scaffold (`read` from #946; the runner's measured schema is `execution:` and `context.scaffold_script` as a path, `phases/phase-2-suite-build.md`).
-- Test pins: `tests/test_the_agent_contract_holds_the_universal_rules.py` pins one body phrase per contract section and two frontmatter facts; `tests/test_every_agent_reads_the_contract.py` pins the opening paragraph of every `agents/*.md`; `tests/test_a_moved_rule_leaves_its_definition.py#WINDOW` refuses a contract passage in a definition; `tests/test_no_passage_is_pasted_into_a_second_file.py#BASELINE` holds each file pair's shared 15-word runs and a drained pair lowers its entry; `tests/test_the_rules_have_one_owner.py` names `agents/smith.md` the owner of rule 5 (a fix pass hands over a fix table) with `skills/implement/SKILL.md` as a linking carrier; `tests/test_docs_line_wrap.py#COVERED` 88 columns.
-- `skills/code-review/orchestration.md:438–440`, `docs/review-handoff-protocol.md:468`, `docs/round-record-spec.md:763`: the three sentences saying a definition pins no model.
-- Open pull requests: #915 adds a rule paragraph to `agents/warden.md` §*Role*; #939 (#929) rewords two `agents/sealer.md` sentences and one in `skills/code-review/orchestration.md`, and the baseline waits for it; #937 (#931) merged 2026-10-15 and touched nothing in the set.
+- `skills/code-review/scripts/chain_check.py` (6,153 lines): `main` runs the
+  declaration, frame, records, broad-gate, pact and fragment arms; the records
+  arm reads thirteen fields and eleven of them judge something this plan
+  removes. `round_record.py` (5,596): `new` copies the report's tables and
+  derives `Fix of a fix`; `close` applies the fix table and measures the fix
+  surface by AST over the range; `notes` closes ⬜ rows; `seal` writes the
+  `Broad gate` cell. `broad_gate.py` (3,640): the run, the panel, the stamp
+  values, and the record arms (`seal_home`, `round_count`, `rounds_rows`,
+  `sealed_record`, `kept_broad_gate`) that call `round_record.seal`.
+- The record is read by: `chain_check.py`, `round_record.py`, `broad_gate.py`,
+  `hooks/review-history-guard.py` (reminders), `skills/settle/scripts/settle.py`
+  (`--retire-process`, and the `tests-todo.md` open-row rule),
+  `hooks/routing.py`, `hooks/config.py`, `hooks/root-migrate.py` (path
+  constants). CI: `hygiene.yml`'s step *a declared review chain has the round
+  record it claimed* runs `chain_check.py --baseline origin/<base>`, after a
+  fetch of `refs/pull/*/head`.
+- Tests: 70 modules name one of the three scripts, 3,758 cases, 4,553 of
+  6,827 suite seconds, 68,783 lines; `docs/review-handoff-protocol.md` is
+  named by 26 modules, `templates/sdd-round.md` by 24, the two specs by 20 and
+  17. `tests/test_every_orchestrator_act_names_its_delivery.py` holds the
+  delivery table of `skills/implement/orchestration.md` against every
+  `Orchestrator:` heading of both orchestration files, so a removed section
+  removes its row.
+- The warden's eval cases (`evals/behaviour/warden/`) grade the report at
+  `rounds/round-N-report.md`: `shape-report-exists`, `shape-verdicts-table`,
+  `shape-needs-a-fix`, `shape-loses-a-record`, `reach-warden`, `truth-N`. The
+  sealer's three cases grade the `Broad gate` cell write. `noninferiority.py
+  #verdict`'s rule 3 reads shape and reach on both sides.
+- Today's five definitions: warden 32,110 B · smith 25,400 · framer 19,700 ·
+  sealer 15,188 · scribe 3,763; the contract 20,409; `code-review` 26,139 ·
+  `implement` 34,283 · `writing-style` 21,000 · `legacy-parity` 5,325. Preload
+  (agent share): warden 99,658 · smith 101,092 · framer 95,392 · sealer
+  35,597 · scribe 29,497 (`release_report.py`, `executed`). Test modules
+  naming an `agents/` file: 52, 55,041 lines; `§N` citations of the contract:
+  agents 43, skills 77, docs 18, templates 5, hooks 10, `CONTRIBUTING.md` 2,
+  tests 423 in 89 modules.
+- The base: `origin/release/v0.22.0` at ce448bbe (#930, #944, #931, #929
+  merged); this branch is rebased on it (0 behind, 46 ahead). Open pull
+  requests touching the set: #915 (`agents/warden.md`, draft, into `main`).
 
-**What breaks in 6 months with the chosen approach.** A paragraph appended to a preload is caught by the warden's read of the hunk or not at all until the release table shows the file grew; a rule-sized story passes both, and the review's stage 1 against the shape is the only reader of it. `rules --check` passes a test that exists and asserts something else, and a rule written with no `Enforced by:` line is read by nobody. The eval set goes stale: a replay target at an old tag runs old scripts under a new definition, and the baseline JSON describes a tree releases back — so replay targets come from the last two tags, the seeded set is regenerated per release, and #941's frame re-takes the baseline when the merge base moves. The release table's minutes column compares one run with one run and swings 1.08–1.21× on the same code (#930's measurement); the table says so in its header and nobody lowers anything from it. The pass rule's cost clause fails a sound rewrite on a noisy day: N = 2 and a 10 % margin bound it, and a rerun costs one phase's runs, never the bar.
+**What breaks in 6 months with the chosen approach.** A warden that writes a
+record with a sixth verdict word is refused at the pull request by name, and
+the fix is the record, not the check. A run that loops is stopped by nothing
+mechanical: the cap and the `fix of a fix` stop are the orchestrator's and the
+warden's sentences, and a session that ignores both ends at the sealer, which
+reads the records and names the count; if that happens twice, the count
+becomes an arm, with the two runs as its history. The sealer samples, so a
+false claim it did not draw ships; the sample is written in `guarantee.md`, so
+the miss is findable afterwards. A definition that opens its skill late or not
+at all does worse on its cases, and the case names the skill that goes back
+to the list. The behaviour cases go stale as the record shape moves, and the
+first baseline after a shape change is where that shows; part B's baseline is
+taken after part A's shape lands for that reason.
 
 ## Alternatives considered
 
-CI cost is the added minutes a private repository would bill per pull request, Windows at 2× and macOS at 10× a Linux minute; `executed` where a number was measured on this tree, otherwise an estimate from the mechanism's shape.
+CI cost is the added minutes a private repository would bill per pull request
+(Windows 2×, macOS 10× a Linux minute); the latest green run billed ≈ 182
+minutes that way (`spec.md`, `executed`). A test share is estimated from the
+suite seconds the tests concerned hold today.
 
 | Approach | Failure scenario (six months on) | CI cost if private | Verdict |
 |---|---|---|---|
-| A. The rewrite, proved by a few real cases per agent on outcome and cost; `rules --check` as one suite case; one release table after the suite on a release pull request; no ceiling anywhere | above | `rules --check` 0.62 s `executed` on this tree (61 files, 435 targets) × three legs ≈ 0.6 + 1.2 + 6.2 = 8 Linux-seconds per run; the `release-report` job ≈ 1 ubuntu minute on a release pull request's pushes only, where today's `budgets` job spends it on every push of every pull request — a saving of ≈ 1 Linux-minute per feature push | **chosen** |
-| B. The suite as the earlier phase 2 built it: a `rule-` grader per rule sentence plus a rule census per phase | a grader holds each sentence of today's text, so a cut scores as a loss and the suite keeps the bloat in place; the census is a ledger of rules somebody fills by hand | none in CI | rejected by the owner, 2026-10-15; gone at a4952d90 and 7f4b3046 |
-| C. Three restatement arms: an enforcer-identity gate, a candidates list the round reads, a `restated` report row | 0 of 199 preload rules name an enforcer, so the gate pairs nothing until the rewrite it was meant to guard has happened; a candidates list is a reviewer's chore; the row has nowhere to live once the budgets file is gone | one Jaccard pass per run, seconds | rejected; the pairs are measured once here, removed by hand, re-counted at the close into the changelog (Q10: no row) |
-| D. A diff check: a hunk adding ≥ N lines and deleting none inside a section is refused | a moved section reads as an append; deleting one word satisfies it; it needs the merge base, so the local suite case cannot run it | a `git diff` per run | rejected; the warden reads the hunk instead, which is the one reader that can tell a story from a rule |
-| E. Strip history lines mechanically, no rewrite | a rule whose grounds were in the story loses its grounds; the agent reasons past a rule with nothing under it | none | rejected; the shape keeps one why-sentence and a link |
-| F. Every file in one pull request | 240 test modules' pins and the review chain's cap in one run; the run ends half-reviewed | none | rejected; one or two files per phase |
-| G. An LLM judge compares old and new reports | prefers the longer report, so compaction loses by construction; a Tuesday pass is a Wednesday fail | none | rejected |
-| H. No eval; the round reviews the rewrite | #107's measured case is a rule present in text and not acted on; the owner's condition is that compacting may not make the work worse, which reading cannot show | none | rejected |
-| I. Shadow runs in production, old and new warden on every real round | doubles every round's cost; a real round's truth is known rounds later; never bounded | none | rejected |
-| J. A tree-wide test: a preload that differs from the baseline owes a passing record | every later edit of a definition costs a paid run or a red test, for the whole life of the baseline — the ledger's coupling in a new shape | the test reads hashes, nothing | rejected and removed at 7f4b3046 |
-| K. Tokens as the unit of a size reading | a tokenizer change moves every number with no file changed | none | rejected; bytes in the table, real tokens read off each run's trace in the proof |
-| L. Rewrite `docs/` first | a `docs/` file is opened on demand by a session; a preload is paid on every one of 81 review spawns in four sessions | none | rejected; preload first, warden's first |
-| M. A history-line check, stored per file (the earlier plan's `history` family) or read off the diff | stored, it is a count kept beside the tree to stay in step with it — the ledger's shape; read off a diff, it guesses history from `#NNN`, `round N` and a date, refusing the issue link the principle allows and passing a story that carries none; the regex grows with each story shape somebody meets | one classification pass on ubuntu, under a second | rejected by the owner, 2026-10-15 (#923 item 3) |
-| N. Baseline on today's tree, before #939 merges | it touches `agents/sealer.md`; a baseline taken before it is compared against a tree it moved and the difference is its, not the rewrite's | none | rejected; phase 3 waits and rebases |
-| O. Keep `preload:<agent>` as the one ceiling, two-sided | it measures the result and not the defect: a story the length of the rule it replaced passes; holding it keeps the price level, the `Budget raised:` line, the listed-file table and a step that reads the body — the second record the owner refused | the hygiene step as today, seconds | rejected by the owner, 2026-10-15 |
-| P. `rules --check` as a hygiene step instead of a suite case | the same fact read twice — by the step and by the suite case that would still run it locally — with a `PARTITION` row and a `FEATURE_UNANSWERED` entry to keep in step for a step the seal cannot answer; two lists edited for one check | 0.6 s on ubuntu, cheaper than three legs by ≈ 7 Linux-seconds | rejected; the suite already runs on every pull request and the sealer's broad gate runs it, so the step is the second reading |
-| Q. The fact check as a third check inside `fold_check.py` | `fold-check` ships with the plugin and reads `docs/` under config rows; the rule-file set and the `evals/behaviour/` target kind are this repository's layout, so a shipped tool would grow a config row for one repository | none | rejected; `fold_check.py#target_problem` stays the resolver and `rules.py`, this repository's own script, is the walker |
-| R. The release table in `hygiene.yml` on a release pull request | the run's minutes are not known in `hygiene`'s run — `tests` runs beside it — so the minutes rows would read a run that may not have finished | one ubuntu job as A | rejected; after the suite in `test.yml` |
-| S. No release table | the preload bytes and document sizes would be read by nobody between releases, and a slow growth would be found by the next frame that measures; the owner kept the table | none | rejected by the owner, 2026-10-15 |
-| T. The release table's document rows over every rule file (≈ 61 rows) | a table nobody reads whole; the preload rows already cover `agents/*.md` and the preloaded skills | none | narrowed: `docs/*.md`, `CLAUDE.md`, `CONTRIBUTING.md`; a later frame widens it where #940 or #941 asks |
+| A. The record is the warden's one file; the smith fills two cells; the check reads five facts; the sealer guarantees on Opus; the contract alone is preloaded; the record lands first and the agents second | above | the chain-machinery tests fall from 4,553 s to under 1,500 s (S12), ≈ −45 % of suite seconds, ≈ **−80 billable minutes a run** (estimate from the share); the sealer runs on the orchestrator's account, not CI | **chosen** |
+| B. Keep the generator and trim it to the fields that fired in 0.22.0 | each kept field keeps its refusal at the keyboard and its arm; the copy of the report stays and a later round still inherits two files; the earlier frames of this item chose this and the owner refused it | today's | rejected (owner, 2026-10-15) |
+| C. No record in the tree; the pull request's review comments are the record | a record keyed by the pull request's number does not exist while the rounds run — the directory this plugin once named that way was never created (`docs/review-handoff-protocol.md`, `read`); a squash leaves the comments pointing at commits that are gone | none | rejected |
+| D. The orchestrator writes `round-N.md` from the warden's report, by hand | a retyped verdict row carries retyped coordinates, and inheritance carries the paraphrase into the next round (#228, `read`); the generator existed to end that | none | rejected; the warden writes the record |
+| E. Keep the mechanical `Fix of a fix` count from the fix range | it needs `Fix range`, the AST unit walk and the depth; 365 s of tests; its three 0.22.0 stops each named one unit the warden had already written in the finding, so the judgment carried the same information | ≈ 6 billable minutes a run (share of the suite) | rejected; the warden marks, the orchestrator stops |
+| F. Keep the cap, the floor and the one reopening as checked arms | no 0.22.0 run reached the cap; the arms are where 8 of 14 failed October hygiene runs stopped, and what each refused is unverified; three rules and 227 spec lines for a bound a sentence states | ≈ 2.7 s a run as today | rejected; one orchestrator rule with one number (Q1) |
+| G. The sealer as today, with the warden auditing the pull request body in its last round | the auditor is a party to the story; on 2026-10-15 the untrue statements were the parties' own, and only chance caught them (#923 item 2) | none | rejected |
+| H. The guarantor on Sonnet | the audit is judgment at the level of the agents it audits; a cheaper reader of five stories misses the disagreement it is for | none | rejected (owner, 2026-10-15) |
+| I. The sealer posts its verdict as a pull request comment | contract §6 withholds posting from every agent; the check at the pull request cannot read a comment without `gh` and a token | none | rejected; `guarantee.md` in the tree |
+| J. One pull request for the record and the agents | ≈ 85 K deleted lines, three documents replaced and ten preloads rewritten in one diff; #929's run of 7 rounds was a tenth of that; the warden's baseline would be taken on a tree whose record shape is moving under its own cases | none | rejected; part A then part B |
+| K. The agents first, the record second | the definitions would be written against today's record and then rewritten — the owner's reason for one design (#923 item 3) | none | rejected |
+| L. The warden keeps `code-review` preloaded, the smith `implement` | 26 KB and 34 KB paid on every spawn before any case shows the opened form falls short; #923 item 4 puts the proof the other way — cut, then restore the skill a failing case names | none | rejected; a case decides it per agent |
+| M. The check counts records against the cap and reads the `fix of a fix` mark | both are facts a script can read, but the stop's value was the reframe, which no script judges, and no 0.22.0 run needed the cap; an arm with no catch history | seconds | rejected; written down so the first looping run can overturn it |
+| N. A sixth agent for the fix pass | a sixth preload and a sixth definition for a job the smith does; whether a fix pass resumes or respawns is #945's | none | rejected |
+| O. `Ran by` stays so the record names the model | read by nothing that changed an outcome in 19 records; `routing.md`'s free text already names the models | none | rejected |
+| P. `tests-todo.md` stays | written by 0 of 4 items; a prescribed test is a 🟡 row that closes `fixed <commit>` | none | rejected |
+| Q. ⬜ stays as a severity | 3 → 15 open notes carried through #929's seven records, closed by a command at the run's end; a wrong sentence an agent acts on is 🟡 already | none | rejected |
 
 ## The split
 
 | Part | Holds | Where it takes over |
 |---|---|---|
-| A — this work item | the ten preload files, the light proof and its baseline, the removal of the budget concept with `rules --check` and the release table in its place, the sealer's default model, the five pre-0.22.0 eval cases | — |
-| B — #940 | what an agent opens on demand: `skills/verify/SKILL.md`, `skills/settle/SKILL.md`, both `orchestration.md`, the small skills, `templates/`, `CONTRIBUTING.md`, `CLAUDE.md`; #945's orchestrator sentences land in the orchestration files there | after phase 2 merges or on a rebase onto it; the release table is where their sizes are read release to release |
-| C — #941 | `docs/`, one pull request per heavy file; the `one-root-by-lifetime` pair rewritten to the current rule (Q1) | with B; the release table carries one row per `docs/*.md` |
-| D — #945 | what one task makes an agent read beyond its preload: the round records a reviewer inherits, the audit of re-check mechanisms, the process archive | framed before #940's smith reaches the orchestration files |
+| A — this work item, phases 3–5 | the record, the five-arm check, the broad gate's one file, the sealer as guarantor with its template, arm and cases, `docs/the-review-record.md`, the orchestration sections, the tests sorted into #942's layout, the changelog fragment | — |
+| B — a second work item under #923, phases 6–9 | the contract and the five definitions written anew, the `skills:` lists cut to the contract, the four preloaded skills rewritten to the shape, the pin modules, the baseline and the per-phase proof | a branch cut from the release branch after part A merges; its `spec.md` cites this file's §*Every agent definition* and adds nothing |
+| #940 | what an agent opens on demand, the orchestration files beyond the record sections, `templates/` beyond the two here, `CONTRIBUTING.md`, `CLAUDE.md` | after part A merges, for the orchestration files |
+| #941 | `docs/` beyond the files this item makes false | with part A |
+| #945 | the agent-lifetime rule, the folding rule, the process archive | after part A merges |
 
-The measurement shows no further split: ten files, each with its pins and pairs, fit one phase a file or two, and parts B–D already exist as issues.
+The measurement that asks for the split is the size of part A's diff (≈ 85 K
+lines leave) against the review chain's own capacity (#929: 7 rounds on a
+diff a tenth that size), and the proof's need for a settled record shape
+under the warden's cases before a baseline is taken. The split keeps the
+owner's condition: the agents are written once, against the record part A
+built, and this frame describes both parts so nothing is designed twice.
 
 ## Phases
 
-Vertical slices — each phase ends with something runnable and verified. The rows are in the order the work arrives: phase 2 comes before the first rewrite because a rewrite under the live byte gate would have to lower a row phase 2 deletes, and before the baseline because the baseline waits on #939.
+Vertical slices — each phase ends with something runnable and verified.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | **The proof made light.** (i) Built at a4952d90..6cfea707: every `rule-*.md` grader removed and `rule_cases.py` writing outcome graders only; `census_problems`, `owed_records`, T10 and T12 removed; `noninferiority.py run` recording `total_cost_usd`, `duration_ms` and `usage` per run, `compare` and `verdict` carrying pass rule 4, a run with no cost pooling to unknown; `replay-1791852615-r2` and `seeded-770d721f` replaced through the generators' `--case`; `tests/test_evals_layout.py#KINDS` without `rule`; `evals/README.md` rewritten in place. (ii) Open: the five eval cases that predate 0.22.0 (`evals/{commit-gate,implement-proof,lint-hook,pr-body-style,review-verdicts}/case.yaml`) each fixed to the measured schema — bounds under `execution:`, a scaffold as a file `context.scaffold_script` names — or removed, and the layout test applying that schema to every case under `evals/` (#946) | (i) the record test's rule-4 cases seen red first (S3), T10 and T12 gone, the layout test green — `read` from the commits, re-run by (ii)'s close; (ii) the layout test red on a top-level `max_turns` and on an inline scaffold before the fix, green after; `claude plugin eval --list` or a dry run naming each of the five cases as runnable, or the case gone with a row in `overview.md` (S5) || c7d8bcc8 |
-| 2 | **The budget concept leaves; `rules --check` and the release table stay.** `rules.py` takes `RULE_FILES`, `shown_lines`, `targets_of`, the eval-case arm of `target_problem` and `Unreadable` from `budget_check.py` and gains `--check [--root DIR]`: every shown `Enforced by:` target of every rule file resolved, exit 0 · 1 naming `path:line §*heading*: why` for each failure · 2 unreadable; `bin/rules{,.cmd}` pass flags through. `.github/scripts/release_report.py --against TAG --at DIR [--ci-jobs FILE] [--ci-jobs-at FILE] [--root DIR]` prints the one table (`spec.md` §*Data & interfaces*), exit 0 always. `test.yml#budgets` → `release-report`, `needs: pytest`, `if: ${{ !cancelled() && github.base_ref == 'main' }}`, `fetch-depth: 0`, archives the last tag of `origin/main`, reads this run's and the tag commit's `test.yml` run's jobs through `gh api`, appends the table to `$GITHUB_STEP_SUMMARY`. Removed whole: `seal/budgets.md`, `budget_check.py`, `tests/test_a_budget_ratchets.py` (its four resolution cases moved into the `rules` module), the hygiene budget step, the `PARTITION` budget row and the `FEATURE_UNANSWERED` entry (pins to `· 4` and `· 7 more steps`), the `OUT_OF_CLASS` row. Rewritten in place: the `edited` comment of `hygiene.yml` (the issue-claims step is its reason), `CONTRIBUTING.md:52–58,141`, `docs/release-checklist.md:82–93`, `docs/the-record-layout.md:245,384`, `README.md:260`, `README.ko.md:247`, `agents/warden.md:313`, `skills/code-review/SKILL.md:254`, `skills/implement/SKILL.md:92,256`, `coordinates.py:9,538`, `fold_check.py:119`, the two test docstrings; #930's changelog fragment rewritten to what ships | T5–T8 seen red first; `test_every_enforced_by_target_in_the_tree_resolves` green over the tree and red on a scratch copy with one target renamed (S6, S7); S8's `grep` over the tree finding nothing outside `seal/specs/`; `test_the_gate_names_every_step_ci_runs.py` green at the new counts (S10); the release-report module's cases green, among them a missing jobs file reading `no run found` (S9); `bin/test tests/test_the_rules_command_reads_each_rule_off_its_test.py tests/test_the_gate_names_every_step_ci_runs.py tests/test_ci_gives_the_checks_what_they_need.py tests/test_every_reader_ends_a_line_where_gfm_does.py tests/test_a_folded_statement_names_what_enforces_it.py -q` green; `phases/phase-2.md` naming every unit, case and sentence that left, by count against `spec.md` §*Removes* || 14b937f5 |
-| 3 | **The shape proved on one file.** (i) The baseline, once, after #939 merges and this branch rebases: all four agents, `--runs 2 -j 4`, `evals/baseline-<agent>.json` committed with their `.raw/` saved outside the tree. (ii) `agents/warden.md` to the shape at ≤ 12,000 B, headings kept, stating that the report is written to the branch worktree's `seal/specs/<item>/rounds/`, the tree under review; that each new test is read against its function's group and any pair the duplicate check names, a test covering nothing its group does not being a finding; and that a document hunk adding text beside the sentence it amends, instead of rewriting it, is a finding (owner, 2026-10-15); its four in-context pairs linked to `skills/code-review/SKILL.md` §*Findings format*; the five stories out; each rule a test holds given its `Enforced by:`; the 40 modules' 88 pins re-pointed or removed with a row; `BASELINE` lowered for the warden pairs | four baseline files committed, none cut short, their cost fields read (Q12); the warden set run on this tree and `evals/warden-phase-3.md` with `Verdict: pass` (S1); `payload_meter --agent warden` before and after and the old file's rule list with each rule's new coordinate in `phases/phase-3.md` (S15); `rules --check` exit 0; the pin modules green, one module each | |
-| 4 | **The contract and the reviewer's skill.** `skills/agent-contract/SKILL.md` ≤ 8,500 B with §1–§17 kept and three sections added after them: an agent cleans up only the processes and files it started, by its own PIDs, never by command name or a glob over a shared directory; a check refusing correct code is fixed or reported, never dodged by bending the code; a change rewrites the text it amends in place and removes what stood on the old fact, never appends. §5 absorbs the premise check; the four stories out; §9 and §16 the homes `skills/implement/SKILL.md` will link. Then `skills/code-review/SKILL.md` ≤ 12,000 B: the records' history out, the orchestrator-file preamble one sentence | the contract is every spawn's, so all four sets run and four records say `pass`; S14; `test_a_moved_rule_leaves_its_definition.py` green; `rules --check` exit 0; before and after per file and the rule lists in `phases/phase-4.md` | |
-| 5 | **The implementer's pair.** `agents/smith.md` ≤ 10,500 B and `skills/implement/SKILL.md` ≤ 15,000 B: the fix-table rule stays in `smith.md` (`test_the_rules_have_one_owner.py` rule 5) and the skill links; `smith.md` states that a new test starts from its group — it reads the function's tests first, extends one where it can, and says in the hand-back which case the group did not cover (owner, 2026-10-15; the layout is #942's); the edit-must-fail and `seal/`-root paragraphs link the contract's §9 and §16; the layout tree and the SDD table kept whole | the smith and framer sets run with two `pass` records; the pin modules green (`test_the_set_a_work_item_always_has.py`, `test_unverified_rows_close.py`, `test_the_rules_have_one_owner.py` among them); `rules --check` exit 0 | |
-| 6 | **The framer, the sealer and the sealer's model.** `agents/framer.md` ≤ 9,000 B and `agents/sealer.md` ≤ 7,000 B with `model: sonnet` in its frontmatter; the §6 restatement in both linked to the contract; `skills/code-review/orchestration.md:438–440`, `docs/review-handoff-protocol.md:468` and `docs/round-record-spec.md:763` rewritten in place to say the sealer pins Sonnet, a spawn's model overrides it and `Ran by` records what ran; one case holds the pin; `skills/writing-style/SKILL.md` ≤ 16,000 B under Q9's answer | the framer and sealer sets run, the sealer's new side on Sonnet, two `pass` records (S13); the pin case seen red against a frontmatter without the line; `rules --check` exit 0 | |
-| 7 | **The close.** `agents/scribe.md` and `skills/legacy-parity/SKILL.md` read against the shape and left where they hold; an agent's set run again against the baseline only where a file in its preload changed after that agent's last passing record (none, if phases 4–6 ran in order); the Jaccard pass re-run and its count in the changelog fragment with the per-agent before/after table (bytes, tokens read, spend, the outcome numbers both sides); `overview.md`; `questions.md` rows the work answered ticked | a `pass` record for every agent the close re-ran, or each agent's last phase record naming its finished preload's bytes; `chain-check` names no fragment left behind; S11, S17 | |
+| 1 | **The proof made light.** (i) Built at a4952d90..6cfea707: every `rule-*.md` grader removed and `rule_cases.py` writing outcome graders only; `census_problems`, `owed_records`, T10 and T12 removed; `noninferiority.py run` recording `total_cost_usd`, `duration_ms` and `usage` per run, `compare` and `verdict` carrying pass rule 4, a run with no cost pooling to unknown; `replay-1791852615-r2` and `seeded-770d721f` replaced through the generators' `--case`; `tests/test_evals_layout.py#KINDS` without `rule`; `evals/README.md` rewritten in place. (ii) The five eval cases that predate 0.22.0 removed, each on the grounds in `overview.md`, and the layout test applying the measured schema to every case under `evals/` (#946) | (i) the record test's rule-4 cases seen red first, T10 and T12 gone, the layout test green; (ii) the layout test red on a top-level `max_turns` and on an inline scaffold before the fix, green after | c7d8bcc8 |
+| 2 | **The budget concept leaves; `rules --check` and the release table stay.** `rules.py --check` resolving every shown `Enforced by:` target of every rule file; `release_report.py` and the `release-report` job printing one table on a pull request into `main`; `seal/budgets.md`, `budget_check.py`, `test_a_budget_ratchets.py`, the hygiene budget step, the `PARTITION` row and the `FEATURE_UNANSWERED` entry removed; every budget sentence rewritten in place; #930's changelog fragment rewritten to what ships | T5–T8 seen red first; the tree-level resolution case green and red on a renamed target; the `grep` over the tree finding nothing outside `seal/specs/`; the gate's step counts at 4 and 7; the release table's cases green | 14b937f5 |
+| 3 | **The record is the warden's file, and the check reads five facts.** `templates/sdd-round.md` to `spec.md` §*What a round records*. `chain_check.py` rebuilt to the five arms of §*Data & interfaces*, reading `Target SHA` and the `Verdicts` table of every record written to date and nothing else of them. `broad_gate.py` writing `broad-gate.md` on both routing answers, its record arms and the `round_record` import gone. `round_record.py`, `bin/round-record{,.cmd}`, `hooks/review-history-guard.py` and its dispatch, the `tests-todo.md` readers in `settle.py` and the documents, gone. `docs/the-review-record.md` written — the record, the verifying round, the cap (Q1's default), the `fix of a fix` stop, the filing ladder, the handoff rule (coordinates, never prose), each with `Enforced by:` or a link; `docs/round-record-spec.md`, `docs/review-chain-spec.md`, `docs/review-handoff-protocol.md` gone and no file naming them. `docs/the-record-layout.md` §*seal/specs/<work-item-id>/*, `docs/the-broad-gate.md`'s cell paragraphs, `docs/the-agent-set.md` §*What each party writes* rewritten in place. `skills/code-review/orchestration.md`'s record sections rewritten or removed as §*Data & interfaces* lists, and the delivery table's rows with them; `skills/code-review/SKILL.md` §*Findings format*'s ⬜ line and §*Cross-session records* rewritten in place to the new record (the skill is written whole in part B). `agents/warden.md` §*Report* and `agents/smith.md` §*Phases* step 5 rewritten in place to the record path and the two cells (the definitions are written whole in part B). The warden's shape graders re-pointed at `rounds/round-N.md`, the two field graders gone, `noninferiority.py#verdict` rule 3 reading shape on the new side. The 70 test modules sorted: `tests/test_chain_check.py` and `tests/test_broad_gate.py` in #942's layout for what still holds; every deleted module's guard one line in `phases/phase-3.md` | the new modules' cases seen red first (S3, S4, S5, S11, T11–T15); S10's `grep`; S12's durations sum under 1,500 s; S13's `rules --check` exit 0; `bin/test tests/test_chain_check.py tests/test_broad_gate.py tests/test_every_orchestrator_act_names_its_delivery.py tests/test_evals_layout.py -q` green; `chain_check.py --baseline origin/release/v0.22.0` exit 0 on this branch | |
+| 4 | **The sealer guarantees.** `agents/sealer.md` written anew to `spec.md` §*The sealer*, `model: opus`, `skills: [agent-contract]`. `templates/sdd-guarantee.md`. `chain_check.py`'s `guarantee` arm. `evals/behaviour/sealer/` replaced by the three guarantor cases through `rule_cases.py`. `docs/the-review-record.md`'s sealer section and `docs/the-agent-set.md`'s sealer paragraph. `skills/code-review/orchestration.md` §*the pull request opens before round 1* naming the sealer's spawn after the body and the changelog | the arm's cases seen red (S8, T16); the three sealer cases run on this tree with S6 and S7 green and the cost written (Q2); `tests/test_the_sealer_guarantees.py` green; `payload_meter --agent sealer` in `phases/phase-4.md` | |
+| 5 | **Part A closes.** `overview.md`; `changelog.md` — the paragraph a plugin user reads (the record, `bin/round-record` gone, the sealer's verdict file, how old records read) and the per-script before/after lines; `questions.md` rows the work answered ticked; this branch's own review chain run on the new record (the installed warden still writes `round-N-report.md`; the orchestrator moves the file to `rounds/round-N.md` unchanged, which the new check reads) | `chain_check.py` exit 0 on this branch's own records at the pull request; the release table on the pull request; S19 | |
+| 6 | **Part B opens: the baseline, then the contract.** The baseline once, on the tree after part A merges: warden, smith, framer sets, `--runs 2 -j 4`, `evals/baseline-<agent>.json` committed, `.raw/` outside the tree. `skills/agent-contract/SKILL.md` written anew: rules 1..N, each a paragraph with its `Enforced by:` or link; the four rules #923 names for it (own cleanup, a check refusing correct code, rewrite in place, do not avoid the change); the 35 `§N` citations outside the rewritten files rewritten in the same commit; the contract's pin modules rewritten in #942's layout | three baseline files, none cut short, their cost fields read (Q6); the contract is every spawn's, so all three sets run and `evals/<agent>-phase-6.md` says `pass` for each; S18; the sealer's cases re-run (its preload changed) | |
+| 7 | **The warden and the reviewer's skill.** `agents/warden.md` written anew to the table's row, `skills: [agent-contract]`, opening `code-review` at step 1 and `writing-style` at the record; `skills/code-review/SKILL.md` to the shape; the 32 modules pinning the definition re-pointed or removed with a row; S17's rule list in `phases/phase-7.md` | the warden set `pass`; S14, S15, S17; `rules --check` exit 0 | |
+| 8 | **The smith, the framer and their skills.** `agents/smith.md`, `agents/framer.md` written anew; `skills/implement/SKILL.md` and `skills/writing-style/SKILL.md` to the shape; their pin modules | the smith and framer sets `pass`; S14, S15, S17 | |
+| 9 | **The sealer and the scribe to the shape, and the close.** `agents/sealer.md` to the shape (its job unchanged from phase 4); `agents/scribe.md` and `skills/legacy-parity/SKILL.md`; an agent's set re-run only where a preload file changed after its last passing record; `overview.md`, the changelog fragment with the per-agent before/after table (bytes, tokens read, spend, outcome both sides) | a `pass` record for every agent re-run, or its last record naming its finished preload; `rules --check` exit 0; `payload_meter` for all five in the fragment | |
 
-This table is also where the work records how far it got. **Status is empty, or the commit that closed the phase.** Re-read the column after any rebase.
-
-The record on disk at `phases/phase-2.md` is the earlier plan's phase 2, the suite build, and phase 1's acts stand on it; `overview.md` cites it. Phase 2 above writes its record beside it as `phases/phase-2.md` only after the earlier record is renamed `phases/phase-2-suite-build.md` in phase 2's first commit, so no record is overwritten and the citations in `overview.md` and `spec.md` follow the rename in the same commit.
+This table is also where the work records how far it got. **Status is empty,
+or the commit that closed the phase.** Re-read the column after any rebase.
+Rows 6–9 are built in part B's work item and their Status cells are filled
+there; they stand here so the design is read in one place.
 
 ### Test rows — the mutation each case kills
 
 | Case | Guards | Mutation it kills |
 |---|---|---|
-| T1 `test_the_verdict_is_recomputed_from_the_records_numbers[rule 4: …]` (built, 7f4b3046) | S3 | the spend margin dropped (1.2 × passes); the bytes clause dropped (a side with more preload bytes passes); wall seconds judged |
-| T2 `test_a_record_reads_back_to_the_numbers_it_was_written_from` (built) | S1 | the cost fields written and not parsed back, or parsed and not judged |
-| T3 `test_a_run_records_what_it_cost` (built, e38f2dfa) | S1, Q12 | `run` reading the graders and not the `result` fields; a trace with no `result` event read as zero cost rather than refused |
-| T4 `test_a_behaviour_grader_names_its_kind` (built) | S5 | `rule` left in `KINDS` |
-| T5 `test_an_enforced_by_target_that_does_not_resolve_fails_naming_where` (moved into the `rules` module, re-pointed at `--check`) | S6 | the exit left 0 on a failure; the heading or the line number dropped from the message; only the first target of a line read |
-| T6 `test_every_enforced_by_target_in_the_tree_resolves` (NAME NOT IN TREE until phase 2) | S6, S7 | `--check` walking `docs/*.md` alone and not the seven globs; a renamed target on a scratch copy of the tree read as resolving |
-| T7 `test_the_release_table_reads_two_trees_and_fails_nothing` (NAME NOT IN TREE until phase 2; the module is new, there being no group for a script that does not exist yet, and the hand-back says so) | S9 | exit 1 on a grown preload; a missing jobs file raising instead of reading `no run found`; a document row missing for a `docs/*.md` present on one side only |
-| T8 `test_a_feature_seal_counts_the_steps_ci_runs_for_it` (extended) | S10 | the `PARTITION` row left with no step to match, or the count left at 5 |
-| T9 `test_the_sealer_pins_sonnet_and_no_other_definition_pins_a_model` (NAME NOT IN TREE until phase 6) | S13 | the frontmatter line dropped; a second definition gaining one unnoticed |
-| T10 `tests/test_evals_layout.py`'s schema cases (extended, phase 1 (ii)) | S5 | a case under `evals/` outside `behaviour/` left unread; `max_turns` at the top level read as a bound |
+| T11 `tests/test_chain_check.py::test_an_open_verdict_fails_a_ready_pull_request` (NAME NOT IN TREE until phase 3) | S3 | the arm reading `Pass` instead of the rows; a draft refused; the row id or the word dropped from the message |
+| T12 `…::test_the_last_record_is_at_head_or_only_record_commits_follow` | S4 | a code commit after the last record passing; a record commit after it failing |
+| T13 `…::test_a_record_written_by_the_old_generator_reads` | S11 | the arm refusing a field it no longer judges; a record with `Needs a fix` read as malformed |
+| T14 `tests/test_broad_gate.py::test_a_green_run_writes_the_file_on_either_route` | S5 | the file written only where `Review` is `straight to the PR`; a cell write attempted |
+| T15 `…::test_a_file_naming_another_commit_fails_a_ready_pull_request` | S5 | HEAD not compared; a stale run accepted |
+| T16 `tests/test_the_sealer_guarantees.py::test_a_verdict_other_than_sound_fails_a_ready_pull_request` | S8 | `not sound` or `undecidable` passing; a file at another commit passing; the template's placeholder passing |
+| T17 `tests/test_a_rewritten_definition_proved_non_inferior.py[rule 3]` (re-pointed) | the proof | shape read on the old side; reach read on one side |
+| T18 `tests/test_evals_layout.py` (extended) | the sealer's cases | a case under `evals/behaviour/sealer/` grading a `Broad gate` cell |
 
-Each rewrite phase is verified by the pins it re-points, `rules --check` and its eval record, not by a new case.
+Each definition rewrite in part B is verified by its eval record, the pins it
+re-points and `rules --check`, not by a new case.
 
 ## Operational impact
 
-- Phase 2 runs before any preload is rewritten and needs no merge to wait for; phase 3 waits for #939 to merge into `release/v0.22.0` and rebases before the baseline; the baseline commit and the rewrite commit are two commits, and the rewrite commit is the one the warden set judges.
-- From phase 2 on, a pull request that renames or removes a test an `Enforced by:` line names fails one suite case naming the file, line and heading, and nothing else about a file's size or history is held anywhere. A release pull request gets one more table in its `tests` run's summary and one job that feature pull requests no longer run.
-- The proof costs the orchestrator's account and never CI: ≈ 120 runs and ≈ $150 over the item (`spec.md` §*The proof*). A phase's record is written by `compare` from two JSON files and read by one test in under a second.
-- The preloads change what every spawn reads from phase 3 on. A rule a rewrite dropped fails its phase's eval where an output shows it; where none does, it is a row in the phase record's rule list the round reads.
-- No new dependency or scope; stdlib Python at the floor. `evals/behaviour/` has lost 149 files and gained two cases; the tree loses `seal/budgets.md`, one script of 1,587 lines and one test module of 1,691 lines, and gains one script and one test module for the release table.
+- From phase 3, a review round costs one file instead of two and no generator
+  command; a fix pass edits two cells per open row; the orchestrator commits
+  what the agents wrote. A pull request fails for an open verdict, an unread
+  last fix, a stale or absent broad-gate file, or a verdict other than `sound`,
+  each naming the file and line. The hygiene step's command is unchanged.
+- The suite loses about 3,000 of its 6,827 seconds (S12) and 68 K lines of
+  tests, with each deleted module's guard named once; CI per run falls by the
+  same share on all three legs.
+- A plugin user on 0.22.0 keeps their records and their workflow file; they
+  lose `bin/round-record` and gain `guarantee.md`, and the changelog says so.
+- Part A's own review runs with the installed 0.21.1 warden, whose report the
+  orchestrator moves to `rounds/round-N.md` unchanged; the new check reads it.
+- Part B changes what every spawn reads; a rule a rewrite dropped fails its
+  agent's cases where an output shows it, and is a row of the phase record
+  where none does. The proof costs the orchestrator's account ≈ $150 and CI
+  nothing.
+- No new dependency; stdlib Python at the floor. The tree loses two scripts'
+  worth of record machinery and three documents, and gains one document, one
+  template and two test modules.
