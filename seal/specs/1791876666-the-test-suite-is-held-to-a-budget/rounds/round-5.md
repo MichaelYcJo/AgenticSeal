@@ -15,7 +15,7 @@
 | Needs a fix | yes — 🟡 1 (pytest's own skip, importorskip or xfail inside a unittest expected failure, method or class, is named `kills nothing` instead of `not proved`) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -26,7 +26,7 @@ Verifying round 5 of #929: round 4's fix at 3fb8d310 (the unittest expected-fail
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
 | 🟡 1 | Under a `TestCase` expected-failure mark, method or class, a body that pytest's own `skip`, `importorskip` or `xfail` stopped is read as having run, and is named `kills nothing` instead of `not proved` | `.github/scripts/case_check.py:193` | **fixed** `c3931bf8` | fixed at c3931bf8; executed: two fixtures at `f810ee29` exit 1 with `kills nothing … of the 0 mutants drawn`, and pytest reports both `XFAIL`; with the wrapper fix both give `not proved`, and the module's 27 cases pass; read: `unittest/case.py:54-72`, `:637-639`, `_pytest/unittest.py:347-355`, `spec.md:95` |
-| ⬜ 2 | The heading and cost lines add the report half's seconds to the proofs' seconds, so the bound always reads as nearly spent and the margin to `restructure` cannot be read off | `.github/scripts/case_check.py:993` | open | read: `:961-994`; executed: local run 299 s with 654 not run; read: CI `cases` logs of runs 38670358090 and 38658107547 |
+| ⬜ 2 | The heading and cost lines add the report half's seconds to the proofs' seconds, so the bound always reads as nearly spent and the margin to `restructure` cannot be read off | `.github/scripts/case_check.py:993` | answered | the header states the proofs seconds since 858988e0, inside the tree round 6 read; read: `:961-994`; executed: local run 299 s with 654 not run; read: CI `cases` logs of runs 38670358090 and 38658107547 |
 | 🟢 | round 4's finding is closed — an expected failure marked on its `TestCase` class, or a base, is read as a run, and a plain function carrying the mark is excused nothing | `.github/scripts/case_check.py:192` | confirmed | executed: both new rows red against `d99c6cee`'s checker and green at the tip; probes on base-class, async, plain-class and unexpected-success fixtures; read: `_pytest/python.py:1673-1682`, `_pytest/unittest.py:259`, `:384` |
 | 🟢 | `plan.md` and `phases/phase-3.md` saying "the function" are phase 3's history, not live claims | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/plan.md:28` | confirmed | read: `plan.md:28`, `:53`, `:71`, `:88`, `phases/phase-3.md:18`, `spec.md:95` |
 | 🟢 | CI is unlikely to hit `restructure` at this tip: 299 s is the report filling the bound | `.github/scripts/case_check.py:871` | confirmed | executed: local `case_check.py` as the job runs it, 22 proved, exit 0; read: CI file 3 traced in 12 s and proved in 35 s, against 30 s and 86 s locally |
@@ -125,7 +125,7 @@ The one translation is pytest's: its unittest plugin raises the xfail stop itsel
 | round-3 | `.github/workflows/test.yml`, `CONTRIBUTING.md`, `tests/test_every_reader_ends_a_line_where_gfm_does.py` | round 3's 🟢 — confirmed |
 | round-3 | CI run 38668484642 | round 3's 🟢 — confirmed |
 | round-4 | `.github/scripts/case_check.py:190` | round 4's 🟡 1 — fixed |
-| round-4 | `.github/workflows/test.yml:223` | round 4's ⬜ 2 — open |
+| round-4 | `.github/workflows/test.yml:223` | round 4's ⬜ 2 — answered |
 | round-4 | `.github/scripts/case_check.py:882` | round 4's 🟢 — confirmed |
 | round-4 | `.github/scripts/case_check.py:193` | round 4's 🟢 — confirmed |
 | round-4 | `.github/scripts/case_check.py:182` | round 4's 🟢 — confirmed |

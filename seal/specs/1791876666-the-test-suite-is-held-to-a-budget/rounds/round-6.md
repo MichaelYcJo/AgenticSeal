@@ -7,15 +7,15 @@
 | Ran by | specseal:warden on claude-opus-5-5 |
 | PR | #939 |
 | Broad gate | not yet |
-| Fixes checked by | nobody — the fixes are not yet written |
-| Fix range | none — the fixes are not yet written |
-| Contract changes | none — the fixes are not yet written |
-| New units | none — the fixes are not yet written |
+| Fixes checked by | no fixes to check |
+| Fix range | `dd22f4f01679b48aeedf9ddc93c55fbbb794e629..dd22f4f01679b48aeedf9ddc93c55fbbb794e629`, 0 commits |
+| Contract changes | none |
+| New units | none |
 | Fix of a fix | second — 🟡 1 at .github/scripts/case_check.py#TRACER_SOURCE, a unit round-5's fixes changed; the fix passes stop here and the work item goes back to its framer |
 | Needs a fix | yes — 🟡 1 (a case one of whose subtests pytest's own stop ended is named `not proved`, though pytest reports its call `passed`) |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,12 +25,12 @@ Verifying round 6 of #929, the run's last: round 5's fix at c3931bf8 (a pytest s
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| 🟡 1 | A case one of whose subtests pytest's own stop ended is read as having stopped short, and is named `not proved` although pytest reports its call `passed` | `.github/scripts/case_check.py:208` | open | executed: a `subtests` fixture and a unittest `self.subTest()` fixture each exit 1 with `not proved` at `f3eea4fe`, pytest reports both `PASSED`, and the no-skip control is `proved`; with the paste-ready guard both are `proved`. Read: `_pytest/subtests.py:257`, `_pytest/unittest.py:456`, `unittest/case.py:73`, `_pytest/runner.py:249-254`. Line 208 dates from `c5df90d8`, inside `TRACER_SOURCE`, which round 5's fixes changed |
+| 🟡 1 | A case one of whose subtests pytest's own stop ended is read as having stopped short, and is named `not proved` although pytest reports its call `passed` | `.github/scripts/case_check.py:208` | deferred the frame | the frame — the second fix of a fix since the reframe stops the fix passes; the owner decided on 2026-10-15 that the reframe takes the never-ran tracer and the cases gate out; executed: a `subtests` fixture and a unittest `self.subTest()` fixture each exit 1 with `not proved` at `f3eea4fe`, pytest reports both `PASSED`, and the no-skip control is `proved`; with the paste-ready guard both are `proved`. Read: `_pytest/subtests.py:257`, `_pytest/unittest.py:456`, `unittest/case.py:73`, `_pytest/runner.py:249-254`. Line 208 dates from `c5df90d8`, inside `TRACER_SOURCE`, which round 5's fixes changed |
 | 🟢 | round 5's finding 1 is closed — pytest's own skip, importorskip or xfail inside a unittest expected failure, method or class, is named `not proved` | `.github/scripts/case_check.py:160` | confirmed | executed: seven fixtures under two runners on CPython 3.12.12 and 3.13.9, four flipping and three controls not when the call is removed; the new row seen red; read: `unittest/case.py:568-576`, `_pytest/unittest.py:347-355`, `:391`, `:410` |
 | 🟢 | the heading's proofs figure is taken before the report half, and its pin is seen red | `.github/scripts/case_check.py:985` | confirmed | executed: with the figure removed, all 15 end-to-end rows fail; read: `:982-1016` |
-| ⬜ 2 | The heading assertion pins the words "the proofs in", not the figure, so a mutant that prints the whole run's seconds passes | `tests/test_a_new_case_protects_what_its_file_did_not.py:610` | open | executed: with `{proofs:.0f}` replaced by the whole run's seconds, 27 of 27 pass |
-| ⬜ 3 | The module docstring says the tracer decides the stopped ids from pytest's call report, and since `c3931bf8` it also reads the exception handed to `addExpectedFailure` | `.github/scripts/case_check.py:80` | open | read: `:80`, `:160-176`, `spec.md:95` |
-| ⬜ 4 | `plan.md` names two unstable names the stopped-short rule rests on; the wrapper adds a third, pytest handing the item to the stdlib as its result | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/plan.md:30` | open | read: `plan.md:30`, `_pytest/unittest.py:391`, `:410`; a correction to the run's paperwork |
+| ⬜ 2 | The heading assertion pins the words "the proofs in", not the figure, so a mutant that prints the whole run's seconds passes | `tests/test_a_new_case_protects_what_its_file_did_not.py:610` | deferred the frame | the frame — the cases header goes with the gate the reframe removes; executed: with `{proofs:.0f}` replaced by the whole run's seconds, 27 of 27 pass |
+| ⬜ 3 | The module docstring says the tracer decides the stopped ids from pytest's call report, and since `c3931bf8` it also reads the exception handed to `addExpectedFailure` | `.github/scripts/case_check.py:80` | deferred the frame | the frame — the tracer docstring goes with the tracer the reframe removes; read: `:80`, `:160-176`, `spec.md:95` |
+| ⬜ 4 | `plan.md` names two unstable names the stopped-short rule rests on; the wrapper adds a third, pytest handing the item to the stdlib as its result | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/plan.md:30` | deferred the frame | the frame — plan.md is rewritten by the reframe; read: `plan.md:30`, `_pytest/unittest.py:391`, `:410`; a correction to the run's paperwork |
 | 🟢 | nothing else in the fix range changes behaviour, and `spec.md:95` says what the tracer does | `.github/scripts/case_check.py:194` | confirmed | read: the whole diff `1063ba45..f3eea4fe`; executed: the module's 27 cases pass at `f3eea4fe` on 3.13.9 and 3.12.12, and ruff 0.17.0 check and format are clean on both changed `.py` files |
 | 🟢 | round 5's record closes on its fix table: the fix range and its two commits are the ones on the branch | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/rounds/round-5.md:11` | confirmed | read: `git log 1063ba45..858988e0`, `round-5.md:7-31` |
 | 🟢 | the fix range adds no live reference to the tooling removed in 0.22.0 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/spec.md:95` | confirmed | executed: grep over the range's `+` lines; the branch's other occurrences are carried as round 1's ⬜ 5 answered |
@@ -123,7 +123,7 @@ ended ends that subtest, and the body goes on.
 | round-3 | `.github/workflows/test.yml`, `CONTRIBUTING.md`, `tests/test_every_reader_ends_a_line_where_gfm_does.py` | round 3's 🟢 — confirmed |
 | round-3 | CI run 38668484642 | round 3's 🟢 — confirmed |
 | round-4 | `.github/scripts/case_check.py:190` | round 4's 🟡 1 — fixed |
-| round-4 | `.github/workflows/test.yml:223` | round 4's ⬜ 2 — open |
+| round-4 | `.github/workflows/test.yml:223` | round 4's ⬜ 2 — answered |
 | round-4 | `.github/scripts/case_check.py:882` | round 4's 🟢 — confirmed |
 | round-4 | `.github/scripts/case_check.py:193` | round 4's 🟢 — confirmed |
 | round-4 | `.github/scripts/case_check.py:182` | round 4's 🟢 — confirmed |
@@ -131,7 +131,7 @@ ended ends that subtest, and the body goes on.
 | round-4 | `.github/scripts/case_check.py:76` | round 4's 🟢 — confirmed |
 | round-4 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/phases/phase-2.md:464` | round 4's 🟢 — confirmed |
 | round-4 | PR #939 | round 4's ❓ — out of verified scope |
-| round-5 | `.github/scripts/case_check.py:993` | round 5's ⬜ 2 — open |
+| round-5 | `.github/scripts/case_check.py:993` | round 5's ⬜ 2 — answered |
 | round-5 | `.github/scripts/case_check.py:192` | round 5's 🟢 — confirmed |
 | round-5 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/plan.md:28` | round 5's 🟢 — confirmed |
 | round-5 | `.github/scripts/case_check.py:871` | round 5's 🟢 — confirmed |

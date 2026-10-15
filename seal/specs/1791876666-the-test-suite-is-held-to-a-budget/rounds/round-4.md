@@ -16,7 +16,7 @@
 | Loses a record or crashes | no |
 <!-- New units: .github/workflows/test.yml read by the diff-line heuristic and not by the AST -->
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -27,7 +27,7 @@ Round 4 of #929, the first after the reframe: phase 3 over 2aa76b37..48971147 ag
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
 | 🟡 1 | An `@unittest.expectedFailure` on a `TestCase` class makes its body's raise an expected failure, but the tracer reads `__unittest_expecting_failure__` from the function alone, so such a new case is named `not proved` instead of being run under its mutants | `.github/scripts/case_check.py:190` | **fixed** `3fb8d310` | fixed at 3fb8d310; executed: a fixture adding a class-level expected failure exits 1, `not proved` at `48971147`; with the attribute also read from `item.cls`, `kills nothing its file does not`, and the stopped-short rows still pass; read: `unittest/case.py:637-639`, `_pytest/unittest.py:347-355`, `spec.md:95` |
-| ⬜ 2 | The `cases` comment's last two lines were not reflowed after the sentence before them was rewritten | `.github/workflows/test.yml:223` | open | read |
+| ⬜ 2 | The `cases` comment's last two lines were not reflowed after the sentence before them was rewritten | `.github/workflows/test.yml:223` | answered | reflowed at 8983d413, inside the tree round 6 read; read |
 | 🟢 | round 3's finding 1 is closed — a sibling that asserts and then skips keeps its traced lines and kills what it asserted | `.github/scripts/case_check.py:882` | confirmed | executed: the module's 26 cases pass at `48971147`, S16's row among them; read: `hits` is unfiltered at `:199` and only `never_ran` reads `short` |
 | 🟢 | round 3's finding 2 is closed — an imperative `pytest.xfail()` is named `not proved`, in a plain function and in a `TestCase` method | `.github/scripts/case_check.py:193` | confirmed | executed: S17's `test_by_xfail` row passes; a probe with `pytest.xfail()` in a `TestCase` method gives `not proved` |
 | 🟢 | `tryfirst=True` puts the tracer outside `tests/conftest.py`'s wrapper, as `spec.md:95` asks; its deletion survives only because nothing rewrites a skipped report | `.github/scripts/case_check.py:182` | confirmed | read: pluggy `_hooks.py:464-473`, `_callers.py:93`, `tests/conftest.py:985-997` |
