@@ -117,6 +117,37 @@ def scaffold_gaps(root=EVALS):
     return gaps
 
 
+def sealer_grade_gaps(root=EVALS):
+    """Each sealer case that does not grade the guarantor's file, or that
+    still grades the old sealer's `Broad gate` cell. The sealer's outcome is
+    its verdict in `guarantee.md`; `broad-gate.md` is the script's (#923)."""
+    gaps = []
+    top = os.path.normpath(os.path.join(root, "behaviour", "sealer"))
+    cases = [d for d in case_dirs(root) if os.path.normpath(d).startswith(top + os.sep)]
+    if not cases:
+        return ["behaviour/sealer: no case"]
+    for d in cases:
+        graders = []
+        for path in glob.glob(os.path.join(d, "graders", "*.md")):
+            with open(path, encoding="utf-8") as f:
+                graders.append(f.read().split("---")[1])
+        if not any(
+            re.search(r"path: '[^']*/guarantee\.md'", g) and "^Verdict:" in g
+            for g in graders
+        ):
+            gaps.append(f"{rel(d, root)}: no grader reads the verdict in guarantee.md")
+        if any("Broad gate" in g for g in graders):
+            gaps.append(f"{rel(d, root)}: a grader reads the `Broad gate` cell")
+    return gaps
+
+
+def test_every_sealer_case_grades_the_guarantee():
+    """T18. A sealer case grades the verdict line of `guarantee.md`, and none
+    grades the `Broad gate` cell the sealer no longer writes."""
+    gaps = sealer_grade_gaps()
+    assert not gaps, gaps
+
+
 def test_every_case_declares_a_case_yaml_and_a_prompt():
     missing = []
     for d in case_dirs():

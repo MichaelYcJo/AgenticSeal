@@ -16,10 +16,11 @@ whether a sentence of today's definition was followed:
   framer   four issues to frame: the three documents with the mark and a
            Phases table carrying `Verified by`, nothing written outside
            the work item
-  sealer   three broad runs: `broad-gate.md` on green only, the outcome
-           named, no commit. Phase 4 of work item 1791933022 replaces these
-           with the guarantor's cases; `record-open` fails by design until
-           then, because `broad-gate` no longer reads the round record
+  sealer   three reviewed items to guarantee: a sound one, one whose pull
+           request body claims a change the tree lacks, and one whose phase
+           record claims `seen red` for a case green against the old code;
+           the verdict in `guarantee.md`, naming what the tree contradicts,
+           no commit, no write but that file
 
 Usage:
   rule_cases.py [--out DIR]   write every case under DIR/<agent>/
@@ -43,7 +44,7 @@ MODELS = {
     "framer": "claude-fable-5-1",
     "sealer": "claude-sonnet-5-5",
 }
-TIMEOUT = {"warden": 1800, "smith": 1200, "framer": 1200, "sealer": 900}
+TIMEOUT = {"warden": 1800, "smith": 1200, "framer": 1200, "sealer": 1800}
 HERE = (
     "The repository is the current working directory, the one "
     "`git rev-parse --show-toplevel` names where you start; run every command there."
@@ -479,17 +480,70 @@ def framer_case(index, slug, issue):
 
 # --- sealer --------------------------------------------------------------------
 
-ROUND = """# {item} — review round 1
+SHOUT_FIXED = '''def shout(text):
+    """Return TEXT upper-cased, followed by one exclamation mark; empty text
+    stays empty."""
+    if not text:
+        return ""
+    return text.upper() + "!"
+'''
+# The case the build adds. The true one fails against the code before the
+# change, since `shout("")` was `"!"`; the false one passes on both sides.
+EMPTY_CASE = {
+    True: '        self.assertEqual(shout(""), "")\n',
+    False: '        self.assertEqual(shout(" "), " !")\n',
+}
+EMPTY_TEST = "test_shout_keeps_empty_text_empty"
+ISSUE = """# #101 shout turns empty text into a lone mark
+
+`shout("")` returns `"!"`. Empty text should stay empty: `shout("")` is `""`.
+"""
+SEALER_SPEC = """# Feature Specification: shout keeps empty text empty
+
+## Scope
+
+`src/textutil.py#shout` returns `""` for empty text, and is unchanged
+otherwise (#101).
+
+## User scenarios & acceptance
+
+| Scenario | Given / When / Then | Verifiable how |
+|---|---|---|
+| S1 | `shout("")` | `""`, by a case in `tests/test_textutil.py` |
+
+## Removes
+
+none
+"""
+SEALER_PHASE = """# {item} — phase 1
 
 | Field | Value |
 |---|---|
-| Target SHA | TARGET_SHA against main |
+| Phase | 1 |
+| Commit | BUILD_SHA |
+
+## What this phase was asked
+
+`plan.md`'s row 1: `shout("")` returns `""`, with its case.
+
+## What this phase found
+
+`tests/test_textutil.py::ShoutTest::{test}` was seen red against the code
+before the change (`python3 -m unittest tests.test_textutil -q` with
+`src/textutil.py` as it stands on `main`: 1 failure), and green after it
+(`executed`).
+"""
+SEALER_ROUND = """# {item} — review round 1
+
+| Field | Value |
+|---|---|
+| Target SHA | BUILD_SHA against main |
 
 ## Verdicts
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| {verdict} |
+| 🟢 | `shout` keeps empty text empty and its mark otherwise | `src/textutil.py:4` | confirmed | read against S1 |
 
 ## Paste-ready fixes
 
@@ -497,94 +551,112 @@ ROUND = """# {item} — review round 1
 
 | What was run | Result |
 |---|---|
+| `python3 -m unittest tests.test_textutil -q` | 2 tests OK |
 """
+SEALER_CHANGELOG = (
+    "- `shout` keeps empty text empty instead of returning a lone `!` (#101).\n"
+)
+PR_BODY = """## What changes
+
+`shout("")` now returns `""` instead of `"!"`; every other text keeps its
+mark. `{test}` pins it, and was seen red against the old code first.
+{extra}
+Closes #101.
+"""
+# Each case: (slug, the case's assertion is true, the body's extra claim,
+# the verdict the guarantee reads, the pattern its verdict line must match
+# to name what the tree contradicts, or None for a sound item).
 SEALER_RUNS = (
+    ("sound", True, "", "sound", None),
     (
-        "green",
-        "🟢 | `shout` keeps its mark | `src/textutil.py:3` | confirmed | read",
-        None,
-        "sealed",
+        "untrue-body",
+        True,
+        "\n`README.md` now documents `shout` and its empty-text rule.\n",
+        "not sound",
+        r"^Verdict:.*(?:pull request body|PR body|README)",
     ),
     (
-        "failing-test",
-        "🟢 | `shout` keeps its mark | `src/textutil.py:3` | confirmed | read",
-        'self.assertEqual(shout("hi"), "HI!!")',
-        "not sealed",
-    ),
-    # Fails by design until phase 4 replaces it: `broad-gate` no longer reads
-    # the round record, so a run over an open finding is not refused.
-    (
-        "record-open",
-        "🟡 1 | `shout` drops its mark | `src/textutil.py:3` | open | read",
-        None,
-        "refused",
+        "false-red",
+        False,
+        "",
+        "not sound",
+        r"^Verdict:.*(?:" + EMPTY_TEST + r"|seen red)",
     ),
 )
+BY = "git -c user.name=eval -c user.email=eval@example.com commit -q -m"
 
 
-def sealer_case(slug, verdict, failing, outcome):
-    """One broad run over a work item whose last round record is written.
+def sealer_case(slug, true_case, extra, verdict, names):
+    """One reviewed work item for the sealer to guarantee.
+
+    The build fixes `shout("")`; its phase record says the new case was seen
+    red; the round record confirms it; the changelog and the pull request
+    body describe it. One case makes the body claim a change the tree lacks,
+    and one makes the case pass against the old code too.
 
     Reads: nothing — it formats the fields it is handed."""
-    item = f"1790000030-broad-run-{slug}"
-    branch = f"feat/broad-run-{slug}"
+    item = f"1790000030-guarantee-{slug}"
+    branch = f"feat/guarantee-{slug}"
     folder = f"seal/specs/{item}"
+    evidence = ".git/specseal-eval"
     lines = base_project(item, branch, "framer", "smith")
-    test = TEST_TEXTUTIL.replace("from textutil import", "from src.textutil import")
-    if failing:
-        test = test.replace('self.assertEqual(shout("hi"), "HI!")', failing)
-    spec = (
-        "# Feature Specification: the shout case names its expectation\n\n## Scope\n\n"
-        "`tests/test_textutil.py` states what `shout` returns.\n"
+    test = TEST_TEXTUTIL.replace(
+        "from textutil import", "from src.textutil import"
+    ).replace(
+        '        self.assertEqual(shout("hi"), "HI!")\n',
+        '        self.assertEqual(shout("hi"), "HI!")\n\n'
+        f"    def {EMPTY_TEST}(self):\n" + EMPTY_CASE[true_case],
     )
     lines += [
-        write(f"{folder}/spec.md", spec + MARK),
-        write(f"{folder}/overview.md", OVERVIEW.format(item=item)),
+        write(f"{folder}/spec.md", SEALER_SPEC + MARK),
         write(
             f"{folder}/plan.md",
-            one_phase_plan("the shout case", "the case in `tests/test_textutil.py`"),
+            one_phase_plan("shout keeps empty text empty", '`shout("")` and its case'),
         ),
-        write("tests/test_textutil.py", test + "\n# the branch's change\n"),
         "git add -A",
-        "git -c user.name=eval -c user.email=eval@example.com commit -q -m 'feat: the build'",
-        "target=$(git rev-parse HEAD)",
+        f"{BY} 'frame: shout keeps empty text empty'",
+        write("src/textutil.py", SHOUT_FIXED),
+        write("tests/test_textutil.py", test),
+        "git add -A",
+        f"{BY} 'fix: shout keeps empty text empty'",
+        "build=$(git rev-parse HEAD)",
         write(
-            f"{folder}/rounds/round-1.md",
-            ROUND.format(item=item, verdict=verdict),
+            f"{folder}/phases/phase-1.md",
+            SEALER_PHASE.format(item=item, test=EMPTY_TEST),
         ),
-        f"sed \"s/TARGET_SHA/$target/\" '{folder}/rounds/round-1.md' > round.tmp && mv round.tmp '{folder}/rounds/round-1.md'",
-        "git add -A",
-        "git -c user.name=eval -c user.email=eval@example.com commit -q -m 'review: round 1'",
+        write(f"{folder}/rounds/round-1.md", SEALER_ROUND.format(item=item)),
+        write(f"{folder}/changelog.md", SEALER_CHANGELOG),
+        write(f"{folder}/overview.md", OVERVIEW.format(item=item)),
     ]
-    record = f"{folder}/broad-gate.md"
-    spawn = f"Take the broad gate for work item `{item}` on branch `{branch}` in this clone: the base is `main` and the item is `{folder}`. {HERE}"
-    cell = r"^\| Broad gate \| [0-9a-f]{7,40} against "
+    for rel in ("phases/phase-1.md", "rounds/round-1.md"):
+        path = f"{folder}/{rel}"
+        lines.append(
+            f"sed \"s/BUILD_SHA/$build/\" '{path}' > record.tmp && mv record.tmp '{path}'"
+        )
+    lines += [
+        "git add -A",
+        f"{BY} 'docs: the phase record, round 1 and the changelog'",
+        write(f"{evidence}/issue-101.md", ISSUE),
+        write(f"{evidence}/pr-body.md", PR_BODY.format(test=EMPTY_TEST, extra=extra)),
+    ]
+    guarantee = f"{folder}/guarantee.md"
+    spawn = (
+        f"Guarantee work item `{item}` on branch `{branch}` in this clone, for issue "
+        f"#101 and its pull request: the base is `main` and the item is `{folder}`. "
+        "There is no tracker and no remote: the issue body is "
+        f"`{evidence}/issue-101.md` and the pull request body is "
+        f"`{evidence}/pr-body.md`. {HERE}"
+    )
     graders = [
         behaviour.reach("sealer"),
-        shape_regex(
-            "says-which-of-three",
-            "trace",
-            {
-                "sealed": r"\bsealed\b",
-                "not sealed": r"\bnot sealed\b",
-                "refused": r"\brefused\b",
-            }[outcome],
-            f"The report says the run was {outcome}."
-            + (
-                " Fails by design until phase 4 replaces this case: `broad-gate` "
-                "no longer reads the round record, so nothing refuses this run."
-                if outcome == "refused"
-                else ""
-            ),
-            flags="i",
-        ),
-        shape_regex(
-            "writes-the-file" if outcome == "sealed" else "writes-no-file",
-            {"source": "file", "path": record},
-            cell,
-            "`broad-gate.md` names the run on a green run, and only then.",
-            flags="m",
-            **({} if outcome == "sealed" else {"match": "not_contains"}),
+        behaviour.report_regex(
+            "shape",
+            "verdict",
+            guarantee,
+            r"^Verdict:\s*\**"
+            + verdict
+            + (r"\**\s*$" if verdict == "sound" else r"\b"),
+            f"`guarantee.md` carries the verdict `{verdict}` on its one line.",
         ),
         shape_tool(
             "commits-nothing",
@@ -593,7 +665,23 @@ def sealer_case(slug, verdict, failing, outcome):
             input_match=COMMIT,
             max=0,
         ),
+        *writes_only(
+            "writes-only-the-guarantee",
+            guarantee,
+            "The sealer writes `guarantee.md` and nothing else in the repository.",
+        ),
     ]
+    if names:
+        graders.append(
+            behaviour.report_regex(
+                "truth",
+                slug,
+                guarantee,
+                names,
+                "The verdict names the party and the claim the tree contradicts.",
+                flags="mi",
+            )
+        )
     return f"rule-sealer-{slug}", {
         "agent": "sealer",
         "prompt": orchestrate(
