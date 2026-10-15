@@ -15,7 +15,7 @@
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,10 +25,10 @@ Verifying round 6 of #931: round 5's three fixes over bbf2daa3..af18ab2e (render
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| ⬜ 1 | work item 1791876665's changelog fragment says "Three reports", and the third, `ledger-rereads`, was removed on the base by #944; the same row stands at that item's `spec.md:39` and `questions.md:8` | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/changelog.md:27` | open | executed: grep finds `ledger-rereads` in neither `seal/budgets.md` nor the checker at 701bc6c1 or 5b1f6fae, and the summary lists two report kinds; read: `changelog.md:27-28`, `spec.md:39`, `questions.md:8`; a record correction, which `Needs a fix` does not count |
-| ⬜ 2 | work item 1791876665's `plan.md:74` links S7 to T10 alone, and T10 asserts exit 1 under a `gate` fixture; S7 now states the `report` kind, which only `test_an_unlisted_slow_file_under_a_report_row_is_named` holds | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/plan.md:74` | open | read: `plan.md:74`, `spec.md:59`, `tests/test_a_budget_ratchets.py:474` and `:604-622`, settle's *A standing statement has one shape*; the implementer's open question, answered yes; a record correction |
-| ⬜ 3 | T10's docstring says an unlisted file over the threshold "fails" under S7; S7 says it fails nothing | `tests/test_a_budget_ratchets.py:619` | open | read: `:619-620` against `spec.md:59` of work item 1791876665; the behaviour is right and the sentence is wrong |
-| ⬜ 4 | a module docstring line runs 135 characters after 21ffe7fb's insert, and `render`'s docstring keeps a short line mid-paragraph | `.github/scripts/budget_check.py:120` | open | executed: awk line lengths, ruff exit 0 (E501 not selected); read: `:113-121`, `:1229-1232` |
+| ⬜ 1 | work item 1791876665's changelog fragment says "Three reports", and the third, `ledger-rereads`, was removed on the base by #944; the same row stands at that item's `spec.md:39` and `questions.md:8` | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/changelog.md:27` | answered | corrected at cf72ab77 — cf72ab77; executed: grep finds `ledger-rereads` in neither `seal/budgets.md` nor the checker at 701bc6c1 or 5b1f6fae, and the summary lists two report kinds; read: `changelog.md:27-28`, `spec.md:39`, `questions.md:8`; a record correction, which `Needs a fix` does not count |
+| ⬜ 2 | work item 1791876665's `plan.md:74` links S7 to T10 alone, and T10 asserts exit 1 under a `gate` fixture; S7 now states the `report` kind, which only `test_an_unlisted_slow_file_under_a_report_row_is_named` holds | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/plan.md:74` | answered | corrected at cf72ab77 — cf72ab77; read: `plan.md:74`, `spec.md:59`, `tests/test_a_budget_ratchets.py:474` and `:604-622`, settle's *A standing statement has one shape*; the implementer's open question, answered yes; a record correction |
+| ⬜ 3 | T10's docstring says an unlisted file over the threshold "fails" under S7; S7 says it fails nothing | `tests/test_a_budget_ratchets.py:619` | answered | corrected at cf72ab77 — cf72ab77; read: `:619-620` against `spec.md:59` of work item 1791876665; the behaviour is right and the sentence is wrong |
+| ⬜ 4 | a module docstring line runs 135 characters after 21ffe7fb's insert, and `render`'s docstring keeps a short line mid-paragraph | `.github/scripts/budget_check.py:120` | answered | corrected at cf72ab77 — cf72ab77; executed: awk line lengths, ruff exit 0 (E501 not selected); read: `:113-121`, `:1229-1232` |
 | 🟢 | round 5's finding 3 is closed — `render` prints every report row's problems under a heading that says they fail nothing, and an unlisted slow file is named | `.github/scripts/budget_check.py:1284` | confirmed | executed: the real tree with 300 s added to an unlisted file gives exit 0, `slow-file` `over`, and the list names the file; the new case red against bbf2daa3 and 21ffe7fb and green at af18ab2e; failing problems still come from gate rows alone (`:1432-1434`, read) |
 | 🟢 | a gate row's problem text is unchanged byte for byte across the range; a report row's differs only in its last clause | `.github/scripts/budget_check.py:1067` | confirmed | executed: probe over all 103 rows, `band` and `unlisted_band`, 624 comparisons against bbf2daa3's checker, exit 0 |
 | 🟢 | a report row's problem saying it needs no `Budget raised:` line is true of `ratchet` | `.github/scripts/budget_check.py:1169` | confirmed | read: `ratchet` skips a base row that is not a gate; file rows inherit the family's kind (`:436`) and `effective` copies the family row (`:1146`); executed: the checker with PR #937's body exits 0 and with an empty body exits 1 on the 20 kind changes alone |
@@ -125,7 +125,7 @@ unlisted one has the same room to move before it reads over. A docs
 | round-5 | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md:59` | round 5's 🟡 1 — fixed |
 | round-5 | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/changelog.md:17` | round 5's 🟡 2 — fixed |
 | round-5 | `.github/scripts/budget_check.py:1410` | round 5's 🟡 3 — fixed |
-| round-5 | `seal/specs/1791876667-the-durations-refresh-has-a-schedule/overview.md:7` | round 5's ⬜ 4 — open |
+| round-5 | `seal/specs/1791876667-the-durations-refresh-has-a-schedule/overview.md:7` | round 5's ⬜ 4 — answered |
 | round-5 | `.github/scripts/budget_check.py:1418` | round 5's 🟢 — confirmed |
 | round-5 | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/questions.md:8` | round 5's 🟢 — confirmed |
 | round-5 | `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/overview.md:24` | round 5's 🟢 — confirmed |
