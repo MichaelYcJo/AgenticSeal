@@ -235,18 +235,20 @@ jobs:
       - run: pip install pytest
       - run: pytest tests/test_arm_check.py -q
 
-  # The one measurement of the suite taken on every pull request: each leg's
-  # minutes in this run, summed over its pytest jobs, held to the
-  # `ci-minutes:*` rows of `seal/budgets.md`, with the billable line beside
-  # them. A run's minutes swing from one run to the next on the same code, so
-  # those rows are one-sided; `.github/scripts/budget_check.py` is the rule.
+  # On a pull request into `main`, the release table: each agent's preload
+  # bytes, the suite's seconds, each leg's minutes and each document's bytes
+  # beside the same reading at the last release tag, appended to this job's
+  # summary. It fails nothing, and whoever prepares the release reads it
+  # (`docs/release-checklist.md` §2); `.github/scripts/release_report.py` is
+  # the rule. The tag's minutes are its own commit's `tests` run on `main`.
   #
   # After the suite, whatever its verdict: a red leg still spent its minutes.
-  # The token reads the run's own job list and nothing else, declared here
-  # because this workflow states no `permissions:` of its own.
-  budgets:
+  # The token reads job lists and nothing else, declared here because this
+  # workflow states no `permissions:` of its own. A `gh` call that finds no
+  # run leaves its file empty, and the table reads that leg as no run found.
+  release-report:
     needs: pytest
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -254,14 +256,30 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: each leg's minutes in this run, against its ceiling
+      - name: the release against the last release tag
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         shell: bash
         run: |
-          gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
-            --paginate --jq '.jobs[]' > "$RUNNER_TEMP/jobs.jsonl"
-          python .github/scripts/budget_check.py --ci-jobs "$RUNNER_TEMP/jobs.jsonl"
+          tag=$(git describe --tags --abbrev=0 origin/main)
+          mkdir "$RUNNER_TEMP/at"
+          git archive "$tag" | tar -x -C "$RUNNER_TEMP/at"
+          gh api "repos/$REPO/actions/runs/${{ github.run_id }}/jobs" \
+            --paginate --jq '.jobs[]' > "$RUNNER_TEMP/jobs.jsonl" || true
+          sha=$(git rev-list -n 1 "$tag")
+          run=$(gh api "repos/$REPO/actions/workflows/test.yml/runs?head_sha=$sha&event=push" \
+            --jq '.workflow_runs[0].id // empty' || true)
+          : > "$RUNNER_TEMP/jobs-at.jsonl"
+          if [ -n "$run" ]; then
+            gh api "repos/$REPO/actions/runs/$run/jobs" \
+              --paginate --jq '.jobs[]' > "$RUNNER_TEMP/jobs-at.jsonl" || true
+          fi
+          python .github/scripts/release_report.py --against "$tag" \
+            --at "$RUNNER_TEMP/at" --ci-jobs "$RUNNER_TEMP/jobs.jsonl" \
+            --ci-jobs-at "$RUNNER_TEMP/jobs-at.jsonl" >> "$GITHUB_STEP_SUMMARY"

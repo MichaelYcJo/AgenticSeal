@@ -1,0 +1,281 @@
+#!/usr/bin/env python3
+"""release-report — one table of the release against the last release tag.
+
+  release_report.py --against TAG --at DIR [--root DIR]
+                    [--ci-jobs FILE] [--ci-jobs-at FILE]
+
+Prints one markdown table, `| What | <TAG> | Now | Change |`, under
+`### Against <TAG>`: each agent's preload bytes, the suite's seconds, each CI
+leg's minutes and each document's bytes, read from the tree at `--at` (the
+tag's) and the tree at `--root` (this one, by default the repository this
+script is in). The tests workflow runs it after the suite on a pull request
+into `main` and appends what it prints to the job's summary.
+
+  preload `<agent>`   the bytes of `agents/<agent>.md` and of each skill its
+                      `skills:` list names, the agent's own share of
+                      `skills/verify/scripts/payload_meter.py#composition`
+  the suite           the seconds `.test_durations` prices every case at
+  `<leg>` leg         the minutes of one run's `pytest (<leg>-latest, …)`
+                      jobs, summed, each `completed_at` less `started_at`,
+                      read from a job list as `gh api …/jobs --paginate
+                      --jq '.jobs[]'` prints it; `no run found` where the
+                      file is absent, empty or holds no such job
+  `<document>`        the bytes of `CLAUDE.md`, `CONTRIBUTING.md` and each
+                      `docs/*.md`, each CRLF counted as the LF git stores
+
+It fails nothing: no row is held to a number, and its reader is whoever
+prepares the release. A leg's minutes compare one run with one run, which
+swing on the same code, and the table's header says so.
+
+Exit codes: **0** the table was printed, whatever it shows · **2** a tree,
+its `.test_durations`, an agent definition, or the meter it reads through
+cannot be read.
+"""
+
+import argparse
+import datetime
+import glob
+import importlib.util
+import json
+import os
+import re
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+METER = os.path.join(ROOT, "skills", "verify", "scripts", "payload_meter.py")
+DURATIONS = ".test_durations"
+DOCUMENTS = ("CLAUDE.md", "CONTRIBUTING.md", "docs/*.md")
+# The legs of the tests workflow, in the order a reader compares them, and
+# the name of a pytest job, whose leg is the operating system it opens with.
+LEGS = ("ubuntu", "windows", "macos")
+PYTEST_JOB = re.compile(r"pytest \(([a-z]+)-[^,)]*(?:,.*)?\)")
+NO_RUN = "no run found"
+ABSENT = "—"
+HEADER = (
+    "Each agent's preload, the suite's seconds, each CI leg's minutes and "
+    "each document's size, at the last release tag and now. Nothing here "
+    "fails: a leg's minutes compare one run with one run, which swing on the "
+    "same code, so no row is a verdict."
+)
+
+
+class Unreadable(Exception):
+    """A tree or a file the table reads could not be read, and the sentence
+    says which.
+
+    Reads: nothing — an exception carrying the sentence its raiser wrote"""
+
+
+def meter():
+    """`payload_meter.py`, loaded by path, or Unreadable.
+
+    Reads: owned — a module this repository ships beside this script; unknown refused"""
+    if not os.path.isfile(METER):
+        raise Unreadable(
+            "cannot read skills/verify/scripts/payload_meter.py, which measures "
+            "an agent's preload"
+        )
+    spec = importlib.util.spec_from_file_location("specseal_release_meter", METER)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def lf_bytes(path):
+    """The bytes of the file at `path` with each CRLF counted as one LF.
+
+    Reads: observed — the file's bytes on disk; unknown refused"""
+    with open(path, "rb") as handle:
+        return len(handle.read().replace(b"\r\n", b"\n"))
+
+
+def preloads(root, kernel):
+    """`{agent: bytes}` for every agent the tree at `root` defines.
+
+    Reads: owned — each agent definition's frontmatter and the files it names, through `payload_meter`; unknown refused"""
+    try:
+        found = kernel.agents_in(root)
+        out = {}
+        for agent, definition in found.items():
+            rows = kernel.composition(root, root, agent, definition, False)
+            out[agent] = sum(row["bytes"] for row in rows if row["share"] == "agent")
+    except OSError as error:
+        raise Unreadable(
+            f"an agent definition under {root} cannot be read: {error}"
+        ) from None
+    return out
+
+
+def suite_seconds(root):
+    """The seconds `.test_durations` in the tree at `root` prices every case
+    at, summed, or Unreadable.
+
+    Reads: observed — the JSON the suite's durations plugin wrote; unknown refused"""
+    path = os.path.join(root, DURATIONS)
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, ValueError) as error:
+        raise Unreadable(f"{DURATIONS} under {root} cannot be read: {error}") from None
+    if not isinstance(data, dict) or not all(
+        isinstance(v, (int, float)) and not isinstance(v, bool) for v in data.values()
+    ):
+        raise Unreadable(
+            f"{DURATIONS} under {root} is no object of case ids to seconds"
+        )
+    return sum(data.values())
+
+
+def documents(root):
+    """`{path: bytes}` of `CLAUDE.md`, `CONTRIBUTING.md` and each `docs/*.md`
+    in the tree at `root`, each path written with `/`.
+
+    Reads: observed — the files' bytes on disk; unknown refused"""
+    out = {}
+    for pattern in DOCUMENTS:
+        for path in sorted(glob.glob(os.path.join(root, *pattern.split("/")))):
+            if os.path.isfile(path):
+                out[os.path.relpath(path, root).replace(os.sep, "/")] = lf_bytes(path)
+    return out
+
+
+def leg_minutes(path):
+    """`{leg: minutes}` for one run's job list at `path`, the minutes of a
+    leg summed over its pytest jobs; `{}` where there is no such file, it is
+    empty, or a line of it is no job. A job with no start or end time is not
+    counted, and a leg none of whose jobs has both is no reading.
+
+    Reads: observed — the job list GitHub's API returned, written by `gh`; unknown passed"""
+    if not path or not os.path.isfile(path):
+        return {}
+    legs = {}
+    with open(path, encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            if not line.strip():
+                continue
+            try:
+                job = json.loads(line)
+            except ValueError:
+                return {}
+            if not isinstance(job, dict) or not isinstance(job.get("name"), str):
+                return {}
+            match = PYTEST_JOB.fullmatch(job["name"])
+            if not match:
+                continue
+            try:
+                started = datetime.datetime.fromisoformat(job["started_at"])
+                completed = datetime.datetime.fromisoformat(job["completed_at"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            minutes = (completed - started).total_seconds() / 60
+            legs[match.group(1)] = legs.get(match.group(1), 0) + minutes
+    return legs
+
+
+def change(old, new, digits=0):
+    """The Change cell: the difference and its share of the old reading, or
+    which side has no reading.
+
+    Reads: nothing — formats the numbers handed to it"""
+    if old is None and new is None:
+        return ABSENT
+    if old is None:
+        return "new"
+    if new is None:
+        return "gone"
+    delta = new - old
+    text = f"{delta:+,.{digits}f}"
+    return f"{text} ({delta / old:+.1%})" if old else text
+
+
+def cell(value, digits=0, missing=ABSENT):
+    """One reading as the table prints it.
+
+    Reads: nothing — formats the number handed to it"""
+    return missing if value is None else f"{value:,.{digits}f}"
+
+
+def table(tag, at, now, jobs_at, jobs_now):
+    """The printed table: `at` and `now` are each `(preloads, seconds,
+    documents)`, `jobs_at` and `jobs_now` each `{leg: minutes}`.
+
+    Reads: nothing — formats the readings handed to it"""
+    rows = []
+    for agent in sorted(set(at[0]) | set(now[0])):
+        old, new = at[0].get(agent), now[0].get(agent)
+        rows.append(
+            (f"preload `{agent}` (bytes)", cell(old), cell(new), change(old, new))
+        )
+    rows.append(
+        (
+            "the suite (seconds)",
+            cell(at[1]),
+            cell(now[1]),
+            change(round(at[1]), round(now[1])),
+        )
+    )
+    for leg in LEGS:
+        old, new = jobs_at.get(leg), jobs_now.get(leg)
+        rows.append(
+            (
+                f"`{leg}` leg (minutes)",
+                cell(old, 1, NO_RUN),
+                cell(new, 1, NO_RUN),
+                change(old, new, 1) if old is not None and new is not None else ABSENT,
+            )
+        )
+    for path in sorted(set(at[2]) | set(now[2])):
+        old, new = at[2].get(path), now[2].get(path)
+        rows.append((f"`{path}` (bytes)", cell(old), cell(new), change(old, new)))
+    lines = [
+        f"### Against {tag}",
+        "",
+        HEADER,
+        "",
+        f"| What | {tag} | Now | Change |",
+        "|---|---|---|---|",
+    ]
+    lines += ["| " + " | ".join(row) + " |" for row in rows]
+    return "\n".join(lines) + "\n"
+
+
+def reading(root, kernel):
+    """`(preloads, seconds, documents)` of the tree at `root`, or Unreadable.
+
+    Reads: observed — the tree at `root`, through `preloads`, `suite_seconds` and `documents`; unknown refused"""
+    if not os.path.isdir(root):
+        raise Unreadable(f"{root} is no directory")
+    return preloads(root, kernel), suite_seconds(root), documents(root)
+
+
+def main(argv=None):
+    """Read both trees and both job lists, print the table; exit 0 whatever
+    it shows, 2 where a tree cannot be read.
+
+    Reads: guess — the arguments and the trees and files they name; unknown refused"""
+    parser = argparse.ArgumentParser(description=__doc__.partition("\n")[0])
+    parser.add_argument("--against", required=True, metavar="TAG")
+    parser.add_argument("--at", required=True, metavar="DIR")
+    parser.add_argument("--root", default=ROOT, metavar="DIR")
+    parser.add_argument("--ci-jobs", metavar="FILE")
+    parser.add_argument("--ci-jobs-at", metavar="FILE")
+    args = parser.parse_args(argv)
+    try:
+        kernel = meter()
+        at = reading(os.path.abspath(args.at), kernel)
+        now = reading(os.path.abspath(args.root), kernel)
+    except Unreadable as error:
+        sys.stderr.write(f"release-report: {error}. Nothing was compared.\n")
+        return 2
+    jobs_at, jobs_now = leg_minutes(args.ci_jobs_at), leg_minutes(args.ci_jobs)
+    sys.stdout.write(table(args.against, at, now, jobs_at, jobs_now))
+    return 0
+
+
+if __name__ == "__main__":
+    for _name in ("stdout", "stderr"):
+        _stream = getattr(sys, _name, None)
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+    sys.exit(main())
