@@ -33,8 +33,9 @@ on:
     # `ready_for_review` and `converted_to_draft` are not in the default set,
     # and without them a pull request opened as a draft keeps the green it
     # earned on the draft's terms: pressing Ready for review makes no commit,
-    # so nothing re-runs. `chain_check.py` reads the draft state and requires
-    # a checked `Pass` on the last round only once the draft is over.
+    # so nothing re-runs. `chain_check.py` reads the draft state, and fails
+    # an open finding, a record behind HEAD, or a missing `broad-gate.md` or
+    # `guarantee.md` only once the draft is over.
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
 jobs:

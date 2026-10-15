@@ -11,9 +11,9 @@ the two stages, the comparison axes, the probe rules, the cross-session
 records and the findings format. An orchestrator reads both; a `warden` spawn
 preloads that one and never this.
 
-Nothing here changed when it moved. The headings keep the `Orchestrator:`
-prefix they were written with, so a reference to one of these sections names
-the section it always named and only the file it names changed (#265).
+The headings keep the `Orchestrator:` prefix they were written with, so a
+reference to one of these sections names the section it always named and only
+the file it names changed (#265).
 
 ## Orchestrator: a fix pass resumes the implementer
 
@@ -78,9 +78,8 @@ would have caught.
 
 A round's findings are closed after it ends, by whoever writes the fixes. Every
 round but the last has a reader for those fixes — the round that follows, since
-each of its verdicts needs an answer there. The last round's fixes are read by
-nobody, and the box saying the review passed is ticked by the session that
-wrote them.
+each of its verdicts needs an answer there. The last round's fixes have none
+unless a round is spawned for them.
 
 That is not an occasional slip. It is how every run ended, and it was measured
 twice in a row: the one round that did open the previous round's fixes found
@@ -248,7 +247,7 @@ Never post reviewer output as-is. Check, by opening the coordinates yourself:
 4. Test-pass claims — run them; count skips, which masquerade as passes.
 
 Also check whether HEAD moved during the review; if source changed, those
-verdicts need a re-pass. Record both SHAs in `round-N.md`.
+verdicts need a re-pass, and the next round's `Target SHA` names the new HEAD.
 
 ## Orchestrator: closing the cycle
 
