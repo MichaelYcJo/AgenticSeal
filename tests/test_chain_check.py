@@ -122,7 +122,13 @@ def branch(tmp_path):
         f"{ITEM}/rounds/round-1.md",
         record(code, ["| 🔴 1 | wrong | `f.txt:1` | fixed " + code[:8] + " | g |"]),
     )
-    write(d, f"{ITEM}/broad-gate.md", gate_file(code))
+    # Two runs, newest first: the earlier one names a commit nobody can see,
+    # so a reader that took any run but the first would refuse the file.
+    write(
+        d,
+        f"{ITEM}/broad-gate.md",
+        gate_file(f"{code} against main; earlier run: {'1' * 40}"),
+    )
     commit(d, "the round record and the broad gate")
     return d, code
 
@@ -184,6 +190,7 @@ class TestDeferredHome:
 
     def test_no_home_and_prose_name_no_issue(self):
         assert chain.deferred_home("deferred") is None
+        assert chain.deferred_home("deferredness #12") is None
         assert chain.deferred_home("fixed abc1234") is None
         assert chain.issue_of(chain.deferred_home("deferred to #664")) is None
 
