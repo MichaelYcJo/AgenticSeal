@@ -405,8 +405,11 @@ def test_what_runs_before_any_floor_needs_nothing_its_python3_lacks():
     module it loads in its own process. A hook that raises there fails open,
     and the Stop hook loses the stamp it claimed. `ruff.toml` lints that set
     at the version its `per-file-target-version` names, so B905 and UP017 do
-    not ask it for `zip`'s `strict=` or `datetime.UTC`, and this case holds
-    every file of the set to that table and to that version."""
+    not ask it for `zip`'s `strict=` or `datetime.UTC`. This case holds every
+    file of the set to that table, and refuses in it the syntax `ast` rejects
+    at that version and those two constructs. Nothing runs the set at that
+    version, so a standard-library module or an annotation only a newer
+    `python3` has passes it."""
     planted = "import datetime\nzip(a, b, strict=True)\ndatetime.UTC\n"
     assert {what for _, what in newer_than(planted, (3, 9))} == set(NEWER)
     assert newer_than(planted, (3, 11)) == []
