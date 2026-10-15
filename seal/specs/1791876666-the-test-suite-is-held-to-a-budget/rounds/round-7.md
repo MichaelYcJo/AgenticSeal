@@ -15,7 +15,7 @@
 | Needs a fix | no |
 | Loses a record or crashes | no |
 
-- [ ] Pass
+- [x] Pass
 
 ## What this round was asked
 
@@ -25,9 +25,9 @@ Round 7 of #929, the first after the second reframe: phase 4's removal of the pe
 
 | # | Finding | Location | Verdict | Grounds |
 |---|---|---|---|---|
-| ⬜ 1 | `plan.md`'s alternative A, the per-case check phase 4 removed, still reads **chosen**; H's failure scenario cites the regrowth check this item adds; `:63` counts ubuntu minutes saved against a base that never ran the job | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/plan.md:38` | open | read: `plan.md:14-18`, `:32`, `:38`, `:45`, `:63`, `:74`; a correction to the run's paperwork |
-| ⬜ 2 | #944's frame still names #929's regrowth check as what reads whether an `Enforced by:` target runs, and as the per-case complement: the class of the `:46` sentence `a7638aca` removed | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/spec.md:48` | open | read: `spec.md:46`, `:48`, `:104`, `plan.md:31` of that frame, and `phases/phase-4.md:79-84`; executed: `git grep -i regrowth` names these three lines and only records otherwise; a correction to a frame `settle` will fold |
-| ⬜ 3 | Two divergence rows describe the removed check's derivation and draw as `Chosen`, with no word that it left in phase 4 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/overview.md:28` | open | read: `overview.md:9-14`, `:28-36`; a correction to the run's paperwork |
+| ⬜ 1 | `plan.md`'s alternative A, the per-case check phase 4 removed, still reads **chosen**; H's failure scenario cites the regrowth check this item adds; `:63` counts ubuntu minutes saved against a base that never ran the job | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/plan.md:38` | answered | corrected at 16d2f2ef — 16d2f2ef; read: `plan.md:14-18`, `:32`, `:38`, `:45`, `:63`, `:74`; a correction to the run's paperwork |
+| ⬜ 2 | #944's frame still names #929's regrowth check as what reads whether an `Enforced by:` target runs, and as the per-case complement: the class of the `:46` sentence `a7638aca` removed | `seal/specs/1791940762-the-record-of-truth-is-tests-not-coordinates/spec.md:48` | answered | corrected at 16d2f2ef — 16d2f2ef; read: `spec.md:46`, `:48`, `:104`, `plan.md:31` of that frame, and `phases/phase-4.md:79-84`; executed: `git grep -i regrowth` names these three lines and only records otherwise; a correction to a frame `settle` will fold |
+| ⬜ 3 | Two divergence rows describe the removed check's derivation and draw as `Chosen`, with no word that it left in phase 4 | `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/overview.md:28` | answered | corrected at 16d2f2ef — 16d2f2ef; read: `overview.md:9-14`, `:28-36`; a correction to the run's paperwork |
 | 🟢 | everything that stood only on the check, its test module and the `cases` job is gone, and nothing live needed them | `.github/workflows/test.yml` | confirmed | executed: the class sweep at `a7638aca`; `git diff origin/release/v0.22.0 -- .github/workflows/test.yml` empty; `gh api` rulesets: release requires no status check, `main` requires `lint`; 23 modules, 1,103 passed, 4 skipped, exit 0 |
 | 🟢 | the departure removing `mutation-check --baseline-passed` holds | `skills/verify/scripts/mutation_check.py:286` | confirmed | read: the phase 4 diff and the net diff against the base; executed: the option exits 2 as unrecognized (S4); `git grep` finds no caller |
 | 🟢 | the departure moving the Windows command-line case holds, and the case is red without the fix | `tests/test_arm_check.py:1372` | confirmed | executed: `mutation-check` removing `lexer.escape = ""` exits 0 (`red`), failing at `:1379`, file restored; `test_the_durations_file_prices_the_suite` passes |
