@@ -21,13 +21,15 @@ with Q7's default built (5), the repair after round 2, where the check reads
 one word per verdict row and `.test_durations` is pruned by collection (5a),
 the repair after round 4, where the sealer's acts are listed once, in its
 definition, and the stored counts leave this item's two builder documents
-(5b), and the repair after round 5, where a 🔴 or 🟡 row closes only by the
-fix pass's three and the sealer's duty over such a row leaves (5c). Part B,
-phases 6–9, writes the contract and the five
-definitions anew and takes the baseline. It is a second work item under #923,
-cut from the release branch after this one merges, and it has not started:
-its rows in `plan.md` stand so the design reads in one place, with empty
-Status cells that part B's work item fills.
+(5b), the repair after round 5, where a 🔴 or 🟡 row closes only by the
+fix pass's three and the sealer's duty over such a row leaves (5c), and the
+record designed anew after round 6 (5d-i to 5d-iv). Part A is this work
+item's whole scope since the owner's split of 2026-10-16.
+
+Part B — the baseline, the contract and the five definitions written anew,
+and the proof — is #957, in `release: 0.22.1`, framed on its own after
+0.22.0 is installed. Its frame starts from `plan.md`'s phases 6–9 as they
+stood at 6a40c790, which left this item's table with the split.
 
 ## Where spec and implementation diverged
 
@@ -116,11 +118,12 @@ Status cells that part B's work item fills.
 
 ## Not done
 
-Part B, phases 6–9: the contract and the five definitions written anew, the
-`skills:` lists cut to the contract, the baseline and the per-phase proof. It
-is a second work item, not started. `evals/scripts/replay_targets.py` reads a
+Part B is #957, not this item: the contract and the five definitions
+written anew, the `skills:` lists cut to the contract, the baseline and the
+per-phase proof, framed after 0.22.0 is installed from `plan.md`'s phases
+6–9 as they stood at 6a40c790. `evals/scripts/replay_targets.py` reads a
 round's asked paragraph from a section new records do not carry, which is
-part B's. Q2's cost of a guarantor run waits on this branch's first sealer
+#957's. Q2's cost of a guarantor run waits on this branch's first sealer
 spawn, which is the orchestrator's.
 
 ## Fed back into the spec
