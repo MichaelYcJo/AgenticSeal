@@ -20,27 +20,26 @@ frame, the phase records and the issues do not already hold.
   test.yml --ref <branch>`; a pushed branch with no pull request runs nothing
   on push). Phase 1 green (38859692605). Phase 2 failed one pinned sentence,
   fixed at 1459b214. Phase 3 failed two cases, fixed at d4242aff. Phase 4's
-  run is 38867411967 at d1ff02a5: read its result first, and close or fix
-  `overview.md`'s phase-3 and phase-4 CI rows from it.
+  run 38867411967 at d1ff02a5 is green on all three legs, and the rows it
+  answers are closed. Two stay open: the hygiene step at the pull request
+  (the orchestrator), and in-flight user records (the owner).
 
 ## Next, in order
 
-1. Read run 38867411967. Fix what is red, then close the CI rows of
-   `## Not verified` with the word `closed` and the run.
-2. The review chain on #964 (`skills/code-review/orchestration.md`): warden
+1. The review chain on #964 (`skills/code-review/orchestration.md`): warden
    rounds, default cap 3, counted from the last design change; a regression
    routed to the fix pass earns one more verifying round. Ask the warden to
    look at `chain_check.py`, which grew from 1,597 to 1,850 lines in phase 3
    (constants out, the loader in), for what can go.
-3. The broad gate by script, nothing else running: `bin/broad-gate --base
+2. The broad gate by script, nothing else running: `bin/broad-gate --base
    origin/release/v0.22.1 --record
    seal/specs/1792129100-the-mechanics-leave-before-the-agents-are-rewritten`
    (the item's directory). Then the sealer
    (Opus), which reads `broad-gate.md` and audits; it does not run the gate.
-4. The pull request into `release/v0.22.1`, opened ready after the sealer
+3. The pull request into `release/v0.22.1`, opened ready after the sealer
    (#943). The owner merges 0.22.x pull requests directly, past CI where only
    the 0.21.x rules still fail it. Squash.
-5. #957: rebase onto `release/v0.22.1`, show the owner the frame's phases
+4. #957: rebase onto `release/v0.22.1`, show the owner the frame's phases
    again only if the rebase changed them, fill `plan.md`'s `Approved` line,
    and spawn the smith for its phase 1, the baseline (paid; read its spend
    before phase 2).
