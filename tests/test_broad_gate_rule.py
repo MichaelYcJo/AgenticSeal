@@ -436,7 +436,7 @@ def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
     sealed over by the orchestrator that reads the report. That is why this
     half stayed in `agents/warden.md` when the rule above it left."""
     warden = " ".join(read("agents", "warden.md").split())
-    assert "out of verified scope" in warden, (
+    assert "goes in as a row of `## Not judged` with the caller" in warden, (
         "the reviewer asks a question with no field to ask it in, and a seal "
         "gets taken over an axis nobody decided"
     )
