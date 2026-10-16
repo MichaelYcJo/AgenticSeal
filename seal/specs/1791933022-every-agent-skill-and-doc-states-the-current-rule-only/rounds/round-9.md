@@ -36,8 +36,8 @@ full suite was not run. It is `unverified`, and the sealer answers it.
 ### 1. A fixed commit that changed the defect's unit and did not fix it is given both a regression line and a reopens line, and the two are routed differently
 
 severity: should
-location: `docs/the-review-record.md:261-285`, `agents/warden.md:136-148`, `templates/sdd-round.md:47-59`
-verdict: open
+location: `docs/the-review-record.md:261-285`, `agents/warden.md:136-148`, `templates/sdd-round.md:47-59`, `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/changelog.md:11-14`
+verdict: fixed 229cad2f
 
 Every `fixed <commit>` touches a path its finding names, because the check
 refuses one that does not (`docs/the-review-record.md:46-55`). So a fix
@@ -106,13 +106,13 @@ pass.
                is new work and takes none. The grounds then owe
 ```
 
-answer:
+answer: Fixed at 229cad2f, from the round's pastes with one change of words: the reopen side reads "a `fixed` commit that left the defect standing, in the unit that commit changed or in another" rather than "did not fix it". The trigger sentence in `docs/the-review-record.md` §*The run*, `agents/warden.md`'s new-units paragraph and `templates/sdd-round.md`'s `regression:` comment give the line only where the fix pass's own commits introduced the defect, and each keeps "a fix pass's own commits added or changed". The other carriers of the split (the document's relations paragraph, `skills/code-review/SKILL.md`, the warden's inheritance paragraph, the orchestration's `Job` row, `chain_check.py#ONE_RELATION`) already keyed it on who made the defect and are unchanged. `tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made` now holds the three carriers to "those commits introduced" and "left the defect standing". It was red on the old texts (exit 1, 1 failed), and `mutation-check` removing either phrase from the warden or the template turned it red. The work item's `changelog.md` stated the old trigger, so it is fixed in the same commit and its coordinate is appended to `location:`. `spec.md` S9's "changed another unit" is named for the framer in `overview.md`'s row *A `fixed` commit that changed the defect's unit and left the defect*.
 
 ### 2. The extension rule stops the run at any round carrying a regression, while phase 5d-v sends that round to a fix pass or to a redesign whose run goes on
 
 severity: should
-location: `docs/the-review-record.md:246-274`, `templates/sdd-round.md:23-25`, `skills/code-review/orchestration.md:119-123`, `agents/framer.md:310-311`, `README.md:90-92`, `README.ko.md:78-81`
-verdict: open
+location: `docs/the-review-record.md:246-274`, `templates/sdd-round.md:23-25`, `skills/code-review/orchestration.md:119-123`, `agents/framer.md:310-311`, `README.md:90-92`, `README.ko.md:78-81`, `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/changelog.md:25-33`
+verdict: fixed 480bf163
 
 `docs/the-review-record.md:246-251` lets the orchestrator spawn a finding
 round past round 3 only while the latest round found fewer findings than
@@ -181,13 +181,13 @@ a reframe starts the count again.
 프레임을 다시 그리면 횟수를 처음부터 다시 셉니다.**
 ```
 
-answer:
+answer: Fixed at 480bf163, by the owner's decision of 2026-10-16 rather than the round's paste. The cap counts finding rounds from the last design change, a reframe or a new phase the owner approved, so the first review of new work starts the count again. A regression routed to a fix pass is followed by one verifying round, whatever the count, and that round is not an extension. The loop guard stands. Rewritten in place: `docs/the-review-record.md` §*The run*'s cap paragraph, its extension line and its `Enforced by:` line; the template's extension-line comment, which now reads `Extended past round <K>, counting from round <S>: …`; `skills/code-review/orchestration.md`'s cap paragraph and the framer route's last row; the cap sentences of `README.md` and `README.ko.md`; and `agents/framer.md`'s reframe paragraph, where round `<N>` is now the record whose regression was routed to the framer rather than "the record that stopped the run". The work item's `changelog.md` stated the old cap, so it is fixed in the same commit and its coordinate is appended to `location:`. The new pin `tests/test_the_rules_have_one_owner.py::test_the_cap_counts_from_the_last_design_change` was red on the old texts (exit 1, 1 failed), and `mutation-check` turned it red on three single-carrier breaks (the framer, the document, the Korean README). `phases/phase-5d.md` §*Round 9 fix pass* records the decision. `overview.md`'s row *Where the round cap counts from* names the `spec.md` sentences for the framer: the cap row of §*What leaves, what stays, and the evidence for each*, S26, and §*Data & interfaces*' extension line; S9 and S27 state no cap. Under the ruling round 9 opens 5d-v's count, so its extension line was not needed; it stays, since the fix pass edits only these lines.
 
 ### 3. The run-end sentence states one of the check's two conditions, so the orchestration can end a run the check then refuses
 
 severity: should
 location: `skills/code-review/orchestration.md:123-127`
-verdict: open
+verdict: fixed ae548748
 
 `skills/code-review/orchestration.md:123-127` says the run ends only on a
 round whose record holds no `open`, `fixed` or `rejected` finding, "since
@@ -216,13 +216,13 @@ findings took the filing ladder — since the check refuses a ready pull
 request whose last record fails either.
 ```
 
-answer:
+answer: Fixed at ae548748 with the round's paste and one sentence after it: a fix committed after the closing round, one the ladder's first rung sends to the diff among them, is followed by one more verifying round, which is the reachable case this finding names. T44's phrase stays contiguous. `tests/test_the_rules_have_one_owner.py::test_a_close_that_does_not_hold_reopens_it` now also holds the section to "and whose `target:` commit is HEAD, or is followed only by the work item's own records". It was red on the old sentence (exit 1, 1 failed), and `mutation-check` removing the clause turned it red.
 
 ### 4. A reopens or regression line with nothing after it is read as no line, so it escapes the empty-value refusal and the both-lines refusal
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:111-112`, `skills/code-review/scripts/chain_check.py:813`, `tests/test_chain_check.py`
-verdict: open
+verdict: fixed cacbf43c
 
 `spec.md` S24 says that a label with nothing after it, its trailing space
 trimmed, is the exact form, and that its value's reader judges the empty
@@ -296,7 +296,7 @@ REOPENS_LABEL = re.compile(r"^" + re.escape(REOPENS) + r"(?: (.*))?$")
         assert any("`reopens:` line" in why for _r, _l, why in errors), errors
 ```
 
-answer:
+answer: Fixed at cacbf43c with the round's fix and case. `REGRESSION_LABEL` and `REOPENS_LABEL` take the value as optional, `(?: (.*))?$`, as `CONFIRMS_LABEL` and `TARGET_LABEL` already did, and `finding_of`'s `one()` reads a missing value as the empty string. So `reference_of` and `reopened_of` refuse it at its line, and the both-lines refusal sees the line. `verdict:` and `location:` keep their patterns: a bare one of either is already refused, as a finding with no such line. The case `TestFindings::test_a_reference_label_with_nothing_after_it_is_refused` adds one assertion to the round's, that the refusal names the label. It was red before the fix (exit 1, the bare `reopens:` line read into a finding) and green after (exit 0, 50 passed in `tests/test_chain_check.py`). `mutation-check` turned it red on each of three breaks: either pattern put back to `r" (.*)$"`, and the empty value read as `round-1#1`.
 
 ## Confirmations
 
