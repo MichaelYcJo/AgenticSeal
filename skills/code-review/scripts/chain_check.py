@@ -134,6 +134,18 @@ READ_ROWS = {
     CONFIRMATIONS_HEADING: (),
     CONFIRMS_ROW: ("round", "finding"),
 }
+# The counts the readers below can keep for a row they read, where that is
+# fewer than the table's words allow: a row read for one line keeps its last,
+# and `## Confirmations` may be absent, so nothing counts a line it would hold.
+HONOURED = {
+    TARGET_ROW: (ONE,),
+    LOCATION_ROW: (ONE,),
+    VERDICT_ROW: (ONE,),
+    REGRESSION_ROW: (ONE, AT_MOST_ONE),
+    REOPENS_ROW: (ONE, AT_MOST_ONE),
+    CONFIRMATIONS_HEADING: (AT_MOST_ONE,),
+    CONFIRMS_ROW: (AT_MOST_ONE, ANY),
+}
 # Where a row may stand: the two sections in the record, the finding heading
 # in `## Findings`, and a label in one of three places, or nowhere for an
 # old spelling, which every line meaning it is refused as.
@@ -260,8 +272,9 @@ def grammar(path, reader):
     outside every finding, in a finding or in `## Confirmations`, once, at
     most once or any number of times; and an old spelling nowhere, never,
     with `—` for its shape and a `Refused as` naming the one label it means.
-    Every row `READ_ROWS` names stands, with the named parts it reads, and
-    no heading row stands that this file reads nothing from. Anything else
+    Every row `READ_ROWS` names stands, with the named parts it reads and a
+    `How many` its reader can keep (`HONOURED`), and no heading row stands
+    that this file reads nothing from. Anything else
     is GrammarError naming `path`, and the line where there is one."""
 
     def refuse(why, line=None):
@@ -326,6 +339,13 @@ def grammar(path, reader):
                 f"the `{key}` row's shape names no "
                 + ", ".join(f"`(?P<{p}>…)`" for p in lacking)
                 + ", which the check reads"
+            )
+        if row.many not in HONOURED.get(key, (row.many,)):
+            raise refuse(
+                f"the `{key}` row's `How many` is `{row.many}`, and the check can "
+                "honour only "
+                + " or ".join(f"`{many}`" for many in HONOURED[key])
+                + " for it"
             )
     return rows
 
@@ -1049,11 +1069,6 @@ def finding_of(lines, first, stop, heading, rel):
                 + ONE_RELATION,
             )
         )
-    for key in (VERDICT_ROW, LOCATION_ROW):
-        if key not in read and not errors:
-            errors.append(
-                (rel, first + 1, f"{heading} {DASH} no `{key}` line the check can read")
-            )
     if errors:
         return None, errors
 

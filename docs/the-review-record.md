@@ -61,11 +61,15 @@ section's heading and the table's header row. A document it cannot open, a
 section or a header row it cannot find, and a row it cannot read stop it at
 exit 2 naming this file, never a pass. A row it cannot read is one whose
 shape does not compile, whose `Where` or `How many` is a word the table does
-not use, a row the check reads a meaning from that is missing, or one whose
+not use, a row the check reads a meaning from that is missing, one whose
 shape lacks the named part, such as `(?P<commit>…)`, the check reads out of
-it. So a rewrite of `docs/` that moves this heading or the table, as #941's
-will, moves the loader's path in the same commit, or every check that reads
-a record stops.
+it, or one whose `How many` the check cannot keep. The check reads one line
+of each of `target:`, `location:` and `verdict:`, so each is `one`, and of
+each of `regression:` and `reopens:`, so each is `one` or `at most one`. It
+counts nothing in a `## Confirmations` that is absent, so that row is
+`at most one` and `confirms:` is not `one`. So a rewrite of `docs/` that
+moves this heading or the table, as #941's will, moves the loader's path in
+the same commit, or every check that reads a record stops.
 Enforced by: tests/test_chain_check.py::TestGrammar::test_a_document_the_check_cannot_read_is_exit_2_naming_it
 
 **A finding's `verdict:` decides it, and severity is for people.** The

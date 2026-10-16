@@ -517,18 +517,6 @@ class TestGrammar:
         )
         monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(wider), reader))
         assert chain.record_findings(reader, could, "r.md")[1] == []
-        # A table that let a finding go without a verdict would leave the check
-        # nothing to decide it on, so such a finding is still refused.
-        loose = doc_with(
-            tmp_path,
-            "| a finding | one | a verdict is",
-            "| a finding | at most one | a verdict is",
-        )
-        monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(loose), reader))
-        bare = record("abc1234", [finding(1, "x").replace("verdict: x\n", "")])
-        found, errors = chain.record_findings(reader, bare, "r.md")
-        assert found == [] and len(errors) == 1, errors
-        assert "no `verdict:` line the check can read" in errors[0][2], errors
 
     @pytest.mark.parametrize(
         "old, new, said",
@@ -570,6 +558,48 @@ class TestGrammar:
                 + "| `## Probes` | `## Probes` | the record | one | x |\n",
                 "reads nothing from",
             ),
+            (
+                "| a finding | one | a verdict is",
+                "| a finding | any | a verdict is",
+                "`verdict:` row's `How many` is `any`, and the check can honour "
+                "only `one`",
+            ),
+            (
+                "| a finding | one | a verdict is",
+                "| a finding | at most one | a verdict is",
+                "`How many` is `at most one`, and the check can honour only `one`",
+            ),
+            (
+                "| a finding | one | a location is",
+                "| a finding | at most one | a location is",
+                "`location:` row's `How many` is `at most one`",
+            ),
+            (
+                "| outside every finding | one | it names",
+                "| outside every finding | any | it names",
+                "`target:` row's `How many` is `any`",
+            ),
+            (
+                "| a finding | at most one | a reference is",
+                "| a finding | any | a reference is",
+                "`regression:` row's `How many` is `any`, and the check can "
+                "honour only `one` or `at most one`",
+            ),
+            (
+                "| a finding | at most one | a reopened close",
+                "| a finding | any | a reopened close",
+                "`reopens:` row's `How many` is `any`",
+            ),
+            (
+                "| the record | at most one | each entry is",
+                "| the record | one | each entry is",
+                "`## Confirmations` row's `How many` is `one`",
+            ),
+            (
+                "| `## Confirmations` | any | it is",
+                "| `## Confirmations` | one | it is",
+                "`confirms:` row's `How many` is `one`",
+            ),
         ],
     )
     def test_a_document_the_check_cannot_read_is_exit_2_naming_it(
@@ -581,15 +611,20 @@ class TestGrammar:
         does not compile, a `Where` or `How many` the table does not use, a
         row the check reads missing or naming no part it reads, an old
         spelling naming no label, a label whose shape does not open with
-        it, a row twice, a heading row the check reads nothing from — is
-        refused naming the document. Run as a command beside such a
-        document, the check exits 2 with that sentence and no traceback, and
-        beside no document at all the same; imported, it raises the error
-        for the importer to decide.
+        it, a row twice, a heading row the check reads nothing from, and a
+        `How many` the check's reader of that row cannot honour — is refused
+        naming the document. Run as a command beside such a document, the
+        check exits 2 with that sentence and no traceback, and beside no
+        document at all the same; imported, it raises the error for the
+        importer to decide.
 
         Protects: a `docs/` rewrite (#941) moving the table out from under
-        the check while it reads every record as holding nothing. No other
-        case hands the loader a document it cannot read."""
+        the check while it reads every record as holding nothing, and one
+        loosening a count the reader cannot keep: `verdict:` at `any`, read
+        as its last line, let a finding holding `open` then `deferred #5`
+        pass as deferred, and `## Confirmations` at `one` passed a record
+        with none. No other case hands the loader a document it cannot
+        read."""
         path = doc_with(tmp_path, old, new)
         with pytest.raises(chain.GrammarError) as refused:
             chain.grammar(str(path), reader)
