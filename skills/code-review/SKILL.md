@@ -266,7 +266,7 @@ statement worth making, because silence and "none" read alike. Three of one
 round's four blocking findings arrived as sketches that read as paste-ready
 and were not.
 
-### Verdicts that close too early
+### A finding closed too early
 
 Three shapes of closing recur, and each is written down here because each was
 measured costing rounds.
