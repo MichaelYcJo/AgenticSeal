@@ -1,12 +1,12 @@
 ### Changed
 
 - **Every `bin/` command but `bin/test` refuses a Python older than 3.12 the
-  same way, before it reads anything (#929).** Six commands — `round-record`,
-  `settle`, `fold-check`, `broad-gate`, `payload-meter` and `seal-stamp` —
-  each carried its own copy of that refusal, and eight others ran on
-  whatever `python3` they found. All fourteen wrappers and their `.cmd` twins
+  same way, before it reads anything (#929).** Five commands — `settle`,
+  `fold-check`, `broad-gate`, `payload-meter` and `seal-stamp` — each
+  carried its own copy of that refusal, and eight others ran on whatever
+  `python3` they found. All thirteen wrappers and their `.cmd` twins
   now run their script through one launcher, `hooks/launch.py`, which holds
-  the floor once. Below 3.12 it prints the sentence the six printed: the
+  the floor once. Below 3.12 it prints the sentence the five printed: the
   floor, the version and interpreter it found, *Nothing was read and nothing
   was written*, and the hint that macOS ships python 3.9 as `python3`. Then
   it exits 2 before the script is read. At or above the floor the script
