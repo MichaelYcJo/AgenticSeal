@@ -23,11 +23,14 @@
   `Contract changes`, `New units`, `Fix of a fix`,
   `Loses a record or crashes`, `Ran by` and `PR`. The rules around the
   rounds are stated once, in `docs/the-review-record.md`: a run ends with a
-  verifying round, it has three finding rounds by default and extends one
-  at a time while the findings shrink, a finding with a `regression:` line
-  is routed by one sentence of its grounds comparing the fix with the
-  frame, to the framer where the fix built what the frame says and to an
-  ordinary fix pass where it departed from it or was written wrong, a
+  verifying round, it has three finding rounds by default, counted from
+  the last design change (a reframe, or a new phase the owner approved),
+  and extends one at a time while the findings shrink, a finding with a
+  `regression:` line is routed by one sentence of its grounds comparing
+  the fix with the frame, to the framer where the fix built what the frame
+  says and to an ordinary fix pass where it departed from it or was written
+  wrong, a fix pass for a regression is followed by one verifying round
+  that is not an extension, a
   finding with a `reopens:` line and a defect in a unit a build phase made
   are ordinary findings that get their fix pass, and a leftover finding
   takes the first rung of the filing ladder that fits.

@@ -21,8 +21,12 @@ that read the fixes between two commits: `target: <sha>, fixes <a>..<b>`.
 One line, outside every section below.
 
 A round past the cap carries one line here, written by the warden from
-the reason the orchestrator's spawn prompt gives:
-Extended past round <K>: round <K> found <n>, round <K-1> found <m>, and none is a regression. -->
+the reason the orchestrator's spawn prompt gives. The cap counts finding
+rounds from the last design change, a reframe or a new phase the owner
+approved, and <S> is the first round after it:
+Extended past round <K>, counting from round <S>: round <K> found <n>, round <K-1> found <m>, and none is a regression.
+A verifying round after a regression's fix pass is not an extension and
+carries no such line. -->
 
 ## Findings
 

@@ -341,3 +341,40 @@ def test_a_regression_is_routed_by_comparing_the_fix_with_the_frame():
                 f"{'/'.join(carrier)} still routes on the `regression:` line "
                 f"alone: {gone!r}"
             )
+
+
+def test_the_cap_counts_from_the_last_design_change():
+    """The owner's decision of 2026-10-16, on round 9 of work item
+    1791933022, finding 2: the round cap counts from the last design change,
+    a reframe or a new phase the owner approved, so the first review of new
+    work starts a fresh count; a regression routed to a fix pass is followed
+    by one verifying round that is not an extension; and the loop guard
+    stands. The extension rule stopped extending at any round carrying a
+    regression, which left both routes a regression now takes with no round
+    to go on to past round 3."""
+    run = the_run()
+    for said in (
+        "counted from the last design change",
+        "a reframe, or a new phase the owner approved in `plan.md`",
+        "starts the count again",
+        "followed by one verifying round, whatever the count",
+        "is not an extension",
+    ):
+        assert said in run, f"§*The run* no longer says {said!r}"
+    assert (
+        "A second regression on the same unit after a fix-pass route goes to the "
+        "framer whatever the comparison says." in run
+    ), "§*The run* lost the loop guard"
+    for carrier in (ORCH, ("README.md",)):
+        assert "counted from the last design change" in flat(*carrier), (
+            f"{'/'.join(carrier)} caps rounds without saying where the count starts"
+        )
+    assert "마지막 설계 변경" in flat("README.ko.md"), (
+        "README.ko.md caps rounds without saying where the count starts"
+    )
+    assert "counting from round <S>" in flat(*ROUND_TEMPLATE), (
+        "the template's extension line does not say where the count started"
+    )
+    assert "the record that stopped the run" not in flat(*FRAMER), (
+        "agents/framer.md still reads a regression's round as the end of the run"
+    )

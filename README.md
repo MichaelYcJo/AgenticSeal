@@ -87,10 +87,12 @@ the author's account rather than evidence, and says in its report that it set
 it aside. For a review with no path in at all, open a fresh session and call
 `@agent-specseal:warden` there: the round history is files, so it is inherited
 either way.
-The review run is bounded: three finding rounds by default, and one more at
+The review run is bounded: three finding rounds by default, counted from the
+last design change (a reframe, or a new phase you approved), and one more at
 a time only while each round finds fewer findings than the one before and
 none of them is a regression, a defect a fix pass's own commit introduced.
-At the cap every
+A regression sent to a fix pass gets one verifying round for that fix, and
+it is not an extension. At the cap every
 finding still open is handed on and reads `deferred <home>`, whether or not
 everything was resolved. What is left is handed over rather than
 carried — an unanswered finding to `seal/follow-up.md`, a decision only

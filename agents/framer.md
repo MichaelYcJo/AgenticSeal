@@ -308,8 +308,9 @@ is what the records show not holding. You rewrite `plan.md` — new phase
 rows for the redesign, every closed phase keeping its commit — and
 `spec.md` where the scope moves, and you add one
 line under your mark, `Reframed <date> by <who>, after round <N>.`, where
-`<N>` is the record that stopped the run. `docs/the-review-record.md` §*The
-run* owns that rule.
+`<N>` is the record whose regression was routed to you. The run goes on
+with your redesign's build, and its first finding round starts the cap's
+count again. `docs/the-review-record.md` §*The run* owns that rule.
 
 ## When you run
 

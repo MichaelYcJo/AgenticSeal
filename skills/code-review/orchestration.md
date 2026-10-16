@@ -105,10 +105,12 @@ A verifying round that opens something IS a finding round and consumes the cap
 like any other, and one that opens nothing is by definition the last one,
 because the run ends at it.
 
-**A run has three finding rounds by default, extends one round at a time while
-the findings shrink, and at the cap every open finding takes the filing
-ladder** — `docs/the-review-record.md` §*The run* states the cap, the
-extension line the spawn prompt gives the warden, and the ladder.
+**A run has three finding rounds by default, counted from the last design
+change, extends one round at a time while the findings shrink, and at the
+cap every open finding takes the filing ladder** — `docs/the-review-record.md`
+§*The run* states the cap, where its count starts again, the verifying round
+a regression's fix pass is owed whatever the count, the extension line the
+spawn prompt gives the warden, and the ladder.
 
 The condition is not *this round found nothing* — that would be unbounded, and
 it was considered and rejected. A verifying round that raises a `should`
@@ -150,7 +152,7 @@ The framer's route:
 | The record | every open finding closes `deferred the frame` |
 | The pull request | labelled `chain: reframed` |
 | The framer | spawned again with the run's round records as its input — they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `spec.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Under `Automation \| yes` the spawn asks nobody |
-| The redesign | approved by a second `Approved` line in `plan.md` when `smith` is spawned for it, built, and reviewed |
+| The redesign | approved by a second `Approved` line in `plan.md` when `smith` is spawned for it, built, and reviewed, its first finding round starting the cap's count again |
 
 ## Orchestrator: the pull request opens before round 1, and a phase is re-run
 

@@ -243,20 +243,27 @@ toward the cap: the cap stops a loop that is not converging, and such a
 round is the loop having converged.
 Enforced by: tests/test_chain_check.py::TestFollows, tests/test_chain_check.py::TestMain::test_the_last_records_fixed_or_rejected_finding_owes_a_verifying_round, tests/test_the_rules_have_one_owner.py::test_a_close_that_does_not_hold_reopens_it
 
-**A run has three finding rounds by default, and extends one round at a time
-while the findings shrink.** Past round 3 the orchestrator spawns one more
-finding round only while the latest round found fewer findings than the one
-before it and none of them is a regression. Each extension is one line in
-that round's record, written by the warden from the reason the spawn prompt
-gives:
+**A run has three finding rounds by default, counted from the last design
+change, and extends one round at a time while the findings shrink.** A
+design change is a reframe, or a new phase the owner approved in `plan.md`,
+so the first finding round that reviews new work starts the count again at
+one, whatever the record's number. Past the third round of the count the
+orchestrator spawns one more finding round only while the latest round
+found fewer findings than the one before it and none of them is a
+regression. A regression routed to a fix pass is followed by one verifying
+round, whatever the count, which reads that fix and is not an extension. A
+second regression it finds on the same unit goes to the framer, as the next
+paragraph says, and anything else it leaves open past the cap takes the
+ladder. Each extension is one line in that round's record, written by the
+warden from the reason the spawn prompt gives:
 
 ```
-Extended past round 3: round 3 found 2, round 2 found 4, and none is a regression.
+Extended past round 3, counting from round 1: round 3 found 2, round 2 found 4, and none is a regression.
 ```
 
 At the cap every finding still open takes the filing ladder below and reads
 `deferred <home>`. No person is asked mid-run.
-Enforced by: nothing — the orchestrator applies it, and the sealer reads the count and the extension lines
+Enforced by: tests/test_the_rules_have_one_owner.py::test_the_cap_counts_from_the_last_design_change
 
 **A regression is routed by comparing the fix with the frame.** A
 regression is a defect a fix pass's own commit introduced. Where a finding

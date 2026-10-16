@@ -789,3 +789,41 @@ exit 0, no record's shape refused, three owed lines: round 8 behind HEAD
 (a6695b61 touches `chain_check.py`, so a verifying round is owed), and no
 `broad-gate.md` or `guarantee.md`. The full suite was not run:
 `unverified`, the sealer's.
+
+### Round 9 fix pass
+
+**The owner's decision, 2026-10-16.** Round 9's finding 2 showed that the
+extension rule, which stops extending at any round carrying a regression,
+left both routes 5d-v gave a regression with no round to go on to past
+round 3. A fix pass writes `fixed <commit>`, which the check refuses in a
+last record, and a framer's redesign needs rounds of its own. Round 9 was
+itself the measured case: it followed round 8, whose finding 2 carries
+`regression: round-7#3`. The owner ruled three things.
+
+- The round cap counts from the last design change, a reframe or a new
+  phase the owner approved in `plan.md`. The first finding round that
+  reviews new work starts the count again at one, whatever the record's
+  number.
+- A regression routed to a fix pass is followed by one verifying round,
+  whatever the count, and that round is not an extension.
+- The loop guard stands: a second regression on the same unit after a
+  fix-pass route goes to the framer.
+
+The commit that adds this section states the ruling in place:
+`docs/the-review-record.md` §*The run*'s cap paragraph, its extension line
+and its `Enforced by:` line; the template's extension-line comment;
+`skills/code-review/orchestration.md`'s cap paragraph and the framer
+route's last row; the cap sentence of both READMEs; `agents/framer.md`'s
+reframe paragraph, which called round `<N>` "the record that stopped the
+run"; and this item's `changelog.md`.
+`tests/test_the_rules_have_one_owner.py::test_the_cap_counts_from_the_last_design_change`
+holds them to it. It failed against the old texts before the rewrite
+(exit 1, 1 failed, at §*The run*'s first missing phrase). Under the ruling,
+round 9 is the first finding round of 5d-v's count, so its record needed no
+extension line; the line it carries stays, since the fix pass writes only
+`verdict:`, `answer:` and an appended coordinate. `spec.md` states the old
+cap in the places `overview.md`'s row *Where the round cap counts from*
+names, for the framer.
+
+Findings 1, 3 and 4 of round 9 took the rule the tree already stood on and
+are answered in `rounds/round-9.md`, each with its commit.
