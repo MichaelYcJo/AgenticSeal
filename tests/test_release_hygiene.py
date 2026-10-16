@@ -1165,173 +1165,6 @@ def test_no_version_heads_two_sections_of_this_changelog():
     )
 
 
-def duplicated_markers(text, every=False):
-    """`[(work item id, [line numbers])]` for every `<!-- specs/<id> -->`
-    standing on a line of its own more than once.
-
-    #553: twenty fragments began with their own marker line, the fold wrote
-    its marker in front and copied the fragment whole, and each of the
-    twenty stood twice in `seal/ledger.md` — `--check` counted 118 work
-    items over 98 folded sections. The fold drops the leading line now and
-    `--check` refuses a doubled marker; this is the half that keeps it
-    closed on every pull request.
-    """
-    lines = {}
-    for number, line in enumerate(text.split("\n"), 1):
-        found = re.match(r"^<!-- specs/(\S+) -->$", line)
-        if found:
-            lines.setdefault(found.group(1), []).append(number)
-    if every:
-        return list(lines.items())
-    return [(work_item_id, at) for work_item_id, at in lines.items() if len(at) > 1]
-
-
-def test_a_marker_appears_once_in_a_ledger():
-    """The reader, against a file that has the defect and one that does not."""
-    doubled = (
-        "## 0.2.0 — d\n\n<!-- specs/1700000000-a -->\n### 1700000000-a\n\n"
-        "<!-- specs/1700000000-a -->\n\n| a | b |\n"
-    )
-    assert duplicated_markers(doubled) == [("1700000000-a", [3, 6])]
-    assert (
-        duplicated_markers(
-            doubled.replace("\n<!-- specs/1700000000-a -->\n\n| a", "\n| a")
-        )
-        == []
-    )
-
-
-def ledger_files():
-    """`seal/ledger.md` and every `seal/releases/*.md`, as repository paths."""
-    out = [os.path.join("seal", "ledger.md")]
-    releases = os.path.join(ROOT, "seal", "releases")
-    if os.path.isdir(releases):
-        out += [
-            os.path.join("seal", "releases", n) for n in sorted(os.listdir(releases))
-        ]
-    return out
-
-
-def test_no_marker_stands_twice_in_this_ledger():
-    """This repository's own ledger, and every release file once the split
-    has run, as one corpus: a work item marked in two files is the same
-    over-count as one marked twice in one. Seen red against `seal/ledger.md`
-    as it stood at `f3ec093a`: twenty work items, each marked twice."""
-    where = {}
-    for rel in ledger_files():
-        for work_item_id, at in duplicated_markers(
-            read_text(*rel.split(os.sep)), every=True
-        ):
-            where.setdefault(work_item_id, []).extend(f"{rel}:{n}" for n in at)
-    found = {i: at for i, at in where.items() if len(at) > 1}
-    assert not found, "\n".join(
-        f"{work_item_id} is marked more than once, at {', '.join(at)}. One work "
-        "item, one marker: delete the later line and the blank under it"
-        for work_item_id, at in found.items()
-    )
-
-
-def test_no_version_heads_two_sections_of_this_ledger():
-    """The gathered ledger, the same way. #540: `fold_ledger.py` wrote a
-    second `## 0.9.3` heading when a fragment landed thirty-one minutes
-    after the release-preparation commit (`bee7ae99` at 02:04:21, then
-    `4ac9bf35` at 02:35:35, 2026-09-09 +0900), and the file carried both
-    through seventeen ledger sections (`0.9.4` to `0.15.0`, counted after
-    the second heading; eighteen tags after `v0.9.3`) while the ticket said
-    nobody had run the fold twice. Seen red against that tree: `0.9.3
-    twice, at lines [1673, 1764]`."""
-    found = duplicated_version_headings(read_text("seal", "ledger.md"))
-    assert not found, "\n".join(
-        f"seal/ledger.md heads {version} twice, at lines {at}. One release, "
-        "one section: move the later heading's work items under the first "
-        "and delete it"
-        for version, at in found
-    )
-    # #547: once the split has run, each release is its own file, and the
-    # file heads exactly the version its name says, once. Green on both
-    # shapes: before the split there is no `seal/releases/` to read.
-    for rel in ledger_files()[1:]:
-        name = os.path.basename(rel)[: -len(".md")]
-        headed = re.findall(
-            r"^## (\d+\.\d+\.\d+)\b", read_text(*rel.split(os.sep)), re.M
-        )
-        assert headed == [name], (
-            f"{rel} heads {headed or 'no version'}; a release file heads its own "
-            "version once"
-        )
-
-
-def overflowing_rows(root):
-    """Every row `evidence_check.overflow_rows` names in the ledgers the
-    checker itself reads under ROOT, as `<ledger> line <n>: <detail>`.
-
-    The rule is the shipped checker's since #585, so this repository holds
-    its own ledgers to the reading every repository that installs the plugin
-    gets, rather than to a second implementation of it. The listing is the
-    checker's too, `resolve_patterns(default_patterns(root))`, so a ledger
-    location the checker gains is read here without an edit."""
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location(
-        "specseal_evidence_check_for_hygiene",
-        os.path.join(ROOT, "skills", "evidence-check", "scripts", "evidence_check.py"),
-    )
-    ec = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ec)
-    found = []
-    for path in ec.resolve_patterns(ec.default_patterns(root)):
-        with open(path, encoding="utf-8") as f:
-            text = f.read()
-        for _, coord, detail in ec.overflow_rows(text):
-            found.append(f"{ec.display_name(path, root)} {coord}: {detail}")
-    return found
-
-
-def test_a_planted_overflowing_row_is_named_in_every_ledger_the_checker_reads(
-    tmp_path,
-):
-    """A12 of #585. The corpus case below cannot be shown red by the tree,
-    because no row in it overflows, so the walk is a helper and this case
-    plants one split row in each place the checker reads. Seen red with the
-    helper's call to the arm replaced by `[]`."""
-    split = "| a | `x.py#f@00000000` | ran `cat f | grep -c x` | 2026-01-01 | n |\n"
-    clean = split.replace("f | grep", "f \\| grep")
-    for rel in (
-        ("seal", "ledger.md"),
-        ("seal", "ledger", "f.md"),
-        ("seal", "releases", "0.0.1.md"),
-        ("docs", "area", "_evidence.md"),
-    ):
-        path = tmp_path.joinpath(*rel)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(clean + split, encoding="utf-8")
-    found = [f.replace(os.sep, "/") for f in overflowing_rows(str(tmp_path))]
-    assert [f.split(":")[0] for f in found] == [
-        "docs/area/_evidence.md line 2",
-        "seal/ledger.md line 2",
-        "seal/ledger/f.md line 2",
-        "seal/releases/0.0.1.md line 2",
-    ], found
-
-
-def test_no_ledger_row_splits_into_more_cells_than_its_header():
-    """#562, over this repository's own ledger, every release file and every
-    fragment. Seen red against the ledger at `31937b9f`: 22 rows, two of them
-    written by #547's notes and twenty older.
-
-    A row under no header is counted against the five columns of a ledger
-    row (#501): every fragment row, and the released rows a fold copied in
-    without one. Since #585 the reading is the shipped checker's
-    (`overflowing_rows` above), which names only a row with MORE cells than
-    its header, reads fences and cells by the shared rule, and counts an
-    indented row. Measured 2026-09-29 after that change: `bin/evidence-check .`
-    over 36 ledger files, `0 overflow` on every one."""
-    found = overflowing_rows(ROOT)
-    assert not found, (
-        "a `|` inside a cell splits the row; write it as `\\|`:\n" + "\n".join(found)
-    )
-
-
 def test_the_newest_changelog_entry_is_the_version_being_shipped():
     """`test_plugin_version_is_in_changelog` accepts the version appearing
     anywhere, and an older entry satisfies that forever. What has to hold is
@@ -1954,37 +1787,58 @@ def test_the_chain_check_reuses_the_reader_rather_than_writing_a_second():
     assert "def split_row" not in check, "a second row reader"
 
 
+# The places the evidence ledger lived under the `seal/` root until #944
+# took it out of the tree. Git keeps the files at `v0.21.1`. The guard stays
+# while a branch cut before #944 can still add `seal/ledger/<id>.md`: a merge
+# brings a new file back without a conflict, and this is what names it.
+LEDGER_PATHS = ("ledger.md", "ledger", "releases")
+
+
+def ledger_leftovers(seal):
+    """Each ledger path under the `seal/` root SEAL that exists, as
+    `seal/<name>`, in `LEDGER_PATHS` order."""
+    return [
+        f"seal/{name}"
+        for name in LEDGER_PATHS
+        if os.path.exists(os.path.join(seal, name))
+    ]
+
+
+def test_a_planted_ledger_file_is_named(tmp_path):
+    """S7 of #944, the reader against each place a ledger file could come
+    back to, so the tree case below cannot pass by reading nothing."""
+    assert ledger_leftovers(str(tmp_path)) == []
+    for rel, named in (
+        (("ledger", "x.md"), "seal/ledger"),
+        (("ledger.md",), "seal/ledger.md"),
+        (("releases", "x.md"), "seal/releases"),
+    ):
+        seal = tmp_path / named.replace("/", "_")
+        path = seal.joinpath(*rel)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("| a | b |\n", encoding="utf-8")
+        assert ledger_leftovers(str(seal)) == [named], rel
+
+
 def test_this_repository_has_one_root_laid_out_by_lifetime():
     """S1 of the root move to `seal/`. It holds the whole tree — the rows
     that outlive a work item at its top, every work item whole under
     `specs/` — and neither of the two old roots exists. A `.specseal/` here
     would opt nothing in and be read by nothing but the migration hook, which
-    is the silence every gate would give this repository."""
+    is the silence every gate would give this repository.
+
+    S7 of #944: the evidence ledger does not come back. A rule is held by the
+    test its `Enforced by:` line names, and nothing reads a ledger file."""
     seal = os.path.join(ROOT, "seal")
-    for rel in ("README.md", "ledger.md", "follow-up.md"):
+    for rel in ("README.md", "follow-up.md"):
         assert os.path.isfile(os.path.join(seal, rel)), rel
-    # `seal/ledger/` holds fragments between releases and the release folds
-    # them away; git keeps no empty directory, so right after a release the
-    # directory is absent and that is the laid-out state, not a missing one.
-    ledger_dir = os.path.join(seal, "ledger")
-    if os.path.isdir(ledger_dir):
-        stray = [n for n in os.listdir(ledger_dir) if not n.endswith(".md")]
-        assert not stray, (
-            f"seal/ledger/ holds something that is not a fragment: {stray}"
-        )
-    # `seal/releases/` holds one ledger file per release, written by the
-    # fold (#547); it is absent until the first release that runs the split.
-    releases = os.path.join(seal, "releases")
-    if os.path.isdir(releases):
-        stray = [
-            n for n in os.listdir(releases) if not re.fullmatch(r"\d+\.\d+\.\d+\.md", n)
-        ]
-        assert not stray, (
-            f"seal/releases/ holds something that is not <X.Y.Z>.md: {stray}"
-        )
-    # `seal/specs/` is absent after a complete fold for the same reason
-    # `seal/ledger/` is absent after a release, and that is the laid-out
-    # state. `assert items` stood here — some work item carries a routing.md
+    leftovers = ledger_leftovers(seal)
+    assert not leftovers, (
+        f"the ledger is back at {', '.join(leftovers)}. It left the tree in "
+        "#944 and nothing reads it; a rule names the test that holds it instead"
+    )
+    # `seal/specs/` is absent after a complete fold, because git keeps no
+    # empty directory, and that is the laid-out state. `assert items` stood here — some work item carries a routing.md
     # — and it was a floor of one (#517); what it was about holds at any
     # size and is stronger: every entry under `seal/specs/` is a work item,
     # whole, which starts with the declaration written before its first edit.
@@ -2007,9 +1861,8 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
 def test_the_timer_sweep_survives_a_tracked_file_the_tree_deleted(tmp_path):
     """#432's class in the module the release checklist runs at step 3.
 
-    This sweep is the one a release meets first: `fold_ledger.py` removes
-    every `seal/ledger/` fragment as its last act and the whole gate then runs
-    before anything is staged, so the index lists paths the disk does not
+    This sweep is the one a release meets first, and the whole gate runs
+    before anything is staged, so the index can list paths the disk does not
     have. The running version and the timer are both fixture values, for the
     reason `RUNNING_IN_THE_FIXTURES` already gives: a fixture that moves with
     the release proves nothing about the release after. Neither is

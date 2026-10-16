@@ -329,10 +329,7 @@ def test_a_broken_shared_module_names_every_gate_that_imports_it(
     `tokens.given`, whose read leaves the heredoc bodies out; since #689 `cmdline_base.py`, the reader frozen at
     `86256492`, is imported by the worktree guard and `worktree_consent.py`. The
     commit gate's own import of `worktree_consent` is guarded, so a broken
-    `cmdline_base.py` does not name it. The `post-bash` call is not a commit: a
-    copy of `hooks/` has no `skills/` beside it, so `evidence-advisor.py` would
-    fail at run on a commit for want of its checker, which is the fixture and
-    not the reader.
+    `cmdline_base.py` does not name it.
 
     Changed by #689 twice. Round 1's fix pass broke both readers at once to
     keep four gates named, which lost the per-module "no gate that does not"
@@ -957,7 +954,6 @@ def test_json_a_gate_prints_that_is_not_a_hooks_output_ends_nothing(repo, tmp_pa
                 "mode-gate.py": printing(shape),
                 "version-check.py": printing('{"systemMessage": "m"}'),
                 "root-migrate.py": printing(shape),
-                "ledger-migrate.py": printing(""),
             },
         )
         session = f"s-{n}"

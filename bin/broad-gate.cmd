@@ -6,11 +6,13 @@ setlocal
 set "here=%~dp0"
 set "script=%here%..\skills\verify\scripts\broad_gate.py"
 
+set "launch=%here%..\hooks\launch.py"
+
 where /q py
 if errorlevel 1 goto usepython
-py -3 "%script%" %*
+py -3 "%launch%" "%script%" %*
 exit /b %errorlevel%
 
 :usepython
-python "%script%" %*
+python "%launch%" "%script%" %*
 exit /b %errorlevel%

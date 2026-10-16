@@ -18,8 +18,7 @@
 
 <!-- Above: a generated copy of templates/claude-md-block.md, the block
      install.sh distributes. Edit the template, then
-     `python3 .github/scripts/claude_block.py --write` regenerates this copy;
-     the hygiene workflow fails a pull request where the two differ.
+     `python3 .github/scripts/claude_block.py --write` regenerates this copy.
      Below: repo-local development rules for SpecSeal itself. -->
 
 ## The goal a design is chosen against — verification that runs unattended
@@ -30,68 +29,61 @@ person is the more expensive, and the difference has to be argued rather than
 assumed. Time and stability are what the argument is being made for.
 
 This is a goal, not a rule, which is why it sits above them: it decides
-between options where no rule is broken either way. `CONTRIBUTING.md`'s *What
-a change to a gate must carry* turns it into something a pull request has to
-answer. `skills/implement/SKILL.md` §*1. Read the spec before the code* holds
-the rule this goal produces for a session, with its reasoning: whatever needs
-a person is asked once, together, before the first edit, and nothing comes
-back mid-run.
+between options where no rule is broken either way.
+`skills/implement/SKILL.md` §*1. Read the spec before the code* holds the rule
+this goal produces for a session, with its reasoning: whatever needs a person
+is asked once, together, before the first edit, and nothing comes back mid-run.
+
+## The rule a mechanism is kept against — subtract before you add
+
+**A mechanism stays only while its history shows what it caught against what
+it costs**; existing is no reason to keep it. A rule's proof is the test or
+behaviour eval its `Enforced by:` names. A fact has one source, and every
+other place links to it. A check gates only a fact it reads; a noisy reading,
+or one guessed from words, is a report. Nothing is kept beside the tree to
+stay in step with it, such as a stored count or coordinate. Do not avoid the
+change a problem calls for: before a fix adapts to an existing structure, ask
+whether the structure should change, and when fixes chase one mechanism's
+edge cases, ask what it decides; what exists is a reference, not a
+constraint. A thing is re-checked only when the diff or CI shows it
+changed. A change rewrites the text it amends in place, and in the same
+commit removes what stood on the old fact: a check, an exception, a comment,
+a copy. History goes to git, the changelog and the work record.
+`CONTRIBUTING.md` §*What a change to a gate must carry* is where a pull
+request answers this rule and the goal above.
 
 ## Repo rule — the merge method is fixed per direction, and it is not a preference
 
-`docs/branch-and-release.md` §*Work accumulates on a release branch* states
-this rule in its *Which button, for each direction* table and holds the
-reasoning; this row is the link, and it is here because a session about to
-merge a pull request has no other reason to open that file. A pull request
-into `release/vX.Y.Z` is squashed and one into `main` takes a merge commit,
-whichever button a page happens to offer first.
+A pull request into `release/vX.Y.Z` is squashed and one into `main` takes a
+merge commit, whichever button a page offers first. The rule and its reasons
+are `docs/branch-and-release.md` §*Work accumulates on a release branch*.
 
 ## Repo rule — no real identifiers in examples or fixtures
 
-`CONTRIBUTING.md` §*House rules* states this rule in its *No real
-identifiers* bullet and holds the reasoning; this row is the link, and it is
-here because a session writing an example, a fixture or a document has no
-other reason to open that file. A domain written there is `example.com` and a
-user path is `/Users/x/`, never a real domain, path or organisation name.
+A domain in an example or fixture is `example.com` and a user path is
+`/Users/x/`, never a real domain, path or organisation name
+(`CONTRIBUTING.md` §*House rules*).
 
 ## Repo rule — a thing more than one party can have is named with whose
 
-`skills/writing-style/SKILL.md` §*여럿이 가질 수 있는 것은 누구 것인지
-밝힌다* states this rule and holds the reasoning; this row is the link, and
-it is here because a session rewording an agent definition or a skill has no
-other reason to open that file. The concept and its format names stay bare —
-the Seal Test, a seal block — and a reference to one instance says whose.
+The concept and its format names stay bare — the Seal Test, a seal block —
+and a reference to one instance says whose (`skills/writing-style/SKILL.md`
+§*여럿이 가질 수 있는 것은 누구 것인지 밝힌다*).
 
-The word that bought it is `seal`: it named the warden's review mark, the
-sealer's stamp and the smith's proof block at once, two of them in files a
-reader opens together. `tests/test_one_word_one_meaning.py` is the check, and
-it holds one word per conversation somebody had — writing the rule down is
-not the repair, the check is.
+`tests/test_one_word_one_meaning.py` is the check, one word per conversation
+somebody had: writing the rule down is not the repair, the check is.
 
 ## Repo rule — commit early; on a declared branch it costs nothing
 
-`skills/implement/SKILL.md` §*2. Implement, and feed evidence back where you
-verified it* states the commit cadence and holds the reasoning, and it tells a
-reader to check two conditions against their own repository; this row is that
-check for this one, and it is here because a session reaches the question
-after every edit without opening that file. Both conditions hold here: a
-feature branch squashes into its release branch, and every work item commits
-its `routing.md` before the first edit. So commit as soon as a step stands on
-its own.
-
-**Commit freely: a ledger row names no commit for a squash to orphan.** How a
-coordinate names code, how a released row is read again, and what to do when
-a ledger file conflicts live in `docs/the-evidence-ledger.md` §*A row is a
-content anchor, and it names no commit*, §*A released row is read again in
-the branch's fragment* and §*A correction a merge dropped*.
+Both conditions `skills/implement/SKILL.md` §*2. Implement test-first, and
+let each rule name its test* asks of a repository hold here: a feature branch
+squashes into its release branch, and every work item commits its
+`routing.md` before the first edit. So commit as soon as a step stands on its
+own.
 
 ## Repo rule — a change writes fragments, never the shared file
 
-Which file a change writes — its changelog entry, its ledger rows, and its
-re-reads and corrections of a released ledger row — is
+Which file a change writes its changelog entry into is
 `docs/the-record-layout.md` §*A change writes fragments, never a shared
-file*. This repository declares `Ledger frozen from` in `seal/config.md`, so
-its released ledger files never change; `docs/the-evidence-ledger.md` §*A
-released row is read again in the branch's fragment* holds what that means
-for a branch. The release gathers and folds the fragments with the commands
-in `docs/release-checklist.md` §*2. Gather, fold, bump*.
+file*. The release gathers the fragments with the command in
+`docs/release-checklist.md` §*2. Gather, bump*.

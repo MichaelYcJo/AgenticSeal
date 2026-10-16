@@ -121,6 +121,13 @@ ENTRY_POINTS_CLASSIFIED = {
         "inline reconfigure loop; held by the three dispatch cases of "
         "tests/test_console_is_not_utf8.py"
     ),
+    "hooks/launch.py": (
+        "not a hook but the launcher bin/ wrappers run; it imports nothing "
+        "before the floor check, which an old interpreter must parse, and "
+        "writes only an ASCII sentence; held by "
+        "tests/test_a_script_says_which_interpreter_it_needs.py"
+        "::test_the_refusal_is_ascii_whatever_path_it_names"
+    ),
 }
 
 

@@ -21,25 +21,25 @@ import tempfile
 
 import pytest
 
-# `docs/review-chain-spec.md` and the two documents #526 split out of it: the
-# run, the hooks, and the round record's rows; and the two #727 then cut out
-# of the hooks' document: what git decides, and what each arm wants. A case
-# that reads one of them for what is THERE reads the one that holds the
-# section; a case asserting what is NOT there reads all five through
-# `review_chain_text`, because a sentence forbidden in the spec that returns
-# in a sibling is the same sentence back, and an absence that holds in one
-# part of the text proves nothing about the rest.
+# The review run's documents: the record and the run, the hooks, what git
+# decides, and what each arm wants. A case that reads one of them for what is
+# THERE reads the one that holds the section; a case asserting what is NOT
+# there reads all four through `review_chain_text`, because a sentence
+# forbidden in one that returns in a sibling is the same sentence back, and
+# an absence that holds in one part of the text proves nothing about the rest.
 REVIEW_CHAIN_DOCS = (
-    ("docs", "review-chain-spec.md"),
+    ("docs", "the-review-record.md"),
     ("docs", "commit-review-gate-spec.md"),
     ("docs", "the-commit-gate-inside-git.md"),
     ("docs", "the-review-and-parity-arms.md"),
-    ("docs", "round-record-spec.md"),
 )
 
 
 def review_chain_text(root):
-    """The five documents under `root`, each whitespace-collapsed, joined."""
+    """The review chain's documents under `root`, each whitespace-collapsed,
+    joined.
+
+    Reads: owned — this repository's documents; unknown refused"""
     texts = []
     for parts in REVIEW_CHAIN_DOCS:
         with open(os.path.join(root, *parts), encoding="utf-8") as handle:
@@ -293,50 +293,6 @@ def decline_if_shrunken(missing, what):
         pytest.skip(shrunken_corpus(missing, what))
 
 
-ROUND_RECORD_NAME = re.compile(r"round-\d+\.md")
-
-
-def committed_round_records_on_disk(root):
-    """Every round record under `seal/specs/*/rounds/` on disk that git
-    carries at HEAD, as `/`-joined repository paths, sorted.
-
-    **The independent listing a population floor over the records is replaced
-    by** (`skills/settle/SKILL.md` §3, `docs/the-evidence-ledger.md`
-    §*A population floor over the records is replaced, never lowered*). A
-    sweep lists its corpus through `git ls-tree`; this reaches the same
-    population from the other side — a walk of the disk, then `git cat-file
-    -e` per file — so the two cannot agree by sharing a bug. A sweep's corpus
-    has to hold every path this returns, which is the question the floor was
-    asking, and it holds at 263 records, at 7, and at none: after a complete
-    fold `seal/specs/` is absent and the answer is the empty list.
-
-    Per path rather than a listing, and that is on purpose:
-    `tests/test_a_shrunken_corpus_declines_to_judge.py` classifies every
-    scope that derives a path list from git, and `cat-file` asks about one
-    path it was handed. A record on disk and not yet committed is the
-    ordinary state of a round mid-flight, and it is left out.
-    """
-    specs = os.path.join(root, "seal", "specs")
-    if not os.path.isdir(specs):
-        return []
-    found = []
-    for item in sorted(os.listdir(specs)):
-        rounds = os.path.join(specs, item, "rounds")
-        if not os.path.isdir(rounds):
-            continue
-        for name in sorted(os.listdir(rounds)):
-            if not ROUND_RECORD_NAME.fullmatch(name):
-                continue
-            rel = f"seal/specs/{item}/rounds/{name}"
-            probe = subprocess.run(
-                ["git", "-C", str(root), "cat-file", "-e", f"HEAD:{rel}"],
-                capture_output=True,
-            )
-            if probe.returncode == 0:
-                found.append(rel)
-    return found
-
-
 def cutoff_item_is_traceable(root, reader, cutoff):
     """`(ok, how)` for "the work item a cutoff constant names can be found".
 
@@ -387,6 +343,8 @@ def gathered_entry(root, work_item_id):
     case pinning what a fragment says reads the fragment while it exists and
     this block after. The block runs from the marker to the next marker line
     or heading, which is where the gatherer puts the next entry.
+
+    Reads: owned — this repository's `changelog/X.Y.Z.md` files; unknown passed
     """
     start = f"<!-- specs/{work_item_id} -->"
     directory = os.path.join(root, "changelog")
@@ -402,9 +360,8 @@ def gathered_entry(root, work_item_id):
         return None
     body = []
     for line in lines[lines.index(start) + 1 :]:
-        # A heading is `#` to `######` and then a space, the way
-        # `round_record.py#BLOCK_START` reads one: a body line opening with
-        # an issue number such as `#120` is the entry's own text.
+        # A heading is `#` to `######` and then a space: a body line opening
+        # with an issue number such as `#120` is the entry's own text.
         if re.match(r"#{1,6}(?:\s|$)", line) or (
             line.startswith("<!-- specs/") and line.endswith("-->")
         ):

@@ -28,7 +28,7 @@ ran to look.
 
 ## Procedure
 
-**1. Show every row, present or not.** Read the file, and print all ten with
+**1. Show every row, present or not.** Read the file, and print all nine with
 their current values — including the ones the file does not carry, with the
 default and where it comes from. A row a repository never set is the most
 likely one somebody wants to change, and showing only what is present hides
@@ -37,7 +37,7 @@ exactly those.
 | Row | Default | What it governs |
 |---|---|---|
 | `Commit and pull request language` | English | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
-| `Record language` | English | the prose in `spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, a round record's cells, and a ledger row's claim and grounds |
+| `Record language` | English | the prose in `spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, and a round record's cells |
 | `Mode` | *the folder decides* | which of the two places the root should live at |
 | `Broad gate` | *none — `broad-gate` refuses without it* | the one shell command line `broad-gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
 | `Fold shape from` | *not declared — the shape is not checked* | the work-item id from which `fold-check` holds a folded statement to `settle`'s shape; `0` binds every statement |
@@ -45,7 +45,6 @@ exactly those.
 | `Over the ceiling` | `none` | the documents listed over that ceiling, each with its fold markers frozen until the home it names splits it |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none — no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
-| `Pact notify` | `when the pact is touched`, where a `Pact` row stands | what this signer asks to be told about a change to that pact: `always`, `when the pact is touched` or `never` |
 
 **Every way of not naming a language lands on English** — no file, no such
 row, an empty value, a file that does not parse. Say the default and the
@@ -138,8 +137,8 @@ second answer.
   each accepts and what an absent one means, rather than restating it. A
   value `fold-check` will not parse makes it exit 2 naming the row, so run it
   once after the edit.
-- **`Reference specs`, `Pact` or `Pact notify`** is only a row too. Edit or
-  add it in place, and point at `$CLAUDE_PLUGIN_ROOT/templates/config.md`
+- **`Reference specs` or `Pact`** is only a row too. Edit or add it in
+  place, and point at `$CLAUDE_PLUGIN_ROOT/templates/config.md`
   §*Reference specs* or §*Pact* for what each accepts and what an absent one
   means. A `Pact` row is read strictly by `pact-check` at the pact's
   repository, so a value it will not parse is named there.

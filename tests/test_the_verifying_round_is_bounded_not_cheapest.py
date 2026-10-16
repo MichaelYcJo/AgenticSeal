@@ -37,21 +37,6 @@ CARRIERS = (
         ("That is what keeps it bounded: it is the cheapest round of the run",),
     ),
     (
-        ("docs", "review-handoff-protocol.md"),
-        "which is the ground #51 observation 1 recorded for the exemption",
-        (
-            "is the cheapest round of the run by design",
-            "a segment that small is the nuance below in its every case",
-        ),
-    ),
-    (
-        ("docs", "review-chain-spec.md"),
-        # The multiplication sign is named because ruff's RUF001 refuses it.
-        "29 verifying rounds ran at a median of 0.83 \N{MULTIPLICATION SIGN} "
-        "the span of their own",
-        ("on a surface that is a diff rather than a branch — the cheapest round",),
-    ),
-    (
         ("agents", "warden.md"),
         "The reason is the round's job, not its price",
         (
@@ -113,12 +98,10 @@ def test_the_verifying_bar_is_grounded_on_neither_cost_nor_size():
     23-call round, so a size ground is false in the other direction."""
     row = "| verifying | exempt |"
     with open(
-        os.path.join(ROOT, "docs", "review-handoff-protocol.md"), encoding="utf-8"
+        os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
     ) as f:
         rows = [line for line in f if line.startswith(row)]
-    assert len(rows) == 1, (
-        f"docs/review-handoff-protocol.md has {len(rows)} `{row}` rows"
-    )
+    assert len(rows) == 1, f"docs/the-review-record.md has {len(rows)} `{row}` rows"
     grounds = rows[0][len(row) :]
     for word in ("cheap", "small", "by design", "afford"):
         assert word not in grounds, (

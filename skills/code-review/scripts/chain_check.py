@@ -1,358 +1,55 @@
 #!/usr/bin/env python3
-"""chain-check — at the pull request, does the review state hold up?
+"""chain-check — at the pull request, the records the declared parties owe
+are in the tree and agree with HEAD.
 
-The commit gate used to be the only place the review chain was enforced, and
-it had nothing to read: a work item routed to the chain and a work item nobody
-had decided anything about were byte-identical to it, so it asked at every
-commit. Recording the answer in `seal/specs/<id>/routing.md` lets the gate stay
-quiet — but only if the check moves somewhere rather than disappearing. This
-is the somewhere. It runs on the pull request, where nobody has to be sitting.
+Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
+the `seal/specs/<id>/routing.md` naming the pull request's branch and every
+one its own commits add or change. One that reached the branch inside another
+pull request's squash was judged at that pull request and is named, not
+judged (`carried_by`). The arms are five:
 
-What it reads, for every routing declaration this pull request adds or changes:
+  declaration   the file parses as a routing declaration; one the pull
+                request removed is accepted where the work item was retired
+  frame         `Planning | framer`: `spec.md` and `plan.md` are committed,
+                `spec.md` ends with the framer's mark, and every `Reframed`
+                line under it names the framer
+  records       `Review | through the review chain`: `rounds/` holds at least
+                one `round-N.md`; each holds one `target:` line and one
+                `## Findings` section whose every `### ` finding carries one
+                `verdict:` line reading `fixed <commit>`, `rejected` or
+                `deferred <home>` and one `location:` line, a `fixed` commit
+                on the branch and touching a path that line names; every
+                `fixed` or `rejected` finding is named by the next record's
+                `confirms:`, `reopens:` or `regression:` lines, and none
+                stands in the last record; a label in another spelling, and
+                whatever else the reader cannot read, is refused; the last
+                record's
+                `target:` commit is HEAD, or every commit after it touches
+                only the work item's own directory
+  broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
+                touches only the work item's own directory
+  guarantee     `guarantee.md` names HEAD, or every commit after it touches
+                only the sealer's two files, and its one `Verdict:` line
+                reads `sound`
 
-  through the review chain   at least one `seal/specs/<id>/rounds/round-*.md` that
-                             git carries, every commit its Target SHA names being
-                             REACHABLE (below), whose last round has `Pass`
-                             CHECKED, whose Pass claim does not sit beside
-                             a blocking finding it left open, and whose
-                             `Fixes checked by` names a checker this repository
-                             can confirm (below). A draft pull request is
-                             excused the checked `Pass`, the round record's
-                             EXISTENCE, and the `Broad gate` cell -- the three
-                             things the rounds themselves produce, and nothing
-                             else. What excuses them is `strict`, so the
-                             `unknown` state below is excused none of them
-  straight to the PR         the sealer's `broad-gate.md` in the work item's
-                             directory at a ready pull request, for a work
-                             item begun at or after `DIRECT_GATE_FROM` -- the
-                             one broad run, at a SHA the tree can see, against
-                             the base (`direct_seal`). The answer turns off
-                             the REVIEWER alone; a draft is excused the file,
-                             and the declaration is printed either way,
-                             because a decision nobody sees is not a record
-  an unreadable declaration  FAIL. A tolerant read reports "no declaration",
-                             which is indistinguishable from a branch that
-                             never declared
-  no declaration at all      pass, with a notice
-  a record still sitting at  FAIL, naming the file and `rounds/`. The records
-  `specs/<id>/round-N.md`    moved one level down and no fallback ships, so a
-                             repository that updated the plugin and moved
-                             nothing would otherwise fail with `holds no
-                             round-N.md` — true, and indistinguishable from a
-                             work item that skipped its review
-  a pact (#647)              PRINTED, never refused, and the exit status is
-                             the one the tree has without it: the pact a
-                             `Pact` row names, or the signers
-                             `seal/pact.md` lists (`pact_notices`). This CI
-                             reads one repository; `pact-check` reads them all
-  a changelog fragment left  PRINTED, never refused, for a chain item: every
-  behind (#797)              commit `<round 1's Target SHA>..HEAD` owns
-                             (`own_commits`) that changed a path outside
-                             `seal/` and outside a `tests` directory, and that
-                             no own commit changing the item's `changelog.md`
-                             descends from, with the round whose `Fix range`
-                             owns it (`fragment_left_behind`). The exit status
-                             is the one the tree has without it
+A ready pull request fails on any of them. A draft, or a run that observed no
+pull request, prints the same lines and exits 0. `docs/the-review-record.md`
+states the record and the rules these arms hold.
 
-REACHABLE, and why it is not "an ancestor of HEAD". It was, and the branching
-model destroys that property on purpose: `CONTRIBUTING.md` has feature branches
-squash into the release branch, and the commits a round reviewed are exactly
-what a squash discards. Measured on the release branch one commit after the
-first work item merged, this check failed on its own release — naming two
-commits of a review that had actually happened.
+Usage:
+  chain_check.py --baseline <ref> [--root DIR] [--worktree] [--sealing]
 
-Narrowing it to records the pull request CHANGED does not fix that, and the
-measurement says so: a new work item's round records are added relative to
-`main`, so they are in every release pull request's diff. Both halves are
-needed, and they answer different questions.
+`--worktree` reads the records from the working tree instead of HEAD, for a
+check before the commit; CI never passes it. `--sealing` is the broad gate's
+own run, before it writes `broad-gate.md` and the sealer `guarantee.md`: those
+two arms print and do not fail.
 
-  is anything required of this record at all?   only if the pull request adds
-      or changes it. A record that arrived in an earlier merge is history, and
-      a check has no business asserting a property of it now. Neither is a
-      record the pull request RESTORES byte-for-byte from the base's own
-      history, which is in the diff and not its claim (`restored_from`)
-
-  which commits count as reachable?             an ancestor of HEAD, of the
-      branch `routing.md` names, or of a pull request head. The first two need
-      no new field. The third is what makes the answer survive: a branch is a
-      mutable name and the paragraph that used to sit here asked people not to
-      delete one, which is not a mechanism. Five were deleted anyway, by hand
-      — `delete_branch_on_merge` is false in this repository, so nothing
-      automatic did it and nothing stopped it either — and a release pull
-      request went red naming six commits across five work items, every one
-      of them still sitting on its `refs/pull/<N>/head`.
-
-  Why that namespace and not "any ref that resolves": GitHub writes it, a
-  squash does not touch it, deleting the branch does not touch it, and nothing
-  else writes into it. Accepting any ref would re-open what `target_refs`
-  records below — a tag carrying a commit nobody reviewed satisfying the check.
-
-  A record's own `| PR |` row is read first when it names a number, which
-  makes the failure name one ref instead of a namespace. It stays optional: a
-  review that finishes before its pull request opens writes `not yet opened`,
-  and the scan covers that with nothing written at all.
-
-  What it costs: `refs/pull/*/head` is not in a default clone.
-  `.github/workflows/hygiene.yml` fetches it, and where nobody has, the
-  failure says which fetch is missing rather than sending anyone to restore a
-  branch.
-
-  (The paragraph above says a new work item's records ARE in every release
-  pull request's diff. Both are true and they are about different merges:
-  added by the release, already present after it.)
-
-That "no declaration at all" row is the one that matters most, and it follows
-this repository's own precedent. `unverified_check.py` refuses to fail for an
-honest open item
-because a build that goes red for one teaches people to write none, which
-voids the condition it defends. A check that failed for a MISSING declaration
-would teach sessions not to declare, and the same reasoning applies one level
-up. It fails only for what the author can always fix.
-
-The cost of that row is real and is stated rather than left to be found:
-declaring nothing becomes a way past this check, and a quieter one than
-already exists. `[no-review]` at least stays in the command. Declaring nothing
-leaves no file, no token, and no line anywhere except the notice below.
-
-FIXES CHECKED BY, and why a second field beside `Pass`. `Pass` is a claim
-about the FINDINGS: none of them is still open. It says nothing about the
-ANSWERS -- a finding is closed by a fix, the fix is written after the round
-ends, and the round that follows is what opens it. Every round has one except
-the last, whose fixes are written by the session that then ticks its box.
-Measured on two consecutive work items in this repository (#33): the one round
-that did look at the previous round's fixes found seven defects in them, and
-its own fixes then went in unread.
-
-So every record carries `| Fixes checked by | … |`, with three values and no
-others. Only a LATER round may be named, so the LAST record of a finished run
-can only read `no fixes to check` or `nobody`, and the earlier ones name the
-round that opened them:
-
-  round-N              that round opened these fixes. N above this record's
-                       own number, and `rounds/round-N.md` committed
-  no fixes to check    nothing here closed with a fix. Refused beside a
-                       verdict cell reading one, which is the same
-                       contradiction-inside-one-file the `Pass` rule refuses
-  nobody -- <why>      the gap, written down. Prints on every run, and FAILS
-                       a ready pull request beside a checked `Pass` on the
-                       last record, where a draft prints it -- see the cutoff
-                       below
-
-`nobody` is a disclosure rather than a claim, and a check that failed for an
-honest disclosure would teach people to write none, which is the reasoning
-`unverified_check.py` already runs on and the same one the "no declaration at
-all" row below follows. So the cell prints wherever it appears, and on any
-record but the last it is refused nothing at all.
-
-What it may not do is stand beside `- [x] Pass` on the LAST record, because
-that combination is the review saying it passed. A run whose final fixes
-nobody opened has not passed: #33 measured the one set of fixes anybody ever
-did open and found seven defects inside it.
-
-That refusal reaches work items begun on or after `STRICT_FROM` and no
-others, and the cutoff is what makes it shippable rather than theatre. A
-record written before the rule existed is usually merged and has no honest
-repair -- writing a `round-4.md` for a review nobody ran fabricates one, and
-unticking `Pass` fails the ready-pull-request rule instead. A check whose
-first production act is red on history nobody can fix is a check people learn
-to skip, and skipping loses the records it could have caught in exchange for
-the ones it never could.
-
-Nothing after the cutoff is stuck, and the message says so. One verifying
-round at the diff of those fixes closes it, and a round that opens nothing
-needing a fix does not consume the cap.
-
-The draft excuse reaches ONE refusal in this row: `Pass` beside `nobody` on
-the last record, which prints in a draft and fails at ready (#598 instance 4).
-`Pass` is excused in a draft because a review still running has not reached
-its verdict, and `Pass` is the half of that pair that makes it refusable --
-`nobody — <why>` is the honest cell between `close` ticking the box and the
-verifying round's record committing. Every other refusal here is a record
-naming a checker it does not have, which is wrong at every stage.
-
-THE FIX SURFACE, two rows read the same way. Issue #57 traced ten regressions
-on one work item to the fixes that opened them, and the largest class -- four
-of ten -- was a fix that changed a unit's contract while not every place that
-contract reaches was revisited. The diff names the changed signature; `grep`
-names the reach; a person reading the diff missed all four. So the record
-carries the reach as a row, and a second row for the units the fixes CREATED,
-which are the one surface the verifying round's own rule (*answers, not new
-findings*) would otherwise skip:
-
-  Contract changes     every unit whose signature, return arity, return type,
-                       or set of returnable values changed in this round's
-                       fixes, each with the call sites it reaches --
-                       `unit → site, site`, units separated by `;`. A unit
-                       listed without its reach is refused: the diff already
-                       names the signature, and the reach is the half it does
-                       not show
-  New units            the top-level definitions and constants the fixes
-                       added, each with the DEPTH it was added at --
-                       `unit (depth N)`, one entry per unit, entries
-                       separated by `;`. The verifying round treats what this
-                       row names as a finding surface -- *is this correct* --
-                       rather than a verification surface. A fix pass may add
-                       a unit; that unit's fix may not, so depth 2 or above
-                       is refused and the unit is deferred with a named
-                       answerer or becomes an issue
-
-Both accept `none`, with or without a reason after it, because the honest
-mid-run value is `none — the fixes are not yet written` and the honest
-terminal value of many rounds is plain `none`. A record whose work item began
-before `SURFACE_FROM` prints instead of failing when a row is absent -- the
-grandfathering shape `Fixes checked by` already uses, for the same reason: a
-merged record has no honest repair, and writing reach rows for fixes nobody
-re-read would fabricate a review. A row that is PRESENT and malformed fails
-on any record, because formatting is always the author's to fix.
-
-Read on EVERY record, where `Pass` is read on the last one alone. The two
-scopes differ for a reason rather than by oversight: `Pass` is a verdict on
-the whole review and the last round's is the one that speaks for it, while
-this is a fact about one round's own fixes and every round has one. Reading
-only the last record was the first shape, and it made `round-N` unreachable --
-a checker has to be later, and the last record has no later round -- which is
-a vocabulary value nothing could ever use.
-
-What it costs is a repository that updates the plugin: every record in a work
-item whose declaration the pull request touches needs the row, not just the
-newest. The failure names the row and the three values, which is the same
-trade `docs/review-handoff-protocol.md` records for the `rounds/` move.
-
-THE FLOOR UNDER THE CAP, and the row that keeps it from being a wall. Three
-rounds, and five while a 🔴 is open, is a ceiling; #81 spent it, and its last
-three rounds found nothing that leaves the root and nothing that crashes.
-
-  Loses a record or crashes   `no`, and the run stops here whatever is left
-                              of the cap; `yes — <what>` names what was found
-                              and leaves the cap to decide. Absent after
-                              `FLOOR_FROM` fails, empty or unreadable fails
-                              at any age
-  Needs a fix                 whether this round opened anything needing one.
-                              The floor's bound below rests on it, so `yes`
-                              alone is refused the way the floor row's is:
-                              a bare `yes` is the cell the count of later
-                              records restarts at, and three characters must
-                              not buy the run a round (#138). Until
-                              `NEEDS_FROM` nothing read the row at all --
-                              which is why it is grandfathered WHOLE rather
-                              than only when absent, the bare `yes` included
-
-A record that met the floor is followed by AT MOST ONE more round record: the
-verifying round at the diff of the fixes that closed it. The count stops at
-the first later record whose `Needs a fix` says the run reopened, that record
-included -- a verifying round that opens something is a finding round, its own
-fixes need a reader, and refusing that third record refuses the only legal end
-to such a run. And it stops at the first whose own verdicts closed on a fix,
-whatever that row says: the row is the reviewer's answer to what it opened,
-the verdict column is whether fixes were written, and the two come apart when
-the orchestrator fixes a finding the reviewer said could be answered with
-grounds.
-
-THE REOPENING IS ONE (issue #161). Every record the count stops at is itself
-a record that met the floor, so the count restarted there and nothing bounded
-the chain: fifteen rounds on one branch, the exception used by every
-verifying round. So a second walk over the same later records counts the
-ones whose verdicts closed on a fix, wherever they sit, and refuses the
-SECOND -- naming it and the floor record it follows -- for work items begun
-on or after `REOPEN_FROM`; earlier items print. The exit is `capped`: every
-finding still open takes the filing ladder, its verdict reads `deferred
-<home>` -- `deferred #N` where that home is an issue -- the record's `Fixes
-checked by` reads `no fixes to check`, and the pull request says `chain:
-capped`. `docs/review-chain-spec.md` §*Where a leftover goes — the ladder,
-and why a new issue is not the default* owns where a filed finding goes.
-`deferred <home>` is a closing word for that and not a fix word; the bare
-word stays open.
-
-That exit is the REOPENING BOUND's and not the round cap's. A run the round
-cap stopped may still write fixes for what the branch owns, and its record
-then reads `round-N` with the verifying round after it reading `no fixes to
-check`. `docs/review-chain-spec.md` §*The cap bounds rounds, and not the
-fixes of the round it stopped* owns that rule; nothing here computes it, and
-the walks below read the records either shape produces without knowing which
-bound ended the run.
-
-WHAT RAN THE ROUND, which no record said. Issue #137: every segment of two
-work items was metered and posted to a measurement log, and not one of the
-readings can be attributed to a runner afterwards -- they all ran on the same
-model, and that fact exists only in a session transcript.
-
-  Ran by   the agent and the model, as `agent on model`. Both, because an
-           agent without a model cannot be compared against another run of
-           the same agent and a model without an agent cannot be told from
-           the orchestrating session's own turns. `unknown — <why>` is the
-           answer where neither is knowable and a bare `unknown` is not.
-           Absent after `RUNNER_FROM` fails; present and malformed fails at
-           any age
-
-The joining `on` is a WORD rather than a punctuation mark, which is what
-keeps this row out of the class of defect the two rows above record: a
-separator inside a code span splits the cell carrying it, and that has
-happened twice here.
-
-It is the SPAWNING session's row and never the agent's own -- the reach-back
-`Fixes checked by` and the fix-surface rows already make. An agent is told
-what it is, so a value it writes about itself is the value it was told, and
-the orchestrator is the one that chose the model.
-
-WHAT IT CANNOT SEE, stated here rather than discovered later:
-
-  whether the review was any good   the same limit the commit gate carries.
-                                    A round record naming three findings and
-                                    one naming none look alike to it, and a
-                                    checked `Pass` is a claim by whoever
-                                    wrote the record. What is refused is the
-                                    claim that contradicts its own table
-  a review nobody wrote down        `<git-dir>/specseal-reviewed` cannot reach
-                                    CI. The round record stops being only an
-                                    inheritance aid and becomes the pull
-                                    request's evidence
-  whether the TIP was reviewed      it requires a round record whose target is
-                                    reachable, not that HEAD itself was
-                                    reviewed. Requiring the tip would put
-                                    the every-commit problem back, one fix
-                                    commit later
-  a record already merged           no claim is made about WHERE the commits
-                                    of a round record this pull request does
-                                    not touch are. Everything else about it is
-                                    still read — the `Target SHA` row has to be
-                                    there, the `Pass` box has to be there and
-                                    consistent. Its commits are expected to be
-                                    gone, and the review it records was
-                                    enforced at the pull request that added it
-  whether the target CONTRIBUTED    reachability from the declared branch is
-                                    not evidence that the reviewed commit is in
-                                    what merges. Measured: a commit pushed to
-                                    the branch AFTER the squash, merged
-                                    nowhere, satisfies `Target SHA`. That is
-                                    the price of not asserting a property the
-                                    squash destroys, and it is paid knowingly
-  a repository with no CI           then nothing checks at the pull request at
-                                    all, and enforcement is a convention
-
-ONE SOURCE, NOT TWO. Everything read here comes out of git at HEAD -- the
-declarations, the round records, their content. Two readers of one directory
-is how an untracked file became a pull request's evidence, and moving only the
-NAMES to git left the same defect one line further in: a record committed with
-a blocking finding open and edited on disk to read `fixed` exited 0. A working
-tree that differs from HEAD is what CI never sees, so reading one makes the
-local run the more permissive of the two.
-
-ONE READER, NOT TWO. The section and table reading comes from
-`unverified_check.py` rather than being written again. Two readers of the same
-markdown drifted apart in four places across three review rounds in this
-repository — which section is counted, how a cell is normalized, what counts
-as a separator — and each pair that was closed opened another. A comment or a
-fenced code block that mentions a blocking finding must not count here for
-exactly the reason it must not count there.
-
-Exit codes: 0 the review state holds (or nothing was declared) · 1 a
-declaration or a round record fails · 2 the arguments or the repository were
-unusable, which includes the shared reader failing to load — with no reader
-there is no check, and reporting success for a check that never ran is the
-one outcome worse than failing.
+Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
+GitHub annotation in CI) · 2 the check could not run.
 """
 
 import argparse
+import collections
 import importlib.util
 import json
 import os
@@ -365,540 +62,193 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "routing.py")
 
-VERDICTS = "## Verdicts"
-# The verdict table's own column, matched case-folded below. Named here rather
-# than spelled at the call sites so a reader that has to know every string
-# this file matches literally can be derived from these constants — round 2 of
-# #106 found the exclusion list holding this column with nothing pinning it,
-# because there was no constant to derive it from.
-VERDICT_COLUMN = "Verdict"
-# The column beside it: the reviewer's reason a finding was opened, joined by
-# `round_record.py close` with what the fix pass did about it. Named here
-# because `doubled_grounds` locates the cell by this header (#427).
-GROUNDS_COLUMN = "Grounds"
 TARGET = "Target SHA"
-# Where a record says it was committed after the fixes it commissioned, and
-# WHY. `written_late` below refuses exactly that record, on the strength of
-# git rather than of anything written in the file -- and until this row there
-# was no fourth exit from that refusal. Work item 1789034970 found the other
-# three: rewrite history so the adding commit moves, merge over a red line, or
-# invent an undocumented waiver. It ended red on a line no later commit could
-# clear.
-#
-# The vocabulary is `Needs a fix`'s and `Loses a record or crashes`'s, read by
-# the same `yes_or_no`: `no`, or `yes {DASH} <why>`. A THIRD spelling of one
-# vocabulary is the drift this file closes everywhere else, and the shape is
-# already the right one -- a bare `yes` names nothing, which is what
-# `nobody {DASH} <why>` and `unknown {DASH} <why>` are refused for.
-#
-# Absent, unreadable, or `no`, a late record is judged exactly as it was
-# before this row existed. The relaxation is one state wide and it is a
-# RELAXATION, which is why it owes no cutoff of the `ORDER_FROM` kind: no
-# record that exists is judged more harshly for lacking a row nobody asked
-# its author for.
-WRITTEN_LATE = "Written late"
-PASS_RE = re.compile(r"^\s*-\s*\[( |x|X)\]\s*Pass\b")
-BLOCKING = "🔴"
-# What a verdict cell may say for the finding to count as dealt with. Anything
-# else counts OPEN — including a word this does not recognise. The direction is
-# deliberate: an unreadable verdict that counted as closed would be the
-# tolerant read this whole file exists to refuse.
-#
-# `deferred` is one of them and closes ONLY with the home the finding went to
-# after it -- `deferred #170`, `deferred seal/follow-up.md`. It is the word a
-# capped run closes its open findings with (issue #161): the finding becomes
-# an issue and the cell names it. The bare word says something was left and
-# not where, which is the state a `nobody` with no reason is refused for, so
-# `verdict_of` hands it back OPEN with `NO_HOME` beside it.
-DEFERRED = "deferred"
-# The reviewer looked and did not judge, because judging was outside the scope
-# the round was given. `skills/code-review/SKILL.md`'s severity scheme lists
-# `❓` for exactly that, and the phrase after it is the reviewer's verdict --
-# not an open finding, and nothing a fix pass can close.
-#
-# It is here rather than in the fix table's vocabulary because none of the
-# three words a fix pass may write is true of it: there is no defect to fix,
-# the round explicitly did not settle it, and nothing was deferred from a
-# round it was never in. #353 measured the cost twice inside one run of #84 --
-# `close` refused finding 15 for want of a fix row, the orchestrator gave it
-# `answered`, and the record then said the round had settled the one check
-# neither round ran. Round 2 FOUND that and could not close its own copy
-# except by replacing the marker a second time, in a different word.
-#
-# It closes without commissioning, so it is in neither `FIX_WORDS` nor
-# `HOME_WORDS`: nobody is asked to read fixes it did not produce.
-OUT_OF_SCOPE = "out of verified scope"
-CLOSED_WORDS = {
-    "fixed",
-    "answered",
-    "withdrawn",
-    "not a defect",
-    "agreed, fixed",
-    DEFERRED,
-    OUT_OF_SCOPE,
-}
-# The prefix `round_record.py close` writes in front of a `fixed` verdict's
-# `Grounds` cell (#427). It lives here rather than beside the rest of `close`'s
-# vocabulary because two parties now need it: the GENERATOR, which must refuse
-# to write a second one over a cell that already carries one, and this CHECKER,
-# which names a record already carrying two. One spelling, so the writer and
-# the reader cannot drift apart about what a close-prefix looks like.
-#
-# It is `close`'s prefix and nobody else's, which is what the name says. The
-# reviewer's grounds in the same cell are the reviewer's sentence, written by
-# a different author, and `close` joins rather than overwrites for that reason.
-#
-# ONE of the three fix words has a shape a reader can recognise after the
-# fact. `answered` and `deferred` write the author's own words into the cell,
-# so a standing duplicate of either is indistinguishable from prose that
-# repeats itself, and nothing here pretends otherwise: the generator's guard
-# catches all three at the moment of writing, and this pattern is what remains
-# readable once the commit is in.
-CLOSE_PREFIX = "fixed at"
-# Built from the word so there is one spelling of it, the way `DEPTH_RE` is
-# built from `DEPTH_WORD`. Seven to forty hex characters is what `close`
-# resolves a fix commit to and what a person abbreviates it to; the optional
-# backticks are what a hand-repaired cell carries.
-CLOSE_PREFIX_RE = re.compile(
-    r"\b" + CLOSE_PREFIX + r"\s+`?([0-9a-fA-F]{7,40})`?", re.IGNORECASE
+BROAD_GATE = "Broad gate"
+BROAD_GATE_FILE = "broad-gate.md"
+GUARANTEE_FILE = "guarantee.md"
+# The sealer's two files: the only ones that may follow the commit its
+# guarantee names, since it audited everything else on the branch.
+SEALERS_FILES = (BROAD_GATE_FILE, GUARANTEE_FILE)
+VERDICT_LINE = re.compile(r"^Verdict:\s*(.*?)\s*$")
+SOUND = "sound"
+NOT_SOUND = "not sound"
+UNDECIDABLE = "undecidable"
+# What a broad-gate entry is separated from the run behind it by. The newest
+# run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
+EARLIER_RUN = "; earlier run: "
+
+# A round record: one `target: <sha> …` line above its sections; the one
+# `## Findings` section, a `### <n>. ` section per finding, and in each
+# exactly one `verdict: <value>` line and one `location: <coordinates>`
+# line, and at most one of a `regression: <reference>` line, for a defect a
+# fix pass's own commit made, and a `reopens: <reference>` line, for an
+# earlier close that does not hold otherwise; and in
+# `## Confirmations`, where the record has one, a `confirms: <reference>`
+# line per entry — each label one lowercase word at the start of its line,
+# one space after the colon, no emphasis, no table cell. Those lines are
+# the facts the check reads of a record, and a spelling it does not read is
+# refused by name, never passed (`findings`, `record_target`,
+# `confirmations`). These stay as the record's vocabulary, which no
+# `Record language` translates.
+FINDINGS_HEADING = "## Findings"
+CONFIRMATIONS_HEADING = "## Confirmations"
+NONE = "none"
+FINDING_LEVEL = 3
+FINDING_NUMBER = re.compile(r"^### ([1-9][0-9]*)\. ")
+SEVERITY = "severity:"
+LOCATION = "location:"
+VERDICT = "verdict:"
+REGRESSION = "regression:"
+REOPENS = "reopens:"
+ANSWER = "answer:"
+CONFIRMS = "confirms:"
+RECORD_TARGET = "target:"
+# The labels a finding holds, and the two that stand elsewhere in a record.
+FINDING_LABELS = (SEVERITY, LOCATION, VERDICT, REGRESSION, REOPENS, ANSWER)
+LABELS = (*FINDING_LABELS, CONFIRMS, RECORD_TARGET)
+VERDICT_LABEL = re.compile(r"^" + re.escape(VERDICT) + r" (.*)$")
+LOCATION_LABEL = re.compile(r"^" + re.escape(LOCATION) + r" (.*)$")
+# A reference label with nothing after it is still the label (S24), so its
+# reader refuses the empty value rather than reading no line at all.
+REGRESSION_LABEL = re.compile(r"^" + re.escape(REGRESSION) + r"(?: (.*))?$")
+REOPENS_LABEL = re.compile(r"^" + re.escape(REOPENS) + r"(?: (.*))?$")
+CONFIRMS_LABEL = re.compile(r"^" + re.escape(CONFIRMS) + r"(?: (.*))?$")
+TARGET_LABEL = re.compile(r"^" + re.escape(RECORD_TARGET) + r"(?: (.*))?$")
+# A labelled line in its one spelling: the label, then a space or the end of
+# the line.
+EXACT_LABEL = re.compile(
+    r"^(severity|location|verdict|regression|reopens|answer|confirms|target)"
+    r":(?: |$)"
 )
-# The closing words that close nothing without a home after them.
-HOME_WORDS = {DEFERRED}
-assert HOME_WORDS <= CLOSED_WORDS, "a home word that is not a closing word"
-# What `verdict_of` puts beside a home word written bare, so the value is in
-# neither set and still says what the cell said.
-NO_HOME = "(no home)"
-# The subset of `CLOSED_WORDS` that closed a finding by WRITING something. Those
-# are the fixes `Fixes checked by` is about; `answered`, `withdrawn` and
-# `not a defect` produced no code for a later round to open. Spelled as a
-# subset of the set above rather than as its own vocabulary, so a verdict word
-# added there is impossible to add here by accident -- the assertion below
-# fails the module at import if the two ever come apart.
-FIX_WORDS = {"fixed", "agreed, fixed"}
-assert FIX_WORDS <= CLOSED_WORDS, "a fix word that is not a closing word"
-# A deferral produced no code, so `no fixes to check` beside it is the truth
-# and the reopening walk below does not count it. The assertion is the same
-# bet as the one above: a word added to `HOME_WORDS` cannot become a fix
-# word by accident.
-assert not HOME_WORDS & FIX_WORDS, "a deferral is not a fix"
-# Markdown emphasis around the verdict word, and the code fence a cell puts
-# round the commit after it. Both sets above are spelled bare, and a
-# normalizer that read only the bare word matched NOTHING this repository ever
-# wrote: every closed verdict in `seal/specs/*/rounds/round-*.md` reads `**fixed**`,
-# and most cite a commit after it. Neither refusal that reads a verdict cell
-# had ever fired on a real record.
-EMPHASIS = re.compile(r"[*_`]+")
-# A severity marker leads a verdict cell and is not part of it, the same rule
-# `round_record.py`'s `FINDING_ID_RE` already applies one column over. The
-# corpus is what makes this safe rather than tolerant: applied to all 1,989
-# committed verdict rows on 2026-09-14, stripping a leading run of
-# non-word characters changes the reading of exactly ONE cell, and that cell
-# is `❓ out of verified scope` — the shape this release is adding. Every
-# other verdict this repository has written either begins with a word or
-# begins with punctuation that leaves it in no vocabulary either way.
-#
-# Anchored, and applied only when something survives it: a cell that is
-# nothing but punctuation keeps its own text, so `open_blocking` still has a
-# cell to quote rather than an empty string.
-MARKER = re.compile(r"^(?:[^\w\s]+\s*)+")
-# The vocabulary as a match ORDER, longest spelling first, so the `fixed`
-# inside `agreed, fixed` never takes the row from it. Derived from
-# `CLOSED_WORDS` rather than written out again: the assertion above
-# `FIX_WORDS` exists because two hand-kept lists drift, and a third list is
-# that same bet taken a second time.
-#
-# This replaces a regex that located where the commit citation began and cut
-# the cell there. Cutting was the wrong shape for the question. The pattern
-# required a digit inside the hex run — `defaced` and `acceded` are seven
-# characters of [0-9a-f] and ordinary English — and a real seven-character
-# abbreviation carries no digit about one time in 959. At that point the
-# pattern did not cut LATE; it did not cut at all, so `**fixed** `deadbee``
-# normalized to `fixed deadbee`, which is in neither set, and a 🔴 that was
-# properly closed read as still open. Round 2 opened that at the same site
-# round 1 was closing, which `docs/review-chain-spec.md` calls the structure
-# signal whatever the count.
-#
-# Matching the vocabulary as a PREFIX of the cell asks the question directly
-# and never has to recognise a commit at all, so the digit question disappears
-# rather than moving one spelling further out. It keeps the direction the cut
-# was protecting: only the head of the cell is ever consulted, so
-# `answered, and **sharpened** in `96a1ae3`` is `answered` and not a fix.
-VOCAB = sorted(CLOSED_WORDS, key=len, reverse=True)
-# `Pass` says the findings are closed. This says who opened the work that
-# closed them, and it is the last record's answer to the question `Pass`
-# cannot reach. See the module docstring for what each value means.
-CHECKED_BY = "Fixes checked by"
-NO_FIXES = "no fixes to check"
-NOBODY = "nobody"
-# Where the refusal for `Pass` beside `nobody` starts, as the unix second in a
-# work item's own directory name. This is the id of the work item that added
-# the rule, so the first item held to it is the one that wrote it.
-#
-# It is one constant for every repository, and that is the decision rather
-# than an accident of this one. A work item begun before the rule existed was
-# written when nothing asked, and its records are usually merged: a check
-# whose first production act is red on history nobody can honestly repair is a
-# check people learn to skip, which voids it for the records it COULD have
-# caught. A repository installing the plugin fresh creates every work item
-# after this second, so the whole of its history is held to the rule; one
-# updating the plugin has exactly its pre-existing items excused. Neither
-# needs to configure anything.
-#
-# What it costs: an old work item reopened years from now still writes its
-# records under its original id, and stays excused. That is the same trade the
-# grandfathering makes everywhere else, taken knowingly rather than closed
-# with a second rule about how old is too old.
-STRICT_FROM = 1788212517
-# `round-N`, optionally with the `.md` a person copying a filename leaves on.
-# The number is handed to `routing.round_number` rather than read here: that
-# function is the one place the `round-N.md` ordering rule lives, and this
-# would be the third reader of the pattern.
-CHECKER_RE = re.compile(r"^round-\d+(?:\.md)?$")
-# What may stand between `nobody` and its reason. An em dash is what the
-# documents and the template use; the rest are what a person types instead,
-# and refusing those would fail a record for its punctuation. The SPACE is in
-# the set because the dash never touches the word -- `nobody — why` puts a
-# space first, and leaving it out refused the one spelling every document
-# shows.
-# The two dashes are built by codepoint rather than typed. An en dash sitting
-# in a string literal is what ruff's RUF001 reads as a hyphen somebody
-# mistyped, and that rule earns its keep everywhere else in this file; the em
-# dash goes the same way so the pair reads as a pair. 0x2014 is EM DASH and
-# 0x2013 is EN DASH.
-SEPARATORS = " " + chr(0x2014) + chr(0x2013) + "-:,"
-# The range the fixes were measured over, as commits somebody can open
-# (#344). The class the field closes: a fix table states its range in prose,
-# in whatever words its author chose, and one of those words is `HEAD` -- which
-# resolves, so the sentence stays readable while meaning a different set of
-# commits every day. `docs/round-record-spec.md` §*The fix range* names the
-# command that counts the corpus and both tree states it was run at, because a
-# count over prose depends on what counts and a number quoted without its
-# method produced three different answers from three readers.
-# A rule enforced by parsing that is a rule enforced
-# by guessing, so the authoritative statement moves into the record, where the
-# generator that already resolved both ends writes it and this checker re-reads
-# it against the tree.
-#
-# WRITTEN by `round_record.py close` from the `--range` it was given, which now
-# refuses an end that is not a commit somebody can open. READ below by
-# `fix_range`, behind `RANGE_FROM`.
-FIX_RANGE = "Fix range"
-# `<a>..<b>`, then the number of commits between them. Both halves are read:
-# the ends say WHICH commits and the count says how many, and a record whose
-# ends still resolve while its count disagrees is the shape a moving end
-# leaves behind.
-FIX_RANGE_RE = re.compile(
-    r"`?([0-9a-f]{7,40})\s*\.\.\s*([0-9a-f]{7,40})`?[^0-9]*(\d+)\s*commit",
+# A line that means a label and is not spelt as one: its first word, case
+# folded and stripped of `*`, `_` and backticks, is a label or one of the
+# old spellings `fix of a fix`, `refixes` and `Target SHA`, followed by a
+# colon (`findings` refuses it).
+MISSPELT_LABEL = re.compile(
+    r"^\s*[*_`]*\s*(severity|location|verdict|regression|reopens|answer|confirms"
+    r"|target\s+sha|target|refixes|fix\s+of\s+a\s+fix)"
+    r"\s*[*_`]*\s*:",
     re.IGNORECASE,
 )
-# Where the row becomes required, as the unix second in a work item's own
-# directory name. The id of THIS work item, so the first records held to it are
-# the ones written under it. The tenth cutoff of the shape `STRICT_FROM`
-# through `REOPEN_FROM` carry, and the reasoning lives at `STRICT_FROM` rather
-# than being written a tenth time: a merged record has no honest repair -- the
-# range it was measured over is not recoverable from a record that never
-# stated it -- and a check whose first production act is red on history nobody
-# can fix is a check people learn to skip.
-RANGE_FROM = 1789621028
-# The fix surface (issue #57): what this round's fixes changed, with the call
-# sites each change reaches, and what they created. See the module docstring.
-CONTRACT = "Contract changes"
-NEW_UNITS = "New units"
-# `none` in either row, with or without a reason after a separator -- matched
-# as a prefix the way `verdict_of` matches its vocabulary, so `none — the
-# fixes are not yet written` is an answer and `nonempty` is not.
-NONE_WORD = "none"
-# A unit is separated from its reach by an arrow, either the typographic one
-# every document shows or the ASCII one somebody types when it is not on the
-# keyboard. `;` separates units, because a reach list needs its commas.
-ARROWS = (chr(0x2192), "->")
-# Where the two rows above become required, as the unix second in a work
-# item's directory name -- the id of the work item that added them, so the
-# first item held to the rule is the one that wrote it. The same shape and
-# the same reasoning as `STRICT_FROM` above: a record written before the rule
-# is usually merged and has no honest repair -- writing reach rows for fixes
-# nobody re-read fabricates a review -- so those print instead of failing,
-# and a check whose first production act is red on history nobody can fix is
-# a check people learn to skip. What it costs is the same trade taken there:
-# an old work item reopened later still writes records under its original id
-# and stays excused.
-SURFACE_FROM = 1788272986
-# The floor under the cap (issue #110): did this round find anything that
-# leaves the root or crashes. `docs/review-chain-spec.md` owns the rule and
-# the measurement -- #81 spent three of seven rounds below it.
-FLOOR = "Loses a record or crashes"
-# Its two answers, as constants rather than literals in the parser. What a
-# checker matches literally is what `templates/config.md`'s *What no row
-# governs* list is derived from, and the derivation
-# (`tests/test_the_pull_request_language_is_the_repositorys.py`) reads these
-# names -- a literal spelled inline is a word a repository translating its
-# records is never warned about.
-FLOOR_NO = "no"
-FLOOR_YES = "yes"
-# A `New units` entry carries the depth it was added at (issue #117):
-# `unit (depth N)`. The regex is built from the word so there is one spelling
-# of it, and case-folded because the cell is prose a person types.
-DEPTH_WORD = "depth"
-DEPTH_RE = re.compile(r"\(\s*" + DEPTH_WORD + r"\s+(\d+)\s*\)", re.IGNORECASE)
-# The only depth a fix pass may add a unit at. A fix answering a finding in
-# code that predates the run may add the helper that pins it; a fix answering
-# a finding INSIDE that helper may not add another, because the fix is read by
-# the round that follows and the unit it added is read by nobody.
-DEPTH_MAX = 1
-# Whether the round opened anything needing a fix -- the reviewer's own
-# answer, in the same `no` / `yes — <what>` vocabulary as the floor. It is
-# read because the floor's run-length bound cannot be right without it: a
-# verifying round that opens something IS a finding round, so the run
-# legitimately continues past a record that met the floor, and this row is
-# the only thing that says a run reopened. Until round 1 of `1788472135-…`
-# nothing read it, and `templates/sdd-round.md` said so of itself.
-NEEDS = "Needs a fix"
-# Where the floor row and the depth become required, as the unix second in a
-# work item's directory name. Both are the id of THIS work item -- the one
-# that added the two rules -- so the first records held to either are the ones
-# written under it. Same shape and same reasoning as `STRICT_FROM` and
-# `SURFACE_FROM` above, which is where the reasoning lives rather than being
-# written a third time: a merged record has no honest repair, and a check
-# whose first production act is red on history nobody can fix is a check
-# people learn to skip.
-#
-# Two names for one number on purpose. They are two rules, they can move
-# apart, and a single constant read by both would make the next release that
-# moves one of them move the other in silence.
-FLOOR_FROM = 1788472135
-DEPTH_FROM = 1788472135
-# `Needs a fix` takes the same second, and it may never take a LATER one.
-# Between a later `NEEDS_FROM` and `FLOOR_FROM` the run-length bound above
-# would rest on a row no record was required to carry, which is the bound
-# failing a run for a cell nobody asked the author for.
-#
-# What it grandfathers is wider than the other three, and the difference is
-# the row's history rather than an inconsistency. The floor and the fix
-# surface arrived WITH their checks, so a row present on a later record was
-# written by an author who knew one would read it and a malformed value is
-# carelessness. This row has existed since draft 0.5 with nothing reading it,
-# so a value written before this landed was never held to a vocabulary at
-# all -- refusing those would fail records for a rule that did not exist when
-# they were written. Absent, empty and unreadable alike print for an item
-# begun before the cutoff.
-NEEDS_FROM = 1788472135
-# What ran this segment (issue #137): the agent and the model, as
-# `agent on model`. A record says what its round was ASKED and which commit
-# it looked at, and said nothing about what executed it -- a fact that lives
-# in a transcript and nowhere else once the session ends.
-RAN_BY = "Ran by"
-# The honest answer where the session cannot name a model. Agent definitions
-# pin none -- it is a spawn-time argument -- so a session spawning through
-# another harness may have no name for one, and a vocabulary offering only
-# the confident answer is one that gets the confident answer written whether
-# or not it is true. The reason is required, exactly as it is after `nobody`.
-UNKNOWN_WORD = "unknown"
-# What joins the two halves. A WORD and not a punctuation mark, and that is
-# the decision rather than a spelling: `;` inside a code span split a
-# `Contract changes` entry (round 2, 🔴 1) and `|` inside one split a memo
-# table row, both on the two work items before this one. A separator that is
-# a word cannot split a cell, so the whole class is absent by construction
-# instead of avoided by care.
-ON_WORD = "on"
-# Whitespace on BOTH sides, so the `on` inside `python` or `carbon` is not a
-# separator. Case-folded because the cell is prose a person types.
-ON_RE = re.compile(r"\s+" + ON_WORD + r"\s+", re.IGNORECASE)
-# Where the row becomes required, as the unix second in a work item's
-# directory name -- the id of the work item that added it, so the first
-# records held to the rule are the ones written under it. The same shape and
-# the same reasoning as `STRICT_FROM`, `SURFACE_FROM` and `FLOOR_FROM` above,
-# which is where the reasoning lives rather than being written a fourth time.
-RUNNER_FROM = 1788491830
-# Where a record has to PRECEDE the fixes it commissioned (issue #150), as the
-# unix second in a work item's directory name -- the id of the work item that
-# added the rule, so the first records held to it are the ones written under
-# it. The fifth cutoff of the shape `STRICT_FROM`, `SURFACE_FROM`,
-# `FLOOR_FROM`, `NEEDS_FROM` and `RUNNER_FROM` carry, and the reasoning lives
-# at `STRICT_FROM` rather than being written a fifth time: a merged record has
-# no honest repair -- nobody can commit it earlier now -- and a check whose
-# first production act is red on history nobody can fix is a check people
-# learn to skip.
-#
-# A second grandfathering rides along without needing a constant, and it is
-# `added_on_branch`'s: a record that arrived before the base has no adding
-# commit on this branch, so nothing is claimed about it at all.
-ORDER_FROM = 1788501054
-# The reason `templates/sdd-round.md` prints for a fix-surface row while the
-# round is still running, and the value `ORDER_FROM` made the STARTING value
-# of every record: a record now has to be committed before its fixes exist,
-# so `Contract changes` and `New units` cannot be filled when it is written.
-# Nothing required the second step, and `says_none` accepts a reason, so a
-# record that never got the reach-back reads exactly like one that did --
-# which is this work item's own title produced by this work item (round 2,
-# 🟡 6).
-#
-# One spelling, here rather than in the template, so the two cannot drift:
-# `tests/test_a_record_precedes_the_fixes_it_commissions.py` reads this
-# constant and asserts the template shows it.
-NOT_YET = "the fixes are not yet written"
-# Where the floor's reopening becomes ONE (issue #161), as the unix second in
-# a work item's directory name -- the id of the work item that added the
-# rule, so the first records held to it are the ones written under it. The
-# seventh cutoff of the shape `STRICT_FROM` through `ORDER_FROM` carry, and
-# the reasoning lives at `STRICT_FROM` rather than being written a seventh
-# time: a merged record has no honest repair -- the repair for a run that
-# reopened twice is a round that was never spawned, which nobody can write
-# now -- and a check whose first production act is red on history nobody can
-# fix is a check people learn to skip.
-#
-# What it bounds: after a record that met the floor, at most one later
-# record may close on a fix. The floor's count stops at the first such
-# record and restarts there, because every reopening record is itself a
-# record that met the floor, so the chain was unbounded by construction --
-# fifteen rounds on the branch before this one, with the exception used by
-# every verifying round of it.
-REOPEN_FROM = 1788597030
-# The row that records the ONE full-suite run, and the value meaning it has
-# not happened. Both used to live in `round_record.py` under a comment
-# reading *"Field labels the checker has no constant for, because it never
-# reads them"* -- true when it was written, and `grep -n broad
-# chain_check.py` matched no line at all until #295. They live here now
-# because the reader is what needs a name to be stable: two copies drift the
-# moment either script renames the row, and the drift is SILENT in the
-# direction that matters -- the writer keeps writing a row the reader no
-# longer finds, and this arm reads a missing row as `no run was named`.
-BROAD_GATE = "Broad gate"
-GATE_NOT_YET = "not yet"
-# The cell's OTHER home, for a work item that ran no rounds. A declaration
-# reading `straight to the PR` still takes the broad run — the sealer's act is
-# not the reviewer's — and it had nowhere to put the stamp: the cell lives on
-# the last round record, and there is no round record. So it lives in a file
-# of its own, holding that row alone.
-#
-# Named for the COMMAND that writes it, not for the seal. `bin/broad-gate` is
-# the command and `Broad gate` is the cell, so no new word enters the
-# vocabulary; a bare `seal.md` would be the word that already names the
-# warden's review mark, the sealer's stamp and the smith's proof block, which
-# is the collision `tests/test_one_word_one_meaning.py` exists for.
-BROAD_GATE_FILE = "broad-gate.md"
-# Where the cell becomes readable, as the unix second in a work item's
-# directory name -- the id of the work item that added it, so the first
-# records held to the rule are the ones written under it. The eighth cutoff
-# of the shape `STRICT_FROM` through `REOPEN_FROM` carry, and the reasoning
-# lives at `STRICT_FROM` rather than being written an eighth time.
-#
-# **This one is not optional in the way the others were, and the arithmetic
-# says so.** The seven above grandfather records that could not have met a
-# rule that did not exist yet. This one grandfathers records that MET the
-# rule and could not say so: `round_record.py` has written `not yet` into
-# every record it ever generated, so an arm reading the cell without a cutoff
-# is red on every work item in the tree and on every one currently in flight
-# -- including, when this was built, one whose rounds were running in another
-# checkout of the same clone.
-GATE_FROM = 1788912166
-# The same cutoff for the cell's other home. 16 declarations in this
-# repository answer `straight to the PR` and not one of them carries a
-# `broad-gate.md`, because the file did not exist — and a release pull request
-# carries every work item the release adds, so an arm with no cutoff refuses a
-# release for work nobody could have sealed. Set to the id of the work item
-# that added the file, so the first declarations held to it are the ones
-# written under it.
-DIRECT_GATE_FROM = 1789518345
-# The exit the refusal names, in one spelling. A refusal that names no exit
-# is a wall, and this one's exit is four cells and a pull-request line.
-CAPPED_EXIT = (
-    f"the run is `capped` — every finding still open becomes an issue, its "
-    f"verdict reads `{DEFERRED} #N`, the record's `{CHECKED_BY}` reads "
-    f"`{NO_FIXES}`, and the pull request says `chain: capped`"
+# The old spellings, and the label each one means now.
+OLD_LABELS = {
+    "fix of a fix": REGRESSION,
+    "refixes": REGRESSION,
+    "target sha": RECORD_TARGET,
+}
+# `target:`'s value: the reviewed commit, against the base a first look
+# reviewed it from, or the fix range a verifying round read.
+TARGET_VALUE = re.compile(
+    r"^([0-9a-f]{7,40})"
+    r"(?: against [\w./-]*\w|, fixes [0-9a-f]{7,40}\.\.[0-9a-f]{7,40})$"
 )
-# A fix of a fix (#823): an open finding of round K that lands inside a
-# top-level unit round K-1's fixes added or changed. WRITTEN by
-# `round_record.py new`, which derives it from round K-1's `Fix range` and
-# `New units` and the report's open `Location`s; READ by `fix_of_a_fix` below,
-# which counts the rows as declared and never re-derives a landing -- after a
-# squash the fix commits are gone and nothing at the pull request could.
-#
-# Three values. `no` is every round 1 and every record after a `second`;
-# `first — <where>` is the first landing of a run; `second — <where>; …` is
-# the second, and it stops the fix passes: the work item goes back to its
-# framer. `skills/code-review/orchestration.md` §*A fix of a fix twice sends
-# the work item back to its framer* owns the rule and why the count is two
-# against the 3+ Fix Rule's three.
-FIX_OF_A_FIX = "Fix of a fix"
-FOF_NO = "no"
-FOF_FIRST = "first"
-FOF_SECOND = "second"
-# The sentence a `second` row carries after its landings, in one spelling for
-# the writer and the reader.
-FOF_STOPS = "the fix passes stop here and the work item goes back to its framer"
-# Where the row becomes required, as the unix second in a work item's directory
-# name -- the id of the work item that added it, so the first records held to
-# it are the ones written under it. The reasoning is `STRICT_FROM`'s and is not
-# written an eleventh time.
-REFRAME_FROM = 1791240747
-# The line a reframe adds at the foot of `spec.md`, under the `Framed` line:
-# who redrew the frame, and after which round's `second`. It is the permit for
-# the records after that `second`, and it lives where the `Framed` line already
-# proves a framer ran (`plan.md` Alternatives E of #823).
-REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(\d+)\.$")
-# The exit a stop names, in one spelling, the way `CAPPED_EXIT` is one.
-REFRAME_EXIT = (
-    f"the work item goes back to its framer — no fix pass runs for this "
-    f"record: every finding still open closes `{DEFERRED} the frame`, the "
-    f"record's `{CHECKED_BY}` reads `{NO_FIXES}`, the pull request says "
-    f"`chain: reframed`, and the framer is spawned with the run's round "
-    f"records. A `Reframed <date> by <who>, after round <N>.` line at the "
-    f"foot of `spec.md` is what lets the records after this one be written"
+TARGET_SHAPES = "`<sha> against <base>` or `<sha>, fixes <a>..<b>`"
+# `location:`'s value: one or more backticked `path`, `path:line` or
+# `path:first-last`, joined by `, `, the path relative to the root. A path
+# holds no `#`, so a `path#unit` coordinate is refused rather than read as a
+# file named `path#unit`.
+COORDINATE_ITEM = r"`[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`"
+COORDINATE = re.compile(r"`([^`\s:/#][^`\s:#]*)(?::[0-9]+(?:-[0-9]+)?)?`")
+LOCATION_VALUE = re.compile(COORDINATE_ITEM + r"(?:, " + COORDINATE_ITEM + r")*")
+# A reference to an earlier finding, or to an earlier round's fix pass.
+REFERENCE = re.compile(r"round-([1-9][0-9]*)(?:#([1-9][0-9]*))?")
+REFERENCE_SPELLING = "`round-<N>#<n>`"
+# One finding as `findings` read it: the line of its `verdict:`, its heading
+# and the heading's number, the verdict, the paths of its `location:`, its
+# `regression:` reference and its `reopens:` reference, each with that
+# line's number, where it has one, and the line of its heading.
+Finding = collections.namedtuple(
+    "Finding",
+    "line heading number verdict paths regression regression_line reopens "
+    "reopens_line heading_line",
 )
-# A note (#837): the `#` cell's ⬜, the reviewer's mark for a finding that
-# reads badly while the behaviour and the fact stay right
-# (`skills/code-review/SKILL.md` §*Findings format*). A note commissions
-# nothing while the run runs and closes once at its end, through
-# `round_record.py notes`; `NOTES_OWNER` names where the rule is stated.
-NOTE = "\N{WHITE LARGE SQUARE}"
-# Where a note closed on a fix word becomes an error, as the unix second in a
-# work item's directory name. NOT the id of the work item that added the rule,
-# which is what the other cutoffs use: the release batch #837 shipped in was
-# framed in one sitting, 1791384152 through 1791384162, and each item of it
-# runs its rounds under the installed 0.20.0 `close`, which demands a
-# fix-table row for a ⬜ and admits `fixed` -- #858's round 1 closed three
-# that way and #864's two. One past the batch (round 1's 🟡 2 of #837).
-#
-# WHAT IT ASSUMES: that no item of that release is framed after the batch.
-# The owner fixed the release's scope at the batch on 2026-10-08, and the
-# rule holds while that does. An item framed later for the same release
-# would pass this id and still run under the previous `close`, so whoever
-# frames one moves this cutoff past its id in the same change (round 2's
-# 🟡 1 of #837). The reasoning is otherwise `STRICT_FROM`'s. Measured
-# 2026-10-07: 35 ⬜ rows of 14 committed records closed `fixed` before it,
-# and they print.
-NOTES_FROM = 1791384163
-NOTES_OWNER = (
-    "`skills/code-review/orchestration.md` §*A note closes once, at the "
-    "run's end* owns the rule"
+# Which line a finding naming an earlier one takes, for the refusal of a
+# finding holding both.
+ONE_RELATION = (
+    f"a finding carries one of `{REGRESSION}` and `{REOPENS}`: `{REGRESSION}` "
+    f"where a fix pass's own commit made the defect, `{REOPENS}` where an "
+    "earlier close does not hold otherwise"
 )
-# What a note's id is once the marker in front of it is off: digits alone,
-# the language `round_record.py`'s `FINDING_ID_RE` keys a row by.
-NOTE_ID_RE = re.compile(r"\d+")
-# `templates/sdd-round.md:12` and `docs/review-handoff-protocol.md:84` both say
-# the Target SHA cell may name BOTH commits when HEAD moved mid-review. The
-# whole cell used to be handed to `merge-base` as one ref, so the documented
-# form could not resolve and no round record has ever been able to use it —
-# which is how `round-2.md` came to name a tree that did not hold the fixes it
-# recorded as made. Every SHA-shaped word in the cell is checked, so a second
-# one is not somewhere to hide a commit.
+# One record as `channel` reads it: its path and number, its findings, the
+# numbers of every `### <n>. ` heading it holds, its `confirms:` references,
+# and the commit its `target:` line names.
+Round = collections.namedtuple("Round", "path number findings held confirms target")
+OPEN = "open"
+FIXED = "fixed"
+REJECTED = "rejected"
+DEFERRED = "deferred"
+# `fixed <commit>`: seven to forty lowercase hex digits and nothing after;
+# `deferred <home>`: a home after the word, beginning and ending with a
+# character that is not a space.
+FIXED_VALUE = re.compile(r"^fixed ([0-9a-f]{7,40})$")
+DEFERRED_VALUE = re.compile(r"^deferred (\S(?:.*\S)?)$")
+SHAPES = "`open`, `fixed <commit>`, `rejected` or `deferred <home>`"
+ANSWERS = "`fixed <commit>`, `rejected` or `deferred <home>`"
+COORDINATES = (
+    "one or more of `path`, `path:line` or `path:first-last`, each "
+    "backticked, joined by `, `"
+)
+REFERENCES = f"{REFERENCE_SPELLING} or `round-<N>`"
+NO_FINDINGS = (
+    f"no `{FINDINGS_HEADING}` section: a round record holds one, with a "
+    "`### ` section and one `verdict:` line per finding"
+)
+TWO_FINDINGS = f"a second `{FINDINGS_HEADING}` section; a round record holds one"
+OUTSIDE = (
+    "a `{label}` line outside a finding: the check reads one inside each "
+    f"`### ` section of `{FINDINGS_HEADING}`, and none elsewhere"
+)
+CONFIRMS_OUTSIDE = (
+    f"a `{CONFIRMS}` line outside `{CONFIRMATIONS_HEADING}`: the check reads "
+    "one there, and none elsewhere"
+)
+CONFIRMATIONS_TABLE = (
+    f"a table row in `{CONFIRMATIONS_HEADING}`: each entry is a `{CONFIRMS}` "
+    "line at the start of a line, then its prose"
+)
+TWO_CONFIRMATIONS = (
+    f"a second `{CONFIRMATIONS_HEADING}` section; a round record holds one at most"
+)
+NO_TARGET = (
+    f"no `{RECORD_TARGET}` line: a round record names the commit it reviewed "
+    f"on one, at the start of a line, reading {TARGET_SHAPES}"
+)
+DASH = chr(0x2014)
+EMPHASIS = re.compile(r"[*_`]+")
+ISSUE_RE = re.compile(r"#(\d+)")
 SHA_RE = re.compile(r"\b[0-9a-f]{7,40}\b")
-# Where a reviewed commit still lives once the branch that carried it is gone.
-# GitHub writes the head of every pull request under `refs/pull/<N>/head` and
-# keeps it for as long as the pull request exists: a squash does not touch it,
-# and neither does deleting the branch. `.github/workflows/hygiene.yml` fetches
-# the namespace into `refs/remotes/pull/`, because a default clone has none of
-# it.
-PULL_HEADS = "refs/remotes/pull/"
-# The number in a round record's own `| PR |` row. `not yet opened` is the
-# honest value while the review runs and names no number, which is why nothing
-# here requires one.
-PR_FIELD = "PR"
-PR_RE = re.compile(r"#?(\d+)")
+
+MARK_RE = re.compile(r"^Framed\s+(.+?)\s+by\s+(.+?),\s+before the build\.$")
+REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(\d+)\.$")
+
+VERIFYING_ROUND = "a verifying round is owed"
+SEALING = "--sealing"
+SEALING_SAYS = (
+    f"{SEALING}: `{BROAD_GATE_FILE}` is the file this run writes and "
+    f"`{GUARANTEE_FILE}` the one the sealer writes after it, so their arms "
+    "print and do not fail"
+)
+UNSEEN_SAYS = (
+    "the pull request's state is unknown, and it is not judged as a ready "
+    "pull request; CI judges it from GitHub's payload"
+)
+GH_DRAFT = ["gh", "pr", "view", "--json", "isDraft"]
+GH_TIMEOUT = 30
+NO_PAYLOAD = "no pull-request event payload"
+REGULAR = ("100644", "100755")
+# A squash merge on GitHub: the server commits it, and the subject ends with
+# the number of the pull request it carried (`carried_by`).
+SQUASH_COMMITTER = "noreply@github.com"
+SQUASH_SUBJECT = re.compile(r"\(#\d+\)$")
+CARRIED_SAYS = (
+    "judged at its own pull request: {sha} `{subject}` squashed it onto this branch"
+)
 
 
 def load(path, name):
-    """Import a sibling script by path, or die — a missing reader is exit 2."""
+    """Import a sibling script by path, or raise SystemExit naming it.
+
+    Reads: observed — the file at `path`, imported; unknown refused"""
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         raise SystemExit(f"chain-check: cannot load {path}")
@@ -908,6 +258,9 @@ def load(path, name):
 
 
 def git(root, *args):
+    """`git -C root <args>`'s stdout, or None where git exited non-zero.
+
+    Reads: observed — git's output and exit code; unknown refused"""
     r = subprocess.run(
         ["git", "-C", root, *args],
         capture_output=True,
@@ -918,139 +271,126 @@ def git(root, *args):
     return r.stdout if r.returncode == 0 else None
 
 
-# `--worktree` (issue #161): read the records as the working tree holds them
-# rather than as `HEAD` carries them. Set once by `main` and read by the three
-# functions that answer "where do the bytes come from" -- `read_record`,
-# `changed` and `round_records` -- so the answer is one rule in three places
-# rather than a fourth reader. It is LOCAL ONLY: CI keeps the default, because
-# a working tree that differs from HEAD is what CI never sees and the more
-# permissive direction is the wrong one there (`read_record`'s docstring). It
-# exists for `round_record.py`, which writes a record and runs this check on
-# it BEFORE the commit; with the default the check read the previous commit
-# and three 🔴 of the last branch reached CI that way.
+# Set once by `main`: read the records from the working tree, not HEAD.
 WORKTREE = False
 
 
+NO_BLOB = re.compile(r"^0+$")
+
+
 def changed(root, base):
-    """Every path this pull request adds or changes, or None.
+    """`(paths, moved)` this pull request adds, changes or deletes, or None.
 
-    One diff, read twice below -- for the declarations and for the round
-    records. Two `git diff` calls against the same base would be two values
-    built by the same rule today and by two rules after the first edit to
-    either, which is the split this file keeps closing in other places.
+    Every path the diff `base...HEAD` names, read with `--no-renames`: the
+    check reads declarations, not file identity, so a deleted declaration
+    is never paired away with a similar added one. `moved` is both names of
+    every exact move — a deleted file whose bytes an added file of the same
+    name carries — which is what the root move of #90 does to every
+    declaration at once. Under `WORKTREE` the diff is against the working
+    tree and untracked files count as added.
 
-    Under `WORKTREE` the diff is against the working tree rather than `HEAD`,
-    from the same merge base `...` would pick, and untracked files count as
-    added: a record just written and not yet staged is exactly the file the
-    flag exists to see.
-
-    `-z` for the same reason `tracked_files` uses it two functions down. Without
-    it `core.quotePath` (on by default) wraps and octal-escapes any path holding
-    non-ASCII, a quote or a backslash, and `round_records` builds its paths from
-    `ls-tree`, which never quotes. Round 1 caught the consequence by execution:
-    a work-item id containing `é` made the membership test at the per-record
-    decision fail, `refs` became None, and the reachability requirement
-    disappeared for a record the pull request had just added -- exit 1 on the
-    previous revision of this file, exit 0 on the one that introduced the test.
-    The line printed `already merged`, which is why it was invisible.
-
-    Returns `(paths, renamed)`: every path the diff names under its NEW name,
-    and the subset that arrived as an exact rename (`R100`). `--name-status`
-    with `-M` rather than `--name-only`, because a rename has two names and
-    `--name-only` printed the new one indistinguishably from an added file.
-    The root move to `seal/` renames every declaration in a repository at once,
-    and `changed_routing` needs to know which of the paths it sees are those.
-    """
+    Reads: observed — `git diff --raw -z --no-renames`; unknown refused"""
     if WORKTREE:
-        merge_base = git(root, "merge-base", base, "HEAD")
-        if merge_base is None:
+        fork = git(root, "merge-base", base, "HEAD")
+        if fork is None:
             return None
-        out = git(root, "diff", "--name-status", "-z", "-M", merge_base.strip())
+        out = git(
+            root, "diff", "--raw", "-z", "--no-renames", "--no-abbrev", fork.strip()
+        )
         untracked = git(root, "ls-files", "--others", "--exclude-standard", "-z")
         if out is None or untracked is None:
             return None
-        out += "".join(f"A\0{p}\0" for p in untracked.split("\0") if p)
+        out += "".join(f":0 0 0 0 A\0{p}\0" for p in untracked.split("\0") if p)
     else:
-        out = git(root, "diff", "--name-status", "-z", "-M", f"{base}...HEAD")
+        out = git(
+            root, "diff", "--raw", "-z", "--no-renames", "--no-abbrev", f"{base}...HEAD"
+        )
     if out is None:
         return None
     fields = out.split("\0")
-    paths, renamed = [], set()
-    i = 0
-    while i < len(fields):
-        status = fields[i]
-        if not status:
-            i += 1
+    paths, deleted, added = [], {}, []
+    for i in range(0, len(fields) - 1, 2):
+        meta = fields[i].split()
+        if len(meta) < 5:
             continue
-        if status[0] in "RC":
-            # A rename or a copy carries two names; the second is the one
-            # the tree holds now, and the one every reader below opens.
-            if i + 2 >= len(fields):
-                break
-            new = fields[i + 2]
-            paths.append(new)
-            if status == "R100":
-                renamed.add(new)
-            i += 3
+        path = fields[i + 1]
+        paths.append(path)
+        if meta[4] == "D":
+            deleted.setdefault(os.path.basename(path), {})[meta[2]] = path
+        elif meta[4] == "A":
+            added.append((path, meta[3]))
+    moved = set()
+    for path, blob in added:
+        same_name = deleted.get(os.path.basename(path))
+        if not same_name:
             continue
-        if i + 1 >= len(fields):
-            break
-        paths.append(fields[i + 1])
-        i += 2
-    return paths, renamed
+        if NO_BLOB.match(blob):
+            hashed = git(root, "hash-object", "--", path)
+            blob = hashed.strip() if hashed else blob
+        if blob in same_name:
+            moved.update((path, same_name[blob]))
+    return paths, moved
 
 
-def changed_routing(paths, renamed, work_items):
-    """Routing declarations this pull request adds or changes.
+def changed_routing(paths, moved, work_items):
+    """The routing declarations among `paths` that were not only moved.
 
-    Never one it only renamed. The root move to `seal/` (`specs/<id>/` into
-    `seal/specs/<id>/`) renames every declaration in the repository, and each
-    shows up in the diff under its new path exactly as an added one would.
-    Judging them would put every released work item under review on the
-    pull request that moved it, each needing its round records' Target SHA
-    to resolve — a declaration the pull request only moved is not one it
-    made. A rename that also EDITED the file (`R` below 100) is judged: the
-    edit is the pull request's own.
-
-    `work_items` is `routing.WORK_ITEMS`, passed in rather than spelled here,
-    so the prefix has one spelling.
-    """
+    Reads: nothing — filters the paths `changed` handed it"""
     return sorted(
         p
         for p in paths
         if p.startswith(f"{work_items}/")
         and os.path.basename(p) == "routing.md"
-        and p not in renamed
+        and p not in moved
     )
 
 
-# What git calls a plain file. An allow-list rather than a deny-list, so a
-# mode nobody anticipated is excluded rather than admitted -- `120000` is a
-# symbolic link and `160000` a submodule, and neither is a record.
-REGULAR = ("100644", "100755")
+def carried_by(root, base, rel):
+    """`(commit, subject)` of the squash that carried `rel` onto this branch
+    for another pull request, or None where this pull request's own commits
+    changed it.
+
+    A declaration is judged at the pull request that carries it. Where every
+    commit after `base` touching `rel` is a squash merge GitHub committed —
+    committer `noreply@github.com`, subject ending `(#N)` — the declaration
+    reached this branch inside that pull request, which judged it; the newest
+    such commit is returned. Any other commit, an uncommitted change under
+    `WORKTREE`, no commit at all, or git failing leaves it this pull
+    request's.
+
+    Reads: observed — `git log`'s committer and subject; unknown refused"""
+    if WORKTREE:
+        dirty = git(root, "status", "--porcelain", "--", rel)
+        if dirty is None or dirty.strip():
+            return None
+    out = git(
+        root,
+        "log",
+        "--no-merges",
+        "-z",
+        "--format=%H%x1f%ce%x1f%s",
+        f"{base}..HEAD",
+        "--",
+        rel,
+    )
+    commits = [e.split("\x1f") for e in (out or "").split("\0") if e.strip()]
+    if not commits:
+        return None
+    for entry in commits:
+        if (
+            len(entry) != 3
+            or entry[1].strip().lower() != SQUASH_COMMITTER
+            or not SQUASH_SUBJECT.search(entry[2].strip())
+        ):
+            return None
+    return commits[0][0].strip(), commits[0][2].strip()
 
 
-def tracked_files(root, item):
-    """Filenames git carries directly in `item` as regular files.
+def tracked_files(root, where):
+    """The regular files git carries directly in `where` at HEAD, by name.
 
-    `os.listdir` was the rule here, and it answered a question git had not
-    been asked. Everything else in this check comes from git -- the
-    declarations from `git diff`, the ancestry from `merge-base` -- so two
-    values built by two rules were being compared. Both halves of that were
-    reachable, and both were reproduced against a scratch repository:
-
-      an untracked `round-1.md` counted as this pull request's evidence,
-      exit 0, when CI would never have seen the file at all
-
-      a tracked symbolic link `round-3.md` pointing at a clean `round-1.md`
-      turned exit 1 into exit 0, with the failing `round-2.md` committed and
-      sitting between them, unread
-
-    The second one is the sharper of the two, because the LAST round is the
-    one whose verdict speaks: anything that can add a name at the end of the
-    sort decides which file gets read.
-    """
-    out = git(root, "ls-tree", "-z", "HEAD", "--", f"{item}/")
+    Reads: observed — `git ls-tree -z HEAD`; unknown refused"""
+    out = git(root, "ls-tree", "-z", "HEAD", "--", f"{where}/")
     if out is None:
         return []
     names = []
@@ -1059,58 +399,33 @@ def tracked_files(root, item):
             continue
         meta, _, path = entry.partition("\t")
         parts = meta.split()
-        if len(parts) < 3 or parts[0] not in REGULAR:
-            continue
-        names.append(os.path.basename(path))
+        if len(parts) >= 3 and parts[0] in REGULAR:
+            names.append(os.path.basename(path))
     return names
 
 
-def worktree_files(root, item):
-    """Filenames the working tree holds directly in `item` as regular files.
+def worktree_files(root, where):
+    """The regular files directly in `where` on disk, symbolic links excluded.
 
-    `tracked_files`'s twin for `WORKTREE`, with the same allow-list drawn the
-    filesystem's way: a symbolic link is refused there by mode and here by
-    `islink`, so a link at the end of the sort cannot decide which record is
-    read under either flag.
-    """
+    Reads: observed — the directory listing; unknown refused"""
+    base = os.path.join(root, *where.split("/"))
     try:
-        names = os.listdir(os.path.join(root, *item.split("/")))
+        names = os.listdir(base)
     except OSError:
         return []
     return [
         n
         for n in names
-        for p in [os.path.join(root, *item.split("/"), n)]
-        if os.path.isfile(p) and not os.path.islink(p)
+        if os.path.isfile(os.path.join(base, n))
+        and not os.path.islink(os.path.join(base, n))
     ]
 
 
 def read_record(root, rel):
-    """The file as git carries it at HEAD, or None.
+    """The file as git carries it at HEAD, or on disk under `WORKTREE`; None
+    where there is none.
 
-    The name comes from `ls-tree`, so the content has to come from the same
-    place. It did not: round 2 moved the NAMES to git and left `open()` where
-    it was, so the check still built two values by two rules -- one line
-    later. Both halves were reproduced:
-
-      a record committed with a blocking finding open, edited on disk to read
-      `fixed` and never committed, exited 0
-
-      a working tree holding a clean copy where git carries a failing
-      `round-2.md` folded the failing record out of the list entirely
-
-    A working tree that differs from HEAD is exactly what CI never sees and a
-    local run always can, which makes the local run the more permissive of
-    the two -- the wrong direction for the only enforcement left.
-
-    `--worktree` reads the file on disk instead, for a check run on a record
-    BEFORE its commit; CI never passes it (see `WORKTREE`). It decodes the
-    bytes as the HEAD read does, replacing what is not UTF-8, so the two
-    modes read one file the same way and neither raises (#867 round 1,
-    🟡 5: a strict read raised `UnicodeDecodeError` out of the whole check).
-    `seal/config.md` is not read here: `config_at_head` reads it strictly,
-    because a config is a set of rows whose loss is a refusal, not a record.
-    """
+    Reads: observed — `git show HEAD:<rel>` or the file; unknown refused"""
     if WORKTREE:
         try:
             with open(
@@ -1122,187 +437,41 @@ def read_record(root, rel):
     return git(root, "show", f"HEAD:{rel}")
 
 
-def config_at_head(root, rel, config):
-    """`(text, refusal)` for `seal/config.md` as this check reads a record —
-    HEAD's blob, or the file on disk under `--worktree` — told apart into
-    the states `hooks/config.py#config_text` tells apart (#867 round 1,
-    🟡 5): nothing there is `(None, None)`; a blob or file that will not read
-    as UTF-8 text, or a tree at that path, is `(None, CONFIG's sentence)`.
-    CONFIG is the loaded `hooks/config.py`. Before this the pact notices read
-    the config by `read_record`'s lenient decode at HEAD and raised under
-    `--worktree`."""
-    if WORKTREE:
-        return config.config_text(os.path.dirname(os.path.join(root, *rel.split("/"))))
-    spec = f"HEAD:{rel}"
-    kind = git(root, "cat-file", "-t", spec)
-    if kind is None:
-        return None, None
-    where = f"{rel} at HEAD"
-    if kind.strip() != "blob":
-        return None, config.unreadable_config(
-            where, OSError(0, f"a {kind.strip()} in git, not a file")
-        )
-    out = subprocess.run(
-        ["git", "-C", root, "cat-file", "blob", spec], capture_output=True
-    )
-    if out.returncode != 0:
-        return None, config.unreadable_config(
-            where, OSError(0, out.stderr.decode("utf-8", "replace").strip())
-        )
-    try:
-        return out.stdout.decode("utf-8"), None
-    except UnicodeDecodeError as undecodable:
-        return None, config.unreadable_config(where, undecodable)
-
-
 def round_records(routing, root, item):
-    """`seal/specs/<id>/rounds/round-*.md` git actually carries, highest round last.
+    """`<item>/rounds/round-N.md` git carries, lowest round first.
 
-    `rounds/` rather than the work item's own directory: `round-N` is the one
-    member of the SDD set that is plural and unbounded, and the structure
-    should say which member grows. `tracked_files` is asked for the
-    subdirectory rather than filtered afterwards, because `ls-tree` without
-    `-r` reports `rounds` itself as a tree and the mode filter drops it --
-    which is exactly the silent nothing `stray_records` below exists to stop
-    being the only answer.
-
-    Ordered by `routing.round_number`, which is where that rule lives: this
-    file and `hooks/routing.py` used to sort by two rules, and the docstring
-    here called the other one a defect instead of removing it.
-
-    Nothing is folded by realpath any more. That fold was `unverified_check.py`'s
-    `unique_by_target`, and it resolved WORKING-TREE paths -- which stopped
-    being what this counts once the content came from git. It was not merely
-    redundant beside the mode filter: a worktree holding a clean copy where
-    git carries a failing record folded the failing one away, which is the
-    same exit-0 the link case produced, reached from the other side.
-    """
-    found = []
+    Reads: observed — the listing `tracked_files` or `worktree_files` returns; unknown refused"""
     where = f"{item}/{routing.ROUNDS_DIR}"
-    for n in worktree_files(root, where) if WORKTREE else tracked_files(root, where):
-        number = routing.round_number(n)
-        if number is not None:
-            # `/`, not `os.path.join`. Every consumer of this path is git or
-            # something built from git: `read_record` spends it as
-            # `git show HEAD:<rel>`, and the membership test in `main`
-            # compares it against `git diff --name-only`. On Windows the
-            # join spelled the separator \ for both, and git accepts and
-            # prints only `/` -- so the record git carries could not be read,
-            # and, one line further on, the record this pull request had just
-            # ADDED tested as one it did not touch, which drops the
-            # reachability requirement entirely. Same shape as the
-            # `core.quotePath` defect `changed` describes: two spellings of
-            # one path, and the quiet half is the dangerous one.
-            found.append((number, f"{where}/{n}"))
-    return [rel for _, rel in sorted(found)]
-
-
-def rounds_unreadable(routing, root, item):
-    """True when git carries `rounds` as a BLOB rather than a tree.
-
-    The filesystem twin is `hooks/routing.py:rounds_unreadable`, and round 2
-    found it shipped without this one: the hook named the state and the pull
-    request check did not, so one repository was told two different things
-    about one tree.
-
-    What it costs when missing is the message this file's own header calls
-    *true, and indistinguishable from a work item that skipped its review* --
-    and worse here than in the hook, because the `mkdir` that message then
-    prescribes fails with `File exists`, leaving no next step at all.
-
-    Git is asked for the entry's TYPE rather than run through
-    `tracked_files`, whose mode allow-list is `100644`/`100755`. A symbolic
-    link is `120000` and fell straight through that, which put this reader
-    and the hook back on opposite answers for one tree -- the state this
-    function was added for, reappearing inside the fix for it.
-    """
-    out = git(root, "ls-tree", "-z", "HEAD", "--", f"{item}/{routing.ROUNDS_DIR}")
-    if not out:
-        return False
-    for entry in out.split("\0"):
-        if not entry:
-            continue
-        meta, _, path = entry.partition("\t")
-        fields = meta.split()
-        if len(fields) >= 2 and os.path.basename(path) == routing.ROUNDS_DIR:
-            return fields[1] != "tree"
-    return False
-
-
-def stray_records(routing, root, item):
-    """`round-N.md` git carries at the work item's TOP level, lowest first.
-
-    Records nothing reads. The flat location is where every record in every
-    repository sat before `rounds/`, and no fallback ships: a permanent dual
-    read would put two places to look in the reader four gates import, and an
-    expiry nothing enforces is a comment.
-
-    So the cost of refusing the fallback is paid here instead. Without this,
-    a repository that updated the plugin and moved nothing would fail its
-    pull request with `holds no round-N.md` -- true, useless, and
-    indistinguishable from a work item that skipped its review. The caller
-    turns this list into a message naming the file and the destination, which
-    is the entire migration path this release ships.
-    """
+    listed = worktree_files(root, where) if WORKTREE else tracked_files(root, where)
     found = []
-    for n in tracked_files(root, item):
-        number = routing.round_number(n)
+    for name in listed:
+        number = routing.round_number(name)
         if number is not None:
-            found.append((number, f"{item}/{n}"))
+            found.append((number, f"{where}/{name}"))
     return [rel for _, rel in sorted(found)]
+
+
+def event_payload_present():
+    """True where `GITHUB_EVENT_PATH` names a file.
+
+    Reads: observed — the environment and the file's existence; unknown passed"""
+    path = os.environ.get("GITHUB_EVENT_PATH")
+    return bool(path) and os.path.exists(path)
 
 
 def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
     """(`draft` | `ready` | `unknown`, where that was read from).
 
-    Two observed sources, in order, and never an assumed one (#866):
+    The event payload GitHub writes is the answer wherever it exists; with
+    none, `gh pr view` is asked in `root`. A payload that cannot answer is
+    `unknown`, which `main` judges as ready, so a harness fault is never the
+    quiet way past the check.
 
-      the event payload   GitHub writes it to disk, and it is already this
-                          workflow's authority for `github.base_ref` two steps
-                          above this one. It needs no network, no token and no
-                          `gh` on PATH, so where it exists it is the answer,
-                          whatever it says
-      `gh pr view`        asked in ROOT only where there is no payload at all
-                          -- a run outside a workflow, which is every local
-                          run of this check and every run `round_record.py`
-                          and the broad gate make (`pull_request_from_gh`)
-
-    The generator and the broad gate used to answer the second question
-    themselves and hand this check a DRAFT payload whenever `gh` was absent,
-    failed or said draft, so on a machine without `gh` every local run was a
-    draft and a draft excuses the unchecked `Pass`, the empty `rounds/`, the
-    `nobody` beside `Pass` and the `Broad gate` cell. That was the override
-    rejected below, written as a file instead of a flag. The question moved
-    in here, and the payload writers left.
-
-    `unknown` is a payload that cannot answer, or no payload and no `gh` that
-    can, and the two are judged differently (`main`, round 1's 🟡 1 of #866):
-
-      a payload that   judged as a READY pull request. A payload exists
-      cannot answer    where GitHub ran the workflow, so one that will not
-                       parse or names no boolean draft is a harness fault,
-                       and reading it as a draft would make that fault the
-                       quietest way past this check
-      no payload, and  read as UNKNOWN and not judged as a ready pull
-      no `gh` answer   request. Nobody observed a pull request: before the
-                       draft opens, on a route that stops before one, with
-                       no `gh`. Judging that as ready was a guess, and it
-                       failed a correct mid-run record on every round. The
-                       reader that decides is CI, which always has
-                       GitHub's payload
-
-    A `--draft` flag was considered for the local case and rejected: an
-    override anyone can type is the same hole with a name. What the unknown
-    state must not do is pass in SILENCE, so the line above the verdict
-    prints which state was read and every source tried.
-
-    `which` and `run` are parameters so a case can stand in for `gh`; ROOT
-    None asks nothing, for a caller with no repository to ask about.
-    """
+    Reads: observed — the event payload's JSON, or `gh`'s; unknown refused"""
     path = os.environ.get("GITHUB_EVENT_PATH")
     if not path or not os.path.exists(path):
         if root is None:
-            return "unknown", "no pull-request event payload"
+            return "unknown", NO_PAYLOAD
         return pull_request_from_gh(root, which, run)
     try:
         with open(path, encoding="utf-8") as f:
@@ -1313,11 +482,6 @@ def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
     if not isinstance(pr, dict) or "draft" not in pr:
         return "unknown", "the event payload names no pull request"
     if not isinstance(pr["draft"], bool):
-        # Every non-empty string is truthy, so `"draft": "false"` read as a
-        # draft -- and a draft is excused the checked `Pass`. Anything that is
-        # not the boolean the schema promises drops to `unknown`, which is
-        # judged as READY, so a malformed payload cannot be quieter than a
-        # well-formed one.
         return "unknown", (
             f"the event payload's `draft` is {type(pr['draft']).__name__}, "
             "not a boolean"
@@ -1325,45 +489,14 @@ def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
     return ("draft" if pr["draft"] else "ready"), path
 
 
-# The question `pull_request_from_gh` asks, and how long it waits. The call is
-# the one `round_record.py` made before #866 moved it here: the branch checked
-# out in the repository, its pull request, the one field.
-GH_DRAFT = ["gh", "pr", "view", "--json", "isDraft"]
-GH_TIMEOUT = 30
-NO_PAYLOAD = "no pull-request event payload"
-# The state line for a pull request nobody observed (round 1's 🟡 1 of #866).
-UNSEEN_SAYS = (
-    "the pull request's state is unknown, and it is not judged as a ready "
-    "pull request; CI judges it from GitHub's payload"
-)
-
-
-def event_payload_present():
-    """True where `GITHUB_EVENT_PATH` names a file: the run GitHub started,
-    whose payload is the answer whatever it says (`pull_request_state`)."""
-    path = os.environ.get("GITHUB_EVENT_PATH")
-    return bool(path) and os.path.exists(path)
-
-
 def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
     """(`draft` | `ready` | `unknown`, where) from `gh pr view --json isDraft`.
 
-    The second source of `pull_request_state`, asked only where no payload
-    exists. Measured 2026-10-08 (`questions.md` M1): a draft prints
-    `{"isDraft":true}` and a ready one `{"isDraft":false}`, both at exit 0;
-    no remote, no pull request for the branch, and a token GitHub refuses
-    each exit 1 with one line on stderr. Every exit but 0, an answer that is
-    not a JSON object with a boolean `isDraft`, a `gh` that will not run and
-    no `gh` on PATH are `unknown`, and the `where` says which, so the line
-    the check prints names what was tried.
-    """
+    Reads: observed — `gh`'s exit code and JSON; unknown refused"""
     found = which(GH_DRAFT[0])
     if found is None:
         return "unknown", f"{NO_PAYLOAD}, and no `gh` on PATH to ask"
     try:
-        # The path `which` found, not the bare name: on Windows a `gh` that
-        # is a `.cmd` is found by `which` through PATHEXT and not by the
-        # process call, which looks for an `.exe`.
         r = run(
             [found, *GH_DRAFT[1:]],
             cwd=root,
@@ -1394,9 +527,9 @@ def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
 
 
 def fields(rows, label):
-    """The value of every `| label | value |` row, in the order they stand
-    (#866). One reader of how many times a record carries a label, for
-    `field` here and for the duplicate refusal (`doubled_fields`)."""
+    """The value of every `| label | value |` row, in order.
+
+    Reads: owned — table rows `table_rows` split; unknown passed"""
     return [
         cells[1].strip()
         for cells in rows
@@ -1405,70 +538,18 @@ def fields(rows, label):
 
 
 def field(rows, label):
-    """The value of the one `| label | value |` row, or None — where the row
-    is absent, and where it stands more than once (#866).
+    """The value of the one `| label | value |` row, or None where it is
+    absent or stands more than once.
 
-    It used to take the first row and say nothing about a second, while the
-    generator refused anything but one (`round_record.py#field_index`). The
-    strict reading wins at both ends: a doubled label answers nothing here,
-    and `doubled_fields` names it as an error, so every arm that reads the
-    cell sees one answer and the record is told why."""
+    Reads: owned — table rows `table_rows` split; unknown refused"""
     found = fields(rows, label)
     return found[0] if len(found) == 1 else None
 
 
-_heading_reader = None
-
-
-def heading_level(line):
-    """The level of the ATX heading LINE is, or None: the one spelling of a
-    markdown heading, `unverified_check.py#heading_level` (#867), loaded at
-    the first line asked. The lines it is asked of are `readable`'s, so a
-    fence has already been blanked.
-
-    It used to be `startswith("#")` with a depth, so a wrapped line
-    beginning `#120)` at column 0 was a level-1 heading and ended a
-    `## Verdicts` section above the rows under it — the permissive direction
-    on the one kind of record this checker exists for, since `open_blocking`
-    then saw no open 🔴 below that line."""
-    global _heading_reader
-    if _heading_reader is None:
-        _heading_reader = load(READER, "specseal_unverified_reader_for_headings")
-    return _heading_reader.heading_level(line)
-
-
-def section_end(lines, start):
-    """The index of the line that ends the section opened at `start`, or
-    `len(lines)` where nothing does.
-
-    A section ends at the first heading of its own level or shallower, and a
-    deeper heading is INSIDE it (#505). Every reader of a section's end in
-    this file and in `round_record.py` reads by this one definition: the
-    generator's `section_body` and the section-end scan inside its
-    `swallowed` reach it through `chain.section_end`, and `verdict_table`
-    below reads a record's `## Verdicts` by it. It used to end at any line
-    starting with `#` in all three, and the survivor sweep over the
-    generator's fix found this file's copy of the loop: a `###` a hand edit
-    put between the verdict header and an open 🔴 row placed the row outside
-    the section, `open_blocking` saw no blocker, and a checked `Pass` beside
-    it passed — the permissive direction, on the one kind of record the
-    checker exists for.
-
-    A `##` inside a section is still an end, as it always was; the one shape
-    that changes is the deeper heading, and a `####` under a `###` under the
-    section is inside it for the same reason, because the rule is *same
-    level or shallower ends it* and not *one level deeper is allowed*.
-    """
-    level = heading_level(lines[start]) or 1
-    for i in range(start + 1, len(lines)):
-        found = heading_level(lines[i])
-        if found is not None and found <= level:
-            return i
-    return len(lines)
-
-
 def table_rows(reader, lines):
-    """Every table row in already-`readable` lines, as lists of cells."""
+    """Every table row in already-`readable` lines, as lists of cells.
+
+    Reads: owned — markdown table rows, through the shared reader; unknown passed"""
     out = []
     for line in lines:
         cells = reader.split_row(line)
@@ -1477,1515 +558,684 @@ def table_rows(reader, lines):
     return out
 
 
-def tracked_declarations(root, routing):
-    """(path, parsed) for every `seal/specs/<id>/routing.md` git carries at HEAD.
+def section_end(reader, lines, start):
+    """The index of the line that ends the section opened at `start`: the
+    first heading of its level or shallower, else `len(lines)`.
 
-    `routing.declarations` walks the working tree, which is right where it is
-    called from -- a hook fires before the commit, and an uncommitted
-    declaration is what the author just wrote. It is wrong here for the same
-    reason `os.listdir` was wrong for the round records: CI has no working
-    tree that differs from HEAD, so a check that reads one is more permissive
-    locally than in the place it actually runs.
-
-    The vocabulary still comes from `routing.parse` rather than being written
-    again -- what changed is where the bytes come from, not who reads them.
-    """
-    out = git(root, "ls-tree", "-r", "-z", "HEAD", "--", f"{routing.WORK_ITEMS}/")
-    if out is None:
-        return []
-    found = []
-    for entry in out.split("\0"):
-        if not entry:
-            continue
-        meta, _, path = entry.partition("\t")
-        parts = meta.split()
-        if len(parts) < 3 or parts[0] not in REGULAR:
-            continue
-        if os.path.basename(path) != routing.FILENAME:
-            continue
-        text = read_record(root, path)
-        if text is None:
-            continue
-        parsed = routing.parse(text)
-        if parsed:
-            found.append((path, parsed))
-    return found
+    Reads: owned — headings, through the shared reader's `heading_level`; unknown passed"""
+    level = reader.heading_level(lines[start]) or 1
+    for i in range(start + 1, len(lines)):
+        found = reader.heading_level(lines[i])
+        if found is not None and found <= level:
+            return i
+    return len(lines)
 
 
-def declared_for_this_branch(root, routing):
-    """(declarations, why there are none) for the branch this run is on.
+def verdict_of(value):
+    """`(kind, its commit or home)` for one `verdict:` value, or None.
 
-    `changed_routing` reads what this pull request CHANGED, so a pull request
-    that adds only round records to a work item declared in an earlier one
-    found nothing and printed *this pull request declared neither way* — a
-    sentence about a tree that is holding the declaration right there.
+    The four shapes, read as written and nothing else: `open`, `rejected`,
+    `fixed <commit>` with seven to forty lowercase hex digits, and
+    `deferred <home>`. A different case, emphasis, a trailing word or mark,
+    a bare `fixed` or `deferred` is None, which the arm refuses by name.
 
-    The key is the branch, which is what `routing.for_branch` already uses at
-    the commit: one key read at two sites rather than a second rule that
-    drifts from the first. In a workflow the branch is `GITHUB_HEAD_REF`,
-    because a pull-request checkout is a detached merge commit and has no
-    branch of its own to read.
-
-    The reason is returned rather than left to the caller to guess, because
-    the empty answers mean different things and one of them was being
-    reported as another: a detached HEAD with no `GITHUB_HEAD_REF` printed
-    *declared neither way* about a pull request that had declared, in a commit
-    further back. Widening the workflow's `types:` is what put that state
-    within reach, so it is answered in the same change.
-    """
-    branch = os.environ.get("GITHUB_HEAD_REF") or routing.current_branch(root)
-    if not branch:
-        return [], (
-            "the branch could not be read — a detached HEAD with no "
-            "GITHUB_HEAD_REF — so no declaration could be matched to one. "
-            "This is not a pull request that declared nothing; it is a run "
-            "that had no key to look one up by"
-        )
-    matching = [
-        p for p, d in tracked_declarations(root, routing) if d["branch"] == branch
-    ]
-    if len(matching) > 1:
-        return [], (
-            f"{len(matching)} committed declarations name `{branch}`, which is "
-            "not an answer — the same reading `routing.for_branch` takes at "
-            f"the commit: {', '.join(sorted(matching))}"
-        )
-    if not matching:
-        return [], nothing_declared(root, routing, branch)
-    return [matching[0]], ""
+    Reads: owned — one value `findings` cut from its line; unknown refused"""
+    if value in (OPEN, REJECTED):
+        return value, None
+    for kind, shape in ((FIXED, FIXED_VALUE), (DEFERRED, DEFERRED_VALUE)):
+        found = shape.match(value)
+        if found:
+            return kind, found.group(1)
+    return None
 
 
-def local_root(root, routing):
-    """The local-mode root of `root`, or "" when this repository is not in it.
+def deferred_home(value):
+    """The home a `deferred <home>` value names, or None.
 
-    Local mode is where the root sits under the common git directory and
-    nothing under it is committed (`skills/agent-contract/SKILL.md` §16). The
-    mode is read the way every gate reads it -- from WHERE THE FOLDER IS, with
-    no config key -- so this asks `optin.home_at` and compares its answer with
-    the shared place rather than deciding anything of its own.
-
-    `routing.optin` rather than a second load of that module. `hooks/routing.py`
-    imports it by plain name, so it is already in `sys.modules`, and loading it
-    again under a name of our own would leave two module objects answering one
-    question -- which is the split this file keeps closing elsewhere.
-    """
-    optin = routing.optin
-    # One `rev-parse --git-common-dir` for both readers. The same two calls in
-    # `hooks/mode-gate.py#marker_dir` cost that gate a `git` process on every
-    # Bash call; here it is once per check, and the shape is the same one.
-    common = optin.git_common_dir(root)
-    home = optin.home_at(root, common)
-    if not home:
-        return ""
-    shared, _local = optin.home_paths(root, common)
-    return "" if os.path.realpath(home) == os.path.realpath(shared) else home
-
-
-def nothing_declared(root, routing, branch):
-    """Why no committed declaration names `branch` — and where it was looked for.
-
-    Two states used to print one sentence, and the sentence was written for
-    only one of them. A shared-mode repository with no declaration is told to
-    write the file, which is right. A LOCAL-MODE repository was told the same
-    thing about a file it already had, at
-    `<git-common-dir>/seal/specs/<id>/routing.md`, because nothing there is
-    committed and this check reads what git carries. A false *no declaration*
-    is indistinguishable from a real one, and that distinction is the only
-    thing the gate gives (#225).
-
-    What does NOT change is the verdict. Naming the root does not turn an
-    untracked declaration into a checked one: `tracked_declarations` reads
-    HEAD on purpose, because CI sees nothing else, and reading the working
-    tree here would make the local run more permissive than the place this
-    actually runs. `spec.md` §*The sharp question* holds the argument.
-    """
-    home = local_root(root, routing)
-    if home:
-        return (
-            f"this repository keeps its root at {home} — local mode, where "
-            "nothing under the root is committed. So no routing declaration "
-            f"for `{branch}` can be read from what git carries, and the "
-            "review-chain check examined nothing. That is local mode's trade "
-            "rather than a missing file: the pull-request checks read "
-            "committed files. `seal mode shared` moves the root into the tree "
-            "and gets them running."
-        )
-    return (
-        "this pull request declared neither way, so the review-chain check "
-        f"examined nothing. Nothing git carries under `{routing.WORK_ITEMS}/` "
-        f"declares `{branch}`. Add {routing.WORK_ITEMS}/<work-item>/"
-        f"{routing.FILENAME} to declare."
-    )
-
-
-def is_ancestor(root, sha, ref):
-    r = subprocess.run(
-        ["git", "-C", root, "merge-base", "--is-ancestor", sha, ref],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    return r.returncode == 0
-
-
-def target_refs(reader, root, declared):
-    """Refs a round's Target SHA is allowed to be an ancestor of.
-
-    HEAD, and the branch the declaration names -- BOTH forms of it, remote and
-    local, each kept only if it resolves. Round 1 measured why neither shortcut
-    survives:
-
-      taking the first that resolves and stopping hid a local branch carrying
-      the reviewed commit behind a stale `origin/<branch>` that did not, and
-      the failure advised restoring a branch that was sitting right there
-
-      resolving the bare name let git's disambiguation order decide, and
-      `refs/tags/` beats `refs/heads/`. A tag and a branch both named `dup`
-      resolved to the TAG, and `merge-base --is-ancestor` followed it -- so a
-      tag carrying a commit nobody reviewed satisfied the check while the
-      branch's own commits were invisible. The bare name also accepts anything
-      git parses as a revision, and a `| Branch | main |` cell admitted every
-      commit on `main`.
-
-    Fully qualified closes both. Nothing here reads the branch git happens to be
-    on: the declaration's `| Branch |` row is the work item's own statement of
-    where its rounds ran, and it is the same row `hooks/routing.py` matches a
-    commit against.
-    """
-    refs = ["HEAD"]
-    branch = declared.get("branch")
-    if branch:
-        for candidate in (f"refs/remotes/origin/{branch}", f"refs/heads/{branch}"):
-            if reader.resolves(root, candidate):
-                refs.append(candidate)
-    return refs
-
-
-def declared_pull_head(reader, root, rows):
-    """`[refs/remotes/pull/<N>/head]` for the number a record's `PR` row names.
-
-    The row is already in `templates/sdd-round.md`, and this gives it a second
-    job rather than asking anyone to write something new: where it names a
-    number, the reviewed commit has one exact place to be, and the failure
-    below can name it. It stays OPTIONAL -- a review that finishes before its
-    pull request opens writes `not yet opened`, which is the truth, and the
-    namespace scan in `reachable` covers that case without a number.
-    """
-    cell = field(rows, PR_FIELD) or ""
-    found = PR_RE.search(cell)
-    if not found:
-        return []
-    ref = f"{PULL_HEADS}{found.group(1)}/head"
-    return [ref] if reader.resolves(root, ref) else []
-
-
-def carried_by_a_pull_head(root, sha):
-    """The `refs/pull/<N>/head` carrying `sha`, or None.
-
-    The fallback that needs nothing written. One `for-each-ref`, so the cost
-    does not grow with a ref per call, and it is narrower than "any ref that
-    resolves": nothing but a pull request writes this namespace, so a tag
-    cannot satisfy the check through it -- which is the exact failure
-    `target_refs` records for resolving a bare name.
-
-    Returns None when the namespace was never fetched, and the caller's
-    message says so, because "not fetched" and "not there" are different
-    repairs and a check that confuses them sends people to restore a branch
-    that would not have helped.
-    """
-    r = subprocess.run(
-        [
-            "git",
-            "-C",
-            root,
-            "for-each-ref",
-            "--contains",
-            sha,
-            "--format=%(refname)",
-            PULL_HEADS,
-        ],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if r.returncode != 0:
-        return None
-    first = r.stdout.split("\n")[0].strip()
-    return first or None
-
-
-def reachable(root, sha, refs):
-    """(True, ref) for the first ref `sha` is an ancestor of, else (False, None)."""
-    for ref in refs:
-        if is_ancestor(root, sha, ref):
-            return True, ref
-    carrier = carried_by_a_pull_head(root, sha)
-    if carrier:
-        return True, carrier
-    return False, None
-
-
-def verdict_table(reader, lines, rel):
-    """(rows, the Verdict column's index, the header, errors) for `## Verdicts`.
-
-    Rows are `(line number, cells already run through `reader.visible`)`, with
-    the header and the separator dropped.
-
-    ONE parse, three questions now. Which blocking findings are still open was
-    the only one asked of this table until `Fixes checked by` arrived and
-    needed a second — whether anything here closed by writing a fix. A second
-    walk of the same markdown is exactly the split this file spends its
-    docstrings closing everywhere else, so the walk happens here and the
-    questions are asked of what it returns.
-
-    The HEADER is returned for the third (#427): a cell is located by the name
-    at the top of its column, and only the walk that already read that row
-    knows it. It comes back case-folded, the way it is compared here, and
-    empty for every early return — a table this could not read has no columns
-    to name.
-
-    The verdict table is located by its own heading and read with the shared
-    reader, so a 🔴 inside a comment or a fenced block is not a finding.
-    """
-    starts = reader.sections(lines, VERDICTS)
-    if not starts:
-        return (
-            [],
-            -1,
-            [],
-            [
-                (
-                    rel,
-                    0,
-                    f"no `{VERDICTS}` section — a round record without "
-                    "one says nothing about what it found",
-                )
-            ],
-        )
-    if len(starts) > 1:
-        return (
-            [],
-            -1,
-            [],
-            [(rel, starts[1] + 1, f"more than one `{VERDICTS}` section")],
-        )
-
-    start = starts[0]
-    # To `section_end`, not to any `#` (#505): a `###` a hand edit put inside
-    # the table would otherwise cut the rows below it out of the section,
-    # and a blocker among them out of `open_blocking`'s sight.
-    end = section_end(lines, start)
-    body = [(i + 1, lines[i]) for i in range(start + 1, end)]
-
-    rows = [(n, reader.split_row(ln)) for n, ln in body if ln.strip()]
-    rows = [(n, c) for n, c in rows if c is not None]
-    if not rows:
-        return (
-            [],
-            -1,
-            [],
-            [
-                (
-                    rel,
-                    start + 1,
-                    f"`{VERDICTS}` holds no table — write the "
-                    "rows, or `none` with a header row and no findings",
-                )
-            ],
-        )
-
-    header = [reader.visible(c).casefold() for c in rows[0][1]]
-    if VERDICT_COLUMN.casefold() not in header:
-        return (
-            [],
-            -1,
-            header,
-            [
-                (
-                    rel,
-                    rows[0][0],
-                    f"the verdict table has no `{VERDICT_COLUMN}` "
-                    f"column; its header is |{'|'.join(rows[0][1])}|",
-                )
-            ],
-        )
-    col = header.index(VERDICT_COLUMN.casefold())
-
-    seen_rows, errors = [], []
-    for line_no, cells in rows[1:]:
-        seen = [reader.visible(c) for c in cells]
-        if reader.is_separator(seen):
-            continue
-        if [c.casefold() for c in seen] == header:
-            # A second table's header under a `###` inside the section, or
-            # one pasted by hand (round 1's 🟡 3): a row that names the
-            # columns is not a verdict row, and read as one it carried a `#`
-            # cell reading `#` and a verdict reading `Verdict`, which
-            # nothing downstream refuses. Skipped the way the separator is.
-            continue
-        if len(cells) <= col:
-            errors.append(
-                (
-                    rel,
-                    line_no,
-                    f"{len(cells)} cells, and the `{VERDICT_COLUMN}` column is "
-                    f"number {col + 1}",
-                )
-            )
-            continue
-        seen_rows.append((line_no, seen))
-    return seen_rows, col, header, errors
-
-
-def verdict_of(seen, col):
-    """One row's verdict cell, normalized the way `CLOSED_WORDS` is spelled.
-
-    The sets are spelled bare and the records are not. Every closed verdict
-    this repository has ever written reads `**fixed**`, usually with the
-    commit that closed it beside the word, so a normalizer that lowercased and
-    stripped a full stop recognised none of them. What that cost is both
-    directions of the same gap: `closed_with_a_fix` answered False on every
-    record in the repository, so the one refusal separating an honest `nobody`
-    from a silent pass never ran, and `open_blocking` read a 🔴 legitimately
-    closed as `**fixed** `sha`` as still open.
-
-    Two layers come off and then the vocabulary is matched as a PREFIX:
-
-      emphasis   `**fixed**`, `` `fixed` `` — `EMPHASIS`
-      the stop   a trailing full stop
-      the head   the first word of `VOCAB` the cell BEGINS with, ended by a
-                 space or a comma, so `fixed d3fe44d` and `fixed deadbee` are
-                 both `fixed` and neither has to be recognised as a commit
-
-    Reading only the head of the cell is what keeps the other direction safe.
-    `answered, and **sharpened** in `96a1ae3` — …` begins with `answered,` and
-    stops there, so a long `answered` cell that mentions a fix does not read
-    as one — where a reader scanning the whole cell for a fix word would have
-    found one.
-
-    The boundary is what makes it a word rather than a prefix of one. Without
-    it `not a defect` would swallow `not a defective reading`, and the two are
-    opposite verdicts. Anything the vocabulary does not begin the cell with
-    comes back as the normalized cell itself, which is in neither set and
-    therefore counts OPEN — `not fixed` included, which is the direction this
-    whole file takes for a cell it cannot read.
-
-    A word in `HOME_WORDS` is matched the same way and then asked one more
-    thing: is there anything after it. `deferred #170` and `deferred
-    seal/follow-up.md` are `deferred`; a bare `deferred` — nothing after the
-    word, or only a separator — comes back as `deferred (no home)`, which is
-    in neither set and counts OPEN. The cell says something was left and not
-    where, and that is the same state a `nobody` with no reason is refused
-    for.
-    """
-    s = EMPHASIS.sub("", seen[col]).lower().strip().rstrip(".").strip()
-    head = MARKER.sub("", s)
-    if head:
-        s = head
-    for word in VOCAB:
-        if s == word or s.startswith(word + " ") or s.startswith(word + ","):
-            if word in HOME_WORDS and not s[len(word) :].strip(SEPARATORS):
-                return f"{word} {NO_HOME}"
-            return word
-    return s
-
-
-# Where a deferral's home ends and a note begins: a space, an em dash, a
-# space -- the join `round_record.py close` writes between a home and the
-# fix pass's note, and the one the generator's prose uses. Built by codepoint
-# for the reason `SEPARATORS` gives.
-DASH = chr(0x2014)
-HOME_END = f" {DASH} "
-# The marks a home's TEXT loses: a code span's backticks, asterisks, and an
-# underscore only at a word's edge, so `tests/test_x.py` keeps its name
-# (round 2's 🟡 2 of #666). `EMPHASIS` removes every underscore, which is
-# right for matching a verdict WORD and wrong for the file a deferral names;
-# the word is still matched by `verdict_of`, through `EMPHASIS`.
-HOME_MARKS = re.compile(r"`|\*+|(?<!\w)_+|_+(?!\w)")
-# A home that names an issue and nothing else.
-ISSUE_RE = re.compile(r"#(\d+)")
-# The verdict word at the head of a deferral cell as written: any marker or
-# emphasis before it and emphasis after it, so the note behind the home can
-# be cut from the cell as written and keep its marks (round 1's 🟡 4).
-DEFERRED_HEAD_RE = re.compile(r"^\W*?[*_`]*" + DEFERRED + r"[*_`]*", re.IGNORECASE)
-
-
-def deferred_parts(cell):
-    """(home, note) for a `deferred <home>` verdict cell, or (None, "").
-
-    ONE reader of where a deferral went (#866), for the broad gate's panel,
-    the release seal and the fix table `close` applies, which read the same
-    cell three ways before: the panel searched the rest for the first issue
-    or path, the release seal counted every `#N` anywhere in the cell, and
-    the fix table took the whole rest of the cell as the home.
-
-    The grammar is the writer's. `close` writes `deferred <home>` and joins a
-    note behind it with `HOME_END`; `new` writes `deferred the frame`. So:
-
-      the word    matched by `verdict_of`, and only a cell it calls
-                  `deferred` has a home -- a bare `deferred`, or the word and
-                  a separator, is `deferred (no home)` and answers None
-      the home    what follows the word and its `SEPARATORS` up to the first
-                  `HOME_END` or the end of the cell, with `HOME_MARKS` and a
-                  trailing stop taken off, in the case it was written in
-      the note    what follows that `HOME_END`, as written: the marks are
-                  the home's to lose and never the note's, because `close`
-                  writes the note into a Grounds cell (round 1's 🟡 4)
-
-    Nothing searches the home for an issue or a path: `deferred to #664` has
-    the home `to #664`, which names no issue (`issue_of`), and that is what
-    the cell says. `docs/review-chain-spec.md` §*The reopening — one, and
-    then the run is capped* states the rule.
-    """
-    if verdict_of([cell], 0) != DEFERRED:
-        return None, ""
-    cell = cell.strip()
-    head = DEFERRED_HEAD_RE.match(cell)
-    if head is None:
-        return None, ""
-    rest = cell[head.end() :].strip(SEPARATORS)
-    home, _cut, note = rest.partition(HOME_END)
-    home = HOME_MARKS.sub("", home).strip().rstrip(".").strip()
-    return (home or None), (note.strip() if home else "")
-
-
-def deferred_home(cell):
-    """The home a `deferred <home>` verdict cell names, or None
-    (`deferred_parts`)."""
-    return deferred_parts(cell)[0]
+    Reads: owned — through `verdict_of`; unknown refused"""
+    verdict = verdict_of(value)
+    return verdict[1] if verdict and verdict[0] == DEFERRED else None
 
 
 def issue_of(home):
-    """N where a deferral's home is exactly `#N`, and None otherwise (#866).
+    """N where a deferral's home is exactly `#N`, else None.
 
-    `deferred_home`'s answer is the input, so an issue is recognised in the
-    home the writer wrote and never searched for in prose around it."""
+    Reads: guess — a home `deferred_home` read; unknown refused"""
     found = ISSUE_RE.fullmatch(home or "")
     return int(found.group(1)) if found else None
 
 
-def open_blocking(reader, lines, rel):
-    """(rows, errors) — the rows the last round left open, each labelled.
+def location_of(value):
+    """The paths one `location:` value names, in order, or None.
 
-    A row is here when a 🔴 appears anywhere in it and its verdict is not a
-    closing word. That is the set this has always refused and it is unchanged:
-    `verified` is outside `CLOSED_WORDS`, and an unrecognised verdict counting
-    as closed is the tolerant read the comment above that set says this whole
-    file exists to refuse.
+    One or more backticked `path`, `path:line` or `path:first-last` items
+    joined by `, `, each path relative to the root. A bare `:617`, a path
+    with no backticks, a URL, an absolute path, a `path#unit`, emphasis
+    around an item, a trailing word or mark, or an empty value is None,
+    which the arm refuses by name.
 
-    **What is new is the fourth field, and it is read from the `#` cell** —
-    the way the second field already is (#408). `BLOCKING in "".join(seen)`
-    asks whether a 🔴 appears ANYWHERE in the row, and naming what an earlier
-    round found is exactly what a carried-forward closure is for, so a 🟢 row
-    whose Finding or Grounds quotes an earlier 🔴 was announced as a blocking
-    finding in a sentence that then printed `🟢` as the row. One sentence,
-    two severities, and the reader who took it at its word went looking for a
-    🔴 that is not there.
+    Reads: owned — one value `findings` cut from its line; unknown refused"""
+    if not LOCATION_VALUE.fullmatch(value):
+        return None
+    return [m.group(1) for m in COORDINATE.finditer(value)]
 
-    So the label says which complaint the caller has to print. Reading the
-    severity from the `#` cell and stopping there was the other repair
-    available, and it is the one that would let a row whose verdict the
-    vocabulary does not hold stop being refused at all.
-    """
-    rows, col, _header, errors = verdict_table(reader, lines, rel)
-    if col < 0:
-        return [], errors
-    still_open = [
-        (
-            line_no,
-            seen[0] or f"row at line {line_no}",
-            verdict_of(seen, col),
-            BLOCKING in seen[0],
-        )
-        for line_no, seen in rows
-        if BLOCKING in "".join(seen) and verdict_of(seen, col) not in CLOSED_WORDS
+
+def reference_of(value):
+    """`(round, finding)` for `round-<N>#<n>`, `(round, None)` for
+    `round-<N>`, or None.
+
+    In that spelling and no other: a different case, a space, a leading
+    zero, emphasis, a trailing mark or a second reference is None.
+
+    Reads: owned — one `regression:`, `reopens:` or `confirms:` value; unknown refused"""
+    found = REFERENCE.fullmatch(value)
+    if not found:
+        return None
+    number = found.group(2)
+    return int(found.group(1)), int(number) if number else None
+
+
+def reopened_of(value):
+    """`(round, finding)` for `round-<N>#<n>`, or None: `reference_of`'s
+    reading, with `round-<N>` alone refused, since a close is a finding's
+    verdict and a fix pass no finding named closed nothing to reopen.
+
+    Reads: owned — one `reopens:` value; unknown refused"""
+    reference = reference_of(value)
+    return reference if reference and reference[1] is not None else None
+
+
+def finding_spans(reader, lines):
+    """`((start, end), [(first, stop)], error)` for the one `## Findings`
+    section of already-`readable` lines: where it stands, and each `### `
+    section in it, from its heading to the next. `error` is the refusal for
+    a record with no such section or two, and the spans are then empty.
+
+    Reads: owned — headings, through the shared reader; unknown refused"""
+    starts = reader.sections(lines, FINDINGS_HEADING)
+    if not starts:
+        return None, [], (0, NO_FINDINGS)
+    if len(starts) > 1:
+        return None, [], (starts[1] + 1, TWO_FINDINGS)
+    start = starts[0]
+    end = section_end(reader, lines, start)
+    heads = [
+        i
+        for i in range(start + 1, end)
+        if reader.heading_level(lines[i]) == FINDING_LEVEL
     ]
-    return still_open, errors
+    return (start, end), list(zip(heads, [*heads[1:], end], strict=False)), None
 
 
-def open_row_reason(what, verdict, blocking):
-    """Why one row of `open_blocking` fails the pull request.
+def finding_number(heading):
+    """The `n` of a `### <n>. ` heading, or None.
 
-    Two arms, because the reader who is stopped has to know which of the two
-    things is wrong (#408). Both refuse the row; they differ in what they
-    send the reader to look at.
-
-      blocking   the `#` cell carries 🔴 and the verdict does not close it.
-                 The finding itself is what stands.
-      otherwise  a 🔴 somewhere in the row other than its `#` cell, beside a
-                 verdict that does not close the row. TWO things put it here
-                 and the message names both, because either one is a way out.
-
-    **The marker is named as a marker and not as a quote** (round 2's ⬜ 3).
-    The selection is `BLOCKING in "".join(seen)`, so what routes a row here is
-    a 🔴 in any cell but the first — which is usually an earlier round's
-    finding quoted in the Grounds, and is not always: it can be this round's
-    own marker written into the Finding or Location cell, and it can be a 🔴
-    that quotes no finding at all. Three such shapes were measured, and the
-    remedy the message offers works in all three, so the old clause
-    misattributed rather than misdirected. It is still the arm's own
-    explanation of itself, so it says what it can check.
-
-    **And the verdict is described by what it is not, not by a vocabulary**
-    (round 2's ⬜ 4). The sentence dropped *outside the vocabulary* for saying
-    that about `open` and then called the same word *an unrecognised verdict*
-    one clause later. `not one of the words that close a row` is the accurate
-    spelling and it was already there.
-
-    The second arm **says nothing about 🔴**, because the 🔴 in such a row
-    belongs to a round that is over, and sending a reader to look for a
-    blocking finding that is not there is the cost this arm exists to stop
-    paying.
-
-    **It does not say the verdict word is outside a vocabulary, which is
-    round 1's 🟡 1.** The split is keyed on the `#` cell while the SELECTION
-    is still a 🔴 anywhere in the row, so this arm fires on rows it was not
-    naming: `open` reaches it — the word `agents/warden.md` prescribes, which
-    the first arm above prints back as `` this 🔴 row reads `open` `` — and
-    one word got two explanations in one run. The rule it stated was not the
-    rule this file holds either: a 🟢 row reading `verified` that quotes no
-    🔴 is not selected at all, so the same word passes one row and is refused
-    the next. What differs is the quote, which is why the quote is named
-    first.
-    """
-    if blocking:
-        return (
-            f"`Pass` is checked, and this {BLOCKING} row reads "
-            f"`{verdict or 'empty'}` — a blocking finding that is not fixed, "
-            f"answered or withdrawn: {what}"
-        )
-    named = ", ".join(f"`{word}`" for word in sorted(CLOSED_WORDS))
-    return (
-        "`Pass` is checked, and this row is read as open because one of its "
-        "cells carries a blocking marker, while its own verdict reads "
-        f"`{verdict or 'empty'}` — not one of the words that close a row: "
-        f"{named}. Nothing here says the finding was closed, and a verdict "
-        "counted as closed without being one of those words is the tolerant "
-        "read this file exists to refuse. Write one of those words, drop the "
-        f"marker, or leave `Pass` unchecked: {what}"
-    )
+    Reads: owned — one heading `finding_spans` found; unknown refused"""
+    found = FINDING_NUMBER.match(heading)
+    return int(found.group(1)) if found else None
 
 
-def closed_with_a_fix(reader, lines, rel):
-    """True when a verdict here closed its finding by WRITING something.
+def misspelt(line):
+    """The label `line` means and is not spelt as, or None: `regression:`
+    for the old `fix of a fix` and `refixes`, `target:` for the old
+    `Target SHA`, else the label itself.
 
-    `answered`, `withdrawn` and `not a defect` close a finding and produce no
-    code, so a record holding only those has nothing for a later round to
-    open and `no fixes to check` is the truth. A record holding one `fixed`
-    does not, and that is the only combination this exists to refuse.
-
-    A table this cannot read answers False. The unreadable table is already an
-    error from `open_blocking`, and raising a second one about a cell nobody
-    could locate would name a cause that is not the cause.
-    """
-    rows, col, _header, _errors = verdict_table(reader, lines, rel)
-    if col < 0:
-        return False
-    return any(verdict_of(seen, col) in FIX_WORDS for _line, seen in rows)
+    Reads: owned — one readable line; unknown refused"""
+    found = MISSPELT_LABEL.match(line)
+    if not found or EXACT_LABEL.match(line):
+        return None
+    word = " ".join(found.group(1).lower().split())
+    return OLD_LABELS.get(word, f"{word}:")
 
 
-def note_rows(rows, col):
-    """[(line, id, open)] for the numbered rows whose `#` cell carries ⬜ (#837).
+def confirmations_span(reader, lines):
+    """The indexes of every line under a `## Confirmations` heading.
 
-    `rows` is `(line, cells already run through `reader.visible`)` — the
-    shape `verdict_table` returns, and the shape `round_record.py` builds
-    from its own table walk — and `col` is the Verdict column. `open` is the
-    verdict's reading through `verdict_of`, so a note is open exactly when any
-    other row would be.
+    Reads: owned — headings, through the shared reader; unknown passed"""
+    return {
+        i
+        for start in reader.sections(lines, CONFIRMATIONS_HEADING)
+        for i in range(start, section_end(reader, lines, start))
+    }
 
-    **The marker in the `#` cell is the whole test**, the one the reviewer
-    writes: `MARKER` takes the run of non-word characters off the front, the
-    ⬜ has to be among them, and what is left has to be digits. A bare ⬜ with
-    no id commissions nothing by `docs/round-record-spec.md` §*A verdict row
-    that commissions nothing* and is not a note anybody owes an answer. The
-    `Location` cell is not read: a note located in code is a note, and a 🟡
-    located in a record is the reviewer's 🟡 (`spec.md` of #837, Scope 2).
-    """
-    out = []
-    for line, seen in rows:
-        cell = seen[0].strip() if seen else ""
-        found = MARKER.match(cell)
-        if found is None or NOTE not in found.group(0):
+
+def findings(reader, lines, rel):
+    """`([Finding], errors)` for a record's findings.
+
+    `lines` are `reader.readable`'s, so a labelled line inside a fence or a
+    comment is no line. The one `## Findings` section is split at its `### `
+    headings, and each holds exactly one `verdict:` line, read by
+    `verdict_of`, exactly one `location:` line, read by `location_of`, and
+    at most one of a `regression:` line and a `reopens:` line, each read by
+    `reference_of`. Before any of it, a line anywhere in the record that
+    means one of the eight labels or an old spelling and is not spelt as the
+    label is refused, and a finding carrying one is not read past it.
+    Everything the reader cannot read is an error `(rel, line, why)` naming
+    the finding's heading, in line order: no `## Findings` section or two, a
+    heading with no number or with a number an earlier heading carries, a
+    finding with no `verdict:` or `location:` line or two of either, two
+    `regression:` lines, two `reopens:` lines, one of each (at the later),
+    a `reopens:` line naming a round alone, a value none of the three
+    readers can read, a finding's label outside a finding, a `confirms:` or
+    `target:` line inside one, a `confirms:` line outside
+    `## Confirmations`. A finding with an error is not in the list. Nothing
+    of a `severity:` or an `answer:` value is read.
+
+    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    _section, spans, error = finding_spans(reader, lines)
+    if error:
+        return [], [(rel, *error)]
+    inside = {i for first, stop in spans for i in range(first, stop)}
+    confirming = confirmations_span(reader, lines)
+    found, errors = [], []
+    for i, line in enumerate(lines):
+        if i in inside:
             continue
-        rest = cell[found.end() :].strip()
-        if not NOTE_ID_RE.fullmatch(rest):
-            continue
-        out.append((line, int(rest), verdict_of(seen, col) not in CLOSED_WORDS))
-    return out
-
-
-def fix_range(reader, root, rel):
-    """(errors, notices) for one record's `Fix range` row, read against git.
-
-    #344's class: a record is written once and the tree keeps moving, and
-    nothing read one against the other. The ledger has `evidence-check` for
-    exactly that job over content anchors; the records were left out of it,
-    and the part of a record that rots fastest is the part that is a claim
-    about COMMITS. The checker that reads such a claim has to be the one
-    already allowed to ask git, which is this one —
-    `skills/evidence-check/scripts/evidence_check.py` states the opposite bar
-    in its own test module, *no fixture here runs git, and no fixture here
-    may*.
-
-    TWO halves are read, because either alone passes the record the other
-    catches. The ENDS say which commits, and `round_record.parse_range`
-    refuses a `HEAD` at either of them, so a row written after this rule is
-    pinned by construction. The COUNT says how many, and it is what catches a
-    row a person wrote or repaired by hand: a range whose ends still resolve
-    while its count disagrees with the tree is what a moving end leaves
-    behind once it has stopped moving.
-
-    **Unresolvable ends are a NOTICE, and that is the squash.** This
-    repository merges a feature branch into its release branch by squashing,
-    which keeps none of the branch's own commits — so a merged record's fix
-    commits are ordinarily invisible, exactly as `resolves_to` says of the
-    reviewed commit. Failing there would fail every record the moment its
-    work shipped, and the record would have done nothing wrong. `Target SHA`
-    has `carried_by_a_pull_head` to fall back on; a range has no equivalent,
-    because a pull head carries the commits and not the arithmetic between
-    them.
-
-    **What this cannot see, written beside it.** A range both of whose ends
-    resolve and whose count is right can still be the wrong range — the
-    fixes may have landed somewhere else entirely. Nothing here compares the
-    range against the fixes; that is `fix_surface`'s measurement and it is
-    taken from this same range, so the two agree by construction rather than
-    by checking each other. What the row closes is narrower and is the thing
-    #344 measured: a range that stops meaning what it said.
-
-    The grandfathering is `item_began` against `RANGE_FROM` and it reaches
-    the ABSENT row alone, the way `fix_surface`'s reaches its own: a row that
-    is present and malformed fails on any record, because a cell nobody can
-    parse is always the author's to fix, where a row that did not exist when
-    the record was written is not.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return [], []
-    rows = table_rows(reader, reader.readable(text))
-    began = item_began(rel)
-    excused = began is None or began < RANGE_FROM
-    bought = (
-        "the range a round's fixes were measured over, as commits somebody "
-        "can open. A fix table states it in prose and `HEAD` is not a "
-        "commit — three records of one work item said a range that meant "
-        "something different by the time anybody read it. Write "
-        "`` `<a>..<b>`, N commits ``, or let `round-record close` write it"
-    )
-
-    cell = field(rows, FIX_RANGE)
-    if cell is None:
-        message = f"no `| {FIX_RANGE} | … |` row: {bought}"
-        if excused:
-            return [], [
+        label = misspelt(line)
+        exact = EXACT_LABEL.match(line)
+        if label:
+            errors.append((rel, i + 1, spelt_otherwise(label)))
+        elif exact and f"{exact.group(1)}:" in FINDING_LABELS:
+            errors.append((rel, i + 1, OUTSIDE.format(label=f"{exact.group(1)}:")))
+        elif exact and f"{exact.group(1)}:" == CONFIRMS and i not in confirming:
+            errors.append((rel, i + 1, CONFIRMS_OUTSIDE))
+    numbers = set()
+    for first, stop in spans:
+        heading = lines[first].strip()
+        number = finding_number(heading)
+        if number is None or number in numbers:
+            errors.append(
                 (
                     rel,
-                    0,
-                    message + f". Work items begun before {RANGE_FROM} are "
-                    "excused this and print instead — the row did not exist "
-                    "when the record was written, and the range it was "
-                    "measured over is not recoverable from a record that "
-                    "never stated it",
+                    first + 1,
+                    f"{heading} {DASH} "
+                    + (
+                        "no number: a finding's heading reads `### <n>. "
+                        "<symptom>`, and a later round names it by that `n`"
+                        if number is None
+                        else f"a second finding numbered {number}: a later "
+                        f"round's `round-<N>#{number}` would name both"
+                    ),
                 )
-            ]
-        return [(rel, 0, message)], []
-
-    value = reader.visible(cell).strip()
-    if not value:
-        return [
-            (
-                rel,
-                0,
-                f"`{FIX_RANGE}` is empty — a row that says nothing answers "
-                f"nothing. Write `` `<a>..<b>`, N commits ``, or `{NONE_WORD}`",
             )
-        ], []
-    if says_none(value):
-        # A round that commissioned no fixes has no range, and the value
-        # `new` writes before the fixes exist says so in the same words the
-        # two surface rows use. Nothing to read against the tree either way
-        # -- EXCEPT the pair `fix_surface` already refuses on its own rows
-        # (#436): `Fixes checked by` naming a later round says that round
-        # opened these fixes, so they exist, and a cell still saying they
-        # are not yet written is false about a fact the same file states.
-        # Three rows take that pending value from one line of `build`; two
-        # were read back for whether anybody replaced it and this one was
-        # not. Keyed on the same cell, normalized the same way, and behind
-        # `RANGE_FROM` rather than a cutoff of its own: the row has carried
-        # the pending value from birth since it shipped, so `ORDER_FROM`
-        # would excuse nothing this does not, and zero committed records at
-        # or after `RANGE_FROM` hold the pair (read 2026-09-23, 23 records).
-        checker = (
-            reader.visible(field(rows, CHECKED_BY) or "")
-            .strip()
-            .strip("`")
-            .strip()
-            .rstrip(".")
-            .lower()
-        )
-        if CHECKER_RE.match(checker) and says_not_yet(value):
-            message = (
-                f"`{FIX_RANGE}` still says the fixes are not yet written, "
-                f"and `{CHECKED_BY}` names `{checker}` — so a later round "
-                "opened those fixes and they exist. The cell contradicts "
-                f"its own file, the way `{NO_FIXES}` beside a `fixed` "
-                "verdict does. It is the starting value every record "
-                "carries, because a record is committed BEFORE its fixes; "
-                "what is missing is the `round-record close` that writes "
-                "the range they were measured over. Write "
-                f"`` `<a>..<b>`, N commits ``, or a bare `{NONE_WORD}` if "
-                "the round commissioned nothing"
-            )
-            if excused:
-                return [], [
-                    (
-                        rel,
-                        0,
-                        message + f". Work items begun before {RANGE_FROM} "
-                        "are excused this and print instead — the "
-                        "grandfathering the absent row already uses",
-                    )
-                ]
-            return [(rel, 0, message)], []
-        return [], []
-
-    found = FIX_RANGE_RE.search(value)
-    if found is None:
-        return [
-            (
-                rel,
-                0,
-                f"`{FIX_RANGE}` reads `{value}`, which does not state a range "
-                f"this can read. The shape is `` `<a>..<b>`, N commits `` with "
-                f"both ends written as commits — a branch, a tag, `HEAD` and "
-                f"`@` are names that move, and a range stated in one of them "
-                f"is the defect this row exists to close",
-            )
-        ], []
-
-    a, b, stated = found.group(1), found.group(2), int(found.group(3))
-    full_a, full_b = resolves_to(root, a), resolves_to(root, b)
-    if full_a is None or full_b is None:
-        missing = [end for end, full in ((a, full_a), (b, full_b)) if full is None]
-        return [], [
-            (
-                rel,
-                0,
-                f"`{FIX_RANGE}` names {' and '.join(missing)}, which this "
-                "repository cannot see, so its count is not checked. A "
-                "feature branch squashes into its release branch and the "
-                "squash keeps none of the branch's own commits — this is the "
-                "ordinary state of a merged record and not a fault in it",
-            )
+            continue
+        numbers.add(number)
+        said = [
+            (i, label) for i in range(first + 1, stop) if (label := misspelt(lines[i]))
         ]
-
-    counted = git(root, "rev-list", "--count", f"{full_a}..{full_b}")
-    if counted is None or not counted.strip().isdigit():
-        return [], [
-            (
-                rel,
-                0,
-                f"`{FIX_RANGE}` names two commits this repository carries and "
-                f"`git rev-list --count {a}..{b}` did not answer, so the "
-                "count is not checked",
+        if said:
+            errors.extend(
+                (rel, i + 1, spelt_otherwise(label, heading)) for i, label in said
             )
+            continue
+        elsewhere = [
+            (i, f"{exact.group(1)}:")
+            for i in range(first + 1, stop)
+            if (exact := EXACT_LABEL.match(lines[i]))
+            and f"{exact.group(1)}:" not in FINDING_LABELS
         ]
-    actual = int(counted.strip())
-    if actual != stated:
-        return [
-            (
-                rel,
-                0,
-                f"`{FIX_RANGE}` says {stated} commit"
-                f"{'' if stated == 1 else 's'} between `{a}` and `{b}`, and "
-                f"the tree holds {actual}. The record and the repository "
-                f"disagree about what this round's fixes were measured over, "
-                f"and the record is the one that cannot be re-derived. Read "
-                f"`git log --oneline {a}..{b}`, then correct the row to the "
-                f"range the fixes are actually in — and if the ends are what "
-                f"moved, they are what to correct rather than the number",
+        if elsewhere:
+            errors.extend(
+                (
+                    rel,
+                    i + 1,
+                    f"{heading} {DASH} a `{label}` line inside a finding: the "
+                    "check reads one outside every finding, and none in one",
+                )
+                for i, label in elsewhere
             )
-        ], []
-    return [], []
+            continue
+        found_here, errors_here = finding_of(lines, first, stop, heading, rel)
+        errors.extend(errors_here)
+        if not errors_here:
+            found.append(found_here)
+    errors.sort(key=lambda error: error[1])
+    return found, errors
 
 
-# What joins one close's grounds to the next, as `round_record.py close`
-# writes a re-close in front of the cell it already holds.
-CLOSE_JOIN = "; "
+def spelt_otherwise(label, heading=None):
+    """The refusal of a line that means `label` and is spelt another way.
+
+    Reads: nothing — formats the label its caller hands it"""
+    said = (
+        f"a label in another spelling: the check reads `{label}` at the start "
+        "of a line, lowercase, with no emphasis and one space after the colon"
+    )
+    return f"{heading} {DASH} {said}" if heading else said
 
 
-def close_prefixes(cell):
-    """The commits of the `fixed at <hex>` segments at the head of a Grounds
-    CELL, in the order `close` joined them (#866).
+def finding_of(lines, first, stop, heading, rel):
+    """`(Finding or None, errors)` for the `### ` section at `first`..`stop`.
 
-    `close` writes `fixed at <sha>[ — <note>]` and joins it in front of what
-    the cell held with `CLOSE_JOIN`, so its prefixes are the leading
-    segments that each begin `CLOSE_PREFIX_RE`; the first segment that does
-    not ends them, and prose after it is prose. `doubled_grounds` used to
-    search the whole cell, so a reviewer's grounds quoting *fixed at abc1234
-    in round 1* counted as a close. One reader for that refusal (two or
-    more) and for `close`'s own guard against a re-close (one or more).
-    A note holding `CLOSE_JOIN` ends the run early, so such a cell can read
-    as fewer closes than it holds — the permissive side, stated.
-    """
-    found = []
-    for segment in cell.split(CLOSE_JOIN):
-        head = CLOSE_PREFIX_RE.match(segment.strip())
-        if head is None:
-            break
-        found.append(head.group(1))
-    return found
-
-
-def doubled_grounds(reader, root, rel):
-    """(errors, notices) — a `Grounds` cell carrying `close`'s prefix twice.
-
-    The read half of #427. `round_record.py close` now refuses to write a
-    second prefix over a cell that already carries one, and that closes the
-    instance: it stops the next one. It does not make the ones already
-    committed readable, and the ticket is explicit that a repair which only
-    stops the second write has closed the instance and not the class. The
-    duplication is INVISIBLE — the record still parses, every other arm here
-    is silent, and the only way the original was caught was reading a
-    committed file against two earlier commits.
-
-    **No cutoff, and that is a decision rather than an omission.** Every other
-    rule this module added came with a `*_FROM` second, because a record
-    written before the rule has no honest repair and a check whose first act
-    is red on history people cannot fix is a check people learn to skip. This
-    one is not that shape. A doubled cell is not an absent row: it is a
-    present cell that says a thing twice, the repair is restoring it to what
-    the round's report holds, and that repair is available to whoever wrote
-    the record whenever it was written. `fix_surface` already draws this line
-    in the same words — the grandfathering reaches the ABSENT row, and a row
-    present and malformed fails on any record.
-
-    **It reports zero on this repository today, and that is disclosed rather
-    than sold as a catch.** Measured 2026-09-17 over `seal/specs/*/rounds/
-    round-N.md`: 229 files, 227 with a readable verdict table, 3331 `Grounds`
-    cells read, and **zero** carrying two prefixes. The one work item whose
-    record was corrupted this way had it repaired by hand before this arm
-    existed. So a green run here says nothing was found, not that this found
-    something, and the case that gives it a subject plants one.
-
-    **One of the three fix words has a shape to find, and this says so rather
-    than implying three.** `close` writes `fixed at <sha>` for `fixed` and the
-    author's own words for `answered` and `deferred`, so a standing duplicate
-    of either of those is indistinguishable from prose that repeats itself.
-    The generator's guard covers all three at the moment of writing, where
-    only this one survives into a committed record for a reader to find. What
-    that costs is stated: a record whose `answered` grounds were doubled
-    before the guard landed stays unreadable, and nothing here will name it.
-
-    An unreadable record returns nothing, for the reason `fix_surface` gives:
-    `checked_by` already reports that state, and a second error naming a
-    different cause would name a cause that is not the cause.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return [], []
-    lines = reader.readable(text)
-    rows, col, header, _errors = verdict_table(reader, lines, rel)
-    if col < 0 or GROUNDS_COLUMN.casefold() not in header:
-        return [], []
-    grounds = header.index(GROUNDS_COLUMN.casefold())
+    Reads: guess — one finding of the warden's record; unknown refused"""
     errors = []
-    for line_no, seen in rows:
-        if len(seen) <= grounds:
-            continue
-        found = close_prefixes(seen[grounds])
-        if len(found) < 2:
-            continue
-        what = seen[0].strip() or f"the row at line {line_no}"
+
+    def one(label, pattern, need):
+        said = [
+            (i, pattern.match(lines[i]).group(1) or "")
+            for i in range(first + 1, stop)
+            if pattern.match(lines[i])
+        ]
+        if need and not said:
+            errors.append(
+                (
+                    rel,
+                    first + 1,
+                    f"{heading} {DASH} no `{label}` line: a finding carries one, "
+                    f"at the start of a line and with no emphasis, reading {need}",
+                )
+            )
+        elif len(said) > 1:
+            errors.append(
+                (
+                    rel,
+                    said[1][0] + 1,
+                    f"{heading} {DASH} {len(said)} `{label}` lines; a finding "
+                    "carries one",
+                )
+            )
+        return said[0] if len(said) == 1 else None
+
+    def read(said, label, reading, shapes):
+        if said is None:
+            return None
+        i, value = said
+        got = reading(value)
+        if got is None:
+            errors.append(
+                (
+                    rel,
+                    i + 1,
+                    f"{heading} {DASH} reads `{label} {value}`, which the check "
+                    f"cannot read: {shapes}",
+                )
+            )
+        return got
+
+    verdict_line = one(VERDICT, VERDICT_LABEL, SHAPES)
+    location_line = one(LOCATION, LOCATION_LABEL, COORDINATES)
+    regression_line = one(REGRESSION, REGRESSION_LABEL, None)
+    reopens_line = one(REOPENS, REOPENS_LABEL, None)
+    verdict = read(verdict_line, VERDICT, verdict_of, f"a verdict is {SHAPES}")
+    paths = read(location_line, LOCATION, location_of, f"a location is {COORDINATES}")
+    regression = read(
+        regression_line, REGRESSION, reference_of, f"a reference is {REFERENCES}"
+    )
+    reopens = read(
+        reopens_line,
+        REOPENS,
+        reopened_of,
+        f"a reopened close is a finding's, so the reference is {REFERENCE_SPELLING}",
+    )
+    if regression_line and reopens_line:
         errors.append(
             (
                 rel,
-                line_no,
-                f"{what}'s `{GROUNDS_COLUMN}` cell carries `{CLOSE_PREFIX}` "
-                f"{len(found)} times — {', '.join(found)} — so this finding "
-                f"was closed more than once and each close wrote its grounds "
-                f"in front of the last. The cell reads as one sentence and is "
-                f"two, which is why nothing has said so until now. Restore it "
-                f"to the reviewer's grounds from this round's report, then "
-                f"re-run `round-record close` with the fix table, which now "
-                f"refuses to write a second prefix over the first",
+                max(regression_line[0], reopens_line[0]) + 1,
+                f"{heading} {DASH} a `{REGRESSION}` and a `{REOPENS}` line: "
+                + ONE_RELATION,
             )
         )
-    return errors, []
-
-
-def resolves_to(root, sha):
-    """The full commit `sha` names in this repository, or None.
-
-    None is *this repository cannot see it*, which after a squash is the
-    ordinary state of a reviewed commit rather than a fault. Everything built
-    on this treats None as "no claim", the way `check_round` already does for
-    a record the pull request does not touch.
-    """
-    r = subprocess.run(
-        ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{sha}^{{commit}}"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
+    if errors:
+        return None, errors
+    return (
+        Finding(
+            verdict_line[0] + 1,
+            heading,
+            finding_number(heading),
+            verdict,
+            paths,
+            regression,
+            regression_line[0] + 1 if regression_line else None,
+            reopens,
+            reopens_line[0] + 1 if reopens_line else None,
+            first + 1,
+        ),
+        [],
     )
-    return r.stdout.strip() or None
 
 
-def target_shas(reader, root, rel):
-    """Every SHA in one record's `Target SHA` row, in the order written.
+def unclosed(reader, text, rel):
+    """[(rel, line, why)] for a `<!--` comment or a fence in `text` that
+    never closes, at the line that opened it.
 
-    The row may name two — `templates/sdd-round.md` says so for a HEAD that
-    moved mid-review — and the order is what makes them usable: the first is
-    what the round opened, the last is the newest tree it saw.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return []
-    rows = table_rows(reader, reader.readable(text))
-    return SHA_RE.findall(field(rows, TARGET) or "")
+    `reader.readable` blanks such a region to the end of the file, so every
+    `### ` heading and `verdict:` line after it would vanish and the record
+    would read as having nothing open. The walk is `readable`'s own, in its
+    order: comments on the raw lines, then fences on what the comments left.
 
-
-def reviewed_later(reader, root, rel, rows, value, checker_rel):
-    """(errors,) — the named checker looked at something after this round did.
-
-    The round NUMBER being higher is not that fact. Two records can carry the
-    same `Target SHA`, and then round 2 reviewed the tree round 1 reviewed:
-    the fixes that closed round 1 were written after both, so round 2 cannot
-    have opened them however its file is numbered. Rounds are also cheap to
-    number and expensive to run.
-
-    Both sides are read at their NEWEST tree, which is `mine[-1]` and
-    `theirs[-1]`. `templates/sdd-round.md` lets the row name two SHAs — *both,
-    if HEAD moved mid-review* — and comparing the checker's newest against
-    this record's FIRST was a hole rather than a nicety: round 1 writing
-    `A and B` and round 2 writing `B` passed, where two records at one shared
-    SHA correctly failed. A round that read exactly what this round read has
-    seen nothing new, and how many SHAs each row happens to list does not
-    change that.
-
-    Only positively established inversions are refused, never an absence:
-
-      the same commit          both records' newest trees are one commit,
-                               compared as resolved commits where the
-                               repository still carries them and as the whole
-                               written sets where it does not
-      strictly earlier         the checker's newest tree is an ANCESTOR of
-                               this record's newest
-
-    Anything else passes, the unrelated-commit case included. A squash
-    discards the commits a round reviewed, so *cannot be compared* is the
-    ordinary state of a merged record and failing there would fail history
-    for being history.
-    """
-    mine = SHA_RE.findall(field(rows, TARGET) or "")
-    theirs = target_shas(reader, root, checker_rel)
-    if not mine or not theirs:
-        return []
-
-    same = f"`{CHECKED_BY}` names `{value}`, and that record reviewed the "
-    same += "same commit this one did. A round that looked at the same tree "
-    same += "cannot have opened the fixes that closed this round — those "
-    same += "were written after it ended. The number is later; the review "
-    same += "is not"
-
-    mine_head, theirs_head = resolves_to(root, mine[-1]), resolves_to(root, theirs[-1])
-    if mine_head is None or theirs_head is None:
-        return [(rel, 0, same)] if set(mine) == set(theirs) else []
-    if mine_head == theirs_head:
-        return [(rel, 0, same)]
-    if is_ancestor(root, theirs_head, mine_head):
-        return [
+    Reads: guess — the warden's record, through the shared reader's walks; unknown refused"""
+    raw = reader.gfm_lines(text or "")
+    # `comment_scan` says which state each line began in; a blank line after
+    # the last says whether the file ended inside a comment, and the last line
+    # that began outside one and ended inside is where it opened.
+    began = [outside for outside, _kept in reader.comment_scan([*raw, ""])]
+    errors = []
+    if not began[-1]:
+        opened = max(i for i in range(len(raw)) if began[i] and not began[i + 1])
+        errors.append(
             (
                 rel,
-                0,
-                f"`{CHECKED_BY}` names `{value}`, and that record's "
-                f"`{TARGET}` is an ancestor of this one's — it reviewed an "
-                "EARLIER tree. A round numbered later that looked at an "
-                "earlier commit read none of the fixes this round's findings "
-                "were closed by",
+                opened + 1,
+                "a `<!--` comment opened here never closes, so every line after "
+                "it is hidden from the check",
+            )
+        )
+    for first, last in reader.fence_spans(reader.strip_comments(raw)):
+        if last is None:
+            errors.append(
+                (
+                    rel,
+                    first + 1,
+                    "a fence opened here never closes, so every line after it is "
+                    "hidden from the check",
+                )
+            )
+    return errors
+
+
+def record_target(reader, lines, rel):
+    """`(commit or None, errors)` for a record's one `target:` line.
+
+    `lines` are `reader.readable`'s. The line stands outside every finding
+    (`findings` refuses one inside) and reads `<sha> against <base>`, or
+    `<sha>, fixes <a>..<b>` for a verifying round; the commit is its first
+    word. No such line — the old `| Target SHA |` row is none — two of them,
+    or a value outside the two shapes is an error by line, and no commit is
+    read.
+
+    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    _section, spans, _error = finding_spans(reader, lines)
+    inside = {i for first, stop in spans for i in range(first, stop)}
+    said = [
+        (i, m.group(1) or "")
+        for i, line in enumerate(lines)
+        if i not in inside and (m := TARGET_LABEL.match(line))
+    ]
+    if not said:
+        return None, [(rel, 0, NO_TARGET)]
+    if len(said) > 1:
+        return None, [
+            (
+                rel,
+                said[1][0] + 1,
+                f"{len(said)} `{RECORD_TARGET}` lines; a round record carries one",
             )
         ]
-    return []
-
-
-def item_began_at(item):
-    """The unix second in a work item's directory name, or None.
-
-    The rule one level up from `item_began`, because two callers now need it
-    at two depths: a round record sits at `<item>/rounds/round-N.md` and a
-    `broad-gate.md` sits at `<item>/broad-gate.md`, so a reader keyed on a
-    fixed position from the end answers correctly for one and returns None
-    for the other -- which grandfathers everything, silently, in the arm that
-    needs the cutoff most.
-    """
-    name = item.replace("\\", "/").rstrip("/").split("/")[-1]
-    began = name.split("-", 1)[0]
-    return int(began) if began.isdigit() else None
-
-
-def item_began(rel):
-    """The unix second in `seal/specs/<seconds>-<slug>/rounds/round-N.md`, or None.
-
-    None is the grandfathered answer, and deliberately so. A repository that
-    names its work items some other way has no date to compare, and failing
-    its records would be failing them for a naming convention rather than for
-    a state anybody chose.
-    """
-    parts = rel.replace("\\", "/").split("/")
-    return item_began_at("/".join(parts[:-2]))
-
-
-def pass_boxes(lines):
-    """[(index, checked)] for every `Pass` box in LINES, in order (#866).
-
-    One reader of the box for `pass_checked`, `check_round`'s duplicate
-    refusal and the generator's `close`, `notes` and `seal`, which refuse a
-    record with anything but one box."""
-    return [
-        (i, m.group(1).lower() == "x")
-        for i, line in enumerate(lines)
-        for m in [PASS_RE.match(line)]
-        if m
-    ]
-
-
-def pass_checked(lines):
-    """True, False, or None when the record carries no `Pass` checkbox, or
-    more than one.
-
-    One reader, not two. `check_round` asks whether the box is checked and so
-    does the refusal for `Pass` beside `nobody`; a second scan of the same
-    lines is how two readers of one record start disagreeing about it. A
-    second box used to be ignored here — the first one won — while the
-    generator refused it; it answers None now, and `check_round` names the
-    count (#866).
-    """
-    boxes = pass_boxes(lines)
-    return boxes[0][1] if len(boxes) == 1 else None
-
-
-def nobody_reason(value):
-    """The reason after `nobody`, `""` when none was given, or None.
-
-    None means the cell is not a `nobody` at all — `nobodys` is a word this
-    does not recognise, and recognising it would be the tolerant read the
-    vocabulary exists to refuse.
-    """
-    if not value.startswith(NOBODY):
-        return None
-    rest = value[len(NOBODY) :]
-    if rest and rest[0] not in SEPARATORS:
-        return None
-    return rest.strip(SEPARATORS)
-
-
-def checked_by(reader, routing, root, rel, siblings, last=False, strict=True):
-    """(errors, notices) for one record's `Fixes checked by` row.
-
-    `siblings` maps every `round-N.md` git carries in this work item to its
-    path, so a named checker is confirmed against the repository rather than
-    taken on the record's word — that it exists, and that it looked at
-    something later than this record did.
-
-    `last` is true for the record that carries the review's `Pass` verdict,
-    and it is what makes the refusal for `Pass` beside `nobody` reachable. On
-    an earlier record `Pass` says nothing about the whole review, so a checked
-    box there is not the claim this refuses.
-
-    `strict` is false for a draft pull request, and for one nobody observed
-    (no payload and no `gh` answer, #866), and it reaches ONE
-    refusal here: that same pair (#598 instance 4). Between `close` ticking
-    `Pass` and the verifying round's record committing, `nobody — <why>` is
-    the honest cell, since no later round exists yet to name, and the
-    orchestration document orders the verifying round next. What makes the
-    pair refusable is the `Pass` half, and `Pass` is what a draft is excused,
-    so in a draft it prints and names what re-arms it. Every other refusal
-    below is a checker the record does not have, which is wrong at every
-    stage, and none of them reads `strict`. A payload that cannot answer is
-    judged as ready, as it is everywhere `strict` is read.
-
-    EVERY record, where `Pass` is read on the last one alone, and the two
-    scopes are different for a reason that is not symmetry. `Pass` is a
-    verdict on the whole review, and the last round's is the one that speaks.
-    This is a fact about ONE round's fixes, and every round has its own.
-
-    Reading only the last record made the `round-N` value unreachable, which
-    is worth recording because a vocabulary value nothing can use is a
-    vocabulary value nobody will notice is dead: a checker has to be a LATER
-    round, the last record has none by construction, so the only values it can
-    ever hold are `no fixes to check` and `nobody`. Found by mutating the
-    sibling lookup and watching the case that was supposed to cover it stay
-    green.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return [(rel, 0, "git does not carry this file at HEAD")], []
-    lines = reader.readable(text)
-    rows = table_rows(reader, lines)
-    cell = field(rows, CHECKED_BY)
-    if cell is None:
-        return [
+    i, value = said[0]
+    found = TARGET_VALUE.match(value)
+    if not found:
+        return None, [
             (
                 rel,
-                0,
-                f"no `| {CHECKED_BY} | … |` row. `Pass` says this round's "
-                "findings are closed; it cannot say who opened the work that "
-                f"closed them, and the last round's fixes are the one set no "
-                f"later round reads. Write `round-N` (a LATER round), "
-                f"`{NO_FIXES}`, or `{NOBODY} — <why>`",
+                i + 1,
+                f"reads `{RECORD_TARGET} {value}`, which the check cannot read: "
+                f"it is {TARGET_SHAPES}",
             )
-        ], []
-    value = reader.visible(cell).strip().strip("`").strip().rstrip(".").lower()
-    mine = routing.round_number(os.path.basename(rel))
+        ]
+    return found.group(1), []
 
-    if CHECKER_RE.match(value):
-        name = value if value.endswith(".md") else f"{value}.md"
-        number = routing.round_number(name)
-        if number is not None and mine is not None and number <= mine:
-            return [
-                (
-                    rel,
-                    0,
-                    f"`{CHECKED_BY}` names `{value}`, which is this round or "
-                    "one that ran before these fixes existed. A round cannot "
-                    "check its own fixes — that is the fixer certifying its "
-                    "own work, and it is the state this field was added to "
-                    "make visible. Only a LATER round can have opened them",
-                )
-            ], []
-        if name not in siblings:
-            return [
-                (
-                    rel,
-                    0,
-                    f"`{CHECKED_BY}` names `{value}`, and git carries no "
-                    f"such record in this work item (it carries "
-                    f"{', '.join(sorted(siblings)) or 'none'}). A checker "
-                    "nobody can open is not a checker",
-                )
-            ], []
-        return reviewed_later(reader, root, rel, rows, value, siblings[name]), []
 
-    if value == NO_FIXES:
-        if closed_with_a_fix(reader, lines, rel):
-            return [
-                (
-                    rel,
-                    0,
-                    f"`{CHECKED_BY}` says `{NO_FIXES}` while a verdict in "
-                    "this round's own table closed on a fix. Both cannot be "
-                    "true, and this is the same contradiction-inside-one-file "
-                    "that a checked `Pass` beside an open "
-                    f"{BLOCKING} is",
-                )
-            ], []
+def record_findings(reader, text, rel):
+    """`findings` over a record's text, with `unclosed`'s refusals first and
+    `record_target`'s after: the one reader the arm, the panel and the
+    release seal read a record through, so a region that hides findings, or
+    a record naming no commit it reviewed, fails closed for each of them.
+
+    Reads: guess — the warden's record, through `unclosed`, `findings` and `record_target`; unknown refused"""
+    lines = reader.readable(text or "")
+    found, errors = findings(reader, lines, rel)
+    _target, said = record_target(reader, lines, rel)
+    return found, unclosed(reader, text, rel) + errors + said
+
+
+def confirmations(reader, lines, rel):
+    """`([(line, (round, finding))], errors)` for a record's `confirms:`
+    lines.
+
+    A record with nothing to confirm may leave `## Confirmations` out. In
+    the one such section, each entry is a `confirms:` line at the start of a
+    line, reading a `round-<N>#<n>` reference, read with its line, or
+    `none`; the prose after it is read for nothing. Everything else is an
+    error by line: a second section, a value that is neither, a table row,
+    the old shape. What the reference names is `channel`'s.
+
+    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    starts = reader.sections(lines, CONFIRMATIONS_HEADING)
+    if not starts:
         return [], []
-
-    reason = nobody_reason(value)
-    if reason == "":
-        return [
-            (
-                rel,
-                0,
-                f"`{CHECKED_BY}` says `{NOBODY}` and does not say why. The "
-                "reason is the whole of what makes this readable — without "
-                "it the cell records that something is missing and not what",
-            )
-        ], []
-    if reason is None:
-        # Every other word. Strict, the way `hooks/routing.py` is strict about
-        # the Review and Destination axes: a value outside the vocabulary is
-        # not a value. Read loosely, `the session that wrote them` would pass
-        # as an answer, and that is precisely the state this field exists to
-        # refuse. The direction is the one `CLOSED_WORDS` takes for a verdict
-        # cell — a word this cannot read is never the reassuring reading.
-        return [
-            (
-                rel,
-                0,
-                f"`{CHECKED_BY}` is `{cell.strip()}`, which is none of the "
-                f"three values. Write `round-N` naming a LATER round, "
-                f"`{NO_FIXES}`, or `{NOBODY} — <why>`. A session, an agent or "
-                "a name is not one of them: the fixes were opened by a round "
-                "that reported on them, or they were opened by nobody",
-            )
-        ], []
-    began = item_began(rel)
-    if last and pass_checked(lines) and began is not None and began >= STRICT_FROM:
-        if not strict:
-            return [], [
+    if len(starts) > 1:
+        return [], [(rel, starts[1] + 1, TWO_CONFIRMATIONS)]
+    start = starts[0]
+    found, errors = [], []
+    for i in range(start + 1, section_end(reader, lines, start)):
+        if reader.split_row(lines[i]) is not None:
+            errors.append((rel, i + 1, CONFIRMATIONS_TABLE))
+            continue
+        said = CONFIRMS_LABEL.match(lines[i])
+        if not said:
+            continue
+        value = said.group(1) or ""
+        if value == NONE:
+            continue
+        reference = reference_of(value)
+        if reference is None or reference[1] is None:
+            errors.append(
                 (
                     rel,
-                    0,
-                    f"`Pass` is checked beside `{CHECKED_BY}: {cell.strip()}` "
-                    "on the last record — the state a pull request not marked "
-                    "ready, or none seen, is in between `close` ticking "
-                    "`Pass` and the verifying round's record committing. It "
-                    "prints because neither is a request to merge. It is "
-                    "still owed: spawn one verifying round at "
-                    "the diff of these fixes, and this cell names it. "
-                    "Pressing *Ready for review* fires `ready_for_review`, "
-                    "re-runs this check, and fails the pull request if the "
-                    f"cell still says `{NOBODY}`",
+                    i + 1,
+                    f"reads `{CONFIRMS} {value}`, which the check cannot read: "
+                    f"it is {REFERENCE_SPELLING} or `{NONE}`",
                 )
-            ]
-        return [
-            (
-                rel,
-                0,
-                f"`Pass` is checked beside `{CHECKED_BY}: {cell.strip()}`. A "
-                "run cannot claim to have passed while the fixes that closed "
-                "its findings were opened by nobody — that is the state #33 "
-                "measured, at a 100% hit rate on the one set of fixes anybody "
-                "ever looked at. The way out costs no round: spawn one "
-                "verifying round at the diff of those fixes, and a round that "
-                "opens nothing needing a fix does not consume the cap. This "
-                f"record's cell then names it and the new record reads "
-                f"`{NO_FIXES}`. Work items begun before {STRICT_FROM} are "
-                "excused this and print instead",
             )
-        ], []
-    return [], [
-        (
-            rel,
-            0,
-            f"`{CHECKED_BY}` is `{cell.strip()}` — the fixes that closed this "
-            "round were opened by nobody. This does not fail the pull "
-            "request, and it is printed on every run so that the state lives "
-            "in the diff rather than in a session that has ended",
+            continue
+        found.append((i + 1, reference))
+    return found, errors
+
+
+def round_of(reader, text, rel, number):
+    """`(Round, errors)` for one record: its findings and its `target:`
+    commit through `record_findings` and `record_target`, its `confirms:`
+    references through `confirmations`, and the number of every `### <n>. `
+    heading of its `## Findings`, read or refused, so a reference to a
+    refused finding still names one it holds.
+
+    Reads: guess — the warden's record, through the three readers; unknown refused"""
+    lines = reader.readable(text or "")
+    found, errors = record_findings(reader, text, rel)
+    target, _said = record_target(reader, lines, rel)
+    confirmed, said = confirmations(reader, lines, rel)
+    _section, spans, _error = finding_spans(reader, lines)
+    held = {finding_number(lines[first].strip()) for first, _stop in spans}
+    held.discard(None)
+    errors = sorted(errors + said, key=lambda error: error[1])
+    return Round(rel, number, found, held, confirmed, target), errors
+
+
+def channel(rounds):
+    """[(path, line, problem)] for what one round owes the next, over an
+    item's records in number order.
+
+    Every reference a record writes — a `confirms:` line, a `reopens:` line,
+    a `regression:` line — names an earlier record of the item and, where it
+    names a finding, one that record holds; the first record writes none.
+    Every finding of a record at `fixed <commit>` or `rejected` is named by
+    the next record's `confirms:`, `reopens:` or `regression:` lines, or
+    refused at its own heading. A `fixed` or `rejected` finding of the last
+    record is refused
+    as owing a verifying round, since nothing after it read the fix or the
+    rejection. A `deferred` finding owes nothing.
+
+    Reads: owned — the readings `round_of` made; unknown refused"""
+    problems = []
+    by_number = {r.number: r for r in rounds}
+    for k, here in enumerate(rounds):
+        references = sorted(
+            [*here.confirms]
+            + [(f.regression_line, f.regression) for f in here.findings if f.regression]
+            + [(f.reopens_line, f.reopens) for f in here.findings if f.reopens],
         )
-    ]
+        for line, (n, m) in references:
+            said = f"round-{n}" + (f"#{m}" if m else "")
+            if k == 0:
+                why = (
+                    f"names `{said}` in the first record: there is no earlier "
+                    f"round to name, so its `{CONFIRMS}` lines read `{NONE}`"
+                )
+            elif n >= here.number or n not in by_number:
+                why = (
+                    f"names `{said}`, which is not an earlier record of this work item"
+                )
+            elif m is not None and m not in by_number[n].held:
+                why = f"names `{said}`, and round-{n}.md holds no finding {m}"
+            else:
+                continue
+            problems.append((here.path, line, why))
+        if k == 0:
+            continue
+        before = rounds[k - 1]
+        named = {(n, m) for _line, (n, m) in references if m is not None}
+        for f in before.findings:
+            owed = f.verdict[0] in (FIXED, REJECTED)
+            if owed and (before.number, f.number) not in named:
+                problems.append(
+                    (
+                        before.path,
+                        f.heading_line,
+                        f"{f.heading} {DASH} reads `{VERDICT} "
+                        f"{' '.join(x for x in f.verdict if x)}`, and the next "
+                        f"record, {here.path}, names it on no `{CONFIRMS}`, "
+                        f"`{REOPENS}` or `{REGRESSION}` line: one of them reads "
+                        f"`round-{before.number}#{f.number}`",
+                    )
+                )
+    if rounds:
+        last = rounds[-1]
+        for f in last.findings:
+            if f.verdict[0] in (FIXED, REJECTED):
+                problems.append(
+                    (
+                        last.path,
+                        f.line,
+                        f"{f.heading} {DASH} reads `{VERDICT} "
+                        f"{' '.join(x for x in f.verdict if x)}` in the last "
+                        f"record, and no round after it read it: {VERIFYING_ROUND}",
+                    )
+                )
+    return problems
 
 
-def says_none(value):
-    """True when a fix-surface cell answers `none`, reason or no reason.
+def touched(root, commit):
+    """The paths `commit` changed, the root commit's included, or None
+    where git cannot say.
 
-    The reason is allowed for the same cause a tail is allowed after a
-    verdict word: `none — the fixes are not yet written` is the honest
-    mid-run value, and refusing it would refuse the truth. The boundary is a
-    separator, so `nonempty` is not a `none` — the tolerant read this file
-    refuses everywhere else.
-
-    The trailing `;` is stripped with the trailing `.` because the refusal
-    one function down produces it: a cell reading `none;` is refused as
-    separators-with-nothing-between, and its message says to write the units
-    or `none`, which a session spells `none;` again or `none (depth 1)` --
-    and that second one this reads as NO units. A refusal whose own
-    instruction produces a cell meaning something else is worse than the
-    thing it refused (round 1, 🟡 6).
-
-    A cell carrying a DEPTH MARKER is never a `none`, and that is the other
-    half of the same finding (round 2, 🟡 2). `EMPHASIS` strips the backticks
-    and `.lower()` strips the case, so a unit really named `NONE` became the
-    word; the space before its marker is a separator, so `` `NONE` (depth 2)
-    `` parsed as *none, with a reason* and the depth walk never ran on a unit
-    the rule refuses. The guard keys on the parenthesised marker rather than
-    on the word `depth`, so an ordinary reason — `none — the depth was not
-    recorded` — is still an answer.
-
-    What the guard does NOT close, stated rather than left to be found: a
-    unit literally named `none` with no marker beside it still reads as the
-    word. There is nothing in the cell to tell the two apart, and inventing
-    a rule about backticks would be the code-span parsing the limits below
-    already decline.
-    """
-    s = EMPHASIS.sub("", value).lower().strip().rstrip(".;").strip()
-    if DEPTH_RE.search(s):
-        return False
-    if s == NONE_WORD:
-        return True
-    if not s.startswith(NONE_WORD):
-        return False
-    rest = s[len(NONE_WORD) :]
-    return bool(rest) and rest[0] in SEPARATORS
+    Reads: observed — `git diff-tree --root`'s output; unknown refused"""
+    out = git(
+        root, "diff-tree", "--no-commit-id", "--name-only", "-r", "--root", "-z", commit
+    )
+    if out is None:
+        return None
+    return [path for path in out.split("\0") if path]
 
 
-def says_not_yet(value):
-    """True when a fix-surface cell answers `none` because the fixes do not
-    exist YET, in the spelling `templates/sdd-round.md` prints.
+def under(path, located):
+    """True where `path` is `located` or lies under it.
 
-    Normalized the way `says_none` normalizes, then the reason after the
-    separator has to START with `NOT_YET` -- the constant is the prefix and
-    the reason is what carries it, so
-    `none — the fixes are not yet written (round 2)` is the same answer and
-    `none — nothing was added` is not. This paragraph stated the two the
-    other way round for a round (round 3's 🟡 4); read as it stood,
-    `none — the` would have matched and the first example would not.
-
-    **A reason this does not recognise PASSES, and that is the deliberate
-    exception to this file's `blocks more` direction.** Every other refusal
-    here treats what it cannot read as the failing case; this one cannot,
-    because the alternative is refusing an honest custom reason for its
-    wording, and a rule about which English sentences mean *not yet* is the
-    enumeration over an unbounded domain the arrow's and the comma's limits
-    already decline. What is caught instead is the measured failure: the
-    template's own words, copied into a record and left standing.
-
-    **What escapes is wider than a rewording, and three spellings carry the
-    template's words UNCHANGED** -- round 3's 🟡 5, measured over 23 cells.
-    `says_none` tests the first character after `none` where this strips
-    `SEPARATORS` from both ends, so each of these passes the cell as `none`
-    and silences the arm:
-
-      a dash outside `SEPARATORS` -- `none ― the fixes are not yet written`
-      with U+2015 rather than the em dash, where the leading space is what
-      satisfies `says_none` and the bar survives the strip
-
-      whitespace inside the phrase -- `none — the  fixes are not yet
-      written`, which no widening of `SEPARATORS` reaches, because the
-      doubled space is inside the constant rather than in front of it
-
-      any clause before it -- `none — nothing yet, and the fixes are not yet
-      written`, which only a substring match reaches, and a substring match
-      is the mutation the prefix rule above exists to refuse
-
-    Only the first of the three is punctuation, so widening `SEPARATORS`
-    would close one, leave this paragraph false about the other two, and
-    move a constant four other readers in this file share. The limit is
-    written down instead, here and in `docs/round-record-spec.md`, and
-    `test_a_reason_the_checker_does_not_recognise_passes` runs all three.
-    What *this record passed* means is *its cell does not carry the
-    template's own pending words*, never *its fix surface is complete*.
-
-    **The prefix guard below duplicates `says_none`'s. The separator guard
-    does NOT, and half of it is load-bearing.** This paragraph claimed both
-    were duplicates that could not change the answer, and it was wrong twice
-    (round 4's 🟡 3). A recorded limit that is wrong is worse than one that
-    is missing: it tells the next mutation battery that a live line is dead.
-
-    `fix_surface` is the only call site and it calls this behind
-    `says_none`, so a value arriving here HAS been shown to start with
-    `none` -- both of `says_none`'s True routes imply that, and the prefix
-    guard really is unreachable. It has NOT been shown to carry anything
-    after the word. `says_none` answers True for a bare `none` by
-    `s == NONE_WORD`, which is the value `templates/sdd-round.md`'s own
-    instruction produces, and that value arrives here with `rest` empty --
-    so the `not rest` conjunct is what stops `rest[0]` from raising on the
-    commonest cell in the vocabulary.
-
-    Measured, cache purged between runs: dropping `not rest` alone turns 20
-    cases red. Deleting EITHER guard whole leaves the suites green, because
-    an empty `rest` cannot start with `NOT_YET` either. So the guards are
-    answer-neutral as wholes and not by halves, and the reason is not the
-    one this paragraph gave for a round. They stay because this reads as a
-    predicate on its own, and because one of them is a crash away.
-    """
-    s = EMPHASIS.sub("", value).lower().strip().rstrip(".;").strip()
-    if not s.startswith(NONE_WORD):
-        return False
-    rest = s[len(NONE_WORD) :]
-    if not rest or rest[0] not in SEPARATORS:
-        return False
-    return rest.strip(SEPARATORS).startswith(NOT_YET)
+    Reads: nothing — compares the two paths its caller hands it"""
+    stem = located.rstrip("/")
+    return path == stem or path.startswith(f"{stem}/")
 
 
-def yes_or_no(value):
-    """(`no`, reason), (`yes`, reason), or (None, "") for a `no`/`yes` cell.
+def target_of(reader, text):
+    """The first SHA-shaped word of `guarantee.md`'s `Target SHA` row, or
+    None. A round record names its commit on a `target:` line instead
+    (`record_target`).
 
-    Two rows are written in this vocabulary and both are the reviewer's own
-    line copied into a cell: `Loses a record or crashes` and `Needs a fix`.
-    One reader for both, because two would be two hand-kept spellings of one
-    vocabulary -- the drift this file closes everywhere else.
-
-    The tail after `yes` is required by the caller that wants it and never
-    here, which is the shape the template and `agents/warden.md` both show:
-    `yes — <what>` names what does, and `no` has nothing to name.
-    `nobody_reason` splits the same way for the same reason.
-
-    The boundary is a separator, so `nothing anybody can see` is not a `no` --
-    the tolerant read this file refuses everywhere else, and the one that
-    would stop a run on a sentence.
-    """
-    s = EMPHASIS.sub("", value).lower().strip().rstrip(".").strip()
-    for word in (FLOOR_NO, FLOOR_YES):
-        if s == word:
-            return word, ""
-        if s.startswith(word) and s[len(word)] in SEPARATORS:
-            return word, s[len(word) :].strip(SEPARATORS)
-    return None, ""
+    Reads: owned — the file the sealer writes; unknown refused"""
+    rows = table_rows(reader, reader.readable(text or ""))
+    found = SHA_RE.search(reader.visible(field(rows, TARGET) or ""))
+    return found.group(0) if found else None
 
 
-def says_reopened(value):
-    """Does a `Needs a fix` cell say the run reopened: True, False or None.
+def newest_run(reader, text):
+    """The commit the newest run of `broad-gate.md`'s `Broad gate` row was
+    taken at — the first word of its first entry, where that word is
+    SHA-shaped — or None.
 
-    ONE reader for the reopening question (#138). `yes_or_no` above parses
-    the vocabulary and leaves the reason to the caller; this is the caller
-    that decides what the cell MEANS for the floor's bound, and it is read by
-    `record_facts` and `stopping_floor` here — `record_facts` for the gate
-    and for the generator's printed bound (`round_record.py#floor_and_fixes`)
-    alike — and by the broad gate's panel (`broad_gate.py#rounds_rows`,
-    #866), so the gate, the line a session reads before spawning and the
-    stamp cannot disagree about one cell.
+    Reads: owned — the file `broad_gate.py` writes; unknown refused"""
+    rows = table_rows(reader, reader.readable(text or ""))
+    cell = reader.visible(field(rows, BROAD_GATE) or "")
+    words = EMPHASIS.sub("", cell.split(EARLIER_RUN)[0]).split()
+    return words[0] if words and SHA_RE.fullmatch(words[0]) else None
 
-      `yes — <what>`             True — the run reopened
-      `no`, `no — <why>`         False — a reason after `no` is still `no`
-      `yes` alone, an empty      None — not a reopening, wherever it is read.
-      cell, a word outside the   The bare `yes` is the case worth saying out
-      vocabulary                 loud: it used to read as True, so three
-                                 characters restarted the count of later
-                                 records and bought the run a round. A cell
-                                 the checker refuses must never be the thing
-                                 that quiets a refusal, which is the
-                                 direction `record_facts` states
-    """
-    word, reason = yes_or_no(value)
-    if word == FLOOR_NO:
-        return False
-    if word == FLOOR_YES and reason:
-        return True
+
+def is_ancestor(root, sha, ref):
+    """True where `sha` is `ref` or an ancestor of it.
+
+    Reads: observed — `git merge-base --is-ancestor`'s exit code; unknown refused"""
+    r = subprocess.run(
+        ["git", "-C", root, "merge-base", "--is-ancestor", sha, ref],
+        capture_output=True,
+    )
+    return r.returncode == 0
+
+
+def follows(root, sha, base, item, only=None):
+    """None where `sha` is HEAD or every commit after it on the branch
+    touches only `item/` — only the files of `item/` named in `only`, where
+    it is given; else why not.
+
+    `("unseen", sha, "")` for a commit this repository cannot resolve,
+    `("off", sha, "")` for one HEAD does not descend from, `("after",
+    commit, path)` for the first commit after it, oldest first, touching
+    `path` outside what may follow. Merge commits and the base's own commits
+    are not the branch's.
+
+    Reads: observed — `git rev-parse`, `rev-list` and `diff-tree`; unknown refused"""
+    allowed = None if only is None else {f"{item}/{name}" for name in only}
+    full = git(root, "rev-parse", "--verify", "--quiet", f"{sha}^{{commit}}")
+    if full is None:
+        return ("unseen", sha, "")
+    full = full.strip()
+    if not is_ancestor(root, full, "HEAD"):
+        return ("off", sha, "")
+    out = git(
+        root, "rev-list", "--reverse", "--no-merges", "HEAD", f"^{full}", f"^{base}"
+    )
+    for later in (out or "").split():
+        touched = git(
+            root, "diff-tree", "--no-commit-id", "--name-only", "-r", "-z", later
+        )
+        for path in (touched or "").split("\0"):
+            if not path:
+                continue
+            if not path.startswith(f"{item}/") or (
+                allowed is not None and path not in allowed
+            ):
+                return ("after", later, path)
     return None
 
 
-def fix_of_a_fix_count(value):
-    """0, 1 or 2 for a `Fix of a fix` cell, or None when it reads as none of
-    the three (#823).
+def follows_reason(found, what, outside="the work item's records"):
+    """The sentence `follows`'s answer is refused with, about `what`.
 
-    ONE reader of the row, for the arm below, the generator's count and the
-    generator's refusal, so the gate and the writer cannot disagree about a
-    cell -- #218's class.
-
-      `no`, `no — <why>`        0
-      `first — <where>`         1
-      `second — <where>`        2
-      `first` or `second`       None. The landing is the whole of what makes
-      alone, an empty cell, a   the row readable: it names the finding and
-      word outside the three    the unit a reader opens, and a bare count
-                                says something happened and not where
-
-    Emphasis is stripped from the ENDS only. The tail names units, and a unit
-    name carries underscores that a whole-cell strip would eat -- the defect
-    `round_record.py#units_named_earlier`'s rider records about `New units`.
-    """
-    s = value.strip().strip("*_`").strip().rstrip(".").strip()
-    low = s.lower()
-    if low == FOF_NO:
-        return 0
-    for word, count in ((FOF_NO, 0), (FOF_FIRST, 1), (FOF_SECOND, 2)):
-        if not low.startswith(word) or len(low) == len(word):
-            continue
-        if low[len(word)] not in SEPARATORS:
-            continue
-        rest = s[len(word) :].strip(SEPARATORS)
-        if count == 0 or rest:
-            return count
-    return None
+    Reads: nothing — formats the answer its caller hands it"""
+    kind, sha, path = found
+    if kind == "unseen":
+        return f"{what} names `{sha}`, which this repository cannot resolve"
+    if kind == "off":
+        return f"{what} names `{sha}`, which HEAD does not descend from"
+    return (
+        f"{what} is behind HEAD: commit {sha[:8]} after it touches `{path}`, "
+        f"outside {outside}"
+    )
 
 
 def frame_foot(reader, text):
-    """(the `Framed` mark or None, [(when, who, round) per `Reframed` line]).
+    """(the `Framed` mark as (when, who) or None, [(when, who, round)] for
+    every `Reframed` line under it), read from the last non-empty line up.
 
-    The foot of `spec.md` is a BLOCK since #823: the `Framed` line, then zero
-    or more `Reframed <date> by <who>, after round <N>.` lines under it, each
-    written by a reframe. Read from the last non-empty line up: every
-    `Reframed` line is collected, and the first line that is not one has to
-    be the `Framed` mark. The FOOT and not anywhere in the file, for the
-    reason `frame_mark` gives -- a spec that documents the lines quotes them.
-
-    A `Reframed` line standing ABOVE the `Framed` line is not in the foot and
-    is not read: the foot ends at the mark, so such a line permits nothing.
-    `templates/sdd-spec.md` still ends with the `Framed` line; the `Reframed`
-    line is never in the template.
-    """
+    Reads: guess — the foot of a person-written `spec.md`; unknown refused"""
     reframes = []
     for line in reversed(reader.gfm_lines(text or "")):
         line = line.strip()
@@ -3001,3150 +1251,451 @@ def frame_foot(reader, text):
     return None, list(reversed(reframes))
 
 
-def depth_problems(value):
-    """(no depth, crowded, too deep, below the first level) among the entries.
+def frame(reader, routing, root, item, declared):
+    """[problem] for a declaration that says a framer drew the frame.
 
-    Four lists rather than one, because the four take four different answers.
-    An entry with no depth is a row half-written -- the row grew a second
-    thing it carries, and a row that carries two is a row somebody writes
-    half of. A CROWDED entry carries more than one unit or more than one
-    depth, so its declaration covers something other than exactly one unit.
-    An entry at depth 2 or above is a unit that may not exist and has two
-    places to go instead. An entry below depth 1 names no level the rule
-    defines at all, and reading it permissively puts it under the bound.
-
-    The crowded arm is round 1's 🟡 5. The walk used to split on `;` and take
-    the FIRST marker, so `` `a`, `b` (depth 1) `` passed with one declaration
-    covering two units and `helper (depth 1) (depth 2)` passed at the depth
-    it was not. The comma spelling is not hypothetical -- it is what this row
-    used before the depth existed, and a fixture in
-    `tests/test_the_fixes_name_their_surface.py` was written that way.
-
-    Grouped per record rather than reported per entry, so five bare entries
-    are one message rather than five.
-    """
-    missing, crowded, deep, shallow = [], [], [], []
-    for entry in value.split(";"):
-        entry = entry.strip()
-        if not entry:
-            continue
-        found = DEPTH_RE.findall(entry)
-        if not found:
-            missing.append(entry)
-        elif len(found) > 1 or "," in DEPTH_RE.sub("", entry):
-            crowded.append(entry)
-        elif int(found[0]) > DEPTH_MAX:
-            deep.append(entry)
-        elif int(found[0]) < 1:
-            shallow.append(entry)
-    return missing, crowded, deep, shallow
-
-
-def listed(entries):
-    """`a`, `b` -- the entries a depth message names, in the author's own
-    spelling, so the row can be found by searching for what the failure
-    printed."""
-    return ", ".join(f"`{entry}`" for entry in entries)
-
-
-def fix_surface(reader, root, rel):
-    """(errors, notices) for one record's `Contract changes` and `New units`.
-
-    Read on EVERY record, like `checked_by` and for the same reason: every
-    round has its own fixes. The grandfathering is `item_began` against
-    `SURFACE_FROM`, and it reaches only the ABSENT row — a row that is
-    present and malformed fails on any record, because an empty cell or a
-    unit with no reach is always the author's to fix, where a review nobody
-    ran is not.
-
-    An unreadable record returns nothing: `checked_by` already reports that
-    state, and a second error naming a different cause would name a cause
-    that is not the cause.
-
-    `New units` carries a second thing beyond the names — the DEPTH each unit
-    was added at — and that half has a cutoff of its own, `DEPTH_FROM`, which
-    is later than `SURFACE_FROM`. A work item between the two owes the row and
-    not the depth in it.
-
-    **The pending arm below keys on `Fixes checked by`, so it reaches the
-    session that filled THAT cell and stopped, and not the one that filled
-    nothing** (round 3's 🟡 1). Two states leave it silent and both are worth
-    knowing:
-
-      `nobody — <why>` beside a pending row, which is the state `ORDER_FROM`
-      REQUIRES at the moment a record lands, so it cannot be refused here.
-      `checked_by` prints a notice for it on every record and refuses it on
-      the LAST record beside a checked `Pass` at a ready pull request. A
-      non-terminal record carrying it is false by construction — a later
-      record exists, and round N+1 reviews round N's fixes — and nothing
-      refuses that today
-
-      `no fixes to check` beside a pending row, which the TERMINAL record of
-      every run carries. There the pair is not merely unrefused but wrong: a
-      round that commissioned no fixes will never have any, so *not yet
-      written* is false the moment it is written
-
-    Keying on the sibling records instead would answer both and would give
-    this a second source of truth, which is the property that makes the
-    narrow key defensible at all. It is a change to a gate, and it is
-    `questions.md` Q4 of the work item that added the arm.
-
-    Known limit, recorded rather than parsed away: the arrow is found by
-    substring, so an ASCII `->` inside a backticked unit name reads as the
-    reach separator and a unit named `operator->` passes without its reach.
-    `→` is the spelling that avoids it. Parsing code spans to close the gap
-    would be an enumeration over an unbounded domain — the closing the
-    review skill's own rules refuse.
-
-    The depth walk has the mirror of that limit and it is recorded the same
-    way: the comma is found by substring, so a comma anywhere in the entry
-    outside the depth marker reads as the separator of a crowded entry.
-    `` `get(a, b)` (depth 1) `` is refused as two units, and so is
-    `` `helper` (depth 1) — adds a, b ``, where the comma is in the reason
-    rather than the name (round 2, 🟡 9 — the code refused both and this
-    sentence named only the first). The workaround is to write the entry
-    without a comma.
-
-    **The separator itself has the same limit, and it applies BEFORE both of
-    them.** `;` splits both rows before anything looks at code spans, so a
-    literal semicolon inside a code span splits the entry carrying it: an
-    entry describing this very behaviour is cut in half and its tail refused
-    for having no reach. That is not hypothetical — it is round 2's 🔴 1, and
-    the entry it happened to was the one recording the change that put the
-    character in a cell. `.github/workflows/hygiene.yml` runs this check on
-    every pull request, so such a record opens the pull request red. Spell
-    the character as a word. Closing any of the three would mean parsing code
-    spans, which is the enumeration over an unbounded domain the review
-    skill's own rules refuse.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return [], []
-    rows = table_rows(reader, reader.readable(text))
-    began = item_began(rel)
-    excused = began is None or began < SURFACE_FROM
-    # A SECOND cutoff on the same rows, later than `SURFACE_FROM`, for the
-    # arm below: the state it refuses only became structural with
-    # `ORDER_FROM`. Before that a record could be written after its fixes and
-    # the rows filled from the start; now they MUST start as `none — <not
-    # yet>` and nothing required the second step.
-    excused_order = began is None or began < ORDER_FROM
-    # Whether a LATER round has opened this record's fixes, read from the row
-    # two above. `nobody — <why>` means no round has, so *not yet written* may
-    # still be true; a `round-N` means one did, so the fixes exist. Normalized
-    # exactly as `checked_by` normalizes it, because two readings of one cell
-    # is the split this file spends its docstrings closing.
-    checker = (
-        reader.visible(field(rows, CHECKED_BY) or "")
-        .strip()
-        .strip("`")
-        .strip()
-        .rstrip(".")
-        .lower()
-    )
-    fixes_exist = bool(CHECKER_RE.match(checker))
-    errors, notices = [], []
-    for label, bought in (
-        (
-            CONTRACT,
-            "the largest regression class measured in #57 — a fix changed "
-            "a unit's contract, and not every place that contract reaches "
-            "was revisited. The diff names the changed signature; this row "
-            "is where the reach is named. Write each changed unit with the "
-            "call sites it reaches (`unit → site, site`, units separated "
-            "by `;`), or `none`",
-        ),
-        (
-            NEW_UNITS,
-            "a unit the fixes created has been reviewed by nobody, and the "
-            "verifying round treats what this row names as a finding "
-            "surface — is this correct — rather than a verification "
-            "surface. Write the top-level definitions and constants this "
-            "round's fixes added, or `none`",
-        ),
-    ):
-        cell = field(rows, label)
-        if cell is None:
-            message = f"no `| {label} | … |` row: {bought}"
-            if excused:
-                notices.append(
-                    (
-                        rel,
-                        0,
-                        message + ". This work item began before the rule "
-                        "landed, so this prints instead of failing — the "
-                        "grandfathering `Fixes checked by` already uses",
-                    )
-                )
-            else:
-                errors.append((rel, 0, message))
-            continue
-        value = reader.visible(cell).strip()
-        if not value:
-            errors.append(
-                (
-                    rel,
-                    0,
-                    f"`{label}` is empty — a row that says nothing answers "
-                    "nothing. Write the units, or `none`",
-                )
-            )
-            continue
-        if says_none(value):
-            if fixes_exist and says_not_yet(value):
-                message = (
-                    f"`{label}` still says the fixes are not yet written, "
-                    f"and `{CHECKED_BY}` names `{checker}` two rows above "
-                    "it — so a later round opened those fixes and they do "
-                    "exist. The cell contradicts its own file, the way "
-                    f"`{NO_FIXES}` beside a `fixed` verdict does. It is the "
-                    "starting value every record now carries, because a "
-                    "record is committed BEFORE its fixes; what is missing "
-                    "is the reach-back that fills it when they land. Write "
-                    f"what the fixes changed and added, or a bare `{NONE_WORD}` "
-                    "if they changed and added nothing"
-                )
-                if excused_order:
-                    notices.append(
-                        (
-                            rel,
-                            0,
-                            message + ". This work item began before the "
-                            "rule landed, so this prints instead of failing "
-                            "— the grandfathering `Fixes checked by` "
-                            "already uses",
-                        )
-                    )
-                else:
-                    errors.append((rel, 0, message))
-            continue
-        if not EMPHASIS.sub("", value).strip(SEPARATORS + ";"):
-            # `;` alone survived both refusals above: not `none`, not empty,
-            # and the entry walk below skips every empty entry it yields.
-            # Separators with nothing between them say exactly as much as an
-            # empty cell, and take the same answer (round 1's 🟡 1).
-            errors.append(
-                (
-                    rel,
-                    0,
-                    f"`{label}` is `{value}` — separators with nothing "
-                    "between them, which says exactly what an empty cell "
-                    "says. Write the units, or `none`",
-                )
-            )
-            continue
-        if label == NEW_UNITS:
-            # The depth has a cutoff of its own, and it is LATER than
-            # `SURFACE_FROM`. A work item between the two owes the row and not
-            # the depth in it: its records were written when the row named
-            # units alone, and deriving a depth now for fixes nobody re-read
-            # fabricates the answer the same way a reach row would.
-            deep_excused = began is None or began < DEPTH_FROM
-            missing, crowded, deep, shallow = depth_problems(value)
-            for entries, message in (
-                (
-                    crowded,
-                    f"`{NEW_UNITS}` lists {listed(crowded)} with more than "
-                    "one unit or more than one depth in a single entry. One "
-                    "entry per unit and one depth per unit, entries "
-                    "separated by `;` — a comma list under a single "
-                    "`(depth N)` declares that depth for one name and says "
-                    "nothing about the rest, and the comma is the spelling "
-                    "this row used before the depth existed",
-                ),
-                (
-                    missing,
-                    f"`{NEW_UNITS}` lists {listed(missing)} without the depth "
-                    "it was added at. A fix pass may add a unit; that unit's "
-                    "fix may not, and the row cannot show which of the two "
-                    "this is without the depth. Write `unit (depth 1)`, "
-                    "entries separated by `;`",
-                ),
-                (
-                    deep,
-                    f"`{NEW_UNITS}` lists {listed(deep)} at depth 2 or above "
-                    "— a unit added by a fix answering a finding INSIDE a "
-                    "unit an earlier round's fixes created. A fix pass may "
-                    "add a unit; that unit's fix may not, because the fix is "
-                    "read by the round that follows and the unit it added is "
-                    "read by nobody, and the two ship in one commit. It does "
-                    "not go in this row: it is deferred with a named "
-                    "answerer, or becomes an issue",
-                ),
-                (
-                    shallow,
-                    f"`{NEW_UNITS}` lists {listed(shallow)} below the first "
-                    "level, which names no depth the rule defines. A unit a "
-                    "fix pass added is depth 1; a unit that unit's own fix "
-                    "would add is depth 2 and does not go in this row at all",
-                ),
-            ):
-                if not entries:
-                    continue
-                if deep_excused:
-                    notices.append(
-                        (
-                            rel,
-                            0,
-                            message + ". This work item began before the "
-                            "depth landed, so this prints instead of failing",
-                        )
-                    )
-                else:
-                    errors.append((rel, 0, message))
-            continue
-        if label != CONTRACT:
-            continue
-        for entry in value.split(";"):
-            entry = entry.strip()
-            if not entry:
-                continue
-            arrow = next((a for a in ARROWS if a in entry), None)
-            unit, _, reach = entry.partition(arrow) if arrow else (entry, "", "")
-            if not arrow or not unit.strip() or not reach.strip():
-                errors.append(
-                    (
-                        rel,
-                        0,
-                        f"`{CONTRACT}` lists `{entry}` without the call "
-                        "sites it reaches. The diff already names the "
-                        "changed signature; the reach is the half it does "
-                        "not show, and a unit listed without it is the "
-                        "unchecked half of the measured failure. Write "
-                        "`unit → call site, call site`",
-                    )
-                )
-    return errors, notices
-
-
-def runner_problem(value):
-    """What is wrong with a `Ran by` cell, or None when it answers.
-
-    Two answers and no others. `agent on model` names both halves, and
-    `unknown — <why>` is the honest cell where the session cannot name one.
-    Everything else is refused, including a cell naming a single thing: an
-    agent without a model cannot be compared against another run of the same
-    agent, and a model without an agent cannot be told apart from the
-    orchestrating session's own turns, which is the whole of what the row
-    was added to answer.
-
-    The `unknown` branch is tried FIRST, and that ordering changes the REASON
-    an answer comes out, never the answer. Round 1 measured both: the two
-    orders were compared over 1,536 constructed cells with zero verdict
-    mismatches, and reversing the arms in this file left 272 cases green
-    across the five suites that read it.
-
-    It is true by construction, which is the part worth keeping. The
-    `unknown` arm refuses when nothing follows the separator, and nothing
-    following means there is no ` on ` inside the tail either — so a cell
-    that would split is a cell the `unknown` arm accepts, and one the
-    `unknown` arm rejects cannot split. The two arms cannot disagree about
-    accepting; they can only disagree about what the cell was read AS.
-
-    Read this order as an editorial choice with a reason, not as a
-    correctness constraint. `unknown — the model was not recorded on this
-    run` is an unknown carrying a reason here, and a pair whose agent is
-    `unknown — the model was not recorded` and whose model is `this run`
-    under the other order. Both accept. The first is what the writer meant,
-    and a message quoting the cell back is the only place the difference
-    surfaces.
-
-    Its consequence, recorded rather than parsed away: `unknown on Opus` is
-    an unknown WITH A REASON rather than a half-named pair. Nothing is lost —
-    the model is still written down where a reader can see it — and telling
-    the two apart would mean deciding whether a reason may start with `on`,
-    which is a rule about English rather than about the row.
-    """
-    s = EMPHASIS.sub("", value).strip()
-    if not s:
-        return "is empty — a row that says nothing answers nothing"
-    low = s.lower()
-    if low == UNKNOWN_WORD or (
-        low.startswith(UNKNOWN_WORD) and low[len(UNKNOWN_WORD)] in SEPARATORS
-    ):
-        if not s[len(UNKNOWN_WORD) :].strip(SEPARATORS).strip():
-            return (
-                f"is `{s}` with no reason after it. A bare `{UNKNOWN_WORD}` "
-                "records that something is missing and not what — write "
-                f"`{UNKNOWN_WORD} — <why>`, the shape `{NOBODY} — <why>` "
-                "already has"
-            )
-        return None
-    halves = ON_RE.split(s, maxsplit=1)
-    if len(halves) != 2 or not halves[0].strip() or not halves[1].strip():
-        return (
-            f"is `{s}`, which names one thing. Write the agent and the model "
-            f"as `agent {ON_WORD} model` — an agent without a model cannot "
-            "be compared against another run of the same agent, and a model "
-            "without an agent cannot be told from the orchestrating "
-            f"session's own turns. Where neither is knowable, "
-            f"`{UNKNOWN_WORD} — <why>` is the answer"
-        )
-    return None
-
-
-def ran_by(reader, root, rel):
-    """(errors, notices) for one record's `Ran by` row.
-
-    Read on EVERY record, like `checked_by` and `fix_surface` and for the
-    same reason: every round was run by something, and a work item whose
-    rounds ran under different runners is exactly the comparison the row
-    exists to make possible.
-
-    The grandfathering is `item_began` against `RUNNER_FROM`, and it reaches
-    only the ABSENT row. A record written before the rule has no honest
-    repair -- nobody can recover what ran a segment whose session is over,
-    and a value invented now is worse than the blank, since a reading nobody
-    can trust is indistinguishable from one nobody took. A cell that is
-    PRESENT and malformed is refused at any age, the split `fix_surface`
-    already makes: formatting is always the author's.
-
-    An unreadable record returns nothing: `checked_by` already reports that
-    state, and a second error naming a different cause would name a cause
-    that is not the cause.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return [], []
-    rows = table_rows(reader, reader.readable(text))
-    began = item_began(rel)
-    cell = field(rows, RAN_BY)
-    if cell is None:
-        message = (
-            f"no `| {RAN_BY} | … |` row: this record says what the round was "
-            "asked and which commit it read, and nothing about what executed "
-            "it — a fact that lives in a session transcript and nowhere else "
-            "once the session ends. Write the agent and the model as "
-            f"`agent {ON_WORD} model`, or `{UNKNOWN_WORD} — <why>`. It is "
-            "the SPAWNING session's row, never the agent's own: an agent is "
-            "told what it is, so a value it writes about itself is the value "
-            "it was told"
-        )
-        if began is None or began < RUNNER_FROM:
-            return [], [
-                (
-                    rel,
-                    0,
-                    message + ". This work item began before the rule "
-                    "landed, so this prints instead of failing — the "
-                    "grandfathering `Fixes checked by` already uses",
-                )
-            ]
-        return [(rel, 0, message)], []
-
-    problem = runner_problem(reader.visible(cell))
-    if problem is None:
-        return [], []
-    return [(rel, 0, f"`{RAN_BY}` {problem}")], []
-
-
-def added_on_branch(root, base, rel):
-    """The LATEST commit on THIS BRANCH that added `rel`, or None.
-
-    `<base>..HEAD` rather than the whole history, and that is the answer to
-    the rebase question rather than an optimisation. Two things fall out of
-    it:
-
-      a record that arrived before the base has no adding commit here, so
-      nothing is claimed about it -- the same "no claim" `check_round` makes
-      for a record the pull request does not touch, and a grandfathering that
-      needs no constant
-
-      a rebase replays a branch's commits IN ORDER, so a record added before
-      its fix on the branch is still added before it afterwards. What a
-      rebase does change is the SHA a verdict cell names: the rewritten fix
-      has a new hash while the cell still holds the old one, which
-      `resolves_to` answers None for. So a rebase can turn a FAILING record
-      passing and never a passing one failing -- the safe direction, stated
-      in `docs/review-chain-spec.md` rather than left to be found.
-
-    The FIRST line is the LATEST add, and that is the one taken. Two flags
-    make that sentence true, and each closes a separate way it was false
-    (#529, both measured in scratch repositories):
-
-      `--full-history`, because git's default simplification follows ONE
-      parent of a merge that matches it at the path. A side branch that
-      deletes the record, re-adds the same bytes and merges back leaves the
-      merge matching the first parent, so the late add is never walked and
-      the early one comes back -- the unsafe direction
-
-      `--topo-order`, because the default order is the commit date. A side
-      branch whose clock is behind the early add lists the early add first
-      even once both are walked. Topological order shows a descendant before
-      its ancestor, and a re-add descends from the add it replaces in every
-      delete-and-re-add shape
-
-    A merge is never itself an `A` here, with either flag or without: `git
-    log` does not diff a merge unless `-m` asks it to, so `--diff-filter=A`
-    never matches one. A record added on a side branch and merged `--no-ff`
-    is read at the side's own adding commit.
-
-    More than one add means the file was deleted and
-    re-added, and the version anybody reads was authored at the last of them:
-    a stub committed on time, removed, and the real record written after the
-    fixes is exactly the shape that makes a late record look early. Taking the
-    earliest add passes such a record on the strength of a commit that no
-    longer holds any of its content.
-
-    Round 1 measured that the choice was undefended — mutating it left all
-    twenty cases green, because `--diff-filter=A` returns one commit for a
-    file that was added and then only modified, which every other case here
-    builds. `test_a_record_deleted_and_re_added_after_the_fix_is_judged_on_the_later_add`
-    is the one that separates them.
-
-    **What `--diff-filter=A` carries changed with that index, and it now
-    protects the ORDINARY record rather than a rare one.** Under the earliest
-    add, dropping the flag was separable only by a base that moves under a
-    long branch, because a file added and then modified has the same oldest
-    commit either way. Under the latest add, the newest commit that merely
-    TOUCHED a record is the one that updated its verdicts — which descends
-    from the fix, because updating them is what a correct record does when
-    the fixes land. So dropping the flag now refuses every correctly updated
-    record, and round 2 measured it: two cases red for that one mutation,
-    where round 1's battery saw one.
-
-    What it costs, stated rather than hidden: a record accidentally deleted
-    and restored WITHIN THE BRANCH after the fixes is refused, and the
-    failure names the restoring commit. Bytes the base's own history carried
-    are `restored_from`'s, and `written_late` asks it before this. The declared failure direction is *blocks more*, and a
-    repair that is visible in the message is the cheaper mistake here.
-    """
-    out = git(
-        root,
-        "log",
-        "--full-history",
-        "--topo-order",
-        "--diff-filter=A",
-        "--format=%H",
-        f"{base}..HEAD",
-        "--",
-        rel,
-    )
-    if not out:
-        return None
-    found = [line.strip() for line in out.splitlines() if line.strip()]
-    return found[0] if found else None
-
-
-def restored_from(root, fork, rel):
-    """A commit in the merge base's history carrying `rel`'s current bytes at
-    `rel`, or None.
-
-    The one predicate for a record this pull request RESTORED rather than
-    wrote (#598 instance 1). Asked by the two arms whose claim is about the
-    pull request's own add, and by no other: reachability in `main`, and
-    `written_late`. Everything else is read on a restored record exactly as
-    it is on one the pull request never touched.
-
-    A directory the base retired and this pull request puts back is an `A` in
-    `base...HEAD` whatever its content, so the diff alone calls it new. But
-    bytes the base's own history already held at this path were added there,
-    by an earlier pull request, and the review they record was enforced at
-    that one (`docs/the-review-and-parity-arms.md`). #597 went red on four such
-    records, every one byte-identical to `main`'s.
-
-    ANY version in that history counts, not only the one the base retired:
-    every version it holds was added by an earlier pull request. One byte
-    changed and the bytes are this pull request's, so the claim comes back.
-
-    The bytes are HEAD's, or the working tree's under `--worktree`, the same
-    rule `read_record` follows. The commit returned is the last of those git
-    lists, and `--topo-order` makes that an ancestor-most change, which is
-    where the bytes entered: in date order a clock that ran ahead on the add
-    names the commit that retired them instead.
-
-    No `--full-history`, and that is measured rather than forgotten.
-    `--find-object` already walks both parents of a merge: bytes that stood
-    only on a side line which changed the record and changed it back before
-    merging are found without the flag, where a plain path-limited `git log`
-    simplifies that side line away. The case beside B1 holds it.
-
-    None when `fork` is None or git fails, which is the strict direction:
-    nothing is relaxed on an answer nobody could compute.
-    """
-    if not fork:
-        return None
-    if WORKTREE:
-        blob = git(root, "hash-object", "--", os.path.join(root, *rel.split("/")))
-    else:
-        blob = git(root, "rev-parse", "--verify", "-q", f"HEAD:{rel}")
-    blob = (blob or "").strip()
-    if not blob:
-        return None
-    out = git(
-        root,
-        "log",
-        "--topo-order",
-        f"--find-object={blob}",
-        "--format=%H",
-        fork,
-        "--",
-        rel,
-    )
-    found = [line.strip() for line in (out or "").splitlines() if line.strip()]
-    return found[-1] if found else None
-
-
-def commissioned_fixes(reader, root, rel):
-    """[(line, what, sha, full sha)] -- commits this record's verdicts name as
-    fixes, resolved in this repository.
-
-    Only cells whose verdict is a FIX word. `answered`, `withdrawn` and `not a
-    defect` close a finding and produce no code, so there is no fix for the
-    record to have been written after, whatever commit the grounds beside it
-    happen to cite. And only the VERDICT cell is scanned, for the reason
-    `verdict_of` reads only the head of one: a grounds column is prose, and a
-    commit named in prose is a citation rather than a claim.
-
-    A SHA this repository cannot see is dropped rather than reported. After a
-    squash that is the ordinary state of a reviewed commit, and it is what
-    makes a rebase unable to fail an honest record.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return []
-    rows, col, _header, _errors = verdict_table(reader, reader.readable(text), rel)
-    if col < 0:
-        return []
-    found = []
-    for line_no, seen in rows:
-        if verdict_of(seen, col) not in FIX_WORDS:
-            continue
-        for sha in SHA_RE.findall(seen[col]):
-            full = resolves_to(root, sha)
-            if full:
-                found.append((line_no, seen[0] or f"row at line {line_no}", sha, full))
-    return found
-
-
-def written_late_reason(reader, root, rel):
-    """The reason this record gives for having been written late, or None.
-
-    `record_facts`' reading of `NEEDS`, of `WRITTEN_LATE` instead and for
-    the same reason: one vocabulary, one reader. `yes_or_no` is what already
-    reads `no` / `yes -- <what>`, so this row cannot drift from the two rows
-    that spelling came from.
-
-    FOUR states answer None and every one of them is judged exactly as it was
-    before this row existed -- the row absent, the cell unreadable, the cell
-    `no`, and a bare `yes` with nothing after it. The last is the one worth
-    saying out loud: `round_record.py` refuses to WRITE a bare `yes`, and a
-    record hand-edited to carry one buys nothing here either. A relaxation
-    bought with an empty cell is a waiver with no author, which is one of the
-    three bad exits this row exists to replace.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return None
-    cell = field(table_rows(reader, reader.readable(text)), WRITTEN_LATE)
-    if cell is None:
-        return None
-    word, reason = yes_or_no(reader.visible(cell).strip())
-    return reason if word == FLOOR_YES and reason else None
-
-
-def written_late(reader, root, base, rel, fork=None):
-    """(errors, notices) -- was this record committed after its own fixes.
-
-    `templates/sdd-round.md` says a record is written right after the round
-    posts, and until this check nothing observed it. Issue #150 measured the
-    orchestrator stopping twice in a row, four minutes and two minutes after
-    the fix commits those records commissioned, and both times the reviewer's
-    drafted replacement text lived only in a report and the next segment
-    rebuilt it from scratch.
-
-    **A record written late looks finished.** By the time it is committed the
-    fixes have landed, so its verdict cells read `fixed at <sha>` -- which is
-    exactly what a correct record looks like after its own update pass. The
-    two are indistinguishable in the file and distinguishable in git, so what
-    is read is the commit that ADDED the record and never the one that last
-    touched it. Refusing on the last commit would fail every well-written
-    record, because a correct record IS updated after its fixes land.
-
-    Read on EVERY record, like `checked_by`, `fix_surface` and `ran_by`, and
-    for the same reason: when a record was written is a fact about that round,
-    and every round has one. The last record is the one LEAST likely to be
-    late, since nothing follows it to commission anything.
-
-    A fix the round did not commission is dropped: a verdict answering an
-    earlier round's finding names a commit this round already reviewed, so it
-    is an ancestor of this record's own `Target SHA`. Reading that as a
-    commissioned fix would fail the second round of every run, since round
-    N+1's record is committed after round N's fixes by construction.
-
-    An unreadable record and an unreadable verdict table both return nothing:
-    `checked_by` and `verdict_table`'s own caller already report those states,
-    and a second error naming a different cause would name a cause that is not
-    the cause.
-
-    A record RESTORED byte-for-byte from the merge base's history (`fork`,
-    through `restored_from`) returns nothing too, and silently. Its add in
-    `<baseline>..HEAD` is a restore, not the pull request's own add, and this
-    arm's *no claim* for a record with no adding commit here is defined by
-    pointing at the reachability arm's, which a restored record already gets.
-    Asked after the fixes are found and before the add is, so an ordinary
-    record with no fix verdict pays no extra `git log`.
-    """
-    named = commissioned_fixes(reader, root, rel)
-    if not named:
-        return [], []
-    if restored_from(root, fork, rel):
-        return [], []
-    adding = added_on_branch(root, base, rel)
-    if adding is None:
-        return [], []
-
-    reviewed = [
-        full
-        for full in (resolves_to(root, sha) for sha in target_shas(reader, root, rel))
-        if full
-    ]
-    # Grouped by the commit, not reported per row. One real record named the
-    # same fix in seven verdict cells, and seven copies of a paragraph is a
-    # failure people scroll past -- the rows are the detail, and the commit is
-    # the finding. Keyed by the RESOLVED sha so an abbreviation and a full
-    # hash in two cells are one commit, and the ancestry is asked once per
-    # commit rather than once per row.
-    late, spelling = {}, {}
-    for line_no, what, sha, full in named:
-        if full not in spelling:
-            spelling[full] = sha
-            commissioned = not any(
-                is_ancestor(root, full, target) for target in reviewed
-            )
-            if commissioned and is_ancestor(root, full, adding):
-                late[full] = []
-        if full in late:
-            late[full].append((line_no, what))
-
-    # Nothing is late, which is what every correct record that closed a
-    # finding with a fix looks like. Returning here rather than falling
-    # through to an empty loop is not tidiness: `written_late_reason` below
-    # calls `read_record`, which is an uncached `git show HEAD:<rel>`, so
-    # without this guard the ordinary record pays a subprocess for an answer
-    # nothing reads.
-    if not late:
-        return [], []
-
-    began = item_began(rel)
-    # The fourth exit. Until this row, a record refused here had three
-    # repairs and not one of them was honest: rewrite history so the adding
-    # commit moves, merge over the red line, or invent a waiver nobody wrote
-    # down. Work item 1789034970 met all three and took none, and ended with a
-    # pull request red on a line no later commit could clear.
-    #
-    # It PRINTS rather than falling silent, which is the same shape the
-    # grandfathering above takes and for the same reason: the state is what
-    # the check exists to surface, and a pass in silence would hide it. What
-    # the reason buys is that the run can end, and that the fact survives in
-    # the record instead of in a session that has ended.
-    said = written_late_reason(reader, root, rel)
-    errors, notices = [], []
-    for full, rows in late.items():
-        line_no = rows[0][0]
-        which = ", ".join(what for _, what in rows)
-        message = (
-            f"this record was ADDED by {adding[:7]}, which descends from "
-            f"{spelling[full]} — the commit its own verdicts for {which} "
-            "name as the "
-            "fix. So it was written after the work it commissioned, and the "
-            "fix pass that should have read it read nothing: measured twice "
-            "in one release, and both times the reviewer's drafted "
-            "replacement text lived only in a report and the next segment "
-            "rebuilt it. A record written late leaves no trace afterwards, "
-            "because by then its verdict cells read `fixed at <sha>` — which "
-            "is what a record written on time looks like after its own "
-            "update pass. Commit the record when the round posts, with its "
-            "verdicts `open`, and update them when the fixes land: the "
-            "UPDATE commit may descend from the fix, the adding commit may "
-            "not"
-        )
-        if said is not None:
-            notices.append(
-                (
-                    rel,
-                    line_no,
-                    message + ". This record SAYS it was written late, and "
-                    f"why: `{WRITTEN_LATE}` reads `{FLOOR_YES} — {said}`. "
-                    "So this prints instead of failing. The three repairs a "
-                    "record refused here used to have were rewriting history "
-                    "so the adding commit moves, merging over the red line, "
-                    "and inventing a waiver nobody wrote down; this is the "
-                    "fourth, and what it buys is that the fact survives in "
-                    "the record rather than in a session that has ended",
-                )
-            )
-        elif began is None or began < ORDER_FROM:
-            notices.append(
-                (
-                    rel,
-                    line_no,
-                    message + ". This work item began before the rule landed, "
-                    "so this prints instead of failing — the grandfathering "
-                    "`Fixes checked by` already uses, and there is no honest "
-                    "repair for a record nobody can commit earlier now",
-                )
-            )
-        else:
-            # The fourth exit, named where it is needed. Every other place
-            # this state is documented -- the template, the spec, the
-            # orchestration half, the notice above -- is read by somebody who
-            # is NOT in it. This message is the one text the person in it
-            # reads, and it used to end at `commit the record when the round
-            # posts`, which is advice their already-committed record cannot
-            # take. The hand-edit half is the half that matters: by the time
-            # anybody reads this the record is on the branch, so the flag
-            # alone names an exit that has gone.
-            errors.append(
-                (
-                    rel,
-                    line_no,
-                    message + ". Where the fix pass really did run before this "
-                    "record reached a commit, the record may SAY so and this "
-                    f"prints instead of failing: a `| {WRITTEN_LATE} | "
-                    f"{FLOOR_YES} — <why> |` row in its field table, written by "
-                    '`round_record.py new --written-late "<why>"`, or added by '
-                    "hand and committed like any other correction to a record "
-                    "already on the branch. A bare `yes` buys nothing — the "
-                    "reason is the whole of what the row is for",
-                )
-            )
-    return errors, notices
-
-
-def record_facts(reader, lines, rel):
-    """(floor met, run reopened, closed on a fix) for one record's lines.
-
-    The three facts the floor's two walks read off every record (#866), for
-    the gate here (`stopping_floor`, over records at `HEAD`) and for the
-    generator's printed bound (`round_record.py#floor_and_fixes`, over
-    records on disk). The text source is the caller's; the reading is this.
-
-      floor met     `Loses a record or crashes` reads `no`, by `yes_or_no`
-      reopened      `Needs a fix` says the run reopened, by `says_reopened`.
-                    None there — the row absent, a word outside the
-                    vocabulary, a bare `yes` — is NOT a reopening: `plan.md`
-                    of the work item that added the walk declares the
-                    direction *blocks more*, and a row the checker cannot
-                    read must never be what quiets a refusal. `stopping_floor`
-                    tells the record itself about such a row
-      closed on     the record's own verdicts closed on a fix somebody wrote,
-      a fix         by `closed_with_a_fix`. `Needs a fix` is the REVIEWER's
-                    answer to what it opened, and the bound needs another
-                    one — were fixes written that owe a reader — and the two
-                    come apart when the orchestrator fixes a 🟡 the reviewer
-                    said could be answered: the row reads `no` over fixes
-                    that exist. Round 7 of the work item that added this stop
-                    had no terminal record any exit would accept without it;
-                    the direction is ALLOW, one record wider in one sequence,
-                    because the alternative can only be satisfied by
-                    rewriting `fixed` to `answered`, a false record
-    """
-    rows = table_rows(reader, lines)
-    floor = field(rows, FLOOR)
-    met = floor is not None and (
-        yes_or_no(reader.visible(floor).strip())[0] == FLOOR_NO
-    )
-    needs = field(rows, NEEDS)
-    reopened = needs is not None and (
-        says_reopened(reader.visible(needs).strip()) is True
-    )
-    return met, reopened, closed_with_a_fix(reader, lines, rel)
-
-
-def facts_at_head(reader, root, rel):
-    """`record_facts` for a record as git carries it at `HEAD`, and three
-    False for one it does not: an unreadable record is already an error
-    from `checked_by` and `open_blocking`, and a second cause named here
-    would not be the cause."""
-    text = read_record(root, rel)
-    if text is None:
-        return False, False, False
-    return record_facts(reader, reader.readable(text), rel)
-
-
-def floor_walks(facts):
-    """{i: (fix-closing records after it, records the count spent, stopped)}
-    for every record `i` of FACTS whose floor was met (#866).
-
-    FACTS is `record_facts` for each record of one run, in round order. The
-    two walks after a floor record, written once, for the gate's errors and
-    the generator's printed bound alike — they were two loops here and a
-    second pair in `round_record.py`, argued equivalent by a docstring:
-
-      the reopening   every later record that closed on a fix, wherever it
-                      sits; never stops. A second one is the run reopened
-                      twice (issue #161)
-      the count       every later record up to and including the first that
-                      reopened the run or closed on a fix; stops there. A
-                      second counted record is #81's shape, a quiet round
-                      after the verifying round
-
-    Each walk starts at its own floor record: the count walk restarts at
-    every one, which is what keeps it bounded, and the caller decides which
-    start it refuses or prints."""
-    walks = {}
-    for i, (met, _reopened, _wrote) in enumerate(facts):
-        if not met:
-            continue
-        spent, stopped = 0, False
-        for _met, reopened, wrote in facts[i + 1 :]:
-            spent += 1
-            if reopened or wrote:
-                stopped = True
-                break
-        fixers = [j for j in range(i + 1, len(facts)) if facts[j][2]]
-        walks[i] = (fixers, spent, stopped)
-    return walks
-
-
-def stopping_floor(reader, root, rel, later):
-    """(errors, notices) for one record's floor row and its `Needs a fix`.
-
-    `later` is the round records this work item carries AFTER this one, in
-    round order — the paths, not a count, because how many of them the bound
-    counts depends on what each one says. The floor value answers *did this
-    round find anything that leaves the root or crashes*; the walk over
-    `later` answers *and did the run stop when it said no*.
-
-    **The count stops at the first later record whose `Needs a fix` says the
-    run reopened, that record included — and at the first whose own verdicts
-    closed on a fix, whatever that row says.** A verifying round that opens
-    something IS a finding round (`skills/code-review/orchestration.md`), so
-    its own fixes need a reader in turn, and a third record is then the run
-    behaving correctly rather than running on. Counting blindly made that
-    sequence unwritable — round 1's 🔴 1, found on this work item's own first
-    record, which answers the floor `no` and `Needs a fix: yes`. The second
-    stop is the closed-on-a-fix fact of `record_facts`: the row is the
-    reviewer's answer to what it opened, the verdict column is whether fixes
-    were written, and round 7 of the work item that added it had no terminal
-    record until the walk read both. The walks themselves are `floor_walks`,
-    which the generator's printed bound reads too (#866).
-
-    Both rows are read here rather than in two functions, because the bound
-    is one question spread over two cells and a second reader of `Needs a
-    fix` would be a second answer to it. What that cell MEANS — reopened,
-    not reopened, or nothing readable — is `says_reopened`'s answer, here
-    and in the walk and in the generator's printed bound alike, so `yes`
-    alone is refused the way the floor row's is (#138): it is the cell the
-    count restarts at, and three characters must not buy the run a round.
-
-    **Two walks over the same `later`, and they decide different things** --
-    the way `docs/review-chain-spec.md` tells the floor from the cap:
-
-      | Walk          | Counts                        | Stops    | Refuses                      |
-      | the count     | every later record up to and  | at that  | a SECOND counted record: a   |
-      |               | including the first that      | record   | quiet round after the        |
-      |               | reopened or closed on a fix   |          | verifying round, #81's shape |
-      | the reopening | later records whose verdicts  | never    | a SECOND fix-closing record: |
-      |               | closed on a fix, wherever     |          | the run reopened twice,      |
-      |               | they sit                      |          | however the records between  |
-      |               |                               |          | are shaped (issue #161)      |
-
-    The count alone was unbounded by construction: every record it stops at
-    is itself a record that met the floor, so the count restarted there. The
-    reopening walk is keyed to `REOPEN_FROM` and names the exit -- the run
-    is `capped`, and the message says what that writes.
-
-    Read on EVERY record, like `checked_by` and `fix_surface` and for the same
-    reason: every round has its own answer, and the run's stopping point is a
-    fact about the round that met the floor rather than about the last one.
-
-    The grandfathering is `item_began` against `FLOOR_FROM`, and for the
-    floor it reaches the ABSENT row and the run that ran on past it. Neither
-    has an honest repair on a merged record -- the round is over, and the
-    repair for the second is a round that was never spawned. A floor row that
-    is present and malformed is refused on any record, because formatting is
-    always the author's, which is the split `fix_surface` already makes.
-
-    `Needs a fix` is grandfathered WHOLE, against `NEEDS_FROM`, and that
-    constant carries why: the row predates every check on it, so a value
-    written earlier was never held to a vocabulary and malformed does not
-    mean careless there.
-
-    An unreadable record returns nothing: `checked_by` already reports that
-    state, and a second error naming a different cause would name a cause
-    that is not the cause.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return [], []
-    rows = table_rows(reader, reader.readable(text))
-    began = item_began(rel)
-    excused = began is None or began < FLOOR_FROM
-    errors, notices = [], []
-
-    needs_excused = began is None or began < NEEDS_FROM
-    needs = field(rows, NEEDS)
-    # `is not None`, not truthiness: an empty cell is a state of its own and
-    # gets its own sentence below, where `if needs` sent it to the branch
-    # that quotes a value and printed empty backticks (round 2, 🟡 3).
-    value_needs = reader.visible(needs).strip() if needs is not None else None
-    reopened = says_reopened(value_needs) if value_needs is not None else None
-    if reopened is None:
-        if needs is None:
-            message = f"no readable `| {NEEDS} | … |` row"
-        elif not needs.strip():
-            # The sentence the floor row two functions up has always given an
-            # empty cell. Two rows read the same vocabulary, so one state
-            # cannot have two answers at two qualities.
-            message = f"`{NEEDS}` is empty — a row that says nothing answers nothing"
-        elif yes_or_no(value_needs)[0] == FLOOR_YES:
-            # The floor row's own refusal below, in its words (#138). This
-            # row passed the same three characters for as long as nothing
-            # read it, and once the bound did, a bare `yes` was what
-            # restarted the count of later records: one cell bought the run
-            # a round past its own floor. `says_reopened` reads it as None
-            # now, so it stops the count of nothing, and the record that
-            # carries it is told so here rather than passing in silence.
-            message = (
-                f"`{NEEDS}` says `{FLOOR_YES}` and does not say what. The "
-                "whole of what makes the row readable is what was opened — "
-                "without it the cell records that something was, and not "
-                "what, and the verifying round that has to answer it "
-                "inherits nothing. It is also the cell the count of later "
-                f"records restarts at, so a bare `{FLOOR_YES}` counts as no "
-                "reopening"
-            )
-        else:
-            message = f"`{NEEDS}` is `{needs.strip()}`, which is neither answer"
-        message += (
-            f". Write `{FLOOR_NO}`, or `{FLOOR_YES} — <what>`, copied from "
-            "the reviewer's line of the same name. The floor's bound below "
-            "rests on this row: it is what tells a verifying round that "
-            "reopened the run — whose own fixes then need a reader — from a "
-            "run that simply carried on"
-        )
-        if needs_excused:
-            notices.append(
-                (
-                    rel,
-                    0,
-                    message + ". This work item began before anything read "
-                    "the row, so this prints instead of failing — it has "
-                    "carried free text since draft 0.5 and was held to no "
-                    "vocabulary",
-                )
-            )
-        else:
-            errors.append((rel, 0, message))
-
-    cell = field(rows, FLOOR)
-    if cell is None:
-        message = (
-            f"no `| {FLOOR} | … |` row: three rounds, and five while a 🔴 is "
-            "open, is a CEILING, and the cap was spent like a budget for "
-            "want of anything under it — #81 ran seven rounds and the last "
-            "three found none of either kind. This row is the floor. "
-            f"`{FLOOR_NO}` says nothing this round found leaves the root or "
-            "crashes and the run stops here, whatever is left of the cap; "
-            f"`{FLOOR_YES} — <what>` names what was found and leaves the cap "
-            "to decide. It is the reviewer's own answer, copied from the "
-            "line of the same name in its report"
-        )
-        if excused:
-            notices.append(
-                (
-                    rel,
-                    0,
-                    message + ". This work item began before the rule "
-                    "landed, so this prints instead of failing — the "
-                    "grandfathering `Fixes checked by` already uses",
-                )
-            )
-        else:
-            errors.append((rel, 0, message))
-        return errors, notices
-
-    value = reader.visible(cell).strip()
-    if not value:
-        errors.append(
-            (
-                rel,
-                0,
-                f"`{FLOOR}` is empty — a row that says nothing answers "
-                "nothing, and whether the run stops here is not something a "
-                f"reader can infer from a verdict table. Write `{FLOOR_NO}`, "
-                f"or `{FLOOR_YES} — <what>`",
-            )
-        )
-        return errors, notices
-
-    word, reason = yes_or_no(value)
-    if word is None:
-        errors.append(
-            (
-                rel,
-                0,
-                f"`{FLOOR}` is `{cell.strip()}`, which is neither answer. "
-                f"Write `{FLOOR_NO}` — and the run stops here — or "
-                f"`{FLOOR_YES} — <what does>`, copied from the reviewer's "
-                "line of the same name. The direction `CLOSED_WORDS` takes "
-                "for a verdict cell: a word this cannot read is never the "
-                "reassuring reading",
-            )
-        )
-        return errors, notices
-    if word == FLOOR_YES and not reason:
-        errors.append(
-            (
-                rel,
-                0,
-                f"`{FLOOR}` says `{FLOOR_YES}` and does not say what. The "
-                "whole of what makes the row readable is what was found — "
-                "without it the cell records that something was, and not "
-                "what, and the next round inherits nothing",
-            )
-        )
-        return errors, notices
-
-    if word == FLOOR_NO:
-        # Every later record counts until one of them says the run reopened
-        # OR wrote fixes, that one included. After either the records answer
-        # to THAT round rather than to this one -- a reopening because the
-        # reviewer opened something, a fix because the orchestrator wrote
-        # something over a `no` -- and the run is a finding run again. This
-        # record met the floor by the `word` read above; the walks are
-        # `floor_walks`' from it, over the later records' facts at HEAD.
-        fixers, counted, _stopped = floor_walks(
-            [(True, False, False)]
-            + [facts_at_head(reader, root, other) for other in later]
-        )[0]
-        if counted > 1:
-            # The FIRST counted record is the verifying round this row
-            # allows; every counted record after it is one too many. Round
-            # 11 of the work item that wrote the second stop found the
-            # message blaming "the record before it" -- the allowed one.
-            extra = ", ".join(os.path.basename(p) for p in later[1:counted])
-            message = (
-                f"`{FLOOR}` is `{FLOOR_NO}` and the count of round records "
-                f"after this one reaches {counted}. The walk counts every "
-                "later record up to and including the first that reopened "
-                "the run or closed on a fix, so the FIRST counted record is "
-                "the verifying round this row allows and every counted "
-                f"record after it is one too many — here {extra}. "
-                "A record that met the floor is followed by at most one "
-                "more — the verifying round, at the diff of the fixes that "
-                "closed it. A second is the run carrying on past its own "
-                "stopping rule, which is the hour #81 spent on the flat "
-                f"part of the curve. A verifying round that opens something "
-                f"says so in its own `{NEEDS}`, and the count stops there. "
-                "So does a record whose own verdicts closed on a fix, "
-                "whatever its row says — fixes written over a `no` owe a "
-                "reader too, so do not rewrite the row to make this pass. "
-                "What a stopped round found that still needs doing is "
-                "deferred with a named answerer, or becomes an issue"
-            )
-            if excused:
-                notices.append(
-                    (
-                        rel,
-                        0,
-                        message + ". This work item began before the rule "
-                        "landed, so this prints instead of failing — the "
-                        "rounds it names are over, and no record anybody "
-                        "writes now un-spawns them",
-                    )
-                )
-            else:
-                errors.append((rel, 0, message))
-
-        # The second walk, over the whole of `later` and never stopping: the
-        # records whose verdicts closed on a fix, wherever they sit. The
-        # first is the reopening this row allows; the second is the run
-        # reopened twice. Closed on a fix and not reopened, because what a
-        # reader is owed is fixes -- a `deferred` verdict wrote none.
-        reopened = [later[j - 1] for j in fixers]
-        if len(reopened) > 1:
-            first, second = (os.path.basename(p) for p in reopened[:2])
-            message = (
-                f"`{FLOOR}` is `{FLOOR_NO}` and {second} is the second later "
-                f"record whose verdicts closed on a fix, after {first}. "
-                f"After {os.path.basename(rel)} met the floor, at most one "
-                "later record may close on a fix — the verifying round that "
-                "reopened the run — and the record that reads its fixes "
-                f"ends the run whatever it finds. There {CAPPED_EXIT}"
-            )
-            if began is None or began < REOPEN_FROM:
-                notices.append(
-                    (
-                        rel,
-                        0,
-                        message + ". This work item began before the rule "
-                        "landed, so this prints instead of failing — the "
-                        "rounds it names are over, and no record anybody "
-                        "writes now un-spawns them",
-                    )
-                )
-            else:
-                errors.append((rel, 0, message))
-    return errors, notices
-
-
-def fof_of(reader, root, rel):
-    """(the `Fix of a fix` cell or None, its count or None) for one record."""
-    text = read_record(root, rel)
-    if text is None:
-        return None, None
-    cell = field(table_rows(reader, reader.readable(text)), FIX_OF_A_FIX)
-    if cell is None:
-        return None, None
-    return cell, fix_of_a_fix_count(reader.visible(cell))
-
-
-def runs_of(reader, root, records):
-    """`records`, in round order, cut after every record whose `Fix of a fix`
-    reads `second` (#823).
-
-    A run is the records from round 1, or from the record after a `second`,
-    up to and including the next `second`. The floor's two walks and the
-    fix-of-a-fix count read a run and never the whole directory: a record
-    after a `second` is the redesign's, and it is not a LATER record of
-    anything at or before the stop. Without the cut, the redesign's own
-    finding round and its verifying round would be the second and third
-    records after the stopped run's floor, and `stopping_floor` would refuse
-    the redesign for existing.
-
-    **Only a `second` its run counted cuts it** (round 1's ⬜ 2). One with no
-    earlier landing in its run disagrees with its run, `fix_of_a_fix` refuses
-    it, and letting it cut would restart the floor's walks on a stop that
-    never happened. Where the cuts fall is `cut_runs`' answer, which
-    `round_record.py#current_run` reads too (#866).
-    """
-    runs, start = [], 0
-    for cut in cut_runs([fof_of(reader, root, rel)[1] for rel in records]):
-        runs.append(records[start : cut + 1])
-        start = cut + 1
-    if start < len(records):
-        runs.append(records[start:])
-    return runs
-
-
-def cut_runs(counts):
-    """The indices a run is cut after, for `Fix of a fix` COUNTS in round order
-    (#866): every `second` (2) its run counted, which is one with a landing
-    (1 or 2) earlier in the same run. A count of None is no landing. One
-    function for the gate (`runs_of`, counts at `HEAD`) and the generator
-    (`round_record.py#current_run`, counts on disk), which cut by the same
-    rule in two loops before."""
-    cuts, landed = [], False
-    for i, count in enumerate(counts):
-        if count == 2 and landed:
-            cuts.append(i)
-            landed = False
-        elif count:
-            landed = True
-    return cuts
-
-
-ROUND_RE = re.compile(r"round-(\d+)\.md$")
-
-
-def fix_of_a_fix(reader, root, rel, earlier, stopped=None):
-    """(errors, notices) for one record's `Fix of a fix` row (#823).
-
-    `earlier` is the records of this record's RUN before it, in round order;
-    `stopped` is the `second` the run began after, or None for the first run.
-    The row is a declaration the generator wrote, and this counts the
-    declarations as written -- the way the depth is read -- because after a
-    squash the fix commits are gone and nothing here could re-derive a
-    landing.
-
-      no row, work item begun on or after `REFRAME_FROM`   fails
-      no row, begun before it or with no timestamp prefix  prints
-      a row that is none of the three values               fails, any age
-      a second landing of the run reading `first`          fails
-      a `second` with no earlier landing in its run        fails
-      a landing on the first record of a run               fails
-      a third landing in one run                           fails
-      a `second` whose verdicts closed on a fix            fails
-      the first record after a `second`, and `spec.md`'s   fails
-      foot carries no `Reframed … after round <N>.`
-
-    The `Reframed` line's `<who>` is `frame`'s to hold to `Planning`, with
-    the `Framed` line's.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return [], []
-    lines = reader.readable(text)
-    errors, notices = [], []
-    item = os.path.dirname(os.path.dirname(rel))
-
-    if stopped is not None and not earlier:
-        m = ROUND_RE.search(stopped)
-        s = int(m.group(1)) if m else None
-        _mark, reframes = frame_foot(reader, read_record(root, f"{item}/spec.md"))
-        if s is None or not any(n == s for _when, _who, n in reframes):
-            errors.append(
-                (
-                    rel,
-                    0,
-                    f"{os.path.basename(stopped)} reads `{FOF_SECOND}`, and "
-                    f"this record comes after it while {item}/spec.md's foot "
-                    f"carries no `Reframed <date> by <who>, after round {s}.` "
-                    "under the `Framed` line. A `second` sends the work item "
-                    "back to its framer; the run resumed on the frame it had "
-                    "just shown does not hold. The redraw writes that line, "
-                    "and it is what permits this record",
-                )
-            )
-
-    cell = field(table_rows(reader, lines), FIX_OF_A_FIX)
-    if cell is None:
-        message = (
-            f"no `| {FIX_OF_A_FIX} | … |` row: whether an open finding of "
-            "this round landed inside a unit the previous round's fixes "
-            "wrote, counted per run. Two in a run stop the fix passes and "
-            "send the work item back to its framer, and without the row "
-            "nothing counts them. `round_record.py new` writes it"
-        )
-        began = item_began(rel)
-        if began is None or began < REFRAME_FROM:
-            notices.append(
-                (
-                    rel,
-                    0,
-                    message + ". This work item began before the rule landed, "
-                    "so this prints instead of failing — the grandfathering "
-                    f"`{CHECKED_BY}` already uses",
-                )
-            )
-        else:
-            errors.append((rel, 0, message))
-        return errors, notices
-
-    count = fix_of_a_fix_count(reader.visible(cell))
-    if count is None:
-        errors.append(
-            (
-                rel,
-                0,
-                f"`{FIX_OF_A_FIX}` is `{cell.strip()}`, which is none of its "
-                f"three values: `{FOF_NO}`, `{FOF_FIRST} — <where>`, or "
-                f"`{FOF_SECOND} — <where>; {FOF_STOPS}`. The landing is what "
-                "makes the row readable — the finding and the unit a reader "
-                "opens — so a bare count is refused with an empty cell",
-            )
-        )
-        return errors, notices
-
-    landed = [p for p in earlier if fof_of(reader, root, p)[1]]
-    # The other direction (round 1's ⬜ 2). The first record of a run follows
-    # no fix pass of that run — round 1 follows none, and the record after a
-    # `second` follows one that closed on deferrals — so nothing of it can
-    # land; and a `second` with no landing before it in its run is a `first`.
-    if count and not earlier:
-        errors.append(
-            (
-                rel,
-                0,
-                f"`{FIX_OF_A_FIX}` reads `{cell.strip()}` on the first record "
-                "of its run, which follows no fix pass of the run: round 1 "
-                f"follows none, and the record after a `{FOF_SECOND}` follows "
-                f"one that closed on deferrals. It reads `{FOF_NO}`",
-            )
-        )
-    elif count == 2 and not landed:
-        errors.append(
-            (
-                rel,
-                0,
-                f"`{FIX_OF_A_FIX}` reads `{FOF_SECOND}`, and no earlier record "
-                f"of this run landed, so the count says `{FOF_FIRST}`. A "
-                f"`{FOF_SECOND}` ends the run and sends the work item back to "
-                "its framer, and one the run did not count would stop it on a "
-                "landing that never happened",
-            )
-        )
-    if count == 1 and landed:
-        errors.append(
-            (
-                rel,
-                0,
-                f"`{FIX_OF_A_FIX}` reads `{FOF_FIRST}`, and "
-                f"{os.path.basename(landed[0])} already landed in this run, "
-                f"so the count says `{FOF_SECOND}`. A record that disagrees "
-                "with its own run keeps the fix passes going past the stop. "
-                f"{REFRAME_EXIT}",
-            )
-        )
-    if count and len(landed) >= 2:
-        errors.append(
-            (
-                rel,
-                0,
-                f"this is the third fix of a fix in one run, after "
-                f"{os.path.basename(landed[0])} and "
-                f"{os.path.basename(landed[1])} — the fix passes went past "
-                f"the stop at {os.path.basename(landed[1])}. {REFRAME_EXIT}",
-            )
-        )
-    if count == 2 and closed_with_a_fix(reader, lines, rel):
-        errors.append(
-            (
-                rel,
-                0,
-                f"`{FIX_OF_A_FIX}` reads `{FOF_SECOND}` and this record's "
-                "verdicts closed on a fix: a fix pass ran after the stop. "
-                f"{REFRAME_EXIT}",
-            )
-        )
-    return errors, notices
-
-
-def says_gate_not_yet(value):
-    """True when a `Broad gate` cell says the one full-suite run has not run.
-
-    The prefix rule `says_none` and `says_not_yet` already use, for the same
-    cause: the reason after the separator is allowed, because it is the
-    honest mid-run value and refusing it would refuse the truth. Every `not
-    yet` cell written in this repository so far carries one -- `not yet -- a
-    🔴 was open`, `not yet -- round 5 verifies these fixes` -- so an arm
-    matching the bare two words would have passed all of them.
-
-    The boundary is a separator, so `not yetx` is not a `not yet`; it falls
-    through to the cell nobody can parse, which is REPORTED rather than
-    failed.
-    """
-    s = EMPHASIS.sub("", value or "").lower().strip().rstrip(".;").strip()
-    if s == GATE_NOT_YET:
-        return True
-    if not s.startswith(GATE_NOT_YET):
-        return False
-    rest = s[len(GATE_NOT_YET) :]
-    return bool(rest) and rest[0] in SEPARATORS
-
-
-GATE_EXCUSED = (
-    f"Work items begun before {GATE_FROM} are excused this and print instead "
-    f"— every record ever written defaults to `{GATE_NOT_YET}`, so failing "
-    "them would be red on history nobody can fix"
-)
-DIRECT_GATE_EXCUSED = (
-    f"Work items begun before {DIRECT_GATE_FROM} are excused this and print "
-    f"instead — the cell had no home to be written to, so failing them would "
-    "be red on history nobody can fix"
-)
-PREMATURE, DIVERGENT = "premature", "divergent"
-
-
-def gate_before_review(root, ran_at, target):
-    """(`premature` | `divergent` | None, the `Target SHA` word it is about)
-    for a broad-gate run at commit RAN_AT against a record's TARGET cell
-    (#866).
-
-    `premature`: a reviewed commit descends from the run, so the run was
-    spent before the round it seals. `divergent`: a reviewed commit is
-    neither the run's commit, an ancestor of it nor a descendant — a line
-    that makes no claim either way. None: every reviewed commit this
-    repository can see is the run's commit or an ancestor of it. Equal is
-    not premature, and a commit the repository cannot see is passed over.
-    Premature wins over divergent wherever a cell names both. One function
-    for this check's `broad_gate` arm (premature fails, divergent prints)
-    and `round_record.py seal` (premature refused), which walked the same
-    ancestry in two loops."""
-    divergent = None
-    for sha in SHA_RE.findall(target or ""):
-        reviewed = resolves_to(root, sha)
-        if reviewed is None or reviewed == ran_at:
-            continue
-        if is_ancestor(root, reviewed, ran_at):
-            continue
-        if is_ancestor(root, ran_at, reviewed):
-            return PREMATURE, sha
-        divergent = sha
-    return (DIVERGENT, divergent) if divergent else (None, None)
-
-
-# The one parameter of this check a caller passes to say WHO it is (#866).
-# The broad gate's chain arm runs before `round_record.py seal` writes the
-# `Broad gate` cell it would judge, so that cell honestly reads `not yet` at
-# that moment. The arm used to hand this check a draft payload for it, which
-# excused every other arm with it; this excuses the one cell, and says so.
-SEALING = "--sealing"
-SEALING_SAYS = (
-    f"{SEALING}: the last record's `{BROAD_GATE}` cell is the one this run "
-    "writes, so its arm prints and does not fail"
-)
-
-
-def sealing_excuses(found, sealing):
-    """(errors, notices) of the `Broad gate` arm, its errors printed instead
-    under `--sealing` (#866).
-
-    FOUND is that arm's own answer. Under the flag every error it holds
-    becomes a notice carrying `SEALING_SAYS` in front, so the state the cell
-    is in still prints and the exit does not move on it; without the flag
-    FOUND passes through untouched. Nothing else is excused: the flag names
-    the caller that writes this one cell, and an unchecked `Pass` or a
-    `nobody` beside it is not a cell that caller writes."""
-    errors, notices = found
-    if not sealing:
-        return errors, notices
-    return [], notices + [
-        (rel, line, f"{SEALING_SAYS}: {message}") for rel, line, message in errors
-    ]
-
-
-def broad_gate(
-    reader, root, rel, strict, began=False, floor=GATE_FROM, excused=GATE_EXCUSED
-):
-    """(errors, notices) for the one full-suite run this record claims.
-
-    `began`, `floor` and `excused` are the cutoff, and they are parameters
-    because the
-    cell has two homes and the two grandfather different populations. The
-    default `False` means *derive it from `rel`*, which is the round-record
-    path: `item_began` reads the work item's id out of
-    `<item>/rounds/round-N.md`. A `broad-gate.md` sits one level shallower, so
-    that reader answers None for it — and None is the GRANDFATHERED answer,
-    which would have turned the cutoff off silently for the whole arm rather
-    than noisily for one case. `None` is still a legal value to pass, and it
-    still means grandfathered; `False` is the sentinel because it is the one
-    value a caller never means.
-
-    Asked of the LAST record alone, and for the reason `Pass` is: whether the
-    broad gate ran is a claim about the whole review, not about one round.
-    Every round but the last honestly reads `not yet` -- the run comes after
-    the rounds settle -- so reading them all would fail every work item that
-    ran more than one round.
-
-    FOUR STATES, and each has to be told apart from the others.
-
-      `not yet`, or no row at all   the run never happened. An absent row is
-          the same state and must read as it: `round_record.py new` writes
-          this row on every record it generates, so above the cutoff an
-          absent row cannot arise honestly, and reading it as "nothing to
-          check" would make deleting one line the way past the whole arm.
-          **That last clause was false when it was written**, and the state
-          below is why: a cell holding one unparseable word was a notice, so
-          writing `skipped` was already a shorter way past the arm than
-          deleting anything. Closing that one is what makes this reason true.
-
-      a SHA the record's own `Target SHA` DESCENDS from   the run was spent
-          before the round it was meant to seal. `CLAUDE.md` §*Verification
-          Scope* is the rule that breaks: a broad run with an edit after it
-          was spent, not banked -- and a round's fixes are edits after it by
-          definition. This is worse than no run, because the cell claims one.
-
-      a cell with no SHA-shaped word in it   the run is unnamed, and above the
-          cutoff that FAILS. `questions.md` assumption 3 argued for reporting
-          it, because nothing validates the cell where it is WRITTEN
-          (`questions.md` Q4, the owner's) and records in the tree hold free
-          text -- one reads `due after this record -- see the row below`. That
-          reason is the retroactive red the cutoff already answers: the tail
-          of this function grandfathers every work item begun before
-          `GATE_FROM`, and above it `round_record.py new` writes the row on
-          every record while `seal` and `close --broad-gate` are the only
-          things that change the value (#30 added the first, and it is the
-          route the sealer takes). So above the cutoff this cell is a choice. Left as a
-          notice it was the CHEAPEST way past this arm there is -- `skipped`
-          is one word, where the absent row the state above refuses costs a
-          deleted line.
-
-      a SHA on a DIVERGENT line   reported, never failed. Neither the reviewed
-          commit nor a descendant of it, so it makes no claim about this round
-          in either direction. The passing condition is asked directly for
-          this reason: written as the complement of *premature*, it admitted
-          every commit that was merely unrelated, and did it in silence --
-          quieter than the notice an unresolvable SHA below already gets.
-
-    EQUAL IS NOT PREMATURE, and `merge-base --is-ancestor X X` exits 0, so
-    ancestry alone would fail the exactly-correct case: the round reviewed a
-    commit and the gate ran at that commit. The resolved oids are compared
-    first, which is also what makes an abbreviated cell and a full-length
-    `Target SHA` comparable at all.
-
-    THE FIRST SHA-SHAPED WORD IS THE RUN, and that is a property the writer
-    keeps rather than one this arm assumes (#174). The cell holds one entry
-    per full-suite run, NEWEST FIRST: `round_record.py seal` writes a new
-    run in front of what the cell already held and keeps the earlier entry
-    behind it as `earlier run`, so a re-seal at a new commit after a
-    pre-existing failure or a late fix records a second run instead of
-    erasing the first, while the same comparison as the newest entry -- the
-    same commit against the same base -- replaces that entry. Every
-    question below is asked of `named[0]` alone -- the newest run is the one
-    that has to be at or after the round it seals -- and a first seal is one
-    entry, so a record written before the cell could hold two reads exactly
-    as it always did.
-
-    A gate SHA this repository cannot see makes NO CLAIM. A squash discards
-    the commits a round reviewed and the gate ran at one of them, so
-    `resolves_to` returning None is the ordinary state after a merge -- the
-    same "no claim" `check_round` makes for a record the pull request does
-    not touch.
-
-    `strict` is false for a draft pull request and for one nobody observed
-    (#866), and this is the third thing it excuses. The reason is the one the other two have: the broad
-    gate runs once, AFTER the rounds settle, so a draft whose cell reads `not
-    yet` is telling the truth.
-    """
-    if not strict:
-        return [], []
-    text = read_record(root, rel)
-    if text is None:
-        return [], []
-    rows = table_rows(reader, reader.readable(text))
-    cell = field(rows, BROAD_GATE)
-    written = (cell or "").strip()
-    named = SHA_RE.findall(written)
-
-    fatal, message = True, None
-    if not written or says_gate_not_yet(written):
-        message = (
-            f"`{BROAD_GATE}` is "
-            + (f"`{written}`" if written else "absent")
-            + " on the last round record, and this is a ready pull request. "
-            "The one full-suite run this design turns on has not happened, "
-            "and the row is the only place it is recorded — nothing else in "
-            "the repository knows whether it ran. Once the rounds have "
-            "settled, spawn the `sealer` with the base and the work item; "
-            "while one is still running, the pull request belongs in draft. "
-            "The sealer runs "
-            "`broad-gate --base <base> --record <item>`, and on a green run "
-            "that fills this cell for you. Until then, this pull request is a "
-            "request to merge a branch nobody has run the suite over"
-        )
-    elif not named:
-        # NOT excused above the cutoff, and the tail of this function is what
-        # excuses it below one. `questions.md` assumption 3 argued for
-        # reporting an unparseable cell because records in the tree hold free
-        # text -- true of records written before `GATE_FROM`, which the tail
-        # already grandfathers. Above it there is no such history:
-        # `round_record.py new` writes this row on every record it generates
-        # while `seal` and `close --broad-gate` are the only things that
-        # change the value (#30 added the first, which is the sealer's own
-        # write), so a cell this arm cannot parse there is a cell somebody
-        # chose.
-        # Left as a notice, `pending`, `skipped` or `n/a` was a shorter way
-        # past this arm than deleting the row -- which is the very edit the
-        # absent-row judgment above was taken to close.
-        message = (
-            f"`{BROAD_GATE}` is `{written}` — no SHA-shaped word in it, so "
-            "this arm cannot tell a run that happened from one that did not. "
-            "Spawn the `sealer` and let `broad-gate --record <item>` write "
-            "this cell, or `round_record.py close --broad-gate '<sha> against "
-            "<base>'` where fixes and the gate land in one pass (the same "
-            "newest-first path, so a run the cell holds is kept) — or "
-            f"`{GATE_NOT_YET}` while it has not run"
-        )
-    else:
-        ran_at = resolves_to(root, named[0])
-        if ran_at is None:
-            fatal = False
-            message = (
-                f"`{BROAD_GATE}` names `{named[0]}`, which this repository "
-                "cannot see — the ordinary state after a squash, so no claim "
-                "is made about when the run happened"
-            )
-        else:
-            # THE HONEST SHAPE, ASKED DIRECTLY: the gate ran AT the commit the
-            # round reviewed, or after it. Asked as the complement -- *is the
-            # gate an ancestor of the target?* -- this answered the premature
-            # case alone and let a commit on a DIVERGENT line through in
-            # silence, which is quieter than the notice an unresolvable SHA
-            # gets. `spec.md`'s three shapes are `not yet`, premature, and at
-            # or after; a commit on a line the branch never descended from is
-            # none of them, and it makes no claim about this round either way.
-            # The comparison is `gate_before_review`'s, which `seal` asks too.
-            shape, sha = gate_before_review(root, ran_at, field(rows, TARGET))
-            if shape == PREMATURE:
-                message = (
-                    f"`{BROAD_GATE}` names `{named[0]}`, and this "
-                    f"round's `{TARGET}` names `{sha}`, which descends "
-                    "from it. The full-suite run was spent BEFORE the "
-                    "round it was meant to seal, so everything the round "
-                    "reviewed after that commit — its own fixes included "
-                    "— went through no broad gate at all. A broad run "
-                    "with an edit after it was spent, not banked. Spawn "
-                    "the `sealer` again now that the rounds have settled: "
-                    "`broad-gate --base <base> --record <item>` re-takes "
-                    "the run at the tree as it stands and writes the new "
-                    "SHA into this cell"
-                )
-            elif shape == DIVERGENT:
-                fatal = False
-                message = (
-                    f"`{BROAD_GATE}` names `{named[0]}`, and this round's "
-                    f"`{TARGET}` names `{sha}` — the gate commit is "
-                    "neither that commit nor a descendant of it, so it sits "
-                    "on a different line of history and makes no claim about "
-                    "this round. Reported rather than failed: a divergent "
-                    "commit is not evidence either way"
-                )
-            else:
-                return [], []
-
-    if message is None:
-        return [], []
-    if not fatal:
-        return [], [(rel, 0, message)]
-    if began is False:
-        began = item_began(rel)
-    if began is None or began < floor:
-        return [], [(rel, 0, message + ". " + excused)]
-    return [(rel, 0, message)], []
-
-
-# The framer's mark, at the FOOT of `spec.md`. Verb, date, who, the moment —
-# the shape `routing.md` and `plan.md` already end with, which is what keeps
-# three feet-lines from becoming three conventions.
-MARK_RE = re.compile(r"^Framed\s+(.+?)\s+by\s+(.+?),\s+before the build\.$")
-# `plan.md`'s approval line, whose unfilled form is a NOTICE. 61 of 71
-# `plan.md` files in this repository carry the placeholder, so a refusal here
-# is red for nearly every honest branch — which is the reasoning this module's
-# own docstring gives for `unverified_check.py` refusing to fail on an honest
-# open item.
-APPROVED_RE = re.compile(r"^Approved\s+(.+?)\s+by\s+(.+?), when .smith. was spawned\.$")
-# Where the frame becomes readable, as the unix second in a work item's
-# directory name. **Measured before it was set** (`questions.md` Q3): 11
-# declarations answer `Planning | framer`, 10 of them carry no mark because
-# the mark did not exist, and the eleventh is the work item that added it. The
-# candidate the row weighed this against is the release that ships the work —
-# and nothing falls in the gap between the two, so they are the same answer
-# and the cheaper spelling wins. Cheaper AND stricter, which is the right
-# direction for a tie: every work item begun after the mark was asked for is
-# judged.
-FRAME_FROM = 1789518345
-
-
-CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
-CHECKER = os.path.join(
-    HERE, "..", "..", "evidence-check", "scripts", "evidence_check.py"
-)
-PACT_FILE = "pact.md"
-# What every pact notice ends on, because it is what keeps a notice from
-# reading as a check: this CI reads one repository, and the reconciliation
-# needs all of them.
-PACT_NOT_HERE = (
-    "This CI reads no other repository, so nothing here verifies it: "
-    "`pact-check`, run at the pact's repository, is where the reconciliation "
-    "runs"
-)
-
-
-def plural(count, one, many):
-    return f"{count} {one if count == 1 else many}"
-
-
-def pact_notices(routing, root, declarations):
-    """[(rel, 0, message)] for what this tree says about a pact (#647).
-
-    **Notices and nothing else, and no exit status moves on any of them.**
-    That is #647's decision 2: a signer's CI prints the relationship and
-    does not verify it. The strict reading of the same rows is `pact-check`'s,
-    run locally at the pact's repository, which can open every signer;
-    this check can open one. So a `Pact` row that will not parse, a notify
-    value outside the vocabulary, and an anchor naming a pact no row declares
-    are printed here exactly as a well-formed relationship is.
-
-    - Where `seal/config.md` names a pact held elsewhere: one notice per pact,
-      naming the pact's repository, the notify value, and how many pact
-      anchors naming it the declared work item's `spec.md` carries.
-    - Where this repository holds `seal/pact.md`: how many signers the
-      pact lists, and, where its table is headed as 0.18.x wrote it, the
-      sentence naming the rename (`hooks/config.py#renamed_header`, #822).
-    - A refusal `hooks/config.py#pact_declaration` or `#pact_signers`
-      writes, and an anchor naming no declared pact: one notice each.
-
-    Read from HEAD, as every record here is (`read_record`), so a local-mode
-    root, which commits nothing, prints nothing. A reader that will not load
-    is one notice rather than exit 2, for the same decision.
-    """
-    home = routing.optin.HOME
-    config_rel = f"{home}/config.md"
-    pact_rel = f"{home}/{PACT_FILE}"
-    # Whether there is anything at the path; its rows are read strictly below,
-    # by `config_at_head`, once the reader is loaded.
-    config_text = read_record(root, config_rel)
-    pact_text = read_record(root, pact_rel)
-    specs = []
-    for rel in declarations:
-        item = os.path.dirname(rel)
-        text = read_record(root, f"{item}/spec.md")
-        if text is not None:
-            specs.append((f"{item}/spec.md", text))
-    if config_text is None and pact_text is None and not specs:
-        return []
-    try:
-        config = load(CONFIG_READER, "specseal_config_for_chain_check")
-        checker = load(CHECKER, "specseal_evidence_for_chain_check")
-    except (OSError, SyntaxError, ImportError, SystemExit) as exc:
-        return [
-            (
-                config_rel,
-                0,
-                f"the pact relationship was not read ({exc}). Nothing about a "
-                "pact moves this check's exit status, so this is a notice",
-            )
-        ]
-
-    cited = []
-    for rel, text in specs:
-        for match in checker.PACT_ANCHOR_RE.finditer(checker.unquoted(text)):
-            cited.append((rel, match.group("name").lower()))
-
-    notices = []
-    config_text, unreadable = config_at_head(root, config_rel, config)
-    if unreadable:
-        notices.append(
-            (
-                config_rel,
-                0,
-                f"the pact relationship was not read: {unreadable}. Nothing "
-                "about a pact moves this check's exit status, so this is a "
-                "notice",
-            )
-        )
-    pacts, notify, refusals = config.pact_declaration(config_text or "")
-    for written, _normalised, name in pacts:
-        count = sum(1 for _rel, n in cited if n == name)
-        where = (
-            " and ".join(rel for rel, _ in specs)
-            if specs
-            else "no declared work item's spec.md, since this pull request "
-            "declares none"
-        )
-        notices.append(
-            (
-                config_rel,
-                0,
-                f"this repository signs the pact held at {written} "
-                f"(`{config.PACT_NOTIFY_ROW}`: "
-                f"{notify if notify else 'a value that will not parse'}). "
-                f"{plural(count, 'pact anchor', 'pact anchors')} naming "
-                f"`{name}` in {where}. {PACT_NOT_HERE}",
-            )
-        )
-    for refusal in refusals:
-        notices.append(
-            (
-                config_rel,
-                0,
-                f"a `{config.PACT_ROW}` row this CI does not verify: {refusal}. "
-                "Printed rather than refused, because a signer's CI prints "
-                "and does not verify; `pact-check` at the pact's repository "
-                "exits 2 on it",
-            )
-        )
-    declared = {name for _w, _n, name in pacts}
-    for rel, name in sorted(set(cited)):
-        if name not in declared:
-            notices.append(
-                (
-                    rel,
-                    0,
-                    f"cites `pact:{name}/…`, and no `{config.PACT_ROW}` row in "
-                    f"{config_rel} names a pact called `{name}`. Printed rather "
-                    "than refused: a signer's CI prints and does not verify",
-                )
-            )
-    if pact_text is not None:
-        signers, refused, header = config.pact_signers(pact_text)
-        old, sentence = config.renamed_header(config.SIGNER_HEADER)
-        notices.append(
-            (
-                pact_rel,
-                0,
-                f"this repository holds the pact, which lists "
-                f"{plural(len(signers), 'signer', 'signers')}. "
-                + PACT_NOT_HERE.replace("verifies it", "compares them with it")
-                + (f". The pact {sentence}" if header == old else ""),
-            )
-        )
-        for refusal in refused:
-            notices.append(
-                (
-                    pact_rel,
-                    0,
-                    f"the pact {refusal}. Printed rather than refused; "
-                    "`pact-check` here exits 2 on it",
-                )
-            )
-    return notices
-
-
-# A work item's changelog fragment, as the release gathers it
-# (`docs/the-record-layout.md` §*A change writes fragments, never a shared
-# file*), and the section of that document that owns the rule the arm below
-# prints. The notice names the section by this title, and
-# `tests/test_a_fragment_left_behind_is_named.py` pins it to the heading.
-CHANGELOG_FRAGMENT = "changelog.md"
-FRAGMENT_DOC = "docs/the-record-layout.md"
-FRAGMENT_RULE = "A commit after the build brings its changelog fragment along"
-# The section of the same document that owns which commits a range owns
-# (#860), named by `round_record.py`'s refusals; pinned to the heading by
-# `tests/test_the_fixes_close_the_record.py`.
-RANGE_RULE = "A range owns the commits that descend from its start"
-# The directory name a test-only path sits under. `round_record.py`'s
-# `TESTS_DIR` and `under_tests` are the twin: this module cannot import that
-# one (the import runs the other way), so the predicate is stated again here
-# in the same words, a component anywhere above the file.
-TESTS_DIR = "tests"
-# How many behaviour paths a named commit lists before it counts the rest. The
-# commit is what the reader opens; the paths say why it was named.
-PATHS_NAMED = 3
-
-
-def behaviour_path(routing, path):
-    """True for a path outside the `seal/` root and outside a `tests` dir.
-
-    A negative definition rather than a list of this repository's
-    directories, because this check ships to every opted-in repository and a
-    list is one layout. #797's own list had already left out `bin/` and
-    `agents/` before it shipped.
-    """
-    parts = path.split("/")
-    return parts[0] != routing.optin.HOME and TESTS_DIR not in parts[:-1]
-
-
-def range_ends(reader, root, rel):
-    """(a, b), the full commits of a record's `Fix range`, or None.
-
-    None wherever the row is absent, says `none`, will not parse, or names
-    an end this repository cannot see. `fix_range` reports each of those
-    states; this only asks which commits a range holds, through the same
-    `FIX_RANGE_RE`.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return None
-    rows = table_rows(reader, reader.readable(text))
-    found = FIX_RANGE_RE.search(reader.visible(field(rows, FIX_RANGE) or ""))
-    if found is None:
-        return None
-    a, b = resolves_to(root, found.group(1)), resolves_to(root, found.group(2))
-    return (a, b) if a and b else None
-
-
-def last_round_end(reader, root, rel):
-    """The commit the last round's work ends at, or None.
-
-    Its `Fix range`'s second end where the range resolves, and its newest
-    `Target SHA` where the row says `none`: a round that commissioned no
-    fixes ends at what it reviewed. Any other state of the row names no end,
-    and a commit then is not called *after the last round*.
-    """
-    ends = range_ends(reader, root, rel)
-    if ends is not None:
-        return ends[1]
-    text = read_record(root, rel)
-    if text is None:
-        return None
-    cell = field(table_rows(reader, reader.readable(text)), FIX_RANGE)
-    if cell is None or not says_none(reader.visible(cell).strip()):
-        return None
-    shas = target_shas(reader, root, rel)
-    return resolves_to(root, shas[-1]) if shas else None
-
-
-def own_commits(root, a, b):
-    """[(full, short, [(status, path), …])], oldest first: the commits the
-    range `a..b` owns and what each changed, or None where git fails.
-
-    **The range's own commits** (#860, #805): what `git log --ancestry-path
-    --no-merges a..b` lists. `docs/the-record-layout.md` §*A range owns the
-    commits that descend from its start* owns that rule, and
-    `tests/test_a_range_owns_what_git_lists_for_it.py` holds a case per
-    history the review built. Git returns `[]` for a start that does not
-    reach its end.
-
-    `--no-renames`, because with rename detection a move is listed by its
-    destination alone: a behaviour file moved under `tests/` or `seal/`
-    listed only the path `behaviour_path` rejects, and was never named (#797
-    round 1). Detection also follows the reader's own `diff.renames`, so a
-    local run and CI listed different paths for one commit. Without it a
-    move is `D` of the old path and `A` of the new on every machine.
-
-    `-z`, so every path is verbatim: a name `core.quotePath` would quote
-    reads as the name git carries. The shape, measured on git 2.50 when this
-    was written: each commit is `\\x01<full> <short>\\0`, then a `\\n` before
-    its first entry, then `<status>\\0<path>\\0` per entry, and a commit that
-    changed nothing is its header alone. The walk is positional, so a path
-    holding `\\x01` or a newline is never read as a header.
-    """
-    out = git(
-        root,
-        "log",
-        "--ancestry-path",
-        "--no-merges",
-        "--no-renames",
-        "--name-status",
-        "-z",
-        "--format=%x01%H %h",
-        "--reverse",
-        f"{a}..{b}",
-    )
-    if out is None:
-        return None
-    commits = []
-    tokens = out.split("\0")
-    i = 0
-    while i < len(tokens):
-        token = tokens[i].lstrip("\n")
-        if token.startswith("\x01"):
-            full, _, short = token[1:].partition(" ")
-            commits.append((full, short, []))
-            i += 1
-        elif token and commits and i + 1 < len(tokens):
-            commits[-1][2].append((token, tokens[i + 1]))
-            i += 2
-        else:
-            i += 1
-    return commits
-
-
-def paths_of(changes):
-    """The paths of `own_commits`' `(status, path)` entries, in order."""
-    return [path for _status, path in changes]
-
-
-def notes_of(reader, root, rel):
-    """`note_rows` for one record git carries, each with its verdict word.
-
-    [(line, id, open, word)], empty for a record this cannot read: the
-    unreadable table is already an error from `open_blocking`, and a second
-    cause named here would not be the cause.
-    """
-    text = read_record(root, rel)
-    if text is None:
-        return []
-    rows, col, _header, _errors = verdict_table(reader, reader.readable(text), rel)
-    if col < 0:
-        return []
-    words = {line: verdict_of(seen, col) for line, seen in rows}
-    return [
-        (line, n, is_open, words[line]) for line, n, is_open in note_rows(rows, col)
-    ]
-
-
-def carried_notes(reader, root, records, strict=True):
-    """(errors, notices) for the work item's notes, ONCE per item (#837).
-
-    Two arms, and they read different scopes for a reason.
-
-      a note closed on a fix word, on   an error for a work item begun at or
-      EVERY record                       after `NOTES_FROM`, a notice before.
-                                         A note commissions no reader, and
-                                         `fixed` commissions one; wherever it
-                                         stands it says the wrong thing
-      a note still open, on every        an error at a ready pull request and
-      record of the CURRENT run          a notice on a draft. The run carries
-                                         its notes open until it ends, so a
-                                         draft over an open note is the
-                                         ordinary state of a review running
-
-    The current run is `runs_of`'s last, so a stopped run is not read once
-    the redesign's records exist; `round_record.py notes` closes its notes at
-    the `second`, before the framer is spawned, and `round_record.py new`
-    refuses the redesign's first record while one is open. Neither
-    arm has a cutoff on the second reading: 0 of the 73 numbered ⬜ rows the
-    corpus held on 2026-10-07 were open.
-    """
-    errors, notices = [], []
-    for rel in records:
-        for line, n, _open, word in notes_of(reader, root, rel):
-            if word not in FIX_WORDS:
-                continue
-            began = item_began(rel)
-            message = (
-                f"{NOTE} {n} closes on `{word}`. A note commissions nothing — "
-                "no fix pass and no reader — so it never closes on a fix word: "
-                "it is carried open and closed once at the run's end by "
-                "`round-record notes`, `answered` with `corrected at <sha>` as "
-                "its grounds, `answered` with the grounds it stands on, or "
-                f"`{DEFERRED} <home>`. {NOTES_OWNER}"
-            )
-            if began is not None and began >= NOTES_FROM:
-                errors.append((rel, line, message))
-            else:
-                notices.append(
-                    (
-                        rel,
-                        line,
-                        f"{message}. Work items begun before {NOTES_FROM} are "
-                        "excused this and print instead",
-                    )
-                )
-    runs = runs_of(reader, root, records)
-    for rel in runs[-1] if runs else []:
-        for line, n, is_open, _word in notes_of(reader, root, rel):
-            if not is_open:
-                continue
-            said = (
-                f"{NOTE} {n} is still open. A note is carried open until the "
-                "run ends and closed there, once, by `round-record notes "
-                "--item <dir> --fixes <table> --at <sha>`, which refuses "
-                f"before the last record reads `{CHECKED_BY} | {NO_FIXES}`. "
-                f"{NOTES_OWNER}"
-            )
-            if strict:
-                errors.append(
-                    (
-                        rel,
-                        line,
-                        f"{said}. A ready pull request over an open note is a "
-                        "run whose notes nobody closed",
-                    )
-                )
-            else:
-                notices.append(
-                    (
-                        rel,
-                        line,
-                        f"{said}. It prints because a pull request not marked "
-                        "ready, or none seen, is not a request to merge; "
-                        "pressing *Ready for review* re-runs this check and "
-                        "fails the pull request if it is still open",
-                    )
-                )
-    return errors, notices
-
-
-def fragment_left_behind(reader, routing, root, item, records):
-    """([], notices) — the commits after the build that a fragment lagged (#797).
-
-    **A notice, never a refusal, and the exit status is the one the tree has
-    without it** — the shape `pact_notices` has. Measured over 42 work items
-    for #797, a refusal would have stopped 24 runs, at least 9 of them for a
-    fragment that needed no change, and the honest answer has no spelling a
-    refusal could accept short of a new record field.
-
-    ONE question per work item. Round 1's `Target SHA` is where the build
-    ended, so the walk is the commits `<target>..HEAD` owns (`own_commits`),
-    and the build's own commits are never read. Which commits those are is
-    `docs/the-record-layout.md` §*A range owns the commits that descend from
-    its start*; nothing here reads which parent of a merge comes first, which
-    is what read #805 wrong. Every owned
-    commit that changed the fragment is a line: an owned commit is named when
-    it changed a behaviour path (`behaviour_path`) and no such line descends
-    from it, the line itself included. On a linear history that is every
-    commit after the fragment's last change; where history branches inside
-    the item it is a rule a person can state, where a position in a list
-    was git's tie-break between two commits neither of which descends from
-    the other. Each is named with the round whose `Fix range` owns it,
-    *after the last round* past the last record's end, or *outside every
-    round's fix range* for the rest. A per-range question was the ticket's
-    reading and was rejected: it keeps naming a range whose fragment a later
-    range brought along, where this one clears the moment the fragment
-    changes.
-
-    The first SHA the row names is the build's end: a second one is a HEAD
-    that moved while round 1 ran, which is after the build.
-
-    **Silent where there is no line to draw**, and each is a state rather
-    than a fault:
-
-      no `round-1.md`            nothing says where the build ended. A
-                                 `straight to the PR` item never reaches this
-                                 function, for the same reason
-      round 1's target           squashed away, or off the branch after a
-      unresolvable, or not an    rebase. Walking `<target>..HEAD` from a
-      ancestor of HEAD           commit HEAD does not descend from reads the
-                                 build itself as late
-      no `changelog.md` at HEAD  whether the item owes a fragment is not this
-                                 question, and local mode commits none
-
-    The fragment is read at HEAD under `--worktree` too: the walk is over
-    commits, and a fragment edited and not yet committed is named until the
-    commit that brings it along, which is the commit the rule asks for.
-
-    WHAT IT CANNOT SEE, written here rather than found later. A behaviour
-    change made only inside a merge commit's conflict resolution is owned by
-    no range, and skipped with the merge. A test-only commit in a repository whose tests live
-    outside a `tests` directory is named although nothing was owed — one
-    line, no stop. And whether a named commit changed anything a release
-    note states is a reader's judgment: the notice says nothing is owed
-    where the fragment still says what ships.
-    """
-    # A record git does not carry has no `Target SHA` to read, so an absent
-    # `round-1.md` is the unresolvable target below and needs no test of its
-    # own.
-    shas = target_shas(reader, root, f"{item}/{routing.ROUNDS_DIR}/round-1.md")
-    target = resolves_to(root, shas[0]) if shas else None
-    if target is None or not is_ancestor(root, target, "HEAD"):
-        return [], []
-    if CHANGELOG_FRAGMENT not in tracked_files(root, item):
-        return [], []
-    commits = own_commits(root, target, "HEAD") or []
-    fragment = f"{item}/{CHANGELOG_FRAGMENT}"
-    carriers = [f for f, _s, changes in commits if fragment in paths_of(changes)]
-    cleared = set()
-    if carriers:
-        # Every owned commit some carrier descends from, the carriers
-        # included: `--ancestry-path` with several tips lists what any of them
-        # reaches that descends from the target -- measured on git 2.50 when
-        # this was written, and pinned by the branched-history cases.
-        out = git(root, "rev-list", "--ancestry-path", f"^{target}", *carriers)
-        if out is None:
-            return [], []
-        cleared = set(out.split())
-    late = []
-    for full, short, changes in commits:
-        behaviour = [p for p in paths_of(changes) if behaviour_path(routing, p)]
-        if behaviour and full not in cleared:
-            late.append((full, short, behaviour))
-    if not late:
-        return [], []
-
-    held = []
-    for rel in records:
-        ends = range_ends(reader, root, rel)
-        inside = own_commits(root, *ends) if ends else None
-        if inside is not None:
-            number = routing.round_number(os.path.basename(rel))
-            held.append((number, {full for full, _s, _c in inside}))
-    end = last_round_end(reader, root, records[-1])
-    after = (
-        {full for full, _s, _c in own_commits(root, end, "HEAD") or []}
-        if end
-        else set()
-    )
-
-    named = []
-    for full, short, behaviour in late:
-        where = next(
-            (f"round {number}'s fix range" for number, s in held if full in s),
-            "after the last round" if full in after else None,
-        )
-        where = where or "outside every round's fix range"
-        shown = ", ".join(behaviour[:PATHS_NAMED])
-        if len(behaviour) > PATHS_NAMED:
-            shown += f" and {len(behaviour) - PATHS_NAMED} more"
-        named.append(f"`{short}` ({where}: {shown})")
-    return [], [
-        (
-            fragment,
-            0,
-            "this work item's changelog fragment last changed before "
-            f"{plural(len(late), 'commit', 'commits')} after the build that "
-            f"changed what it ships: {', '.join(named)}. The release gathers "
-            f"`{fragment}` "
-            "as it stands, so a sentence those commits made false ships as a "
-            "false release note. Where the fragment still says what ships, "
-            "nothing is owed; where it does not, bring it along in a commit "
-            f"of its own. `{FRAGMENT_DOC}` §*{FRAGMENT_RULE}* owns the rule. "
-            "A notice: nothing here refuses",
-        )
-    ]
-
-
-def frame_mark(reader, text):
-    """(when, who) from the mark at the foot of `spec.md`, or None.
-
-    **The FOOT, not anywhere in the file**, and that is the whole of what
-    makes this readable rather than a check that cannot fail. Measured on this
-    repository: the one `spec.md` a mark-shaped search matches today is the
-    spec that DOCUMENTS the mark — it quotes the template line in a fenced
-    block, names it in a table of who writes what, and states it again as an
-    acceptance row. A search anywhere in the file reads all three as a framer
-    having signed, so a spec about the mark passes for carrying one. #399's
-    own measurement hit the same class one file over.
-
-    The last non-empty line is the whole rule, and it is what the template
-    ships: `templates/sdd-spec.md` ends with this line, and a case pins that
-    it ends with it rather than merely holding it.
-
-    **The last line a renderer shows**, split by the shared reader's
-    `gfm_lines` (#664). With `str.splitlines`, a mark standing after a
-    U+2028 or a form feed on the file's last line read as a line of its own,
-    which no renderer shows it as.
-
-    **Since #823 the foot is a block**: the mark, then any `Reframed … after
-    round <N>.` lines a reframe wrote under it. `frame_foot` reads the block
-    and this returns its mark, so the rule reads the last non-empty line that
-    is not a `Reframed` line.
-    """
-    return frame_foot(reader, text)[0]
-
-
-def frame(reader, routing, root, item, rel, declared):
-    """(errors, notices) for a declaration that says a framer drew the frame.
-
-    THE KEY IS A COMPARISON, NOT A DERIVATION. Nothing is re-judged and
-    nothing is counted. `routing.md` carries the answer, written before the
-    first edit by the party the routing batch asked:
-
-      A work item whose `routing.md` declares `Planning | framer` owes a
-      frame: `spec.md` and `plan.md` exist, and `spec.md` carries the
-      framer's mark.
-
-    Not gated on `strict`. Every other arm here excuses a draft pull request
-    because a review still running has not reached its verdict — and the frame
-    is the one thing that is not still running. It is drawn BEFORE the first
-    edit, so a draft with no `spec.md` is not early, it is a work item that
-    declared a framer and then built without one. That is the reported failure
-    this arm exists for.
-
-    ## WHAT THIS ARM CANNOT SEE — seven of them, written beside it
-
-    1. **A work item that never wrote a `routing.md`.** Outside the check
-       entirely. The same hole this module already discloses about itself:
-       declaring nothing is a way past, and a quieter one than `[no-review]`,
-       which at least stays in the command.
-    2. **Whether the frame is any good.** It sees two files and a line. It
-       cannot see whether the spec describes the work, and a frame drawn badly
-       passes.
-    3. **Whether the party named actually did it.** The row and the mark are
-       both the framer's writes, so this catches a framer that forgot one of
-       its own — and nothing else. What catches a session that declared
-       `framer` and framed the work itself is the git-dir mark and the one
-       line `hooks/implementer-notice.py` prints, locally, once per session,
-       never in CI. **The day somebody reads a green chain-check as evidence
-       that a framer ran, they will be wrong, and this list is the only thing
-       standing between that reading and them.**
-    4. **`Planning | the session`, or an absent row.** No claim is made there.
-       A session that framed the work itself owes this arm nothing.
-    5. **The ladder's rung.** Whether a work item SHOULD have declared a
-       framer is the judgment `skills/implement/SKILL.md` §3 makes a person's,
-       and #88 settled that it is recorded rather than asked.
-    6. **Whether the run kept its `Automation` promise.** A session that
-       declared `yes` and then asked at minute thirty leaves nothing in the
-       tree. That row is an audit trail, not a gate.
-    7. **A change that took the `no work item` exit.** It writes no file at
-       all, which is the ticket `spec.md` opens rather than closes.
-    """
+    Reads: guess — `spec.md`'s foot and the presence of `plan.md`; unknown refused"""
     if declared.get("planning") != routing.BY_FRAMER:
-        return [], []
-
+        return []
+    who = f"`{routing.PLANNING} | {routing.BY_FRAMER}`"
     problems = []
     spec = read_record(root, f"{item}/spec.md")
     if spec is None:
-        problems.append(
-            f"declares `{routing.PLANNING} | {routing.BY_FRAMER}` and git "
-            f"carries no {item}/spec.md at HEAD. A framer's first write is "
-            "the spec, so a declared framer with no spec is a work item that "
-            "said a frame was drawn and built without one"
-        )
+        problems.append(f"declares {who} and git carries no {item}/spec.md")
     if read_record(root, f"{item}/plan.md") is None:
+        problems.append(f"declares {who} and git carries no {item}/plan.md")
+    if spec is None:
+        return problems
+    mark, reframes = frame_foot(reader, spec)
+    if mark is None:
         problems.append(
-            f"declares `{routing.PLANNING} | {routing.BY_FRAMER}` and git "
-            f"carries no {item}/plan.md at HEAD. The plan is the design "
-            "gate's artifact — approving it IS the gate — so its absence "
-            "means the gate has no record anywhere"
+            f"{item}/spec.md does not end with `Framed <date> by <who>, before "
+            "the build.`, with any `Reframed <date> by <who>, after round <N>.` "
+            "lines under it"
         )
-    if spec is not None:
-        mark = frame_mark(reader, spec)
-        if mark is None:
-            problems.append(
-                f"{item}/spec.md does not END with the framer's mark. The "
-                "last non-empty line that is not a `Reframed <date> by <who>, "
-                "after round <N>.` line — a reframe writes those UNDER the "
-                "mark, with a round number — has to read `Framed <date> by "
-                "<who>, before the build.` — `templates/sdd-spec.md` ships it, and "
-                "it is the only evidence in the tree that the framing "
-                "happened, because the other framer mark lives in the git "
-                "dir and a git dir does not travel here"
-            )
-        elif mark[0].startswith("<") or mark[1].startswith("<"):
-            problems.append(
-                f"{item}/spec.md ends with the template's UNFILLED mark, "
-                f"`Framed {mark[0]} by {mark[1]}, before the build.` — a "
-                "placeholder copied through, which reads to a person as a "
-                "mark and says nothing"
-            )
-        elif mark[1] != routing.BY_FRAMER:
-            problems.append(
-                f"{item}/routing.md says `{routing.PLANNING} | "
-                f"{routing.BY_FRAMER}` and {item}/spec.md's mark says "
-                f"`{mark[1]}`. The declaration and the mark disagree about "
-                "who drew this frame, and which of the two is true is not "
-                "this check's to guess"
-            )
-        # The reframe's line is held to the declaration the way the mark is
-        # (#823): it is the permit for the records after a `second`, and a
-        # placeholder or a party the declaration does not name permits
-        # nothing anybody can check.
-        for when, who, n in frame_foot(reader, spec)[1]:
-            line = f"`Reframed {when} by {who}, after round {n}.`"
-            if when.startswith("<") or who.startswith("<"):
-                problems.append(
-                    f"{item}/spec.md's foot carries the UNFILLED reframe line "
-                    f"{line} — a placeholder, which reads to a person as a "
-                    "redrawn frame and says nothing"
-                )
-            elif who != routing.BY_FRAMER:
-                problems.append(
-                    f"{item}/routing.md says `{routing.PLANNING} | "
-                    f"{routing.BY_FRAMER}` and {item}/spec.md's foot says "
-                    f"{line}. The declaration and the reframe disagree about "
-                    "who redrew this frame, and which of the two is true is "
-                    "not this check's to guess"
-                )
-
-    notices = []
-    plan = read_record(root, f"{item}/plan.md")
-    if plan is not None:
-        line = next(
-            (
-                m
-                for ln in reader.gfm_lines(plan)
-                for m in [APPROVED_RE.match(ln.strip())]
-                if m
-            ),
-            None,
+    elif mark[0].startswith("<") or mark[1].startswith("<"):
+        problems.append(f"{item}/spec.md ends with the template's unfilled mark")
+    elif mark[1] != routing.BY_FRAMER:
+        problems.append(
+            f"{item}/routing.md says {who} and {item}/spec.md's mark says `{mark[1]}`"
         )
-        if (
-            line is None
-            or line.group(1).startswith("<")
-            or line.group(2).startswith("<")
-        ):
-            # A NOTICE, never a refusal, and the measurement is what decides
-            # it: 61 of 71 `plan.md` files in this tree carry the unfilled
-            # placeholder, and 3 of the 11 work items declaring a framer are
-            # among them. A refusal that goes red for nearly every honest
-            # branch teaches people to write none — which is the reasoning
-            # this module's docstring already gives for `unverified_check.py`.
-            # #399's `Done when` asks for a refusal; this departs from it on a
-            # measurement the ticket did not have, and the promotion is a
-            # ticket of its own once the notice has been seen on a few
-            # releases.
-            notices.append(
-                (
-                    rel,
-                    0,
-                    f"{item}/plan.md's approval line is "
-                    + ("absent" if line is None else "still the placeholder")
-                    + ". `Approved <date> by <who>, when `smith` was spawned.` "
-                    "is the only durable trace that a person read the plan — "
-                    "the routing declaration records who answered the batch "
-                    "and the round records record what was reviewed, and "
-                    "neither says a person saw the plan. Reported, not "
-                    "refused: most `plan.md` files in a tree this rule "
-                    "arrives into carry the placeholder",
-                )
+    for when, by, n in reframes:
+        line = f"`Reframed {when} by {by}, after round {n}.`"
+        if when.startswith("<") or by.startswith("<"):
+            problems.append(f"{item}/spec.md's foot carries the unfilled line {line}")
+        elif by != routing.BY_FRAMER:
+            problems.append(
+                f"{item}/routing.md says {who} and {item}/spec.md's foot says {line}"
             )
+    return problems
 
-    began = item_began_at(item)
-    if began is None or began < FRAME_FROM:
-        return [], notices + [
+
+def verdict_problems(root, path, f):
+    """[(path, line, problem)] for one finding's verdict: `open`; a `fixed`
+    whose commit HEAD does not descend from; a `fixed` whose commit changed
+    no path the `location:` names or lies under, named with what it did
+    change.
+
+    Reads: observed — `git merge-base --is-ancestor` and `diff-tree`; unknown refused"""
+    kind, commit = f.verdict
+    if kind == OPEN:
+        return [
             (
-                rel,
-                0,
-                p + f". Work items begun before {FRAME_FROM} are excused this "
-                "and print instead — the mark did not exist, so failing them "
-                "would be red on history nobody can fix",
+                path,
+                f.line,
+                f"{f.heading} {DASH} reads `{VERDICT} {OPEN}`: the fix pass "
+                f"answers it with {ANSWERS}",
             )
-            for p in problems
         ]
-    return [(rel, 0, p) for p in problems], notices
-
-
-def direct_seal(reader, routing, root, item, rel, strict):
-    """(errors, notices) for a `straight to the PR` work item's own seal.
-
-    This arm used to be one `print` and a `continue`. A declaration reading
-    `straight to the PR` turns off the REVIEWER and nothing else: the broad
-    gate is the sealer's act and it is taken once, after the rounds settle —
-    and where no rounds run, *after the rounds settle* is simply *at the end*.
-    So the run is owed here exactly as it is owed on the chain path, and
-    nothing noticed its absence.
-
-    ONE READER, not two (`questions.md` Q4). `broad_gate` below reads the cell
-    out of whatever file it is handed, and everything it does with a round
-    record around that cell degrades correctly here: a `broad-gate.md` carries
-    no `Target SHA`, so the premature comparison finds no reviewed commit and
-    makes no claim — which is right, because with no round there is no
-    reviewed commit for a run to have been spent before. The one thing it
-    cannot answer is the file being absent altogether, because `read_record`
-    returning None is its "no claim" answer for a record this pull request
-    does not touch. That is what this function is: the absence, then the
-    delegation.
-
-    `strict` is false for a draft pull request, and the reason is the one the
-    chain path has: the broad gate runs at the end, so a draft with no seal is
-    telling the truth.
-    """
-    if not strict:
-        return [], []
-    began = item_began_at(item)
-    if read_record(root, rel) is not None:
-        return broad_gate(
-            reader,
-            root,
-            rel,
-            strict,
-            began=began,
-            floor=DIRECT_GATE_FROM,
-            excused=DIRECT_GATE_EXCUSED,
+    if kind != FIXED:
+        return []
+    if not is_ancestor(root, commit, "HEAD"):
+        return [
+            (
+                path,
+                f.line,
+                f"{f.heading} {DASH} reads `{VERDICT} {FIXED} {commit}`, and "
+                f"HEAD does not descend from `{commit}`: a `{FIXED}` names "
+                "a commit on this branch",
+            )
+        ]
+    changed_paths = touched(root, commit) or []
+    if any(under(p, q) for p in changed_paths for q in f.paths):
+        return []
+    named = ", ".join(f"`{q}`" for q in f.paths)
+    did = ", ".join(f"`{p}`" for p in changed_paths) or "nothing git can list"
+    return [
+        (
+            path,
+            f.line,
+            f"{f.heading} {DASH} reads `{VERDICT} {FIXED} {commit}`, and "
+            f"`{commit}` touches no path its `{LOCATION}` names ({named}): it "
+            f"changed {did}. A fix that went elsewhere appends that coordinate "
+            f"to the `{LOCATION}` line",
         )
-    message = (
-        f"declares `{routing.DIRECT}` and git carries no {rel} at HEAD. That "
-        "answer turns off the REVIEWER and nothing else — the broad gate is "
-        "the sealer's act, taken once, and where no round runs it is taken at "
-        "the end. Spawn the `sealer` with the base and the work item: it runs "
-        "`broad-gate --base <base> --record <item>`, which writes the cell "
-        "into this file because there is no round record to write it onto. "
-        "Until then this pull request is a request to merge a branch nobody "
-        "has run the suite over, and nothing in the repository knows it"
-    )
-    if began is None or began < DIRECT_GATE_FROM:
-        return [], [(rel, 0, message + ". " + DIRECT_GATE_EXCUSED)]
-    return [(rel, 0, message)], []
+    ]
 
 
-# The labels of a round record's field table that this check reads (#866):
-# a record carrying one of them twice answers nothing for it (`field`), and
-# `doubled_fields` says so.
-FIELD_LABELS = (
-    TARGET,
-    PR_FIELD,
-    CHECKED_BY,
-    FIX_RANGE,
-    CONTRACT,
-    NEW_UNITS,
-    FIX_OF_A_FIX,
-    NEEDS,
-    FLOOR,
-    RAN_BY,
-    BROAD_GATE,
-    WRITTEN_LATE,
-)
+def records(reader, routing, root, item, rel, base):
+    """[(path, line, problem)] for a work item declared through the review
+    chain: no record; a record `round_of` cannot read; a finding at `open`;
+    a `fixed` naming a commit HEAD does not descend from, or one that
+    changed no path the finding's `location:` names or lies under; what
+    `channel` names between the rounds; a last record behind HEAD. A
+    finding is named by its line and its heading.
+
+    Reads: guess — the warden's records, through `round_of` and `channel`; unknown refused"""
+    found = round_records(routing, root, item)
+    if not found:
+        return [
+            (
+                rel,
+                0,
+                f"declares `{routing.CHAIN}` and {item}/{routing.ROUNDS_DIR}/ "
+                "holds no `round-N.md`",
+            )
+        ]
+    problems, rounds = [], []
+    for path in found:
+        text = read_record(root, path)
+        number = routing.round_number(path)
+        read, errors = round_of(reader, text, path, number)
+        rounds.append(read)
+        problems.extend(errors)
+        for f in read.findings:
+            problems.extend(verdict_problems(root, path, f))
+    problems.extend(channel(rounds))
+    last = rounds[-1]
+    # A record naming no commit it reviewed was refused by `record_target`.
+    if last.target is not None:
+        behind = follows(root, last.target, base, item)
+        if behind is not None:
+            problems.append(
+                (
+                    last.path,
+                    0,
+                    follows_reason(behind, f"the last round's `{RECORD_TARGET}`")
+                    + (f"; {VERIFYING_ROUND}" if behind[0] == "after" else ""),
+                )
+            )
+    return problems
 
 
-def doubled_fields(reader, root, rel):
-    """(errors, notices) for a record that carries a field's row more than
-    once (#866).
+def broad_gate(reader, root, item, base):
+    """[(path, line, problem)] for the work item's `broad-gate.md`: absent,
+    unreadable, or naming a run behind HEAD.
 
-    `field` took the first row and said nothing about the second, while the
-    generator refused anything but one; the strict reading wins at both ends.
-    The row the check reads answers None, so every arm reading it reports it
-    absent — this names the real cause, with the count, on every record.
-    No cutoff: a doubled row is present and malformed, which is the author's
-    to repair whenever the record was written (`fix_surface` draws the same
-    line), and no committed record carried one when this landed.
-    """
+    Reads: owned — the file `broad_gate.py` writes, through `newest_run`; unknown refused"""
+    rel = f"{item}/{BROAD_GATE_FILE}"
     text = read_record(root, rel)
     if text is None:
-        return [], []
-    rows = table_rows(reader, reader.readable(text))
-    errors = []
-    for label in FIELD_LABELS:
-        count = len(fields(rows, label))
-        if count > 1:
-            errors.append(
+        return [
+            (
+                rel,
+                0,
+                "git carries no broad-gate file: the sealer runs `broad-gate "
+                "--base <base> --record <item>`, which writes it on a green run",
+            )
+        ]
+    sha = newest_run(reader, text)
+    if sha is None:
+        return [(rel, 0, f"no SHA in its `{BROAD_GATE}` row")]
+    behind = follows(root, sha, base, item)
+    if behind is None:
+        return []
+    return [(rel, 0, follows_reason(behind, "the newest broad-gate run"))]
+
+
+def verdicts_of(reader, text):
+    """[(line number, value)] for every `Verdict:` line outside comments and
+    fences, emphasis removed from the value.
+
+    Reads: guess — `guarantee.md`, which the sealer writes; unknown refused"""
+    found = []
+    for i, line in enumerate(reader.readable(text or "")):
+        m = VERDICT_LINE.match(EMPHASIS.sub("", reader.visible(line)))
+        if m:
+            found.append((i + 1, m.group(1).strip()))
+    return found
+
+
+def verdict_word(value):
+    """`sound`, `not sound` or `undecidable` where the value begins with one
+    of them, else the value as it reads.
+
+    Reads: nothing — maps the value `verdicts_of` read"""
+    s = value.strip().lower()
+    if s == SOUND:
+        return SOUND
+    for word in (NOT_SOUND, UNDECIDABLE):
+        if s == word or s.startswith(word + " "):
+            return word
+    return value.strip()
+
+
+def guarantee(reader, root, item, base):
+    """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
+    commit, a commit with anything but the sealer's two files after it, or
+    one `Verdict:` line that does not read `sound`.
+
+    Reads: guess — the file the sealer writes, through `target_of` and `verdicts_of`; unknown refused"""
+    rel = f"{item}/{GUARANTEE_FILE}"
+    text = read_record(root, rel)
+    if text is None:
+        return [
+            (
+                rel,
+                0,
+                "git carries no guarantee file: the sealer writes it from "
+                "`templates/sdd-guarantee.md` after its broad run",
+            )
+        ]
+    problems = []
+    sha = target_of(reader, text)
+    if sha is None:
+        problems.append((rel, 0, f"no SHA in its `{TARGET}` row"))
+    else:
+        behind = follows(root, sha, base, item, only=SEALERS_FILES)
+        if behind is not None:
+            problems.append(
                 (
                     rel,
                     0,
-                    f"the record carries `| {label} |` {count} times — a row "
-                    "read twice answers nothing, so every arm that reads it "
-                    "takes it as absent. Keep the one the round wrote and "
-                    "delete the others",
+                    follows_reason(behind, "the guarantee", "the sealer's two files")
+                    + ("; the sealer runs again" if behind[0] == "after" else ""),
                 )
             )
-    return errors, []
-
-
-def check_round(reader, root, rel, strict=True, refs=None):
-    """(errors,) for one round record — the reachability and the Pass claim.
-
-    Who opened the fixes is NOT read here. `checked_by` is asked of every
-    record, this one included, and a function called on the last record alone
-    is the wrong place for a question every round has its own answer to.
-
-    `strict` is false for a draft pull request, where an unchecked `Pass`
-    is the honest state of a review still running, and for one nobody
-    observed (no payload and no `gh` answer, #866). In `Fixes checked
-    by` it reaches one refusal, the `Pass`-beside-`nobody` pair `checked_by`
-    reads, because that pair's refusable half is `Pass`. A record naming a
-    checker it does not have is wrong at every stage of a run, where an
-    unchecked box is merely early.
-
-    `refs` is None for a record this pull request does not touch, or restores
-    byte-for-byte from the base's own history (`restored_from`), and then no
-    claim is made about where its commits are. Everything else is still read:
-    a `Target SHA` row has to be THERE either way, because "which commit did
-    this round review" is answerable after a squash even when the commit is
-    not, and a record missing the row says nothing about what it looked at
-    whatever its age.
-    """
-    errors = []
-    text = read_record(root, rel)
-    if text is None:
-        return [(rel, 0, "git does not carry this file at HEAD")]
-
-    lines = reader.readable(text)
-    rows = table_rows(reader, lines)
-
-    cell = field(rows, TARGET)
-    named = SHA_RE.findall(cell or "")
-    if not cell or not named:
-        errors.append(
+    verdicts = verdicts_of(reader, text)
+    if len(verdicts) != 1:
+        problems.append(
             (
                 rel,
-                0,
-                f"no `| {TARGET} | … |` row naming a commit — without it "
-                "nobody can tell which commit this round actually looked at",
+                verdicts[1][0] if verdicts else 0,
+                f"{len(verdicts)} `Verdict:` lines; the guarantee carries one",
             )
         )
-    looked = list(refs) + declared_pull_head(reader, root, rows) if refs else []
-    for sha in named if refs else []:
-        found, _carrier = reachable(root, sha, looked)
-        if not found:
-            errors.append(
-                (
-                    rel,
-                    0,
-                    f"`{TARGET}` names {sha}, which is not an ancestor of "
-                    f"{' or '.join(looked)} and is on no "
-                    f"`{PULL_HEADS}<N>/head` — this round reviewed something "
-                    "this repository cannot see. A squash discards the "
-                    "reviewed commits and a branch is a name anything can "
-                    "delete; the pull request head that carried them is not. "
-                    "If this is a checkout that never fetched them, "
-                    f"`git fetch origin '+refs/pull/*/head:{PULL_HEADS}*/head'` "
-                    "is the missing step and not a lost commit",
-                )
-            )
-
-    checked = pass_checked(lines)
-    boxes = len(pass_boxes(lines))
-    if boxes > 1:
-        # #866: the first box used to win silently while the generator
-        # refused a second; the strict reading wins at both ends.
-        errors.append(
+    elif verdict_word(verdicts[0][1]) != SOUND:
+        line, value = verdicts[0]
+        problems.append(
             (
                 rel,
-                0,
-                f"the record carries {boxes} `Pass` boxes — which one says "
-                "whether the round passed is not something a reader can "
-                "tell. Keep the one the round wrote and delete the others",
+                line,
+                f"the sealer's verdict reads `{value}`, and a ready pull request "
+                f"needs `{SOUND}`: fix what it names, or answer its question "
+                "under it, and the sealer runs again at the new HEAD",
             )
         )
-        return errors
-    if checked is None:
-        errors.append(
-            (
-                rel,
-                0,
-                "no `- [ ] Pass` checkbox — `was it reviewed` "
-                "and `did it pass` are different questions, and without "
-                "this one only the first is answerable",
-            )
-        )
-        return errors
+    return problems
 
-    if strict and not checked:
-        errors.append(
-            (
-                rel,
-                0,
-                "the last round's `Pass` is not checked. In this design "
-                "the review chain runs BEFORE the pull request, so an "
-                "unchecked `Pass` here means the chain was skipped or has "
-                "not finished — neither is a state to open a ready pull "
-                "request in. Open it as a draft while the rounds run",
-            )
-        )
 
-    still_open, table_errors = open_blocking(reader, lines, rel)
-    errors.extend(table_errors)
-    if checked and still_open:
-        for line_no, what, verdict, blocking in still_open:
-            errors.append((rel, line_no, open_row_reason(what, verdict, blocking)))
-    return errors
+def local_root(root, routing):
+    """The local-mode root of `root`, or "" where the root is shared or absent.
+
+    Reads: observed — `optin.home_at` and `optin.home_paths`; unknown passed"""
+    optin = routing.optin
+    common = optin.git_common_dir(root)
+    home = optin.home_at(root, common)
+    if not home:
+        return ""
+    shared, _local = optin.home_paths(root, common)
+    return "" if os.path.realpath(home) == os.path.realpath(shared) else home
+
+
+def tracked_declarations(root, routing):
+    """(path, parsed) for every routing declaration git carries at HEAD.
+
+    Reads: guess — `routing.md` files, through `routing.parse`; unknown refused"""
+    out = git(root, "ls-tree", "-r", "-z", "HEAD", "--", f"{routing.WORK_ITEMS}/")
+    found = []
+    for entry in (out or "").split("\0"):
+        meta, _, path = entry.partition("\t")
+        parts = meta.split()
+        if len(parts) < 3 or parts[0] not in REGULAR:
+            continue
+        if os.path.basename(path) != routing.FILENAME:
+            continue
+        parsed = routing.parse(read_record(root, path) or "")
+        if parsed:
+            found.append((path, parsed))
+    return found
+
+
+def declared_for_this_branch(root, routing):
+    """([the one declaration naming this branch], why there is none).
+
+    The branch is `GITHUB_HEAD_REF` in a workflow and the checked-out branch
+    elsewhere.
+
+    Reads: observed — the environment, git, and the declarations at HEAD; unknown refused"""
+    branch = os.environ.get("GITHUB_HEAD_REF") or routing.current_branch(root)
+    if not branch:
+        return [], (
+            "the branch could not be read — a detached HEAD with no "
+            "GITHUB_HEAD_REF — so no declaration was matched to one"
+        )
+    matching = [
+        p for p, d in tracked_declarations(root, routing) if d["branch"] == branch
+    ]
+    if len(matching) > 1:
+        return [], (
+            f"{len(matching)} committed declarations name `{branch}`, which is "
+            f"not one answer: {', '.join(sorted(matching))}"
+        )
+    if not matching:
+        home = local_root(root, routing)
+        if home:
+            return [], (
+                f"this repository keeps its root at {home} — local mode, where "
+                "nothing under the root is committed. So no routing declaration "
+                f"for `{branch}` can be read from what git carries, and the "
+                "review-chain check examined nothing. `seal mode shared` moves "
+                "the root into the tree and gets the check running."
+            )
+        return [], (
+            "this pull request declared neither way, so the review-chain check "
+            f"examined nothing. Nothing git carries under `{routing.WORK_ITEMS}/` "
+            f"declares `{branch}`. Add {routing.WORK_ITEMS}/<work-item>/"
+            f"{routing.FILENAME} to declare."
+        )
+    return matching, ""
+
+
+def retired(reader, root, fork, item):
+    """The sentence a removed declaration is accepted with, or None.
+
+    Reads: observed — `docs/` markers and the merge base, through the shared reader; unknown refused"""
+    name = os.path.basename(item)
+    if name in reader.folded_items(root):
+        return f"retired: `docs/` carries <!-- specs/{name} -->"
+    if (
+        fork
+        and not os.path.isdir(os.path.join(root, item))
+        and reader.retired_by_rule(root, fork, item)
+    ):
+        return "retired: by the rule — nothing open at the merge base"
+    return None
 
 
 def main(argv=None):
+    """The check. Returns the exit code.
+
+    Reads: guess — the arguments and the tree, through the arms above; unknown refused"""
     ap = argparse.ArgumentParser(
         prog="chain-check",
-        description="At the pull request: every routing declaration it "
-        "touches has the review evidence it claimed.",
+        description="At the pull request: the declared parties left the records "
+        "they owe, and the records agree with HEAD.",
     )
-    ap.add_argument(
-        "--baseline",
-        metavar="REF",
-        required=True,
-        help="the branch this pull request merges into. A declaration the "
-        "pull request removes is refused unless its directory was retired: "
-        "folded, with its marker in docs/, or retired by the rule, with no "
-        "spec.md and nothing open in its record at the merge base",
-    )
-    ap.add_argument("--root", default=".", help="the repository to read")
-    ap.add_argument(
-        "--worktree",
-        action="store_true",
-        help="read the records as the working tree holds them, not as HEAD "
-        "carries them — for a check before the record's commit; CI never "
-        "passes this",
-    )
-    ap.add_argument(
-        SEALING,
-        action="store_true",
-        help="the caller is the run that writes the last record's `Broad "
-        "gate` cell — the broad gate's chain arm, which runs before `seal` "
-        "writes it — so that one arm prints its state and does not fail; "
-        "every other arm is judged by the pull request's state. CI never "
-        "passes this",
-    )
+    ap.add_argument("--baseline", metavar="REF", required=True)
+    ap.add_argument("--root", default=".")
+    ap.add_argument("--worktree", action="store_true")
+    ap.add_argument(SEALING, action="store_true")
     args = ap.parse_args(argv)
     global WORKTREE
     WORKTREE = args.worktree
-    if WORKTREE:
-        print(
-            "chain-check: reading the working tree (--worktree) — an "
-            "uncommitted record counts here and not in CI, which reads HEAD"
-        )
 
     try:
         reader = load(READER, "specseal_unverified_reader")
         routing = load(ROUTING, "specseal_routing")
     except (OSError, SyntaxError, ImportError, SystemExit) as exc:
-        print(
-            f"chain-check: the shared reader would not load ({exc}) — nothing "
-            "was checked, and reporting a pass for a check that never ran is "
-            "worse than failing",
-            file=sys.stderr,
-        )
+        print(f"chain-check: the shared reader would not load ({exc})", file=sys.stderr)
         return 2
-
     root = reader.repo_root(os.path.abspath(args.root))
     if root is None:
-        print(
-            f"chain-check: {args.root} is not in a git repository — nothing "
-            "was compared",
-            file=sys.stderr,
-        )
+        print(f"chain-check: {args.root} is not in a git repository", file=sys.stderr)
         return 2
     if not reader.resolves(root, args.baseline):
         print(
-            f"chain-check: --baseline {args.baseline} does not resolve in "
-            f"{root} — nothing was compared. A shallow checkout lands here, "
-            "and passing it would report a check that never ran",
+            f"chain-check: --baseline {args.baseline} does not resolve in {root}; "
+            "a shallow checkout lands here",
             file=sys.stderr,
         )
         return 2
-
     diff = changed(root, args.baseline)
     if diff is None:
         print(f"chain-check: cannot diff against {args.baseline}", file=sys.stderr)
         return 2
-    paths, renamed = diff
-    touched = set(paths)
-    # What the pull request added or edited, plus the one for this branch:
-    # the second used to be a fallback for when the first was empty, and the
-    # union is what the spec says — a pull request that adds only round
-    # records to an item declared in an earlier one is judged on that item,
-    # and one that moves every declaration (S10) is judged on its own alone.
+    paths, moved = diff
     own, why = declared_for_this_branch(root, routing)
-    declarations = sorted(
-        set(changed_routing(touched, renamed, routing.WORK_ITEMS)) | set(own)
-    )
+    # A declaration naming this branch is always this pull request's; any
+    # other one another pull request's squash carried was judged there.
+    declarations, carried = set(own), []
+    for rel in changed_routing(paths, moved, routing.WORK_ITEMS):
+        by = None if rel in own else carried_by(root, args.baseline, rel)
+        if by:
+            said = CARRIED_SAYS.format(sha=by[0][:8], subject=by[1])
+            carried.append((rel, 0, said))
+        else:
+            declarations.add(rel)
+    declarations = sorted(declarations)
 
     state, where = pull_request_state(root)
-    # Unknown with no payload at all is a state nobody observed (round 1's
-    # 🟡 1 of #866): it reads as unknown and is NOT judged as a ready pull
-    # request. Unknown beside a payload that cannot answer stays ready.
     unseen = state == "unknown" and not event_payload_present()
     strict = state != "draft" and not unseen
     print(
-        (
-            f"chain-check: {UNSEEN_SAYS} ({where})"
-            if unseen
-            else f"chain-check: judged as a "
-            f"{'draft' if state == 'draft' else 'ready'} pull request ({where})"
-        )
-        + (f"; {SEALING_SAYS}" if args.sealing else "")
+        f"chain-check: {UNSEEN_SAYS} ({where})"
+        if unseen
+        else f"chain-check: judged as a {'draft' if state == 'draft' else 'ready'} "
+        f"pull request ({where})"
     )
-
-    # Before the early return, so a pull request that declares nothing still
-    # prints a pact relationship the tree holds, and notices alone, so the
-    # exit status below is the one the same tree has with no pact (#647).
-    pacts = pact_notices(routing, root, declarations)
-
+    if WORKTREE:
+        print("chain-check: reading the working tree (--worktree); CI reads HEAD")
+    for rel, line, message in carried:
+        print(reader.annotate("notice", rel, line, message))
     if not declarations:
-        for rel, line, message in pacts:
-            print(reader.annotate("notice", rel, line, message))
-        # What was NOT checked, not what was not found. "No declaration found"
-        # describes this script's own state and reads as routine; this
-        # describes the pull request's state, and it is the sentence the next
-        # person tightening the check will quote. Which sentence depends on
-        # WHY there is none — an author who declared nothing and a run with no
-        # key to look one up by are different states.
         print(reader.annotate("notice", "", 0, why))
         return 0
 
-    # A declaration this pull request RETIRED is not one it made — the same
-    # judgment the rename exclusion in `changed_routing` already makes, for
-    # the other way a declaration leaves the diff. `settle --retire` removes a
-    # released work item's directory once a `docs/` policy has absorbed its
-    # spec, so its `routing.md` is in the diff as a deletion and gone at HEAD,
-    # and every one of them was reviewed at its own pull request years of
-    # commits ago. The first fold put 88 of them in one diff, and this check
-    # failed all 88.
-    #
-    # **The marker is what tells a fold from a deletion**, and it is the only
-    # thing that can: both leave the file absent here.
-    # `unverified_check.folded_items` grew this arm when `settle` shipped and
-    # this reader did not, so the two disagreed about the same tree. A
-    # directory removed with NO marker behind it is still refused below, which
-    # is the case this refusal was written for.
-    retired = reader.folded_items(root)
-    # **The rule arm (#517 D3) is the other way a declaration is retired**,
-    # and the marker cannot see it: `settle --retire` removes a released
-    # directory that held no `spec.md` and nothing open with no marker at
-    # all. So a declaration absent here whose directory is gone is also
-    # asked `reader.retired_by_rule` of the merge base — the one predicate
-    # `settle` and `unverified_check.py --baseline` ask, never re-derived.
     fork = reader.merge_base(root, args.baseline)
-
-    errors, notices = [], list(pacts)
+    problems, notices = [], []
     for rel in declarations:
         item = os.path.dirname(rel)
         text = read_record(root, rel)
         if text is None:
-            if os.path.basename(item) in retired:
-                notices.append(
+            said = retired(reader, root, fork, item)
+            if said:
+                notices.append((rel, 0, said))
+            else:
+                problems.append(
                     (
                         rel,
                         0,
-                        f"retired: `docs/` carries <!-- specs/"
-                        f"{os.path.basename(item)} -->, so this pull request "
-                        "folded the work item into a policy document and "
-                        "removed it rather than declaring it. Its review "
-                        "happened at its own pull request",
+                        "git does not carry this file at HEAD: a declaration CI "
+                        "cannot open is not a declaration",
                     )
                 )
-                continue
-            if (
-                fork
-                and not os.path.isdir(os.path.join(root, item))
-                and reader.retired_by_rule(root, fork, item)
-            ):
-                notices.append(
-                    (
-                        rel,
-                        0,
-                        "retired: by the rule — at the merge base this "
-                        "directory held no `spec.md` and nothing open in its "
-                        "record, so this pull request removed a record of a "
-                        "moment rather than declaring it, and no marker is "
-                        "owed. Its review, where it had one, happened at its "
-                        "own pull request",
-                    )
-                )
-                continue
-            errors.append(
-                (
-                    rel,
-                    0,
-                    "git does not carry this file at HEAD. A declaration CI "
-                    "cannot open is not a declaration, whatever the working "
-                    "tree holds",
-                )
-            )
             continue
         declared = routing.parse(text)
         if declared is None:
-            errors.append(
+            problems.append(
                 (
                     rel,
                     0,
-                    "not a readable declaration. It needs `| Review | through the "
-                    "review chain |` or `| Review | straight to the PR |`, a "
-                    "`| Destination | … |` row, and a `| Branch | … |` row. Read "
-                    "loosely this would report `no declaration`, which is what a "
-                    "branch that never declared looks like",
+                    "not a readable declaration: it needs a `Review`, a "
+                    "`Destination` and a `Branch` row",
                 )
             )
             continue
-
-        # BEFORE the review arms and outside both, because `Planning` is
-        # independent of `Review`: a work item can declare a framer and go
-        # straight to the pull request, and the frame is owed either way.
-        # Putting it inside either arm is how one of the two answers quietly
-        # stops being judged.
-        frame_errors, frame_notices = frame(reader, routing, root, item, rel, declared)
-        errors.extend(frame_errors)
-        notices.extend(frame_notices)
-
-        if declared["review"] == routing.DIRECT:
-            where_gate = f"{item}/{BROAD_GATE_FILE}"
-            print(
-                f"{item}: straight to the PR — declared, no round record "
-                f"required; the broad gate's cell is read from "
-                f"{BROAD_GATE_FILE}"
-            )
-            seal_errors, seal_notices = sealing_excuses(
-                direct_seal(reader, routing, root, item, where_gate, strict),
-                args.sealing,
-            )
-            errors.extend(seal_errors)
-            notices.extend(seal_notices)
-            continue
-
-        # Before the count, and reported even when `rounds/` also holds
-        # records: a file at the old location is evidence nothing reads, and
-        # the count alone cannot say so. Without this the whole migration
-        # arrives as `holds no round-N.md`, which names neither the file nor
-        # where it goes.
-        strays = stray_records(routing, root, item)
-        if strays:
-            errors.append(
-                (
-                    rel,
-                    0,
-                    f"{', '.join(strays)} — a round record git carries at the "
-                    f"work item's top level, where nothing reads it. Round "
-                    f"records live in {item}/{routing.ROUNDS_DIR}/ now: "
-                    f"`mkdir {item}/{routing.ROUNDS_DIR} && git mv` them "
-                    f"there — `git mv` does not create its destination. "
-                    f"Left where they are, this pull "
-                    f"request's only evidence that a review happened is "
-                    f"invisible to every reader of it",
-                )
-            )
-
-        # AFTER the strays, and it keeps its `continue`. Round 3 found the
-        # early exit swallowing the stray report: a partial migration — the
-        # directory made, one record moved, two left behind — showed only the
-        # `rounds` state and named neither straggler, so the person fixed one
-        # thing, pushed, and waited for CI to learn about the rest. Where the
-        # message is the entire migration path, a round trip per finding is
-        # the cost this release exists to remove. The exit still has to
-        # happen: past it lies `holds no round-N.md`, the sentence this whole
-        # check was added to stop being the only answer.
-        if rounds_unreadable(routing, root, item):
-            errors.append(
-                (
-                    rel,
-                    0,
-                    f"{item}/{routing.ROUNDS_DIR} is not a directory, so "
-                    f"nothing can read a round record out of it — and a "
-                    f"review that happened reads exactly like one that did "
-                    f"not. `git mv … {routing.ROUNDS_DIR}` without the "
-                    f"trailing slash does this to a single record. Open it: "
-                    f"if it is your round record, `mkdir` the directory and "
-                    f"move it inside",
-                )
-            )
-            continue
-
-        records = round_records(routing, root, item)
-        if not records:
-            if strays:
-                continue
-            # DRAFT, and this is the arm that used to fail the sequence a
-            # document orders (#296). `orchestration.md` opens the draft pull
-            # request at the end of the build, BEFORE round 1, because a
-            # reviewer needs a pull request to review -- so the first thing
-            # that happens after the draft opens is this check running
-            # against a `rounds/` that is empty by design.
-            #
-            # The `Pass` arm below has been draft-aware since `strict` was
-            # added and this one never was, a hundred lines apart in the same
-            # walk. Both excuse the same thing for the same reason: a review
-            # still running has not reached its verdict, and a draft pull
-            # request is not a request to merge.
-            #
-            # What keeps it a stage rather than an escape is `strict` itself.
-            # `pull_request_state` has THREE answers, and `unknown` from a
-            # payload -- one that will not parse, one whose `draft` is a
-            # string -- is judged as ready, so a harness that stops writing
-            # the flag cannot turn this into a way past the record. With no
-            # payload and no `gh` answer nobody observed a pull request, and
-            # that unknown is not judged as ready (#866): CI, which decides,
-            # always has the payload. The record is still
-            # owed either way, and the notice names what re-arms the check
-            # rather than reading as a permanent exemption.
-            if not strict:
-                notices.append(
-                    (
-                        rel,
-                        0,
-                        f"declares `{routing.CHAIN}` and "
-                        f"{item}/{routing.ROUNDS_DIR}/ holds no `round-N.md` "
-                        "— which is the state a pull request not marked "
-                        "ready, or none seen, opens in: "
-                        "the rounds run against it, so the record cannot "
-                        "exist yet. It is still owed, and pressing *Ready "
-                        "for review* fires `ready_for_review`, re-runs this "
-                        "check, and fails the pull request if it is still "
-                        "missing",
-                    )
-                )
-                continue
-            errors.append(
-                (
-                    rel,
-                    0,
-                    f"declares `{routing.CHAIN}` and {item}/{routing.ROUNDS_DIR}/ "
-                    "holds no `round-N.md`. The round record is this pull "
-                    "request's only evidence that a review happened — the local "
-                    "`specseal-reviewed` mark cannot travel here",
-                )
-            )
-            continue
-        last = records[-1]
-        # A last record the pull request RESTORED is in the diff and is not
-        # its claim (#598 instance 1): `restored_from` holds why, and the
-        # same predicate is what `written_late` asks below.
-        restored = restored_from(root, fork, last) if last in touched else None
-        refs = (
-            target_refs(reader, root, declared)
-            if last in touched and not restored
-            else None
+        problems.extend(
+            (rel, 0, p) for p in frame(reader, routing, root, item, declared)
         )
-        print(
-            f"{item}: through the review chain — {len(records)} round "
-            f"record(s), last is {os.path.basename(last)}, "
-            + (
-                f"its target must be reachable from {' or '.join(refs)}, "
-                f"or from the `{PULL_HEADS}<N>/head` that carried it"
-                if refs
-                # The path IS in the diff here, so the sentence below would
-                # be false. What this established is where the bytes were.
-                else f"restored byte-for-byte from the base's own history, "
-                f"which carries the same bytes at this path from "
-                f"{restored[:7]} — no claim made about where its commits are"
-                if restored
-                # What this established, not what it concluded. `already merged`
-                # was the claim here, and it is one the code cannot make -- it
-                # knows the path was not in the diff and nothing more. Saying it
-                # the wrong way is what made a quoted path read as routine
-                # instead of as the dropped check it was.
-                else "not changed by this pull request — no claim made about "
-                "where its commits are"
-            )
-        )
-        errors.extend(check_round(reader, root, last, strict, refs))
-
-        # The LAST record alone too, and for the reason `Pass` is read there:
-        # whether the one full-suite run happened is a claim about the whole
-        # review, not about one round. Every round but the last honestly
-        # reads `not yet`, because the run comes after the rounds settle.
-        gate_errors, gate_notices = sealing_excuses(
-            broad_gate(reader, root, last, strict), args.sealing
-        )
-        errors.extend(gate_errors)
-        notices.extend(gate_notices)
-
-        # EVERY record, where the block above reads the last one alone. Who
-        # opened a round's fixes is a fact about that round, and each has its
-        # own; the `Pass` verdict is a claim about the whole review, and the
-        # last round's is the one that speaks for it.
-        #
-        # Keyed by basename, because `checked_by` is confirming a name a
-        # person wrote in a cell (`round-4`) and the directory it sits in is
-        # already fixed by `round_records`. The path is the value, so the
-        # named record can be opened and its `Target SHA` compared.
-        siblings = {os.path.basename(p): p for p in records}
-        # Where each record sits in its RUN (#823): the records of its run
-        # before and after it, and the `second` the run began after.
-        placed = {}
-        runs = runs_of(reader, root, records)
-        for r, run in enumerate(runs):
-            for j, rel_in_run in enumerate(run):
-                placed[rel_in_run] = (
-                    run[:j],
-                    run[j + 1 :],
-                    runs[r - 1][-1] if r else None,
-                )
-        for record in records:
-            run_before, run_after, stopped_at = placed[record]
-            who_errors, who_notices = checked_by(
-                reader,
-                routing,
-                root,
-                record,
-                siblings,
-                last=record == last,
-                strict=strict,
-            )
-            errors.extend(who_errors)
-            notices.extend(who_notices)
-            surface_errors, surface_notices = fix_surface(reader, root, record)
-            errors.extend(surface_errors)
-            notices.extend(surface_notices)
-            # The records that come AFTER this one, which is the half of the
-            # floor a single record cannot answer. `records` is ordered by
-            # round number, so this is the later ROUNDS in order and not the
-            # files that happen to sort after it — and the order is what the
-            # bound reads, since it stops at the first one that reopened the
-            # run. The later records of its RUN and no further (#823): a
-            # record after a `second` is the redesign's, not a later round of
-            # the stopped run.
-            floor_errors, floor_notices = stopping_floor(
-                reader, root, record, run_after
-            )
-            errors.extend(floor_errors)
-            notices.extend(floor_notices)
-            # EVERY record too: whether a round's open findings landed in the
-            # previous round's fixes is that round's own declaration, and the
-            # count is the run's.
-            fof_errors, fof_notices = fix_of_a_fix(
-                reader, root, record, run_before, stopped_at
-            )
-            errors.extend(fof_errors)
-            notices.extend(fof_notices)
-            # EVERY record too, and for the reason the other three are: every
-            # round was run by something, and a work item whose rounds ran
-            # under different runners is the comparison the row exists for.
-            ran_errors, ran_notices = ran_by(reader, root, record)
-            errors.extend(ran_errors)
-            notices.extend(ran_notices)
-            # EVERY record too. WHAT a round's fixes were measured over is a
-            # fact about that round, and the row is read against git here
-            # because git is what it is a claim about (#344). It IS
-            # grandfathered, behind `RANGE_FROM` -- which is the opposite of
-            # the arm below, so the two comments are kept apart on purpose
-            # (round 1's ⬜ 4). Whether an arm has a cutoff is the load-bearing
-            # fact about it, and a comment sitting above the wrong call says
-            # the load-bearing thing about the wrong one.
-            range_errors, range_notices = fix_range(reader, root, record)
-            errors.extend(range_errors)
-            notices.extend(range_notices)
-            # EVERY record too. A `Grounds` cell closed twice is a fact about
-            # the round whose record carries it, and it has NO cutoff -- the
-            # function's own docstring holds why, and why a green run here is
-            # a disclosure rather than a catch.
-            double_errors, double_notices = doubled_grounds(reader, root, record)
-            errors.extend(double_errors)
-            notices.extend(double_notices)
-            # EVERY record too, and with no cutoff for the same reason: a
-            # field row written twice is present and malformed (#866).
-            row_errors, row_notices = doubled_fields(reader, root, record)
-            errors.extend(row_errors)
-            notices.extend(row_notices)
-            # EVERY record too, and for the reason the other four are: WHEN a
-            # record was written is a fact about that round. The last one is
-            # the least likely to be late, since nothing follows it to
-            # commission anything, so a check reading it alone would read the
-            # one record the defect cannot reach.
-            late_errors, late_notices = written_late(
-                reader, root, args.baseline, record, fork
-            )
-            errors.extend(late_errors)
-            notices.extend(late_notices)
-
-        # ONCE per work item, after the walk, where the arms above read each
-        # record: whether the fragment kept up with the commits after the
-        # build is a question about the branch, and the records only say which
-        # round each commit belongs to. Notices alone (#797).
-        left_errors, left_notices = fragment_left_behind(
-            reader, routing, root, item, records
-        )
-        errors.extend(left_errors)
-        notices.extend(left_notices)
-        # ONCE per work item too (#837): a note is closed on the run's last
-        # record or carried open across all of them, so the question is the
-        # run's and not one record's.
-        note_errors, note_notices = carried_notes(reader, root, records, strict)
-        errors.extend(note_errors)
-        notices.extend(note_notices)
+        if declared["review"] == routing.CHAIN:
+            problems.extend(records(reader, routing, root, item, rel, args.baseline))
+        gate = broad_gate(reader, root, item, args.baseline)
+        gate += guarantee(reader, root, item, args.baseline)
+        if args.sealing:
+            notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
+        else:
+            problems.extend(gate)
 
     for rel, line, message in notices:
         print(reader.annotate("notice", rel, line, message))
-    for rel, line, message in errors:
-        print(reader.annotate("error", rel, line, message))
-    return 1 if errors else 0
+    kind = "error" if strict else "notice"
+    for rel, line, message in problems:
+        print(reader.annotate(kind, rel, line, message))
+    return 1 if problems and strict else 0
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
-    # owns the reasoning and the three decisions behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

@@ -7,10 +7,10 @@ to the pull request. Where the arms are asked from is in two sibling
 documents. `docs/the-commit-gate-inside-git.md` is what git decides inside
 the commit, in a clone carrying this plugin's git hooks.
 `docs/commit-review-gate-spec.md` is the PreToolUse reading that judges where
-git cannot, and also holds the registration of the hooks, the review-history
-guard and the implementer mark. The review run those hooks serve is
-`docs/review-chain-spec.md`'s, and what the pull-request check reads of a
-round record is `docs/round-record-spec.md`'s. Update spec and code together.
+git cannot, and also holds the registration of the hooks and the implementer
+mark. The review run those hooks serve, and what the pull-request check reads
+of a round record, are `docs/the-review-record.md`'s. Update spec and code
+together.
 
 ## The two arms of the commit gate
 
@@ -33,10 +33,9 @@ inferred.**
 questions. The parity arm asks whether the original was consulted, and a
 `docs/` file has no original, so its silence there is right. This arm asks
 whether anybody reads the change before it lands, and here `docs/` is the
-policy the code conforms to and `seal/ledger.md` is the verified evidence.
-#518 measured whether review finds defects there before drawing any line,
-and it does. Across every round record, at least 25 fixed findings sit in
-`docs/` alone and 26 in the ledger alone. #514's fold, which changed `docs/`,
+policy the code conforms to. #518 measured whether review finds defects there
+before drawing any line, and it does: across every round record, at least 25
+fixed findings sit in `docs/` alone. #514's fold, which changed `docs/`,
 `seal/` and four test files, opened seven findings a later round verified as
 fixed, all in `docs/`, one of them 🔴. No reviewed work item was ever confined
 to the two roots, and the seventeen docs/seal-only commits on the release
@@ -97,29 +96,24 @@ edit and asking for `[no-review]` as well is asking for the same answer twice.
 
 | The declaration says | At the commit | At the pull request |
 |---|---|---|
-| through the review chain | silent | a committed `rounds/round-N.md` is required, every commit its `Target SHA` names being REACHABLE — an ancestor of HEAD, or of the branch `routing.md` declares — its last round's `Pass` **checked**, that claim consistent with its own verdict table, and its `Fixes checked by` naming a checker the repository can confirm. A record this pull request does not touch keeps every requirement except reachability: its commits are expected to be gone, and the review it records was enforced at the pull request that added it. A record it RESTORES byte-for-byte from the merge base's own history — the same bytes at the same path in any commit the merge base reaches — is judged the same way, because an earlier pull request added those bytes. One byte changed and the record is this pull request's claim again |
-| straight to the PR | silent | the sealer's `broad-gate.md` in the work item's directory, for a work item begun at or after `chain_check.py`'s `DIRECT_GATE_FROM` — the one broad run, at a SHA the tree can see, against the base — and nothing else: the answer turns off the reviewer alone. A draft pull request is excused the file, an earlier work item is excused and prints, and the declaration is printed either way, because a decision nobody sees is not a record |
+| through the review chain | silent | a committed `rounds/round-N.md` with no finding left `open`, the last record's `target:` commit at HEAD or followed only by the work item's own records, and the sealer's `broad-gate.md` and `guarantee.md` beside it |
+| straight to the PR | silent | `broad-gate.md` beside the work item's records, naming the one broad run the sealer took at a SHA the tree can see, and the sealer's `guarantee.md` reading `sound` at HEAD: the answer turns off the reviewer alone. A draft pull request prints instead of failing, and the declaration is printed either way, because a decision nobody sees is not a record |
 | nothing readable, or no file | today's behavior — deny once, then ask | pass, with a notice saying nothing was checked |
 
-What the check reads of each round record under the first answer, and what
-each refusal costs, is `docs/round-record-spec.md` for the record's rows, and
-`docs/review-chain-spec.md` for the floor, `Needs a fix`, the reopening and
-when the record was written.
-Enforced by: tests/test_routing_is_recorded.py::test_a_declared_chain_item_commits_without_a_prompt, tests/test_routing_is_recorded.py::test_a_declared_direct_item_commits_without_a_prompt, tests/test_chain_check_at_the_pull_request.py::test_a_record_restored_from_the_bases_history_makes_no_reachability_claim
+What the check reads of each round record under the first answer is
+`docs/the-review-record.md` §*What the check reads at the pull request*.
+Enforced by: tests/test_routing_is_recorded.py::test_a_declared_chain_item_commits_without_a_prompt, tests/test_routing_is_recorded.py::test_a_declared_direct_item_commits_without_a_prompt, tests/test_chain_check.py::TestMain
 
 <!-- specs/1790173106-a-bare-yes-sets-the-run-length-and-a-session-review-has-no-row -->
-**`straight to the PR` owes the sealer's `broad-gate.md` and turns off the
-reviewer alone, and `Review` has two answers, not three.**
+**`straight to the PR` owes the sealer's `broad-gate.md` and `guarantee.md`
+and turns off the reviewer alone, and `Review` has two answers, not three.**
 
 **Two answers, and not three.** A session that wrote a change and then checked
 it itself has asked for a third — *reviewed by the session* — with a record of
 its own (#241). There is none, and the reason is what the chain's record is
-worth: something, only because somebody other than the author wrote it.
-`Fixes checked by` refuses *the session that wrote them*
-(`docs/review-chain-spec.md` §*Two records, and what each of them says*),
-`Ran by` is the spawning
-session's row and never the agent's own, and the contract names a review that
-certifies itself as what the commit gate exists to catch. What the author's own
+worth: something, only because somebody other than the author wrote it, and
+the contract names a review that certifies itself as what the commit gate
+exists to catch. What the author's own
 check leaves that CI can read is what it RAN — the broad gate at a SHA against
 a base — and that is the sealer's stamp, which `straight to the PR` already
 owes in the row above. The reading half, *here is what I checked*, is prose,
@@ -128,7 +122,7 @@ to the PR` and takes the broad run; what that answer turns off is the reviewer,
 and nothing else. A change belonging to no work item at all is the routing
 question's third answer, `no work item`, whose recorded form is `[no-review]`
 in front of each commit — there is no value meaning no enforcement anywhere.
-Enforced by: skills/code-review/scripts/chain_check.py::direct_seal
+Enforced by: tests/test_chain_check.py::TestMain::test_a_straight_to_the_pr_item_owes_the_sealers_two_files
 
 <!-- specs/1789518345-who-asks-the-routing-question-and-what-checks-the-answer -->
 **A declaration the pull request RETIRED is not one it made**, and neither is
@@ -154,22 +148,21 @@ marker.** `settle --retire` also removes a released directory that held no
 `spec.md` and nothing open in its record, because a record of a moment states
 no rule to fold (#517). So a declaration absent at `HEAD` whose directory is
 gone is asked one more question of the merge base: did the directory hold no
-`spec.md` there, and nothing open in its `overview.md` or `evidence-todo.md`?
-Where it did not, the check prints `retired: by the rule — …`; where the merge
-base held a spec or an open row, the refusal stands. The question is
-`unverified_check.retired_by_rule`, the one predicate `settle`,
-`unverified_check.py --baseline` and the survivor sweep ask too, so the four
-cannot disagree about the same tree the way the marker arm once did. Asked of
-the merge base rather than of the tree the branch left, and asked whether the
-directory's history ever held a `spec.md`, a spec deleted in one commit — or
-in an earlier pull request — and the directory in the next is still a
-deletion.
+`spec.md` there, and nothing open in its `overview.md`? Where it did not, the
+check prints `retired: by the rule — …`; where the merge base held a spec or
+an open row, the refusal stands. The question is
+`unverified_check.retired_by_rule`, the one predicate `settle`, and
+`unverified_check.py --baseline` ask too, so the three cannot disagree about
+the same tree the way the marker arm once did. Asked of the merge base rather
+than of the tree the branch left, and asked whether the directory's history
+ever held a `spec.md`, a spec deleted in one commit — or in an earlier pull
+request — and the directory in the next is still a deletion.
 
 Every record is read as git carries it at `HEAD`, never as the working tree
 holds it: a tree that differs from `HEAD` is what CI never sees, and a local
 run reading it would be the more permissive of the two. `--worktree` reads the
-working tree instead, for the check `round_record.py` runs on a record before
-its commit. The flag is local only, and CI keeps the default.
+working tree instead, for a local check before a commit. The flag is local
+only, and CI keeps the default.
 
 Which declaration applies is settled by the branch it names, looked up from
 the checked-out branch. Every way that lookup can fail — a renamed branch, a
@@ -207,7 +200,7 @@ What it costs, stated rather than buried:
 - Deleting the routing file restores today's behavior exactly, because the
   fallback for a missing declaration is today's decision table.
 
-Enforced by: tests/test_chain_check_at_the_pull_request.py::test_a_declaration_this_branch_retired_is_not_one_it_made, tests/test_chain_check_at_the_pull_request.py::test_a_declaration_the_rule_arm_retired_is_not_one_it_made
+Enforced by: tests/test_chain_check.py::TestRetired::test_a_declaration_a_fold_retired_is_not_one_this_branch_made, tests/test_chain_check.py::TestRetired::test_a_declaration_deleted_with_nothing_absorbing_it_is_refused
 
 ### Parity arm — opt-in: `seal/parity.md` at the repo root
 

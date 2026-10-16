@@ -13,7 +13,7 @@ is this repository's `Fold shape from` row in `seal/config.md`. The row is
 line, so the real-tree case below binds every statement under `docs/`.
 Work-item ids are epoch-prefixed, so the cutoff is a comparison and needs no
 list of exemptions.
-`docs/the-evidence-ledger.md` states the value in prose, and
+`docs/the-record-layout.md` states the value in prose, and
 `tests/test_a_document_has_room_for_the_next_fold.py` pins the prose against
 that row.
 
@@ -86,7 +86,7 @@ def test_settle_owns_the_shape_rule():
     """A11. The rule is stated in the fold's procedure, the document the
     folder reads, and this module is only its reader here."""
     text = read(SETTLE)
-    section = text.split("### 2. Write one standing statement per segment")[1]
+    section = text.split("### 2. Write one standing statement per rule")[1]
     section = section.split("### 3.")[0]
     for phrase in (
         "**A standing statement has one shape: the rule, its grounds, and what "
@@ -164,9 +164,9 @@ def test_a_missing_name_is_named(tmp_path):
 
 
 def test_a_method_resolves_in_pytests_spelling(tmp_path):
-    """S10 of #836. A target is read by the ledger's resolver,
-    `evidence_check.py#named_unit`, so a method is `::Class::method`, as
-    pytest and a ledger row held by a test spell it."""
+    """S10 of #836. A target is read by the coordinate kernel's resolver,
+    `coordinates.py#named_unit`, so a method is `::Class::method`, as
+    pytest spells it."""
     body = "**Rule.**\nEnforced by: `tests/test_x.py::TestA::test_b`\n"
     assert planted(tmp_path, body) == []
 
@@ -189,18 +189,39 @@ def test_a_method_spelled_with_a_dot_is_named(tmp_path):
 
 
 def test_a_constant_is_no_def_or_class(tmp_path):
-    """The ledger's resolver knows constants too; `fold-check` still accepts
+    """`named_unit` knows constants too; `fold-check` still accepts
     a `def` or a `class` and nothing else."""
     found = planted(tmp_path, "**Rule.**\nEnforced by: tests/test_x.py::LIMIT\n")
     assert len(found) == 1 and "no def or class named LIMIT" in found[0], found
 
 
-def test_the_target_is_resolved_by_the_ledgers_reader():
+@pytest.mark.parametrize(
+    "source",
+    [
+        "def test_twice():\n    pass\n\n\ndef test_twice():\n    pass\n",
+        "class test_twice:\n    pass\n\n\ntest_twice = 1\n",
+    ],
+    ids=["two defs", "a class and a constant"],
+)
+def test_a_name_defined_twice_is_no_target(tmp_path, source):
+    """#944: a rule bound to an ambiguous target is not bound. A name its
+    module defines twice is no one unit — pytest collects only the last
+    `def` — so it does not resolve, in the one resolver `fold-check` and
+    `rules --check` both read."""
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_y.py").write_text(source, encoding="utf-8")
+    assert target_problem(str(tmp_path), "tests/test_y.py::test_twice") == (
+        "tests/test_y.py::test_twice: test_twice is defined 2 times in "
+        "tests/test_y.py, so it names no one unit"
+    )
+
+
+def test_the_target_is_resolved_by_named_unit():
     """D6 of #836: one resolver of `path::name`. `fold_check.py` walks no
     tree of its own for a target; it asks `named_unit`."""
     source = read(SCRIPT)
     assert "ast.walk" not in source
-    assert "evidence().named_unit(" in source
+    assert "coordinates().named_unit(" in source
 
 
 def test_nothing_with_a_reason_passes_and_without_one_fails(tmp_path):

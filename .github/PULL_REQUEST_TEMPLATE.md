@@ -13,7 +13,7 @@ base without closing anything.
 
 The rest is in CONTRIBUTING.md, "Opening a pull request", including what a
 contribution is NOT asked for: no work item under seal/specs/, no review
-round record, no ledger row, no changelog fragment, and no version bump. -->
+round record, no changelog fragment, and no version bump. -->
 
 ## What changes
 

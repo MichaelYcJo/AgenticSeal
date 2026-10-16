@@ -1,9 +1,8 @@
 """`straight to the PR` owes the sealer's `broad-gate.md`, and every document
 that describes the answer says so (#241).
 
-`chain_check.py#direct_seal` has required the sealer's stamp at a ready pull
-request since `DIRECT_GATE_FROM`: the one broad run, at a SHA, against the
-base. Seven places went on saying the direct answer requires nothing — the
+`chain_check.py#broad_gate` requires the sealer's file at a ready pull
+request: the one broad run, at a SHA, against the base. Seven places went on saying the direct answer requires nothing — the
 specification's declaration table, the checker's own inventory, the
 orchestration skill's four-combinations table and its closing paragraph, the
 commit gate's first option, that option's own test, and the routing template's
@@ -11,9 +10,8 @@ comment. A session that had written a change and checked it itself read any
 of them and concluded the vocabulary had no honest answer for it, and asked
 for a third one whose record it would write about itself.
 
-The answer is two answers and not three, and the pins here are the shape
-`NO_CHECK_READS` set in `tests/test_the_record_is_held_to_the_floor_and_the_depth.py`:
-an absence is trivially satisfied by a file that was never opened, so the
+The answer is two answers and not three, and the pins here are shaped so
+that an absence is trivially satisfied by a file that was never opened, so the
 sentence that STANDS is what makes the sentence that is GONE evidence. Where
 a file never carried the false sentence — it named the two answers and what
 neither owes — only the standing half is pinned.
@@ -40,10 +38,6 @@ STANDS = "the sealer's `broad-gate.md`"
 DIRECT_REQUIRES = {
     ("docs", "the-review-and-parity-arms.md"): (
         "nothing required; the declaration is printed",
-        STANDS,
-    ),
-    ("skills", "code-review", "scripts", "chain_check.py"): (
-        "nothing required — the declaration is printed",
         STANDS,
     ),
     ("skills", "implement", "orchestration.md"): (
@@ -90,8 +84,8 @@ def test_each_carrier_says_what_the_direct_answer_requires(parts):
     if gone is not None:
         assert gone not in text, (
             f"{'/'.join(parts)} still tells a reader `straight to the PR` "
-            "requires nothing, beside a checker that has required the "
-            "sealer's record since `DIRECT_GATE_FROM`"
+            "requires nothing, beside a checker that requires the sealer's "
+            "record"
         )
 
 

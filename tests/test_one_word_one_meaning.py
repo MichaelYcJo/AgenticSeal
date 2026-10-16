@@ -142,13 +142,7 @@ def test_the_two_prompts_are_named_by_who_they_address():
 # --- "the cycle" — the mark's unit, never the whole run ---------------------
 
 
-def test_the_spec_separates_the_cycle_from_the_review_run():
-    spec = flat("docs", "review-chain-spec.md")
-    assert "A **cycle** is the mark's own unit" in spec
-    assert "A **review run** is" in spec
-    assert "## The review run has a bound, and an end" in read(
-        "docs", "review-chain-spec.md"
-    )
+def test_the_bound_is_on_the_review_run_and_never_on_the_cycle():
     assert "## The cycle has a bound" not in review_chain_text(ROOT), (
         "the bound is on the review run; stated on the cycle it reads as a "
         "bound on commits"
@@ -209,16 +203,12 @@ SEAL_SWEPT = (
     ("skills", "code-review", "SKILL.md"),
     ("skills", "implement", "SKILL.md"),
     ("templates", "config.md"),
-    ("docs", "review-chain-spec.md"),
-    # The two documents #526 split out of the one above. Each carries text
-    # that instructed somebody while it sat there, so the split does not
-    # take it out of the sweep. The same holds for the two #727 cut out of
-    # the first of them.
+    # The review run's documents. `docs/the-review-record.md` replaced the
+    # three that carried the record in 0.22.0 (#923).
+    ("docs", "the-review-record.md"),
     ("docs", "commit-review-gate-spec.md"),
     ("docs", "the-commit-gate-inside-git.md"),
     ("docs", "the-review-and-parity-arms.md"),
-    ("docs", "round-record-spec.md"),
-    ("docs", "review-handoff-protocol.md"),
     ("CONTRIBUTING.md",),
     ("README.md",),
     # Added by round 1's 🟡 10, which found a FOURTH referent here — the
@@ -228,7 +218,6 @@ SEAL_SWEPT = (
     # once the list stopped being the boundary of the search.
     ("docs", "one-root-by-lifetime.md"),
     ("skills", "verify", "scripts", "seal_stamp.py"),
-    ("skills", "code-review", "scripts", "round_record.py"),
     # The message a session reads when the `Broad gate` row is absent says
     # what the sealer's seal covers, and said it ownerless until #402's
     # round 1 — in the one script under `skills/verify/scripts/` the list
@@ -368,7 +357,7 @@ def test_no_instructing_document_leaves_an_instance_anonymous():
 # --- "segment" — one agent's stretch of a chain, never a spawn cycle -------
 
 # The seventh word, and the one this repository's own measurement vocabulary
-# rests on: the per-segment bars in `docs/review-handoff-protocol.md`,
+# rests on: the per-segment bars in `docs/the-review-record.md`,
 # `skills/verify/SKILL.md` §*Measure the segment*, and the flow log all read
 # `segment` as one agent's own stretch of a chain.
 #
@@ -441,8 +430,8 @@ def test_no_shipped_document_calls_a_spawn_cycle_a_segment():
 def test_the_sweep_reads_across_a_string_literal_seam():
     """The shape the deleted output pin caught and the file sweep did not.
 
-    `round_record.py` builds every refusal out of wrapped literals and where
-    the wrap falls is decided by line length, so an anonymous instance
+    `round_record.py` built every refusal out of wrapped literals and where
+    the wrap fell was decided by line length, so an anonymous instance
     straddling a seam is an ordinary edit rather than an exotic one. Round 1
     measured it: the pinned spelling kept, a second anonymous instance added
     across two literals, 86 passed in both modules, and the refusal a person
@@ -480,7 +469,7 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
 
     WHY SEVEN PHRASES ARE THE WHOLE OF WHAT IS AT RISK, which is a fact about
     the MEMBER lists rather than about the phrases: `flat` folds the seam for
-    `.py` members only, and across both sweeps five members are `.py`. Every
+    `.py` members only, and across both sweeps four members are `.py`. Every
     other phrase these sweeps look for is searched in a markdown member, where
     the fold never runs at all. That makes this a closed set and not a short
     list of examples — and because the closure rests on the member lists, it
@@ -505,7 +494,6 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
     }
     assert folded == {
         "skills/verify/scripts/seal_stamp.py",
-        "skills/code-review/scripts/round_record.py",
         "skills/verify/scripts/broad_gate.py",
         "skills/verify/scripts/session_cost.py",
         "tests/test_session_cost.py",
@@ -543,15 +531,15 @@ def test_flat_is_what_folds_the_seam_and_it_folds_python_only():
     a swept file carrying a shell command whose two quoted arguments are not
     a seam and would be cut together.
     """
-    joined = "The sealer's mark names a commit"
-    assert joined in flat("skills", "code-review", "scripts", "round_record.py"), (
+    joined = "never read it, and there is no command to seal over"
+    assert joined in flat("skills", "verify", "scripts", "broad_gate.py"), (
         "`flat` no longer reads across a string-literal seam, so the sweep "
         "below is blind to an instance split over two literals again"
     )
     # The fixture, asserted: this pins that the seam is really there, so the
     # case cannot go on passing against a source somebody has rewrapped.
     assert joined not in " ".join(
-        read("skills", "code-review", "scripts", "round_record.py").split()
+        read("skills", "verify", "scripts", "broad_gate.py").split()
     ), "the seam this pins has been rewrapped; point it at another one"
     assert '--git-common-dir)/seal" "$(git' in flat("README.md"), (
         "`flat` folded a markdown file, which has no literals to join — the "
@@ -572,8 +560,6 @@ def test_flat_is_what_folds_the_seam_and_it_folds_python_only():
 PACT_SWEPT = (
     ("templates", "pact.md"),
     ("docs", "the-pact.md"),
-    # #647 C and D: the record a pact review begins from.
-    ("templates", "pact-review.md"),
 )
 # The two sections that carry the words inside larger documents, read alone.
 PACT_SECTIONS = (
@@ -581,32 +567,15 @@ PACT_SECTIONS = (
         ("skills", "implement", "orchestration.md"),
         "### A work item that commits in more than one repository",
     ),
-    (
-        ("skills", "evidence-check", "SKILL.md"),
-        "## `pact-check` — the signers against the pact",
-    ),
     # Round 1's white 11: the words ship here too.
     (("templates", "config.md"), "## Pact"),
-    # #647 C and D: the act a pact review is, and the re-read that records a
-    # pact change.
-    (
-        ("skills", "implement", "orchestration.md"),
-        "### A pact review at the pact's repository",
-    ),
-    (
-        ("skills", "evidence-check", "SKILL.md"),
-        "## Re-verifying is recomputing the hash",
-    ),
 )
 # Files where only the lines naming a pact are the pact's text: the cheat
 # sheets' row and the config skill's rows and bullet.
 PACT_LINES = (("README.md",), ("README.ko.md",), ("skills", "config", "SKILL.md"))
-# The sentences a person is printed: every string constant of `pact-check`,
-# and those of `chain-check`'s pact print.
+# The sentences a person is printed: every string constant of `pact-check`.
 PACT_PRINTED = (
-    (("skills", "evidence-check", "scripts", "pact_check.py"), None),
-    (("skills", "code-review", "scripts", "chain_check.py"), "pact_notices"),
-    (("skills", "code-review", "scripts", "chain_check.py"), "PACT_NOT_HERE"),
+    (("skills", "verify", "scripts", "pact_check.py"), None),
     # The refusals both commands print are written in `hooks/config.py`
     # (round 2 of #647, white 15).
     (("hooks", "config.py"), "pact_declaration"),
@@ -614,21 +583,8 @@ PACT_PRINTED = (
     (("hooks", "config.py"), "pact_signers"),
     (("hooks", "config.py"), "_stops_at"),
     # The walker every pact table is read through, and the words the
-    # `Signer` table's refusals are put in (#647, steps C and D).
+    # `Signer` table's refusals are put in (#647).
     (("hooks", "config.py"), "gfm_table"),
-    # The two records' readers, and what the signer's re-read prints when
-    # it records a pact change (#647, steps C and D).
-    (("hooks", "config.py"), "pact_changes"),
-    (("hooks", "config.py"), "pact_reviews"),
-    (
-        ("skills", "evidence-check", "scripts", "evidence_check.py"),
-        "record_pact_changes",
-    ),
-    (("skills", "evidence-check", "scripts", "evidence_check.py"), "PACT_CHANGE_INTRO"),
-    (
-        ("skills", "evidence-check", "scripts", "evidence_check.py"),
-        "PACT_CHANGE_REPAIR",
-    ),
     (("hooks", "config.py"), "_signer"),
     # The sentence both commands print where a file is headed the old way
     # (#822); one of `PACT_RENAMED_SPANS` below.
@@ -637,12 +593,9 @@ PACT_PRINTED = (
     (("hooks", "config.py"), "read_table"),
 )
 # The thread's working words, and the noun the owner withheld from the
-# repository holding the pact: each would give one thing a second name. The
-# last two are the thread's names for a pact change and a pact review
-# (#647 C and D, PR #749's `questions.md` Q2).
+# repository holding the pact: each would give one thing a second name.
 PACT_LOOSE = re.compile(
-    r"\b(?:home|member|keeper)s?\b|\bpact repo(?:sitory|sitories|s)?\b"
-    r"|\bcontract-changes?\b|\bcontract reviews?\b",
+    r"\b(?:home|member|keeper)s?\b|\bpact repo(?:sitory|sitories|s)?\b",
     re.IGNORECASE,
 )
 
@@ -800,8 +753,7 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 # word back. What it leaves alone, and why:
 #
 # - records, which keep the word they were written with: the released
-#   changelogs and ledgers, the work items' directories, and the ledger
-#   fragments, whose rows quote released claims;
+#   changelogs and the work items' directories;
 # - the compatibility cases, which spell the old header because a case taking
 #   it from `hooks/config.py#renamed_header` would pass with that constant
 #   changed while every 0.18.x pact stopped reading; and this module, whose
@@ -809,15 +761,10 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 # - the two spans `PACT_RENAMED_SPANS` names, and fold markers.
 RENAMED_RECORDS = (
     "changelog/",
-    "seal/ledger.md",
-    "seal/ledger/",
-    "seal/releases/",
     "seal/specs/",
 )
 RENAMED_COMPAT = (
-    "tests/test_a_pact_review_takes_a_pact_change.py",
     "tests/test_a_signer_declares_its_pact.py",
-    "tests/test_a_signers_ci_prints_its_pact.py",
     "tests/test_one_table_walker_reads_what_gfm_renders.py",
     "tests/test_pact_check.py",
 )
@@ -845,11 +792,6 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
     for rel in (*RENAMED_COMPAT, SWEEP_MODULE, "docs/the-pact.md", "hooks/config.py"):
         assert rel in tracked, f"{rel} is excepted below and no longer tracked"
     for prefix in RENAMED_RECORDS:
-        # `seal/ledger/` holds the unreleased fragments, and the release's
-        # fold empties it on purpose: an empty fragment directory is the tree
-        # just after a release, not an exception that stopped applying.
-        if prefix == "seal/ledger/":
-            continue
         assert any(p.startswith(prefix) for p in tracked), (
             f"{prefix} is excepted below and holds no tracked file"
         )

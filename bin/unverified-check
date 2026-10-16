@@ -9,4 +9,4 @@
 #   unverified-check .            unverified-check specs/
 #   unverified-check --baseline origin/main .
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../skills/verify/scripts/unverified_check.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../skills/verify/scripts/unverified_check.py" "$@"

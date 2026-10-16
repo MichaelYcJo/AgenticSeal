@@ -25,10 +25,10 @@ edits:
                   (round 1, finding 3, and the A3 row of `overview.md`)
   end to end      a fixture whose local `base` is one commit behind
                   `origin/base` and whose branch has merged `origin/base` in.
-                  The survivor arm parts from the local spelling only there:
-                  `survivor_check.py#parse_range` resolves `A...B` through
-                  `git merge-base`, so the two spellings agree entirely until
-                  HEAD already carries the base's newer commits
+                  The unverified arm parts from the local spelling only
+                  there: `unverified_check.py` compares against `git
+                  merge-base <base> HEAD`, so the two spellings agree entirely
+                  until HEAD already carries the base's newer commits
   structural      `broad_gate.py` reads `args.base` exactly once, and the
                   spelling it reaches for is held against the workflow's, so
                   the two readers cannot drift apart again in silence
@@ -147,21 +147,13 @@ CONFIG = (
     f"| Broad gate | {SUITE_ROW} |\n"
 )
 
-# The sentence the branch replaces, and the copy of it that stays standing.
-# They part in the middle, so the pair shares two runs of wording that do not
-# touch — which is what `survivor_check.py#runs` counts as two independent
-# pieces of evidence rather than one phrase written several ways.
-REPLACED = (
-    "# notes\n\nThe resolver reaches for the remote tracking ref because a "
-    "runner holds no local branch to read.\n"
-)
-STANDING = (
-    "# notes\n\nThe resolver reaches for the remote tracking ref and therefore "
-    "a runner holds no local branch to read.\n"
-)
-REPLACEMENT = (
-    "# notes\n\nWhich commit the merge is judged against decides what every "
-    "check below was asked.\n"
+# A sibling's open `## Not verified` row, which the base's newer commit
+# writes and the branch then deletes: a row that left the record, measured
+# against the base CI reads.
+SIBLING = "seal/specs/1700000001-a-sibling"
+OPEN_ROW = (
+    "# overview\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n"
+    "| a claim nobody ran | the owner |\n"
 )
 
 
@@ -200,23 +192,20 @@ def behind_gate_repo(tmp_path, plant=False):
     """A clone whose local `base` is one commit behind `origin/base`, on a
     branch that has MERGED `origin/base` in.
 
-    That merge is the whole condition. `survivor_check.py#parse_range`
-    resolves `A...B` through `git merge-base`, so the local and the
+    That merge is the whole condition. `unverified_check.py` compares
+    against `git merge-base <base> HEAD`, so the local and the
     remote-tracking spelling give the same answer until HEAD already carries
     the base's newer commits — a fixture built from the ticket's wording,
     where a stale base *can only narrow the range*, would not reproduce the
     defect at all.
 
-    With `plant`, the base's newer commit writes a sentence twice and the
-    branch replaces one of the two copies. In the resolved range that is a
-    removal with a survivor standing; in the stale range the sentence was
-    never there to remove, so the replacement reads as wording this branch
-    wrote."""
+    With `plant`, the base's newer commit writes a sibling's open row and the
+    branch deletes it. Against the resolved base that is a row that left the
+    record; against the stale base the row was never there."""
     up = gate_upstream(tmp_path / "up")
     work = clone(up, tmp_path / "work")
     if plant:
-        write(up, "docs/moved.md", REPLACED)
-        write(up, "docs/echo.md", STANDING)
+        write(up, f"{SIBLING}/overview.md", OPEN_ROW)
     else:
         write(up, "docs/second.md", "# the tree moved\n\nA sibling landed.\n")
     commit(up, "a sibling merged while this branch was open")
@@ -236,8 +225,8 @@ def behind_gate_repo(tmp_path, plant=False):
         "origin/base",
     )
     if plant:
-        write(work, "docs/moved.md", REPLACEMENT)
-        commit(work, "the sentence the base carried, replaced")
+        write(work, f"{SIBLING}/overview.md", OVERVIEW)
+        commit(work, "the sibling's open row, deleted")
     return work
 
 
@@ -440,18 +429,17 @@ def test_every_check_is_handed_the_commit_the_remote_tracking_ref_names(tmp_path
     resolved = short(work, "origin/base")
     stale = short(work, "base")
     assert resolved != stale, "the fixture is not behind at all"
-    for name in ("unverified", "chain", "survivors"):
+    for name in ("unverified", "chain"):
         line = asked(keep, name)
         assert resolved in line, f"{name} was not asked about {resolved}: {line}"
         assert stale not in line, f"{name} was asked about the local ref: {line}"
 
 
-def test_the_survivor_arm_reports_what_ci_reports(tmp_path):
-    """A2. The measured case, end to end. The base's newer commit wrote one
-    sentence in two files, the branch merged that commit in and replaced one
-    copy, and the other copy is still standing — which is what CI reported
-    seven of on 2026-09-16 while the gate reported two, all excused, and drew
-    the stamp."""
+def test_the_unverified_arm_reports_what_ci_reports(tmp_path):
+    """A2, end to end. The base's newer commit wrote a sibling's open row and
+    the branch merged that commit in and deleted it: against the base CI
+    reads, a row left the record, and against the stale local ref it was
+    never there."""
     work = behind_gate_repo(tmp_path, plant=True)
     keep = tmp_path / "out"
     out = run_gate(work, keep)
@@ -460,8 +448,8 @@ def test_the_survivor_arm_reports_what_ci_reports(tmp_path):
         f"{out.stdout}\n{out.stderr}"
     )
     assert "NOT SEALED" in out.stdout, out.stdout
-    assert "survivors" in out.stdout, out.stdout
-    assert "docs/echo.md" in read(os.path.join(str(keep), "survivors.txt"))
+    assert "unverified" in out.stdout, out.stdout
+    assert "1700000001-a-sibling" in read(os.path.join(str(keep), "unverified.txt"))
 
 
 def test_the_gate_reads_the_given_base_exactly_once(tmp_path):
@@ -559,7 +547,7 @@ def test_the_panel_names_the_ref_the_base_came_from(tmp_path):
     base = mod.Base("base", "aaaaaaa", "origin/base", "bbbbbbb")
     checks = {
         name: mod.Check(name, 0, "1 passed in 0.1s", "out.txt")
-        for name in (mod.SUITE, mod.LEDGER, mod.CHAIN_NAME)
+        for name in (mod.SUITE, mod.CHAIN_NAME)
     }
     rows = mod.panel("ccccccc", base, checks, None)
     # #666 put the ref on the row under `base` rather than on a `from` row of
@@ -788,21 +776,18 @@ def test_the_gates_own_docstring_says_the_base_is_resolved():
 
 def test_the_documents_name_the_panel_row_the_gate_actually_prints():
     """The ref beside the base commit is the half of the stamp a reader uses
-    to tell a fresh base from a stale one, so the agent that reports the
-    stamp has to know where it is. From #666 it was the row under `base`,
-    and since #832's S5a it is the `base` row itself, beside the commit;
-    `from` is not a row the panel has."""
+    to tell a fresh base from a stale one. From #666 it was the row under
+    `base`, and since #832's S5a it is the `base` row itself, beside the
+    commit; `from` is not a row the panel has. The sealer passes the gate's
+    lines on and describes no panel row, so only a stale name is refused."""
     said = " ".join(read(SEALER).split())
-    assert "the `base` row carries the ref beside the commit it came from" in said, (
-        "agents/sealer.md does not name the row that carries the base's ref"
-    )
     assert "the row under `base` carries the ref" not in said
     assert "`from`" not in said, "agents/sealer.md names a row the panel lost"
     mod = gate_module()
     base = mod.Base("base", "aaaaaaa", "origin/base", "bbbbbbb")
     checks = {
         name: mod.Check(name, 0, "1 passed in 0.1s", "out.txt")
-        for name in (mod.SUITE, mod.LEDGER, mod.CHAIN_NAME)
+        for name in (mod.SUITE, mod.CHAIN_NAME)
     }
     rows = mod.panel("ccccccc", base, checks, None)
     labels = [row[0] for row in rows if row]
@@ -950,9 +935,17 @@ def test_the_workflow_reader_sees_every_shape_a_base_is_spelled_in():
 
 def test_the_workflow_reader_finds_the_env_assignment_the_file_already_has():
     """The `BASE:` shape, over the real file rather than over a sample — it is
-    the one the plan counts and the old pattern could not see."""
+    the one the plan counts and the old pattern could not see. The count is
+    held against an independent listing of the file's code lines naming a
+    base, so it holds as steps come and go."""
     found = workflow_base_arguments()
-    assert len(found) >= 4, f"the workflow names {len(found)} bases: {found}"
+    listed = [
+        line
+        for line in read(HYGIENE).split("\n")
+        if not line.lstrip().startswith("#")
+        and re.search(r"--baseline\b|\bBASE:", line)
+    ]
+    assert len(found) == len(listed), f"the workflow names {len(found)} bases: {found}"
     assert any(spelling == REMOTE_TRACKING for spelling in found), (
         f"no bare `{REMOTE_TRACKING}` among {found} — the `BASE:` assignment is unread"
     )
@@ -1034,7 +1027,7 @@ def ref_row_of(mod, ref, given="release/x"):
     base = mod.Base(given, "aaaaaaa", ref, "bbbbbbb")
     checks = {
         name: mod.Check(name, 0, "1 passed in 0.1s", "out.txt")
-        for name in (mod.SUITE, mod.LEDGER, mod.CHAIN_NAME)
+        for name in (mod.SUITE, mod.CHAIN_NAME)
     }
     rows = mod.panel("ccccccc", base, checks, None)
     (value,) = [value for label, value in (r for r in rows if r) if label == "base"]

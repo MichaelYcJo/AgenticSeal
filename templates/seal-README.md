@@ -5,11 +5,11 @@ root laid out by lifetime: the rows that outlive a work item at the top, and
 each work item whole under `seal/specs/<work-item-id>/`, where it waits until
 `settle` folds it. **That step exists now**: `settle` names the released work
 items whose `spec.md` no `docs/` policy has absorbed yet, a session writes one
-standing statement per segment, and `settle --retire` then removes the
+standing statement per rule, and `settle --retire` then removes the
 directories that statement covers, along with every released one that wrote
 no `spec.md` and holds nothing open, which states no rule to fold. A
 released work item's process record does not wait for that: `rounds/`,
-`phases/`, `survivors.md` and the files written only for its pull request are
+`phases/` and the files written only for its pull request are
 removed by `settle --retire-process` at the next release, fold or no fold,
 and `routing.md` and the SDD set stay for the fold. A fold is
 not a work item and opens no directory here. `skills/settle/SKILL.md` is the
@@ -72,24 +72,17 @@ off in every clone.
 
 | Item still here | Destination |
 |---|---|
-| Verified facts (`seal/specs/<work-item-id>/evidence-todo.md`) | `seal/ledger/<work-item-id>.md` — this work item's spec-clause ↔ coordinate rows |
-| Tests to plant (`seal/specs/<work-item-id>/tests-todo.md`) | the implementation commit — or `seal/follow-up.md` if blocked on prerequisite work |
+| A finding still open in `seal/specs/<work-item-id>/rounds/round-N.md`, a test to plant among them | the implementation commit — or `seal/follow-up.md` if blocked on prerequisite work |
 | Open decisions | the policy document's open-questions section |
 
 Closing without exporting leaves the list where nothing looks for it — a
-prescribed test unplanted, a verified fact unmerged.
+prescribed test unplanted, a decision nobody recorded.
 
 ## Layout
 
 ```
 seal/
 ├── README.md            this file
-├── ledger.md            spec clause ↔ code coordinates: the shared ledger
-│                        every fragment is read beside
-├── ledger/
-│   └── <work-item-id>.md  one work item's rows while it is in development —
-│                          gathered at a release by the repository's own
-│                          fold, then removed
 ├── config.md            what this repository says about itself, one row per
 │                        item — `Commit and pull request language`,
 │                        `Record language`, and `Mode`, which `seal mode`
@@ -98,16 +91,14 @@ seal/
 │                        one is filled in from where the root is
 ├── parity.md            migration config, only where one is declared
 ├── pact.md              the pact, only in the repository that holds one
-├── pact-changes/        a signer's pact changes, a file per work item. Permanent
-├── pact-reviews/        the pact's repository's pact reviews, a file per work item. Permanent
 ├── follow-up.md         schedulable items in a repository with no tracker
 └── specs/<work-item-id>/  one work item, whole
     ├── routing.md         which way it was routed, written before the first edit
     ├── spec.md · plan.md · questions.md · overview.md · changelog.md
     ├── rounds/
-    │   └── round-N.md     target SHA · Pass · who checked the fixes · verdicts · executed probes · inherited coordinates · deferrals
-    ├── tests-todo.md      regression tests to plant, destination file per row
-    └── evidence-todo.md   facts to merge into the evidence ledger
+    │   └── round-N.md     target SHA · verdicts · paste-ready fixes · executed probes
+    ├── broad-gate.md      the one broad run, at a SHA, against the base
+    └── guarantee.md       the sealer's verdict on the work, at a SHA
 ```
 
 There is no task list here and no directory for one. `plan.md`'s Phases table

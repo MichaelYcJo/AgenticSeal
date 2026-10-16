@@ -156,26 +156,22 @@ APPLIES_THE_SHARED_GUARD = {
     "tests/test_no_document_names_the_old_roots.py#tracked": 1,
     "tests/test_release_hygiene.py#tracked": 1,
     "tests/test_a_release_is_sized_by_a_criterion.py#tracked": 1,
-    "tests/test_a_script_says_which_interpreter_it_needs.py#shipped_python": 1,
-    "tests/test_a_finding_id_is_a_bare_integer.py#committed_records": 1,
+    "tests/test_a_script_says_which_interpreter_it_needs.py#floor_carriers": 1,
+    # #929's census of what runs before any floor: it returns the missing
+    # half, and its liveness half hands that to `decline_if_shrunken`.
+    "tests/test_a_script_says_which_interpreter_it_needs.py#before_any_floor": 1,
     "tests/test_one_word_one_meaning.py#test_no_live_text_says_the_word_0_19_0_renamed": 1,
     # The reader itself. It lists the modules it is about to parse, and a
     # module listed and not on disk would end the enumeration at it --
     # this case reporting no offender because it read almost nothing.
     "tests/test_a_shrunken_corpus_declines_to_judge.py#suite_modules": 1,
-    # The seventh, and it arrived after this case was written -- which is the
-    # class re-deriving itself rather than somebody remembering. It does a
-    # third thing with the missing half: neither skip nor decline, but read
-    # the index entry `git ls-files` just named, so the corpus the census is
-    # taken over stays whole in the tree state that used to truncate it.
-    "tests/test_a_merge_cannot_silently_drop_a_correction.py#ledger_corpus": 1,
     # #730's ratchet. It judges what it finds and fails only on a count that
     # rose, so a file listed and not on disk can lower a count and never
     # raise one; it skips the missing half and does not decline.
     "tests/test_no_passage_is_pasted_into_a_second_file.py#corpus": 1,
     # #741's two walks, the encoding half's corpus and the hook entry points.
     # Each returns the missing half, and its liveness half hands that to
-    # `decline_if_shrunken`, the way `shipped_python` above does.
+    # `decline_if_shrunken`.
     "tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#tracked_python": 1,
     "tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#entry_points": 1,
     # #867's heading rule held to markdown-it over every tracked `.md`. Both
@@ -189,9 +185,7 @@ APPLIES_THE_SHARED_GUARD = {
 
 # 2. It guards its own list by another predicate, which predates this work.
 #    Checked the same way — the predicate has to be in the scope.
-GUARDS_ITS_OWN_LIST = {
-    "tests/test_a_new_returnable_value_is_a_contract_change.py#tracked_python": "isfile",
-}
+GUARDS_ITS_OWN_LIST = {}
 
 # 3. Its list is only ever OPENED behind a scope that catches the error. The
 #    reader checks that the named scope still carries the handler. This is not
@@ -206,13 +200,6 @@ OPENED_ONLY_BEHIND = {
 # 4. Immune by construction: the name comes from git and so does the content,
 #    so there is no tree state in which one exists without the other.
 CONTENT_FROM_GIT = {
-    "tests/test_the_reopening_is_one.py#_real_records": (
-        "the listing is `ls-tree HEAD` and `stopping_floor` takes its content "
-        "from HEAD, which is the repair #142 made across all three readers"
-    ),
-    "tests/test_chain_check_at_the_pull_request.py#_real_records": (
-        "the twin of the row above, same repair, same commit"
-    ),
     "tests/test_gate_judges_the_repo_it_commits_to.py#released_hooks": (
         "reads the last release's hooks out of a tag, file by file, through "
         "git — the working tree is never consulted"
@@ -241,18 +228,12 @@ LISTS_A_FIXTURE = {
     "tests/test_the_mode_is_a_row_and_a_command.py#test_an_ignored_workflow_path_is_not_reported_as_staged": 1,
     "tests/test_the_root_migrates_itself.py#test_every_move_is_staged_and_history_follows_the_file": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readme_is_rewritten_from_the_new_template": 1,
-    "tests/test_the_root_migrates_itself.py#test_the_re_pointed_ledgers_are_staged_with_the_move": 1,
     "tests/test_the_root_migrates_itself.py#test_an_ignored_file_directly_under_the_old_root_does_not_stop_the_move": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
     # #688: both read `git diff --cached --name-only` in the fixture the case
     # built, to assert that a team's directory was not staged for a move.
     "tests/test_the_root_migrates_itself.py#test_an_id_shaped_directory_without_the_marks_stays_and_is_named": 1,
     "tests/test_the_root_migrates_itself.py#test_a_mark_git_does_not_track_is_not_a_mark": 1,
-    "tests/test_chain_check_at_the_pull_request.py#test_a_symbolic_link_cannot_stand_in_for_the_last_round": 1,
-    "tests/test_chain_check_at_the_pull_request.py#test_a_clean_copy_in_the_working_tree_cannot_hide_a_committed_failure": 1,
-    # #860: `ls-tree` over the fixture's own commit, to assert git quotes the
-    # name the case wrote; no path in it is opened.
-    "tests/test_the_fixes_close_the_record.py#test_a_path_git_would_quote_is_read_as_the_path_it_is": 1,
 }
 
 # One call per scope everywhere today. Spelled as a map rather than as "one

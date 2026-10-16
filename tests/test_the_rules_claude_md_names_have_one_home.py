@@ -66,7 +66,7 @@ RULES = {
     ),
     "cadence": (
         IMPLEMENT,
-        "2. Implement, and feed evidence back where you verified it",
+        "2. Implement test-first, and let each rule name its test",
         (
             "What an intermediate commit costs is a property of the repository "
             "rather than a fact about committing",

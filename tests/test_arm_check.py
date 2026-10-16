@@ -46,7 +46,7 @@ from test_ci_gives_the_checks_what_they_need import jobs
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "arm_check.py")
-GUARD = os.path.join(ROOT, "hooks", "review-history-guard.py")
+GUARD = os.path.join(ROOT, "hooks", "implementer-notice.py")
 
 
 def module():
@@ -198,9 +198,9 @@ def test_the_classification_names_nothing_the_grammar_does_not_have():
 
 
 def run_tests_floor():
-    """`FLOOR` from `.github/scripts/run_tests.py`, the one place the
-    supported floor is held."""
-    path = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
+    """`FLOOR` from `hooks/launch.py`, the one place the supported floor is
+    held, and the number `.github/scripts/run_tests.py` builds against."""
+    path = os.path.join(ROOT, "hooks", "launch.py")
     spec = importlib.util.spec_from_file_location("specseal_floor_of_arm_check", path)
     loaded = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loaded)
@@ -617,38 +617,14 @@ def test_an_interpolation_is_counted_exactly_as_an_f_string_field():
 # --- the real module ------------------------------------------------------
 
 
-def test_the_guards_arms_match_the_count_taken_by_hand():
-    """The measured expectation this walk was built against (#262, #210).
-
-    31 arms inside functions, split exactly as the hand count split them —
-    and one more at module level, which #262's per-function table had no row
-    for. The ticket's own table says 33, differing only in `main` (19); the
-    file changed twice after that measurement (`341be0b`, `1dedd1e`) and the
-    ticket is left as written, because correcting a shipped measurement
-    hides the argument the ticket makes.
-
-    This case is the one that would catch the walk and the rule parting
-    company. It is expected to move when the module does — the repair is to
-    re-derive the split and change these numbers, never to widen the walk
-    until they fit."""
-    found = ARM.arms_of_file(GUARD)
-    counted = ARM.counts(found)
-    assert counted == {
-        "reader": 5,
-        "is_closed": 4,
-        "gh_segments": 5,
-        "main": 17,
-        ARM.MODULE_SCOPE: 1,
-    }
-    assert sum(n for s, n in counted.items() if s != ARM.MODULE_SCOPE) == 31
-
-
-def test_every_arm_of_the_guard_carries_a_source_segment():
+def test_every_arm_of_a_real_hook_carries_a_source_segment():
     """An arm whose text could not be read is an arm nothing can mutate, and
-    `mutate()` refuses it rather than reporting it unwatched. On this module
-    that refusal must never fire — if it does, the report's denominator has
-    quietly shrunk."""
-    for arm in ARM.arms_of_file(GUARD):
+    `mutate()` refuses it rather than reporting it unwatched. On a hook this
+    repository ships that refusal must never fire — if it does, the report's
+    denominator has quietly shrunk."""
+    found = ARM.arms_of_file(GUARD)
+    assert found, "the hook has no arms to read"
+    for arm in found:
         assert arm.source, f"{arm.where}: no source segment"
 
 
@@ -882,7 +858,7 @@ def test_the_report_names_the_scope_the_shape_and_the_line_of_a_survivor():
     )
     lines = []
     ARM._report(
-        "hooks/review-history-guard.py",
+        "hooks/a.py",
         [ARM.Verdict(arm, {"invert": False, "remove": False}, {})],
         [],
         {"gh_segments": 1},
@@ -1364,6 +1340,34 @@ def test_a_separator_the_tokenizer_ignores_does_not_move_a_spliced_arm(label, so
     for arm in (first, second):
         ast.parse(ARM.mutate(source, arm))
         ast.parse(ARM.mutate(source, arm, "remove"))
+
+
+# --- the command line is split by the platform's rule ---------------------
+
+
+def test_a_windows_command_line_keeps_the_backslashes_of_its_paths():
+    """The `--tests` command line is split by the platform's rule for a
+    backslash. On Windows it is the path separator and stays, so an
+    interpreter's path reaches the process whole; PR #939's `windows-latest`
+    leg started `C:hostedtoolcache…python.exe` and found nothing. On POSIX it
+    escapes, as `shlex.split` reads it."""
+    line = r'C:\py\python.exe -c "raise SystemExit(1)" a\ b #c'
+    assert ARM.command_words(line, windows=True) == [
+        r"C:\py\python.exe",
+        "-c",
+        "raise SystemExit(1)",
+        "a\\",
+        "b",
+        "#c",
+    ]
+    assert ARM.command_words(line, windows=False) == [
+        "C:pypython.exe",
+        "-c",
+        "raise SystemExit(1)",
+        "a b",
+        "#c",
+    ]
+    assert ARM.command_words(line) == ARM.command_words(line, windows=os.name == "nt")
 
 
 # --- the command that decides the verdict can hang or fail to start -------

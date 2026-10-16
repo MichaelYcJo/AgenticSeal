@@ -2,7 +2,7 @@
 name: implement
 description: |
   Spec-driven implementation methodology: document layout (docs/ + seal/), policy-first
-  judgment, evidence feedback, and review incorporation.
+  judgment, the test-first cadence, and review incorporation.
   Use when: implementing a feature, starting a ticket — including deciding how to
   start one, incorporating review feedback, or when a repo needs its document
   layout bootstrapped.
@@ -14,8 +14,8 @@ description: |
 
 # implement — spec-driven implementation
 
-Methodology for implementing against written specs, leaving durable evidence,
-and closing the loop with review. Loaded by the `smith` agent; usable directly.
+Methodology for implementing against written specs, leaving a case behind
+each rule, and closing the loop with review. Loaded by the `smith` agent; usable directly.
 
 **`skills/agent-contract/SKILL.md` binds this session too, and only if you
 load it.** A session driving the work directly reads this skill and never
@@ -60,8 +60,7 @@ or a pull request. The root is resolved the way every path in this skill is.
 
 It governs the **prose** in `spec.md`, `plan.md`, `overview.md`,
 `questions.md`, `changelog.md`, the cell contents of `rounds/round-N.md` and
-`phases/phase-N.md` and the text beneath their tables, and the claim and
-grounds of a ledger row.
+`phases/phase-N.md` and the text beneath their tables.
 
 **Every way of not naming one lands on English** — no file, no such row, an
 empty value, a file that cannot be read. A config nobody can read must not
@@ -77,8 +76,7 @@ rather than by a person: every field name, section heading and vocabulary
 word the checkers match, listed in `templates/config.md` under *What no row
 governs* — that list is derived from the checkers' own constants, so it
 cannot drift from them; `<!-- specs/<work-item-id> -->` and the other
-markers; a `drained` line and a ✅; a ledger anchor's `path#unit@hash`; and
-all code — identifiers, comments, docstrings, file names, test function
+markers; a `drained` line and a ✅; and all code — identifiers, comments, docstrings, file names, test function
 names. A translated field name is not a translation, it is a checker that
 stops reading.
 
@@ -91,7 +89,7 @@ laid out by **lifetime**, not by who wrote it:
 |---|---|---|---|
 | `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them. A work item does not create one: the documentation convention is the project's. The one writer that does is `settle`, which folds a released work item's spec into a `docs/` policy and then retires the directory — and a session running it is following `skills/settle/SKILL.md`, not this one |
 | `seal/specs/<work-item-id>/` | One work item | Its role ends when this work ships (SDD, overview, round records) | The contract this work executes against. A human approves `plan.md`, which is why this is a repository document and not tool state |
-| `seal/`, everything above `specs/` | Permanent | Everything this plugin maintains | Written and read by machines: the ledger, the migration config, the follow-up list |
+| `seal/`, everything above `specs/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
 
 A `specs/` the project kept before the plugin is neither root: it is a
 **reference root**, as `templates/config.md` §*Reference specs* says — history
@@ -116,18 +114,8 @@ read. What sits directly under it is permanent; what sits under
 ```
 seal/
 ├── README.md         the export rules, for sessions that never load this skill
-├── ledger.md         spec clause ↔ code coordinates, as they stood before
-│                     work items wrote fragments
-├── ledger/
-│   └── <work-item-id>.md   one work item's rows, no header — folded by the
-│                           release that ships the work item
-├── releases/
-│   └── <X.Y.Z>.md    one release's rows, where this repository's fold
-│                     writes them
 ├── parity.md         migration config, only when declared
 ├── pact.md           the pact, only in the repository that holds one
-├── pact-changes/     a signer's pact changes, a file per work item. Permanent
-├── pact-reviews/     the pact's repository's pact reviews, a file per work item. Permanent
 ├── follow-up.md      schedulable items in a repository with no tracker
 └── specs/<work-item-id>/
     ├── routing.md    the routing answer, written before the first edit —
@@ -136,17 +124,14 @@ seal/
     ├── rounds/
     │   └── round-N.md    one review round — closed at merge, removed by
     │                     `settle --retire-process` after its release
-    └── tests-todo.md · evidence-todo.md
+    ├── broad-gate.md     the one broad run, written by `broad-gate --record`
+    └── guarantee.md      the sealer's verdict, from `templates/sdd-guarantee.md`
 ```
 
 The review round records live beside the work item they are about, with the
-routing declaration and the rest of the SDD set. They used to sit under the
-plugin's own directory, keyed by a pull request number that does not exist
-while the rounds that would fill it are running.
-No correct session could create that directory, and none ever did
-(`docs/review-handoff-protocol.md` carries the whole reasoning). A work
-item's directory exists from its first commit, because routing is written
-into it before the first edit.
+routing declaration and the rest of the SDD set (`docs/the-review-record.md`).
+A work item's directory exists from its first commit, because routing is
+written into it before the first edit.
 
 **Nothing else follows them, because there is nothing else.** A round record
 carries the SHA it reviewed, so it never asserts a present state and can live
@@ -185,8 +170,8 @@ it or dropping it.
 - Verify clause numbers a ticket cites. Tickets are written before (or drift
   from) the documents they cite; a missing clause means writing it is part of
   this work, with a freshly allocated number.
-- A spawn prompt's facts arrive under `docs/review-handoff-protocol.md`'s
-  handoff before round 1: coordinates rather than prose, each fact labelled
+- A spawn prompt's facts arrive under `docs/the-review-record.md`'s
+  handoff: coordinates rather than prose, each fact labelled
   executed, read, or unverified. A fact with no coordinate and no label is an
   assertion nobody has opened — open it before building on it, however
   confident the prompt that carried it. An aggregate (a count, a total) is
@@ -257,48 +242,20 @@ answer change what you build *now*? If it would not, raising it spends a
 person's attention on something that was never blocking, and the session that
 waits for the reply spends more.
 
-### 2. Implement, and feed evidence back where you verified it
+### 2. Implement test-first, and let each rule name its test
 
-When you open code or run something to settle a judgment, record the outcome on
-the row it belongs to and put **the date you read it** in the Checked column.
-Only rows in this work's scope — full-ledger audits verify what is already
-correct and return nothing.
+**Each scenario is built the same way: its case first, seen red against the
+tree as it stands, then the code, then the case green.** A rule the work
+states or changes ends with `Enforced by:` naming that case — in its home
+under `docs/`, or in the *Verifiable how* cell of the spec's scenario table —
+so the case is the record that the rule holds, and CI running the suite is
+the check. A rule no case can hold says `Enforced by: nothing — <why>`, and
+the why is what a reviewer reads it by.
 
-A coordinate is `path#major@hash` — the enclosing unit, a function or class for
-code and a heading path for a document — with an optional `>minor` narrowing it
-to the statement a claim is about. It carries no line number and no commit, so
-nothing in it goes stale for a reason unrelated to the claim. Cite the unit and
-leave the minor level off unless whole-unit hashing has been measured to drift
-rows on unrelated edits. Re-verifying is re-reading and running
-`evidence-check --reverify --checked <YYYY-MM-DD>`, which dates that reading in
-every row whose hash it moves. The date says each of those rows was read, so
-read every row citing a drifted coordinate first, or narrow the write with
-`--ledger`.
-
-**Rows a work item adds go in its own fragment**, `seal/ledger/<work-item-id>.md`,
-not appended to `seal/ledger.md`. Two branches cannot collide there, because
-no two work items share an id, and the checker reads the whole
-`seal/ledger/*.md` glob. The fragment lives until the release that ships
-the work item, whose preparation step folds it — in this plugin's own
-repository into `seal/releases/<X.Y.Z>.md` — and removes it; a row is a
-content anchor, so the move changes no row's status, and the checker reads
-`seal/releases/*.md` beside the other two. Where `seal/config.md` declares
-`Ledger frozen from`, a released row is never re-stamped in place: its
-re-read is a citing row in the work item's fragment, written by
-`evidence-check --reverify --into seal/ledger/<work-item-id>.md --checked
-<YYYY-MM-DD>` (`docs/the-evidence-ledger.md` §*A released row is read again
-in the branch's fragment*).
-
-**Draft as you go, write in one pass.** The recording is cheap and the round
-trip is not: one session made twenty-six separate edits to its ledger and
-policy documents, seventy-eight seconds of command time that cost about three
-and a half minutes of waiting. Keep the rows as you settle them and write
-them to the file when the work item closes, or at a phase boundary — not one
-edit per row.
-
-This record is the input for the reviewer and the next ticket. Unrecorded
-verification gets redone by every session that follows — the single largest
-avoidable cost in multi-session work.
+This is the input for the reviewer and the next ticket: a case somebody can
+run rather than a reading somebody did. A judgment settled by opening code
+and leaving no case behind gets redone by every session that follows — the
+single largest avoidable cost in multi-session work.
 
 **Commit at the smallest step that stands on its own.** What an intermediate
 commit costs is a property of the repository rather than a fact about
@@ -329,22 +286,6 @@ worktree guard. That window has a price wherever this plugin is installed: the
 guard asks whether the changes should ride along to the other branch, and
 *commit them here first* — the answer that is usually right — is not one of
 the two buttons. Nothing had said how early early is.
-
-The two cadences in this section govern different acts. *Draft as you go*
-batches the **write** into the ledger file, so rows land in one edit at a
-phase boundary instead of one edit each; this rule is about the **commit**. A
-phase boundary is where they meet: write the rows you have been keeping, and
-let that write ride the commit that closes the phase. Pairing each row with
-the one slice it describes is not on offer, because those slices are already
-several commits behind and buying the pairing costs one write per row, which
-the rule above refuses. What must not happen is a run of commits reaching the
-reviewer with the ledger still empty, because by the paragraph above the
-reviewer sees only what was committed.
-
-**Commit freely; a ledger row names no commit for a merge to orphan.** This
-used to be the one place the cadence had to be steered around, and it is not a
-place any more: a row records an anchor and a hash of what that anchor holds,
-so there is no commit in it that a squash or a rebase could invalidate.
 
 **An edit must be able to fail.** Prefer the `Edit` tool: a pattern that does
 not match is an error you see immediately. When the environment routes edits
@@ -423,7 +364,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`skills/code-review/orchestration.md` §*A fix of a fix twice sends the work item back to its framer* owns that rule) | before implementing |
+| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` §*The run* owns that rule) | before implementing |
 | `plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
 | `questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `overview.md` | `templates/sdd-overview.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
@@ -466,7 +407,7 @@ commit that closed the phase.
 
 The objection that sent task lists elsewhere is real and it is about form
 rather than location: mutable progress inside the contract asserts a state
-that is not true, which is the failure this plugin's ledger exists to prevent.
+that is not true, which is the failure a stale record always is.
 A commit is not mutable progress. It asserts a **past** state that someone can
 open — the same trick that lets a round record sit beside the contract — so a
 tick and the word `done` are refused where a hash is not. Both of those can be
@@ -534,20 +475,9 @@ and findings from execution are labeled separately.
 
 ### 5. Incorporate review — read the round records first
 
-A session fixing review feedback starts at `seal/specs/<work-item-id>/`,
-**not** at the inline comments. Two of its files are owned by the implementer:
-
-| File | Written by | Acted on by |
-|---|---|---|
-| `round-N.md` | `round_record.py new`, run by the review orchestrator; `close` applies the fix table | next review round |
-| `tests-todo.md` | review orchestrator | **implementer** — plant each test in the file the row names |
-| `evidence-todo.md` | review orchestrator | **implementer** — merge each fact into `seal/ledger/<work-item-id>.md` |
-
-Inline comments may not contain these lists at all. Fixing only the comments
-ships the code change and silently drops the tests and the evidence.
-
-The generator that row names is `skills/code-review/scripts/round_record.py`,
-and the review orchestrator types it as `round-record`.
+A session fixing review feedback starts at `seal/specs/<work-item-id>/rounds/`,
+**not** at the inline comments: the warden writes `round-N.md`, and the next
+review round reads it (`docs/the-review-record.md` §*The round record*).
 
 A finding is a claim too, and it arrives from someone who did not write the
 code. Open the coordinate and judge it yourself: fix what holds, and where it
@@ -559,34 +489,12 @@ handoff of judgment.
 Probes already run by a previous round (listed in `round-N.md`) are not
 rebuilt — only re-checked for whether the finding is now fixed.
 
-**A fix pass hands over a fix table and writes no phase record.** The table
-sits under `## Fixes` as `| # | Verdict | Commit or grounds |`, one row per
-OPEN finding of the round it answers: `fixed` with the commit, `answered` with
-the grounds, `deferred <home>` with the issue or file it went to — a finding
-the reviewer closed in the report takes no row, and `close` refuses one. A ⬜
-note takes none either: `close` leaves it open and refuses a row for it, and
-the run's notes close once at its end through `round-record notes`
-(`skills/code-review/orchestration.md` §*A note closes once, at the run's
-end* owns that rule).
-**The Verdict cell holds the word alone**, and everything after it goes in
-`Commit or grounds`; only `deferred` carries its own suffix, because the home
-is what makes a deferral readable. Two things that are not `fixed` although
-they feel like it: a correction to a record, and a repair made outside the
-tree by editing a ticket or a pull request body. Neither produces a commit in
-the fix range, which is what `fixed` asserts, so both close `answered` with
-where the repair is in the grounds (`docs/review-chain-spec.md` §*The last
-round verifies*). The pass
-writes no `phases/phase-N.md` and no `plan.md` row — `round_record.py close`
-applies the table to `rounds/round-N.md` and measures the fix surface from
-the range of fix commits, so the round record is the pass's record. The
-build's phases keep theirs. Nor does a fix pass add mechanism — a rule, a
-checker, a template section, a walk — and a finding closable only by one
-takes the filing ladder rather than an issue by default, its verdict
-`deferred <home>` (`docs/review-chain-spec.md` §*Where a leftover goes — the
-ladder, and why a new issue is not the default*);
-`skills/code-review/orchestration.md` §*A fix
-pass adds the unit that pins it, and that unit ships unreviewed* owns that
-rule.
+**A fix pass rewrites the `verdict:` line and writes the `answer:` line of
+each open finding in `rounds/round-N.md`, and writes no phase record** —
+`docs/the-review-record.md` §*The round record* names the three closing
+verdicts. A `fixed` commit must touch a path the finding's `location:`
+names; where the fix went somewhere else, the pass appends that coordinate
+to the line and says so in `answer:`. The build's phases keep theirs.
 
 A fix that changes what the work item ships brings the work item's
 `changelog.md` along, because the release gathers that fragment as it stands;
@@ -595,7 +503,7 @@ fragment along* owns that rule.
 
 ### 6. Close before merge — drain the rows, keep the records
 
-Before the PR merges, every unresolved (⬜) row must move out:
+Before the PR merges, every unresolved row must move out:
 
 | Remaining item | Destination |
 |---|---|
@@ -603,7 +511,7 @@ Before the PR merges, every unresolved (⬜) row must move out:
 | Waiting on prerequisite work | `seal/follow-up.md` |
 | Needs a decision | The policy document's open-questions section |
 
-Then say so in the round record: what went where, or `nothing to drain`. The
+Each finding that moves out reads `deferred <home>` in its round record. The
 records themselves stay through the merge. `settle --retire-process` removes
 them after the release, when no round is left to inherit from them. The
 directory used to be deleted here, and deletion was buying
@@ -612,10 +520,6 @@ more than it bought: rows left for durable homes because the directory was
 about to disappear, and those homes are outside what the next reviewer reads.
 A deferral that leaves the round records leaves the inheritance range with
 it, and comes back as a finding next round.
-
-A finding deferred mid-change is a row in `round-N.md`'s Deferred field as
-well, naming where it went. That field is the one-line version of this table,
-in the file the next round already opens.
 
 ## Proof block
 
@@ -626,7 +530,7 @@ Never invent them; write `none — <reason>` for anything not actually read.
 ```
 📋 implement applied
 · spec:     <policy/SDD files and clauses actually read>
-· evidence: <ledger rows added or updated, with the file they went in>
+· tests:    <the cases this work added or changed, and how each was seen red>
 · verified: <what was executed vs. what was only read>
 ```
 

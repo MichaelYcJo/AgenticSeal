@@ -21,16 +21,11 @@ from conftest import (
     decision_of,
     declare_routing,
     fired,
-    load_hook_module,
     local_home,
-    posix_id,
     run_hook,
 )
 
 ITEM = "1788000000-a-work-item"
-SERVICE = "def handler(x):\n    return x + 1\n\n\ndef other():\n    return 0\n"
-BROKEN_ROW = "# rows\n\n| A | `src/service.py#gone@00000000` |\n"
-OLD_ROW = "# rows\n\n| A | `src/service.py:1-2` | 2026-08-31 |\n"
 
 
 def bash(repo, command="git commit -m x", session="s1"):
@@ -90,10 +85,9 @@ def write(path, text):
 @pytest.fixture
 def local(repo):
     """The `repo` fixture in local mode: `seal/` under `.git/` and nowhere
-    else, with a source file for the ledger rows to cite."""
+    else."""
     home = local_home(repo)
     assert not (repo / "seal").exists()
-    write(repo / "src" / "service.py", SERVICE)
     return repo, home
 
 
@@ -168,192 +162,13 @@ def test_the_implementer_notice_names_the_local_path(local):
     assert os.path.join(".git", "seal", "specs", ITEM, "routing.md") in out, out
 
 
-# --- the evidence advisor: globs the ledger under the resolved root ---------
-
-
-@pytest.mark.parametrize(
-    "at",
-    [
-        "ledger.md",
-        os.path.join("ledger", "f.md"),
-        os.path.join("releases", "0.4.0.md"),
-    ],
-    ids=posix_id,
-)
-def test_the_evidence_advisor_reports_a_broken_row_from_the_local_ledger(local, at):
-    """S6. The advisory globbed `seal/ledger.md` and `seal/ledger/*.md` under
-    the repository root, so a local-mode ledger was never read and a commit
-    that broke an anchor was told nothing. The third address is #547's:
-    the fold writes each release's rows to `releases/<X.Y.Z>.md`."""
-    repo, home = local
-    write(home / at, BROKEN_ROW)
-    out = run_hook("evidence-advisor.py", bash(repo))
-    assert "BROKEN" in out, out
-    assert "src/service.py#gone" in out, out
-
-
-def test_the_evidence_advisor_reads_the_local_ledger_from_a_linked_worktree(
-    repo, tmp_path
-):
-    home = local_home(repo)
-    other = linked_worktree(repo, tmp_path)
-    write(other / "src" / "service.py", SERVICE)
-    write(home / "ledger.md", BROKEN_ROW)
-    out = run_hook("evidence-advisor.py", bash(other))
-    assert "BROKEN" in out and "src/service.py#gone" in out, out
-
-
-def test_the_evidence_advisor_still_reads_the_pre_0_10_address_under_the_tree(
-    local,
-):
-    """`docs/**/_evidence.md` stays under the repository root: it is a
-    committed file at an old address, not part of the root that moved."""
-    repo, _ = local
-    write(repo / "docs" / "policies" / "demo" / "_evidence.md", BROKEN_ROW)
-    out = run_hook("evidence-advisor.py", bash(repo))
-    assert "BROKEN" in out and "src/service.py#gone" in out, out
-
-
-# --- the ledger migration hook: same globs, same fix -------------------------
-
-
-@pytest.fixture
-def migrate(tmp_path):
-    mod = load_hook_module("ledger-migrate.py", "ledger_migrate_local")
-    mod.STATE_DIR = str(tmp_path / "state")
-    mod.MARKER = os.path.join(mod.STATE_DIR, "ledger-migrated")
-    return mod
-
-
-def session_start(hook, cwd):
-    import io
-    import sys
-
-    out = io.StringIO()
-    stdin, stdout = sys.stdin, sys.stdout
-    sys.stdin = io.StringIO(json.dumps({"cwd": str(cwd)}))
-    sys.stdout = out
-    try:
-        hook.main()
-    finally:
-        sys.stdin, sys.stdout = stdin, stdout
-    return out.getvalue()
-
-
-def test_the_ledger_migration_hook_migrates_a_pre_anchor_ledger_under_the_local_root(
-    local, migrate
-):
-    repo, home = local
-    ledger = home / "ledger" / "f.md"
-    write(ledger, OLD_ROW)
-    out = session_start(migrate, repo)
-    assert "ledger migrated to anchor format" in out, out
-    text = ledger.read_text(encoding="utf-8")
-    assert "src/service.py#handler@" in text, text
-    assert "src/service.py:1-2" not in text, text
-
-
-def test_the_ledger_migration_hook_is_not_refused_from_a_linked_worktree(
-    repo, tmp_path, migrate
-):
-    """`dirty()` asked `git status` about every ledger path. A path under the
-    common directory of ANOTHER tree is outside this worktree's repository,
-    git answers `fatal: … is outside repository`, and a non-zero exit read as
-    work in progress — so the migration was refused at every session start,
-    with the wrong reason printed. Nothing under the git directory can be
-    uncommitted work; those paths are not asked about."""
-    home = local_home(repo)
-    other = linked_worktree(repo, tmp_path)
-    write(other / "src" / "service.py", SERVICE)
-    ledger = home / "ledger" / "f.md"
-    write(ledger, OLD_ROW)
-    out = session_start(migrate, other)
-    assert "uncommitted" not in out, out
-    assert "ledger migrated to anchor format" in out, out
-    assert "src/service.py#handler@" in ledger.read_text(encoding="utf-8")
-
-
-def test_the_ledger_migration_hook_survives_a_ledger_with_no_relative_spelling(
-    local, migrate, monkeypatch
-):
-    r"""Round 1 of #80, 🔴 2. `dirty()` asks `os.path.relpath` for every ledger
-    path before it decides which ones to ask git about, and on Windows a root
-    on another drive than the tree makes `ntpath.relpath` raise (`ValueError:
-    path is on mount 'D:', start on mount 'C:'`). The exception left `main()`
-    at session start. A path with no relative spelling is outside the tree by
-    definition, which is the case `dirty()` already skips — so it is skipped,
-    and the migration proceeds.
-
-    Induced for every path rather than found on two drives, so the case runs
-    on every leg: with nothing left to ask git about, `dirty()` is False."""
-    repo, home = local
-    ledger = home / "ledger" / "f.md"
-    write(ledger, OLD_ROW)
-
-    def refuses(path, start=None):
-        raise ValueError("path is on mount 'D:', start on mount 'C:'")
-
-    monkeypatch.setattr(os.path, "relpath", refuses)
-    out = session_start(migrate, repo)
-    assert "ledger migrated to anchor format" in out, out
-    assert "src/service.py#handler@" in ledger.read_text(encoding="utf-8")
-
-
-def test_in_local_mode_the_migration_notice_does_not_promise_a_diff(local, migrate):
-    """Round 1 of #80, 🟡 5. The notice ended "review the diff and commit",
-    and the module docstring promised the old text safe in git history. Under
-    the git directory nothing is in a diff and nothing reaches history: the
-    rewritten ledger is the only copy. So in local mode the line ends by
-    naming what CAN be read — the checker's own output."""
-    repo, home = local
-    write(home / "ledger" / "f.md", OLD_ROW)
-    out = session_start(migrate, repo)
-    assert "ledger migrated to anchor format" in out, out
-    assert "no git history" in out, out
-    assert "`evidence-check .`" in out, out
-    assert "review the diff and commit" not in out, out
-
-
-def test_in_shared_mode_the_migration_notice_still_ends_with_the_diff(repo, migrate):
-    """The other half of 🟡 5: a shared root is committed, so the diff and
-    the history the old sentence promised are both there, and the line is
-    the one it always was."""
-    write(repo / "src" / "service.py", SERVICE)
-    write(repo / "seal" / "ledger" / "f.md", OLD_ROW)
-    subprocess.run(
-        ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
-    )
-    subprocess.run(
-        ["git", "-C", str(repo), "commit", "-qm", "shared root"],
-        check=True,
-        capture_output=True,
-    )
-    out = session_start(migrate, repo)
-    assert "ledger migrated to anchor format" in out, out
-    assert "review the diff and commit" in out, out
-    assert "no git history" not in out, out
-
-
-def test_a_dirty_ledger_under_the_tree_is_still_refused_in_local_mode(local, migrate):
-    """The old address under the tree keeps its boundary: an uncommitted
-    `docs/**/_evidence.md` is work in progress, whatever mode the root is in."""
-    repo, _ = local
-    write(repo / "docs" / "policies" / "demo" / "_evidence.md", OLD_ROW)
-    out = session_start(migrate, repo)
-    assert "uncommitted" in out, out
-
-
 # --- S10: the scratch marker takes local mode back too -----------------------
 
 
-def test_a_scratch_marker_under_the_common_directory_keeps_every_gate_silent(
-    local, migrate
-):
+def test_a_scratch_marker_under_the_common_directory_keeps_every_gate_silent(local):
     repo, home = local
     (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
     declare_smith(repo, home)
-    write(home / "ledger.md", BROKEN_ROW)
-    write(home / "ledger" / "f.md", OLD_ROW)
 
     assert decision_of(run_hook("commit-review-gate.py", bash(repo))) == "silent"
     assert (
@@ -371,5 +186,3 @@ def test_a_scratch_marker_under_the_common_directory_keeps_every_gate_silent(
         == "silent"
     )
     assert run_hook("implementer-notice.py", bash(repo)) == ""
-    assert run_hook("evidence-advisor.py", bash(repo)) == ""
-    assert session_start(migrate, repo) == ""

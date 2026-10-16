@@ -1,8 +1,8 @@
-"""One table walker, held to cmark-gfm over an enumerated corpus (#647, C and D).
+"""One table walker, held to cmark-gfm over an enumerated corpus (#647).
 
-`hooks/config.py#gfm_table` reads three tables out of markdown: the pact's
-`| Signer |`, a signer's record of pact changes, and the pact's record
-of pact reviews. This module holds it to GitHub's renderer, `cmarkgfm`, through
+`hooks/config.py#gfm_table` reads two tables out of markdown: the pact's
+`| Signer |` and `seal/config.md`'s `| Item | Value |`. This module holds it
+to GitHub's renderer, `cmarkgfm`, through
 `tests/gfm_table_oracle.py`, and the property is S1 of the work item's
 `spec.md`: **on every shape, the walker's cells equal cmark-gfm's, or the walker
 refuses.** No shape yields cells cmark-gfm does not render.
@@ -17,8 +17,7 @@ table's delimiter and rows, a task list item, an extended autolink); and the
 inline shapes a line can open with that read as a block start to a careless
 eye (an autolink, an scp-style autolink, `<` and a space). Each kind is put at
 every position a table has, and at each of five indentations, 0-3 spaces and a
-tab, applied to every line of the kind. Each of the three headers takes its
-own pass.
+tab, applied to every line of the kind. Each header takes its own pass.
 
 What the enumeration leaves out, and why:
 
@@ -46,8 +45,6 @@ config = load_hook_module("config.py", "config_for_the_table_walker")
 
 HEADERS = {
     "signer": ("Signer",),
-    "pact change": ("Clause", "Row", "Code", "Checked"),
-    "pact review": ("Signer", "Change", "Verdict"),
     # `seal/config.md`'s table, read by this walker since #871 through
     # `hooks/config.py#config_table`, which hands it this tuple and nothing
     # else (`test_the_config_pass_is_the_config_readers_header`).
@@ -590,14 +587,12 @@ def test_the_corpus_is_counted():
     sizes = {which: len(corpus(header)) for which, header in HEADERS.items()}
     assert sizes == {
         "signer": 5454,
-        "pact change": 5455,
-        "pact review": 5455,
         "config": 5455,
     }, sizes
 
 
 def test_the_config_pass_is_the_config_readers_header():
-    """The fourth pass is the config table's only where the header it walks
+    """The config pass is the config table's only where the header it walks
     is the one `hooks/config.py#config_table` hands the walker (#871): a
     pass over a header no reader uses would hold nothing. Seen red before
     `CONFIG_TABLE` existed, as an `AttributeError`."""
@@ -673,12 +668,9 @@ def test_a_pipe_after_an_even_run_of_backslashes_is_refused(cell):
     after an even run of backslashes does not split its cell; `CELL` read
     the backslashes in pairs and split there, and a three-cell row read as
     four (round 1, white 6). Such a row is refused rather than guessed."""
-    header = HEADERS["pact change"]
-    text = (
-        "| Clause | Row | Code | Checked |\n|---|---|---|---|\n"
-        f"| {cell} | c | 2026-10-04 |\n"
-    )
-    assert oracle.rows_under(text, header) != [("a \\", "b", "c", "2026-10-04")]
+    header = HEADERS["config"]
+    text = f"| Item | Value |\n|---|---|\n| {cell} |\n"
+    assert oracle.rows_under(text, header) != [("a \\", "b")]
     rows, refusals = config.gfm_table(text, header)
     assert rows == [] and refusals, (rows, refusals)
 

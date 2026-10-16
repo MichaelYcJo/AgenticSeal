@@ -3,7 +3,7 @@
 Two temporary repositories side by side: the pact's repository, whose
 `seal/pact.md` carries one clause committed as v1 and then v2 on `main`, with
 v3 on a side branch HEAD does not hold; and a signer, which names the pact
-in its `seal/config.md` and cites the clause from a ledger fragment. `HOME`
+in its `seal/config.md` and cites the clause from a work item's `spec.md`. `HOME`
 is a temporary directory, so the machine-local map is whatever a case writes
 there. S3 and S8-S12 of the work item's `spec.md`.
 """
@@ -17,7 +17,7 @@ import sys
 import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SCRIPT = os.path.join(ROOT, "skills", "evidence-check", "scripts", "pact_check.py")
+SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py")
 WRAPPER = os.path.join(ROOT, "bin", "pact-check")
 
 PACT_URL = "git@example.com:org/orders-api.git"
@@ -103,11 +103,11 @@ def config(*rows):
     )
 
 
-def ledger_row(anchor):
-    return (
-        f"| S1 · the field list | `{anchor}`, `src/a.py#f@00000000` | read | "
-        "2026-10-03 | |\n"
-    )
+SPEC = "seal/specs/1790000000-x/spec.md"
+
+
+def grounding_row(anchor):
+    return f"| `{anchor}` | the field list, built against it |\n"
 
 
 @pytest.fixture
@@ -118,8 +118,7 @@ def world(tmp_path):
 
 
 def make_world(tmp_path):
-    """`world`'s body, which `tests/test_a_pact_review_takes_a_pact_change.py`
-    builds its own fixture from."""
+    """`world`'s body."""
     work = tmp_path / "work"
     home = tmp_path / "home"
     home.mkdir()
@@ -144,9 +143,9 @@ def make_world(tmp_path):
     return {"api": api, "web": web, "home": home, "tmp": tmp_path}
 
 
-def cite(world, digest, locator=LOCATOR, where="seal/ledger/1790000000-x.md"):
+def cite(world, digest, locator=LOCATOR, where=SPEC):
     anchor = f"pact:orders-api/{locator}@{digest}"
-    write(world["web"], where, ledger_row(anchor))
+    write(world["web"], where, grounding_row(anchor))
     return anchor
 
 
@@ -167,21 +166,19 @@ def test_s12_a_signer_citing_the_current_clause_is_clean(world):
     """S12. Every listed signer resolves, names this repository, and
     cites the current hash: exit 0 and the summary line."""
     cite(world, clause(V2))
-    write(
-        world["web"],
-        "seal/specs/1790000000-x/spec.md",
-        f"| `pact:orders-api/{LOCATOR}@{clause(V2)}` | built against it |\n",
-    )
+    cite(world, clause(V2), where="seal/specs/1790000001-y/spec.md")
     code, out = run(world)
     assert code == 0, out
     assert (
-        f"READ {SIGNER_URL} {posix(world['web'])} — `Pact notify`: when the pact is "
-        "touched; 2 pact anchors naming `orders-api`"
+        f"READ {SIGNER_URL} {posix(world['web'])} — 2 pact anchors naming `orders-api`"
     ) in out, out
     assert (
         "pact-check: the pact `orders-api` — 1 of 1 signer read · 2 ok · 0 "
         "superseded · 0 not taken · 0 unmatched · 0 broken"
     ) in out, out
+    # #944: a signer's records of pact changes are not read, so neither the
+    # `READ` line nor the summary counts them.
+    assert "pact change" not in out, out
 
 
 # --- the header 0.18.x wrote (#822) ------------------------------------------
@@ -208,8 +205,7 @@ def test_s1_a_pact_headed_signer_reads_with_no_word_of_a_rename(world):
     code, out = run(world)
     assert code == 0, out
     assert (
-        f"READ {SIGNER_URL} {posix(world['web'])} — `Pact notify`: when the pact "
-        "is touched; 1 pact anchor naming `orders-api`"
+        f"READ {SIGNER_URL} {posix(world['web'])} — 1 pact anchor naming `orders-api`"
     ) in out, out
     assert "heads its table" not in out and "Signatory" not in out, out
 
@@ -310,7 +306,7 @@ def test_s8_a_hash_from_heads_own_history_is_superseded(world):
     code, out = run(world)
     assert code == 1, out
     assert (
-        f"SUPERSEDED {SIGNER_URL} seal/ledger/1790000000-x.md:1 {anchor} — the "
+        f"SUPERSEDED {SIGNER_URL} seal/specs/1790000000-x/spec.md:1 {anchor} — the "
         "signer was built against a superseded clause"
     ) in out, out
     assert f"it reads @{clause(V2)} now" in out, out
@@ -322,7 +318,7 @@ def test_s9_a_hash_only_another_ref_holds_is_not_taken_and_names_it(world):
     code, out = run(world)
     assert code == 1, out
     assert (
-        f"NOT TAKEN {SIGNER_URL} seal/ledger/1790000000-x.md:1 {anchor} — the "
+        f"NOT TAKEN {SIGNER_URL} seal/specs/1790000000-x/spec.md:1 {anchor} — the "
         "pact has not taken the signer's recorded change: this hash is the "
         "clause on side"
     ) in out, out
@@ -388,56 +384,24 @@ def test_s11_a_relationship_recorded_on_one_side_is_refused(world):
 
 
 @pytest.mark.parametrize(
-    "notify, refusal",
+    "rows",
     [
-        (
-            [("Pact notify", "sometimes")],
-            "`Pact notify | sometimes` is not one of `always`, "
-            "`when the pact is touched`, `never`",
-        ),
-        (
-            [("Pact notify", "never"), ("Pact notify", "always")],
-            "`Pact notify` appears 2 times — one value",
-        ),
+        [("Pact notify", "sometimes")],
+        [("Pact notify", "never"), ("Pact notify", "always")],
     ],
-    ids=["outside the vocabulary", "written twice"],
+    ids=["a value outside the old vocabulary", "written twice"],
 )
-def test_s3_a_notify_value_outside_the_vocabulary_is_exit_2(world, notify, refusal):
-    """S3, the `pact-check` half: the reader's refusal, read strictly. A row
-    written twice has no value either, and the `READ` line says so rather
-    than printing its first row (round 2 of PR #756, white 3)."""
-    write(
-        world["web"],
-        "seal/config.md",
-        config(("Pact", PACT_URL), *notify),
-    )
+def test_a_pact_notify_row_an_earlier_release_read_is_ignored(world, rows):
+    """`templates/config.md` §*Pact*: a `Pact notify` row left in a signer's
+    table is read by nobody, so neither a value outside the vocabulary the
+    row once had nor the row written twice is refused, and the `READ` line
+    names no notify value. Seen red against the reader that still refused
+    the row: exit 2."""
+    write(world["web"], "seal/config.md", config(("Pact", PACT_URL), *rows))
     cite(world, clause(V2))
     code, out = run(world)
-    assert code == 2, out
-    assert f"REFUSED {SIGNER_URL} seal/config.md — {refusal}" in out, out
-    assert "— `Pact notify`: will not parse;" in out, out
-
-
-def test_s7_a_notify_row_below_the_signers_table_is_exit_2(world):
-    """S7 of #759. A `Pact notify` row under a blank line that ended the
-    signer's table was read as the default and the run was clean. It
-    names a pact and is not a pact row in the one spelling read, so it is
-    refused, naming the line, and the notify reads as no value."""
-    write(
-        world["web"],
-        "seal/config.md",
-        config(("Pact", PACT_URL)) + "\n| Pact notify | always |\n",
-    )
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        f"REFUSED {SIGNER_URL} seal/config.md — `| Pact notify | always |` "
-        "names a pact and is not a `Pact` or `Pact notify` row in the one "
-        "spelling read: write it as `| Pact | … |` or `| Pact notify | … |` "
-        "inside the `| Item | Value |` table, or take it out of this file"
-    ) in out, out
-    assert "— `Pact notify`: will not parse;" in out, out
+    assert code == 0, out
+    assert "REFUSED" not in out and "`Pact notify`" not in out, out
 
 
 def test_a_signer_config_the_walker_refuses_is_exit_2(world):
@@ -475,9 +439,9 @@ def test_an_anchor_naming_another_pact_is_not_read(world):
     name is graded here."""
     write(
         world["web"],
-        "seal/ledger/1790000000-x.md",
-        ledger_row(f"pact:billing/{LOCATOR}@deadbeef")
-        + ledger_row(f"pact:orders-api/{LOCATOR}@{clause(V2)}"),
+        "seal/specs/1790000000-x/spec.md",
+        grounding_row(f"pact:billing/{LOCATOR}@deadbeef")
+        + grounding_row(f"pact:orders-api/{LOCATOR}@{clause(V2)}"),
     )
     code, out = run(world)
     assert code == 0, out
@@ -549,7 +513,7 @@ def test_a_pact_under_local_mode_has_no_history_and_says_so(world):
     anchor = cite(world, clause(V1))
     code, out = run(world)
     assert code == 1, out
-    assert f"UNMATCHED {SIGNER_URL} seal/ledger/1790000000-x.md:1 {anchor}" in out
+    assert f"UNMATCHED {SIGNER_URL} seal/specs/1790000000-x/spec.md:1 {anchor}" in out
     assert (
         "The pact sits under the git directory (local mode), so it has no "
         "history and every mismatch reads unmatched"
@@ -577,13 +541,13 @@ def test_a_map_line_naming_a_checkout_of_another_repository_is_not_trusted(world
 
 def test_an_anchor_quoted_in_a_closed_fence_is_an_example_and_not_graded(world):
     """A spec showing the anchor's shape in a code block cites nothing,
-    the rule the ledger reader keeps for a fenced row."""
+    because `coordinates.py#unquoted` reads no fenced line."""
     write(
         world["web"],
         "seal/specs/1790000000-x/spec.md",
         f"```\npact:orders-api/{LOCATOR}@deadbeef\n```\n",
     )
-    cite(world, clause(V2))
+    cite(world, clause(V2), where="seal/specs/1790000001-y/spec.md")
     code, out = run(world)
     assert code == 0, out
     assert "1 ok · 0 superseded · 0 not taken · 0 unmatched" in out, out
@@ -638,10 +602,10 @@ def test_a_signer_row_the_table_walk_cannot_read_is_exit_2(world):
 def test_a_pact_anchor_that_does_not_parse_is_refused(world, anchor):
     """A mistyped citation is read by nobody else: not the signer's own
     check, not chain-check. Here it is named and exit 2."""
-    write(world["web"], "seal/ledger/1790000000-x.md", ledger_row(anchor))
+    write(world["web"], "seal/specs/1790000000-x/spec.md", grounding_row(anchor))
     code, out = run(world)
     assert code == 2, out
-    assert (f"REFUSED {SIGNER_URL} seal/ledger/1790000000-x.md:1 — `") in out, out
+    assert (f"REFUSED {SIGNER_URL} seal/specs/1790000000-x/spec.md:1 — `") in out, out
     assert (
         'does not parse as `pact:orders-api/"<heading path>"@<hash>`, so '
         "nothing grades it"
@@ -683,11 +647,11 @@ def test_a_signer_config_that_will_not_read_is_unreadable(world, shape):
 
 
 def test_an_anchor_file_that_will_not_read_is_unreadable(world):
-    (world["web"] / "seal" / "ledger" / "1790000000-x.md").mkdir(parents=True)
+    (world["web"] / "seal" / "specs" / "1790000000-x" / "spec.md").mkdir(parents=True)
     code, out = run(world)
     assert code == 2, out
     assert (
-        f"UNREADABLE {SIGNER_URL} seal/ledger/1790000000-x.md — could not be read"
+        f"UNREADABLE {SIGNER_URL} seal/specs/1790000000-x/spec.md — could not be read"
     ) in out, out
 
 
@@ -758,8 +722,8 @@ def test_a_pact_name_inside_a_graded_anchors_heading_is_not_a_near_miss(world):
     is graded, and the spelling inside it is not a second citation."""
     write(
         world["web"],
-        "seal/ledger/1790000000-x.md",
-        ledger_row('pact:orders-api/"## On pact:orders-api/old shapes"@deadbeef'),
+        "seal/specs/1790000000-x/spec.md",
+        grounding_row('pact:orders-api/"## On pact:orders-api/old shapes"@deadbeef'),
     )
     code, out = run(world)
     assert code == 2 and "BROKEN " in out, out
@@ -839,7 +803,7 @@ def test_an_anchor_missing_its_slash_is_refused(world, shape):
     an attempt, and the shipped section says one that does not parse is exit
     2. Round 2's narrowing had made each of these a mention, read by nobody."""
     anchor = shape.format(loc=LOCATOR, h=clause(V2))
-    write(world["web"], "seal/ledger/1790000000-x.md", ledger_row(anchor))
+    write(world["web"], "seal/specs/1790000000-x/spec.md", grounding_row(anchor))
     code, out = run(world)
     assert code == 2, out
     assert "does not parse" in out, out
@@ -871,7 +835,7 @@ def test_a_mark_the_name_holds_is_not_a_second_name(world, shape):
     name pattern also takes in, so each made the token name another pact,
     read by nobody (round 1, yellow 4). Each is refused at exit 2."""
     anchor = shape.format(loc=LOCATOR, h=clause(V2))
-    write(world["web"], "seal/ledger/1790000000-x.md", ledger_row(anchor))
+    write(world["web"], "seal/specs/1790000000-x/spec.md", grounding_row(anchor))
     code, out = run(world)
     assert code == 2, out
     assert "does not parse" in out, out
@@ -883,9 +847,9 @@ def test_a_pact_whose_name_extends_this_ones_is_another_pact(world):
     neither graded nor refused here."""
     write(
         world["web"],
-        "seal/ledger/1790000000-x.md",
-        ledger_row(f"pact:orders-api-legacy-/{LOCATOR}@deadbeef")
-        + ledger_row(f"pact:orders-api/{LOCATOR}@{clause(V2)}"),
+        "seal/specs/1790000000-x/spec.md",
+        grounding_row(f"pact:orders-api-legacy-/{LOCATOR}@deadbeef")
+        + grounding_row(f"pact:orders-api/{LOCATOR}@{clause(V2)}"),
     )
     code, out = run(world)
     assert code == 0, out

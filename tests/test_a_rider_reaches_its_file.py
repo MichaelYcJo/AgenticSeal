@@ -98,30 +98,15 @@ def test_the_header_states_the_stamp_form_riders_actually_carry():
     )
 
 
-def test_the_round_template_says_why_target_sha_is_exempt():
-    """The other half of #239's answer, pinned beside the half it is about.
-
-    135 round records carry a `Target SHA`, and the same squash that orphaned
-    the rider stamps runs past every one of them. Leaving it is correct — a
-    round record names a MOMENT, `chain_check.py#reachable` already falls back
-    to `refs/remotes/pull/<N>/head` which a squash does not touch, and a whole
-    reviewed tree has no anchor to write. What is not correct is leaving that
-    unwritten, because the next person to count the rows re-opens it.
-
-    The namespace has to be the one the code scans. `PULL_HEADS` is
-    `refs/remotes/pull/`, the mirror CI fetches; a reader who runs
-    `git for-each-ref 'refs/pull/*/head'` in a working clone gets nothing and
-    reads a true ground as false (round 1, deferred).
-
-    This case lives in the rider file rather than beside the other round-record
-    cases on purpose: the ticket asked for one answer covering both mechanisms
-    so they could not drift into different rules, and a pin in two files is
-    how they would."""
-    text = read(os.path.join(ROOT, "templates", "sdd-round.md"))
-    assert "exempt from the rule" in text
-    assert "carried_by_a_pull_head" in text
-    assert "refs/remotes/pull/<N>/head" in text
-    assert "records a MOMENT" in text
+def test_the_record_says_why_target_sha_names_a_commit():
+    """The other half of #239's answer, pinned beside the half it is about: a
+    rider names content because a squash orphans the commit it was stamped
+    at, and a round record's `target:` line names a commit anyway, because it
+    records a moment and the check reads it only while the branch that holds
+    the commit is open. Leaving that unwritten re-opens it."""
+    text = " ".join(read(os.path.join(ROOT, "docs", "the-review-record.md")).split())
+    assert "`target:` names a commit, not a content anchor" in text
+    assert "records a moment" in text
 
 
 def test_the_header_stops_the_answerer_that_is_really_a_condition():
@@ -157,21 +142,19 @@ def test_the_riders_exist_where_the_rows_said_they_would():
     for rel in (
         "hooks/optin.py",
         "hooks/review-skill-gate.py",
-        "hooks/review-history-guard.py",
         "hooks/cmdline.py",
         "hooks/worktree-guard.py",
-        "templates/evidence-check.yml",
     ):
         assert "# RIDER:" in read(os.path.join(ROOT, rel)), rel
 
 
 # Where riders are allowed to live.
 #
-# This list has now been the defect twice. `templates` was missing, so the
-# rider in `templates/evidence-check.yml` was checked by nothing at all.
-# `.github` and `tests` were missing for the same reason and cost three more:
-# `.github/scripts/fold_ledger.py` and two under `tests/`, one of which had
-# never carried a stamp in any form and so was invisible to every case here.
+# This list has now been the defect twice. `templates` was missing, so a
+# rider under it was checked by nothing at all. `.github` and `tests` were
+# missing for the same reason and cost three more, two of them under
+# `tests/`, one of which had never carried a stamp in any form and so was
+# invisible to every case here.
 #
 # The line the list draws is not "code": `agents/smith.md` and
 # `skills/implement/SKILL.md` carry real riders. It is that these roots hold
@@ -213,9 +196,7 @@ def test_no_rider_stamp_names_a_commit():
     none of the branch's own commits, so a stamp naming one resolves to
     nothing for whoever reads it next — on the RELEASE branch, where the
     person who meets it is never the person who wrote it, and with no mistake
-    required anywhere. `skills/evidence-check/SKILL.md` cites this failure as
-    grounds for the ledger's content anchors; #239 is the same repair reaching
-    the mechanism that supplied the evidence."""
+    required anywhere (#239)."""
     naming = []
     for rel, _line in rider_stamps():
         for chunk in read(os.path.join(ROOT, rel)).split(riders.MARKER)[1:]:
@@ -783,9 +764,23 @@ def test_a_held_file_is_named_with_the_branch_holding_it():
         assert target[-1].strip() not in ("", "—"), f"no answerer: {target}"
 
 
+def test_a_missing_kernel_is_a_sentence_naming_where_it_ships(tmp_path, capsys):
+    """§14. A clone without the kernel gets one line naming the path it was
+    looked for at and the path the plugin ships it at, and exit 2."""
+    missing = str(tmp_path / "coordinates.py")
+    with pytest.raises(SystemExit) as stopped:
+        riders.load_checker(missing)
+    assert stopped.value.code == 2
+    assert capsys.readouterr().err == (
+        f"rider_check: cannot find the anchor resolver at {missing}. It is the "
+        "shipped `skills/verify/scripts/coordinates.py`; restore it or pass "
+        "the checker a different root\n"
+    )
+
+
 def test_the_stamp_is_built_from_the_checkers_own_pieces():
     """S6 of #867, the rider half. A stamp is a coordinate minus its path,
-    so its locator and hash are `evidence_check.py#ANCHOR_LOCATOR` and
+    so its locator and hash are `coordinates.py#ANCHOR_LOCATOR` and
     `#ANCHOR_HASH`, read at `load_checker`; this file kept a copy of the two.
     A locator form the checker gains is a stamp this reads. Seen red
     against 5623d728's `rider_check.py`, which has no `stamp_pattern`."""

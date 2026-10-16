@@ -48,9 +48,24 @@ work nobody has started.
 an agent this plugin spawns, so a framer meeting a missing routing
 declaration reports it rather than writing one, and the question is put by
 the session that spawns the work, before the first edit.
-Enforced by: tests/test_chain_check_at_the_pull_request.py::test_a_declared_framer_with_no_spec_is_refused, tests/test_chain_check_at_the_pull_request.py::test_a_spec_with_no_mark_is_refused
+Enforced by: tests/test_chain_check.py::TestFrame
 
 ## What each party writes, and when
+
+**A review round is one file the warden writes, the fix pass writes two lines
+of each finding it answers, the sealer's broad run writes `broad-gate.md`, and
+the sealer's verdict is `guarantee.md`.** `docs/the-review-record.md` holds
+what each of those files carries.
+Enforced by: tests/test_chain_check.py::TestFindings
+
+**The last party audits the others, and is independent of them.** The
+sealer's reference is the issue body and the tree, so a pull request body, a
+phase record or a review verdict that says what the tree does not is caught
+by a party that wrote none of them. It re-judges neither the frame nor the
+code's quality, which stay the framer's and the warden's, and it runs on
+Opus, the level of the agents it audits. `docs/the-review-record.md` §*The
+guarantee* holds the rule.
+Enforced by: tests/test_the_sealer_guarantees.py::TestDefinition
 
 <!-- specs/1788445862-a-phase-hands-the-next-one-a-record -->
 **A build phase leaves a record, the way a review round does.** What a phase
@@ -63,8 +78,8 @@ The two sections are chosen against what the diff cannot show. *What this
 phase was asked* is the scope the spawn actually gave, which a later reader
 cannot otherwise tell from a scope the phase invented for itself. What a work
 item removes from the tree is not a phase's section: it is named once, in the
-frame's `## Removes` (`templates/sdd-spec.md`), where the records arm reads
-each row as a claim of absence. One phase once
+frame's `## Removes` (`templates/sdd-spec.md`), which the review reads
+against the diff. One phase once
 moved a rule into an interim home and the next removed the interim home
 before the rule had reached anywhere else, and nothing recorded that it had
 gone; a removal the frame did not name is a divergence in `overview.md`.

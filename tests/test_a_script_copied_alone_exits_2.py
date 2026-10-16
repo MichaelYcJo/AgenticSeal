@@ -1,30 +1,20 @@
 """A shipped script copied without its sibling exits 2, with a sentence (#590, #610).
 
 Not every shipped script that loads a sibling is held here:
-`survivor_check.py` and `broad_gate.py` raise a refusal of their own, and
-`evidence_check.py` falls back by design. The ones held here load it in one
-of two shapes. `fold_check.py`, `settle.py`, `round_record.py`,
-`chain_check.py`, `payload_meter.py` and `correction_check.py` import it by
-file path; `seal.py`
-puts `hooks/` on `sys.path` with `sys.path.insert` and then runs a plain
-`import`, which a search for the first shape does not find. In the first
-four 1 means a finding or a refusal the command made about the tree, and in
-`payload_meter.py` it means an input that could not be measured; 2 means the
-input or the tree was unusable and nothing was read or written. A sibling
-that is not beside the command is the second kind: nothing about the tree
-has been read yet.
+`broad_gate.py` raises a refusal of its own, and `coordinates.py` is a
+library no command runs. The ones held here load it in one of two shapes.
+`fold_check.py`, `settle.py`, `chain_check.py` and `payload_meter.py`
+import it by file path; `seal.py` puts `hooks/` on `sys.path` with
+`sys.path.insert` and then runs a plain `import`, which a search for the
+first shape does not find. In the first three 1 means a finding or a refusal
+the command made about the tree, and in `payload_meter.py` it means an input
+that could not be measured; 2 means the input or the tree was unusable and
+nothing was read or written. A sibling that is not beside the command is the
+second kind: nothing about the tree has been read yet.
 
-Before #590 three of the four said 1 for it. `fold_check.py` and
-`settle.py` raised `SystemExit(<sentence>)`, and a string argument exits 1;
-`round_record.py` did not check at all, so `spec_from_file_location` handed
-back a spec for the absent path and `exec_module` died with a
-`FileNotFoundError` traceback. `chain_check.py` already said 2, because its
-`main` catches the load, and it is here so the class stays one shape.
-
-The invocation per script is the smallest one that reaches its loader
-(`seal/specs/1790297085-settle-retires-a-directory-main-has-not-seen-closed/
-questions.md` Q1): `round_record.py` loads at import, `settle.py` and
-`fold_check.py` load `hooks/optin.py` before they read the root, and
+The invocation per script is the smallest one that reaches its loader:
+`settle.py` and `fold_check.py` load `hooks/optin.py` before they read the
+root, and
 `chain_check.py` loads its readers after argument parsing, so it needs its
 one required flag.
 
@@ -38,9 +28,7 @@ transcript named need not exist.
 
 #584 brought the fence rule to readers that had kept their own, and a shipped
 one that now loads `unverified_check.py` joins the list:
-`correction_check.py` loads it at import, so the one required flag is all an
-invocation needs, and a copy that reaches no git repository is still stopped
-at the loader first. `payload_meter.py` loads it only under `--sections`,
+`payload_meter.py` loads it only under `--sections`,
 and `measure` calls that loader before it reads the root, so its second row
 reaches it in a directory with no `agents/` at all; its purpose must not be
 the transcript sibling's.
@@ -72,12 +60,6 @@ CASES = [
         ["--root", "{root}"],
         "it is what finds the repository's seal/ root",
         "fold record",
-    ),
-    (
-        "skills/code-review/scripts/round_record.py",
-        [],
-        "it is the checker this command writes records for",
-        None,
     ),
     (
         "skills/code-review/scripts/chain_check.py",
@@ -119,12 +101,6 @@ CASES = [
         ["--root", "{root}", "--sections"],
         "it is what says which lines of a skill stand inside a fenced example",
         "transcript",
-    ),
-    (
-        "skills/evidence-check/scripts/correction_check.py",
-        ["--range", "HEAD..HEAD", "--root", "{root}"],
-        "it is what says which ledger rows stand inside a fenced example",
-        None,
     ),
 ]
 

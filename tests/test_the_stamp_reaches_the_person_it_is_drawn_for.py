@@ -997,8 +997,6 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         # values file now, and it stays the person's wherever it appears.
         "Wherever the `SEALED` line names `seal-stamp --from`, quote it as it "
         "stands: that command is the person's to type, and never yours.",
-        # Round 1's ⬜ 7: the one route that writes the cell without the gate.
-        "a cell written by `close --broad-gate` is sealed with no stamp",
     ):
         assert said in section, said
 
@@ -1007,11 +1005,11 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
     """S16, `verify`'s half. The **Form** bullet said `broad-gate` prints the
     disc on success alone, which stopped being true of a sealer's run: it now
     says the gate draws on a terminal and the `Stop` hook draws elsewhere,
-    both only over a written cell."""
+    both only over a written `broad-gate.md`."""
     text = flat("skills", "verify", "SKILL.md")
     assert "`broad-gate` prints the disc on success alone" not in text
     for said in (
-        "when every check passed and the cell was written, and on no other path",
+        "when every check passed and `broad-gate.md` was written, and on no other path",
         "the `Stop` hook draws those values at the end of the turn",
     ):
         assert said in text, said
@@ -1042,9 +1040,12 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "<path>` too"
     ) in unchecked
     assert "every sealed `SEALED` line" not in text
-    # Round 1's ⬜ 6: a terminal draws only over a written cell, and the
+    # Round 1's ⬜ 6: a terminal draws only over a written record, and the
     # `gate` row names the copy that measured, since in a sealer none draws.
-    assert "the gate draws only on a terminal, and only over a written cell" in rule
+    assert (
+        "the gate draws only on a terminal, and only over a written `broad-gate.md`"
+        in rule
+    )
     assert "the stamp says which copy drew it" not in text
 
 

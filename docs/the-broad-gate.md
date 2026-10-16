@@ -20,10 +20,11 @@ whose whole procedure is that run, and the assignment lives in that agent's
 own definition rather than in the shared rules, which is where the next such
 assignment will live too.
 
-That agent judges nothing. It runs the repository's broad command, reports
-what the commands said, and writes the last round record's `Broad gate` cell.
-A run that judges is a run whose verdict nobody can separate from its
-measurement.
+The run judges nothing. `broad-gate` runs the repository's broad command,
+reports what the commands said, and writes the work item's `broad-gate.md`;
+the sealer's own verdict, which follows the run, is a separate file
+(`docs/the-review-record.md` §*The guarantee*). A run that judges is a run
+whose verdict nobody can separate from its measurement.
 Enforced by: tests/test_broad_gate_rule.py::test_only_one_definition_assigns_the_broad_gate, tests/test_broad_gate_rule.py::test_the_prohibition_itself_has_one_home_and_it_is_the_contract
 
 <!-- specs/1789034970-the-contract-is-settled-against-the-agents-that-exist -->
@@ -121,13 +122,13 @@ Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py
 earned it.** A sealer's stdout is a pipe into a report that reaches the
 person folded, so a stamp drawn there was never seen. The 0.15.6 stopgap,
 re-printing the sealer's log, drew it twice, colourless and cut. So the gate
-draws only on a terminal, and only over a written cell. On a pipe, a recorded
+draws only on a terminal, and only over a written `broad-gate.md`. On a pipe, a recorded
 seal writes the panel's rows
 to a values file under the git common dir, keyed by the session that spawned
 the run, and prints one `SEALED` line naming it. A `Stop` hook draws each
 undrawn file of its own session once, after that turn's text, and a
 subagent's end draws nothing. The write sits on the gate's own code path,
-reached only when every check passed and the cell was written. No session's
+reached only when every check passed and the file was written. No session's
 reading or act stands between the verdict and the drawing, and what is drawn
 is the run's values rather than a sample anybody can print.
 Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_main_sessions_stop_draws_each_undrawn_file_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_end_draws_nothing_and_leaves_the_file, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_recorded_seal_on_a_pipe_signals_and_draws_nothing
@@ -169,8 +170,8 @@ the disc is painted, so its text is in the terminal's own colours and theme —
 dim labels, a green `✓`, the title in the seal's red — and the owner reads
 the first real seal on each background.
 **Nor is the hook's silence where it cannot draw.** It draws nothing and
-says nothing where the main session's `python3` is under 3.12, the floor
-`seal_stamp.py` refuses below (macOS ships 3.9); where that session's
+says nothing where the main session's `python3` cannot load
+`seal_stamp.py`, since no launcher stands in front of a hook; where that session's
 working directory is outside the clone the run sealed; or where its plugin
 predates the hook. A hook older than #853 refuses a values file that carries
 no numeric `scale`, so through 0.21's cycle the gate still writes `"scale":

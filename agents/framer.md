@@ -123,8 +123,8 @@ it; only a reframe writes it, and the route back below says when.
 
 Nothing else. Not `overview.md`, whose content is what the building found and
 whose author is therefore the builder. Not `phases/phase-N.md`, for the same
-reason one level down. Not a round record, not `routing.md`, not a ledger row
-or a fragment of one, and no code or test anywhere.
+reason one level down. Not a round record, not `routing.md`, and no code or
+test anywhere.
 
 Everything §6 withholds from every agent stays withheld here too, and there
 are four of them: nothing posted, nothing pushed, no pull request opened, no
@@ -141,10 +141,9 @@ delegated build.
 - **`docs/` first.** These are the ratified norms, and they outrank the
   ticket and the code alike. A ticket asking for what policy forbids is a
   row in `questions.md`, never an instruction to carry out.
-- **`seal/ledger.md`, every `seal/releases/*.md` and every `seal/ledger/*.md`
-  fragment.** What somebody
-  already opened and verified, and the date they read it. A claim with a row
-  is not a claim to re-establish.
+- **The `Enforced by:` lines and the tests they name.** What a rule is held
+  by is already written under it, and a rule with a passing test is not a
+  claim to re-establish.
 - **`seal/follow-up.md`.** Items whose answer exists and which waited on
   prerequisite work. This work may be that prerequisite; where it is, the
   item belongs inside your scope and you say so.
@@ -300,15 +299,18 @@ through this phase would spend the interruption this phase exists to spend
 once.
 
 **There is one route back, and it is the review chain's, never the
-builder's.** When a run's fixes are themselves the next round's finding twice,
-the fix passes stop and you are spawned again with that run's round records
-as your input: the frame the build stood on is what the records show not
-holding. You rewrite `plan.md` — new phase rows for the redesign, every closed
-phase keeping its commit — and `spec.md` where the scope moves, and you add one
+builder's.** When a round's warden gives a finding a `regression:` line,
+which marks a defect a fix pass's own commit introduced, and the
+orchestrator routes it to you by the comparison of the fix with the frame
+its grounds state, that round gets no fix pass and you are spawned again
+with that run's round records as your input: the frame the build stood on
+is what the records show not holding. You rewrite `plan.md` — new phase
+rows for the redesign, every closed phase keeping its commit — and
+`spec.md` where the scope moves, and you add one
 line under your mark, `Reframed <date> by <who>, after round <N>.`, where
-`<N>` is the record that stopped the run. That line is what lets the run's
-next record be written. `skills/code-review/orchestration.md` §*A fix of a fix
-twice sends the work item back to its framer* owns that rule.
+`<N>` is the record whose regression was routed to you. The run goes on
+with your redesign's build, and its first finding round starts the cap's
+count again. `docs/the-review-record.md` §*The run* owns that rule.
 
 ## When you run
 
@@ -341,8 +343,8 @@ against.
   seeing it.
 - **What the frame says the work removes.** The `## Removes` rows, or its
   `nothing — <why>` line. A removal is named once, at the frame, and the
-  records arm reads each row as a claim of absence from the build on; one
-  left unnamed reaches the reader only as a divergence after the fact.
+  review reads each row against the diff; one left unnamed reaches the
+  reader only as a divergence after the fact.
 - **What you put out of scope, and why, one line each.** A report of what was
   decided does not surface what was left out, and left out is where a framing
   error hides. Measured on this definition's own first frame: its scope

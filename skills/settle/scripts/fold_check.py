@@ -14,9 +14,9 @@ is that reader, shipped.
 **The shape.** Every statement whose marker group holds a work-item id at or
 above the cutoff opens with a bold rule sentence and carries exactly one live
 `Enforced by:` line, whose targets each resolve: a file inside the repository
-and, with `::name`, a `def` or `class` in it, spelled as pytest spells a node
-id — `::Class::method` for a method — and resolved by the ledger's own reader,
-`skills/evidence-check/scripts/evidence_check.py#named_unit`. Or the line says
+and, with `::name`, a `def` or `class` it defines once, as pytest spells a node
+id — `::Class::method` for a method — and resolved by the coordinate kernel,
+`skills/verify/scripts/coordinates.py#named_unit`. Or the line says
 `nothing — <why>`, with a reason. Ids are epoch-prefixed, so the cutoff is a
 comparison and needs no list of exemptions, and `--shape-from 0` binds every
 statement there is.
@@ -57,7 +57,8 @@ Exit codes: 0 nothing found, including the run where nothing is declared ·
 1 at least one problem, each on a line of its own · 2 the root, a value or a
 file it had to read was unusable — a document that is not UTF-8, a `::name`
 target that will not parse — and no result was printed, or a sibling script it
-loads is not beside it, or the interpreter is below the floor.
+loads is not beside it. An interpreter below the floor never reaches this file
+through `bin/fold-check`: `hooks/launch.py` refuses it with 2 first.
 """
 
 import argparse
@@ -69,58 +70,14 @@ import os
 import re
 import sys
 
-# **The interpreter floor, copied from
-# `skills/code-review/scripts/round_record.py#below_floor`**, which is written
-# to be copied and says so, by way of `skills/settle/scripts/settle.py`. Two
-# things about its shape are load-bearing, and they are the reason it is
-# copied rather than imported. It sits after the imports and not after
-# `import sys`, because ruff's E402 is selected and every shipped script is
-# measured to compile under 3.9, so no import above it can fail first. And it
-# uses no syntax newer than the oldest interpreter it means to catch — no
-# walrus, no f-string — since a guard that cannot parse is the traceback it
-# exists to replace.
-#
-# `tests/test_a_script_says_which_interpreter_it_needs.py` pins this number
-# to the runner's and to `ruff.toml`'s.
-FLOOR = (3, 12)
-FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
-BELOW_FLOOR = (
-    "fold-check: needs python {floor} or newer, and this is python {found} "
-    "at {executable}.\n"
-    "Nothing was read and nothing was written.\n"
-    "`python3` is not always the newest interpreter installed -- macOS ships "
-    "python 3.9 under that name -- so name one explicitly, `python{floor} "
-    "<this script> ...`, or see CONTRIBUTING.md section 'Running the checks'."
-)
-
-
-def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it."""
-    version = tuple(sys.version_info[:3]) if version is None else tuple(version)
-    if version[:2] >= FLOOR:
-        return None
-    return BELOW_FLOOR.format(
-        floor=FLOOR_TEXT,
-        found=".".join(str(part) for part in version),
-        executable=sys.executable if executable is None else executable,
-    )
-
-
-_refusal = below_floor()
-if _refusal:
-    sys.stderr.write(_refusal + "\n")
-    raise SystemExit(2)
-
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "config.py")
 OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
-# The ledger's checker, whose `named_unit` is the one resolver of a
-# `path::name` target (#836): an `Enforced by:` line and a ledger row held by
-# a test name a unit in one grammar, so one function reads both.
-EVIDENCE = os.path.join(
-    HERE, "..", "..", "evidence-check", "scripts", "evidence_check.py"
-)
+# The coordinate kernel, whose `named_unit` is the one resolver of a
+# `path::name` target (#836), so `fold-check` and `rules --check` read an
+# `Enforced by:` line in one grammar.
+COORDINATES = os.path.join(HERE, "..", "..", "verify", "scripts", "coordinates.py")
 
 DOCS = "docs"
 CONFIG = "config.md"
@@ -188,15 +145,18 @@ def reader():
     return _loaded["reader"]
 
 
-def evidence():
-    """`evidence_check.py`, loaded once on first use, for `named_unit`."""
-    if "evidence" not in _loaded:
-        _loaded["evidence"] = load(
-            EVIDENCE,
-            "specseal_evidence_check_for_folds",
+def coordinates():
+    """`coordinates.py`, loaded once on first use, for `named_unit`.
+
+    Reads: observed — the coordinate kernel's own module, executed by the interpreter; unknown refused
+    """
+    if "coordinates" not in _loaded:
+        _loaded["coordinates"] = load(
+            COORDINATES,
+            "specseal_coordinates_for_folds",
             "it is where a `path::name` target is resolved",
         )
-    return _loaded["evidence"]
+    return _loaded["coordinates"]
 
 
 class Unusable(Exception):
@@ -280,7 +240,11 @@ def bound(ids, cutoff):
 
 
 def target_problem(root, target):
-    """Why `target` does not resolve under `root`, or None when it does."""
+    """Why `target` does not resolve under `root`, or None when it does: a
+    file inside the repository, or a `def` or `class` its Python file
+    defines once.
+
+    Reads: observed — the file the target names, through `coordinates.py#named_unit`; unknown refused"""
     target = target.strip().strip("`")
     if not target:
         return "an empty target"
@@ -302,10 +266,10 @@ def target_problem(root, target):
     try:
         with open(full, encoding="utf-8") as f:
             text = f.read()
-        # The ledger's resolver (#836): `::A::b` is `b` inside `A`, as pytest
+        # The kernel's resolver (#836): `::A::b` is `b` inside `A`, as pytest
         # spells a method, and a name is looked up where it is defined rather
         # than anywhere in the file.
-        kinds = evidence().named_unit(text, name.split("::"))
+        kinds = coordinates().named_unit(text, name.split("::"))
         if kinds is None:
             ast.parse(text)
     except (OSError, ValueError, SyntaxError) as unreadable:
@@ -318,6 +282,13 @@ def target_problem(root, target):
             f"names `{target}`, and {path} could not be read as Python "
             f"({why(unreadable)})"
         ) from unreadable
+    if kinds is not None and len(kinds) > 1:
+        # A name defined twice is no one unit — pytest collects the last
+        # `def` — so a rule bound to it is not bound (#944).
+        return (
+            f"{target}: {name} is defined {len(kinds)} times in {path}, so it "
+            "names no one unit"
+        )
     if kinds is not None and ("def" in kinds or "class" in kinds):
         return None
     return f"{target}: no def or class named {name} in {path}"

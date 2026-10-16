@@ -2011,46 +2011,6 @@ def test_every_shape_five_review_rounds_named(tmp_path, name, body, found):
     assert uc.folded_items(str(tmp_path)) == found, name
 
 
-def test_the_three_named_markers_are_live_in_this_repositorys_ledger():
-    """The corpus floor, as a case rather than as a figure in a record. These
-    three markers are the ones the naive comment rule lost at round 0, and
-    every formulation since has had to keep them.
-
-    Every OCCURRENCE, not a dictionary keyed on the line. `seal/ledger.md`
-    carried eleven marker lines twice when this was written (twenty by
-    `9f846733`, removed by #553), so keying on the text kept only the
-    last state of each and a regression parking the first of a pair was
-    invisible — the same shape as the oracle that could not see the class it
-    was written for (round 6, finding 5). The reading stays per occurrence
-    whether or not the corpus doubles any line today."""
-    # `seal/ledger.md` until the one-time split, and every release file
-    # under `seal/releases/` after it (#547); each file is read on its own,
-    # because the liveness reading is a reading of one file.
-    releases = os.path.join(ROOT, "seal", "releases")
-    names = sorted(os.listdir(releases)) if os.path.isdir(releases) else []
-    ledgers = [os.path.join(ROOT, "seal", "ledger.md")]
-    ledgers += [os.path.join(releases, n) for n in names]
-    occurrences = []
-    for ledger in ledgers:
-        with open(ledger, encoding="utf-8") as f:
-            lines = f.read().split("\n")
-        occurrences += [
-            (f"{os.path.basename(ledger)}:{n}", line.strip(), state)
-            for n, (line, state) in enumerate(uc.live_lines(lines), 1)
-            if line.startswith(uc.OPENER + " specs/")
-        ]
-    parked = [(n, line) for n, line, state in occurrences if not state]
-    assert not parked, parked
-    for want in (
-        "1788472135-the-run-outlives-its-last-finding",
-        "1788613827-a-runs-report-carries-one-comparison-table",
-        "1788844127-the-reviewers-report-reaches-the-record-retyped",
-    ):
-        assert any(f"specs/{want} " in line for _, line, _ in occurrences), want
-    assert len(occurrences) >= 90, len(occurrences)
-    assert len({line for _, line, _ in occurrences}) >= 80, len(occurrences)
-
-
 def test_readable_would_erase_every_fold_record():
     """Why the pair `check_text` uses is the wrong reader here, asked of the
     code rather than asserted in a comment. Round 2 confirmed the rejection by
@@ -2208,7 +2168,6 @@ def test_the_baseline_arm_asks_the_one_predicate(tmp_path, capsys, monkeypatch):
     "script",
     [
         ("skills", "code-review", "scripts", "chain_check.py"),
-        ("skills", "code-review", "scripts", "survivor_check.py"),
         ("skills", "settle", "scripts", "settle.py"),
     ],
 )
@@ -2305,7 +2264,7 @@ def test_an_indented_delimiter_is_not_a_fence_for_the_gates_reader():
     """S4. Four spaces before a run of backticks is an indented code block or
     a lazy continuation line, never a delimiter (CommonMark 4.5). Read as one,
     it opens a fence nobody closes and every row below it disappears from
-    `check_text`, `chain_check.py` and `round_record.py` at once. Seen red
+    `check_text` and `chain_check.py` at once. Seen red
     against `c52e8350`'s `blank_fences`, whose `^\\s*` took the line as an
     opener and blanked the table."""
     text = "A fence opens with\n\n    ```\n\n| a | b |\n|---|---|\n| c | d |\n"

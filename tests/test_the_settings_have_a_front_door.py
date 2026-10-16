@@ -41,10 +41,9 @@ ROWS = (
     "Document line ceiling",
     "Over the ceiling",
     # The reference roots (#688), missing from the skill until #647 counted
-    # the table, and the two rows a signer declares its pact in (#647).
+    # the table, and the row a signer declares its pact in (#647).
     "Reference specs",
     "Pact",
-    "Pact notify",
 )
 
 
@@ -69,7 +68,7 @@ def test_the_skill_shows_rows_that_are_absent():
     # negation — `never including the ones the file does not carry` left the
     # first spelling of this green (round 2).
     assert (
-        "print all ten with their current values — including the ones the "
+        "print all nine with their current values — including the ones the "
         "file does not carry"
     ) in flat(*SKILL), (
         "the skill no longer tells the session to print the rows the file "

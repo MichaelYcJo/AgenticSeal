@@ -402,24 +402,43 @@ ROUTING = """| Axis | Answer |
 """
 ROUND = """# round {n}
 
+target: abc1234 against base
+
+## Findings
+
+{findings}
+## Probes
+"""
+# The table the old generator's records carried, which no reader reads.
+OLD_ROUND = """# round {n}
+
 ## Verdicts
 
 | # | Verdict | Grounds |
 |---|---|---|
-{rows}
+| 1 | deferred #12 | why |
 """
+
+
+def finding(i, verdict):
+    """One finding of `templates/sdd-round.md`'s shape, at `verdict`."""
+    return (
+        f"### {i}. a finding\n\nseverity: should\nlocation: `f.py:{i}`\n"
+        f"verdict: {verdict}\n\nwhy\n\nanswer: \n\n"
+    )
 
 
 def tree(tmp_path, branch="feat/12-an-item", verdicts=()):
     """A repository root holding one work item that declares `branch`, with
-    one round record per entry of `verdicts`, each a list of verdict cells."""
+    one round record per entry of `verdicts`, each a list of `verdict:`
+    values, one finding each."""
     item = tmp_path / "seal" / "specs" / "1700000000-an-item"
     (item / "rounds").mkdir(parents=True)
     (item / "routing.md").write_text(ROUTING.format(branch=branch), encoding="utf-8")
-    for n, cells in enumerate(verdicts, 1):
-        rows = "\n".join(f"| {i} | {cell} | why |" for i, cell in enumerate(cells, 1))
+    for n, values in enumerate(verdicts, 1):
+        found = "".join(finding(i, value) for i, value in enumerate(values, 1))
         (item / "rounds" / f"round-{n}.md").write_text(
-            ROUND.format(n=n, rows=rows), encoding="utf-8"
+            ROUND.format(n=n, findings=found), encoding="utf-8"
         )
     return str(tmp_path)
 
@@ -436,20 +455,23 @@ def test_the_chain_rows_count_items_rounds_capped_and_deferred(tmp_path):
     """S10. One work item declaring the pull request's branch, three rounds
     whose verdicts defer #12, then #13 and #14, then a file: one item, three
     rounds, one capped, three distinct issues. A pull request no declaration
-    names is not an item, and its label still counts. Each home is one cell's
-    (#866), so #14's note naming #15 counts no fourth."""
+    names is not an item, and its label still counts. Each home is one
+    `verdict:` line's (#866), so the answer naming #99 counts no fourth."""
     root = tree(
         tmp_path,
         verdicts=[
-            ["fixed", "deferred #12"],
-            [
-                "**deferred** #13",
-                "deferred #14 — the same axis as #15",
-                "answered, and #99 was deferred by another round",
-            ],
+            ["fixed abc1234", "deferred #12"],
+            ["deferred #13", "deferred #14", "rejected"],
             ["deferred seal/follow-up.md", "deferred #12"],
         ],
     )
+    record = (
+        tmp_path / "seal" / "specs" / "1700000000-an-item" / "rounds" / "round-2.md"
+    )
+    text = record.read_text(encoding="utf-8")
+    answered = text.replace("answer: \n", "answer: #99 was deferred by another round\n")
+    assert answered != text
+    record.write_text(answered, encoding="utf-8")
     pulls = [
         pr(20, "feat/12-an-item", "chain: capped"),
         pr(21, "fix/nobody-declared-this"),
@@ -458,10 +480,11 @@ def test_the_chain_rows_count_items_rounds_capped_and_deferred(tmp_path):
 
 
 def test_the_seal_counts_the_issue_a_deferral_went_to_not_every_mention(tmp_path):
-    """#866 S3. `deferred #854 — fixed in 0.20.0 as #858` went to #854; the
-    note behind the dash mentions #858 and sent nothing there. With
-    `deferred #854` beside it, one issue was deferred to. A home written as
-    prose, `deferred to #700`, names no issue, as `issue_of` reads it."""
+    """#866 S3. A home is the whole of what follows `deferred`, and it names
+    an issue only where it is exactly `#N`: `deferred #854 — fixed in 0.20.0
+    as #858` names neither #854 nor #858, since a note belongs on the
+    finding's `answer:` line. With `deferred #854` beside it, one issue was
+    deferred to. A home written as prose, `deferred to #700`, names none."""
     root = tree(
         tmp_path,
         verdicts=[
@@ -513,16 +536,12 @@ def test_an_unlistable_rounds_leaves_rounds_unread_not_zero(tmp_path, capsys):
     assert "rounds" in out and "not read" in out, out
 
 
-def test_a_verdict_row_the_table_skipped_leaves_deferred_unread(tmp_path, capsys):
-    """S10 (round 1's 🟡 2). `verdict_table` skips a row too short for the
-    Verdict column; a deferral in it is a count nobody made, so deferred is
-    not read and the log names the record. Seen red at `7966a9f9`, which
+def test_a_finding_the_reader_refuses_leaves_deferred_unread(tmp_path, capsys):
+    """S10 (round 1's 🟡 2). A finding the check's reader refuses — here a
+    `deferred` with no home — is a count nobody made, so deferred is not
+    read and the log names the record. Seen red at `7966a9f9`, which
     counted 1."""
-    root = tree(tmp_path, verdicts=[["deferred #12"]])
-    record = (
-        tmp_path / "seal" / "specs" / "1700000000-an-item" / "rounds" / "round-1.md"
-    )
-    record.write_text(record.read_text(encoding="utf-8") + "| 2 |\n", encoding="utf-8")
+    root = tree(tmp_path, verdicts=[["deferred #12", "deferred"]])
     assert seal().chain_counts(root, [pr(20, "feat/12-an-item")]) == (1, 1, 0, None)
     assert "round-1.md" in capsys.readouterr().out
 
@@ -530,12 +549,13 @@ def test_a_verdict_row_the_table_skipped_leaves_deferred_unread(tmp_path, capsys
 def test_a_deferred_count_nobody_could_read_is_none_and_the_log_says_why(
     tmp_path, capsys
 ):
-    """S10, `questions.md` Q8. A round record whose verdict table cannot be
-    read leaves the deferred count None, which the row shows as `not read`,
-    and the log names the file; the items and rounds it could count stand."""
+    """S10, S11 (T30). A round record the check's reader refuses — the old
+    table's shape, with no `## Findings` — leaves the deferred count None,
+    which the row shows as `not read`, and the log names the file; the items
+    and rounds it could count stand."""
     root = tree(tmp_path, verdicts=[["deferred #12"]])
     record = tmp_path / "seal" / "specs" / "1700000000-an-item" / "rounds"
-    (record / "round-2.md").write_text("# round 2\n\nno verdicts\n", encoding="utf-8")
+    (record / "round-2.md").write_text(OLD_ROUND.format(n=2), encoding="utf-8")
     counts = seal().chain_counts(root, [pr(20, "feat/12-an-item")])
     assert counts == (1, 2, 0, None), counts
     out = capsys.readouterr().out

@@ -1860,7 +1860,7 @@ def token_totals(paths):
     A TURN here is an assistant message carrying a `usage` block, whether or
     not it carries a tool call. That is NOT `tools_per_turn`'s denominator,
     which counts only messages carrying a tool_use: the per-segment bars in
-    `docs/review-handoff-protocol.md` are calibrated against that ratio, and
+    `docs/the-review-record.md` are calibrated against that ratio, and
     widening it would move a published threshold without saying so. Two
     counters, on purpose — a turn that only thought spent tokens the run paid
     for, and a turn that sent no call is not a turn the batching advisory can
@@ -1888,7 +1888,9 @@ def token_totals(paths):
     opened and yielded nothing is counted here and is invisible in the totals —
     so a line covering one file for a run that spawned six is visibly wrong to
     the person who spawned them, and `turns` is where a run's messages being
-    counted twice would show. They are the only reader who can tell either."""
+    counted twice would show. They are the only reader who can tell either.
+
+    Reads: observed — the harness's transcript files; unknown passed"""
     totals = {
         "transcripts": 0,
         "turns": 0,
@@ -2346,8 +2348,8 @@ LABEL_WIDTH = 30
 
 # #640. Each segment kind's bar on tools per turn, keyed by the basename of
 # the spawn's `subagent_type` after its last `:`, so `specseal:warden` and
-# `warden` are one kind. The values are `docs/review-handoff-protocol.md`
-# §*After the run — the per-segment bars*: the protocol's name for the kind,
+# `warden` are one kind. The values are `docs/the-review-record.md`
+# §*The per-segment bars*: the protocol's name for the kind,
 # and its bar, or None where the protocol exempts the kind from this ratio.
 #
 # Constants rather than read from the protocol at run time, because this
@@ -2499,7 +2501,7 @@ def report_grades(rows):
     """#640: each row against its kind's bar, under the table.
 
     **The bars were policy and nowhere on the page that prints the ratio
-    they judge.** `docs/review-handoff-protocol.md` holds one per segment
+    they judge.** `docs/the-review-record.md` holds one per segment
     kind, and the one advisory this script printed was the plain reading's
     blanket `< 1.2` — which reads 1.00 on every well-behaved implementer
     forever, so nobody acted on it (#197). A segment row knows its kind,
@@ -2519,7 +2521,9 @@ def report_grades(rows):
 
     It refuses nothing and the exit code stays 0. The bar is a lens, and a
     grade that failed a run would be the refusal threshold the protocol says
-    it never is."""
+    it never is.
+
+    Reads: owned — the segment rows this script built; unknown passed"""
     graded = [row for row in rows if row["bar"] is not None and row["numbers"]]
     under = [
         row for row in graded if round(row["numbers"]["tools_per_turn"], 2) < row["bar"]

@@ -3,7 +3,7 @@
 What the issue tracker's fields mean here, and which of them anything reads.
 
 Every other mechanism in this repository has a document that owns it —
-`branch-and-release.md` owns the merge rules, `review-chain-spec.md` owns the
+`branch-and-release.md` owns the merge rules, `the-review-record.md` owns the
 cap, `worktree-guard-spec.md` owns the guard. The tracker had none, and its
 conventions lived in the shape of the data plus one sentence inside a design
 record. This is that document.
@@ -72,7 +72,7 @@ It named a real unshipped release here for three of them (#179).
 
 `log:` is the shape that surprises people, and there is one of it:
 `log: measurement`. What it holds are not tasks. `#51` is the durable
-performance ledger whose body is the current state, and the open
+performance log whose body is the current state, and the open
 `flow-measurement` issue is this version's rolling log. Neither has a done
 condition, so neither closes, so the milestone does not either.
 Enforced by: tests/test_a_release_is_sized_by_a_criterion.py::test_the_rule_states_the_criterion_and_not_the_count, tests/test_a_release_is_sized_by_a_criterion.py::test_one_document_states_a_releases_size
@@ -97,9 +97,8 @@ so a share written without its as-of date goes false quietly and a reader
 re-taking the query cannot tell which of the two changed. A measurement whose
 key is undocumented is not repeatable either, which is the whole of why the
 label is written down here.
-`docs/review-chain-spec.md` §*Where a leftover goes — the ladder, and why a
-new issue is not the default* owns where a filed finding goes; this section
-owns what the label means.
+`docs/the-review-record.md` §*The run* owns where a filed finding goes; this
+section owns what the label means.
 
 <!-- specs/1788661274-the-roll-names-the-next-version-by-guessing -->
 <!-- specs/1788486395-the-roll-opens-the-next-log-with-no-body -->
@@ -182,9 +181,9 @@ it is not the name — standing alone it is a schedule answer with no subject,
 and it reads as the ordinary adverb this document itself uses.
 
 `chain: reframed` takes the same shape beside `chain: capped`: the pull request
-of a run whose fix passes stopped and went back to the framer, and nothing
-reads it (`skills/code-review/orchestration.md` §*A fix of a fix twice sends
-the work item back to its framer*).
+of a run a regression routed back to the framer, and nothing reads it
+(`skills/code-review/orchestration.md` §*A regression is routed by
+comparing the fix with the frame*).
 
 **Nothing schedules from this label** — no workflow, no check and no script
 reads it to decide what happens next — so a stale one costs a reader a wrong
@@ -373,7 +372,7 @@ which one fits depends on whether the original text is worth keeping:
   moved since it was written. #30 is the worked example: the original design
   is preserved and the block says which two things below it have changed.
 
-The exception is an issue that is a **ledger rather than a ticket** — `#51`
+The exception is an issue that is a **log rather than a ticket** — `#51`
 and the rolling `flow-measurement` log. There the body IS the current state
 and is maintained: a better baseline replaces the table, an observation that
 gets an answer is rewritten where it stands, and the comments are the evidence

@@ -90,9 +90,7 @@ def fenced_numbers(lines):
     list item — `skills/implement/orchestration.md` indents one five spaces,
     and a list item is what moves the column a fence is measured from — is
     still a fence here. The shared rule has no block model and reads that line
-    as prose, which put a 155-column command under the limit.
-    `skills/code-review/scripts/round_record.py#fenced_after` keeps a wider
-    opener for the same reason, and `fence_opener`'s docstring lists both."""
+    as prose, which put a 155-column command under the limit."""
     out, opener = set(), None
     for number, line in enumerate(lines, 1):
         bare = line.lstrip()
@@ -176,16 +174,12 @@ COVERED = [
     # so each goes in at birth with no sweep to owe — and each is a document
     # a work item's spec was folded INTO, which is what puts the fold marker
     # above in the way of the limit.
-    "docs/the-evidence-ledger.md",
     "docs/the-broad-gate.md",
     "docs/measuring-a-run.md",
     "docs/the-agent-set.md",
-    # One of the three documents #526 split `docs/review-chain-spec.md` into.
-    # The file it was cut from never joined this list. This one fits at birth
-    # once two moved lines are re-wrapped with no word changed, so it goes in
-    # with no sweep to owe. `docs/round-record-spec.md` does not: its widest
-    # line is a path and its comma at 89 columns, and fitting it means
-    # rewording a sentence a ledger row quotes.
+    # Cut by #526 out of a document that never joined this list. It fit at
+    # birth once two moved lines were re-wrapped with no word changed, so it
+    # went in with no sweep to owe.
     "docs/commit-review-gate-spec.md",
     # The two documents #727 cut out of the one above. Their moved lines were
     # held to the limit where they stood, and their preambles were written
@@ -351,7 +345,7 @@ def test_a_fence_is_read_by_the_shared_rule():
 # with a `::name`, the shape #565's retrofit writes into covered documents.
 WIDE_TARGET = (
     "tests/test_a_document_has_room_for_the_next_fold.py::"
-    "test_the_evidence_ledger_states_the_values_the_config_rows_hold"
+    "test_the_record_layout_states_the_values_the_config_rows_hold"
 )
 
 

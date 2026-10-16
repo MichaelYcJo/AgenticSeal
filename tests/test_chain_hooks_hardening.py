@@ -123,28 +123,6 @@ def test_gate_ignores_non_bash_tools(repo):
     assert decision_of(run_hook("commit-review-gate.py", p)) == "silent"
 
 
-# --- history guard: prose mentions must not remind ------------------------
-
-
-def test_history_guard_ignores_echoed_gh(repo):
-    opt_in(repo)
-    assert (
-        run_hook(
-            "review-history-guard.py", payload("echo gh pr comment 42", repo)
-        ).strip()
-        == ""
-    )
-
-
-def test_history_guard_catches_gh_after_chain(repo):
-    opt_in(repo)
-    item = declare_routing(repo)
-    out = run_hook(
-        "review-history-guard.py", payload("cd x && gh pr comment 7 --body hi", repo)
-    )
-    assert item.name in out, out
-
-
 # --- session-lease: repo resolution and isolation -------------------------
 
 
@@ -271,15 +249,13 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     # wrapper must resolve the script relative to itself, never the caller's
     # working directory. Windows can't run a POSIX shebang script directly,
     # so a .cmd sibling ships alongside it -- PATHEXT resolves a bare
-    # `evidence-check` to whichever one the platform can execute.
-    posix_wrapper = os.path.join(ROOT, "bin", "evidence-check")
-    windows_wrapper = os.path.join(ROOT, "bin", "evidence-check.cmd")
-    assert os.path.isfile(posix_wrapper), "bin/evidence-check missing"
-    assert os.path.isfile(windows_wrapper), "bin/evidence-check.cmd missing"
-    assert os.access(posix_wrapper, os.X_OK), "bin/evidence-check not executable"
-    target = os.path.join(
-        ROOT, "skills", "evidence-check", "scripts", "evidence_check.py"
-    )
+    # `fold-check` to whichever one the platform can execute.
+    posix_wrapper = os.path.join(ROOT, "bin", "fold-check")
+    windows_wrapper = os.path.join(ROOT, "bin", "fold-check.cmd")
+    assert os.path.isfile(posix_wrapper), "bin/fold-check missing"
+    assert os.path.isfile(windows_wrapper), "bin/fold-check.cmd missing"
+    assert os.access(posix_wrapper, os.X_OK), "bin/fold-check not executable"
+    target = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
     assert os.path.isfile(target), "wrapper points at a missing script"
     wrapper = windows_wrapper if sys.platform == "win32" else posix_wrapper
     r = subprocess.run(
@@ -290,7 +266,7 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
         errors="replace",
     )
     assert r.returncode == 0, r.stderr
-    assert "evidence_check" in r.stdout
+    assert "usage: fold-check" in r.stdout
 
 
 def test_migrated_commands_stay_user_invoked():
@@ -338,32 +314,6 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     assert "disable-model-invocation: true" in head, (
         "parity-setup writes a declaration; it must not fire on its own"
     )
-
-
-def test_ci_wiring_never_asks_for_the_plugin_path():
-    # The CI setup used to say `cp <specseal plugin>/skills/...`, a path the
-    # docs never gave — the same dead end bin/ fixed for the CLI. Whatever the
-    # instructions say, they must not send a reader hunting for the install
-    # location.
-    setup = os.path.join(ROOT, "skills", "evidence-ci", "SKILL.md")
-    assert os.path.isfile(setup), "no command wires the drift check into CI"
-    head = open(setup, encoding="utf-8").read().split("\n---\n", 1)[0]
-    assert "disable-model-invocation: true" in head, (
-        "this writes files into a repo; it must not fire on its own"
-    )
-
-    tpl = open(
-        os.path.join(ROOT, "templates", "evidence-check.yml"), encoding="utf-8"
-    ).read()
-    assert "<specseal plugin>" not in tpl, "template still names an unknown path"
-    assert "/specseal:evidence-ci" in tpl, "template should point at the command"
-    # The workflow must still do the thing it exists for.
-    assert "evidence_check.py" in tpl and "fetch-depth: 0" in tpl
-
-    skill = open(
-        os.path.join(ROOT, "skills", "evidence-check", "SKILL.md"), encoding="utf-8"
-    ).read()
-    assert "/specseal:evidence-ci" in skill, "CI section never mentions the command"
 
 
 def parity_repo(repo):
@@ -1392,56 +1342,14 @@ def test_the_cycle_is_bounded_and_ends_at_a_pull_request():
     Stopping at a report leaves finished work nobody will find; merging
     decides something the chain was never given."""
     with open(
-        os.path.join(ROOT, "docs", "review-chain-spec.md"), encoding="utf-8"
+        os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
     ) as f:
-        spec = f.read()
-    assert "capped at **three**" in spec, "the review loop lost its bound"
-    assert "ends at a PR, never at a merge" in spec
-    for home in ("follow-up.md", "questions.md", "legacy-parity"):
-        assert home in spec, f"no home recorded for what is left: {home}"
+        record = " ".join(f.read().split())
+    assert "three finding rounds by default" in record, "the review loop lost its bound"
+    assert "follow-up.md" in record, "no home recorded for what is left"
     with open(os.path.join(ROOT, "agents", "smith.md"), encoding="utf-8") as f:
         smith = f.read()
-    assert "three rounds" in smith and "never at a merge" in smith
-
-
-def test_the_five_round_exception_is_pinned_where_it_is_stated():
-    """Nothing held the exception. The two assertions above read `capped at
-    **three**` and `three rounds`, both of which survive deleting the
-    exception paragraph whole — so the entire substance of the answer to #51
-    was green against a document that no longer contained it.
-
-    Four things have to be true together, because each alone is the wrong
-    rule: five rounds, only for 🔴, only to close it, and a ceiling rather
-    than a target."""
-
-    def flat(*parts):
-        """The file with its line wrapping collapsed — these sentences are
-        wrapped at 80 columns and a phrase test must not depend on where."""
-        with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-            return re.sub(r"\s+", " ", f.read())
-
-    spec = flat("docs", "review-chain-spec.md")
-    assert "at **five while a 🔴 is open**" in spec, "the exception is gone"
-    assert "only while a 🔴 is open" in spec, "the exception lost its condition"
-    assert "and only to close it" in spec, (
-        "without this, five rounds becomes the budget rather than the reprieve"
-    )
-    assert "Five is a ceiling, not a target" in spec
-    assert "a round opens a new 🔴 at the same site" in spec, (
-        "the stop-regardless row is what keeps the exception from looping"
-    )
-
-    assert "five while a 🔴 is open, and only to close it" in flat(
-        "agents", "smith.md"
-    ), (
-        "the agent that runs the loop has to carry the exception, not just "
-        "the cap it is an exception to"
-    )
-
-    assert "five while a 🔴 is" in flat("skills", "verify", "SKILL.md"), (
-        "the broad gate declines this exception on purpose (#51), and a "
-        "decline that does not name what it declines cannot be read"
-    )
+    assert "never at a merge" in smith
 
 
 # The two skills a definition calls rather than preloads. Neither is in any
@@ -1630,7 +1538,6 @@ def test_installer_prints_commands_a_user_can_actually_type():
     bare = [
         m
         for m in re.findall(r"(?<!:)/([a-z][a-z-]+)\b", text)
-        if m
-        in {"preset-setup", "security-audit", "testing", "parity-setup", "evidence-ci"}
+        if m in {"preset-setup", "security-audit", "testing", "parity-setup"}
     ]
     assert not bare, f"un-namespaced plugin commands in install.sh: {bare}"

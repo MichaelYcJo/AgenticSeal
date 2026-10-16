@@ -7,10 +7,9 @@ measurement is read against, and where a reading goes so somebody can use it.
 It is a policy document: it outranks the SDD set, and a work item that finds
 it wrong corrects it rather than working around it.
 
-`docs/review-handoff-protocol.md` §*After the run — the per-segment bars*
-holds the bar each kind of segment is judged against, and it stays there
-because it is part of what a handoff carries. This document is about the
-measurement itself.
+`docs/the-review-record.md` §*The per-segment bars* holds the bar each kind
+of segment is judged against, and it stays there because it is part of what
+a handoff carries. This document is about the measurement itself.
 
 ## The unit is a segment, and a segment has its own transcript
 

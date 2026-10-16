@@ -1,83 +1,42 @@
-"""Each of #161's nine rules has one carrier that states it, and every other
+"""Each review-chain rule has one carrier that states it, and every other
 carrier links to that one in a sentence that names it.
 
-The last branch's count rule reached eight carriers, and rounds 7, 8 and 9
-corrected them three at a time — a rule stated in eight places is eight
-places to disagree. `spec.md` §Scope *In — the rules* of the work item that
-added these lists the nine with one owner each:
+A rule stated in eight places is eight places to disagree: #161's count rule
+reached eight carriers, and rounds 7, 8 and 9 corrected them three at a time.
+The table below holds each rule's owner, the sentence the owner states, and
+the sentence each linking carrier names the owner with.
 
-  1  a record-located finding is a correction     docs/review-chain-spec.md
-  2  a fix pass adds no mechanism                 code-review/orchestration.md
-  3  🟡 is a defect the release would ship; ⬜     skills/code-review/SKILL.md
-  4  the reopening is one, then `capped`          docs/review-chain-spec.md
-  5  a fix pass hands over a fix table            agents/smith.md
-  6  the draft pull request before round 1        code-review/orchestration.md
-  7  a compacted session hands over the record    code-review/orchestration.md
-  8  the 0.8.x moratorium on fields               docs/review-chain-spec.md
-  9  a hand-back's claim is re-run                code-review/orchestration.md
-
-Five of the nine used to be owned by `skills/code-review/SKILL.md`. #265 split
-that file on the seam its own headings drew: the five sections it prefixed
-`Orchestrator:` moved to `skills/code-review/orchestration.md`, so four of the
-five rules above moved with their sections and rule 3 stayed with §*Findings
-format*. The headings did not change, so every link sentence names the section
-it always named and only the file it names moved.
-
-Phase 4a wrote the three owners' files and phase 4b the five linking
-carriers; the link tables below hold the links both phases' files carry, one
-pin file rather than two. The four reach-backs are pinned beside the rules:
-the sections that told the orchestrator to fill `Fixes checked by`, the fix
-surface and `Ran by` by hand now name the subcommand that fills them, and
-the linking carriers that said the orchestrator writes the record now name
-the generator too — the sentences about the reviewed-HEAD mark, which the
-orchestrator does write, are not among them.
-
-A tenth rule joined from #30 rather than from #161, and it is here because
-its shape is the table's exactly: one owner, two carriers whose sentences
-must stay links rather than becoming restatements. It says which of the
-seals a project accumulates is the final one -- the word reached three
-referents at once, and the missing sentence was not *fewer seals* but
-*one of them is final*.
-
-Every sentence here was seen red with the sentence stashed (§15).
+0.22.0 (#923) replaced the three record documents with
+`docs/the-review-record.md`; the rules that left with their mechanism left
+this table, and the ones that stayed name their owner there.
 """
 
 import os
+import re
 
 import pytest
-from conftest import REVIEW_CHAIN_DOCS, review_chain_text
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-SPEC = ("docs", "review-chain-spec.md")
-# The record's rows and the generator, split out of `SPEC` by #526. The five
-# rules above keep their owner; the verdict-row and depth cases read here.
-RECORD_SPEC = ("docs", "round-record-spec.md")
+RECORD = ("docs", "the-review-record.md")
 SKILL = ("skills", "code-review", "SKILL.md")
-# The orchestrator's half of the review skill (#265). The five sections the
-# file prefixed `Orchestrator:` live here; the reviewer's half stays in SKILL.
+# The orchestrator's half of the review skill (#265).
 ORCH = ("skills", "code-review", "orchestration.md")
-TEMPLATE = ("templates", "sdd-round.md")
 SMITH = ("agents", "smith.md")
-PROTOCOL = ("docs", "review-handoff-protocol.md")
 WARDEN = ("agents", "warden.md")
 IMPLEMENT = ("skills", "implement", "SKILL.md")
 # The orchestrator's half of the implement skill (#292). The order a ticket
-# runs in landed here in #351, when the shared checklist that used to hold it
-# was deleted -- beside the routing question its first step opens.
+# runs in landed here in #351.
 ORCH_IMPL = ("skills", "implement", "orchestration.md")
-PHASE_TEMPLATE = ("templates", "sdd-phase.md")
 VERIFY = ("skills", "verify", "SKILL.md")
 SEALER = ("agents", "sealer.md")
+FRAMER = ("agents", "framer.md")
+TRACKER = ("docs", "issues-and-milestones.md")
+RECORD_LAYOUT = ("docs", "the-record-layout.md")
+CONFIG_TEMPLATE = ("templates", "config.md")
+CONFIG_SKILL = ("skills", "config", "SKILL.md")
+ROUND_TEMPLATE = ("templates", "sdd-round.md")
 
-# The directories the count rule was swept across.
-TREE = ("docs", "skills", "agents", "templates")
-
-REOPENING = "§*The reopening — one, and then the run is capped*"
-NO_MECHANISM = (
-    "`skills/code-review/orchestration.md` §*A fix pass adds the unit that "
-    "pins it, and that unit ships unreviewed* owns that rule"
-)
 ONE_SEAL_IS_FINAL = (
     "`skills/verify/SKILL.md` §*Every agent seals what it verified, and "
     "one of them is final* owns that rule"
@@ -86,57 +45,14 @@ BEFORE_ROUND_ONE = (
     "`skills/code-review/orchestration.md` §*Orchestrator: the pull request "
     "opens before round 1, and a phase is re-run* owns"
 )
-WRAP_RULE_OWNER = (
-    "`docs/review-handoff-protocol.md` §*The Needs a fix field — the answer "
-    "a run ends on*"
-)
-CONFIG_TEMPLATE = ("templates", "config.md")
-CONFIG_SKILL = ("skills", "config", "SKILL.md")
 CRITERION_OWNER = (
     "`templates/config.md` §*Choosing a value — the criterion* owns the criterion"
 )
-# The checker whose module docstring restates the capped exit. It is a link
-# carrier like any other here: the docstring names the owner and computes
-# nothing, which is what #492 left it free to do.
-CHAIN_CHECK = ("skills", "code-review", "scripts", "chain_check.py")
-CAP_BOUNDS_ROUNDS = (
-    "`docs/review-chain-spec.md` §*The cap bounds rounds, and not the fixes "
-    "of the round it stopped* owns"
-)
-# The document that owns the tracker's own conventions. It is a link carrier
-# for the filing rule and the owner of what the `from-review` label means —
-# the two are different questions, and #493's measurement needs both.
-TRACKER = ("docs", "issues-and-milestones.md")
-LADDER_OWNER = (
-    "`docs/review-chain-spec.md` §*Where a leftover goes — the ladder, and "
-    "why a new issue is not the default* owns"
-)
-# The document that owns which file a change writes, and so when a later
-# commit brings the changelog fragment along (#797).
-RECORD_LAYOUT = ("docs", "the-record-layout.md")
 FRAGMENT_OWNER = (
     "`docs/the-record-layout.md` §*A commit after the build brings its "
     "changelog fragment along* owns that rule"
 )
-# The same document owns which commits a range owns (#860, #805), and the two
-# scripts that read a range, and the orchestration that tells a session what
-# the fix surface holds, name the section.
-ROUND_RECORD = ("skills", "code-review", "scripts", "round_record.py")
-# The survivor sweep reads a two-dot range the same way since #873.
-SURVIVOR_CHECK = ("skills", "code-review", "scripts", "survivor_check.py")
-RANGE_OWNER = (
-    "`docs/the-record-layout.md` §*A range owns the commits that descend from "
-    "its start* owns"
-)
-FRAMER = ("agents", "framer.md")
-REFRAME_OWNER = (
-    "`skills/code-review/orchestration.md` §*A fix of a fix twice sends the "
-    "work item back to its framer* owns that rule"
-)
-NOTES_OWNER = (
-    "`skills/code-review/orchestration.md` §*A note closes once, at the "
-    "run's end* owns that rule"
-)
+RUN_OWNS_THE_RULE = "`docs/the-review-record.md` §*The run* owns that rule"
 
 
 def read(*parts):
@@ -149,62 +65,29 @@ def flat(*parts):
     return " ".join(read(*parts).split())
 
 
-# --- the rules: owner, the sentence, and the links that name the owner ------
-
 # rule → (owner, the sentence the owner states, {link carrier: how it names
 # the owner}). A link is one sentence and names the owner's file or the
 # owner's subsection; it does not restate the rule.
 RULES = {
-    "1 a record-located finding is a correction": (
-        SPEC,
-        "A finding located in a record is a correction, not a round.",
-        {
-            ORCH: "`docs/review-chain-spec.md` §*The last round verifies* owns the rule",
-            WARDEN: "`docs/review-chain-spec.md` §*The last round verifies* owns the rule",
-        },
-    ),
-    "2 a fix pass adds no mechanism": (
-        ORCH,
-        "A fix pass may not add mechanism.",
-        {SMITH: NO_MECHANISM, IMPLEMENT: NO_MECHANISM},
-    ),
     "3 🟡 is a defect the release would ship": (
         SKILL,
         "a defect the release would ship",
-        {WARDEN: "`skills/code-review/SKILL.md` §*Findings format* owns that line"},
-    ),
-    "4 the reopening is one": (
-        SPEC,
-        "at most one later record may close on a fix",
-        {
-            ORCH: f"`docs/review-chain-spec.md` {REOPENING} owns",
-            TEMPLATE: f"`docs/review-chain-spec.md` {REOPENING} owns",
-            PROTOCOL: f"`docs/review-chain-spec.md` {REOPENING} owns",
-            WARDEN: f"`docs/review-chain-spec.md` {REOPENING} owns",
-        },
-    ),
-    "5 a fix pass hands over a fix table": (
-        SMITH,
-        "hands over a fix table under `## Fixes`",
-        {ORCH: "`agents/smith.md` owns that rule"},
+        {},
     ),
     "6 the draft pull request opens before round 1": (
         ORCH,
         "The draft pull request opens at the end of the build, before round 1.",
-        {
-            PROTOCOL: f"opened when the build's last phase closes, because {BEFORE_ROUND_ONE}",
-            ORCH_IMPL: f"the draft pull request opens ({BEFORE_ROUND_ONE} when)",
-        },
+        {ORCH_IMPL: f"the draft pull request opens ({BEFORE_ROUND_ONE} when)"},
     ),
     "7 a compacted session hands the next round to a fresh one": (
         ORCH,
         "A session that has compacted hands the next round to a fresh one, and "
-        "the generated record is the handoff.",
+        "the round record is the handoff.",
         {},
     ),
-    "8 the moratorium": (
-        SPEC,
-        "no new parsed field in `round-N.md` and no new row the ledger must carry",
+    "9 a hand-back's verification claim is a claim": (
+        ORCH,
+        "A hand-back's verification claim is a claim.",
         {},
     ),
     "10 every agent seals what it verified, and one seal is final": (
@@ -213,173 +96,40 @@ RULES = {
         "project is the sealer's.",
         {SEALER: ONE_SEAL_IS_FINAL, WARDEN: ONE_SEAL_IS_FINAL},
     ),
-    "9 a hand-back's verification claim is a claim": (
-        ORCH,
-        "A hand-back's verification claim is a claim.",
-        {
-            PROTOCOL: f"{BEFORE_ROUND_ONE} the rule. Its grounds are one step from this document"
-        },
-    ),
-    # An eleventh, from #340 rather than from #161, and its shape is the
-    # table's exactly: one owner and one link. What it is NOT is the whole of
-    # what this repository says about a wrapped terminal line — the warden's
-    # operative instruction is a second rule with a second audience, pinned
-    # below rather than here (Q3 of the work item that added this row).
-    "11 a wrapped terminal line is one value": (
-        PROTOCOL,
-        "A wrapped terminal line is one value, and this is where the join stops.",
-        {TEMPLATE: WRAP_RULE_OWNER, WARDEN: WRAP_RULE_OWNER},
-    ),
-    # A twelfth, from #401 rather than from #161, and the table's shape is
-    # what made it cheap. The `Broad gate` row is the one value only a person
-    # can write and it had no criterion at all: the session that met the
-    # gate's refusal after its rounds had settled derived three rules under
-    # pressure, two of them written nowhere and the third already standing in
-    # two places. The third is FOLDED into the owner here rather than copied
-    # into a third, which is what this module exists to make visible.
+    # From #401: the `Broad gate` row is the one value only a person can
+    # write, and the criterion for it is folded into one owner.
     "12 the criterion for choosing a Broad gate value": (
         CONFIG_TEMPLATE,
         "A check that is red repository-wide for reasons unrelated to any "
         "branch does not belong in the row",
         {CONFIG_SKILL: CRITERION_OWNER, ORCH_IMPL: CRITERION_OWNER},
     ),
-    # A thirteenth, from #492. The cap counts ROUNDS and was read as bounding
-    # FIXES, so a one-line verified repair was filed instead of made; and the
-    # two bounds that both exit `capped` were read as one rule although only
-    # the round cap permits a fix. The owner is the document that already
-    # owns the cap, and this row has more link carriers than any other
-    # because the exit sentence was already copied into six of them.
-    #
-    # WHAT IT PINS, written down because it is narrower than the rule
-    # (round 1's ⬜ 5): one sentence — the ownership test — plus seven
-    # carriers naming the section. The section TITLE is pinned indirectly and
-    # seven times over, because every link string quotes it. *Three and five
-    # count rounds*, the two-bounds table and the `Fixes checked by`
-    # paragraph are NOT pinned here; the reopening half of the pair is, by
-    # `tests/test_the_reopening_is_one.py`.
-    "13 the cap bounds rounds, and ownership decides the rest": (
-        SPEC,
-        "What decides between a fix and a home is who owns the unit now.",
-        {
-            ORCH: CAP_BOUNDS_ROUNDS,
-            TEMPLATE: CAP_BOUNDS_ROUNDS,
-            PROTOCOL: CAP_BOUNDS_ROUNDS,
-            WARDEN: CAP_BOUNDS_ROUNDS,
-            SMITH: CAP_BOUNDS_ROUNDS,
-            SEALER: CAP_BOUNDS_ROUNDS,
-            CHAIN_CHECK: CAP_BOUNDS_ROUNDS,
-        },
-    ),
-    # A fourteenth, from #493 and the other end of the same question. Filing a
-    # finding ran at 100% and acting on one at 47%, because opening an issue
-    # was the default rather than a rung. The owner is the document that
-    # already carried the table of homes, and the test the ladder applies is
-    # a column the reviewer's report already writes — so the rule adds no
-    # parsed field, which is what §*What the record carries* refuses.
-    #
-    # WHAT IT PINS (round 1's ⬜ 5): the headline sentence plus five carriers
-    # naming the section. The four RUNGS are not pinned — a rung could be
-    # reordered, reworded or deleted and both new cases stay green.
-    #
-    # WHAT NEITHER ROW CAN SEE, and it is the shape round 1's 🔴 1 reported:
-    # the link assertion is a substring test of the link string against the
-    # carrier read through `flat`, so a carrier that names the owner AND also
-    # states a contradicting sentence passes. `orchestration.md` was exactly
-    # that for one release — a rule-14 link carrier still telling a reader at
-    # a capped exit to file everything. House shape rather than a regression
-    # (existing carriers restate before they link too), which is why it is
-    # written here rather than asserted: an assertion that a carrier states
-    # nothing contradicting the owner is a walk, and a fix pass may not add
-    # mechanism.
+    # From #493: filing a finding ran at 100% and acting on one at 47%, so a
+    # new issue is a rung rather than the default.
     "14 a finding is filed where somebody will act": (
-        SPEC,
-        "A finding is filed where somebody will act on it, and a new issue is "
-        "the third rung rather than the default.",
+        RECORD,
+        "A leftover finding takes the first rung that fits.",
         {
-            ORCH: LADDER_OWNER,
-            TEMPLATE: LADDER_OWNER,
-            WARDEN: LADDER_OWNER,
-            SMITH: LADDER_OWNER,
-            TRACKER: LADDER_OWNER,
+            SMITH: "`docs/the-review-record.md` §*The run* owns the ladder",
+            TRACKER: "`docs/the-review-record.md` §*The run* owns where a filed "
+            "finding goes",
         },
     ),
-    # A fifteenth, from #797. Three of six 0.18.2 fragments shipped false
-    # because the commits after the build changed behaviour and nothing told
-    # their writers the fragment came along. The owner is the document that
-    # already owns which file a change writes; the three carriers are where
-    # each writer of such a commit reads — the smith's fix pass, the
-    # implement skill's §5, and the orchestrator's own two commits. WHAT IT
-    # PINS: the owner's headline sentence and each carrier naming the section;
-    # the arm that names a lagging commit is pinned by
-    # `tests/test_a_fragment_left_behind_is_named.py`.
+    # From #797: three of six 0.18.2 fragments shipped false because the
+    # commits after the build changed behaviour.
     "15 a commit after the build brings its changelog fragment along": (
         RECORD_LAYOUT,
         "A commit after the build that changes what the work item ships "
         "updates the work item's `changelog.md` in the same range.",
         {SMITH: FRAGMENT_OWNER, IMPLEMENT: FRAGMENT_OWNER, ORCH: FRAGMENT_OWNER},
     ),
-    # A sixteenth, from #823. Two 0.18.3 chains wrote a fix whose next
-    # round's finding was inside that fix, twice, and nothing counted it. The
-    # owner is the orchestrator's half of the review skill, because
-    # `docs/review-chain-spec.md` stands at its line ceiling; the spec's
-    # `stop regardless` row links here. WHAT IT PINS: the owner's headline
-    # sentence and each carrier naming the section. The count itself is
-    # pinned by `tests/test_a_fix_of_a_fix_is_counted.py` and
-    # `tests/test_the_chain_goes_back_to_its_framer.py`.
-    "16 a fix of a fix twice sends the work item back to its framer": (
-        ORCH,
-        "A fix of a fix twice in one run sends the work item back to its framer.",
-        {
-            SPEC: REFRAME_OWNER,
-            RECORD_SPEC: REFRAME_OWNER,
-            FRAMER: REFRAME_OWNER,
-            WARDEN: REFRAME_OWNER,
-            IMPLEMENT: REFRAME_OWNER,
-        },
-    ),
-    # A seventeenth, from #837. A ⬜ took a row in every round's fix table,
-    # and closed `fixed` it commissioned a reader for a sentence: five of them
-    # spent #822's one reopening. The owner is the orchestrator's half of the
-    # review skill, for the reason rule 16's is: `docs/review-chain-spec.md`
-    # stands at its line ceiling. WHAT IT PINS: the owner's headline sentence
-    # and each carrier naming the section. The behaviour is pinned by
-    # `tests/test_a_note_closes_once_at_the_runs_end.py`.
-    "17 a note closes once, at the run's end": (
-        ORCH,
-        "A ⬜ commissions nothing before the run ends, and closes once at its end.",
-        {
-            SKILL: NOTES_OWNER,
-            WARDEN: NOTES_OWNER,
-            SMITH: NOTES_OWNER,
-            TEMPLATE: NOTES_OWNER,
-            IMPLEMENT: NOTES_OWNER,
-        },
-    ),
-    # An eighteenth, from #860 and #805. Two readers walked a range by its
-    # shape -- the two ends' diff, HEAD's first parent -- and both read
-    # another work item's commits that a merge brought in as this one's. The
-    # owner is the document that already owns the fragment rule one of them
-    # serves, because `docs/round-record-spec.md` stands under its line
-    # ceiling. WHAT IT PINS: the owner's headline sentence, which since the
-    # reframe after round 3 is the test `own_commits` runs, and each carrier
-    # naming the section; the readers are pinned by
-    # `tests/test_a_range_owns_what_git_lists_for_it.py`,
-    # `tests/test_a_fragment_left_behind_is_named.py` and
-    # `tests/test_the_fixes_close_the_record.py`, and the carriers' stating
-    # no shape beside the link by `tests/test_the_range_rule_states_no_shape.py`.
-    # It was rule 17 on its branch until #837's rule took that number first.
-    "18 a range owns the commits that descend from its start": (
-        RECORD_LAYOUT,
-        "A range `a..b` owns exactly the commits `git log --ancestry-path "
-        "--no-merges a..b` lists.",
-        {
-            CHAIN_CHECK: RANGE_OWNER,
-            ROUND_RECORD: RANGE_OWNER,
-            SURVIVOR_CHECK: RANGE_OWNER,
-            ORCH: RANGE_OWNER,
-            RECORD_SPEC: "`docs/the-record-layout.md` §*A range owns the commits "
-            "that descend from its start*",
-        },
+    # From #823, and since 0.22.0 one mark rather than a count of two
+    # (`questions.md` Q1 of work item 1791933022), routed by the comparison
+    # of the fix with the frame (the owner, 2026-10-16, on round 8).
+    "16 a regression is routed by comparing the fix with the frame": (
+        RECORD,
+        "A regression is routed by comparing the fix with the frame.",
+        {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
 }
 
@@ -405,432 +155,25 @@ def test_every_link_names_the_owner(rule):
         )
 
 
-# --- rule 3's other half: ⬜ exists beside 🟡 ------------------------------
-
-
-def test_a_note_severity_exists_and_needs_a_fix_does_not_count_it():
-    """Half of the last branch's 53 🟡 were true sentences about prose, and
-    each cost a fix pass and a reader. Without a fourth line the reviewer has
-    no spelling for *reads badly and ships nothing wrong*."""
-    skill = flat(*SKILL)
-    assert "⬜ note" in skill, "the findings format has no ⬜ line"
-    assert "never counted by Needs a fix" in skill
-    assert "`Needs a fix` counts 🔴 and 🟡 only" in skill
-
-
-# --- rule 4's link in the skill, twice, and the exit in both -----------------
-
-
-def test_the_skill_links_the_reopening_from_both_places_it_used_to_state_it():
-    """The skill carried the exception twice — under the verifying round and
-    under the floor — and each copy now links rather than restates. Counted,
-    because one copy left restating is the disagreement this file exists to
-    refuse.
-
-    **Counted across both halves of the skill, not in one file.** #265 moved
-    both places into `orchestration.md`, and a count taken in that file alone
-    would go green again the day a copy moves back to `SKILL.md` — which is
-    the two-answers-in-one-document shape the count exists to refuse. The sum
-    is what the case was written to mean.
-    """
-    halves = flat(*SKILL) + " " + flat(*ORCH)
-    assert halves.count(REOPENING) == 2, (
-        f"the skill names the reopening subsection {halves.count(REOPENING)} "
-        "times across its two halves, where its two former copies of the "
-        "exception stood"
-    )
-    assert "`chain: capped`" in halves
-    assert "`deferred #N`" in halves
-
-
-# --- rule 1's fix word, and rule 6's red leg ---------------------------------
-
-
-def test_a_correction_row_closes_answered_and_never_fixed():
-    """Round 1's 🟡 2 of #161's own chain: `fixed <sha>` on a correction
-    row leaves `nobody — the fixes are not yet written` beside a checked
-    `Pass`, and the check refuses that pair on the last record at a ready
-    pull request — a reader commissioned for a row rule 1 says owes none.
-    The owner states the word, and the smith's fix-table paragraph names the
-    owner.
-
-    **One spelling, asserted in both files.** This case used to assert two:
-    the owner prescribed `answered — corrected at <sha>` as ONE cell while
-    `agents/smith.md` prescribed the two-cell shape, and `round_record.py
-    close` refuses the one cell — so the disagreement was pinned rather than
-    merely present, and a reader who followed the owner met a refusal (#341's
-    comment). Asserting the same string in both files is what stops the two
-    from drifting apart again; a case that asserted a different sentence per
-    file is what let them.
-    """
-    one_spelling = (
-        "closes `answered` with `corrected at <sha>` as its grounds, never `fixed`"
-    )
-    spec, smith = flat(*SPEC), flat(*SMITH)
-    assert one_spelling in spec, "the owner"
-    assert one_spelling in smith, "the file that carries the owner's rule"
-    # The spec still NAMES the one-cell spelling, to say it was wrong and
-    # what it cost. What it may not do is prescribe it — so the assertion is
-    # on the prescribing clause and not on the string, which is the
-    # distinction a blunter pin would erase along with the history.
-    assert "such a row closes `answered \N{EM DASH} corrected at <sha>`" not in (
-        review_chain_text(ROOT)
-    ), "the owner prescribes the one-cell spelling `close` refuses"
-    assert "Two cells, not one" in spec, "the correction the pair needed"
-    assert "§*The last round verifies* owns the rule" in smith
-
-
-def test_the_verdict_ruling_is_against_a_vocabulary_test_not_against_reading():
-    """Round 3's 🟡 2 and 🟡 3. The grounds for not reading the Verdict cell —
-    *a confirmation reads `verified`, which is in no vocabulary and therefore
-    OPEN* — argue against a VOCABULARY test and were written as an argument
-    against reading the cell at all. Two documents were corrected when the
-    verdict arm landed and four carriers were left standing, one of them a
-    bolded section of the owner twenty lines under the paragraph overturning
-    it.
-
-    `survivor-check` is exit 0 on that class and cannot see it: the diff
-    removed the sentence nowhere, so there is nothing for the range check to
-    match. This case is what a grep of the claim leaves behind.
-    """
-    spec = flat(*RECORD_SPEC)
-    assert "the ruling was too wide" in spec
-    assert "argument against a VOCABULARY test and not against reading" in spec
-    assert "**The verdict word cannot do this job.**" not in review_chain_text(ROOT)
-
-
-def test_the_open_verdicts_boundary_is_not_the_shared_separators():
-    """Round 4's 🟡 2, the half `survivor-check` cannot reach either.
-
-    Four live coordinates said the arm borrows the boundary `verdict_of` uses
-    for its vocabulary and then borrowed `chain.SEPARATORS`, which is six
-    characters wide — so `open-ended question` and `open: see 5` read as the
-    open verdict and the refusal named a word the cell does not carry. The
-    boundary is spelled out now, and the owner says which constant it is not.
-    """
-    spec = flat(*RECORD_SPEC)
-    assert "ended by a space, a comma, or nothing" in spec
-    assert "rather than borrowed from `chain.SEPARATORS`" in spec
-
-
-def test_the_depth_refusal_attributes_per_finding_and_says_when_it_cannot():
-    """#333. The refusal changed twice over — what it names and what it does
-    when it cannot name it — and both are behaviour a person is stopped by, so
-    the owner of the depth rule says them.
-
-    The second half is the one a reader would otherwise have to infer from the
-    code: it still refuses on a file-level attribution, and only the sentence
-    changes.
-    """
-    spec = flat(*RECORD_SPEC)
-    assert "names the finding whose fix commit added the unit" in spec
-    assert (
-        "it still refuses, and the message says the attribution is file-level" in spec
-    )
-
-
-def test_the_inherited_rows_say_who_fills_them_the_second_time():
-    """#342. The `Why` cell is written twice and by two commands, and the
-    second one is not the command that owns the section — so the template
-    that describes the section has to say it, or a reader meeting a cell that
-    changed after `new` wrote it has nowhere to look.
-
-    The refusals are named with it: a reach that stops `close` is behaviour a
-    person is stopped by.
-    """
-    template = flat(*TEMPLATE)
-    assert "The `Why` cell is filled twice, and the second time is not this" in template
-    assert "It refuses rather than guesses" in template
-    assert "It says nothing at all where round N does not exist" in template
-
-
-def test_a_repair_made_outside_the_tree_has_a_verdict_the_owner_names():
-    """#321's comment. `fixed` demands a commit in the fix range, and a
-    repair made by editing a ticket or a pull request body has none — so the
-    word was unusable and nothing said what to write instead. A vocabulary
-    with a hole in it is closed by naming the shape, not by widening the
-    word."""
-    spec = flat(*SPEC)
-    assert "A repair made outside the tree takes the same shape" in spec
-    assert "with where the repair is in the grounds" in spec
-
-
-def test_already_deferred_is_grounds_and_the_reviewer_is_told_which_cell():
-    """#273 part 2. No document ever told a reviewer to put the phrase in a
-    Verdict cell — `agents/warden.md` says it about the Deferred field, which
-    `verdict_of` does not read — but none said which cell it was NOT for
-    either, and a cell holding it reads OPEN. Both files say it now, because
-    the reviewer reads one and the rule lives in the other."""
-    assert "`already deferred` is grounds, never a verdict" in flat(*SPEC)
-    warden = flat(*WARDEN)
-    assert "never in a Verdict cell" in warden
-    assert "`deferred <home>`" in warden
-
-
 def test_the_release_leg_is_no_longer_red_until_round_ones_record_commits():
-    """Round 1's ⬜ 8 asked the owner to say that window was expected, and
-    #296 closed the window instead.
+    """#296 closed the window in which the `release` leg was red from the
+    draft's opening until round 1's record committed.
 
-    The sentence this case used to require — *the `release` leg is red from
-    the draft's opening until round 1's record commits*, and *that is the
-    window's expected state, not a failure to chase* — was true, and was the
-    defect. This file orders the draft pull request opened before round 1,
-    because a reviewer needs a pull request to review, so the arm counting
-    round records was red for obedience to the document beside it. A check
-    like that is one people learn to route around.
-
-    The owner now says the window is closed, and BOTH halves are asserted:
-    the state prints on a draft rather than failing, and the record is still
-    owed. Requiring only the first would go green over a document that had
-    quietly turned the draft into a permanent exemption.
+    BOTH halves are asserted: the state prints on a draft rather than
+    failing, and the record is still owed. Requiring only the first would go
+    green over a document that had quietly turned the draft into a permanent
+    exemption.
     """
     assert "That window used to be red and is not any more" in flat(*ORCH)
     assert "on a draft the missing record prints and the run exits 0" in flat(*ORCH)
     assert "Nothing that can reach `main` is exempt" in flat(*ORCH)
 
 
-def test_the_release_leg_is_not_red_until_the_verifying_rounds_record_commits():
-    """Round 2's ⬜ 12 found the leg's second red window, from `close`
-    ticking `Pass` until the verifying round's record commits, and the owner
-    named both windows. #296 closed the first and #598 closed the second, so
-    the owner now says neither is red on a draft and names where the refusal
-    landed instead.
-
-    Asserted through the whole sentence, to its last word. Round 1's ⬜ 5 of
-    work item 1788912166 found a clause that stopped short of the word that
-    changed, and nothing was watching the half where it lived.
-    """
-    text = flat(*ORCH)
-    assert (
-        "The window from `close` ticking `Pass` until the verifying round's "
-        "record commits is not red either (#598). `Pass` beside `nobody` on "
-        "the last record prints on a draft and names the verifying round, and "
-        "*Ready for review* fails the pull request if the cell still says "
-        "`nobody`."
-    ) in text
-    assert "that window is expected" not in text
-
-
-def test_the_generator_carries_the_fenced_blocks_under_the_probes_table():
-    """Round 2's 🟡 10: the spec's generator paragraph said a fenced block
-    under the report's probes table stays in the report, and the rule
-    beside it says the row owes the block in the record. The paragraph
-    now says the generator carries the blocks, and nothing else of the
-    section."""
-    assert "together with every fenced block under that table" in flat(*SPEC)
-
-
-# --- rule 1 says what the count was --------------------------------------------
-
-
-def test_the_owner_of_rule_one_carries_the_count():
-    """The rule is the reading of a number, and the number is in the owner:
-    33 of 65 findings located in records, records 55 % of the diff."""
-    spec = flat(*SPEC)
-    assert "33 of its 65 findings were located in records" in spec
-    assert "55 % of the diff" in spec
-    assert "`Needs a fix` does not count it" in spec
-
-
-# --- the reach-backs are the generator's ------------------------------------
-
-# The section that used to tell the orchestrator to fill a cell by hand, and
-# the sentence that now names the subcommand.
-REACH_BACKS = {
-    "Fixes checked by": (
-        "### Then say who checked them, in the record",
-        "`round_record.py new --item <dir> --round N …` sets it",
-    ),
-    "the fix surface": (
-        "### And name the fix surface, in the same record",
-        "`round_record.py close --range <a>..<b>` derives both from the fix range",
-    ),
-    "Ran by": (
-        "### And say what ran the round",
-        '`round_record.py new` writes it from `--ran-by "<agent> on <model>"`',
-    ),
-    "the record before the fixes": (
-        "### And commit the record before commissioning the fixes",
-        "`round_record.py new` writes `round-N.md` when the round posts",
-    ),
-}
-
-
-@pytest.mark.parametrize("which", sorted(REACH_BACKS))
-def test_the_section_names_the_subcommand_that_fills_the_cell(which):
-    """Five reach-backs forgotten five times on the last branch. The
-    sections keep the rule and its grounds and no longer ask a session to
-    remember the step; the subcommand is named where the instruction was."""
-    heading, sentence = REACH_BACKS[which]
-    text = flat(*ORCH)
-    assert heading in text, f"the section for {which!r} moved: {heading!r}"
-    start = text.index(heading)
-    end = text.find(" ### ", start + len(heading))
-    section = text[start : end if end > 0 else None]
-    assert sentence in section, (
-        f"the {which!r} section no longer names the subcommand that fills "
-        "the cell, so the reach-back is a habit to remember again"
-    )
-
-
-def test_the_skill_no_longer_calls_the_reach_back_a_habit():
-    """The absence half, beside the presence above: the sentence that told
-    the orchestrator the cells were a pass to remember is gone, and the one
-    that replaced it names the generator.
-
-    The absence is read across both halves and the presence in the half that
-    holds the sections (#265): an absence checked in one file is satisfied by
-    the sentence coming back in the other.
-    """
-    both = flat(*SKILL) + " " + flat(*ORCH)
-    assert "The habit that makes all of it moot" not in both
-    assert "What makes all of it moot is the generator" in flat(*ORCH)
-
-
-def test_the_template_says_the_record_is_generated():
-    """A template a session copies by hand is the record-writing this work
-    removes. The top comment says which subcommand writes and which closes,
-    and that the comments are documentation a generated record does not
-    carry."""
-    template = flat(*TEMPLATE)
-    assert "It is GENERATED: `round_record.py new` writes it" in template
-    assert "`round_record.py close` applies the implementer's fix table" in template
-    assert "a generated record does not carry them" in template
-    assert "the generator commits nothing" in template
-
-
-def test_the_template_offers_deferred_with_a_home():
-    """The verdict vocabulary comment is where a reader learns what closes a
-    finding; a word the checker accepts and the template omits is a word
-    nobody writes."""
-    template = flat(*TEMPLATE)
-    assert "`deferred <home>` closes a finding handed to the tracker" in template
-    assert "A bare `deferred`, nothing after it, stays OPEN" in template
-
-
-def test_the_spec_says_the_record_is_written_by_the_generator():
-    """*A declaration, and why no check reads it* was written when the
-    orchestrator typed the probes table; it now describes what `new` copies
-    from the reviewer's report."""
-    spec = flat(*SPEC)
-    assert "The record is written by `round_record.py` now" in spec
-    assert "copies the reviewer's `Executed probes` table row for row" in spec
-
-
-# --- the count rule's phrases: the owner and the links, and nothing else ---
-
-
-def occurrences(phrase):
-    """{relative path: count} over every Markdown file in the swept tree."""
-    found = {}
-    for top in TREE:
-        for dirpath, _, names in os.walk(os.path.join(ROOT, top)):
-            for name in sorted(names):
-                if not name.endswith(".md"):
-                    continue
-                path = os.path.join(dirpath, name)
-                with open(path, encoding="utf-8") as handle:
-                    count = " ".join(handle.read().split()).count(phrase)
-                if count:
-                    # `/`-joined on every platform: the callers look a key
-                    # up as `"/".join(SPEC)`, and `relpath` joins with `\`
-                    # on Windows (PR #168's red leg).
-                    found[os.path.relpath(path, ROOT).replace(os.sep, "/")] = count
-    return found
-
-
-AT_MOST_ONE_MORE = "at most one more round record"
-UNLESS = "Unless th"
-
-# What the tree holds after phase 4a. Phase 4b sweeps the five linking
-# carriers and may only lower these; a phase that raises one has written a
-# ninth carrier of the count rule.
-AT_MOST_ONE_MORE_CEILING = 4
-UNLESS_CEILING = 0
-
-
-def test_the_count_rules_sentence_is_the_owners_and_its_links():
-    """`docs/review-chain-spec.md` states *at most one more round record*
-    and owns it; the skill and the template carry the phrase in a sentence
-    that names the owner's subsection, and nothing they carry says *unless*
-    — the exception is the owner's to state, bounded to one."""
-    found = occurrences(AT_MOST_ONE_MORE)
-    assert found.get("/".join(SPEC)) == 1, found
-    for carrier in (ORCH, TEMPLATE):
-        text = flat(*carrier)
-        assert found.get("/".join(carrier)) == 1, found
-        after = text[text.index(AT_MOST_ONE_MORE) :]
-        assert REOPENING in after[:600], (
-            f"{'/'.join(carrier)} carries the count rule's sentence without "
-            "the owner's subsection in the same breath"
-        )
-    # SKILL keeps its place in the absence half: #265 moved the phrase to
-    # ORCH, and the half it left must not grow a copy of the exception.
-    for carrier in (*REVIEW_CHAIN_DOCS, SKILL, ORCH, TEMPLATE):
-        assert UNLESS not in flat(*carrier), (
-            f"{'/'.join(carrier)} still states the exception as an *unless*, "
-            "which is the unbounded reading"
-        )
-    assert sum(found.values()) <= AT_MOST_ONE_MORE_CEILING, found
-    assert sum(occurrences(UNLESS).values()) <= UNLESS_CEILING, occurrences(UNLESS)
-
-
-def test_the_occurrence_count_can_fail():
-    """A sweep that finds nothing is indistinguishable from one that read
-    nothing, so the walker is shown finding a phrase the owner is known to
-    carry."""
-    assert occurrences("Rounds are capped at **three**") == {"/".join(SPEC): 1}
-
-
-def test_the_occurrence_keys_are_slash_joined_whatever_the_separator(monkeypatch):
-    """PR #168's Windows leg, run 33962446559: `os.path.relpath` joins with
-    the platform separator and the two cases above look a key up as a
-    `/`-joined tuple, so both failed there and nowhere else. The separator
-    is monkeypatched here so the case is red on every platform against a
-    key built from `relpath` alone."""
-    real = os.path.relpath
-    monkeypatch.setattr(os, "sep", "\\")
-    monkeypatch.setattr(
-        os.path, "relpath", lambda path, start: real(path, start).replace("/", "\\")
-    )
-    found = occurrences("Rounds are capped at **three**")
-    assert found == {"/".join(SPEC): 1}, found
-
-
-# --- phase 4b: the linking carriers ------------------------------------------
-
-RE_RUN_HEADING = "### After a phase — the hand-back's claim is re-run"
-
-
-def test_the_protocol_re_runs_a_closed_phase_under_its_own_heading():
-    """Rule 9 reaches the protocol as a subsection of its own, between the
-    one about watching a running implementer and the one about the bars
-    after a run, and the subsection names the owner rather than restating
-    the rule's grounds."""
-    text = flat(*PROTOCOL)
-    before = text.index("### While the implementer runs")
-    after = text.index("### After the run — the per-segment bars")
-    assert before < text.index(RE_RUN_HEADING) < after, (
-        "the re-run subsection is not where a reader watching a phase close "
-        "would look for it"
-    )
-    section = text[text.index(RE_RUN_HEADING) : after]
-    assert "runs the closed phase's suite and the lint of its changed files" in section
-    assert "the broad gate still runs once" in section
-    assert (
-        RULES["9 a hand-back's verification claim is a claim"][2][PROTOCOL] in section
-    )
-
-
 def test_the_order_opens_the_draft_between_the_build_and_the_rounds():
     """`skills/implement/orchestration.md` §*Orchestrator: the order inside a
     ticket* is what a session reads to know what comes after the smith; a
     pull request listed last there is the dozen-rounds-on-one-platform shape
-    the owner's section measured.
-
-    The section lived in the shared checklist until #351 deleted it. The
-    case moved rather than going with it, because what it pins is an ordering
-    claim about the chain and not a fact about the checklist."""
+    the owner's section measured."""
     text = flat(*ORCH_IMPL)
     step = text[text.index("2. spec · plan") : text.index("3. The pull request body")]
     assert "smith → the draft pull request opens (" in step
@@ -844,14 +187,10 @@ def test_the_order_opens_the_draft_between_the_build_and_the_rounds():
 
 
 def test_the_order_no_longer_defers_the_framer_to_a_ticket():
-    """The other half of S11 of #84. Step 2 read `spec · plan (framer, once
-    #84 exists; the session until then)` -- a step written before the agent
-    it names, carrying its own escape clause for the interval.
-
-    The interval closed when `agents/framer.md` landed, and a clause saying
-    the session frames the work `until then` is now an instruction to do the
-    thing this work item exists to stop. It reads as current, because nothing
-    in the sentence says which side of the arrival a reader is on."""
+    """Step 2 read `spec · plan (framer, once #84 exists; the session until
+    then)` -- a step written before the agent it names, carrying its own
+    escape clause for the interval, which closed when `agents/framer.md`
+    landed."""
     step = flat(*ORCH_IMPL)
     step = step[step.index("2. spec · plan") : step.index("3. The pull request body")]
     assert "framer" in step, "step 2 stopped naming who draws the frame"
@@ -862,81 +201,180 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
         )
 
 
-# carrier → the sentence that names the generator where the orchestrator's
-# hand used to be named.
-GENERATOR_NAMED = {
-    PROTOCOL: "The record is written by `round_record.py new` from the reviewer's report",
-    WARDEN: (
-        "`round_record.py new` writes `round-N.md` from your report once the "
-        "orchestrator has verified your findings"
-    ),
-    SMITH: "`round_record.py new` sets it on the previous record when the next round posts",
-    IMPLEMENT: "`round_record.py new`, run by the review orchestrator; `close` applies the fix table",
-    PHASE_TEMPLATE: "runs `round_record.py new`, which writes that file",
-}
+def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():
+    """The owner's ruling of 2026-10-16, on round 7 of work item 1791933022:
+    a `regression:` line names a defect a fix pass's own commit introduced,
+    and a defect in a unit a build phase made, which the framer designed and
+    the owner approved, is an ordinary finding of new work, so its round
+    gets its fix pass. The document states it, and the template and the
+    warden, who write the line, say the same."""
+    run = flat(*RECORD)
+    run = run[run.index("## The run") : run.index("## The handoff")]
+    assert "A regression is a defect a fix pass's own commit introduced." in run
+    assert "is an ordinary finding of new work" in run
+    for carrier in (RECORD, WARDEN, ("templates", "sdd-round.md")):
+        text = flat(*carrier)
+        assert "a fix pass's own commits added or changed" in text, (
+            f"{'/'.join(carrier)} does not say a `regression:` line is for a "
+            "unit a fix pass's own commits made"
+        )
+        assert "the fixes under review added or changed" not in text, (
+            f"{'/'.join(carrier)} still gives a `regression:` line to any unit "
+            "the reviewed commits made, a build phase's among them"
+        )
+        # Round 9 of 1791933022, finding 1: every `fixed` commit touches its
+        # finding's path, so a fix that did not hold has usually changed the
+        # unit its defect still stands in. The unit alone gave that finding
+        # both lines; the defect's origin decides it.
+        assert "those commits introduced" in text, (
+            f"{'/'.join(carrier)} gives a `regression:` line to a unit a fix "
+            "pass changed without asking whether its commits made the defect"
+        )
+        assert "left the defect standing" in text, (
+            f"{'/'.join(carrier)} does not say a `fixed` commit that left the "
+            "defect standing in the unit it changed takes `reopens:`"
+        )
 
 
-@pytest.mark.parametrize("carrier", sorted(GENERATOR_NAMED))
-def test_the_linking_carrier_names_the_generator(carrier):
-    """Five carriers said the orchestrator writes the record, and the
-    orchestrator writes the round paragraph of the spawn prompt and nothing
-    else in it. What the orchestrator does write — the reviewed-HEAD mark —
-    keeps its sentence, and no case here reads it."""
-    assert GENERATOR_NAMED[carrier] in flat(*carrier), (
-        f"{'/'.join(carrier)} no longer names `round_record.py new` where it "
-        "used to name the orchestrator's hand"
-    )
+def sentences(text):
+    """`text`, flattened, cut after each full stop: the unit a pinned
+    relation has to stand in together."""
+    return re.split(r"(?<=\.)\s+", text)
 
 
-def test_the_wrap_rule_is_two_rules_and_the_warden_keeps_the_operative_one():
-    """Q3 of #340: the protocol and the warden state different things.
-
-    The protocol owns the CONFORMANCE statement, which a second
-    implementation is built from. The warden owns the OPERATIVE instruction,
-    which a reviewer follows at minute forty of a round. They are not one
-    rule in two places, and what keeps them from collapsing into one is
-    this: the warden asks for the blank line and NAMES the protocol for
-    where the join stops, rather than enumerating the stops a second time.
-
-    The registry row above pins the link. This pins the split — that the
-    warden did not become a second statement of the owner's sentence, which
-    is the eight-carrier state this module exists to prevent."""
-    warden = flat(*WARDEN)
-    protocol = flat(*PROTOCOL)
-    assert "leave a blank line under the pair" in warden, (
-        "the warden lost the operative instruction, which is the half a "
-        "reviewer acts on and the only stop that covers every shape"
-    )
-    owned = "Only the blank line stops every shape"
-    assert owned in protocol, (
-        "the protocol lost the sentence saying the block guard is a "
-        "narrowing, which is the half a second implementation is built from"
-    )
-    assert owned not in warden, (
-        "the warden restates the protocol's conformance sentence instead of "
-        "linking it, which makes one rule into two places to disagree"
-    )
-    # The enumeration is the owner's. The warden naming all three stops is
-    # how the restatement comes back without the sentence above coming with
-    # it, so the phrase itself is what this holds out.
-    assert "at a line opening a new markdown block" not in warden, (
-        "the warden enumerates where the join stops, which is the owner's "
-        "sentence re-derived rather than linked"
-    )
+def the_run():
+    text = flat(*RECORD)
+    return text[text.index("## The run") : text.index("## The handoff")]
 
 
-def test_the_warden_hands_both_terminal_lines_to_the_generator():
-    """The reviewer's two terminal lines are copied into the record by `new`,
-    and the report used to say the orchestrator copied them — a sentence
-    that reads as an instruction to type a cell."""
-    warden = flat(*WARDEN)
-    assert "`round_record.py new` copies it into the row of the same name" in warden
-    assert "copied into the row of the same name by the same subcommand" in warden
-    # The report's own copy of the sentence, distinct from the §6 bullet's: a
-    # pin on the shared prefix stayed green when one of the two was stashed.
+def test_a_close_that_does_not_hold_reopens_it():
+    """The owner's decision of 2026-10-16, on round 8 of work item
+    1791933022 (S9, S26): a close that does not hold where no fix pass's
+    commit made the defect is raised again on a `reopens:` line, as an
+    ordinary finding that gets its fix pass. §*The run* says so; every
+    carrier that names the channel's `confirms:` and `regression:` lines in
+    one sentence names `reopens:` in it too; and the orchestration's
+    verifying-round section ends the run only where the check does."""
+    reopened = [
+        s for s in sentences(the_run()) if "`reopens:`" in s and "does not hold" in s
+    ]
+    assert reopened, "§*The run* does not say a close that does not hold reopens"
+    assert any(
+        "where no fix pass's commit made the defect" in s
+        and "gets its fix pass" in s
+        and "framer" not in s
+        for s in reopened
+    ), reopened
+    for carrier in (RECORD, ROUND_TEMPLATE, WARDEN, SKILL, ORCH):
+        both = [
+            s
+            for s in sentences(flat(*carrier))
+            if "`confirms:`" in s and "`regression:`" in s
+        ]
+        assert both, f"{'/'.join(carrier)} names the channel nowhere"
+        for s in both:
+            assert "`reopens:`" in s, (
+                f"{'/'.join(carrier)} names the channel by `confirms:` and "
+                f"`regression:` alone: {s}"
+            )
+    orch = flat(*ORCH)
+    verifying = orch[
+        orch.index("So a run ends with a **verifying round**") : orch.index(
+            "### A regression"
+        )
+    ]
+    assert "the run ends at that round" not in verifying
     assert (
-        "`round_record.py new` writes the record from this report, so the "
-        "headers are what it parses"
-    ) in warden
-    assert "the orchestrator copies it into the row" not in warden
-    assert "the orchestrator owns the records" not in flat(*SMITH)
+        "run ends only on a round whose record holds no `open`, `fixed` or "
+        "`rejected` finding" in verifying
+    ), "the verifying-round section no longer says where the run ends"
+    # Round 9 of 1791933022, finding 3: the check holds a second condition on
+    # the same record, so a run ended on the first alone is refused.
+    assert (
+        "and whose `target:` commit is HEAD, or is followed only by the work "
+        "item's own records" in verifying
+    ), "the verifying-round section ends the run on one of the check's two conditions"
+
+
+COMPARISON = ("what the frame says", "what the fix did", "where the defect came from")
+
+
+def test_a_regression_is_routed_by_comparing_the_fix_with_the_frame():
+    """The owner's refinement of 2026-10-16, on round 8 of work item
+    1791933022 (S27): a `regression:` line does not send the work item to
+    its framer by itself. One sentence of the finding's grounds compares the
+    fix with the frame, and the round is routed on it: to the framer where
+    the fix built what the frame says, to a fix pass where it departed or
+    the defect came from how it was written, and to the framer for a second
+    regression on the same unit after a fix-pass route."""
+    run = the_run()
+    assert "**A regression is routed by comparing the fix with the frame.**" in run
+    for carrier in (RECORD, WARDEN, ORCH):
+        assert any(
+            all(part in s for part in COMPARISON) for s in sentences(flat(*carrier))
+        ), f"{'/'.join(carrier)} does not name the comparison in one sentence"
+    for route in (
+        "Where the fix built what the frame says and the defect is still there",
+        "the work item goes back to its framer",
+        "Where the fix departed from the frame, or the defect came from how the "
+        "fix was written",
+        "a paste-ready fix taken from a review record among them",
+        "gets an ordinary fix pass",
+        "A second regression on the same unit after a fix-pass route goes to the "
+        "framer whatever the comparison says.",
+    ):
+        assert route in run, f"§*The run* no longer says {route!r}"
+    assert "### A regression is routed by comparing the fix with the frame" in flat(
+        *ORCH
+    )
+    for carrier in (RECORD, ROUND_TEMPLATE, ORCH, WARDEN, FRAMER):
+        text = flat(*carrier)
+        for gone in (
+            "A round carrying a `regression:` line gets no fix pass",
+            "A round carrying one gets no fix pass",
+            "no fix pass is commissioned",
+            "the fix passes stop",
+            "A regression stops the fix passes",
+            "A regression sends the work item back to its framer",
+        ):
+            assert gone not in text, (
+                f"{'/'.join(carrier)} still routes on the `regression:` line "
+                f"alone: {gone!r}"
+            )
+
+
+def test_the_cap_counts_from_the_last_design_change():
+    """The owner's decision of 2026-10-16, on round 9 of work item
+    1791933022, finding 2: the round cap counts from the last design change,
+    a reframe or a new phase the owner approved, so the first review of new
+    work starts a fresh count; a regression routed to a fix pass is followed
+    by one verifying round that is not an extension; and the loop guard
+    stands. The extension rule stopped extending at any round carrying a
+    regression, which left both routes a regression now takes with no round
+    to go on to past round 3."""
+    run = the_run()
+    for said in (
+        "counted from the last design change",
+        "a reframe, or a new phase the owner approved in `plan.md`",
+        "starts the count again",
+        "followed by one verifying round, whatever the count",
+        "is not an extension",
+    ):
+        assert said in run, f"§*The run* no longer says {said!r}"
+    assert (
+        "A second regression on the same unit after a fix-pass route goes to the "
+        "framer whatever the comparison says." in run
+    ), "§*The run* lost the loop guard"
+    for carrier in (ORCH, ("README.md",)):
+        assert "counted from the last design change" in flat(*carrier), (
+            f"{'/'.join(carrier)} caps rounds without saying where the count starts"
+        )
+    assert "마지막 설계 변경" in flat("README.ko.md"), (
+        "README.ko.md caps rounds without saying where the count starts"
+    )
+    assert "counting from round <S>" in flat(*ROUND_TEMPLATE), (
+        "the template's extension line does not say where the count started"
+    )
+    assert "the record that stopped the run" not in flat(*FRAMER), (
+        "agents/framer.md still reads a regression's round as the end of the run"
+    )

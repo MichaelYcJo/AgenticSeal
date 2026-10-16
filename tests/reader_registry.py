@@ -39,9 +39,7 @@ import sys
 from conftest import on_disk
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
-EVIDENCE_CHECK = os.path.join(
-    ROOT, "skills", "evidence-check", "scripts", "evidence_check.py"
-)
+COORDINATES = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 CENSUS = "tests/undeclared_readers.txt"
 TEST_MODULE = re.compile(r"tests/test_[^/]*\.py")
 
@@ -373,17 +371,17 @@ class Module:
 
 
 @functools.cache
-def evidence_check():
-    """`skills/evidence-check/scripts/evidence_check.py`, loaded by path.
+def coordinates():
+    """`skills/verify/scripts/coordinates.py`, loaded by path.
 
-    Reads: observed — the checker's own module, executed by the interpreter; unknown refused
+    Reads: observed — the coordinate kernel's own module, executed by the interpreter; unknown refused
 
-    The census hashes a unit with the ledger's `py_spans` and `content_hash`,
-    imported and never copied, so a census line is the ledger's spelling and
+    The census hashes a unit with the kernel's `py_spans` and `content_hash`,
+    imported and never copied, so a census line is the kernel's spelling and
     `resolve_unit` finds it.
     """
     spec = importlib.util.spec_from_file_location(
-        "specseal_evidence_check_for_the_registry", EVIDENCE_CHECK
+        "specseal_coordinates_for_the_registry", COORDINATES
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -435,7 +433,7 @@ def unit_hash(ec, text, name):
     """The census hash of the unit NAME in TEXT: `content_hash` over every
     span `py_spans` gives the name, in order.
 
-    Reads: nothing — hashes the text it is handed, through the ledger's two functions
+    Reads: nothing — hashes the text it is handed, through the kernel's two functions
 
     One span for every name in this tree. Several, where a module defines a
     name twice, are hashed together so that an edit to either moves it.
@@ -451,7 +449,7 @@ def population(root=ROOT):
 
     Reads: observed — each tracked file's AST, parsed by the running interpreter; unknown refused
     """
-    ec = evidence_check()
+    ec = coordinates()
     files, missing = tracked_python(root)
     units, modules = [], []
     for rel in files:

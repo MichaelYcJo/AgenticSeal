@@ -146,7 +146,7 @@ discards every commit the release branch wrote, and anything naming one of
 them by SHA stops resolving.
 <!-- specs/1788826000-a-stamp-names-content-not-a-commit -->
 **A `# RIDER:` comment's stamp names content, never a commit, and the
-`Target SHA` field in every `round-N.md` is what still names one.** The stamp
+`target:` line in every `round-N.md` is what still names one.** The stamp
 used to read `Verified … at <sha>`, and after a squash it resolved for nobody,
 which removed the one way a reader has to tell a live rider from a spent one;
 `tests/test_a_rider_reaches_its_file.py` went red for exactly that, and the
@@ -215,30 +215,22 @@ else about the sequence below changes.
 - **Feature branches are cut from the release branch** and squash back into
   it. One squashed commit per branch, so the release branch reads as the
   changelog it is about to become.
-- **A squashed feature branch can be deleted, and the review still resolves.**
-  The squash discards the commits its review rounds reviewed and `round-N.md`'s
-  `Target SHA` still names them, so for three releases this said "do not delete
-  the branch until the release reaches `main`" — a rule living in one paragraph
-  and in no code. Five branches were deleted by hand anyway and a
-  release pull request went red naming six commits. `chain_check.py` reads
-  `refs/pull/<N>/head` now: GitHub writes it, a squash does not touch it,
-  deleting the branch does not touch it, and every one of those six commits was
-  sitting there. `.github/workflows/hygiene.yml` fetches the namespace, because
-  a default clone has none of it. That step and the two checks it serves ship
-  to user repositories as `templates/hygiene.yml`, run from a clone of this
-  repository at the release installed when the `implement` skill wrote the
-  file at a shared-mode first setup; local mode installs none, because the
-  checks read committed files and local mode commits none.
+- **A squashed feature branch can be deleted once its pull request merged.**
+  `chain_check.py` reads a round's `target:` commit only as HEAD or an ancestor of
+  it, so the commits a round reviewed are read while the pull request that
+  carries them is open, and no step fetches a ref the checkout lacks. The
+  checks ship to user repositories as `templates/hygiene.yml`, run from a
+  clone of this repository at the release installed when the `implement`
+  skill wrote the file at a shared-mode first setup; local mode installs
+  none, because the checks read committed files and local mode commits none.
 
-  Keeping the branch is still worth something and is no longer load-bearing:
-  it leaves the rounds and the verdict readable on a branch nobody merged,
-  which is the only place the reason it was not merged is written down.
+  Keeping the branch is still worth something: it leaves the rounds and the
+  verdict readable on a branch nobody merged, which is the only place the
+  reason it was not merged is written down.
 - **The release branch merges into `main` as a merge commit**, carrying one
   commit of its own: the one that gathers the changelog fragments into
   `changelog/X.Y.Z.md` under `## X.Y.Z — <date>` and heads the index
-  `CHANGELOG.md` with that line, folds the ledger fragments into
-  `seal/releases/X.Y.Z.md`, and
-  moves `plugin.json`. Then the tag. It is also the moment every
+  `CHANGELOG.md` with that line, and moves `plugin.json`. Then the tag. It is also the moment every
   issue this release closes gets closed, by a workflow rather than by
   anybody's hand — the paragraphs below say how, and what to keep writing in
   a feature pull request so it has something to read.
@@ -286,52 +278,10 @@ A fragment also closes every fenced block and HTML comment it opens (#584).
 The gather writes the next work item's marker below it, and a block left open
 would hide that marker and every older one, so `--check` would call a
 gathered entry missing and send you to gather it twice. The gather refuses
-such a fragment the same way, with or without `--dry-run`, naming it. The
-ledger fold refuses a ledger fragment that leaves one open, for the same
-reason.
+such a fragment the same way, with or without `--dry-run`, naming it.
 
 There is no accumulation section any more. `## Unreleased` was the shared
 region, and the fragments are what replaced it.
-
-**The ledger fragments fold in the same commit.** A work item's evidence rows
-go to `seal/ledger/<work-item-id>.md` for the same reason, and until the fold
-existed nothing gathered those: the directory gained one file per work item forever,
-and almost every pull request touched it (issue #78). After the merge there is
-no branch left to queue at the file, so release preparation also runs:
-
-```
-python3 .github/scripts/fold_ledger.py --version X.Y.Z
-```
-
-which moves every fragment into `seal/releases/X.Y.Z.md`, the release's own
-file under `## X.Y.Z — <date>`,
-one `###` section per work item marked with `<!-- specs/<work-item-id> -->`,
-and removes the fragment. `seal/ledger.md` keeps the notation and the rows
-from before the fragments existed, and stops growing; the sections folded into
-it before #547 moved once, by a `--split` that #715 retired. A released file
-never changes again, so the fold refuses a version older than the newest
-release file (`docs/release-checklist.md` §2). Every row is copied byte
-for byte; a row is a content anchor, so `evidence-check` reports the same
-thing before and after. `--dry-run` prints the section and writes nothing;
-`--check` reports a fragment left behind, and the hygiene workflow runs it
-beside the changelog check on every pull request into `main`. A marker counts
-only on a live line: one quoted in a fenced example, a commented-out draft or
-a code span is not a fold, so neither the fold's refusal nor `--check`'s
-doubled-marker report and count reads it. A `## X.Y.Z` line inside a fenced
-block heads nothing, because the fold copies such a line as text (#584).
-
-**The fold refuses while a verified fact has not reached the ledger.** A
-reviewer lists such facts in `seal/specs/<work-item-id>/evidence-todo.md`, and a
-sentence that must outlive the release has to have moved into a `docs/` policy
-or a ledger row before the merge (`docs/one-root-by-lifetime.md`, "What
-happens at a release", step 3). So the fold, and `--check`, stop while any such
-file in the tree has an open row, naming the file. A row is open unless the
-file carries a live line beginning `drained` — not one quoted in a fence, a
-comment or a code span — or the row's first cell begins with ✅. A row inside
-a fenced example that closes is not a row (#487). Every work item in the tree is read: the step runs on a branch cut from the
-release branch, which holds merged work only, so "released" and "present" are
-the same set — and a work item released earlier whose file was never drained
-stops this release too. The remedy is one commit that drains it.
 
 **The two merge shapes are not interchangeable.** Squash into the release
 branch keeps one entry per change; a merge commit into `main` keeps

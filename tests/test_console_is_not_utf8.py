@@ -135,63 +135,6 @@ def test_a_payload_the_console_cannot_decode_still_reaches_a_verdict(
     assert r.returncode == 0, r.stderr.decode("utf-8", "replace")[-300:]
 
 
-@pytest.mark.parametrize("encoding", HOSTILE)
-def test_a_reminder_the_console_cannot_encode_is_still_printed(tmp_path, encoding):
-    """The stdout half. `dispatch.py` prints a gate's plain-text output
-    verbatim, and those texts carry an em dash — unlike the PreToolUse
-    decisions, which leave through `json.dumps` and are ASCII by construction.
-
-    That difference is why this case exists separately: an earlier suite
-    asserted the em dash on a JSON-answering gate, where nothing could ever
-    raise, and the assertion was inert through three rounds.
-    """
-    repo = opted_in_repo(tmp_path / "plain" / "repo")
-    # The guard speaks when a review is POSTED and no round record exists, so
-    # the work item has to be declared and empty.
-    branch = subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "--abbrev-ref", "HEAD"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
-    item = repo / "seal" / "specs" / "1780000000-work"
-    item.mkdir(parents=True)
-    (item / "routing.md").write_text(
-        "\n".join(
-            [
-                "| Axis | Answer |",
-                "|---|---|",
-                "| Review | through the review chain |",
-                "| Destination | open the pull request |",
-                f"| Branch | {branch} |",
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
-    r = dispatch(
-        "post-bash",
-        {
-            "tool_name": "Bash",
-            "session_id": f"post-{encoding}",
-            "cwd": str(repo),
-            "tool_input": {"command": "gh pr comment 42 --body hi"},
-            "tool_response": {"stdout": ""},
-        },
-        encoding,
-    )
-    assert r.returncode == 0, r.stderr.decode("utf-8", "replace")[-300:]
-    printed = r.stdout.decode("utf-8", "replace")
-    assert printed.strip(), (
-        f"{encoding}: the post-bash group printed nothing. A reminder that "
-        "cannot be encoded is not a reminder that was not due"
-    )
-    assert EM_DASH in printed, (
-        f"{encoding}: the reminder arrived without the character this case "
-        "exists for, so nothing here was actually exercised"
-    )
-
-
 def test_a_declaration_that_cannot_be_decoded_is_not_an_answer(tmp_path):
     """`hooks/routing.py` caught `OSError` only, and `UnicodeDecodeError` is a
     `ValueError`. An undecodable `routing.md` raised out of `declarations()`,

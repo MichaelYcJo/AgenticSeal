@@ -9,4 +9,4 @@
 #   broad-gate --base origin/main                broad-gate --base origin/main --shape
 #   broad-gate --base origin/main --record seal/specs/<work-item-id>
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../skills/verify/scripts/broad_gate.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../skills/verify/scripts/broad_gate.py" "$@"

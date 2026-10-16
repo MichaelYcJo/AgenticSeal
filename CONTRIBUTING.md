@@ -43,16 +43,17 @@ instead, and the refusal goes with it.
 ### What a contribution is not asked for
 
 This repository runs a spec-driven workflow on itself — work items under
-`seal/specs/`, review rounds, an evidence ledger, a version that moves once
-per release. **A contribution is asked for none of it.** The version, changelog
-and ledger-fold steps belong to a release and exit early on any base but
-`main`. The others run on every pull request. Three of them pass for a different
-reason — they ask nothing of a branch that declared nothing: the round-record
-check, the unverified-record tally and the issue-claim report. The remaining
-two, the ledger and the survivor sweep, are always-on and CAN refuse a
-contribution; the heading below counts both and says what each asks.
-Each row below gives its own reason, and a maintainer adding a CI step should
-read the row rather than this sentence.
+`seal/specs/`, review rounds, a version that moves once per release. **A
+contribution is asked for none of it.** The version and changelog steps
+belong to a release and exit early on any base but `main`. The others run on
+every pull request, and they pass for a different reason — they ask nothing
+of a branch that declared nothing: the review-chain check, the
+unverified-record tally and the issue-claim report. The suite reads one fact
+about the rule files: an `Enforced by:` target your change renamed or removed
+fails it, naming the file, the line and the heading, and `bin/rules --check`
+gives the same answer before you push. Each row below gives its own reason,
+and a maintainer adding a CI step should read the row rather than this
+sentence.
 
 Established by reading every step of `.github/workflows/hygiene.yml` and
 `.github/workflows/test.yml` against a live contribution that carried none of
@@ -62,7 +63,6 @@ the following and came back green.
 |---|---|
 | a `routing.md`, `spec.md` or `plan.md` under `seal/specs/` | Nothing in CI reads them. They route a maintainer's own session |
 | a review round record | *a declared review chain has the round record it claimed* passes with a notice when no declaration names your branch |
-| a row under `seal/ledger/` | the `ledger` job runs the lenient reader: content drifting under an anchor is a warning. An anchor that stops resolving is not — see below |
 | a `changelog.md` fragment | *every changelog fragment reached the released file* exits 0 unless the base is `main` |
 | an `overview.md`, or a row inside one | *the unverified record is readable* counts the rows already in the tree, so adding none passes |
 | a new version in `.claude-plugin/plugin.json` | *a change to what ships must move the version* exits 0 unless the base is `main` |
@@ -71,35 +71,6 @@ the following and came back green.
 You also have no commit gate and no worktree guard. Those are this plugin's
 own hooks, installed on a maintainer's machine. Nothing runs them on yours,
 and nothing in CI stands in for them.
-
-### The two checks that can ask you for something you do not have
-
-*wording this branch removed is not still standing elsewhere* runs on every
-pull request into a release branch, and a documentation change can trip it. It
-reports each place still carrying wording your change removed, and its refusal
-tells the author to record the exemption in a `survivors.md` under
-`seal/specs/` — a file belonging to a work item, which a contribution does not
-have.
-
-**Do not create one.** Say so on the pull request instead: quote what the
-check reported, and say why the text it found is correct where it stands. A
-maintainer then either corrects those places or records the exemption on their
-side.
-
-**The evidence ledger is the other one.** `seal/ledger.md` and the release
-files under `seal/releases/` pin claims to units of code and prose by name,
-and the `ledger` job fails when one of those names stops resolving — a
-heading you renamed, a function you removed. Drift under a name that still
-resolves is only a warning; a name that is gone is exit 2. The repair is a
-maintainer's, for the same reason: the row is removed from the file it
-stands in and the new claim written into a work item's fragment,
-which is a convention a contribution does not have. Say on the pull request
-which name your change moved, and leave the ledger alone.
-
-**The same job reads `seal/follow-up.md`.** Its rows name units for a person
-to act on later, and a row naming a unit your change renamed or removed is
-exit 2 too. Say that on the pull request as well: the row is a maintainer's
-to correct, for the same reason the ledger row is.
 
 ## Running the checks
 
@@ -124,7 +95,6 @@ prints the interpreter it used.
 bin/test tests/test_session_cost.py -q   # one module — the form to type
 bin/test                                 # everything, in parallel — the sealer's run
 uvx ruff check . && uvx ruff format .    # the linter this plugin runs on your code
-python3 skills/evidence-check/scripts/evidence_check.py .
 ```
 
 Both forms run under `-n auto` unless you pass your own `-n`, `-p no:xdist`
@@ -134,25 +104,29 @@ that lacks that version (#667, #718, #647). What the whole run costs is a
 figure with a date and a machine, recorded in the work item that measured
 it, not here.
 
-**The last of those is the lenient reader.** `broad-gate` runs the same script
-with `--strict`, where drift is exit 2 and the branch comes back `NOT SEALED`;
-CI's `ledger` job runs it without the flag and renders drift as a warning.
-Three readers of the exit code, one tree, and the disagreement is deliberate —
-a branch mid-flight drifts legitimately, and the gate runs once at the end over
-a tree nobody is still editing. A check run that comes back exit 1 prints which
-reading you took, so this is not a fact anyone has to remember.
-
 **Name a module.** The full suite is the sealer's, run once after the review
 rounds settle — `skills/agent-contract/SKILL.md` §2 forbids it to smith and
 warden, and `agents/sealer.md` is the agent it is assigned to. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
-**Python 3.12 is the supported floor**, held as `FLOOR` in
-`.github/scripts/run_tests.py` so this sentence and the code state one number.
-`bin/test` builds its virtualenv with an interpreter at that floor or newer,
-refuses a `.venv` it finds below it, and where it finds neither `uv` nor such
-an interpreter it says which to install.
+**Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/launch.py`
+so this sentence and the code state one number. Every `bin/` wrapper but
+`bin/test` runs its script through that launcher, which refuses an older
+interpreter with one sentence before the script is read. `bin/test` starts on
+whatever `python3` it finds, because its runner is what gets past an old one:
+it builds its virtualenv with an interpreter at that floor or newer, refuses a
+`.venv` it finds below it, and where it finds neither `uv` nor such an
+interpreter it says which to install. What runs before any floor is checked
+— a hook, a git hook, the launcher, `bin/test`'s runner, and every module one
+of them loads in its own process — runs on whatever `python3` starts it.
+`ruff.toml` lints that code at the version its `per-file-target-version`
+names, and `tests/test_a_script_says_which_interpreter_it_needs.py` derives
+the set, holds every file of it to that table, and refuses in it the syntax
+`ast` rejects at that version and the two constructs ruff pushes toward above
+it, `zip(..., strict=)` and `datetime.UTC`. Nothing runs that code at that
+version, so a standard-library module or an annotation only a newer
+`python3` has, as `tomllib` or `str | None` in a signature, passes both.
 
 The fallback runs the suite without writing a `.venv` into the tree. It is the
 form this section used to name first, and it resolves and installs its
@@ -166,15 +140,18 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with pillow==12.3.0 --with cmar
 # or: pip install pytest markdown-it-py==4.2.0 pillow==12.3.0 cmarkgfm==2025.10.22 && python3 -m pytest tests/
 ```
 
-CI runs five jobs: lint (`ruff check` + `ruff format --check`), the suite on
+CI runs six jobs: lint (`ruff check` + `ruff format --check`), the suite on
 ubuntu, macOS and Windows at the floor stated above (macOS in three shards
 and Windows in four, each leg divided by `pytest-split` from the one
-committed `.test_durations`, #841, #864; ubuntu as one job),
-`tests/test_arm_check.py`
-at 3.13 and 3.14 (`arm-check`'s node-type tables are only as true as the
-interpreter that reads them, #684), the evidence ledger against this
-repository, and the hygiene workflow that guards releases. A change to any
-hook needs a test that fails without it — see the counterfeit rule below.
+committed `.test_durations`, #841, #864; ubuntu as one job), `durations`,
+which unions what the Windows shards measured (#931),
+`tests/test_arm_check.py` at 3.13 and 3.14 (`arm-check`'s node-type tables
+are only as true as the interpreter that reads them, #684), `release-report`,
+which on a pull request into `main` only prints the release table against
+the last release tag and fails nothing, and the hygiene workflow that guards
+releases. A
+change to any hook needs a test that fails without it — see the counterfeit
+rule below.
 
 **A case has a budget, and so does each leg.** A case whose call runs longer
 than `CASE_CEILING_S` in `tests/conftest.py` (90 s) fails with one line
@@ -193,35 +170,28 @@ cases under the same ids: a parametrized path takes `ids=posix_id` from
 `tests/conftest.py`, and no id carries the interpreter's path, which
 `test_no_collected_id_carries_the_interpreters_path` holds. It prices each
 case as Windows ran it, so a case Windows skips is near zero there and its
-whole macOS cost is unseen by the division: after a refresh, read the macOS
-shards' times in the next run's jobs and set their `timeout` again by the
-rule beside the values. The file is refreshed at each release's
-preparation, from the release branch
-(`docs/release-checklist.md` §*0. Before starting*), and whenever
-`test_the_durations_file_prices_the_suite` goes red: more than one
-collected case in twenty (`STALE_SHARE`) has no price in the file.
+macOS cost is unseen by the division; a macOS shard that grows past its
+`timeout` fails, and the rule beside the values in `test.yml` sets it
+again. Every `tests` run measures the file: each Windows shard runs with
+`--store-durations --clean-durations` and uploads the part it wrote, and
+the `durations` job unions the four parts into the `test-durations`
+artifact, kept seven days, and writes each shard's measured seconds and
+their spread to its summary. When to commit it is
+`test_the_durations_file_prices_the_suite`'s to say: it fails when more
+than one collected case in twenty (`STALE_SHARE`) has no price in the
+file, or when more than one second in twenty of the file's belongs to
+entries the suite no longer collects.
 `bin/test tests -q -k test_the_durations_file_prices_the_suite` runs that
 case alone against the whole collection, and naming one module skips it.
-To refresh it, push a branch on which `test.yml` runs the Windows leg as
-one job again for a single run: one Windows entry with
-`store: "--store-durations --clean-durations"` (the second drops every
-entry the run did not collect, which `pytest-split` otherwise keeps) in
-place of the four Windows shard entries, the three macOS shard entries left
-as they are, with a `timeout` for the whole Windows leg rather than a
-shard's 20 (60 by the rule beside the values, from the 37 m 21 s it ran
-unsharded in run 38332345615);
-`${{ matrix.store }}` on the pytest line; and an
-`actions/upload-artifact@v4` step with `if: always() && matrix.store != ''`,
-`path: .test_durations` and `include-hidden-files: true` (the name starts
-with a dot, which the action skips by default). Both halves of the
-condition are needed. On that branch the shard cases in
-`tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py` fail,
-because the Windows leg has no shards, so without `always()` the upload is
-skipped although the file was written. Without `matrix.store != ''`,
-ubuntu and the macOS shards upload the committed file under the same name
-first.
-Download the artifact with `gh run download <run> -n <artifact>`, make its
-line ends LF, commit it, and restore the shards.
+To refresh the file, take the artifact from your branch's latest `tests`
+run: `gh run download <run id> -n test-durations -D <dir>`, then move
+`<dir>/.test_durations` over the committed file and commit it. Its line ends
+are already LF. The download goes to a directory of its own because `gh`
+will not write over a file that is already there. A run older than
+seven days is re-run first, with `gh run rerun <run id>`. A branch with no
+pull request has no `tests` run until one is dispatched, and neither has a
+branch whose run is too old to re-run:
+`gh workflow run test.yml --ref <branch>` starts one.
 
 **The suite runs with `gh` logged out, on your machine as on CI.** CI's
 pytest job has no token, so `tests/conftest.py` makes the same true locally
@@ -252,7 +222,8 @@ after the review rounds settle, and nothing edited between that run and the PR.
 ## What a change to a gate must carry
 
 The gates decide whether someone's commit or branch switch proceeds, so a
-change to one is judged by what it does when it is wrong:
+change to one is judged by what it does when it is wrong, and a change that
+adds any mechanism by what it takes away:
 
 - **A test seen red.** Write the test against the unfixed code and watch it
   fail before you fix anything. A test that has never failed proves nothing
@@ -279,57 +250,41 @@ change to one is judged by what it does when it is wrong:
   decides from, and a changed unit leaves the census when it declares.
   `docs/the-reader-registry.md` holds the grammar, and
   `tests/test_a_reader_declares_its_input_class.py` refuses a unit without it.
-- **A frame that names what it removes.** A change that takes a reader, a
-  rule or a pin out of the tree lists it under its `spec.md`'s `## Removes`,
-  where `evidence-check` reads each row as a claim that the thing is gone.
-  `docs/the-reader-registry.md` §*A frame names what its work removes* is the
-  rule.
+- **What it removes.** A pull request that adds a mechanism — a gate, a
+  checker, a hook, a CI step, a rule — names the existing one it removes, or
+  says why none can go, and with either answer what that one caught against
+  what it costs. `CLAUDE.md` §*The rule a mechanism is kept against* is why.
+  What goes is listed under its `spec.md`'s `## Removes`, which the review
+  reads against the diff; `docs/the-reader-registry.md` §*A frame names what
+  its work removes* is the rule.
 
-The prompt budget is the one of these a passing suite cannot report on,
-because nothing counts interruptions. It is answered in the pull request body
-or it is not answered. `skills/implement/SKILL.md` §1 holds the reasoning the
+The prompt budget and what a change removes are the two a passing suite
+cannot report on: nothing counts interruptions, and nothing weighs a
+mechanism's catches against its cost. Both are answered in the pull request
+body or they are not answered. `skills/implement/SKILL.md` §1 holds the reasoning the
 budget is drawn against: the cost of a question is not its difficulty, it is
 when it arrives.
 
 ## House rules
 
 - **A change writes a fragment, never a shared registry.** Which file a
-  change writes — its changelog entry, its ledger rows, and its re-reads and
-  corrections of a released ledger row — is `docs/the-record-layout.md`
-  §*A change writes fragments, never a shared file*. How a released row is
-  read again, and what to do when a ledger file conflicts, is
-  `docs/the-evidence-ledger.md` §*A released row is read again in the
-  branch's fragment* and §*A correction a merge dropped*. Three branches
+  change writes its changelog entry into is `docs/the-record-layout.md`
+  §*A change writes fragments, never a shared file*. Three branches
   running in parallel once shared exactly one file between them, and it was
   the changelog: the conflict was three lines, and it arrived after the broad
   gate had run, where nothing may be edited.
-
-  **Renamed a cited symbol or file?** `bin/evidence-check --reverify .`
-  re-anchors every row of a fragment whose content provably moved intact,
-  and prints BROKEN with the destination for anything it cannot prove,
-  including a released row, whose repair the evidence-ledger section above
-  gives. The command is the rule; remembering it is not — forgetting
-  costs one line at the very next commit, printed by the post-commit advisory
-  in the terminal where the rename just happened, and CI prints the same line
-  at the pull request.
 
   **One branch does write the changelog, and it is the one based on `main`.**
   A pull request into `main` is a release, so the entries are due there and
   the hygiene workflow fails it while a fragment is still ungathered. The
   gather writes the release's own file, `changelog/X.Y.Z.md`, and its heading
-  in the index `CHANGELOG.md`, and no other branch writes either. The
-  gather and the fold are the commands in `docs/release-checklist.md` §*2.
-  Gather, fold, bump*, run in that order. This is the rule above being
-  satisfied rather than broken: the branch is not adding an entry to a shared
-  region, it is collecting the fragments that already exist. A hotfix taken
-  straight to `main` is the case that meets this without expecting to.
+  in the index `CHANGELOG.md`, and no other branch writes either. The gather
+  is the command in `docs/release-checklist.md` §*2. Gather, bump*. This is
+  the rule above being satisfied rather than broken: the branch is not adding
+  an entry to a shared region, it is collecting the fragments that already
+  exist. A hotfix taken straight to `main` is the case that meets this without
+  expecting to.
 
-  The fold refuses, naming the file, while any `seal/specs/<id>/evidence-todo.md`
-  in the tree still has an open row: a row in a file with no `drained` line,
-  whose first cell does not begin with ✅. A `drained` line quoted in a fence
-  or a comment does not count, and a row inside a fenced example that closes
-  is not a row. Merge the fact into the fragment and drain the file; that is
-  one commit on the release branch.
 - **No real identifiers.** Examples, fixtures, and docs use `example.com`
   and `/Users/x/` only. `tests/test_no_real_identifiers.py` enforces it in
   CI — extend its allowlist deliberately, never to make a test pass. The rule

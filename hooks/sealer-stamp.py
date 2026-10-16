@@ -47,13 +47,13 @@ drawing rather than repeating one.
 
 **Silent on every failure**, the shape `implementer-notice.py` has: a payload
 that is not JSON, a repository that is not opted in, a file that is not a
-run's values. That includes an interpreter under `seal_stamp.py`'s floor of
-3.12 — a hook runs under whatever `python3` the harness finds, 3.9 on a stock
-macOS — where this draws nothing and the `SEALED` line in the sealer's
-report, which names the file and `seal-stamp --from` wherever a values file
-was written, is what remains. The same line is what remains where the main
-session's working directory is outside the sealed clone, and where its
-plugin predates this hook; `docs/the-broad-gate.md` §*Where the stamp is
+run's values. That includes a `python3` that cannot load `seal_stamp.py` —
+a hook runs under whatever `python3` the harness finds, and no launcher
+stands in front of it — where this draws nothing and the `SEALED` line in the
+sealer's report, which names the file and `seal-stamp --from` wherever a
+values file was written, is what remains. The same line is what remains where
+the main session's working directory is outside the sealed clone, and where
+its plugin predates this hook; `docs/the-broad-gate.md` §*Where the stamp is
 drawn* states all three.
 
 It draws; it never stops anything. `hooks/implementer.py`'s stance holds: a
@@ -91,8 +91,10 @@ def toplevel(cwd):
 
 
 def load_stamp():
-    """`seal_stamp.py`, or None where it cannot be imported — its own floor
-    refuses an interpreter under 3.12 with `SystemExit` at import."""
+    """`seal_stamp.py`, or None where it cannot be imported, whatever its
+    import raises.
+
+    Reads: owned — the module this plugin ships beside the hook; unknown passed"""
     try:
         spec = importlib.util.spec_from_file_location(
             "specseal_seal_stamp_for_the_stop_hook", STAMP

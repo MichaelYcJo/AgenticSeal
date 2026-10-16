@@ -73,7 +73,7 @@ interpreter's tag, and on the machine this was built on `python3` is 3.14
 while `bin/test`'s virtualenv reads 3.13.
 
 **`arm_check.py` is reached by path, not through `sys.path`.** Both
-functions this uses are its own, ledgered there, and a second copy is how two
+functions this uses are its own, and a second copy is how two
 loops come to disagree. A bare `from arm_check import ...` would resolve only
 while this file is run by its path with `PYTHONSAFEPATH` unset, and a case
 loading this file by an `importlib` spec meets neither condition. Every other
@@ -93,7 +93,6 @@ import argparse
 import hashlib
 import importlib.util
 import os
-import shlex
 import signal
 import subprocess
 import sys
@@ -141,6 +140,7 @@ def _sibling(name: str, path: str):
 _ARM_CHECK = _sibling("specseal_arm_check_for_mutation_check", ARM_CHECK)
 clear_bytecode_cache = _ARM_CHECK.clear_bytecode_cache
 restore = _ARM_CHECK.restore
+command_words = _ARM_CHECK.command_words
 
 
 class Refused(Exception):
@@ -295,6 +295,8 @@ def mutation_run(
     """Run the cases against the file as it is, then write one mutation, run
     them again, and restore. `(verdict, detail, output)`.
 
+    Reads: observed — the file it mutates, as bytes, and the exit of the cases' command; unknown refused
+
     `Refused` before any run; `NO_BASELINE` when the cases fail before the
     write; `NotRestored` when the restore did not land, which replaces
     whatever the run said."""
@@ -386,6 +388,10 @@ def mutation_run(
 
 
 def main(argv=None) -> int:
+    """Run one mutation from the command line and print its verdict.
+
+    Reads: observed — the command line, and what `mutation_run` returns; unknown refused
+    """
     parser = argparse.ArgumentParser(
         prog="mutation-check",
         description=(
@@ -425,7 +431,7 @@ def main(argv=None) -> int:
             "--timeout takes a non-negative number of seconds, and 0 removes "
             "the bound. A negative value ends every run before it starts."
         )
-    command = shlex.split(args.tests)
+    command = command_words(args.tests)
     if not command:
         parser.error("--tests names no command")
 

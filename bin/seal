@@ -11,4 +11,4 @@
 #   seal mode                     seal mode --check
 #   seal mode local               seal mode shared
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../skills/implement/scripts/seal.py" "$@"
+exec python3 "$here/../hooks/launch.py" "$here/../skills/implement/scripts/seal.py" "$@"

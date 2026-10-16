@@ -23,8 +23,12 @@ plugin still has to read the rules.
 Exit codes. 0: the two agree, or `--write` made them agree. 1: they differ
 (`--check` only). 2: a file the script cannot read, a target with no markers
 -- which is not a disagreement but a file the script cannot place a block in;
-placing one is `install.sh`'s act, on a user's file, with a backup -- or an
-interpreter below the floor, where nothing is read and nothing is written.
+placing one is `install.sh`'s act, on a user's file, with a backup.
+
+It carries no interpreter guard. It is this repository's own tool, run by
+the hygiene workflow at the floor and by a contributor, whom
+`CONTRIBUTING.md` §*Running the checks* tells the floor; no plugin user runs
+it.
 
 The region is cut the way `install.sh`'s `awk` cuts it: from the line holding
 the start marker through the line holding the end marker, inclusive. Both
@@ -42,42 +46,6 @@ ending, the block and the owner's rules below it alike (#292 round 1).
 import argparse
 import os
 import sys
-
-# **The floor is one number, and this is another carrier of it.** The block
-# below is `skills/code-review/scripts/round_record.py`'s, copied as that
-# file says it should be: after the imports, no syntax newer than the oldest
-# interpreter it means to catch, and before every other module-level act.
-# `tests/test_a_script_says_which_interpreter_it_needs.py` pins the number to
-# the runner's and to ruff.toml's.
-FLOOR = (3, 12)
-FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
-BELOW_FLOOR = (
-    "claude-block: needs python {floor} or newer, and this is python {found} "
-    "at {executable}.\n"
-    "Nothing was read and nothing was written.\n"
-    "`python3` is not always the newest interpreter installed -- macOS ships "
-    "python 3.9 under that name -- so name one explicitly, `python{floor} "
-    "<this script> ...`, or see CONTRIBUTING.md section 'Running the checks'."
-)
-
-
-def below_floor(version=None, executable=None):
-    """The sentence for an interpreter under the floor, or None above it."""
-    version = tuple(sys.version_info[:3]) if version is None else tuple(version)
-    if version[:2] >= FLOOR:
-        return None
-    return BELOW_FLOOR.format(
-        floor=FLOOR_TEXT,
-        found=".".join(str(part) for part in version),
-        executable=sys.executable if executable is None else executable,
-    )
-
-
-_refusal = below_floor()
-if _refusal:
-    sys.stderr.write(_refusal + "\n")
-    raise SystemExit(2)
-
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 TEMPLATE = os.path.join(ROOT, "templates", "claude-md-block.md")
