@@ -222,6 +222,18 @@ def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():
             f"{'/'.join(carrier)} still gives a `regression:` line to any unit "
             "the reviewed commits made, a build phase's among them"
         )
+        # Round 9 of 1791933022, finding 1: every `fixed` commit touches its
+        # finding's path, so a fix that did not hold has usually changed the
+        # unit its defect still stands in. The unit alone gave that finding
+        # both lines; the defect's origin decides it.
+        assert "those commits introduced" in text, (
+            f"{'/'.join(carrier)} gives a `regression:` line to a unit a fix "
+            "pass changed without asking whether its commits made the defect"
+        )
+        assert "left the defect standing" in text, (
+            f"{'/'.join(carrier)} does not say a `fixed` commit that left the "
+            "defect standing in the unit it changed takes `reopens:`"
+        )
 
 
 def sentences(text):

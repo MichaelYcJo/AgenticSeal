@@ -8,9 +8,10 @@
   lines: `severity:` (`must` or `should`, which no check reads),
   `location:` (backticked coordinates where the defect shows), `verdict:`
   (`open`, `fixed <commit>`, `rejected` or `deferred <home>`), a
-  `regression:` line where the finding sits in a unit a fix pass's own
-  commits made, or a `reopens:` line where it raises again an earlier
-  finding whose close does not hold, and the fix pass's `answer:`. The
+  `regression:` line where a fix pass's own commits made the finding's
+  defect, or a `reopens:` line where it raises again an earlier finding
+  whose close does not hold, a `fixed` commit that left the defect standing
+  among them, and the fix pass's `answer:`. The
   paste-ready fix sits inside its finding. What the round confirmed is a `confirms:` line under
   `## Confirmations`, left out when there is nothing to confirm; what it
   could not judge is a row of `## Not judged`; the commands it ran are

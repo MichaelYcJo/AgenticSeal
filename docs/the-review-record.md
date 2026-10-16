@@ -260,8 +260,9 @@ Enforced by: nothing — the orchestrator applies it, and the sealer reads the c
 
 **A regression is routed by comparing the fix with the frame.** A
 regression is a defect a fix pass's own commit introduced. Where a finding
-stands in a unit a fix pass's own commits added or changed, the warden
-writes its `regression:` line, naming the finding whose fix made the unit
+stands in a unit a fix pass's own commits added or changed, and those
+commits introduced its defect, the warden writes its `regression:` line,
+naming the finding whose fix made the unit
 as `round-<N>#<n>`, or that round as `round-<N>` where no finding named the
 unit, and names the unit first in the grounds. Then one sentence of the
 grounds says what the frame says, from the phase's `plan.md` row and
@@ -281,8 +282,9 @@ one the framer designed and the owner approved in `plan.md`, is an ordinary
 finding of new work, with no `regression:` line, even where the round that
 finds it reads that phase. A close that does not hold where no fix pass's
 commit made the defect, a `rejected` finding that holds after all or a
-`fixed` commit that did not fix it, is raised again as an ordinary finding
-with a `reopens:` line naming it, and gets its fix pass.
+`fixed` commit that left the defect standing, in the unit that commit
+changed or in another, is raised again as an ordinary finding with a
+`reopens:` line naming it, and gets its fix pass.
 Enforced by: tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made, tests/test_the_rules_have_one_owner.py::test_a_close_that_does_not_hold_reopens_it, tests/test_the_rules_have_one_owner.py::test_a_regression_is_routed_by_comparing_the_fix_with_the_frame
 
 **A leftover finding takes the first rung that fits.** A new issue is the

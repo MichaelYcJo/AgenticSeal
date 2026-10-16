@@ -134,7 +134,8 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   the way you report anything. What changes is only where you looked.
 
   The diff's new units are reviewed as code. A finding whose unit is one a
-  fix pass's own commits added or changed carries a `regression:` line —
+  fix pass's own commits added or changed, and whose defect those commits
+  introduced, carries a `regression:` line —
   `round-<N>#<n>` for the finding whose fix made that unit, `round-<N>` for
   a fix pass that no finding commissioned — and its grounds open with the
   unit, then with one sentence setting the fix beside the frame: what the
@@ -144,8 +145,9 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   which the framer designed and the owner approved, is new work even where
   your target carries it, and a finding there takes no `regression:` line.
   A close that does not hold where no fix pass's commit made the defect —
-  a rejection that was wrong, a `fixed` commit that did not fix it — takes
-  `reopens:`, not `regression:` (`docs/the-review-record.md` §*The run*).
+  a rejection that was wrong, a `fixed` commit that left the defect
+  standing, in the unit it changed or in another — takes `reopens:`, not
+  `regression:` (`docs/the-review-record.md` §*The run*).
 
   **A round told the run is capped still reports what it finds, at the
   severity it finds it.** What a cap decides is whether another round is

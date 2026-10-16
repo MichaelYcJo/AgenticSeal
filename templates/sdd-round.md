@@ -45,9 +45,11 @@ labels:
                                     no commit was made
                                     (docs/the-review-record.md)
   regression:  only on a finding in a unit a fix pass's own commits added
-               or changed: the earlier finding as `round-<N>#<n>`, or
-               `round-<N>` for a fix pass no finding named. A unit a build
-               phase made is new work and takes none. The grounds then owe
+               or changed, where those commits introduced the defect: the
+               earlier finding as `round-<N>#<n>`, or `round-<N>` for a fix
+               pass no finding named. A `fixed` commit that left the defect
+               standing takes `reopens:`. A unit a build phase made is new
+               work and takes none. The grounds then owe
                one sentence comparing the fix with the frame, which the
                orchestrator routes the round on (docs/the-review-record.md).
                Delete the line otherwise
