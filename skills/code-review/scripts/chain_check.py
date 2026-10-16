@@ -916,14 +916,8 @@ def channel(rounds):
         before = rounds[k - 1]
         named = {(n, m) for _line, (n, m) in references if m is not None}
         for f in before.findings:
-            if (
-                f.verdict[0] in (FIXED, ANSWERED)
-                and (
-                    before.number,
-                    f.number,
-                )
-                not in named
-            ):
+            owed = f.verdict[0] in (FIXED, ANSWERED)
+            if owed and (before.number, f.number) not in named:
                 problems.append(
                     (
                         here.path,
