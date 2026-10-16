@@ -1,8 +1,6 @@
 # 1791933022-every-agent-skill-and-doc-states-the-current-rule-only — review round 1
 
-| Field | Value |
-|---|---|
-| Target SHA | c79670b6 against ce448bbef731a5e05a48c3e403ada5bc1c094f19 |
+target: c79670b6 against ce448bbef731a5e05a48c3e403ada5bc1c094f19
 
 Part A, phases 1–5, reviewed against `spec.md`, `plan.md` rows 1–5 and
 `questions.md` Q7. Part B (phases 6–9) is out of this round's scope and
@@ -295,13 +293,20 @@ answer: every coordinate listed rewritten in place to `docs/the-review-record.md
 
 ## Confirmations
 
-| Confirms | What holds | Location | Grounds |
-|---|---|---|---|
-| none | Q7 is built as the orchestrator's default answered it: a declaration every commit after the base touched as a GitHub squash ending `(#N)` is named and not judged; one naming the branch, or touched by any other commit, an uncommitted change or no commit, is judged | `skills/code-review/scripts/chain_check.py:237-275`, `:1027-1037` | read: `carried_by` and `main`; `docs/the-review-record.md` §*What the check reads at the pull request* and `skills/settle/SKILL.md:110-113` say the same. executed: `TestCarriedBy` and the two `TestMain` release cases pass |
-| none | The check reads every record in the tree: `Target SHA` and the verdict table of all 35 `round-N.md` under `seal/specs/` read with no error, no open row and a SHA each (S11) | `seal/specs/*/rounds/` | executed: `test_tmp_old_records.py` |
-| none | The five arms, the template, the guarantee template, `broad-gate --record` on both routes, `rules --check` and the release table match `spec.md` §*Data & interfaces* and `plan.md` rows 1–5, apart from findings 1, 4 and 5; every chain-check arm §*Removes* names is gone | `skills/code-review/scripts/chain_check.py`, `templates/sdd-round.md`, `templates/sdd-guarantee.md`, `.github/scripts/rules.py`, `.github/scripts/release_report.py` | read: the files against the spec; the base's function list against the new one (`comm`). executed: the narrow modules, 160 passed; `bin/rules --check` exit 0, 401 targets in 60 files; `chain_check.py --baseline origin/release/v0.22.0` exit 0, naming the three files this branch does not carry yet |
-| none | Of the deleted check and test modules, only the open-row reading of finding 1 lost a guard the spec did not decide to drop; `gate_before_review`'s premature-run refusal is held by `follows`, and `rounds_unreadable`'s state now reads as *holds no `round-N.md`*, loudly | `skills/code-review/scripts/chain_check.py:634-667`, `:744-789` | read: the base's `gate_before_review`, `rounds_unreadable` and `open_blocking`, and `phases/phase-3.md`'s table of 28 modules |
-| none | The rewritten repository rules hold in this diff: `CLAUDE.md` and `CONTRIBUTING.md` are rewritten in place rather than appended to, and no example or fixture carries a real identifier | `CLAUDE.md`, `CONTRIBUTING.md` | read: their diff hunks. executed: `tests/test_no_real_identifiers.py` among the 160 passed |
+confirms: none
+Q7 is built as the orchestrator's default answered it: a declaration every commit after the base touched as a GitHub squash ending `(#N)` is named and not judged; one naming the branch, or touched by any other commit, an uncommitted change or no commit, is judged. At `skills/code-review/scripts/chain_check.py:237-275`, `:1027-1037`. read: `carried_by` and `main`; `docs/the-review-record.md` §*What the check reads at the pull request* and `skills/settle/SKILL.md:110-113` say the same. executed: `TestCarriedBy` and the two `TestMain` release cases pass
+
+confirms: none
+The check reads every record in the tree: `Target SHA` and the verdict table of all 35 `round-N.md` under `seal/specs/` read with no error, no open row and a SHA each (S11). At `seal/specs/*/rounds/`. executed: `test_tmp_old_records.py`
+
+confirms: none
+The five arms, the template, the guarantee template, `broad-gate --record` on both routes, `rules --check` and the release table match `spec.md` §*Data & interfaces* and `plan.md` rows 1–5, apart from findings 1, 4 and 5; every chain-check arm §*Removes* names is gone. At `skills/code-review/scripts/chain_check.py`, `templates/sdd-round.md`, `templates/sdd-guarantee.md`, `.github/scripts/rules.py`, `.github/scripts/release_report.py`. read: the files against the spec; the base's function list against the new one (`comm`). executed: the narrow modules, 160 passed; `bin/rules --check` exit 0, 401 targets in 60 files; `chain_check.py --baseline origin/release/v0.22.0` exit 0, naming the three files this branch does not carry yet
+
+confirms: none
+Of the deleted check and test modules, only the open-row reading of finding 1 lost a guard the spec did not decide to drop; `gate_before_review`'s premature-run refusal is held by `follows`, and `rounds_unreadable`'s state now reads as *holds no `round-N.md`*, loudly. At `skills/code-review/scripts/chain_check.py:634-667`, `:744-789`. read: the base's `gate_before_review`, `rounds_unreadable` and `open_blocking`, and `phases/phase-3.md`'s table of 28 modules
+
+confirms: none
+The rewritten repository rules hold in this diff: `CLAUDE.md` and `CONTRIBUTING.md` are rewritten in place rather than appended to, and no example or fixture carries a real identifier. At `CLAUDE.md`, `CONTRIBUTING.md`. read: their diff hunks. executed: `tests/test_no_real_identifiers.py` among the 160 passed
 
 ## Not judged
 

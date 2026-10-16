@@ -1,8 +1,6 @@
 # 1791933022-every-agent-skill-and-doc-states-the-current-rule-only — review round 2
 
-| Field | Value |
-|---|---|
-| Target SHA | 2f0b4460, fixes 61dcd638..2f0b4460 |
+target: 2f0b4460, fixes 61dcd638..2f0b4460
 
 A verifying round over round 1's fix pass, part A only. Its target is the
 diff of the nine commits after round 1's record; each of round 1's seven
@@ -21,7 +19,7 @@ there is in `## Probes`. The full suite was not run: it is
 severity: must
 location: `skills/code-review/scripts/chain_check.py:608-618`
 verdict: deferred the frame
-refixes: round-1#1
+regression: round-1#1
 
 The unit refixed: `open_findings`, the unit 18315ee2 rewrote. round-1#1 is not closed. The new `open_findings` skips every row whose `#` cell opens with 🟢, ❓ or ⬜, whatever its verdict, so `| ⬜ 3 | 🔴 a defect graded as a note | … | open |`, `| ❓ | 🔴 … | open |` and `| 🟢 | 🟡 … | open |` all pass. A row whose `#` cell carries no severity closes by any of `CLOSED_WORDS`, so `| 1 | 🔴 … | confirmed |` passes. That is round 1's two shapes combined, the severity at the head of the Finding cell and `confirmed`. A table with no `#` header falls back to column 0 and passes the same row. The base's `open_blocking` refused all of these, because it read a 🔴 anywhere in the row and did not count `confirmed` as closing. The ⬜ exclusion is where the fix departed from round 1's paste, and its stated ground is false: the old record it cites, `seal/specs/1791876666-the-test-suite-is-held-to-a-budget/rounds/round-2.md:31` (`⬜ 3 … same claim as 🟡 2`), reads `answered`, not `open`. No record in the tree needs the exclusion. `tests/test_chain_check.py:430` now pins the hole as passing (`⬜ 7 … open`), and `docs/the-review-record.md:70-76` states it as the rule. The unit is the one 18315ee2 rewrote
 
@@ -153,7 +151,7 @@ answer: orchestrator: round 2 marked fix of a fix, so no fix pass runs and the w
 severity: should
 location: `.test_durations`
 verdict: deferred the frame
-refixes: round-1#5
+regression: round-1#5
 
 The unit refixed: `.test_durations`, the file 1b875efc changed. round-1#5 is not closed. 1b875efc dropped the 1,332 entries of the 29 deleted modules. It left 301 entries, 345.3 s, for cases this branch removed from modules that still exist: 81 in `tests/test_the_seal_is_taken_once_by_the_sealer.py`, 52 in `tests/test_the_rules_have_one_owner.py`, 38 in `tests/test_the_pull_request_language_is_the_repositorys.py`, 34 in `tests/test_settle_retires_the_process_record.py`, and others. That is 9.3 % of the file's 3,717.2 s, over the 5 % `STALE_SHARE`. So `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite` fails in every run that collects the whole suite, CI's included. `release_report.py#suite_seconds` also still prices 3,717 s where the collected cases sum to 3,372 s. The fix pass's grounds say "the stale entries it guards against are gone" and "nothing re-measured"; the first is false. Round 1's Location was `release_report.py`, which 1b875efc does not touch; this row's is the file the fix changes
 
@@ -220,15 +218,26 @@ answer: orchestrator: round 2 marked fix of a fix, so no fix pass runs and the w
 
 ## Confirmations
 
-| Confirms | What holds | Location | Grounds |
-|---|---|---|---|
-| round-1#2 | round-1#2 is closed: after a `not sound` repair outside the work item, the orchestrator spawns a verifying round before the sealer | `skills/code-review/orchestration.md:162-173` | read: the rewritten paragraph against `chain_check.py#follows`, which excuses only commits inside `seal/specs/<id>/`, and against `broad_gate.py:3069`, which runs the chain check with `--sealing`. A repair to a phase record, the changelog fragment (`seal/specs/<id>/changelog.md`) or the pull request body adds no commit outside the work item, so the sealer can re-run straight away, as the paragraph says. No other file states the `not sound` path (round 1's grep, carried) |
-| round-1#3 | round-1#3 is closed: the `fix of a fix` stop names no test | `docs/the-review-record.md:173` | read: the line now says `Enforced by: nothing — …`, the form its two neighbouring rules use. `agents/sealer.md:61-67` has the sealer read every round-record row and the warden's last record, and `spec.md` S9 and the `Fix of a fix` row say the same. executed: `bin/rules --check` exit 0 |
-| round-1#4 | round-1#4 is closed: `seal_home` and `rounds_rows` are live, so keeping them is the right repair, and `spec.md` now says so | `skills/verify/scripts/broad_gate.py:705`, `:2612`, `:2798`, `:2968` | read: `seal_home` is called once, at `:2968` in the gate's run, and `broad_command(home)` reads the `Broad gate` row through it; removing it stops the gate. `rounds_rows` is called at `:2798` and draws the panel's `rounds` row. It reads the records only through `chain_check.verdict_table`, `verdict_of` and `deferred_home`, so it adds no second reader of the table, and §*Data & interfaces* keeps the panel unchanged. The one-home decision (`spec.md:218`) is about the broad run's record, `broad-gate.md` against the `Broad gate` cell; the `seal_home` its cost cell names is the generator's. `round_count` has no caller left (`grep`). `spec.md:385-389` and `:422` and the `overview.md:52` divergence row agree with the code |
-| round-1#6 | round-1#6 is closed: both READMEs, `templates/hygiene.yml` and `skills/code-review/orchestration.md` state the open-row rule and the one `Target SHA` field | `README.md:182`, `README.ko.md:173`, `templates/hygiene.yml:36-38`, `skills/code-review/orchestration.md:14`, `:81-82`, `:250` | read: each rewritten sentence against `chain_check.py#main` and `#records` and against `templates/sdd-round.md`. A draft prints every refusal and exits 0, so the hygiene comment's list of what fails once the draft is over is true. Every `##` heading of `orchestration.md` carries the `Orchestrator:` prefix. A `git grep` over `tests/` for the removed names finds only history (#226, #318, #590) and the fixtures' made-up paths |
-| round-1#7 | round-1#7's leftovers are gone and the census holds: the dead exemption, `ROUND_RECORD_NAME` and `committed_round_records_on_disk` are deleted, and `conftest.py#gathered_entry` declares `Reads:` in place of its `undeclared_readers.txt` line | `tests/conftest.py:335-346`, `tests/undeclared_readers.txt:969` | read: `gathered_entry` reads the `changelog/X.Y.Z.md` files that `gather_changelog.py` writes, so `owned` is its class, and `unknown passed` matches its `None` for a missing marker. `git grep` finds no caller of the deleted helper. executed: `tests/test_a_reader_declares_its_input_class.py` and `tests/test_no_passage_is_pasted_into_a_second_file.py` among the 439 passed |
-| none | The past-tense `round_record.py` line in `test_the_sweep_reads_across_a_string_literal_seam` is true history the case needs | `tests/test_one_word_one_meaning.py:433-434` | read: the case pins `LITERAL_SEAM`'s join, which still guards the four `.py` members. The line says why a seam shape was an ordinary edit and where round 1 measured it; with `built` in place of `builds` it no longer claims the generator exists |
-| none | The fix pass's new cases were seen red, and the changelog fragment's counts are the tree's | `tests/test_chain_check.py:417-475`, `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/changelog.md:85-97` | executed: `test_tmp_candidate.py` ran the three new `TestOpenFindings` inputs through c79670b6's `open_findings`, and it named nothing for any of them, so each case was red there. executed: `wc -l` at 2f0b4460 gives 1,135, 3,400 and 228 lines; `git diff --numstat ce448bbe 2f0b4460 -- tests` gives 31,995 deleted and 3,117 added; there are 143 test modules against 167 at the base. Each matches the fragment. 🔴 1's and 🟡 2's fixes move these counts again |
+confirms: round-1#2
+round-1#2 is closed: after a `not sound` repair outside the work item, the orchestrator spawns a verifying round before the sealer. At `skills/code-review/orchestration.md:162-173`. read: the rewritten paragraph against `chain_check.py#follows`, which excuses only commits inside `seal/specs/<id>/`, and against `broad_gate.py:3069`, which runs the chain check with `--sealing`. A repair to a phase record, the changelog fragment (`seal/specs/<id>/changelog.md`) or the pull request body adds no commit outside the work item, so the sealer can re-run straight away, as the paragraph says. No other file states the `not sound` path (round 1's grep, carried)
+
+confirms: round-1#3
+round-1#3 is closed: the `fix of a fix` stop names no test. At `docs/the-review-record.md:173`. read: the line now says `Enforced by: nothing — …`, the form its two neighbouring rules use. `agents/sealer.md:61-67` has the sealer read every round-record row and the warden's last record, and `spec.md` S9 and the `Fix of a fix` row say the same. executed: `bin/rules --check` exit 0
+
+confirms: round-1#4
+round-1#4 is closed: `seal_home` and `rounds_rows` are live, so keeping them is the right repair, and `spec.md` now says so. At `skills/verify/scripts/broad_gate.py:705`, `:2612`, `:2798`, `:2968`. read: `seal_home` is called once, at `:2968` in the gate's run, and `broad_command(home)` reads the `Broad gate` row through it; removing it stops the gate. `rounds_rows` is called at `:2798` and draws the panel's `rounds` row. It reads the records only through `chain_check.verdict_table`, `verdict_of` and `deferred_home`, so it adds no second reader of the table, and §*Data & interfaces* keeps the panel unchanged. The one-home decision (`spec.md:218`) is about the broad run's record, `broad-gate.md` against the `Broad gate` cell; the `seal_home` its cost cell names is the generator's. `round_count` has no caller left (`grep`). `spec.md:385-389` and `:422` and the `overview.md:52` divergence row agree with the code
+
+confirms: round-1#6
+round-1#6 is closed: both READMEs, `templates/hygiene.yml` and `skills/code-review/orchestration.md` state the open-row rule and the one `Target SHA` field. At `README.md:182`, `README.ko.md:173`, `templates/hygiene.yml:36-38`, `skills/code-review/orchestration.md:14`, `:81-82`, `:250`. read: each rewritten sentence against `chain_check.py#main` and `#records` and against `templates/sdd-round.md`. A draft prints every refusal and exits 0, so the hygiene comment's list of what fails once the draft is over is true. Every `##` heading of `orchestration.md` carries the `Orchestrator:` prefix. A `git grep` over `tests/` for the removed names finds only history (#226, #318, #590) and the fixtures' made-up paths
+
+confirms: round-1#7
+round-1#7's leftovers are gone and the census holds: the dead exemption, `ROUND_RECORD_NAME` and `committed_round_records_on_disk` are deleted, and `conftest.py#gathered_entry` declares `Reads:` in place of its `undeclared_readers.txt` line. At `tests/conftest.py:335-346`, `tests/undeclared_readers.txt:969`. read: `gathered_entry` reads the `changelog/X.Y.Z.md` files that `gather_changelog.py` writes, so `owned` is its class, and `unknown passed` matches its `None` for a missing marker. `git grep` finds no caller of the deleted helper. executed: `tests/test_a_reader_declares_its_input_class.py` and `tests/test_no_passage_is_pasted_into_a_second_file.py` among the 439 passed
+
+confirms: none
+The past-tense `round_record.py` line in `test_the_sweep_reads_across_a_string_literal_seam` is true history the case needs. At `tests/test_one_word_one_meaning.py:433-434`. read: the case pins `LITERAL_SEAM`'s join, which still guards the four `.py` members. The line says why a seam shape was an ordinary edit and where round 1 measured it; with `built` in place of `builds` it no longer claims the generator exists
+
+confirms: none
+The fix pass's new cases were seen red, and the changelog fragment's counts are the tree's. At `tests/test_chain_check.py:417-475`, `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/changelog.md:85-97`. executed: `test_tmp_candidate.py` ran the three new `TestOpenFindings` inputs through c79670b6's `open_findings`, and it named nothing for any of them, so each case was red there. executed: `wc -l` at 2f0b4460 gives 1,135, 3,400 and 228 lines; `git diff --numstat ce448bbe 2f0b4460 -- tests` gives 31,995 deleted and 3,117 added; there are 143 test modules against 167 at the base. Each matches the fragment. 🔴 1's and 🟡 2's fixes move these counts again
 
 ## Not judged
 
