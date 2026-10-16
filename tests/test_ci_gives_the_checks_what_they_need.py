@@ -3,11 +3,10 @@
 Neither is visible from the checks themselves, and both failed silently.
 
 **Checkout depth.** `actions/checkout@v4` fetches one commit unless told
-otherwise. Two tests in this suite ask git whether a recorded SHA is an
-ancestor of HEAD — the rider stamps and the ledger stamps — and at depth 1 no
-SHA is, because no SHA is in the clone at all. Reproduced with
-`git clone --depth 1`: `git cat-file -t <a stamped SHA>` answers *Not a valid object
-name* and the rider test goes red on every matrix leg.
+otherwise. A case in this suite resolves a commit this repository's own
+records name — `tests/test_the_frozen_reading_never_grows.py` shows
+`86256492:hooks/cmdline.py` — and at depth 1 that commit is not in the clone
+at all, so the case skips where it should have answered.
 
 **Which pull-request events run.** `on: pull_request:` with no `types:` runs
 on `opened`, `synchronize` and `reopened` — and on nothing else. A review that
@@ -133,7 +132,7 @@ def matrix_include_entries(text):
     The name carries no `pytest_` prefix: in a `conftest.py`, pytest reads a
     function so named as a hook and stops the run at an unknown one.
 
-    Input class: *owned*. The file is this repository's own, and every entry
+    The file is this repository's own, and every entry
     in it is a one-line flow mapping, `- { os: …, python: "…", … }`. That is
     the one shape read here, and values come back as strings with their
     quotes off, as `conftest.py#_unquote` reads a step's name. Comments are
@@ -398,13 +397,9 @@ def test_every_job_that_runs_pytest_has_the_whole_history():
         "rather than wrong, so a case that resolves one skips instead of "
         "failing — which turns the one checkout setting that voids these "
         "checks into the setting that silences them. "
-        "`tests/test_the_reopening_is_one.py#"
-        "test_the_whole_check_names_no_earlier_items_record` is the live "
-        "case: it resolves `origin/release/v0.8.1` and skips when it cannot. "
-        "Neither of the two mechanisms that used to be the reason is one any "
-        "more — a ledger row has named no commit since the anchors went to "
-        "content, and a rider stamp has named none since #239, which is also "
-        "why `tests/test_a_rider_reaches_its_file.py` no longer appears here"
+        "`tests/test_the_frozen_reading_never_grows.py#"
+        "test_the_bytes_below_the_rider_are_86256492s` is the live case: it "
+        "shows `86256492:hooks/cmdline.py` and skips when it cannot"
     )
 
 

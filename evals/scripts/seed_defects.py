@@ -76,9 +76,7 @@ def shipped(tags):
     """The first-parent commits of each release branch between consecutive
     TAGS (newest first), newest first.
 
-    A release branch is its release merge's second parent.
-
-    Reads: observed — `git log --first-parent` between each pair of tags; unknown passed"""
+    A release branch is its release merge's second parent."""
     found = []
     for newest, older in itertools.pairwise(tags):
         log = rt.git(
@@ -90,9 +88,7 @@ def shipped(tags):
 
 def added_lines(commit, path):
     """The line numbers at COMMIT of the lines its diff to its first parent
-    added in PATH.
-
-    Reads: observed — `git diff -U0` of COMMIT against its first parent; unknown passed"""
+    added in PATH."""
     out = rt.git("diff", "-U0", f"{commit}^1", commit, "--", path)
     lines = set()
     for m in re.finditer(
@@ -107,9 +103,7 @@ def code_tokens(source):
     """`{(line, token)}` for every operator and name token of Python SOURCE,
     so an operator inside a string or a comment is never a seed.
 
-    A source that does not tokenize gives no tokens.
-
-    Reads: guess — the source text it is handed, through `tokenize`; unknown passed"""
+    A source that does not tokenize gives no tokens."""
     found = set()
     try:
         for tok in tokenize.generate_tokens(io.StringIO(source).readline):
@@ -126,9 +120,7 @@ def seed(commit):
     A file is a non-test `.py` the commit changed; a line is one it added
     inside a `def` or `class` whose text occurs once in the file; the
     operator is the first that lands once on that line. OLD and NEW are the
-    whole line before and after.
-
-    Reads: observed — the commit's diff and each file at the commit; unknown passed"""
+    whole line before and after."""
     names = rt.git("diff", "--name-only", f"{commit}^1", commit).split("\n")
     for path in sorted(
         n for n in names if n.endswith(".py") and not n.startswith("tests/")
@@ -156,9 +148,7 @@ def seed(commit):
 def targets(tags, prefixes=None):
     """`[target]` for every shipped commit a seed lands in, and
     `[(commit, why)]` for each left out; where PREFIXES is given, only the
-    commits whose first eight digits it names.
-
-    Reads: observed — the shipped commits and git for each; unknown passed"""
+    commits whose first eight digits it names."""
     kept, left = [], []
     for commit in shipped(tags):
         if prefixes is not None and commit[:8] not in prefixes:
@@ -233,9 +223,7 @@ PY"""
 
 def scaffold(t, url):
     """The scaffold: the shipped commit fetched, the mutation applied, the
-    work item's rounds removed, all amended into one commit on its parent.
-
-    Reads: nothing — it formats the target it is handed."""
+    work item's rounds removed, all amended into one commit on its parent."""
     mutate = MUTATE.format(
         path=shlex.quote(t["path"]),
         line=t["line"],
@@ -256,9 +244,7 @@ def scaffold(t, url):
 
 
 def prompt(t):
-    """The case prompt: the orchestrator's one spawn of a fresh round 1.
-
-    Reads: nothing — it formats the target it is handed."""
+    """The case prompt: the orchestrator's one spawn of a fresh round 1."""
     report = f"seal/specs/{t['item']}/rounds/round-1.md"
     return f"""You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
 
@@ -270,9 +256,7 @@ END PROMPT"""
 
 
 def case_name(t):
-    """The case's directory name.
-
-    Reads: nothing — it formats the target it is handed."""
+    """The case's directory name."""
     return f"seeded-{t['commit'][:8]}"
 
 
@@ -280,9 +264,7 @@ def main(argv=None):
     """Parse the arguments, then list or write. `--case` reads every release
     tag's shipped commits; the rest reads the last three tags'.
 
-    An unusable argument is argparse's exit 2.
-
-    Reads: owned — its own argument vector; unknown refused"""
+    An unusable argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
     p.add_argument("--count", type=int, default=4)

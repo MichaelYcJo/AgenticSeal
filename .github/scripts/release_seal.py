@@ -315,8 +315,6 @@ def chain_counts(root, pulls):
     """`(items, rounds, capped, deferred)` for the release's pull requests,
     each a number or None for not read, with the log saying why.
 
-    Reads: guess — the work items' round records, through `chain_check.record_findings`, and the pull requests' labels; unknown refused
-
     `capped` counts the pull requests labelled `CAPPED_LABEL`. A pull request
     is a work item where exactly one `routing.md` under `root` names its head
     branch (`hooks/routing.py#item_dir`), and its rounds are

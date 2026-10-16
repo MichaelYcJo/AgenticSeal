@@ -278,9 +278,7 @@ def load(path, name):
     that sentence and nothing run, rather than in a traceback. The
     exception's own sentence is what the person reads; one with none is
     named by its type. A `SystemExit` is no `Exception` and keeps its own
-    exit.
-
-    Reads: owned — a module this plugin ships beside this script; unknown refused"""
+    exit."""
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None or not os.path.isfile(path):
         raise Refused(f"cannot load {path} — this copy of the plugin is missing it")
@@ -558,9 +556,7 @@ def moved_line(root, base):
     **The counts name what they are measured against.** `1 ahead, 0 behind`
     has no subject and both refs are in the sentence, so the reading that
     makes it true is the nearer noun rather than anything stated (round 1,
-    finding 7).
-
-    Reads: observed — the commits `Base` carries and git's count of the commits between them; unknown passed"""
+    finding 7)."""
     if not base.moved:
         return None
     runner = REMOTE_LABEL.format(ref=base.given)
@@ -731,8 +727,6 @@ def broad_command(home):
     """The `Broad gate` row's value, or None for every way of not having one:
     no file, no row, an empty value, and a row the table walker did not read.
 
-    Reads: guess — the `Broad gate` row of a person's `config.md`, through `hooks/config.py#config_value`; unknown refused
-
     **Two states are refused, not read as no row** (#867): a `config.md`
     that is there and will not read, and a `Broad gate` row written twice.
     Either raises `Refused` naming the path, so the sealer's gate exits 2
@@ -770,9 +764,7 @@ FIRST_CELL = re.compile(r"^\|([^|]*)\|")
 
 def names_this_row(line):
     """Whether a line's first cell, read up to the first pipe, is this
-    gate's row.
-
-    Reads: guess — one line of a person's `config.md` its caller hands it, by its first cell; unknown passed"""
+    gate's row."""
     first = FIRST_CELL.match(line.strip())
     return bool(first and first.group(1).strip() == ROW)
 
@@ -780,8 +772,6 @@ def names_this_row(line):
 def refused_broad_row(home):
     """The `Broad gate` line a person wrote that the table walker did not
     read — as written, with its own indentation — or None.
-
-    Reads: guess — a person's `config.md`, through `hooks/config.py#config_table` and `#unfenced`; unknown refused
 
     **A line, not a row, and only in a table the walker refused** (#871).
     The walker never steps past a line it refuses, so every line written
@@ -825,8 +815,6 @@ def stopping_line(text, refused):
     stopped at, or (None, None) where the sentence names no such line -- a
     header refused before any row.
 
-    Reads: guess — a person's `config.md`, beside the sentence the walker wrote about it; unknown passed
-
     The line is found where the walker found it: the first line `unfenced`
     shows below the header, the header being the first shown line whose
     cells are the config header, that reads as the quoted text once
@@ -860,8 +848,6 @@ def rows_written_below(text, index):
     """Whether a line written `| … |` stands below the line at INDEX of TEXT,
     before the next heading -- a row a person wrote, which the walker never
     reaches once it stops at that line.
-
-    Reads: guess — a person's `config.md`, its lines below one the walker stopped at; unknown passed
 
     #430's condition: a sentence about rows below a line is false where
     none is written below it, and the walker's sentence says so flat."""
@@ -930,8 +916,6 @@ def fenced_row(home):
     """This gate's row written INSIDE a code fence — as written, with its own
     indentation — or None.
 
-    Reads: guess — a person's `config.md`, through `fenced_row_at`; unknown passed
-
     **The one question about a fenced line anybody asks, and this gate is the
     only one that may ask it.** `hooks/config.py#unfenced` makes a fenced line
     invisible to the one walk of that table, which is what stops an example
@@ -996,8 +980,6 @@ def missing_row(home):
     """The refusal for a row the gate could not read — and there are four,
     because there are four causes and what a person does about each one is
     different.
-
-    Reads: guess — a person's `config.md`, through `refused_broad_row`, the walker's sentence and the hidden-line questions; unknown refused
 
     **The first cause is a line the table walker refused, with this gate's
     row at it or below it** (#871). Where the row IS in the file and the
@@ -1123,8 +1105,6 @@ def walker_refusal(home, mine):
     that the table walker did not read, because it refused the line MINE is
     or a line above it. `missing_row`'s docstring is where the arm's
     reasoning lives.
-
-    Reads: guess — a person's `config.md` and the walker's sentence about it, through `stopping_line` and `rows_written_below`; unknown refused
 
     The walker's sentence is printed as the walker wrote it after the path,
     with one cut: its closing clause about every row below the line is
@@ -2377,9 +2357,7 @@ def base_is_main(given):
     **The bound, named rather than claimed:** it is keyed on the spelling,
     so `refs/heads/main` or `upstream/main` reads as not-`main`, and the
     count leaves the only-at-`main` steps out, the direction that names
-    fewer steps CI asks.
-
-    Reads: guess — the base spelling the caller typed; unknown passed"""
+    fewer steps CI asks."""
     if given is None:
         return False
     if given.startswith("origin/"):
@@ -2396,9 +2374,7 @@ def steps_for(workflow, given):
     it of this pull request, so the sealer's run neither covers it nor misses
     it. `given` None — no base known — leaves out what a base that is not
     `main` would, which is what every caller that knows no base has been
-    asked about.
-
-    Reads: guess — a repository's hygiene workflow its caller hands it, through `job_steps`; unknown passed"""
+    asked about."""
     steps = job_steps(workflow, RELEASE_JOB) if workflow else []
     if base_is_main(given):
         return steps
@@ -2407,9 +2383,7 @@ def steps_for(workflow, given):
 
 def left_out_clause(workflow, given):
     """The clause the coverage line adds for the steps `steps_for` left out,
-    or "" where it left none: how many, and why (#666).
-
-    Reads: guess — a repository's hygiene workflow its caller hands it, through `steps_for`; unknown passed"""
+    or "" where it left none: how many, and why (#666)."""
     every = job_steps(workflow, RELEASE_JOB) if workflow else []
     left = len(every) - len(steps_for(workflow, given))
     if not left:
@@ -2455,8 +2429,6 @@ def unanswered(text, given):
 
 def coverage_line(text, given):
     """One line naming the steps this seal did not answer, or None.
-
-    Reads: guess — a repository's hygiene workflow its caller hands it, through `job_steps` and `steps_for`; unknown passed
 
     **Over the steps CI runs for this base** (#666, `steps_for`), and one
     clause saying how many it left out and why (`left_out_clause`): a step CI
@@ -2551,9 +2523,7 @@ def suite_counts(record):
 
 
 def round_records(item):
-    """The `rounds/round-N.md` paths of `item` on disk, lowest round first.
-
-    Reads: observed — the directory listing; unknown passed"""
+    """The `rounds/round-N.md` paths of `item` on disk, lowest round first."""
     try:
         names = os.listdir(os.path.join(item, "rounds"))
     except OSError:
@@ -2568,18 +2538,14 @@ def kept_runs(held, value):
     """`value` in front of the runs the `Broad gate` cell `held` records,
     newest first. A held entry equal to `value` — the same commit against
     the same base — is dropped, so a re-run over an unchanged checkout does
-    not record one comparison twice.
-
-    Reads: owned — the cell this file writes; unknown passed"""
+    not record one comparison twice."""
     entries = [e.strip() for e in (held or "").split(EARLIER_RUN) if e.strip()]
     return EARLIER_RUN.join([value, *(e for e in entries if e != value)])
 
 
 def write_gate_file(item, tree, base):
     """Write `<item>/broad-gate.md` with `<tree> against <base>` as its newest
-    run, and return its path. Raises `Refused` where it cannot be written.
-
-    Reads: owned — the file it wrote on an earlier run; unknown passed"""
+    run, and return its path. Raises `Refused` where it cannot be written."""
     path = os.path.join(item, GATE_FILE)
     held = ""
     try:
@@ -2617,9 +2583,7 @@ def rounds_rows(item):
     lists their distinct homes after `→` in the order met. A home reaches
     the panel as ASCII, anything outside it reading `?`, because the letter
     twin maps only the owner's characters. A record the check's reader
-    refuses anything of adds nothing beneath.
-
-    Reads: guess — the warden's records, through `chain_check.py`; unknown passed"""
+    refuses anything of adds nothing beneath."""
     records = round_records(item)
     rows = [("rounds", str(len(records)))]
     try:
@@ -2652,9 +2616,7 @@ def rounds_rows(item):
 
 def item_value(item):
     """The `item` row: the digits before the first `-` of the work item
-    directory's name, or the whole name where it has no `-`.
-
-    Reads: nothing — formats the path its caller hands it"""
+    directory's name, or the whole name where it has no `-`."""
     name = os.path.basename(os.path.normpath(item))
     return name.split("-", 1)[0] or name
 
@@ -2741,9 +2703,7 @@ def panel(
     took it off. NOT `("lint", "clean")` either: the row is
     one shell command line and nothing in it says which part is a linter
     (`templates/config.md` §*Broad gate*), so `clean` over a row with no
-    linter in it is the sealer's stamp asserting a check that never ran.
-
-    Reads: guess — the checks this run kept and the work item's records, through `suite_counts` and `rounds_rows`; unknown passed"""
+    linter in it is the sealer's stamp asserting a check that never ran."""
     stamp = stamp_module()
     rows = [("SEALED", ""), ("tree", tree)]
     if branch:
@@ -2826,9 +2786,7 @@ def failure_lines(check, verdicts=None, record=None):
     `cmd.exe` exits 1 with a "not recognized" line in the machine's own
     language — so the line names every cause of a missing record and says
     the exit is not a count. Where a record holds lines that did not parse,
-    `UNREAD_HERE` has already said why no count follows.
-
-    Reads: owned — one check this run kept and the pytest record it read; unknown passed"""
+    `UNREAD_HERE` has already said why no count follows."""
     lines = [f"exit {check.code}", *check.first_lines()]
     if verdicts:
         # Where no pytest at `HEAD` left a record the base is not run, and
@@ -2941,9 +2899,7 @@ PREFLIGHT_RECORD = (
 
 def preflight_line(head, tree, base):
     """The first line of a preflight's stdout: which verdict, the tree, the
-    resolved base, and what the run did not do.
-
-    Reads: nothing — formats the values its caller hands it"""
+    resolved base, and what the run did not do."""
     return head.format(tree=tree, base=base) + PREFLIGHT_TAIL
 
 
@@ -2951,9 +2907,7 @@ def gate(args, console_wants_letters, terminal=False):
     """The run. `terminal` is whether stdout has a person in front of it:
     only then, and only over a written `broad-gate.md`, is the stamp drawn here, and
     every other sealed run signals instead (#400). Its default is the pipe, which is what every caller that
-    is not `__main__` — a case driving this in process — is writing to.
-
-    Reads: guess — the arguments, a person's `config.md` and the tree, through the units above; unknown refused"""
+    is not `__main__` — a case driving this in process — is writing to."""
     stamp = stamp_module()
     root = repo_root(os.path.abspath(args.root or os.getcwd()))
     if root is None:
@@ -3214,9 +3168,7 @@ def uncommitted_line(root, path):
 
     None without a file, and None where git says the file does not differ
     from HEAD: a re-run at the commit and base the newest entry already
-    records writes the same bytes.
-
-    Reads: observed — `git status --porcelain`; unknown passed"""
+    records writes the same bytes."""
     if path is None:
         return None
     # Both by realpath: `--record` arrives as typed, and the root as git
@@ -3240,8 +3192,6 @@ def common_dir(root):
 
 def signal(stamp, root, tree, base, item, rows, branch=None):
     """The one line a sealed run prints where nobody can see a drawing.
-
-    Reads: observed — the session id in the environment; unknown passed
 
     It starts with `SEALED` and carries `<branch> @ <tree> against <ref> @
     <base commit>` (`seal_stamp.sealed_names`), the way the failure form
@@ -3296,9 +3246,7 @@ def signal(stamp, root, tree, base, item, rows, branch=None):
 def main(argv=None, console_wants_letters=None, console_is_terminal=None):
     """`console_wants_letters` is `pick_shape` asked of stdout as the process
     found it, and `console_is_terminal` is `is_terminal` asked of it —
-    `__main__` asks both before it reconfigures the streams.
-
-    Reads: guess — the arguments and the tree, through `gate`; unknown refused"""
+    `__main__` asks both before it reconfigures the streams."""
     try:
         stamp = load(STAMP, "specseal_seal_stamp_for_broad_gate")
     except Refused as exc:

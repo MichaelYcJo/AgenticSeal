@@ -68,9 +68,7 @@ def preload_files(tree, agent):
     """The files AGENT's spawn preloads in TREE: its definition and every
     skill its `skills:` frontmatter lists.
 
-    A definition with no frontmatter stops the run.
-
-    Reads: owned — `agents/<agent>.md`'s frontmatter; unknown refused"""
+    A definition with no frontmatter stops the run."""
     rel = f"agents/{agent}.md"
     with open(os.path.join(tree, rel), encoding="utf-8") as f:
         text = f.read()
@@ -87,9 +85,7 @@ def preload_files(tree, agent):
 def preload_hashes(tree, agent):
     """`{path: sha256}` of AGENT's preload in TREE.
 
-    A missing file stops the run.
-
-    Reads: observed — the bytes of each file `preload_files` names; unknown refused"""
+    A missing file stops the run."""
     out = {}
     for rel in preload_files(tree, agent):
         with open(os.path.join(tree, rel), "rb") as f:
@@ -100,9 +96,7 @@ def preload_hashes(tree, agent):
 def preload_bytes(tree, agent):
     """The bytes of AGENT's preload in TREE, every file summed.
 
-    A missing file stops the run.
-
-    Reads: observed — the size of each file `preload_files` names; unknown refused"""
+    A missing file stops the run."""
     return sum(
         os.path.getsize(os.path.join(tree, rel)) for rel in preload_files(tree, agent)
     )
@@ -114,9 +108,7 @@ def preload_bytes(tree, agent):
 def git_bytes(*args):
     """`git -C ROOT <args>`'s stdout as bytes.
 
-    A non-zero exit stops the run.
-
-    Reads: observed — git's stdout; unknown refused"""
+    A non-zero exit stops the run."""
     run = subprocess.run(["git", "-C", ROOT, *args], capture_output=True)
     if run.returncode != 0:
         raise SystemExit(
@@ -128,9 +120,7 @@ def git_bytes(*args):
 def extract(rev, paths, into):
     """Write REV's PATHS (the whole tree when empty) under INTO.
 
-    A member that would land outside INTO stops the run.
-
-    Reads: observed — `git archive`'s tar stream; unknown refused"""
+    A member that would land outside INTO stops the run."""
     data = git_bytes("archive", "--format=tar", rev, *paths)
     with tarfile.open(fileobj=io.BytesIO(data)) as tar:
         tar.extractall(into, filter="data")
@@ -141,9 +131,7 @@ def side_path(tree, base_path):
     BASE_PATH without any installed plugin's `bin/`.
 
     An entry is compared in the platform's own spelling, so a Windows entry
-    under `\\.claude\\plugins\\cache\\` is dropped as a POSIX one is.
-
-    Reads: nothing — it maps the string it is handed."""
+    under `\\.claude\\plugins\\cache\\` is dropped as a POSIX one is."""
     cache = os.path.normcase(os.path.join(os.sep, ".claude", "plugins", "cache", ""))
     kept = [
         p for p in base_path.split(os.pathsep) if p and cache not in os.path.normcase(p)
@@ -158,9 +146,7 @@ def write_git_shim(tree):
     put a `git` under the tree's `.shims/` that runs the Command Line Tools'
     binary directly.
 
-    No such binary writes no shim.
-
-    Reads: observed — whether `CLT_GIT` exists on this machine; unknown passed"""
+    No such binary writes no shim."""
     if sys.platform != "darwin" or not os.path.isfile(CLT_GIT):
         return
     shims = os.path.join(tree, ".shims")
@@ -179,9 +165,7 @@ def report_rows(trace_path):
     Only an event whose `message` is an object with a list `content` holds
     tool calls; a line that is not a JSON object, a `message` that is a
     string (a `permission_denied` event's) and a string `content` are
-    skipped. A run that printed no report gives no rows.
-
-    Reads: observed — the run's trace, one JSON event per line; unknown passed"""
+    skipped. A run that printed no report gives no rows."""
     commands, last = {}, ""
     with open(trace_path, encoding="utf-8") as f:
         for line in f:
@@ -222,9 +206,7 @@ def run_cost(trace_path):
 
     A subagent's event, one carrying `parent_tool_use_id`, is not the
     session's; a line that is not a JSON object is skipped; a `result` event
-    missing any of the three fields is no cost.
-
-    Reads: observed — the run's trace, one JSON event per line; unknown refused"""
+    missing any of the three fields is no cost."""
     cost = None
     with open(trace_path, encoding="utf-8") as f:
         for line in f:
@@ -246,18 +228,14 @@ def run_cost(trace_path):
 
 
 def tokens_read(usage):
-    """The tokens a run read: input, cache creation and cache read.
-
-    Reads: owned — a `usage` object `run_cost` kept; unknown passed"""
+    """The tokens a run read: input, cache creation and cache read."""
     keys = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
     return sum(int(usage.get(k) or 0) for k in keys)
 
 
 def kept_root(trace_path):
     """The directory a kept run lives in, or None when the trace sits
-    anywhere but `<tmp>/e-*/out/` or `<tmp>/claude-eval-*/out/`.
-
-    Reads: nothing — it maps the path it is handed."""
+    anywhere but `<tmp>/e-*/out/` or `<tmp>/claude-eval-*/out/`."""
     root = os.path.dirname(os.path.dirname(trace_path))
     name = os.path.basename(root)
     if os.path.basename(os.path.dirname(trace_path)) != "out":
@@ -271,9 +249,7 @@ def remove_kept(root):
     """Remove a kept run's directory, which the eval leaves read-only.
 
     Each directory is opened before it is walked; a path already gone is
-    skipped.
-
-    Reads: observed — the directory tree under ROOT; unknown passed"""
+    skipped."""
     for path in (root, os.path.join(root, "sealed")):
         try:
             os.chmod(path, stat.S_IRWXU)
@@ -289,9 +265,7 @@ def remove_kept(root):
 
 
 def runs_of(result):
-    """`[(key, run)]` for every run of an eval result, KEY its position.
-
-    Reads: owned — an eval result's `cases` and `arms`; unknown passed"""
+    """`[(key, run)]` for every run of an eval result, KEY its position."""
     out = []
     for c, case in enumerate(result.get("cases", [])):
         for arm, runs in sorted(case.get("arms", {}).items()):
@@ -300,9 +274,7 @@ def runs_of(result):
 
 
 def saved_dir(out):
-    """The directory a side's paid output is saved in, beside OUT.
-
-    Reads: nothing — it maps the path it is handed."""
+    """The directory a side's paid output is saved in, beside OUT."""
     return os.path.splitext(out)[0] + ".raw"
 
 
@@ -311,9 +283,7 @@ def save_side(raw, saved, meta):
     run: the eval's JSON byte for byte, every trace under `traces/`, and
     META with the trace each run's position maps to.
 
-    A run whose trace is missing maps to none.
-
-    Reads: observed — the eval's JSON and each run's trace; unknown passed"""
+    A run whose trace is missing maps to none."""
     os.makedirs(os.path.join(saved, "traces"), exist_ok=True)
     shutil.copyfile(raw, os.path.join(saved, "raw.json"))
     with open(raw, encoding="utf-8") as f:
@@ -341,9 +311,7 @@ def annotate(saved):
     whether the side was cut short.
 
     A run with no saved trace has no rows and no cost, and a run's error
-    makes the side cut short.
-
-    Reads: owned — a directory `save_side` wrote; unknown refused"""
+    makes the side cut short."""
     with open(os.path.join(saved, "raw.json"), encoding="utf-8") as f:
         result = json.load(f)
     with open(os.path.join(saved, "meta.json"), encoding="utf-8") as f:
@@ -371,9 +339,7 @@ def annotate(saved):
 
 
 def write_side(saved, out):
-    """Write OUT from the side SAVED holds.
-
-    Reads: owned — a directory `save_side` wrote; unknown refused"""
+    """Write OUT from the side SAVED holds."""
     result = annotate(saved)
     with open(out, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=1, ensure_ascii=False)
@@ -384,9 +350,7 @@ def write_side(saved, out):
 def call_eval(command, env):
     """Run `claude plugin eval` as COMMAND under ENV.
 
-    A machine with no `claude` stops the run before anything is spent.
-
-    Reads: observed — whether `claude` is on ENV's PATH; unknown refused"""
+    A machine with no `claude` stops the run before anything is spent."""
     if not shutil.which("claude", path=env.get("PATH")):
         print("claude is not on PATH", file=sys.stderr)
         raise SystemExit(2)
@@ -396,9 +360,7 @@ def call_eval(command, env):
 def run_side(a):
     """`run`: one side of one agent's suite, or `--from-raw` a saved side.
 
-    An eval that writes no JSON stops the run.
-
-    Reads: observed — the tree at REV or DIR, the suite, the eval's JSON; unknown refused"""
+    An eval that writes no JSON stops the run."""
     if a.from_raw:
         return write_side(a.from_raw, a.out)
     if not a.agent:
@@ -452,9 +414,7 @@ def run_side(a):
 
 
 def kind(name):
-    """A grader's kind, from its name's prefix, or None.
-
-    Reads: nothing — it maps the name it is handed."""
+    """A grader's kind, from its name's prefix, or None."""
     head = name.split("-", 1)[0]
     return head if head in ("reach", "shape", "truth") else None
 
@@ -466,9 +426,7 @@ def side_numbers(result):
 
     A grader whose name carries no kind prefix is not counted. A side with
     a run whose cost is unknown has no spend, tokens or seconds, and one
-    whose preload bytes were not recorded has no bytes: each is None.
-
-    Reads: owned — an eval result `run` wrote; unknown passed"""
+    whose preload bytes were not recorded has no bytes: each is None."""
     graders, runs_per_case = {}, {}
     rows = false = 0
     costs = []
@@ -521,16 +479,12 @@ def suite_tree(rev, agent):
     """The git tree hash of `evals/behaviour/<agent>/` at REV: the suite's
     identity, which a commit that leaves the cases alone does not move.
 
-    A REV or a directory git does not resolve stops the run.
-
-    Reads: observed — `git rev-parse <rev>:<path>`; unknown refused"""
+    A REV or a directory git does not resolve stops the run."""
     return git_bytes("rev-parse", f"{rev}:{SUITE}/{agent}").decode("utf-8").strip()
 
 
 def suite_name(suite):
-    """`<commit> <tree>` for a side's suite, the form a record carries.
-
-    Reads: nothing — it formats the suite it is handed."""
+    """`<commit> <tree>` for a side's suite, the form a record carries."""
     return f"{suite['rev']} {suite['tree']}"
 
 
@@ -541,9 +495,7 @@ def verdict(numbers):
     `old_cut`, `new_cut` and every name in `COST_FIELDS`.
 
     A missing key raises. A side whose spend, tokens or preload bytes are
-    None is no result; wall seconds are never judged.
-
-    Reads: owned — a numbers object `merged` or `parse_record` builds; unknown refused"""
+    None is no result; wall seconds are never judged."""
     if numbers["old_cut"] or numbers["new_cut"]:
         sides = [
             s
@@ -619,9 +571,7 @@ def merged(old, new):
     rounded to four places and seconds to one, the precision a record
     carries, so a record reads back to the numbers it was judged on.
 
-    A grader one side lacks counts zero runs there.
-
-    Reads: owned — two objects `side_numbers` built; unknown passed"""
+    A grader one side lacks counts zero runs there."""
     keys = sorted(set(old["graders"]) | set(new["graders"]))
     graders = {}
     for key in keys:
@@ -657,9 +607,7 @@ def merged(old, new):
 
 
 def rounded(value, places):
-    """VALUE at PLACES decimals, an integer at none; None stays None.
-
-    Reads: nothing — it maps the number it is handed."""
+    """VALUE at PLACES decimals, an integer at none; None stays None."""
     if value is None:
         return None
     return int(value) if places == 0 else round(float(value), places)
@@ -678,9 +626,7 @@ COST_ROWS = (
 
 def cost_rows(numbers):
     """The record's header rows for both sides' cost, `unknown` where a
-    number is None.
-
-    Reads: nothing — it formats the numbers it is handed."""
+    number is None."""
     lines = []
     for key, label, shown, _parse in COST_ROWS:
         for side, name in (("old", "Baseline"), ("new", "New")):
@@ -691,9 +637,7 @@ def cost_rows(numbers):
 
 
 def render(agent, phase, old, new):
-    """The record `compare` writes.
-
-    Reads: nothing — it formats the numbers it is handed."""
+    """The record `compare` writes."""
     numbers = merged(old, new)
     result, reasons = verdict(numbers)
     lines = [
@@ -732,9 +676,7 @@ def render(agent, phase, old, new):
 def table(text, heading):
     """The body rows of the first table under `## HEADING`, as cell lists.
 
-    A missing heading gives no rows.
-
-    Reads: owned — a record `render` wrote; unknown passed"""
+    A missing heading gives no rows."""
     m = re.search(
         rf"^## {re.escape(heading)}\n(?P<body>.*?)(?=^## |\Z)", text, re.M | re.S
     )
@@ -748,9 +690,7 @@ def table(text, heading):
 def header_field(text, name):
     """A `| NAME | value |` row of the record's header table, or None.
 
-    A missing row is None.
-
-    Reads: owned — a record `render` wrote; unknown passed"""
+    A missing row is None."""
     m = re.search(rf"^\| {re.escape(name)} \| (?P<v>[^|]*) \|$", text, re.M)
     return m["v"].strip() if m else None
 
@@ -759,9 +699,7 @@ def parse_record(text):
     """`(numbers, stated verdict, new preload)` read back from a record.
 
     A count that is not an integer raises ValueError; a cost row that is
-    missing or says `unknown` reads as None.
-
-    Reads: owned — a record `render` wrote; unknown refused"""
+    missing or says `unknown` reads as None."""
     graders = {}
     for row in table(text, "Graders"):
         k, case, name, op, oruns, np_, nruns = row
@@ -788,9 +726,7 @@ def parse_record(text):
 
 
 def differ(old, new):
-    """The sentence that two sides ran different suites, naming both.
-
-    Reads: nothing — it formats the two suites it is handed."""
+    """The sentence that two sides ran different suites, naming both."""
     return (
         f"the two sides ran different suites: the baseline at {old} and the new "
         f"side at {new} (`<commit> <tree of {SUITE}/<agent>>`); a changed suite "
@@ -800,9 +736,7 @@ def differ(old, new):
 
 def suite_problem(text):
     """The problem with a record's two suites, or None: a side naming none,
-    or two different trees.
-
-    Reads: owned — a record `render` wrote; unknown refused"""
+    or two different trees."""
     old, new = header_field(text, "Baseline suite"), header_field(text, "New suite")
     if not old or not new:
         return "the record names no suite for one of its sides"
@@ -815,9 +749,7 @@ def check_record(text):
     """`[problem]` for a record: its stated verdict against the one its
     numbers give, and anything but `pass`.
 
-    A record that does not parse is a problem, never a pass.
-
-    Reads: owned — a record `render` wrote; unknown refused"""
+    A record that does not parse is a problem, never a pass."""
     try:
         numbers, stated, _preload = parse_record(text)
     except (ValueError, TypeError) as e:
@@ -837,9 +769,7 @@ def check_record(text):
 def compare(a):
     """`compare`: write the record of one agent's phase.
 
-    A file that is not JSON stops the run.
-
-    Reads: owned — two JSON files `run` wrote; unknown refused"""
+    A file that is not JSON stops the run."""
     with open(a.old, encoding="utf-8") as f:
         old = side_numbers(json.load(f))
     with open(a.new, encoding="utf-8") as f:
@@ -867,9 +797,7 @@ def compare(a):
 def check(a):
     """`check`: recompute a record's verdict.
 
-    A record that does not parse is reported and exits 1.
-
-    Reads: owned — the record file named; unknown refused"""
+    A record that does not parse is reported and exits 1."""
     with open(a.record, encoding="utf-8") as f:
         text = f.read()
     problems = check_record(text)
@@ -884,9 +812,7 @@ def check(a):
 def main(argv=None):
     """Parse the arguments and run one subcommand.
 
-    An unusable argument is argparse's exit 2.
-
-    Reads: owned — its own argument vector; unknown refused"""
+    An unusable argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="command", required=True)
     r = sub.add_parser("run")

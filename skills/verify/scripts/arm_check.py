@@ -429,9 +429,7 @@ def _group_of(
 
 
 def _node_arms(node: ast.AST, scope: str, source: str) -> list[Arm]:
-    """The arms one node carries, or [] when it carries none.
-
-    Reads: observed — a node of the module's parsed syntax tree; unknown refused"""
+    """The arms one node carries, or [] when it carries none."""
     shape = type(node).__name__
     if shape not in ARM_SHAPES:
         return []
@@ -672,8 +670,6 @@ OPERATORS = ("invert", "remove")
 
 def mutate(source: str, arm: Arm, operator: str = "invert") -> str:
     """`source` with this one arm made wrong, one way.
-
-    Reads: observed — the source and the arm its caller parsed from it; unknown refused
 
     An arm with no mutation defined for the operator raises rather than coming
     back unchanged. An unmutated arm reported as `survived` reads as *no case
@@ -1177,8 +1173,6 @@ def command_words(text, windows=None):
 
     `windows` defaults to this machine's, and is an argument so both
     readings can be driven from either platform.
-
-    Reads: observed — a command line its caller was handed; unknown passed
     """
     if windows is None:
         windows = os.name == "nt"
@@ -1191,10 +1185,7 @@ def command_words(text, windows=None):
 
 
 def main(argv=None):
-    """Enumerate a module's arms, or run them, from the command line.
-
-    Reads: observed — the command line, and what `run_arms` returns; unknown refused
-    """
+    """Enumerate a module's arms, or run them, from the command line."""
     parser = argparse.ArgumentParser(
         prog="arm-check",
         description=(

@@ -209,7 +209,6 @@ def test_the_window_sits_between_what_was_measured():
     # the reviewer did not ask for the assertion to change. If you open this
     # case, decide whether the bound belongs per pair; a fix pass may not add
     # the walk that would answer it.
-    # Verified 2026-09-10 against test_the_window_sits_between_what_was_measured@412468cc.
     assert widest[0] <= LONGEST_KEPT_APPLICATION, (
         f"the longest kept application is now {widest[0]} words "
         f"({widest[1]}, §{widest[2]}), where {LONGEST_KEPT_APPLICATION} was "

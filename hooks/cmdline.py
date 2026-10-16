@@ -2970,7 +2970,7 @@ def _git_options(rest, redirections=False):
     # composing paths and becomes a resolved (git-dir, work-tree) pair, which
     # `apply_chdir` below cannot express. The rider is here rather than on the
     # guard because this is the file the fix is in.
-    # Verified 2026-10-03 against _git_options@d9673734.
+    #
     # The options git 2.54.0 ran `status` after with the value as a separate
     # word (#716, M1). `--config-env`, `--attr-source` and `--shallow-file`
     # were missing, so their value read as the subcommand. `--exec-path` takes

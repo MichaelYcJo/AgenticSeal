@@ -246,9 +246,7 @@ CARRIED_SAYS = (
 
 
 def load(path, name):
-    """Import a sibling script by path, or raise SystemExit naming it.
-
-    Reads: observed — the file at `path`, imported; unknown refused"""
+    """Import a sibling script by path, or raise SystemExit naming it."""
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         raise SystemExit(f"chain-check: cannot load {path}")
@@ -258,9 +256,7 @@ def load(path, name):
 
 
 def git(root, *args):
-    """`git -C root <args>`'s stdout, or None where git exited non-zero.
-
-    Reads: observed — git's output and exit code; unknown refused"""
+    """`git -C root <args>`'s stdout, or None where git exited non-zero."""
     r = subprocess.run(
         ["git", "-C", root, *args],
         capture_output=True,
@@ -287,9 +283,7 @@ def changed(root, base):
     every exact move — a deleted file whose bytes an added file of the same
     name carries — which is what the root move of #90 does to every
     declaration at once. Under `WORKTREE` the diff is against the working
-    tree and untracked files count as added.
-
-    Reads: observed — `git diff --raw -z --no-renames`; unknown refused"""
+    tree and untracked files count as added."""
     if WORKTREE:
         fork = git(root, "merge-base", base, "HEAD")
         if fork is None:
@@ -333,9 +327,7 @@ def changed(root, base):
 
 
 def changed_routing(paths, moved, work_items):
-    """The routing declarations among `paths` that were not only moved.
-
-    Reads: nothing — filters the paths `changed` handed it"""
+    """The routing declarations among `paths` that were not only moved."""
     return sorted(
         p
         for p in paths
@@ -356,9 +348,7 @@ def carried_by(root, base, rel):
     reached this branch inside that pull request, which judged it; the newest
     such commit is returned. Any other commit, an uncommitted change under
     `WORKTREE`, no commit at all, or git failing leaves it this pull
-    request's.
-
-    Reads: observed — `git log`'s committer and subject; unknown refused"""
+    request's."""
     if WORKTREE:
         dirty = git(root, "status", "--porcelain", "--", rel)
         if dirty is None or dirty.strip():
@@ -387,9 +377,7 @@ def carried_by(root, base, rel):
 
 
 def tracked_files(root, where):
-    """The regular files git carries directly in `where` at HEAD, by name.
-
-    Reads: observed — `git ls-tree -z HEAD`; unknown refused"""
+    """The regular files git carries directly in `where` at HEAD, by name."""
     out = git(root, "ls-tree", "-z", "HEAD", "--", f"{where}/")
     if out is None:
         return []
@@ -405,9 +393,7 @@ def tracked_files(root, where):
 
 
 def worktree_files(root, where):
-    """The regular files directly in `where` on disk, symbolic links excluded.
-
-    Reads: observed — the directory listing; unknown refused"""
+    """The regular files directly in `where` on disk, symbolic links excluded."""
     base = os.path.join(root, *where.split("/"))
     try:
         names = os.listdir(base)
@@ -423,9 +409,7 @@ def worktree_files(root, where):
 
 def read_record(root, rel):
     """The file as git carries it at HEAD, or on disk under `WORKTREE`; None
-    where there is none.
-
-    Reads: observed — `git show HEAD:<rel>` or the file; unknown refused"""
+    where there is none."""
     if WORKTREE:
         try:
             with open(
@@ -438,9 +422,7 @@ def read_record(root, rel):
 
 
 def round_records(routing, root, item):
-    """`<item>/rounds/round-N.md` git carries, lowest round first.
-
-    Reads: observed — the listing `tracked_files` or `worktree_files` returns; unknown refused"""
+    """`<item>/rounds/round-N.md` git carries, lowest round first."""
     where = f"{item}/{routing.ROUNDS_DIR}"
     listed = worktree_files(root, where) if WORKTREE else tracked_files(root, where)
     found = []
@@ -452,9 +434,7 @@ def round_records(routing, root, item):
 
 
 def event_payload_present():
-    """True where `GITHUB_EVENT_PATH` names a file.
-
-    Reads: observed — the environment and the file's existence; unknown passed"""
+    """True where `GITHUB_EVENT_PATH` names a file."""
     path = os.environ.get("GITHUB_EVENT_PATH")
     return bool(path) and os.path.exists(path)
 
@@ -465,9 +445,7 @@ def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
     The event payload GitHub writes is the answer wherever it exists; with
     none, `gh pr view` is asked in `root`. A payload that cannot answer is
     `unknown`, which `main` judges as ready, so a harness fault is never the
-    quiet way past the check.
-
-    Reads: observed — the event payload's JSON, or `gh`'s; unknown refused"""
+    quiet way past the check."""
     path = os.environ.get("GITHUB_EVENT_PATH")
     if not path or not os.path.exists(path):
         if root is None:
@@ -490,9 +468,7 @@ def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
 
 
 def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
-    """(`draft` | `ready` | `unknown`, where) from `gh pr view --json isDraft`.
-
-    Reads: observed — `gh`'s exit code and JSON; unknown refused"""
+    """(`draft` | `ready` | `unknown`, where) from `gh pr view --json isDraft`."""
     found = which(GH_DRAFT[0])
     if found is None:
         return "unknown", f"{NO_PAYLOAD}, and no `gh` on PATH to ask"
@@ -527,9 +503,7 @@ def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
 
 
 def fields(rows, label):
-    """The value of every `| label | value |` row, in order.
-
-    Reads: owned — table rows `table_rows` split; unknown passed"""
+    """The value of every `| label | value |` row, in order."""
     return [
         cells[1].strip()
         for cells in rows
@@ -539,17 +513,13 @@ def fields(rows, label):
 
 def field(rows, label):
     """The value of the one `| label | value |` row, or None where it is
-    absent or stands more than once.
-
-    Reads: owned — table rows `table_rows` split; unknown refused"""
+    absent or stands more than once."""
     found = fields(rows, label)
     return found[0] if len(found) == 1 else None
 
 
 def table_rows(reader, lines):
-    """Every table row in already-`readable` lines, as lists of cells.
-
-    Reads: owned — markdown table rows, through the shared reader; unknown passed"""
+    """Every table row in already-`readable` lines, as lists of cells."""
     out = []
     for line in lines:
         cells = reader.split_row(line)
@@ -560,9 +530,7 @@ def table_rows(reader, lines):
 
 def section_end(reader, lines, start):
     """The index of the line that ends the section opened at `start`: the
-    first heading of its level or shallower, else `len(lines)`.
-
-    Reads: owned — headings, through the shared reader's `heading_level`; unknown passed"""
+    first heading of its level or shallower, else `len(lines)`."""
     level = reader.heading_level(lines[start]) or 1
     for i in range(start + 1, len(lines)):
         found = reader.heading_level(lines[i])
@@ -577,9 +545,7 @@ def verdict_of(value):
     The four shapes, read as written and nothing else: `open`, `rejected`,
     `fixed <commit>` with seven to forty lowercase hex digits, and
     `deferred <home>`. A different case, emphasis, a trailing word or mark,
-    a bare `fixed` or `deferred` is None, which the arm refuses by name.
-
-    Reads: owned — one value `findings` cut from its line; unknown refused"""
+    a bare `fixed` or `deferred` is None, which the arm refuses by name."""
     if value in (OPEN, REJECTED):
         return value, None
     for kind, shape in ((FIXED, FIXED_VALUE), (DEFERRED, DEFERRED_VALUE)):
@@ -590,17 +556,13 @@ def verdict_of(value):
 
 
 def deferred_home(value):
-    """The home a `deferred <home>` value names, or None.
-
-    Reads: owned — through `verdict_of`; unknown refused"""
+    """The home a `deferred <home>` value names, or None."""
     verdict = verdict_of(value)
     return verdict[1] if verdict and verdict[0] == DEFERRED else None
 
 
 def issue_of(home):
-    """N where a deferral's home is exactly `#N`, else None.
-
-    Reads: guess — a home `deferred_home` read; unknown refused"""
+    """N where a deferral's home is exactly `#N`, else None."""
     found = ISSUE_RE.fullmatch(home or "")
     return int(found.group(1)) if found else None
 
@@ -612,9 +574,7 @@ def location_of(value):
     joined by `, `, each path relative to the root. A bare `:617`, a path
     with no backticks, a URL, an absolute path, a `path#unit`, emphasis
     around an item, a trailing word or mark, or an empty value is None,
-    which the arm refuses by name.
-
-    Reads: owned — one value `findings` cut from its line; unknown refused"""
+    which the arm refuses by name."""
     if not LOCATION_VALUE.fullmatch(value):
         return None
     return [m.group(1) for m in COORDINATE.finditer(value)]
@@ -625,9 +585,7 @@ def reference_of(value):
     `round-<N>`, or None.
 
     In that spelling and no other: a different case, a space, a leading
-    zero, emphasis, a trailing mark or a second reference is None.
-
-    Reads: owned — one `regression:`, `reopens:` or `confirms:` value; unknown refused"""
+    zero, emphasis, a trailing mark or a second reference is None."""
     found = REFERENCE.fullmatch(value)
     if not found:
         return None
@@ -638,9 +596,7 @@ def reference_of(value):
 def reopened_of(value):
     """`(round, finding)` for `round-<N>#<n>`, or None: `reference_of`'s
     reading, with `round-<N>` alone refused, since a close is a finding's
-    verdict and a fix pass no finding named closed nothing to reopen.
-
-    Reads: owned — one `reopens:` value; unknown refused"""
+    verdict and a fix pass no finding named closed nothing to reopen."""
     reference = reference_of(value)
     return reference if reference and reference[1] is not None else None
 
@@ -649,9 +605,7 @@ def finding_spans(reader, lines):
     """`((start, end), [(first, stop)], error)` for the one `## Findings`
     section of already-`readable` lines: where it stands, and each `### `
     section in it, from its heading to the next. `error` is the refusal for
-    a record with no such section or two, and the spans are then empty.
-
-    Reads: owned — headings, through the shared reader; unknown refused"""
+    a record with no such section or two, and the spans are then empty."""
     starts = reader.sections(lines, FINDINGS_HEADING)
     if not starts:
         return None, [], (0, NO_FINDINGS)
@@ -668,9 +622,7 @@ def finding_spans(reader, lines):
 
 
 def finding_number(heading):
-    """The `n` of a `### <n>. ` heading, or None.
-
-    Reads: owned — one heading `finding_spans` found; unknown refused"""
+    """The `n` of a `### <n>. ` heading, or None."""
     found = FINDING_NUMBER.match(heading)
     return int(found.group(1)) if found else None
 
@@ -678,9 +630,7 @@ def finding_number(heading):
 def misspelt(line):
     """The label `line` means and is not spelt as, or None: `regression:`
     for the old `fix of a fix` and `refixes`, `target:` for the old
-    `Target SHA`, else the label itself.
-
-    Reads: owned — one readable line; unknown refused"""
+    `Target SHA`, else the label itself."""
     found = MISSPELT_LABEL.match(line)
     if not found or EXACT_LABEL.match(line):
         return None
@@ -689,9 +639,7 @@ def misspelt(line):
 
 
 def confirmations_span(reader, lines):
-    """The indexes of every line under a `## Confirmations` heading.
-
-    Reads: owned — headings, through the shared reader; unknown passed"""
+    """The indexes of every line under a `## Confirmations` heading."""
     return {
         i
         for start in reader.sections(lines, CONFIRMATIONS_HEADING)
@@ -719,9 +667,7 @@ def findings(reader, lines, rel):
     readers can read, a finding's label outside a finding, a `confirms:` or
     `target:` line inside one, a `confirms:` line outside
     `## Confirmations`. A finding with an error is not in the list. Nothing
-    of a `severity:` or an `answer:` value is read.
-
-    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    of a `severity:` or an `answer:` value is read."""
     _section, spans, error = finding_spans(reader, lines)
     if error:
         return [], [(rel, *error)]
@@ -794,9 +740,7 @@ def findings(reader, lines, rel):
 
 
 def spelt_otherwise(label, heading=None):
-    """The refusal of a line that means `label` and is spelt another way.
-
-    Reads: nothing — formats the label its caller hands it"""
+    """The refusal of a line that means `label` and is spelt another way."""
     said = (
         f"a label in another spelling: the check reads `{label}` at the start "
         "of a line, lowercase, with no emphasis and one space after the colon"
@@ -805,9 +749,7 @@ def spelt_otherwise(label, heading=None):
 
 
 def finding_of(lines, first, stop, heading, rel):
-    """`(Finding or None, errors)` for the `### ` section at `first`..`stop`.
-
-    Reads: guess — one finding of the warden's record; unknown refused"""
+    """`(Finding or None, errors)` for the `### ` section at `first`..`stop`."""
     errors = []
 
     def one(label, pattern, need):
@@ -902,9 +844,7 @@ def unclosed(reader, text, rel):
     `reader.readable` blanks such a region to the end of the file, so every
     `### ` heading and `verdict:` line after it would vanish and the record
     would read as having nothing open. The walk is `readable`'s own, in its
-    order: comments on the raw lines, then fences on what the comments left.
-
-    Reads: guess — the warden's record, through the shared reader's walks; unknown refused"""
+    order: comments on the raw lines, then fences on what the comments left."""
     raw = reader.gfm_lines(text or "")
     # `comment_scan` says which state each line began in; a blank line after
     # the last says whether the file ended inside a comment, and the last line
@@ -942,9 +882,7 @@ def record_target(reader, lines, rel):
     `<sha>, fixes <a>..<b>` for a verifying round; the commit is its first
     word. No such line — the old `| Target SHA |` row is none — two of them,
     or a value outside the two shapes is an error by line, and no commit is
-    read.
-
-    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    read."""
     _section, spans, _error = finding_spans(reader, lines)
     inside = {i for first, stop in spans for i in range(first, stop)}
     said = [
@@ -980,9 +918,7 @@ def record_findings(reader, text, rel):
     """`findings` over a record's text, with `unclosed`'s refusals first and
     `record_target`'s after: the one reader the arm, the panel and the
     release seal read a record through, so a region that hides findings, or
-    a record naming no commit it reviewed, fails closed for each of them.
-
-    Reads: guess — the warden's record, through `unclosed`, `findings` and `record_target`; unknown refused"""
+    a record naming no commit it reviewed, fails closed for each of them."""
     lines = reader.readable(text or "")
     found, errors = findings(reader, lines, rel)
     _target, said = record_target(reader, lines, rel)
@@ -998,9 +934,7 @@ def confirmations(reader, lines, rel):
     line, reading a `round-<N>#<n>` reference, read with its line, or
     `none`; the prose after it is read for nothing. Everything else is an
     error by line: a second section, a value that is neither, a table row,
-    the old shape. What the reference names is `channel`'s.
-
-    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    the old shape. What the reference names is `channel`'s."""
     starts = reader.sections(lines, CONFIRMATIONS_HEADING)
     if not starts:
         return [], []
@@ -1038,9 +972,7 @@ def round_of(reader, text, rel, number):
     commit through `record_findings` and `record_target`, its `confirms:`
     references through `confirmations`, and the number of every `### <n>. `
     heading of its `## Findings`, read or refused, so a reference to a
-    refused finding still names one it holds.
-
-    Reads: guess — the warden's record, through the three readers; unknown refused"""
+    refused finding still names one it holds."""
     lines = reader.readable(text or "")
     found, errors = record_findings(reader, text, rel)
     target, _said = record_target(reader, lines, rel)
@@ -1064,9 +996,7 @@ def channel(rounds):
     refused at its own heading. A `fixed` or `rejected` finding of the last
     record is refused
     as owing a verifying round, since nothing after it read the fix or the
-    rejection. A `deferred` finding owes nothing.
-
-    Reads: owned — the readings `round_of` made; unknown refused"""
+    rejection. A `deferred` finding owes nothing."""
     problems = []
     by_number = {r.number: r for r in rounds}
     for k, here in enumerate(rounds):
@@ -1127,9 +1057,7 @@ def channel(rounds):
 
 def touched(root, commit):
     """The paths `commit` changed, the root commit's included, or None
-    where git cannot say.
-
-    Reads: observed — `git diff-tree --root`'s output; unknown refused"""
+    where git cannot say."""
     out = git(
         root, "diff-tree", "--no-commit-id", "--name-only", "-r", "--root", "-z", commit
     )
@@ -1139,9 +1067,7 @@ def touched(root, commit):
 
 
 def under(path, located):
-    """True where `path` is `located` or lies under it.
-
-    Reads: nothing — compares the two paths its caller hands it"""
+    """True where `path` is `located` or lies under it."""
     stem = located.rstrip("/")
     return path == stem or path.startswith(f"{stem}/")
 
@@ -1149,9 +1075,7 @@ def under(path, located):
 def target_of(reader, text):
     """The first SHA-shaped word of `guarantee.md`'s `Target SHA` row, or
     None. A round record names its commit on a `target:` line instead
-    (`record_target`).
-
-    Reads: owned — the file the sealer writes; unknown refused"""
+    (`record_target`)."""
     rows = table_rows(reader, reader.readable(text or ""))
     found = SHA_RE.search(reader.visible(field(rows, TARGET) or ""))
     return found.group(0) if found else None
@@ -1160,9 +1084,7 @@ def target_of(reader, text):
 def newest_run(reader, text):
     """The commit the newest run of `broad-gate.md`'s `Broad gate` row was
     taken at — the first word of its first entry, where that word is
-    SHA-shaped — or None.
-
-    Reads: owned — the file `broad_gate.py` writes; unknown refused"""
+    SHA-shaped — or None."""
     rows = table_rows(reader, reader.readable(text or ""))
     cell = reader.visible(field(rows, BROAD_GATE) or "")
     words = EMPHASIS.sub("", cell.split(EARLIER_RUN)[0]).split()
@@ -1170,9 +1092,7 @@ def newest_run(reader, text):
 
 
 def is_ancestor(root, sha, ref):
-    """True where `sha` is `ref` or an ancestor of it.
-
-    Reads: observed — `git merge-base --is-ancestor`'s exit code; unknown refused"""
+    """True where `sha` is `ref` or an ancestor of it."""
     r = subprocess.run(
         ["git", "-C", root, "merge-base", "--is-ancestor", sha, ref],
         capture_output=True,
@@ -1189,9 +1109,7 @@ def follows(root, sha, base, item, only=None):
     `("off", sha, "")` for one HEAD does not descend from, `("after",
     commit, path)` for the first commit after it, oldest first, touching
     `path` outside what may follow. Merge commits and the base's own commits
-    are not the branch's.
-
-    Reads: observed — `git rev-parse`, `rev-list` and `diff-tree`; unknown refused"""
+    are not the branch's."""
     allowed = None if only is None else {f"{item}/{name}" for name in only}
     full = git(root, "rev-parse", "--verify", "--quiet", f"{sha}^{{commit}}")
     if full is None:
@@ -1217,9 +1135,7 @@ def follows(root, sha, base, item, only=None):
 
 
 def follows_reason(found, what, outside="the work item's records"):
-    """The sentence `follows`'s answer is refused with, about `what`.
-
-    Reads: nothing — formats the answer its caller hands it"""
+    """The sentence `follows`'s answer is refused with, about `what`."""
     kind, sha, path = found
     if kind == "unseen":
         return f"{what} names `{sha}`, which this repository cannot resolve"
@@ -1233,9 +1149,7 @@ def follows_reason(found, what, outside="the work item's records"):
 
 def frame_foot(reader, text):
     """(the `Framed` mark as (when, who) or None, [(when, who, round)] for
-    every `Reframed` line under it), read from the last non-empty line up.
-
-    Reads: guess — the foot of a person-written `spec.md`; unknown refused"""
+    every `Reframed` line under it), read from the last non-empty line up."""
     reframes = []
     for line in reversed(reader.gfm_lines(text or "")):
         line = line.strip()
@@ -1252,9 +1166,7 @@ def frame_foot(reader, text):
 
 
 def frame(reader, routing, root, item, declared):
-    """[problem] for a declaration that says a framer drew the frame.
-
-    Reads: guess — `spec.md`'s foot and the presence of `plan.md`; unknown refused"""
+    """[problem] for a declaration that says a framer drew the frame."""
     if declared.get("planning") != routing.BY_FRAMER:
         return []
     who = f"`{routing.PLANNING} | {routing.BY_FRAMER}`"
@@ -1294,9 +1206,7 @@ def verdict_problems(root, path, f):
     """[(path, line, problem)] for one finding's verdict: `open`; a `fixed`
     whose commit HEAD does not descend from; a `fixed` whose commit changed
     no path the `location:` names or lies under, named with what it did
-    change.
-
-    Reads: observed — `git merge-base --is-ancestor` and `diff-tree`; unknown refused"""
+    change."""
     kind, commit = f.verdict
     if kind == OPEN:
         return [
@@ -1342,9 +1252,7 @@ def records(reader, routing, root, item, rel, base):
     a `fixed` naming a commit HEAD does not descend from, or one that
     changed no path the finding's `location:` names or lies under; what
     `channel` names between the rounds; a last record behind HEAD. A
-    finding is named by its line and its heading.
-
-    Reads: guess — the warden's records, through `round_of` and `channel`; unknown refused"""
+    finding is named by its line and its heading."""
     found = round_records(routing, root, item)
     if not found:
         return [
@@ -1383,9 +1291,7 @@ def records(reader, routing, root, item, rel, base):
 
 def broad_gate(reader, root, item, base):
     """[(path, line, problem)] for the work item's `broad-gate.md`: absent,
-    unreadable, or naming a run behind HEAD.
-
-    Reads: owned — the file `broad_gate.py` writes, through `newest_run`; unknown refused"""
+    unreadable, or naming a run behind HEAD."""
     rel = f"{item}/{BROAD_GATE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1408,9 +1314,7 @@ def broad_gate(reader, root, item, base):
 
 def verdicts_of(reader, text):
     """[(line number, value)] for every `Verdict:` line outside comments and
-    fences, emphasis removed from the value.
-
-    Reads: guess — `guarantee.md`, which the sealer writes; unknown refused"""
+    fences, emphasis removed from the value."""
     found = []
     for i, line in enumerate(reader.readable(text or "")):
         m = VERDICT_LINE.match(EMPHASIS.sub("", reader.visible(line)))
@@ -1421,9 +1325,7 @@ def verdicts_of(reader, text):
 
 def verdict_word(value):
     """`sound`, `not sound` or `undecidable` where the value begins with one
-    of them, else the value as it reads.
-
-    Reads: nothing — maps the value `verdicts_of` read"""
+    of them, else the value as it reads."""
     s = value.strip().lower()
     if s == SOUND:
         return SOUND
@@ -1436,9 +1338,7 @@ def verdict_word(value):
 def guarantee(reader, root, item, base):
     """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
     commit, a commit with anything but the sealer's two files after it, or
-    one `Verdict:` line that does not read `sound`.
-
-    Reads: guess — the file the sealer writes, through `target_of` and `verdicts_of`; unknown refused"""
+    one `Verdict:` line that does not read `sound`."""
     rel = f"{item}/{GUARANTEE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1489,9 +1389,7 @@ def guarantee(reader, root, item, base):
 
 
 def local_root(root, routing):
-    """The local-mode root of `root`, or "" where the root is shared or absent.
-
-    Reads: observed — `optin.home_at` and `optin.home_paths`; unknown passed"""
+    """The local-mode root of `root`, or "" where the root is shared or absent."""
     optin = routing.optin
     common = optin.git_common_dir(root)
     home = optin.home_at(root, common)
@@ -1502,9 +1400,7 @@ def local_root(root, routing):
 
 
 def tracked_declarations(root, routing):
-    """(path, parsed) for every routing declaration git carries at HEAD.
-
-    Reads: guess — `routing.md` files, through `routing.parse`; unknown refused"""
+    """(path, parsed) for every routing declaration git carries at HEAD."""
     out = git(root, "ls-tree", "-r", "-z", "HEAD", "--", f"{routing.WORK_ITEMS}/")
     found = []
     for entry in (out or "").split("\0"):
@@ -1524,9 +1420,7 @@ def declared_for_this_branch(root, routing):
     """([the one declaration naming this branch], why there is none).
 
     The branch is `GITHUB_HEAD_REF` in a workflow and the checked-out branch
-    elsewhere.
-
-    Reads: observed — the environment, git, and the declarations at HEAD; unknown refused"""
+    elsewhere."""
     branch = os.environ.get("GITHUB_HEAD_REF") or routing.current_branch(root)
     if not branch:
         return [], (
@@ -1561,9 +1455,7 @@ def declared_for_this_branch(root, routing):
 
 
 def retired(reader, root, fork, item):
-    """The sentence a removed declaration is accepted with, or None.
-
-    Reads: observed — `docs/` markers and the merge base, through the shared reader; unknown refused"""
+    """The sentence a removed declaration is accepted with, or None."""
     name = os.path.basename(item)
     if name in reader.folded_items(root):
         return f"retired: `docs/` carries <!-- specs/{name} -->"
@@ -1577,9 +1469,7 @@ def retired(reader, root, fork, item):
 
 
 def main(argv=None):
-    """The check. Returns the exit code.
-
-    Reads: guess — the arguments and the tree, through the arms above; unknown refused"""
+    """The check. Returns the exit code."""
     ap = argparse.ArgumentParser(
         prog="chain-check",
         description="At the pull request: the declared parties left the records "

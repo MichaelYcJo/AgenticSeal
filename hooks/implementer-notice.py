@@ -144,8 +144,6 @@ def already_told(cwd, session):
 def notify(cwd, session):
     """The one line for a commit that happened in `cwd`, or "".
 
-    Reads: observed — the routing declaration and the session's marker, through `routing`; unknown passed
-
     Called by `hooks/git/post-commit.py`, where git running the hook is the
     fact that a commit happened, in the worktree it landed in (#692), and by
     `main` below for a clone whose hooks slot is foreign.

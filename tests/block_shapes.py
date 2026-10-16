@@ -11,8 +11,7 @@ oracle over these shapes and a generated corpus.
 Most shapes are work item 1790635413's own test strings, taken verbatim at
 `4edc5de6`, because each is a place a previous attempt at these readers was
 wrong. The texts that hold an HTML comment opener build it by concatenation,
-so that no line of this file begins with one: the rider check reads `.py`
-files under `tests/` too.
+so that no line of this file begins with one.
 """
 
 OPEN = "<" + "!--"
@@ -205,7 +204,7 @@ SHAPES = {
         "```",
     ],
     "R9": [f"{OPEN} the table below is parked", *TABLE, CLOSE],
-    # --- the rider check --------------------------------------------------------
+    # --- a rider in an HTML comment ---------------------------------------------
     "K1": [
         "# doc",
         "",

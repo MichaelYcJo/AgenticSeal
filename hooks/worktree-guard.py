@@ -325,7 +325,6 @@ def walk_command(command: str, cwd: str, windows=None):
 # `walk_command` and deciding whether a tokenization-only entry point is worth
 # keeping for tests. Left because that is a judgment about the test surface,
 # not a cleanup.
-# Verified 2026-08-31 against split_command@7e3ba403.
 def split_command(command: str, windows=None):
     """The segments to JUDGE: comments dropped, quoting respected.
 
@@ -1210,8 +1209,6 @@ def fmt_sessions(entries):
     a keystroke from an autonomous turn's transcript write, and app guesses
     made from sibling MCP processes misattributed a VS Code tab to Cursor.
 
-    Reads: nothing — formats the session entries its caller measured, telling a lease from transcript activity by the mark its caller wrote
-
     An unidentified entry -- a lease, or transcript activity no process can
     be pinned on -- prints its kind and its age and stops there. It used to
     end with a clause saying the session was at work on this tree at that
@@ -1472,8 +1469,6 @@ def already_asked(top: str, session: str, scope: str) -> bool:
 def press_sentence():
     """The sentence every deny under the press carries after its situation.
 
-    Reads: nothing — returns this guard's own text in the language `tr` was loaded with
-
     One string for both ladders: the switch rows' deny in `main` and the
     creation rows' in `guard_worktree_creation` say it byte for byte (#903,
     W1). A function rather than a constant, as `tr` is, so each loaded copy
@@ -1490,8 +1485,6 @@ def press_sentence():
 
 def reissue_sentence():
     """The sentence every deny under the press ends with.
-
-    Reads: nothing — returns this guard's own text in the language `tr` was loaded with
 
     Shared by both ladders for the reason `press_sentence` gives."""
     return tr(
@@ -1513,8 +1506,6 @@ def choose(
     unattended="",
 ):
     """Deny once and hand the user the two options; ask on every attempt after.
-
-    Reads: observed — whether this session was already asked in this direction, the presence of the marker this guard writes, through `already_asked`; unknown refused
 
     Every other input is its caller's, the press included. Every path stops
     the command, a deny or an ask, so a marker it cannot read or write falls
@@ -1607,8 +1598,6 @@ def guard_worktree_creation(
     plain_origin="",
 ):
     """Worktrees are for CONCURRENT work only -- block the single-stream case.
-
-    Reads: observed — this session's consent for the creation's clone (its record, then the press in its transcript, through `worktree_consent.consent`), the sessions in the tree through `sessions_in_tree`, and at rows 3 and 4 the press read from the session's own root through `automation_pressed`; unknown refused
 
     The token and the bound on the allow are its caller's, read from the
     command. Every way of not reading an input of its own lands on a row that
@@ -1959,8 +1948,6 @@ def judge_creation(
     command: str, cwd: str, top: str, session_id: str, transcript_path: str = ""
 ):
     """Put the creation question for a `git worktree add` in `command`.
-
-    Reads: guess — the command text the model wrote, for a bare `[worktree-ok]`, whether it tokenizes, and whether it is a creation and nothing else, handed to `guard_worktree_creation` beside its own reads; unknown mixed
 
     A command it cannot tokenize carries no token it can read, so the
     creation is judged as one without it, a refusal; under consent the same
@@ -2960,10 +2947,7 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
 def main():
     """Judge one tool call from the hook payload on stdin.
 
-    Reads: guess — the command text the model wrote, split by the frozen reading into git shapes, beside the tree's git state, its sessions and the press in this session's transcript; unknown mixed
-
-    The command is text this guard does not control, and a unit reading
-    several inputs takes the class of its weakest. An unknown shape stops
+    The command is text this guard does not control. An unknown shape stops
     where the tree it names matters and is silent in a clean tree nobody else
     is in (`docs/worktree-guard-spec.md` §A, *Which commands reach these
     rows*), and a word the shell builds after this guard reads the command is

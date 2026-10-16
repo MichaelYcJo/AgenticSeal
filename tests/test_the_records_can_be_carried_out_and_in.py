@@ -1446,7 +1446,6 @@ def test_a_manifest_missing_exported_at_still_ends_with_a_line_of_its_own(
 # and the loosest prints `Exported at 12345 from …`. Not added when it was
 # found, because it was found by round 7, a verifying round, and a fix there
 # needs a round of its own to read it.
-# Verified 2026-10-14 against test_a_manifest_field_of_the_wrong_type_does_not_raise@0f63b22a.
 @pytest.mark.parametrize(
     "field, value",
     [("head", 12345), ("head", True), ("remote", ["a"]), ("remote", {"a": 1})],

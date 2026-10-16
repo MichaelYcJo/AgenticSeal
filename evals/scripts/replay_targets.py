@@ -73,9 +73,7 @@ MODEL = "claude-opus-5-5"
 def git(*args, check=True):
     """`git -C ROOT <args>`'s stdout.
 
-    A failure stops the run where CHECK is set and is empty otherwise.
-
-    Reads: observed — git's stdout for the arguments given; unknown mixed"""
+    A failure stops the run where CHECK is set and is empty otherwise."""
     run = subprocess.run(
         ["git", "-C", ROOT, *args], capture_output=True, text=True, encoding="utf-8"
     )
@@ -88,9 +86,7 @@ def last_tags(count=2):
     """The COUNT highest `v*` release tags, newest first; every one where
     COUNT is None.
 
-    A tag that is not `vX.Y.Z` is skipped.
-
-    Reads: observed — `git tag --sort=-v:refname`; unknown passed"""
+    A tag that is not `vX.Y.Z` is skipped."""
     tags = [
         t
         for t in git("tag", "--sort=-v:refname").split("\n")
@@ -105,9 +101,7 @@ def records(tags, items=None):
     Where ITEMS is given, only the work items whose `<epoch>` prefix it
     names are read.
 
-    A path outside the record shape is skipped.
-
-    Reads: observed — round records under ROOT and at each tag; unknown passed"""
+    A path outside the record shape is skipped."""
 
     def wanted(item):
         return items is None or item.split("-")[0] in items
@@ -137,9 +131,7 @@ def record_reader():
     """`(chain_check, its shared reader)`: the one reader of a labelled
     record, `chain_check.py` beside this tree, loaded once.
 
-    A script that will not load stops the run naming it.
-
-    Reads: observed — the two scripts' files, imported; unknown refused"""
+    A script that will not load stops the run naming it."""
     spec = importlib.util.spec_from_file_location("specseal_chain_check", CHECK)
     if spec is None or spec.loader is None:
         raise SystemExit(f"replay_targets: cannot load {CHECK}")
@@ -150,9 +142,7 @@ def record_reader():
 
 def labelled(text):
     """True for a record in 0.22.0's labelled lines: one whose readable
-    lines hold a `target:` line, which no table record carries.
-
-    Reads: guess — the record text it is handed, through `chain_check.py`'s reader; unknown passed"""
+    lines hold a `target:` line, which no table record carries."""
     check, reader = record_reader()
     return any(check.TARGET_LABEL.match(line) for line in reader.readable(text))
 
@@ -165,9 +155,7 @@ def labelled_round(text, rel, n):
     `(round, finding)` pairs its `confirms:` lines name.
 
     A record the check refuses is `(None, the first refusal)`, so a replay
-    reads only what the pull request accepted.
-
-    Reads: guess — the warden's record, through `chain_check.py`'s readers; unknown refused"""
+    reads only what the pull request accepted."""
     check, reader = record_reader()
     found, errors = check.round_of(reader, text, rel, n)
     if errors:
@@ -198,9 +186,7 @@ def labelled_round(text, rel, n):
 def cells(line):
     """The cells of one table row, `\\|` kept inside its cell.
 
-    A line that is no row gives no cells.
-
-    Reads: guess — a line it is handed, split at every unescaped `|`; unknown passed"""
+    A line that is no row gives no cells."""
     if not line.startswith("|"):
         return []
     parts = re.split(r"(?<!\\)\|", line.strip())
@@ -210,9 +196,7 @@ def cells(line):
 def field(text, name):
     """The value of the `| NAME | value |` row of a record's header table.
 
-    No such row is None.
-
-    Reads: guess — the record text it is handed; unknown passed"""
+    No such row is None."""
     for line in text.split("\n"):
         row = cells(line)
         if len(row) == 2 and row[0] == name:
@@ -223,9 +207,7 @@ def field(text, name):
 def asked(text):
     """The `## What this round was asked` paragraph of a record.
 
-    A record without the section gives an empty string.
-
-    Reads: guess — the record text it is handed, up to the next `## `; unknown passed"""
+    A record without the section gives an empty string."""
     m = re.search(
         r"^## What this round was asked\n(?P<body>.*?)(?=^## )", text, re.M | re.S
     )
@@ -235,9 +217,7 @@ def asked(text):
 def resolve(rev):
     """The full SHA REV names as a commit, or an empty string.
 
-    A REV that does not resolve is an empty string.
-
-    Reads: observed — `git rev-parse --verify`; unknown passed"""
+    A REV that does not resolve is an empty string."""
     return git("rev-parse", "--verify", "-q", f"{rev}^{{commit}}", check=False).strip()
 
 
@@ -246,9 +226,7 @@ def base_of(paragraph, target):
     `against <ref> at <sha>`, then a fix range `<a>..<b>`'s start, then
     `against <ref>` read as its merge-base with TARGET; `("", None)` if none.
 
-    A paragraph naming none of the three gives no base.
-
-    Reads: guess — the paragraph it is handed, and git for each name; unknown passed"""
+    A paragraph naming none of the three gives no base."""
     m = AGAINST_AT.search(paragraph)
     if m and resolve(m["base"]):
         return resolve(m["base"]), m["ref"]
@@ -267,9 +245,7 @@ def target_base(value, target):
     """`(base SHA, base ref or None)` a labelled record's `target:` VALUE
     names for TARGET: a fix range `<a>..<b>`'s start, an `against <sha>`
     commit, or `against <base>` read as the merge-base of TARGET and
-    `origin/<base>`; `("", None)` if none resolves.
-
-    Reads: guess — the value it is handed, and git for each name; unknown passed"""
+    `origin/<base>`; `("", None)` if none resolves."""
     m = FIX_RANGE.search(value)
     if m and resolve(m["base"]):
         return resolve(m["base"]), None
@@ -288,9 +264,7 @@ def findings(text):
     """`[(marker, k, finding, location, verdict)]` for every numbered 🔴 and
     🟡 verdict row of a record.
 
-    A row of another shape is skipped.
-
-    Reads: guess — the record text it is handed; unknown passed"""
+    A row of another shape is skipped."""
     rows = []
     for line in text.split("\n"):
         row = cells(line)
@@ -307,9 +281,7 @@ def confirmed(text, n, rel="the next round's record"):
     it is a table.
 
     A line or row that names no round N finding confirms nothing, and a
-    labelled record the check refuses confirms nothing at all.
-
-    Reads: guess — the record text it is handed; unknown passed"""
+    labelled record the check refuses confirms nothing at all."""
     if labelled(text):
         read, _why = labelled_round(text, rel, n + 1)
         return {k for r, k in read["confirms"] if r == n} if read else set()
@@ -327,9 +299,7 @@ def enclosing(source, line):
     """`(names, (first, last))` of the innermost `def` or `class` holding LINE
     in Python SOURCE, outermost name first, or `([], None)`.
 
-    A source that does not parse gives no unit.
-
-    Reads: guess — the source text it is handed, through `ast`; unknown passed"""
+    A source that does not parse gives no unit."""
     try:
         tree = ast.parse(source)
     except SyntaxError:
@@ -353,9 +323,7 @@ def enclosing(source, line):
 def unit_span(source, dotted):
     """`(first, last)` of the unit DOTTED names in Python SOURCE, or None.
 
-    A unit not found gives None.
-
-    Reads: guess — the source text it is handed, through `ast`; unknown passed"""
+    A unit not found gives None."""
     try:
         tree = ast.parse(source)
     except SyntaxError:
@@ -383,9 +351,7 @@ def truth_pattern(location, target):
     Where no line can be read, the path alone or with a line. Never a
     `path#unit`, which `chain_check.py` refuses in a `location:` line.
 
-    A location naming no backticked path gives None.
-
-    Reads: observed — `git show TARGET:<path>` for a Python path; unknown passed"""
+    A location naming no backticked path gives None."""
     m = LOCATION.search(location)
     if not m:
         return None
@@ -412,9 +378,7 @@ def targets(tags, items=None):
     round left out, over the records `records` reads at TAGS for ITEMS.
 
     A round whose SHAs or branch do not resolve, or a labelled record the
-    check refuses, is left out with the reason.
-
-    Reads: observed — the records `records` returns, and git per SHA; unknown passed"""
+    check refuses, is left out with the reason."""
     found = records(tags, items)
     kept, left = [], []
     for (item, n), text in sorted(found.items()):
@@ -482,9 +446,7 @@ def targets(tags, items=None):
 def origin_url():
     """The `origin` remote as an https URL a scaffold can fetch from.
 
-    A URL of another shape stops the run.
-
-    Reads: observed — `git remote get-url origin`; unknown refused"""
+    A URL of another shape stops the run."""
     url = git("remote", "get-url", "origin").strip()
     m = re.fullmatch(
         r"(?:git@github\.com:|https://github\.com/)(?P<repo>[\w.-]+/[\w.-]+?)(?:\.git)?",
@@ -498,9 +460,7 @@ def origin_url():
 def prompt(t):
     """The case prompt: the orchestrator's one spawn, then the report read
     back so the run's trace holds it. The round's asked paragraph ends the
-    spawn where its record carried one, and nothing does where it did not.
-
-    Reads: nothing — it formats the target it is handed."""
+    spawn where its record carried one, and nothing does where it did not."""
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
     base = f"`{t['base_ref']}` at `{t['base']}`" if t["base_ref"] else f"`{t['base']}`"
     asked = " ".join(t["asked"].split())
@@ -516,9 +476,7 @@ END PROMPT"""
 
 def scaffold(t, url):
     """The scaffold: the target and its base fetched, the branch checked out,
-    and the base ref the asked paragraph names.
-
-    Reads: nothing — it formats the target it is handed."""
+    and the base ref the asked paragraph names."""
     lines = [
         "git init -q .",
         f"git remote add origin {url}",
@@ -533,9 +491,7 @@ def scaffold(t, url):
 
 
 def graders(t):
-    """Reach, shape and truth graders for one target.
-
-    Reads: nothing — it formats the target it is handed."""
+    """Reach, shape and truth graders for one target."""
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
     out = behaviour.report_shape("warden", report)
     for truth in t["truths"]:
@@ -552,9 +508,7 @@ def graders(t):
 
 
 def case_name(t):
-    """The case's directory and display name.
-
-    Reads: nothing — it formats the target it is handed."""
+    """The case's directory and display name."""
     return f"replay-{t['item'].split('-')[0]}-r{t['n']}"
 
 
@@ -562,9 +516,7 @@ def main(argv=None):
     """Parse the arguments, then list or write. `--case` reads its work
     items' records at every release tag; the rest reads the last two.
 
-    An unusable argument is argparse's exit 2.
-
-    Reads: owned — its own argument vector; unknown refused"""
+    An unusable argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
     p.add_argument("--count", type=int, default=4)

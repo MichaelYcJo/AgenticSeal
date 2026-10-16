@@ -460,7 +460,6 @@ def split_with_separators(command: str, windows=None):
     # covers both. Read, not run: there is no Windows runner here. Since #868
     # the consent writer reads through this adapter too, so it files such a
     # creation nowhere, which is the record's own failure direction.
-    # Verified 2026-10-08 against split_with_separators@f435be0a.
     if windows is None:
         windows = os.name == "nt"
     if windows:

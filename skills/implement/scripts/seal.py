@@ -364,8 +364,6 @@ def work_item_of(rel):
     """The work item a root-relative path belongs to, or "".
 
     A work item writes in one place, its directory under `specs/`.
-
-    Reads: owned — a root-relative path `root_files` yielded, one outside `specs/<id>/` belonging to no item; unknown passed
     """
     parts = rel.split("/")
     if len(parts) >= 3 and parts[0] == optin.WORK_ITEMS:
@@ -811,8 +809,6 @@ def linked_path(into, archive):
     A link this command created is not possible — the export skips links and
     an import refuses a link member — so reaching this means someone made one
     by hand, which is exactly when a stop is worth more than a guess.
-
-    Reads: observed — whether each prefix of a member's name is a symbolic link in the destination root; unknown refused
     """
     seen = set()
     for info in archive.infolist():
@@ -968,10 +964,7 @@ def destination_root(repo, home, shared, local, into):
 
 
 def import_(args, cwd):
-    """Write a carried root's records into this clone's, overwriting nothing.
-
-    Reads: owned — a zip `seal export` wrote, its sizes, manifest and member names bounded before any member is written; unknown refused
-    """
+    """Write a carried root's records into this clone's, overwriting nothing."""
     repo, home, shared, local, _ = resolve(cwd)
     if not repo:
         print("not inside a git repository — seal works on a clone")
@@ -1431,8 +1424,6 @@ def doubled_modes(lines):
     reads. It opens lower-case and ends with no full stop, so it reads after
     the path.
 
-    Reads: guess — the `Mode` rows of a person's `| Item | Value |` table, as `config_table` read them; unknown refused
-
     **Every `Mode` row the walk read, not the first** (#867). A row written
     twice has no value (`hooks/config.py#config_value`), so the writer has no
     row to overwrite, and this sentence names each line from the walk's own
@@ -1453,8 +1444,6 @@ def with_row(text, value):
     """(TEXT with the `Mode` row set to VALUE, every other line's bytes kept,
     "") — or (None, the refusal) where TEXT holds more than one `Mode` row,
     or a table the walker refused.
-
-    Reads: guess — a person's `| Item | Value |` table, through `config_table`; unknown refused
 
     Three cases, and the file is a person's in all three: an existing row is
     replaced where it stands, a table with no such row gains one at its end,
@@ -1527,8 +1516,6 @@ def with_row(text, value):
 
 def write_row(home, value):
     """Write `| Mode | value |` into the root's `config.md`; "" or why not.
-
-    Reads: guess — a person's `config.md`, opened here and walked through `with_row`; unknown refused
 
     Refused rather than followed: a symbolic link at that name is a write
     that leaves the root, which is the one way out of a structure the export
@@ -1714,8 +1701,6 @@ def tracked(repo, rel):
 def other_worktrees(repo):
     """Every other worktree of this clone, by path.
 
-    Reads: observed — `git worktree list --porcelain`; unknown passed
-
     Measured 2026-09-03: switching shared → local from one worktree leaves
     every other one holding the committed `<repo>/seal/` on its own branch,
     so the two read two different roots until the commit reaches both. It
@@ -1743,21 +1728,6 @@ def other_worktrees(repo):
     # The fix is to compare the clone by common git directory and refuse a
     # path that is not a work tree. Filter this list that way when this
     # function is next opened.
-    #
-    # Stamped at a commit on the RELEASE branch rather than at the fix pass's
-    # own, because a feature branch squashes and the commit that measured this
-    # stops existing at that merge. #239 holds the class and this was its
-    # second instance; the first turned the release branch red. `other_worktrees`
-    # is identical at `2138c98` and here once comment lines are stripped, so
-    # the release-branch commit carries the state this was measured against.
-    #
-    # PROVISIONAL FORM. `fix/239-a-stamp-names-content-not-a-commit` replaces
-    # `at <sha>` with `against <anchor>@<hash>` and refuses this spelling;
-    # written this way because the check IN THIS TREE refuses that one --
-    # measured 2026-09-08, two cases red in
-    # `tests/test_a_rider_reaches_its_file.py`. Whichever of the two branches
-    # merges second re-stamps this rider in the form its own check reads.
-    # Verified 2026-10-15 against other_worktrees@f4423c3e.
     here = os.path.realpath(repo)
     found = []
     for line in git(repo, "worktree", "list", "--porcelain").splitlines():
@@ -1979,9 +1949,7 @@ def mode_refusal(home):
     table the walker refused the walker's, after the path (#871) -- the
     three things `with_row` would refuse, so a switch is refused before
     anything moves. Read through `hooks/config.py#config_text`, the one
-    place the file is opened to tell absent from unreadable.
-
-    Reads: guess — a person's `config.md`, through `config_text` and `config_table`; unknown refused"""
+    place the file is opened to tell absent from unreadable."""
     text, refused = repo_config.config_text(home)
     if refused:
         return refused
