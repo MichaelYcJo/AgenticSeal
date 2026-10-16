@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Generate the warden's replay cases from round records.
 
-A replay case is a historical review target: the clone at a round record's
-`Target SHA`, the base its `## What this round was asked` paragraph names,
-and that paragraph as the round's spawn prompt. Its truth is every 🔴 or 🟡
-the round closed `fixed` that the next round's 🟢 row confirmed closed; each
-is a `truth-` grader over the round record the warden writes. Round records come
+A replay case is a historical review target: the clone at the commit a
+round record reviewed (its `Target SHA` row, in the records these targets
+come from), the base its `## What this round was asked` paragraph names,
+and that paragraph as the round's spawn prompt. Its truth is every finding
+the round closed `fixed` that the next round confirmed closed — there a
+numbered red or yellow row, and a green row naming it; each is a `truth-`
+grader over the `location:` lines of the round record the warden writes
+today. Round records come
 from the working tree and from the last two release tags
 (`git show <tag>:seal/specs/<id>/rounds/round-N.md`).
 
@@ -260,8 +263,9 @@ def unit_span(source, dotted):
 
 
 def truth_pattern(location, target):
-    """The regex a report's 🔴/🟡 row must match to have found the finding at
-    LOCATION, read at TARGET: its path with its unit, or its line within ±15.
+    """The regex a report's finding's `location:` line must match to have
+    found the finding at LOCATION, read at TARGET: its path with its unit,
+    or its line within ±15.
 
     A location naming no backticked path gives None.
 
@@ -295,7 +299,7 @@ def truth_pattern(location, target):
         options.append(f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)")
     if not options:
         options.append(f"{behaviour.js_escape(path)}(?![\\w./-])")
-    return "^\\| (?:🔴|🟡) \\d+ \\|.*(?:" + "|".join(options) + ")"
+    return "^location: .*(?:" + "|".join(options) + ")"
 
 
 def targets(tags):
@@ -426,7 +430,7 @@ def graders(t):
                 f"{truth['k']}",
                 report,
                 truth["pattern"],
-                f"Round {t['n']}'s {truth['marker']} {truth['k']}: {truth['finding']}",
+                f"Round {t['n']}'s finding {truth['k']}: {truth['finding']}",
             )
         )
     return out

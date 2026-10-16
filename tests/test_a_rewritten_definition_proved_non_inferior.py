@@ -455,7 +455,7 @@ def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved
     tree(plugin)
     kept = tmp_path / "e-Fake01"
     (kept / "out").mkdir(parents=True)
-    row = "| 🟡 1 | found | `src/a.py:3` | open | read |"
+    row = "location: `src/a.py:3`"
     use = {
         "type": "tool_use",
         "id": "a",
@@ -518,12 +518,12 @@ def load_script(name):
     return module
 
 
-TRUTH = r"^\| (?:🔴|🟡) \d+ \|.*(?:src\/a\.py:(?:10|11|12)(?!\d))"
+TRUTH = r"^location: .*(?:src\/a\.py:(?:10|11|12)(?!\d))"
 
 
 def test_a_side_counts_a_finding_row_no_truth_matches_as_false():
-    """Guards pass rule 2's input: a row is false only when no truth grader's
-    pattern matches it."""
+    """Guards pass rule 2's input: a finding, read by its `location:` line,
+    is false only when no truth grader's pattern matches it."""
     result = {
         "cases": [
             {
@@ -541,8 +541,8 @@ def test_a_side_counts_a_finding_row_no_truth_matches_as_false():
                             ],
                             "specseal": {
                                 "report_rows": [
-                                    "| 🟡 1 | the bug | `src/a.py:11` | open | read |",
-                                    "| 🟡 2 | elsewhere | `src/a.py:40` | open | read |",
+                                    "location: `src/a.py:11`",
+                                    "location: `src/a.py:40`",
                                 ]
                             },
                         }
@@ -558,9 +558,11 @@ def test_a_side_counts_a_finding_row_no_truth_matches_as_false():
 
 
 def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
-    """Guards where the false rows come from: the session's own `cat` of the
-    report, the last one winning, and never a subagent's output. A record
-    printed as `rounds/round-N.md` (0.22.0, #923) is read as a report is."""
+    """Guards where the false rows come from: the `location:` lines of the
+    session's own `cat` of the report, the last one winning, and never a
+    subagent's output. A record printed as `rounds/round-N.md` (0.22.0,
+    #923) is read as a report is, and a confirmation's location is not a
+    finding."""
 
     def cat(call_id, content, parent=None, path="r/round-1-report.md"):
         use = {"type": "tool_use", "id": call_id, "name": "Bash"}
@@ -575,7 +577,8 @@ def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
     last = [
         {
             "type": "text",
-            "text": "| 🟡 1 | new | `x:1` | open | read |\n| ⬜ 2 | n | `x:2` | open | r |",
+            "text": "### 1. new\n\nseverity: should\nlocation: `x:1`\n"
+            "verdict: open\n\n## Confirmations\n\nconfirms: none\nholds, at `x:2`.\n",
         }
     ]
     # The shapes a 2.1.296 trace carries beside a tool call, read off the
@@ -589,17 +592,17 @@ def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
     }
     events = [
         {"type": "system", "subtype": "init", "cwd": "/w"},
-        *cat("a", "| 🟡 1 | old | `x:1` | open | read |"),
+        *cat("a", "location: `x:9`"),
         denied,
         {"type": "assistant", "message": {"content": "plain text"}},
         *cat("c", last, path="seal/specs/i/rounds/round-1.md"),
-        *cat("b", "| 🔴 9 | sub | `x:1` | open | read |", parent="s"),
+        *cat("b", "location: `x:7`", parent="s"),
     ]
     trace = tmp_path / "trace.jsonl"
     trace.write_text(
         "\n".join(json.dumps(e) for e in events) + "\nnot json\n", encoding="utf-8"
     )
-    assert ni.report_rows(str(trace)) == ["| 🟡 1 | new | `x:1` | open | read |"]
+    assert ni.report_rows(str(trace)) == ["location: `x:1`"]
 
 
 def test_only_a_directory_the_eval_kept_is_removed():
@@ -640,12 +643,16 @@ def test_a_truth_is_a_fixed_finding_the_next_round_confirmed():
 
 def test_a_truth_pattern_holds_its_line_window_and_no_further():
     rt = load_script("replay_targets")
+    """A truth reads a finding's `location:` line, the line within ±15 of
+    the original's, and never a confirmation's or a table's coordinate."""
     pattern = re.compile(rt.truth_pattern("`docs/x.md:100`", "HEAD"), re.M)
-    assert pattern.search("| 🟡 1 | f | `docs/x.md:115` | open | g |")
-    assert pattern.search("| 🔴 3 | f | `docs/x.md:85-90` | open | g |")
-    assert not pattern.search("| 🟡 1 | f | `docs/x.md:116` | open | g |")
-    assert not pattern.search("| 🟡 1 | f | `docs/x.md:1000` | open | g |")
-    assert not pattern.search("| ⬜ 1 | f | `docs/x.md:100` | open | g |")
+    assert pattern.search("location: `docs/x.md:115`")
+    assert pattern.search("location: `a.py:1`, `docs/x.md:85-90`")
+    assert not pattern.search("location: `docs/x.md:116`")
+    assert not pattern.search("location: `docs/x.md:1000`")
+    assert not pattern.search("holds, at `docs/x.md:100`. read.")
+    assert not pattern.search("| none | f | `docs/x.md:100` | g |")
+    assert not pattern.search("Location: `docs/x.md:100`")
 
 
 def test_a_seed_lands_on_a_code_token_and_never_in_a_string():

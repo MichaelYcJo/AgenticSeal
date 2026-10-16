@@ -277,7 +277,7 @@ def warden_case():
             "truth",
             "shout-twice",
             report,
-            r"^\| (?:🔴|🟡) \d+ \|.*src\/textutil\.py(?:#shout_twice\b|:(?:[4-9]|1[0-9])(?!\d))",
+            r"^location: .*src\/textutil\.py(?:#shout_twice\b|:(?:[4-9]|1[0-9])(?!\d))",
             "`shout_twice` joins the two shouts with no space, against S2.",
         ),
     ]
@@ -535,21 +535,24 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 """
 SEALER_ROUND = """# {item} — review round 1
 
-| Field | Value |
-|---|---|
-| Target SHA | BUILD_SHA against main |
+target: BUILD_SHA against main
 
-## Verdicts
+## Findings
 
-| # | Finding | Location | Verdict | Grounds |
-|---|---|---|---|---|
-| 🟢 | `shout` keeps empty text empty and its mark otherwise | `src/textutil.py:4` | confirmed | read against S1 |
+## Confirmations
 
-## Paste-ready fixes
+confirms: none
+`shout` keeps empty text empty and its mark otherwise, at `src/textutil.py:4`.
+read against S1.
 
-## Executed probes
+## Not judged
 
-| What was run | Result |
+| What | Location | Who answers |
+|---|---|---|
+
+## Probes
+
+| Command | Result |
 |---|---|
 | `python3 -m unittest tests.test_textutil -q` | 2 tests OK |
 """

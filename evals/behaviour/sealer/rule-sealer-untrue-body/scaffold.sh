@@ -157,21 +157,24 @@ mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-untrue-body/rounds/round-1.
 cat > 'seal/specs/1790000030-guarantee-untrue-body/rounds/round-1.md' <<'SPECSEAL_EOF'
 # 1790000030-guarantee-untrue-body — review round 1
 
-| Field | Value |
-|---|---|
-| Target SHA | BUILD_SHA against main |
+target: BUILD_SHA against main
 
-## Verdicts
+## Findings
 
-| # | Finding | Location | Verdict | Grounds |
-|---|---|---|---|---|
-| 🟢 | `shout` keeps empty text empty and its mark otherwise | `src/textutil.py:4` | confirmed | read against S1 |
+## Confirmations
 
-## Paste-ready fixes
+confirms: none
+`shout` keeps empty text empty and its mark otherwise, at `src/textutil.py:4`.
+read against S1.
 
-## Executed probes
+## Not judged
 
-| What was run | Result |
+| What | Location | Who answers |
+|---|---|---|
+
+## Probes
+
+| Command | Result |
 |---|---|
 | `python3 -m unittest tests.test_textutil -q` | 2 tests OK |
 SPECSEAL_EOF

@@ -43,7 +43,9 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SUITE = "evals/behaviour"
 AGENTS = ("warden", "smith", "framer", "sealer", "scribe")
 CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
-FINDING_ROW = re.compile(r"^\| (?:🔴|🟡) \d+ \|.*$", re.M)
+# A finding of the round record, as the `truth-` graders read it: its one
+# `location:` line.
+FINDING_ROW = re.compile(r"^location: .*$", re.M)
 FALSE_MARGIN = 0.05
 COST_MARGIN = 1.1
 COST_FIELDS = (
@@ -168,9 +170,9 @@ def write_git_shim(tree):
 
 
 def report_rows(trace_path):
-    """The 🔴/🟡 finding rows of the round record the run's session printed
-    with `cat <…/round-N.md>` (`<…-report.md>` on a run taken before 0.22.0),
-    the last such print winning.
+    """The finding `location:` lines of the round record the run's session
+    printed with `cat <…/round-N.md>` (`<…-report.md>` on a run taken before
+    0.22.0), the last such print winning.
 
     Only an event whose `message` is an object with a list `content` holds
     tool calls; a line that is not a JSON object, a `message` that is a

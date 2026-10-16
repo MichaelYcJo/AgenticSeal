@@ -51,9 +51,9 @@ def grader(kind, name, body, **fields):
     return f"{kind}-{name}.md", "\n".join(lines)
 
 
-def report_regex(kind, name, path, pattern, body, flags="m"):
+def report_regex(kind, name, path, pattern, body, flags="m", **extra):
     """A regex grader over the file at PATH, multiline unless FLAGS says
-    otherwise.
+    otherwise; EXTRA are further frontmatter fields, `match` among them.
 
     Reads: nothing — it formats the fields it is handed."""
     return grader(
@@ -64,6 +64,7 @@ def report_regex(kind, name, path, pattern, body, flags="m"):
         target={"source": "file", "path": path},
         pattern=pattern,
         flags=flags,
+        **extra,
     )
 
 
@@ -82,10 +83,25 @@ def reach(agent):
     )
 
 
+# A finding as `templates/sdd-round.md` writes it: the `## Findings`
+# heading, then a `### <n>. ` section, then that section's `verdict:` line,
+# lowercase at the start of a line, before the next heading.
+FINDINGS_SHAPE = (
+    r"^## Findings[ \t]*\n(?:(?!^## )[\s\S])*?^### \d+\. [^\n]+\n"
+    r"(?:(?!^##)[\s\S])*?^verdict: \S"
+)
+# The pictographs and symbols a mark is drawn from, as a JavaScript regex
+# with no `u` flag, where an astral pictograph is its surrogate pair.
+EMOJI_RANGES = (
+    r"\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|\uD83E[\uDC00-\uDEFF]"
+    r"|[☀-➿⬀-⯿️]"
+)
+
+
 def report_shape(agent, report):
-    """The reach grader and the two shape graders of a warden round record
-    at REPORT: it exists, and carries the verdict table in the record's
-    columns.
+    """The reach grader and the three shape graders of a warden round
+    record at REPORT: it exists, it carries a finding in the record's shape,
+    and it is written in words.
 
     Reads: nothing — it formats the fields it is handed."""
     return [
@@ -99,10 +115,19 @@ def report_shape(agent, report):
         ),
         report_regex(
             "shape",
-            "verdicts-table",
+            "findings",
             report,
-            r"^## Verdicts\s*\n\s*\n\| # \| Finding \| Location \| Verdict \| Grounds \|",
-            "The report carries the verdict table under its heading, in the record's columns.",
+            FINDINGS_SHAPE,
+            "The report carries `## Findings` with a `### <n>.` section and its "
+            "`verdict:` line.",
+        ),
+        report_regex(
+            "shape",
+            "words-only",
+            report,
+            EMOJI_RANGES,
+            "The report carries no emoji.",
+            match="not_contains",
         ),
     ]
 
