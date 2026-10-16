@@ -114,6 +114,9 @@ def item(tmp_path, monkeypatch):
     event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
     monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
     monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
+    # Under Actions the check prints `::error` annotations; these cases read
+    # the plain line it prints everywhere else.
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     return d, audited
 
 
