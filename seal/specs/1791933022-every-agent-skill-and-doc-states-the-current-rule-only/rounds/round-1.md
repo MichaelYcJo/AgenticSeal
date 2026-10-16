@@ -14,9 +14,9 @@ labelled in each Grounds cell; every command named there is in
 
 ### 1. A ready pull request passes with an open finding whose severity is not in the `#` cell
 
-Severity: blocks merge
-Location: `skills/code-review/scripts/chain_check.py:573-599`
-Verdict: fixed 18315ee2
+severity: must
+location: `skills/code-review/scripts/chain_check.py:573-599`
+verdict: fixed 18315ee2
 
 `open_findings` counts a row only where `severity_of` finds 🔴 or 🟡 at the head of the first cell. A row reading `open` with its severity at the head of the Finding cell, with an empty `#` cell, with a word such as `carried` there, or in a table whose `#` column is not first, is no finding and passes. And `CLOSED_WORDS` now holds `confirmed` (and still `out of verified scope`), so a 🔴 or 🟡 row the warden wrote `confirmed` — "confirmed, still holds" — closes. The base's `open_blocking` refused any row with a 🔴 anywhere in it and a non-closing word, and its docstring named this exact narrowing as the repair that "would let a row whose verdict the vocabulary does not hold stop being refused at all". The deleted `tests/test_a_finding_id_is_a_bare_integer.py` held the generator's refusal of an empty or worded `#` cell; `phases/phase-3.md` says `TestOpenFindings` "reads the id", and it reads only the marker. The severity-in-the-Finding-cell shape is the one the 0.21.1 warden definition measured in two of three reviewers of one release
 
@@ -83,13 +83,13 @@ Run over the probe rows it names `1 open`, `row at line 8 open` and
         ]
 ```
 
-Answer: `open_findings` finds the `#` column by its header; a 🔴 or 🟡 there closes only by `FINDING_CLOSES` (`CLOSED_WORDS` less `confirmed` and `out of verified scope`); a 🟢, ❓ or ⬜ there is no finding; any other `#` cell (empty, a number, a word) is a finding that closes only by a closing word. Narrower than the paste on one point: a ⬜ row naming a 🟡 in its text stays no finding, because an old record carries exactly that (`⬜ 3 … same claim as 🟡 2 … open`). The refusal now reads `which closes no finding`, pinned in `TestMain::test_an_open_verdict_fails_a_ready_pull_request`; `docs/the-review-record.md` and the changelog fragment state the rule. Three new `TestOpenFindings` cases, each seen red on the shipped code (executed: 3 failed, 2 passed); five `mutation-check` breaks of the new units, each `red`. executed: `bin/test tests/test_chain_check.py` exit 1 before this record's cells were filled, its one failure `test_a_record_written_by_the_old_generator_reads` naming only this record's seven open rows, so the 35 earlier records read clean
+answer: `open_findings` finds the `#` column by its header; a 🔴 or 🟡 there closes only by `FINDING_CLOSES` (`CLOSED_WORDS` less `confirmed` and `out of verified scope`); a 🟢, ❓ or ⬜ there is no finding; any other `#` cell (empty, a number, a word) is a finding that closes only by a closing word. Narrower than the paste on one point: a ⬜ row naming a 🟡 in its text stays no finding, because an old record carries exactly that (`⬜ 3 … same claim as 🟡 2 … open`). The refusal now reads `which closes no finding`, pinned in `TestMain::test_an_open_verdict_fails_a_ready_pull_request`; `docs/the-review-record.md` and the changelog fragment state the rule. Three new `TestOpenFindings` cases, each seen red on the shipped code (executed: 3 failed, 2 passed); five `mutation-check` breaks of the new units, each `red`. executed: `bin/test tests/test_chain_check.py` exit 1 before this record's cells were filled, its one failure `test_a_record_written_by_the_old_generator_reads` naming only this record's seven open rows, so the 35 earlier records read clean
 
 ### 2. After a `not sound` verdict, the orchestrator is sent into a loop the sealer cannot leave
 
-Severity: fix or justify
-Location: `skills/code-review/orchestration.md:163-168`
-Verdict: fixed fabc1eba
+severity: should
+location: `skills/code-review/orchestration.md:163-168`
+verdict: fixed fabc1eba
 
 The orchestration file says "`not sound` names the claim and the coordinate: fix that, commit, and spawn the sealer again at the new HEAD". A fix to code is a commit outside the work item after the last round's `Target SHA`, so the records arm refuses it, and the sealer's own broad run asks that arm first under `--sealing`, which excuses only `broad-gate.md` and `guarantee.md`. The sealer comes back NOT SEALED, writes `not sound` again, and nothing tells anyone that a verifying round is owed in between
 
@@ -111,13 +111,13 @@ the run rather than during it; write the answer under the verdict as
 `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
 ```
 
-Answer: the paragraph rewritten in place: a repair to the work item's own records or the pull request body goes straight back to the sealer; a repair to any other file is committed, a verifying round runs on its diff, and the sealer is spawned once that round's record is committed, with the reason. No other file states the `not sound` path (`grep` of `agents/`, `docs/`, `templates/`, `skills/`). executed: the six modules reading `orchestration.md`, exit 0
+answer: the paragraph rewritten in place: a repair to the work item's own records or the pull request body goes straight back to the sealer; a repair to any other file is committed, a verifying round runs on its diff, and the sealer is spawned once that round's record is committed, with the reason. No other file states the `not sound` path (`grep` of `agents/`, `docs/`, `templates/`, `skills/`). executed: the six modules reading `orchestration.md`, exit 0
 
 ### 3. The `fix of a fix` stop names a test that does not hold it
 
-Severity: fix or justify
-Location: `docs/the-review-record.md:168`
-Verdict: fixed fb519b50
+severity: should
+location: `docs/the-review-record.md:168`
+verdict: fixed fb519b50
 
 `docs/the-review-record.md` §*The run* ends the rule with `Enforced by: tests/test_chain_check.py::TestFrame`. `TestFrame`'s two cases check that `spec.md` carries the mark and that a `Reframed` line names the framer; nothing reads the `fix of a fix` mark or refuses a fix pass after it. `spec.md` §*What leaves* says of this rule "Checked by nothing; the sealer reads the records", and S9 says `chain_check.py` reads nothing of the mark. `rules --check` passes, so a reader takes the stop for a mechanical one
 
@@ -129,13 +129,13 @@ read: `tests/test_chain_check.py:450-485`, `chain_check.py#frame`. executed: `bi
 Enforced by: nothing — the orchestrator applies it, and the sealer reads the mark in the records
 ```
 
-Answer: `Enforced by: nothing — the orchestrator applies it, and the sealer reads the mark in the records`, the form the cap and the ladder rules use and what `spec.md` S9 and §*What leaves* say. executed: `bin/rules --check` exit 0, 400 targets in 60 files
+answer: `Enforced by: nothing — the orchestrator applies it, and the sealer reads the mark in the records`, the form the cap and the ladder rules use and what `spec.md` S9 and §*What leaves* say. executed: `bin/rules --check` exit 0, 400 targets in 60 files
 
 ### 4. `spec.md` §*Removes* names three broad-gate units that still stand, and no divergence says so
 
-Severity: fix or justify
-Location: `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/spec.md:420`
-Verdict: fixed 1a985894
+severity: should
+location: `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/spec.md:420`
+verdict: fixed 1a985894
 
 The row *the broad gate's record arms* lists `broad_gate.py#seal_home`, `#round_count` and `#rounds_rows`; all three are in the tree, `rounds_rows` still reading every record through `chain_check.verdict_table` for the panel's `rounds` row. `seal_home` is the root resolver the gate needs, and §*Data & interfaces* also says the panel is unchanged, so the spec contradicts itself and the build kept the working half. The sealer's step 3 confirms "nothing of it stands" for every `## Removes` row, so this item's own guarantee will read `not sound` on its own paperwork unless the row or `overview.md` says what stayed and why
 
@@ -148,13 +148,13 @@ the row rewritten in place to what the build did:
 | the broad gate's record arms | `broad_gate.py#sealed_record`, `#kept_broad_gate`-through-`round_record`, the `round_record` import, the `Broad gate` cell write | `broad-gate.md`, one home; `#seal_home` (the root resolver), `#round_count` and `#rounds_rows` (the panel's `rounds` row, which §*Data & interfaces* keeps unchanged) stay |
 ```
 
-Answer: `round_count` had no caller in the tree and is removed. `seal_home` and `rounds_rows` stay, because something live needs each: `seal_home` is the gate's root resolver, through which it reads the `Broad gate` command from `config.md`, and the record arm the frame meant was the generator's `round_record.seal_home` call (the base's `broad_gate.py:2643`), gone in phase 3; `rounds_rows` draws the panel's `rounds` row, which §*Data & interfaces* keeps unchanged. The §*Removes* row and the §*Data & interfaces* sentence are rewritten in place to say so, and `overview.md` gains a divergence row quoting both sides. executed: `tests/test_broad_gate.py`, `tests/test_the_seal_is_taken_once_by_the_sealer.py`, `tests/test_a_reader_declares_its_input_class.py` exit 0
+answer: `round_count` had no caller in the tree and is removed. `seal_home` and `rounds_rows` stay, because something live needs each: `seal_home` is the gate's root resolver, through which it reads the `Broad gate` command from `config.md`, and the record arm the frame meant was the generator's `round_record.seal_home` call (the base's `broad_gate.py:2643`), gone in phase 3; `rounds_rows` draws the panel's `rounds` row, which §*Data & interfaces* keeps unchanged. The §*Removes* row and the §*Data & interfaces* sentence are rewritten in place to say so, and `overview.md` gains a divergence row quoting both sides. executed: `tests/test_broad_gate.py`, `tests/test_the_seal_is_taken_once_by_the_sealer.py`, `tests/test_a_reader_declares_its_input_class.py` exit 0
 
 ### 5. The release table will print the suite at 6,827 s where it now runs about 3,717 s
 
-Severity: fix or justify
-Location: `.github/scripts/release_report.py:113-131`
-Verdict: fixed 1b875efc
+severity: should
+location: `.github/scripts/release_report.py:113-131`, `.test_durations`
+verdict: fixed 1b875efc
 
 `release_report.py#suite_seconds` sums every entry of `.test_durations`, and the branch left 3,110 s of entries for the 29 test modules it deleted (`phases/phase-3.md`: "the file was not refreshed by this phase"). The table on 0.22.0's release pull request is what the person preparing the release reads to see the suite fall, and S12's whole point is that fall
 
@@ -189,13 +189,13 @@ def test_the_suite_prices_only_the_cases_whose_module_exists(tmp_path):
 
 (`report` and `json` are that module's own names, `tests/…:14` and `:32`.)
 
-Answer: the 1,332 entries of the 29 deleted modules dropped by a script that refused unless the file round-tripped byte for byte, so every kept entry is unchanged; nothing re-measured, and the file now sums to 3,717 s over 7,649 entries. `suite_seconds` is left as it is: the paste's filter on existing modules would be new mechanism in a fix pass, and the stale entries it guards against are gone. `overview.md`'s row that left the stale entries as history is rewritten in place. executed: the three modules reading `.test_durations`, 79 passed, 2 skipped, exit 0
+answer: the 1,332 entries of the 29 deleted modules dropped by a script that refused unless the file round-tripped byte for byte, so every kept entry is unchanged; nothing re-measured, and the file now sums to 3,717 s over 7,649 entries. `suite_seconds` is left as it is: the paste's filter on existing modules would be new mechanism in a fix pass, and the stale entries it guards against are gone. `overview.md`'s row that left the stale entries as history is rewritten in place. executed: the three modules reading `.test_durations`, 79 passed, 2 skipped, exit 0
 
 ### 6. Four shipped files still tell a user or an orchestrator about the `Pass` box and `Fixes checked by`
 
-Severity: fix or justify
-Location: `README.md:180`
-Verdict: fixed 0b435be9
+severity: should
+location: `README.md:180`
+verdict: fixed 0b435be9
 
 `README.md:180-187`: CI "requires a committed round record whose `Pass` does not contradict its own verdict table", and "Each round record also has to say who opened the fixes"; `README.ko.md:171-179` the same in Korean. `templates/hygiene.yml:33-37`, which a plugin user copies: "`chain_check.py` … requires a checked `Pass` on the last round". `skills/code-review/orchestration.md:79-83`: "the box saying the review passed is ticked by the session that wrote them"; `:14`: "Nothing here changed when it moved", false since this branch rewrote three of its sections; `:245`: "Record both SHAs in `round-N.md`", an instruction to edit the warden's file, which the record now has one field for and nobody else writes
 
@@ -254,13 +254,13 @@ Also check whether HEAD moved during the review; if source changed, those
 verdicts need a re-pass, and the next round's `Target SHA` names the new HEAD.
 ```
 
-Answer: each sentence rewritten in place: both READMEs state the open-row rule and drop the `Fixes checked by` paragraph's lead; `templates/hygiene.yml` names the four refusals a draft defers; `orchestration.md` says the last round's fixes have no reader unless a round is spawned, drops "Nothing here changed when it moved", and says the next round's `Target SHA` names the new HEAD. A `git grep` for `Pass` box, `Fixes checked by` and `who opened the fixes` outside the records finds only the test docstrings of 🟡 7. executed: the 37 modules naming `hygiene.yml`, a README, `code-review/orchestration` or `verifying round`, 2,058 passed, the one failure this record's open rows
+answer: each sentence rewritten in place: both READMEs state the open-row rule and drop the `Fixes checked by` paragraph's lead; `templates/hygiene.yml` names the four refusals a draft defers; `orchestration.md` says the last round's fixes have no reader unless a round is spawned, drops "Nothing here changed when it moved", and says the next round's `Target SHA` names the new HEAD. A `git grep` for `Pass` box, `Fixes checked by` and `who opened the fixes` outside the records finds only the test docstrings of 🟡 7. executed: the 37 modules naming `hygiene.yml`, a README, `code-review/orchestration` or `verifying round`, 2,058 passed, the one failure this record's open rows
 
 ### 7. Test modules still name the three deleted documents and the removed mechanisms, and two leftovers stood only on them
 
-Severity: fix or justify
-Location: `tests/test_ci_gives_the_checks_what_they_need.py:35`
-Verdict: fixed d31a8fc0
+severity: should
+location: `tests/test_ci_gives_the_checks_what_they_need.py:35`
+verdict: fixed d31a8fc0
 
 Docstrings and comments cite `docs/review-handoff-protocol.md`, `docs/round-record-spec.md` or `docs/review-chain-spec.md` as the source of what they pin: `tests/test_ci_gives_the_checks_what_they_need.py:15`, `:35-36`, `:414` (and its `Pass` requirement), `tests/test_a_phase_hands_the_next_one_a_record.py:13`, `tests/test_session_cost.py:541`, `:3243`, `tests/test_one_word_one_meaning.py:360`, `tests/test_docs_line_wrap.py:182-185`, `tests/test_the_agent_contract_holds_the_universal_rules.py:232`. `tests/test_no_passage_is_pasted_into_a_second_file.py:231` keeps an exemption for a pair whose second file is gone. `tests/conftest.py:296-340` keeps `committed_round_records_on_disk` and `ROUND_RECORD_NAME`, whose every caller was a deleted module. A smith extending one of these groups reads the deleted file as where the rule lives
 
@@ -291,17 +291,17 @@ handoff, §*The round record* for the record's shape), and the `Pass` and
 `Fixes checked by` sentences rewritten to the open-row and last-record
 rules.
 
-Answer: every coordinate listed rewritten in place to `docs/the-review-record.md` or the current rule, the `("agents/smith.md", "docs/review-chain-spec.md")` exemption deleted, and `ROUND_RECORD_NAME` and `committed_round_records_on_disk` deleted. The class was enumerated by `git grep` over `tests/` for the three documents, `round_record`, `Pass` and the helper: also rewritten are the present-tense claims in `test_the_seal_is_taken_once_by_the_sealer.py` (its docstring's `seal` subcommand and `Pass` box, the scripts a fixture starts), `conftest.py#gathered_entry`'s `BLOCK_START` comment, `test_docs_line_wrap.py`'s `fenced_after` sentence, two in `test_a_document_that_names_a_script_says_how_to_reach_it.py`, one each in `test_one_word_one_meaning.py` and `test_unverified_rows_close.py`, and a second in `test_a_phase_hands_the_next_one_a_record.py`. History true as written stays (#226, #318, #526, #590 and the fixtures' fake `round_record.py` paths). `gathered_entry`'s comment edit moved its census hash, so it declares `Reads:` and its `undeclared_readers.txt` line leaves. executed: ruff check and format on the 11 files, exit 0; the 10 touched test modules with the census, shrunken-corpus and settle modules, 1,071 passed and the census red until the declaration, then `test_a_reader_declares_its_input_class.py` 76 passed
+answer: every coordinate listed rewritten in place to `docs/the-review-record.md` or the current rule, the `("agents/smith.md", "docs/review-chain-spec.md")` exemption deleted, and `ROUND_RECORD_NAME` and `committed_round_records_on_disk` deleted. The class was enumerated by `git grep` over `tests/` for the three documents, `round_record`, `Pass` and the helper: also rewritten are the present-tense claims in `test_the_seal_is_taken_once_by_the_sealer.py` (its docstring's `seal` subcommand and `Pass` box, the scripts a fixture starts), `conftest.py#gathered_entry`'s `BLOCK_START` comment, `test_docs_line_wrap.py`'s `fenced_after` sentence, two in `test_a_document_that_names_a_script_says_how_to_reach_it.py`, one each in `test_one_word_one_meaning.py` and `test_unverified_rows_close.py`, and a second in `test_a_phase_hands_the_next_one_a_record.py`. History true as written stays (#226, #318, #526, #590 and the fixtures' fake `round_record.py` paths). `gathered_entry`'s comment edit moved its census hash, so it declares `Reads:` and its `undeclared_readers.txt` line leaves. executed: ruff check and format on the 11 files, exit 0; the 10 touched test modules with the census, shrunken-corpus and settle modules, 1,071 passed and the census red until the declaration, then `test_a_reader_declares_its_input_class.py` 76 passed
 
 ## Confirmations
 
-| What holds | Location | Grounds |
-|---|---|---|
-| Q7 is built as the orchestrator's default answered it: a declaration every commit after the base touched as a GitHub squash ending `(#N)` is named and not judged; one naming the branch, or touched by any other commit, an uncommitted change or no commit, is judged | `skills/code-review/scripts/chain_check.py:237-275`, `:1027-1037` | read: `carried_by` and `main`; `docs/the-review-record.md` §*What the check reads at the pull request* and `skills/settle/SKILL.md:110-113` say the same. executed: `TestCarriedBy` and the two `TestMain` release cases pass |
-| The check reads every record in the tree: `Target SHA` and the verdict table of all 35 `round-N.md` under `seal/specs/` read with no error, no open row and a SHA each (S11) | `seal/specs/*/rounds/` | executed: `test_tmp_old_records.py` |
-| The five arms, the template, the guarantee template, `broad-gate --record` on both routes, `rules --check` and the release table match `spec.md` §*Data & interfaces* and `plan.md` rows 1–5, apart from findings 1, 4 and 5; every chain-check arm §*Removes* names is gone | `skills/code-review/scripts/chain_check.py`, `templates/sdd-round.md`, `templates/sdd-guarantee.md`, `.github/scripts/rules.py`, `.github/scripts/release_report.py` | read: the files against the spec; the base's function list against the new one (`comm`). executed: the narrow modules, 160 passed; `bin/rules --check` exit 0, 401 targets in 60 files; `chain_check.py --baseline origin/release/v0.22.0` exit 0, naming the three files this branch does not carry yet |
-| Of the deleted check and test modules, only the open-row reading of finding 1 lost a guard the spec did not decide to drop; `gate_before_review`'s premature-run refusal is held by `follows`, and `rounds_unreadable`'s state now reads as *holds no `round-N.md`*, loudly | `skills/code-review/scripts/chain_check.py:634-667`, `:744-789` | read: the base's `gate_before_review`, `rounds_unreadable` and `open_blocking`, and `phases/phase-3.md`'s table of 28 modules |
-| The rewritten repository rules hold in this diff: `CLAUDE.md` and `CONTRIBUTING.md` are rewritten in place rather than appended to, and no example or fixture carries a real identifier | `CLAUDE.md`, `CONTRIBUTING.md` | read: their diff hunks. executed: `tests/test_no_real_identifiers.py` among the 160 passed |
+| Confirms | What holds | Location | Grounds |
+|---|---|---|---|
+| none | Q7 is built as the orchestrator's default answered it: a declaration every commit after the base touched as a GitHub squash ending `(#N)` is named and not judged; one naming the branch, or touched by any other commit, an uncommitted change or no commit, is judged | `skills/code-review/scripts/chain_check.py:237-275`, `:1027-1037` | read: `carried_by` and `main`; `docs/the-review-record.md` §*What the check reads at the pull request* and `skills/settle/SKILL.md:110-113` say the same. executed: `TestCarriedBy` and the two `TestMain` release cases pass |
+| none | The check reads every record in the tree: `Target SHA` and the verdict table of all 35 `round-N.md` under `seal/specs/` read with no error, no open row and a SHA each (S11) | `seal/specs/*/rounds/` | executed: `test_tmp_old_records.py` |
+| none | The five arms, the template, the guarantee template, `broad-gate --record` on both routes, `rules --check` and the release table match `spec.md` §*Data & interfaces* and `plan.md` rows 1–5, apart from findings 1, 4 and 5; every chain-check arm §*Removes* names is gone | `skills/code-review/scripts/chain_check.py`, `templates/sdd-round.md`, `templates/sdd-guarantee.md`, `.github/scripts/rules.py`, `.github/scripts/release_report.py` | read: the files against the spec; the base's function list against the new one (`comm`). executed: the narrow modules, 160 passed; `bin/rules --check` exit 0, 401 targets in 60 files; `chain_check.py --baseline origin/release/v0.22.0` exit 0, naming the three files this branch does not carry yet |
+| none | Of the deleted check and test modules, only the open-row reading of finding 1 lost a guard the spec did not decide to drop; `gate_before_review`'s premature-run refusal is held by `follows`, and `rounds_unreadable`'s state now reads as *holds no `round-N.md`*, loudly | `skills/code-review/scripts/chain_check.py:634-667`, `:744-789` | read: the base's `gate_before_review`, `rounds_unreadable` and `open_blocking`, and `phases/phase-3.md`'s table of 28 modules |
+| none | The rewritten repository rules hold in this diff: `CLAUDE.md` and `CONTRIBUTING.md` are rewritten in place rather than appended to, and no example or fixture carries a real identifier | `CLAUDE.md`, `CONTRIBUTING.md` | read: their diff hunks. executed: `tests/test_no_real_identifiers.py` among the 160 passed |
 
 ## Not judged
 
