@@ -93,7 +93,7 @@ So a run ends with a **verifying round**, and three things define it.
 |---|---|
 | When | **after the fixes** for the previous round are committed — never before, or it reviews what has already been reviewed |
 | Target | the **diff of those fixes**, not the branch. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/the-review-record.md` §*The run* states the rule |
-| Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is, a finding whose `regression:` line names it where it is not |
+| Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is; where it is not, a finding whose `reopens:` line names it, or whose `regression:` line does where a fix pass's own commit made the defect |
 
 The new units in that diff are the exception: they have been reviewed by
 nobody, so the verifying round reviews them as code.
@@ -115,16 +115,32 @@ it was considered and rejected. A verifying round that raises a `should`
 finding the smith closes `rejected`, with its grounds, has opened nothing
 needing a fix, and it does not consume the cap. Its record is still not the
 last one: the check refuses a `fixed` or `rejected` finding in the last
-record, so one more verifying round reads that answer alone and names it on
-a `confirms:` line, or on a finding's `regression:` line where the rejection
-does not hold, and the run ends at that round.
+record, so one more verifying round reads that answer alone. Where the
+rejection holds, that round names it on a `confirms:` line; where it does
+not, that round raises a finding with a `reopens:` line naming it, which
+gets its fix pass and one more verifying round; a round carrying a
+`regression:` line is routed as the section below says, and where the work
+item returns to its framer the run goes on with the redesign. The run ends
+only on a round whose record holds no `open`, `fixed` or `rejected` finding
+— a verifying round, or the round at the cap whose open findings took the
+filing ladder — since the check refuses a ready pull request whose last
+record holds one.
 
-### A regression sends the work item back to its framer
+### A regression is routed by comparing the fix with the frame
 
-**The exit comes first, because a stop that names none is a wall.** When a
-round's warden writes a finding's `regression:` line, no fix pass is commissioned and
-the work item goes back to its framer (`docs/the-review-record.md` §*The
-run*):
+**The route comes first, because a stop that names no exit is a wall.** A
+finding's `regression:` line routes nothing by itself. Its grounds open
+with the unit and then one sentence comparing the fix with the frame: what
+the frame says, what the fix did and where the defect came from. Route the
+round on that sentence (`docs/the-review-record.md` §*The run*):
+
+| The sentence says | The route |
+|---|---|
+| the fix built the phase's `plan.md` row and `spec.md` as written, and the defect stands anyway | no fix pass; the work item goes back to its framer, by the steps below |
+| the fix did something the frame does not say, or the defect is in how it was written, a review record's paste-ready fix applied as given among them | an ordinary fix pass, with the smith told what the frame says |
+| the unit already had a regression routed to a fix pass in this run | the framer, by the steps below, whatever the sentence says |
+
+The framer's route:
 
 | Step | What |
 |---|---|

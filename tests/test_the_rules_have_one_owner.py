@@ -12,6 +12,7 @@ this table, and the ones that stayed name their owner there.
 """
 
 import os
+import re
 
 import pytest
 
@@ -34,6 +35,7 @@ TRACKER = ("docs", "issues-and-milestones.md")
 RECORD_LAYOUT = ("docs", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
+ROUND_TEMPLATE = ("templates", "sdd-round.md")
 
 ONE_SEAL_IS_FINAL = (
     "`skills/verify/SKILL.md` §*Every agent seals what it verified, and "
@@ -122,10 +124,11 @@ RULES = {
         {SMITH: FRAGMENT_OWNER, IMPLEMENT: FRAGMENT_OWNER, ORCH: FRAGMENT_OWNER},
     ),
     # From #823, and since 0.22.0 one mark rather than a count of two
-    # (`questions.md` Q1 of work item 1791933022).
-    "16 a regression sends the work item back to its framer": (
+    # (`questions.md` Q1 of work item 1791933022), routed by the comparison
+    # of the fix with the frame (the owner, 2026-10-16, on round 8).
+    "16 a regression is routed by comparing the fix with the frame": (
         RECORD,
-        "A regression stops the fix passes, at any round.",
+        "A regression is routed by comparing the fix with the frame.",
         {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
 }
@@ -219,3 +222,104 @@ def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():
             f"{'/'.join(carrier)} still gives a `regression:` line to any unit "
             "the reviewed commits made, a build phase's among them"
         )
+
+
+def sentences(text):
+    """`text`, flattened, cut after each full stop: the unit a pinned
+    relation has to stand in together."""
+    return re.split(r"(?<=\.)\s+", text)
+
+
+def the_run():
+    text = flat(*RECORD)
+    return text[text.index("## The run") : text.index("## The handoff")]
+
+
+def test_a_close_that_does_not_hold_reopens_it():
+    """The owner's decision of 2026-10-16, on round 8 of work item
+    1791933022 (S9, S26): a close that does not hold where no fix pass's
+    commit made the defect is raised again on a `reopens:` line, as an
+    ordinary finding that gets its fix pass. §*The run* says so; every
+    carrier that names the channel's `confirms:` and `regression:` lines in
+    one sentence names `reopens:` in it too; and the orchestration's
+    verifying-round section ends the run only where the check does."""
+    reopened = [
+        s for s in sentences(the_run()) if "`reopens:`" in s and "does not hold" in s
+    ]
+    assert reopened, "§*The run* does not say a close that does not hold reopens"
+    assert any(
+        "where no fix pass's commit made the defect" in s
+        and "gets its fix pass" in s
+        and "framer" not in s
+        for s in reopened
+    ), reopened
+    for carrier in (RECORD, ROUND_TEMPLATE, WARDEN, SKILL, ORCH):
+        both = [
+            s
+            for s in sentences(flat(*carrier))
+            if "`confirms:`" in s and "`regression:`" in s
+        ]
+        assert both, f"{'/'.join(carrier)} names the channel nowhere"
+        for s in both:
+            assert "`reopens:`" in s, (
+                f"{'/'.join(carrier)} names the channel by `confirms:` and "
+                f"`regression:` alone: {s}"
+            )
+    orch = flat(*ORCH)
+    verifying = orch[
+        orch.index("So a run ends with a **verifying round**") : orch.index(
+            "### A regression"
+        )
+    ]
+    assert "the run ends at that round" not in verifying
+    assert (
+        "run ends only on a round whose record holds no `open`, `fixed` or "
+        "`rejected` finding" in verifying
+    ), "the verifying-round section no longer says where the run ends"
+
+
+COMPARISON = ("what the frame says", "what the fix did", "where the defect came from")
+
+
+def test_a_regression_is_routed_by_comparing_the_fix_with_the_frame():
+    """The owner's refinement of 2026-10-16, on round 8 of work item
+    1791933022 (S27): a `regression:` line does not send the work item to
+    its framer by itself. One sentence of the finding's grounds compares the
+    fix with the frame, and the round is routed on it: to the framer where
+    the fix built what the frame says, to a fix pass where it departed or
+    the defect came from how it was written, and to the framer for a second
+    regression on the same unit after a fix-pass route."""
+    run = the_run()
+    assert "**A regression is routed by comparing the fix with the frame.**" in run
+    for carrier in (RECORD, WARDEN, ORCH):
+        assert any(
+            all(part in s for part in COMPARISON) for s in sentences(flat(*carrier))
+        ), f"{'/'.join(carrier)} does not name the comparison in one sentence"
+    for route in (
+        "Where the fix built what the frame says and the defect is still there",
+        "the work item goes back to its framer",
+        "Where the fix departed from the frame, or the defect came from how the "
+        "fix was written",
+        "a paste-ready fix taken from a review record among them",
+        "gets an ordinary fix pass",
+        "A second regression on the same unit after a fix-pass route goes to the "
+        "framer whatever the comparison says.",
+    ):
+        assert route in run, f"§*The run* no longer says {route!r}"
+    assert "### A regression is routed by comparing the fix with the frame" in flat(
+        *ORCH
+    )
+    for carrier in (RECORD, ROUND_TEMPLATE, ORCH, WARDEN, FRAMER):
+        text = flat(*carrier)
+        for gone in (
+            "A round carrying a `regression:` line gets no fix pass",
+            "A round carrying one gets no fix pass",
+            "no fix pass is commissioned",
+            "the fix passes stop",
+            "A regression stops the fix passes",
+            "A regression sends the work item back to its framer",
+        ):
+            assert gone not in text, (
+                f"{'/'.join(carrier)} still routes on the `regression:` line "
+                f"alone: {gone!r}"
+            )

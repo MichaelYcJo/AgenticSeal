@@ -186,9 +186,10 @@ those coordinates and reaches its own verdict; an axis marked clean in round 1
 can be broken by the fixes made for round 2, and inheriting that verdict is
 exactly how it goes unseen. Earlier verdicts set the agenda, on this round's
 grounds: every finding the round before closed `fixed <commit>` or
-`rejected` is named by this round, by a `confirms:` line where the close
-holds or by a finding's `regression:` line where it does not, and the check
-refuses a finding no later round names.
+`rejected` is named by this round: by a `confirms:` line where the close
+holds, and where it does not by a finding that names it on a `reopens:`
+line, or on a `regression:` line if a fix pass's commit introduced the
+defect. The check refuses a finding no later round names.
 
 Re-deriving the verdict is not re-walking the code. Finding the coordinates is
 the expensive half, and `round-N.md` exists so it is paid once; a later round

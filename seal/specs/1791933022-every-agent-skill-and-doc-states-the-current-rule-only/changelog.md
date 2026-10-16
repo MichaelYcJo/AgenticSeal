@@ -9,8 +9,9 @@
   `location:` (backticked coordinates where the defect shows), `verdict:`
   (`open`, `fixed <commit>`, `rejected` or `deferred <home>`), a
   `regression:` line where the finding sits in a unit a fix pass's own
-  commits made, and the fix pass's `answer:`. The paste-ready fix sits inside
-  its finding. What the round confirmed is a `confirms:` line under
+  commits made, or a `reopens:` line where it raises again an earlier
+  finding whose close does not hold, and the fix pass's `answer:`. The
+  paste-ready fix sits inside its finding. What the round confirmed is a `confirms:` line under
   `## Confirmations`, left out when there is nothing to confirm; what it
   could not judge is a row of `## Not judged`; the commands it ran are
   `## Probes`. No emoji stands anywhere in a record. The fix pass rewrites
@@ -23,9 +24,12 @@
   rounds are stated once, in `docs/the-review-record.md`: a run ends with a
   verifying round, it has three finding rounds by default and extends one
   at a time while the findings shrink, a finding with a `regression:` line
-  sends the work item back to its framer while a defect in a unit a build
-  phase made is an ordinary finding that gets its fix pass, and a leftover
-  finding takes the first rung of the filing ladder that fits.
+  is routed by one sentence of its grounds comparing the fix with the
+  frame, to the framer where the fix built what the frame says and to an
+  ordinary fix pass where it departed from it or was written wrong, a
+  finding with a `reopens:` line and a defect in a unit a build phase made
+  are ordinary findings that get their fix pass, and a leftover finding
+  takes the first rung of the filing ladder that fits.
   **A work item in flight when you update** keeps records in the old shape,
   and the check refuses each one by name once its pull request is ready.
   Before you mark it ready, rewrite each of its `rounds/round-N.md` files:
@@ -58,8 +62,9 @@
     `## Executed probes` becomes `## Probes`. `## What this round was
     asked`, `## Inherited coordinates` and `## Deferred` may stay as prose.
 
-  Every `fixed` or `rejected` finding needs a `confirms:` or `regression:`
-  line in the next record, and the last record may hold neither, so a run
+  Every `fixed` or `rejected` finding needs a `confirms:`, `reopens:` or
+  `regression:` line in the next record, and the last record may hold
+  neither, so a run
   whose last round closed a finding takes one more verifying round. Then,
   in the work item's worktree, run the check from the plugin this update
   installed, with its version and the marketplace you installed it from:
@@ -81,15 +86,16 @@
   and four facts hold of its records. Every finding has an answer: none
   reads `open`. Every `fixed <commit>` is a commit on the branch that
   changed a path its `location:` line names. Every `fixed` or `rejected`
-  finding of round N is named by a `confirms:` or `regression:` line of
-  round N+1, or it is refused at its own heading. The last round's
+  finding of round N is named by a `confirms:`, `reopens:` or `regression:`
+  line of round N+1, or it is refused at its own heading. The last round's
   `target:` commit is HEAD or only the work item's own records follow it,
   and none of that round's findings is `fixed` or `rejected`, since no
   round read them. A label in any other spelling (`Verdict:`, `Target SHA`,
   `refixes:`), a value outside its shape (a `path#unit` coordinate among
-  them), a missing or doubled line, a finding heading with no number or
-  with a number another heading carries, and a fence that never closes are
-  each refused by line, never passed.
+  them), a missing or doubled line, a finding holding both a `regression:`
+  and a `reopens:` line, a finding heading with no number or with a number
+  another heading carries, and a fence that never closes are each refused
+  by line, never passed.
   `broad-gate.md` names HEAD. `guarantee.md` names HEAD and reads `sound`.
   A draft prints every refusal and fails nothing. A declaration that
   reached the branch inside another pull request's squash, a commit GitHub

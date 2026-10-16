@@ -1050,9 +1050,10 @@ class TestChannel:
     ):
         """S23 (T36): every finding of round N at `fixed <commit>` or
         `rejected` is named in round N+1, by a `confirms:` line or by a
-        `regression:` line; a `deferred` one owes nothing, and a `regression:`
-        line naming the round alone covers no finding. One left unnamed is
-        refused at its own heading, in round N's record."""
+        `regression:` line here, and by a `reopens:` line in T43's case; a
+        `deferred` one owes nothing, and a `regression:` line naming the round
+        alone covers no finding. One left unnamed is refused at its own
+        heading, in round N's record."""
         one = record(
             "abc1234",
             [

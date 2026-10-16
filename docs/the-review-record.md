@@ -12,24 +12,25 @@ from `templates/sdd-round.md`, in the branch worktree under review: a
 `target:` line, then `## Findings` with one `### <n>. <symptom>` section per
 finding, `## Confirmations` where the round confirmed something,
 `## Not judged` and `## Probes`. A finding holds its `severity:`,
-`location:` and `verdict:` lines, a `regression:` line where it applies, why
-it matters with its grounds, the paste-ready fix in a fenced block, and its
+`location:` and `verdict:` lines, a `regression:` or a `reopens:` line where
+one applies, why it matters with its grounds, the paste-ready fix in a fenced block, and its
 `answer:` line. The record is written in words, and no emoji stands anywhere
 in it. No report file stands beside it and nothing generates, copies or
 derives any part of it.
 Enforced by: tests/test_chain_check.py::TestFindings::test_the_template_is_the_record_the_check_reads, tests/test_the_record_is_written_in_words.py::test_the_template_the_format_and_the_two_definitions_carry_no_emoji
 
 **Every label is one lowercase word at the start of its line, and no other
-spelling is read.** The seven are `target:`, `severity:`, `location:`,
-`verdict:`, `regression:`, `answer:` and `confirms:`, each followed by one
-space, with no emphasis. A line that means one of them, or an old spelling
-— `Target SHA`, `refixes`, `fix of a fix` — and is spelt another way —
-`VERDICT:`, `**verdict:**`, `verdict :` — is refused at its line, and the
+spelling is read.** The eight are `target:`, `severity:`, `location:`,
+`verdict:`, `regression:`, `reopens:`, `answer:` and `confirms:`, each
+followed by one space, with no emphasis. A line that means one of them, or
+an old spelling — `Target SHA`, `refixes`, `fix of a fix` — and is spelt
+another way — `VERDICT:`, `**verdict:**`, `verdict :`, `Reopens:` — is
+refused at its line, and the
 finding carrying it is not read past it, so a finding holding both
 spellings does not pass on the lowercase one. A finding's label outside a
 finding, a `target:` or `confirms:` line inside one, and a `confirms:` line
 outside `## Confirmations` are refused the same way.
-Enforced by: tests/test_chain_check.py::TestFindings::test_a_label_in_another_spelling_is_refused_by_line, tests/test_chain_check.py::TestFindings::test_a_target_or_confirms_line_out_of_its_place_is_refused
+Enforced by: tests/test_chain_check.py::TestFindings::test_a_label_in_another_spelling_is_refused_by_line, tests/test_chain_check.py::TestFindings::test_a_target_or_confirms_line_out_of_its_place_is_refused, tests/test_chain_check.py::TestFindings::test_a_reopens_line_names_one_finding_and_never_beside_a_regression_line
 
 **A finding's `verdict:` reads one of four values, and severity is for
 people.** The warden writes `open`; the fix pass answers with
@@ -68,17 +69,23 @@ Enforced by: tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touch
 
 **Each round answers to the next by reference.** A reference is
 `round-<N>#<n>`, the earlier record's number and the finding's heading
-number, or `round-<N>` for a round's fix pass that no finding named. Each
-entry of `## Confirmations` is a `confirms:` line reading `round-<N>#<n>`,
-or `none` for a claim of the frame or the build that matched, with its
-prose on the lines after it; a `regression:` line reads a reference. Every
-finding of round N at `fixed <commit>` or `rejected` is named by a
-`confirms:` or a `regression:` line of round N+1, and one left unnamed is
+number, or `round-<N>` for a round's fix pass that no finding named. A
+round names an earlier finding by one of three relations, each its own
+line: `confirms:` where its close holds; `reopens:` on a new finding where
+the close does not hold and no fix pass's commit made the defect;
+`regression:` on a new finding where a fix pass's own commit introduced
+it. Each entry of `## Confirmations` is a `confirms:` line reading
+`round-<N>#<n>`, or `none` for a claim of the frame or the build that
+matched, with its prose on the lines after it; a `regression:` line reads
+a reference, and a `reopens:` line reads `round-<N>#<n>` alone, since a
+fix pass no finding named closed nothing to reopen. Every finding of round
+N at `fixed <commit>` or `rejected` is named by a `confirms:`, a
+`reopens:` or a `regression:` line of round N+1, and one left unnamed is
 refused at its own heading in round N's record; a `deferred <home>`
 finding owes nothing. Round 1 has no earlier record, so its entries read
 `none`. A round with nothing to confirm leaves `## Confirmations` out; a
 record holds one at most.
-Enforced by: tests/test_chain_check.py::TestReferenceOf::test_a_round_and_a_finding_read_and_nothing_else_does, tests/test_chain_check.py::TestChannel::test_every_fixed_or_rejected_finding_is_confirmed_or_named_a_regression, tests/test_chain_check.py::TestConfirmations::test_each_confirms_line_reads_as_a_reference_or_none
+Enforced by: tests/test_chain_check.py::TestReferenceOf::test_a_round_and_a_finding_read_and_nothing_else_does, tests/test_chain_check.py::TestChannel::test_every_fixed_or_rejected_finding_is_confirmed_or_named_a_regression, tests/test_chain_check.py::TestConfirmations::test_each_confirms_line_reads_as_a_reference_or_none, tests/test_chain_check.py::TestChannel::test_a_reopens_line_answers_the_earlier_finding_as_the_other_two_do
 
 **Every round file stays, so a finding can be followed from the round that
 found it to the commit that closed it.** The next round's warden reads the
@@ -121,13 +128,16 @@ Enforced by: tests/test_chain_check.py::TestCarriedBy, tests/test_chain_check.py
 **Of a round record the check reads its labelled lines, and refuses what it
 cannot read.** It reads the record's one `target:` line; inside each `### `
 section of the one `## Findings` section, one `verdict:` line, one
-`location:` line and at most one `regression:` line; and in
-`## Confirmations`, where the record has it, each `confirms:` line — each in
+`location:` line and at most one of a `regression:` and a `reopens:` line;
+and in `## Confirmations`, where the record has it, each `confirms:` line —
+each in
 the one spelling the record's rules give. A ready pull request fails while a
 finding reads `open`, and for anything the check cannot read: a verdict
 outside `open`, `fixed <commit>` (seven to forty lowercase hex digits),
 `rejected` and `deferred <home>`; a label in another spelling, or out of its
 place; a finding with no `verdict:` or `location:` line, or two of either;
+a finding holding both a `regression:` and a `reopens:` line, or a
+`reopens:` line naming a round alone;
 a finding heading with no number, or with a number another heading of the
 record carries; no `target:` line, two, or one it cannot read; a location or a reference it
 cannot read; a table row in `## Confirmations`; a record with no
@@ -135,7 +145,8 @@ cannot read; a table row in `## Confirmations`; a record with no
 HEAD does not descend from, or one that changed no located path; a
 reference naming no earlier record, or a finding that record does not hold,
 and any reference in round 1; a `fixed` or `rejected` finding the next
-record names on no `confirms:` or `regression:` line. A labelled line inside
+record names on no `confirms:`, `reopens:` or `regression:` line. A labelled
+line inside
 a fence or a comment is not a line, so a finding whose only verdict stands
 in its fix block has none, and a fence or a comment that never closes, which
 would hide every finding after it, is refused at the line that opened it.
@@ -148,7 +159,7 @@ closed on the wrong line hides the lines between it and its false closer
 without being unclosed, which the orchestrator's reading of each record
 against the template and the next round's reading of the earlier records
 are there to catch.
-Enforced by: tests/test_chain_check.py::TestFindings::test_what_the_check_cannot_read_is_refused_by_name, tests/test_chain_check.py::TestFindings::test_a_heading_with_no_number_or_a_number_twice_is_refused, tests/test_chain_check.py::TestRecordFindings::test_a_fence_or_comment_that_never_closes_is_refused_by_its_opener, tests/test_chain_check.py::TestConfirmations::test_a_line_or_a_table_the_check_cannot_read_is_refused_by_line, tests/test_chain_check.py::TestRecordTarget::test_no_line_two_lines_or_a_value_it_cannot_read_is_refused, tests/test_chain_check.py::TestChannel::test_a_reference_the_check_cannot_read_or_naming_no_finding_is_refused, tests/test_chain_check.py::TestMain::test_an_open_finding_fails_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_a_fixed_commit_head_does_not_descend_from_is_refused, tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused
+Enforced by: tests/test_chain_check.py::TestFindings::test_what_the_check_cannot_read_is_refused_by_name, tests/test_chain_check.py::TestFindings::test_a_reopens_line_names_one_finding_and_never_beside_a_regression_line, tests/test_chain_check.py::TestFindings::test_a_heading_with_no_number_or_a_number_twice_is_refused, tests/test_chain_check.py::TestRecordFindings::test_a_fence_or_comment_that_never_closes_is_refused_by_its_opener, tests/test_chain_check.py::TestConfirmations::test_a_line_or_a_table_the_check_cannot_read_is_refused_by_line, tests/test_chain_check.py::TestRecordTarget::test_no_line_two_lines_or_a_value_it_cannot_read_is_refused, tests/test_chain_check.py::TestChannel::test_a_reference_the_check_cannot_read_or_naming_no_finding_is_refused, tests/test_chain_check.py::TestMain::test_an_open_finding_fails_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_a_fixed_commit_head_does_not_descend_from_is_refused, tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused
 
 **The last record is at HEAD, or only the work item's own records follow
 it, and none of its findings is `fixed` or `rejected`.** A commit after the
@@ -225,10 +236,12 @@ Enforced by: nothing — the guarantee's own tables are what a reader audits
 **A run ends with a verifying round.** It is spawned after the last fixes are
 committed; its target is the diff of those fixes, new units included; it
 asks of every finding marked closed whether the fix holds, and says so on a
-`confirms:` or a `regression:` line. A round opening nothing that needs a
-fix does not count toward the cap: the cap stops a loop that is not
-converging, and such a round is the loop having converged.
-Enforced by: tests/test_chain_check.py::TestFollows, tests/test_chain_check.py::TestMain::test_the_last_records_fixed_or_rejected_finding_owes_a_verifying_round
+`confirms:` line where it holds, and where it does not on a finding's
+`reopens:` line, or its `regression:` line where a fix pass's own commit
+made the defect. A round opening nothing that needs a fix does not count
+toward the cap: the cap stops a loop that is not converging, and such a
+round is the loop having converged.
+Enforced by: tests/test_chain_check.py::TestFollows, tests/test_chain_check.py::TestMain::test_the_last_records_fixed_or_rejected_finding_owes_a_verifying_round, tests/test_the_rules_have_one_owner.py::test_a_close_that_does_not_hold_reopens_it
 
 **A run has three finding rounds by default, and extends one round at a time
 while the findings shrink.** Past round 3 the orchestrator spawns one more
@@ -245,19 +258,32 @@ At the cap every finding still open takes the filing ladder below and reads
 `deferred <home>`. No person is asked mid-run.
 Enforced by: nothing — the orchestrator applies it, and the sealer reads the count and the extension lines
 
-**A regression stops the fix passes, at any round.** A regression is a
-defect a fix pass's own commit introduced. Where a finding stands in a unit
-a fix pass's own commits added or changed, the warden writes its
-`regression:` line, naming the finding whose fix made the unit as
-`round-<N>#<n>`, or that round as `round-<N>` where no finding named the
-unit, and names the unit first in the grounds. A defect in a unit a build
-phase made, one the framer designed and the owner approved in `plan.md`, is
-an ordinary finding of new work, with no `regression:` line, even where the
-round that finds it reads that phase. A round carrying a `regression:` line
-gets no fix pass: the work item goes back to its framer, who writes
+**A regression is routed by comparing the fix with the frame.** A
+regression is a defect a fix pass's own commit introduced. Where a finding
+stands in a unit a fix pass's own commits added or changed, the warden
+writes its `regression:` line, naming the finding whose fix made the unit
+as `round-<N>#<n>`, or that round as `round-<N>` where no finding named the
+unit, and names the unit first in the grounds. Then one sentence of the
+grounds says what the frame says, from the phase's `plan.md` row and
+`spec.md`, what the fix did, and where the defect came from. No label
+carries that sentence, and the orchestrator routes the round on it, at any
+round of the run. Where the fix built what the frame says and the defect is
+still there, the frame is wrong, and the round gets no fix pass: the work
+item goes back to its framer, who writes
 `Reframed <date> by <who>, after round <N>.` under the mark at the foot of
-`spec.md`.
-Enforced by: tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made
+`spec.md`, and the run goes on with the redesign's build and its rounds.
+Where the fix departed from the frame, or the defect came from how the fix
+was written, a paste-ready fix taken from a review record among them, the
+round gets an ordinary fix pass, and the smith is told what the frame says.
+A second regression on the same unit after a fix-pass route goes to the
+framer whatever the comparison says. A defect in a unit a build phase made,
+one the framer designed and the owner approved in `plan.md`, is an ordinary
+finding of new work, with no `regression:` line, even where the round that
+finds it reads that phase. A close that does not hold where no fix pass's
+commit made the defect, a `rejected` finding that holds after all or a
+`fixed` commit that did not fix it, is raised again as an ordinary finding
+with a `reopens:` line naming it, and gets its fix pass.
+Enforced by: tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made, tests/test_the_rules_have_one_owner.py::test_a_close_that_does_not_hold_reopens_it, tests/test_the_rules_have_one_owner.py::test_a_regression_is_routed_by_comparing_the_fix_with_the_frame
 
 **A leftover finding takes the first rung that fits.** A new issue is the
 third rung, not the default:

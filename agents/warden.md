@@ -119,8 +119,9 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   the branch. For each finding that round closed `fixed <commit>` or
   `rejected`, your job is whether it is actually closed, and your record
   says so by its reference, `round-<N>#<n>`: a `confirms:` line under
-  `## Confirmations` where it holds, or a finding of yours whose
-  `regression:` line names it where it does not.
+  `## Confirmations` where it holds; where it does not, a finding of yours
+  naming it — on a `reopens:` line, or on a `regression:` line when a fix
+  pass's own commit is what made the defect.
 
   Recognise it from the prompt, which hands you a fix diff instead of a
   branch, and stay inside it. The reason is the round's job, not its price:
@@ -136,10 +137,15 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   fix pass's own commits added or changed carries a `regression:` line —
   `round-<N>#<n>` for the finding whose fix made that unit, `round-<N>` for
   a fix pass that no finding commissioned — and its grounds open with the
-  unit. A unit a build phase made, which the framer designed and the owner
-  approved, is new work even where your target carries it, and a finding
-  there takes no `regression:` line (`docs/the-review-record.md` §*The
-  run*).
+  unit, then with one sentence setting the fix beside the frame: what the
+  frame says, in the phase's `plan.md` row and in `spec.md`; what the fix
+  did; and where the defect came from. The orchestrator routes the round
+  on that sentence, so write it as you found it. A unit a build phase made,
+  which the framer designed and the owner approved, is new work even where
+  your target carries it, and a finding there takes no `regression:` line.
+  A close that does not hold where no fix pass's commit made the defect —
+  a rejection that was wrong, a `fixed` commit that did not fix it — takes
+  `reopens:`, not `regression:` (`docs/the-review-record.md` §*The run*).
 
   **A round told the run is capped still reports what it finds, at the
   severity it finds it.** What a cap decides is whether another round is
@@ -212,9 +218,9 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   Its verdicts are still worth having — as the list of what to report on.
   Every finding the round before closed `fixed <commit>` or `rejected` needs
   an answer this round, on your own grounds: a `confirms:` line naming it
-  where the close holds, or a finding whose `regression:` line names it
-  where it does not. The check refuses a closed finding no later round
-  names.
+  where the close holds, and where it does not a finding that names it, by
+  `reopens:` unless a fix pass's commit introduced the defect, which takes
+  `regression:`. The check refuses a closed finding no later round names.
 - **The broad run's state is `broad-gate.md`'s, not your record's**
   (`docs/the-review-record.md` §*What the check reads at the pull request*).
   When your round leaves nothing open, say so: what comes due is the
@@ -274,7 +280,8 @@ The record opens with its `target:` line: the commit you reviewed and
 Follow the `code-review` findings format: one `### <n>. <symptom>` section
 per finding under `## Findings`, numbered from 1. Each holds its `severity:`
 (`must` or `should`), `location:` and `verdict: open` lines, and a
-`regression:` line where it applies; then what is wrong and why it matters, and
+`regression:` or a `reopens:` line where one applies, never both; then what
+is wrong and why it matters, and
 the paste-ready fix in a fenced block inside the finding. `location:` names
 every place the defect shows, and the path the fix goes to where that
 differs, because a `fixed` commit must touch one of them. A regression test

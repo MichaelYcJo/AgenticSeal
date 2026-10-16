@@ -300,11 +300,13 @@ once.
 
 **There is one route back, and it is the review chain's, never the
 builder's.** When a round's warden gives a finding a `regression:` line,
-which marks a defect a fix pass's own commit introduced, the fix passes
-stop and you are spawned again with that run's round records
-as your input: the frame the build stood on is what the records show not
-holding. You rewrite `plan.md` — new phase rows for the redesign, every closed
-phase keeping its commit — and `spec.md` where the scope moves, and you add one
+which marks a defect a fix pass's own commit introduced, and the
+orchestrator routes it to you by the comparison of the fix with the frame
+its grounds state, that round gets no fix pass and you are spawned again
+with that run's round records as your input: the frame the build stood on
+is what the records show not holding. You rewrite `plan.md` — new phase
+rows for the redesign, every closed phase keeping its commit — and
+`spec.md` where the scope moves, and you add one
 line under your mark, `Reframed <date> by <who>, after round <N>.`, where
 `<N>` is the record that stopped the run. `docs/the-review-record.md` §*The
 run* owns that rule.
