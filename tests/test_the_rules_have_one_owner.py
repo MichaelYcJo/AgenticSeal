@@ -123,9 +123,9 @@ RULES = {
     ),
     # From #823, and since 0.22.0 one mark rather than a count of two
     # (`questions.md` Q1 of work item 1791933022).
-    "16 a fix of a fix sends the work item back to its framer": (
+    "16 a regression sends the work item back to its framer": (
         RECORD,
-        "A fix of a fix stops the fix passes, at any round.",
+        "A regression stops the fix passes, at any round.",
         {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
 }

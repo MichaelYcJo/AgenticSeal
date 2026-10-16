@@ -119,7 +119,7 @@ record, so one more verifying round reads that answer alone and names it on
 a `confirms:` line, or on a finding's `regression:` line where the rejection
 does not hold, and the run ends at that round.
 
-### A fix of a fix sends the work item back to its framer
+### A regression sends the work item back to its framer
 
 **The exit comes first, because a stop that names none is a wall.** When a
 round's warden writes a finding's `regression:` line, no fix pass is commissioned and

@@ -299,7 +299,8 @@ through this phase would spend the interruption this phase exists to spend
 once.
 
 **There is one route back, and it is the review chain's, never the
-builder's.** When a round marks a finding `fix of a fix`, the fix passes
+builder's.** When a round's warden gives a finding a `regression:` line,
+which marks a defect a fix pass's own commit introduced, the fix passes
 stop and you are spawned again with that run's round records
 as your input: the frame the build stood on is what the records show not
 holding. You rewrite `plan.md` — new phase rows for the redesign, every closed

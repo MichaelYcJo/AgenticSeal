@@ -233,19 +233,19 @@ Enforced by: tests/test_chain_check.py::TestFollows, tests/test_chain_check.py::
 **A run has three finding rounds by default, and extends one round at a time
 while the findings shrink.** Past round 3 the orchestrator spawns one more
 finding round only while the latest round found fewer findings than the one
-before it and none of them is a fix of a fix. Each extension is one line in
+before it and none of them is a regression. Each extension is one line in
 that round's record, written by the warden from the reason the spawn prompt
 gives:
 
 ```
-Extended past round 3: round 3 found 2, round 2 found 4, and none is a fix of a fix.
+Extended past round 3: round 3 found 2, round 2 found 4, and none is a regression.
 ```
 
 At the cap every finding still open takes the filing ladder below and reads
 `deferred <home>`. No person is asked mid-run.
 Enforced by: nothing — the orchestrator applies it, and the sealer reads the count and the extension lines
 
-**A fix of a fix stops the fix passes, at any round.** A regression is a
+**A regression stops the fix passes, at any round.** A regression is a
 defect a fix pass's own commit introduced. Where a finding stands in a unit
 a fix pass's own commits added or changed, the warden writes its
 `regression:` line, naming the finding whose fix made the unit as

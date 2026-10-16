@@ -22,7 +22,7 @@ One line, outside every section below.
 
 A round past the cap carries one line here, written by the warden from
 the reason the orchestrator's spawn prompt gives:
-Extended past round <K>: round <K> found <n>, round <K-1> found <m>, and none is a fix of a fix. -->
+Extended past round <K>: round <K> found <n>, round <K-1> found <m>, and none is a regression. -->
 
 ## Findings
 

@@ -182,7 +182,7 @@ and it reads as the ordinary adverb this document itself uses.
 
 `chain: reframed` takes the same shape beside `chain: capped`: the pull request
 of a run whose fix passes stopped and went back to the framer, and nothing
-reads it (`skills/code-review/orchestration.md` §*A fix of a fix sends the
+reads it (`skills/code-review/orchestration.md` §*A regression sends the
 work item back to its framer*).
 
 **Nothing schedules from this label** — no workflow, no check and no script
