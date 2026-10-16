@@ -29,7 +29,7 @@ run. It is `unverified`, and the sealer answers it.
 
 severity: should
 location: `skills/verify/scripts/unverified_check.py:49-51`, `skills/verify/scripts/unverified_check.py:818-848`, `templates/sdd-overview.md:36-42`, `skills/implement/SKILL.md:455-463`, `tests/test_unverified_rows_close.py:98-140`
-verdict: open
+verdict: fixed bbdd408c
 
 Executed (probe P2). `check_text` on a section whose one row is
 `| closed issues are not re-read after the release | the owner |` returns
@@ -76,13 +76,13 @@ which reads as closed and which only a reader catches.
     ),
 ```
 
-answer:
+answer: the convention stays (Q2); the overview template now says an open item whose own text begins with the word `closed` reads as closed and nothing refuses it, with that row as its example and the edit to make, and the implement skill's and the reader docstring's "the silent direction is always "still open"" both name that one exception. The CLOSED_ROW_CASES entry the paste asked for was not added: `closed issues are not re-read` takes exactly the reader path of the existing "the word and the item" case, so no break of the reader turns one red without the other. In its place `test_a_text_saying_a_row_counts_open_names_the_open_item_that_reads_closed` pins the sentence in the three texts beside the reader's reading of that row. Executed: red at the docstring before its edit (1 failed, 2 passed; the template and skill texts at eb568983 carry the sentence 0 times each), then `mutation-check` red for a break of each of the three texts and of the reader's closing branch; `bin/test tests/test_unverified_rows_close.py -q` 222 passed, exit 0. The fragment (finding 4's paragraph) tells a plugin user the same.
 
 ### 2. A grammar table that lets a finding hold two verdict lines loads, and the later verdict hides an open one
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:319-329`, `skills/code-review/scripts/chain_check.py:1026-1041`, `docs/the-review-record.md:56-68`, `tests/test_chain_check.py:540-574`
-verdict: open
+verdict: fixed 046dee6e
 
 Executed (probe P3). A copy of `docs/the-review-record.md` whose verdict
 row reads `| a finding | any |` instead of `| a finding | one |` loads
@@ -137,13 +137,13 @@ lacks the named part, such as `(?P<commit>…)`, the check reads out of it,
 or one the check reads a single line of whose `How many` allows more.
 ```
 
-answer:
+answer: `grammar()` now refuses a row whose `How many` its reader cannot keep, named by `HONOURED`: `target:`, `location:` and `verdict:` only `one`, `regression:` and `reopens:` `one` or `at most one`, as the paste had, and two more of the class the enumeration found: `## Confirmations` only `at most one` and `confirms:` not `one`, because `confirmations` counts nothing in an absent section, so a table giving either `one` passed a record with none. The refusal reads "the `<key>` row's `How many` is `<word>`, and the check can honour only …", and `docs/the-review-record.md` §*The round record* names the rule. With `verdict:` and `location:` held at `one`, `finding_of`'s guard for a finding with no verdict or location read could no longer fire, so it left, and the case that reached it through an `at most one` table became one of eight new rows of `test_a_document_the_check_cannot_read_is_exit_2_naming_it`. Executed: the eight rows red before the fix (8 failed, DID NOT RAISE GrammarError), then green, `bin/test tests/test_chain_check.py -q` 75 passed; `mutation-check` of the new refusal red. Not closed: a new label placed in `## Confirmations` that the check reads nothing from would still pass at `one` with the section absent; no such row exists.
 
 ### 3. The changelog says a trailing word is newly refused, and the base already refused it
 
 severity: should
 location: `seal/specs/1792129100-the-mechanics-leave-before-the-agents-are-rewritten/changelog.md:17-22`
-verdict: open
+verdict: fixed bbdd408c
 
 Executed (probe P1). The check at the base, d426fbdb, loaded from
 `git show d426fbdb:skills/code-review/scripts/chain_check.py`, reads
@@ -174,13 +174,13 @@ fragment needs the edit.
   this release's check. Where the table itself cannot be
 ```
 
-answer:
+answer: the trailing-word sentence is gone; the paragraph says `templates/config.md` points at the table and `templates/sdd-round.md` keeps what each label means and leaves its shape to the table; and "two things now refused" is recounted against the base, which counted neither `severity:` nor `answer:` (its `chain_check.py` holds the two labels in `FINDING_LABELS` and reads no line of either), so a second `severity:` line is new as well and is named. The exit-2 sentence gains the third cause round 1's finding 2 added, a `How many` the check cannot read. `plan.md` §*Operational impact* still carries the trailing-word claim; it is the frame, nobody acts on it after the merge, and it is left as the round said.
 
 ### 4. The changelog tells a plugin user that only an overview in flight needs the word, and the hygiene step reads every overview
 
 severity: should
 location: `seal/specs/1792129100-the-mechanics-leave-before-the-agents-are-rewritten/changelog.md:34-35`
-verdict: open
+verdict: fixed bbdd408c
 
 Read. The user's hygiene workflow runs
 `unverified_check.py --baseline "origin/<base>" seal/specs/`
@@ -207,13 +207,13 @@ Executed. Recounted from the tree: 6bceef00 changes 31 overview files,
   revision still reads the old mark as closed, so `--baseline` keeps
 ```
 
-answer:
+answer: the paragraph now says the hygiene step reads every `overview.md` under `seal/specs/`, released or in flight, until `settle` retires its directory, and tells a plugin user to rewrite every closed row still opening with the old mark, in each of them, before moving the `hygiene.yml` pin; it also tells them what round 1's finding 1 found, that an open item whose own text begins with `closed` reads as closed and is to be worded otherwise. Read: `templates/hygiene.yml:77-78` reads `seal/specs/` whole.
 
 ### 5. round_of reads one record twice and matches its target line twice to get a commit it already had
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:1171-1190`, `skills/code-review/scripts/chain_check.py:1234-1248`, `tests/test_chain_check.py`
-verdict: open
+verdict: fixed eb568983
 
 Executed (probe P4). One `round_of` call on
 `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/rounds/round-1.md`
@@ -270,13 +270,13 @@ def round_of(reader, text, rel, number):
     return Round(rel, number, found, held, confirmed, target), errors
 ```
 
-answer:
+answer: `read_whole` reads a record once and keeps the `record_lines` match of every row outside the findings; `record_findings` and `round_of` both read through it, and `record_target` is gone. `TestRecordTarget` keeps its name and its cases, which `docs/the-review-record.md`'s two `Enforced by:` lines name, and reads `round_of(...).target` through a `target_of` helper; the template case asserts the target `round_of` reads. The second-level re-match (`verdict_of` and the three like it) stays, as the round left it. Executed: `bin/test tests/test_chain_check.py -q` 75 passed; `mutation-check` red for `round_of`'s target set to None and for `read_whole` dropping the outside rows' refusals.
 
 ### 6. The grammar loader and the finding reader each re-implement a helper the file already has
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:283-291`, `skills/code-review/scripts/chain_check.py:742-750`, `skills/code-review/scripts/chain_check.py:1006-1025`, `skills/code-review/scripts/chain_check.py:1120-1132`
-verdict: open
+verdict: fixed eb568983
 
 Read. Two copies, both added in phase 3.
 
@@ -343,13 +343,13 @@ def counted(rel, key, said, scope, first=-1, heading=None):
             errors.append(refused)
 ```
 
-answer:
+answer: `section_end` moved above `grammar`, which calls it in place of the inline loop; `counted` takes the heading and its index and `finding_of`'s count loop calls it, with `PLACED` gaining the finding's place as "and with no emphasis", so every refusal a finding's count makes reads byte for byte as before and no pin moved. Executed: `bin/test tests/test_chain_check.py -q` 75 passed; `mutation-check` red for `counted` placing a finding's refusal at line 0 and for dropping its heading lead.
 
 ### 7. The shared reader is loaded three times, and main keeps a refusal the import already made
 
 severity: should
-location: `skills/code-review/scripts/chain_check.py:392-398`, `skills/code-review/scripts/chain_check.py:1751-1756`, `evals/scripts/replay_targets.py:130-140`
-verdict: open
+location: `skills/code-review/scripts/chain_check.py:392-398`, `skills/code-review/scripts/chain_check.py:1751-1756`, `evals/scripts/replay_targets.py:130-140`, `skills/verify/scripts/broad_gate.py:2589-2593`, `.github/scripts/release_seal.py:287-295`
+verdict: fixed eb568983
 
 Read, and executed for the identity (probe P5). Importing
 `chain_check.py` loads `unverified_check.py` as `_GRAMMAR_READER` and
@@ -382,13 +382,13 @@ importer may use it.
     return check, check.SHARED_READER
 ```
 
-answer:
+answer: the import-time reader is `SHARED_READER`; `main` uses it and loads only `hooks/routing.py` in its `try`, with the message unchanged; `replay_targets.py#record_reader` returns it. Two more importers of the class loaded the reader again after importing the check, and read it the same way now, the coordinates appended to `location:`: `broad_gate.py#rounds_rows` and `release_seal.py#readers`. `tests/test_a_script_copied_alone_exits_2.py`'s docstring, which said the check loads its readers after argument parsing, is corrected at ef27f327. Executed: `bin/test` of the chain, copied-alone, broad-gate rule, release-seal, non-inferiority and evals-layout modules, 212 passed, 1 skipped, then the 57 modules reading what this pass changed, 2886 passed, 8 skipped, exit 0.
 
 ### 8. The handoff writes a real e-mail address, and the no-real-identifiers module is red at the target
 
 severity: must
 location: `seal/specs/1792129100-the-mechanics-leave-before-the-agents-are-rewritten/handoff.md:66-68`
-verdict: open
+verdict: fixed cfd687b7
 
 Executed. In the clone at b8956d56, with nothing of this round added,
 `bin/test tests/test_no_real_identifiers.py -q` gives 1 failed, 5 passed:
@@ -414,7 +414,7 @@ address in a public repository is the case that rule exists for.
   `Co-Authored-By` with the model; no push (the orchestrator pushes);
 ```
 
-answer:
+answer: the handoff names the author address as the one the clone pins repo-local (`git config user.email`), never its value. Executed: `bin/test tests/test_no_real_identifiers.py -q` 6 passed, exit 0. Searched the branch's added lines (`git diff origin/release/v0.22.1...HEAD`) for addresses, user paths, domains and personal names: the address was the one real identifier; three overview rows name the repository's own GitHub path, rewritten by 6bceef00 from lines the base already held, and the base and HEAD hold that name in 26 files each. `overview.md` gains an open `## Not verified` row for the whole suite on three legs at the fix pass's HEAD, the orchestrator to answer; the closed d1ff02a5 row stays as the record of that run.
 
 ## Confirmations
 

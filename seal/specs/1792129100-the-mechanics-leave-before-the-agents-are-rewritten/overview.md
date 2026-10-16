@@ -51,6 +51,7 @@ itself, states the round record's grammar once and closes a row with a word.
 | closed Phase 3's cases on the Linux and Windows legs, run here on macOS alone: `TestGrammar`'s copied-script case names the document by a path it joins with `os.path.join` and reads it back from the command's stderr | the orchestrator, 2026-10-16: red on Windows at 401cbb67 (run 38865853432), fixed at d4242aff, green on all three legs at d1ff02a5 (run 38867411967) |
 | Whether a round record in flight in a user's repository carries a severity other than `must` or `should`, or a finding with no `answer:` line, which phase 3 now refuses when the user moves their `hygiene.yml` pin | the owner, through phase 4's changelog paragraph, which says the edit such a record owes |
 | Phase 4 on the three legs and the hygiene step at the pull request (`plan.md` phase 4, Verified by): run here on macOS alone | the orchestrator, from CI at the pull request |
+| The whole suite on all three legs at round 1's fix pass HEAD: the closed row above is true of d1ff02a5 only, and the handoff committed after it was red on `tests/test_no_real_identifiers.py` (round 1's finding 8); the fix pass ran narrow modules on macOS alone | the orchestrator, who dispatches CI on this branch after the fix pass's hand-back |
 
 ## Not done
 
