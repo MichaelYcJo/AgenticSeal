@@ -31,8 +31,11 @@ Nothing in the tree makes a later edit owe a run.
 grader is the work in the shape its next reader needs, and a `reach-` grader
 is the session spawning the agent. No judge scores anything.
 
-The cases are generated, never edited by hand. `--list` shows what a
-generator can write, and `--case NAME` writes one case:
+The cases are generated, never edited by hand. `replay_targets.py` and
+`seed_defects.py` take `--list` for what they can write, `--count N` for the
+N smallest and `--case NAME` for one committed case again, read at every
+release tag; `rule_cases.py` takes no selection and writes every fixture
+case:
 
 | Generator | Cases |
 |---|---|

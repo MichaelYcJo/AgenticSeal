@@ -665,6 +665,208 @@ def test_a_truth_is_a_fixed_finding_the_next_round_confirmed():
     assert rt.confirmed(nxt, 1) == {2, 4}
 
 
+LABELLED_ROUND_1 = """# i — review round 1
+
+target: 1a2b3c4 against main
+
+## Findings
+
+### 1. a fixed defect
+
+severity: must
+location: `src/a.py:12`, `docs/a.md`
+verdict: fixed abc1234
+
+why it matters.
+
+answer: fixed
+
+### 2. a finding that does not hold
+
+severity: should
+location: `src/b.py:3`
+verdict: rejected
+
+answer: it holds
+
+## Confirmations
+
+confirms: none
+a claim of the frame that matched.
+"""
+
+LABELLED_ROUND_2 = """# i — review round 2
+
+target: 2b3c4d5, fixes 1a2b3c4..2b3c4d5
+
+## Findings
+
+## Confirmations
+
+confirms: round-1#1
+holds.
+
+confirms: round-1#2
+holds.
+
+confirms: round-3#1
+another round's.
+"""
+
+
+def test_a_truth_of_a_labelled_record_is_a_fixed_finding_the_next_round_confirms():
+    """Guards the replay set's ground truth on 0.22.0's record: a finding is
+    a `### <n>. ` section read through `chain_check.py`'s own reader, with
+    its `location:` value whole and whether its `verdict:` is `fixed`, and
+    the next round confirms it on a `confirms: round-<N>#<n>` line. The
+    table case above reads only the old rows, so without this one a reader
+    that found no finding in any labelled record, which is what the
+    generator did before #964, left every 0.22.0 round out unnoticed."""
+    rt = load_script("replay_targets")
+    rel = "seal/specs/i/rounds/round-1.md"
+    assert rt.labelled(LABELLED_ROUND_1)
+    assert not rt.labelled("| 🟢 | round 1's finding 2 is closed | `a:1` | confirmed |")
+    read, why = rt.labelled_round(LABELLED_ROUND_1, rel, 1)
+    assert why == ""
+    assert read["sha"] == "1a2b3c4"
+    assert read["value"] == "1a2b3c4 against main"
+    assert read["findings"] == [
+        (1, "a fixed defect", "`src/a.py:12`, `docs/a.md`", True),
+        (2, "a finding that does not hold", "`src/b.py:3`", False),
+    ]
+    assert rt.confirmed(LABELLED_ROUND_2, 1) == {1, 2}
+    assert rt.confirmed(LABELLED_ROUND_2, 2) == set()
+
+
+def test_a_labelled_record_the_check_refuses_gives_no_truth():
+    """Guards that a replay reads only what a pull request accepted: a
+    record `chain_check.py` refuses is left out naming the refusal, and a
+    next record it refuses confirms nothing, so a grader is never built on
+    a line the check would not read. Nothing else holds the generator to
+    the check's refusals, which is the class #923 found leaking three
+    times."""
+    rt = load_script("replay_targets")
+    rel = "seal/specs/i/rounds/round-1.md"
+    bad = LABELLED_ROUND_1.replace("fixed abc1234", "fixed abc1234 and more")
+    read, why = rt.labelled_round(bad, rel, 1)
+    assert read is None
+    assert why.startswith("the check refuses the record at line 11: ")
+    assert "reads `verdict: fixed abc1234 and more`" in why
+    worse = LABELLED_ROUND_2.replace("round-1#1\n", "round-1#1 and more\n")
+    assert rt.confirmed(worse, 1) == set()
+
+
+def test_a_labelled_target_names_its_base(monkeypatch):
+    """Guards where a labelled replay's clone starts: a fix range's first
+    commit, an `against <sha>` commit, or the merge-base with
+    `origin/<base>` for `against <base>`, and no base where none resolves,
+    which leaves the round out rather than cloning the wrong range. The old
+    reader found a base only in an asked paragraph, which 0.22.0's record
+    does not carry."""
+    rt = load_script("replay_targets")
+    known = {"1a2b3c4": "1" * 40, "ce448bbe": "c" * 40, "origin/main": "d" * 40}
+    monkeypatch.setattr(rt, "resolve", lambda rev: known.get(rev, ""))
+    monkeypatch.setattr(
+        rt,
+        "git",
+        lambda *a, **_k: "m" * 40 + "\n" if a[:2] == ("merge-base", "T") else "",
+    )
+    fixes = rt.target_base("2b3c4d5, fixes 1a2b3c4..2b3c4d5", "T")
+    assert fixes == ("1" * 40, None)
+    assert rt.target_base("2b3c4d5 against ce448bbe", "T") == ("c" * 40, None)
+    assert rt.target_base("2b3c4d5 against main", "T") == ("m" * 40, "origin/main")
+    assert rt.target_base("2b3c4d5 against gone", "T") == ("", None)
+
+
+def test_records_read_only_the_named_items(monkeypatch, tmp_path):
+    """Guards `--case`'s reach over every release tag: only the named work
+    items' records are read, so reading all tags costs one listing a tag and
+    a `git show` per named record, never one per record in the history."""
+    rt = load_script("replay_targets")
+    shown = []
+
+    def git(*args, check=True):
+        if args[0] == "ls-tree":
+            return (
+                "seal/specs/1791-a/rounds/round-1.md\n"
+                "seal/specs/1792-b/rounds/round-1.md\n"
+            )
+        shown.append(args[1])
+        return f"text of {args[1]}"
+
+    monkeypatch.setattr(rt, "ROOT", str(tmp_path))
+    monkeypatch.setattr(rt, "git", git)
+    found = rt.records(["v1.0.0"], {"1791"})
+    assert found == {
+        ("1791-a", 1): "text of v1.0.0:seal/specs/1791-a/rounds/round-1.md"
+    }
+    assert shown == ["v1.0.0:seal/specs/1791-a/rounds/round-1.md"]
+
+
+@pytest.mark.parametrize(
+    ("script", "name", "items"),
+    [
+        ("replay_targets", "replay-1791382684-r2", {"1791382684"}),
+        ("seed_defects", "seeded-279a580b", {"279a580b"}),
+    ],
+)
+def test_a_named_case_is_read_at_every_release_tag(monkeypatch, script, name, items):
+    """Guards that a committed case regenerates after the release that moved
+    its records or commits out of the window `--list` reads: `--case` reads
+    every release tag, for the named items alone. Before #964 both
+    generators read the last two or three tags, and none of the eight
+    committed replay and seeded cases was still on either list once 0.22.0
+    was tagged, so `--case` exited 1 for each."""
+    module = load_script(script)
+    rt = module if script == "replay_targets" else module.rt
+    calls = []
+    monkeypatch.setattr(rt, "last_tags", lambda count=2: calls.append(count) or [])
+    monkeypatch.setattr(
+        module, "targets", lambda tags, only=None: calls.append(only) or ([], [])
+    )
+    monkeypatch.setattr(rt, "origin_url", lambda: "https://example.com/x/y.git")
+    assert module.main(["--case", name]) == 1
+    assert calls == [None, items]
+    calls.clear()
+    assert module.main(["--list"]) == 0
+    assert calls[1] is None and calls[0] in (2, 3)
+
+
+def test_a_seeded_case_is_looked_for_among_the_named_commits_alone(monkeypatch):
+    """Guards what reading every release tag costs the seeded generator: a
+    shipped commit `--case` does not name is skipped before any git call
+    for it, so the whole history is listed and only the named commits are
+    read. The wiring case above stubs `targets`, so only this one reaches
+    the filter."""
+    sd = load_script("seed_defects")
+    monkeypatch.setattr(sd, "shipped", lambda _tags: ["aaaaaaaa1111", "bbbbbbbb2222"])
+    monkeypatch.setattr(sd.rt, "git", lambda *_a, **_k: "")
+    kept, left = sd.targets(["v1.0.0"], {"aaaaaaaa"})
+    assert kept == []
+    assert left == [("aaaaaaaa1111", "not a squashed pull request")]
+    assert len(sd.targets(["v1.0.0"])[1]) == 2
+
+
+def test_a_record_with_no_asked_paragraph_ends_the_spawn_at_the_report():
+    """Guards the replay prompt of a labelled record, which carries no asked
+    paragraph: the spawn ends at the report's path with nothing after it,
+    and a table record's paragraph still follows that sentence after one
+    space, as the four committed cases were written."""
+    rt = load_script("replay_targets")
+    t = {
+        "item": "1-i",
+        "n": 2,
+        "branch": "b",
+        "target": "t" * 40,
+        "base": "a" * 40,
+        "base_ref": None,
+        "asked": "",
+    }
+    assert "and return its path.\n\nEND PROMPT" in rt.prompt(t)
+    t["asked"] = "Round 2,\n  the verifying round."
+    assert "and return its path. Round 2, the verifying round.\n\nEND" in rt.prompt(t)
+
+
 def test_a_truth_pattern_holds_its_line_window_and_no_further():
     rt = load_script("replay_targets")
     """A truth reads a finding's `location:` line, the line within ±15 of

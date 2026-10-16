@@ -16,10 +16,12 @@ Usage:
                                          (evals/behaviour/warden/)
   seed_defects.py --case NAME [--out DIR]
                                          write the named case alone
-                                         (`seeded-<commit[:8]>`); repeatable
+                                         (`seeded-<commit[:8]>`), from any
+                                         release's shipped commits;
+                                         repeatable
 
 Exit codes: 0 written or listed · 1 fewer cases than --count, or a named
-case not on the list · 2 the arguments were unusable.
+case no release shipped · 2 the arguments were unusable.
 """
 
 import argparse
@@ -151,13 +153,16 @@ def seed(commit):
     return None
 
 
-def targets(tags):
+def targets(tags, prefixes=None):
     """`[target]` for every shipped commit a seed lands in, and
-    `[(commit, why)]` for each left out.
+    `[(commit, why)]` for each left out; where PREFIXES is given, only the
+    commits whose first eight digits it names.
 
     Reads: observed — the shipped commits and git for each; unknown passed"""
     kept, left = [], []
     for commit in shipped(tags):
+        if prefixes is not None and commit[:8] not in prefixes:
+            continue
         subject = rt.git("log", "-1", "--format=%s", commit).strip()
         if not SUBJECT.search(subject):
             left.append((commit, "not a squashed pull request"))
@@ -272,7 +277,8 @@ def case_name(t):
 
 
 def main(argv=None):
-    """Parse the arguments, then list or write.
+    """Parse the arguments, then list or write. `--case` reads every release
+    tag's shipped commits; the rest reads the last three tags'.
 
     An unusable argument is argparse's exit 2.
 
@@ -285,7 +291,11 @@ def main(argv=None):
     p.add_argument("--model", default=rt.MODEL)
     p.add_argument("--timeout", type=int, default=2400)
     a = p.parse_args(argv)
-    kept, left = targets(rt.last_tags(3))
+    if a.case:
+        prefixes = {name.removeprefix("seeded-") for name in a.case}
+        kept, left = targets(rt.last_tags(None), prefixes)
+    else:
+        kept, left = targets(rt.last_tags(3))
     if a.list:
         for t in sorted(kept, key=lambda t: t["size"]):
             print(
