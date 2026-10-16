@@ -10,8 +10,8 @@ emoji anywhere in the file. Every label is one lowercase word at the start of
 its line, followed by `:` and one space, with no emphasis, and the check
 refuses any other spelling of it. `docs/the-review-record.md` states the
 rules; `chain_check.py` reads the `target:` line, each finding's `verdict:`,
-`location:` and `regression:` lines and each `confirms:` line at the pull
-request. -->
+`location:`, `regression:` and `reopens:` lines and each `confirms:` line at
+the pull request. -->
 
 target: 1a2b3c4 against main
 
@@ -47,19 +47,29 @@ labels:
   regression:  only on a finding in a unit a fix pass's own commits added
                or changed: the earlier finding as `round-<N>#<n>`, or
                `round-<N>` for a fix pass no finding named. A unit a build
-               phase made is new work and takes none. A round carrying one
-               gets no fix pass. Delete the line otherwise
+               phase made is new work and takes none. The grounds then owe
+               one sentence comparing the fix with the frame, which the
+               orchestrator routes the round on (docs/the-review-record.md).
+               Delete the line otherwise
+  reopens:     on a finding that raises an earlier `fixed` or `rejected`
+               finding again, where its close does not hold and no fix
+               pass's commit made the defect: `round-<N>#<n>` alone. An
+               ordinary finding, which gets its fix pass. A finding carries
+               at most one of `regression:` and `reopens:`. Delete the line
+               otherwise
   answer:      the fix pass: what was done, why the finding does not hold,
                or where it went
 Then why it matters and the grounds, executed and read labelled apart (where
-`regression:` stands, the unit, first); the paste-ready fix in a fenced
+`regression:` stands, the unit, first; where `reopens:` stands, why the
+earlier close does not hold, first); the paste-ready fix in a fenced
 block, the artefact itself; and `answer:`. A fix that went to a path
 `location:` does not name appends that coordinate to the line and says so in
 `answer:`. A ready pull request fails while a finding reads `open`; for a
 value or a label the check cannot read; for a heading with no number, or a
 number another heading carries; for a `fixed` commit off the branch
-or touching no located path; for a `fixed` or `rejected` finding the next
-round names on no `confirms:` or `regression:` line, or one in the last
+or touching no located path; for a finding holding both a `regression:` and
+a `reopens:` line; for a `fixed` or `rejected` finding the next round names
+on no `confirms:`, `reopens:` or `regression:` line, or one in the last
 record, since a verifying round is owed; and for a fence or comment that
 never closes. -->
 
@@ -84,8 +94,8 @@ answer: <the fix pass: what was done, why the finding does not hold, or where it
 finding truly closed, or a claim of the frame or the build that matched.
 Never a finding. Each entry is a `confirms:` line naming the earlier finding
 as `round-<N>#<n>` — every `fixed` or `rejected` finding of the round before
-needs one here or a `regression:` line — or `none`, then its prose on the
-lines after it. Round 1 has no earlier round: its entries read `none`. A
+needs one here, or a `reopens:` or `regression:` line — or `none`, then its
+prose on the lines after it. Round 1 has no earlier round: its entries read `none`. A
 round with nothing to confirm leaves this section out. -->
 
 confirms: round-1#2

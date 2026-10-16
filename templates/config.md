@@ -124,7 +124,8 @@ every repository, whatever either row says:
   case reads literally** — a round record's `target:` line; its
   `## Findings` heading and each finding's `verdict:` line, with its four
   values `open`, `fixed`, `rejected` and the `deferred` in
-  `deferred <home>`, its `location:` line and its `regression:` line; its
+  `deferred <home>`, its `location:` line, its `regression:` line and its
+  `reopens:` line; its
   `## Confirmations` heading and each `confirms:` line, reading `none` or a
   reference spelt `round-<N>#<n>`; the labels the parties and the eval
   graders read, `severity:` with its two words `must` and `should`, and

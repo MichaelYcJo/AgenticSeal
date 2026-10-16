@@ -20,9 +20,10 @@ judged (`carried_by`). The arms are five:
                 `deferred <home>` and one `location:` line, a `fixed` commit
                 on the branch and touching a path that line names; every
                 `fixed` or `rejected` finding is named by the next record's
-                `confirms:` or `regression:` lines, and none stands in the
-                last record; a label in another spelling, and whatever else
-                the reader cannot read, is refused; the last record's
+                `confirms:`, `reopens:` or `regression:` lines, and none
+                stands in the last record; a label in another spelling, and
+                whatever else the reader cannot read, is refused; the last
+                record's
                 `target:` commit is HEAD, or every commit after it touches
                 only the work item's own directory
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
@@ -79,7 +80,9 @@ EARLIER_RUN = "; earlier run: "
 # A round record: one `target: <sha> …` line above its sections; the one
 # `## Findings` section, a `### <n>. ` section per finding, and in each
 # exactly one `verdict: <value>` line and one `location: <coordinates>`
-# line, and at most one `regression: <reference>` line; and in
+# line, and at most one of a `regression: <reference>` line, for a defect a
+# fix pass's own commit made, and a `reopens: <reference>` line, for an
+# earlier close that does not hold otherwise; and in
 # `## Confirmations`, where the record has one, a `confirms: <reference>`
 # line per entry — each label one lowercase word at the start of its line,
 # one space after the colon, no emphasis, no table cell. Those lines are
@@ -96,28 +99,31 @@ SEVERITY = "severity:"
 LOCATION = "location:"
 VERDICT = "verdict:"
 REGRESSION = "regression:"
+REOPENS = "reopens:"
 ANSWER = "answer:"
 CONFIRMS = "confirms:"
 RECORD_TARGET = "target:"
 # The labels a finding holds, and the two that stand elsewhere in a record.
-FINDING_LABELS = (SEVERITY, LOCATION, VERDICT, REGRESSION, ANSWER)
+FINDING_LABELS = (SEVERITY, LOCATION, VERDICT, REGRESSION, REOPENS, ANSWER)
 LABELS = (*FINDING_LABELS, CONFIRMS, RECORD_TARGET)
 VERDICT_LABEL = re.compile(r"^" + re.escape(VERDICT) + r" (.*)$")
 LOCATION_LABEL = re.compile(r"^" + re.escape(LOCATION) + r" (.*)$")
 REGRESSION_LABEL = re.compile(r"^" + re.escape(REGRESSION) + r" (.*)$")
+REOPENS_LABEL = re.compile(r"^" + re.escape(REOPENS) + r" (.*)$")
 CONFIRMS_LABEL = re.compile(r"^" + re.escape(CONFIRMS) + r"(?: (.*))?$")
 TARGET_LABEL = re.compile(r"^" + re.escape(RECORD_TARGET) + r"(?: (.*))?$")
 # A labelled line in its one spelling: the label, then a space or the end of
 # the line.
 EXACT_LABEL = re.compile(
-    r"^(severity|location|verdict|regression|answer|confirms|target):(?: |$)"
+    r"^(severity|location|verdict|regression|reopens|answer|confirms|target)"
+    r":(?: |$)"
 )
 # A line that means a label and is not spelt as one: its first word, case
 # folded and stripped of `*`, `_` and backticks, is a label or one of the
 # old spellings `fix of a fix`, `refixes` and `Target SHA`, followed by a
 # colon (`findings` refuses it).
 MISSPELT_LABEL = re.compile(
-    r"^\s*[*_`]*\s*(severity|location|verdict|regression|answer|confirms"
+    r"^\s*[*_`]*\s*(severity|location|verdict|regression|reopens|answer|confirms"
     r"|target\s+sha|target|refixes|fix\s+of\s+a\s+fix)"
     r"\s*[*_`]*\s*:",
     re.IGNORECASE,
@@ -147,11 +153,19 @@ REFERENCE = re.compile(r"round-([1-9][0-9]*)(?:#([1-9][0-9]*))?")
 REFERENCE_SPELLING = "`round-<N>#<n>`"
 # One finding as `findings` read it: the line of its `verdict:`, its heading
 # and the heading's number, the verdict, the paths of its `location:`, its
-# `regression:` reference with that line's number, where it has one, and the
-# line of its heading.
+# `regression:` reference and its `reopens:` reference, each with that
+# line's number, where it has one, and the line of its heading.
 Finding = collections.namedtuple(
     "Finding",
-    "line heading number verdict paths regression regression_line heading_line",
+    "line heading number verdict paths regression regression_line reopens "
+    "reopens_line heading_line",
+)
+# Which line a finding naming an earlier one takes, for the refusal of a
+# finding holding both.
+ONE_RELATION = (
+    f"a finding carries one of `{REGRESSION}` and `{REOPENS}`: `{REGRESSION}` "
+    f"where a fix pass's own commit made the defect, `{REOPENS}` where an "
+    "earlier close does not hold otherwise"
 )
 # One record as `channel` reads it: its path and number, its findings, the
 # numbers of every `### <n>. ` heading it holds, its `confirms:` references,
@@ -611,12 +625,22 @@ def reference_of(value):
     In that spelling and no other: a different case, a space, a leading
     zero, emphasis, a trailing mark or a second reference is None.
 
-    Reads: owned — one `regression:` or `confirms:` value; unknown refused"""
+    Reads: owned — one `regression:`, `reopens:` or `confirms:` value; unknown refused"""
     found = REFERENCE.fullmatch(value)
     if not found:
         return None
     number = found.group(2)
     return int(found.group(1)), int(number) if number else None
+
+
+def reopened_of(value):
+    """`(round, finding)` for `round-<N>#<n>`, or None: `reference_of`'s
+    reading, with `round-<N>` alone refused, since a close is a finding's
+    verdict and a fix pass no finding named closed nothing to reopen.
+
+    Reads: owned — one `reopens:` value; unknown refused"""
+    reference = reference_of(value)
+    return reference if reference and reference[1] is not None else None
 
 
 def finding_spans(reader, lines):
@@ -680,16 +704,18 @@ def findings(reader, lines, rel):
     comment is no line. The one `## Findings` section is split at its `### `
     headings, and each holds exactly one `verdict:` line, read by
     `verdict_of`, exactly one `location:` line, read by `location_of`, and
-    at most one `regression:` line, read by `reference_of`. Before any of
-    it, a line anywhere in the record that means one of the seven labels or
-    an old spelling and is not spelt as the label is refused, and a finding
-    carrying one is not read past it. Everything the reader cannot read is
-    an error `(rel, line, why)` naming the finding's heading, in line order:
-    no `## Findings` section or two, a heading with no number or with a
-    number an earlier heading carries, a finding with no `verdict:` or
-    `location:` line or two of either, two `regression:` lines, a value none
-    of the three readers can read, a finding's label outside a finding, a
-    `confirms:` or `target:` line inside one, a `confirms:` line outside
+    at most one of a `regression:` line and a `reopens:` line, each read by
+    `reference_of`. Before any of it, a line anywhere in the record that
+    means one of the eight labels or an old spelling and is not spelt as the
+    label is refused, and a finding carrying one is not read past it.
+    Everything the reader cannot read is an error `(rel, line, why)` naming
+    the finding's heading, in line order: no `## Findings` section or two, a
+    heading with no number or with a number an earlier heading carries, a
+    finding with no `verdict:` or `location:` line or two of either, two
+    `regression:` lines, two `reopens:` lines, one of each (at the later),
+    a `reopens:` line naming a round alone, a value none of the three
+    readers can read, a finding's label outside a finding, a `confirms:` or
+    `target:` line inside one, a `confirms:` line outside
     `## Confirmations`. A finding with an error is not in the list. Nothing
     of a `severity:` or an `answer:` value is read.
 
@@ -827,11 +853,27 @@ def finding_of(lines, first, stop, heading, rel):
     verdict_line = one(VERDICT, VERDICT_LABEL, SHAPES)
     location_line = one(LOCATION, LOCATION_LABEL, COORDINATES)
     regression_line = one(REGRESSION, REGRESSION_LABEL, None)
+    reopens_line = one(REOPENS, REOPENS_LABEL, None)
     verdict = read(verdict_line, VERDICT, verdict_of, f"a verdict is {SHAPES}")
     paths = read(location_line, LOCATION, location_of, f"a location is {COORDINATES}")
     regression = read(
         regression_line, REGRESSION, reference_of, f"a reference is {REFERENCES}"
     )
+    reopens = read(
+        reopens_line,
+        REOPENS,
+        reopened_of,
+        f"a reopened close is a finding's, so the reference is {REFERENCE_SPELLING}",
+    )
+    if regression_line and reopens_line:
+        errors.append(
+            (
+                rel,
+                max(regression_line[0], reopens_line[0]) + 1,
+                f"{heading} {DASH} a `{REGRESSION}` and a `{REOPENS}` line: "
+                + ONE_RELATION,
+            )
+        )
     if errors:
         return None, errors
     return (
@@ -843,6 +885,8 @@ def finding_of(lines, first, stop, heading, rel):
             paths,
             regression,
             regression_line[0] + 1 if regression_line else None,
+            reopens,
+            reopens_line[0] + 1 if reopens_line else None,
             first + 1,
         ),
         [],
@@ -1010,12 +1054,13 @@ def channel(rounds):
     """[(path, line, problem)] for what one round owes the next, over an
     item's records in number order.
 
-    Every reference a record writes — a `confirms:` line, a `regression:`
-    line — names an earlier record of the item and, where it names a
-    finding, one that record holds; the first record writes none. Every
-    finding of a record at `fixed <commit>` or `rejected` is named by the
-    next record's `confirms:` or `regression:` lines, or refused at its own
-    heading. A `fixed` or `rejected` finding of the last record is refused
+    Every reference a record writes — a `confirms:` line, a `reopens:` line,
+    a `regression:` line — names an earlier record of the item and, where it
+    names a finding, one that record holds; the first record writes none.
+    Every finding of a record at `fixed <commit>` or `rejected` is named by
+    the next record's `confirms:`, `reopens:` or `regression:` lines, or
+    refused at its own heading. A `fixed` or `rejected` finding of the last
+    record is refused
     as owing a verifying round, since nothing after it read the fix or the
     rejection. A `deferred` finding owes nothing.
 
@@ -1025,9 +1070,8 @@ def channel(rounds):
     for k, here in enumerate(rounds):
         references = sorted(
             [*here.confirms]
-            + [
-                (f.regression_line, f.regression) for f in here.findings if f.regression
-            ],
+            + [(f.regression_line, f.regression) for f in here.findings if f.regression]
+            + [(f.reopens_line, f.reopens) for f in here.findings if f.reopens],
         )
         for line, (n, m) in references:
             said = f"round-{n}" + (f"#{m}" if m else "")
@@ -1058,8 +1102,8 @@ def channel(rounds):
                         f.heading_line,
                         f"{f.heading} {DASH} reads `{VERDICT} "
                         f"{' '.join(x for x in f.verdict if x)}`, and the next "
-                        f"record, {here.path}, names it on no `{CONFIRMS}` or "
-                        f"`{REGRESSION}` line: one of them reads "
+                        f"record, {here.path}, names it on no `{CONFIRMS}`, "
+                        f"`{REOPENS}` or `{REGRESSION}` line: one of them reads "
                         f"`round-{before.number}#{f.number}`",
                     )
                 )

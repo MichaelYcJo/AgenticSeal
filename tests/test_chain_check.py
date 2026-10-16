@@ -76,6 +76,7 @@ def finding(
     title="the parser drops a row",
     location="`f.txt:1`",
     regression=None,
+    reopens=None,
 ):
     """One `### ` section of `## Findings`, in `templates/sdd-round.md`'s
     shape, its `verdict:` line reading `verdict`."""
@@ -85,6 +86,7 @@ def finding(
         f"location: {location}\n"
         f"verdict: {verdict}\n"
         + (f"regression: {regression}\n" if regression else "")
+        + (f"reopens: {reopens}\n" if reopens else "")
         + "\nWhy it matters. read: `f.txt:1`.\n\n"
         "```python\nx = 1\n```\n\n"
         "answer: \n"
@@ -717,7 +719,7 @@ class TestFindings:
 
     def test_a_label_in_another_spelling_is_refused_by_line(self):
         """S24 (T32): a line whose first word, case-folded and stripped of
-        emphasis, is one of the seven labels, the old `fix of a fix`,
+        emphasis, is one of the eight labels, the old `fix of a fix`,
         `refixes` or `Target SHA`, and which is not the exact lowercase form,
         is refused at its line naming the label the check reads — never
         skipped as prose. A finding carrying one is not read past it, so a
@@ -734,6 +736,8 @@ class TestFindings:
             ("refixes: round-1#1", "`regression:`"),
             ("Refixes: round-1#1", "`regression:`"),
             ("Regression: round-1#1", "`regression:`"),
+            ("Reopens: round-1#1", "`reopens:`"),
+            ("**reopens:** round-1#1", "`reopens:`"),
             ("Severity: must", "`severity:`"),
             ("Location: `f.txt:1`", "`location:`"),
             ("Answer: done", "`answer:`"),
@@ -776,6 +780,59 @@ class TestFindings:
             )
             assert chain.findings(reader, reader.readable(text), "r.md")[1] == []
 
+    def test_a_reopens_line_names_one_finding_and_never_beside_a_regression_line(
+        self,
+    ):
+        """S23, S24 (T42): a `reopens:` line is read into its finding with its
+        line, naming the earlier finding as `round-<N>#<n>`. A reopened close
+        is a finding's, so `reopens: round-1` is refused; so is a second
+        `reopens:` line, and a finding holding a `reopens:` and a
+        `regression:` line, at the later of the two, the refusal naming
+        which line each case takes. A refused finding is left out of the
+        list."""
+        text = record(
+            "abc1234",
+            [
+                finding(1, "open", reopens="round-1#2"),
+                finding(2, "open", reopens="round-1"),
+                finding(3, "open", reopens="round-1#2").replace(
+                    "reopens: round-1#2\n",
+                    "reopens: round-1#2\nreopens: round-1#3\n",
+                ),
+                finding(4, "open", regression="round-1#2", reopens="round-1#3"),
+                finding(5, "open").replace(
+                    "verdict: open\n",
+                    "reopens: round-1#4\nverdict: open\nregression: round-1\n",
+                ),
+                finding(6, "open"),
+            ],
+            n=2,
+        )
+        lines = reader.readable(text)
+        found, errors = chain.findings(reader, lines, "r.md")
+        assert [(f.number, f.reopens, f.regression) for f in found] == [
+            (1, (1, 2), None),
+            (6, None, None),
+        ], errors
+        assert found[0].reopens_line == lines.index("reopens: round-1#2") + 1
+        assert found[1].reopens_line is None
+        fourth = lines.index("### 4. the parser drops a row")
+        assert [(rel, line) for rel, line, _why in errors] == [
+            ("r.md", lines.index("reopens: round-1") + 1),
+            ("r.md", lines.index("reopens: round-1#3") + 1),
+            ("r.md", lines.index("reopens: round-1#3", fourth) + 1),
+            ("r.md", lines.index("regression: round-1") + 1),
+        ], errors
+        said = [why for _rel, _line, why in errors]
+        for why, n in zip(said, (2, 3, 4, 5), strict=True):
+            assert f"### {n}. the parser drops a row" in why, why
+        assert "`reopens: round-1`" in said[0] and "`round-<N>#<n>`" in said[0]
+        assert "2 `reopens:` lines" in said[1]
+        for why in said[2:]:
+            assert "`regression:`" in why and "`reopens:`" in why, why
+            assert "a fix pass's own commit made the defect" in why, why
+            assert "does not hold" in why, why
+
     def test_a_target_or_confirms_line_out_of_its_place_is_refused(self):
         """A `target:` or `confirms:` line inside a finding, and a
         `confirms:` line outside `## Confirmations`, is refused at its line:
@@ -809,14 +866,19 @@ class TestFindings:
         `open`, located at one coordinate, naming the regression `round-1#1`;
         a `verdict:` written inside its fix block not read as a line;
         `## Confirmations` holding its two example entries, `confirms:
-        round-1#2` read and `confirms: none`; and no emoji anywhere in it."""
+        round-1#2` read and `confirms: none`; its comments naming the
+        `reopens:` line beside `regression:`, read as no line; and no emoji
+        anywhere in it."""
         text = (ROOT / "templates" / "sdd-round.md").read_text(encoding="utf-8")
         lines = reader.readable(text)
         found, errors = chain.record_findings(reader, text, "t")
         assert errors == []
-        assert [(f.verdict, f.paths, f.regression) for f in found] == [
-            ((chain.OPEN, None), ["path"], (1, 1))
+        assert [(f.verdict, f.paths, f.regression, f.reopens) for f in found] == [
+            ((chain.OPEN, None), ["path"], (1, 1), None)
         ]
+        comments = text.split(chain.FINDINGS_HEADING)[1].split("### 1. ")[0]
+        assert "`reopens:`" in comments and "  reopens:  " in comments, comments
+        assert not any(ln.startswith(chain.REOPENS) for ln in lines)
         assert found[0].heading.startswith("### 1. ") and found[0].number == 1
         confirmed, errors = chain.confirmations(reader, lines, "t")
         assert errors == []
@@ -1030,6 +1092,69 @@ class TestChannel:
         deferred = record("abc1234", [finding(1, "deferred #9")])
         empty = record("abc1234", n=2)
         assert chain.channel(rounds_of(deferred, empty)[0]) == []
+
+    def test_a_reopens_line_answers_the_earlier_finding_as_the_other_two_do(self):
+        """S23 (T43): a `fixed` and a `rejected` finding of round 1 named only
+        by round 2's `reopens:` lines owe nothing more. A `reopens:` reference
+        to a record the item has not got, to a finding the record does not
+        hold, or standing in round 1 is refused by its line; and the refusal
+        of a finding no line names names all three labels."""
+        one = record(
+            "abc1234",
+            [
+                finding(1, "fixed abc1234"),
+                finding(2, "rejected"),
+                finding(3, "rejected"),
+            ],
+        )
+        two = record(
+            "abc1234",
+            [
+                finding(1, "open", reopens="round-1#1"),
+                finding(2, "open", reopens="round-1#2"),
+            ],
+            n=2,
+        )
+        rounds, errors = rounds_of(one, two)
+        assert errors == []
+        problems = chain.channel(rounds)
+        lines_one = reader.readable(one)
+        assert [(rel, line) for rel, line, _why in problems] == [
+            ("round-1.md", lines_one.index("### 3. the parser drops a row") + 1),
+        ], problems
+        why = problems[0][2]
+        assert "`round-1#3`" in why and "round-2.md" in why, why
+        for label in ("`confirms:`", "`reopens:`", "`regression:`"):
+            assert label in why, why
+        covered = two.replace(
+            "\n## Confirmations",
+            "\n" + finding(3, "open", reopens="round-1#3") + "\n## Confirmations",
+        )
+        rounds, errors = rounds_of(one, covered)
+        assert errors == [] and len(rounds[1].findings) == 3
+        assert chain.channel(rounds) == []
+        first = record("abc1234", [finding(1, "deferred #9", reopens="round-1#1")])
+        dangling = record(
+            "abc1234",
+            [
+                finding(1, "deferred #9", reopens="round-3#1"),
+                finding(2, "deferred #9", reopens="round-1#7"),
+            ],
+            n=2,
+        )
+        rounds, errors = rounds_of(first, dangling)
+        assert errors == []
+        problems = chain.channel(rounds)
+        lines_first, lines_dangling = reader.readable(first), reader.readable(dangling)
+        assert [(rel, line) for rel, line, _why in problems] == [
+            ("round-1.md", lines_first.index("reopens: round-1#1") + 1),
+            ("round-2.md", lines_dangling.index("reopens: round-3#1") + 1),
+            ("round-2.md", lines_dangling.index("reopens: round-1#7") + 1),
+        ], problems
+        said = [why for _rel, _line, why in problems]
+        assert "the first record" in said[0], said
+        assert "`round-3#1`" in said[1] and "not an earlier record" in said[1]
+        assert "`round-1#7`" in said[2] and "holds no finding 7" in said[2]
 
     def test_a_reference_the_check_cannot_read_or_naming_no_finding_is_refused(self):
         """S23 (T36): a reference naming a record the item has not got, or
