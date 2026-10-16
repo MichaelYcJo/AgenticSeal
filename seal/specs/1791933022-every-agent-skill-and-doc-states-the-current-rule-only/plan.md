@@ -13,6 +13,7 @@ Approved 2026-10-15 by the repository owner, for the repair after round 4, when 
 Approved 2026-10-15 by the repository owner, for the repair after round 5, when `smith` was spawned for phase 5c.
 Approved 2026-10-16 by the repository owner, for the round record designed anew after round 6, when `smith` was spawned for phase 5d-i.
 Approved 2026-10-16 by the repository owner, for phases 5d-ii and 5d-iii as edited with the owner's 2026-10-16 decisions, when `smith` was spawned for phase 5d-ii.
+Approved 2026-10-16 by the repository owner, for phase 5d-iv, Q11's answer, when `smith` was spawned for phase 5d-iv.
 
 Reframed 2026-10-15 as a new slate, from phase 3 on, against #923's body as
 the owner rewrote it that day. Phases 1 and 2 are closed and keep their rows
