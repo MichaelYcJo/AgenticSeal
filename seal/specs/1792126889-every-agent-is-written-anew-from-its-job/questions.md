@@ -31,8 +31,9 @@ in `spec.md` and in `plan.md`'s Alternatives table.
 - **The sealer stays on Opus until the comparison**, and drops only where
   every truth grader holds on Sonnet and spend is lower (`spec.md`
   §*The sealer's model is decided by measurement*).
-- **The two cases red on `main` at the release are phase 0's**, since every
-  pull request of this item runs them.
+- **The Windows-red case on `main` at the release is phase 0's**, since every
+  pull request of this item runs it; the sealer-guarantees case of the same
+  run is #963's, fixed outside this item.
 - **The emoji in output printed for a person and read by no agent or check**
   — the release note's headings, the seal stamp's drawing, the hooks'
   terminal messages — stay, because the owner's rule reaches what an agent

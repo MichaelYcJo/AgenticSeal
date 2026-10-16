@@ -18,7 +18,8 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | `skills/implement/SKILL.md` §*3. The SDD file set* | The item alters what every spawn reads, so it sits on the top rung and this frame exists |
 | #957's body (the owner, 2026-10-13 to 2026-10-16) | The one source for what was decided: six numbered items, the rules the rewrite states in place, and the two axes of the proof. Where this file and that body differ, the body holds |
 | #923's `spec.md` §*The agent definitions this item touches*, §*The proof harness, as this item leaves it*, `plan.md` phases 6–9 at 6a40c790 | The frame this one starts from, re-read against the released tree. What still holds is restated here; what moved is named under `## Removes` or in `plan.md`'s Alternatives |
-| #940, #941, #942, #945, #956 | What an agent opens on demand, `docs/`, the test layout, the process's cost and the audit of readers are theirs. This item rewrites a file of theirs only where it makes a sentence of it false, and says so in the phase record |
+| #940, #941, #942, #945, #956 | What an agent opens on demand, `docs/`, the test layout, the process's cost and the audit of readers are theirs. This item rewrites a file of theirs only where it makes a sentence of it false, and says so in the phase record. §*What the referenced issues already decided* holds what each settled |
+| #929, #931, #944 (closed in 0.22.0) | The per-pull-request mutation check is gone and `mutation-check` is a release-time tool; `.test_durations` is measured on every run and this frame refreshes nothing by hand; the record of truth is a test named by an `Enforced by:` line, held by `rules --check`, with no hash or index beside the tree. §*What the referenced issues already decided* holds what each settled |
 
 ## Scope
 
@@ -33,9 +34,9 @@ round record's grammar as one table the check reads whole. The broad gate as
 the orchestrator's script run before the sealer. The sealer's model by
 measurement. The baseline and the per-phase proof, the test modules that pin
 the rewritten files, the eval cases that grade them, and the changelog
-fragment. The two cases red on `main` at the release (§*The tree as it
-stands, measured*), because every pull request of this item runs the suite
-they are in.
+fragment. The case red on Windows on `main` at the release (§*The tree as
+it stands, measured*), because every pull request of this item runs the
+suite it is in.
 
 **Out, and whose.** `skills/verify/SKILL.md` beyond the sentences this item
 makes false (§*Every agent seals what it verified* and §*Seal block*, which
@@ -58,6 +59,25 @@ the hooks' terminal messages — stay where they are and are named in
 reads or writes and a check reads, and those are neither. The quotations of
 old marks inside test fixtures and inside the four 0.22.0 items' round
 records stay as the history they quote (#923's Q10).
+
+## What the referenced issues already decided
+
+#957's body names eight issues. Each was read whole, with its comments (#957
+and #923 have none; their comments were folded into the bodies). What each
+decided or owns, this frame neither redoes nor contradicts.
+
+| Issue | Already decided or owned | What this frame does with it |
+|---|---|---|
+| #923 (closed, 0.22.0) | The round record's shape: one file the warden writes, labelled lowercase lines, `must`/`should`, the four verdict values, `confirms:`/`reopens:`/`regression:` by `round-<N>#<n>`, fail-closed reading, no emoji; the sealer as independent guarantor on Opus with `guarantee.md`; the five-arm check; `broad-gate.md` on either routing answer; the cap of three counted from the last design change; Q7 (an item is judged at its own pull request), Q10 (old quotations stay), Q11 (`deferred <where it was repaired>`) | Not reopened. The grammar table restates the shape #923 chose in one place and changes no label or value; the sealer's job keeps #923's five steps and loses only the broad run; its Q2, Q4, Q5 and Q6 moved here as Q4–Q8 |
+| #929 (closed, 0.22.0) | The commit-gate test cut by a mutation table with a fixed sample; one launcher holding the Python floor; `case_check.py` and the `cases` CI job gone; `mutation-check` a release-time tool with no bound; a check that generates cases to catch the next gap never converges | No per-pull-request mutation check returns; the `mutation-check` runs in `plan.md`'s Verified-by cells are the smith's own narrow runs at its phase, which `agents/smith.md` step 4 already asks for, never a CI job; no generated-variant case is written for the grammar (Alternative K); the suite's size readings stay the release report's, and the figures here are readings at d4552372 |
+| #931 (closed, 0.22.0) | `.test_durations` is measured on every run by the Windows shards (`--store-durations --clean-durations`) and unioned by the `durations` job; `test_the_durations_file_prices_the_suite` fails past `STALE_SHARE`; the release checklist's refresh box is settled there | Nothing here refreshes the file by hand or schedules a run. Where phase 1's deletions leave entries of cases the suite no longer collects and the durations case fails, the smith prunes to the collected ids by the method #923's phase 5a used, and nothing is re-measured |
+| #940 (open, 0.22.2) | What an agent opens on demand: `skills/verify/SKILL.md`, both `orchestration.md` files, the small skills, `templates/`, `CONTRIBUTING.md`, `CLAUDE.md`; what `CLAUDE.md` holds | This frame touches `skills/code-review/orchestration.md:178-201` (the gate's order), `skills/verify/SKILL.md`'s two proof-block sections, `templates/sdd-overview.md`, `templates/sdd-questions.md`, `templates/sdd-round.md`'s comment, `templates/config.md`'s literal list and `CONTRIBUTING.md:247-251`, each because this item makes the sentence false, and nothing else of #940's set |
+| #941 (open, 0.22.2) | `docs/` rewritten to the current rule, split by topic past one read, the `<!-- specs/… -->` markers gone, the backlog settled; `Enforced by:` renamed to `check:` with `rules.py` as its reader | `Enforced by:` keeps its spelling in every file this item writes. The grammar table goes into `docs/the-review-record.md` (350 lines) under §*The round record*, which `chain_check.py#grammar` finds by that heading; a #941 split that moves the heading meets exit 2 in CI and moves the loader's path with it |
+| #942 (open, 0.22.2) | One test file per shipped module grouped by function, a success and a failure case per group, flows under `tests/e2e/`, duplicates named, a sweep each release with `mutation-check` unbounded; old tests are a reference | This frame re-points or removes the pins on the files it rewrites and deletes the census and stamp modules; it lays out no other module. The smith's rule *a new test starts from its group* names #942's layout as where the group lives |
+| #944 (closed, 0.22.0) | The evidence ledger, its fold, re-read, correction and drift machinery, `survivors.md` and the evidence-check skill are gone; the record of truth is a test named by an `Enforced by:` line, `rules --check` holds that each resolves; the coordinate kernel lives at `skills/verify/scripts/coordinates.py`; rules for agents are held by the behaviour evals | Nothing kept beside the tree comes back: the census and the stamps are the same class and leave. `rider_check.py` is one importer of the kernel and leaves; the kernel stays for its other readers. The evals are the holder of an agent's rules, which is why the proof is run on them and not on sentence pins |
+| #945 (open, 0.22.3) | The agent-lifetime rule (a phase is a fresh spawn handed the phase record), the fix pass's resume threshold, the orchestrator's folding rule, the audit of re-checks, the process archive, all written into the orchestration files by #940 | No definition here states a lifetime or a resume rule; `plan.md`'s phases are spawned as the orchestrator decides under #945's rule when it lands |
+| #956 (open, 0.22.4) | The audit of every reader of written text, one table in that issue; the fixes it names go to later releases; whether the fail-closed sentence enters `CLAUDE.md` (#923's Q9) is decided with the table | The grammar loader and the `closed` reader fail closed as #923's record does, and this frame writes no sentence into `CLAUDE.md`; the `Reads:` lines it removes were a self-declaration, not the audit's input, which is the code |
+| #947 (open, 0.22.4) | Measures whether 0.22.0 made development lighter, from the release report's trend, `session_cost.py --segments` and the round records; its *Before* table holds the 0.21.x preload bytes | The changelog table of §*A number in this frame* is written so #947 can read this item's preload, tokens and spend at d4552372 and at the close without a hand-filled figure |
 
 ## The shape of a definition
 
@@ -318,13 +338,16 @@ a command produced the number, `read` where a document or a CI log did.
   four Windows shards 35.5 min, lint and durations 1.5 min — 55 runner
   minutes, wall under 11 minutes, and 208 billable minutes a run if the
   repository went private (Linux 1×, Windows 2×, macOS 10×).
-- **The release tree is red** (`read`, the log of run 38852872472 on `main`
-  at d4552372): `tests/test_the_sealer_guarantees.py::test_a_verdict_other_than_sound_fails_a_ready_pull_request`
-  fails with `StopIteration` on all three operating systems (its `next(…)`
-  finds no output line opening `<rel>:`), and
+- **The release tree is red on one case this item owns** (`read`, the log of
+  run 38852872472 on `main` at d4552372):
   `tests/test_a_rewritten_definition_proved_non_inferior.py::test_a_side_runs_the_tree_it_measures_and_no_installed_plugin`
   fails on Windows on path separators. Every pull request of this item runs
-  both, so they are phase 0.
+  it, so it is phase 0. The same run's other red case,
+  `tests/test_the_sealer_guarantees.py::test_a_verdict_other_than_sound_fails_a_ready_pull_request`,
+  is fixed outside this item by #963 (no work item, into
+  `release/v0.22.1`): under `GITHUB_ACTIONS` the check prints `::error`
+  annotations and the case searched for the plain `<rel>:` line, so the
+  fixture now clears the variable. This frame does not touch it.
 - **The evaluation** (`executed`): 20 cases, two runs each, `max_turns` 12,
   timeouts 1,200–2,400 s; the warden's and the smith's session model is
   Opus, the framer's Fable, the sealer's case session Sonnet with the
@@ -369,7 +392,7 @@ case does.
 | S17 Each phase proves its agents | Given a phase that changed an agent's preload, when it closes, then `evals/<agent>-phase-N.md` reads `pass` under the five rules, and the plan's row names it | the same module's `test_the_verdict_is_recomputed_from_the_records_numbers`. Protects: a `pass` written over failing numbers |
 | S18 Every case says what it protects | Given a test or grader this item writes, when read, then its docstring or description names the defect it would catch and why no other case does | the warden's reading of the diff; `Enforced by: nothing — a reading from words is a report`. Protects: a case nobody can map to a defect, which is how a suite grows by default (#942) |
 | S19 Nothing asks a person | Given this item's run, when any phase executes, then no step stops for an answer; each `questions.md` row carries its default | `plan.md`'s rows read by the orchestrator; the sealer's step 4 reads the parties. Protects: a run that stops at minute thirty |
-| S20 The tree is green first | Given the two red cases of run 38852872472, when phase 0 closes, then both pass on all three legs and `replay_targets.py` reads the new record's shape | CI green on the phase-0 commit; `bin/test tests/test_the_sealer_guarantees.py tests/test_a_rewritten_definition_proved_non_inferior.py -q` exit 0. Protects: a baseline run and every later pull request red on a defect that predates them |
+| S20 The tree is green first | Given the Windows-red case of run 38852872472, when phase 0 closes, then it passes on all three legs and `replay_targets.py` reads the new record's shape | CI green on the phase-0 commit; `bin/test tests/test_a_rewritten_definition_proved_non_inferior.py tests/test_evals_layout.py -q` exit 0. Protects: a baseline run and every later pull request red on a defect that predates them |
 | S21 Rewritten in place | Given a fact this item removes, when the commit lands, then every sentence, pin, comment and copy standing on it leaves in the same commit, enumerated by the `git grep` the phase record names | `bin/rules --check` exit 0; `tests/test_no_passage_is_pasted_into_a_second_file.py` green; the greps in the phase record finding nothing outside `seal/specs/` and `changelog/`. Protects: the stale half of a file misleading the next agent, which is the item's root problem |
 | S22 The changelog table | Given the fragment, when the release gathers it, then a per-agent table reads preload bytes, tokens read, spend and outcome at the baseline and at the close, each with its commit | `tests/test_the_pull_request_language_is_the_repositorys.py` and the fragment's heading rule; the sealer reads the fragment against the eval records. Protects: a figure recounted by hand, the loop #923 ran three rounds on |
 
