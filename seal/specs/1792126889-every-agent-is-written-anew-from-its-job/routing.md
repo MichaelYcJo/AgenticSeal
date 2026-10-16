@@ -106,7 +106,7 @@ this file is for people. -->
      Branch — one declaration per branch. Two is not an answer, and the gate
      reads it as none. -->
 
-Answered 2026-10-16 by the repository owner, who pressed `automation` for #957 on the installed 0.22.0, before the first edit. Models: framer, smith, warden and sealer on Opus 5.5; the item itself measures the sealer on Sonnet against Opus.
+Answered 2026-10-16 by the repository owner, who pressed `automation` for #957 on the installed 0.22.0, before the first edit. Models: framer on Fable 5.1, by the owner's choice because this item redesigns every agent; smith, warden and sealer on Opus 5.5; the item itself measures the sealer on Sonnet against Opus.
 
 ## Why this way
 
