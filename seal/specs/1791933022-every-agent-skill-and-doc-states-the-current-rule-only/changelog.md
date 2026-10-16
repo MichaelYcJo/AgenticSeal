@@ -28,20 +28,48 @@
   finding takes the first rung of the filing ladder that fits.
   **A work item in flight when you update** keeps records in the old shape,
   and the check refuses each one by name once its pull request is ready.
-  Before you mark it ready, rewrite each record: the `| Field | Value |`
-  table becomes `target: <its Target SHA value>`; each 🔴 or 🟡 row becomes
-  a `### <n>.` section with `severity: must` for 🔴 and `should` for 🟡,
-  `location:` holding its Location cell's coordinates, each backticked and
-  joined by `, `, `verdict:` holding its Verdict cell, where an `answered`
-  becomes `rejected` if the finding did not hold, `fixed <commit>` if a
-  commit repaired it, and `deferred <where it was repaired>` if it was
-  repaired outside the tree with no commit, its paste-ready block, and
-  `answer:` holding what the fix pass wrote; each 🟢 row becomes `confirms: round-<N>#<n>` naming the
-  finding it confirmed, or `confirms: none`, with its text on the next line;
-  each ❓ row becomes a row of `## Not judged`; `## Executed probes` becomes
-  `## Probes`. Then run `python3 skills/code-review/scripts/chain_check.py
-  --baseline origin/<base> --worktree` and fix what it still names. The
-  other way is to finish that work item on 0.21.1 before you update.
+  Before you mark it ready, rewrite each of its `rounds/round-N.md` files:
+
+  - The `| Field | Value |` table becomes one line,
+    `target: <commit> against <base>`, where `<commit>` is its
+    `Target SHA` value, the later commit where it names two. The table's
+    other rows and the `Pass` checkbox go.
+  - Each 🔴 or 🟡 row becomes a `### <n>. <symptom>` section under
+    `## Findings`, `<n>` being the number in its `#` cell. The section
+    holds `severity: must` for 🔴 and `should` for 🟡; `location:` holding
+    its Location cell's coordinates, each backticked and joined by `, `
+    (a `path#unit` becomes its `path`); `verdict:` holding its Verdict
+    cell, where `answered`, `withdrawn` and `not a defect` become
+    `rejected` if the finding did not hold, `fixed <commit>` if a commit
+    repaired it and `deferred <where it was repaired>` if it was repaired
+    outside the tree with no commit, `agreed, fixed` becomes
+    `fixed <commit>`, and a bare `fixed` takes the commit its grounds name;
+    a `regression: round-<K>` line where the record's `Fix of a fix` row
+    names the finding, `<K>` being the round whose fixes made the unit, or
+    `regression: round-<K>#<n>` where you know the finding whose fix made
+    it; its block from `## Paste-ready fixes`; and `answer:` holding what
+    the fix pass wrote.
+  - Each 🟢 row becomes `confirms: round-<N>#<n>` naming the finding it
+    confirmed, or `confirms: none`, with its text on the next line. A
+    `carried` row and a `fix-surface` or `fragment` row become `confirms:`
+    lines the same way. A ⬜ note row has no place in the new record: keep
+    its text as prose under the `target:` line, or open an issue for it.
+  - Each ❓ row becomes a row of `## Not judged`, and
+    `## Executed probes` becomes `## Probes`. `## What this round was
+    asked`, `## Inherited coordinates` and `## Deferred` may stay as prose.
+
+  Every `fixed` or `rejected` finding needs a `confirms:` or `regression:`
+  line in the next record, and the last record may hold neither, so a run
+  whose last round closed a finding takes one more verifying round. Then,
+  in the work item's worktree, run the check from the plugin this update
+  installed, with its version and the marketplace you installed it from:
+
+  ```
+  python3 ~/.claude/plugins/cache/<marketplace>/specseal/<version>/skills/code-review/scripts/chain_check.py --baseline origin/<base> --worktree
+  ```
+
+  and fix what it still names. The other way is to finish that work item
+  on 0.21.1 before you update.
   (`1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
   #923)
 - **The check at the pull request reads what a record states in its
