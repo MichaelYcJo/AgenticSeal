@@ -136,9 +136,11 @@ TARGET_VALUE = re.compile(
 )
 TARGET_SHAPES = "`<sha> against <base>` or `<sha>, fixes <a>..<b>`"
 # `location:`'s value: one or more backticked `path`, `path:line` or
-# `path:first-last`, joined by `, `, the path relative to the root.
-COORDINATE_ITEM = r"`[^`\s:/][^`\s:]*(?::[0-9]+(?:-[0-9]+)?)?`"
-COORDINATE = re.compile(r"`([^`\s:/][^`\s:]*)(?::[0-9]+(?:-[0-9]+)?)?`")
+# `path:first-last`, joined by `, `, the path relative to the root. A path
+# holds no `#`, so a `path#unit` coordinate is refused rather than read as a
+# file named `path#unit`.
+COORDINATE_ITEM = r"`[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`"
+COORDINATE = re.compile(r"`([^`\s:/#][^`\s:#]*)(?::[0-9]+(?:-[0-9]+)?)?`")
 LOCATION_VALUE = re.compile(COORDINATE_ITEM + r"(?:, " + COORDINATE_ITEM + r")*")
 # A reference to an earlier finding, or to an earlier round's fix pass.
 REFERENCE = re.compile(r"round-([1-9][0-9]*)(?:#([1-9][0-9]*))?")
@@ -592,9 +594,9 @@ def location_of(value):
 
     One or more backticked `path`, `path:line` or `path:first-last` items
     joined by `, `, each path relative to the root. A bare `:617`, a path
-    with no backticks, a URL, an absolute path, emphasis around an item, a
-    trailing word or mark, or an empty value is None, which the arm refuses
-    by name.
+    with no backticks, a URL, an absolute path, a `path#unit`, emphasis
+    around an item, a trailing word or mark, or an empty value is None,
+    which the arm refuses by name.
 
     Reads: owned — one value `findings` cut from its line; unknown refused"""
     if not LOCATION_VALUE.fullmatch(value):

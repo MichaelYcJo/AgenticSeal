@@ -655,6 +655,28 @@ def test_a_truth_pattern_holds_its_line_window_and_no_further():
     assert not pattern.search("Location: `docs/x.md:100`")
 
 
+def test_a_truth_never_matches_a_coordinate_the_check_refuses(monkeypatch):
+    """`chain_check.py` refuses a `path#unit` coordinate, so a truth that
+    matched one would pass a warden for a record the pull request then
+    fails. A Python truth reads its unit's lines within ±15 and never the
+    unit's name after a `#`, and a truth with no lines reads the bare path
+    or `path:<line>`, never `path#<anything>`."""
+    rt = load_script("replay_targets")
+    source = "x = 0\n\n\ndef f(a):\n    return a\n"
+    monkeypatch.setattr(rt, "git", lambda *_a, **_k: source)
+    for location in ("`a.py:5`", "`a.py#f`"):
+        pattern = re.compile(rt.truth_pattern(location, "HEAD"), re.M)
+        assert pattern.search("location: `a.py:5`"), location
+        assert pattern.search("location: `b.md:1`, `a.py:4-5`"), location
+        assert not pattern.search("location: `a.py:40`"), location
+        assert not pattern.search("location: `a.py#f`"), location
+        assert not pattern.search("location: `a.py#f:5`"), location
+    bare = re.compile(rt.truth_pattern("`docs/x.md#unit`", "HEAD"), re.M)
+    assert bare.search("location: `docs/x.md`")
+    assert bare.search("location: `docs/x.md:7`")
+    assert not bare.search("location: `docs/x.md#unit`")
+
+
 def test_a_seed_lands_on_a_code_token_and_never_in_a_string():
     sd = load_script("seed_defects")
     source = 'def f(a):\n    """a == b"""\n    return a == 1\n'

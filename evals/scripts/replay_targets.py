@@ -264,8 +264,10 @@ def unit_span(source, dotted):
 
 def truth_pattern(location, target):
     """The regex a report's finding's `location:` line must match to have
-    found the finding at LOCATION, read at TARGET: its path with its unit,
-    or its line within ±15.
+    found the finding at LOCATION, read at TARGET: its line within ±15, or
+    the lines of the unit an old `path#unit` LOCATION names, within ±15.
+    Where no line can be read, the path alone or with a line. Never a
+    `path#unit`, which `chain_check.py` refuses in a `location:` line.
 
     A location naming no backticked path gives None.
 
@@ -274,32 +276,21 @@ def truth_pattern(location, target):
     if not m:
         return None
     path = m["path"]
-    alternatives = []
     lines = None
-    source = (
-        git("show", f"{target}:{path}", check=False) if path.endswith(".py") else ""
-    )
     if m["line"]:
         line = int(m["line"])
         lines = (line - WINDOW, line + WINDOW)
-        names, _span = enclosing(source, line) if source else ([], None)
-        if names:
-            alternatives += sorted({".".join(names), names[-1]})
-    if m["unit"]:
-        alternatives.append(m["unit"])
+    if m["unit"] and path.endswith(".py"):
+        source = git("show", f"{target}:{path}", check=False)
         span = unit_span(source, m["unit"]) if source else None
         if span:
             lines = (span[0] - WINDOW, span[1] + WINDOW)
-    options = []
-    if alternatives:
-        units = "|".join(behaviour.js_escape(a) for a in alternatives)
-        options.append(f"{behaviour.js_escape(path)}#(?:{units})\\b")
     if lines:
         numbers = "|".join(str(n) for n in range(max(1, lines[0]), lines[1] + 1))
-        options.append(f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)")
-    if not options:
-        options.append(f"{behaviour.js_escape(path)}(?![\\w./-])")
-    return "^location: .*(?:" + "|".join(options) + ")"
+        option = f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)"
+    else:
+        option = f"{behaviour.js_escape(path)}(?![\\w./#-])"
+    return "^location: .*(?:" + option + ")"
 
 
 def targets(tags):

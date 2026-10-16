@@ -277,7 +277,7 @@ def warden_case():
             "truth",
             "shout-twice",
             report,
-            r"^location: .*src\/textutil\.py(?:#shout_twice\b|:(?:[4-9]|1[0-9])(?!\d))",
+            r"^location: .*src\/textutil\.py:(?:[4-9]|1[0-9])(?!\d)",
             "`shout_twice` joins the two shouts with no space, against S2.",
         ),
     ]

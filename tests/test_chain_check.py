@@ -469,6 +469,9 @@ class TestLocationOf:
             "`/abs/a.py`",
             "`a.py`.",
             "`a b.py`",
+            "`a.py#unit`",
+            "`a.py#unit:3`",
+            "`a.py:1`, `b.py#unit`",
             "",
         ):
             assert chain.location_of(value) is None, value
