@@ -343,8 +343,8 @@ def document(*parts):
         ),
         (
             ("docs", "release-checklist.md"),
-            "First, the process record. This part is never skipped.",
-            "the honest answer on a busy release is to skip this step",
+            "`settle` runs when the owner calls it, not at every release.",
+            "This part is never skipped.",
         ),
         (
             ("docs", "review-handoff-protocol.md"),
