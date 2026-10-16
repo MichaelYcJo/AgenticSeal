@@ -35,7 +35,7 @@ itself, states the round record's grammar once and closes a row with a word.
 
 | Item | Who must answer |
 |---|---|
-| CI green on all three legs at phase 1's commit (`plan.md` phase 1, Verified by): the Windows leg is where the case was red | the orchestrator, at the pull request's first CI run |
+| ✅ CI green on all three legs at phase 1's commit (`plan.md` phase 1, Verified by): the Windows leg is where the case was red | the orchestrator, 2026-10-16: the `tests` workflow dispatched on this branch at 74c7963a, run 38859692605, every job green on ubuntu, macOS and Windows |
 | The test modules of the 34 scripts phase 2 changed only in their docstrings, beyond the modules `phases/phase-2.md` names as run: a case that reads a docstring whole would meet the removed `Reads:` line there | the sealer, at the broad gate |
 
 ## Not done
