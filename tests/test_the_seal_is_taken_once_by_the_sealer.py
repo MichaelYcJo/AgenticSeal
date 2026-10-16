@@ -1168,14 +1168,12 @@ OPEN_FINDING = finding(1, "open")
 
 def record_text(n, target, findings, confirmations=""):
     """A round record in `templates/sdd-round.md`'s shape: `findings` are
-    `finding()` sections, `confirmations` rows of `## Confirmations`."""
+    `finding()` sections, `confirmations` entries of `## Confirmations`."""
     return (
         f"# {os.path.basename(ITEM)} — review round {n}\n\n"
-        "| Field | Value |\n|---|---|\n"
-        f"| Target SHA | {target} against base |\n\n"
+        f"target: {target} against base\n\n"
         f"## Findings\n\n{findings}"
         "## Confirmations\n\n"
-        "| Confirms | What holds | Location | Grounds |\n|---|---|---|---|\n"
         f"{confirmations}\n"
         "## Not judged\n\n| What | Location | Who answers |\n|---|---|---|\n\n"
         "## Probes\n\n| Command | Result |\n|---|---|\n"
@@ -8103,7 +8101,7 @@ def settled_item(repo):
         repo,
         2,
         "",
-        confirmations="| round-1#1 | round 1's fix holds | `f.py:1` | read |\n",
+        confirmations="confirms: round-1#1\nround 1's fix holds, at `f.py:1`. read.\n",
     )
     return one, two
 

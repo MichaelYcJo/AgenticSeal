@@ -88,8 +88,8 @@ because the reader is a model choosing prose, not a lookup table.
 
 The language the **prose** in the work-item records is written in:
 `spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, and in
-`rounds/round-N.md` each finding's heading, account and `Answer:`, and the
-cells of its tables.
+`rounds/round-N.md` each finding's heading, account and `answer:`, the prose
+after each `confirms:` line, and the cells of its tables.
 
 **Independent of the row above.** Setting one does not carry the other, for
 the reason stated at the top of this file: an absent row's default is what
@@ -121,15 +121,15 @@ every repository, whatever either row says:
 - **Branch names.** Still `<prefix>/<kebab-case-slug>` in ASCII: a branch
   name is typed into a shell and pasted into a URL.
 - **The field names, section headings and vocabulary a checker or a pinned
-  case reads literally** — a round record's `Target SHA`; its `## Findings`
-  heading and each finding's `verdict:` line, with its four values `open`,
-  `fixed`, `answered` and the `deferred` in `deferred <home>`, its
-  `location:` line and its `refixes:` line; its `## Confirmations` heading
-  and that table's `Confirms` column, each cell `none` or a reference
-  spelt `round-<N>#<n>`; the labels the parties and the eval graders read,
-  `severity:` with its two words `must` and `should`, and `answer:`, and
-  the `## Not judged` and `## Probes` headings; a `broad-gate.md`'s
-  `Broad gate`; an
+  case reads literally** — a round record's `target:` line; its
+  `## Findings` heading and each finding's `verdict:` line, with its four
+  values `open`, `fixed`, `rejected` and the `deferred` in
+  `deferred <home>`, its `location:` line and its `regression:` line; its
+  `## Confirmations` heading and each `confirms:` line, reading `none` or a
+  reference spelt `round-<N>#<n>`; the labels the parties and the eval
+  graders read, `severity:` with its two words `must` and `should`, and
+  `answer:`, and the `## Not judged` and `## Probes` headings; a
+  `guarantee.md`'s `Target SHA`; a `broad-gate.md`'s `Broad gate`; an
   `overview.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns; a `spec.md`'s `## Removes` heading and the
   `nothing` in `nothing — <why>`. A translated field name is not a

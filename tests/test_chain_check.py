@@ -75,7 +75,7 @@ def finding(
     severity="must",
     title="the parser drops a row",
     location="`f.txt:1`",
-    refixes=None,
+    regression=None,
 ):
     """One `### ` section of `## Findings`, in `templates/sdd-round.md`'s
     shape, its `verdict:` line reading `verdict`."""
@@ -84,7 +84,7 @@ def finding(
         f"severity: {severity}\n"
         f"location: {location}\n"
         f"verdict: {verdict}\n"
-        + (f"refixes: {refixes}\n" if refixes else "")
+        + (f"regression: {regression}\n" if regression else "")
         + "\nWhy it matters. read: `f.txt:1`.\n\n"
         "```python\nx = 1\n```\n\n"
         "answer: \n"
@@ -92,19 +92,18 @@ def finding(
 
 
 def confirm(reference, what="the fix holds"):
-    """One row of `## Confirmations`, its `Confirms` cell `reference`."""
-    return f"| {reference} | {what} | `f.txt:1` | read |\n"
+    """One entry of `## Confirmations`: its `confirms:` line reading
+    `reference`, then the prose saying what holds, where and how."""
+    return f"confirms: {reference}\n{what}, at `f.txt:1`. read.\n\n"
 
 
 def record(target, findings=(), confirmations="", n=1):
     """A round record in `templates/sdd-round.md`'s shape: `findings` are
-    `finding()` sections, `confirmations` rows of `## Confirmations`."""
+    `finding()` sections, `confirmations` entries of `## Confirmations`."""
     return (
         f"# 1791999999-a-work-item — review round {n}\n\n"
-        "| Field | Value |\n|---|---|\n"
-        f"| Target SHA | {target} against main |\n\n"
+        f"target: {target} against main\n\n"
         "## Findings\n\n" + "\n".join(findings) + "\n## Confirmations\n\n"
-        "| Confirms | What holds | Location | Grounds |\n|---|---|---|---|\n"
         f"{confirmations}\n"
         "## Not judged\n\n"
         "| What | Location | Who answers |\n|---|---|---|\n\n"
@@ -393,7 +392,7 @@ class TestVerdictOf:
             ("open", (chain.OPEN, None)),
             ("fixed abc1234", (chain.FIXED, "abc1234")),
             (f"fixed {sha}", (chain.FIXED, sha)),
-            ("answered", (chain.ANSWERED, None)),
+            ("rejected", (chain.REJECTED, None)),
             ("deferred #12", (chain.DEFERRED, "#12")),
             ("deferred the frame", (chain.DEFERRED, "the frame")),
         ):
@@ -412,7 +411,9 @@ class TestVerdictOf:
             "**fixed** abc1234",
             "open — see below",
             "Open",
-            " answered",
+            " rejected",
+            "answered",
+            "Rejected",
             "",
         ):
             assert chain.verdict_of(value) is None, value
@@ -507,6 +508,67 @@ class TestReferenceOf:
             assert chain.reference_of(value) is None, value
 
 
+# --- record_target ------------------------------------------------------------
+
+
+class TestRecordTarget:
+    def test_the_one_target_line_reads_its_commit(self):
+        """S4: a record's reviewed commit is its one `target:` line, reading
+        `<sha> against <base>` or, for a verifying round,
+        `<sha>, fixes <a>..<b>`; the commit is the first word."""
+        sha = "1a2b3c4d" * 5
+        for value, read in (
+            ("abc1234 against main", "abc1234"),
+            (f"{sha} against origin/release/v0.22.0", sha),
+            ("abc1234, fixes 1111111..abc1234", "abc1234"),
+        ):
+            text = record("x").replace("target: x against main", f"target: {value}")
+            assert chain.record_target(reader, reader.readable(text), "r.md") == (
+                read,
+                [],
+            ), value
+
+    def test_no_line_two_lines_or_a_value_it_cannot_read_is_refused(self):
+        """S4: no `target:` line — the old `| Target SHA |` table row among
+        the ways to have none — two of them, or a value outside the two
+        shapes is refused by its line, and no commit is read."""
+        table = record("x").replace(
+            "target: x against main",
+            "| Field | Value |\n|---|---|\n| Target SHA | abc1234 against main |",
+        )
+        assert chain.record_target(reader, reader.readable(table), "r.md") == (
+            None,
+            [("r.md", 0, chain.NO_TARGET)],
+        )
+        two = record("abc1234").replace(
+            "## Findings", "target: abc1234 against main\n\n## Findings"
+        )
+        lines = reader.readable(two)
+        second = [i + 1 for i, ln in enumerate(lines) if ln.startswith("target:")][1]
+        sha, errors = chain.record_target(reader, lines, "r.md")
+        assert sha is None and [line for _rel, line, _why in errors] == [second]
+        assert "2 `target:` lines" in errors[0][2], errors
+        for value in (
+            "abc1234",
+            "abc123 against main",
+            "ABC1234 against main",
+            "abc1234 against",
+            "abc1234 against main.",
+            "`abc1234` against main",
+            "abc1234, fixes 111..abc1234",
+            "abc1234 fixes 1111111..abc1234",
+            "abc1234 against main · a verifying round",
+            "",
+        ):
+            text = record("x").replace("target: x against main", f"target: {value}")
+            lines = reader.readable(text)
+            at = next(i + 1 for i, ln in enumerate(lines) if ln.startswith("target:"))
+            sha, errors = chain.record_target(reader, lines, "r.md")
+            assert sha is None, value
+            assert [(rel, line) for rel, line, _why in errors] == [("r.md", at)], value
+            assert "`<sha> against <base>`" in errors[0][2], value
+
+
 # --- findings -----------------------------------------------------------------
 
 
@@ -514,19 +576,19 @@ class TestFindings:
     def test_each_finding_is_read_by_its_labelled_lines(self):
         """A finding's `### ` heading names it and its number; its one
         `verdict:` line decides it, its one `location:` line names its paths
-        and its `refixes:` line, where it stands, the earlier finding; a
+        and its `regression:` line, where it stands, the earlier finding; a
         severity, an answer and a confirmation are read for nothing."""
         text = record(
             "abc1234",
             [
                 finding(1, "open"),
-                finding(2, "fixed abc1234", severity="should", refixes="round-1#4"),
+                finding(2, "fixed abc1234", severity="should", regression="round-1#4"),
                 finding(
                     3,
                     "deferred #12",
                     severity="anything at all",
                     location="`a.py:3`, `docs/b.md`",
-                    refixes="round-1",
+                    regression="round-1",
                 ),
             ],
             confirmations=confirm("round-1#2"),
@@ -535,7 +597,8 @@ class TestFindings:
         found, errors = chain.findings(reader, lines, "r.md")
         assert errors == []
         assert [
-            (f.line, f.heading, f.number, f.verdict, f.paths, f.refixes) for f in found
+            (f.line, f.heading, f.number, f.verdict, f.paths, f.regression)
+            for f in found
         ] == [
             (
                 lines.index("verdict: open") + 1,
@@ -562,7 +625,7 @@ class TestFindings:
                 (1, None),
             ),
         ]
-        assert found[1].refixes_line == lines.index("refixes: round-1#4") + 1
+        assert found[1].regression_line == lines.index("regression: round-1#4") + 1
         empty = reader.readable(record("abc1234"))
         assert chain.findings(reader, empty, "r.md") == ([], [])
 
@@ -573,33 +636,34 @@ class TestFindings:
         the fix block; a value outside the four; a labelled line above the
         first finding or under another section; a finding with no
         `location:` line, two, or one the check cannot read, whatever its
-        verdict; two `refixes:` lines, or one it cannot read; no
+        verdict; two `regression:` lines, or one it cannot read; no
         `## Findings`, or two."""
         sections = [
-            finding(1, "answered").replace("verdict: answered\n", ""),
-            finding(2, "answered").replace(
-                "verdict: answered\n", "verdict: answered\nverdict: open\n"
+            finding(1, "rejected").replace("verdict: rejected\n", ""),
+            finding(2, "rejected").replace(
+                "verdict: rejected\n", "verdict: rejected\nverdict: open\n"
             ),
-            finding(3, "answered")
-            .replace("verdict: answered\n", "")
-            .replace("x = 1\n", "verdict: answered\n"),
+            finding(3, "rejected")
+            .replace("verdict: rejected\n", "")
+            .replace("x = 1\n", "verdict: rejected\n"),
             finding(4, "deferred #9").replace("location: `f.txt:1`\n", ""),
             finding(5, "confirmed"),
             finding(6, "deferred #9", location="f.txt:1"),
-            finding(7, "answered").replace(
+            finding(7, "rejected").replace(
                 "location: `f.txt:1`\n", "location: `f.txt:1`\nlocation: `g.txt`\n"
             ),
-            finding(8, "answered", refixes="round 1's 3"),
-            finding(9, "answered", refixes="round-1#3").replace(
-                "refixes: round-1#3\n", "refixes: round-1#3\nrefixes: round-1#4\n"
+            finding(8, "rejected", regression="round 1's 3"),
+            finding(9, "rejected", regression="round-1#3").replace(
+                "regression: round-1#3\n",
+                "regression: round-1#3\nregression: round-1#4\n",
             ),
-            finding(10, "answered"),
+            finding(10, "rejected"),
         ]
         text = record(
             "abc1234",
             sections,
             confirmations=confirm("none") + "\nlocation: `f.txt:1`\n",
-        ).replace("## Findings\n\n", "## Findings\n\nverdict: answered\n\n")
+        ).replace("## Findings\n\n", "## Findings\n\nverdict: rejected\n\n")
         lines = reader.readable(text)
         found, errors = chain.findings(reader, lines, "r.md")
         assert [f.heading for f in found] == ["### 10. the parser drops a row"]
@@ -617,8 +681,8 @@ class TestFindings:
             ("r.md", at("verdict: confirmed")),
             ("r.md", at("location: f.txt:1")),
             ("r.md", at("location: `g.txt`")),
-            ("r.md", at("refixes: round 1's 3")),
-            ("r.md", at("refixes: round-1#4")),
+            ("r.md", at("regression: round 1's 3")),
+            ("r.md", at("regression: round-1#4")),
             ("r.md", at("location: ", -1)),
         ], errors
         said = [why for _rel, _line, why in errors]
@@ -633,8 +697,8 @@ class TestFindings:
         assert "`fixed <commit>`" in said[5] and "`deferred <home>`" in said[5]
         assert "`location: f.txt:1`" in said[6] and "`path:line`" in said[6]
         assert "2 `location:` lines" in said[7]
-        assert "`refixes: round 1's 3`" in said[8] and "`round-<N>#<n>`" in said[8]
-        assert "2 `refixes:` lines" in said[9]
+        assert "`regression: round 1's 3`" in said[8] and "`round-<N>#<n>`" in said[8]
+        assert "2 `regression:` lines" in said[9]
         assert chain.findings(
             reader, reader.readable("# r\n\n## Probes\n"), "r.md"
         ) == (
@@ -650,31 +714,37 @@ class TestFindings:
 
     def test_a_label_in_another_spelling_is_refused_by_line(self):
         """S24 (T32): a line whose first word, case-folded and stripped of
-        emphasis, is one of the five labels or the old `fix of a fix`, and
-        which is not the exact lowercase form, is refused at its line naming
-        the label the check reads — never skipped as prose. A finding
-        carrying one is not read past it, so a finding with both spellings
-        does not pass on the lowercase one."""
+        emphasis, is one of the seven labels, the old `fix of a fix`,
+        `refixes` or `Target SHA`, and which is not the exact lowercase form,
+        is refused at its line naming the label the check reads — never
+        skipped as prose. A finding carrying one is not read past it, so a
+        finding with both spellings does not pass on the lowercase one."""
         for spelling, label in (
             ("Verdict: open", "`verdict:`"),
             ("**verdict:** open", "`verdict:`"),
             ("VERDICT: open", "`verdict:`"),
             ("verdict : open", "`verdict:`"),
             ("_verdict_: open", "`verdict:`"),
-            ("Fix of a fix: `open_findings`", "`refixes:`"),
-            ("`fix of a fix`: the unit", "`refixes:`"),
-            ("fix of a fix: the unit", "`refixes:`"),
+            ("Fix of a fix: `open_findings`", "`regression:`"),
+            ("`fix of a fix`: the unit", "`regression:`"),
+            ("fix of a fix: the unit", "`regression:`"),
+            ("refixes: round-1#1", "`regression:`"),
+            ("Refixes: round-1#1", "`regression:`"),
+            ("Regression: round-1#1", "`regression:`"),
             ("Severity: must", "`severity:`"),
             ("Location: `f.txt:1`", "`location:`"),
-            ("Refixes: round-1#1", "`refixes:`"),
             ("Answer: done", "`answer:`"),
             ("  answer : done", "`answer:`"),
+            ("Confirms: round-1#1", "`confirms:`"),
+            ("**confirms:** none", "`confirms:`"),
+            ("Target SHA: abc1234 against main", "`target:`"),
+            ("Target: abc1234 against main", "`target:`"),
         ):
             text = record(
                 "abc1234",
                 [
-                    finding(1, "answered").replace("answer: \n", f"{spelling}\n"),
-                    finding(2, "answered"),
+                    finding(1, "rejected").replace("answer: \n", f"{spelling}\n"),
+                    finding(2, "rejected"),
                 ],
             )
             lines = reader.readable(text)
@@ -686,55 +756,78 @@ class TestFindings:
             why = errors[0][2]
             assert "### 1. the parser drops a row" in why, why
             assert label in why and "another spelling" in why, why
-        outside = record("abc1234", [finding(1, "answered")]).replace(
-            "## Not judged", "Verdict: answered\n\n## Not judged"
+        outside = record("abc1234", [finding(1, "rejected")]).replace(
+            "## Not judged", "Verdict: rejected\n\n## Not judged"
         )
         lines = reader.readable(outside)
         found, errors = chain.findings(reader, lines, "r.md")
         assert [f.number for f in found] == [1]
         assert [(line, "`verdict:`" in why) for _rel, line, why in errors] == [
-            (lines.index("Verdict: answered") + 1, True)
+            (lines.index("Verdict: rejected") + 1, True)
         ]
-        exact = record("abc1234", [finding(1, "answered").replace("answer: \n", "")])
+        exact = record("abc1234", [finding(1, "rejected").replace("answer: \n", "")])
         assert chain.findings(reader, reader.readable(exact), "r.md")[1] == []
         for prose in ("Answers: none", "Verdicts read below.", "Severity matters."):
-            text = record("abc1234", [finding(1, "answered")]).replace(
+            text = record("abc1234", [finding(1, "rejected")]).replace(
                 "Why it matters.", prose
             )
             assert chain.findings(reader, reader.readable(text), "r.md")[1] == []
 
+    def test_a_target_or_confirms_line_out_of_its_place_is_refused(self):
+        """A `target:` or `confirms:` line inside a finding, and a
+        `confirms:` line outside `## Confirmations`, is refused at its line:
+        the check reads each in one place, and a line it would not read is
+        never passed as prose."""
+        inside = record(
+            "abc1234",
+            [
+                finding(1, "rejected").replace(
+                    "answer: \n", "target: abc1234 against main\n"
+                ),
+                finding(2, "rejected").replace("answer: \n", "confirms: none\n"),
+                finding(3, "rejected"),
+            ],
+        ).replace("## Probes", "confirms: none\n\n## Probes")
+        lines = reader.readable(inside)
+        found, errors = chain.findings(reader, lines, "r.md")
+        assert [f.number for f in found] == [3]
+        at = [i + 1 for i, ln in enumerate(lines) if ln.startswith(("target:", "conf"))]
+        assert [(rel, line) for rel, line, _why in errors] == [
+            ("r.md", line) for line in at[1:]
+        ], errors
+        said = [why for _rel, _line, why in errors]
+        assert "### 1." in said[0] and "`target:`" in said[0], said
+        assert "### 2." in said[1] and "`confirms:`" in said[1], said
+        assert "`confirms:`" in said[2] and chain.CONFIRMATIONS_HEADING in said[2]
+
     def test_the_template_is_the_record_the_check_reads(self):
         """S1 (T29, T38): `templates/sdd-round.md` is a record the check reads
-        — `Target SHA` its one field row; one finding at `open`, located at
-        one coordinate, refixing `round-1#1`; a `verdict:` written inside its
-        fix block not read as a line; a `## Confirmations` table headed
-        `Confirms`, its two example cells `round-1#2` and `none` read; and no
-        emoji anywhere in it."""
+        — one `target:` line and no table above the findings; one finding at
+        `open`, located at one coordinate, naming the regression `round-1#1`;
+        a `verdict:` written inside its fix block not read as a line;
+        `## Confirmations` holding its two example entries, `confirms:
+        round-1#2` read and `confirms: none`; and no emoji anywhere in it."""
         text = (ROOT / "templates" / "sdd-round.md").read_text(encoding="utf-8")
         lines = reader.readable(text)
-        found, errors = chain.findings(reader, lines, "t")
+        found, errors = chain.record_findings(reader, text, "t")
         assert errors == []
-        assert [(f.verdict, f.paths, f.refixes) for f in found] == [
+        assert [(f.verdict, f.paths, f.regression) for f in found] == [
             ((chain.OPEN, None), ["path"], (1, 1))
         ]
         assert found[0].heading.startswith("### 1. ") and found[0].number == 1
         confirmed, errors = chain.confirmations(reader, lines, "t")
         assert errors == []
         assert [ref for _line, ref in confirmed] == [(1, 2)]
-        cells = [
-            cells[0]
-            for cells in chain.table_rows(reader, lines)
-            if cells and cells[0] in ("round-1#2", "none")
+        assert [ln for ln in lines if ln.startswith("confirms:")] == [
+            "confirms: round-1#2",
+            "confirms: none",
         ]
-        assert cells == ["round-1#2", "none"]
         head = text.split(chain.FINDINGS_HEADING)[0]
-        rows = chain.table_rows(reader, reader.readable(head))
-        labels = [c[0].strip() for c in rows if "-" not in c[0]]
-        assert labels == ["Field", "Target SHA"]
-        assert chain.target_of(reader, text.replace("<sha>", "abc1234", 1))
+        assert chain.table_rows(reader, reader.readable(head)) == []
+        assert chain.record_target(reader, lines, "t")[1] == []
         fence = text.index("```", text.index("### 1. "))
         line_end = text.index("\n", fence) + 1
-        fenced = text[:line_end] + "verdict: answered\n" + text[line_end:]
+        fenced = text[:line_end] + "verdict: rejected\n" + text[line_end:]
         found, errors = chain.findings(reader, reader.readable(fenced), "t")
         assert errors == [] and [f.verdict for f in found] == [(chain.OPEN, None)]
         marks = [c for c in text if EMOJI.match(c)]
@@ -746,7 +839,7 @@ class TestFindings:
 
 class TestRecordFindings:
     def test_a_record_whose_regions_close_reads_as_findings_reads_it(self):
-        text = record("abc1234", [finding(1, "open"), finding(2, "answered")])
+        text = record("abc1234", [finding(1, "open"), finding(2, "rejected")])
         found, errors = chain.record_findings(reader, text, "r.md")
         assert errors == []
         assert found == chain.findings(reader, reader.readable(text), "r.md")[0]
@@ -762,7 +855,7 @@ class TestRecordFindings:
         for opener, why in (("~~~python\n", "fence"), ("<!-- a note\n", "comment")):
             text = record(
                 "abc1234",
-                [finding(1, "answered").replace("answer: \n", opener), hidden],
+                [finding(1, "rejected").replace("answer: \n", opener), hidden],
             )
             found, errors = chain.record_findings(reader, text, "r.md")
             lines = text.splitlines()
@@ -779,9 +872,11 @@ class TestRecordFindings:
 
 
 class TestConfirmations:
-    def test_each_confirms_cell_reads_as_a_reference_or_none(self):
-        """S23: the first column of `## Confirmations` is `Confirms`, and each
-        row's cell there is `round-<N>#<n>`, read with its line, or `none`."""
+    def test_each_confirms_line_reads_as_a_reference_or_none(self):
+        """S23: each entry of `## Confirmations` is a `confirms:` line at the
+        start of a line, reading `round-<N>#<n>`, read with its line, or
+        `none`, and the prose after it is read for nothing. A record with
+        nothing to confirm may leave the section out."""
         text = record(
             "abc1234",
             confirmations=confirm("round-1#2") + confirm("none") + confirm("round-3#1"),
@@ -791,16 +886,32 @@ class TestConfirmations:
         found, errors = chain.confirmations(reader, lines, "r.md")
         assert errors == []
         assert found == [
-            (lines.index(confirm("round-1#2").rstrip("\n")) + 1, (1, 2)),
-            (lines.index(confirm("round-3#1").rstrip("\n")) + 1, (3, 1)),
+            (lines.index("confirms: round-1#2") + 1, (1, 2)),
+            (lines.index("confirms: round-3#1") + 1, (3, 1)),
         ]
+        left_out = record("abc1234").replace("## Confirmations\n", "")
+        assert chain.CONFIRMATIONS_HEADING not in left_out
+        assert chain.confirmations(reader, reader.readable(left_out), "r.md") == (
+            [],
+            [],
+        )
 
-    def test_a_cell_or_a_header_the_check_cannot_read_is_refused_by_line(self):
-        """S23 (T36): a `Confirms` cell outside `round-<N>#<n>` and `none` —
-        prose, another case, a bare `#3`, a round with no finding, emphasis —
-        is refused by its line; so is a table whose first header cell is not
-        `Confirms`, and a record with no `## Confirmations` section, or two."""
-        bad = ("round 1's 3", "Round-1#3", "#3", "round-1", "**none**", "")
+    def test_a_line_or_a_table_the_check_cannot_read_is_refused_by_line(self):
+        """S23 (T36): a `confirms:` value outside `round-<N>#<n>` and `none` —
+        prose, another case, a bare `#3`, a round with no finding, emphasis,
+        nothing, a reference with words after it — is refused by its line; so
+        is a table row in the section, the old shape, and a second
+        `## Confirmations` section."""
+        bad = (
+            "round 1's 3",
+            "Round-1#3",
+            "#3",
+            "round-1",
+            "**none**",
+            "None",
+            "round-1#2 holds",
+            "",
+        )
         text = record(
             "abc1234",
             confirmations="".join(confirm(cell) for cell in bad) + confirm("none"),
@@ -809,22 +920,28 @@ class TestConfirmations:
         lines = reader.readable(text)
         found, errors = chain.confirmations(reader, lines, "r.md")
         assert found == []
-        rows = [lines.index(confirm(cell).rstrip("\n")) + 1 for cell in bad]
+        at = [
+            i + 1
+            for i, ln in enumerate(lines)
+            if ln.startswith("confirms:") and ln != "confirms: none"
+        ]
         assert [(rel, line) for rel, line, _why in errors] == [
-            ("r.md", line) for line in rows
+            ("r.md", line) for line in at
         ], errors
         for (_rel, _line, why), cell in zip(errors, bad, strict=True):
-            assert f"`{cell}`" in why and "`round-<N>#<n>` or `none`" in why, why
-        old = text.replace("| Confirms | What holds |", "| What holds | Confirms |")
-        lines = reader.readable(old)
-        _found, errors = chain.confirmations(reader, lines, "r.md")
-        header = next(i for i, ln in enumerate(lines) if ln.startswith("| What holds"))
-        assert errors[0][1] == header + 1 and "`Confirms`" in errors[0][2], errors
-        none = record("abc1234").replace("## Confirmations", "## Confirmed")
-        assert chain.confirmations(reader, reader.readable(none), "r.md") == (
-            [],
-            [("r.md", 0, chain.NO_CONFIRMATIONS)],
+            assert f"`confirms: {cell}`" in why, why
+            assert "`round-<N>#<n>` or `none`" in why, why
+        table = record(
+            "abc1234",
+            confirmations="| Confirms | What holds |\n|---|---|\n| round-1#2 | x |\n",
+            n=2,
         )
+        lines = reader.readable(table)
+        found, errors = chain.confirmations(reader, lines, "r.md")
+        first = lines.index("| Confirms | What holds |") + 1
+        assert found == []
+        assert [line for _rel, line, _why in errors] == [first, first + 1, first + 2]
+        assert all("`confirms:`" in why for _rel, _line, why in errors), errors
         two = reader.readable(record("abc1234") + "\n## Confirmations\n")
         second = [i + 1 for i, ln in enumerate(two) if ln == "## Confirmations"][1]
         assert chain.confirmations(reader, two, "r.md")[1] == [
@@ -836,28 +953,29 @@ class TestConfirmations:
 
 
 class TestChannel:
-    def test_every_fixed_or_answered_finding_is_confirmed_or_refixed_by_the_next_round(
+    def test_every_fixed_or_rejected_finding_is_confirmed_or_named_a_regression(
         self,
     ):
         """S23 (T36): every finding of round N at `fixed <commit>` or
-        `answered` is named in round N+1, by a `Confirms` cell or by a
-        `refixes:` line; a `deferred` one owes nothing, and a `refixes:` line
-        naming the round alone covers no finding."""
+        `rejected` is named in round N+1, by a `confirms:` line or by a
+        `regression:` line; a `deferred` one owes nothing, and a `regression:`
+        line naming the round alone covers no finding. One left unnamed is
+        refused at its own heading, in round N's record."""
         one = record(
             "abc1234",
             [
                 finding(1, "fixed abc1234"),
-                finding(2, "answered"),
+                finding(2, "rejected"),
                 finding(3, "deferred #9"),
                 finding(4, "fixed abc1234", title="the fourth"),
-                finding(5, "answered", title="the fifth"),
+                finding(5, "rejected", title="the fifth"),
             ],
         )
         two = record(
             "abc1234",
             [
-                finding(1, "deferred the frame", refixes="round-1#2"),
-                finding(2, "deferred the frame", refixes="round-1"),
+                finding(1, "deferred the frame", regression="round-1#2"),
+                finding(2, "deferred the frame", regression="round-1"),
             ],
             confirmations=confirm("round-1#1") + confirm("none"),
             n=2,
@@ -865,14 +983,16 @@ class TestChannel:
         rounds, errors = rounds_of(one, two)
         assert errors == []
         problems = chain.channel(rounds)
+        lines = reader.readable(one)
         assert [(rel, line) for rel, line, _why in problems] == [
-            ("round-2.md", 0),
-            ("round-2.md", 0),
+            ("round-1.md", lines.index("### 4. the fourth") + 1),
+            ("round-1.md", lines.index("### 5. the fifth") + 1),
         ], problems
         said = [why for _rel, _line, why in problems]
         assert "`round-1#4`" in said[0] and "### 4. the fourth" in said[0]
         assert "`round-1#5`" in said[1] and "### 5. the fifth" in said[1]
-        assert all("neither confirms nor refixes" in why for why in said), said
+        assert all("round-2.md" in why for why in said), said
+        assert all("names it on no" in why for why in said), said
         covered = two.replace(
             confirm("none"), confirm("round-1#4") + confirm("round-1#5")
         )
@@ -888,14 +1008,14 @@ class TestChannel:
         in the first record is refused, and `none` there passes."""
         one = record(
             "abc1234",
-            [finding(1, "deferred #9", refixes="round-1#1")],
+            [finding(1, "deferred #9", regression="round-1#1")],
             confirmations=confirm("none") + confirm("round-1#1"),
         )
         two = record(
             "abc1234",
             [
-                finding(1, "deferred #9", refixes="round-3#1"),
-                finding(2, "deferred #9", refixes="round-2"),
+                finding(1, "deferred #9", regression="round-3#1"),
+                finding(2, "deferred #9", regression="round-2"),
             ],
             confirmations=confirm("round-1#7") + confirm("round-1#1"),
             n=2,
@@ -905,11 +1025,11 @@ class TestChannel:
         problems = chain.channel(rounds)
         lines_one, lines_two = reader.readable(one), reader.readable(two)
         assert [(rel, line) for rel, line, _why in problems] == [
-            ("round-1.md", lines_one.index("refixes: round-1#1") + 1),
-            ("round-1.md", lines_one.index(confirm("round-1#1").rstrip("\n")) + 1),
-            ("round-2.md", lines_two.index("refixes: round-3#1") + 1),
-            ("round-2.md", lines_two.index("refixes: round-2") + 1),
-            ("round-2.md", lines_two.index(confirm("round-1#7").rstrip("\n")) + 1),
+            ("round-1.md", lines_one.index("regression: round-1#1") + 1),
+            ("round-1.md", lines_one.index("confirms: round-1#1") + 1),
+            ("round-2.md", lines_two.index("regression: round-3#1") + 1),
+            ("round-2.md", lines_two.index("regression: round-2") + 1),
+            ("round-2.md", lines_two.index("confirms: round-1#7") + 1),
         ], problems
         said = [why for _rel, _line, why in problems]
         assert all("the first record" in why for why in said[:2]), said
@@ -923,15 +1043,15 @@ class TestChannel:
             == []
         )
 
-    def test_the_last_records_fixed_or_answered_finding_is_named(self):
+    def test_the_last_records_fixed_or_rejected_finding_is_named(self):
         """S23 (T37): nothing after the last record has read its fixes or
         its answers, so each such finding is named with the words the
-        `Target SHA` rule prints; its `deferred` findings, and none, pass."""
+        `target:` rule prints; its `deferred` findings, and none, pass."""
         last = record(
             "abc1234",
             [
                 finding(1, "fixed abc1234"),
-                finding(2, "answered"),
+                finding(2, "rejected"),
                 finding(3, "deferred #9"),
                 finding(4, "open"),
             ],
@@ -940,7 +1060,7 @@ class TestChannel:
         problems = chain.channel(rounds_of(last)[0])
         assert [(rel, line) for rel, line, _why in problems] == [
             ("round-1.md", lines.index("verdict: fixed abc1234") + 1),
-            ("round-1.md", lines.index("verdict: answered") + 1),
+            ("round-1.md", lines.index("verdict: rejected") + 1),
         ], problems
         assert all(chain.VERIFYING_ROUND in why for _r, _l, why in problems)
         assert "### 1." in problems[0][2] and "### 2." in problems[1][2]
@@ -1044,7 +1164,7 @@ class TestMain:
         assert "### 1. the parser drops a row" in line
         assert (
             "reads `verdict: open`: the fix pass answers it with `fixed <commit>`, "
-            "`answered` or `deferred <home>`"
+            "`rejected` or `deferred <home>`"
         ) in line
         event = pathlib.Path(os.environ["GITHUB_EVENT_PATH"])
         event.write_text(
@@ -1056,8 +1176,8 @@ class TestMain:
         event.write_text(
             json.dumps({"pull_request": {"draft": False}}), encoding="utf-8"
         )
-        write(root, rel, record(code_sha, [finding(1, "answered")]))
-        commit(root, "the record, answered at the most severe severity")
+        write(root, rel, record(code_sha, [finding(1, "rejected")]))
+        commit(root, "the record, rejected at the most severe severity")
         seal(root)
         code, out = check(root, capsys)
         assert code == 0, out
@@ -1084,7 +1204,11 @@ class TestMain:
         seal(root)
         code, out = check(root, capsys)
         assert code == 1
-        named = [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")]
+        named = [
+            ln
+            for ln in out.splitlines()
+            if ln.startswith(f"{rel}:") and "does not descend" in ln
+        ]
         assert len(named) == 2, out
         assert "### 1." in named[0] and "`0000000`" in named[0]
         assert "### 2." in named[1] and f"`{off[:8]}`" in named[1]
@@ -1143,10 +1267,10 @@ class TestMain:
         assert "### 7." in named[1] and "`docs/xy.md`" in named[1], named
         assert all("touches no path" in ln for ln in named), named
 
-    def test_the_last_records_fixed_or_answered_finding_owes_a_verifying_round(
+    def test_the_last_records_fixed_or_rejected_finding_owes_a_verifying_round(
         self, branch, ready, capsys
     ):
-        """S23 (T37): on a ready pull request a `fixed` or `answered` finding
+        """S23 (T37): on a ready pull request a `fixed` or `rejected` finding
         in the last record fails as *a verifying round is owed*, since no
         round after it read the fix or the answer; a draft prints it and
         passes, and a last record of `deferred` findings, or of none, passes."""
@@ -1169,7 +1293,7 @@ class TestMain:
             json.dumps({"pull_request": {"draft": False}}), encoding="utf-8"
         )
         for found, closes in (
-            ([finding(1, "answered")], False),
+            ([finding(1, "rejected")], False),
             ([finding(1, "deferred #9")], True),
             ([], True),
         ):
@@ -1242,7 +1366,7 @@ class TestMain:
         text = record(
             code_sha,
             [
-                finding(1, "answered").replace("answer: \n", "~~~python\n"),
+                finding(1, "rejected").replace("answer: \n", "~~~python\n"),
                 finding(2, "open"),
             ],
         )

@@ -402,9 +402,7 @@ ROUTING = """| Axis | Answer |
 """
 ROUND = """# round {n}
 
-| Field | Value |
-|---|---|
-| Target SHA | abc1234 against base |
+target: abc1234 against base
 
 ## Findings
 
@@ -463,7 +461,7 @@ def test_the_chain_rows_count_items_rounds_capped_and_deferred(tmp_path):
         tmp_path,
         verdicts=[
             ["fixed abc1234", "deferred #12"],
-            ["deferred #13", "deferred #14", "answered"],
+            ["deferred #13", "deferred #14", "rejected"],
             ["deferred seal/follow-up.md", "deferred #12"],
         ],
     )

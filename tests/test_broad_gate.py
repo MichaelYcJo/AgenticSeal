@@ -116,8 +116,8 @@ def a_record(*verdicts):
         for n, verdict in enumerate(verdicts, 1)
     )
     return (
-        "# r — review round 1\n\n| Field | Value |\n|---|---|\n"
-        f"| Target SHA | abc1234 against base |\n\n## Findings\n\n{found}"
+        "# r — review round 1\n\n"
+        f"target: abc1234 against base\n\n## Findings\n\n{found}"
         "## Probes\n\n| Command | Result |\n|---|---|\n"
     )
 
