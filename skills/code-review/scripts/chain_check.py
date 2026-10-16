@@ -108,8 +108,10 @@ FINDING_LABELS = (SEVERITY, LOCATION, VERDICT, REGRESSION, REOPENS, ANSWER)
 LABELS = (*FINDING_LABELS, CONFIRMS, RECORD_TARGET)
 VERDICT_LABEL = re.compile(r"^" + re.escape(VERDICT) + r" (.*)$")
 LOCATION_LABEL = re.compile(r"^" + re.escape(LOCATION) + r" (.*)$")
-REGRESSION_LABEL = re.compile(r"^" + re.escape(REGRESSION) + r" (.*)$")
-REOPENS_LABEL = re.compile(r"^" + re.escape(REOPENS) + r" (.*)$")
+# A reference label with nothing after it is still the label (S24), so its
+# reader refuses the empty value rather than reading no line at all.
+REGRESSION_LABEL = re.compile(r"^" + re.escape(REGRESSION) + r"(?: (.*))?$")
+REOPENS_LABEL = re.compile(r"^" + re.escape(REOPENS) + r"(?: (.*))?$")
 CONFIRMS_LABEL = re.compile(r"^" + re.escape(CONFIRMS) + r"(?: (.*))?$")
 TARGET_LABEL = re.compile(r"^" + re.escape(RECORD_TARGET) + r"(?: (.*))?$")
 # A labelled line in its one spelling: the label, then a space or the end of
@@ -810,7 +812,7 @@ def finding_of(lines, first, stop, heading, rel):
 
     def one(label, pattern, need):
         said = [
-            (i, pattern.match(lines[i]).group(1))
+            (i, pattern.match(lines[i]).group(1) or "")
             for i in range(first + 1, stop)
             if pattern.match(lines[i])
         ]

@@ -833,6 +833,39 @@ class TestFindings:
             assert "a fix pass's own commit made the defect" in why, why
             assert "does not hold" in why, why
 
+    def test_a_reference_label_with_nothing_after_it_is_refused(self):
+        """S24: a bare `reopens:` or `regression:` line is the exact form,
+        and its reader refuses the empty value at its line; a bare
+        `regression:` beside a `reopens:` line is refused as a finding
+        holding both."""
+        for bare in ("reopens:", "regression:"):
+            text = record(
+                "abc1234",
+                [
+                    finding(1, "open").replace(
+                        "verdict: open\n", f"verdict: open\n{bare}\n"
+                    )
+                ],
+                n=2,
+            )
+            lines = reader.readable(text)
+            found, errors = chain.findings(reader, lines, "r.md")
+            assert found == [], bare
+            assert [line for _r, line, _w in errors] == [lines.index(bare) + 1], errors
+            assert f"`{bare}" in errors[0][2], errors
+        both = record(
+            "abc1234",
+            [
+                finding(1, "open", reopens="round-1#1").replace(
+                    "verdict: open\n", "verdict: open\nregression:\n"
+                )
+            ],
+            n=2,
+        )
+        found, errors = chain.findings(reader, reader.readable(both), "r.md")
+        assert found == [], errors
+        assert any("`reopens:` line" in why for _r, _l, why in errors), errors
+
     def test_a_target_or_confirms_line_out_of_its_place_is_refused(self):
         """A `target:` or `confirms:` line inside a finding, and a
         `confirms:` line outside `## Confirmations`, is refused at its line:
