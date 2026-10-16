@@ -113,7 +113,11 @@ extension line the spawn prompt gives the warden, and the ladder.
 The condition is not *this round found nothing* — that would be unbounded, and
 it was considered and rejected. A verifying round that raises a `should`
 finding the smith closes `rejected`, with its grounds, has opened nothing
-needing a fix, and the run ends there.
+needing a fix, and it does not consume the cap. Its record is still not the
+last one: the check refuses a `fixed` or `rejected` finding in the last
+record, so one more verifying round reads that answer alone and names it on
+a `confirms:` line, or on a finding's `regression:` line where the rejection
+does not hold, and the run ends at that round.
 
 ### A fix of a fix sends the work item back to its framer
 
