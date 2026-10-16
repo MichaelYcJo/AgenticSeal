@@ -122,6 +122,23 @@ repair that made no commit*; this section and the row's Status. It also
 asked for `tests/test_docs_line_wrap.py` over the tree, since the framer
 had edited `spec.md`, `plan.md` and `questions.md` and run nothing.
 
+### 5d-v
+
+`plan.md`'s row 5d-v, approved at its line 17: round 8's findings 1 and 2
+and the owner's decision of 2026-10-16 on round 8, with its refinement the
+same day. A close that does not hold, where no fix pass's commit made the
+defect, is raised again on a `reopens:` line as an ordinary finding that
+gets its fix pass; a `regression:` line is routed by one sentence of its
+grounds comparing the fix with the frame; and the run ends only on a round
+whose record holds no `open`, `fixed` or `rejected` finding. The spawn
+asked for T42, T43, T44, T45, T38's extension and the language cases seen
+red on the tree before the change; then the reader (`REOPENS`,
+`REOPENS_LABEL`, the label sets, `Finding.reopens`, `channel`); then the
+texts the row lists, each rewritten in place and never appended, the
+orchestration's run-end sentence among them; this section and the row's
+Status. It asked for no widening into stating the record's rules once and
+pointing at them from every other file, which is #957's.
+
 ## What this phase found
 
 ### 5d-i
@@ -651,3 +668,124 @@ keep the `regression:` lines the warden wrote: the fix pass writes only
 `verdict:`, `answer:` and an appended coordinate. `spec.md` states the old
 rule in four places, which `overview.md`'s row *What a `regression:` line
 marks* names for the framer.
+
+### 5d-v
+
+**The frame held.** Every coordinate the row names stood where it said at
+2dbebf7c, whose code is 80636f64's (`git diff --stat 80636f64 2dbebf7c`
+lists `plan.md`, `questions.md` and `spec.md` alone):
+`agents/warden.md:119-123`, `:135-142`, `:212-217` and `:277`;
+`skills/code-review/SKILL.md:187-191`;
+`skills/code-review/orchestration.md:96`, `:113-120` and `:122-135`;
+`skills/implement/orchestration.md:637`; `agents/framer.md:302-304`;
+`templates/sdd-round.md:47-51`, `:62` and `:86-87`;
+`docs/the-review-record.md:74-77`, `:138`, `:227-228` and `:248-259`; and
+this item's `changelog.md:25-26`. Two places the row does not name were in
+the class, and both were rewritten (`overview.md`): the tracker document's
+pointer at the orchestration heading this phase renamed, and the
+document's first paragraph, which listed the finding's lines.
+
+**The commits.** a6695b61 the reader, the template, `templates/config.md`
+and the cases in `tests/test_chain_check.py` and the language module;
+5441ebdb the document, the warden, the review skill and its orchestration,
+the framer, the delivery table, the tracker document's pointer, this
+item's `changelog.md` and T44 and T45. No agent file's rider drifted:
+`tests/test_a_rider_reaches_its_file.py` passed in the module run after
+both agent edits, so nothing was re-stamped.
+
+**The red runs.** Each case was run before the code or text it pins:
+
+- `bin/test tests/test_chain_check.py tests/test_the_rules_have_one_owner.py
+  -q -p no:xdist -k "reopens or spelling or template_is_the_record or
+  test_a_close_that_does_not_hold or routed_by_comparing or owner_states or
+  link_names"` on the unchanged reader and texts: exit 1, 7 failed and 14
+  passed. T32's two new spellings (`Reopens: round-1#1` read as prose, so
+  finding 1 stayed in the list), T42 and T38 (`'Finding' object has no
+  attribute 'reopens'`), T43 (round 1's findings named only by `reopens:`
+  lines refused as unnamed), rule 16's owner sentence, T44 (*§*The run*
+  does not say a close that does not hold reopens*) and T45 (the bold
+  sentence absent).
+- `bin/test tests/test_the_pull_request_language_is_the_repositorys.py -q
+  -p no:xdist` on the unchanged reader: exit 2, a collection error,
+  `module 'chain_check' has no attribute 'REOPENS'`.
+- After the reader and before the template: `tests/test_chain_check.py`
+  exit 1, 1 failed (T38: the template's comments do not name `reopens:`)
+  and 48 passed; the language module exit 1, 3 failed
+  (`test_the_round_template_carries_the_fields_it_is_expected_to[reopens:]`
+  and both exclusion-list cases for `reopens:`) and 113 passed.
+- Green: the two modules after the template and `templates/config.md`,
+  exit 0, 165 passed. The rules-owner module with the pasted-passage,
+  line-wrap, delivery, rider and one-word modules after the texts: the
+  first run exit 1, 3 failed — the warden's and the review skill's new
+  channel sentences each shared a run of 15 words or more with the
+  orchestration's `Job` row or the document's verifying-round sentence,
+  and one line of `agents/framer.md` ran to 107 columns. Each was reworded
+  or rewrapped, and the second run gave exit 0, 152 passed.
+
+**The mutations.** `bin/mutation-check`, at 5441ebdb, each `red`, the tool
+exiting 0 and `git status --short` empty after each:
+
+| Break | File | Cases | Where it failed |
+|---|---|---|---|
+| `reopens:` references dropped from `channel`'s list | `chain_check.py` | T43 | round 1's two findings named only by `reopens:` refused as unnamed |
+| the both-lines refusal dropped (`if False:`) | `chain_check.py` | T42 | findings 4 and 5 read with both relations |
+| `reopens: round-<N>` accepted (`reopened_of` returning `reference_of`'s value) | `chain_check.py` | T42 | finding 2 read with `(1, None)` |
+| `reopens` dropped from `MISSPELT_LABEL` | `chain_check.py` | T32 | `Reopens: round-1#1` read as prose |
+| the orchestration's run-end sentence put back to *and the run ends at that round* | `skills/code-review/orchestration.md` | T44 | *the run ends at that round* found in the verifying-round section |
+| §*The run*'s framer route put back as *A round carrying a `regression:` line gets no fix pass* | `docs/the-review-record.md` | T45 | the framer route's condition absent, the first route assertion |
+| the loop guard's sentence dropped | `docs/the-review-record.md` | T45 | the loop guard absent |
+
+**The class.** Enumerated at 2dbebf7c before the first edit, and again at
+5441ebdb with the row's three greps outside `seal/specs/` (and
+`changelog/0.*.md` for the last two).
+
+- `git grep -n "the run ends at that round"`: at 2dbebf7c,
+  `skills/code-review/orchestration.md:120`, rewritten. At 5441ebdb only
+  `tests/test_the_rules_have_one_owner.py:274`, T44's absence assertion.
+- `` git grep -n "regression:\` line" ``: every hit at 5441ebdb names
+  `reopens:` beside it or states the regression rule.
+  Naming `reopens:` on the same or the next line: `agents/warden.md:123`;
+  `docs/the-review-record.md:79, 83, 148, 240`;
+  `skills/code-review/SKILL.md:191`; `skills/code-review/orchestration.md:96,
+  122`; `skills/code-review/scripts/chain_check.py:23, 707, 715, 1058,
+  1061`; `templates/config.md:127`; `templates/sdd-round.md:72, 97`.
+  Stating the regression rule: `agents/framer.md:302`,
+  `agents/warden.md:137, 145`, `docs/the-review-record.md:264, 281`,
+  `skills/code-review/orchestration.md:132`,
+  `skills/implement/orchestration.md:637`. Test docstrings and pins, which
+  stay: `tests/test_chain_check.py:584, 644, 706, 790, 1053` and
+  `tests/test_the_rules_have_one_owner.py:206, 218, 222, 243, 286, 315,
+  323`; the T36 docstring at `:1053` was given T43's case beside it.
+- `git grep -n -i "sends the work item back to its framer\|stops the fix
+  passes"`: at 2dbebf7c, `docs/the-review-record.md:248`,
+  `skills/code-review/orchestration.md:122`,
+  `skills/implement/orchestration.md:637` and rule 16's entry, each
+  rewritten. At 5441ebdb: `templates/sdd-spec.md:67`, which says where the
+  `Reframed` line goes *when the review chain sends the work item back to
+  its framer* and routes nothing, so it stays; and T45's two absence pins.
+  The tracker document's pointer at `docs/issues-and-milestones.md:185`
+  named the old heading and is the third grep's class one word apart; it
+  was rewritten to the new heading.
+
+**Beside the row.** The reader refuses `reopens: round-<N>` through a
+helper, `reopened_of`, which reads the value with `reference_of` and drops
+a reference naming no finding; the row says `finding_of` reads the line
+*through `reference_of`*, which it still does. The orchestration's route
+table has three rows and keeps the framer's steps under *The framer's
+route*. `rounds/round-8.md` is not edited and its three findings stay
+`deferred the frame`; `chain_check.py` reads finding 2's
+`regression: round-7#3` as before.
+
+**The verification the row names.** At 5441ebdb: `bin/test` over the
+twelve modules the row lists and the modules naming a file this phase
+touched (`git grep -l` over `tests/` for each path), 58 modules, exit 0,
+2,806 passed, 9 skipped. `bin/rules --check --root <worktree>`: exit 0,
+428 targets in 60 files, T42–T45 among them. `uvx ruff check` and
+`uvx ruff format --check` on `chain_check.py`, `tests/test_chain_check.py`,
+`tests/test_the_pull_request_language_is_the_repositorys.py` and
+`tests/test_the_rules_have_one_owner.py`: exit 0 each.
+`chain_check.py --baseline origin/release/v0.22.0 --root <worktree>`:
+exit 0, no record's shape refused, three owed lines: round 8 behind HEAD
+(a6695b61 touches `chain_check.py`, so a verifying round is owed), and no
+`broad-gate.md` or `guarantee.md`. The full suite was not run:
+`unverified`, the sealer's.
