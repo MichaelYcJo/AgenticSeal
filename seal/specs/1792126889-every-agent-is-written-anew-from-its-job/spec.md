@@ -177,6 +177,7 @@ closing mark, the `Reads:` docstring line and the rider stamp.
 | `executed`, `read`, `unverified` | every agent, on every claim | the sealer's step 3 picks its sample from the smith's `executed` and `seen red` claims; the warden audits the smith's `unverified` suite label; contract §4 | stay, as they are already lowercase words |
 | `U+2B1C` in `questions.md`'s `Status` column (`templates/sdd-questions.md:10`) | the framer | nothing in code (`executed`: no reader outside test docstrings quoting old records) | the column reads `open` or `answered <date> by <who>`; the template is rewritten and this item's own `questions.md` writes the words |
 | `Framed <date> by <who>, before the build.` and `Reframed …` | the framer | `chain_check.py#REFRAME_RE` and the frame arm, which fail a pull request whose `spec.md` lacks the mark or whose mark disagrees with `routing.md` | stays: a reader decides on it, and its first word is a plain English word |
+| The sealer's verdict `sound`, `not sound — <reason>`, `undecidable — <question>` in `guarantee.md` | the sealer | `chain_check.py`'s guarantee arm, which fails a ready pull request on any verdict but the first | the words become `sealed`, `withheld — <reason>` and `undecided — <question>` (owner, 2026-10-16): the verdict names the act of the role, the sealer affixing its seal or withholding it, in plain English. The reader, the template, the definition, the docs and the sealer cases' graders change in phase 5's commit; any other spelling, the old words included, is refused naming the line, and the changelog tells an in-flight work item to rewrite its verdict line. `tests/test_one_word_one_meaning.py` is run on the commit, since `sealed` is the sealer's seal, the one meaning `seal` keeps once the proof block leaves |
 | `Approved <date> by <who>, …` and `Answered <date> by <who>, …` | the session | `tests/test_the_set_a_work_item_always_has.py` pins the three feet-lines to one shape; `chain_check.py` reads `Answered <date> by <who>:` under a guarantee's verdict | stay, same grounds |
 | The per-segment numbers in the definitions (`agents/warden.md:235` *1.89*, `agents/smith.md:266` *1.08–1.17*, `agents/framer.md` *1.4*) | nobody writes them; they are stated | `session_cost.py --segments`, from `docs/the-review-record.md` §*The per-segment bars*, never from a definition | leave the definitions; the table is the one source |
 | Emoji in the files an agent reads: `skills/implement/SKILL.md` 3, `skills/code-review/SKILL.md` 1, `skills/writing-style/SKILL.md` 1, `skills/legacy-parity/SKILL.md` 4 (the parity verdict labels `U+1F534, U+1F7E1, U+1F7E2 and U+2753`), `skills/verify/SKILL.md` 2, `templates/` 4, the two READMEs 4 (`executed`; `agents/` holds 0) | nobody as a mark; the parity labels are written by a parity review | nothing reads the parity labels; `hooks/sealer-stamp.py` draws the seal from values, not from these | leave; the parity verdicts become the words `differs`, `grounded`, `equivalent` and `unread`, one lowercase word at the start of the label line, and `legacy-parity`'s Parity review section says so once |
@@ -187,7 +188,7 @@ The gate is mechanical, so a script runs it and the sealer reads its record.
 The orchestrator runs `broad-gate --base <base> --record <item>` with nothing
 else running, then spawns the sealer with the base, the item, the issue and
 the pull request. The sealer's first act becomes reading `broad-gate.md`: a
-file absent, or naming a commit other than HEAD, is `not sound — no broad run
+file absent, or naming a commit other than HEAD, is `withheld — no broad run
 at HEAD`, written and returned, and the sealer runs nothing broad. A re-run
 after a commit audits the commits since the commit the last `guarantee.md`
 named, keeps that run's line as `; earlier run: <sha> <verdict>` on the
@@ -338,7 +339,7 @@ case does.
   pull request opens before round 1*: preflight, the pull request body and
   the changelog written, `broad-gate --base <base> --record <item>` with
   nothing else running, then the sealer's spawn. `agents/sealer.md` step 1:
-  read `broad-gate.md`; absent or not HEAD is `not sound — no broad run at
+  read `broad-gate.md`; absent or not HEAD is `withheld — no broad run at
   HEAD`. `guarantee.md`'s `Target SHA` row: `<sha> against <base>[; earlier
   run: <sha> <verdict>]`.
 - **The eval records**: `seal/specs/<id>/evals/baseline-<agent>.json`,
@@ -365,6 +366,7 @@ case does.
 | The pins on the proof block | `tests/test_broad_gate_rule.py::test_the_seal_block_asks_for_the_row_too`, `::test_the_seal_reports_what_the_checks_cost`, `tests/test_the_record_is_written_in_words.py#SHARED_MARKER`, `tests/test_one_word_one_meaning.py:181, 302` | leave with the block |
 | `U+2B1C` as the question status | `templates/sdd-questions.md:10`, `skills/implement/SKILL.md` §4's sentence | the words `open` and `answered <date> by <who>` |
 | The parity verdict emoji | `skills/legacy-parity/SKILL.md#"Parity review"` | four lowercase words |
+| The verdict words `sound`, `not sound`, `undecidable` | `chain_check.py`'s guarantee arm, `templates/sdd-guarantee.md`, `agents/sealer.md`, `docs/the-review-record.md` §*The guarantee*, `skills/code-review/orchestration.md`, `evals/behaviour/sealer/*/graders/shape-verdict.md`, `evals/scripts/rule_cases.py`, `tests/test_the_sealer_guarantees.py`, the READMEs | `sealed`, `withheld — <reason>`, `undecided — <question>` |
 | The sealer's broad run | `agents/sealer.md` step 1, `docs/the-broad-gate.md` §*One act, one owner, and the owner is an agent*, contract §2's sentence assigning it, `skills/code-review/orchestration.md:180-189` | the orchestrator's `broad-gate --record` before the spawn; the sealer reads the file |
 | The pins that said one definition assigns the gate | `tests/test_broad_gate_rule.py::test_only_one_definition_assigns_the_broad_gate`, `::test_the_sealer_counts_the_silent_definitions_from_the_glob`, `::test_the_orchestrator_runs_the_preflight_before_it_spawns_the_sealer`, `docs/the-broad-gate.md`'s `Enforced by:` naming them | rewritten to the new fact: none assigns it, and the orchestrator runs it before the spawn |
 | The pins on sentences the rewrites drop | the 42 modules naming `agents/`, the 11 naming the contract, the 12 naming `implement`, the 6 naming `code-review`, the 3 naming `writing-style` | each case re-pointed where its rule stays, removed with one line in the phase record where it pinned narration (`questions.md` Q7) |
