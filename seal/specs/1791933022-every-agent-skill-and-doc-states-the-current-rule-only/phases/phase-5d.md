@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Phase | 5d (5d-i and 5d-ii written; 5d-iii adds its own sections) |
-| Commit | 5d-i: 44ad6eeb · 5d-ii: 9ef773c4, each the last build commit of its sub-phase; this record's commit follows it |
+| Phase | 5d (5d-i, 5d-ii and 5d-iii) |
+| Commit | 5d-i: 44ad6eeb · 5d-ii: 9ef773c4 · 5d-iii: 9a4ce364, each the last build commit of its sub-phase; this record's commit follows it |
 
 ## What this phase was asked
 
@@ -70,6 +70,40 @@ AN–AV, test rows T31–T38 and T40, and `questions.md` Q10 at its default
   --baseline origin/release/v0.22.0` exit 0, and three tamperings on a
   scratch copy each exit 1. 5d-iii — the other parties' texts, the READMEs,
   the evals, the changelog and `.test_durations` — was not this spawn's.
+
+### 5d-iii
+
+`plan.md`'s row 5d-iii: every party and grader states the shape 5d-i and
+5d-ii built, in words, and the build closes. `agents/warden.md`,
+`agents/smith.md` and `agents/sealer.md` where they say how a round is
+written, filled or read; `skills/code-review/SKILL.md` (the findings format,
+the proof block's verdict line in words); `skills/implement/SKILL.md` §5;
+`skills/code-review/orchestration.md`; both READMEs, the cap paragraph
+among them; both hygiene step comments; the evals (`shape-findings` with a
+`not_contains` over the emoji ranges, the `^location: ` truth,
+`SEALER_ROUND`, the warden and sealer cases regenerated with `--case`); T39
+test-first; this item's `changelog.md` first two entries, with what a user
+whose work item is in flight at the update must do; the overview's
+divergence rows; `.test_durations` pruned by collection; this section and
+the row's Status. Every sentence rewritten in place; part B's rewrite of
+the rest of each definition stays part B's.
+
+The orchestrator relayed two sets of the owner's decisions of 2026-10-16
+during the spawn, to build inside 5d-iii test-first, each step its own
+commit, with `spec.md` left to the framer:
+
+- `## Confirmations` holds one `confirms: round-<N>#<n>` (or
+  `confirms: none`) line per entry with its prose after it, read with the
+  other labels' fail-closed rules; a finding left unconfirmed is refused at
+  its own heading in its own record; a record with nothing to confirm may
+  leave the section out, and two are refused.
+- The `| Field | Value |` table goes and `target: <sha> against <base>` or
+  `target: <sha>, fixes <a>..<b>` names the reviewed commit, one line,
+  `Target SHA` refused as another spelling; `refixes:` is `regression:`;
+  the verdict `answered` is `rejected`, owing the next round a
+  confirmation or a regression reference as `answered` did. The reason
+  given: the reader is mostly an agent, so every label and value is a plain
+  English word.
 
 ## What this phase found
 
@@ -320,3 +354,149 @@ refused spellings S24 names, not a statement of the shape.
 same reason. `agents/warden.md`, `agents/smith.md`, the skills, the READMEs,
 both `hygiene.yml` comments, the evals and this item's `changelog.md` still
 state the capitalised labels; they are 5d-iii's row.
+
+### 5d-iii
+
+**The commits.** 4ed5dd39 the reader, the template, `templates/config.md`'s
+literals and every fixture that writes a record; 92991623 the six records;
+5b637fee `docs/the-review-record.md` and the three documents that named a
+round's `Target SHA`; 9d61c520 the parties' texts, the READMEs, the hygiene
+comments and T39; e6f7a000 two pins re-pointed at the warden's new words;
+71fd384f the evals and the regenerated cases; bc2f3fd5 `.test_durations`;
+9a4ce364 the release seal's docstring and the review skill's heading.
+
+**The red runs.** T39 on the tree at 7c678b52 with only its file added:
+`bin/test tests/test_the_record_is_written_in_words.py -q -p no:xdist`,
+exit 1, fifteen lines named — `agents/warden.md:150, 154, 221, 262-264`
+and `skills/code-review/SKILL.md:207-210, 214, 217, 221, 225, 296`. The
+reader's cases, rewritten to the owner's decisions, on 9ef773c4's reader:
+`bin/test tests/test_chain_check.py -q -p no:xdist --tb=line`, 22 failed and
+24 passed — `TestVerdictOf` (`ANSWERED` read, `REJECTED` absent),
+`TestRecordTarget` both (`record_target` absent), the four `TestFindings`
+cases and the new out-of-place case, both `TestRecordFindings`, both
+`TestConfirmations` (a table expected), all three `TestChannel`, and seven
+`TestMain` cases that could not read the new fixture. The eval cases'
+red is the first mutation below, the old row pattern put back.
+
+**The mutations.** `bin/mutation-check`, one break each, through three
+scratch scripts; every one `red`, exit 0 from the tool, `git status
+--short` empty after each.
+
+| Break | Cases |
+|---|---|
+| a table row in `## Confirmations` read as prose | `TestConfirmations` |
+| `confirms` dropped from `MISSPELT_LABEL` | the label case |
+| a `confirms:` value the reader cannot read skipped as `none` | `TestConfirmations` |
+| an unconfirmed finding refused at line 0 of the next record | `TestChannel` |
+| a record with no `## Confirmations` refused | `TestConfirmations` |
+| a second `## Confirmations` accepted | `TestConfirmations` |
+| any value after the commit read as a `target:` | `TestRecordTarget` |
+| two `target:` lines accepted | `TestRecordTarget` |
+| no `target:` line accepted | `TestRecordTarget` |
+| `Target SHA:` not named as `target:` | the label case |
+| a `target:` or `confirms:` line inside a finding read | the out-of-place case |
+| a `confirms:` line outside `## Confirmations` accepted | the out-of-place case |
+| the old `refixes` not named as `regression:` | the label case |
+| `answered` still read as a verdict | `TestVerdictOf` |
+| a `rejected` finding owing the next round nothing | `TestChannel` |
+| the last record's `target:` not read against HEAD | `TestMain::test_the_last_record_is_at_head…` |
+| an emoji in the template, in `agents/warden.md`, in `agents/smith.md`, in the skill's proof block (four breaks) | T39, each |
+| `truth_pattern` back to the old `^\| (?:🔴\|🟡) \d+ \|` row | `test_a_truth_pattern_holds…` |
+| `truth_pattern` with no `^location: ` anchor | the same |
+| `FINDING_ROW` reading any backticked coordinate | `test_the_report_rows_are_the_last…` |
+
+**The six records.** `rewrite_records.py`, run once from the scratch
+directory and deleted, loaded 4ed5dd39's parent's reader beside the new one
+and wrote only the six files: the field table to one `target:` line with
+the value it held, `refixes:` to `regression:` six times, and each
+`## Confirmations` row to a `confirms:` line with its what-holds, location
+and grounds on one prose line after it. Per record it asserted that the
+new reader reads it with no refusal and that its verdicts, regression
+references, confirmation references and target commit equal what the old
+reader read; over the six, that the channel names nothing. No finding
+read `answered`, so none became `rejected`. The diff was read whole
+(`git diff -U0`): the six tables, the six `refixes:` lines and the 35 rows,
+nothing else.
+
+**The check on this branch.** `chain_check.py --baseline
+origin/release/v0.22.0 --root <worktree>` at 9a4ce364: exit 0, every record
+read and none refused; it prints the three lines owed since 5d-i, round 6
+behind HEAD (now as *the last round's `target:`*) and no `broad-gate.md` or
+`guarantee.md`.
+
+**S20.** The `git grep` of S20's list outside `seal/specs/` and
+`changelog/0.*.md` at 9a4ce364 finds no statement of the old shape. What
+it still finds, each named:
+
+- `skills/gap-analysis/SKILL.md:50` `## Verdicts` — that skill's own report
+  heading, not the round record.
+- `skills/implement/orchestration.md:592` and
+  `tests/test_every_orchestrator_act_names_its_delivery.py:59, 254, 415` — the
+  `Grounds` cell of the orchestrator-act table.
+- `tests/test_the_verifying_round_is_bounded_not_cheapest.py:96, 108` — the
+  grounds cell of `docs/the-review-record.md`'s rung table.
+- `skills/verify/scripts/unverified_check.py:538` and
+  `tests/test_one_heading_rule_holds_to_commonmark.py:5` — history in a
+  comment and a docstring.
+- `tests/test_broad_gate.py:127`, `tests/test_chain_check.py:131`,
+  `tests/test_the_release_seal_is_drawn.py:415` — the old-shape fixtures
+  the check must refuse.
+- `tests/test_chain_check.py:728-736` and
+  `tests/test_a_rewritten_definition_proved_non_inferior.py:655` — the
+  misspelt labels the cases plant on purpose.
+
+`git grep -n "Verdict:"` finds the guarantee's line and its readers
+(`chain_check.py#verdicts_of` and `#guarantee`, `templates/sdd-guarantee.md`,
+`agents/sealer.md:49, 73`, `docs/the-review-record.md` §*The guarantee*, the
+sealer cases' graders and `rule_cases.py`, `tests/test_the_sealer_guarantees.py`,
+`tests/test_evals_layout.py:135`), `noninferiority.py`'s own comparison
+record and its cases, `arm_check.py`'s `class Verdict:`, and the misspelt
+labels of `tests/test_chain_check.py:152, 723, 760, 766` and
+`tests/test_broad_gate.py:149`. `.test_durations` held three ids naming
+the old fields and lost them with the prune.
+
+**The graders read by hand.** `shape-findings` and `shape-words-only`, as
+written into the cases, run through node's `RegExp` (the runner's engine,
+flag `m`) against the template, round 2 of this item and five wrong
+shapes: the template matches the first and not the second; round 2
+matches both (its prose quotes the old marks, `questions.md` Q10); a record
+with `## Verdicts`, one with `Verdict: open`, and one whose `verdict:`
+stands under another heading fail the first; an emoji or a check mark
+trips the second. The script asserted those seven answers.
+
+**The regenerated cases.** `replay_targets.py --case` for the four replay
+cases, `seed_defects.py --case` for the four seeded ones, `rule_cases.py`
+for the fixture set: each warden case lost `shape-verdicts-table` and
+gained the two graders, its truths read `^location: `, and its grader
+bodies name `finding <k>` in place of a mark; the three sealer scaffolds
+write the record in the current shape; the smith and framer cases came out
+byte-identical.
+
+**The prune.** 7,609 cases collected; 7,348 entries to 7,329; 19 dropped,
+0.6 s, each a case 5d-i, 5d-ii or this phase removed or renamed; none
+uncollected after; 280 collected cases unpriced, under the bound
+`test_the_durations_file_prices_the_suite` holds, which then passed, run
+and not skipped. The guard held, as in 5a.
+
+**What moved beyond the row** is in `overview.md`'s divergence rows: the
+owner's decisions and the `spec.md` sections they leave for the framer,
+`noninferiority.py`'s finding rows, the documents beyond the row's files,
+T39's reach, the repair that made no commit (`questions.md` Q11), and the
+changelog's migration paragraph naming the old marks. `agents/framer.md:302`
+and `skills/implement/orchestration.md:637` still say a round *marks* a
+finding `fix of a fix`; both files are part B's, and the concept's name was
+not renamed, only the label.
+
+**The verification the row names.** `bin/test` over the row's ten modules:
+exit 0, 287 passed. `bin/test tests -q -p no:xdist -k
+test_the_durations_file_prices_the_suite`: exit 0, 1 passed, not skipped.
+`bin/rules --check --root <worktree>`: exit 0, 419 targets in 60 files.
+`uvx ruff check` and `uvx ruff format --check` on the fourteen touched
+`.py` files and `evals/scripts/`: exit 0. Beside the row, the 84 modules
+that name a document this phase touched (`docs/the-review-record.md`, the
+two skills, the two definitions, the READMEs, `hygiene.yml`, the release
+documents, `templates/config.md`, `templates/sdd-round.md`), at 9a4ce364:
+exit 0, 3,828 passed, 10 skipped; `tests/test_the_seal_is_taken_once_by_the_sealer.py`,
+whose fixture 4ed5dd39 changed, on its own at 4ed5dd39's tree: exit 0, 378
+passed. Their first run at 9d61c520 found two pins on the warden's old
+words, re-pointed at e6f7a000.

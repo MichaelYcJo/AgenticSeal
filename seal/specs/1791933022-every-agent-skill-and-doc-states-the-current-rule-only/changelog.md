@@ -1,48 +1,72 @@
 ### Changed
 
-- **A review round is one file the warden writes, and nothing generates it
-  (#923).** `seal/specs/<id>/rounds/round-N.md`, from
-  `templates/sdd-round.md`, holds the commit the round reviewed
-  (`Target SHA`), its findings in the five-column `## Verdicts` table, the
-  paste-ready fixes and the probes it ran. No `round-N-report.md` stands
-  beside it any more. The fix pass closes each open 🔴 or 🟡 row by filling
-  two cells: `Verdict` reads `fixed <commit>`, `answered` or
-  `deferred <home>`, and `Grounds` gains what the fix pass did. The fields a
-  generator wrote around the table leave with it: `Pass`,
-  `Fixes checked by`, `Needs a fix`, `Written late`, `Fix range`,
+- **A review round is one file the warden writes, in words, and nothing
+  generates it (#923).** `seal/specs/<id>/rounds/round-N.md`, from
+  `templates/sdd-round.md`, opens with a `target:` line naming the commit
+  the round reviewed. Under `## Findings` each finding is a
+  `### <n>. <symptom>` section with lowercase labels at the start of their
+  lines: `severity:` (`must` or `should`, which no check reads),
+  `location:` (backticked coordinates where the defect shows), `verdict:`
+  (`open`, `fixed <commit>`, `rejected` or `deferred <home>`), a
+  `regression:` line where the finding sits in a unit the fixes under
+  review made, and the fix pass's `answer:`. The paste-ready fix sits inside
+  its finding. What the round confirmed is a `confirms:` line under
+  `## Confirmations`, left out when there is nothing to confirm; what it
+  could not judge is a row of `## Not judged`; the commands it ran are
+  `## Probes`. No emoji stands anywhere in a record. The fix pass rewrites
+  `verdict:`, writes `answer:`, and adds the coordinate it fixed to
+  `location:` where that is somewhere else. No `round-N-report.md` stands
+  beside the record any more, and the fields a generator wrote leave:
+  `Pass`, `Fixes checked by`, `Needs a fix`, `Written late`, `Fix range`,
   `Contract changes`, `New units`, `Fix of a fix`,
-  `Loses a record or crashes`, `Ran by` and `PR`. ⬜ is no longer a
-  severity; a wrong sentence an agent acts on is a 🟡. Records written
-  before 0.22.0 read as they stand, because the check reads only their
-  `Target SHA` and their verdict table. The rules around the rounds are
-  stated once, in `docs/the-review-record.md`: a run ends with a verifying
-  round, it has three finding rounds by default and extends one at a time
-  while the findings shrink, a finding marked `fix of a fix` sends the work
-  item back to its framer, and a leftover finding takes the first rung of
-  the filing ladder that fits.
+  `Loses a record or crashes`, `Ran by` and `PR`. The rules around the
+  rounds are stated once, in `docs/the-review-record.md`: a run ends with a
+  verifying round, it has three finding rounds by default and extends one
+  at a time while the findings shrink, a finding with a `regression:` line
+  sends the work item back to its framer, and a leftover finding takes the
+  first rung of the filing ladder that fits.
+  **A work item in flight when you update** keeps records in the old shape,
+  and the check refuses each one by name once its pull request is ready.
+  Before you mark it ready, rewrite each record: the `| Field | Value |`
+  table becomes `target: <its Target SHA value>`; each 🔴 or 🟡 row becomes
+  a `### <n>.` section with `severity: must` for 🔴 and `should` for 🟡,
+  `location:` holding its Location cell's coordinates, each backticked and
+  joined by `, `, `verdict:` holding its Verdict cell (`answered` is
+  `rejected` now), its paste-ready block, and `answer:` holding what the fix
+  pass wrote; each 🟢 row becomes `confirms: round-<N>#<n>` naming the
+  finding it confirmed, or `confirms: none`, with its text on the next line;
+  each ❓ row becomes a row of `## Not judged`; `## Executed probes` becomes
+  `## Probes`. Then run `python3 skills/code-review/scripts/chain_check.py
+  --baseline origin/<base> --worktree` and fix what it still names. The
+  other way is to finish that work item on 0.21.1 before you update.
   (`1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
   #923)
-- **The check at the pull request reads five facts, and a ready pull request
-  fails on any of them (#923).** `chain_check.py` judges the `routing.md`
+- **The check at the pull request reads what a record states in its
+  labelled lines, refuses what it cannot read, and a ready pull request
+  fails on any refusal (#923).** `chain_check.py` judges the `routing.md`
   naming the pull request's branch and every one its own commits add or
   change. The declaration has to parse. A declared framer left `spec.md`,
   `plan.md` and its mark. A declared review chain left at least one round,
-  and every row of every round reads a word that closes it. A 🔴 or 🟡 row
-  closes only by the fix pass's three, `fixed <commit>`, `answered` or
-  `deferred <home>`, so a finding closed `confirmed` fails. A 🟢 row's word
-  is `confirmed` and a ❓ row's `❓ out of verified scope`. A refusal names
-  the words for the row's mark. The last round's commit is HEAD
-  or only the work item's own records follow it. `broad-gate.md` names
-  HEAD.
-  `guarantee.md` names HEAD and reads `sound`. A draft prints every refusal
-  and fails nothing. A declaration that reached the branch inside another
-  pull request's squash, a commit GitHub made with a subject ending `(#N)`,
-  was judged at that pull request and is named rather than judged again, so
-  a release pull request into `main` passes over the items squashed into
-  its release branch. What to do: move the `v<version>` in your copy of
-  `templates/hygiene.yml` to this release's tag, and delete its step that
-  fetched `refs/pull/*/head`, which nothing reads now. From then on, a work
-  item's pull request is marked ready only after its sealer has run.
+  and four facts hold of its records. Every finding has an answer: none
+  reads `open`. Every `fixed <commit>` is a commit on the branch that
+  changed a path its `location:` line names. Every `fixed` or `rejected`
+  finding of round N is named by a `confirms:` or `regression:` line of
+  round N+1, or it is refused at its own heading. The last round's
+  `target:` commit is HEAD or only the work item's own records follow it,
+  and none of that round's findings is `fixed` or `rejected`, since no
+  round read them. A label in any other spelling (`Verdict:`, `Target SHA`,
+  `refixes:`), a value outside its shape, a missing or doubled line and a
+  fence that never closes are each refused by line, never passed.
+  `broad-gate.md` names HEAD. `guarantee.md` names HEAD and reads `sound`.
+  A draft prints every refusal and fails nothing. A declaration that
+  reached the branch inside another pull request's squash, a commit GitHub
+  made with a subject ending `(#N)`, was judged at that pull request and is
+  named rather than judged again, so a release pull request into `main`
+  passes over the items squashed into its release branch. What to do: move
+  the `v<version>` in your copy of `templates/hygiene.yml` to this release's
+  tag, and delete its step that fetched `refs/pull/*/head`, which nothing
+  reads now. From then on, a work item's pull request is marked ready only
+  after its sealer has run.
   (`1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
   #923)
 - **The broad run has one home, `broad-gate.md`, on either routing answer
@@ -57,8 +81,7 @@
   the pull request body and the changelog fragment are written, and its
   reference is the issue and the tree, never another agent's account. It
   runs the broad gate, then re-runs a sample of the smith's `executed` and
-  `seen red` claims, chosen where the evidence is thinnest. It confirms each
-  `fixed <commit>` is on the branch and touches the location it fixes, and
+  `seen red` claims, chosen where the evidence is thinnest, and confirms
   that nothing this release removed has come back. It reads the spec, the
   build, the warden's last round,
   the changelog fragment and the pull request body as one story and names
@@ -82,7 +105,7 @@
   `tests-todo.md` file kind, and `hooks/review-history-guard.py`, the
   reminder printed on `gh pr review` and `gh pr merge`. A script or note
   that types `round-record` meets a command that is gone: the warden writes
-  the round, and the fix pass fills its two cells by hand.
+  the round, and the fix pass writes its two lines by hand.
   `docs/round-record-spec.md`, `docs/review-chain-spec.md` and
   `docs/review-handoff-protocol.md` give way to `docs/the-review-record.md`.
 
