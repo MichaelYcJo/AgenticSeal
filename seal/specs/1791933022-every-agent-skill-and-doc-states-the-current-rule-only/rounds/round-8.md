@@ -34,7 +34,7 @@ suite was not run. It is `unverified`, and the sealer answers it.
 
 severity: should
 location: `templates/sdd-round.md:47-51`, `docs/the-review-record.md:248-259`, `agents/warden.md:119-123`, `agents/warden.md:212-217`, `skills/code-review/SKILL.md:187-191`, `skills/code-review/orchestration.md:96`
-verdict: open
+verdict: deferred the frame
 
 Every finding round N closed `fixed <commit>` or `rejected` must be named in
 round N+1. The warden's definition (`:119-123`, `:212-217`), the review
@@ -104,11 +104,13 @@ its framer, who writes `Reframed <date> by <who>, after round <N>.` under
 the mark at the foot of `spec.md`.
 ```
 
+answer: Deferred to the frame by the orchestrator: finding 2 carries a regression line, so this round gets no fix pass. The owner ruled on 2026-10-16 that both relations are needed now: a `regression:` line for a defect a fix pass's commit made, and a `reopens:` line for a close that does not hold; the frame takes findings 1 to 3 together.
+
 ### 2. The review skill says the run ends at the round that names a rejection on a regression line, but a round carrying that line goes back to its framer and the run goes on
 
 severity: should
 location: `skills/code-review/orchestration.md:113-120`
-verdict: open
+verdict: deferred the frame
 regression: round-7#3
 
 The unit: the paragraph 46cd674a wrote for round 7's finding 3, from
@@ -148,11 +150,13 @@ there. Where it does not, that round raises the finding again with a
 `docs/the-review-record.md` §*The run* says for that line.
 ```
 
+answer: Deferred to the frame by the orchestrator: finding 2 carries a regression line, so this round gets no fix pass. The owner ruled on 2026-10-16 that both relations are needed now: a `regression:` line for a defect a fix pass's commit made, and a `reopens:` line for a close that does not hold; the frame takes findings 1 to 3 together.
+
 ### 3. The frame still says a truth grader reads a finding's path and unit, after round 7's fix made every truth read a line window and refuse a unit
 
 severity: should
 location: `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/spec.md:514-518`, `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/spec.md:721-722`
-verdict: open
+verdict: deferred the frame
 
 `spec.md` §*The proof harness, as this item leaves it* says "a `truth-`
 grader reads a finding's `location:` line for the path and unit or line",
@@ -198,6 +202,8 @@ documents. executed: the twelve truth patterns read with `grep -n
 holds the record free of emoji; `replay_targets.py#truth_pattern` and
 `seed_defects.py` emit `^location: .*<path>:<line window>`; the nine
 ```
+
+answer: Deferred to the frame by the orchestrator: finding 2 carries a regression line, so this round gets no fix pass. The owner ruled on 2026-10-16 that both relations are needed now: a `regression:` line for a defect a fix pass's commit made, and a `reopens:` line for a close that does not hold; the frame takes findings 1 to 3 together.
 
 ## Confirmations
 
