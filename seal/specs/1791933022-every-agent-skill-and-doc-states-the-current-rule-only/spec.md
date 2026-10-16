@@ -8,12 +8,13 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | Policy clause | What it fixes for this work |
 |---|---|
 | `CLAUDE.md` §*The rule a mechanism is kept against — subtract before you add* | A mechanism stays only while its history shows what it caught against what it costs. Do not avoid the change a problem calls for: before a fix adapts to a structure, ask whether the structure should change; what exists is a reference, not a constraint. A change rewrites in place and removes what stood on the old fact in the same commit. This frame weighs every field of the review record and every agent definition by it, and keeps nothing because it is there |
-| `CLAUDE.md` §*The goal a design is chosen against* | Nothing here asks a person mid-run. A rewrite is proved not worse by a run nobody scores by hand; a check that fails names the file and line; the sealer's one undecidable case goes to the owner as a written question, after the run |
+| `CLAUDE.md` §*The goal a design is chosen against* | Nothing here asks a person mid-run. A check that fails names the file and line; the sealer's one undecidable case goes to the owner as a written question, after the run |
 | `CONTRIBUTING.md` §*What a change to a gate must carry* | Phases 3 and 4 remove gates and move checks: cases seen red, the failure direction (the chain check blocks less and reads fewer fields; what it still reads it reads at the pull request as before), a prompt budget of zero, `## Removes` below |
 | `docs/the-record-layout.md` §*A change writes fragments, never a shared file*, §*seal/specs/<work-item-id>/* | The changelog is a fragment; the table of a work item's files is rewritten in place here because this item changes what the files are |
 | `docs/the-agent-set.md` | One contract every agent receives, one definition each; the writer of a contract is not its executor; a subagent asks nobody. Rewritten in place here: the sealer's job changes and the set is derived from the jobs |
 | `skills/implement/SKILL.md` §*3. The SDD file set* | The work alters what every spawn reads and what every pull request is checked against, which is the top rung |
-| #923's body, rewritten 2026-10-15 by the owner | The one source for what was decided: the principle, the six things the item builds, the rules the rewrite states in place, the proof's two axes. Where this file and that body differ, the body holds |
+| #923's body, rewritten 2026-10-15 by the owner and split on 2026-10-16 | The one source for what was decided: the principle and what this item builds. Where this file and that body differ, the body holds. Since the owner's split of 2026-10-16 the body is part A alone, the review record and the sealer, in 0.22.0; part B — the agents written anew, the rules the rewrite states in place, the proof's two axes, the baseline — is #957, in `release: 0.22.1`, framed on its own after 0.22.0 is installed so old and new rules do not mix in one run. This file frames part A, and names what moved under `## Removes` |
+| The owner's ruling of 2026-10-16, on round 7 | A `regression:` line marks a defect a fix pass's own commit introduced. A defect in a phase the framer designed and the owner approved is an ordinary finding of new work, with no `regression:` line, and gets its fix pass. `docs/the-review-record.md` §*The run* states it, pinned by `tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made` (`phases/phase-5d.md` §*Round 7 fix pass*) |
 | The owner's decision of 2026-10-16, after round 6 | The round record is designed anew from its jobs and not patched again. What the check read was the old generator's table with fields subtracted and a rule added per round, and the check missed one fact four times (rounds 1, 2, 5 and 6) for one reason: it told a finding from a non-finding by an emoji mark in a table that mixed three kinds of row, and every spelling it did not recognise fell to the passing side. What exists is a reference, not a constraint (`CLAUDE.md`). The rule the new shape embodies — a gate fails closed: input it cannot read is refused, never passed — is `questions.md` Q9's to put into `CLAUDE.md` or not |
 | The owner's decisions of 2026-10-16, on the record phase 5d-i built (44ad6eeb) | Six, each written into §*What a round records* and the check's facts below, in place: a `fixed <commit>` touches its finding's location and the check reads it, so the sealer's manual act leaves; the channel between rounds is a fact the check reads, through a reference in one spelling; every label is one lowercase word; the severities are `must` and `should`; no emoji in the record, the template, the findings format or the parties' instructions this item touches; the refusal of an unclosed fence or comment, which 5d-i's smith added, is a check fact here with its limit stated. Then, relayed during 5d-iii and built there: every label and value a plain English word an agent can guess the meaning of — one `target:` line for the field table, a `confirms:` line per confirmation in place of a table, the section optional and two refused, an unconfirmed finding refused at its own heading in its own record, `regression:` for `refixes:`, `rejected` for `answered`. And `questions.md` Q11's answer: a repair outside the tree closes `deferred <where>`, a repair by a commit `fixed <commit>`, and `rejected` means only that the finding does not hold (phase 5d-iv). Frame edits, not reframes: no round stopped the run, so the foot carries no `Reframed` line for them |
 | #942 (the test layout) | A test file per shipped module, its tests grouped by function, a success and a failure case per group. The test modules this item writes for the chain check and the broad gate follow it; the modules it deletes are listed by what they guarded, one line each |
@@ -22,12 +23,16 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 
 ## What this work is — a new slate, not a trim
 
-The agents and the review chain between them are designed anew from the jobs,
-with no loss in what the work gets right (owner, 2026-10-15). Today's files are
-a reference, as the old tests are for #942. No heading, section number, field
-or agent is kept because it was there. The earlier frames of this item trimmed
-files whose structure was the problem; this one asks of each structure whether
-it should exist.
+The review chain is designed anew from its jobs, with no loss in what the
+work gets right (owner, 2026-10-15): the round record, the check that reads
+it, the broad gate's one record file, and the sealer as the final,
+independent guarantor. Today's files are a reference, as the old tests are
+for #942. No heading, section number or field is kept because it was there.
+The earlier frames of this item trimmed files whose structure was the
+problem; this one asks of each structure whether it should exist. The agent
+definitions written anew from their jobs are #957's (the owner's split,
+2026-10-16), and this item rewrites a definition only where it states the
+record or the sealer's job (§*The agent definitions this item touches*).
 
 Phases 1 and 2 stand and keep their commits: the proof harness is light
 (`evals/`), the five pre-0.22.0 eval cases are gone, the budget concept is
@@ -55,8 +60,8 @@ first edit.
 Every job above that needs judgment has one of them, and no job needs a sixth:
 the fix pass is the smith's (whether it resumes or respawns is #945's rule),
 the broad run is a script's, and the check at the pull request is a script's.
-What changes is the sealer's job, every agent's size and preload, and the
-record that passes between them.
+What changes here is the sealer's job and the record that passes between
+them; every agent's size and preload is #957's.
 
 ## The sealer — the final, independent guarantor
 
@@ -65,8 +70,9 @@ the work before me is sound, and I guarantee it.*** Its reference is the
 owner's decision (the issue body) and the tree, never any agent's word or the
 orchestrator's summary. It runs after the pull request body and the changelog
 fragment are written, so they are audited too. It runs on Opus, the level of
-the agents it audits: `agents/sealer.md` is the one definition that pins
-`model:`.
+the agents it audits, until #957's evaluation measures it against Sonnet on
+the sealer's cases (owner, 2026-10-16): `agents/sealer.md` is the one
+definition that pins `model:`.
 
 Its order of work:
 
@@ -178,7 +184,7 @@ the record, and from nothing that was there before:
 |---|---|---|
 | the warden | names the commit it reviewed, and leaves findings — what is wrong, where, why it matters, a paste-ready fix — and the probes it ran | the `target:` line; `## Findings`, one `###` section per finding; `## Probes` |
 | the smith's fix pass | answers each finding: the fixing commit, a rejection with its grounds, or where it was deferred | the finding's `verdict:` line and `answer:` line, a coordinate it may append to `location:`, and nothing else in the file |
-| the next round's warden | reads the earlier findings and their answers, confirms each that truly closed, names a regression where a fix is wrong, and notes what it could not judge | a `confirms:` line per entry of `## Confirmations` and the `regression:` line of a finding, both naming the earlier finding as `round-<N>#<n>`; `## Not judged`; earlier files are never edited or deleted |
+| the next round's warden | reads the earlier findings and their answers, confirms each that truly closed, names a regression where a fix pass's own commit introduced the defect, and notes what it could not judge | a `confirms:` line per entry of `## Confirmations` and the `regression:` line of a finding, both naming the earlier finding as `round-<N>#<n>`; `## Not judged`; earlier files are never edited or deleted |
 | the check at the pull request | four facts — is any finding without an answer; does each `fixed` commit sit on the branch and touch its finding's location; does the next round confirm, or name as a regression, every finding the fix pass closed `fixed` or `rejected`; is the last record at HEAD — and the record's `target:` commit | the `target:` line; every `verdict:`, `location:` and `regression:` line under `## Findings`; every `confirms:` line of `## Confirmations`; the labels in no other spelling and in no other place |
 | the sealer | reads the records as one party's story against the others (step 4); it re-checks no finding's verdict and no `fixed` commit, since the check reads both | nothing of a record that the check does not read |
 
@@ -202,7 +208,7 @@ verdict: open
 regression: round-<N-1>#<n>
 
 <why it matters and the grounds, executed and read labelled apart; where
-`regression:` stands, the unit the fixes under review added or changed, first>
+`regression:` stands, the unit a fix pass's own commit added or changed, first>
 
 ```<lang>
 <the paste-ready fix: the artefact, not a description of it>
@@ -344,8 +350,8 @@ decisions of 2026-10-16 and Q11's answer left it:
   lines, and an emoji the check does not read cannot mislead it. The template, the review skill's findings format, the warden's
   and the smith's instructions, the orchestration paragraphs and the panel
   lines this item touches carry none, and a test holds the shipped text to
-  it (T39, `plan.md` Alternative AQ). Other skills and definitions are part
-  B's and #940's, and `## Removes` names what is left to them.
+  it (T39, `plan.md` Alternative AQ). Other skills and definitions are #957's
+  and #940's, and `## Removes` names what is left to them.
 - **The warden writes the record, and no generator copies it.** The fix is
   inside its finding, so the fix pass opens one section and finds the what,
   the where, the why and the paste in one place; a `|` in prose is prose
@@ -445,7 +451,7 @@ citation of an older issue, that is `read` and says so.
 | The reading of a verdict row — which rows are findings, and which words close one (`chain_check.py#verdict_table`, `#verdict_of`, `#open_findings`, `CLOSES_BY`, `EVERY_CLOSE`, `FINDINGS`, `BLOCKING`, `SHOULD`, `FINDING_WORDS`, `CLOSED_WORDS`, and before phase 5a `#severity_of`, `NOT_FINDINGS`, `FINDING_CLOSES`, the `#` column found by its header) | nothing in the records it read: no 🔴 or 🟡 row of the 36 records at round 2 read a 🟢 or ❓ row's word (round 2's probe, `executed` by the warden). What its four versions carried was the hole each round found: round 1's let a severity outside the first cell hide an `open`; round 2's let a 🟢, ❓ or ⬜ `#` cell hide one; phase 5a's let a 🔴 row close `confirmed`, which rounds 3, 4 and 5 gave the sealer to catch and each found that backstop short; phase 5c's read the mark with `startswith` on the raw cell, so `**🔴 1** … confirmed` passed (round 6's 🟡 1). Each repair read the same cell by one more rule, and every spelling the rule did not know fell to the passing side | four readings in six rounds, three reframes, two word sets, and a rule the documents restated per round | **leaves whole** (reframed after round 6). The decision is what the check decides: whether every finding has an answer. So the record gives it that fact in one line it can read without sorting anything — `verdict: <value>` inside a finding's section — and the check refuses whatever it cannot read (§*What a round records*). The emoji marks, the mixed table, the word sets per mark and the old generator's words `withdrawn`, `not a defect` and `agreed, fixed` go with the reading; nothing reads an old record, so nothing needs them. Since 2026-10-16 the check reads three more facts of the same kind, each a labelled line in one spelling: a `fixed` commit touches a path of the finding's `location:`, the next record's `confirms:` and `regression:` lines name every finding the fix pass closed `fixed` or `rejected`, and a label in another spelling is refused. **How it errs, stated**: a `fixed <commit>` that touches the path and fixes nothing passes, and the verifying round's warden, whose `confirms:` line the check then requires, is who reads the fix; a fence closed on the wrong line hides what lies between (§*What a round records*). A finding the warden wrote outside `## Findings`, or without a `###` heading, is not a finding to the check: the template, the warden's definition and the eval's shape grader hold that shape, and a section with no `verdict:` line is refused rather than passed |
 | `Fixes checked by`, `Needs a fix`, `Written late` | the last fixes read by nobody (the verifying-round rule, #161 `read`); the record committed after its fixes. `Written late` read `no` 19/19 | three rows derived from facts the check can read | **the fields leave; the rule stays** as one check: the last record's `target:` commit is HEAD, or every commit after it touches only `seal/specs/<id>/`. A round after the last fix pass is therefore owed, as today |
 | `Fix range`, `Contract changes`, `New units`, the depth refusal, inherited coordinates | the verifying round's finding surface; a fix pass adding a unit nobody reviewed (#194, #211, #366 `read`). `Contract changes` read `none` 17/19; `New units` named in 9/19 | AST walks of the fix range in `round_record.py`, 198 s of tests for the floor and depth alone | **leave**; the warden's definition states that a verifying round reviews the whole fix diff, new units included, and the fix range is written on the `target:` line |
-| `Fix of a fix` count and its `second` stop | fired three times in 0.22.0 and sent #929 and #931 back to the framer; what it caught was fixes chasing one mechanism's edge cases, which `CLAUDE.md`'s tenet now states as a rule every agent reads | the count needs the fix range, the units and the depth above; 365 s of tests; four reframe spawns | **the judgment stays, the count leaves**: the warden writes a finding's `regression:` line naming the earlier finding or fix pass; a round carrying one gets no fix pass, at any round of the run, and the work item returns to its framer, who redraws the frame (`Reframed … after round N.` under the mark; `questions.md` Q1, the owner, 2026-10-15). Checked by nothing; the sealer reads the records |
+| `Fix of a fix` count and its `second` stop | fired three times in 0.22.0 and sent #929 and #931 back to the framer; what it caught was fixes chasing one mechanism's edge cases, which `CLAUDE.md`'s tenet now states as a rule every agent reads | the count needs the fix range, the units and the depth above; 365 s of tests; four reframe spawns | **the judgment stays, the count leaves**: the warden writes a finding's `regression:` line where the defect is one a fix pass's own commit introduced, naming the earlier finding or fix pass; a defect in a phase the framer designed and the owner approved is an ordinary finding of new work with no such line (the owner, 2026-10-16, on round 7); a round carrying a `regression:` line gets no fix pass, at any round of the run, and the work item returns to its framer, who redraws the frame (`Reframed … after round N.` under the mark; `questions.md` Q1, the owner, 2026-10-15). Checked by nothing; the sealer reads the records |
 | `Loses a record or crashes` floor, the round cap, the one reopening | #161's 15-round run (`read`); `yes` 2/19 in 0.22.0; no 0.22.0 run reached the cap — the stop above ended them | three rules, 65 + 45 + 117 lines of spec, their arms in the check | **one orchestrator rule replaces them** (`skills/code-review/orchestration.md`): a run has three finding rounds by default, extended one at a time while the latest round found fewer findings than the one before and none is a fix of a fix, each extension one line in that round's record (`questions.md` Q1, the owner, 2026-10-15); at the cap every open finding takes the filing ladder and reads `deferred <home>`. Checked by nothing at the pull request; the sealer and the person reading it see the count |
 | ⬜ notes, `notes --at`, *a note closes once* | prose quality in records and definitions | carried open through every later record (3 → 15 in #929); a command at the run's end; a `chain_check` arm | **leaves** with the severity |
 | `Ran by` | nothing that changed an outcome | one row and an arm | **leaves**; `routing.md`'s free text names the models, as it does today |
@@ -471,50 +477,34 @@ changelog fragment says so, beside `bin/round-record` being gone and the
 orchestration text that named it rewritten in the same release, in one
 paragraph a user reads before updating.
 
-## Every agent definition, written anew from its job
+## The agent definitions this item touches
 
-**One shape for all five.** Frontmatter: `name`, `description`, `skills:
-[agent-contract]`, and `model: opus` in the sealer's alone. Body: the job in
-one sentence; where it works; the order of its work as a numbered list; what
-it must not do; what it writes; which file it opens at which step; then its
-rules, each one paragraph opening with the rule in bold, at most one sentence
-of why, ending in `Enforced by: <test ids>` or one link. No story, no
-measurement, no account of what a rule used to say. The contract is the same
-shape and numbers its rules anew, 1..N; the citations of the old `§N` outside
-the rewritten files (35 at 680142f2: `docs/` 18, `hooks/` 10, `templates/` 5,
-`CONTRIBUTING.md` 2; part B counts them again on its own tree with
-`grep -rn "§[0-9]"`) are rewritten in the same commit, and the ones in test
-modules (423 in 89 modules at 680142f2) move with the modules the agent
-phases rewrite.
+Every definition written anew from its job — one shape for all five, the
+contract alone preloaded and each skill opened at its step, the contract
+numbered anew, the rules #923 once listed for each and now #957's body
+lists — is #957's, framed on the released tree (the owner's split,
+2026-10-16; `## Removes` names what moved). This item rewrites a definition
+only where it states the record or the sealer's job, in place:
 
-**A spawn preloads the contract alone; every other skill is opened when its
-act comes** (#923 item 4). Each definition names, at the step, the file to
-open. The risk is an agent that does not open what its act needs, so the
-behaviour cases read the output that skill shapes, and a skill whose absence
-makes the output worse goes back to that agent's `skills:` list, with the
-case that showed it named in the phase record.
+| Agent | What this item changes in it | Phase |
+|---|---|---|
+| `sealer` | written anew to §*The sealer*: `model: opus`, `skills: [agent-contract]`, the five steps, step 3 the one list of its acts (two from 5d-ii), `guarantee.md` its one write | 4; step 3 in 5b, 5c and 5d-ii |
+| `warden` | §*Report*: the record at `rounds/round-N.md` in the branch worktree under review, from the template, no separate report; the findings format in the record's lowercase labels, `must` and `should`, words only; a verifying round names every finding the fix pass closed `fixed` or `rejected` on a `confirms:` or a `regression:` line, by its `round-<N>#<n>`; a finding whose unit a fix pass's own commits added or changed carries a `regression:` line, and a defect in a unit a build phase made, which the framer designed and the owner approved, is new work with no such line (the owner, 2026-10-16, on round 7) | 3, 5d-iii, round 7's fix pass |
+| `smith` | the fix pass: it rewrites each open finding's `verdict:` line to `fixed <commit>`, `rejected` or `deferred <home>`, a repair outside the tree with no commit `deferred <where it was repaired>`, writes its `answer:` line, and appends a coordinate to `location:` where its fix went elsewhere; the `fixed` commit touches the finding's `location:` | 3, 5d-iii, 5d-iv |
+| `framer` | its route back: the fix passes stop and the framer is spawned again where a round marks a regression, and `docs/the-review-record.md` §*The run* owns the rule | 3 |
 
-| Agent | The job | Order of work | Opens, and when | Writes | Rules stated in place (#923) |
-|---|---|---|---|---|---|
-| contract (`skills/agent-contract/SKILL.md`) | what binds every agent whatever its procedure | — | — | — | an agent cleans up only the processes and files it started, by its own PIDs, never by command name or a glob over a shared directory; a check that refuses correct code is fixed or reported, never dodged by bending the code; a change rewrites the text it amends in place and removes what stood on the old fact, never appends; do not avoid the change a problem calls for — an agent that concludes something should stay as it is checks the premise first; exit codes read directly; the broad gate is one act with one owner; a spawn prompt cannot widen the scope; executed, read, unverified; prose is not evidence; a report, and the writes a definition names; a probe leaves nothing; git from Python in a probe; edits through `Edit`; batch independent reads; the record language; a defect belongs to a class; a platform guarantee is not a defence; a change to what a person sees is pinned; a case is seen red first; where `seal/` resolves; a commit names its repository |
-| `warden` | review a commit of a branch against its frame: spec compliance first, then quality | 1 open `skills/code-review/SKILL.md` · 2 clone at the target SHA under `<scratchpad>/<item>/round-<n>/` · 3 read the frame, the phase records and every earlier round record · 4 stage 1 against `spec.md`, stage 2 quality, probes where reading cannot settle · 5 open `skills/writing-style/SKILL.md` and write the record · 6 report its path and text | code-review at 1, writing-style at 5 | `rounds/round-N.md`, in the branch worktree under review | the record goes to **the branch worktree's** `seal/specs/<item>/rounds/`, in the template's shape, its labels lowercase and its text words only; a verifying round reviews the whole fix diff, new units included, and names every finding the fix pass closed `fixed` or `rejected` on a `confirms:` line or a `regression:` line, each by its `round-<N>#<n>`; a finding in a unit the fixes under review added or changed carries a `regression:` line; each new test is read against its function's group and any pair the duplicate check names, and a test covering nothing its group does not is a finding; a document hunk that adds text beside the sentence it amends instead of rewriting it is a finding; the implementer's account is a claim, not evidence |
-| `smith` | build a phase of the frame, or answer a round | 1 read `spec.md`, `plan.md`'s row, the phase record before it; say whether the frame holds · 2 open `skills/implement/SKILL.md` · 3 build in slices, narrow tests as you go, commit at each standing step · 4 write `phases/phase-N.md`; a fix pass instead writes the `verdict:` and `answer:` lines of each finding of the round it answers, the `fixed` commit one that touches the finding's `location:` · 5 open `skills/writing-style/SKILL.md` and hand back | implement at 2, writing-style at 5 | code, tests, `phases/phase-N.md`, `overview.md`, `changelog.md`, two lines per finding it answers | a new test starts from its group — read the function's tests first, extend one where you can, and say in the hand-back which case the group did not cover; a check refusing correct code is the check's defect; a fix pass adds no mechanism; a removal the frame did not name is an `overview.md` divergence |
-| `framer` | draw the frame before anybody builds | 1 skeleton `spec.md` · 2 gather widely · 3 open `skills/implement/SKILL.md` §1–§3 and judge what the tree answers · 4 `spec.md`, `plan.md`, `questions.md` · 5 open `skills/writing-style/SKILL.md` and report | implement at 3, writing-style at 5 | the three files; the mark and a `Reframed` line | do not avoid the change a problem calls for: an alternative that replaces a structure is weighed as an equal of one that keeps it; a question the tree can answer is not a question; nobody is asked; the frame names what the work removes |
-| `sealer` | the final, independent guarantor, above | the five steps above | none — its procedure is its definition | `guarantee.md` | its reference is the issue and the tree; it re-judges neither design nor quality; a claim is re-run, not read |
-| `scribe` | facts about an original, with coordinates and no verdict | 1 open `skills/legacy-parity/SKILL.md` · 2 read `seal/parity.md` and the original · 3 report facts with coordinates, each labelled | legacy-parity at 1 | nothing | an absence carries its search; constraints are read, not probed |
+The scribe is unchanged. Of the contract, §11's list of the vocabulary a
+checker reads loses the fields the record dropped, and nothing else.
 
-The size a definition reaches is written in its phase record and the release
-table and held by no ceiling. The estimate, from 20–35 rules at ≤ 8 lines plus
-one fence: 5–9 KB a definition, 6–8 KB the contract, so a spawn's preload falls
-from 95–101 KB (warden, smith, framer, `executed` with `payload_meter`) to
-about 12–17 KB. The proof's rule 4 is what judges it.
-
-## The proof — outcome not worse, cost lower
+## The proof harness, as this item leaves it
 
 The harness is phase 1's (`evals/`): outcome graders only, cost read from
 each run's trace, `noninferiority.py compare` writing the record and
 `tests/test_a_rewritten_definition_proved_non_inferior.py` recomputing it.
-What this frame changes in it:
+Proving a rewritten agent not worse with it — the baseline, the pass rule as
+the rewrites' gate, the runs and their budget — is #957's, whose body takes
+this suite as a reference to rebuild around outcome and cost rather than as
+the gate. What this item changes in it:
 
 - **The warden's shape graders point at `rounds/round-N.md`**, and the two
   that read the `Needs a fix:` and `Loses a record or crashes:` lines leave
@@ -534,31 +524,17 @@ What this frame changes in it:
   old sealer's job was the broad run, so no baseline comparison applies; the
   sealer's proof is outcome on these cases, with its cost written and not
   judged (`questions.md` Q2 names the first measurement).
-- **The baseline is taken once, on the tree where it applies.** Part A
-  (`plan.md` §*The split*) changes no preload but the sealer's, whose cases
-  are new, so part A takes no baseline. Part B's baseline is taken as its
-  first act, on the tree after part A merges, for the warden, smith and framer
-  sets; the scribe has no case and is proved through the contract phase's
-  other three.
-- **The pass rule** per agent, pooled over its cases × N = 2 runs a side:
-  (1) recall of truth findings, new ≥ old, a deficit of one noise; (2) false
-  findings, new ≤ old + 0.05; (3) shape graders 100 % on the new side, reach
-  100 % on both; (4) **cost falls** — preload bytes below the old, pooled
-  tokens read and spend ≤ 1.1 × the old; (5) a side cut by `--max-cost-usd`
-  or a timeout is no result. The fix on a failure is to restore the rule the
-  output lost, in the shape; the bar never moves.
-- **The proof is smaller than what it proves.** Part B's runs: the baseline
-  ≈ 38 runs; the contract phase all four sets; the warden phase its set; the
-  smith and framer phases theirs; the close re-runs an agent only where its
-  preload changed after its last passing record. ≈ 120 runs and ≈ $150 over
-  the item (Q6 of the earlier frame, accepted; the suite build measured one
-  warden replay at ≈ $2.5 and 300–500 s), on the orchestrator's account. CI
-  runs none of it.
+- **This item takes no baseline.** It rewrites one definition whole, the
+  sealer's, whose cases are new, and the others only where they state the
+  record; the baseline and the sealer's run on Sonnet against Opus are
+  #957's.
 
 ## Scope
 
-**In — part A, this work item** (`plan.md` phases 3–5 and the repairs 5a–5d):
-the review record and its checker; the broad gate's one record file; the sealer as guarantor with its
+**In — this work item, part A of #923, its whole scope** (`plan.md` phases
+1–5 and the repairs 5a–5d-iv): the proof harness made light and the budget
+concept gone (phases 1 and 2); the review record and its checker; the broad
+gate's one record file; the sealer as guarantor with its
 template, its check arm and its three cases; `docs/the-review-record.md` in
 place of the three specs; the record sections of
 `skills/code-review/orchestration.md` and the rows of
@@ -568,15 +544,16 @@ and `docs/the-broad-gate.md` rewritten where this item makes a sentence of
 them false; the warden's shape graders; the tests sorted into #942's layout
 with every deleted module's guard named; the changelog fragment.
 
-**In — part B, a second work item under #923, begun after part A merges**
-(`plan.md` phases 6–9): the contract and the five definitions written anew to
-the table above, the `skills:` lists cut to the contract, the preloaded skills
-(`code-review`, `implement`, `writing-style`, `legacy-parity`) rewritten to the
-shape where an agent opens them, the test modules that pin their text
-re-pointed or removed with a row, each phase proved on its agents' cases
-against the baseline. Part B's `spec.md` cites this file's §*Every agent
-definition* by path and adds nothing to it: the agents are written once,
-against the record part A built.
+**Moved to #957 — part B, `release: 0.22.1`** (the owner's split,
+2026-10-16): the contract and the five definitions written anew, the
+`skills:` lists cut, the preloaded skills rewritten where an agent opens
+them, the test modules that pin their text, the baseline and the proof that
+each rewrite is not worse, with #957's own items — the marks, labels and
+constants with no reader, the `Reads:` census and the rider stamps, the
+sealer's Sonnet-against-Opus comparison. #957 is framed on its own after
+0.22.0 is installed, so the agents are written once, against the record
+this item ships; `plan.md` §*Phases* names the commit at which this file's
+part-B phases last stood, its starting reference.
 
 **Out, and whose.** `skills/verify/SKILL.md`, `skills/settle/`, the small
 skills, `templates/` other than `sdd-round.md` and the new `sdd-guarantee.md`,
@@ -600,16 +577,11 @@ design.
 | S6 the sealer guarantees | a sound fixture item with a pull request body | `guarantee.md` with the five sections and `Verdict: sound`; nothing else in the tree changed; the report labels every claim |
 | S7 the sealer catches a story the tree contradicts | a pull request body claims a removal the tree still carries; a phase record claims `seen red` for a case green against the old code | `Verdict: not sound — <the claim>` naming the party and the coordinate, once per case |
 | S8 the sealer's verdict gates | `guarantee.md` reads `not sound` or `undecidable`, or names a commit other than HEAD | exit 1 at a ready pull request naming the file and the verdict |
-| S9 the `fix of a fix` stop is a judgment | a warden's record marks a finding `fix of a fix`, in any round of a run | the orchestration text says no fix pass runs and the work item returns to its framer, who redraws the frame; `chain_check.py` reads nothing of the mark; the sealer's parties check names it |
+| S9 the `fix of a fix` stop is a judgment, and it is about a fix pass's own commit | a warden's record gives a finding a `regression:` line because a fix pass's own commit introduced the defect, in any round of a run; and a round finds a defect in a unit a build phase made, which the framer designed and the owner approved | `docs/the-review-record.md` §*The run* says the first round gets no fix pass and the work item returns to its framer, who redraws the frame, and that the second is an ordinary finding of new work with no `regression:` line, which gets its fix pass; `tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made` holds the document, the template and the warden to it; `chain_check.py` reads the line as a reference for the channel (S23) and never to stop a fix pass; the sealer's parties check names it |
 | S10 nothing kept beside the tree | after phase 3 | no `round_record.py`, `bin/round-record{,.cmd}`, `review-history-guard.py`, `tests-todo.md` reader, `Fix range`, `Contract changes`, `New units`, `Fix of a fix`, `Needs a fix`, `Loses a record`, `Written late`, `Ran by`, `Fixes checked by`, `⬜`, `notes --at` outside `seal/specs/` and `changelog/` (`grep -rn` over the tree) |
 | S11 nothing reads an old record, and the check judges only what the pull request carries | a work item another pull request merged, its records in the old shape; a pull request whose own commits declare or change one work item | `chain_check.py` reads the records of the declared item alone and never opens the other items' `rounds/` (`TestMain`, the fixture tree holding a second item with an old-shape record); an old-shape record under a declared item is refused by name (S3). `.github/scripts/release_seal.py#chain_counts` and `broad_gate.py#rounds_rows` count `deferred` findings through the check's reader and report a record they cannot read as *not read*, never as 0 |
 | S12 the suite is lighter | after phase 3; after phase 5a | `.test_durations` summed over the modules that name `chain_check`, `broad_gate` is below 1,500 s (from 4,553 s); the deleted modules' guards listed one line each in `phases/phase-3.md`. After phase 5a the file holds no entry for a case the suite does not collect: `bin/test tests -q -k test_the_durations_file_prices_the_suite` exit 0, and `release_report.py#suite_seconds` sums the file as it is |
 | S13 one spec for the record | after phase 3 | `docs/the-review-record.md` exists, every rule paragraph ending in `Enforced by:` or a link, `rules --check` exit 0; the three old documents are gone and no file names them |
-| S14 the agents preload the contract alone | part B | every `agents/*.md` `skills:` list is `[agent-contract]`; `payload_meter --agent <a>` shows two files in the agent share |
-| S15 an agent opens its skill at the step | part B | the behaviour cases of each agent pass on the new side; a case that reads a skill-shaped output (the warden's findings format, the smith's phase record) is named per agent in the phase record |
-| S16 a rewritten definition is proved not worse | each part B phase | `evals/<agent>-phase-N.md` with `Verdict: pass`; the record test green |
-| S17 no rule is lost unseen | each rewritten file | the phase record lists every bold-led rule of the old file with its new coordinate or its removal and why; every test that pinned a sentence is green on the new one or removed with a row |
-| S18 the contract numbers anew | part B | `skills/agent-contract/SKILL.md` rules 1..N in order; no `§` citation outside it names a number it no longer carries (`grep -rn "§[0-9]"`) |
 | S19 nothing asks a person | the whole change | no `AskUserQuestion`, no `input()`, no new prompt; the eval scores itself; the sealer's `undecidable` is a written question, not a stop mid-run |
 | S20 every statement of the record's shape is the new one (phase 5d; the severity-keyed rule of phases 5a–5c and 5d-i's capitalised labels are history) | after phase 5d-iii | `git grep` outside `seal/specs/` and `changelog/0.*.md` for `## Verdicts`, `Paste-ready fixes`, `Executed probes`, `verdict_table`, `open_findings`, `CLOSES_BY`, `five-column`, `Grounds` cell, `#` cell, `🔴 or 🟡`, `bare-integer id`, `Severity:`, `Location:`, `Answer:`, `Fix of a fix`, `refixes`, `` `Confirms` cell ``, `blocks merge`, `fix or justify` and `touches the row` finds no statement of the shape — what it finds is a refused spelling the check, its cases, the old-shape fixtures or `docs/the-review-record.md`'s labels paragraph name on purpose, or history in a comment, each hit named in the phase record (from 5d-iv, `tests/test_the_record_is_written_in_words.py`'s docstring no longer among them); `git grep -n "Verdict:"` finds only `guarantee.md`'s line and its readers (`chain_check.py#verdicts_of`, `templates/sdd-guarantee.md`, the sealer's definition, cases and graders), since the guarantee keeps its spelling (`plan.md` Alternative AM); `templates/config.md` §*What no row governs* lists the new literals and `tests/test_the_pull_request_language_is_the_repositorys.py::test_the_exclusion_list_holds_every_string_a_checker_matches` holds them to the check's constants; `bin/rules --check` exit 0 with every `Enforced by:` naming a test in the tree; `agents/sealer.md` step 3, `templates/sdd-guarantee.md`'s comment and `docs/the-review-record.md` §*The guarantee* keep the one-list design (T22, T23 unchanged) |
 | S22 a `fixed` commit touches its finding's location | a ready pull request; a record whose finding reads `fixed <sha>` with `<sha>` on the branch and touching only a path its `location:` does not name; one whose commit touches one of the two paths named; one whose `location:` names a directory and the commit changes a file under it; one whose `location:` line the fix pass lengthened by the path its commit touched, the warden's coordinates before it; one whose `location:` the check cannot read (no backticks, a bare `:617`, two `location:` lines, none) at any verdict | exit 1 for the first, naming the finding, the commit and the paths it touched; the second, third and fourth pass; exit 1 for each of the fifth, naming the line and the one spelling; the sealer's definition names no such act (T33, T34, T40) |
@@ -617,6 +589,11 @@ design.
 | S24 a label in another spelling is refused, never skipped | a record with `Verdict: open`, `**verdict:** open`, `VERDICT: open`, `verdict : open`, `Fix of a fix: <unit>`, `refixes: round-1#1`, `Target SHA: <sha>`, `Severity: must`, `Location: `path``, `Answer: …`; a `target:` or `confirms:` line inside a finding; a `confirms:` line outside `## Confirmations` | exit 1 for each, naming the line and the lowercase label it would have to read — `regression:` for the two old reference spellings, `target:` for `Target SHA` — or the place it belongs; the finding is not read past it (T32 and the out-of-place case) |
 | S25 the verdict says what happened to the defect (phase 5d-iv; Q11) | a fix pass meets a finding that held and was repaired by editing an issue or a pull request body, with no commit on the branch; and one that held and was repaired by a commit correcting a record | the first closes `deferred <where it was repaired>` (`deferred #956`) with `answer:` saying what changed there, and owes the next round nothing; the second closes `fixed <commit>`, the record's path on its `location:`; `docs/the-review-record.md` §*The round record* says so and a case pins the sentence (T41); `git grep` outside `seal/specs/` and `changelog/0.*.md`, and over this item's `changelog.md`, finds no sentence sending a repair to `rejected`, which every text this item touches gives one meaning, *the finding does not hold*; `chain_check.py` is unchanged, since it already reads `deferred <home>` and owes such a finding nothing |
 | S21 a number a reader acts on names its moment or goes (narrowed in phase 5c) | the shipped surfaces this item writes: `changelog.md`, and every `docs/` sentence this item rewrote | every figure in them is a measurement naming its commit, round or tag, a bound a named check holds the tree to, or gone (§*A number in this frame*). The frame's three documents are read at 680142f2 (`plan.md` §*Technical context*) and the builder's two at the commit each sentence or phase record names; a figure there is history at that moment, not a finding, and no agent reads it against the tree |
+
+S14–S18 — the agents preload the contract alone, an agent opens its skill at
+the step, a rewritten definition is proved not worse, no rule is lost unseen,
+the contract numbers anew — were part B's and moved to #957 with the split;
+their numbers are not reused here.
 
 ## Data & interfaces
 
@@ -730,7 +707,7 @@ records paragraph states the labelled lines, the `confirms:` lines, the
 fail-closed reading and how it errs (a touching commit that fixes nothing;
 a fence closed on the wrong line), its `Enforced by:` the check's pins
 alone; §*The run*'s fix-of-a-fix rule names the `regression:` line and its
-reference; §*The guarantee* points at `agents/sealer.md` step 3 and step 4
+reference, and says it marks a defect a fix pass's own commit introduced; §*The guarantee* points at `agents/sealer.md` step 3 and step 4
 for the acts and lists none. `templates/config.md` §*What no row governs*
 lists the literals the check reads — `target:`, `## Findings`, `verdict:`
 with `open`, `fixed`, `rejected` and the `deferred` in `deferred <home>`,
@@ -793,8 +770,8 @@ five sentences short of its letter that nobody acts on). `rounds/round-N.md`
 and `phases/phase-N.md` are moments by construction. The frame's three,
 `spec.md`, `plan.md` and `questions.md`, were read at 680142f2 (`plan.md`
 §*Technical context*), and a figure in them that names no other moment is
-that reading's — a planning figure, which part B's phases count again on
-their own tree where a row says so. The builder's two, `overview.md` and
+that reading's — a planning figure, which #957 counts again on its own
+tree where it needs one. The builder's two, `overview.md` and
 `changelog.md`, name the commit or the phase record each figure was taken at
 (phase 5b). A sentence that is wrong at its own moment is still a 🟡; a
 sentence that was true at its moment and is not true at HEAD is not. The
@@ -831,7 +808,7 @@ the parties' stories; it counts nothing against the tree.
 | the capitalised labels, the two-word `Fix of a fix:` and the severities `blocks merge` and `fix or justify` (phase 5d-ii) | `templates/sdd-round.md`'s `Severity:`, `Location:`, `Verdict:`, `Fix of a fix:`, `Answer:` lines and its comment; `chain_check.py#VERDICT_LABEL` as `^Verdict: `; `docs/the-review-record.md` §*The round record* and §*What the check reads* where they spell them; `templates/config.md` §*What no row governs*' rows for them and `tests/test_the_pull_request_language_is_the_repositorys.py#ROUND_RECORD_FIELDS`; this item's six records' lines; then in 5d-iii `agents/warden.md` §*Report*, `agents/smith.md:190-193`, `skills/implement/SKILL.md` §5, `skills/code-review/SKILL.md` §*Findings format*, `skills/code-review/orchestration.md`'s two-cells paragraph, `evals/scripts/behaviour.py`'s `^Verdict: `, `replay_targets.py#truth_pattern` and `seed_defects.py`'s `^Location: `, `rule_cases.py#SEALER_ROUND`, this item's `changelog.md` | lowercase labels, `must` and `should`, read fail-closed (S24; T32); `guarantee.md`'s `Verdict:` is not a round record's label and keeps its spelling (`plan.md` Alternative AM) |
 | the field table, the confirmations table, `refixes:` and `answered` (phase 5d-iii; the owner, 2026-10-16) | `templates/sdd-round.md`'s `\| Field \| Value \|` table with its `Target SHA` row, its `## Confirmations` table with the `Confirms` first column, its `refixes:` line and its `answered` value; `chain_check.py`'s `REFIXES_LABEL`, `ANSWERED`, `#target_of` reading a round record's `Target SHA` row (it reads `guarantee.md`'s alone now), and `#confirmations`' table and `Confirms`-header reading; the unconfirmed finding's refusal at line 0 of the next record; `docs/the-review-record.md`, `templates/config.md` §*What no row governs*, the language test's literals, the parties' texts, the READMEs and this item's `changelog.md` where they spell them; this item's six records' tables, `refixes:` lines and `## Confirmations` rows (rewritten at 92991623) | one `target:` line; a `confirms:` line per confirmation, the section optional and a second refused; `regression:`; `rejected`, owing the next round a `confirms:` or `regression:` line as `answered` did; an unconfirmed finding refused at its own heading in its own record; `Target SHA` and `refixes` read only as old spellings refused by line (S23, S24; T32, T36–T38). The guarantee's `Target SHA` row is the sealer's file and stays |
 | the sentences sending a repair with no commit to `rejected` (phase 5d-iv; `questions.md` Q11) | `docs/the-review-record.md` §*The round record*'s *A correction to a record, or a repair made outside the tree, produced no commit on the branch and closes `rejected` with where the repair is*; this item's `changelog.md` migration paragraph's *(`answered` is `rejected` now)*, which maps every old `answered` to `rejected`; `tests/test_the_record_is_written_in_words.py`'s module docstring naming *its `Confirms` cells*; whatever else `git grep` finds of the class at the phase's start | `deferred <where it was repaired>` for a repair outside the tree with no commit, `fixed <commit>` for one a commit made, a record correction among them; `rejected` for a finding that does not hold and nothing else, T41 pinning the document's sentence |
-| the emoji in the shipped text this item touches (phase 5d-iii) | `skills/code-review/SKILL.md` §*Findings format*'s four-line block (`🔴 🟡 🟢 ❓`), its `🟡` sentence, the `#`-cell paragraphs and the proof block's `· verdict:  🔴 n · 🟡 n · 🟢 n · ❓ n` line; `agents/warden.md:150-155` and `:262-264`; `skills/code-review/orchestration.md:112`; `README.md:91` and `README.ko.md:78-80` (the cap paragraph's `🔴`, stale since Q1 as well); the step comments of `.github/workflows/hygiene.yml` and `templates/hygiene.yml` where they name a mark; the panel's `rounds` row text where it names one | words: `must`, `should`, a confirmation, a thing not judged; T39 holds the template, the format and the two definitions to it. **Left to part B and #940, named here**: the `📋` proof-block marker every skill shares (`skills/code-review/SKILL.md:293`, `skills/implement/SKILL.md:529`), `skills/implement/SKILL.md:79` and `:458`'s `✅` (the `## Not verified` closing mark, `unverified_check.py`'s), `agents/smith.md` and `agents/framer.md` beyond the lines above, the other skills; the history citations in code comments (`broad_gate.py`, `hooks/sealer-stamp.py:118`: *round 1's 🟡 2*) are moments and stay (`overview.md`'s `⬜` row) |
+| the emoji in the shipped text this item touches (phase 5d-iii) | `skills/code-review/SKILL.md` §*Findings format*'s four-line block (`🔴 🟡 🟢 ❓`), its `🟡` sentence, the `#`-cell paragraphs and the proof block's `· verdict:  🔴 n · 🟡 n · 🟢 n · ❓ n` line; `agents/warden.md:150-155` and `:262-264`; `skills/code-review/orchestration.md:112`; `README.md:91` and `README.ko.md:78-80` (the cap paragraph's `🔴`, stale since Q1 as well); the step comments of `.github/workflows/hygiene.yml` and `templates/hygiene.yml` where they name a mark; the panel's `rounds` row text where it names one | words: `must`, `should`, a confirmation, a thing not judged; T39 holds the template, the format and the two definitions to it. **Left to #957 and #940, named here**: the `📋` proof-block marker every skill shares (`skills/code-review/SKILL.md:293`, `skills/implement/SKILL.md:529`), `skills/implement/SKILL.md:79` and `:458`'s `✅` (the `## Not verified` closing mark, `unverified_check.py`'s), `agents/smith.md` and `agents/framer.md` beyond the lines above, the other skills; the history citations in code comments (`broad_gate.py`, `hooks/sealer-stamp.py:118`: *round 1's 🟡 2*) are moments and stay (`overview.md`'s `⬜` row) |
 | the `.test_durations` entries the suite no longer collects (phase 5a) | 301 entries, 345.3 s, for cases this branch removed from modules that still exist (`rounds/round-2.md` 🟡 2, `executed`) | pruned by collection — an entry is live when `pytest --collect-only` collects its id — with the round-trip guard 1b875efc used; nothing re-measured, nothing kept in the tree to do it again. The collected cases with no price — held under `STALE_SHARE` by `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite`, and counted here by nothing — are priced by the next refresh from a `tests` run, which `CONTRIBUTING.md` §*Running the checks* owns |
 | the second and third list of the sealer's acts (phase 5b) | `docs/the-review-record.md` §*The guarantee*'s list of what the sealer re-runs and confirms; `templates/sdd-guarantee.md`'s comment over `## Claims re-run` listing the row kinds | `agents/sealer.md` step 3 lists the acts and §*The sealer* states them; both files point at step 3 and name no act, so `fixed <commit>` outside `seal/specs/` and `changelog/` stands only in the record's vocabulary (`docs/the-review-record.md` §*The round record*, `templates/sdd-round.md`) and in step 3 (`git grep`) |
 | the present-tense counts in this item's living documents (phase 5b) | `changelog.md`'s *Lines after* column and its sentence counting test modules and test lines after the branch; `overview.md`'s *the file now holds 7,348 entries … sums to 3,371.9 s* and its S12 row's figures, each unpinned; the frame's own, rewritten by the reframe after round 4: `spec.md`'s *226 collected cases*, *36 records in the tree*, *35 citations*; `questions.md`'s *226 unpriced cases*, *35 citations*; `plan.md`'s *about 3,372 s*, *about 3,000 of its 6,827 seconds*, *68 K lines* | §*A number in this frame*: a figure names its moment or its bound, or leaves |
@@ -841,9 +818,24 @@ the parties' stories; it counts nothing against the tree.
 | the old sealer | `agents/sealer.md` as it stands (*it judges nothing*; the `Broad gate` cell as its one write; Sonnet as its model); `evals/behaviour/sealer/rule-sealer-{green,failing-test,record-open}/` | the guarantor above and its three cases |
 | two warden shape graders | `evals/behaviour/warden/*/graders/shape-needs-a-fix.md`, `shape-loses-a-record.md`; the report path in every warden shape grader | the fields are gone; the path is `rounds/round-N.md` |
 | the orchestrator rows for removed acts | `skills/implement/orchestration.md` §*which of these acts runs itself*: the rows for the note, the fix surface, `Ran by`, *then say who checked them*, *commit the record before commissioning*; `tests/test_every_orchestrator_act_names_its_delivery.py`'s pins of them | the table reads the headings, so the rows go with them |
-| the preload beyond the contract (part B) | every `agents/*.md` `skills:` entry other than `agent-contract` | opened at the step |
-| the contract's numbering (part B) | `§1`–`§17` as numbers, and every `§N` citation of them | rules 1..N, every citation rewritten |
-| the five definitions and four skills as written (part B) | `agents/{warden,smith,framer,sealer,scribe}.md`, `skills/{agent-contract,code-review,implement,writing-style}/SKILL.md` | written anew; each old rule's disposition in the phase record (S17) |
+
+**Moved to #957, not removed by this item** (the owner's split, 2026-10-16).
+None of these is a claim of absence the sealer reads against this item's
+tree; each is #957's to frame on the released tree.
+
+- The three removals this table held for part B: the preload beyond the
+  contract (every `agents/*.md` `skills:` entry other than `agent-contract`),
+  the contract's numbering (`§1`–`§17` and every `§N` citation of them), and
+  the five definitions and four skills as written.
+- This frame's promises of part B's outcomes, cut from it: §*Every agent
+  definition, written anew from its job* (the one shape, the preload rule,
+  the six-row table of jobs, orders, openings and rules, the size estimate),
+  now §*The agent definitions this item touches*; §*The proof*'s baseline,
+  pass rule and run budget; §*Scope*'s part-B paragraph; S14–S18.
+- `plan.md` rows 6–9, the test-row sentence on how part B's rewrites are
+  verified, Alternative L's per-agent preload decision, and the
+  operational-impact bullet on part B; `questions.md` Q4, Q5 and Q6, and the
+  owner's run budget for the proof (≈ 120 runs, ≈ $150, 2026-10-14).
 
 ## Open questions → questions.md
 
