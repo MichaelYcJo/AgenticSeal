@@ -109,10 +109,10 @@ class TestWriteGateFile:
 
 def a_record(*verdicts):
     """A round record in `templates/sdd-round.md`'s shape, one finding per
-    `Verdict:` value."""
+    `verdict:` value."""
     found = "".join(
-        f"### {n}. x\n\nSeverity: fix or justify\nLocation: `a:{n}`\n"
-        f"Verdict: {verdict}\n\nwhy\n\nAnswer: \n\n"
+        f"### {n}. x\n\nseverity: should\nlocation: `a:{n}`\n"
+        f"verdict: {verdict}\n\nwhy\n\nanswer: \n\n"
         for n, verdict in enumerate(verdicts, 1)
     )
     return (
@@ -134,16 +134,22 @@ class TestRoundsRows:
     def test_the_count_and_every_records_deferred_homes(self, tmp_path):
         """S11 (T30): `deferred` is counted through the check's reader, so a
         record it refuses — one finding at a homeless `deferred` or an
-        emphasised one, or the old table's shape — adds nothing beneath
-        `rounds`, and the records it reads add every home they name."""
+        emphasised one, a label in another spelling, or the old table's shape
+        — adds nothing beneath `rounds`, and the records it reads add every
+        home they name."""
         item = tmp_path / "1799000002-x"
         write(item, "rounds/round-1.md", a_record("deferred #7", "fixed abc1234"))
         write(item, "rounds/round-2.md", a_record("deferred #8"))
         write(item, "rounds/round-3.md", a_record("deferred #9", "deferred"))
         write(item, "rounds/round-4.md", a_record("**deferred** #9"))
         write(item, "rounds/round-5.md", OLD_RECORD)
+        write(
+            item,
+            "rounds/round-6.md",
+            a_record("deferred #9").replace("verdict:", "Verdict:"),
+        )
         rows = gate.rounds_rows(str(item))
-        assert rows == [("rounds", "5"), ("", "2 deferred → #7, #8")], rows
+        assert rows == [("rounds", "6"), ("", "2 deferred → #7, #8")], rows
 
     def test_no_record_and_no_deferral_print_the_count_alone(self, tmp_path):
         item = tmp_path / "1799000003-y"

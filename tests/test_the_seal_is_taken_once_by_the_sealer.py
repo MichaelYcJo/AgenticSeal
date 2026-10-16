@@ -1155,11 +1155,11 @@ OVERVIEW = "# overview\n\n## Not verified\n\nnone — the fixture verifies nothi
 
 
 def finding(n, verdict, what="the parser drops a row", location="`f.py:1`"):
-    """One `### ` section of `## Findings`, its `Verdict:` line `verdict`."""
+    """One `### ` section of `## Findings`, its `verdict:` line `verdict`."""
     return (
         f"### {n}. {what}\n\n"
-        f"Severity: blocks merge\nLocation: {location}\nVerdict: {verdict}\n\n"
-        "executed\n\nAnswer: \n\n"
+        f"severity: must\nlocation: {location}\nverdict: {verdict}\n\n"
+        "executed\n\nanswer: \n\n"
     )
 
 
@@ -1174,7 +1174,8 @@ def record_text(n, target, findings, confirmations=""):
         "| Field | Value |\n|---|---|\n"
         f"| Target SHA | {target} against base |\n\n"
         f"## Findings\n\n{findings}"
-        "## Confirmations\n\n| What holds | Location | Grounds |\n|---|---|---|\n"
+        "## Confirmations\n\n"
+        "| Confirms | What holds | Location | Grounds |\n|---|---|---|---|\n"
         f"{confirmations}\n"
         "## Not judged\n\n| What | Location | Who answers |\n|---|---|---|\n\n"
         "## Probes\n\n| Command | Result |\n|---|---|\n"
@@ -3847,7 +3848,7 @@ def rounds_of(tmp_path, text, rounds=3):
         ),
         (
             deferring_record(
-                "", confirmations="| round 2's 1 is closed | `f.py:1` | why |\n"
+                "", confirmations="| round-2#1 | it is closed | `f.py:1` | why |\n"
             ),
             [("rounds", "3")],
         ),
@@ -8073,13 +8074,13 @@ def declared(repo):
 
 
 def close_round(repo, n, finding, verdict):
-    """The fix pass: finding `finding`'s `Verdict:` line in round `n` set to
+    """The fix pass: finding `finding`'s `verdict:` line in round `n` set to
     `verdict`, then committed."""
     path = repo / ROUNDS / f"round-{n}.md"
     text = path.read_text(encoding="utf-8")
     closed = re.sub(
-        rf"(^### {finding}\. (?:(?!^### ).)*?^)Verdict: open$",
-        rf"\g<1>Verdict: {verdict}",
+        rf"(^### {finding}\. (?:(?!^### ).)*?^)verdict: open$",
+        rf"\g<1>verdict: {verdict}",
         text,
         count=1,
         flags=re.M | re.S,
@@ -8102,7 +8103,7 @@ def settled_item(repo):
         repo,
         2,
         "",
-        confirmations="| round 1's fix holds | `f.py:1` | read |\n",
+        confirmations="| round-1#1 | round 1's fix holds | `f.py:1` | read |\n",
     )
     return one, two
 

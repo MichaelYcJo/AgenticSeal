@@ -2635,7 +2635,7 @@ def rounds_rows(item):
         except (OSError, UnicodeDecodeError):
             continue
         found, errors = chain.record_findings(reader, text, path)
-        for _line, _heading, (kind, home) in [] if errors else found:
+        for kind, home in [] if errors else [f.verdict for f in found]:
             if kind != chain.DEFERRED:
                 continue
             home = home.encode("ascii", "replace").decode("ascii")

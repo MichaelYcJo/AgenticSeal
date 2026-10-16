@@ -425,14 +425,14 @@ OLD_ROUND = """# round {n}
 def finding(i, verdict):
     """One finding of `templates/sdd-round.md`'s shape, at `verdict`."""
     return (
-        f"### {i}. a finding\n\nSeverity: fix or justify\nLocation: `f.py:{i}`\n"
-        f"Verdict: {verdict}\n\nwhy\n\nAnswer: \n\n"
+        f"### {i}. a finding\n\nseverity: should\nlocation: `f.py:{i}`\n"
+        f"verdict: {verdict}\n\nwhy\n\nanswer: \n\n"
     )
 
 
 def tree(tmp_path, branch="feat/12-an-item", verdicts=()):
     """A repository root holding one work item that declares `branch`, with
-    one round record per entry of `verdicts`, each a list of `Verdict:`
+    one round record per entry of `verdicts`, each a list of `verdict:`
     values, one finding each."""
     item = tmp_path / "seal" / "specs" / "1700000000-an-item"
     (item / "rounds").mkdir(parents=True)
@@ -458,7 +458,7 @@ def test_the_chain_rows_count_items_rounds_capped_and_deferred(tmp_path):
     whose verdicts defer #12, then #13 and #14, then a file: one item, three
     rounds, one capped, three distinct issues. A pull request no declaration
     names is not an item, and its label still counts. Each home is one
-    `Verdict:` line's (#866), so the answer naming #99 counts no fourth."""
+    `verdict:` line's (#866), so the answer naming #99 counts no fourth."""
     root = tree(
         tmp_path,
         verdicts=[
@@ -471,10 +471,9 @@ def test_the_chain_rows_count_items_rounds_capped_and_deferred(tmp_path):
         tmp_path / "seal" / "specs" / "1700000000-an-item" / "rounds" / "round-2.md"
     )
     text = record.read_text(encoding="utf-8")
-    record.write_text(
-        text.replace("Answer: \n", "Answer: #99 was deferred by another round\n"),
-        encoding="utf-8",
-    )
+    answered = text.replace("answer: \n", "answer: #99 was deferred by another round\n")
+    assert answered != text
+    record.write_text(answered, encoding="utf-8")
     pulls = [
         pr(20, "feat/12-an-item", "chain: capped"),
         pr(21, "fix/nobody-declared-this"),
@@ -486,7 +485,7 @@ def test_the_seal_counts_the_issue_a_deferral_went_to_not_every_mention(tmp_path
     """#866 S3. A home is the whole of what follows `deferred`, and it names
     an issue only where it is exactly `#N`: `deferred #854 — fixed in 0.20.0
     as #858` names neither #854 nor #858, since a note belongs on the
-    finding's `Answer:` line. With `deferred #854` beside it, one issue was
+    finding's `answer:` line. With `deferred #854` beside it, one issue was
     deferred to. A home written as prose, `deferred to #700`, names none."""
     root = tree(
         tmp_path,

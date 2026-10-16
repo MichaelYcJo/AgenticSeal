@@ -122,11 +122,14 @@ every repository, whatever either row says:
   name is typed into a shell and pasted into a URL.
 - **The field names, section headings and vocabulary a checker or a pinned
   case reads literally** — a round record's `Target SHA`; its `## Findings`
-  heading and each finding's `Verdict:` line, with its four values `open`,
-  `fixed`, `answered` and the `deferred` in `deferred <home>`; the labels
-  the parties and the eval graders read, `Severity:`, `Location:`,
-  `Fix of a fix:` and `Answer:`, and the `## Confirmations`, `## Not judged`
-  and `## Probes` headings; a `broad-gate.md`'s `Broad gate`; an
+  heading and each finding's `verdict:` line, with its four values `open`,
+  `fixed`, `answered` and the `deferred` in `deferred <home>`, its
+  `location:` line and its `refixes:` line; its `## Confirmations` heading
+  and that table's `Confirms` column, each cell `none` or a reference
+  spelt `round-<N>#<n>`; the labels the parties and the eval graders read,
+  `severity:` with its two words `must` and `should`, and `answer:`, and
+  the `## Not judged` and `## Probes` headings; a `broad-gate.md`'s
+  `Broad gate`; an
   `overview.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns; a `spec.md`'s `## Removes` heading and the
   `nothing` in `nothing — <why>`. A translated field name is not a

@@ -15,11 +15,16 @@ judged (`carried_by`). The arms are five:
                 line under it names the framer
   records       `Review | through the review chain`: `rounds/` holds at least
                 one `round-N.md`; each holds one `## Findings` section whose
-                every `### ` finding carries one `Verdict:` line reading
-                `fixed <commit HEAD descends from>`, `answered` or
-                `deferred <home>`, and whatever the reader cannot read is
-                refused; the last record's `Target SHA` is HEAD, or every
-                commit after it touches only the work item's own directory
+                every `### ` finding carries one `verdict:` line reading
+                `fixed <commit>`, `answered` or `deferred <home>` and one
+                `location:` line, a `fixed` commit on the branch and
+                touching a path that line names; every `fixed` or
+                `answered` finding is named by the next record's `Confirms`
+                cells or `refixes:` lines, and none stands in the last
+                record; a label in another spelling, and whatever else the
+                reader cannot read, is refused; the last record's `Target
+                SHA` is HEAD, or every commit after it touches only the work
+                item's own directory
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
                 touches only the work item's own directory
   guarantee     `guarantee.md` names HEAD, or every commit after it touches
@@ -43,6 +48,7 @@ GitHub annotation in CI) · 2 the check could not run.
 """
 
 import argparse
+import collections
 import importlib.util
 import json
 import os
@@ -70,16 +76,58 @@ UNDECIDABLE = "undecidable"
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
 EARLIER_RUN = "; earlier run: "
 
-# A round record's findings: the one `## Findings` section, a `### ` section
-# per finding, and in each exactly one line `Verdict: <value>` — at the start
-# of the line, no emphasis, no table cell. That line is the one fact the
-# check reads of a finding, and a spelling it does not read is refused by
-# name, never passed (`findings`). These stay as the record's vocabulary,
+# A round record's findings: the one `## Findings` section, a `### <n>. `
+# section per finding, and in each exactly one `verdict: <value>` line and
+# one `location: <coordinates>` line, and at most one `refixes: <reference>`
+# line — each label one lowercase word at the start of its line, one space
+# after the colon, no emphasis, no table cell. Those lines and the
+# `Confirms` cells of `## Confirmations` are the facts the check reads of a
+# record, and a spelling it does not read is refused by name, never passed
+# (`findings`, `confirmations`). These stay as the record's vocabulary,
 # which no `Record language` translates.
 FINDINGS_HEADING = "## Findings"
+CONFIRMATIONS_HEADING = "## Confirmations"
+CONFIRMS = "Confirms"
+NONE = "none"
 FINDING_LEVEL = 3
-VERDICT = "Verdict:"
+FINDING_NUMBER = re.compile(r"^### ([1-9][0-9]*)\. ")
+SEVERITY = "severity:"
+LOCATION = "location:"
+VERDICT = "verdict:"
+REFIXES = "refixes:"
+ANSWER = "answer:"
+LABELS = (SEVERITY, LOCATION, VERDICT, REFIXES, ANSWER)
 VERDICT_LABEL = re.compile(r"^" + re.escape(VERDICT) + r" (.*)$")
+LOCATION_LABEL = re.compile(r"^" + re.escape(LOCATION) + r" (.*)$")
+REFIXES_LABEL = re.compile(r"^" + re.escape(REFIXES) + r" (.*)$")
+# A labelled line in its one spelling: the label, then a space or the end of
+# the line.
+EXACT_LABEL = re.compile(r"^(severity|location|verdict|refixes|answer):(?: |$)")
+# A line that means a label and is not spelt as one: its first word, case
+# folded and stripped of `*`, `_` and backticks, is a label or the old
+# two-word `fix of a fix`, followed by a colon (`findings` refuses it).
+MISSPELT_LABEL = re.compile(
+    r"^\s*[*_`]*\s*(severity|location|verdict|refixes|answer|fix\s+of\s+a\s+fix)"
+    r"\s*[*_`]*\s*:",
+    re.IGNORECASE,
+)
+# `location:`'s value: one or more backticked `path`, `path:line` or
+# `path:first-last`, joined by `, `, the path relative to the root.
+COORDINATE_ITEM = r"`[^`\s:/][^`\s:]*(?::[0-9]+(?:-[0-9]+)?)?`"
+COORDINATE = re.compile(r"`([^`\s:/][^`\s:]*)(?::[0-9]+(?:-[0-9]+)?)?`")
+LOCATION_VALUE = re.compile(COORDINATE_ITEM + r"(?:, " + COORDINATE_ITEM + r")*")
+# A reference to an earlier finding, or to an earlier round's fix pass.
+REFERENCE = re.compile(r"round-([1-9][0-9]*)(?:#([1-9][0-9]*))?")
+REFERENCE_SPELLING = "`round-<N>#<n>`"
+# One finding as `findings` read it: the line of its `verdict:`, its heading
+# and the heading's number, the verdict, the paths of its `location:`, and
+# its `refixes:` reference with that line's number, where it has one.
+Finding = collections.namedtuple(
+    "Finding", "line heading number verdict paths refixes refixes_line"
+)
+# One record as `channel` reads it: its path and number, its findings, the
+# numbers of every `### <n>. ` heading it holds, and its `Confirms` cells.
+Round = collections.namedtuple("Round", "path number findings held confirms")
 OPEN = "open"
 FIXED = "fixed"
 ANSWERED = "answered"
@@ -91,14 +139,26 @@ FIXED_VALUE = re.compile(r"^fixed ([0-9a-f]{7,40})$")
 DEFERRED_VALUE = re.compile(r"^deferred (\S(?:.*\S)?)$")
 SHAPES = "`open`, `fixed <commit>`, `answered` or `deferred <home>`"
 ANSWERS = "`fixed <commit>`, `answered` or `deferred <home>`"
+COORDINATES = (
+    "one or more of `path`, `path:line` or `path:first-last`, each "
+    "backticked, joined by `, `"
+)
+REFERENCES = f"{REFERENCE_SPELLING} or `round-<N>`"
 NO_FINDINGS = (
     f"no `{FINDINGS_HEADING}` section: a round record holds one, with a "
-    "`### ` section and one `Verdict:` line per finding"
+    "`### ` section and one `verdict:` line per finding"
 )
 TWO_FINDINGS = f"a second `{FINDINGS_HEADING}` section; a round record holds one"
 OUTSIDE = (
-    f"a `Verdict:` line outside a finding: the check reads one inside each "
+    "a `{label}` line outside a finding: the check reads one inside each "
     f"`### ` section of `{FINDINGS_HEADING}`, and none elsewhere"
+)
+NO_CONFIRMATIONS = (
+    f"no `{CONFIRMATIONS_HEADING}` section: a round record holds one, its "
+    f"table's first column `{CONFIRMS}`"
+)
+TWO_CONFIRMATIONS = (
+    f"a second `{CONFIRMATIONS_HEADING}` section; a round record holds one"
 )
 DASH = chr(0x2014)
 EMPHASIS = re.compile(r"[*_`]+")
@@ -459,7 +519,7 @@ def section_end(reader, lines, start):
 
 
 def verdict_of(value):
-    """`(kind, its commit or home)` for one `Verdict:` value, or None.
+    """`(kind, its commit or home)` for one `verdict:` value, or None.
 
     The four shapes, read as written and nothing else: `open`, `answered`,
     `fixed <commit>` with seven to forty lowercase hex digits, and
@@ -492,25 +552,48 @@ def issue_of(home):
     return int(found.group(1)) if found else None
 
 
-def findings(reader, lines, rel):
-    """`([(line, heading, verdict)], errors)` for a record's findings.
+def location_of(value):
+    """The paths one `location:` value names, in order, or None.
 
-    `lines` are `reader.readable`'s, so a `Verdict:` inside a fence or a
-    comment is no line. The one `## Findings` section is split at its `### `
-    headings, and each holds exactly one line `VERDICT_LABEL` matches, its
-    value read by `verdict_of`. Everything the reader cannot read is an
-    error `(rel, line, why)` naming the finding's heading, in line order: no
-    `## Findings` section or two, a finding with no `Verdict:` line or with
-    two, a value outside the four shapes, a `Verdict:` line outside a
-    finding. Nothing else of the record is read — not a severity, a
-    location, an answer or another section's table.
+    One or more backticked `path`, `path:line` or `path:first-last` items
+    joined by `, `, each path relative to the root. A bare `:617`, a path
+    with no backticks, a URL, an absolute path, emphasis around an item, a
+    trailing word or mark, or an empty value is None, which the arm refuses
+    by name.
 
-    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    Reads: owned — one value `findings` cut from its line; unknown refused"""
+    if not LOCATION_VALUE.fullmatch(value):
+        return None
+    return [m.group(1) for m in COORDINATE.finditer(value)]
+
+
+def reference_of(value):
+    """`(round, finding)` for `round-<N>#<n>`, `(round, None)` for
+    `round-<N>`, or None.
+
+    In that spelling and no other: a different case, a space, a leading
+    zero, emphasis, a trailing mark or a second reference is None.
+
+    Reads: owned — one `refixes:` value or `Confirms` cell; unknown refused"""
+    found = REFERENCE.fullmatch(value)
+    if not found:
+        return None
+    number = found.group(2)
+    return int(found.group(1)), int(number) if number else None
+
+
+def finding_spans(reader, lines):
+    """`((start, end), [(first, stop)], error)` for the one `## Findings`
+    section of already-`readable` lines: where it stands, and each `### `
+    section in it, from its heading to the next. `error` is the refusal for
+    a record with no such section or two, and the spans are then empty.
+
+    Reads: owned — headings, through the shared reader; unknown refused"""
     starts = reader.sections(lines, FINDINGS_HEADING)
     if not starts:
-        return [], [(rel, 0, NO_FINDINGS)]
+        return None, [], (0, NO_FINDINGS)
     if len(starts) > 1:
-        return [], [(rel, starts[1] + 1, TWO_FINDINGS)]
+        return None, [], (starts[1] + 1, TWO_FINDINGS)
     start = starts[0]
     end = section_end(reader, lines, start)
     heads = [
@@ -518,54 +601,158 @@ def findings(reader, lines, rel):
         for i in range(start + 1, end)
         if reader.heading_level(lines[i]) == FINDING_LEVEL
     ]
-    spans = list(zip(heads, [*heads[1:], end], strict=False))
+    return (start, end), list(zip(heads, [*heads[1:], end], strict=False)), None
+
+
+def finding_number(heading):
+    """The `n` of a `### <n>. ` heading, or None.
+
+    Reads: owned — one heading `finding_spans` found; unknown refused"""
+    found = FINDING_NUMBER.match(heading)
+    return int(found.group(1)) if found else None
+
+
+def misspelt(line):
+    """The label `line` means and is not spelt as, or None: `refixes:` for
+    the old `fix of a fix`, else the label itself.
+
+    Reads: owned — one readable line; unknown refused"""
+    found = MISSPELT_LABEL.match(line)
+    if not found or EXACT_LABEL.match(line):
+        return None
+    word = " ".join(found.group(1).lower().split())
+    return REFIXES if word == "fix of a fix" else f"{word}:"
+
+
+def findings(reader, lines, rel):
+    """`([Finding], errors)` for a record's findings.
+
+    `lines` are `reader.readable`'s, so a labelled line inside a fence or a
+    comment is no line. The one `## Findings` section is split at its `### `
+    headings, and each holds exactly one `verdict:` line, read by
+    `verdict_of`, exactly one `location:` line, read by `location_of`, and
+    at most one `refixes:` line, read by `reference_of`. Before any of it,
+    a line that means one of the five labels or the old `fix of a fix` and
+    is not spelt as the label is refused, and a finding carrying one is not
+    read past it. Everything the reader cannot read is an error `(rel, line,
+    why)` naming the finding's heading, in line order: no `## Findings`
+    section or two, a finding with no `verdict:` or `location:` line or two
+    of either, two `refixes:` lines, a value none of the three readers can
+    read, a labelled line outside a finding. A finding with an error is not
+    in the list. Nothing of a `severity:` or an `answer:` value is read.
+
+    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    _section, spans, error = finding_spans(reader, lines)
+    if error:
+        return [], [(rel, *error)]
     inside = {i for first, stop in spans for i in range(first, stop)}
     found, errors = [], []
     for i, line in enumerate(lines):
-        if VERDICT_LABEL.match(line) and i not in inside:
-            errors.append((rel, i + 1, OUTSIDE))
+        if i in inside:
+            continue
+        label = misspelt(line)
+        exact = EXACT_LABEL.match(line)
+        if label:
+            errors.append((rel, i + 1, spelt_otherwise(label)))
+        elif exact:
+            errors.append((rel, i + 1, OUTSIDE.format(label=f"{exact.group(1)}:")))
     for first, stop in spans:
         heading = lines[first].strip()
         said = [
-            (i, VERDICT_LABEL.match(lines[i]).group(1))
-            for i in range(first + 1, stop)
-            if VERDICT_LABEL.match(lines[i])
+            (i, label) for i in range(first + 1, stop) if (label := misspelt(lines[i]))
         ]
-        if not said:
+        if said:
+            errors.extend(
+                (rel, i + 1, spelt_otherwise(label, heading)) for i, label in said
+            )
+            continue
+        found_here, errors_here = finding_of(lines, first, stop, heading, rel)
+        errors.extend(errors_here)
+        if not errors_here:
+            found.append(found_here)
+    errors.sort(key=lambda error: error[1])
+    return found, errors
+
+
+def spelt_otherwise(label, heading=None):
+    """The refusal of a line that means `label` and is spelt another way.
+
+    Reads: nothing — formats the label its caller hands it"""
+    said = (
+        f"a label in another spelling: the check reads `{label}` at the start "
+        "of a line, lowercase, with no emphasis and one space after the colon"
+    )
+    return f"{heading} {DASH} {said}" if heading else said
+
+
+def finding_of(lines, first, stop, heading, rel):
+    """`(Finding or None, errors)` for the `### ` section at `first`..`stop`.
+
+    Reads: guess — one finding of the warden's record; unknown refused"""
+    errors = []
+
+    def one(label, pattern, need):
+        said = [
+            (i, pattern.match(lines[i]).group(1))
+            for i in range(first + 1, stop)
+            if pattern.match(lines[i])
+        ]
+        if need and not said:
             errors.append(
                 (
                     rel,
                     first + 1,
-                    f"{heading} {DASH} no `Verdict:` line: a finding carries one, "
-                    f"at the start of a line and with no emphasis, reading {SHAPES}",
+                    f"{heading} {DASH} no `{label}` line: a finding carries one, "
+                    f"at the start of a line and with no emphasis, reading {need}",
                 )
             )
-            continue
-        if len(said) > 1:
+        elif len(said) > 1:
             errors.append(
                 (
                     rel,
                     said[1][0] + 1,
-                    f"{heading} {DASH} {len(said)} `Verdict:` lines; a finding "
+                    f"{heading} {DASH} {len(said)} `{label}` lines; a finding "
                     "carries one",
                 )
             )
-            continue
-        i, value = said[0]
-        verdict = verdict_of(value)
-        if verdict is None:
+        return said[0] if len(said) == 1 else None
+
+    def read(said, label, reading, shapes):
+        if said is None:
+            return None
+        i, value = said
+        got = reading(value)
+        if got is None:
             errors.append(
                 (
                     rel,
                     i + 1,
-                    f"{heading} {DASH} reads `Verdict: {value}`, which the check "
-                    f"cannot read: a verdict is {SHAPES}",
+                    f"{heading} {DASH} reads `{label} {value}`, which the check "
+                    f"cannot read: {shapes}",
                 )
             )
-            continue
-        found.append((i + 1, heading, verdict))
-    errors.sort(key=lambda error: error[1])
-    return found, errors
+        return got
+
+    verdict_line = one(VERDICT, VERDICT_LABEL, SHAPES)
+    location_line = one(LOCATION, LOCATION_LABEL, COORDINATES)
+    refixes_line = one(REFIXES, REFIXES_LABEL, None)
+    verdict = read(verdict_line, VERDICT, verdict_of, f"a verdict is {SHAPES}")
+    paths = read(location_line, LOCATION, location_of, f"a location is {COORDINATES}")
+    refixes = read(refixes_line, REFIXES, reference_of, f"a reference is {REFERENCES}")
+    if errors:
+        return None, errors
+    return (
+        Finding(
+            verdict_line[0] + 1,
+            heading,
+            finding_number(heading),
+            verdict,
+            paths,
+            refixes,
+            refixes_line[0] + 1 if refixes_line else None,
+        ),
+        [],
+    )
 
 
 def unclosed(reader, text, rel):
@@ -573,7 +760,7 @@ def unclosed(reader, text, rel):
     never closes, at the line that opened it.
 
     `reader.readable` blanks such a region to the end of the file, so every
-    `### ` heading and `Verdict:` line after it would vanish and the record
+    `### ` heading and `verdict:` line after it would vanish and the record
     would read as having nothing open. The walk is `readable`'s own, in its
     order: comments on the raw lines, then fences on what the comments left.
 
@@ -615,6 +802,173 @@ def record_findings(reader, text, rel):
     Reads: guess — the warden's record, through `unclosed` and `findings`; unknown refused"""
     found, errors = findings(reader, reader.readable(text or ""), rel)
     return found, unclosed(reader, text, rel) + errors
+
+
+def confirmations(reader, lines, rel):
+    """`([(line, (round, finding))], errors)` for a record's `Confirms`
+    cells.
+
+    The one `## Confirmations` section's table: its header's first cell is
+    `Confirms`, and each row's first cell is a `round-<N>#<n>` reference,
+    read with its line, or `none`. Everything else is an error by line: no
+    such section or two, no table, a header whose first cell is another
+    word, a cell that is neither. What the reference names is `channel`'s.
+
+    Reads: guess — the warden's record, a person-written file; unknown refused"""
+    starts = reader.sections(lines, CONFIRMATIONS_HEADING)
+    if not starts:
+        return [], [(rel, 0, NO_CONFIRMATIONS)]
+    if len(starts) > 1:
+        return [], [(rel, starts[1] + 1, TWO_CONFIRMATIONS)]
+    start = starts[0]
+    rows = [
+        (i, cells)
+        for i in range(start + 1, section_end(reader, lines, start))
+        if (cells := reader.split_row(lines[i])) is not None
+    ]
+    if not rows:
+        return [], [(rel, start + 1, f"no table: {NO_CONFIRMATIONS}")]
+    header_at, header = rows[0]
+    if header[0] != CONFIRMS:
+        return [], [
+            (
+                rel,
+                header_at + 1,
+                f"the `{CONFIRMATIONS_HEADING}` table's first column reads "
+                f"`{header[0]}`: it is `{CONFIRMS}`",
+            )
+        ]
+    found, errors = [], []
+    for i, cells in rows[1:]:
+        if reader.is_separator(cells) or cells[0] == NONE:
+            continue
+        reference = reference_of(cells[0])
+        if reference is None or reference[1] is None:
+            errors.append(
+                (
+                    rel,
+                    i + 1,
+                    f"a `{CONFIRMS}` cell reads `{cells[0]}`, which the check "
+                    f"cannot read: it is {REFERENCE_SPELLING} or `{NONE}`",
+                )
+            )
+            continue
+        found.append((i + 1, reference))
+    return found, errors
+
+
+def round_of(reader, text, rel, number):
+    """`(Round, errors)` for one record: its findings through
+    `record_findings`, its `Confirms` cells through `confirmations`, and the
+    number of every `### <n>. ` heading of its `## Findings`, read or
+    refused, so a reference to a refused finding still names one it holds.
+
+    Reads: guess — the warden's record, through the two readers; unknown refused"""
+    lines = reader.readable(text or "")
+    found, errors = record_findings(reader, text, rel)
+    confirmed, said = confirmations(reader, lines, rel)
+    _section, spans, _error = finding_spans(reader, lines)
+    held = {finding_number(lines[first].strip()) for first, _stop in spans}
+    held.discard(None)
+    errors = sorted(errors + said, key=lambda error: error[1])
+    return Round(rel, number, found, held, confirmed), errors
+
+
+def channel(rounds):
+    """[(path, line, problem)] for what one round owes the next, over an
+    item's records in number order.
+
+    Every reference a record writes — a `Confirms` cell, a `refixes:` line
+    — names an earlier record of the item and, where it names a finding, one
+    that record holds; the first record writes none. Every finding of a
+    record at `fixed <commit>` or `answered` is named by the next record's
+    `Confirms` cells or `refixes:` lines, or refused there. A `fixed` or
+    `answered` finding of the last record is refused as owing a verifying
+    round, since nothing after it read the fix or the answer. A `deferred`
+    finding owes nothing.
+
+    Reads: owned — the readings `round_of` made; unknown refused"""
+    problems = []
+    by_number = {r.number: r for r in rounds}
+    for k, here in enumerate(rounds):
+        references = sorted(
+            [*here.confirms]
+            + [(f.refixes_line, f.refixes) for f in here.findings if f.refixes],
+        )
+        for line, (n, m) in references:
+            said = f"round-{n}" + (f"#{m}" if m else "")
+            if k == 0:
+                why = (
+                    f"names `{said}` in the first record: there is no earlier "
+                    "round to name, so its `Confirms` cells read `none`"
+                )
+            elif n >= here.number or n not in by_number:
+                why = (
+                    f"names `{said}`, which is not an earlier record of this work item"
+                )
+            elif m is not None and m not in by_number[n].held:
+                why = f"names `{said}`, and round-{n}.md holds no finding {m}"
+            else:
+                continue
+            problems.append((here.path, line, why))
+        if k == 0:
+            continue
+        before = rounds[k - 1]
+        named = {(n, m) for _line, (n, m) in references if m is not None}
+        for f in before.findings:
+            if (
+                f.verdict[0] in (FIXED, ANSWERED)
+                and (
+                    before.number,
+                    f.number,
+                )
+                not in named
+            ):
+                problems.append(
+                    (
+                        here.path,
+                        0,
+                        f"`round-{before.number}#{f.number}` ({f.heading}) reads "
+                        f"`{VERDICT} {' '.join(x for x in f.verdict if x)}`, and "
+                        "this record neither confirms nor refixes it: a "
+                        f"`{CONFIRMS}` cell or a `{REFIXES}` line names it",
+                    )
+                )
+    if rounds:
+        last = rounds[-1]
+        for f in last.findings:
+            if f.verdict[0] in (FIXED, ANSWERED):
+                problems.append(
+                    (
+                        last.path,
+                        f.line,
+                        f"{f.heading} {DASH} reads `{VERDICT} "
+                        f"{' '.join(x for x in f.verdict if x)}` in the last "
+                        f"record, and no round after it read it: {VERIFYING_ROUND}",
+                    )
+                )
+    return problems
+
+
+def touched(root, commit):
+    """The paths `commit` changed, the root commit's included, or None
+    where git cannot say.
+
+    Reads: observed — `git diff-tree --root`'s output; unknown refused"""
+    out = git(
+        root, "diff-tree", "--no-commit-id", "--name-only", "-r", "--root", "-z", commit
+    )
+    if out is None:
+        return None
+    return [path for path in out.split("\0") if path]
+
+
+def under(path, located):
+    """True where `path` is `located` or lies under it.
+
+    Reads: nothing — compares the two paths its caller hands it"""
+    stem = located.rstrip("/")
+    return path == stem or path.startswith(f"{stem}/")
 
 
 def target_of(reader, text):
@@ -759,13 +1113,61 @@ def frame(reader, routing, root, item, declared):
     return problems
 
 
+def verdict_problems(root, path, f):
+    """[(path, line, problem)] for one finding's verdict: `open`; a `fixed`
+    whose commit HEAD does not descend from; a `fixed` whose commit changed
+    no path the `location:` names or lies under, named with what it did
+    change.
+
+    Reads: observed — `git merge-base --is-ancestor` and `diff-tree`; unknown refused"""
+    kind, commit = f.verdict
+    if kind == OPEN:
+        return [
+            (
+                path,
+                f.line,
+                f"{f.heading} {DASH} reads `{VERDICT} {OPEN}`: the fix pass "
+                f"answers it with {ANSWERS}",
+            )
+        ]
+    if kind != FIXED:
+        return []
+    if not is_ancestor(root, commit, "HEAD"):
+        return [
+            (
+                path,
+                f.line,
+                f"{f.heading} {DASH} reads `{VERDICT} {FIXED} {commit}`, and "
+                f"HEAD does not descend from `{commit}`: a `{FIXED}` names "
+                "a commit on this branch",
+            )
+        ]
+    changed_paths = touched(root, commit) or []
+    if any(under(p, q) for p in changed_paths for q in f.paths):
+        return []
+    named = ", ".join(f"`{q}`" for q in f.paths)
+    did = ", ".join(f"`{p}`" for p in changed_paths) or "nothing git can list"
+    return [
+        (
+            path,
+            f.line,
+            f"{f.heading} {DASH} reads `{VERDICT} {FIXED} {commit}`, and "
+            f"`{commit}` touches no path its `{LOCATION}` names ({named}): it "
+            f"changed {did}. A fix that went elsewhere appends that coordinate "
+            f"to the `{LOCATION}` line",
+        )
+    ]
+
+
 def records(reader, routing, root, item, rel, base):
     """[(path, line, problem)] for a work item declared through the review
-    chain: no record; a record `findings` cannot read; a finding at `open`;
-    a `fixed` naming a commit HEAD does not descend from; a last record
-    behind HEAD. A finding is named by its line and its heading.
+    chain: no record; a record `round_of` cannot read; a finding at `open`;
+    a `fixed` naming a commit HEAD does not descend from, or one that
+    changed no path the finding's `location:` names or lies under; what
+    `channel` names between the rounds; a last record behind HEAD. A
+    finding is named by its line and its heading.
 
-    Reads: guess — the warden's records, through `record_findings` and `target_of`; unknown refused"""
+    Reads: guess — the warden's records, through `round_of`, `channel` and `target_of`; unknown refused"""
     found = round_records(routing, root, item)
     if not found:
         return [
@@ -776,31 +1178,16 @@ def records(reader, routing, root, item, rel, base):
                 "holds no `round-N.md`",
             )
         ]
-    problems = []
+    problems, rounds = [], []
     for path in found:
         text = read_record(root, path)
-        read, errors = record_findings(reader, text, path)
+        number = routing.round_number(path)
+        read, errors = round_of(reader, text, path, number)
+        rounds.append(read)
         problems.extend(errors)
-        for line, heading, (kind, commit) in read:
-            if kind == OPEN:
-                problems.append(
-                    (
-                        path,
-                        line,
-                        f"{heading} {DASH} reads `Verdict: {OPEN}`: the fix pass "
-                        f"answers it with {ANSWERS}",
-                    )
-                )
-            elif kind == FIXED and not is_ancestor(root, commit, "HEAD"):
-                problems.append(
-                    (
-                        path,
-                        line,
-                        f"{heading} {DASH} reads `Verdict: {FIXED} {commit}`, and "
-                        f"HEAD does not descend from `{commit}`: a `{FIXED}` names "
-                        "a commit on this branch",
-                    )
-                )
+        for f in read.findings:
+            problems.extend(verdict_problems(root, path, f))
+    problems.extend(channel(rounds))
     last = found[-1]
     target = target_of(reader, read_record(root, last))
     if target is None:

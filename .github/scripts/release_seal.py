@@ -380,7 +380,7 @@ def chain_counts(root, pulls):
             if errors:
                 unread.append(path)
                 continue
-            for _line, _heading, (kind, home) in found:
+            for kind, home in (f.verdict for f in found):
                 issue = chain.issue_of(home) if kind == chain.DEFERRED else None
                 if issue is not None:
                     deferred.add(issue)

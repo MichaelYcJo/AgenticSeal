@@ -1054,12 +1054,17 @@ def test_the_templates_check_reads_prose_only_and_descends(repo):
 ROUND_RECORD_FIELDS = [
     "Target SHA",
     "## Findings",
-    "Severity:",
-    "Location:",
-    "Verdict:",
-    "Fix of a fix:",
-    "Answer:",
+    "severity:",
+    "must",
+    "should",
+    "location:",
+    "verdict:",
+    "refixes:",
+    "answer:",
     "## Confirmations",
+    "Confirms",
+    "none",
+    "round-<N>#<n>",
     "## Not judged",
     "## Probes",
 ]
@@ -1194,6 +1199,11 @@ def _literal_strings():
     found = {
         chain.FINDINGS_HEADING,
         chain.VERDICT,
+        chain.LOCATION,
+        chain.REFIXES,
+        chain.CONFIRMATIONS_HEADING,
+        chain.CONFIRMS,
+        chain.NONE,
         chain.TARGET,
         chain.BROAD_GATE,
         chain.OPEN,
@@ -1213,7 +1223,7 @@ def test_the_exclusion_list_holds_every_string_a_checker_matches(literal):
     checked against the checkers rather than against itself.
 
     A repository that set `Record language` to another language and
-    translated `## Findings` or `Verdict:` would have every round record
+    translated `## Findings` or `verdict:` would have every round record
     refused by `chain_check.py`, and one that translated `## Not verified`
     turns `unverified_check.py` red on every pull request.
     """
