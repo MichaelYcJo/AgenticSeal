@@ -288,6 +288,12 @@ def test_a_close_that_does_not_hold_reopens_it():
         "run ends only on a round whose record holds no `open`, `fixed` or "
         "`rejected` finding" in verifying
     ), "the verifying-round section no longer says where the run ends"
+    # Round 9 of 1791933022, finding 3: the check holds a second condition on
+    # the same record, so a run ended on the first alone is refused.
+    assert (
+        "and whose `target:` commit is HEAD, or is followed only by the work "
+        "item's own records" in verifying
+    ), "the verifying-round section ends the run on one of the check's two conditions"
 
 
 COMPARISON = ("what the frame says", "what the fix did", "where the defect came from")

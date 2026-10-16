@@ -122,9 +122,12 @@ gets its fix pass and one more verifying round; a round carrying a
 `regression:` line is routed as the section below says, and where the work
 item returns to its framer the run goes on with the redesign. The run ends
 only on a round whose record holds no `open`, `fixed` or `rejected` finding
-— a verifying round, or the round at the cap whose open findings took the
-filing ladder — since the check refuses a ready pull request whose last
-record holds one.
+and whose `target:` commit is HEAD, or is followed only by the work item's
+own records — a verifying round, or the round at the cap whose open
+findings took the filing ladder — since the check refuses a ready pull
+request whose last record fails either. A fix committed after that round,
+one the ladder's first rung sends to the diff among them, is followed by
+one more verifying round.
 
 ### A regression is routed by comparing the fix with the frame
 
