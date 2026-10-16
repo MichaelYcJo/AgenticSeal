@@ -41,7 +41,9 @@ labels:
                  rejected           the finding does not hold; the answer
                                     says why
                  deferred <home>    the issue or file it went to, by the
-                                    filing ladder
+                                    filing ladder, or where a repair with
+                                    no commit was made
+                                    (docs/the-review-record.md)
   regression:  only on a finding in a unit the fixes under review added or
                changed: the earlier finding as `round-<N>#<n>`, or
                `round-<N>` for a fix pass no finding named. A round carrying

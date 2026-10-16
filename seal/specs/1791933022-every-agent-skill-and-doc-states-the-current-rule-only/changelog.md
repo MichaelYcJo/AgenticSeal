@@ -31,9 +31,11 @@
   table becomes `target: <its Target SHA value>`; each 🔴 or 🟡 row becomes
   a `### <n>.` section with `severity: must` for 🔴 and `should` for 🟡,
   `location:` holding its Location cell's coordinates, each backticked and
-  joined by `, `, `verdict:` holding its Verdict cell (`answered` is
-  `rejected` now), its paste-ready block, and `answer:` holding what the fix
-  pass wrote; each 🟢 row becomes `confirms: round-<N>#<n>` naming the
+  joined by `, `, `verdict:` holding its Verdict cell, where an `answered`
+  becomes `rejected` if the finding did not hold, `fixed <commit>` if a
+  commit repaired it, and `deferred <where it was repaired>` if it was
+  repaired outside the tree with no commit, its paste-ready block, and
+  `answer:` holding what the fix pass wrote; each 🟢 row becomes `confirms: round-<N>#<n>` naming the
   finding it confirmed, or `confirms: none`, with its text on the next line;
   each ❓ row becomes a row of `## Not judged`; `## Executed probes` becomes
   `## Probes`. Then run `python3 skills/code-review/scripts/chain_check.py

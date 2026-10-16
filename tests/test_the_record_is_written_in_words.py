@@ -1,12 +1,15 @@
 """The round record is written in words, and so is every text that states it.
 
-The record's facts are its labelled lines and its `Confirms` cells; a mark
-the check does not read is a mark a reader has to sort, and sorting marks is
-what four rounds of this repository found read wrong. So the template, the
-review skill's findings format and the two definitions that write or fill a
-round carry no emoji at all (`spec.md` of
+The record's facts are its labelled lines; a mark the check does not read is
+a mark a reader has to sort, and sorting marks is what four rounds of this
+repository found read wrong. So the template, the review skill's findings
+format and the two definitions that write or fill a round carry no emoji at
+all (T39). Each verdict word means one thing, too: a repair with no commit
+on the branch closes `deferred <where it was repaired>`, one a commit made
+closes `fixed <commit>`, and `rejected` is a finding that does not hold
+(T41). Both cases are `spec.md`'s of
 `1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
-§*What a round records*, T39).
+§*What a round records*.
 """
 
 import os
@@ -60,4 +63,44 @@ def test_the_template_the_format_and_the_two_definitions_carry_no_emoji():
     found += emoji_lines(rel, lines, start)
     assert not found, "an emoji in a text that states the round record:\n" + "\n".join(
         found
+    )
+
+
+def sentences(lines):
+    """The sentences of LINES, folded onto one line and cut after each `.`."""
+    text = " ".join(" ".join(lines).split())
+    return re.split(r"(?<=\.)\s+(?=[A-Z`*])", text)
+
+
+def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
+    rel = "docs/the-review-record.md"
+    lines, _ = section(read(rel), "## The round record")
+    opener = "**The fix pass writes two lines per finding"
+    start = next(i for i, line in enumerate(lines) if line.startswith(opener))
+    end = next(
+        i for i in range(start, len(lines)) if lines[i].startswith("Enforced by:")
+    )
+    paragraph = sentences(lines[start:end])
+
+    outside = [s for s in paragraph if "outside the tree" in s]
+    assert outside, (
+        f"{rel} §The round record: the fix-pass paragraph names no repair outside the tree"
+    )
+    for s in outside:
+        assert "`deferred <where it was repaired>`" in s, (
+            f"a repair outside the tree closes `deferred <where it was repaired>`: {s}"
+        )
+
+    corrections = [s for s in paragraph if "correction to a record" in s]
+    assert corrections, (
+        f"{rel} §The round record: the fix-pass paragraph names no record correction"
+    )
+    for s in corrections:
+        assert "`fixed <commit>`" in s, (
+            f"a repair a commit made closes `fixed <commit>`: {s}"
+        )
+
+    sent = [s for s in sentences(lines) if "repair" in s and "`rejected`" in s]
+    assert not sent, (
+        f"{rel} §The round record sends a repair to `rejected`:\n" + "\n".join(sent)
     )

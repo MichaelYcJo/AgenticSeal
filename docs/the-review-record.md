@@ -58,9 +58,13 @@ It rewrites the finding's `verdict:` line, with the commit for `fixed`, and
 writes its `answer:` line: what was done, why the finding does not hold, or
 where it went. Where its fix went to a path `location:` does not name, it
 appends that coordinate to the line, joined by `, `, and its answer says so.
-A correction to a record, or a repair made outside the tree, produced no
-commit on the branch and closes `rejected` with where the repair is.
-Enforced by: tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused
+A repair a commit made, a correction to a record among them, closes
+`fixed <commit>`, with the record's path on `location:`. A repair made
+outside the tree, an issue or a pull request body edited, makes no commit
+on the branch and closes `deferred <where it was repaired>`, such as
+`deferred #956`, with `answer:` saying what changed there; it owes the next
+round nothing. `rejected` means only that the finding does not hold.
+Enforced by: tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused, tests/test_the_record_is_written_in_words.py::test_a_repair_with_no_commit_closes_deferred_where_it_was_made
 
 **Each round answers to the next by reference.** A reference is
 `round-<N>#<n>`, the earlier record's number and the finding's heading

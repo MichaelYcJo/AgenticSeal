@@ -189,7 +189,9 @@ incorporation. This file only adds what the skill does not carry.
 
    **A fix pass is not a phase, and its record is the round record:** in
    each open finding of `rounds/round-N.md` it rewrites the `verdict:` line
-   to `fixed <commit>`, `rejected` or `deferred <home>` and writes the
+   to `fixed <commit>`, `rejected` or `deferred <home>` — a repair that made
+   no commit on the branch, such as an issue edited, is
+   `deferred <where it was repaired>` — and writes the
    `answer:` line, and nothing else; it writes no `phases/phase-N.md` and no
    `plan.md` row (`docs/the-review-record.md` §*The round record*). The
    check holds your commit to the `location:` line, so where your fix
