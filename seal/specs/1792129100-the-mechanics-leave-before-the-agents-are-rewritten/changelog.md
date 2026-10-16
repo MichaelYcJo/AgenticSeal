@@ -14,15 +14,17 @@
   where it matches its row whole (#964).** `docs/the-review-record.md`
   §*The round record* holds one row per line kind of a
   `rounds/round-N.md`, and `chain_check.py` loads that table and reads nothing
-  else for the grammar. `templates/sdd-round.md` and `templates/config.md`
-  point at the table instead of listing the labels. Two things are now
-  refused that passed before. A finding must hold exactly one `severity:`
-  line, whose value is `must` or `should`, and exactly one `answer:` line.
-  A value with a word after it, such as `verdict: fixed abc1234 and more`,
-  is refused as well. A round record in flight that lacks either line adds
-  it before it meets this release's check. Where the table itself cannot be
-  read, because the document is missing or a row will not parse,
-  `chain_check.py` stops with exit 2 naming the file, never a pass.
+  else for the grammar. `templates/config.md` points at the table instead
+  of listing the labels, and `templates/sdd-round.md` keeps what each label
+  means and leaves its shape to the table. Two things are now refused that
+  passed before: a finding with no `severity:` line, with two, or with one
+  whose value is not `must` or `should`, and a finding with no `answer:`
+  line or with two.
+  A round record in flight that lacks either line adds it before it meets
+  this release's check. Where the table itself cannot be read, because the
+  document is missing, a row will not parse or a row's `How many` allows
+  more than the check can read, `chain_check.py` stops with exit 2 naming
+  the file, never a pass.
   (`1792129100-the-mechanics-leave-before-the-agents-are-rewritten`, #964)
 - **A `## Not verified` row is closed by the word `closed` (#964).** The
   row's Item cell opens with `closed`, lower case, then the item, and the
@@ -31,10 +33,14 @@
   `unverified-check` refuses a row that opens with the old check-mark
   emoji, naming the row and the edit to make. It also refuses a bare
   `closed` with nothing after it, and `Closed` or `closed:`, which would
-  otherwise read as open. An overview in flight rewrites its closed rows to
-  the word when it moves its `hygiene.yml` pin to this release. A base
-  revision still reads the old mark as closed, so `--baseline` keeps
-  comparing every base written before the word. The overview template,
-  `templates/config.md` and the implement, verify and settle skills show the
-  word.
+  otherwise read as open. The hygiene step reads every `overview.md` under
+  `seal/specs/`, released or in flight, until `settle` retires its
+  directory. So before you move your `hygiene.yml` pin to this release,
+  rewrite every closed row that still opens with the old mark to open with
+  the word, in each of them. A base revision still reads the old mark as
+  closed, so `--baseline` keeps comparing every base written before the
+  word. An open item whose own text begins with the word `closed` reads as
+  closed, and nothing refuses it, so word such an item to open with another
+  word. The overview template, `templates/config.md` and the implement,
+  verify and settle skills show the word.
   (`1792129100-the-mechanics-leave-before-the-agents-are-rewritten`, #964)

@@ -459,9 +459,11 @@ with the word `closed`, lower case, then the item.
 | closed how the gates render in a TUI | seen on screen, session of 2026-08-25 |
 ```
 
-An unmarked row counts open, so the silent direction is always "still open",
-and a bare `closed` with nothing after it is refused the same way a ticked
-checkbox is. Deleting the row — or the whole file — fails the next pull
+An unmarked row counts open, so the silent direction is "still open", except
+for an open item whose own text begins with the word `closed`, which reads as
+closed and which only a reader catches: word such an item to open with
+another word. A bare `closed` with nothing after it is refused the same way a
+ticked checkbox is. Deleting the row — or the whole file — fails the next pull
 request (`unverified-check --baseline origin/<base>`), which is what keeps "I
 verified it" and "I tidied it away" from being the same edit.
 

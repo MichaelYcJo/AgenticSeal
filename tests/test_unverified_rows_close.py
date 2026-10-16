@@ -248,6 +248,41 @@ def test_the_template_shows_the_word():
     assert "| closed <the item, kept> | <what closed it" in text
 
 
+# Every shipped text that says which way an unmarked row reads.
+OPEN_BY_DEFAULT_TEXTS = [
+    ("templates", "sdd-overview.md"),
+    ("skills", "implement", "SKILL.md"),
+    ("skills", "verify", "scripts", "unverified_check.py"),
+]
+
+
+@pytest.mark.parametrize("parts", OPEN_BY_DEFAULT_TEXTS, ids=lambda p: "/".join(p))
+def test_a_text_saying_a_row_counts_open_names_the_open_item_that_reads_closed(
+    tmp_path, parts
+):
+    """§14, round 1's finding 1: an open item whose own text begins with the
+    word `closed` reads as closed, and the reader cannot tell it from a
+    closing. So each text that says an unmarked row counts open names that
+    row too, and the reader's reading of it is checked beside the sentence.
+
+    Protects: a text promising that the silent direction is always "still
+    open" while `| closed issues are not re-read | the owner |` closes
+    itself, and a reader that changes how it reads that row while the
+    sentence stays. The closing-word cases read the row's first word and no
+    text; no other case reads these texts for the exception."""
+    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
+        text = " ".join(f.read().split())
+    assert "whose own text begins with the word `closed`" in text
+    assert 'always "still open"' not in text
+    section = CANONICAL.replace(
+        "| how the gate renders in a TUI | user, on the next session |",
+        "| closed issues are not re-read | the owner |",
+    )
+    op, cl, err = uc.check_file(write(tmp_path, section))
+    assert not err and len(op) == 1
+    assert [c[1] for c in cl] == ["issues are not re-read"]
+
+
 def test_a_row_with_an_empty_cell_fails(tmp_path):
     section = CANONICAL + "| an item with no answerer | |\n"
     _, _, err = uc.check_file(write(tmp_path, section))

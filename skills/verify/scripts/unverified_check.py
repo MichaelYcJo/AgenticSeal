@@ -48,7 +48,9 @@ too. `merge_base` carries what the old footing cost (#272).
 
 An item is closed by marking it, never by deleting it: the Item cell opens
 with the word `closed`, and the second cell says what closed it. Anything
-unmarked counts open, so the silent direction is always "still open".
+unmarked counts open, so the silent direction is "still open", except for an
+open item whose own text begins with the word `closed`, which reads as closed
+and which only a reader catches.
 
 Deliberately a text scan of markdown, not a parser library: the gates here are
 stdlib-only, and the format it accepts is one line long. That format is strict
