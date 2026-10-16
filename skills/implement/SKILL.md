@@ -76,7 +76,7 @@ rather than by a person: every field name, section heading and vocabulary
 word the checkers match, listed in `templates/config.md` under *What no row
 governs* — that list is derived from the checkers' own constants, so it
 cannot drift from them; `<!-- specs/<work-item-id> -->` and the other
-markers; a `drained` line and a ✅; and all code — identifiers, comments, docstrings, file names, test function
+markers; a `drained` line and the `closed` that opens a closed row; and all code — identifiers, comments, docstrings, file names, test function
 names. A translated field name is not a translation, it is a checker that
 stops reading.
 
@@ -452,14 +452,15 @@ A memo whose last three sections are empty is correct and four lines long.
 spelling of the heading or the header row fails the check rather than reporting
 zero, because zero reads as "everything has been closed".
 
-An item is closed by marking it, never by deleting it:
+An item is closed by marking it, never by deleting it: the Item cell opens
+with the word `closed`, lower case, then the item.
 
 ```
-| ✅ how the gates render in a TUI | seen on screen, session of 2026-08-25 |
+| closed how the gates render in a TUI | seen on screen, session of 2026-08-25 |
 ```
 
 An unmarked row counts open, so the silent direction is always "still open",
-and a bare check mark with nothing after it is refused the same way a ticked
+and a bare `closed` with nothing after it is refused the same way a ticked
 checkbox is. Deleting the row — or the whole file — fails the next pull
 request (`unverified-check --baseline origin/<base>`), which is what keeps "I
 verified it" and "I tidied it away" from being the same edit.
@@ -467,7 +468,7 @@ verified it" and "I tidied it away" from being the same edit.
 What that check reads is the **number** of rows, not their text. So the second
 cell saying what closed the item is a convention it cannot enforce: swapping
 one row for another keeps the count and passes. Leaving the original answerer
-in place beside a check mark is how a closing goes out unproven, and only a
+in place beside the word is how a closing goes out unproven, and only a
 reader catches it.
 
 Never record something as passing that you did not run. Findings from reading

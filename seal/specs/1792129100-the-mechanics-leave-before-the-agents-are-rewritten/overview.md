@@ -41,7 +41,7 @@ itself, states the round record's grammar once and closes a row with a word.
 
 | Item | Who must answer |
 |---|---|
-| ✅ CI green on all three legs at phase 1's commit (`plan.md` phase 1, Verified by): the Windows leg is where the case was red | the orchestrator, 2026-10-16: the `tests` workflow dispatched on this branch at 74c7963a, run 38859692605, every job green on ubuntu, macOS and Windows |
+| closed CI green on all three legs at phase 1's commit (`plan.md` phase 1, Verified by): the Windows leg is where the case was red | the orchestrator, 2026-10-16: the `tests` workflow dispatched on this branch at 74c7963a, run 38859692605, every job green on ubuntu, macOS and Windows |
 | The test modules of the 34 scripts phase 2 changed only in their docstrings, beyond the modules `phases/phase-2.md` names as run: a case that reads a docstring whole would meet the removed `Reads:` line there | the sealer, at the broad gate |
 | Phase 3's cases on the Linux and Windows legs, run here on macOS alone: `TestGrammar`'s copied-script case names the document by a path it joins with `os.path.join` and reads it back from the command's stderr | the orchestrator, from CI at phase 3's commit |
 | Whether a round record in flight in a user's repository carries a severity other than `must` or `should`, or a finding with no `answer:` line, which phase 3 now refuses when the user moves their `hygiene.yml` pin | the owner, through phase 4's changelog paragraph, which says the edit such a record owes |

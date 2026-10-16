@@ -46,8 +46,8 @@ this makes, and a row that arrived on the base after the branch was cut is not
 this branch's business: the fork point never had it, and the merge holds it
 too. `merge_base` carries what the old footing cost (#272).
 
-An item is closed by marking it, never by deleting it: prefix the Item cell
-with the check mark and say in the second cell what closed it. Anything
+An item is closed by marking it, never by deleting it: the Item cell opens
+with the word `closed`, and the second cell says what closed it. Anything
 unmarked counts open, so the silent direction is always "still open".
 
 Deliberately a text scan of markdown, not a parser library: the gates here are
@@ -72,7 +72,15 @@ import sys
 OVERVIEW = "overview.md"
 HEADING = "## Not verified"
 HEADER = ("Item", "Who must answer")
-CLOSED = "✅"
+CLOSED = "closed"
+# The emoji a closed row opened with before the word, U+2705, spelt by its code
+# point so no emoji stands in this file. The working tree's reading refuses it
+# naming the edit; a base revision's reads it as the word, because nobody can
+# edit a commit that already happened.
+OLD_MARK = chr(0x2705)
+# The closing word's other spellings, refused rather than read as open: a
+# capital or a trailing colon would otherwise turn a closing into an open row.
+NEAR_CLOSED = ":;,."
 PLACEHOLDER = re.compile(r"^<[^>]*>$")
 # Characters that occupy no width: the two variation selectors, the zero-width
 # family, and the byte-order mark. None of them make a marker into a claim.
@@ -226,10 +234,10 @@ def is_header(cells):
 def visible(s):
     """`s` without characters that take no space on screen.
 
-    Many keyboards emit U+2705 followed by U+FE0F, and a zero-width space
-    pastes in from anywhere. Either one makes `| \u2705 | done |` survive a
-    plain `.strip()` while looking exactly like a bare check mark, which is
-    the one row shape this refuses."""
+    A zero-width space pastes in from anywhere, and many keyboards emit the
+    old mark followed by U+FE0F. Either one makes `| closed\\u200b | done |`
+    survive a plain `.strip()` while looking exactly like a bare `closed`,
+    which is the one row shape this refuses."""
     return s.translate({ord(c): None for c in INVISIBLE}).strip()
 
 
@@ -807,21 +815,52 @@ def parse_section(body, offset, strict_header=True):
         if PLACEHOLDER.match(seen[0]) or PLACEHOLDER.match(seen[1]):
             errors.append((line_no, "the template's placeholder is still in the row"))
             continue
-        if seen[0].startswith(CLOSED):
-            rest = visible(seen[0][len(CLOSED) :])
+        word, rest = closing_word(seen[0])
+        if word == OLD_MARK and strict_header:
+            errors.append(
+                (
+                    line_no,
+                    f"the row opens with U+2705, which no longer closes a row: a "
+                    f"closed row opens with the word `{CLOSED}`, so write "
+                    f"`| {CLOSED} {rest or '<the item>'} | <what closed it> |`",
+                )
+            )
+            continue
+        if word in (CLOSED, OLD_MARK):
             if not rest:
                 errors.append(
                     (
                         line_no,
-                        f"a bare {CLOSED} — the row keeps the item's text, and "
-                        "the second cell says what closed it",
+                        f"a bare `{CLOSED}` — the row keeps the item's text "
+                        "after the word, and the second cell says what closed it",
                     )
                 )
                 continue
             closed_rows.append((line_no, rest, who))
+        elif word.lower().rstrip(NEAR_CLOSED) == CLOSED:
+            errors.append(
+                (
+                    line_no,
+                    f"`{word}` is not the closing word: a closed row opens with "
+                    f"`{CLOSED}`, lower case, then a space and the item",
+                )
+            )
         else:
             open_rows.append((line_no, item, who))
     return open_rows, closed_rows, errors
+
+
+def closing_word(cell):
+    """`(first word, the rest)` of an Item cell already through `visible`.
+
+    The old mark is its own word whether or not a space follows it, which is
+    how it was written; every other word ends at whitespace."""
+    if cell.startswith(OLD_MARK):
+        return OLD_MARK, visible(cell[len(OLD_MARK) :])
+    parts = cell.split(None, 1)
+    word = parts[0] if parts else ""
+    rest = parts[1].strip() if len(parts) > 1 else ""
+    return word, rest
 
 
 def check_file(path):
@@ -867,10 +906,14 @@ def check_text(text, heading=HEADING, strict_header=True):
     second column from `Who` to `Who must answer` — so relaxing the heading
     alone would still have stopped comparing them.
 
-    Nothing else relaxes. A legacy header still has to be a two-cell row whose
-    first column is `Item`, and every row below it is read exactly as the
-    working tree's rows are. The relaxation ends when every base carries the
-    canonical wording."""
+    One more thing relaxes with `strict_header`, for the same reason: a row
+    opening with the old mark, U+2705, is read at a base as the word
+    `closed`, where the working tree refuses it naming the edit. Read as a
+    refusal there, every base written before the word would go uncompared,
+    and a row deleted against it would pass. Nothing else relaxes. A legacy
+    header still has to be a two-cell row whose first column is `Item`, and
+    every other row below it is read exactly as the working tree's rows are.
+    The relaxation ends when every base carries the canonical wording."""
     lines = readable(text)
 
     found = sections(lines, heading)
@@ -1651,8 +1694,8 @@ def main(argv=None):
                         rel,
                         1,
                         f"{was} rows at {named}, {now} here. An item leaves "
-                        f"this table by being marked {CLOSED} with what closed it, "
-                        "never by being deleted",
+                        f"this table by opening with the word `{CLOSED}` and "
+                        "saying what closed it, never by being deleted",
                     )
                 )
 
@@ -1768,14 +1811,18 @@ def main(argv=None):
         for line in deleted:
             print(line)
         print(
-            "\nRe-add the row with " + CLOSED + " and what closed it. Deleting "
-            "and verifying have to look different, or they are the same edit."
+            f"\nRe-add the row, its Item cell opening with the word `{CLOSED}` "
+            "and the second cell saying what closed it. Deleting and verifying "
+            "have to look different, or they are the same edit."
         )
     if bad or deleted:
         return 1
 
     if total_open == 0:
-        print(f"open: 0 — every recorded item carries {CLOSED} and what closed it.")
+        print(
+            f"open: 0 — every recorded item opens with `{CLOSED}` and says what "
+            "closed it."
+        )
     return 0
 
 

@@ -223,7 +223,7 @@ RULE_HEADING = (
 )
 RULE_KEPT_HEADING = (
     "kept by the rule — no `spec.md`, but the record still holds an open "
-    "row, which\nleaves by being closed (✅ with what closed it) in a pull "
+    "row, which\nleaves by being closed (`closed` with what closed it) in a pull "
     "request merged before the\none that retires the directory, and merged "
     "to the branch the release merges to,\nnever with it:"
 )

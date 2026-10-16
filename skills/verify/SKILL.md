@@ -367,7 +367,8 @@ unverified-check --baseline origin/main seal/specs/  # and nothing was deleted f
 It never fails for an open item — punishing an honest row is how sessions learn
 to write none. It fails for a section it cannot read, because a tolerant reader
 reports zero there and zero reads as "everything has been closed". Close an
-item by marking it `✅` with what closed it; the row stays.
+item by opening its row with the word `closed` and saying what closed it; the
+row stays.
 
 **`--baseline` names the branch you merge into, and what it reads is
 `git merge-base <ref> HEAD`** — where you forked from it on a branch checkout,

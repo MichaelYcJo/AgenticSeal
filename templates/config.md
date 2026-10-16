@@ -131,7 +131,8 @@ every repository, whatever either row says:
   `nothing` in `nothing — <why>`. A translated field name is not a
   translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, the `✅` that closes a row, and a pact
+  section's `## X.Y.Z — <date>`, the word `closed` that opens a closed
+  `## Not verified` row, and a pact
   anchor's `pact:<name>/"<heading path>"@<hash>`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.

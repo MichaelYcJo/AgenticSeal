@@ -28,7 +28,7 @@ a second call only under `per axis`.
 |---|---|
 | The full suite, the repository-wide lint and the typecheck: `unverified`, because the broad run is the sealer's, once, after the rounds settle | the orchestrator, through the sealer |
 | That the harness shows a lone question 1 with no boxes on screen, and that a session following the new block puts the second call only after `per axis`. Read from the documents; no session was run against them | the orchestrator, at the next routing question it asks from a block carrying this change |
-| ✅ `plan.md`'s approval line read `Approved <date> by <who>`. The orchestrator asked for it to be filled; the edit was refused by the session's permission classifier and not retried | filled by the orchestrator at `bb9eed9b` (`plan.md:7`); round 1's ⬜ 6 |
+| closed `plan.md`'s approval line read `Approved <date> by <who>`. The orchestrator asked for it to be filled; the edit was refused by the session's permission classifier and not retried | filled by the orchestrator at `bb9eed9b` (`plan.md:7`); round 1's ⬜ 6 |
 
 ## Not done
 

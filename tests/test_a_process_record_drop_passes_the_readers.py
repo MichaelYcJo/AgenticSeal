@@ -65,7 +65,7 @@ GATE = (
 OVERVIEW = (
     "# alpha — overview\n\nWhy.\n\n## Not verified\n\n"
     "| Item | Who must answer |\n|---|---|\n"
-    "| ✅ a claim nobody had run | run on 2026-01-01 |\n"
+    "| closed a claim nobody had run | run on 2026-01-01 |\n"
 )
 # A file that shares nothing. The sweep weighs a phrase by how few files
 # carry it, so a corpus of two files weighs every phrase near zero, and the
