@@ -14,18 +14,15 @@ judged (`carried_by`). The arms are five:
                 `spec.md` ends with the framer's mark, and every `Reframed`
                 line under it names the framer
   records       `Review | through the review chain`: `rounds/` holds at least
-                one `round-N.md`; each holds one `target:` line and one
-                `## Findings` section whose every `### ` finding carries one
-                `verdict:` line reading `fixed <commit>`, `rejected` or
-                `deferred <home>` and one `location:` line, a `fixed` commit
-                on the branch and touching a path that line names; every
-                `fixed` or `rejected` finding is named by the next record's
-                `confirms:`, `reopens:` or `regression:` lines, and none
-                stands in the last record; a label in another spelling, and
-                whatever else the reader cannot read, is refused; the last
-                record's
-                `target:` commit is HEAD, or every commit after it touches
-                only the work item's own directory
+                one `round-N.md`; each reads whole against the grammar table
+                of `docs/the-review-record.md` §*The round record*, which
+                `grammar` loads at import, and no finding reads `open`; a
+                `fixed` commit is on the branch and touches a path its
+                `location:` line names; every `fixed` or `rejected` finding
+                is named by the next record's `confirms:`, `reopens:` or
+                `regression:` lines, and none stands in the last record; the
+                last record's `target:` commit is HEAD, or every commit after
+                it touches only the work item's own directory
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
                 touches only the work item's own directory
   guarantee     `guarantee.md` names HEAD, or every commit after it touches
@@ -45,7 +42,8 @@ own run, before it writes `broad-gate.md` and the sealer `guarantee.md`: those
 two arms print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
-GitHub annotation in CI) · 2 the check could not run.
+GitHub annotation in CI) · 2 the check could not run, a grammar table it
+cannot read among the causes, named by its file.
 """
 
 import argparse
@@ -77,82 +75,68 @@ UNDECIDABLE = "undecidable"
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
 EARLIER_RUN = "; earlier run: "
 
-# A round record: one `target: <sha> …` line above its sections; the one
-# `## Findings` section, a `### <n>. ` section per finding, and in each
-# exactly one `verdict: <value>` line and one `location: <coordinates>`
-# line, and at most one of a `regression: <reference>` line, for a defect a
-# fix pass's own commit made, and a `reopens: <reference>` line, for an
-# earlier close that does not hold otherwise; and in
-# `## Confirmations`, where the record has one, a `confirms: <reference>`
-# line per entry — each label one lowercase word at the start of its line,
-# one space after the colon, no emphasis, no table cell. Those lines are
-# the facts the check reads of a record, and a spelling it does not read is
-# refused by name, never passed (`findings`, `record_target`,
-# `confirmations`). These stay as the record's vocabulary, which no
-# `Record language` translates.
+# A round record's grammar is one table, `docs/the-review-record.md`
+# §*The round record*, and nothing in this file restates it: `grammar`
+# loads the table once, when this file is imported, and every reader below
+# reads a line through its row. What this file names is which row is which,
+# by the row's `Line` cell, the named parts of a row's shape it reads, and
+# the four verdict words it decides on.
+GRAMMAR_DOC = os.path.join(HERE, "..", "..", "..", "docs", "the-review-record.md")
+# Where `grammar` finds the table: the section's heading and the header row.
+# A rewrite of the document that moves either moves these with it (#941).
+GRAMMAR_SECTION = "## The round record"
+GRAMMAR_COLUMNS = ("Line", "Shape", "Where", "How many", "Refused as")
+# The words the table's `Where` and `How many` cells are written in. `How
+# many` counts per finding for a line in a finding, per record otherwise.
+IN_RECORD = "the record"
+OUTSIDE_FINDINGS = "outside every finding"
+IN_FINDING = "a finding"
+NOWHERE = "nowhere"
+ONE = "one"
+AT_MOST_ONE = "at most one"
+ANY = "any"
+EACH_ONCE = "each number once"
+NOT_ANY = "none"
+# How a refusal says the count a row allows.
+HOW_MANY = {ONE: "one", AT_MOST_ONE: "one at most"}
+# The rows the check reads a meaning from, by their `Line` cell, with the
+# named parts of each row's shape it reads (`grammar` refuses a table that
+# lacks one).
 FINDINGS_HEADING = "## Findings"
 CONFIRMATIONS_HEADING = "## Confirmations"
-NONE = "none"
-FINDING_LEVEL = 3
-FINDING_NUMBER = re.compile(r"^### ([1-9][0-9]*)\. ")
-SEVERITY = "severity:"
-LOCATION = "location:"
-VERDICT = "verdict:"
-REGRESSION = "regression:"
-REOPENS = "reopens:"
-ANSWER = "answer:"
-CONFIRMS = "confirms:"
-RECORD_TARGET = "target:"
-# The labels a finding holds, and the two that stand elsewhere in a record.
-FINDING_LABELS = (SEVERITY, LOCATION, VERDICT, REGRESSION, REOPENS, ANSWER)
-LABELS = (*FINDING_LABELS, CONFIRMS, RECORD_TARGET)
-VERDICT_LABEL = re.compile(r"^" + re.escape(VERDICT) + r" (.*)$")
-LOCATION_LABEL = re.compile(r"^" + re.escape(LOCATION) + r" (.*)$")
-# A reference label with nothing after it is still the label (S24), so its
-# reader refuses the empty value rather than reading no line at all.
-REGRESSION_LABEL = re.compile(r"^" + re.escape(REGRESSION) + r"(?: (.*))?$")
-REOPENS_LABEL = re.compile(r"^" + re.escape(REOPENS) + r"(?: (.*))?$")
-CONFIRMS_LABEL = re.compile(r"^" + re.escape(CONFIRMS) + r"(?: (.*))?$")
-TARGET_LABEL = re.compile(r"^" + re.escape(RECORD_TARGET) + r"(?: (.*))?$")
-# A labelled line in its one spelling: the label, then a space or the end of
-# the line.
-EXACT_LABEL = re.compile(
-    r"^(severity|location|verdict|regression|reopens|answer|confirms|target)"
-    r":(?: |$)"
-)
-# A line that means a label and is not spelt as one: its first word, case
-# folded and stripped of `*`, `_` and backticks, is a label or one of the
-# old spellings `fix of a fix`, `refixes` and `Target SHA`, followed by a
-# colon (`findings` refuses it).
-MISSPELT_LABEL = re.compile(
-    r"^\s*[*_`]*\s*(severity|location|verdict|regression|reopens|answer|confirms"
-    r"|target\s+sha|target|refixes|fix\s+of\s+a\s+fix)"
-    r"\s*[*_`]*\s*:",
-    re.IGNORECASE,
-)
-# The old spellings, and the label each one means now.
-OLD_LABELS = {
-    "fix of a fix": REGRESSION,
-    "refixes": REGRESSION,
-    "target sha": RECORD_TARGET,
+TARGET_ROW = "target:"
+HEADING_ROW = "### <n>. <symptom>"
+LOCATION_ROW = "location:"
+VERDICT_ROW = "verdict:"
+REGRESSION_ROW = "regression:"
+REOPENS_ROW = "reopens:"
+CONFIRMS_ROW = "confirms:"
+READ_ROWS = {
+    TARGET_ROW: ("commit",),
+    FINDINGS_HEADING: (),
+    HEADING_ROW: ("number",),
+    LOCATION_ROW: (),
+    VERDICT_ROW: ("commit", "home"),
+    REGRESSION_ROW: ("round", "finding"),
+    REOPENS_ROW: ("round", "finding"),
+    CONFIRMATIONS_HEADING: (),
+    CONFIRMS_ROW: ("round", "finding"),
 }
-# `target:`'s value: the reviewed commit, against the base a first look
-# reviewed it from, or the fix range a verifying round read.
-TARGET_VALUE = re.compile(
-    r"^([0-9a-f]{7,40})"
-    r"(?: against [\w./-]*\w|, fixes [0-9a-f]{7,40}\.\.[0-9a-f]{7,40})$"
-)
-TARGET_SHAPES = "`<sha> against <base>` or `<sha>, fixes <a>..<b>`"
-# `location:`'s value: one or more backticked `path`, `path:line` or
-# `path:first-last`, joined by `, `, the path relative to the root. A path
-# holds no `#`, so a `path#unit` coordinate is refused rather than read as a
-# file named `path#unit`.
-COORDINATE_ITEM = r"`[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`"
-COORDINATE = re.compile(r"`([^`\s:/#][^`\s:#]*)(?::[0-9]+(?:-[0-9]+)?)?`")
-LOCATION_VALUE = re.compile(COORDINATE_ITEM + r"(?:, " + COORDINATE_ITEM + r")*")
-# A reference to an earlier finding, or to an earlier round's fix pass.
-REFERENCE = re.compile(r"round-([1-9][0-9]*)(?:#([1-9][0-9]*))?")
-REFERENCE_SPELLING = "`round-<N>#<n>`"
+# Where a row may stand: the two sections in the record, the finding heading
+# in `## Findings`, and a label in one of three places, or nowhere for an
+# old spelling, which every line meaning it is refused as.
+SECTION_ROWS = (FINDINGS_HEADING, CONFIRMATIONS_HEADING)
+IN_FINDINGS = f"`{FINDINGS_HEADING}`"
+IN_CONFIRMATIONS = f"`{CONFIRMATIONS_HEADING}`"
+# What a refusal says of the place a label's row puts it.
+PLACED = {
+    OUTSIDE_FINDINGS: "outside every finding",
+    IN_CONFIRMATIONS: f"in `{CONFIRMATIONS_HEADING}`",
+}
+# One row of the table as `grammar` reads it: its `Line` cell, its shape
+# compiled (None for a `nowhere` row), its `Where` and `How many` words, and
+# its `Refused as` sentence.
+Row = collections.namedtuple("Row", "line shape where many refused")
 # One finding as `findings` read it: the line of its `verdict:`, its heading
 # and the heading's number, the verdict, the paths of its `location:`, its
 # `regression:` reference and its `reopens:` reference, each with that
@@ -162,57 +146,24 @@ Finding = collections.namedtuple(
     "line heading number verdict paths regression regression_line reopens "
     "reopens_line heading_line",
 )
-# Which line a finding naming an earlier one takes, for the refusal of a
-# finding holding both.
+# The one rule across two rows the table cannot hold in a cell, for the
+# refusal of a finding holding both.
 ONE_RELATION = (
-    f"a finding carries one of `{REGRESSION}` and `{REOPENS}`: `{REGRESSION}` "
-    f"where a fix pass's own commit made the defect, `{REOPENS}` where an "
-    "earlier close does not hold otherwise"
+    f"a finding carries one of `{REGRESSION_ROW}` and `{REOPENS_ROW}`: "
+    f"`{REGRESSION_ROW}` where a fix pass's own commit made the defect, "
+    f"`{REOPENS_ROW}` where an earlier close does not hold otherwise"
 )
 # One record as `channel` reads it: its path and number, its findings, the
 # numbers of every `### <n>. ` heading it holds, its `confirms:` references,
 # and the commit its `target:` line names.
 Round = collections.namedtuple("Round", "path number findings held confirms target")
+# The verdict words the check decides on: `open` fails a ready pull request,
+# `fixed` and `rejected` owe the next round a reference, `deferred` owes
+# nothing. What follows each is the `verdict:` row's.
 OPEN = "open"
 FIXED = "fixed"
 REJECTED = "rejected"
 DEFERRED = "deferred"
-# `fixed <commit>`: seven to forty lowercase hex digits and nothing after;
-# `deferred <home>`: a home after the word, beginning and ending with a
-# character that is not a space.
-FIXED_VALUE = re.compile(r"^fixed ([0-9a-f]{7,40})$")
-DEFERRED_VALUE = re.compile(r"^deferred (\S(?:.*\S)?)$")
-SHAPES = "`open`, `fixed <commit>`, `rejected` or `deferred <home>`"
-ANSWERS = "`fixed <commit>`, `rejected` or `deferred <home>`"
-COORDINATES = (
-    "one or more of `path`, `path:line` or `path:first-last`, each "
-    "backticked, joined by `, `"
-)
-REFERENCES = f"{REFERENCE_SPELLING} or `round-<N>`"
-NO_FINDINGS = (
-    f"no `{FINDINGS_HEADING}` section: a round record holds one, with a "
-    "`### ` section and one `verdict:` line per finding"
-)
-TWO_FINDINGS = f"a second `{FINDINGS_HEADING}` section; a round record holds one"
-OUTSIDE = (
-    "a `{label}` line outside a finding: the check reads one inside each "
-    f"`### ` section of `{FINDINGS_HEADING}`, and none elsewhere"
-)
-CONFIRMS_OUTSIDE = (
-    f"a `{CONFIRMS}` line outside `{CONFIRMATIONS_HEADING}`: the check reads "
-    "one there, and none elsewhere"
-)
-CONFIRMATIONS_TABLE = (
-    f"a table row in `{CONFIRMATIONS_HEADING}`: each entry is a `{CONFIRMS}` "
-    "line at the start of a line, then its prose"
-)
-TWO_CONFIRMATIONS = (
-    f"a second `{CONFIRMATIONS_HEADING}` section; a round record holds one at most"
-)
-NO_TARGET = (
-    f"no `{RECORD_TARGET}` line: a round record names the commit it reviewed "
-    f"on one, at the start of a line, reading {TARGET_SHAPES}"
-)
 DASH = chr(0x2014)
 EMPHASIS = re.compile(r"[*_`]+")
 ISSUE_RE = re.compile(r"#(\d+)")
@@ -253,6 +204,254 @@ def load(path, name):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+class GrammarError(ValueError):
+    """The table `grammar` reads would not read: the sentence names the
+    document, the line where there is one, and what it could not read."""
+
+
+def code_span(cell):
+    """The text of `cell` where the cell is one code span and nothing else,
+    read as GFM reads one, or None: a run of backticks, text holding no run
+    of the same length, the same run, and one space stripped from each end
+    where both ends have one."""
+    found = re.fullmatch(r"(`+)(.+?)\1", cell, re.S)
+    if not found:
+        return None
+    run, text = found.groups()
+    if any(len(inner) == len(run) for inner in re.findall("`+", text)):
+        return None
+    if len(text) > 2 and text[0] == text[-1] == " " and text.strip():
+        text = text[1:-1]
+    return text
+
+
+def meant_by(row, labels):
+    """The label a `nowhere` row's `Refused as` names, the one backticked
+    label of `labels` it holds, or None."""
+    named = [t for t in re.findall(r"`([^`]+)`", row.refused) if t in labels]
+    return named[0] if len(named) == 1 else None
+
+
+def grammar(path, reader):
+    """`{Line: Row}` for the table under `path`'s `GRAMMAR_SECTION`, in its
+    order, read with the shared `reader`; GrammarError where it cannot be.
+
+    The section is found by its heading and the table by its header row,
+    `GRAMMAR_COLUMNS`, followed by a separator; its rows run to the first
+    line that is no row. A `Line` cell and a `Shape` cell are each one code
+    span, a `Shape` compiles, and its pattern opens with its label where the
+    row is a label's. A `Where` and a `How many` are the words this file
+    names, in the pairs it reads: a section in the record, once or at most
+    once; the finding heading in `## Findings`, each number once; a label
+    outside every finding, in a finding or in `## Confirmations`, once, at
+    most once or any number of times; and an old spelling nowhere, never,
+    with `—` for its shape and a `Refused as` naming the one label it means.
+    Every row `READ_ROWS` names stands, with the named parts it reads, and
+    no heading row stands that this file reads nothing from. Anything else
+    is GrammarError naming `path`, and the line where there is one."""
+
+    def refuse(why, line=None):
+        at = f"{path}:{line}" if line else path
+        return GrammarError(f"{at}: {why}")
+
+    try:
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+    except (OSError, UnicodeDecodeError) as exc:
+        raise refuse(f"cannot be read ({exc})") from None
+    lines = reader.readable(text)
+    starts = [
+        i for i, said in reader.headings(lines) if said.strip() == GRAMMAR_SECTION
+    ]
+    if len(starts) != 1:
+        raise refuse(f"holds {len(starts)} `{GRAMMAR_SECTION}` sections, not one")
+    start = starts[0]
+    level = reader.heading_level(lines[start])
+    end = next(
+        (
+            i
+            for i in range(start + 1, len(lines))
+            if (found := reader.heading_level(lines[i])) is not None and found <= level
+        ),
+        len(lines),
+    )
+    header = next(
+        (
+            i
+            for i in range(start + 1, end)
+            if tuple(reader.split_row(lines[i]) or ()) == GRAMMAR_COLUMNS
+        ),
+        None,
+    )
+    columns = "| " + " | ".join(GRAMMAR_COLUMNS) + " |"
+    if header is None:
+        raise refuse(f"its `{GRAMMAR_SECTION}` section holds no table headed {columns}")
+    if header + 1 >= end or not reader.is_separator(
+        reader.split_row(lines[header + 1]) or []
+    ):
+        raise refuse("the header row is not followed by a separator row", header + 1)
+    rows = {}
+    i = header + 2
+    while i < end and (cells := reader.split_row(lines[i])) is not None:
+        rows.update([grammar_row(cells, refuse, i + 1, rows)])
+        i += 1
+    labels = {k for k, row in rows.items() if k.endswith(":") and row.where != NOWHERE}
+    for key, row in rows.items():
+        if row.where == NOWHERE and meant_by(row, labels) is None:
+            raise refuse(
+                f"the `{key}` row's `Refused as` names no one label it is the old "
+                "spelling of"
+            )
+    for key, parts in READ_ROWS.items():
+        row = rows.get(key)
+        if row is None or row.where == NOWHERE:
+            raise refuse(f"the table has no `{key}` row, which the check reads")
+        lacking = [p for p in parts if p not in row.shape.groupindex]
+        if lacking:
+            raise refuse(
+                f"the `{key}` row's shape names no "
+                + ", ".join(f"`(?P<{p}>…)`" for p in lacking)
+                + ", which the check reads"
+            )
+    return rows
+
+
+def grammar_row(cells, refuse, number, rows):
+    """`(Line, Row)` for one table row's `cells` at line `number`, or the
+    GrammarError `refuse` makes, by `grammar`'s rules."""
+    if len(cells) != len(GRAMMAR_COLUMNS):
+        raise refuse(
+            f"{len(cells)} cells, and the table has {len(GRAMMAR_COLUMNS)}", number
+        )
+    line_cell, shape_cell, where, many, refused = cells
+    key = code_span(line_cell)
+    if key is None:
+        raise refuse(f"its `Line` cell `{line_cell}` is not one code span", number)
+    if key in rows:
+        raise refuse(f"a second `{key}` row", number)
+    if not refused:
+        raise refuse(f"the `{key}` row's `Refused as` is empty", number)
+    if where == NOWHERE:
+        if not key.endswith(":") or many != NOT_ANY or shape_cell != DASH:
+            raise refuse(
+                f"the `{key}` row stands {NOWHERE}, so it is a label, it is "
+                f"`{NOT_ANY}` and its shape is `{DASH}`",
+                number,
+            )
+        return key, Row(key, None, where, many, refused)
+    pattern = code_span(shape_cell)
+    if pattern is None:
+        raise refuse(f"the `{key}` row's shape is not one code span", number)
+    try:
+        shape = re.compile(pattern)
+    except re.error as exc:
+        raise refuse(
+            f"the `{key}` row's shape does not compile ({exc})", number
+        ) from None
+    if key in SECTION_ROWS:
+        allowed = where == IN_RECORD and many in (ONE, AT_MOST_ONE)
+    elif key == HEADING_ROW:
+        allowed = where == IN_FINDINGS and many == EACH_ONCE
+    elif key.startswith("#"):
+        raise refuse(
+            f"a `{key}` heading row, which the check reads nothing from", number
+        )
+    else:
+        allowed = (
+            key.endswith(":")
+            and pattern.startswith(key)
+            and where in (OUTSIDE_FINDINGS, IN_FINDING, IN_CONFIRMATIONS)
+            and many in (ONE, AT_MOST_ONE, ANY)
+        )
+    if not allowed:
+        raise refuse(
+            f"the `{key}` row reads `{where}` and `{many}` with the shape "
+            f"`{pattern}`, which the check cannot read",
+            number,
+        )
+    return key, Row(key, shape, where, many, refused)
+
+
+# Loaded once, here. As a command, a reader or a table that will not load
+# ends the run at exit 2 naming the file; imported, the error is raised and
+# the importer decides what a check that cannot read a record means to it.
+try:
+    _GRAMMAR_READER = load(READER, "specseal_unverified_reader_for_grammar")
+except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
+    if __name__ != "__main__":
+        raise
+    print(f"chain-check: the shared reader would not load ({_exc})", file=sys.stderr)
+    raise SystemExit(2) from None
+try:
+    GRAMMAR = grammar(GRAMMAR_DOC, _GRAMMAR_READER)
+except GrammarError as _exc:
+    if __name__ != "__main__":
+        raise
+    print(
+        f"chain-check: the round record's grammar would not load: {_exc}",
+        file=sys.stderr,
+    )
+    raise SystemExit(2) from None
+
+# What the readers below derive from the table: the labels a line may open
+# with, the old spellings and the label each means, the loose reading of a
+# label in any spelling, and the level of a finding's heading.
+LABELS = tuple(
+    k for k, row in GRAMMAR.items() if k.endswith(":") and row.where != NOWHERE
+)
+OLD_SPELLINGS = {
+    k: meant_by(row, LABELS) for k, row in GRAMMAR.items() if row.where == NOWHERE
+}
+SPELT = {" ".join(k[:-1].lower().split()): k for k in GRAMMAR if k.endswith(":")}
+# A line that means a label and may not be spelt as one: its first words,
+# case folded and stripped of `*`, `_` and backticks, are a label's or an
+# old spelling's, followed by a colon (`misspelt`).
+MEANT = re.compile(
+    r"^\s*[*_`]*\s*("
+    + "|".join(
+        r"\s+".join(re.escape(w) for w in words.split())
+        for words in sorted(SPELT, key=len, reverse=True)
+    )
+    + r")\s*[*_`]*\s*:",
+    re.IGNORECASE,
+)
+FINDING_LEVEL = len(HEADING_ROW) - len(HEADING_ROW.lstrip("#"))
+
+
+def section_count(key, many):
+    """The refusal of a second `key` section, which holds `many`."""
+    return f"a second `{key}` section; a round record holds {HOW_MANY[many]}"
+
+
+NO_FINDINGS = f"no `{FINDINGS_HEADING}` section: {GRAMMAR[FINDINGS_HEADING].refused}"
+TWO_FINDINGS = section_count(FINDINGS_HEADING, GRAMMAR[FINDINGS_HEADING].many)
+TWO_CONFIRMATIONS = section_count(
+    CONFIRMATIONS_HEADING, GRAMMAR[CONFIRMATIONS_HEADING].many
+)
+CONFIRMATIONS_TABLE = (
+    f"a table row in `{CONFIRMATIONS_HEADING}`: "
+    f"{GRAMMAR[CONFIRMATIONS_HEADING].refused}"
+)
+OUTSIDE = (
+    "a `{label}` line outside a finding: the check reads one inside each "
+    f"`### ` section of `{FINDINGS_HEADING}`, and none elsewhere"
+)
+UNPLACED = (
+    "a `{label}` line outside `{place}`: the check reads one there, and none elsewhere"
+)
+
+
+def no_record_line(key):
+    """The refusal of a record holding no `key` line, which it needs one of."""
+    return (
+        f"no `{key}` line: a round record carries one, at the start of a line "
+        f"{PLACED[GRAMMAR[key].where]}; {GRAMMAR[key].refused}"
+    )
+
+
+NO_TARGET = no_record_line(TARGET_ROW)
 
 
 def git(root, *args):
@@ -539,20 +738,43 @@ def section_end(reader, lines, start):
     return len(lines)
 
 
+def label_of(line):
+    """The label `line` opens with in its one spelling, the label then a
+    space or the end of the line, or None."""
+    for label in LABELS:
+        if line == label or line.startswith(f"{label} "):
+            return label
+    return None
+
+
+def value_of(line):
+    """What follows a labelled line's label and its space."""
+    return line[len(label_of(line) or "") + 1 :]
+
+
+def as_row(key, value):
+    """The match of `key`'s line reading `value` against its row whole, or
+    None."""
+    return GRAMMAR[key].shape.fullmatch(f"{key} {value}")
+
+
+def reference(found):
+    """`(round, finding or None)` from a reference row's match."""
+    number = found["finding"]
+    return int(found["round"]), int(number) if number else None
+
+
 def verdict_of(value):
     """`(kind, its commit or home)` for one `verdict:` value, or None.
 
-    The four shapes, read as written and nothing else: `open`, `rejected`,
-    `fixed <commit>` with seven to forty lowercase hex digits, and
-    `deferred <home>`. A different case, emphasis, a trailing word or mark,
-    a bare `fixed` or `deferred` is None, which the arm refuses by name."""
-    if value in (OPEN, REJECTED):
-        return value, None
-    for kind, shape in ((FIXED, FIXED_VALUE), (DEFERRED, DEFERRED_VALUE)):
-        found = shape.match(value)
-        if found:
-            return kind, found.group(1)
-    return None
+    Read against the `verdict:` row whole: its word, and the commit of a
+    `fixed` or the home of a `deferred`. Anything the row does not match —
+    another case, emphasis, a trailing word or mark, a bare `fixed` or
+    `deferred` — is None, which the arm refuses by name."""
+    found = as_row(VERDICT_ROW, value)
+    if not found:
+        return None
+    return value.split(" ", 1)[0], found["commit"] or found["home"]
 
 
 def deferred_home(value):
@@ -570,45 +792,53 @@ def issue_of(home):
 def location_of(value):
     """The paths one `location:` value names, in order, or None.
 
-    One or more backticked `path`, `path:line` or `path:first-last` items
-    joined by `, `, each path relative to the root. A bare `:617`, a path
-    with no backticks, a URL, an absolute path, a `path#unit`, emphasis
-    around an item, a trailing word or mark, or an empty value is None,
-    which the arm refuses by name."""
-    if not LOCATION_VALUE.fullmatch(value):
+    Read against the `location:` row whole, then each backticked item to
+    its first `:`, which the row keeps out of a path. Anything the row does
+    not match — a bare `:617`, a path with no backticks, a URL, an absolute
+    path, a `path#unit`, emphasis around an item, a trailing word or mark,
+    an empty value — is None, which the arm refuses by name."""
+    if not as_row(LOCATION_ROW, value):
         return None
-    return [m.group(1) for m in COORDINATE.finditer(value)]
+    return [item.strip("`").split(":")[0] for item in value.split(", ")]
 
 
 def reference_of(value):
-    """`(round, finding)` for `round-<N>#<n>`, `(round, None)` for
-    `round-<N>`, or None.
+    """`(round, finding)` for a reference to a finding, `(round, None)` for
+    one to a round's fix pass, or None.
 
-    In that spelling and no other: a different case, a space, a leading
-    zero, emphasis, a trailing mark or a second reference is None."""
-    found = REFERENCE.fullmatch(value)
-    if not found:
-        return None
-    number = found.group(2)
-    return int(found.group(1)), int(number) if number else None
+    Read against the `regression:` row whole, the one reference row that
+    takes both: a different case, a space, a leading zero, emphasis, a
+    trailing mark or a second reference is None."""
+    found = as_row(REGRESSION_ROW, value)
+    return reference(found) if found else None
 
 
 def reopened_of(value):
-    """`(round, finding)` for `round-<N>#<n>`, or None: `reference_of`'s
-    reading, with `round-<N>` alone refused, since a close is a finding's
-    verdict and a fix pass no finding named closed nothing to reopen."""
-    reference = reference_of(value)
-    return reference if reference and reference[1] is not None else None
+    """`(round, finding)` for a reference to a finding, or None: read
+    against the `reopens:` row whole, which takes a finding alone, since a
+    close is a finding's verdict and a fix pass no finding named closed
+    nothing to reopen."""
+    found = as_row(REOPENS_ROW, value)
+    return reference(found) if found else None
+
+
+def sections_of(reader, lines, key):
+    """The index of every heading of already-`readable` lines the `key`
+    row's shape matches whole."""
+    shape = GRAMMAR[key].shape
+    return [i for i, said in reader.headings(lines) if shape.fullmatch(said.strip())]
 
 
 def finding_spans(reader, lines):
     """`((start, end), [(first, stop)], error)` for the one `## Findings`
     section of already-`readable` lines: where it stands, and each `### `
     section in it, from its heading to the next. `error` is the refusal for
-    a record with no such section or two, and the spans are then empty."""
-    starts = reader.sections(lines, FINDINGS_HEADING)
+    a record with no such section where it needs one, or with more than its
+    row allows, and the spans are then empty."""
+    starts = sections_of(reader, lines, FINDINGS_HEADING)
+    many = GRAMMAR[FINDINGS_HEADING].many
     if not starts:
-        return None, [], (0, NO_FINDINGS)
+        return None, [], ((0, NO_FINDINGS) if many == ONE else None)
     if len(starts) > 1:
         return None, [], (starts[1] + 1, TWO_FINDINGS)
     start = starts[0]
@@ -622,27 +852,27 @@ def finding_spans(reader, lines):
 
 
 def finding_number(heading):
-    """The `n` of a `### <n>. ` heading, or None."""
-    found = FINDING_NUMBER.match(heading)
-    return int(found.group(1)) if found else None
+    """The `n` of a finding heading the heading row matches whole, or None."""
+    found = GRAMMAR[HEADING_ROW].shape.fullmatch(heading)
+    return int(found["number"]) if found else None
 
 
 def misspelt(line):
-    """The label `line` means and is not spelt as, or None: `regression:`
-    for the old `fix of a fix` and `refixes`, `target:` for the old
-    `Target SHA`, else the label itself."""
-    found = MISSPELT_LABEL.match(line)
-    if not found or EXACT_LABEL.match(line):
+    """The label `line` means and is not spelt as, or None: for an old
+    spelling a `nowhere` row names, the label its `Refused as` names; else
+    the label itself."""
+    found = MEANT.match(line)
+    if not found or label_of(line):
         return None
-    word = " ".join(found.group(1).lower().split())
-    return OLD_LABELS.get(word, f"{word}:")
+    key = SPELT[" ".join(found.group(1).lower().split())]
+    return OLD_SPELLINGS.get(key, key)
 
 
 def confirmations_span(reader, lines):
     """The indexes of every line under a `## Confirmations` heading."""
     return {
         i
-        for start in reader.sections(lines, CONFIRMATIONS_HEADING)
+        for start in sections_of(reader, lines, CONFIRMATIONS_HEADING)
         for i in range(start, section_end(reader, lines, start))
     }
 
@@ -652,22 +882,17 @@ def findings(reader, lines, rel):
 
     `lines` are `reader.readable`'s, so a labelled line inside a fence or a
     comment is no line. The one `## Findings` section is split at its `### `
-    headings, and each holds exactly one `verdict:` line, read by
-    `verdict_of`, exactly one `location:` line, read by `location_of`, and
-    at most one of a `regression:` line and a `reopens:` line, each read by
-    `reference_of`. Before any of it, a line anywhere in the record that
-    means one of the eight labels or an old spelling and is not spelt as the
+    headings, and each finding is read by `finding_of` against the rows the
+    table places in a finding. Before any of it, a line anywhere in the
+    record that means a label or an old spelling and is not spelt as the
     label is refused, and a finding carrying one is not read past it.
     Everything the reader cannot read is an error `(rel, line, why)` naming
-    the finding's heading, in line order: no `## Findings` section or two, a
-    heading with no number or with a number an earlier heading carries, a
-    finding with no `verdict:` or `location:` line or two of either, two
-    `regression:` lines, two `reopens:` lines, one of each (at the later),
-    a `reopens:` line naming a round alone, a value none of the three
-    readers can read, a finding's label outside a finding, a `confirms:` or
-    `target:` line inside one, a `confirms:` line outside
-    `## Confirmations`. A finding with an error is not in the list. Nothing
-    of a `severity:` or an `answer:` value is read."""
+    the finding's heading, in line order: what `finding_spans` refuses, a
+    heading the heading row does not match or with a number an earlier
+    heading carries, what `finding_of` refuses, a label a finding's row
+    names standing outside every finding, a label another row places
+    standing inside one, and a `## Confirmations` row's label outside that
+    section. A finding with an error is not in the list."""
     _section, spans, error = finding_spans(reader, lines)
     if error:
         return [], [(rel, *error)]
@@ -678,13 +903,16 @@ def findings(reader, lines, rel):
         if i in inside:
             continue
         label = misspelt(line)
-        exact = EXACT_LABEL.match(line)
+        key = label_of(line)
+        where = GRAMMAR[key].where if key else None
         if label:
             errors.append((rel, i + 1, spelt_otherwise(label)))
-        elif exact and f"{exact.group(1)}:" in FINDING_LABELS:
-            errors.append((rel, i + 1, OUTSIDE.format(label=f"{exact.group(1)}:")))
-        elif exact and f"{exact.group(1)}:" == CONFIRMS and i not in confirming:
-            errors.append((rel, i + 1, CONFIRMS_OUTSIDE))
+        elif where == IN_FINDING:
+            errors.append((rel, i + 1, OUTSIDE.format(label=key)))
+        elif where == IN_CONFIRMATIONS and i not in confirming:
+            errors.append(
+                (rel, i + 1, UNPLACED.format(label=key, place=CONFIRMATIONS_HEADING))
+            )
     numbers = set()
     for first, stop in spans:
         heading = lines[first].strip()
@@ -696,8 +924,7 @@ def findings(reader, lines, rel):
                     first + 1,
                     f"{heading} {DASH} "
                     + (
-                        "no number: a finding's heading reads `### <n>. "
-                        "<symptom>`, and a later round names it by that `n`"
+                        GRAMMAR[HEADING_ROW].refused
                         if number is None
                         else f"a second finding numbered {number}: a later "
                         f"round's `round-<N>#{number}` would name both"
@@ -715,20 +942,19 @@ def findings(reader, lines, rel):
             )
             continue
         elsewhere = [
-            (i, f"{exact.group(1)}:")
+            (i, key)
             for i in range(first + 1, stop)
-            if (exact := EXACT_LABEL.match(lines[i]))
-            and f"{exact.group(1)}:" not in FINDING_LABELS
+            if (key := label_of(lines[i])) and GRAMMAR[key].where != IN_FINDING
         ]
         if elsewhere:
             errors.extend(
                 (
                     rel,
                     i + 1,
-                    f"{heading} {DASH} a `{label}` line inside a finding: the "
-                    "check reads one outside every finding, and none in one",
+                    f"{heading} {DASH} a `{key}` line inside a finding: the "
+                    f"check reads it {PLACED[GRAMMAR[key].where]}, and none in one",
                 )
-                for i, label in elsewhere
+                for i, key in elsewhere
             )
             continue
         found_here, errors_here = finding_of(lines, first, stop, heading, rel)
@@ -749,88 +975,93 @@ def spelt_otherwise(label, heading=None):
 
 
 def finding_of(lines, first, stop, heading, rel):
-    """`(Finding or None, errors)` for the `### ` section at `first`..`stop`."""
-    errors = []
+    """`(Finding or None, errors)` for the `### ` section at `first`..`stop`.
 
-    def one(label, pattern, need):
-        said = [
-            (i, pattern.match(lines[i]).group(1) or "")
-            for i in range(first + 1, stop)
-            if pattern.match(lines[i])
-        ]
-        if need and not said:
+    Every row the table places in a finding is read here: a row that needs
+    one line and has none, or that allows one and has more, is refused at
+    the heading or the second line, and each line a count leaves standing
+    is refused where its row's shape does not match it whole. The verdict,
+    the paths and the references are then read out of the lines that
+    matched, and a finding holding both a `regression:` and a `reopens:`
+    line is refused at the later one. A finding the check cannot decide —
+    no verdict or location read — is never returned."""
+    rows = [row for row in GRAMMAR.values() if row.where == IN_FINDING]
+    at = {
+        row.line: [i for i in range(first + 1, stop) if label_of(lines[i]) == row.line]
+        for row in rows
+    }
+    errors, read = [], {}
+    for row in rows:
+        said = at[row.line]
+        if not said and row.many == ONE:
             errors.append(
                 (
                     rel,
                     first + 1,
-                    f"{heading} {DASH} no `{label}` line: a finding carries one, "
-                    f"at the start of a line and with no emphasis, reading {need}",
+                    f"{heading} {DASH} no `{row.line}` line: a finding carries one, "
+                    f"at the start of a line and with no emphasis; {row.refused}",
                 )
             )
-        elif len(said) > 1:
+        elif len(said) > 1 and row.many in HOW_MANY:
             errors.append(
                 (
                     rel,
-                    said[1][0] + 1,
-                    f"{heading} {DASH} {len(said)} `{label}` lines; a finding "
-                    "carries one",
+                    said[1] + 1,
+                    f"{heading} {DASH} {len(said)} `{row.line}` lines; a finding "
+                    f"carries {HOW_MANY[row.many]}",
                 )
             )
-        return said[0] if len(said) == 1 else None
-
-    def read(said, label, reading, shapes):
-        if said is None:
-            return None
-        i, value = said
-        got = reading(value)
-        if got is None:
+    for row in rows:
+        said = at[row.line]
+        if len(said) > 1 and row.many in HOW_MANY:
+            continue
+        for i in said:
+            if row.shape.fullmatch(lines[i]):
+                read[row.line] = i
+                continue
             errors.append(
                 (
                     rel,
                     i + 1,
-                    f"{heading} {DASH} reads `{label} {value}`, which the check "
-                    f"cannot read: {shapes}",
+                    f"{heading} {DASH} reads `{lines[i]}`, which the check cannot "
+                    f"read: {row.refused}",
                 )
             )
-        return got
-
-    verdict_line = one(VERDICT, VERDICT_LABEL, SHAPES)
-    location_line = one(LOCATION, LOCATION_LABEL, COORDINATES)
-    regression_line = one(REGRESSION, REGRESSION_LABEL, None)
-    reopens_line = one(REOPENS, REOPENS_LABEL, None)
-    verdict = read(verdict_line, VERDICT, verdict_of, f"a verdict is {SHAPES}")
-    paths = read(location_line, LOCATION, location_of, f"a location is {COORDINATES}")
-    regression = read(
-        regression_line, REGRESSION, reference_of, f"a reference is {REFERENCES}"
-    )
-    reopens = read(
-        reopens_line,
-        REOPENS,
-        reopened_of,
-        f"a reopened close is a finding's, so the reference is {REFERENCE_SPELLING}",
-    )
-    if regression_line and reopens_line:
+    both = [at.get(REGRESSION_ROW, []), at.get(REOPENS_ROW, [])]
+    if all(len(said) == 1 for said in both):
         errors.append(
             (
                 rel,
-                max(regression_line[0], reopens_line[0]) + 1,
-                f"{heading} {DASH} a `{REGRESSION}` and a `{REOPENS}` line: "
+                max(said[0] for said in both) + 1,
+                f"{heading} {DASH} a `{REGRESSION_ROW}` and a `{REOPENS_ROW}` line: "
                 + ONE_RELATION,
             )
         )
+    for key in (VERDICT_ROW, LOCATION_ROW):
+        if key not in read and not errors:
+            errors.append(
+                (rel, first + 1, f"{heading} {DASH} no `{key}` line the check can read")
+            )
     if errors:
         return None, errors
+
+    def line_of(key):
+        return read[key] + 1 if key in read else None
+
+    def value(key):
+        return value_of(lines[read[key]]) if key in read else None
+
     return (
         Finding(
-            verdict_line[0] + 1,
+            line_of(VERDICT_ROW),
             heading,
             finding_number(heading),
-            verdict,
-            paths,
-            regression,
-            regression_line[0] + 1 if regression_line else None,
-            reopens,
-            reopens_line[0] + 1 if reopens_line else None,
+            verdict_of(value(VERDICT_ROW)),
+            location_of(value(LOCATION_ROW)),
+            reference_of(value(REGRESSION_ROW)) if REGRESSION_ROW in read else None,
+            line_of(REGRESSION_ROW),
+            reopened_of(value(REOPENS_ROW)) if REOPENS_ROW in read else None,
+            line_of(REOPENS_ROW),
             first + 1,
         ),
         [],
@@ -874,54 +1105,76 @@ def unclosed(reader, text, rel):
     return errors
 
 
-def record_target(reader, lines, rel):
-    """`(commit or None, errors)` for a record's one `target:` line.
+def counted(rel, key, said, scope):
+    """The refusal of `said`, the indexes of `key`'s lines in one `scope`,
+    where its row's `How many` does not allow that many, or None."""
+    row = GRAMMAR[key]
+    if not said and row.many == ONE:
+        return (rel, 0, no_record_line(key))
+    if len(said) > 1 and row.many in HOW_MANY:
+        return (
+            rel,
+            said[1] + 1,
+            f"{len(said)} `{key}` lines; {scope} carries {HOW_MANY[row.many]}",
+        )
+    return None
 
-    `lines` are `reader.readable`'s. The line stands outside every finding
-    (`findings` refuses one inside) and reads `<sha> against <base>`, or
-    `<sha>, fixes <a>..<b>` for a verifying round; the commit is its first
-    word. No such line — the old `| Target SHA |` row is none — two of them,
-    or a value outside the two shapes is an error by line, and no commit is
-    read."""
+
+def unreadable(rel, line, number, row):
+    """The refusal of a labelled `line` at index `number` its row's shape
+    does not match whole."""
+    return (
+        rel,
+        number + 1,
+        f"reads `{line}`, which the check cannot read: {row.refused}",
+    )
+
+
+def record_lines(reader, lines, rel, key):
+    """`(the match or None, errors)` for `key`'s line in a record, a row the
+    table places outside every finding.
+
+    `lines` are `reader.readable`'s. Its lines outside every finding are
+    counted against the row's `How many` and each read against its shape
+    whole (`findings` refuses one inside a finding). Where they are none —
+    the old `| Target SHA |` table row is none — more than the row allows,
+    or one the shape does not match, that is an error by line, and no
+    match is returned."""
     _section, spans, _error = finding_spans(reader, lines)
     inside = {i for first, stop in spans for i in range(first, stop)}
     said = [
-        (i, m.group(1) or "")
-        for i, line in enumerate(lines)
-        if i not in inside and (m := TARGET_LABEL.match(line))
+        i for i, line in enumerate(lines) if i not in inside and label_of(line) == key
     ]
-    if not said:
-        return None, [(rel, 0, NO_TARGET)]
-    if len(said) > 1:
-        return None, [
-            (
-                rel,
-                said[1][0] + 1,
-                f"{len(said)} `{RECORD_TARGET}` lines; a round record carries one",
-            )
-        ]
-    i, value = said[0]
-    found = TARGET_VALUE.match(value)
-    if not found:
-        return None, [
-            (
-                rel,
-                i + 1,
-                f"reads `{RECORD_TARGET} {value}`, which the check cannot read: "
-                f"it is {TARGET_SHAPES}",
-            )
-        ]
-    return found.group(1), []
+    refused = counted(rel, key, said, "a round record")
+    if refused:
+        return None, [refused]
+    row, found, errors = GRAMMAR[key], None, []
+    for i in said:
+        found = row.shape.fullmatch(lines[i])
+        if not found:
+            errors.append(unreadable(rel, lines[i], i, row))
+    return (None if errors else found), errors
+
+
+def record_target(reader, lines, rel):
+    """`(commit or None, errors)` for a record's one `target:` line, read by
+    `record_lines`; the commit is the row's `commit` part."""
+    found, errors = record_lines(reader, lines, rel, TARGET_ROW)
+    return (found["commit"] if found else None), errors
 
 
 def record_findings(reader, text, rel):
     """`findings` over a record's text, with `unclosed`'s refusals first and
-    `record_target`'s after: the one reader the arm, the panel and the
-    release seal read a record through, so a region that hides findings, or
-    a record naming no commit it reviewed, fails closed for each of them."""
+    `record_lines`' after, for every row the table places outside every
+    finding: the one reader the arm, the panel and the release seal read a
+    record through, so a region that hides findings, or a record naming no
+    commit it reviewed, fails closed for each of them."""
     lines = reader.readable(text or "")
     found, errors = findings(reader, lines, rel)
-    _target, said = record_target(reader, lines, rel)
+    said = []
+    for key, row in GRAMMAR.items():
+        if row.where == OUTSIDE_FINDINGS:
+            said += record_lines(reader, lines, rel, key)[1]
     return found, unclosed(reader, text, rel) + errors + said
 
 
@@ -929,41 +1182,40 @@ def confirmations(reader, lines, rel):
     """`([(line, (round, finding))], errors)` for a record's `confirms:`
     lines.
 
-    A record with nothing to confirm may leave `## Confirmations` out. In
-    the one such section, each entry is a `confirms:` line at the start of a
-    line, reading a `round-<N>#<n>` reference, read with its line, or
-    `none`; the prose after it is read for nothing. Everything else is an
-    error by line: a second section, a value that is neither, a table row,
-    the old shape. What the reference names is `channel`'s."""
-    starts = reader.sections(lines, CONFIRMATIONS_HEADING)
-    if not starts:
-        return [], []
+    A record with nothing to confirm may leave `## Confirmations` out, as
+    far as its row allows. In the section, each line of a row the table
+    places there is counted against the row and read against its shape
+    whole, and a `confirms:` line naming a finding is read with its line;
+    one reading `none`, and the prose after any entry, are read for
+    nothing. Everything else is an error by line: more sections than the row
+    allows, a line its shape does not match, a table row, the old shape.
+    What the reference names is `channel`'s."""
+    starts = sections_of(reader, lines, CONFIRMATIONS_HEADING)
     if len(starts) > 1:
         return [], [(rel, starts[1] + 1, TWO_CONFIRMATIONS)]
+    if not starts:
+        return [], []
     start = starts[0]
+    rows = [row for row in GRAMMAR.values() if row.where == IN_CONFIRMATIONS]
+    at = {row.line: [] for row in rows}
     found, errors = [], []
     for i in range(start + 1, section_end(reader, lines, start)):
         if reader.split_row(lines[i]) is not None:
             errors.append((rel, i + 1, CONFIRMATIONS_TABLE))
             continue
-        said = CONFIRMS_LABEL.match(lines[i])
+        key = label_of(lines[i])
+        if key not in at:
+            continue
+        at[key].append(i)
+        said = GRAMMAR[key].shape.fullmatch(lines[i])
         if not said:
-            continue
-        value = said.group(1) or ""
-        if value == NONE:
-            continue
-        reference = reference_of(value)
-        if reference is None or reference[1] is None:
-            errors.append(
-                (
-                    rel,
-                    i + 1,
-                    f"reads `{CONFIRMS} {value}`, which the check cannot read: "
-                    f"it is {REFERENCE_SPELLING} or `{NONE}`",
-                )
-            )
-            continue
-        found.append((i + 1, reference))
+            errors.append(unreadable(rel, lines[i], i, GRAMMAR[key]))
+        elif key == CONFIRMS_ROW and said["round"]:
+            found.append((i + 1, reference(said)))
+    for key, said in at.items():
+        refused = counted(rel, key, said, f"`{CONFIRMATIONS_HEADING}`")
+        if refused:
+            errors.append(refused)
     return found, errors
 
 
@@ -1010,7 +1262,7 @@ def channel(rounds):
             if k == 0:
                 why = (
                     f"names `{said}` in the first record: there is no earlier "
-                    f"round to name, so its `{CONFIRMS}` lines read `{NONE}`"
+                    f"round to name, so its `{CONFIRMS_ROW}` lines read `none`"
                 )
             elif n >= here.number or n not in by_number:
                 why = (
@@ -1032,10 +1284,10 @@ def channel(rounds):
                     (
                         before.path,
                         f.heading_line,
-                        f"{f.heading} {DASH} reads `{VERDICT} "
+                        f"{f.heading} {DASH} reads `{VERDICT_ROW} "
                         f"{' '.join(x for x in f.verdict if x)}`, and the next "
-                        f"record, {here.path}, names it on no `{CONFIRMS}`, "
-                        f"`{REOPENS}` or `{REGRESSION}` line: one of them reads "
+                        f"record, {here.path}, names it on no `{CONFIRMS_ROW}`, "
+                        f"`{REOPENS_ROW}` or `{REGRESSION_ROW}` line: one of them reads "
                         f"`round-{before.number}#{f.number}`",
                     )
                 )
@@ -1047,7 +1299,7 @@ def channel(rounds):
                     (
                         last.path,
                         f.line,
-                        f"{f.heading} {DASH} reads `{VERDICT} "
+                        f"{f.heading} {DASH} reads `{VERDICT_ROW} "
                         f"{' '.join(x for x in f.verdict if x)}` in the last "
                         f"record, and no round after it read it: {VERIFYING_ROUND}",
                     )
@@ -1213,8 +1465,9 @@ def verdict_problems(root, path, f):
             (
                 path,
                 f.line,
-                f"{f.heading} {DASH} reads `{VERDICT} {OPEN}`: the fix pass "
-                f"answers it with {ANSWERS}",
+                f"{f.heading} {DASH} reads `{VERDICT_ROW} {OPEN}`: the fix pass "
+                f"answers it with another verdict, and "
+                f"{GRAMMAR[VERDICT_ROW].refused}",
             )
         ]
     if kind != FIXED:
@@ -1224,7 +1477,7 @@ def verdict_problems(root, path, f):
             (
                 path,
                 f.line,
-                f"{f.heading} {DASH} reads `{VERDICT} {FIXED} {commit}`, and "
+                f"{f.heading} {DASH} reads `{VERDICT_ROW} {FIXED} {commit}`, and "
                 f"HEAD does not descend from `{commit}`: a `{FIXED}` names "
                 "a commit on this branch",
             )
@@ -1238,10 +1491,10 @@ def verdict_problems(root, path, f):
         (
             path,
             f.line,
-            f"{f.heading} {DASH} reads `{VERDICT} {FIXED} {commit}`, and "
-            f"`{commit}` touches no path its `{LOCATION}` names ({named}): it "
+            f"{f.heading} {DASH} reads `{VERDICT_ROW} {FIXED} {commit}`, and "
+            f"`{commit}` touches no path its `{LOCATION_ROW}` names ({named}): it "
             f"changed {did}. A fix that went elsewhere appends that coordinate "
-            f"to the `{LOCATION}` line",
+            f"to the `{LOCATION_ROW}` line",
         )
     ]
 
@@ -1282,7 +1535,7 @@ def records(reader, routing, root, item, rel, base):
                 (
                     last.path,
                     0,
-                    follows_reason(behind, f"the last round's `{RECORD_TARGET}`")
+                    follows_reason(behind, f"the last round's `{TARGET_ROW}`")
                     + (f"; {VERIFYING_ROUND}" if behind[0] == "after" else ""),
                 )
             )

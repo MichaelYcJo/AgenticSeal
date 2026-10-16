@@ -12,6 +12,7 @@ import os
 import pathlib
 import re
 import subprocess
+import sys
 
 import pytest
 
@@ -382,13 +383,249 @@ class TestCarriedBy:
         assert chain.carried_by(str(root), "main", "seal/specs/none/routing.md") is None
 
 
+# --- grammar ------------------------------------------------------------------
+
+DOC = ROOT / "docs" / "the-review-record.md"
+TEMPLATE = ROOT / "templates" / "sdd-round.md"
+
+
+def doc_with(tmp_path, old, new):
+    """The grammar document with `old`, which stands once, replaced by `new`,
+    written to a path of its own."""
+    text = DOC.read_text(encoding="utf-8")
+    assert text.count(old) == 1, old
+    path = tmp_path / "the-review-record.md"
+    path.write_text(text.replace(old, new), encoding="utf-8")
+    return path
+
+
+def row_of(key):
+    """The table row of `key` as the document writes it, its line end
+    included."""
+    return next(
+        ln + "\n"
+        for ln in DOC.read_text(encoding="utf-8").splitlines()
+        if ln.startswith(f"| `{key}` |")
+    )
+
+
+def readings(rows):
+    """`rows` as plain values, so two loads of one table compare equal."""
+    return {
+        k: (r.shape.pattern if r.shape else None, r.where, r.many, r.refused)
+        for k, r in rows.items()
+    }
+
+
+class TestGrammar:
+    def test_the_table_loads_and_every_line_matches_its_row_whole(
+        self, monkeypatch, tmp_path
+    ):
+        """S4 (T2): the table in `docs/the-review-record.md` §*The round
+        record* is what the check reads. Its rows are the eight labels, the
+        finding heading, the two sections and the three old spellings, and
+        the module's grammar is the document's, read again here. Every line
+        `templates/sdd-round.md` writes of a row matches it whole, and the
+        same line with a word after it is refused wherever the row's shape
+        ends in fixed words — `verdict: fixed abc1234 and more` among them,
+        through the reader end to end. Two refusals arrive by construction:
+        a severity other than `must` or `should`, and a finding with no
+        `answer:` line. And a row changed in the document changes what the
+        readers accept, so no constant stands beside the table.
+
+        Protects: a fourth statement of the grammar drifting from the
+        table, and a partial match letting a shape through, which #923 met
+        three times. No other case loads the table or reads a line through
+        a changed one."""
+        live = {k for k, r in chain.GRAMMAR.items() if r.where != chain.NOWHERE}
+        assert live == {
+            "target:",
+            "severity:",
+            "location:",
+            "verdict:",
+            "regression:",
+            "reopens:",
+            "answer:",
+            "confirms:",
+            "### <n>. <symptom>",
+            "## Findings",
+            "## Confirmations",
+        }, live
+        old = {k for k, r in chain.GRAMMAR.items() if r.where == chain.NOWHERE}
+        assert old == {"Target SHA:", "refixes:", "fix of a fix:"}, old
+        assert readings(chain.grammar(str(DOC), reader)) == readings(chain.GRAMMAR)
+
+        lines = reader.readable(TEMPLATE.read_text(encoding="utf-8"))
+        # A finding carries one of `regression:` and `reopens:`, and the
+        # template's finding writes the first; the second's example is its
+        # comment's `round-<N>#<n>`.
+        written_by_comment = {"reopens:": ["reopens: round-1#2"]}
+        for key in chain.LABELS:
+            row = chain.GRAMMAR[key]
+            written = [ln for ln in lines if chain.label_of(ln) == key]
+            written = written or written_by_comment.get(key, [])
+            assert written, f"the template writes no `{key}` line"
+            for ln in written:
+                assert row.shape.fullmatch(ln), ln
+                trailing = row.shape.fullmatch(f"{ln} and more")
+                assert bool(trailing) == (key == "answer:"), ln
+        headings = [ln for ln in lines if ln.startswith("### ")]
+        assert headings and all(chain.finding_number(h) == 1 for h in headings)
+        for key in chain.SECTION_ROWS:
+            assert len(chain.sections_of(reader, lines, key)) == 1, key
+
+        text = record(
+            "abc1234",
+            [
+                finding(1, "fixed abc1234 and more"),
+                finding(2, "rejected", severity="anything at all"),
+                finding(3, "rejected").replace("answer: \n", ""),
+                finding(4, "rejected"),
+            ],
+        ).replace(
+            "target: abc1234 against main", "target: abc1234 against main and more"
+        )
+        lines = reader.readable(text)
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert [f.number for f in found] == [4], errors
+        said = {line: why for _rel, line, why in errors}
+        verdict = lines.index("verdict: fixed abc1234 and more") + 1
+        assert "reads `verdict: fixed abc1234 and more`" in said[verdict], said
+        assert "a verdict is `open`, `fixed <commit>`" in said[verdict], said
+        severity = lines.index("severity: anything at all") + 1
+        assert "a severity is `must` or `should`" in said[severity], said
+        third = lines.index("### 3. the parser drops a row") + 1
+        assert "no `answer:` line" in said[third], said
+        target = lines.index("target: abc1234 against main and more") + 1
+        assert "`<sha> against <base>`" in said[target], said
+        assert len(errors) == 4, errors
+        assert chain.verdict_of("fixed abc1234 and more") is None
+
+        could = record("abc1234", [finding(1, "rejected", severity="could")])
+        assert chain.record_findings(reader, could, "r.md")[1] != []
+        wider = doc_with(
+            tmp_path,
+            "`severity: (?:must\\|should)`",
+            "`severity: (?:must\\|should\\|could)`",
+        )
+        monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(wider), reader))
+        assert chain.record_findings(reader, could, "r.md")[1] == []
+
+    @pytest.mark.parametrize(
+        "old, new, said",
+        [
+            (
+                "## The round record\n",
+                "## The round records\n",
+                "0 `## The round record`",
+            ),
+            ("| How many |", "| Count |", "holds no table headed"),
+            ("|---|---|---|---|---|\n| `target:`", "| `target:`", "separator row"),
+            (" | a severity is `must` or `should` |", " |", "4 cells"),
+            ("| `severity:` |", "| severity: |", "not one code span"),
+            ("| `severity:` |", "| `severity:` `x` |", "not one code span"),
+            ("(?:must\\|should)`", "(?:must\\|should`", "does not compile"),
+            (
+                "| a finding | one | a severity",
+                "| a section | one | a severity",
+                "cannot read",
+            ),
+            (
+                "| a finding | one | a severity",
+                "| a finding | two | a severity",
+                "cannot read",
+            ),
+            (row_of("reopens:"), "", "no `reopens:` row"),
+            ("`target: (?P<commit>", "`target: (?P<sha>", "no `(?P<commit>…)`"),
+            ("the old spelling of `target:`", "the old spelling", "names no one label"),
+            (
+                "the old spelling of `target:`",
+                "the old spelling of `target:` or `verdict:`",
+                "names no one label",
+            ),
+            ("`severity: (?:must", "`sev: (?:must", "cannot read"),
+            (row_of("severity:"), row_of("severity:") * 2, "a second `severity:` row"),
+            (
+                row_of("answer:"),
+                row_of("answer:")
+                + "| `## Probes` | `## Probes` | the record | one | x |\n",
+                "reads nothing from",
+            ),
+        ],
+    )
+    def test_a_document_the_check_cannot_read_is_exit_2_naming_it(
+        self, tmp_path, old, new, said
+    ):
+        """S4 (T2): a table the check cannot read stops it and is never a
+        pass. Each way to break it — no section, no header, no separator, a
+        row of the wrong width, a `Line` that is no code span, a shape that
+        does not compile, a `Where` or `How many` the table does not use, a
+        row the check reads missing or naming no part it reads, an old
+        spelling naming no label, a label whose shape does not open with
+        it, a row twice, a heading row the check reads nothing from — is
+        refused naming the document. Run as a command beside such a
+        document, the check exits 2 with that sentence and no traceback, and
+        beside no document at all the same; imported, it raises the error
+        for the importer to decide.
+
+        Protects: a `docs/` rewrite (#941) moving the table out from under
+        the check while it reads every record as holding nothing. No other
+        case hands the loader a document it cannot read."""
+        path = doc_with(tmp_path, old, new)
+        with pytest.raises(chain.GrammarError) as refused:
+            chain.grammar(str(path), reader)
+        assert str(refused.value).startswith(str(path)), refused.value
+        assert said in str(refused.value), refused.value
+        missing = tmp_path / "no-such-document.md"
+        with pytest.raises(chain.GrammarError, match="cannot be read"):
+            chain.grammar(str(missing), reader)
+
+        tree = tmp_path / "tree"
+        script = tree / "skills" / "code-review" / "scripts" / "chain_check.py"
+        script.parent.mkdir(parents=True)
+        script.write_text(CHAIN.read_text(encoding="utf-8"), encoding="utf-8")
+        (tree / "skills" / "verify" / "scripts").mkdir(parents=True)
+        (tree / "skills" / "verify" / "scripts" / "unverified_check.py").write_text(
+            READER.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+        (tree / "docs").mkdir()
+        target = tree / "docs" / "the-review-record.md"
+        named = os.path.join(str(script.parent), "..", "..", "..", "docs", target.name)
+        for present in (True, False):
+            if present:
+                target.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
+            else:
+                target.unlink()
+            done = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "--baseline",
+                    "HEAD",
+                    "--root",
+                    str(tmp_path),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            assert done.returncode == 2, (present, done.returncode, done.stderr)
+            assert "Traceback" not in done.stderr, done.stderr
+            assert named in done.stderr, done.stderr
+            assert "grammar would not load" in done.stderr, done.stderr
+            assert (said if present else "cannot be read") in done.stderr, done.stderr
+        with pytest.raises(ValueError, match="cannot be read"):
+            load(script, "chain_check_imported_beside_no_table")
+
+
 # --- verdict_of ---------------------------------------------------------------
 
 
 class TestVerdictOf:
     def test_the_four_values_read_and_nothing_else_does(self):
         """S3 (T25): a `verdict:` value is one of four shapes, read as it is
-        written. Anything else is None, which the arm refuses by name."""
+        written against the grammar table's `verdict:` row whole. Anything
+        else is None, which the arm refuses by name."""
         sha = "1a2b3c4d" * 5
         for value, read in (
             ("open", (chain.OPEN, None)),
@@ -444,8 +681,10 @@ class TestDeferredHome:
 class TestLocationOf:
     def test_one_or_more_backticked_coordinates_read_and_nothing_else_does(self):
         """S22 (T33): a `location:` value is one or more backticked `path`,
-        `path:line` or `path:first-last` items joined by `, `, read as the
-        paths they name. Anything else is None, which the arm refuses."""
+        `path:line` or `path:first-last` items joined by `, `, read against
+        the grammar table's `location:` row whole and then as the paths they
+        name. Anything else is None, which the arm refuses: the `path#unit`
+        coordinate #923 leaked among them."""
         for value, paths in (
             ("`a.py`", ["a.py"]),
             ("`a.py:12`", ["a.py"]),
@@ -485,7 +724,8 @@ class TestLocationOf:
 class TestReferenceOf:
     def test_a_round_and_a_finding_read_and_nothing_else_does(self):
         """S23 (T35): a reference is `round-<N>#<n>`, or `round-<N>` for a
-        round's fix pass, in that spelling and no other."""
+        round's fix pass, in that spelling and no other: the grammar table's
+        `regression:` row, read whole."""
         for value, read in (
             ("round-2#3", (2, 3)),
             ("round-2", (2, None)),
@@ -582,7 +822,7 @@ class TestFindings:
         """A finding's `### ` heading names it and its number; its one
         `verdict:` line decides it, its one `location:` line names its paths
         and its `regression:` line, where it stands, the earlier finding; a
-        severity, an answer and a confirmation are read for nothing."""
+        severity, an answer and a confirmation decide nothing."""
         text = record(
             "abc1234",
             [
@@ -591,7 +831,7 @@ class TestFindings:
                 finding(
                     3,
                     "deferred #12",
-                    severity="anything at all",
+                    severity="should",
                     location="`a.py:3`, `docs/b.md`",
                     regression="round-1",
                 ),
@@ -719,11 +959,12 @@ class TestFindings:
 
     def test_a_label_in_another_spelling_is_refused_by_line(self):
         """S24 (T32): a line whose first word, case-folded and stripped of
-        emphasis, is one of the eight labels, the old `fix of a fix`,
-        `refixes` or `Target SHA`, and which is not the exact lowercase form,
-        is refused at its line naming the label the check reads — never
-        skipped as prose. A finding carrying one is not read past it, so a
-        finding with both spellings does not pass on the lowercase one."""
+        emphasis, is one of the grammar table's eight labels or one of the
+        old spellings its `nowhere` rows name, `fix of a fix`, `refixes` and
+        `Target SHA`, and which is not the exact lowercase form, is refused
+        at its line naming the label the check reads — never skipped as
+        prose. A finding carrying one is not read past it, so a finding with
+        both spellings does not pass on the lowercase one."""
         for spelling, label in (
             ("Verdict: open", "`verdict:`"),
             ("**verdict:** open", "`verdict:`"),
@@ -772,7 +1013,7 @@ class TestFindings:
         assert [(line, "`verdict:`" in why) for _rel, line, why in errors] == [
             (lines.index("Verdict: rejected") + 1, True)
         ]
-        exact = record("abc1234", [finding(1, "rejected").replace("answer: \n", "")])
+        exact = record("abc1234", [finding(1, "rejected")])
         assert chain.findings(reader, reader.readable(exact), "r.md")[1] == []
         for prose in ("Answers: none", "Verdicts read below.", "Severity matters."):
             text = record("abc1234", [finding(1, "rejected")]).replace(
@@ -911,7 +1152,7 @@ class TestFindings:
         ]
         comments = text.split(chain.FINDINGS_HEADING)[1].split("### 1. ")[0]
         assert "`reopens:`" in comments and "  reopens:  " in comments, comments
-        assert not any(ln.startswith(chain.REOPENS) for ln in lines)
+        assert not any(ln.startswith(chain.REOPENS_ROW) for ln in lines)
         assert found[0].heading.startswith("### 1. ") and found[0].number == 1
         confirmed, errors = chain.confirmations(reader, lines, "t")
         assert errors == []
@@ -980,7 +1221,10 @@ class TestRecordFindings:
         for opener, why in (("~~~python\n", "fence"), ("<!-- a note\n", "comment")):
             text = record(
                 "abc1234",
-                [finding(1, "rejected").replace("answer: \n", opener), hidden],
+                [
+                    finding(1, "rejected").replace("answer: \n", "answer: \n" + opener),
+                    hidden,
+                ],
             )
             found, errors = chain.record_findings(reader, text, "r.md")
             lines = text.splitlines()
@@ -1022,10 +1266,11 @@ class TestConfirmations:
         )
 
     def test_a_line_or_a_table_the_check_cannot_read_is_refused_by_line(self):
-        """S23 (T36): a `confirms:` value outside `round-<N>#<n>` and `none` —
-        prose, another case, a bare `#3`, a round with no finding, emphasis,
-        nothing, a reference with words after it — is refused by its line; so
-        is a table row in the section, the old shape, and a second
+        """S23 (T36): a `confirms:` value the grammar table's `confirms:` row
+        does not match whole, `round-<N>#<n>` or `none` — prose, another
+        case, a bare `#3`, a round with no finding, emphasis, nothing, a
+        reference with words after it — is refused by its line; so is a
+        table row in the section, the old shape, and a second
         `## Confirmations` section."""
         bad = (
             "round 1's 3",
@@ -1081,7 +1326,8 @@ class TestChannel:
     def test_every_fixed_or_rejected_finding_is_confirmed_or_named_a_regression(
         self,
     ):
-        """S23 (T36): every finding of round N at `fixed <commit>` or
+        """S23 (T36, read through the grammar table's reference rows): every
+        finding of round N at `fixed <commit>` or
         `rejected` is named in round N+1, by a `confirms:` line or by a
         `regression:` line here, and by a `reopens:` line in T43's case; a
         `deferred` one owes nothing, and a `regression:` line naming the round
@@ -1352,8 +1598,8 @@ class TestMain:
         assert line.startswith(f"{rel}:{number + 1}"), line
         assert "### 1. the parser drops a row" in line
         assert (
-            "reads `verdict: open`: the fix pass answers it with `fixed <commit>`, "
-            "`rejected` or `deferred <home>`"
+            "reads `verdict: open`: the fix pass answers it with another verdict, "
+            "and a verdict is `open`, `fixed <commit>`, `rejected` or `deferred <home>`"
         ) in line
         event = pathlib.Path(os.environ["GITHUB_EVENT_PATH"])
         event.write_text(

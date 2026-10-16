@@ -144,7 +144,9 @@ def labelled(text):
     """True for a record in 0.22.0's labelled lines: one whose readable
     lines hold a `target:` line, which no table record carries."""
     check, reader = record_reader()
-    return any(check.TARGET_LABEL.match(line) for line in reader.readable(text))
+    return any(
+        check.label_of(line) == check.TARGET_ROW for line in reader.readable(text)
+    )
 
 
 def labelled_round(text, rel, n):
@@ -162,15 +164,17 @@ def labelled_round(text, rel, n):
         _rel, line, why = errors[0]
         return None, f"the check refuses the record at line {line}: {why}"
     lines = reader.readable(text)
-    value = next(m.group(1) for x in lines if (m := check.TARGET_LABEL.match(x)))
+    value = next(
+        check.value_of(x) for x in lines if check.label_of(x) == check.TARGET_ROW
+    )
     _section, spans, _error = check.finding_spans(reader, lines)
     stops = {first + 1: stop for first, stop in spans}
     rows = []
     for f in found.findings:
         location = next(
-            m.group(1)
+            check.value_of(lines[i])
             for i in range(f.heading_line, stops[f.heading_line])
-            if (m := check.LOCATION_LABEL.match(lines[i]))
+            if check.label_of(lines[i]) == check.LOCATION_ROW
         )
         symptom = f.heading.split(". ", 1)[1]
         rows.append((f.number, symptom, location, f.verdict[0] == check.FIXED))

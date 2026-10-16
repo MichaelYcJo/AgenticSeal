@@ -11,47 +11,83 @@ produce and what holds them.
 from `templates/sdd-round.md`, in the branch worktree under review: a
 `target:` line, then `## Findings` with one `### <n>. <symptom>` section per
 finding, `## Confirmations` where the round confirmed something,
-`## Not judged` and `## Probes`. A finding holds its `severity:`,
-`location:` and `verdict:` lines, a `regression:` or a `reopens:` line where
-one applies, why it matters with its grounds, the paste-ready fix in a fenced block, and its
-`answer:` line. The record is written in words, and no emoji stands anywhere
-in it. No report file stands beside it and nothing generates, copies or
-derives any part of it.
+`## Not judged` and `## Probes`. A finding holds the labelled lines the table
+below places in a finding, why it matters with its grounds, and the
+paste-ready fix in a fenced block. The record is written in words, and no
+emoji stands anywhere in it. No report file stands beside it and nothing
+generates, copies or derives any part of it.
 Enforced by: tests/test_chain_check.py::TestFindings::test_the_template_is_the_record_the_check_reads, tests/test_the_record_is_written_in_words.py::test_the_template_the_format_and_the_two_definitions_carry_no_emoji
 
-**Every label is one lowercase word at the start of its line, and no other
-spelling is read.** The eight are `target:`, `severity:`, `location:`,
-`verdict:`, `regression:`, `reopens:`, `answer:` and `confirms:`, each
-followed by one space, with no emphasis. A line that means one of them, or
-an old spelling — `Target SHA`, `refixes`, `fix of a fix` — and is spelt
-another way — `VERDICT:`, `**verdict:**`, `verdict :`, `Reopens:` — is
-refused at its line, and the
-finding carrying it is not read past it, so a finding holding both
-spellings does not pass on the lowercase one. A finding's label outside a
-finding, a `target:` or `confirms:` line inside one, and a `confirms:` line
-outside `## Confirmations` are refused the same way.
-Enforced by: tests/test_chain_check.py::TestFindings::test_a_label_in_another_spelling_is_refused_by_line, tests/test_chain_check.py::TestFindings::test_a_target_or_confirms_line_out_of_its_place_is_refused, tests/test_chain_check.py::TestFindings::test_a_reopens_line_names_one_finding_and_never_beside_a_regression_line
+**The record's grammar is the table below, and nothing else states it.**
+Each labelled line and finding heading of a record is one row's, and the
+check accepts it only where it matches the row's `Shape` whole, stands where
+`Where` says and is as many as `How many` allows. Otherwise it is refused at
+its line with the row's `Refused as`. `How many` counts per finding for a
+line in a finding, and per record for every other line. A label is its
+`Line` cell exactly: lowercase, at the start of the line, followed by one
+space or by nothing, with no emphasis and no table cell. A line that means a
+label and is spelt another way, in another case, under emphasis, with a
+space before the colon, or as an old spelling a `nowhere` row names, is
+refused at its line, and the finding carrying it is not read past it. So a
+finding holding both spellings does not pass on the lowercase one. Three
+rules span rows: a finding carries at most one of a `regression:` and a
+`reopens:` line, no two findings share a heading number, and
+`## Confirmations` holds no table row. No `Record language` translates a
+cell of the table.
+Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_every_line_matches_its_row_whole, tests/test_chain_check.py::TestFindings::test_a_label_in_another_spelling_is_refused_by_line, tests/test_chain_check.py::TestFindings::test_a_target_or_confirms_line_out_of_its_place_is_refused, tests/test_chain_check.py::TestFindings::test_a_reopens_line_names_one_finding_and_never_beside_a_regression_line
 
-**A finding's `verdict:` reads one of four values, and severity is for
-people.** The warden writes `open`; the fix pass answers with
-`fixed <commit>`, `rejected` (the finding does not hold, and `answer:` says
-why) or `deferred <home>`. `severity:` reads `must` (fix before merge) or
-`should` (fix, or say why not), and no check reads it. What this round
-confirmed holds is a `confirms:` entry of `## Confirmations`, and what it
-could not judge a row of `## Not judged` with who answers it; neither is a
-finding. A wrong sentence an agent reads and acts on is `should`; a sentence
-in a record that merely reads badly is not a finding.
+| Line | Shape | Where | How many | Refused as |
+|---|---|---|---|---|
+| `target:` | `target: (?P<commit>[0-9a-f]{7,40})(?: against [\w./-]*\w\|, fixes [0-9a-f]{7,40}\.\.[0-9a-f]{7,40})` | outside every finding | one | it names the reviewed commit as `<sha> against <base>`, or `<sha>, fixes <a>..<b>` for a verifying round |
+| `## Findings` | `## Findings` | the record | one | a round record holds one, with a `### ` section and one `verdict:` line per finding |
+| `### <n>. <symptom>` | `### (?P<number>[1-9][0-9]*)\. .+` | `## Findings` | each number once | no number: a finding's heading reads `### <n>. <symptom>`, and a later round names it by that `n` |
+| `severity:` | `severity: (?:must\|should)` | a finding | one | a severity is `must` or `should` |
+| `location:` | `` location: `[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`(?:, `[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`)* `` | a finding | one | a location is one or more of `path`, `path:line` or `path:first-last`, each backticked, joined by `, ` |
+| `verdict:` | `verdict: (?:open\|rejected\|fixed (?P<commit>[0-9a-f]{7,40})\|deferred (?P<home>\S(?:.*\S)?))` | a finding | one | a verdict is `open`, `fixed <commit>`, `rejected` or `deferred <home>` |
+| `regression:` | `regression: round-(?P<round>[1-9][0-9]*)(?:#(?P<finding>[1-9][0-9]*))?` | a finding | at most one | a reference is `round-<N>#<n>` or `round-<N>` |
+| `reopens:` | `reopens: round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*)` | a finding | at most one | a reopened close is a finding's, so the reference is `round-<N>#<n>` |
+| `answer:` | `answer:(?: .*)?` | a finding | one | an answer is prose after the label |
+| `## Confirmations` | `## Confirmations` | the record | at most one | each entry is a `confirms:` line at the start of a line, then its prose |
+| `confirms:` | `confirms: (?:none\|round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*))` | `## Confirmations` | any | it is `round-<N>#<n>` or `none` |
+| `Target SHA:` | — | nowhere | none | the old spelling of `target:` |
+| `refixes:` | — | nowhere | none | an old spelling of `regression:` |
+| `fix of a fix:` | — | nowhere | none | an old spelling of `regression:` |
+
+**`chain_check.py` reads the table from this section and stops at exit 2
+where it cannot.** It loads the table once, when it is imported, from
+`docs/the-review-record.md` beside itself, which every copy of the plugin
+carries, the hygiene workflow's clone among them. It finds the table by this
+section's heading and the table's header row. A document it cannot open, a
+section or a header row it cannot find, and a row it cannot read stop it at
+exit 2 naming this file, never a pass. A row it cannot read is one whose
+shape does not compile, whose `Where` or `How many` is a word the table does
+not use, a row the check reads a meaning from that is missing, or one whose
+shape lacks the named part, such as `(?P<commit>…)`, the check reads out of
+it. So a rewrite of `docs/` that moves this heading or the table, as #941's
+will, moves the loader's path in the same commit, or every check that reads
+a record stops.
+Enforced by: tests/test_chain_check.py::TestGrammar::test_a_document_the_check_cannot_read_is_exit_2_naming_it
+
+**A finding's `verdict:` decides it, and severity is for people.** The
+warden writes `open`; the fix pass answers with `fixed <commit>`,
+`rejected` (the finding does not hold, and `answer:` says why) or
+`deferred <home>`. `severity:` is `must` (fix before merge) or `should`
+(fix, or say why not); the check holds it to its row and decides nothing on
+it. What this round confirmed holds is a `confirms:` entry of
+`## Confirmations`, and what it could not judge a row of `## Not judged`
+with who answers it; neither is a finding. A wrong sentence an agent reads
+and acts on is `should`; a sentence in a record that merely reads badly is
+not a finding.
 Enforced by: tests/test_chain_check.py::TestVerdictOf::test_the_four_values_read_and_nothing_else_does
 
 **A finding's `location:` names where the defect shows, and a `fixed` commit
-touches it.** A finding's one such line lists a backticked coordinate for
-each place the defect shows, and for the file its paste-ready fix changes
-where that is elsewhere, joined by `, `; a coordinate is `path`,
-`path:line` or `path:first-last`, the path from the root. A line the check
-cannot read is refused whatever the verdict. A `fixed <commit>` changes at
-least one named path, or a path under one; whether a fix that touched one of
-three is complete is the verifying round's to judge. It errs where a commit
-touches a named path and fixes nothing, which the verifying round reads.
+touches it.** Its coordinates are each place the defect shows, and the file
+its paste-ready fix changes where that is elsewhere, each path from the
+root. A line the check cannot read is refused whatever the verdict. A
+`fixed <commit>` changes at least one named path, or a path under one;
+whether a fix that touched one of three is complete is the verifying round's
+to judge. It errs where a commit touches a named path and fixes nothing,
+which the verifying round reads.
 Enforced by: tests/test_chain_check.py::TestLocationOf::test_one_or_more_backticked_coordinates_read_and_nothing_else_does, tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused
 
 **The fix pass writes two lines per finding and nothing else in the file.**
@@ -67,24 +103,22 @@ on the branch and closes `deferred <where it was repaired>`, such as
 round nothing. `rejected` means only that the finding does not hold.
 Enforced by: tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused, tests/test_the_record_is_written_in_words.py::test_a_repair_with_no_commit_closes_deferred_where_it_was_made
 
-**Each round answers to the next by reference.** A reference is
-`round-<N>#<n>`, the earlier record's number and the finding's heading
-number, or `round-<N>` for a round's fix pass that no finding named. A
-round names an earlier finding by one of three relations, each its own
-line: `confirms:` where its close holds; `reopens:` on a new finding where
-the close does not hold and no fix pass's commit made the defect;
-`regression:` on a new finding where a fix pass's own commit introduced
-it. Each entry of `## Confirmations` is a `confirms:` line reading
-`round-<N>#<n>`, or `none` for a claim of the frame or the build that
-matched, with its prose on the lines after it; a `regression:` line reads
-a reference, and a `reopens:` line reads `round-<N>#<n>` alone, since a
-fix pass no finding named closed nothing to reopen. Every finding of round
+**Each round answers to the next by reference.** A reference names an
+earlier record by its number and one of its findings by the finding's
+heading number, or, for a round's fix pass that no finding named, the
+record alone; the table's rows say which line takes which. A round names an
+earlier finding by one of three relations, each its own line: `confirms:`
+where its close holds; `reopens:` on a new finding where the close does not
+hold and no fix pass's commit made the defect; `regression:` on a new
+finding where a fix pass's own commit introduced it. A `reopens:` line
+names a finding, since a fix pass no finding named closed nothing to
+reopen, and a `confirms: none` entry is a claim of the frame or the build
+that matched, with its prose on the lines after it. Every finding of round
 N at `fixed <commit>` or `rejected` is named by a `confirms:`, a
 `reopens:` or a `regression:` line of round N+1, and one left unnamed is
 refused at its own heading in round N's record; a `deferred <home>`
 finding owes nothing. Round 1 has no earlier record, so its entries read
-`none`. A round with nothing to confirm leaves `## Confirmations` out; a
-record holds one at most.
+`none`. A round with nothing to confirm leaves `## Confirmations` out.
 Enforced by: tests/test_chain_check.py::TestReferenceOf::test_a_round_and_a_finding_read_and_nothing_else_does, tests/test_chain_check.py::TestChannel::test_every_fixed_or_rejected_finding_is_confirmed_or_named_a_regression, tests/test_chain_check.py::TestConfirmations::test_each_confirms_line_reads_as_a_reference_or_none, tests/test_chain_check.py::TestChannel::test_a_reopens_line_answers_the_earlier_finding_as_the_other_two_do
 
 **Every round file stays, so a finding can be followed from the round that
@@ -95,11 +129,10 @@ left to read them.
 Enforced by: tests/test_settle_retires_the_process_record.py::test_the_process_record_leaves_and_the_sdd_set_stays
 
 **`target:` names a commit, not a content anchor, because a round records a
-moment.** The record's one `target:` line reads `<sha> against <base>`, or
-`<sha>, fixes <a>..<b>` for a verifying round, and its first word is the
-reviewed commit. No such line, two, or a value of another shape is refused.
-A squash orphans the commit after the merge, and the check reads it only
-while the branch that holds it is open.
+moment.** The record's one `target:` line names the reviewed commit, with
+the base a round that read the branch read it against, or the fix range a
+verifying round read. A squash orphans the commit after the merge, and the
+check reads it only while the branch that holds it is open.
 Enforced by: tests/test_chain_check.py::TestFollows, tests/test_chain_check.py::TestRecordTarget
 
 ## What the check reads at the pull request
@@ -126,32 +159,19 @@ commit someone makes under GitHub's identity with a number reads as carried.
 Enforced by: tests/test_chain_check.py::TestCarriedBy, tests/test_chain_check.py::TestMain::test_a_release_pull_request_leaves_a_squashed_item_to_its_own_pull_request, tests/test_chain_check.py::TestMain::test_an_item_the_release_pull_requests_own_commit_changes_is_judged
 
 **Of a round record the check reads its labelled lines, and refuses what it
-cannot read.** It reads the record's one `target:` line; inside each `### `
-section of the one `## Findings` section, one `verdict:` line, one
-`location:` line and at most one of a `regression:` and a `reopens:` line;
-and in `## Confirmations`, where the record has it, each `confirms:` line —
-each in
-the one spelling the record's rules give. A ready pull request fails while a
-finding reads `open`, and for anything the check cannot read: a verdict
-outside `open`, `fixed <commit>` (seven to forty lowercase hex digits),
-`rejected` and `deferred <home>`; a label in another spelling, or out of its
-place; a finding with no `verdict:` or `location:` line, or two of either;
-a finding holding both a `regression:` and a `reopens:` line, or a
-`reopens:` line naming a round alone;
-a finding heading with no number, or with a number another heading of the
-record carries; no `target:` line, two, or one it cannot read; a location or a reference it
-cannot read; a table row in `## Confirmations`; a record with no
-`## Findings` section, or two of either section; a `fixed` naming a commit
-HEAD does not descend from, or one that changed no located path; a
-reference naming no earlier record, or a finding that record does not hold,
-and any reference in round 1; a `fixed` or `rejected` finding the next
+cannot read.** It reads every line §*The round record*'s table has a row
+for, and a ready pull request fails for any line that table refuses. It
+fails, too, while a finding reads `open`; for a `fixed` naming a commit HEAD
+does not descend from, or one that changed no located path; for a reference
+naming no earlier record, or a finding that record does not hold, and any
+reference in round 1; and for a `fixed` or `rejected` finding the next
 record names on no `confirms:`, `reopens:` or `regression:` line. A labelled
-line inside
-a fence or a comment is not a line, so a finding whose only verdict stands
-in its fix block has none, and a fence or a comment that never closes, which
-would hide every finding after it, is refused at the line that opened it.
-Each refusal names the record, the line and the finding's heading. No emoji,
-severity or answer is read for the decision. It errs two ways where the
+line inside a fence or a comment is not a line, so a finding whose only
+verdict stands in its fix block has none, and a fence or a comment that
+never closes, which would hide every finding after it, is refused at the
+line that opened it. Each refusal names the record, the line and the
+finding's heading. No emoji is read, and neither severity nor answer
+decides anything. It errs two ways where the
 shape holds and the fact does not: a `fixed` commit that touches a named
 path and fixes nothing passes, and the verifying round's warden, whose
 `confirms:` line the check then requires, is who reads the fix; and a fence
