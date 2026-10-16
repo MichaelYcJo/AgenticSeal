@@ -63,11 +63,11 @@ frame, the phase records and the issues do not already hold.
 
 - Every spawn prompt carried: edit with Edit and Write only; no `sed -i`, no
   heredoc of any kind, no `git stash`, no `bash -c`, never `cd`; the
-  repository by its literal path in every git command; author
-  zenith.m.jo@gmail.com (never another address); `Co-Authored-By` with the
-  model; no push (the orchestrator pushes); scratch under the session's
-  scratchpad, deleted at the end; clean up only what you started; the removed
-  ledger machinery named as removed.
+  repository by its literal path in every git command; author the address
+  the clone pins repo-local (`git config user.email`), never another;
+  `Co-Authored-By` with the model; no push (the orchestrator pushes);
+  scratch under the session's scratchpad, deleted at the end; clean up only
+  what you started; the removed ledger machinery named as removed.
 - Phase 3's smith still broke four of these (one `sed -i`, one scratch
   heredoc, one `cd`, one variable in a commit, which the gate refused). The
   instructions alone do not hold this; #957's smith rewrite is where it is
