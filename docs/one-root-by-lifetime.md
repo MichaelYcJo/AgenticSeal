@@ -72,7 +72,7 @@ is and who reads it after the merge.
 
 | The SDD set: what was decided and why | The process record: what SpecSeal's checkers read |
 |---|---|
-| `spec.md` · `plan.md` · `questions.md` · `overview.md` · `changelog.md` | `routing.md` (read by the commit gate, the hook that stops an unrouted commit) · `rounds/round-N.md` (read by `chain_check.py`, the pull-request check that a declared review chain has its record) · `tests-todo.md` |
+| `spec.md` · `plan.md` · `questions.md` · `overview.md` · `changelog.md` | `routing.md` (read by the commit gate, the hook that stops an unrouted commit) · `rounds/round-N.md` (read by `chain_check.py`, the pull-request check that a declared review chain has its record) · `broad-gate.md` |
 | exists under spec-driven development (SDD) with or without SpecSeal | exists because SpecSeal's gates read it |
 | read by people after the merge, for "why" | read by nothing after the merge |
 
@@ -101,7 +101,7 @@ must reach CI and other clones.
 │       ├── spec.md plan.md questions.md overview.md      the SDD set: what was decided and why
 │       ├── changelog.md                                  gathered into CHANGELOG.md at release
 │       ├── routing.md rounds/round-N.md                  the process record: what the commit gate and CI read
-│       ├── tests-todo.md
+│       ├── broad-gate.md
 │       └── pr.ko.md
 ├── docs/                          policy, and where settle folds the SDD set. Read by people; written by people and by settle
 ├── CHANGELOG.md                   unchanged
@@ -203,8 +203,8 @@ moves for edits that have nothing to do with the claim, so such a citation is
 re-anchored, stamped, and orphaned by a squash. `settle` rewrites
 `docs/` and removes directories on every release, so anything coupled to a
 path or a position inside a work item would break the same way. What still
-carries such a coupling is short: a round record's `Target SHA` (resolved
-through `refs/pull/<N>/head`, and gone with the record). A `# RIDER:`
+carries such a coupling is short: a round record's `Target SHA` (read while
+its pull request is open, and gone with the record). A `# RIDER:`
 comment's stamp named a commit too, until work item `1788826000` moved every
 stamp to a content anchor.
 
@@ -492,7 +492,7 @@ area (a rough grep, not a list of edits):
 | `templates/` | 8 | five SDD templates (spec, plan, questions, round, routing) name their `specs/<epoch>-<slug>/` path in a header comment; `sdd-overview.md` and `map.md` name `.specseal/map` |
 | `.github/` | 2 | `hygiene.yml` passes `specs/` to `unverified_check.py`; `gather_changelog.py` globs the fragments |
 | `agents/` | 3 | the smith, warden and scribe agent prompts |
-| `docs/` | 3 | `branch-and-release.md`, `review-chain-spec.md`, `review-handoff-protocol.md` |
+| `docs/` | 3 | `branch-and-release.md`, and the two review-chain documents `the-review-record.md` has since replaced |
 | root | 4 | `README.md`, `README.ko.md`, `CONTRIBUTING.md`, `CLAUDE.md` |
 
 The CI paths change in step 3 of the order below, together with the root.

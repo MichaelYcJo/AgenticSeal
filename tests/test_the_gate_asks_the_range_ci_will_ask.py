@@ -776,14 +776,11 @@ def test_the_gates_own_docstring_says_the_base_is_resolved():
 
 def test_the_documents_name_the_panel_row_the_gate_actually_prints():
     """The ref beside the base commit is the half of the stamp a reader uses
-    to tell a fresh base from a stale one, so the agent that reports the
-    stamp has to know where it is. From #666 it was the row under `base`,
-    and since #832's S5a it is the `base` row itself, beside the commit;
-    `from` is not a row the panel has."""
+    to tell a fresh base from a stale one. From #666 it was the row under
+    `base`, and since #832's S5a it is the `base` row itself, beside the
+    commit; `from` is not a row the panel has. The sealer passes the gate's
+    lines on and describes no panel row, so only a stale name is refused."""
     said = " ".join(read(SEALER).split())
-    assert "the `base` row carries the ref beside the commit it came from" in said, (
-        "agents/sealer.md does not name the row that carries the base's ref"
-    )
     assert "the row under `base` carries the ref" not in said
     assert "`from`" not in said, "agents/sealer.md names a row the panel lost"
     mod = gate_module()
@@ -938,9 +935,17 @@ def test_the_workflow_reader_sees_every_shape_a_base_is_spelled_in():
 
 def test_the_workflow_reader_finds_the_env_assignment_the_file_already_has():
     """The `BASE:` shape, over the real file rather than over a sample — it is
-    the one the plan counts and the old pattern could not see."""
+    the one the plan counts and the old pattern could not see. The count is
+    held against an independent listing of the file's code lines naming a
+    base, so it holds as steps come and go."""
     found = workflow_base_arguments()
-    assert len(found) >= 4, f"the workflow names {len(found)} bases: {found}"
+    listed = [
+        line
+        for line in read(HYGIENE).split("\n")
+        if not line.lstrip().startswith("#")
+        and re.search(r"--baseline\b|\bBASE:", line)
+    ]
+    assert len(found) == len(listed), f"the workflow names {len(found)} bases: {found}"
     assert any(spelling == REMOTE_TRACKING for spelling in found), (
         f"no bare `{REMOTE_TRACKING}` among {found} — the `BASE:` assignment is unread"
     )

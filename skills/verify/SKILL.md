@@ -60,12 +60,12 @@ is the same defect as a `read` reported as passing, with a longer fuse.
 
 Condition 2 is asked of the case in front of you. **A module has arms nobody
 ever asked it of**, and counting them by hand is how the count rots: #262's
-own table says 33 arms where `hooks/review-history-guard.py` now has 31,
-because the file changed twice after the count was taken.
+own table said 33 arms where the module it counted had 31, because the file
+changed twice after the count was taken.
 
 ```
-arm-check hooks/review-history-guard.py
-arm-check hooks/review-history-guard.py --tests "bin/test tests/test_chain_hooks.py -q"
+arm-check hooks/commit-review-gate.py
+arm-check hooks/commit-review-gate.py --tests "bin/test tests/test_chain_hooks.py -q"
 ```
 
 With no `--tests` it lists the arms and mutates nothing. With `--tests` it
@@ -91,7 +91,7 @@ is #313.
 **There are two ways to be wrong and the counts differ by a lot**, so the
 report keeps them apart and the number you quote has to say which one it is:
 
-| Operator | Asks | Measured 2026-09-09 on `hooks/review-history-guard.py` |
+| Operator | Asks | Measured 2026-09-09 on the review-history guard, a hook since removed |
 |---|---|---|
 | `invert` | would a case notice this test being **backwards** | 0 of 29 survived |
 | `remove` | would a case notice this arm being **absent** | 12 of 32 survived |
@@ -252,8 +252,8 @@ they are the two to name rather than some new mark invented for it.
   the broad seal and the PR* is a rule about that one seal and about no other.
 - **Form.** Every other seal is text. The sealer's is the only one drawn, and
   only over a run that earned it: `broad-gate` draws the stamp, or writes the
-  values it is drawn from, when every check passed and the cell was written,
-  and on no other path. It draws on a person's terminal itself; anywhere
+  values it is drawn from, when every check passed and `broad-gate.md` was
+  written, and on no other path. It draws on a person's terminal itself; anywhere
   else the `Stop` hook draws those values at the end of the turn of the
   session that spawned the sealer. So seeing the drawing means the last seal
   was earned.
@@ -384,38 +384,27 @@ runs at the handoff to review; the proof block carries the suite as
 `unverified`, and that label is what keeps the narrow scope honest. §Scope
 holds the reason and the measurement — a seal taken before the rounds is spent
 by the first finding. Findings are the expected case rather than the
-exception: the review chain runs up to three rounds, and five while a 🔴 is
-open (`docs/review-chain-spec.md`).
+exception: the review chain runs three finding rounds by default
+(`docs/the-review-record.md` §*The run*).
 
 **"After the rounds settle" is a row, not a moment, and this is the row: the
-last `rounds/round-N.md`'s `Pass` box is checked.** Nothing in that record's
-verdict table is still open. The phrase alone names no particular rounds — a
-work item has build phases with a progression of their own and a review chain
-with its own — so a reader who reaches for the moment has to guess, and one
-who reaches for the box does not.
+last `rounds/round-N.md` has no finding open.** The phrase alone names no
+particular rounds — a work item has build phases with a progression of their
+own and a review chain with its own — so a reader who reaches for the moment
+has to guess, and one who reaches for the record does not.
 
-`Needs a fix: no` is the ordinary way a run arrives at a checked box, and it
-is the reviewer's own answer rather than a reading of the table. The two part
-on one case: a run that ends at the round cap closes its last finding
-`deferred <home>`, which is a closing word, so the box is checked while the
-reviewer's row keeps the `yes` it had while the round was running. Nothing
-rewrites that row afterwards, and nothing should — it is what the reviewer
-concluded. So the box is what says the run ended, and
-`round_record.py seal` — `skills/code-review/scripts/round_record.py`, the
-generator the review orchestrator types as `round-record` — refuses on the box
-for that reason.
-
-**It belongs to the `sealer`, and the four conditions above are its whole
-procedure.** The rule used to say when the gate fires and which agents may not
+**It belongs to the `sealer`, and the four conditions above are the whole of
+the run.** The rule used to say when the gate fires and which agents may not
 take it, and named nobody who may — so it was assembled from these sentences
 by whichever session remembered them, differently each time. `agents/sealer.md`
 is the agent, `broad-gate --base <base> --record <item>` is the command, and
-`skills/code-review/orchestration.md` §*The last record's `Broad gate` cell is
-read at a READY pull request* owns when it is spawned. What the sealer returns
-is a report; it judges no failure and fixes none. `broad-gate --preflight`,
-which the orchestrator runs before that spawn, is not this run: it runs the
-gate's record arms, asks `seal`'s refusals of the branch's declared work item
-without writing (#702), runs no suite, and seals nothing (#638).
+`skills/code-review/orchestration.md` §*Orchestrator: the pull request opens
+before round 1, and a phase is re-run* owns when it is spawned. The run
+judges no failure and fixes none; what the sealer guarantees after it is
+`docs/the-review-record.md` §*The guarantee*.
+`broad-gate --preflight`, which the orchestrator runs before that spawn, is
+not this run: it runs the gate's record arms, runs no suite, and seals
+nothing (#638).
 
 **An expensive suite argues for this placement, not against it.** A run that
 takes fifteen minutes is a finding about the run and deserves its own ticket.
@@ -424,8 +413,8 @@ Moving it ahead of the rounds means paying it twice.
 **Which base, and it is the one the merge is judged by.** The gate resolves
 `--base` once, before anything runs, to the ref CI will read: the base's
 upstream where the checkout declares one, else `origin/<base>`, else the ref
-as given. Every check it runs takes that one commit — the two baselines, the scratch worktree the base comparison checks out, and the
-`Broad gate` cell. A plain branch name is a LOCAL ref and a runner has no
+as given. Every check it runs takes that one commit — the two baselines, the scratch worktree the base comparison checks out, and
+`broad-gate.md`. A plain branch name is a LOCAL ref and a runner has no
 local branches, so a checkout one commit behind its remote used to seal green
 over a question nobody was asking while CI refused the same commit (#423).
 Where resolving moves the answer the gate prints one line naming both refs,
@@ -461,7 +450,7 @@ the steps CI runs for the base (#666): a step CI does not ask of this pull
 request — three of SpecSeal's run only on a pull request into `main` — is
 neither answered nor unanswered, so the count leaves it out and the line says
 how many it left out and why. A feature seal of SpecSeal itself reads `CI
-also · 5 more steps`, and the line says they are five of the eight CI runs
+also · 3 more steps`, and the line says they are three of the six CI runs
 for that base.
 
 **What the count does not say** is whether a mirrored arm asks the same
@@ -473,8 +462,8 @@ SpecSeal's workflow skips a pull request into `main`; a second case holds
 their guard. The cases read a guard on the base and no other kind of
 condition, so the class stays open for the next kind.
 
-**The arms the plugin ships are the arms the gate can run.** Four steps of
-SpecSeal's own `release` job have a local answer and no arm: three run a
+**The arms the plugin ships are the arms the gate can run.** Three steps of
+SpecSeal's own `release` job have a local answer and no arm: two run a
 script under `.github/scripts/`, which no plugin ships, and one is shell
 written inline in the workflow with no script either side can share. A
 repository that wants checks of its own sealed names them in the `Broad gate`
@@ -534,15 +523,6 @@ and is not allowed to fix.
 review chain's rounds. A fourth trip is not another bug; it means the narrow
 scope is missing a class of breakage, which is an architecture question for
 the user — the same reading as the 3+ Fix Rule.
-
-**It does not take the review rounds' exception**, and the difference is worth
-stating because the numbers look alike. `docs/review-chain-spec.md` raises the
-round cap to five while a 🔴 is open, on the grounds that a round catching a
-regression the last fix made — coordinate named, patch already run — is not
-the shape the cap was written for. Every return through THIS gate is that
-shape: a broad gate goes red because something the fix touched broke. Raising
-the cap for the regression case would raise it for the normal case, which is
-the one thing it exists to bound.
 
 **Nothing edits between the broad seal and the PR.** The tree that passed is
 the tree that ships. One more small fix after the run means the run is stale,
@@ -604,7 +584,7 @@ End with this block. Values that cannot be filled honestly stay `none —
 · <claim> — <command> → <key output line> (exit <n>)  [executed]
 · <claim> — <where read, file:line>                   [read]
 · <claim> — unverified; <who/what answers>            [unverified]
-· broad gate: <not yet — due when the last round record's `Pass` is checked | ran at <sha> vs base <sha>[; earlier run: <sha> vs base <sha>]>
+· broad gate: <not yet — due when the last round record has no finding open | ran at <sha> vs base <sha>[; earlier run: <sha> vs base <sha>]>
 · cost: <n> check runs, <m> minutes of command time
 · red proven: <how the check was seen failing, or none — <reason>>
 ```
@@ -780,7 +760,7 @@ finished, not as a follow-up someone might do later:
    because its transcript holds nothing but itself; the orchestrator's holds
    every cycle of the run, so the whole file was the only row it ever had. A
    **spawn cycle** is not the review chain's cycle, which
-   `docs/review-chain-spec.md` owns: it ends when a spawn call's result
+   `docs/the-review-record.md` owns: it ends when a spawn call's result
    arrives and begins where the row before it ended, so the head is the
    framing before the first spawn, cycle N runs from spawn N-1's result to
    spawn N's, and the tail is the closing work after the last one.
@@ -896,34 +876,6 @@ finished, not as a follow-up someone might do later:
    --body-file <file>`, where `<n>` is the issue number the lookup above
    returned, and that is the command `--post` composes.
 
-**And write down what ran the segment, in that segment's own record.**
-`rounds/round-N.md` and `phases/phase-N.md` both carry a `| Ran by |` row: the
-agent and the model, joined by the word `on` — `specseal:smith on <the model
-it was spawned with>`. It goes in beside the numbers because it is the half of
-the reading the numbers cannot carry. A measurement saying a segment took
-nineteen minutes and ninety-nine calls answers nothing on its own; the same
-reading beside what produced it is the first comparison anybody can make.
-
-**It is yours to fill and not the segment's**, and that is the reason the row
-exists on this side of the handover rather than in the agent's own report. An
-agent is told what it is, so a value it writes about itself is the value it
-was told, and the model is a spawn-time argument you chose — `agents/*.md`
-pins none. You are the only party that knows.
-
-Whose row it is and whose keystrokes fill it are different questions, and for
-`phases/phase-N.md` they come apart: that record is written by the segment
-that just ran, not by you. So either hand the value over in the spawn prompt —
-and the segment transcribes what it was given rather than a value it decided
-for itself — or fill the row afterwards, the way `Fixes checked by` is filled.
-For `rounds/round-N.md` the question does not arise, because you write that
-file yourself.
-
-Where you genuinely cannot name a model — a segment spawned through another
-harness, say — `unknown — <why>` is the answer and a bare `unknown` is not, in
-the shape `nobody — <why>` already has. An honest blank with a reason beside
-it is worth more than a confident guess, because a reading nobody can trust
-reads exactly like one nobody took.
-
 Do this before the next segment spawns, or at the latest together with the
 round or phase record that closes this one — never later, and never as a
 question. The destination issue is a log, not a decision: whoever is
@@ -944,7 +896,7 @@ gathers up.
 
 | Row | Taken from |
 |---|---|
-| Rounds — finding and verifying, and reopenings | the round records |
+| Rounds — finding and verifying | the round records |
 | Wall clock, routing commit to last record, build and chain apart | `git log` of the branch |
 | Commits, by kind | `git log --format=%s` |
 | Findings by severity | the records' verdict tables |
@@ -952,7 +904,7 @@ gathers up.
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
 | Model turns · output tokens · cache write · cache read | `session_cost.py`'s token line over the run's main transcript |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |
-| Broad gate: whether it has run, how many times, and at what SHA | the last round record's `Broad gate` cell, which holds `not yet` or one entry per full-suite run, newest first, each a SHA with the base it was compared against — the count is the number of entries, read off the cell rather than remembered (#174) |
+| Broad gate: whether it has run, how many times, and at what SHA | the work item's `broad-gate.md`, which holds one entry per full-suite run, newest first, each a SHA with the base it was compared against — the count is the number of entries, read off the file rather than remembered (#174) |
 
 **The tokens are counted, not estimated, and counted the same way every
 time.** `session_cost.py <the run's main transcript>` prints the token line,

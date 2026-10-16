@@ -11,9 +11,9 @@ the two stages, the comparison axes, the probe rules, the cross-session
 records and the findings format. An orchestrator reads both; a `warden` spawn
 preloads that one and never this.
 
-Nothing here changed when it moved. The headings keep the `Orchestrator:`
-prefix they were written with, so a reference to one of these sections names
-the section it always named and only the file it names changed (#265).
+The headings keep the `Orchestrator:` prefix they were written with, so a
+reference to one of these sections names the section it always named and only
+the file it names changed (#265).
 
 ## Orchestrator: a fix pass resumes the implementer
 
@@ -32,44 +32,25 @@ cost 282 calls and 45 minutes (#33); as a resume, 30 calls and 3.9 minutes
 
 When the implementing session no longer exists — a new day, another machine —
 the fresh spawn is the only option left, and what it takes is the handoff
-before round 1 (`docs/review-handoff-protocol.md`): coordinates rather than
+(`docs/the-review-record.md` §*The handoff*): coordinates rather than
 prose, each fact labelled. The rule decides which to reach for while both
 options exist. A new session has no `automation` press until it puts the
 routing question's first question through `AskUserQuestion` again, so it does
 that before the spawn (`skills/implement/orchestration.md`, *A run resumed in
 a new session*).
 
-**The fix pass hands back a `## Fixes` table, and `close` applies it.** The
-handover carries `| # | Verdict | Commit or grounds |`, one row per open
-finding but a ⬜, which takes none (§*A note closes once, at the run's end*
-below), the verdict `fixed`, `answered` or `deferred <home>`; you run
-`round-record close --item <dir> --round N --fixes <file> --range <a>..<b>`
-and the record's verdict cells, `Fix range`, `Contract changes` and
-`New units` are written from that table and the fix range. The pass writes no
-`phases/phase-N.md` and no `plan.md` row — `agents/smith.md` owns that rule,
-and this sentence is the link to it.
+**The fix pass changes two lines per open finding of `rounds/round-N.md`,
+its verdict and its answer, and nothing else but a coordinate it appends to
+`location:` where its fix went elsewhere**
+(`docs/the-review-record.md` §*The round record*); it writes no
+`phases/phase-N.md` and no `plan.md` row.
 
 **Two commits after the build are yours, not the smith's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
 changes what the work item ships brings the work item's `changelog.md` along, the
-way the smith's fix pass does, and `chain-check` names one that did not.
+way the smith's fix pass does.
 `docs/the-record-layout.md` §*A commit after the build brings its changelog
 fragment along* owns that rule.
-
-**Both ends of `--range` are commits, and `HEAD` is refused (#344).** `HEAD`,
-`@`, a branch and a tag all resolve today and name something else tomorrow, so
-a record stating one says a different set of commits every time it is read —
-three records of one work item did exactly that. Write the commit: `git
-rev-parse HEAD` is the value, and `close` says so with the value filled in
-when it refuses. The row it then writes is what `chain_check` re-reads against
-the tree at the pull request.
-
-**`round-record` is the generator, and this is where it lives.** The command
-is the wrapper in `bin/`, on the Bash tool's PATH while the plugin is enabled;
-the script behind it is `skills/code-review/scripts/round_record.py`, which is
-what to open from a clone with the plugin disabled. Every sentence below that
-says `round_record.py <something>` is describing that script, not naming a
-file you have to go and find.
 
 **Then ask what the fixes left standing.** A fix repairs the coordinate a
 finding named, and the fact the finding was about is usually stated in more
@@ -99,9 +80,8 @@ would have caught.
 
 A round's findings are closed after it ends, by whoever writes the fixes. Every
 round but the last has a reader for those fixes — the round that follows, since
-each of its verdicts needs an answer there. The last round's fixes are read by
-nobody, and the box saying the review passed is ticked by the session that
-wrote them.
+each of its verdicts needs an answer there. The last round's fixes have none
+unless a round is spawned for them.
 
 That is not an occasional slip. It is how every run ended, and it was measured
 twice in a row: the one round that did open the previous round's fixes found
@@ -112,26 +92,11 @@ So a run ends with a **verifying round**, and three things define it.
 | | What |
 |---|---|
 | When | **after the fixes** for the previous round are committed — never before, or it reviews what has already been reviewed |
-| Target | the **diff of those fixes**, not the branch. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/review-chain-spec.md` §*The last round verifies* holds the measurement |
-| Job | the answers, not new findings. For each verdict the previous round recorded as closed, is it actually closed |
+| Target | the **diff of those fixes**, not the branch. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/the-review-record.md` §*The run* states the rule |
+| Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is; where it is not, a finding whose `reopens:` line names it, or whose `regression:` line does where a fix pass's own commit made the defect |
 
-One surface in that diff is exempt from *the answers, not new findings*: what
-the previous record's `New units` row names. A unit the fixes created has
-been reviewed by nobody, so the verifying round treats it as a finding
-surface — *is this correct* — rather than a verification surface. Measured:
-one fix commit created eight new units, and four carried defects.
-
-The reviewer answers the third one in a line of its own — `Needs a fix: no`,
-or `yes` and what does — and that line is one of the two the run ends on, the
-floor below being the other. Copy it into `round-N.md`'s `| Needs a fix |` row
-rather than re-deriving it from the verdict table: a 🟡 the smith answers with
-grounds is `no`, so a round can report findings and still end the run. The row
-is read by `chain_check.py`, and what reads it is the floor's bound below: a
-`yes` is what says the run reopened, which is what keeps that bound from
-refusing the verifying round's own reader. A `fixed` verdict does the same
-whatever the row says — the reviewer may answer `no` and the orchestrator may
-fix the 🟡 anyway because it ships, and those fixes owe a reader too. The bound
-reads the verdict column for that, so the row stays the reviewer's.
+The new units in that diff are the exception: they have been reviewed by
+nobody, so the verifying round reviews them as code.
 
 **A round that opens nothing needing a fix does not consume the cap.** The cap
 counts rounds that found something, because it exists to stop a loop that is
@@ -140,408 +105,54 @@ A verifying round that opens something IS a finding round and consumes the cap
 like any other, and one that opens nothing is by definition the last one,
 because the run ends at it.
 
-What this paragraph used to add — that nothing here runs away — was false.
-The fixes of a verifying round that opened something need a reader, that
-reader is a verifying round again, and #161 measured fifteen rounds through
-that door. So the reopening is **one**: after a record that met the floor, one
-later record may close on a fix, a second is refused, and the run ends
-`capped` — every finding still open takes the filing ladder below, its
-verdict reads `deferred <home>` wherever a home was found (`deferred #N`
-where that home is an issue), the record's `Fixes checked by` reads `no fixes
-to check`, and the pull request is labelled `chain: capped`.
-`docs/review-chain-spec.md`
-§*The reopening — one, and then the run is capped* owns the rule, the refusal
-and its cutoff.
-
-**That exit is the reopening bound's, and it is not the round cap's.** A run
-the round cap stopped may still write a fix, and what decides which of its
-open findings gets one is who owns the unit now — answered by reading the
-`New units` rows of the run's own records, so the decision costs nobody a
-question. `docs/review-chain-spec.md` §*The cap bounds rounds, and not the
-fixes of the round it stopped* owns the rule and that test.
+**A run has three finding rounds by default, counted from the last design
+change, extends one round at a time while the findings shrink, and at the
+cap every open finding takes the filing ladder** — `docs/the-review-record.md`
+§*The run* states the cap, where its count starts again, the verifying round
+a regression's fix pass is owed whatever the count, the extension line the
+spawn prompt gives the warden, and the ladder.
 
 The condition is not *this round found nothing* — that would be unbounded, and
-it was considered and rejected. A verifying round that raises a 🟡 the smith
-answers with grounds has opened nothing needing a fix, and the run ends there.
+it was considered and rejected. A verifying round that raises a `should`
+finding the smith closes `rejected`, with its grounds, has opened nothing
+needing a fix, and it does not consume the cap. Its record is still not the
+last one: the check refuses a `fixed` or `rejected` finding in the last
+record, so one more verifying round reads that answer alone. Where the
+rejection holds, that round names it on a `confirms:` line; where it does
+not, that round raises a finding with a `reopens:` line naming it, which
+gets its fix pass and one more verifying round; a round carrying a
+`regression:` line is routed as the section below says, and where the work
+item returns to its framer the run goes on with the redesign. The run ends
+only on a round whose record holds no `open`, `fixed` or `rejected` finding
+and whose `target:` commit is HEAD, or is followed only by the work item's
+own records — a verifying round, or the round at the cap whose open
+findings took the filing ladder — since the check refuses a ready pull
+request whose last record fails either. A fix committed after that round,
+one the ladder's first rung sends to the diff among them, is followed by
+one more verifying round.
 
-**A finding located in a record is a correction, not a round.** A finding
-whose `Location` is under `seal/specs/` owes no fix pass and no reader: what
-`chain_check` refuses is corrected in the closing commit, and what it does not
-read is prose, a ⬜ like any other. `Needs a fix` does not count it.
-`docs/review-chain-spec.md` §*The last round verifies* owns the rule and the
-count behind it — 33 of the last branch's 65 findings were located in records.
-The section below says when a ⬜ closes: once, at the run's end.
+### A regression is routed by comparing the fix with the frame
 
-### A note closes once, at the run's end
+**The route comes first, because a stop that names no exit is a wall.** A
+finding's `regression:` line routes nothing by itself. Its grounds open
+with the unit and then one sentence comparing the fix with the frame: what
+the frame says, what the fix did and where the defect came from. Route the
+round on that sentence (`docs/the-review-record.md` §*The run*):
 
-**A ⬜ commissions nothing before the run ends, and closes once at its end.**
-A note is the reviewer's mark for a finding that reads badly while the
-behaviour and the fact stay right (`skills/code-review/SKILL.md` §*Findings
-format*). Until this rule each one took a row in its own round's fix table,
-and a note closed `fixed` commissioned a reader for a sentence: on #822's run
-five notes were the only fix words of one record, and they spent the run's one
-reopening.
-
-So a note is carried open in the record that holds it, and closed there:
-
-| When | What a ⬜ takes |
+| The sentence says | The route |
 |---|---|
-| a round's fix pass | no row. `round-record close` leaves it open and refuses a row for it, and `Pass` stays unticked over it |
-| the next round | nothing. It is not reported again; `## Inherited coordinates` already carries its coordinate and its word |
-| the run's end | one row in the notes table, closed by `round-record notes --item <dir> --fixes <table> --at <sha>` with every other note of the run, in one pass and at one commit |
+| the fix built the phase's `plan.md` row and `spec.md` as written, and the defect stands anyway | no fix pass; the work item goes back to its framer, by the steps below |
+| the fix did something the frame does not say, or the defect is in how it was written, a review record's paste-ready fix applied as given among them | an ordinary fix pass, with the smith told what the frame says |
+| the unit already had a regression routed to a fix pass in this run | the framer, by the steps below, whatever the sentence says |
 
-**The run's end is the last record of the run reading `Fixes checked by | no
-fixes to check`**, which holds at all four exits: a verifying round that
-opened nothing, the reopening bound, the round cap's verifying round, and a
-`second` — where `notes` runs before the framer is spawned, so the framer
-reads corrected records. `notes` refuses before it.
-
-Each note closes `answered` with `corrected at <sha>` as its grounds where the
-closing commit corrected it — `corrected` in the notes table, with `--at`
-naming that commit — `answered` with the grounds it stands on, or `deferred
-<home>` by the ladder below; never `fixed`. The notes table is the fix table
-with a `Round` column in front, `| Round | # | Verdict | Commit or grounds |`,
-because a finding's id restarts at every round. No fix pass, no reader and no
-check follows the notes commit: the broad gate reads it, and what the gate
-does not read stands or is filed.
-
-`round-record seal` refuses while a note of the run is open, and
-`chain_check.py` holds the rule at the pull request: a ⬜ closed on a fix
-word is an error for a work item begun at or after `1791384163` and a notice
-before it, and a ⬜ still open on a record of the run is an error at a ready
-pull request and a notice on a draft. The cutoff is one past the batch #837
-was framed in, whose rounds ran under the previous `close`, and it assumes no
-item of that release is framed after the batch; one that is moves the cutoff
-past its own id in the same change (`chain_check.NOTES_FROM` says why).
-
-### The cap is a ceiling, and this is the floor it never had
-
-**Stop when a round finds nothing that leaves the root and nothing that
-crashes.** Whatever else it found is deferred with a named answerer, or becomes
-an issue. `docs/review-chain-spec.md` owns the definition and the measurement
-behind it; what matters where you decide to spawn another round is that three
-and five are a ceiling rather than a budget to spend down.
-
-**Which of those two, and whether a new issue at all, is a ladder rather than
-a choice.** An open finding takes the first rung that fits: the branch fixes
-what it owns, a comment goes on the open issue that already owns the ground, a
-new issue is opened only where the finding can name a party who will act, and
-what names nobody stays in the round record and the pull request body. Read
-the answer off the reviewer's `## Deferred` table, whose `Who answers it`
-column is the test. `docs/review-chain-spec.md` §*Where a leftover goes — the
-ladder, and why a new issue is not the default* owns the rule and the
-measurement that produced it.
-
-The reviewer answers this in a line of its own too — `Loses a record or
-crashes: no`, or `yes` and what does — and it is copied into `round-N.md`'s row
-of the same name, after the colon. It is a second terminal condition and not
-the first one reworded:
-
-| The reviewer's line | What it says | What follows |
-|---|---|---|
-| `Needs a fix: no` | this round wrote no code nobody read | the run ends, and the round does not consume the cap |
-| `Loses a record or crashes: no` | nothing this round found leaves the root or crashes | the run ends, and the round counts toward the cap if it found anything needing a fix |
-
-The paragraph above is about the cap's arithmetic — whether a round that has
-already run counts toward three or five. This is about whether the next round
-is spawned at all. A round that reported a 🔴 in a line a person reads answers
-`yes` to the first question and `no` to the second, and that round ends the run
-with the finding handed over rather than chased.
-
-**Spawn the verifying round anyway.** The floor stops the finding rounds; the
-last set of fixes still needs a reader, and the round above is it. A record
-that met the floor is followed by at most one more round record, and the one
-exception — a verifying round that reopens the run, so that its own fixes need
-a reader — is bounded to one reopening, after which the run ends `capped`;
-`docs/review-chain-spec.md` §*The reopening — one, and then the run is capped*
-owns the count, the bound and the exit. `chain_check.py` walks both, reading
-`Needs a fix` and the verdict column, which is why that row is read rather
-than only written.
-
-### A fix of a fix twice sends the work item back to its framer
-
-**The exit comes first, because a stop that names none is a wall.** When the
-stop fires, no fix pass is commissioned and the work item goes back to its
-framer:
+The framer's route:
 
 | Step | What |
 |---|---|
-| The record | every open finding but a ⬜ closes `deferred the frame` through `close`, so `Fixes checked by` reads `no fixes to check`; at the same moment, before the framer is spawned, `round-record notes` closes the stopped run's notes (§*A note closes once, at the run's end*), and `Pass` is ticked over the deferrals, as a capped record's is |
+| The record | every open finding closes `deferred the frame` |
 | The pull request | labelled `chain: reframed` |
 | The framer | spawned again with the run's round records as its input — they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `spec.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Under `Automation \| yes` the spawn asks nobody |
-| The redesign | approved by a second `Approved` line in `plan.md` when `smith` is spawned for it, built, and reviewed. `round_record.py new` refuses its first record until the `Reframed` line names the stop, and that record starts the count at `no` |
-
-**A fix of a fix twice in one run sends the work item back to its framer.** A
-finding is a fix of a fix when its `Location` is inside a top-level unit the
-previous round's fixes added or changed: the fix itself is what the next round
-found wrong. `round_record.py new` reads that off the previous record's `Fix
-range` and writes it into `round-N.md`'s `Fix of a fix` row — `first` the first
-time in a run, `second` the second, when it prints the stop — so the count is
-the records' and nobody has to notice. `chain_check.py` refuses a run that went
-past it or resumed without the `Reframed` line. `docs/round-record-spec.md`
-§*A fix of a fix — `Fix of a fix`* holds the reading and the gate's table.
-
-**Two, against the 3+ Fix Rule's three.** `CLAUDE.md`'s 3+ Fix Rule stops one
-bug after three failed fixes, and fires when whoever is at the keyboard
-notices. This is the review chain's instance of it, read from the records, and
-it fires one fix earlier: the first fix of a fix is the signal and the second
-its confirmation. Measured on 0.18.3, #814 and #801 each read `first` at round
-2 and `second` at round 3, and each then filed its third fix as an issue (#815,
-#808) that begot another (#816, #809). That third fix pass is what the stop
-spends on a redesign instead.
-
-**A record after the stop is the redesign's, not a later round of the run.**
-Everything that counts records starts over past a `second` — the floor, the
-bound `new` prints, this count, the depth in `New units`, and the round cap —
-so the redesign's own finding round and verifying round are not refused for
-following a floor the stopped run had met, and a unit the stopped run added is
-no depth-1 parent of the redesign's units.
-
-What it cannot see, stated rather than left to be found: a landing it cannot
-place counts as none: an identifier the cell gives without its `.py` file, a
-line outside every unit, a cell that resolves to nothing. It reads no prose to
-decide which name in a cell is the place; the `.py` path the `Location`
-carries is the place. And the grain is the top-level unit, so two unrelated
-findings in one long function read as a fix of a fix; the row names the unit,
-so a reader can
-see that it happened.
-
-### A fix pass adds the unit that pins it, and that unit ships unreviewed
-
-**A unit a fix pass may not add has somewhere to go.** It is deferred with a
-named answerer, or becomes an issue — the two homes the floor above already
-gives whatever a stopped round found. That sentence comes first on purpose: a
-rule that refuses without saying where the refused work goes stops the chain
-at a wall.
-
-**A fix pass may not add mechanism.** Not a rule, not a checker, not a
-template section, not a walk. A finding that can be closed only by one takes
-the filing ladder rather than an issue by default, and its verdict reads
-`deferred <home>` — `deferred #N` where that home is an issue. This is the
-first level, and the
-depth below is the second: that one refuses a unit added to pin a unit, this
-one refuses the fix pass building the thing that would need pinning at all.
-Measured on the branch that shipped the release before this one (#153 and
-#150): round 4's fix pass built a rule, a reader and two cases to close one
-🟡, which cost round 5's 🔴, a revert (#159) and half of round 6.
-
-**A fix pass may add a unit. That unit's fix may not.**
-
-Depth one, stated rather than discovered. A fix answering a finding in code
-that predates the run may add the helper or the case that pins it, and that
-unit is depth 1. A fix answering a finding *inside* a unit an earlier round's
-fixes created may not add another to pin it — that would be depth 2, and it
-takes the exit above.
-
-The reason is in the commits. The fix is read by the round that follows; the
-unit it added to pin the fix is read by nobody, and the two ship together.
-Measured across four rounds of #82: round 1's fixes added `configured_language`
-and a templates check, and round 2 found the defect reproduced in both; round
-2's fixes added `mirror_to_refuse` and a widened glob, and round 3 found the
-glob out of step with its corpus; round 3's fixes added `as_language_name`,
-`ROUND_RECORD_FIELDS` and a `git ls-files` helper, and round 4 found a
-subprocess without `check=True` and a list hand-copied from the file it checks.
-Three consecutive rounds found their finding inside the previous round's fixes.
-
-The floor above is what turns this from tidy into required. The rounds the
-floor removes are the rounds that were reading those units, so shipping the
-floor alone cuts the eyes and leaves the generation.
-
-`round-N.md`'s `New units` row carries the depth, one per entry —
-`unit (depth N)`, entries separated by `;`. Per entry rather than per round,
-because a single fix pass can answer a finding in code that predates the run
-and a finding inside an earlier unit in the same breath, and one number for the
-round would be false of one of them.
-
-### Then say who checked them, in the record
-
-`round-N.md` carries `| Fixes checked by |` beside `Pass`, and the two answer
-different questions. `Pass` says no finding in this round's table is still
-open. This says who opened the work that closed them. Three values, and
-`chain_check.py` refuses everything else:
-
-| The cell | When |
-|---|---|
-| `round-N` | a **later** round opened these fixes and reported on them. It has to exist, a round can never name itself, and its own `Target SHA` has to be later than this record's — a number is cheap and a round is not, so two records sitting at one commit are refused however they are numbered |
-| `no fixes to check` | nothing here closed with a fix. This is the verifying round's own terminal value |
-| `nobody — <why>` | the gap, written down. It prints on every CI run, and on the run's **last** record beside a checked `Pass` it fails a ready pull request — a review cannot have passed while its own fixes went unread. On a draft that pair prints and names the verifying round, because the draft is where it stands between `close` and that round's record, and *Ready for review* re-runs the check. Work items begun before the rule landed are excused and only print |
-
-`round_record.py new --item <dir> --round N …` sets it: when it writes round
-N's record it sets round N-1's cell to `round-N`, touches nothing else, and
-commits nothing — the commit is yours, made from a record you have read. That
-used to be the last act of a round, done by hand, and it was forgotten five
-times on the last branch. `round_record.py close` writes `no fixes to check`
-into a record whose fix table closed nothing on a fix — a capped run's last
-record, whose every verdict reads `deferred <home>` and which has no next
-round to set the cell. Every record carries the row, not only the newest —
-`Pass` is a verdict on the whole review and the last round's speaks for it,
-while this is a fact about one round's own fixes. `docs/round-record-spec.md`
-holds the rule and what each refusal costs.
-
-### And name the fix surface, in the same record
-
-Two more rows, and `round_record.py close --range <a>..<b>` derives both from
-the fix range: `Contract changes` from an AST comparison of every top-level
-Python unit the range's own commits changed, with the call sites found by
-search, and `New units` from the same comparison with a depth per entry.
-Both rows read the range's own commits and no other:
-`docs/the-record-layout.md` §*A range owns the commits that descend from its
-start* owns which those are. `close` refuses depth 2 before
-writing any cell. The rows cost no question to anyone, because the diff
-answers them.
-
-| The row | What goes in it |
-|---|---|
-| `Contract changes` | every unit whose signature, return arity, return type, or set of returnable values this round's fixes changed — each with the call sites it reaches, `unit → site, site`, units separated by `;`. The diff names the changed signature and `grep` names the reach; the largest regression class issue #57 measured — four findings of ten — was a contract change whose reach was never revisited |
-| `New units` | the top-level definitions and constants the fixes added, each with the depth it was added at — `unit (depth N)`, one entry per unit, entries separated by `;`. The verifying round's finding surface above. A fix pass may add a unit; that unit's fix may not, so depth 2 or above is refused and the unit is deferred with a named answerer or becomes an issue |
-
-Both accept `none`, with or without a reason after it. `chain_check.py`
-refuses a record without the rows and a unit listed without its reach, for
-work items begun on or after its `SURFACE_FROM`; records of earlier work
-items print instead — the grandfathering `Fixes checked by` already uses.
-
-**Forgetting the second step is silent, and it is no longer a habit to
-remember.** The ordering rule above requires the record to be committed before
-its fixes exist, so both rows begin at `none — the fixes are not yet written`
-— and a record that never gets the second step reads exactly like one whose
-fixes added nothing. A verifying round opening it sees no finding surface at
-all. Measured on the work item that added the ordering rule: its own round 1
-record sat that way for two rounds, and the six units its fix pass created
-reached the next round only because a reviewer went and looked. Now `close`
-writes both rows from the diff, so the second step is one command rather than
-one pass a session has to remember.
-
-So `chain_check.py` refuses that value on a record whose `Fixes checked by`
-names a `round-N` — a later round opened those fixes, so they exist — for
-work items begun on or after `ORDER_FROM`. While the cell still reads
-`nobody — <why>`, *not yet written* is true and nothing refuses it.
-
-**Which means the refusal reaches the session that filled `Fixes checked by`
-and stopped, and not the one that filled nothing.** All three cells left at
-their starting values escape it, and so does `no fixes to check` beside a
-pending row — for a round that commissioned no fixes, *not yet written* is
-false the moment it is written. Both states print instead, and a reworded
-cell is not the only thing that escapes: three spellings carry the template's
-words unchanged. `docs/round-record-spec.md` names them and says why the
-answer was to write the limit down rather than widen the match. What makes all
-of it moot is the generator: `close` writes the two surface rows from the fix
-diff, and `new` for the next round sets the checker cell.
-
-The depth inside `New units` has a cutoff of its own, `DEPTH_FROM`, later
-than that one: a work item between the two owes the row and not the depth in
-it, because its records were written when the row named units alone.
-
-### And say what ran the round
-
-One more row, `| Ran by |`, and it is the spawning session's rather than the
-reviewer's, for a sharper reason than the two above. An agent is told what it
-is, so a value it writes about itself is the value it was told; and the model
-is a spawn-time argument the orchestrator chose, which `agents/*.md` pins
-nowhere.
-
-`round_record.py new` writes it from `--ran-by "<agent> on <model>"` — the
-agent and the model, joined by the word `on`, and the value is the one you
-chose at the spawn:
-
-```
-| Ran by | specseal:warden on <the model it was spawned with> |
-```
-
-**Both, never one.** An agent without a model cannot be compared against
-another run of the same agent, and a model without an agent cannot be told
-apart from the orchestrating session's own turns. `unknown — <why>` is the
-answer where neither is knowable — a session spawning through another harness
-may have no name for a model — and a bare `unknown` is refused the way a bare
-`nobody` is, because without the reason the cell records that something is
-missing and not what.
-
-`chain_check.py` refuses a record without the row for work items begun on or
-after its `RUNNER_FROM`, and records of earlier work items print instead. A
-row that is present and unreadable is refused at any age: formatting is always
-the author's, which is the split the fix-surface rows already make.
-
-What it buys is the question the measurement log could not answer. Every
-segment of two work items was metered and posted, and not one of the readings
-says what produced it — so the log knows what a segment cost and cannot say
-whether the cost was the model's, the agent's, or the scope's.
-
-### And commit the record before commissioning the fixes
-
-The record is the fix pass's agenda, so it has to exist before the fix pass
-does. `round_record.py new` writes `round-N.md` when the round posts, with its
-verdict cells reading `open`, and commits nothing — commit it then. The fixes
-land next, and `close` updates the cells to `fixed at <sha>` afterwards, from
-the fix table the pass hands back, in the same command that writes the fix
-surface.
-
-**`round-N-report.md` goes in that same commit**, because the reviewer left
-it uncommitted and it is what the record was derived from. A record committed
-without it leaves `Fixes checked by` pointing at a round whose report nobody
-can open, which is the audit line the record exists to hold. It sits in the
-same directory, so the commit that adds one has the other a line away in
-`git status`.
-
-**A record written late leaves no trace**, which is why this is a gate rather
-than a reminder. By the time a late record is committed the fixes have landed,
-so its cells read `fixed at <sha>` — indistinguishable from a correct record
-after its own update pass. Measured twice in one release, four minutes and two
-minutes after the fix commits those records commissioned, and both times the
-reviewer's drafted replacement text lived only in a report and the next
-segment rebuilt it from scratch.
-
-`chain_check.py` refuses a record whose **adding** commit descends from a
-commit its own verdicts name as the fix, for work items begun on or after its
-`ORDER_FROM`; earlier ones print. It is the adding commit and never the last
-one, because a correct record IS updated after its fixes land.
-
-The cheapest way to satisfy it is also the one that pays: commission the fix
-pass **from the committed record** rather than from the reviewer's report. The
-report is a message in a session that ends; the record is a file the next
-segment opens.
-
-**`new` tells you when you are already late, and it is the last moment anybody
-can act.** It compares the commit the round read against the branch's HEAD, and
-where they differ it lists the commits between with their subjects. Two
-readings, and it can tell them apart for neither: the fix pass for this round
-has already run, or HEAD moved during the review — which
-`templates/sdd-round.md` already asks `Target SHA` to hold, both commits in the
-one cell. **Read the subjects.** It refuses nothing, because over this
-repository's own pre-squash branches 40 records of 152 differ this way and the
-commonest cause by far is the round's own paperwork landing between the review
-and the record.
-
-**Where there is nothing to list, both readings are false and it says that
-instead.** HEAD reaches no commit the round did not: the tree is BEHIND the
-commit the record names, or on another branch. Nothing landed after the review
-here, so neither reading above applies. What to check is that `--target` names
-the commit this tree's HEAD stood at when the round ran, and that you are in
-the tree the round reviewed. Nothing is refused and the record is written.
-
-**Where the fix pass really did run first, say so in the record:**
-
-```
-round-record new … --written-late "the fix pass had already run when the record reached a commit"
-```
-
-That writes `| Written late | yes — <why> |`, and `chain_check.py` prints the
-refusal with the reason quoted instead of failing on it. It is the fourth exit,
-and the three it replaces are rewriting history so the adding commit moves,
-merging over a red line, and inventing a waiver nobody wrote down — work item
-`1789034970` met all three and ended red on a line no later commit could clear.
-A bare `yes` is refused: the reason is the whole of what the row buys, and a
-relaxation with an empty cell is a waiver with no author. Without the flag the
-row reads `no` and the refusal stands exactly as it did.
-
-**Where the record is already committed, add the row by hand.** The flag
-writes it as `new` writes the record, and that moment is gone for a record on
-the branch — which is the record anybody meeting the refusal at the pull
-request has. `chain_check.py` reads the cell and never asks who wrote it, so
-the row lands in one edit and one commit, like any other correction to a
-record already committed.
-
-**It is an answer, not a way around the sequence.** Reaching for it every round
-is the failure the row's own design anticipates, and the repair is one command
-earlier: commit the record when `new` writes it.
+| The redesign | approved by a second `Approved` line in `plan.md` when `smith` is spawned for it, built, and reviewed, its first finding round starting the cap's count again |
 
 ## Orchestrator: the pull request opens before round 1, and a phase is re-run
 
@@ -564,27 +175,30 @@ review* fires `ready_for_review`, re-runs the check and fails the pull
 request if the record is still missing. Nothing that can reach `main` is
 exempt.
 
-The window from `close` ticking `Pass` until the verifying round's record
-commits is not red either (#598). `Pass` beside `nobody` on the last record
-prints on a draft and names the verifying round, and *Ready for review* fails
-the pull request if the cell still says `nobody`.
+**`broad-gate.md` is read at a READY pull request.** So the sequence has two
+more steps before the draft goes ready: a run of the record arms, which is
+yours, and then a spawn. **Run `broad-gate --preflight --base <base>`, and on
+its exit 0 spawn `sealer`, with the base and the work item's directory**, the
+issue and the pull request, once the pull request body and the work item's
+`changelog.md` are written, since the sealer audits both. The sealer runs
+`broad-gate --base <base> --record <item>`, which takes the one broad pass
+now that the rounds have settled and, on a green run, writes `broad-gate.md`;
+then it audits the work against the issue and the tree and writes
+`guarantee.md` (`docs/the-review-record.md` §*The guarantee*). You read what
+it returns; you do not take the run yourself.
 
-**The last record's `Broad gate` cell is read at a READY pull request
-(#295).** So the sequence has two more steps before the draft goes ready: a
-run of the record arms, which is yours, and then a spawn. **Run `broad-gate
---preflight --base <base>`, and on its exit 0 spawn `sealer`, with the base
-and the work item's directory.** The sealer runs `broad-gate --base <base>
---record <item>`, which
-takes the one broad pass now that the rounds have settled and, on a green
-run, writes the SHA it ran at and the base it was compared against into that
-cell through `round_record.py seal` — in front of any run the cell already
-held, which stays behind it as `earlier run`, unless the newest is the same
-commit against the same base, which the new entry replaces (#174). You read
-what it returns; you do not take the run yourself. A cell still reading `not yet`
-fails the pull request, and so does a newest entry the record's own
-`Target SHA` descends from — a run spent before the round it was meant to
-seal. Work items begun before
-`chain_check.GATE_FROM` print instead of failing.
+**Commit the sealer's two files together; a verdict other than `sound` keeps
+the pull request a draft.** `not sound` names the claim and the coordinate.
+Where the repair touches only the work item's own records — a phase record,
+the changelog fragment — or the pull request body, make it, commit, and spawn
+the sealer again at the new HEAD. Where it touches any other file it is a fix
+nobody reviewed: commit it, spawn a verifying round on its diff, and spawn
+the sealer once that round's record is committed. The sealer's broad run
+asks the records arm first, and that arm refuses a commit outside the work
+item after the last round's `target:` commit, so a sealer spawned straight after
+the fix returns the same verdict. `undecidable` is a question for the owner,
+put after the run rather than during it; write the answer under the verdict
+as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
 
 **The preflight is yours, and it is not the broad gate (#638).** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
@@ -595,49 +209,31 @@ arrives before the spawn. Read its exit code directly and spawn only on 0. On
 1 its `PREFLIGHT FAILED` lines name each failing arm with its first lines and
 the file holding the rest: correct the record, commit, and run it again. On 2
 it refused before anything ran, and a refusal about the row goes to a person,
-as *A refusal about the `Broad gate` row* below says. It writes no cell, no
+as *A refusal about the `Broad gate` row* below says. It writes no file, no
 values file and no stamp, and prints no `SEALED` line, so it seals nothing.
-After the arms it runs `round_record.py seal --check` on the work item
-declared for the branch (#702): every refusal the sealer's write would raise,
-asked with nothing written, so those arrive before the spawn too. Where `seal`
-is among the `PREFLIGHT FAILED` lines, its first lines quote `seal`'s own
-sentence. A last record whose `Fixes checked by` reads `nobody` sends you to
-spawn the verifying round first; `Pass` is unchecked means a finding is still
-open, so close it. Where no single declaration names the branch nothing is
-asked, and one stderr line says so. A session that skips the preflight loses
-only time: the sealer asks the same arms and the same refusals of `seal`, and
-refuses the same way after its suite.
+A session that skips the preflight loses only time: the sealer asks the same
+arms, and refuses the same way after its suite.
 
 **The stamp is drawn for you at the end of your turn, and you never draw
 one (#400).** A green recorded run on the sealer's pipe draws nothing. It
 writes the stamp's values to a file and prints one `SEALED` line naming it,
 and the `Stop` hook draws that file after your text, when your turn ends.
-Only the gate's own write leaves a stamp: a cell written by `close
---broad-gate` is sealed with no stamp, because the gate ran without
-`--record` there and wrote no values. So put the result text first: what was
+So put the result text first: what was
 sealed, the lines worth quoting, and what happens next. Then end the turn,
 and the drawing lands last with nothing after it. Draw none yourself,
 neither with `seal-stamp` nor by relaying the sealer's log. The 0.15.6 run
 relayed the log, and the person saw the same stamp twice, the copy
 colourless and cut. The `SEALED` line names the branch and the tree it
 sealed and the ref and the commit it was compared against, and the line
-under it says the `Broad gate` cell is written and not committed: CI reads
-the record at HEAD, so commit the cell before the pull request is marked
-ready, or the one broad run is recorded nowhere CI looks. On a red run relay
+under it says `broad-gate.md` is written and not committed: CI reads HEAD,
+so commit it before the pull request is marked ready, or the one broad run
+is recorded nowhere CI looks. On a red run relay
 the `NOT SEALED` lines, and nothing
 is drawn. Wherever the `SEALED` line names `seal-stamp --from`, quote it as
 it stands: that command is the person's to type, and never yours. Every line
 that names a values file names it, because the hook draws nothing and says
 nothing where it cannot: a `python3` that cannot load `seal_stamp.py`, a
 working directory outside the sealed clone, or a plugin older than the hook.
-
-`close --broad-gate` still writes the same cell, through the same
-newest-first path — a run the cell already holds is kept behind the new
-entry by either writer, and the newest, where it is the same commit against
-the same base, is replaced by either — and it is for the one case `seal` refuses by
-design: fixes and the gate landing in the same pass, where the fix table and
-the cell are one write. Where the rounds have settled and
-nothing is being fixed, the sealer's spawn is the route.
 
 **A refusal about the `Broad gate` row goes to a person, and the run stops
 until they answer.** The sealer comes back exit 2 two ways that are about the
@@ -652,12 +248,11 @@ past the refusal is #401: it is what happened, and the stamp then covered a
 command the person had never seen.
 
 **A session that has compacted hands the next round to a fresh one, and the
-generated record is the handoff.** A compacted context holds a summary of what
+round record is the handoff.** A compacted context holds a summary of what
 it read, and a round run from a summary either re-reads what the summary
-dropped or trusts it. The record `round_record.py new` wrote carries the
-target, the verdicts, the probes and the deferrals as the reviewer wrote them,
-so the fresh session opens the record and its coordinates rather than the
-summary.
+dropped or trusts it. The record carries the target, the verdicts and the
+probes as the reviewer wrote them, so the fresh session opens the record and
+its coordinates rather than the summary.
 
 **A hand-back's verification claim is a claim.** Before spawning the next
 phase, run the closed phase's suite and the lint of its changed files yourself
@@ -666,11 +261,9 @@ built on that report is built on prose. The section below already says this
 of the reviewer's report; nothing said it of the implementer's until
 2026-09-05. The broad gate still runs once, after the rounds settle
 (`agent-contract` §2) — this is the narrow run at each phase boundary, and it
-is yours rather than the phase's. A phase boundary is never that moment, and
-the row is what says so: the gate comes due when the last
-`rounds/round-N.md`'s `Pass` box is checked, which is a record no phase
-writes. `skills/verify/SKILL.md` §*The broad gate — after the rounds, then
-compare against the base* says which row and why not `Needs a fix`.
+is yours rather than the phase's. A phase boundary is never that moment: the
+gate comes due when the last round record has no finding open, which is a
+record no phase writes.
 
 ## Orchestrator: verify before posting
 
@@ -682,7 +275,7 @@ Never post reviewer output as-is. Check, by opening the coordinates yourself:
 4. Test-pass claims — run them; count skips, which masquerade as passes.
 
 Also check whether HEAD moved during the review; if source changed, those
-verdicts need a re-pass. Record both SHAs in `round-N.md`.
+verdicts need a re-pass, and the next round's `target:` line names the new HEAD.
 
 ## Orchestrator: closing the cycle
 

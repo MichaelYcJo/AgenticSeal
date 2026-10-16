@@ -8,14 +8,13 @@ the disc is data; the disc has one size; and the failure form carries no
 drawing at all, because a picture that says *sealed* beside a word that says
 *not* is the two-things-disagreeing defect this repository keeps paying for.
 
-Part 2 pins the gate command, `skills/verify/scripts/broad_gate.py`, and the
-`seal` subcommand of `round_record.py`, on fixture repositories built and
-driven from Python (`agent-contract` §8): the `Broad gate` row is read and
-its absence is a refusal with nothing run; every check runs in order and its
-exit code is read directly; a failing test is compared against the base in a
-scratch worktree, reactively, and reported as `new` or `failing on base
-too`; the stamp prints on success only; and the one write sets the last
-record's cell and nothing else, refusing while its `Pass` box is unchecked.
+Part 2 pins the gate command, `skills/verify/scripts/broad_gate.py`, on
+fixture repositories built and driven from Python (`agent-contract` §8): the
+`Broad gate` row is read and its absence is a refusal with nothing run; every
+check runs in order and its exit code is read directly; a failing test is
+compared against the base in a scratch worktree, reactively, and reported as
+`new` or `failing on base too`; the stamp prints on success only; and the one
+write, through `--record`, is the work item's `broad-gate.md`.
 
 Part 3 — the agent and the owner sentences — arrives with the phase that
 builds them.
@@ -28,7 +27,6 @@ import importlib.util
 import io
 import json
 import math
-import ntpath
 import os
 import re
 import shutil
@@ -46,7 +44,6 @@ RECORDER_SOURCE = os.path.join(
     ROOT, "skills", "verify", "scripts", "pytest_record", "specseal_pytest_record.py"
 )
 GATE_WRAPPER = os.path.join(ROOT, "bin", "broad-gate")
-GENERATOR = os.path.join(ROOT, "skills", "code-review", "scripts", "round_record.py")
 CHECK = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
 
@@ -1148,28 +1145,40 @@ def test_the_command_piped_prints_the_twin():
 # Part 2 — the gate command and the one write
 # =============================================================================
 
-# Begun after every cutoff `chain_check.py` carries, so every rule it has
-# applies to the records written here.
 ITEM = "seal/specs/1799000000-a-sealed-work-item"
 ROUNDS = f"{ITEM}/rounds"
 ROW = "Broad gate"
-# The reviewer's own row. `seal` reads it nowhere: a capped run leaves it
-# `yes` over a verdict table with nothing open in it, and the field that
-# answers *is a finding still open* is the `Pass` box one row down.
-NEEDS = "Needs a fix"
-# The row that answers *has this run ended*: `close` leaves it at its
-# landing value for the next round to set, and its starting value is the
-# state the seal must refuse.
-CHECKED_BY = "Fixes checked by"
 
 PASSING_TEST = "def test_one():\n    assert True\n"
 FAILING_TEST = "def test_two():\n    assert False, 'planted'\n"
 OVERVIEW = "# overview\n\n## Not verified\n\nnone — the fixture verifies nothing\n"
 
-VERDICT_HEADER = (
-    "| # | Finding | Location | Verdict | Grounds |\n|---|---|---|---|---|\n"
-)
-OPEN_ROW = "| 🔴 1 | the parser drops a row | `f.py:1` | open | executed |\n"
+
+def finding(n, verdict, what="the parser drops a row", location="`f.py:1`"):
+    """One `### ` section of `## Findings`, its `verdict:` line `verdict`."""
+    return (
+        f"### {n}. {what}\n\n"
+        f"severity: must\nlocation: {location}\nverdict: {verdict}\n\n"
+        "executed\n\nanswer: \n\n"
+    )
+
+
+OPEN_FINDING = finding(1, "open")
+
+
+def record_text(n, target, findings, confirmations=""):
+    """A round record in `templates/sdd-round.md`'s shape: `findings` are
+    `finding()` sections, `confirmations` entries of `## Confirmations`."""
+    return (
+        f"# {os.path.basename(ITEM)} — review round {n}\n\n"
+        f"target: {target} against base\n\n"
+        f"## Findings\n\n{findings}"
+        "## Confirmations\n\n"
+        f"{confirmations}\n"
+        "## Not judged\n\n| What | Location | Who answers |\n|---|---|---|\n\n"
+        "## Probes\n\n| Command | Result |\n|---|---|\n"
+        "| `pytest tests/test_one.py -q` | 1 passed |\n"
+    )
 
 
 def _load(name, path):
@@ -1468,8 +1477,8 @@ def a_sealed_run(tmp_path_factory, _template):
     Under a directory whose name holds a space, for the reason
     `test_a_recorded_seal_on_a_pipe_signals_and_draws_nothing` gives. A
     module-scoped fixture is set up before `_no_ambient_pull_request` runs,
-    which costs nothing here: every script this run starts (`round_record.py`
-    and the gate) is given `env_without_a_pull_request()`.
+    which costs nothing here: every script this run starts is given
+    `env_without_a_pull_request()`.
 
     Returns (the repository, the completed process, the values)."""
     scratch = tmp_path_factory.mktemp("sealed-once")
@@ -1717,24 +1726,6 @@ def test_the_gate_row_fits_the_panel_for_a_nine_character_version(tmp_path):
         copy="tree 1.2.3-rc4",
     )
     assert ("gate", "tree 1.2.3-rc4") in rows
-
-
-def test_the_sealer_is_told_the_gate_says_which_copy_ran():
-    """A11. The gate line is the same kind of line as the moved-base one: a
-    fact about the run a reader learns nowhere else, quoted by the sealer and
-    judged by nobody. The definition says the gate prints which copy ran,
-    what a `tree` value means, and that the line is quoted in the report."""
-    text = " ".join(sealer_text().split())
-    assert "which copy of itself ran" in text, (
-        "the sealer's definition does not say the gate reports which copy ran"
-    )
-    assert "measured by the gate it ships" in text, (
-        "the definition does not say what a `tree` value on the stamp means"
-    )
-    assert "Quote the gate line" in text, (
-        "the definition does not tell the sealer to quote the gate line the "
-        "way it quotes the moved-base line"
-    )
 
 
 # --- S3 no row ---------------------------------------------------------------
@@ -3017,10 +3008,10 @@ def test_a_run_with_no_session_says_so_and_names_the_hand_command(repo, tmp_path
 def test_values_that_cannot_be_written_leave_the_seal_standing(repo, tmp_path):
     """S15. The values directory cannot be made — a FILE stands where it
     goes, which refuses on every platform and under every user, where a
-    permission bit would not stop root. The checks passed and the cell was
-    written, so the run is still sealed, exit 0; stderr says why nothing
+    permission bit would not stop root. The checks passed and `broad-gate.md`
+    was written, so the run is still sealed, exit 0; stderr says why nothing
     will be drawn and the `SEALED` line says nothing will be."""
-    _one, two = settled_item(repo)
+    settled_item(repo)
     (repo / ".git" / VALUES_DIR).write_text("in the way\n", encoding="utf-8")
     out = run_gate(
         repo, "--record", str(repo / ITEM), keep=tmp_path / "out", session="s-1"
@@ -3029,8 +3020,8 @@ def test_values_that_cannot_be_written_leave_the_seal_standing(repo, tmp_path):
     assert "the stamp's values could not be written" in out.stderr, out.stderr
     (said,) = signal_lines(out.stdout)
     assert "nothing will be drawn" in said, said
-    assert fields(two.read_text(encoding="utf-8"))[ROW] != "not yet", (
-        "the cell was not written, so this is not the state S15 is about"
+    assert (repo / ITEM / "broad-gate.md").is_file(), (
+        "the run was not written, so this is not the state S15 is about"
     )
 
 
@@ -3049,8 +3040,8 @@ def test_a_person_at_a_terminal_sees_the_stamp_drawn_once(repo, tmp_path):
     assert any(c in screen for c in HALF_BLOCKS), "a UTF-8 terminal got no blocks"
     assert not signal_lines(SGR.sub("", screen).replace("\r", "")), screen
     assert not values_files(repo), "a drawn run left a file for a hook to draw again"
-    # #666's S2 on this path too: the cell is in the working tree here as well.
-    assert "cell is written to" in screen and "not committed" in screen, screen
+    # #666's S2 on this path too: the file is in the working tree here as well.
+    assert "run is written to" in screen and "not committed" in screen, screen
 
 
 def test_a_terminal_run_with_no_record_draws_nothing(repo, tmp_path):
@@ -3141,57 +3132,39 @@ def set_field(path, label, value):
     )
 
 
-def test_a_recorded_seal_says_the_cell_is_written_and_not_committed(a_sealed_run):
-    """A1 and S2. The line after the `SEALED` line names the file the cell
-    went into, says it is not committed, and says CI reads HEAD — on the same
-    stream, so the sealer passes both on together. The file IS uncommitted,
-    which is what makes the line true: `git status` names it."""
+def test_a_recorded_seal_says_the_file_is_written_and_not_committed(a_sealed_run):
+    """A1 and S2. The line after the `SEALED` line names `broad-gate.md`,
+    says it is not committed, and says CI reads HEAD — on the same stream, so
+    the sealer passes both on together. The file IS uncommitted, which is
+    what makes the line true: `git status` names it."""
     repo, out, values = a_sealed_run
     lines = out.stdout.splitlines()
     (at,) = [i for i, line in enumerate(lines) if line.startswith("SEALED")]
-    rel = os.path.join(ITEM, "rounds", "round-2.md").replace("/", os.sep)
+    rel = os.path.join(ITEM, "broad-gate.md").replace("/", os.sep)
     assert lines[at + 1] == gate_module().CELL_UNCOMMITTED.format(path=rel), lines
     assert lines[at + 1] == (
-        f"broad-gate: the `Broad gate` cell is written to {rel} and not "
-        "committed. CI reads the record at HEAD, so commit it before the pull "
-        "request is marked ready"
+        f"broad-gate: the run is written to {rel} and not committed. CI reads "
+        "HEAD, so commit it before the pull request is marked ready"
     )
     assert git(repo, "status", "--porcelain", "--", rel).stdout.strip(), (
-        "the line says the cell is uncommitted over a file git calls clean"
+        "the line says the file is uncommitted over a file git calls clean"
     )
     assert values["branch"] == "feature" and values["pr"] is None, values
 
 
-def test_the_line_is_absent_where_the_cells_file_is_committed(repo):
+def test_the_line_is_absent_where_the_file_is_committed(repo):
     """S2's other half, at the unit: `uncommitted_line` asks git rather than
     assuming, so a file that does not differ from HEAD gets no line, and no
-    record gets none either."""
+    file gets none either."""
     gate = gate_module()
-    _one, two = settled_item(repo)
-    record = gate.Record(str(two))
-    assert gate.uncommitted_line(str(repo), record) is None
+    settled_item(repo)
+    path = gate.write_gate_file(str(repo / ITEM), "abcdef1", "1234567")
+    commit(repo, "the run")
+    assert gate.uncommitted_line(str(repo), path) is None
     assert gate.uncommitted_line(str(repo), None) is None
-    set_field(two, ROW, "abcdef1 against 1234567")
-    said = gate.uncommitted_line(str(repo), record)
-    assert said and os.path.join("rounds", "round-2.md") in said, said
-
-
-def test_the_pull_request_the_record_names_reaches_the_values_file(repo, tmp_path):
-    """A1, A7's number. `| PR | #12 |` on the record the cell lands on is
-    read with `chain_check.PR_RE` and carried as `#12`; `not yet opened`,
-    which the fixture's records hold, is None."""
-    _one, two = settled_item(repo)
-    set_field(two, "PR", "#12")
-    commit(repo, "the pull request opened")
-    out = run_gate(
-        repo, "--record", str(repo / ITEM), keep=tmp_path / "out", session="s-1"
-    )
-    assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    (path,) = values_files(repo)
-    values = module().read_values(path)
-    assert values["pr"] == "#12"
-    # A7 on the panel: the pull request leads the `item` row.
-    assert row_of(values, "item") == "#12 · 1799000000", values["rows"]
+    gate.write_gate_file(str(repo / ITEM), "bcdef12", "1234567")
+    said = gate.uncommitted_line(str(repo), path)
+    assert said and "broad-gate.md" in said, said
 
 
 def test_a_detached_head_names_the_tree_alone(repo, tmp_path):
@@ -3253,21 +3226,16 @@ def test_the_failure_form_takes_the_same_names():
 
 
 def test_the_documents_name_the_line_that_says_to_commit_the_cell():
-    """S2's documentation (`agent-contract` §14). The sealer is told the line
-    exists and is passed on, and the orchestrator is told what to do with
-    it — the commit is the orchestrator's act."""
-    sealer = " ".join(sealer_text().split())
-    assert "one more line says the `Broad gate` cell is written and not committed" in (
-        sealer
-    )
-    assert "naming the branch and the tree, the ref and the base commit" in sealer
+    """S2's documentation (`agent-contract` §14). The orchestrator is told
+    what to do with the line — the commit is the orchestrator's act. The
+    sealer passes the gate's lines on as they came and is told no line's
+    wording (`tests/test_the_sealer_guarantees.py::TestDefinition`)."""
     orchestration = " ".join(
         read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
     )
     assert (
-        "the line under it says the `Broad gate` cell is written and not "
-        "committed: CI reads the record at HEAD, so commit the cell before the "
-        "pull request is marked ready"
+        "the line under it says `broad-gate.md` is written and not committed: "
+        "CI reads HEAD, so commit it before the pull request is marked ready"
     ) in orchestration
 
 
@@ -3314,6 +3282,15 @@ def test_no_value_on_the_panel_is_wider_than_the_frame_gives(tmp_path):
     gate = gate_module()
     assert len(LONG_BRANCH) == 73, len(LONG_BRANCH)
     item = tmp_path / "1799000000-an-item-with-a-long-name"
+    # The longest `rounds` continuation: three homes, one a path.
+    record_of(
+        item,
+        deferring_record(
+            finding(1, "deferred seal/follow-up.md")
+            + finding(2, "deferred #12345")
+            + finding(3, "deferred #12346")
+        ),
+    )
     rows = gate.panel(
         "c46fd2db",
         gate.Base("release/v1.2.3-hotfix", "1e2bed90", LONG_REF, "1e2bed90"),
@@ -3321,18 +3298,6 @@ def test_no_value_on_the_panel_is_wider_than_the_frame_gives(tmp_path):
         str(item),
         copy=gate.copy_origin(ROOT),
         branch=LONG_BRANCH,
-        pr="#12345",
-        # Phase 3's longest `rounds` continuation: three homes, one a path.
-        record=record_of(
-            tmp_path,
-            capped_record(
-                verdicts=(
-                    "| 🟡 1 | a | `f.py:1` | deferred seal/follow-up.md | why |\n"
-                    "| 🟡 2 | b | `f.py:2` | deferred #12345 | why |\n"
-                    "| 🟡 3 | c | `f.py:3` | deferred #12346 | why |\n"
-                )
-            ),
-        ),
         run=a_run(gate, **LONG_SUITE),
     )
     values = [row[1] for row in rows if row]
@@ -3366,7 +3331,7 @@ def test_no_value_on_the_panel_is_wider_than_the_frame_gives(tmp_path):
     assert LONG_BRANCH.startswith(branch[1][: -len(gate.ELISION)]), branch
     assert ref.startswith(gate.ELISION), ref
     assert LONG_REF.endswith(ref[len(gate.ELISION) :]), ref
-    assert ("item", "#12345 · 1799000000") in rows, rows
+    assert ("item", "1799000000") in rows, rows
     drawn = "\n".join(module().stamp(rows, shape=True))
     assert branch[1] in drawn and ref in drawn, drawn
     assert "/v1.2.3-hotfix" in drawn, "the ref's tail did not survive the frame"
@@ -3399,13 +3364,13 @@ def test_the_widest_panel_the_tree_can_produce_fits_at_the_first_rung(tmp_path):
     gate, mod = gate_module(), module()
     item = tmp_path / "1799000000-an-item-with-a-long-name"
     verdicts = "".join(
-        f"| 🟡 {n} | a | `f.py:{n}` | deferred {home} | why |\n"
-        for n, home in enumerate(EIGHT_HOMES, 1)
+        finding(n, f"deferred {home}") for n, home in enumerate(EIGHT_HOMES, 1)
     )
     with open(
         os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
     ) as handle:
         workflow = handle.read()
+    record_of(item, deferring_record(verdicts))
     rows = gate.panel(
         "c46fd2db",
         gate.Base("release/v1.2.3-hotfix", "1e2bed90", LONG_REF, "1e2bed90"),
@@ -3414,8 +3379,6 @@ def test_the_widest_panel_the_tree_can_produce_fits_at_the_first_rung(tmp_path):
         workflow,
         copy=gate.copy_origin(ROOT),
         branch=LONG_BRANCH,
-        pr="#12345",
-        record=record_of(tmp_path, capped_record(verdicts=verdicts)),
         run=a_run(gate, **LONG_SUITE),
     )
     # The blank before the result rows is `None` since #832's S5a.
@@ -3590,16 +3553,15 @@ def test_the_result_rows_carry_a_tick_and_a_blank_row_stands_before_them(tmp_pat
     )
     checks = checks_with(gate, "", code=5)
     checks[gate.CHAIN_NAME] = gate.Check(gate.CHAIN_NAME, 0, "", "chain.txt")
+    item = record_of(tmp_path / "1799000000-an-item", deferring_record())
     rows = gate.panel(
         "c46fd2db",
         gate.Base("release/x", "1e2bed90", "origin/release/x", "1e2bed90"),
         checks,
-        str(tmp_path / "1799000000-an-item"),
+        item,
         workflow,
         copy="tree 1.2.3",
         branch="feature",
-        pr="#12",
-        record=record_of(tmp_path, capped_record()),
         run=a_run(gate, passed=1),
     )
     assert rows == [
@@ -3607,13 +3569,13 @@ def test_the_result_rows_carry_a_tick_and_a_blank_row_stands_before_them(tmp_pat
         ("tree", "c46fd2db"),
         ("", "feature"),
         ("base", "1e2bed90  origin/release/x"),
-        ("item", "#12 · 1799000000"),
+        ("item", "1799000000"),
         ("gate", "tree 1.2.3"),
         None,
         ("suite", "✓ 1 passed"),
         ("chain", "✓ exit 0"),
         ("CI also", "· 0 more steps"),
-        ("rounds", "0 · capped"),
+        ("rounds", "1"),
         ("", "2 deferred → #664"),
     ], rows
     said = "".join(value for row in rows if row for value in row)
@@ -3630,19 +3592,16 @@ def test_a_run_with_no_record_has_no_item_and_no_rounds():
         checks_with(gate),
         None,
         branch="feature",
-        pr="#12",
     )
     labels = [row[0] for row in rows if row]
     assert "item" not in labels and "rounds" not in labels, labels
 
 
 def test_the_item_row_is_the_id_alone_without_a_pull_request(tmp_path):
-    """A7. `<id>` is the digits before the first `-` of the directory's name,
-    and the pull request leads it where the record names one."""
+    """A7. `<id>` is the digits before the first `-` of the directory's name."""
     gate = gate_module()
     item = str(tmp_path / "1790815615-the-seal-names-what-it-sealed")
     assert gate.item_value(item) == "1790815615"
-    assert gate.item_value(item, "#666") == "#666 · 1790815615"
     assert gate.item_value(str(tmp_path / "plain")) == "plain"
 
 
@@ -3664,15 +3623,10 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     # #832's S5a: the ref stands beside the commit on the `base` row.
     assert "names the ref beside the commit on the `base` row" in verify
     assert "names the ref on the row under the commit" not in verify
-    sealer = " ".join(sealer_text().split())
-    assert "The stamp carries a `gate` row only where the copy that ran is not" in (
-        sealer
-    )
-    assert "a stamp with no `gate` row was measured by the copy you invoked" in sealer
     # Round 1's 🟡 4 and ⬜ 5: the third arm, which fires on every seal an
     # installed copy older than #666 redirects, because it hands over no
-    # invoked path to compare against.
-    assert "or where nothing told it which copy you invoked" in sealer
+    # invoked path to compare against. The sealer describes no panel row
+    # since it became the guarantor (#923), so the documents that do are read.
     assert (
         "or where the tree's copy ran with no invoked copy named to compare against"
     ) in broad
@@ -3685,14 +3639,6 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     above = source.split("GATE_REL = ", 1)[0][-1500:].splitlines()
     comment = " ".join(" ".join(line.lstrip("# ") for line in above).split())
     assert "or where no invoked copy was handed over to compare" in comment
-    # Phase 3's row, in #832's separators; and the ref beside its commit.
-    assert (
-        "`rounds` row reads `<R> · capped` where the last record's `Needs a fix`"
-        in (sealer)
-    )
-    assert "the `base` row carries the ref beside the commit it came from" in sealer
-    assert "the row under `base` carries the ref" not in sealer
-    assert "counts the findings closed `deferred` and names their homes" in sealer
 
 
 def test_the_sample_carries_every_row_the_panel_can(tmp_path):
@@ -3709,12 +3655,10 @@ def test_the_sample_carries_every_row_the_panel_can(tmp_path):
         "c46fd2db",
         gate.Base("release/x", "1e2bed90", "origin/release/x", "1e2bed90"),
         checks_with(gate, "", "total: 1 ok · 0 drifted · 0 broken\n"),
-        str(tmp_path / "1799000000-an-item"),
+        record_of(tmp_path / "1799000000-an-item", deferring_record()),
         workflow,
         copy="tree 1.2.3",
         branch="feature",
-        pr="#12",
-        record=record_of(tmp_path, capped_record()),
         run=a_run(gate, passed=1),
     )
     labels = [None if row is None else row[0] for row in rows]
@@ -3839,204 +3783,115 @@ def test_the_documents_name_the_ci_also_row():
         read_document(os.path.join("skills", "verify", "SKILL.md")).split()
     )
     assert "the panel carries a `CI also` row — *· <n> more steps* —" in verify
-    assert "A feature seal of SpecSeal itself reads `CI also · 5 more steps`" in verify
+    assert "A feature seal of SpecSeal itself reads `CI also · 3 more steps`" in verify
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
     assert "the panel carries a `workflow` row" not in verify
-    sealer = " ".join(sealer_text().split())
-    assert "On any base the `CI also` count leaves out the steps" in sealer
-    assert "the `workflow` count" not in sealer
+    # The sealer relays the gate's lines and names no panel row (#923).
+    assert "the `workflow` count" not in " ".join(sealer_text().split())
 
 
-# --- #666: `rounds` says capped and counts the deferred findings -----------
+# --- `rounds` counts the records and the deferred findings -------------------
 
 
-def capped_record(needs="yes — 🟡 1, the wording", verdicts=None, pass_box="x"):
-    """A last record in the shape `seal/specs/1790635412-*/rounds/round-3.md`
-    has: `Pass` checked, `Fixes checked by | no fixes to check`, `Needs a fix
-    | yes — …`, and two findings closed `deferred #664`."""
-    if verdicts is None:
-        verdicts = (
-            "| 🟡 1 | a docstring claim | `f.py:1` | deferred #664 | #664 — why |\n"
-            "| ⬜ 2 | its wording | `f.py:2` | **deferred** #664 | #664 — why |\n"
+def deferring_record(findings=None, confirmations=""):
+    """A round record whose two findings were closed `deferred #664`."""
+    if findings is None:
+        findings = finding(1, "deferred #664", "a docstring claim") + finding(
+            2, "deferred #664", "its wording", "`f.py:2`"
         )
-    table = f"## Verdicts\n\n{VERDICT_HEADER}{verdicts}\n" if verdicts else ""
-    needs_row = f"| {NEEDS} | {needs} |\n" if needs is not None else ""
-    return (
-        "# round 3\n\n| Field | Value |\n|---|---|\n| PR | #659 |\n"
-        f"| {CHECKED_BY} | no fixes to check |\n{needs_row}\n"
-        f"- [{pass_box}] Pass\n\n{table}"
-    )
+    return record_text(3, "abc1234", findings, confirmations)
 
 
-def record_of(tmp_path, text, name="round-3.md"):
-    """A `broad_gate.Record` over `text`, read with the plugin's own readers
-    the way `sealed_record` reads a record on disk."""
-    gate, reader, chain = gate_module(), reader_module(), check_module()
-    path = tmp_path / name
-    path.write_text(text, encoding="utf-8")
-    lines = reader.readable(text)
-    return gate.Record(str(path), chain.table_rows(reader, lines), lines, chain, reader)
+def record_of(item, text, name="round-3.md"):
+    """`text` written as `<item>/rounds/<name>`; returns `item` as a string."""
+    os.makedirs(os.path.join(str(item), "rounds"), exist_ok=True)
+    with open(os.path.join(str(item), "rounds", name), "w", encoding="utf-8") as f:
+        f.write(text)
+    return str(item)
 
 
 def rounds_of(tmp_path, text, rounds=3):
+    """`rounds_rows` over an item whose last of `rounds` records is `text`
+    and whose earlier ones no reader can read."""
     item = tmp_path / "1799000000-an-item"
-    (item / "rounds").mkdir(parents=True, exist_ok=True)
-    for n in range(1, rounds + 1):
-        (item / "rounds" / f"round-{n}.md").write_text("x\n", encoding="utf-8")
-    return gate_module().rounds_rows(str(item), record_of(tmp_path, text))
+    for n in range(1, rounds):
+        record_of(item, "x\n", f"round-{n}.md")
+    return gate_module().rounds_rows(record_of(item, text, f"round-{rounds}.md"))
 
 
 @pytest.mark.parametrize(
     "text, rows",
     [
-        # A10's own shape: capped, two deferrals to one home.
-        (capped_record(), [("rounds", "3 · capped"), ("", "2 deferred → #664")]),
-        # Three homes, in table order.
+        (deferring_record(), [("rounds", "3"), ("", "2 deferred → #664")]),
+        # Three homes, in the order met, too long for one row.
         (
-            capped_record(
-                verdicts=(
-                    "| 🟡 1 | a | `f.py:1` | deferred seal/follow-up.md | why |\n"
-                    "| 🟡 2 | b | `f.py:2` | deferred #664 | why |\n"
-                    "| 🟡 3 | c | `f.py:3` | deferred #664 | why |\n"
-                    "| 🟡 4 | d | `f.py:4` | deferred docs/the-broad-gate.md | why |\n"
-                )
+            deferring_record(
+                finding(1, "deferred seal/follow-up.md")
+                + finding(2, "deferred #664")
+                + finding(3, "deferred #664")
+                + finding(4, "deferred docs/the-broad-gate.md")
             ),
-            # Too long for one row: it continues beneath (round 1's 🟡 1),
-            # at #832's width of 41.
             [
-                ("rounds", "3 · capped"),
+                ("rounds", "3"),
                 ("", "4 deferred → seal/follow-up.md, #664,"),
                 ("", "docs/the-broad-gate.md"),
             ],
         ),
-        # A bare `deferred` is counted and names no home.
+        # A bare `deferred` is a value the reader refuses, so its record
+        # adds nothing, the deferral beside it included.
         (
-            capped_record(
-                verdicts=(
-                    "| 🟡 1 | a | `f.py:1` | deferred #664 | why |\n"
-                    "| 🟡 2 | b | `f.py:2` | deferred | why |\n"
-                )
-            ),
-            [("rounds", "3 · capped"), ("", "2 deferred → #664")],
+            deferring_record(finding(1, "deferred #664") + finding(2, "deferred")),
+            [("rounds", "3")],
         ),
         (
-            capped_record(verdicts="| 🟡 1 | a | `f.py:1` | deferred | why |\n"),
-            [("rounds", "3 · capped"), ("", "1 deferred")],
-        ),
-        # A run that ended with nothing needing a fix and nothing deferred.
-        (
-            capped_record(
-                needs="no", verdicts="| 🟢 1 | a | `f.py:1` | answered | why |\n"
+            deferring_record(
+                "", confirmations="| round-2#1 | it is closed | `f.py:1` | why |\n"
             ),
             [("rounds", "3")],
         ),
-        # A deferral by choice on a record that needed no fix: counted, not
-        # capped (`questions.md` Q2's measurement found ten of these).
-        (capped_record(needs="no"), [("rounds", "3"), ("", "2 deferred → #664")]),
-        # Half an answer is no answer: no table, or no `Needs a fix` row.
-        (capped_record(verdicts=""), [("rounds", "3")]),
-        (capped_record(needs=None), [("rounds", "3")]),
+        (deferring_record(""), [("rounds", "3")]),
     ],
 )
-def test_rounds_says_capped_and_counts_what_was_deferred(tmp_path, text, rows):
-    """A10. `capped` is read off the last record's `Needs a fix` through
-    `chain_check.says_reopened` (#866); the row beneath counts the verdicts `chain_check.verdict_of` calls
-    `deferred` and lists their homes, read through `chain_check`'s own
-    readers rather than a second parser of a round record."""
+def test_rounds_counts_the_records_and_what_was_deferred(tmp_path, text, rows):
+    """The row beneath `rounds` counts the findings `chain_check.findings`
+    reads as `deferred` and lists their homes; a record it refuses adds
+    nothing."""
     assert rounds_of(tmp_path, text) == rows
 
 
 @pytest.mark.parametrize(
-    "needs, head",
-    [
-        ("yes — 🟡 1, the wording", "3 · capped"),
-        # Emphasis comes off first, as `says_reopened` takes it off: the
-        # panel used to read these as not capped, because they begin `*`.
-        ("**yes — 🟡 1, the wording**", "3 · capped"),
-        ("`yes` — 🟡 1, the wording", "3 · capped"),
-        # Invisible characters come off before the word is read, as the gate
-        # reads the cell (`chain_check.record_facts`, round 1's 🟡 3).
-        ("​yes — 🟡 1, the wording", "3 · capped"),
-        ("﻿yes — 🟡 1, the wording", "3 · capped"),
-        # A cell the check cannot read answers nothing: the panel used to
-        # read the first two as capped.
-        ("yes", None),
-        ("yesterday's finding is closed", None),
-        ("maybe", None),
-        ("", None),
-        ("no", "3"),
-        ("no — every finding closed", "3"),
-    ],
-)
-def test_the_panels_capped_is_the_gates_reopening(tmp_path, needs, head):
-    """#866 S1: the panel is the third reader of `Needs a fix` and reads it
-    through `chain_check.says_reopened`. True draws `capped`, False draws the
-    count alone over the deferral row, and None — a cell the check refuses —
-    is a record that cannot answer, which prints `<R>` with no row beneath."""
-    chain, reader = check_module(), reader_module()
-    reopened = chain.says_reopened(reader.visible(needs).strip())
-    rows = rounds_of(tmp_path, capped_record(needs=needs))
-    if head is None:
-        assert reopened is None, needs
-        assert rows == [("rounds", "3")], (needs, rows)
-        return
-    assert reopened == head.endswith("capped"), needs
-    assert rows == [("rounds", head), ("", "2 deferred → #664")], (needs, rows)
-
-
-def test_a_record_with_no_rows_or_no_record_prints_the_count_alone(tmp_path):
-    """A10's last shape: a `broad-gate.md` home has no round record, and a
-    record that could not be read gives no rows; both print `<R>` alone."""
-    gate = gate_module()
-    item = tmp_path / "1799000000-an-item"
-    item.mkdir()
-    assert gate.rounds_rows(str(item), None) == [("rounds", "0")]
-    home = gate.Record(str(item / "broad-gate.md"))
-    assert gate.rounds_rows(str(item), home) == [("rounds", "0")]
-
-
-@pytest.mark.parametrize(
-    "cell, home",
+    "value, home",
     [
         ("deferred #664", "#664"),
-        ("**deferred** #664.", "#664"),
-        ("deferred #854 — the run is capped", "#854"),
-        # A file keeps its underscores (round 2's 🟡 2 of #666).
-        ("deferred `tests/test_a_b.py`", "tests/test_a_b.py"),
+        ("deferred `tests/test_a_b.py`", "`tests/test_a_b.py`"),
         ("deferred the frame", "the frame"),
         # Prose prints as the prose it is: the panel used to find `#664` and
         # `#97` inside these two (#866).
         ("deferred to #664", "to #664"),
-        (
-            "deferred — issue #97 already holds this axis",
-            "issue #97 already holds this axis",
-        ),
+        ("deferred #854 — the run is capped", "#854 ? the run is capped"),
         # ASCII on the panel, anything else reading `?`.
         ("deferred → #664", "? #664"),
     ],
 )
-def test_the_panels_home_is_the_gates_home(tmp_path, cell, home):
+def test_the_panels_home_is_the_gates_home(tmp_path, value, home):
     """#866 S2 on the panel: the homes after `→` are
     `chain_check.deferred_home`'s answers, in ASCII because the letter twin
-    maps only the owner's characters. The fourteen prose shapes this case
-    replaces read an issue or a path out of the rest of the cell, which no
-    other reader of the cell did."""
+    maps only the owner's characters. A home is the whole of what follows
+    `deferred`, as the check reads it."""
     chain = check_module()
-    assert chain.deferred_home(cell) is not None, cell
-    rows = rounds_of(
-        tmp_path, capped_record(verdicts=f"| 🟡 1 | a | `f.py:1` | {cell} | why |\n")
-    )
-    assert rows[0] == ("rounds", "3 · capped"), rows
+    assert chain.deferred_home(value) is not None, value
+    rows = rounds_of(tmp_path, deferring_record(finding(1, value)))
+    assert rows[0] == ("rounds", "3"), rows
     # A home too long for one row continues beneath (`wrapped`).
     assert all(label == "" for label, _ in rows[1:]), rows
     assert " ".join(value for _, value in rows[1:]) == f"1 deferred → {home}", rows
 
 
 def test_a_capped_run_is_sealed_with_its_deferral_on_the_stamp(repo, tmp_path):
-    """A10 end to end, over the fixture `capped_item` builds: round 1 closed
-    its one finding `deferred #999` and `Needs a fix` still reads `yes`. The
-    gate seals it, and the values file's `rounds` says so."""
+    """End to end, over the fixture `capped_item` builds: round 1 closed its
+    one finding `deferred #999`. The gate seals it, and the values file's
+    `rounds` row and the row beneath it say so."""
     capped_item(repo)
     out = run_gate(
         repo, "--record", str(repo / ITEM), keep=tmp_path / "out", session="s-1"
@@ -4044,7 +3899,7 @@ def test_a_capped_run_is_sealed_with_its_deferral_on_the_stamp(repo, tmp_path):
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
     (path,) = values_files(repo)
     rows = module().read_values(path)["rows"]
-    assert rows[-2:] == [("rounds", "1 · capped"), ("", "1 deferred → #999")], rows
+    assert rows[-2:] == [("rounds", "1"), ("", "1 deferred → #999")], rows
 
 
 # --- S2 not sealed -----------------------------------------------------------
@@ -8138,88 +7993,22 @@ def test_a_failing_record_arm_is_named_and_the_row_is_still_not_run(repo, tmp_pa
     assert len(git(repo, "worktree", "list").stdout.strip().splitlines()) == 1
 
 
-def test_a_preflight_with_record_is_refused_and_writes_no_cell(repo, tmp_path):
-    """S4. A preflight that took `--record` would write the cell, which it
-    exists not to do, or ignore the flag, which is a flag that does nothing.
-    So the pair is a refusal: exit 2, nothing run, the record byte-identical,
-    and a sentence naming both flags and saying the preflight writes no
-    cell."""
-    _one, two = settled_item(repo)
-    before = read_bytes(two)
+def test_a_preflight_with_record_is_refused_and_writes_nothing(repo, tmp_path):
+    """S4. A preflight that took `--record` would write `broad-gate.md`,
+    which it exists not to do, or ignore the flag, which is a flag that does
+    nothing. So the pair is a refusal: exit 2, nothing run, no file, and a
+    sentence naming both flags and saying the preflight writes nothing."""
+    settled_item(repo)
     keep = tmp_path / "out"
     out = run_gate(repo, "--preflight", "--record", str(repo / ITEM), keep=keep)
     assert out.returncode == 2, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
     assert not out.stdout, f"something printed under a refusal: {out.stdout!r}"
     assert "--preflight" in out.stderr and "--record" in out.stderr, out.stderr
-    assert "a preflight writes no cell" in out.stderr, out.stderr
+    assert "a preflight writes nothing" in out.stderr, out.stderr
     assert not keep.exists() or not os.listdir(keep), (
         f"a check ran under a refusal: {os.listdir(keep)}"
     )
-    assert read_bytes(two) == before, "the record changed under a refusal"
-
-
-def a_verifying_round_that_says_fixed_at(repo):
-    """#535's item C, as a fixture. Round 1 opened a finding and its fix
-    landed; round 2 is the verifying round, and its reviewer wrote the verdict
-    `fixed at <sha>` — what round 1's fix did, which `chain_check` reads as
-    this round closing on a fix of its own — beside `Fixes checked by: no
-    fixes to check`, the cell #535's record carried.
-
-    `chain_check.py#closed_with_a_fix` refuses that pair, and the refusal is
-    not excused on a draft (`questions.md` Q1). The cell is written by hand
-    because today's generator no longer writes it beside a fix word — `new`
-    lands `nobody — the fixes are not yet written` and `close` corrects that
-    to `nobody — the fixes are written…` (`phases/phase-2.md` of 1790815611
-    measured both) — and a hand-repaired cell is the way that pair still
-    reaches a tree. Returns round 2's record."""
-    declared(repo)
-    generate(repo, 1, OPEN_ROW, "yes — 🔴 1")
-    a = git(repo, "rev-parse", "HEAD").stdout.strip()
-    write(repo, "f.py", "x = 2\n")
-    b = commit(repo, "fix")
-    close_round(repo, 1, f"| 1 | fixed | {b[:7]} |\n", f"{a}..{b}")
-    two = generate(
-        repo,
-        2,
-        f"| 🟢 1 | round 1's fix holds | `f.py:1` | fixed at {b[:7]} | read |\n",
-        "no",
-    )
-    lines = two.read_text(encoding="utf-8").splitlines(keepends=True)
-    at = [i for i, line in enumerate(lines) if line.startswith(f"| {CHECKED_BY} |")]
-    assert len(at) == 1, f"round 2 carries {len(at)} `{CHECKED_BY}` rows"
-    lines[at[0]] = f"| {CHECKED_BY} | no fixes to check |\n"
-    two.write_text("".join(lines), encoding="utf-8")
-    commit(repo, "the cell #535's record carried")
-    return two
-
-
-# A file the row writes into the repository root where it runs, so a row
-# that ran leaves evidence the gate did not write.
-ROW_RAN = "row-ran"
-
-
-def test_a_fixed_at_verdict_in_a_verifying_round_fails_the_preflight(repo, tmp_path):
-    """S7, the ticket's verification (#638 §*How to verify*). A verifying
-    round's table carries `fixed at` beside `Fixes checked by: no fixes to
-    check`. The preflight exits 1 with `chain` named in the failure form, and
-    the row — a command that would leave a file behind and fail — was never
-    invoked. Seen red first: without the flag argparse refuses the command,
-    and with the flag ignored the row runs."""
-    two = a_verifying_round_that_says_fixed_at(repo)
-    record = two.read_text(encoding="utf-8")
-    assert "fixed at" in record, record
-    assert re.search(rf"\| {CHECKED_BY} \| no fixes to check \|", record), record
-    set_row(repo, f"{sys.executable} -c \"open('{ROW_RAN}', 'w')\" && exit 1")
-    keep = tmp_path / "out"
-    out = run_gate(repo, "--preflight", keep=keep)
-    assert out.returncode == 1, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
-    assert out.stdout.startswith("PREFLIGHT FAILED"), out.stdout
-    assert re.search(r"^\s+chain\s+exit 1", out.stdout, re.M), out.stdout
-    assert no_seal_line(out.stdout), out.stdout
-    assert not (repo / ROW_RAN).exists(), "the preflight invoked the row"
-    assert not (keep / "suite.txt").exists(), "the preflight ran the row"
-    chain = (keep / "chain.txt").read_text(encoding="utf-8")
-    assert "no fixes to check" in chain and "closed on a fix" in chain, chain
+    assert not (repo / ITEM / "broad-gate.md").exists(), "a file under a refusal"
 
 
 def test_without_the_row_the_preflight_names_it_and_runs_nothing(tmp_path):
@@ -8264,53 +8053,17 @@ def declaration(review="through the review chain"):
     )
 
 
-def report(verdicts, needs):
-    return (
-        "# what the round found\n\nProse.\n\n"
-        f"## Verdicts\n\n{VERDICT_HEADER}{verdicts}\n"
-        "## Executed probes\n\n| What was run | Result |\n|---|---|\n"
-        "| `pytest tests/test_one.py -q` | 1 passed |\n\n"
-        "## Deferred\n\n| Finding | Where it went | Who answers it |\n|---|---|---|\n\n"
-        f"Needs a fix: {needs}\nLoses a record or crashes: no\n"
-    )
-
-
-def generate(repo, n, verdicts, needs, target=None):
-    """`round_record.py new` for round `n`, then the record committed."""
-    scratch = repo.parent
-    (scratch / f"report-{n}.md").write_text(report(verdicts, needs), encoding="utf-8")
-    (scratch / f"asked-{n}.md").write_text("Attack the gate.\n", encoding="utf-8")
+def generate(repo, n, findings, target=None, confirmations=""):
+    """The warden's record for round `n` at `target` (HEAD by default),
+    written and committed."""
     target = target or git(repo, "rev-parse", "HEAD").stdout.strip()
-    r = subprocess.run(
-        [
-            sys.executable,
-            GENERATOR,
-            "new",
-            "--item",
-            str(repo / ITEM),
-            "--round",
-            str(n),
-            "--target",
-            target,
-            "--report",
-            str(scratch / f"report-{n}.md"),
-            "--asked",
-            str(scratch / f"asked-{n}.md"),
-            "--ran-by",
-            "specseal:warden on a model",
-            "--baseline",
-            "base",
-        ],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=120,
-        env=env_without_a_pull_request(),
+    write(
+        repo,
+        f"{ROUNDS}/round-{n}.md",
+        record_text(n, target, findings, confirmations),
     )
-    path = repo / ROUNDS / f"round-{n}.md"
-    assert path.exists(), r.stdout + r.stderr
     commit(repo, f"round {n}")
-    return path
+    return repo / ROUNDS / f"round-{n}.md"
 
 
 def declared(repo):
@@ -8318,1179 +8071,62 @@ def declared(repo):
     return commit(repo, "declare")
 
 
-def close_round(repo, n, rows, rng):
-    """`round_record.py close` with a fix table of `rows`, then committed."""
-    generator = _load("specseal_round_record_for_sealed_records", GENERATOR)
-    table = (
-        f"{generator.FIXES}\n\n{generator.row(generator.FIXES_HEADER)}\n"
-        f"{generator.separator(len(generator.FIXES_HEADER))}\n{rows}"
+def close_round(repo, n, finding, verdict):
+    """The fix pass: finding `finding`'s `verdict:` line in round `n` set to
+    `verdict`, then committed."""
+    path = repo / ROUNDS / f"round-{n}.md"
+    text = path.read_text(encoding="utf-8")
+    closed = re.sub(
+        rf"(^### {finding}\. (?:(?!^### ).)*?^)verdict: open$",
+        rf"\g<1>verdict: {verdict}",
+        text,
+        count=1,
+        flags=re.M | re.S,
     )
-    path = repo.parent / f"fixes-{n}.md"
-    path.write_text(table, encoding="utf-8")
-    subprocess.run(
-        [
-            sys.executable,
-            GENERATOR,
-            "close",
-            "--item",
-            str(repo / ITEM),
-            "--round",
-            str(n),
-            "--fixes",
-            str(path),
-            "--range",
-            rng,
-            "--baseline",
-            "base",
-        ],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=120,
-        env=env_without_a_pull_request(),
-    )
+    assert closed != text, f"round {n} has no open finding {finding}"
+    path.write_text(closed, encoding="utf-8")
     commit(repo, f"close round {n}")
 
 
 def settled_item(repo):
     """The state the broad gate runs in: round 1 opened a finding, a fix
-    landed and `close` applied its table, round 2 verified the fix and
-    closed everything with `Needs a fix: no`. Every verdict in both records
-    is closed, so `close` would refuse a fix table for either — which is the
-    state the `seal` subcommand exists for. Returns (round-1, round-2)."""
+    landed and the fix pass closed it, and round 2 verified the fix at HEAD.
+    Returns (round-1, round-2)."""
     declared(repo)
-    one = generate(repo, 1, OPEN_ROW, "yes — 🔴 1")
-    a = git(repo, "rev-parse", "HEAD").stdout.strip()
+    one = generate(repo, 1, OPEN_FINDING)
     write(repo, "f.py", "x = 2\n")
     b = commit(repo, "fix")
-    close_round(repo, 1, f"| 1 | fixed | {b[:7]} |\n", f"{a}..{b}")
+    close_round(repo, 1, 1, f"fixed {b[:7]}")
     two = generate(
         repo,
         2,
-        "| 🟢 1 | round 1's fix holds | `f.py:1` | answered | read |\n",
-        "no",
+        "",
+        confirmations="confirms: round-1#1\nround 1's fix holds, at `f.py:1`. read.\n",
     )
     return one, two
 
 
-def fixed_but_unread_item(repo):
-    """Round 1 closed on a FIX and no round 2 has run — the window between a
-    fix pass and the verifying round that reads it.
-
-    `close` ticks `Pass` from the verdict table alone, so the box is checked;
-    it writes `Fixes checked by` only when the answer is `no fixes to check`,
-    so a record whose findings closed on fixes keeps the landing value
-    `nobody — the fixes are not yet written` for the NEXT round's `new` to
-    set. Returns the record."""
-    declared(repo)
-    one = generate(repo, 1, OPEN_ROW, "yes — 🔴 1")
-    a = git(repo, "rev-parse", "HEAD").stdout.strip()
-    write(repo, "f.py", "x = 2\n")
-    b = commit(repo, "fix")
-    close_round(repo, 1, f"| 1 | fixed | {b[:7]} |\n", f"{a}..{b}")
-    return one
-
-
 def capped_item(repo):
-    """The state a CAPPED run ends in, and the one the seal could not reach.
-
-    `docs/review-chain-spec.md` bounds a run at three rounds. A run that
-    reaches the cap with a finding still live closes it `deferred <home>`
-    rather than fixed — which is a closing word, so `Pass` comes out checked
-    — while `Needs a fix` keeps the `yes` the reviewer wrote while the round
-    was running, because nothing rewrites the reviewer's own row. Returns
-    the record."""
+    """A run that ended at the cap: round 1's finding was deferred to an
+    issue, and the record is at HEAD. Returns the record."""
     declared(repo)
-    one = generate(repo, 1, OPEN_ROW, "yes — 🔴 1")
-    a = git(repo, "rev-parse", "HEAD").stdout.strip()
-    write(repo, "f.py", "x = 2\n")
-    b = commit(repo, "carry the finding to an issue")
-    close_round(repo, 1, "| 1 | deferred #999 | #999 |\n", f"{a}..{b}")
+    one = generate(repo, 1, OPEN_FINDING)
+    close_round(repo, 1, 1, "deferred #999")
     return one
 
 
-def run_seal(repo, value, extra=()):
-    r = subprocess.run(
-        [
-            sys.executable,
-            GENERATOR,
-            "seal",
-            "--item",
-            str(repo / ITEM),
-            "--broad-gate",
-            value,
-            "--baseline",
-            "base",
-            *extra,
-        ],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=120,
-        env=env_without_a_pull_request(),
-    )
-    return r.returncode, r.stdout + r.stderr
-
-
-def fields(text):
-    reader, chain = reader_module(), check_module()
-    rows = chain.table_rows(reader, reader.readable(text))
-    return {cells[0].strip(): cells[1].strip() for cells in rows if len(cells) == 2}
-
-
-def read_bytes(path):
-    return path.read_bytes()
-
-
-# --- S4 the one write ----------------------------------------------------------
-
-
-def test_seal_writes_the_last_records_cell_and_nothing_else(repo):
-    """S4. Two records; `seal` changes the last one's `Broad gate` cell and
-    touches no other line of it — byte for byte — and the earlier record not
-    at all. Every verdict of the last record is already closed, which is the
-    state `close` refuses a fix table for: the write `close` cannot make is
-    the one this subcommand exists for."""
-    one, two = settled_item(repo)
-    before_one, before_two = read_bytes(one), read_bytes(two)
-    assert fields(two.read_text(encoding="utf-8"))[ROW] == "not yet"
-    head = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{head} against base")
-    assert code == 0, out
-    assert "sealed" in out and "round-2.md" in out, out
-    assert read_bytes(one) == before_one, "the earlier record was touched"
-    after = read_bytes(two)
-    assert after != before_two, "the last record did not change"
-    old, new = (
-        before_two.decode("utf-8").splitlines(),
-        after.decode("utf-8").splitlines(),
-    )
-    assert len(old) == len(new), "a line was added or removed"
-    changed = [(a, b) for a, b in zip(old, new, strict=True) if a != b]
-    assert len(changed) == 1, f"{len(changed)} lines changed: {changed}"
-    assert changed[0][0].startswith(f"| {ROW} |"), changed
-    assert fields(after.decode("utf-8"))[ROW] == f"{head} against base"
-    assert "- [x] Pass" in after.decode("utf-8")
-
-
-GATE_FILE = "broad-gate.md"
-
-
-def test_seal_writes_a_file_where_no_round_record_exists(repo):
-    """S18. A work item declaring `straight to the PR` runs no rounds, so the
-    cell has no record to live on — and `seal` used to REFUSE outright.
-
-    That refusal is one half of a seal with no home. `last_record` raised
-    rather than returning, and `chain_check`'s direct arm returned before it
-    looked; neither repairs the other, which is why both are phase 5's. The
-    `straight to the PR` answer turns off the REVIEWER and nothing else, so
-    the broad run is owed here exactly as it is on the chain path.
-    """
-    write(repo, f"{ITEM}/routing.md", declaration(review="straight to the PR"))
-    commit(repo, "declare direct")
-    assert not (repo / ROUNDS).exists(), "the fixture is not the no-rounds state"
-    head = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{head} against base")
-    assert code == 0, out
-    path = repo / ITEM / GATE_FILE
-    assert path.exists(), f"`seal` wrote no {GATE_FILE}: {out}"
-    assert GATE_FILE in out, "the line printed does not name the home it chose"
-    text = path.read_text(encoding="utf-8")
-    assert fields(text)[ROW] == f"{head} against base", text
-    # The cell and nothing else. A file that grows a second row is a file the
-    # one reader has to start choosing between rows in.
-    table = [ln for ln in text.splitlines() if ln.startswith("|")]
-    assert len(table) == 3, (
-        f"{GATE_FILE} holds {len(table)} table lines, not a header, a "
-        f"separator and the cell:\n{text}"
-    )
-
-
-def test_seal_refuses_a_chain_declaration_with_no_round_record(repo):
-    """The home is the DECLARATION's, not whatever is on disk.
-
-    `rounds/` empty is two different states. One is a work item that runs no
-    rounds, and its cell belongs in `broad-gate.md`. The other is a work item
-    whose rounds are running and whose first record is not written yet, and
-    its cell belongs on that record — filed in the other home it is a seal the
-    chain arm never opens, over which `seal` printed `sealed`.
-
-    Round 1 executed exactly this in a throwaway clone and got exit 0 with the
-    cell written to the unread home. It fails closed — `chain_check` still
-    refuses the pull request on the record's `not yet` — so what was lost is
-    the sealer's answer rather than the enforcement.
-    """
-    write(repo, f"{ITEM}/routing.md", declaration())
-    commit(repo, "declare the chain, rounds not written yet")
-    assert not (repo / ROUNDS).exists(), "the fixture is not the no-rounds state"
-    code, out = run_seal(repo, f"{short(repo, 'HEAD')} against base")
-    assert code == 2, out
-    assert GATE_FILE in out and "round-N.md" in out, (
-        "the refusal names neither the home it declined nor the record it wants"
-    )
-    assert not (repo / ITEM / GATE_FILE).exists(), (
-        "the cell went into the home the chain arm never reads"
-    )
-
-
-def test_a_direct_declaration_seals_into_its_own_home_even_with_rounds(repo):
-    """The SAME defect running the other way, which the same fix closes.
-
-    A `straight to the PR` work item that does have round records was sealed
-    onto the last one — and `chain_check`'s direct arm reads `broad-gate.md`
-    and nothing else, so that cell is unread too. Round 1 named this direction
-    without a case; a fix aimed only at the direction that was reproduced
-    would have left half the class standing, which is §12.
-    """
-    _one, two = settled_item(repo)
-    write(repo, f"{ITEM}/routing.md", declaration(review="straight to the PR"))
-    commit(repo, "the declaration says direct after all")
-    before = read_bytes(two)
-    head = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{head} against base")
-    assert code == 0, out
-    path = repo / ITEM / GATE_FILE
-    assert path.exists(), f"the direct home was not written: {out}"
-    assert fields(path.read_text(encoding="utf-8"))[ROW] == f"{head} against base"
-    assert read_bytes(two) == before, (
-        "the cell went onto the last round record, which the direct arm "
-        "never reads — the same misfiling, in the other direction"
-    )
-
-
-def test_a_work_item_with_rounds_still_seals_onto_its_last_record(repo):
-    """The other direction, and the one a new home quietly breaks.
-
-    Adding a second home is a change to where the writer LOOKS, and a writer
-    that starts preferring the new home seals every work item into a file no
-    chain-path reader opens — silently, because both writes succeed. So the
-    property is asserted from both ends: the record's cell is filled, and no
-    `broad-gate.md` exists at all.
-    """
-    _one, two = settled_item(repo)
-    head = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{head} against base")
-    assert code == 0, out
-    assert fields(two.read_text(encoding="utf-8"))[ROW] == f"{head} against base"
-    assert not (repo / ITEM / GATE_FILE).exists(), (
-        "a work item that ran rounds got the no-rounds home as well, so the "
-        "cell now exists in two places and the readers disagree"
-    )
-
-
-def test_a_re_seal_keeps_the_earlier_run_and_the_reader_takes_the_newest(repo):
-    """A12 of #174. A run that meets a pre-existing failure, or whose last
-    fixes land after the gate, takes the broad run again — and the cell held
-    one entry that `seal` REPLACED, so the second run erased the record of
-    the first and the run-level table was filled from memory. The cell now
-    holds one entry per run, newest first: `seal` writes the new entry in
-    front and keeps what was there. `chain_check.broad_gate` reads the first
-    SHA-shaped word as the run, so newest-first is what keeps its reading
-    unchanged, and that half is asserted through the reader itself."""
-    _one, two = settled_item(repo)
-    first = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{first} against base")
-    assert code == 0, out
-    write(repo, "f.py", "x = 3\n")
-    commit(repo, "a fix after the gate, which spends it")
-    second = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{second} against base")
-    assert code == 0, out
-    after = two.read_text(encoding="utf-8")
-    generator = _load("specseal_round_record_for_a_re_seal", GENERATOR)
-    assert fields(after)[ROW] == (
-        f"{second} against base{generator.EARLIER_RUN}{first} against base"
-    ), after
-    # The reader: at a ready pull request, the newest entry is the run, and
-    # the cell has nothing to be refused for.
-    check, reader = check_module(), reader_module()
-    check.WORKTREE = True
-    errors, notices = check.broad_gate(reader, str(repo), f"{ROUNDS}/round-2.md", True)
-    assert errors == [] and notices == [], (errors, notices)
-
-
-def test_a_re_seal_at_the_commit_the_cell_names_replaces_that_entry(repo):
-    """Round 1's ⬜ 8, decided: a run taken again at the commit the newest
-    entry already names is the same claim about the same tree, so the new
-    entry replaces that one rather than standing beside it — the cell holds
-    one entry per run at a distinct commit, and a sealer re-run over an
-    unchanged tree does not grow it. An earlier run at a different commit
-    stays behind the newest as before."""
-    _one, two = settled_item(repo)
-    first = short(repo, "HEAD")
-    assert run_seal(repo, f"{first} against base")[0] == 0
-    write(repo, "f.py", "x = 3\n")
-    commit(repo, "a fix after the gate")
-    second = short(repo, "HEAD")
-    assert run_seal(repo, f"{second} against base")[0] == 0
-    code, out = run_seal(repo, f"{second} against base")
-    assert code == 0, out
-    generator = _load("specseal_round_record_for_a_same_commit_re_seal", GENERATOR)
-    cell = fields(two.read_text(encoding="utf-8"))[ROW]
-    assert cell == (
-        f"{second} against base{generator.EARLIER_RUN}{first} against base"
-    ), cell
-    assert cell.count(second) == 1, "the same commit was entered twice"
-
-
-def test_a_re_seal_at_the_same_commit_against_another_base_keeps_both(repo):
-    """Round 2's 🟡 1. The seal is the commit AND the base (`agents/sealer.md`
-    §Bind the result to a tree state), so a run at one commit against a
-    moved base is a second comparison and stays beside the first rather
-    than replacing it — the erasure #174 was filed on, one field narrower.
-    Keyed on the SHA alone, the replace erased the first base, which the
-    four sentences promising *a second run never erases the first* forbid."""
-    _one, two = settled_item(repo)
-    sha = short(repo, "HEAD")
-    assert run_seal(repo, f"{sha} against base")[0] == 0
-    code, out = run_seal(repo, f"{sha} against origin/base")
-    assert code == 0, out
-    generator = _load("specseal_round_record_for_another_base", GENERATOR)
-    cell = fields(two.read_text(encoding="utf-8"))[ROW]
-    assert cell == (
-        f"{sha} against origin/base{generator.EARLIER_RUN}{sha} against base"
-    ), cell
-
-
-def test_a_first_seal_is_byte_identical_to_a_cell_that_was_never_a_list(repo):
-    """A13 of #174: with nothing to keep there is no separator, so every
-    committed record and every fixture in the tree is already the shape."""
-    _one, two = settled_item(repo)
-    head = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{head} against base")
-    assert code == 0, out
-    cell = fields(two.read_text(encoding="utf-8"))[ROW]
-    assert cell == f"{head} against base", cell
-    generator = _load("specseal_round_record_for_a_first_seal", GENERATOR)
-    assert generator.EARLIER_RUN.strip(" ;:") not in cell, cell
-
-
-def test_the_written_broad_gate_file_says_a_same_run_re_seal_replaces_its_entry(
-    repo,
-):
-    """#542. The comment `seal` writes into every `broad-gate.md` described
-    the cell's rule as it stood before `same_run`: *a run taken again is
-    written in front, and the earlier one stays behind it*. No test read the
-    written file for that sentence, so a third rewording of the rule would
-    reach every `broad-gate.md` unpinned. The file a person opens says what
-    the writer does: a run the newest entry already records — the same
-    commit against the same base — replaces it."""
-    write(repo, f"{ITEM}/routing.md", declaration(review="straight to the PR"))
-    commit(repo, "declare direct")
-    head = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{head} against base")
-    assert code == 0, out
-    text = " ".join((repo / ITEM / GATE_FILE).read_text(encoding="utf-8").split())
-    assert (
-        "a run the newest entry already records — the same commit against the "
-        "same base — replaces it"
-    ) in text, f"the written comment does not state the same-run replace:\n{text}"
-    assert "a run taken again is written in front" not in text, (
-        f"the written comment still states the rule `same_run` replaced:\n{text}"
-    )
-
-
-def test_the_direct_home_takes_the_same_shape_on_a_re_seal(repo):
-    """A14 of #174. `broad-gate.md` is the whole record of a `straight to the
-    PR` work item and `direct_seal` reads it through `broad_gate`, so one
-    writer gives both homes one shape: the re-sealed file holds both entries
-    and the direct arm passes on the newest."""
-    write(repo, f"{ITEM}/routing.md", declaration(review="straight to the PR"))
-    commit(repo, "declare direct")
-    first = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{first} against base")
-    assert code == 0, out
-    write(repo, "f.py", "x = 3\n")
-    commit(repo, "a fix after the gate")
-    second = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{second} against base")
-    assert code == 0, out
-    path = repo / ITEM / GATE_FILE
-    text = path.read_text(encoding="utf-8")
-    generator = _load("specseal_round_record_for_a_direct_re_seal", GENERATOR)
-    assert fields(text)[ROW] == (
-        f"{second} against base{generator.EARLIER_RUN}{first} against base"
-    ), text
-    table = [ln for ln in text.splitlines() if ln.startswith("|")]
-    assert len(table) == 3, "the cell is still one row, and the file still one cell"
-    check, reader = check_module(), reader_module()
-    check.WORKTREE = True
-    routing = generator.load(check.ROUTING, "specseal_routing_for_a_re_seal")
-    errors, notices = check.direct_seal(
-        reader, routing, str(repo), str(repo / ITEM), f"{ITEM}/{GATE_FILE}", True
-    )
-    assert errors == [] and notices == [], (errors, notices)
-
-
-def test_seal_writes_over_a_capped_runs_needs_a_fix(repo):
-    """S5. A capped run seals, and until phase 5 it could not.
-
-    `Needs a fix: yes` used to refuse before anything else was read. Phase 4
-    of #30 measured what that cost on a fixture built exactly like this one:
-    `close` applied a fix table closing the finding `deferred #999`, `Pass`
-    came out checked because `deferred <home>` is a closing word, `Needs a
-    fix` stayed `yes` because it is the reviewer's row and nothing rewrites
-    it, `seal` refused — and `chain_check` then failed the ready pull
-    request on a `Broad gate` cell nothing could write. Two rules of this
-    repository contradicted each other over the case the cap exists for.
-
-    So the cell is written, `Needs a fix` is left exactly as the reviewer
-    wrote it, and the run of `chain_check` that `seal` ends with passes —
-    which is the whole chain the measurement found broken, end to end. The
-    other two refusals are untouched and are asserted below.
-    """
-    path = capped_item(repo)
-    text = path.read_text(encoding="utf-8")
-    assert "- [x] Pass" in text, "the fixture is not the capped state"
-    assert fields(text)[NEEDS].startswith("yes"), text
-    head = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{head} against base")
-    assert code == 0, out
-    after = path.read_text(encoding="utf-8")
-    assert fields(after)[ROW] == f"{head} against base", after
-    assert fields(after)[NEEDS].startswith("yes"), (
-        "the reviewer's own row was rewritten to make the seal reachable"
-    )
-
-
-def test_seal_refuses_while_pass_is_unchecked(repo):
-    """S4. An open finding leaves `Pass` unchecked even where the reviewer
-    wrote `no`; the seal is refused naming the box, and no byte is written.
-
-    Since phase 5 this is the ONLY refusal that answers *has the run
-    ended*, so the message says what it does not read: a reader who has
-    just watched a `Needs a fix: yes` seal needs the two rows told apart at
-    the one moment the difference bites."""
-    declared(repo)
-    path = generate(repo, 1, OPEN_ROW, "no")
-    assert "- [ ] Pass" in path.read_text(encoding="utf-8")
-    before = read_bytes(path)
-    code, out = run_seal(repo, f"{short(repo, 'HEAD')} against base")
-    assert code == 2, out
-    assert "`Pass` is unchecked" in out and "no cell was written" in out, out
-    assert f"`{NEEDS}` is not read here" in out, out
-    assert read_bytes(path) == before
-
-
-def test_seal_refuses_while_the_fixes_have_been_read_by_nobody(repo):
-    """Round 1's 🔴 2. The third refusal, and the third answer to one question.
-
-    `Pass` says the verdict TABLE is closed. It does not say the run ended:
-    `close` ticks the box the moment a fix table applies, and the verifying
-    round that reads those fixes has not run yet. Sealing there spends the run
-    in the window `skills/code-review/orchestration.md` calls red — the
-    verifying round's record becomes the last one, its own cell reads `not
-    yet`, and the whole broad run is taken again.
-
-    The row that answers *has this run ended* is `Fixes checked by`, and its
-    starting value is exactly the state that must refuse. `Needs a fix` was
-    the first answer and refused a capped run; `Pass` was the second and lets
-    this through; this is the third and it is not a replacement for the
-    second — the case below asserts both refusals still exist by asserting
-    that a capped record, whose cell reads `no fixes to check`, still seals.
-    """
-    path = fixed_but_unread_item(repo)
-    text = path.read_text(encoding="utf-8")
-    assert "- [x] Pass" in text, "the fixture is not the window this is about"
-    assert fields(text)[CHECKED_BY].startswith("nobody"), text
-    before = read_bytes(path)
-    code, out = run_seal(repo, f"{short(repo, 'HEAD')} against base")
-    assert code == 2, out
-    assert CHECKED_BY in out and "no cell was written" in out, out
-    assert "read by no LATER round" in out, out
-    assert "Spawn the verifying round first" in out, out
-    assert "fails a ready pull request" in out, out
-    assert read_bytes(path) == before, "the record was written under a refusal"
-
-
-def set_checked_by(path, value):
-    """Rewrite one record's `Fixes checked by` cell and return its bytes."""
-    text = path.read_text(encoding="utf-8")
-    path.write_text(
-        "\n".join(
-            f"| {CHECKED_BY} | {value} |"
-            if line.startswith(f"| {CHECKED_BY} |")
-            else line
-            for line in text.splitlines()
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-    return path.read_bytes()
-
-
-@pytest.mark.parametrize("value", ["the smith", "pending", ""])
-def test_seal_refuses_a_fixes_checked_by_that_is_outside_the_vocabulary(repo, value):
-    """Round 2's 🟡 12. The refusal added for round 1's 🔴 2 asked
-    `nobody_reason(...) is not None`, which is true for `nobody` and false for
-    everything else — including everything else the row must not hold.
-
-    So the other two thirds of what the cell can carry reached the write: the
-    cell was written, `round-record: sealed …` printed, and the chain check
-    this subcommand runs AFTER the write then refused on that very row. The
-    subcommand wrote onto a record its own check will not accept, which is the
-    state 🔴 2 exists to prevent, reached through the value it did not read.
-
-    `reach_back` in this file already refuses an unreadable cell rather than
-    acting on it, and says why. This is the same cell one subcommand over."""
-    path = fixed_but_unread_item(repo)
-    before = set_checked_by(path, value)
-    code, out = run_seal(repo, f"{short(repo, 'HEAD')} against base")
-    assert code == 2, out
-    assert "no cell was written" in out, out
-    assert read_bytes(path) == before, "the record was written under a refusal"
-
-
-@pytest.mark.parametrize("value", ["round-1", "round-9", "round-2.md", "ROUND-1"])
-def test_seal_refuses_a_round_n_on_the_last_record(repo, value):
-    """#335. `CHECKER_RE` tests the SHAPE of `Fixes checked by` and cannot
-    test its POSITION, so every `round-N` spelling passed the refusal, the
-    cell was written, and the chain check `seal` runs after the write refused
-    that same row.
-
-    The position is what decides it. A named checker has to be a round LATER
-    than the record carrying it, and `last_record` chose this file by being
-    the highest-numbered one on disk — so the value is unreachable on the
-    record the subcommand is holding. The rule is stated about the last
-    record in `docs/review-handoff-protocol.md` §*The `Fixes checked by`
-    field*, twice more in `docs/review-chain-spec.md` §*What the record
-    carries*, and a third time in `skills/code-review/orchestration.md`'s
-    three-value table; enforcing it where the value is WRITTEN is not a new
-    inference.
-
-    Red against the tree before this: all four pass the refusal, the cell is
-    written, `round-record: sealed …` prints, and the run comes back non-zero
-    from the check afterwards.
-    """
-    path = fixed_but_unread_item(repo)
-    before = set_checked_by(path, value)
-    code, out = run_seal(repo, f"{short(repo, 'HEAD')} against base")
-    assert code == 2, out
-    assert "no cell was written" in out, out
-    assert "round-record: sealed" not in out, "the cell was written"
-    assert read_bytes(path) == before, "the record was written under a refusal"
-
-
-def test_the_refusal_says_which_value_the_last_record_may_hold(repo):
-    """§14, and the sentence #335 stops being true.
-
-    The refusal used to read *The row holds one of three values: `round-N`,
-    `no fixes to check`, or `nobody — <why>`* — true of the ROW and false at
-    the place it is printed, which is a last record where two of the three
-    are refused. A refusal is read by whoever is stopped by it, so the half
-    that says what to do is the half that has to survive the change.
-
-    So: the one value `seal` accepts, both refused values named with the
-    reason each is refused, and the exit — spawn the verifying round.
-
-    **The literal names the subcommand rather than reading `the seal`**, and
-    it moved here in the commit that moved the message. Two sentences of this
-    refusal left the instance anonymous, which is the rule
-    `skills/verify/SKILL.md` owns and `tests/test_one_word_one_meaning.py`
-    sweeps for.
-
-    **A third assertion stood here and it refused the one spelling the rule
-    allows** (#406). `assert "the seal" not in out` had no next-character
-    guard, so it turned red on `the sealer` — the correct way to name the
-    agent, and what the exit sentence now says. The sweep that owns the rule
-    skips a hit whose next character is a letter, and its `SEAL_SWEPT` lists
-    `skills/code-review/scripts/round_record.py`, the module this refusal
-    lives in. What went is a second, stricter reading of one rule, held by the
-    check that is not the rule's owner.
-
-    **The deletion did lose one shape, and round 1's 🟡 2 measured it.** The
-    sweep reads that module's flattened SOURCE while this assertion read the
-    run's OUTPUT, and Python joins adjacent string literals where a flattened
-    read does not — so an anonymous instance split across two literals was
-    invisible to the sweep and plain in the refusal. `flat` folds that seam
-    now, which restores the coverage inside the one check rather than by
-    bringing this assertion back. The two positive pins above stay, which is what keeps §14's
-    requirement on this refusal's text met inside the module a reader of it
-    opens.
-    """
-    path = fixed_but_unread_item(repo)
-    set_checked_by(path, "pending")
-    _code, out = run_seal(repo, f"{short(repo, 'HEAD')} against base")
-    assert "the only value `seal` accepts" in out, out
-    # The second sentence the sweep caught, pinned beside the first so the
-    # pair cannot drift apart: both name `seal` and neither reads `the seal`.
-    assert "`seal` runs with `Pass` ticked" in out, out
-    assert "no fixes to check" in out, out
-    assert "nobody" in out, out
-    assert "Spawn the verifying round first" in out, out
-    assert "fails a ready pull request" in out, out
-    # §14 for the reworded exit, and the opposite direction of #406: this
-    # spelling names whose seal it is, and it is the spelling the deleted
-    # assertion turned red.
-    assert "before the sealer runs" in out, out
-    assert "The row holds one of three values" not in out, (
-        "the refusal still names three values on a record that accepts one"
-    )
-
-
-def test_the_capped_run_still_seals_beside_the_third_refusal(repo):
-    """The other half of 🔴 2, and what keeps it from undoing phase 5.
-
-    A capped run closes every finding `deferred <home>`, so `close`
-    re-derives `Fixes checked by` to `no fixes to check` — nothing here
-    commissioned a fix, so nobody owes it a reading. `nobody_reason` returns
-    None for that value and the new refusal does not fire. Asserted rather
-    than argued, because the two rows look alike and a reader who conflates
-    them takes the capped run's seal away again."""
-    path = capped_item(repo)
-    assert fields(path.read_text(encoding="utf-8"))[CHECKED_BY] == "no fixes to check"
-    head = short(repo, "HEAD")
-    code, out = run_seal(repo, f"{head} against base")
-    assert code == 0, out
-    assert fields(path.read_text(encoding="utf-8"))[ROW] == f"{head} against base"
-
-
-def test_seal_refuses_a_sha_the_target_descends_from(repo):
-    """S4. The gate ran at the base and the round reviewed a commit after
-    it: the run was spent before the round it seals — the test
-    `chain_check.broad_gate` applies at the pull request, asked before the
-    cell is written. Refused, naming both commits, and no byte written."""
-    _one, two = settled_item(repo)
-    before = read_bytes(two)
-    premature = short(repo, "base")
-    code, out = run_seal(repo, f"{premature} against base")
-    assert code == 2, out
-    assert "descends from" in out and premature in out and "no cell was written" in out
-    assert read_bytes(two) == before
-
-
-def test_seal_refuses_a_cell_with_no_sha_in_it(repo):
-    """The cell records a commit; a value the pull-request check could not
-    read as one is refused here rather than failed there."""
-    _one, two = settled_item(repo)
-    before = read_bytes(two)
-    code, out = run_seal(repo, "passed, trust me")
-    assert code == 2, out
-    assert "SHA-shaped" in out and read_bytes(two) == before
-
-
-# --- 1790835051: `seal --check` asks every refusal and writes nothing (#702) --
-#
-# The preflight asks the sealer's own subcommand rather than restating its
-# predicates, so the flag has two halves to hold: everything `seal` refuses,
-# `--check` refuses with the same sentence, and nothing `--check` passes is
-# written — no cell, no `broad-gate.md`, no chain check after.
-
-CHECK_FLAG = ("--check",)
-
-
-def generator_module():
-    return _load("specseal_round_record_for_seal_check", GENERATOR)
-
-
-def unchecked_pass(repo):
-    """An open finding, so the last record's `Pass` is unchecked."""
-    declared(repo)
-    return generate(repo, 1, OPEN_ROW, "no"), None
-
-
-def unread_fixes(repo):
-    """#535's shape as `new` and `close` write it: `Pass` ticked beside
-    `nobody — the fixes are not yet written` on the last record."""
-    return fixed_but_unread_item(repo), None
-
-
-def spent_sha(repo):
-    """A settled item, asked with the base's commit: round 2's `Target SHA`
-    descends from it."""
-    _one, two = settled_item(repo)
-    return two, short(repo, "base")
-
-
-def no_round_record(repo):
-    """A chain declaration whose `rounds/` holds nothing yet."""
-    write(repo, f"{ITEM}/routing.md", declaration())
-    commit(repo, "declare the chain, rounds not written yet")
-    return repo / ITEM / GATE_FILE, None
-
-
-@pytest.mark.parametrize(
-    "shape, said",
-    [
-        (unchecked_pass, "`Pass` is unchecked"),
-        (unread_fixes, "read by no LATER round"),
-        (spent_sha, "descends from"),
-        (no_round_record, "holds no `round-N.md`"),
-    ],
-    ids=["pass-unchecked", "nobody-on-the-last-record", "spent-sha", "no-record"],
-)
-def test_seal_check_refuses_what_seal_refuses_and_writes_nothing(repo, shape, said):
-    """S1. Each refusal `seal` raises before the write, asked under `--check`:
-    exit 2 with `seal`'s own sentence, the record (or the absent
-    `broad-gate.md`) unchanged, and no chain check run. Seen red first with
-    the flag absent, where argparse refuses the command before any of them is
-    asked."""
-    path, at = shape(repo)
-    before = read_bytes(path) if path.exists() else None
-    code, out = run_seal(repo, f"{at or short(repo, 'HEAD')} against base", CHECK_FLAG)
-    assert code == 2, out
-    assert said in out and "no cell was written" in out, out
-    assert "chain-check:" not in out, f"`--check` ran the chain check:\n{out}"
-    after = read_bytes(path) if path.exists() else None
-    assert after == before, f"`--check` wrote {path.name} under a refusal"
-
-
-def hand_edited_last(edit):
-    """A settled item whose last record `edit` rewrites and commits."""
-
-    def shape(repo):
-        _one, two = settled_item(repo)
-        two.write_text(edit(two.read_text(encoding="utf-8")), encoding="utf-8")
-        commit(repo, "the last record edited by hand")
-        return two
-
-    return shape
-
-
-def without_the_row(text):
-    return "".join(
-        line for line in text.splitlines(True) if not line.startswith("| Broad gate |")
-    )
-
-
-def with_the_row_twice(text):
-    return "".join(
-        line * (2 if line.startswith("| Broad gate |") else 1)
-        for line in text.splitlines(True)
-    )
-
-
-def with_an_open_comment(text):
-    # Spelled in two parts so no record generated from a report quoting this
-    # case carries a literal comment opener.
-    return text + "\n<" + "!-- left open by hand\n"
-
-
-@pytest.mark.parametrize(
-    "edit, said",
-    [
-        (without_the_row, "has 0 `| Broad gate | … |` rows"),
-        (with_the_row_twice, "has 2 `| Broad gate | … |` rows"),
-        (with_an_open_comment, "never closed"),
-    ],
-    ids=["no-row", "two-rows", "open-comment"],
-)
-def test_seal_check_refuses_what_the_write_path_refuses(repo, edit, said):
-    """S1's class, past the six `raise` sites (round 1's 🟡 1): `field_index`,
-    `cell` and `hiders_close` refuse on the write path, inside callees.
-    `--check` exited 0 on each while `seal` refused it after the sealer's
-    suite. Seen red at `090cb32f`, where the `--check` return stood above
-    all three."""
-    path = hand_edited_last(edit)(repo)
-    before = read_bytes(path)
-    code, out = run_seal(repo, f"{short(repo, 'HEAD')} against base", CHECK_FLAG)
-    assert code == 2, out
-    assert said in out, out
-    assert "chain-check:" not in out, out
-    assert read_bytes(path) == before
-
-
-def settled_last(repo):
-    return settled_item(repo)[1]
-
-
-def direct_home(repo):
-    """`straight to the PR`, no rounds: the cell's home is `broad-gate.md`."""
-    write(repo, f"{ITEM}/routing.md", declaration(review="straight to the PR"))
-    commit(repo, "declare direct")
-    return repo / ITEM / GATE_FILE
-
-
-@pytest.mark.parametrize(
-    "shape, line",
-    [
-        (settled_last, "CHECKED"),
-        (capped_item, "CHECKED"),
-        (direct_home, "CHECKED_NO_ROUND"),
-    ],
-    ids=["settled", "capped", "straight-to-the-pr"],
-)
-def test_seal_check_passes_what_seal_would_seal_and_writes_nothing(repo, shape, line):
-    """S2. A record `seal` would write, asked under `--check`: exit 0, the
-    record (or the absent `broad-gate.md`) byte-identical, no chain check,
-    and the one line naming the home asked and saying nothing was written.
-    The line never begins `round-record: sealed`, which `broad_gate.py#gate`
-    reads as the cell having been written. Seen red with `--check` ignored:
-    the cell is written and the byte comparison fails."""
-    path = shape(repo)
-    before = read_bytes(path) if path.exists() else None
-    code, out = run_seal(repo, f"{short(repo, 'HEAD')} against base", CHECK_FLAG)
-    assert code == 0, out
-    after = read_bytes(path) if path.exists() else None
-    assert after == before, f"`--check` wrote {path.name}"
-    assert "chain-check:" not in out, f"`--check` ran the chain check:\n{out}"
-    generator = generator_module()
-    said = getattr(generator, line).format(
-        path=path.relative_to(repo).as_posix(), dash=generator.DASH
-    )
-    assert out.splitlines() == [said], out
-    assert not out.startswith("round-record: sealed"), out
-
-
-# A repository-relative path a line prints is written with `/` on every
-# platform. `ntpath` drives the Windows separators from a POSIX machine, so the
-# Windows leg of CI is not the only witness (`agent-contract` §13): every
-# integration case above runs on macOS, where `os.sep` is already `/`.
-WINDOWS_ROOT = r"C:\x\repo"
-
-
-def windows_path(home):
-    """`home`, a `/`-joined repository-relative path, under `WINDOWS_ROOT`
-    as `ntpath` spells it."""
-    return ntpath.join(WINDOWS_ROOT, *home.split("/"))
-
-
-@pytest.mark.parametrize(
-    "n, line, home",
-    [
-        (2, "CHECKED", f"{ROUNDS}/round-2.md"),
-        (None, "CHECKED_NO_ROUND", f"{ITEM}/{GATE_FILE}"),
-    ],
-    ids=["a-round-record", "straight-to-the-pr"],
-)
-def test_the_checked_line_names_its_home_with_slashes_on_windows(n, line, home):
-    """The `seal --check` line formatted with Windows separators names the
-    home it asked with `/`. Seen red with `checked_line` formatting
-    `flavour.relpath` unreplaced, as `seal` did at `04d8bfd7`: the line named
-    `seal\\specs\\…`, which is what the Windows leg failed on."""
-    generator = generator_module()
-    said = generator.checked_line(n, windows_path(home), WINDOWS_ROOT, ntpath)
-    assert said == getattr(generator, line).format(path=home, dash=generator.DASH)
-
-
-def test_the_check_returns_after_the_last_refusal_and_before_the_write():
-    """`plan.md`'s failure scenario. A refusal added to `seal` below the
-    `--check` return is refused by the sealer after a suite and passed by the
-    preflight — the gap this work closes, reopened one refusal at a time. So
-    the statement immediately before `write_record` in `seal`'s body is the
-    `--check` guard ending in a `return`, nothing after it raises, and the
-    callees that refuse on the write path are each called above it (round
-    1's 🟡 1: a `raise` walk alone passed over all three)."""
-    with open(GENERATOR, encoding="utf-8") as handle:
-        parsed = ast.parse(handle.read())
-    seal = next(
-        n for n in parsed.body if isinstance(n, ast.FunctionDef) and n.name == "seal"
-    )
-    keep = [
-        i
-        for i, statement in enumerate(seal.body)
-        if isinstance(statement, ast.Expr)
-        and isinstance(statement.value, ast.Call)
-        and ast.unparse(statement.value.func) == "write_record"
-    ]
-    assert len(keep) == 1, f"`seal` calls `write_record` {len(keep)} times"
-    guard = seal.body[keep[0] - 1]
-    assert isinstance(guard, ast.If) and ast.unparse(guard.test) == "args.check", (
-        "the statement before `write_record` is not the `--check` guard"
-    )
-    # The callees that refuse on the write path are asked above the guard.
-    above = {
-        ast.unparse(node.func)
-        for statement in seal.body[: keep[0] - 1]
-        for node in ast.walk(statement)
-        if isinstance(node, ast.Call)
-    }
-    for callee in ("kept_broad_gate", "field_index", "cell", "hiders_close"):
-        assert callee in above, f"`{callee}` is not asked above the `--check` return"
-    assert isinstance(guard.body[-1], ast.Return), "the guard does not return"
-    later = [
-        node
-        for statement in seal.body[keep[0] - 1 :]
-        for node in ast.walk(statement)
-        if isinstance(node, ast.Raise)
-    ]
-    assert not later, "a refusal stands below the `--check` return"
-    earlier = [
-        node
-        for statement in seal.body[: keep[0] - 1]
-        for node in ast.walk(statement)
-        if isinstance(node, ast.Raise)
-    ]
-    assert earlier, "no refusal stands above the `--check` return"
-
-
-# --- 1790835051: the preflight asks `seal`'s refusals (#702) -----------------
-#
-# Under `--preflight`, after the record arms, the gate runs `seal --check` for
-# the work item declared for the checked-out branch, keeps its output as
-# `seal.txt`, and names `seal` under `PREFLIGHT FAILED` where it refused. A
-# skipped ask is a missing `seal.txt` and one stderr line, never a pass.
-
-RECORD_FILE = f"{ITEM}/rounds/round-{{n}}.md"
-
-
-def preflight(repo, tmp_path, row=None):
-    """The preflight over `repo`, with a session set so a values file would
-    land where `values_files` looks. `row`, where given, is committed as the
-    `Broad gate` row first."""
-    if row is not None:
-        set_row(repo, row)
-    keep = tmp_path / "out"
-    return run_gate(repo, "--preflight", keep=keep, session="s-1"), keep
-
-
-def marker_row():
-    """A row that leaves a file behind and fails, so a row that ran is
-    evidence the gate did not write."""
-    return f"{sys.executable} -c \"open('{ROW_RAN}', 'w')\" && exit 1"
-
-
-def asked_line(home, outcome):
-    """The ask's stderr line, naming `home` — the record `seal --check` read
-    where it passed and that file is on disk, the work item otherwise."""
-    gate = gate_module()
-    return gate.PREFLIGHT_ASKED.format(home=home, branch="`feature`", outcome=outcome)
-
-
-def assert_refused_at_seal(out, keep, said):
-    """The preflight's verdict where `seal --check` refused: exit 1, the
-    preflight's own head, `seal` among the failing checks in the failure
-    form's words, and `seal`'s sentence in the kept file."""
-    assert out.returncode == 1, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
-    assert out.stdout.startswith("PREFLIGHT FAILED"), out.stdout
-    assert re.search(r"^\s+seal\s+exit 2", out.stdout, re.M), out.stdout
-    assert "seal.txt" in out.stdout, "the failure form names no file for `seal`"
-    assert no_seal_line(out.stdout), out.stdout
-    text = (keep / "seal.txt").read_text(encoding="utf-8")
-    assert text.startswith("$ ") and "--check" in text.splitlines()[0], text
-    assert "\nexit 2\n" in text, text
-    assert said in text, text
-    assert not (keep / "suite.txt").exists(), "the preflight ran the row"
-
-
-def test_the_generated_unread_fixes_fail_the_preflight_at_seal(repo, tmp_path):
-    """S3, #702's own case. #535's shape exactly as `new` and `close` write it
-    — round 1 closed on a fix, no round 2, so `Pass` is ticked beside
-    `nobody — the fixes are not yet written` — passed the preflight with exit
-    0, and the sealer's run refused it at `seal` after the suite. Now the
-    preflight refuses it, names `seal`, and the row, which would leave a file
-    and fail, was never invoked. Nothing is written: the record is
-    byte-identical and no values file exists. Seen red against phase 1's
-    gate, which exits 0 here."""
-    path = fixed_but_unread_item(repo)
-    text = path.read_text(encoding="utf-8")
-    assert "- [x] Pass" in text, "the fixture is not #535's shape"
-    assert fields(text)[CHECKED_BY].startswith("nobody"), text
-    before = read_bytes(path)
-    out, keep = preflight(repo, tmp_path, marker_row())
-    assert_refused_at_seal(out, keep, "read by no LATER round")
-    assert CHECKED_BY in (keep / "seal.txt").read_text(encoding="utf-8")
-    assert not (repo / ROW_RAN).exists(), "the preflight invoked the row"
-    assert read_bytes(path) == before, "the preflight wrote the record"
-    assert not values_files(repo), "a preflight left a stamp to draw"
-    gate = gate_module()
-    assert asked_line(ITEM, gate.ASKED_REFUSED) in out.stderr.splitlines(), out.stderr
-
-
-def test_an_unchecked_pass_fails_the_preflight_at_seal(repo, tmp_path):
-    """S4, #456's first instance: an open finding leaves `Pass` unchecked,
-    and `seal` refuses it. The preflight now says so before the suite."""
-    declared(repo)
-    path = generate(repo, 1, OPEN_ROW, "no")
-    before = read_bytes(path)
-    out, keep = preflight(repo, tmp_path)
-    assert_refused_at_seal(out, keep, "`Pass` is unchecked")
-    assert read_bytes(path) == before, "the preflight wrote the record"
-
-
-def test_a_target_that_descends_from_the_tree_fails_the_preflight_at_seal(
-    repo, tmp_path
-):
-    """S5. The gate hands `seal --check` the tree it stands on, so a record
-    whose `Target SHA` descends from that tree is a run spent before the round
-    it would seal. The target is a commit on a side branch cut from HEAD; the
-    record naming it is written by `new` and left uncommitted, so HEAD stays
-    the commit the target descends from (`questions.md` Q2)."""
-    declared(repo)
-    git(repo, "switch", "-qc", "side")
-    write(repo, "g.py", "y = 1\n")
-    later = commit(repo, "a commit after the tree the gate stands on")
-    git(repo, "switch", "-q", "feature")
-    generate(
-        repo,
-        1,
-        "| 🟢 1 | the reviewed commit holds | `g.py:1` | answered | read |\n",
-        "no",
-        target=later,
-    )
-    git(repo, "reset", "-q", "--soft", "HEAD~1")
-    out, keep = preflight(repo, tmp_path)
-    assert_refused_at_seal(out, keep, "descends from")
-
-
-def test_a_settled_item_preflights_green_and_names_the_record_it_asked(repo, tmp_path):
-    """S6. The state the sealer runs in: round 2 reads `no fixes to check`
-    with `Pass` ticked. Every arm green and `seal --check` exits 0, so the
-    preflight passes; `seal.txt` is kept with its exit, the record is
-    byte-identical, and one stderr line names `round-2.md` as the record
-    asked. Seen red with the ask dropped (no `seal.txt`) and with `--check`
-    dropped from the argv (the cell written)."""
-    _one, two = settled_item(repo)
-    before = read_bytes(two)
-    out, keep = preflight(repo, tmp_path)
-    assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    head = PREFLIGHT_PASSED.format(tree=short(repo, "HEAD"), base=short(repo, "base"))
-    gate = gate_module()
-    assert out.stdout.splitlines()[0] == head + gate.PREFLIGHT_TAIL, out.stdout
-    assert "`seal`'s refusals" in gate.PREFLIGHT_TAIL, gate.PREFLIGHT_TAIL
-    assert NOT_RUN in gate.PREFLIGHT_TAIL, gate.PREFLIGHT_TAIL
-    assert no_seal_line(out.stdout), out.stdout
-    text = (keep / "seal.txt").read_text(encoding="utf-8")
-    assert text.startswith("$ ") and "--check" in text.splitlines()[0], text
-    assert "\nexit 0\n" in text, text
-    assert read_bytes(two) == before, "the preflight wrote the record"
-    assert not values_files(repo), "a preflight left a stamp to draw"
-    gate = gate_module()
-    said = asked_line(RECORD_FILE.format(n=2), gate.ASKED_PASSED)
-    assert said in out.stderr.splitlines(), out.stderr
-    # Round 1's ⬜ 4: the record is named as a record, not as the work item.
-    assert "found through the one declaration naming `feature`" in said, said
-
-
-def test_a_direct_item_preflights_green_and_names_the_work_item_it_asked(
-    repo, tmp_path
-):
-    """Round 1's ⬜ 4. A `straight to the PR` item with no rounds is asked and
-    passes, and the cell's home is a `broad-gate.md` the sealer has not
-    written yet, so the stderr line names the work item rather than a file
-    nobody can open. Seen red at `090cb32f`, where the line named the absent
-    `broad-gate.md`."""
-    path = direct_home(repo)
-    assert not path.exists(), "the fixture wrote `broad-gate.md`"
-    out, keep = preflight(repo, tmp_path)
-    assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    assert "\nexit 0\n" in (keep / "seal.txt").read_text(encoding="utf-8")
-    assert not path.exists(), "the preflight wrote `broad-gate.md`"
-    gate = gate_module()
-    assert asked_line(ITEM, gate.ASKED_PASSED) in out.stderr.splitlines(), out.stderr
-    assert GATE_FILE not in out.stderr, out.stderr
-
-
-@pytest.mark.parametrize(
-    "home, outcome",
-    [
-        (RECORD_FILE.format(n=2), "ASKED_PASSED"),
-        (ITEM, "ASKED_REFUSED"),
-    ],
-    ids=["a-record", "the-work-item"],
-)
-def test_the_asked_line_names_its_home_with_slashes_on_windows(home, outcome):
-    """The ask's stderr line formatted with Windows separators names its home
-    with `/`, as `asked_line` spells it for the integration cases above. Seen
-    red with `preflight_asked_line` formatting `flavour.relpath` unreplaced,
-    as `gate` did at `04d8bfd7`: the line named `seal\\specs\\…`, and S3, S6
-    and round 1's ⬜ 4 failed on the Windows leg for it."""
-    gate = gate_module()
-    said = gate.preflight_asked_line(
-        windows_path(home), WINDOWS_ROOT, "feature", getattr(gate, outcome), ntpath
-    )
-    assert said == asked_line(home, getattr(gate, outcome))
-
-
-@pytest.mark.parametrize(
-    "script, formatter, names, caller",
-    [
-        (GATE, "preflight_asked_line", ("PREFLIGHT_ASKED",), "gate"),
-        (GENERATOR, "checked_line", ("CHECKED", "CHECKED_NO_ROUND"), "seal"),
-    ],
-    ids=["the-ask", "seal-check"],
-)
-def test_each_line_naming_a_home_is_formatted_only_by_its_line_function(
-    script, formatter, names, caller
-):
-    """The two cases above drive the line functions with `ntpath`, and every
-    integration case runs where `os.sep` is `/` already, so a caller that
-    formats the constant itself again prints `\\` on Windows and nothing on
-    macOS goes red. So each constant is read inside its line function and
-    nowhere else, and the caller calls that function once. Seen red with
-    `gate` formatting `PREFLIGHT_ASKED` from `os.path.relpath` again, as it
-    did at `04d8bfd7`, which the two cases above passed."""
-    with open(script, encoding="utf-8") as handle:
-        parsed = ast.parse(handle.read())
-    functions = {n.name: n for n in parsed.body if isinstance(n, ast.FunctionDef)}
-    inside = {id(node) for node in ast.walk(functions[formatter])}
-    outside = [
-        f"`{node.id}` at line {node.lineno}"
-        for node in ast.walk(parsed)
-        if isinstance(node, ast.Name)
-        and node.id in names
-        and isinstance(node.ctx, ast.Load)
-        and id(node) not in inside
-    ]
-    assert not outside, f"read outside `{formatter}`: {outside}"
-    calls = [
-        node
-        for node in ast.walk(functions[caller])
-        if isinstance(node, ast.Call) and ast.unparse(node.func) == formatter
-    ]
-    assert len(calls) == 1, f"`{caller}` calls `{formatter}` {len(calls)} times"
-
-
-def test_an_undeclared_branch_is_not_asked_and_the_preflight_says_so(repo, tmp_path):
-    """S8. No declaration names `feature`, so there is no work item for a
-    sealer to seal and nothing to ask: exit 0, no `seal.txt`, and one stderr
-    line naming the branch and saying `seal`'s refusals were not asked."""
-    out, keep = preflight(repo, tmp_path)
-    assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    assert not (keep / "seal.txt").exists(), "the preflight asked an undeclared item"
-    gate = gate_module()
-    said = gate.PREFLIGHT_NOT_ASKED.format(branch="`feature`")
-    assert said in out.stderr.splitlines(), out.stderr
-
-
-def test_two_declarations_for_one_branch_are_not_asked(repo, tmp_path):
-    """S8's second half. Two declarations naming `feature` are not an answer
-    (`hooks/routing.py#item_dir`), so the ask is skipped with the same line;
-    the chain arm's own refusal of the pair is what fails the run, and `seal`
-    is not among the failures."""
-    write(repo, f"{ITEM}/routing.md", declaration())
-    write(repo, "seal/specs/1799000001-a-second-item/routing.md", declaration())
-    commit(repo, "two declarations name one branch")
-    out, keep = preflight(repo, tmp_path)
-    assert not (keep / "seal.txt").exists(), "the preflight asked one of two"
-    assert not re.search(r"^\s+seal\s+exit", out.stdout, re.M), out.stdout
-    gate = gate_module()
-    said = gate.PREFLIGHT_NOT_ASKED.format(branch="`feature`")
-    assert said in out.stderr.splitlines(), out.stderr
-    # Round 1's ⬜ 4: two declarations are not "no record"; the line says so.
-    assert "more than one does" in said, said
-
-
-def test_a_detached_head_is_not_asked_and_the_preflight_says_why(repo, tmp_path):
-    """S8 on a detached HEAD: no branch is checked out, so no declaration can
-    name this checkout. The item is declared for `feature` and would refuse
-    — an unchecked `Pass` — so an ask that ran anyway is a `seal.txt` and a
-    failing run."""
-    declared(repo)
-    generate(repo, 1, OPEN_ROW, "no")
-    git(repo, "switch", "-q", "--detach")
-    out, keep = preflight(repo, tmp_path)
-    assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    assert not (keep / "seal.txt").exists(), "the preflight asked on a detached HEAD"
-    assert gate_module().PREFLIGHT_DETACHED in out.stderr.splitlines(), out.stderr
-
-
-def test_the_gate_with_record_seals_the_item_and_counts_its_rounds(a_sealed_run):
-    """S1 with `--record`: the checks pass, `seal` writes the last record's
-    cell with the tree and the base, and the panel carries `rounds 2` — read
-    from the values file since #400, which is where a piped run's panel is."""
+def test_the_gate_with_record_writes_the_file_and_counts_its_rounds(a_sealed_run):
+    """S1 with `--record`: the checks pass, `broad-gate.md` names the tree
+    and the base commit the gate compared against, the round records are
+    untouched, and the panel carries `rounds 2` — read from the values file
+    since #400, which is where a piped run's panel is."""
     repo, _out, values = a_sealed_run
-    two = repo / ROUNDS / "round-2.md"
     assert row_of(values, "rounds") == "2", values["rows"]
-    cell = fields(two.read_text(encoding="utf-8"))[ROW]
-    # The base half used to be the ref as the caller typed it -- `against
-    # base`. #423 is that a ref re-resolves and a commit does not, so the
-    # cell now names the commit the gate actually compared against. This
-    # fixture has no remote, so the resolution lands on the ref as given and
-    # the COMMIT is the only thing that moved. Both parsers of this cell read
-    # the FIRST SHA-shaped word, which is the tree, so neither sees a
-    # difference (`chain_check.broad_gate`, `round_record.py seal`).
-    assert cell == f"{short(repo, 'HEAD')} against {short(repo, 'base')}", cell
+    text = (repo / ITEM / "broad-gate.md").read_text(encoding="utf-8")
+    assert f"| {ROW} | {short(repo, 'HEAD')} against {short(repo, 'base')} |" in text, (
+        text
+    )
+    assert ROW not in (repo / ROUNDS / "round-2.md").read_text(encoding="utf-8")
 
 
 def test_the_panel_reports_the_rows_exit_code_and_asserts_no_linter(a_sealed_run):
@@ -9564,197 +8200,6 @@ def test_a_runners_event_payload_is_what_judges_the_fixture(
     monkeypatch.setenv("GITHUB_EVENT_PATH", payload)
     leaked = chain_text(tmp_path / "leaked")
     assert f"judged as a ready pull request ({payload})" in leaked, leaked
-
-
-def test_a_seal_exit_that_is_not_two_leaves_the_tree_unsealed(
-    repo, tmp_path, monkeypatch, capsys
-):
-    """Round 1's 🔴 1. `seal` has two ways to end non-zero and the gate read
-    one of them.
-
-    A refusal raised BEFORE the write exits 2. What `seal` returns AFTER the
-    write is `run_check`, which is `chain_check.main`'s `1 if errors else 0`
-    — so a chain check that fails once the cell is on disk comes back as 1,
-    fell past a branch reading `== 2`, and the gate printed the disc and
-    returned 0. A seal over a tree its own chain check refuses is the
-    counterfeit `verify` names.
-
-    Driven in process with `seal_record` stubbed, because the exit code is
-    the whole subject: a fixture that makes the real chain check fail after
-    the write would be testing which state trips `chain_check`, not which
-    codes the gate reads."""
-    settled_item(repo)
-    mod = gate_module()
-    reached = []
-
-    def sealed_then_the_chain_failed(item, tree, root, base, keep):
-        reached.append(item)
-        return (
-            1,
-            "round-record: sealed round-2.md — `Broad gate` | abc123 against base\n",
-        )
-
-    monkeypatch.setattr(mod, "seal_record", sealed_then_the_chain_failed)
-    monkeypatch.setenv(SESSION_VAR, "s-1")
-    code = mod.gate(
-        argparse.Namespace(
-            root=str(repo),
-            base="base",
-            record=str(repo / ITEM),
-            shape=True,
-            keep_output=str(tmp_path / "out"),
-            preflight=False,
-        ),
-        False,
-    )
-    out = capsys.readouterr()
-    assert reached, f"the checks failed before `seal` was reached\n{out.out}{out.err}"
-    assert code == 2, f"exit {code}\n{out.out}{out.err}"
-    assert crown_of() not in out.out, "a stamp printed over a failing chain check"
-    # S8 of 1790562543: the line above is vacuous on a pipe since #400.
-    assert not values_files(repo), "a stamp was left to draw over a failing chain"
-    # Round 2's 🟡 11. The stub's text is a `round-record: sealed …` line,
-    # which is what the real subcommand prints when the cell WAS written.
-    # The message has to read it that way round, or the reader is told the
-    # record is untouched while the cell stands on it — and the pointer it
-    # shipped with, *a `round-record:` line above*, is printed by both
-    # endings of `seal`.
-    assert "exited 1" in out.err, out.err
-    assert "the cell WAS written" in out.err, out.err
-    assert "no cell was written" not in out.err, out.err
-
-
-def test_the_gate_with_record_prints_no_stamp_when_the_record_refuses(repo, tmp_path):
-    """With `--record`, success is the checks green AND the cell written. A
-    record that refuses — a finding still open in its verdict table — leaves
-    the tree unsealed: the refusal, exit 2, no disc."""
-    declared(repo)
-    path = generate(repo, 1, OPEN_ROW, "yes — 🔴 1")
-    before = read_bytes(path)
-    out = run_gate(
-        repo, "--record", str(repo / ITEM), keep=tmp_path / "out", session="s-1"
-    )
-    assert out.returncode == 2, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
-    assert crown_of() not in out.stdout, "a stamp printed over a refused record"
-    # S8 of 1790562543: the line above is vacuous on a pipe since #400.
-    assert not values_files(repo), "a stamp was left to draw over a refused record"
-    assert "`Pass` is unchecked" in out.stdout + out.stderr
-    # The other half of round 2's 🟡 11, and the one that makes the
-    # discriminator worth having: this is the refusal side, so the gate has
-    # to say the opposite. A discriminator that read the bare
-    # `round-record:` prefix would tell a reader here that the cell was
-    # written, which is the mutation this pair exists to kill.
-    assert "no cell was written" in out.stdout + out.stderr, out.stderr
-    assert "the cell WAS written" not in out.stdout + out.stderr, out.stderr
-    assert read_bytes(path) == before
-
-
-def a_record_the_chain_check_refuses_after_the_write(repo):
-    """The route to *the cell was written, and then the check refused*.
-
-    **This is Q3's answer and it is asserted as the route.** The cheapest way
-    to that state used to be #335's own defect — `round-1` in a last record's
-    `Fixes checked by`, which passed the shape test, wrote the cell, and was
-    then refused by the chain check on the same row. The refusal above closes
-    it, so the case below needs a route that does not depend on anything this
-    work item changes.
-
-    Four candidates were run against the real `seal` on 2026-09-15. Three
-    reached the state and one did not:
-
-      an earlier record's `New units` emptied      reached — CHOSEN
-      the last record's `Target SHA` unresolvable  reached
-      an earlier record's floor row emptied        reached
-      a stray `round-draft.md` under `rounds/`     NOT reached, exit 0
-
-    The first is chosen because it is the one furthest from anything `seal`
-    reads: `seal` opens the LAST record only, and `chain_check.fix_surface`
-    opens every record of the item. A present-and-empty row is refused on any
-    record and is not grandfathered, so the route does not age out with a
-    cutoff either.
-
-    **And it is left UNCOMMITTED, which is the half a case going through the
-    gate has to get right.** `broad_gate` runs `chain_check` itself, at HEAD,
-    before it ever calls `seal`; `seal` runs `chain_check --worktree` after
-    the write. So a committed refusal never reaches `seal` at all — the
-    gate's own chain check fails first and the run stops there, which is a
-    third ending and not one of the two this pair is about. A refusal that
-    exists in the working tree and not at HEAD passes the gate's check and
-    fails `seal`'s, which is exactly the window `--worktree` exists for.
-
-    Returns the last record, whose cell `seal` will write.
-    """
-    _one, two = settled_item(repo)
-    text = _one.read_text(encoding="utf-8")
-    assert "| New units |" in text, "the fixture record has no `New units` row"
-    _one.write_text(
-        "\n".join(
-            "| New units |  |" if line.startswith("| New units |") else line
-            for line in text.splitlines()
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-    return two
-
-
-def test_the_gate_reads_the_real_seals_two_endings_apart(repo, tmp_path):
-    """#334. The gate discriminates two endings of `seal` on the literal
-    `round-record: sealed`, which the other package PRINTS — and nothing bound
-    them. The case for the written-then-refused ending drove a stub whose text
-    the case itself wrote, so changing the real print left 130 cases green.
-
-    This is the same pair, both endings, through the REAL `seal`:
-
-      `Pass` unchecked            a refusal raised BEFORE the write, so no
-                                  `round-record: sealed` line and no cell
-      an earlier record refused    the cell IS written, `round-record: sealed`
-        by the chain check         prints, and what follows is the chain check
-                                   `seal` runs after the write
-
-    The exit code cannot tell them apart — both come back 2 from the gate —
-    and neither can the presence of a `round-record:` line, which both endings
-    print. The word is the discriminator, and this case is what says so about
-    the word the generator actually prints rather than one a fixture wrote.
-    """
-    two = a_record_the_chain_check_refuses_after_the_write(repo)
-    before = read_bytes(two)
-    out = run_gate(
-        repo, "--record", str(repo / ITEM), keep=tmp_path / "out", session="s-1"
-    )
-    printed = out.stdout + out.stderr
-
-    assert out.returncode == 2, f"exit {out.returncode}\n{printed}"
-    assert crown_of() not in out.stdout, "a stamp printed over a failing chain check"
-    # S8 of 1790562543: the line above is vacuous on a pipe since #400.
-    assert not values_files(repo), "a stamp was left to draw over a failing chain"
-    # The route reached the state it was written for, asserted rather than
-    # assumed, so it cannot quietly stop reaching it.
-    assert "round-record: sealed" in printed, (
-        "the route no longer reaches the written-then-refused state; the case "
-        "below would then be asserting the refusal side twice"
-    )
-    assert "`New units` is empty" in printed, printed
-    assert "the cell WAS written" in printed, printed
-    assert "no cell was written" not in printed, printed
-    assert read_bytes(two) != before, "the cell was not written"
-
-
-def test_the_sealers_definition_names_the_narrowed_row(repo):
-    """§14 for the person who meets the refusal. #335 narrows what `seal`
-    accepts in `Fixes checked by`, and the sealer is the only agent that runs
-    it — so its own definition has to say so, or the one party who is stopped
-    by the refusal learns the rule from the refusal alone.
-
-    The definition listed two refusals where the subcommand has had three
-    since round 1 of #30 added the `Fixes checked by` one; this is that gap
-    closed in the same commit that changes what the row accepts.
-    """
-    text = sealer_text()
-    assert "reading anything but `no fixes to check`" in text, text
-    assert "refuses outright on three things" in text, (
-        "the definition still counts two refusals where `seal` raises on three"
-    )
 
 
 # =============================================================================
@@ -9912,16 +8357,19 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     Before #120 the same case read `as its own exception`, because §6 carved
     exceptions and pointed at the definition holding each one. The mechanism
     did not move -- it stopped being the exception and became the rule -- so
-    every assertion below is unchanged and only the name and the grounds are."""
+    every assertion below is unchanged and only the name and the grounds are.
+
+    Since the sealer became the guarantor (#923) its one write is
+    `guarantee.md`, and `broad-gate.md` is the gate's, through its command."""
     text = " ".join(sealer_text().split())
     assert "§6" in text, "the sealer cannot reach the rule that names its one write"
-    assert "round_record.py seal" in text, (
-        "the sealer's one write does not name the subcommand that makes it, "
-        "so the write is described rather than bounded"
+    assert "through `broad-gate --record`" in text, (
+        "the gate's file does not name the command that makes it, so the "
+        "sealer cannot tell its own write from the gate's"
     )
-    assert "`Broad gate`" in text, (
-        "the exception does not say WHICH cell, and an exception without a "
-        "boundary is a general permission"
+    assert "`guarantee.md` is the whole of what you may write" in text, (
+        "the permission does not say WHICH file, and a permission without a "
+        "boundary is a general one"
     )
 
 

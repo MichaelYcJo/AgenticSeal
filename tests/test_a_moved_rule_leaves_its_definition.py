@@ -21,7 +21,7 @@ with a green suite the whole way.
 A definition MAY cite a section by its number and say what the rule means
 for its own role, in its own words -- that is the application form, and
 phases 3 and 4 kept several deliberately: the warden's audit of the
-`unverified` label, its `❓ out of verified scope` field, the #36 cost of a
+`unverified` label, its `## Not judged` row, the #36 cost of a
 prompt landing during a round, its 1.89; the smith's 1.08-1.17, its
 hand-back as the place both answers land, its own waiver example as the
 patch §9's gate reads a commit out of. Every one of those is about one
@@ -363,7 +363,7 @@ def test_a_citation_is_not_a_copy():
         ("agents", "warden.md"): (
             "§9 applies to you although you edit less than the smith does",
             "whether that label is honest",
-            "out of verified scope",
+            "a row of `## Not judged`",
             "1.89",
         ),
         ("agents", "smith.md"): (

@@ -135,7 +135,7 @@ PANEL_VALUE_WIDTH = 23
 # (`questions.md` Q8).
 NOT_READ = "not read"
 # The label the review chain puts on a pull request whose run ended at the
-# round cap (`docs/review-chain-spec.md`).
+# round cap (`docs/the-review-record.md`).
 CAPPED_LABEL = "chain: capped"
 
 
@@ -315,17 +315,21 @@ def chain_counts(root, pulls):
     """`(items, rounds, capped, deferred)` for the release's pull requests,
     each a number or None for not read, with the log saying why.
 
+    Reads: guess — the work items' round records, through `chain_check.record_findings`, and the pull requests' labels; unknown refused
+
     `capped` counts the pull requests labelled `CAPPED_LABEL`. A pull request
     is a work item where exactly one `routing.md` under `root` names its head
     branch (`hooks/routing.py#item_dir`), and its rounds are
     `hooks/routing.py#rounds`. `deferred` is the number of distinct issues
-    that are the home of a Verdicts cell whose verdict is `deferred`, read
-    with `chain_check.verdict_table`, `#verdict_of`, `#deferred_home` and
-    `#issue_of` (#866): a home names an issue only where it is exactly `#N`,
-    so a file, the frame, or an issue mentioned in the note behind the home
-    counts none. A round record whose verdict table cannot be read, or
-    holds a row the table reader skipped, leaves `deferred` None -- an
-    incomplete count is a wrong number -- a `rounds` that cannot be listed
+    that are the home of a finding whose `verdict:` line reads
+    `deferred <home>`, read with `chain_check.record_findings` and `#issue_of`
+    (#866): a home names an issue only where it is exactly `#N`, so a file,
+    the frame, or a home with words after the issue counts none. A round
+    record the check's reader refuses anything of -- the old table's shape,
+    no `target:` line, a finding with no `verdict:` line or a value outside
+    the four -- leaves
+    `deferred` None -- an incomplete count is a wrong number -- a `rounds`
+    that cannot be listed
     leaves `rounds` None as well, and a reader
     that will not load leaves all three tree counts None.
 
@@ -338,7 +342,7 @@ def chain_counts(root, pulls):
         routing, chain, reader = readers()
     except Exception as problem:
         print(
-            f"the chain rows are not read: the round-record readers did not load ({problem})"
+            f"the chain rows are not read: the round record's readers did not load ({problem})"
         )
         return None, None, capped, None
     if not routing.declarations(root):
@@ -372,15 +376,13 @@ def chain_counts(root, pulls):
             except (OSError, UnicodeDecodeError):
                 unread.append(path)
                 continue
-            rows, col, _header, errors = chain.verdict_table(
-                reader, reader.readable(text), path
-            )
-            # A row `verdict_table` skipped is a verdict nobody counted.
-            if col < 0 or errors:
+            found, errors = chain.record_findings(reader, text, path)
+            # A finding the reader refused is a verdict nobody counted.
+            if errors:
                 unread.append(path)
                 continue
-            for _line, seen in rows:
-                issue = chain.issue_of(chain.deferred_home(seen[col]))
+            for kind, home in (f.verdict for f in found):
+                issue = chain.issue_of(home) if kind == chain.DEFERRED else None
                 if issue is not None:
                     deferred.add(issue)
     if lost:
@@ -396,7 +398,7 @@ def chain_counts(root, pulls):
                 if rounds_unread
                 else "the deferred row is"
             )
-            + " not read: no verdict table could be read in "
+            + " not read: the round record's reader refused "
             + ", ".join(os.path.relpath(p, root) for p in unread)
         )
         return items, None if rounds_unread else rounds, capped, None

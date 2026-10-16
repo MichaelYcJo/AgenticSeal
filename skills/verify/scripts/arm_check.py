@@ -2,36 +2,22 @@
 """Enumerate a module's arms from its own syntax tree, and report the ones no
 case kills.
 
-#262. `hooks/review-history-guard.py` had its arms counted by hand — every
-`ExceptHandler`, `If`, `While` and `IfExp`, each member of a boolean test and
-of an except tuple separately — and then mutated one at a time to see which
-ones any case would notice. Nine arms turned out to be watched by no case.
+#262. A module's arms — every `ExceptHandler`, `If`, `While` and `IfExp`,
+each member of a boolean test and of an except tuple separately — are
+mutated one at a time to see which ones any case would notice. A written list
+of arms rots as the module changes, so the list is derived from the syntax
+tree each run.
 
-**Nine cases would close that list and not the class.** A written list of arms
-rots the way #210's written list of reader passes rotted: the ticket's own
-table says 33 arms where the module now has 31, because the file changed twice
-after the count was taken. So the durable close is a checker that derives the
-list, and `tests/test_chain_hooks.py`'s `reader_blanking_passes` is the same
-idea in miniature — derive it instead of typing it.
-
-WHAT AN ARM IS. #262's rule, extended by two shapes the rule predates:
+WHAT AN ARM IS:
 
   If / While / IfExp   each TOP-LEVEL member of the boolean test. `a and (b
                        or c)` is two arms, not four: the inner `BoolOp` is
-                       one member of the outer one. Flattening recursively
-                       gives `gh_segments` seven arms where the hand count
-                       and this walk both give five
+                       one member of the outer one
   ExceptHandler        each member of an except tuple separately; a bare
                        `except:` is one arm
   match_case           each alternative of the pattern (a `MatchOr`'s
                        patterns) plus each top-level member of the guard
   comprehension        each top-level member of each `if` guard
-
-The last two are not in #262's rule, which was written before this module
-needed them. They change no count here — `hooks/review-history-guard.py` has
-neither shape — and they are the plan's named failure scenario answered in
-advance: *a new arm shape the walk does not know, a `match` statement, a
-comprehension guard.*
 
 WHY AN UNKNOWN NODE TYPE IS A REFUSAL. A walk that skips a node type it does
 not recognise is the failure of the thing it replaces, one level up: it
@@ -443,7 +429,9 @@ def _group_of(
 
 
 def _node_arms(node: ast.AST, scope: str, source: str) -> list[Arm]:
-    """The arms one node carries, or [] when it carries none."""
+    """The arms one node carries, or [] when it carries none.
+
+    Reads: observed — a node of the module's parsed syntax tree; unknown refused"""
     shape = type(node).__name__
     if shape not in ARM_SHAPES:
         return []
@@ -510,8 +498,7 @@ def _node_arms(node: ast.AST, scope: str, source: str) -> list[Arm]:
                     # and `except OSError, ValueError:` has been a
                     # SyntaxError since Python 3. Unwrapped, every arm of a
                     # three-member handler would come back REFUSED rather
-                    # than measured, and `reader` in
-                    # `hooks/review-history-guard.py` is exactly that shape.
+                    # than measured.
                     without = f"({without})"
                 parts.append((member, "", group, without))
         else:
@@ -667,17 +654,9 @@ def _splice(source: str, span: Span, replacement: str) -> str:
 #:
 #: `invert` asks *would a case notice if this test were backwards*, and
 #: `remove` asks *would a case notice if this arm were not here at all*.
-#: Measured 2026-09-09 on `hooks/review-history-guard.py`: inversion kills
-#: every arm it can be asked of and removal kills 20 of 32. **#262's table of
-#: unwatched arms is a REMOVAL
-#: count** — every sentence in it is about taking something out ("removing
-#: either opt-in half makes a globally installed plugin nag unrelated
-#: repositories", "removing `not segs` makes the stray and unreadable notices
-#: fire on every Bash call") — so a survivor count taken by inversion alone is
-#: not the ticket's number and must not be compared with it. Sharper since the
-#: sole-type refusal below: inversion now reports ZERO survivors on that
-#: module, so a checker built with it alone would have printed 0 beside the
-#: ticket's nine.
+#: Inversion can kill every arm it is asked of while removal leaves arms
+#: standing, so a survivor count taken by one operator is not a count taken
+#: by the other and is not compared with it.
 #:
 #: The two denominators differ on purpose. A pair both operators answer with
 #: the same edit is asked once — `mutate` refuses `invert` for a handler with
@@ -693,6 +672,8 @@ OPERATORS = ("invert", "remove")
 
 def mutate(source: str, arm: Arm, operator: str = "invert") -> str:
     """`source` with this one arm made wrong, one way.
+
+    Reads: observed — the source and the arm its caller parsed from it; unknown refused
 
     An arm with no mutation defined for the operator raises rather than coming
     back unchanged. An unmutated arm reported as `survived` reads as *no case
@@ -725,9 +706,7 @@ def mutate(source: str, arm: Arm, operator: str = "invert") -> str:
         # are the same edit, and both leave a handler that catches nothing.
         # Asked of both operators, ONE measurement is reported as two
         # independent answers to the two questions `OPERATORS` says are
-        # different -- and `main:189` in `hooks/review-history-guard.py`, the
-        # arm the report headlines as watched by nothing, is exactly this
-        # shape. `remove` keeps it, because #262's table is a removal count.
+        # different. `remove` keeps it.
         # Refused rather than silently skipped, so the pair is NAMED in the
         # report and the arm is still measured by the operator that owns it.
         raise NoMutationDefined(
@@ -1228,7 +1207,7 @@ def main(argv=None):
         "--tests",
         help=(
             "the command that decides whether an arm is watched, e.g. "
-            '--tests "bin/test tests/test_chain_hooks.py -q". It runs once '
+            '--tests "bin/test tests/test_chain_check.py -q". It runs once '
             "against the module as it is first and has to pass there, or the "
             "run is refused with exit 2 and nothing is mutated. Omitted, the "
             "arms are listed and nothing is mutated."

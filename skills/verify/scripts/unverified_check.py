@@ -183,11 +183,9 @@ def gfm_lines(text, keepends=False):
 
     **Every reader of markdown or record text reads its lines here** (#664):
     `readable` and `folded_items` below, and every script that loads this
-    module and splits the same text a second time -- `round_record.py`'s
-    `raw` halves, `fold_check.py`'s marker readers and `gather_changelog.py`.
-    Two readers of one text that split it two ways
-    disagree about which line an index names, and `round_record.py#swallowed`
-    zips the two splits with `strict=True`.
+    module and splits the same text a second time -- `fold_check.py`'s marker
+    readers and `gather_changelog.py`. Two readers of one text that split it
+    two ways disagree about which line an index names.
 
     `str.splitlines` also ends a line at U+2028, U+2029, NEL, a form feed, VT
     and `\\x1c`-`\\x1e`. Below one of those it cut a table row in two, read a
@@ -292,8 +290,7 @@ def fence_opener(line):
 
     **The readers that ask it.** In this module: `fence_spans` and, through
     it, `blank_fences` and `closed_fence_lines`; `_liveness` and
-    `_paragraph_ends_at`; and `todo_open_rows` through `closed_fence_lines`,
-    which `settle.py#open_rows` is. The coordinate kernel:
+    `_paragraph_ends_at`. The coordinate kernel:
     `skills/verify/scripts/coordinates.py#quoted_lines`, which its
     `unquoted` and `markdown_lines` read through. The readers #584 brought
     here: `.github/scripts/gather_changelog.py#live_markers` through
@@ -326,14 +323,9 @@ def fence_opener(line):
         inside a fence or a code span claims nothing*). This rule's
         three-space bound would un-mask those and close issues on quoted
         examples;
-      - `skills/code-review/scripts/round_record.py#fenced_after` applies the
-        closer rule and the backtick-info rule by its own pattern and keeps
-        a wider opener on purpose, so a fix fenced inside a list item still
-        reaches the record. The fence walks in
-        `tests/test_docs_line_wrap.py#fenced_numbers` and
-        `tests/test_handoff_outlives_the_merge.py#fenced_block_lines` ask
-        these two functions with the same wider opener, a line's indentation
-        stripped first, because the documents they read fence commands under
+      - the fence walk in `tests/test_docs_line_wrap.py#fenced_numbers` asks
+        these two functions with a wider opener, a line's indentation
+        stripped first, because the documents it reads fence commands under
         list items (#658);
       - `.github/scripts/gather_changelog.py#insert` and `#section_lines`, and
         `publish_release_note.py#section_body`, end a released section at the
@@ -390,8 +382,7 @@ def fence_spans(lines):
     open a fence at all depends on the state it began in.
 
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
-    to the end, because a gate reading a record treats it as quoted and
-    `round_record.py` refuses the record with a named message. A reader of a
+    to the end, because a gate reading a record treats it as quoted. A reader of a
     line that HOLDS something — a fold marker, an open row — reads it,
     because only a block that closes is certainly a quotation
     (`docs/the-record-layout.md`'s *A marker counts only on a live line*).
@@ -698,10 +689,8 @@ def live_lines(lines):
     indented four spaces is not read as one.
 
     **What this may not touch.** `comment_scan`, `strip_comments`,
-    `blank_fences` and `readable` serve the other gates — `check_text`,
-    `round_record.py`, `chain_check.py`, the review-history guard — and
-    `tests/test_chain_hooks.py#reader_blanking_passes` pins the passes
-    `readable` makes. None of them is on this path. What this scan and
+    `blank_fences` and `readable` serve the other gates — `check_text` and
+    `chain_check.py`. None of them is on this path. What this scan and
     `blank_fences` DO share is the fence delimiter, `fence_opener` and
     `fence_closes`, because two spellings of it is what #491 found: the
     three-space bound had landed here and not one function over. They share
@@ -1307,64 +1296,6 @@ def folded_items(root):
 # condition the frame recorded as a judgment the owner may overturn — nothing
 # in its record may still be open. These are the files the arm reads.
 SPEC = "spec.md"
-# The todo rule's two row shapes. `SEPARATOR` above reads one cell; these
-# read a whole line, which is what the todo reader walks.
-TODO_SEPARATOR_RE = re.compile(r"^\|(\s*:?-+:?\s*\|)+\s*$")
-DRAINED_RE = re.compile(r"^[\s*_]*drained\b", re.IGNORECASE)
-
-
-def todo_open_rows(text):
-    """Table body rows of a todo file that are still open.
-
-    The rule, so a person can apply it by hand: a LIVE line outside a table
-    whose first word is `drained` closes the whole file; otherwise every body
-    row is open unless its first cell begins with ✅, and a row inside a
-    fenced block that closes is an example and is not a row. A table is a run
-    of lines starting with `|`; its first line is the header when the second
-    is a separator, and neither is a body row.
-
-    **The two halves read by opposite rules, and that is the direction rule**
-    (#487). `drained` EXCUSES a file, so it counts only on a line
-    `live_lines` calls live: one quoted in a fence, in an HTML comment or in
-    a code span closes nothing, because closing a file on a quotation is the
-    silent direction for a guard. A row HOLDS something, so it is skipped
-    only when it is certainly quoted, which for a line is a fenced block that
-    closes (`closed_fence_lines`). A row in a fence nobody closed, or in a
-    comment, is read: a parked row is still somebody's open fact.
-
-    Split on `\\n` alone: `splitlines()` also breaks on U+2028, U+0085 and
-    form feed, so a cell holding one of those followed by `drained` closed the
-    file — the silent direction for a guard.
-
-    **It is the one spelling there is.** `skills/settle/scripts/settle.py#open_rows`
-    asks this function for a `tests-todo.md` (#487).
-
-    Reads: guess — a todo file's text its caller hands it; unknown passed"""
-    lines = text.split("\n")
-    live = [flag for _, flag in live_lines(lines)]
-    quoted = closed_fence_lines(lines)
-    rows = []
-    n = 0
-    while n < len(lines):
-        line = lines[n]
-        if n in quoted or not line.lstrip().startswith("|"):
-            if live[n] and DRAINED_RE.match(line):
-                return []
-            n += 1
-            continue
-        table = []
-        while n < len(lines) and n not in quoted and lines[n].lstrip().startswith("|"):
-            table.append(lines[n])
-            n += 1
-        if len(table) >= 2 and TODO_SEPARATOR_RE.match(table[1].strip()):
-            table = table[2:]
-        for row in table:
-            if TODO_SEPARATOR_RE.match(row.strip()):
-                continue
-            first = row.strip().strip("|").split("|", 1)[0].strip()
-            if not first.startswith(CLOSED):
-                rows.append(row)
-    return rows
 
 
 def tree_at(root, ref, directory):

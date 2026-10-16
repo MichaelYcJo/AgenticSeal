@@ -33,8 +33,9 @@ on:
     # `ready_for_review` and `converted_to_draft` are not in the default set,
     # and without them a pull request opened as a draft keeps the green it
     # earned on the draft's terms: pressing Ready for review makes no commit,
-    # so nothing re-runs. `chain_check.py` reads the draft state and requires
-    # a checked `Pass` on the last round only once the draft is over.
+    # so nothing re-runs. `chain_check.py` reads the draft state, and fails
+    # an open finding, a record behind HEAD, or a missing `broad-gate.md` or
+    # `guarantee.md` only once the draft is over.
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
 jobs:
@@ -76,21 +77,15 @@ jobs:
           python3 "$RUNNER_TEMP/specseal/skills/verify/scripts/unverified_check.py" \
             --baseline "origin/${{ github.base_ref }}" seal/specs/
 
-      # `chain_check.py` looks for a round's `Target SHA` on HEAD, on the
-      # branch the declaration names, and on the pull request head that
-      # carried it. Only the last one survives a squash and a deleted branch,
-      # and `actions/checkout` never fetches that namespace.
-      - name: the pull request heads a round record may name
-        shell: bash
-        run: |
-          git fetch --no-tags --quiet origin \
-            '+refs/pull/*/head:refs/remotes/pull/*/head'
-
       # A work item routed "through the review chain" has to carry the round
       # record it claimed. It never fails a pull request that declared
-      # nothing; it fails a declaration with no committed round, a round whose
-      # `Pass` is checked over an open 🔴, and — once the pull request is no
-      # longer a draft — a last round whose `Pass` was never checked.
+      # nothing; once the pull request is no longer a draft it fails a
+      # declaration with no committed round, a finding still `open` or one the
+      # check cannot read, a last record behind HEAD or with a finding no
+      # round after it read, no `broad-gate.md` at HEAD, and no
+      # `guarantee.md` reading `sound` at HEAD. A round's `target:`
+      # commit is read only as HEAD or an ancestor of it, so the check
+      # needs no ref the checkout does not already carry.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |

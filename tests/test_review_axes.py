@@ -77,20 +77,19 @@ def test_the_preset_block_carries_the_routing_decision():
     assert "[no-review]" in preset and "[no-parity]" in preset
 
 
-def test_the_handoff_protocol_inherits_no_verdict_anywhere():
-    """Prose and the field table are read by different people.
-
-    Whoever builds a tool fills the fields, so a row saying axes carry
-    "without re-walking" outranks a corrected sentence twenty lines below it.
-    The protocol had both at once."""
-    protocol = read("docs", "review-handoff-protocol.md")
+def test_a_later_round_inherits_no_verdict_anywhere():
+    """A sentence saying axes carry "without re-walking" outranks a corrected
+    sentence twenty lines below it; the old handoff protocol had both at once.
+    The record's documents now say only what carries: where to look."""
+    skill = " ".join(read("skills", "code-review", "SKILL.md").split())
+    record = " ".join(read("docs", "the-review-record.md").split())
     for stale in ("inherit judged axes", "without re-walking"):
-        assert stale not in protocol, f"verdict inheritance came back as `{stale}`"
-    assert "The coordinates carry; the verdicts do not" in protocol, (
-        "the round-N field table stopped saying what actually carries"
-    )
-    assert "hands over its coordinates, not its verdict" in protocol, (
-        "the conformance rule stopped saying what actually carries"
+        for where, text in (("SKILL.md", skill), ("the-review-record.md", record)):
+            assert stale not in text, (
+                f"verdict inheritance came back as `{stale}` in {where}"
+            )
+    assert "What carries is **where to look, not what was concluded**" in skill, (
+        "the cross-session records stopped saying what actually carries"
     )
 
 

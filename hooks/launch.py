@@ -61,7 +61,7 @@ def refusal(script, version, executable):
     Reads: nothing — formats the version and path its caller read off `sys`
 
     The command is the script's name the way its wrapper spells it,
-    `round_record.py` as `round-record`, so a reader who typed the wrapper
+    `broad_gate.py` as `broad-gate`, so a reader who typed the wrapper
     can tell what answered. The paths are escaped to ASCII first, and the
     rest of the sentence is ASCII already: it is written before anything sets
     up stderr, and a path the console cannot encode would otherwise end the

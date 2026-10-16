@@ -27,7 +27,6 @@ substrings are chosen to be. Each one below picks a phrase that cannot survive
 the drift it is guarding against.
 """
 
-import glob
 import os
 import re
 
@@ -302,83 +301,6 @@ def test_the_cost_of_a_judgment_over_a_count_is_stated():
     assert "two people can disagree" in skill, (
         "the trade is a judgment for a measurement, and a document that does "
         "not say so reads as though nothing was given up"
-    )
-
-
-TODO_FILE = "tests-todo.md"
-
-
-def _below_the_work_item(root):
-    """Every todo file sitting BELOW a work item's own directory.
-
-    The glob spelled once, so the sweep over this repository and the case
-    that plants a specimen ask the identical question: a sweep with nothing
-    of its kind in range is a sweep nobody can tell from a broken one.
-    """
-    return glob.glob(
-        os.path.join(root, "seal", "specs", "*", "*", "**", TODO_FILE), recursive=True
-    )
-
-
-def _at_the_work_item(root):
-    """Every todo file at the level `settle.py#process_plan` reads."""
-    return glob.glob(os.path.join(root, "seal", "specs", "*", TODO_FILE))
-
-
-def test_the_stray_sweep_sees_a_todo_file_one_level_down(tmp_path):
-    """Both layouts planted, and the two globs told apart.
-
-    Issue #96's defect is a todo file one directory deeper than its reader
-    looks, and the sweep above is what catches it. What that sweep cannot
-    catch is itself going blind: a glob that matches nothing reports the same
-    clean result whether the layout is right or the pattern is wrong.
-
-    So the specimen is planted here. `rounds/` is the directory the two real
-    work items of #96 used, and it is the one a deeper layout reaches for,
-    because it is the only member of the set that is plural.
-    """
-    top = tmp_path / "seal" / "specs" / "1700000001-at-the-right-level"
-    deep = tmp_path / "seal" / "specs" / "1700000002-one-level-down" / "rounds"
-    top.mkdir(parents=True)
-    deep.mkdir(parents=True)
-    (top / TODO_FILE).write_text("| row |\n", encoding="utf-8")
-    (deep / TODO_FILE).write_text("| row |\n", encoding="utf-8")
-
-    stray = [os.path.relpath(p, tmp_path) for p in _below_the_work_item(tmp_path)]
-    assert stray == [
-        os.path.join("seal", "specs", "1700000002-one-level-down", "rounds", TODO_FILE)
-    ], stray
-
-    at_level = [os.path.relpath(p, tmp_path) for p in _at_the_work_item(tmp_path)]
-    assert at_level == [
-        os.path.join("seal", "specs", "1700000001-at-the-right-level", TODO_FILE)
-    ], at_level
-
-
-def test_the_todo_file_sits_where_settle_looks():
-    """A todo file one directory below its work item is taken unread.
-
-    `skills/settle/scripts/settle.py` keeps a released item's process record
-    whole while its `tests-todo.md` has an open row, and it reads that file
-    at the work item's own level, `seal/specs/<id>/tests-todo.md`. One under
-    `rounds/` leaves with `rounds/`, open rows and all — silently, because a
-    reader that finds nothing and a reader that looks in the wrong place say
-    the same thing (issue #96).
-
-    `docs/review-handoff-protocol.md` puts the todo file at the work item's
-    own level and gives the reason: `round-N` is the only member of the set
-    that is plural and unbounded, so it gets a directory and the todo file
-    does not. This pins the layout the reader assumes, because the layout is
-    written by hand once per work item. The specimen is planted by
-    `test_the_stray_sweep_sees_a_todo_file_one_level_down`, because a corpus
-    this case does not control is no place to keep one.
-    """
-    stray = sorted(_below_the_work_item(ROOT))
-    assert not stray, (
-        "a todo file sits below the work item's own directory, where "
-        "`settle --retire-process` takes it unread: "
-        f"{[os.path.relpath(p, ROOT) for p in stray]}. It reads "
-        "`seal/specs/<id>/tests-todo.md`, one level only"
     )
 
 

@@ -3,27 +3,18 @@
 Not every shipped script that loads a sibling is held here:
 `broad_gate.py` raises a refusal of its own, and `coordinates.py` is a
 library no command runs. The ones held here load it in one of two shapes.
-`fold_check.py`, `settle.py`, `round_record.py`, `chain_check.py` and
-`payload_meter.py` import it by file path; `seal.py`
-puts `hooks/` on `sys.path` with `sys.path.insert` and then runs a plain
-`import`, which a search for the first shape does not find. In the first
-four 1 means a finding or a refusal the command made about the tree, and in
-`payload_meter.py` it means an input that could not be measured; 2 means the
-input or the tree was unusable and nothing was read or written. A sibling
-that is not beside the command is the second kind: nothing about the tree
-has been read yet.
+`fold_check.py`, `settle.py`, `chain_check.py` and `payload_meter.py`
+import it by file path; `seal.py` puts `hooks/` on `sys.path` with
+`sys.path.insert` and then runs a plain `import`, which a search for the
+first shape does not find. In the first three 1 means a finding or a refusal
+the command made about the tree, and in `payload_meter.py` it means an input
+that could not be measured; 2 means the input or the tree was unusable and
+nothing was read or written. A sibling that is not beside the command is the
+second kind: nothing about the tree has been read yet.
 
-Before #590 three of the four said 1 for it. `fold_check.py` and
-`settle.py` raised `SystemExit(<sentence>)`, and a string argument exits 1;
-`round_record.py` did not check at all, so `spec_from_file_location` handed
-back a spec for the absent path and `exec_module` died with a
-`FileNotFoundError` traceback. `chain_check.py` already said 2, because its
-`main` catches the load, and it is here so the class stays one shape.
-
-The invocation per script is the smallest one that reaches its loader
-(`seal/specs/1790297085-settle-retires-a-directory-main-has-not-seen-closed/
-questions.md` Q1): `round_record.py` loads at import, `settle.py` and
-`fold_check.py` load `hooks/optin.py` before they read the root, and
+The invocation per script is the smallest one that reaches its loader:
+`settle.py` and `fold_check.py` load `hooks/optin.py` before they read the
+root, and
 `chain_check.py` loads its readers after argument parsing, so it needs its
 one required flag.
 
@@ -69,12 +60,6 @@ CASES = [
         ["--root", "{root}"],
         "it is what finds the repository's seal/ root",
         "fold record",
-    ),
-    (
-        "skills/code-review/scripts/round_record.py",
-        [],
-        "it is the checker this command writes records for",
-        None,
     ),
     (
         "skills/code-review/scripts/chain_check.py",

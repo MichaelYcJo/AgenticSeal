@@ -46,18 +46,14 @@ This repository runs a spec-driven workflow on itself — work items under
 `seal/specs/`, review rounds, a version that moves once per release. **A
 contribution is asked for none of it.** The version and changelog steps
 belong to a release and exit early on any base but `main`. The others run on
-every pull request. Three of them pass for a different reason — they ask
-nothing of a branch that declared nothing: the round-record check, the
-unverified-record tally and the issue-claim report. The remaining one, the
-budgets, is always-on and CAN refuse a contribution, and it asks only for
-what is yours to write: a ceiling in `seal/budgets.md` moved in the same pull
-request as the change that moved the measurement, and for a raise a `Budget
-raised:` line in your description, as the step's message spells it. Two of
-its rows read the rule files: an `Enforced by:` target your change renamed or
-removed fails `enforced-unresolved`, and a new bold-led rule with no
-`Enforced by:` raises its file's `unenforced` row. Each row below gives its
-own reason, and a maintainer adding a CI step should read the row rather than
-this sentence.
+every pull request, and they pass for a different reason — they ask nothing
+of a branch that declared nothing: the review-chain check, the
+unverified-record tally and the issue-claim report. The suite reads one fact
+about the rule files: an `Enforced by:` target your change renamed or removed
+fails it, naming the file, the line and the heading, and `bin/rules --check`
+gives the same answer before you push. Each row below gives its own reason,
+and a maintainer adding a CI step should read the row rather than this
+sentence.
 
 Established by reading every step of `.github/workflows/hygiene.yml` and
 `.github/workflows/test.yml` against a live contribution that carried none of
@@ -150,9 +146,10 @@ and Windows in four, each leg divided by `pytest-split` from the one
 committed `.test_durations`, #841, #864; ubuntu as one job), `durations`,
 which unions what the Windows shards measured (#931),
 `tests/test_arm_check.py` at 3.13 and 3.14 (`arm-check`'s node-type tables
-are only as true as the interpreter that reads them, #684), `budgets`, which
-holds each leg's minutes in that run to its `ci-minutes` row of
-`seal/budgets.md` (#930), and the hygiene workflow that guards releases. A
+are only as true as the interpreter that reads them, #684), `release-report`,
+which on a pull request into `main` only prints the release table against
+the last release tag and fails nothing, and the hygiene workflow that guards
+releases. A
 change to any hook needs a test that fails without it — see the counterfeit
 rule below.
 
@@ -188,15 +185,9 @@ entries the suite no longer collects.
 case alone against the whole collection, and naming one module skips it.
 To refresh the file, take the artifact from your branch's latest `tests`
 run: `gh run download <run id> -n test-durations -D <dir>`, then move
-`<dir>/.test_durations` over the committed file. Its line ends are already
-LF. The download goes to a directory of its own because `gh` will not
-write over a file that is already there. Then run
-`python3 .github/scripts/budget_check.py --baseline origin/<base> --restate-price`,
-where `<base>` is the branch your pull request merges into, and commit
-`.test_durations` and `seal/budgets.md` together: the command writes the
-`## Price level` the new file implies, which the hygiene workflow's budget
-step holds the refresh to, and its exit 0 is the verdict that step will
-give. A run older than
+`<dir>/.test_durations` over the committed file and commit it. Its line ends
+are already LF. The download goes to a directory of its own because `gh`
+will not write over a file that is already there. A run older than
 seven days is re-run first, with `gh run rerun <run id>`. A branch with no
 pull request has no `tests` run until one is dispatched, and neither has a
 branch whose run is too old to re-run:

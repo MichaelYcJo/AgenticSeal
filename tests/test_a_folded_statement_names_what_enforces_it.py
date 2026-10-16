@@ -206,8 +206,8 @@ def test_a_constant_is_no_def_or_class(tmp_path):
 def test_a_name_defined_twice_is_no_target(tmp_path, source):
     """#944: a rule bound to an ambiguous target is not bound. A name its
     module defines twice is no one unit — pytest collects only the last
-    `def` — so it does not resolve, in the one resolver `fold-check` and the
-    budget checker both read."""
+    `def` — so it does not resolve, in the one resolver `fold-check` and
+    `rules --check` both read."""
     (tmp_path / "tests").mkdir()
     (tmp_path / "tests" / "test_y.py").write_text(source, encoding="utf-8")
     assert target_problem(str(tmp_path), "tests/test_y.py::test_twice") == (

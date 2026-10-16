@@ -81,10 +81,6 @@ HEADING_EXEMPT = {
         "ATX_HEADING",
     ): "the GFM table walker's table-end rule, held to cmark-gfm (spec Out)",
     (
-        "skills/code-review/scripts/round_record.py",
-        r"|\#{1,6}(?=\s|$)",
-    ): "where a hand-wrapped paragraph ends, pinned pairwise (spec Out)",
-    (
         ".github/scripts/issue_claims_check.py",
         r"|\#{1,6}(?=\s|$)",
     ): "where a hand-wrapped paragraph ends, pinned pairwise (spec Out)",

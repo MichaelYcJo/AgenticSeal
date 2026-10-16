@@ -123,28 +123,6 @@ def test_gate_ignores_non_bash_tools(repo):
     assert decision_of(run_hook("commit-review-gate.py", p)) == "silent"
 
 
-# --- history guard: prose mentions must not remind ------------------------
-
-
-def test_history_guard_ignores_echoed_gh(repo):
-    opt_in(repo)
-    assert (
-        run_hook(
-            "review-history-guard.py", payload("echo gh pr comment 42", repo)
-        ).strip()
-        == ""
-    )
-
-
-def test_history_guard_catches_gh_after_chain(repo):
-    opt_in(repo)
-    item = declare_routing(repo)
-    out = run_hook(
-        "review-history-guard.py", payload("cd x && gh pr comment 7 --body hi", repo)
-    )
-    assert item.name in out, out
-
-
 # --- session-lease: repo resolution and isolation -------------------------
 
 
@@ -1364,56 +1342,14 @@ def test_the_cycle_is_bounded_and_ends_at_a_pull_request():
     Stopping at a report leaves finished work nobody will find; merging
     decides something the chain was never given."""
     with open(
-        os.path.join(ROOT, "docs", "review-chain-spec.md"), encoding="utf-8"
+        os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
     ) as f:
-        spec = f.read()
-    assert "capped at **three**" in spec, "the review loop lost its bound"
-    assert "ends at a PR, never at a merge" in spec
-    for home in ("follow-up.md", "questions.md", "legacy-parity"):
-        assert home in spec, f"no home recorded for what is left: {home}"
+        record = " ".join(f.read().split())
+    assert "three finding rounds by default" in record, "the review loop lost its bound"
+    assert "follow-up.md" in record, "no home recorded for what is left"
     with open(os.path.join(ROOT, "agents", "smith.md"), encoding="utf-8") as f:
         smith = f.read()
-    assert "three rounds" in smith and "never at a merge" in smith
-
-
-def test_the_five_round_exception_is_pinned_where_it_is_stated():
-    """Nothing held the exception. The two assertions above read `capped at
-    **three**` and `three rounds`, both of which survive deleting the
-    exception paragraph whole — so the entire substance of the answer to #51
-    was green against a document that no longer contained it.
-
-    Four things have to be true together, because each alone is the wrong
-    rule: five rounds, only for 🔴, only to close it, and a ceiling rather
-    than a target."""
-
-    def flat(*parts):
-        """The file with its line wrapping collapsed — these sentences are
-        wrapped at 80 columns and a phrase test must not depend on where."""
-        with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-            return re.sub(r"\s+", " ", f.read())
-
-    spec = flat("docs", "review-chain-spec.md")
-    assert "at **five while a 🔴 is open**" in spec, "the exception is gone"
-    assert "only while a 🔴 is open" in spec, "the exception lost its condition"
-    assert "and only to close it" in spec, (
-        "without this, five rounds becomes the budget rather than the reprieve"
-    )
-    assert "Five is a ceiling, not a target" in spec
-    assert "a round opens a new 🔴 at the same site" in spec, (
-        "the stop-regardless row is what keeps the exception from looping"
-    )
-
-    assert "five while a 🔴 is open, and only to close it" in flat(
-        "agents", "smith.md"
-    ), (
-        "the agent that runs the loop has to carry the exception, not just "
-        "the cap it is an exception to"
-    )
-
-    assert "five while a 🔴 is" in flat("skills", "verify", "SKILL.md"), (
-        "the broad gate declines this exception on purpose (#51), and a "
-        "decline that does not name what it declines cannot be read"
-    )
+    assert "never at a merge" in smith
 
 
 # The two skills a definition calls rather than preloads. Neither is in any

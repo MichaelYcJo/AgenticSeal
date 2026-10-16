@@ -73,8 +73,8 @@ NO_WRAPPER = {
         "Every place outside `tests/` that invokes it carries its full path "
         "-- `.github/workflows/hygiene.yml`, `templates/hygiene.yml` and "
         "`docs/release-checklist.md` by hand, and "
-        "`skills/verify/scripts/broad_gate.py` and this skill's own "
-        "`round_record.py` in code; the test modules that load it build the "
+        "`skills/verify/scripts/broad_gate.py` in code; the test modules that "
+        "load it build the "
         "same path -- so it is reachable everywhere it is reached. "
         "A wrapper would also change the row in "
         "`templates/config.md` that spells the broad gate to a user, which is "
@@ -106,8 +106,7 @@ def shipped_documents():
 def command_name(script):
     """The bare word a wrapper for `script` answers to.
 
-    Underscores to hyphens, which is what all eleven existing pairs do and
-    what `round_record.py`'s own `--help` has printed since it shipped.
+    Underscores to hyphens, which is what every existing pair does.
     """
     return os.path.basename(script)[:-3].replace("_", "-")
 
@@ -366,12 +365,12 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
         f"the message does not name the form that works, or why -- {message}"
     )
 
-    record = "skills/code-review/scripts/round_record.py"
+    arms = "skills/verify/scripts/arm_check.py"
     with pytest.raises(AssertionError) as raised:
         test_a_document_naming_a_wrapped_script_says_how_to_reach_it(
-            ("README.md", record)
+            ("README.md", arms)
         )
-    assert "the command `round-record`" in str(raised.value), (
+    assert "the command `arm-check`" in str(raised.value), (
         "a hyphenated command still has both accepted forms offered"
     )
 
@@ -416,7 +415,7 @@ def test_a_half_shipped_pair_is_not_a_wrapped_script(monkeypatch):
     Windows cannot run, and would take the script out of the classification
     rule that would otherwise have caught the missing twin.
     """
-    script = "skills/code-review/scripts/round_record.py"
+    script = "skills/verify/scripts/arm_check.py"
     _, windows = wrapper_pair(script)
     assert is_wrapped(script), "the fixture is stale: this pair should be whole"
     real = os.path.isfile

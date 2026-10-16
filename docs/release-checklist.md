@@ -24,7 +24,7 @@ running.
       branch actually needs something the release branch holds; the squash
       discards the merge commit either way.
       **Never rebase a work item's branch, for any reason** — every round
-      record names its branch's commits by `Target SHA`, a rebase orphans
+      record names its branch's commits on its `target:` line, a rebase orphans
       them, and that is the class this repository has a patch release about. That rule
       predates the baseline repair and outlives it; it used to be written
       here as a footnote to a workaround, which is the wrong place for a
@@ -63,19 +63,6 @@ The `release/*` ruleset takes no direct push, so the preparation commit needs
 this branch and a squash merge like any other work.
 
 ## 2. Gather, bump
-
-**Read one line per budget first, and lower a one-sided ceiling here.** The
-release pull request's `hygiene` summary carries, under *Against vA.B.C*,
-each budget of `seal/budgets.md` beside its ceiling at the last release tag
-and its reading today, printed by `budget_check.py --trend` with nothing to
-fill in. A two-sided row was lowered by the pull request that made it
-cheaper. A `one-sided` row was not, because one run is too noisy to lower it
-on. Where the release's `tests` runs sit well under a `ci-minutes` ceiling,
-the preparation commit lowers it to 1.3 times the largest of those runs and
-names the runs in its message. Where `suite-seconds` or a `slow-file` row
-reads well under its ceiling, it lowers that to 1.3 times the reading, and
-lists any test file whose reading times 1.3 now reaches the threshold. That
-is the rule each first value was set by.
 
 <!-- specs/1788326734-the-ledger-fragments-are-never-gathered -->
 **The preparation commit gathers the changelog fragments.**
@@ -187,7 +174,6 @@ python3 .github/scripts/gather_changelog.py --check
 uvx ruff check . && uvx ruff format --check .
 bin/test -q
 python3 skills/verify/scripts/unverified_check.py --baseline origin/main seal/specs/
-git fetch origin '+refs/pull/*/head:refs/remotes/pull/*/head'
 python3 skills/code-review/scripts/chain_check.py --baseline origin/main
 ```
 
@@ -197,7 +183,6 @@ What each one has caught, so a failure is recognised rather than debugged:
 |---|---|
 | the full suite | a gathered entry prescribed a `git mv` whose destination nothing creates |
 | `test_no_loaded_file_names_a_version_at_or_above_the_running_one` | living prose that named the release by number the moment it became the running one. Since #179 it also names one written *ahead* of the release, which used to be green until the day it shipped — a document had carried an unshipped version for three releases that way. Records of a moment are listed in the test; everything else is reworded to name the change, or to the illustrative version the test's own message points at. Since #363 a version this repository has *tagged* is history and may be named — the shipped set is read from the root's `v*` tags, never from this file, because this commit writes the heading and the bump together and the version being cut is the timer |
-| `chain_check --baseline origin/main` | exit 1 in a checkout that never fetched `refs/pull/*/head` — the fetch line above is the fix, not a lost commit. CI fetches it itself |
 
 Enforced by: tests/test_a_shrunken_corpus_declines_to_judge.py::test_no_scope_in_the_suite_lists_paths_from_git_without_a_guard, tests/test_a_shrunken_corpus_declines_to_judge.py::test_declining_raises_the_skip_carrying_that_reason
 
@@ -235,8 +220,16 @@ gh pr create --base main --head release/vX.Y.Z \
 
 Its hygiene checks fail until step 4 is squashed in, by design. Then they go
 green without a push. Press ***Create a merge commit***, never squash: the
-review records name the release branch's commits by `Target SHA`, and a
+review records name the release branch's commits on their `target:` lines, and a
 squash discards them.
+
+**Read the release table before the merge.** The pull request's `tests` run
+carries it in the `release-report` job's summary, under *Against vA.B.C*:
+each agent's preload bytes, the suite's seconds, each leg's minutes and each
+document's bytes, beside the same reading at the last release tag. It fails
+nothing. A preload or a document that grew is a question the pull request's
+body answers, or an issue it opens. A leg's minutes compare one run with one
+run and swing on the same code, so they are read and never acted on alone.
 
 ### What a release pull request is held to
 

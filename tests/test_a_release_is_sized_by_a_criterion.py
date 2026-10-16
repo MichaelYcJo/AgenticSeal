@@ -44,10 +44,6 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 OWNER = "docs/issues-and-milestones.md"
 
-# The wording the rule was brought to. `docs/review-chain-spec.md` states the
-# review cap's ceiling in the same words, and the second assertion below keeps
-# the two from drifting into two phrasings for one idea.
-CEILING_MODEL = "docs/review-chain-spec.md"
 SHARED_CEILING = "ceiling, not a target"
 
 # The sentence that was replaced. Lower-cased on both sides, because the
@@ -177,19 +173,14 @@ def test_the_rule_states_the_criterion_and_not_the_count():
     )
 
 
-def test_the_count_survives_as_a_ceiling_in_the_wording_the_cap_already_uses():
-    """Named as a ceiling, with what the ceiling is for, and in
-    `docs/review-chain-spec.md`'s words rather than a second phrasing."""
+def test_the_count_survives_as_a_ceiling():
+    """Named as a ceiling, with what the ceiling is for."""
     doc = flat(OWNER)
     assert f"Three or four is a {SHARED_CEILING}." in doc, (
         f"{OWNER} no longer names the count as a ceiling"
     )
     assert "it says nothing about when to stop under it" in doc, (
         "the ceiling is named without saying it is not a floor either"
-    )
-    assert SHARED_CEILING in flat(CEILING_MODEL), (
-        f"{CEILING_MODEL} was the wording this rule was brought to, and it "
-        "has moved — one idea is now spelled two ways"
     )
 
 

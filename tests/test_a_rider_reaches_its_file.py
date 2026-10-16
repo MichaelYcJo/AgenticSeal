@@ -98,30 +98,15 @@ def test_the_header_states_the_stamp_form_riders_actually_carry():
     )
 
 
-def test_the_round_template_says_why_target_sha_is_exempt():
-    """The other half of #239's answer, pinned beside the half it is about.
-
-    135 round records carry a `Target SHA`, and the same squash that orphaned
-    the rider stamps runs past every one of them. Leaving it is correct — a
-    round record names a MOMENT, `chain_check.py#reachable` already falls back
-    to `refs/remotes/pull/<N>/head` which a squash does not touch, and a whole
-    reviewed tree has no anchor to write. What is not correct is leaving that
-    unwritten, because the next person to count the rows re-opens it.
-
-    The namespace has to be the one the code scans. `PULL_HEADS` is
-    `refs/remotes/pull/`, the mirror CI fetches; a reader who runs
-    `git for-each-ref 'refs/pull/*/head'` in a working clone gets nothing and
-    reads a true ground as false (round 1, deferred).
-
-    This case lives in the rider file rather than beside the other round-record
-    cases on purpose: the ticket asked for one answer covering both mechanisms
-    so they could not drift into different rules, and a pin in two files is
-    how they would."""
-    text = read(os.path.join(ROOT, "templates", "sdd-round.md"))
-    assert "exempt from the rule" in text
-    assert "carried_by_a_pull_head" in text
-    assert "refs/remotes/pull/<N>/head" in text
-    assert "records a MOMENT" in text
+def test_the_record_says_why_target_sha_names_a_commit():
+    """The other half of #239's answer, pinned beside the half it is about: a
+    rider names content because a squash orphans the commit it was stamped
+    at, and a round record's `target:` line names a commit anyway, because it
+    records a moment and the check reads it only while the branch that holds
+    the commit is open. Leaving that unwritten re-opens it."""
+    text = " ".join(read(os.path.join(ROOT, "docs", "the-review-record.md")).split())
+    assert "`target:` names a commit, not a content anchor" in text
+    assert "records a moment" in text
 
 
 def test_the_header_stops_the_answerer_that_is_really_a_condition():
@@ -157,7 +142,6 @@ def test_the_riders_exist_where_the_rows_said_they_would():
     for rel in (
         "hooks/optin.py",
         "hooks/review-skill-gate.py",
-        "hooks/review-history-guard.py",
         "hooks/cmdline.py",
         "hooks/worktree-guard.py",
     ):

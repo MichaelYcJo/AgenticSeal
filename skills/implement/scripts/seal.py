@@ -1714,6 +1714,8 @@ def tracked(repo, rel):
 def other_worktrees(repo):
     """Every other worktree of this clone, by path.
 
+    Reads: observed — `git worktree list --porcelain`; unknown passed
+
     Measured 2026-09-03: switching shared → local from one worktree leaves
     every other one holding the committed `<repo>/seal/` on its own branch,
     so the two read two different roots until the commit reaches both. It
@@ -1738,10 +1740,9 @@ def other_worktrees(repo):
     # this clone. Nothing decides on it and nothing is lost -- the caller at
     # `mode_switch` only prints -- which is why it was named here rather than
     # fixed in a round-1 fix pass that had no finding on this function.
-    # `round_record.py#repo_of` had the same reading and DID decide on it; the
-    # fix there is to compare the clone by common git directory
-    # (`#shares_the_clone`) and refuse a path that is not a work tree. Filter
-    # this list the same way when this function is next opened.
+    # The fix is to compare the clone by common git directory and refuse a
+    # path that is not a work tree. Filter this list that way when this
+    # function is next opened.
     #
     # Stamped at a commit on the RELEASE branch rather than at the fix pass's
     # own, because a feature branch squashes and the commit that measured this
@@ -1756,7 +1757,7 @@ def other_worktrees(repo):
     # measured 2026-09-08, two cases red in
     # `tests/test_a_rider_reaches_its_file.py`. Whichever of the two branches
     # merges second re-stamps this rider in the form its own check reads.
-    # Verified 2026-09-08 against other_worktrees@ddf91b71.
+    # Verified 2026-10-15 against other_worktrees@f4423c3e.
     here = os.path.realpath(repo)
     found = []
     for line in git(repo, "worktree", "list", "--porcelain").splitlines():

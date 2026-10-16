@@ -146,7 +146,7 @@ discards every commit the release branch wrote, and anything naming one of
 them by SHA stops resolving.
 <!-- specs/1788826000-a-stamp-names-content-not-a-commit -->
 **A `# RIDER:` comment's stamp names content, never a commit, and the
-`Target SHA` field in every `round-N.md` is what still names one.** The stamp
+`target:` line in every `round-N.md` is what still names one.** The stamp
 used to read `Verified … at <sha>`, and after a squash it resolved for nobody,
 which removed the one way a reader has to tell a live rider from a spent one;
 `tests/test_a_rider_reaches_its_file.py` went red for exactly that, and the
@@ -215,24 +215,18 @@ else about the sequence below changes.
 - **Feature branches are cut from the release branch** and squash back into
   it. One squashed commit per branch, so the release branch reads as the
   changelog it is about to become.
-- **A squashed feature branch can be deleted, and the review still resolves.**
-  The squash discards the commits its review rounds reviewed and `round-N.md`'s
-  `Target SHA` still names them, so for three releases this said "do not delete
-  the branch until the release reaches `main`" — a rule living in one paragraph
-  and in no code. Five branches were deleted by hand anyway and a
-  release pull request went red naming six commits. `chain_check.py` reads
-  `refs/pull/<N>/head` now: GitHub writes it, a squash does not touch it,
-  deleting the branch does not touch it, and every one of those six commits was
-  sitting there. `.github/workflows/hygiene.yml` fetches the namespace, because
-  a default clone has none of it. That step and the two checks it serves ship
-  to user repositories as `templates/hygiene.yml`, run from a clone of this
-  repository at the release installed when the `implement` skill wrote the
-  file at a shared-mode first setup; local mode installs none, because the
-  checks read committed files and local mode commits none.
+- **A squashed feature branch can be deleted once its pull request merged.**
+  `chain_check.py` reads a round's `target:` commit only as HEAD or an ancestor of
+  it, so the commits a round reviewed are read while the pull request that
+  carries them is open, and no step fetches a ref the checkout lacks. The
+  checks ship to user repositories as `templates/hygiene.yml`, run from a
+  clone of this repository at the release installed when the `implement`
+  skill wrote the file at a shared-mode first setup; local mode installs
+  none, because the checks read committed files and local mode commits none.
 
-  Keeping the branch is still worth something and is no longer load-bearing:
-  it leaves the rounds and the verdict readable on a branch nobody merged,
-  which is the only place the reason it was not merged is written down.
+  Keeping the branch is still worth something: it leaves the rounds and the
+  verdict readable on a branch nobody merged, which is the only place the
+  reason it was not merged is written down.
 - **The release branch merges into `main` as a merge commit**, carrying one
   commit of its own: the one that gathers the changelog fragments into
   `changelog/X.Y.Z.md` under `## X.Y.Z — <date>` and heads the index

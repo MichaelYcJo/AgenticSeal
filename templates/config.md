@@ -87,8 +87,9 @@ because the reader is a model choosing prose, not a lookup table.
 ## Record language
 
 The language the **prose** in the work-item records is written in:
-`spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, the cell
-contents of `rounds/round-N.md` and the prose beneath its tables.
+`spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, and in
+`rounds/round-N.md` each finding's heading, account and `answer:`, the prose
+after each `confirms:` line, and the cells of its tables.
 
 **Independent of the row above.** Setting one does not carry the other, for
 the reason stated at the top of this file: an absent row's default is what
@@ -105,8 +106,9 @@ not a rule.
 
 **The review splits across the two rows on purpose.** The report posted to a
 pull request is prose for whoever opens it, and follows the row above.
-`rounds/round-N.md` is half structure — its field names and verdict vocabulary
-are read literally by `chain_check.py` — and its prose follows this one.
+`rounds/round-N.md` is half structure — its headings, its labelled lines and
+the four verdict values are read literally by `chain_check.py` — and its
+prose follows this one.
 
 ## What no row governs
 
@@ -119,27 +121,23 @@ every repository, whatever either row says:
 - **Branch names.** Still `<prefix>/<kebab-case-slug>` in ASCII: a branch
   name is typed into a shell and pasted into a URL.
 - **The field names, section headings and vocabulary a checker or a pinned
-  case reads literally** — a round record's `Target SHA`, `PR`, `Broad gate`,
-  `Fixes checked by`, `Contract changes`, `New units` and the `depth` its
-  entries carry, `Needs a fix`, `Loses a record or crashes` with the `no` and
-  `yes` its answer is written in, `Fix of a fix` with its `first` and
-  `second`, and the `Pass`
-  checkbox; its `## Verdicts`, `## Executed probes`, `## Inherited
-  coordinates` and `## Deferred` headings, and the `Verdict` column of the
-  first; the verdict words `fixed`, `answered`, `withdrawn`, `not a defect`,
-  `agreed, fixed`, `out of verified scope` and the `deferred` in
-  `deferred <home>`; `round-N`, `none`,
-  `no fixes to check` and `nobody` in
-  `nobody — <why>`; `Ran by` with the `on` that joins its two halves and the
-  `unknown` in `unknown — <why>`; an `overview.md`'s `## Not verified`
-  heading with its
-  `Item` and `Who must answer` columns; a `spec.md`'s `## Removes` heading
-  and the `nothing` in `nothing — <why>`. A translated field name is not a
+  case reads literally** — a round record's `target:` line; its
+  `## Findings` heading and each finding's `verdict:` line, with its four
+  values `open`, `fixed`, `rejected` and the `deferred` in
+  `deferred <home>`, its `location:` line, its `regression:` line and its
+  `reopens:` line; its
+  `## Confirmations` heading and each `confirms:` line, reading `none` or a
+  reference spelt `round-<N>#<n>`; the labels the parties and the eval
+  graders read, `severity:` with its two words `must` and `should`, and
+  `answer:`, and the `## Not judged` and `## Probes` headings; a
+  `guarantee.md`'s `Target SHA`; a `broad-gate.md`'s `Broad gate`; an
+  `overview.md`'s `## Not verified` heading with its `Item` and
+  `Who must answer` columns; a `spec.md`'s `## Removes` heading and the
+  `nothing` in `nothing — <why>`. A translated field name is not a
   translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, a drained file's `drained` line, the `✅` that
-  closes a row and the `🔴` that opens one, and a pact anchor's
-  `pact:<name>/"<heading path>"@<hash>`.
+  section's `## X.Y.Z — <date>`, the `✅` that closes a row, and a pact
+  anchor's `pact:<name>/"<heading path>"@<hash>`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
 - **The item column of this table**, which is a key rather than prose — the
@@ -208,9 +206,8 @@ root by `broad-gate` once the review rounds settle. The plugin's own checks
 follow it and are not part of the row; the module docstring of
 `skills/verify/scripts/broad_gate.py` lists them, in the order they run.
 `broad-gate --preflight` runs those checks alone, reading the row and not
-running it, then asks `seal`'s refusals of the work item declared for the
-branch without writing the cell; the orchestrator runs it before the sealer
-is spawned.
+running it, and writes nothing; the orchestrator runs it before the sealer is
+spawned.
 
 ```markdown
 | Broad gate | uvx ruff check . && uvx ruff format --check . && bin/test -q |
@@ -228,7 +225,7 @@ reported.
 **There is no default, and the reason is the Seal Test.** `verify` names the
 counterfeit: a check that cannot fail. A default of `pytest` seals a
 repository that runs `npm test`; a default of `true` seals everything. The
-sealer judges nothing, so it cannot pick a command either — a row is a
+sealer does not pick a command either — a row is a
 thing a person wrote, and what the sealer's seal covers is exactly that. What the
 row's command does is the repository's own claim: a command that exits 0
 without running anything gets a stamp over nothing, and *the narrow command

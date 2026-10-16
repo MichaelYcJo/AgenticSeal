@@ -25,20 +25,10 @@ import datetime
 import importlib.util
 import json
 import os
-import shutil
 import subprocess
 import sys
 
 import pytest
-from test_the_record_is_generated import (
-    commit,
-    declared,
-    generate,
-    generator_module,
-    git,
-    report,
-    write,
-)
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
@@ -117,59 +107,6 @@ def test_fold_check_keeps_no_copy_of_its_own():
     fold_check = _load("specseal_fold_check_for_gfm_lines", FOLD_CHECK)
     assert not hasattr(fold_check, "gfm_lines")
     assert not hasattr(fold_check, "GFM_LINE_RE")
-
-
-# --- S1, S2: the record generator reads and writes the character back ----------
-
-
-def _build(d):
-    d.mkdir()
-    git(d, "init", "-q", "-b", "base")
-    write(d, "f.py", "x = 1\n")
-    commit(d, "base")
-    git(d, "switch", "-qc", "feature")
-
-
-@pytest.fixture(scope="session")
-def _template(tmp_path_factory):
-    d = tmp_path_factory.mktemp("gfm-lines-record-template") / "repo"
-    _build(d)
-    return d
-
-
-@pytest.fixture
-def repo(tmp_path, _template):
-    d = tmp_path / "repo"
-    shutil.copytree(_template, d)
-    return d
-
-
-def test_a_reports_quoted_character_survives_into_its_record(repo):
-    """S1, the instance #664 names: `rounds/round-1.md` of work item
-    `1790635414` holds a line break where its report held U+2028, inside a
-    quoted test. `new` copies the report's lines out of `raw`, and `raw` was
-    split with `splitlines` and joined back with LF."""
-    declared(repo)
-    quoted = f"```python\nassert 'alpha{LS}beta' in text\n```\n"
-    code, out, text = generate(repo, report_text=report(fixes=quoted))
-    assert code == 0, out
-    assert f"alpha{LS}beta" in text
-    assert "alpha\nbeta" not in text
-
-
-def test_a_fix_row_with_a_line_separator_in_a_cell_is_one_row(tmp_path):
-    """S2. A row cut at the separator read its grounds as the half before it,
-    and the half after was no row at all."""
-    generator = generator_module()
-    fixes = tmp_path / "fixes.md"
-    fixes.write_text(
-        f"{generator.FIXES}\n\n{generator.row(generator.FIXES_HEADER)}\n"
-        f"{generator.separator(len(generator.FIXES_HEADER))}\n"
-        f"| 1 | answered | the grounds, alpha{LS}beta |\n",
-        encoding="utf-8",
-    )
-    got = generator.fix_table(generator.load(READER, "specseal_reader_s2"), fixes)
-    assert got == {1: ("answered", f"the grounds, alpha{LS}beta", "")}
 
 
 # --- S3, S4: a marker GFM does not show as its own line excuses nothing -----
@@ -317,29 +254,9 @@ def test_the_framers_mark_is_the_last_line_a_renderer_shows():
     last line does not begin with one."""
     chain = _load("specseal_chain_s10", CHAIN)
     spec = f"# spec\n\nprose{LS}Framed 2026-01-01 by framer, before the build.\n"
-    assert chain.frame_mark(reader, spec) is None
+    assert chain.frame_foot(reader, spec)[0] is None
     whole = "# spec\n\nprose\nFramed 2026-01-01 by framer, before the build.\n"
-    assert chain.frame_mark(reader, whole) == ("2026-01-01", "framer")
-
-
-def test_the_approval_line_is_a_line_of_its_own(monkeypatch):
-    """S11. `plan.md`'s approval after a U+2028 on a line of prose is no
-    approval line, so the notice that says it is absent is printed."""
-    chain = _load("specseal_chain_s11", CHAIN)
-    item = "seal/specs/1799000000-a-framed-item"
-    texts = {
-        f"{item}/spec.md": "# spec\n\nFramed 2026-01-01 by framer, before the build.\n",
-        f"{item}/plan.md": (
-            f"# plan\n\nprose{LS}Approved 2026-01-01 by x, when `smith` was spawned.\n"
-        ),
-    }
-    monkeypatch.setattr(chain, "read_record", lambda root, rel: texts.get(rel))
-    routing = type("Routing", (), {"BY_FRAMER": "framer", "PLANNING": "Planning"})
-    errors, notices = chain.frame(
-        reader, routing, "unused", item, f"{item}/routing.md", {"planning": "framer"}
-    )
-    assert errors == []
-    assert [n for _rel, _line, n in notices if "approval line is absent" in n]
+    assert chain.frame_foot(reader, whole)[0] == ("2026-01-01", "framer")
 
 
 def test_a_heading_after_a_separator_starts_no_section():
@@ -356,44 +273,6 @@ def test_an_issue_body_is_cut_where_github_renders_a_block():
     claims = _load("specseal_claims_s13", CLAIMS)
     text = f"The parser drops a row{LS}- when the cell is wide"
     assert claims.segments(text) == [(0, len(text))]
-
-
-@pytest.fixture
-def measured(tmp_path):
-    """A repository whose second commit adds a unit to a non-Python file
-    below a form feed, and a caller of it after a U+2028."""
-    d = tmp_path / "measured"
-    d.mkdir()
-    git(d, "init", "-q", "-b", "base")
-    write(d, "tool.sh", "echo\n")
-    a = commit(d, "a")
-    write(d, "tool.sh", f"echo\n{FF}def name():\n")
-    write(d, "caller.sh", f"x{LS}name(1)\n")
-    b = commit(d, "b")
-    return str(d), a, b
-
-
-def test_a_unit_added_below_a_form_feed_is_measured(measured):
-    """S14. The diff line is `+`, a form feed and `def name` on one line, as
-    git numbers it; cut at the form feed, its `+` was one line and the
-    definition another that is no added line at all."""
-    root, a, b = measured
-    generator = generator_module()
-    uc = generator.load(READER, "specseal_reader_s14")
-    _changed, added, heuristic, _at_a, _at_b = generator.measure(
-        uc, root, a, b, ["tool.sh"]
-    )
-    assert heuristic == ["tool.sh"]
-    assert ("tool.sh", "name") in added
-
-
-def test_a_call_after_a_separator_is_a_call_site(measured):
-    """S14's second half. `git grep -n` prints `rev:path:line:text`, and a
-    U+2028 in `text` cut the call off its prefix."""
-    root, _a, b = measured
-    generator = generator_module()
-    uc = generator.load(READER, "specseal_reader_s14b")
-    assert "caller.sh" in generator.call_sites(uc, root, b, "tool.sh", "name", {})
 
 
 START, END = "<!-- specseal:start -->", "<!-- specseal:end -->"
@@ -511,14 +390,6 @@ F = (
     "reader line to the one it starts in"
 )
 OUT_OF_CLASS = {
-    (".github/scripts/budget_check.py", "main"): (1, "the docstring's first line"),
-    # #931: the pieces `hooks/config.py#gfm_table` numbers its rows by, so the
-    # line `--restate-price` overwrites is the row the walk read, as
-    # `seal.py#with_row` writes its `Mode` row.
-    (".github/scripts/budget_check.py", "restate_price"): (
-        1,
-        "the `str.splitlines` pieces `gfm_table` numbers a row by",
-    ),
     (".github/scripts/rules.py", "main"): (1, "the docstring's first line"),
     (".github/scripts/close_issues_on_release.py", "arrived"): (2, GIT),
     (".github/scripts/issue_claims_check.py", "main"): (
@@ -544,12 +415,6 @@ OUT_OF_CLASS = {
     ("hooks/worktree-guard.py", "proc_cwd"): (1, TOOL),
     ("hooks/worktree-guard.py", "sessions_in_tree"): (1, TOOL),
     ("hooks/worktree-guard.py", "tracked_changes"): (1, GIT),
-    ("skills/code-review/scripts/chain_check.py", "added_on_branch"): (1, GIT),
-    ("skills/code-review/scripts/chain_check.py", "restored_from"): (1, GIT),
-    ("skills/code-review/scripts/round_record.py", "head_moved"): (1, GIT),
-    # `touched` and `tracked_at` left this list with #860: both read a git
-    # listing with `-z` now, so neither splits on lines at all.
-    ("skills/code-review/scripts/round_record.py", "worktrees_of"): (1, GIT),
     ("skills/implement/scripts/seal.py", "gitlinks_under_root"): (1, GIT),
     ("skills/implement/scripts/seal.py", "other_worktrees"): (1, GIT),
     ("skills/implement/scripts/seal.py", "porcelain"): (1, GIT),
@@ -568,7 +433,6 @@ OUT_OF_CLASS = {
     ("skills/verify/scripts/broad_gate.py", "refused_broad_row"): (1, F),
     ("skills/verify/scripts/broad_gate.py", "stopping_line"): (1, F),
     ("skills/verify/scripts/broad_gate.py", "rows_written_below"): (1, F),
-    ("skills/verify/scripts/broad_gate.py", "gate"): (1, TOOL),
     ("skills/verify/scripts/broad_gate.py", "job_steps"): (1, YAML),
     # The recorder's JSON Lines (#825): `json.dumps` escapes every control
     # character and every non-ASCII one, so no separator but LF is in it.

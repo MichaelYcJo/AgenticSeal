@@ -34,11 +34,10 @@ exactly as it would be under the new; a file holding one is read from it
 alone, and an old header beside it is refused, because its rows would
 otherwise go unread. `pact-check` prints one line naming the file, both
 headers and the release that renamed them before that file's other lines,
-and its exit is what the new header gives; at the pact's repository
-`chain-check`'s notice carries the same sentence and its exit does not
-move. No command rewrites a pact: the line says to rename the header when
-the file is next edited, and every text this plugin ships says `signer`.
-Enforced by: tests/test_pact_check.py::test_s2_a_pact_headed_as_0_18_wrote_it_reads_the_same_and_names_it, tests/test_a_signers_ci_prints_its_pact.py::test_a_pact_headed_as_0_18_wrote_it_is_counted_and_the_rename_named, tests/test_a_signer_declares_its_pact.py::test_s4_a_pact_holding_both_tables_reads_signer_and_refuses_the_old_one, tests/test_pact_check.py::test_s4_a_pact_holding_both_tables_is_exit_2_naming_the_old_one, tests/test_one_word_one_meaning.py::test_no_pact_text_names_a_signer_the_way_0_18_did, tests/test_one_word_one_meaning.py::test_no_live_text_says_the_word_0_19_0_renamed
+and its exit is what the new header gives. No command rewrites a pact: the
+line says to rename the header when the file is next edited, and every text
+this plugin ships says `signer`.
+Enforced by: tests/test_pact_check.py::test_s2_a_pact_headed_as_0_18_wrote_it_reads_the_same_and_names_it, tests/test_a_signer_declares_its_pact.py::test_s4_a_pact_holding_both_tables_reads_signer_and_refuses_the_old_one, tests/test_pact_check.py::test_s4_a_pact_holding_both_tables_is_exit_2_naming_the_old_one, tests/test_one_word_one_meaning.py::test_no_pact_text_names_a_signer_the_way_0_18_did, tests/test_one_word_one_meaning.py::test_no_live_text_says_the_word_0_19_0_renamed
 
 ## When there is a pact at all
 
@@ -81,8 +80,7 @@ caller.** `Pact` is the origin remote URL of the pact's repository, several
 separated by `;`, compared normalised; its last path segment is the name an
 anchor carries, so two pacts ending in one segment are refused.
 `hooks/config.py#pact_declaration` refuses what will not parse in a
-sentence and stops nothing, so the print at a signer's pull request and the
-refusal at the pact's repository are about the same row. A `Pact` row
+sentence and stops nothing, so every reader of the row reads the same row. A `Pact` row
 written twice has no value at all: its first row is not the answer. A
 `Pact` row the config table does not hold is no row, so `pact-check` reads
 that signer as naming no pact, a relationship recorded on one side only.
@@ -117,19 +115,14 @@ give it a hash, or, where the text shows the shape rather than citing a
 clause, put it in a fenced code block, which nothing reads.
 Enforced by: tests/test_pact_check.py::test_an_anchor_missing_its_slash_is_refused, tests/test_pact_check.py::test_a_mark_the_name_holds_is_not_a_second_name, tests/test_pact_check.py::test_the_refusal_names_both_remedies, tests/test_pact_check.py::test_prose_naming_the_pact_is_not_a_citation, tests/test_pact_check.py::test_a_pact_anchor_that_does_not_parse_is_refused
 
-## A signer's CI prints and verifies nothing
+## A signer's CI reads nothing of the pact
 
 <!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
-**At a pull request, `chain-check` prints the pact a signer names and how
-many pact anchors its declared work item cites, and no exit status moves on
-anything about the pact.** There is no token for a pull request to read
-another repository with (#647, decision 2), so a signer's CI can see one
-side only. It prints the pact's repository and the anchor count, a notice
-for a row that will not parse or an anchor naming an undeclared pact, and in
-the pact's repository how many signers the pact lists, and every one of them
-says that `pact-check` at the pact's repository is where the reconciliation
-runs.
-Enforced by: tests/test_a_signers_ci_prints_its_pact.py::test_a_signer_prints_its_pact_and_its_exit_status_does_not_move, tests/test_a_signers_ci_prints_its_pact.py::test_a_row_that_will_not_parse_is_a_notice_and_never_a_failure, tests/test_a_signers_ci_prints_its_pact.py::test_the_pacts_repository_prints_how_many_signers_it_lists
+**At a pull request nothing reads the pact, and no exit status moves on
+anything about it.** There is no token for a pull request to read another
+repository with (#647, decision 2), so a signer's CI could see one side only;
+`pact-check` at the pact's repository is where the reconciliation runs.
+Enforced by: nothing — `skills/code-review/scripts/chain_check.py` holds no pact arm
 
 ## `pact-check` reconciles, locally
 

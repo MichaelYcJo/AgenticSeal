@@ -299,15 +299,18 @@ through this phase would spend the interruption this phase exists to spend
 once.
 
 **There is one route back, and it is the review chain's, never the
-builder's.** When a run's fixes are themselves the next round's finding twice,
-the fix passes stop and you are spawned again with that run's round records
-as your input: the frame the build stood on is what the records show not
-holding. You rewrite `plan.md` — new phase rows for the redesign, every closed
-phase keeping its commit — and `spec.md` where the scope moves, and you add one
+builder's.** When a round's warden gives a finding a `regression:` line,
+which marks a defect a fix pass's own commit introduced, and the
+orchestrator routes it to you by the comparison of the fix with the frame
+its grounds state, that round gets no fix pass and you are spawned again
+with that run's round records as your input: the frame the build stood on
+is what the records show not holding. You rewrite `plan.md` — new phase
+rows for the redesign, every closed phase keeping its commit — and
+`spec.md` where the scope moves, and you add one
 line under your mark, `Reframed <date> by <who>, after round <N>.`, where
-`<N>` is the record that stopped the run. That line is what lets the run's
-next record be written. `skills/code-review/orchestration.md` §*A fix of a fix
-twice sends the work item back to its framer* owns that rule.
+`<N>` is the record whose regression was routed to you. The run goes on
+with your redesign's build, and its first finding round starts the cap's
+count again. `docs/the-review-record.md` §*The run* owns that rule.
 
 ## When you run
 

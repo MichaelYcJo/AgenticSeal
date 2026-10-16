@@ -38,16 +38,17 @@ diff it reviews.
 
 ## The language the round records are written in
 
-The prose in `rounds/round-N.md` — its cell contents and the text beneath its
-tables — follows `Record language` in `config.md`, English when the row is
-absent. The root is `<repo>/seal/` where that directory exists and
-`$(git rev-parse --git-common-dir)/seal/` otherwise.
+The prose in `rounds/round-N.md` — what follows each label, the text under
+its headings and the cells of its tables — follows `Record language` in
+`config.md`, English when the row is absent. The root is `<repo>/seal/`
+where that directory exists and `$(git rev-parse --git-common-dir)/seal/`
+otherwise.
 
-What stays English regardless: every field name, section heading and
+What stays English regardless: every field name, section heading, label and
 vocabulary word the checkers match, listed in `templates/config.md` under
 *What no row governs*. `chain_check.py` reads those strings literally, so a
-translated `## Verdicts` or `Verdict` column is not a translation — it is a
-record the checker cannot read.
+translated `## Findings` heading or `verdict:` label is not a translation —
+it is a record the checker cannot read.
 
 **The report you post to the pull request is not a record.** It is prose for
 whoever opens that pull request, and follows `Commit and pull request
@@ -106,8 +107,9 @@ mutated while an external call was in flight.
 
 The security row earned its place the same way. Stage 2 has always named
 security, and the table is what makes an axis mandatory — an axis that lives
-in prose leaves no `❓` when nobody walks it. It also shares the concurrency
-row's exemption on its own grounds: it asks what an input
+in prose leaves no row of `## Not judged` when nobody walks it. It also
+shares the concurrency row's exemption on its own grounds: it asks what an
+input
 nobody sends in good faith does, and no amount of following the request in
 front of you answers it. Three of one round's four
 blocking findings had a stronger security frame than the one they were given,
@@ -119,8 +121,8 @@ alone.
 
 A fixed list covers the same ground on a bad day as on a good one, which is
 what it is for. The cost is the other half: an axis nobody wrote down is not
-reported as unjudged, it leaves no trace at all. `❓ out of verified scope`
-records that you looked and could not decide — there is no mark for what was
+reported as unjudged, it leaves no trace at all. A row of `## Not judged`
+records that you looked and could not decide — there is no row for what was
 never on the list.
 
 So name this change's own axes before starting, in the round's first minutes,
@@ -173,75 +175,21 @@ every probe that round put together.
 already judged are not re-walked — unchanged code keeps its verdict. Probes a
 previous round ran are only re-checked for "is it fixed now".
 
-The records used to be keyed by a pull request number, at
-`.specseal/handoff/PR-<n>/`. That number does not exist while the rounds that
-would fill the directory are running, so no correct session could create it
-and none ever did; `docs/review-handoff-protocol.md` carries the reasoning.
-The work item is the key now, and its `routing.md` names the branch.
-
-**Right after posting the report**, three files are written at the work item:
-`rounds/round-N.md` by `round_record.py new` — the generator at
-`skills/code-review/scripts/round_record.py`, typed as `round-record` — from
-the reviewer's report, and the two todo files by the orchestrator. Reviewer
-workers write none of those three — parallel writers overwrite each other,
-and worker findings are pre-verification.
-
-**The reviewer does write one file, and it is not a record.**
-`rounds/round-N-report.md` is the report itself, left where
-`round_record.py new` reads it when `--report` is absent, and it carries
-neither of the properties that sentence protects: it is one file per round
-rather than a shared one, and it is the pre-verification text rather than
-something that asserts a verdict has been checked. Before it existed the
-report reached the orchestrator as chat text and a transcript, and the
-orchestrator **retyped** it to have a file to pass — a lossy copy of the one
-document whose whole value is that it is exact (#228). The fixer side had
-`rounds/round-N-fixes.md` all along; this is the other half of that
-convention. One of them gets a directory and
-the other does not: `round-N` is the only member of the set that is plural and
-unbounded, so `tests-todo.md` sits at the work item's own level, beside
-`rounds/` rather than inside it:
-
-| File | Contents |
-|---|---|
-| `rounds/round-N.md` | target commit SHA (mandatory — branches move between rounds), verdict table with the grounds behind each verdict, **executed probe results**, the coordinates carried in from earlier rounds, **deferrals** — what this round took out of scope and the durable home each went to — the **broad-gate state**, `not yet` or one entry per full-suite run, newest first, each the SHA it happened at and the base it was compared against, **who checked the fixes** (below), the **fix surface** — the `Contract changes` and `New units` of this round's fixes (below) — **whether anything it opened needs a fix** — the reviewer's own `Needs a fix` line, copied rather than re-derived from the verdict table — and **whether anything it found leaves the root or crashes**, the reviewer's `Loses a record or crashes` line, which is the floor under the cap, and **what ran the round** — the `Ran by` row, the agent and the model, filled by the session that spawned it (below) |
-| `rounds/round-N-report.md` | the reviewer's report as the reviewer wrote it — written by the reviewer, read by `round_record.py new`, committed by the orchestrator beside the record it produced. Not a record: nothing reads a verdict out of it, and every reader of `rounds/` selects records by name. That commit is also what puts a reviewer's prose in front of whatever scans the tree — `agents/warden.md` §Report says what it costs, and it is the reviewer who has to know |
-| `tests-todo.md` | regression tests to plant, with the destination file per row |
-
-**A round record starts from `templates/sdd-round.md`** in shape, and
-`round_record.py new` writes it: every field named above, already spelled,
-from a source that is not prose, and the template says beside each one what
-its values may be. A round that opens a blank file instead writes the fields
-it happens to remember, and the one it forgets is the one nobody notices is
-missing.
-
-**What goes into `round-N.md`'s `## What this round was asked` section is
-the round-specific content of the spawn prompt that started it** — never the
-boilerplate `agent-contract` and `agents/warden.md` already carry, which
-every round gets told by definition and none of them need repeated in its
-own record. `round_record.py new` copies it in from `--asked <file>`
-right after posting the report, and it is the one thing you write by hand for
-the record: what the spawn prompt told this round, specifically, to attack,
-in what order, and which facts arrived as coordinates rather than as
-something still to verify. #81's round 1 is the
-measured reason — five defects, one 🔴 and four 🟡, in 29 tool calls,
-because its prompt named eight specific things to try to break, and that
-fact today survives only in a
-transcript.
-
-Skipping this step makes review round *n* cost *n* full walks — the next
-round re-finds every coordinate from scratch.
-
-The directory is **closed at merge, not deleted**: the drained rows move to
-their durable homes and a closing note says what went where. A deferral that
-leaves this directory leaves what the next round reads, and comes back as a
-finding — which is why it is also a row in `round-N.md` rather than only a
-line in `seal/follow-up.md`.
+The work item is the key, and its `routing.md` names the branch. The warden
+writes `rounds/round-N.md` from `templates/sdd-round.md`, the fix pass
+writes each finding's `verdict:` and `answer:` lines, and every round file
+stays for the next round to read: `docs/the-review-record.md` §*The round
+record* states the labels, the values and who writes what.
 
 What carries is **where to look, not what was concluded**. A later round opens
 those coordinates and reaches its own verdict; an axis marked clean in round 1
 can be broken by the fixes made for round 2, and inheriting that verdict is
-exactly how it goes unseen. Earlier verdicts set the agenda — every one needs
-an answer this round, on this round's grounds.
+exactly how it goes unseen. Earlier verdicts set the agenda, on this round's
+grounds: every finding the round before closed `fixed <commit>` or
+`rejected` is named by this round: by a `confirms:` line where the close
+holds, and where it does not by a finding that names it on a `reopens:`
+line, or on a `regression:` line if a fix pass's commit introduced the
+defect. The check refuses a finding no later round names.
 
 Re-deriving the verdict is not re-walking the code. Finding the coordinates is
 the expensive half, and `round-N.md` exists so it is paid once; a later round
@@ -251,7 +199,7 @@ round-2 regression.
 
 The test for what may be carried is whether staleness is detectable, not
 whether the fact feels durable. A rule's `Enforced by:` target carries because
-the `enforced-unresolved` budget row fails when it is gone; what the original
+`rules --check` fails the suite when it is gone; what the original
 does carries because `seal/parity.md` pins the baseline SHA it was read at.
 Both are re-established when their check fails, or when `parity.md` lists the
 path under coordinate-trust exceptions. A verdict on current code carries
@@ -259,95 +207,32 @@ nothing — no check exists that would tell you it went stale, which is exactly
 why the round has to reach it again.
 ## Findings format
 
-Severity names carry the required action, not just a rank:
+**A finding is one `### <n>. <symptom>` section under `## Findings`,
+numbered from 1, and the number in its heading is its id.** Its `severity:`
+line names the required action, not just a rank:
 
 ```
-🔴 blocks merge     — spec violation or defect; fix before merge
-🟡 fix or justify   — a defect the release would ship: the tool does something wrong, or tells a person something wrong; fix or justify
-⬜ note             — reads badly while the behaviour and the fact stay right; carried open and closed once at the run's end, never counted by Needs a fix
-🟢 pass             — verified equivalent (different implementation, same behavior, is a pass)
-❓ out of verified scope — could not judge; never silently counted as pass
+severity: must     — spec violation or defect; fix before merge
+severity: should   — a defect the release would ship: the tool does something wrong, or tells a person something wrong; fix, or say why not
 ```
 
-The line between 🟡 and ⬜ is *would the release ship a defect*. Half of the
-last branch's 53 🟡 were true sentences about prose, and each cost a fix pass
-and a reader; `Needs a fix` counts 🔴 and 🟡 only. A ⬜ takes no row in a
-round's fix table and is not reported again by a later round:
-`skills/code-review/orchestration.md` §*A note closes once, at the run's
-end* owns that rule.
+A wrong sentence that an agent reads and acts on is a `should` defect. A
+record's sentence that is only awkward is no finding at all.
 
-**Number the findings 1..N — the id is a bare integer.** The marker may lead
-it (`🔴 1`, `⬜ 13`); nothing else may. `R2-1`, `1-1`, `1b` and `A2` are
-refused by `round_record.py`, which names the format and quotes every row that
-carries one. Do not put the round in the id: `rounds/round-N.md`'s own file
-name carries it, and a prefixed id used to collapse eight findings toward one
-key in silence (#227, `docs/round-record-spec.md` §*The finding id*).
+**Two other kinds of entry are never findings.** What this round confirmed
+holds — a closed finding of the round before, read and found closed, or a
+claim the frame or the build made that held — is a `confirms:` line under
+`## Confirmations`. What
+it could not judge is a row of `## Not judged` naming who answers it, and it
+is never silently counted as a pass. An earlier round's finding is named
+`round-<N>#<n>` wherever this round refers to it
+(`docs/the-review-record.md` §*The round record*).
 
-**One depth per finding:** a finding whose coordinates sit at two depths —
-one inside a unit an earlier round's fixes created, another not — is written
-as two findings, so each verdict carries one depth and the fix of one does
-not refuse the units the other's fix adds. `round_record.py close` keys its
-depth refusal on the finding's `Location` (`docs/round-record-spec.md`
-§*The depth in `New units`*), so a finding left unsplit has its depth-1
-units refused beside the depth-2 one (#366).
-
-**A row that commissions nothing takes no id at all**, and its `#` cell says
-so — `carried`, `🟢 fix-surface`. Three kinds of row are that: something this
-round verified and did not open, an earlier round's closure carried into this
-table, and a `❓ out of verified scope` marker. None can be referenced by a fix
-table, because there is nothing to commission, and numbering them makes a
-six-finding round read back as a twelve-row one.
-
-**A 🔴 or 🟡 with no number is refused**, and so is an empty `#` cell. Those two
-severities mean somebody owes the row an answer, so the row is not one that
-commissions nothing whatever its `#` cell says — and a row admitted as
-commissioning nothing is never counted toward `Pass`, so the record would tick
-`Pass` over an open finding. Write the number, or write the severity the row
-actually has.
-
-**A row whose Verdict cell reads `open` is refused too**, whatever its `#`
-cell says. The record states the answer in the column beside the one the rule
-reads, and a row admitted as commissioning nothing is never counted toward
-`Pass` — so without this the record was written with `Pass` ticked over a row
-its own table calls open. It is the one word rather than a vocabulary test:
-a confirmation reads `verified`, which is in no vocabulary and would refuse if
-the test were *anything not closed*.
-
-**Which way the mistake costs more.** Numbering a confirmation row inflates one
-record's count. What still slips through takes two mistakes in one row: writing
-🟢, ❓ or ⬜ with no number on a row that IS an open finding **and** wording its
-verdict as something other than `open`. That writes a finding no fix table will
-be asked to close, and `close` exits 0 over it. So the id is what says
-*somebody owes this an answer* — put one on every finding and on nothing else.
-
-An earlier round's number goes in the **Finding** cell, which is prose:
-`| 🟢 | round 2's finding 1, re-read | … |`. In the `#` cell it is digits, and
-digits there are an id.
-
-**A carried closure — an earlier round's finding this round confirmed
-closed — is one worked row, and it carries three requirements at once**
-(#437):
-
-```
-| 🟢 | round N's blocking finding is closed — <what> | <location> | confirmed | <grounds> |
-```
-
-A bare marker in `#`, never a number and never an empty cell. The verdict
-word `confirmed`, never `fixed`: `chain_check.closed_with_a_fix` reads the
-fix words across every row, so a `fixed` carried forward makes the record
-one that closed on a fix, which the cap refuses. And no 🔴 anywhere in the
-row: `chain_check.open_blocking` selects on the glyph in every cell, so the
-inherited severity is written in words. #437 measured it at its filing:
-three last records read as closed-with-a-fix, and every one was this shape.
-
-**This is the one format choice a reviewer makes that another agent pays
-for.** The fix pass copies your numbering into its `## Fixes` table, so a
-numbering the generator refuses surfaces at the orchestrator — one hop from
-you, and one hop from the fixer, neither of whom is there to fix it.
-
-Every finding carries `file:line`, what is wrong, why it matters, and a
-paste-ready fix for 🔴/🟡. The report is written for posting as a PR comment,
-but **the user posts it** — publishing externally is the user's call.
+Every finding carries its `location:` line, what is wrong, why it matters,
+and a paste-ready fix. Its labels are lowercase words at the start of their
+lines, and the record is written in words, with no emoji anywhere in it. The
+report is written for posting as a PR comment, but **the user posts it** —
+publishing externally is the user's call.
 
 **Paste-ready means the snippet cannot mislead on its own.** A fix often needs
 a name the tree does not have yet — a field the schema never defined, a helper
@@ -365,32 +250,10 @@ too many names are missing for a snippet to stand, describe the change in
 sentences and say which document would have to exist for the code to be
 written.
 
-**Every one of those blocks goes under `## Paste-ready fixes`, and that is
-the only place a fix survives the session.** `round_record.py new` copies the
-report's tables and takes every fenced block under that heading; prose it
-does not take. A fix written into the findings paragraphs alone reaches no
-file, and the record is what the fix pass opens instead of the report —
-*the report is a message in a session that ends; the record is a file the
-next segment opens.* Measured (#187): a 162-line report carried three
-executed snippets, the record came out at 80 lines with none of them, and the
-fix pass rebuilt all three from a description. Its first reproduction was
-wrong. A round that opened nothing needing a fix writes no section, and the
-record says so.
-
-**The report is a file now, and that changes what the sentence above is
-saying rather than retiring it.** `rounds/round-N-report.md` survives the
-session, so a fix pass that wants the report's own words can open it. What is
-unchanged is which file the fix pass is *told* to open and which one anything
-downstream reads: `chain_check.py` reads the record, `close` writes the
-record, and the next round inherits from the record. So a fix that exists
-only in the report's prose still reaches nothing that acts on it — the loss
-is no longer *the words are gone* but *the words are in the file nobody is
-pointed at*, which costs the same fix pass. Fence it under
-`## Paste-ready fixes` regardless.
-
-A Grounds cell is not the place either. It is one line of one table row, a
-paste-ready fix is a fenced block with comments in it, and a `|` inside that
-cell used to truncate the row without a word (#189).
+**Every one of those blocks goes inside the finding it fixes**, after the
+grounds and before the `answer:` line, so the fix pass opens one section and
+finds the what, the where, the why and the paste together. A fix described
+in prose alone is rebuilt from the description by the fix pass.
 
 **A fix touching an OS boundary states its assumed precondition.** The
 premises are the ones a snippet assumes without a line to show for them —
@@ -404,7 +267,7 @@ statement worth making, because silence and "none" read alike. Three of one
 round's four blocking findings arrived as sketches that read as paste-ready
 and were not.
 
-### Verdicts that close too early
+### A finding closed too early
 
 Three shapes of closing recur, and each is written down here because each was
 measured costing rounds.
@@ -413,7 +276,7 @@ measured costing rounds.
 finding.** A fix that answers a finding by enumerating cases — keywords,
 spellings, constructs — from a domain nothing bounds has narrowed the finding,
 not closed it. The verdict says so, and the limit goes where it will be read
-again: the skill's Known limits or the record's Deferred row. Measured: one
+again: the skill's Known limits or a `deferred <home>` verdict. Measured: one
 such rule cost three rounds and two owner decisions, and closed only when the
 uncertainty moved out of the classifier instead of being argued inside it.
 
@@ -436,5 +299,5 @@ End with the proof block. Fill it only with files actually opened; write
 📋 code-review applied
 · spec:     <policy/SDD files and clauses read>
 · compared: <files opened for comparison, file:line>
-· verdict:  🔴 n · 🟡 n · 🟢 n · ❓ n
+· verdict:  must n · should n · confirmed n · not judged n
 ```

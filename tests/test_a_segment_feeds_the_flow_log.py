@@ -501,10 +501,8 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     # contains that substring and held the old check up on its own.
     for path in ("`seal/specs/`",):
         assert path in source, (
-            f"the `Location` row no longer names {path} as a record path. It "
-            "and `docs/review-chain-spec.md` have to enumerate the same set, "
-            "or a finding lands in one bucket under the policy and another "
-            "under the table — which is what the two fillings disagreed about"
+            f"the `Location` row no longer names {path} as a record path, so "
+            "a finding about the run's own paperwork lands in the code bucket"
         )
     assert "anything under `seal/` " not in source, (
         "the row defines a record as the whole `seal/` directory again. That "
@@ -519,25 +517,22 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     )
 
 
-def test_the_broad_gate_row_asks_for_what_the_cell_actually_carries():
-    """Round 1's finding 4, and the premise #174 reversed. The row asked for
-    `how many times, at what SHA` from a cell that held one entry —
-    `round_record.py` replaced it rather than appending — so a run that ran
-    the gate twice had nowhere in the record to say so, and this case refused
-    the count. Under #174 the cell holds one entry per full-suite run, newest
-    first, so the count is read off the cell rather than remembered: the row
-    may ask for it again, on the one condition that its source says where
-    the count comes from."""
+def test_the_broad_gate_row_asks_for_what_the_file_actually_carries():
+    """Round 1's finding 4, and the premise #174 reversed. Under #174 the
+    broad gate's record holds one entry per full-suite run, newest first, so
+    the count is read off it rather than remembered: the row may ask for it,
+    on the one condition that its source says where the count comes from.
+    Since 0.22.0 that record is `broad-gate.md` (#923)."""
     label, source = labelled("Broad gate")
     if "how many times" in label:
         assert "one entry per full-suite run" in source, (
-            "the `Broad gate` row asks for a count without saying the cell "
+            "the `Broad gate` row asks for a count without saying the file "
             "holds one entry per run, so the count comes from somewhere the "
             "next run cannot check"
         )
-    assert "not yet" in source, (
-        "the row names the cell without saying what it holds, which is the "
-        "reason the count went unnoticed in the first place"
+    assert "`broad-gate.md`" in source, (
+        "the row names no file the count is read from, which is the reason "
+        "the count went unnoticed in the first place"
     )
 
 

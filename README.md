@@ -39,7 +39,7 @@ works outside the context entirely (hooks).
 | **smith** (Claude Code subagent) | `agent-contract` · `implement` · `writing-style` | Implements against the spec, then prints a three-line proof block: which policy files it opened, which cases it added and how each was seen red, what it executed versus merely read. The block is a disclosure the skill requires, not something a hook verifies — but `none — <reason>` in a row is visible to you |
 | **warden** (subagent) | `agent-contract` · `code-review` · `writing-style` | Reviews spec compliance first, then quality. Once its report is verified the orchestrator writes the reviewed HEAD sha to `.git/specseal-reviewed`, which is what the commit gate looks for — the reviewer never writes its own mark |
 | **scribe** (subagent) | `agent-contract` · `legacy-parity` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. Appears only in repos that declare `seal/parity.md` |
-| **sealer** (subagent) | `agent-contract` | Runs the one broad gate — `broad-gate`, once, after the rounds settle — and writes the last round record's `Broad gate` cell. It reads no spec and no diff, and judges nothing: a failing check comes back with its own lines and the word `new` or `failing on base too` — or `new?` with the reason, where no run at the base measured the file — and what that means is the reader's call |
+| **sealer** (subagent, Opus) | `agent-contract` | The final, independent guarantor. After the rounds settle and the pull request body and changelog are written, it runs the one broad gate (`broad-gate`, which writes `broad-gate.md`), re-runs a sample of the implementer's claims, and reads the spec, the build, the last review, the changelog and the pull request body against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sound`, `not sound` naming what the tree contradicts, or a question for the owner. It does not re-judge the design or the code's quality |
 | Skills | — | Twenty-two, in three groups. The five the agents follow are in the column to the left. Eleven more a session loads on its own when the work calls for them — `audit`, `build-fix`, `checkpoint`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `learn`, `settle`, `verify`. Six you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
 | CLAUDE.md block | — | 12 always-on lines — four section headings (`Tooling`, `Safety`, `Session cost`, `Git`) over eight rules: one on tooling, three on safety, one on session cost, three on git. No response-language rule — that stays yours. Its one source is `templates/claude-md-block.md`; the repository's own `CLAUDE.md` carries a generated copy, and CI fails a pull request where the two differ |
@@ -87,9 +87,14 @@ the author's account rather than evidence, and says in its report that it set
 it aside. For a review with no path in at all, open a fresh session and call
 `@agent-specseal:warden` there: the round history is files, so it is inherited
 either way.
-The review run is bounded: three rounds, or five while something marked
-🔴 *blocks merge* is still open and only to close it. Then it ends whether
-or not everything was resolved. What is left is handed over rather than
+The review run is bounded: three finding rounds by default, counted from the
+last design change (a reframe, or a new phase you approved), and one more at
+a time only while each round finds fewer findings than the one before and
+none of them is a regression, a defect a fix pass's own commit introduced.
+A regression sent to a fix pass gets one verifying round for that fix, and
+it is not an extension. At the cap every
+finding still open is handed on and reads `deferred <home>`, whether or not
+everything was resolved. What is left is handed over rather than
 carried — an unanswered finding to `seal/follow-up.md`, a decision only
 you can make to `questions.md`, an original whose behavior is plainly wrong
 recorded both ways — each named in the PR body. **The chain ends at a PR,
@@ -122,19 +127,17 @@ seal/
     ├── spec.md · plan.md · questions.md · overview.md
     ├── rounds/
     │   └── round-N.md    review rounds — committed, drained, then closed and kept
-    └── tests-todo.md
+    ├── broad-gate.md     the one broad run, at a SHA, against the base
+    └── guarantee.md      the sealer's verdict on the work, at a SHA
 ```
 
 Judgment runs policy > SDD > code where a repository has policy documents, and
 SDD > code where it does not. Most repositories are the second kind, and the
 plugin does not manufacture the first.
 
-Missing files bootstrap from `templates/`. The handoff convention is
-specified tool-agnostically in
-[docs/review-handoff-protocol.md](./docs/review-handoff-protocol.md) — any
-agent that reads and writes files in a git repo can conform. It names the
-records' home as *the directory that holds the work item*; `seal/specs/<id>/` is
-this implementation's answer to that, not the protocol.
+Missing files bootstrap from `templates/`. The round records, the check at the
+pull request and the handoff to an agent are specified in
+[docs/the-review-record.md](./docs/the-review-record.md).
 
 **A rule names the test that holds it.** A rule a policy document states ends
 with an `Enforced by:` line naming a test as pytest spells its node id
@@ -159,13 +162,12 @@ tables:
 [docs/commit-review-gate-spec.md](./docs/commit-review-gate-spec.md) ·
 [docs/the-commit-gate-inside-git.md](./docs/the-commit-gate-inside-git.md) ·
 [docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
-[docs/review-chain-spec.md](./docs/review-chain-spec.md).
+[docs/the-review-record.md](./docs/the-review-record.md).
 
 | Gate | Fires | Does | Where |
 |---|---|---|---|
 | git hooks (`pre-commit`, `reference-transaction`, `post-commit`) | inside git, in every opted-in clone a session reaches | judge a commit in the worktree it lands in, from inside the commit rather than from the command's text, so no shell construct moves one around the judgment. A worktree creation and a branch switch are still judged before the command runs, by the worktree guard below. The commit gate's arms are the ones in the next row; a stop is the hook refusing with the ways on in the command's output, and `git -c specseal.waive=review commit …` is the waiver in git's own spelling. A person's own commit, with no Claude session behind it, is not judged. Installed into the clone's common `hooks/` directory, marked so a hook somebody else wrote is never overwritten — where one is, or `core.hooksPath` is set, the clone keeps the next row's reading | `docs/the-commit-gate-inside-git.md` §The commit gate inside git |
 | commit-review-gate | before `git commit` | stops the commit when `.git/specseal-reviewed` does not hold the current HEAD sha, and puts the two ways on to you as options: run the review chain, or commit with `[no-review]` (which stays visible in the command). In a repo that declares `seal/parity.md` it also stops a code commit with no `.git/specseal-parity` for this HEAD — compare against the original, or `[no-parity]`. Both arms are put up together, in one question each. **Once per session per repository** — after that it is the plain confirmation, where approving is the waiver. Where you pressed `automation` on the routing question, no prompt reaches you at all: every stop goes back to the model as a refusal naming the ways on that need nobody. The repository judged is the one the command commits **into** — `git -C <path> commit` is judged at `<path>`, not where the shell sits. A `-C` the gate cannot resolve to a repository (a shell variable, since the gate reads the command before the shell expands it) stops the commit rather than passing it: it was never looked at, and that used to be indistinguishable from having passed | `seal/` at the root, or under the common git dir in local mode — silent elsewhere. A migration config lives inside it, so declaring one opts into both arms; waive the review arm per command with `[no-review]`, typed in FRONT of the command — `: '[no-review]'; git commit …`, quotes included |
-| review-history-guard | after posting/reading a PR review via `gh` | reminds to write / read `seal/specs/<work-item>/rounds/round-N.md` and the two todo files beside `rounds/`. It also names any record left at the old flat location, since nothing reads one there. It finds the work item the way the commit gate does — through the routing declaration that names this branch — so a branch that declared nothing is not reminded | same opt-in |
 | implementer-mark | before an Agent/Task call whose `subagent_type` is `framer` or `smith` (`specseal:smith`, or a project-local `smith`) | writes the checked-out branch name to `.git/specseal-planner` or `.git/specseal-implementer`, one file per axis. It prints nothing, so it can neither deny nor ask; it is the trace the notice below reads. Written before the group decides, so a spawn the worktree guard then stops still leaves one | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
 | implementer-notice | after a command that actually runs `git commit` | where this branch's `routing.md` answers `Planning` with `framer` or `Implementation` with `smith` and no mark of that axis stands for this branch, prints one line naming the file — **one line for both axes**, never one each. Nothing is said for an axis whose mark stands, whose row is absent or unreadable, or which answers `the session`. **Once per session per repository**, and it never blocks — a declared agent nobody spawned is a session forgetting its own answer, and a reminder is what that costs | same opt-in |
 | review-skill-gate | before the model opens a skill named `code-review` | puts the choice to you rather than making it: that name is Claude Code's built-in, not this plugin's. The built-in sweeps the diff for bugs and cleanup; `specseal:code-review` judges spec compliance first and inherits earlier rounds' verdicts. Fires **once per session per working tree**, so picking the built-in and retrying goes straight through. A skill you invoke yourself never routes through here | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
@@ -182,27 +184,22 @@ item writes `seal/specs/<id>/routing.md` before its first edit — which way it 
 and whether it opens a pull request — and the gate reads that instead of
 guessing from the absence of a mark. The check moved to the pull request: CI
 reads the same file out of the diff and, for anything routed through the
-chain, requires a committed round record whose `Pass` does not contradict its
-own verdict table. A pull request that declared neither way is not failed; it
-gets a notice saying nothing was checked.
+chain, requires a committed round record with no finding left unanswered. A
+pull request that declared neither way is not failed; it gets a notice saying
+nothing was checked.
 
-Each round record also has to say **who opened the fixes** that closed what it
-found. A round's findings are closed after it ends, by whoever writes the
+A round's findings are closed after it ends, by whoever writes the
 fixes, and the round that follows is what reads them — except after the last
-round, where nobody did and the box saying the review passed was ticked by the
-session that had just written them. So a run ends with a **verifying round**:
+round, where nobody did. So a run ends with a **verifying round**:
 spawned after those fixes are committed, pointed at their diff rather than at
-the branch, and asking whether each closed finding is actually closed. A round
+the branch, and asking of each finding marked closed whether its fix holds. A round
 that opens nothing needing a fix does not spend one of the three.
 
-The record's `Fixes checked by` row is where that lands. It names a later
-round, or says there was nothing to check, or says `nobody` and why. The last
-of those prints on every run, and on the run's last record beside a checked
-`Pass` it fails a ready pull request — a review cannot have passed while the
-fixes that closed its findings went unread. On a draft that pair prints and
-names the verifying round. Work items begun before the rule landed
-are excused and only print, so a run that already shipped that way says so in
-the diff instead of in a session that has ended.
+A ready pull request fails while a commit outside the work item's records
+follows the commit on the last record's `target:` line, or while a finding of
+that record reads `fixed` or `rejected` — a review cannot have passed while
+the fixes that closed its findings went unread. On a draft it prints and
+names the verifying round.
 
 No gate transmits your code, your paths, or your prompts anywhere. Four side
 effects are worth stating outright: session-lease writes a timestamp file under
@@ -257,7 +254,7 @@ wrong for every other machine.
 | `session-cost --segments <transcript>` | one row per agent the run spawned, read from that agent's own transcript: its span, calls, tools per turn, mean gap and tokens. That span is in no other column — where a harness writes a spawn's result on acceptance, the `--spawns` table reads seconds for an agent that ran twenty minutes. A resumed agent is one row per stretch of work, so no span covers the wait between two of them — whether the command is given the run's transcript or that agent's own — and a segment that spawned an agent of its own prints a line saying so. Under the table it names each row whose tools per turn sit under its kind's bar — a warden's or a framer's; a smith's edit-test loop is exempt — and counts the rows it could not grade |
 | `settle [--retire]` | what `seal/specs/` is still holding — the released work items whose spec no policy document has absorbed yet. It writes no policy prose: that half is a judgment, and `settle` supplies the corpus a session writes it from. `--retire` then removes the directories that prose already covers, and the released ones with no `spec.md` whose record holds nothing open, because a moment states no rule to fold. A directory whose record was closed on this branch but is still open where `--released-at` and `HEAD` meet stays. CI asks there too until `--released-at` moves on past that commit, and once it has, `settle` names the merge that brings the closure here. `settle --retire-process` is a removal of its own and runs first at every release, fold or no fold: it takes `rounds/`, `phases/` and the files written only for a pull request from every released work item and leaves `routing.md` and the SDD set, and `settle` with no flag ends with what it would take |
 | `fold-check [--shape-from <id>] [--ceiling <n>]` | holds the statements a fold wrote to `settle`'s two rules, over the top level of `docs/`: every statement from the cutoff on opens with a bold rule sentence and carries one `Enforced by:` line whose targets exist, and no document grows past the ceiling unless it is listed with its fold markers frozen. The cutoff, the ceiling and the listing are `seal/config.md` rows the repository writes; a row it leaves out is a check that does not run, and the output says so. A flag replaces its row for one run, so `--shape-from 0` lists every statement still missing the shape |
-| `rules <doc> [--root <dir>]` | prints each heading of a document and, under it, the targets of its `Enforced by:` lines, each with the first sentence of its test's docstring, or why the target does not resolve. A rule's text lives once, in that docstring, so this is how a document and its tests read side by side. The targets resolve in the repository the command is typed in. It writes nothing and exits 0 whatever it finds; the `enforced-unresolved` row of `seal/budgets.md` is what fails |
+| `rules <doc> [--root <dir>]` · `rules --check [--root <dir>]` | `rules <doc>` prints each heading of a document and, under it, the targets of its `Enforced by:` lines, each with the first sentence of its test's docstring, or why the target does not resolve. A rule's text lives once, in that docstring, so this is how a document and its tests read side by side, and it exits 0 whatever it finds. `rules --check` resolves every target in every rule file and exits 1 naming each one that is gone, by file, line and heading; one case of the suite runs it over the tree. The targets resolve in the repository the command is typed in, and neither form writes anything |
 | `pact-check [ROOT]` | run at the repository holding a pact (`seal/pact.md`), the one copy of a contract several repositories keep together: reads every signer the pact lists, found through `~/.claude/specseal/pact-paths.md` or a sibling checkout, checks that each names the pact in its `Pact` row, and grades every pact anchor it cites. `SUPERSEDED` says the signer was built against an older clause, `NOT TAKEN` names the branch holding a change the pact has not taken, `UNMATCHED` and `BROKEN` say read both sides or re-coordinate. Local only: a signer's CI can read one repository, so it prints the relationship and verifies nothing |
 | `payload-meter [--calibrate <main transcript>] [--baseline <run.json>]` | what each agent's startup payload is made of — its definition, every skill its `skills:` list injects, and the two `CLAUDE.md` files — in bytes, chars and tokens, with a basis on every token figure: `measured` where it came from a transcript's spawns, `estimated` from a per-agent ratio otherwise. `--baseline` prints the delta against an earlier `--json` run, which is how a trimmed payload is shown to have shrunk |
 | `/specseal:preset-setup` | approval-gated semantic merge of the CLAUDE.md block |
@@ -595,18 +592,13 @@ What this does not do is as load-bearing as what it does.
   value is that a `none — <reason>` row is visible to you in the transcript.
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops
   a session from running the full suite mid-round; what exists is the
-  instruction, the warden's audit of the smith's seal, and the `round-N.md` field that
+  instruction, the warden's audit of the smith's seal, and `broad-gate.md`, which
   makes a repeat visible. A hook could not tell the difference anyway —
   whether the rounds have settled is not a property of the command being run.
-- **`Fixes checked by: nobody` prints everywhere and fails in one place.** On
-  the run's last record, beside a checked `Pass`, it fails a ready pull
-  request: a review cannot have passed while the fixes that closed its
-  findings went unread. On a draft that pair prints and names the verifying
-  round, and *Ready for review* re-runs the check. Anywhere else it only
-  prints. Work items begun before this rule landed are excused entirely,
-  because a check whose first act is red on merged history nobody can repair
-  is a check people learn to skip. The way out costs no round — one verifying
-  round at the diff of those fixes.
+- **Unread last fixes fail in one place.** A commit after the last record's
+  `target:` commit fails a ready pull request; on a draft it prints and names the
+  verifying round, and *Ready for review* re-runs the check. The way out costs
+  no round — one verifying round at the diff of those fixes.
 - **A parity mark says someone compared, not that they compared well.** The
   gate checks that a comparison was recorded for this HEAD; the quality of
   that comparison is the reviewer's, and writing the mark for work you did not
@@ -627,10 +619,10 @@ What this does not do is as load-bearing as what it does.
   verified on POSIX by removing the first name from PATH. The console-encoding
   defect that stood beside it is closed: a plain `pytest tests/` on
   a Korean cp949 console passes whole, with no `PYTHONUTF8=1`.
-- **The conformance evals have never run.** `evals/` is written against
-  `claude plugin eval`, which is early access; the suite awaits enablement.
-  CI checks their shape — required fields, a grader per case — which is what
-  can be checked without the runner. Treat them as authored, not as passing.
+- **The behaviour evals run on the owner's account, not in CI.**
+  `evals/behaviour/` holds the cases each agent's rewrite is proved on with
+  `claude plugin eval`; CI checks their shape, and a rewrite's record says
+  what its runs found.
 
 ## Contributing
 

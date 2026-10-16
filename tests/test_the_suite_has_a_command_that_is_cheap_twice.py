@@ -1238,38 +1238,24 @@ def test_the_section_says_the_full_run_is_the_sealers():
     )
 
 
+HANDOFF_LINK = "`docs/the-review-record.md` §*The handoff*"
+
+
 def test_the_protocol_says_a_shipped_runner_is_found_not_typed():
     """#156's cause: the orchestrator typed the runner into every spawn
     prompt, and the segments it forgot rediscovered one."""
-    protocol = flat("docs", "review-handoff-protocol.md")
-    assert "A runner the repository ships is found, not typed into every prompt" in (
-        protocol
+    record = flat("docs", "the-review-record.md")
+    assert "a runner the repository ships is named, not typed into every prompt" in (
+        record
     ), "the handoff still requires the incantation in the prompt, always"
-    assert "where the repository ships none, the prompt carries the incantation" in (
-        protocol
-    ), (
-        "the requirement drops the case it replaced — a repository with no "
-        "runner still needs the prompt to carry one"
-    )
 
 
 def test_the_protocol_hands_over_the_narrow_form():
     """The requirement points a segment at a command that runs the whole
     suite. Naming it without naming which form is how §2 gets widened by a
     document that never mentions it."""
-    protocol = flat("docs", "review-handoff-protocol.md")
-    assert "The form a segment is handed is the narrow one" in protocol
-    assert "the full suite is the sealer's, run once after the rounds" in protocol
-
-
-def test_the_protocol_carries_the_measurement_that_bought_it():
-    """Every requirement beside it names the failure it was bought by. One
-    without is a rule a reader can talk themselves out of."""
-    protocol = flat("docs", "review-handoff-protocol.md")
-    assert "17 s, 2 s, 0 s and 0 s" in protocol, (
-        "the requirement arrives with no measurement, where the four beside "
-        "it each name theirs"
-    )
+    record = flat("docs", "the-review-record.md")
+    assert "the form handed over is the narrow one" in record
 
 
 def test_smith_finds_the_runner_before_inventing_a_command():
@@ -1285,7 +1271,7 @@ def test_smith_finds_the_runner_before_inventing_a_command():
         "smith is pointed at a command that runs the full suite and not at "
         "the form §2 leaves it"
     )
-    assert "`docs/review-handoff-protocol.md` §*The handoff before round 1*" in smith, (
+    assert HANDOFF_LINK in smith, (
         "the rule is restated rather than linked, so the two carriers can drift apart"
     )
 
@@ -1306,9 +1292,9 @@ def test_warden_finds_the_runner_before_building_its_own():
         "warden is pointed at a command that runs the full suite and not at "
         "the form §2 leaves it"
     )
-    assert (
-        "`docs/review-handoff-protocol.md` §*The handoff before round 1*" in warden
-    ), "the rule is restated rather than linked, so the two carriers can drift apart"
+    assert HANDOFF_LINK in warden, (
+        "the rule is restated rather than linked, so the two carriers can drift apart"
+    )
     assert "make a `uv` venv inside the clone" in warden, (
         "the fallback went with the addition — a repository that ships no "
         "runner leaves the reviewer with nothing at all"

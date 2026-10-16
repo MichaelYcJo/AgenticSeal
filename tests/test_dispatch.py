@@ -59,11 +59,12 @@ def test_an_unknown_group_does_nothing(repo):
     assert run_dispatch("pre-nothing", payload("git commit -m x", repo)).strip() == ""
 
 
-def test_post_bash_carries_the_reminder_and_writes_the_lease(repo):
+def test_post_bash_writes_the_lease(repo):
+    """The review reminder this group carried left with its hook (#923); the
+    session lease is what the group still writes."""
     (repo / "seal").mkdir()
-    item = declare_routing(repo)
-    out = run_dispatch("post-bash", payload("gh pr comment 42 --body hi", repo))
-    assert item.name in out, out
+    declare_routing(repo)
+    run_dispatch("post-bash", payload("gh pr comment 42 --body hi", repo))
     gd = subprocess.run(
         ["git", "-C", str(repo), "rev-parse", "--absolute-git-dir"],
         capture_output=True,
