@@ -15,7 +15,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | `skills/implement/SKILL.md` §*3. The SDD file set* | The work alters what every spawn reads and what every pull request is checked against, which is the top rung |
 | #923's body, rewritten 2026-10-15 by the owner | The one source for what was decided: the principle, the six things the item builds, the rules the rewrite states in place, the proof's two axes. Where this file and that body differ, the body holds |
 | The owner's decision of 2026-10-16, after round 6 | The round record is designed anew from its jobs and not patched again. What the check read was the old generator's table with fields subtracted and a rule added per round, and the check missed one fact four times (rounds 1, 2, 5 and 6) for one reason: it told a finding from a non-finding by an emoji mark in a table that mixed three kinds of row, and every spelling it did not recognise fell to the passing side. What exists is a reference, not a constraint (`CLAUDE.md`). The rule the new shape embodies — a gate fails closed: input it cannot read is refused, never passed — is `questions.md` Q9's to put into `CLAUDE.md` or not |
-| The owner's decisions of 2026-10-16, on the record phase 5d-i built (44ad6eeb) | Six, each written into §*What a round records* and the check's facts below, in place: a `fixed <commit>` touches its finding's location and the check reads it, so the sealer's manual act leaves; the channel between rounds is a fact the check reads, through a `Confirms` cell and a `refixes:` line in one spelling; every label is one lowercase word; the severities are `must` and `should`; no emoji in the record, the template, the findings format or the parties' instructions this item touches; the refusal of an unclosed fence or comment, which 5d-i's smith added, is a check fact here with its limit stated. A frame edit, not a reframe: no round stopped the run, so the foot carries no `Reframed` line for it |
+| The owner's decisions of 2026-10-16, on the record phase 5d-i built (44ad6eeb) | Six, each written into §*What a round records* and the check's facts below, in place: a `fixed <commit>` touches its finding's location and the check reads it, so the sealer's manual act leaves; the channel between rounds is a fact the check reads, through a reference in one spelling; every label is one lowercase word; the severities are `must` and `should`; no emoji in the record, the template, the findings format or the parties' instructions this item touches; the refusal of an unclosed fence or comment, which 5d-i's smith added, is a check fact here with its limit stated. Then, relayed during 5d-iii and built there: every label and value a plain English word an agent can guess the meaning of — one `target:` line for the field table, a `confirms:` line per confirmation in place of a table, the section optional and two refused, an unconfirmed finding refused at its own heading in its own record, `regression:` for `refixes:`, `rejected` for `answered`. And `questions.md` Q11's answer: a repair outside the tree closes `deferred <where>`, a repair by a commit `fixed <commit>`, and `rejected` means only that the finding does not hold (phase 5d-iv). Frame edits, not reframes: no round stopped the run, so the foot carries no `Reframed` line for them |
 | #942 (the test layout) | A test file per shipped module, its tests grouped by function, a success and a failure case per group. The test modules this item writes for the chain check and the broad gate follow it; the modules it deletes are listed by what they guarded, one line each |
 | #945 §3 | Round-record inheritance moved here (owner, 2026-10-15); the agent-lifetime rule, the orchestrator's folding rule and the process archive stay there |
 | #940, #941 | What an agent opens on demand, and `docs/`, are theirs. This item rewrites a file of theirs only where this item makes a sentence of it false |
@@ -176,10 +176,10 @@ the record, and from nothing that was there before:
 
 | Who | What they do with the record | Where in the record |
 |---|---|---|
-| the warden | leaves findings — what is wrong, where, why it matters, a paste-ready fix — and the probes it ran | `## Findings`, one `###` section per finding; `## Probes` |
-| the smith's fix pass | answers each finding: the fixing commit, a rebuttal, or where it was deferred | the finding's `Verdict:` line and `Answer:` line, and nothing else in the file |
-| the next round's warden | reads the earlier findings and their answers, confirms each that truly closed, refixes one whose fix is wrong, and notes what it could not judge | the `Confirms` cell of each `## Confirmations` row and the `refixes:` line of a finding, both naming the earlier finding as `round-<N>#<n>`; `## Not judged`; earlier files are never edited or deleted |
-| the check at the pull request | four facts — is any finding without an answer; does each `fixed` commit sit on the branch and touch its finding's location; does the next round confirm or refix every finding the fix pass closed; is the last record at HEAD — and the record's `Target SHA` | every `verdict:` and `location:` line under `## Findings`, every `refixes:` line, every `Confirms` cell, the `Target SHA` row; the labels in no other spelling |
+| the warden | names the commit it reviewed, and leaves findings — what is wrong, where, why it matters, a paste-ready fix — and the probes it ran | the `target:` line; `## Findings`, one `###` section per finding; `## Probes` |
+| the smith's fix pass | answers each finding: the fixing commit, a rejection with its grounds, or where it was deferred | the finding's `verdict:` line and `answer:` line, a coordinate it may append to `location:`, and nothing else in the file |
+| the next round's warden | reads the earlier findings and their answers, confirms each that truly closed, names a regression where a fix is wrong, and notes what it could not judge | a `confirms:` line per entry of `## Confirmations` and the `regression:` line of a finding, both naming the earlier finding as `round-<N>#<n>`; `## Not judged`; earlier files are never edited or deleted |
+| the check at the pull request | four facts — is any finding without an answer; does each `fixed` commit sit on the branch and touch its finding's location; does the next round confirm, or name as a regression, every finding the fix pass closed `fixed` or `rejected`; is the last record at HEAD — and the record's `target:` commit | the `target:` line; every `verdict:`, `location:` and `regression:` line under `## Findings`; every `confirms:` line of `## Confirmations`; the labels in no other spelling and in no other place |
 | the sealer | reads the records as one party's story against the others (step 4); it re-checks no finding's verdict and no `fixed` commit, since the check reads both | nothing of a record that the check does not read |
 
 A round records **what it reviewed, what it found, and what answered it**, in
@@ -190,21 +190,19 @@ Words only: no emoji anywhere in it.
 ````
 # <work-item-id> — review round N
 
-| Field | Value |
-|---|---|
-| Target SHA | <sha> against <base> · a verifying round: <sha>, fixes <a>..<b> |
+target: <sha> against <base>        (a verifying round: <sha>, fixes <a>..<b>)
 
 ## Findings
 
 ### 1. <what is wrong, as a symptom, in one line>
 
 severity: must
-location: `path:line`
+location: `path:12`
 verdict: open
-refixes: round-<N-1>#<n>
+regression: round-<N-1>#<n>
 
 <why it matters and the grounds, executed and read labelled apart; where
-`refixes:` stands, the unit the fixes under review added or changed>
+`regression:` stands, the unit the fixes under review added or changed, first>
 
 ```<lang>
 <the paste-ready fix: the artefact, not a description of it>
@@ -214,10 +212,11 @@ answer: <the fix pass: what was done, why the finding does not hold, or where it
 
 ## Confirmations
 
-| Confirms | What holds | Location | Grounds |
-|---|---|---|---|
-| round-<N-1>#2 | <what> | `path:line` | <how this round confirmed it, executed or read> |
-| none | <a claim of the frame or the build that matched> | `path:line` | <executed or read> |
+confirms: round-<N-1>#2
+<what holds, at `path:line`, and how this round confirmed it, executed or read>
+
+confirms: none
+<a claim of the frame or the build that matched, at `path:line`, executed or read>
 
 ## Not judged
 
@@ -230,26 +229,34 @@ answer: <the fix pass: what was done, why the finding does not hold, or where it
 |---|---|
 ````
 
-Eight things about it, each the whole of a rule (the owner's decisions of
-2026-10-16 rewrote the first, the second, the third, the fourth and the
-sixth in place):
+Eight things about it, each the whole of a rule, each as the owner's
+decisions of 2026-10-16 and Q11's answer left it:
 
-- **Every label is one lowercase word at the start of a line, followed by
-  `:` and one space, and the check refuses any other spelling as unreadable,
-  never skips it.** Five labels: `severity:`, `location:`, `verdict:`,
-  `refixes:`, `answer:`. A line whose first word, case-folded and stripped of
-  `*`, `_` and `` ` ``, is one of the five or the old two-word `fix of a fix`,
-  followed by `:`, and which is not the exact form, is refused by path and
-  line as *a label in another spelling* — `Verdict:`, `**verdict:**`,
-  `VERDICT:`, `verdict :` and `Fix of a fix:` among them. 5d-i shipped the
-  capitalised labels; 5d-ii changes the template, the reader, the tests and
-  this item's six records to the lowercase ones (S24).
+- **Every label is one plain lowercase English word at the start of a
+  line, followed by `:` and one space, and the check refuses any other
+  spelling as unreadable, never skips it.** The reader is mostly an agent,
+  so every label and every value is a word whose meaning is guessable
+  without this repository's documents (the owner, 2026-10-16). Seven labels:
+  `target:` once per record, outside every section; `severity:`,
+  `location:`, `verdict:`, `regression:` and `answer:` inside a finding;
+  `confirms:` inside `## Confirmations`. A line whose first word,
+  case-folded and stripped of `*`, `_` and `` ` ``, is one of the seven or
+  an old spelling — `Target SHA`, `refixes`, `fix of a fix` — followed by
+  `:`, and which is not the exact form, is refused by path and line as *a
+  label in another spelling*, naming the label it would have to read —
+  `Verdict:`, `**verdict:**`, `VERDICT:`, `verdict :`, `Target SHA:` and
+  `refixes:` among them — and the finding is not read past it. A finding's
+  label outside a finding, a `target:` or `confirms:` line inside one, and
+  a `confirms:` line outside `## Confirmations` are refused the same way.
+  A label with nothing after it, its trailing space trimmed, is the exact
+  form, and its value's reader judges the empty value (S24; T32).
 - **The fact the check decides on has one spelling in one place, and the
   check fails closed.** The line is `verdict: <value>`, inside a `###`
   section of the one `## Findings` section, in no table cell and with no mark
   around it. The value is one of four shapes and nothing else: `open` ·
   `fixed <commit>` (seven to forty lowercase hex digits, a commit HEAD
-  descends from) · `answered` · `deferred <home>` (a home after the word).
+  descends from) · `rejected` (the finding does not hold) · `deferred
+  <home>` (a home after the word).
   Anything the check cannot read is refused by name, never passed: a value
   outside the four, a finding with no `verdict:` line or with two, a
   `verdict:` line outside `## Findings`, a record with no `## Findings`
@@ -296,41 +303,45 @@ sixth in place):
   sealer's manual act *touches the location it fixes* leaves
   `agents/sealer.md` step 3 and every sentence that stated it
   (`## Removes`). **How it errs:** a commit that touches a named path and
-  fixes nothing passes; the verifying round reads the fix, and its `Confirms`
-  cell is the record of that reading (S22).
+  fixes nothing passes; the verifying round reads the fix, and its
+  `confirms:` line is the record of that reading (S22).
 - **The channel between rounds is a fact the check reads.** A reference is
   `round-<N>#<n>`, the earlier record's number and the finding's heading
   number, in that spelling and no other (`plan.md` Alternative AO); `round-<N>`
-  alone names a round's fix pass where the unit refixed was changed by no
-  numbered finding. A reference stands in two places: the `Confirms` cell,
-  the first column of `## Confirmations`, reading `round-<N>#<n>` or `none`;
-  and a finding's `refixes:` line, reading `round-<N>#<n>` or `round-<N>`.
-  For every finding of round N whose verdict is `fixed <commit>` or
-  `answered`, the record of round N+1 must hold a `Confirms` cell or a
-  `refixes:` line naming it, else the check refuses, naming the finding by
-  its round, number and heading; a finding at `deferred <home>` needs no
-  confirmation. A reference the check cannot read, one naming a record the
-  item does not have, or a finding number that record does not hold, is
-  refused by path and line; a `## Confirmations` header whose first cell is
-  not `Confirms` is refused the same way. Round 1 has no earlier record, so
-  it owes nothing and every reference in it is refused: its `Confirms` cells
-  read `none`. On a ready pull request a `fixed` or `answered` finding in the
-  last record is refused as *a verifying round is owed* — the same words the
-  `Target SHA` rule prints — because nothing after it has read the fix or
-  the answer; a last record whose findings all read `deferred <home>`, or
-  none, passes (S23; `plan.md` Alternative AT).
+  alone names a round's fix pass where the unit the regression stands in was
+  changed by no numbered finding. A reference stands in two places. Each
+  entry of `## Confirmations` is a `confirms:` line reading `round-<N>#<n>`,
+  or `none` for a claim of the frame or the build that matched, with the
+  entry's prose on the lines after it; a table row in the section is
+  refused. A finding's `regression:` line reads `round-<N>#<n>` or
+  `round-<N>`. A round with nothing to confirm leaves `## Confirmations`
+  out, and a record holding two is refused. For every finding of round N
+  whose verdict is `fixed <commit>` or `rejected`, the record of round N+1
+  must hold a `confirms:` or a `regression:` line naming it, else the check
+  refuses the finding at its own `### N.` heading line in round N's record,
+  naming the next record and the reference it owes — the finding's own
+  record is where it stands, and the later round is what has to answer it;
+  a finding at `deferred <home>` needs no confirmation. A reference the
+  check cannot read, one naming a record the item does not have, or a
+  finding number that record does not hold, is refused by path and line.
+  Round 1 has no earlier record, so it owes nothing and every reference in
+  it is refused: its `confirms:` lines read `none`. On a ready pull request
+  a `fixed` or `rejected` finding in the last record is refused at its
+  `verdict:` line as *a verifying round is owed* — the same words the
+  `target:` rule prints — because nothing after it has read the fix or the
+  rejection; a last record whose findings all read `deferred <home>`, or
+  none, passes (S23; `plan.md` Alternatives AP and AT).
 - **Severity is for people, and the check ignores it.** Two words on the
   finding's `severity:` line: `must` (fix before merge) and `should` (fix,
   or say why not), in place of `blocks merge` and `fix or justify`. A
-  confirmation is a row of `## Confirmations` and a thing not judged a row of
-  `## Not judged`, with who answers it; neither is a finding, and no mark
-  names either. A sentence an agent reads and acts on is a defect when it is
+  confirmation is a `confirms:` entry of `## Confirmations` and a thing not
+  judged a row of `## Not judged`, with who answers it; neither is a
+  finding, and no mark names either. A sentence an agent reads and acts on is a defect when it is
   wrong, and is `should`; a sentence in a record that merely reads badly is
   not written as a finding.
 - **The record is written in words, and no emoji stands anywhere in it.**
-  The check does not read for one: the record's facts are its labelled lines
-  and its `Confirms` cells, and an emoji the check does not read cannot
-  mislead it. The template, the review skill's findings format, the warden's
+  The check does not read for one: the record's facts are its labelled
+  lines, and an emoji the check does not read cannot mislead it. The template, the review skill's findings format, the warden's
   and the smith's instructions, the orchestration paragraphs and the panel
   lines this item touches carry none, and a test holds the shipped text to
   it (T39, `plan.md` Alternative AQ). Other skills and definitions are part
@@ -341,13 +352,25 @@ sixth in place):
   again, since no finding is a table cell (#189 is a cost of the cell, not of
   the record). **The smith's fix pass writes two lines per finding and
   nothing else in the file:** it rewrites the finding's `verdict:` line to
-  `fixed <commit>`, `answered` or `deferred <home>`, and writes its `answer:`
+  `fixed <commit>`, `rejected` or `deferred <home>`, and writes its `answer:`
   line; where its fix went to a path the `location:` line does not name, it
   appends that coordinate to the line (the location rule above). There is no
-  fix table and no `close`.
+  fix table and no `close`. **The word says what happened to the defect.**
+  `rejected` means only that the finding does not hold, and `answer:` says
+  why. A repair made by a commit closes `fixed <commit>`, a correction to a
+  record among them, the record's path on the `location:` line. A finding
+  whose defect was real and was repaired outside the tree, with no commit on
+  the branch — an issue or a pull request body edited — closes `deferred
+  <where it was repaired>`, for example `deferred #956`, and `answer:` says
+  what was changed there; like every deferral it owes the next round nothing
+  (`questions.md` Q11, the owner, 2026-10-16; phase 5d-iv).
 - **The reviewed commit is a fact every check rests on, and it is the one
-  field.** The broad gate's run lives in `broad-gate.md`, the sealer's verdict
-  in `guarantee.md`, and the pull request knows its own branch.
+  line outside the sections.** `target: <sha> against <base>`, or `target:
+  <sha>, fixes <a>..<b>` for a verifying round, its first word the reviewed
+  commit; a record with no `target:` line, two, or a value of another shape
+  is refused by line, and the old `| Target SHA |` row is no `target:` line.
+  The broad gate's run lives in `broad-gate.md`, the sealer's verdict in
+  `guarantee.md`, and the pull request knows its own branch.
 
 **No reader for the old shape.** The check judges only the work items the
 pull request's own commits declare or change (`chain_check.py#main`,
@@ -358,7 +381,7 @@ six records were rewritten into the shape, mechanically, with every verdict
 and every ground unchanged in substance, in the phase that landed the reader
 (`plan.md` row 5d-i): a 🔴 or 🟡 row became a finding, its `· fix pass:` or
 `· orchestrator:` tail its answer line, its paste block moved inside it; a 🟢
-row became a `## Confirmations` row and a ❓ row a `## Not judged` row. The
+row became a `## Confirmations` entry and a ❓ row a `## Not judged` row. The
 test that read every record in the tree went with the shape it read
 (`plan.md` Alternative AJ). What a release reads of records
 (`.github/scripts/release_seal.py#chain_counts`, the panel's
@@ -366,36 +389,43 @@ test that read every record in the tree went with the shape it read
 and reports an old-shape record as *not read*, which is the fail-closed
 answer for a count too.
 
-**The six records under the decisions of 2026-10-16** (`plan.md` row 5d-ii;
-`read` at 614e4d66). They do not read clean as they stand, and a second
-one-shot script gives them what their prose already states, nothing else:
-the five labels lowercased and `Fix of a fix:` made `refixes:`; `blocks
-merge` made `must` and `fix or justify` made `should`; each `Fix of a fix:`
-line's unit moved into the first sentence of the grounds and its reference
-written from the fix commits the line names — round 2's findings 1 and 5
-refix `round-1#1` and `round-1#5`, round 4's finding 2 refixes `round-3`
-(5ea6506c was round 3's fix pass and no finding of round 3), round 5's
-findings 1 and 2 refix `round-4#1` and `round-4#2`, round 6's finding 1
-refixes `round-5#1`; a `Confirms` column written from the lead of each
-`What holds` cell (*round N's 🟡 k is closed* and *round 1's 🟡 7's
+**The six records under the decisions of 2026-10-16** (`plan.md` rows
+5d-ii and 5d-iii; `read` at 614e4d66, rewritten at 451dc1f2 and 92991623).
+They did not read clean as 5d-i left them, and two one-shot scripts, one per
+sub-phase, gave them what their prose already stated, nothing else, every
+verdict, reference and commit unchanged. 5d-ii: the labels lowercased;
+`blocks merge` made `must` and `fix or justify` made `should`; each `Fix of
+a fix:` line's unit moved into the first sentence of the grounds and its
+reference written from the fix commits the line names — round 2's findings
+1 and 5 name `round-1#1` and `round-1#5`, round 4's finding 2 names
+`round-3` (5ea6506c was round 3's fix pass and no finding of round 3), round
+5's findings 1 and 2 name `round-4#1` and `round-4#2`, round 6's finding 1
+names `round-5#1`; each confirmation's reference written from the lead of
+its `What holds` cell (*round N's 🟡 k is closed* and *round 1's 🟡 7's
 leftovers* give `round-N#k`; a lead naming no finding, round 5's *round 4's
 ❓*, gives `none`), the lead kept as prose with its mark respelt; every
-`round N's 🔴 k` or `round N's 🟡 k` in prose respelt `round-N#k`; the three
-shorthand location items of rounds 5 and 6 (`:461-463`, `:617`, `:786-789`)
-given the path of the item before them. With that, the channel reads clean:
-round 2 confirms round 1's findings 2, 3, 4, 6 and 7 and refixes 1 and 5;
-round 4 confirms round 3's two; every other finding is `deferred the frame`.
-**One location line changes its fact, and it is the only one:** round 1's
-finding 5 reads `location: .github/scripts/release_report.py:113-131` and
-`fixed 1b875efc`, and 1b875efc touched `.test_durations` and `overview.md`
-alone (`git diff-tree`, `executed`); its own `executed` line and its paste
-name `.test_durations` as the other half of the fix, and its answer says the
-fix went there. The line gains `` `.test_durations` `` as a second
-coordinate, by that prose (`plan.md` Alternative AU); the other eight `fixed`
-commits of rounds 1 and 3 each touch their path. The quotations of the old
-marks in the records' prose — `**🔴 1**`, *a 🟢 row* — stay, since they are
-what the findings were about and the check reads none of them
-(`questions.md` Q10, default).
+`round N's 🔴 k` or `round N's 🟡 k` in prose outside a fence respelt
+`round-N#k`; the three shorthand location items of rounds 5 and 6
+(`:461-463`, `:617`, `:786-789`) given the path of the item before them.
+5d-iii: the field table made one `target:` line with the value it held,
+each of the six reference lines made `regression:`, and each of the 35
+confirmations a `confirms:` line with its what-holds, location and grounds
+on one prose line after it; no finding read the old `answered`, so none
+became `rejected`. The channel reads clean: round 2 confirms round 1's
+findings 2, 3, 4, 6 and 7 and names 1 and 5 as regressions; round 4
+confirms round 3's two; every other finding is `deferred the frame`. **One
+location line changed its fact, and it is the only one:** round 1's finding
+5 read `location: .github/scripts/release_report.py:113-131` and `fixed
+1b875efc`, and 1b875efc touched `.test_durations` and `overview.md` alone
+(`git diff-tree`, `executed`); its own `executed` line and its paste name
+`.test_durations` as the other half of the fix, and its answer says the fix
+went there. The line gained `` `.test_durations` `` as a second coordinate,
+by that prose (`plan.md` Alternative AU); the other eight `fixed` commits of
+rounds 1 and 3 each touch their path. The quotations of the old marks in
+the records' prose — `**🔴 1**`, *a 🟢 row* — stay, since they are what the
+findings were about and the check reads none of them, and the six records
+leave the tree with the next `settle --retire-process` (`questions.md` Q10,
+the owner, 2026-10-16).
 
 ### What leaves, what stays, and the evidence for each
 
@@ -405,17 +435,17 @@ citation of an older issue, that is `read` and says so.
 
 | Mechanism | What it caught, as the history shows | What it costs | Verdict |
 |---|---|---|---|
-| `Target SHA` | every arm of the check rests on it; the proof's replay cases clone at it | one row | **stays** |
-| The `Verdicts` table in its five columns | the findings themselves; the proof's `truth-` graders read its rows | one cell held a finding's whole account and a `\|` in it broke the row (#189); three kinds of row shared one table, so a reader had to sort them by a mark; four of this item's six rounds found a spelling the sorting let through | **leaves** (reframed after round 6). A finding is a `###` section of `## Findings` with its labelled lines; a confirmation and a not-judged item are rows of their own sections. The `truth-` graders read the finding's `location:` line (§*The proof*) |
+| `Target SHA` | every arm of the check rests on it; the proof's replay cases clone at it | one row | **stays**, as the record's one `target:` line (the owner, 2026-10-16) |
+| The `Verdicts` table in its five columns | the findings themselves; the proof's `truth-` graders read its rows | one cell held a finding's whole account and a `\|` in it broke the row (#189); three kinds of row shared one table, so a reader had to sort them by a mark; four of this item's six rounds found a spelling the sorting let through | **leaves** (reframed after round 6). A finding is a `###` section of `## Findings` with its labelled lines; a confirmation is a `confirms:` entry and a not-judged item a row, each in its own section. The `truth-` graders read the finding's `location:` line (§*The proof*) |
 | `Executed probes` and `Paste-ready fixes` | contract §4 in the record; the smith pastes | the warden writes them anyway | **stay**, as `## Probes` and as the fenced block inside each finding, where the fix pass reads it beside the finding it answers |
 | The emoji vocabulary 🔴 🟡 🟢 ❓ as record fields, the `#` cell and the bare-integer id | a severity a person reads at a glance | read by the check to tell a finding from a non-finding, which is the one fact rounds 1, 2, 5 and 6 each found read wrong once (a severity in the Finding cell, a 🟢 or ❓ cell over an `open`, `confirmed` on a 🔴 row, `**🔴 1**`) | **leaves the record** (reframed after round 6; the words set on 2026-10-16). `severity: must` or `should` is for people, and the finding's number is its heading's; the check reads neither, and no emoji stands anywhere in the record |
 | `round-N-report.md` beside `round-N.md` | nothing: the record was the report's tables copied | 19 files, 303 KB of 564 KB in 0.22.0; half of what a later round inherits | **leaves**; the warden writes `round-N.md` |
 | `round_record.py` (`new`, `close`, `notes`, `seal`), `bin/round-record{,.cmd}` | wrote the copy and the derived fields, applied the fix table, counted the notes | 5,596 lines, 35 test modules, the generator's refusals at the keyboard (#503, #866 in `docs/round-record-spec.md`, `read`) | **leaves whole** |
 | `Pass` box | whether a row is still open | a box that restates the table | **leaves**; the check reads the rows: no `open` verdict on a ready pull request |
-| The reading of a verdict row — which rows are findings, and which words close one (`chain_check.py#verdict_table`, `#verdict_of`, `#open_findings`, `CLOSES_BY`, `EVERY_CLOSE`, `FINDINGS`, `BLOCKING`, `SHOULD`, `FINDING_WORDS`, `CLOSED_WORDS`, and before phase 5a `#severity_of`, `NOT_FINDINGS`, `FINDING_CLOSES`, the `#` column found by its header) | nothing in the records it read: no 🔴 or 🟡 row of the 36 records at round 2 read a 🟢 or ❓ row's word (round 2's probe, `executed` by the warden). What its four versions carried was the hole each round found: round 1's let a severity outside the first cell hide an `open`; round 2's let a 🟢, ❓ or ⬜ `#` cell hide one; phase 5a's let a 🔴 row close `confirmed`, which rounds 3, 4 and 5 gave the sealer to catch and each found that backstop short; phase 5c's read the mark with `startswith` on the raw cell, so `**🔴 1** … confirmed` passed (round 6's 🟡 1). Each repair read the same cell by one more rule, and every spelling the rule did not know fell to the passing side | four readings in six rounds, three reframes, two word sets, and a rule the documents restated per round | **leaves whole** (reframed after round 6). The decision is what the check decides: whether every finding has an answer. So the record gives it that fact in one line it can read without sorting anything — `verdict: <value>` inside a finding's section — and the check refuses whatever it cannot read (§*What a round records*). The emoji marks, the mixed table, the word sets per mark and the old generator's words `withdrawn`, `not a defect` and `agreed, fixed` go with the reading; nothing reads an old record, so nothing needs them. Since 2026-10-16 the check reads three more facts of the same kind, each a labelled line or a cell in one spelling: a `fixed` commit touches a path of the finding's `location:`, the next record's `Confirms` cells and `refixes:` lines name every finding the fix pass closed, and a label in another spelling is refused. **How it errs, stated**: a `fixed <commit>` that touches the path and fixes nothing passes, and the verifying round's warden, whose `Confirms` cell the check then requires, is who reads the fix; a fence closed on the wrong line hides what lies between (§*What a round records*). A finding the warden wrote outside `## Findings`, or without a `###` heading, is not a finding to the check: the template, the warden's definition and the eval's shape grader hold that shape, and a section with no `verdict:` line is refused rather than passed |
-| `Fixes checked by`, `Needs a fix`, `Written late` | the last fixes read by nobody (the verifying-round rule, #161 `read`); the record committed after its fixes. `Written late` read `no` 19/19 | three rows derived from facts the check can read | **the fields leave; the rule stays** as one check: the last record's `Target SHA` is HEAD, or every commit after it touches only `seal/specs/<id>/`. A round after the last fix pass is therefore owed, as today |
-| `Fix range`, `Contract changes`, `New units`, the depth refusal, inherited coordinates | the verifying round's finding surface; a fix pass adding a unit nobody reviewed (#194, #211, #366 `read`). `Contract changes` read `none` 17/19; `New units` named in 9/19 | AST walks of the fix range in `round_record.py`, 198 s of tests for the floor and depth alone | **leave**; the warden's definition states that a verifying round reviews the whole fix diff, new units included, and the fix range is written in `Target SHA` |
-| `Fix of a fix` count and its `second` stop | fired three times in 0.22.0 and sent #929 and #931 back to the framer; what it caught was fixes chasing one mechanism's edge cases, which `CLAUDE.md`'s tenet now states as a rule every agent reads | the count needs the fix range, the units and the depth above; 365 s of tests; four reframe spawns | **the judgment stays, the count leaves**: the warden marks a finding `fix of a fix` in its Finding cell; a round carrying the mark gets no fix pass, at any round of the run, and the work item returns to its framer, who redraws the frame (`Reframed … after round N.` under the mark; `questions.md` Q1, the owner, 2026-10-15). Checked by nothing; the sealer reads the records |
+| The reading of a verdict row — which rows are findings, and which words close one (`chain_check.py#verdict_table`, `#verdict_of`, `#open_findings`, `CLOSES_BY`, `EVERY_CLOSE`, `FINDINGS`, `BLOCKING`, `SHOULD`, `FINDING_WORDS`, `CLOSED_WORDS`, and before phase 5a `#severity_of`, `NOT_FINDINGS`, `FINDING_CLOSES`, the `#` column found by its header) | nothing in the records it read: no 🔴 or 🟡 row of the 36 records at round 2 read a 🟢 or ❓ row's word (round 2's probe, `executed` by the warden). What its four versions carried was the hole each round found: round 1's let a severity outside the first cell hide an `open`; round 2's let a 🟢, ❓ or ⬜ `#` cell hide one; phase 5a's let a 🔴 row close `confirmed`, which rounds 3, 4 and 5 gave the sealer to catch and each found that backstop short; phase 5c's read the mark with `startswith` on the raw cell, so `**🔴 1** … confirmed` passed (round 6's 🟡 1). Each repair read the same cell by one more rule, and every spelling the rule did not know fell to the passing side | four readings in six rounds, three reframes, two word sets, and a rule the documents restated per round | **leaves whole** (reframed after round 6). The decision is what the check decides: whether every finding has an answer. So the record gives it that fact in one line it can read without sorting anything — `verdict: <value>` inside a finding's section — and the check refuses whatever it cannot read (§*What a round records*). The emoji marks, the mixed table, the word sets per mark and the old generator's words `withdrawn`, `not a defect` and `agreed, fixed` go with the reading; nothing reads an old record, so nothing needs them. Since 2026-10-16 the check reads three more facts of the same kind, each a labelled line in one spelling: a `fixed` commit touches a path of the finding's `location:`, the next record's `confirms:` and `regression:` lines name every finding the fix pass closed `fixed` or `rejected`, and a label in another spelling is refused. **How it errs, stated**: a `fixed <commit>` that touches the path and fixes nothing passes, and the verifying round's warden, whose `confirms:` line the check then requires, is who reads the fix; a fence closed on the wrong line hides what lies between (§*What a round records*). A finding the warden wrote outside `## Findings`, or without a `###` heading, is not a finding to the check: the template, the warden's definition and the eval's shape grader hold that shape, and a section with no `verdict:` line is refused rather than passed |
+| `Fixes checked by`, `Needs a fix`, `Written late` | the last fixes read by nobody (the verifying-round rule, #161 `read`); the record committed after its fixes. `Written late` read `no` 19/19 | three rows derived from facts the check can read | **the fields leave; the rule stays** as one check: the last record's `target:` commit is HEAD, or every commit after it touches only `seal/specs/<id>/`. A round after the last fix pass is therefore owed, as today |
+| `Fix range`, `Contract changes`, `New units`, the depth refusal, inherited coordinates | the verifying round's finding surface; a fix pass adding a unit nobody reviewed (#194, #211, #366 `read`). `Contract changes` read `none` 17/19; `New units` named in 9/19 | AST walks of the fix range in `round_record.py`, 198 s of tests for the floor and depth alone | **leave**; the warden's definition states that a verifying round reviews the whole fix diff, new units included, and the fix range is written on the `target:` line |
+| `Fix of a fix` count and its `second` stop | fired three times in 0.22.0 and sent #929 and #931 back to the framer; what it caught was fixes chasing one mechanism's edge cases, which `CLAUDE.md`'s tenet now states as a rule every agent reads | the count needs the fix range, the units and the depth above; 365 s of tests; four reframe spawns | **the judgment stays, the count leaves**: the warden writes a finding's `regression:` line naming the earlier finding or fix pass; a round carrying one gets no fix pass, at any round of the run, and the work item returns to its framer, who redraws the frame (`Reframed … after round N.` under the mark; `questions.md` Q1, the owner, 2026-10-15). Checked by nothing; the sealer reads the records |
 | `Loses a record or crashes` floor, the round cap, the one reopening | #161's 15-round run (`read`); `yes` 2/19 in 0.22.0; no 0.22.0 run reached the cap — the stop above ended them | three rules, 65 + 45 + 117 lines of spec, their arms in the check | **one orchestrator rule replaces them** (`skills/code-review/orchestration.md`): a run has three finding rounds by default, extended one at a time while the latest round found fewer findings than the one before and none is a fix of a fix, each extension one line in that round's record (`questions.md` Q1, the owner, 2026-10-15); at the cap every open finding takes the filing ladder and reads `deferred <home>`. Checked by nothing at the pull request; the sealer and the person reading it see the count |
 | ⬜ notes, `notes --at`, *a note closes once* | prose quality in records and definitions | carried open through every later record (3 → 15 in #929); a command at the run's end; a `chain_check` arm | **leaves** with the severity |
 | `Ran by` | nothing that changed an outcome | one row and an arm | **leaves**; `routing.md`'s free text names the models, as it does today |
@@ -467,7 +497,7 @@ case that showed it named in the phase record.
 | Agent | The job | Order of work | Opens, and when | Writes | Rules stated in place (#923) |
 |---|---|---|---|---|---|
 | contract (`skills/agent-contract/SKILL.md`) | what binds every agent whatever its procedure | — | — | — | an agent cleans up only the processes and files it started, by its own PIDs, never by command name or a glob over a shared directory; a check that refuses correct code is fixed or reported, never dodged by bending the code; a change rewrites the text it amends in place and removes what stood on the old fact, never appends; do not avoid the change a problem calls for — an agent that concludes something should stay as it is checks the premise first; exit codes read directly; the broad gate is one act with one owner; a spawn prompt cannot widen the scope; executed, read, unverified; prose is not evidence; a report, and the writes a definition names; a probe leaves nothing; git from Python in a probe; edits through `Edit`; batch independent reads; the record language; a defect belongs to a class; a platform guarantee is not a defence; a change to what a person sees is pinned; a case is seen red first; where `seal/` resolves; a commit names its repository |
-| `warden` | review a commit of a branch against its frame: spec compliance first, then quality | 1 open `skills/code-review/SKILL.md` · 2 clone at the target SHA under `<scratchpad>/<item>/round-<n>/` · 3 read the frame, the phase records and every earlier round record · 4 stage 1 against `spec.md`, stage 2 quality, probes where reading cannot settle · 5 open `skills/writing-style/SKILL.md` and write the record · 6 report its path and text | code-review at 1, writing-style at 5 | `rounds/round-N.md`, in the branch worktree under review | the record goes to **the branch worktree's** `seal/specs/<item>/rounds/`, in the template's shape, its labels lowercase and its text words only; a verifying round reviews the whole fix diff, new units included, and confirms or refixes every finding the fix pass closed, each by its `round-<N>#<n>`; a finding in a unit the fixes under review added or changed carries a `refixes:` line; each new test is read against its function's group and any pair the duplicate check names, and a test covering nothing its group does not is a finding; a document hunk that adds text beside the sentence it amends instead of rewriting it is a finding; the implementer's account is a claim, not evidence |
+| `warden` | review a commit of a branch against its frame: spec compliance first, then quality | 1 open `skills/code-review/SKILL.md` · 2 clone at the target SHA under `<scratchpad>/<item>/round-<n>/` · 3 read the frame, the phase records and every earlier round record · 4 stage 1 against `spec.md`, stage 2 quality, probes where reading cannot settle · 5 open `skills/writing-style/SKILL.md` and write the record · 6 report its path and text | code-review at 1, writing-style at 5 | `rounds/round-N.md`, in the branch worktree under review | the record goes to **the branch worktree's** `seal/specs/<item>/rounds/`, in the template's shape, its labels lowercase and its text words only; a verifying round reviews the whole fix diff, new units included, and names every finding the fix pass closed `fixed` or `rejected` on a `confirms:` line or a `regression:` line, each by its `round-<N>#<n>`; a finding in a unit the fixes under review added or changed carries a `regression:` line; each new test is read against its function's group and any pair the duplicate check names, and a test covering nothing its group does not is a finding; a document hunk that adds text beside the sentence it amends instead of rewriting it is a finding; the implementer's account is a claim, not evidence |
 | `smith` | build a phase of the frame, or answer a round | 1 read `spec.md`, `plan.md`'s row, the phase record before it; say whether the frame holds · 2 open `skills/implement/SKILL.md` · 3 build in slices, narrow tests as you go, commit at each standing step · 4 write `phases/phase-N.md`; a fix pass instead writes the `verdict:` and `answer:` lines of each finding of the round it answers, the `fixed` commit one that touches the finding's `location:` · 5 open `skills/writing-style/SKILL.md` and hand back | implement at 2, writing-style at 5 | code, tests, `phases/phase-N.md`, `overview.md`, `changelog.md`, two lines per finding it answers | a new test starts from its group — read the function's tests first, extend one where you can, and say in the hand-back which case the group did not cover; a check refusing correct code is the check's defect; a fix pass adds no mechanism; a removal the frame did not name is an `overview.md` divergence |
 | `framer` | draw the frame before anybody builds | 1 skeleton `spec.md` · 2 gather widely · 3 open `skills/implement/SKILL.md` §1–§3 and judge what the tree answers · 4 `spec.md`, `plan.md`, `questions.md` · 5 open `skills/writing-style/SKILL.md` and report | implement at 3, writing-style at 5 | the three files; the mark and a `Reframed` line | do not avoid the change a problem calls for: an alternative that replaces a structure is weighed as an equal of one that keeps it; a question the tree can answer is not a question; nobody is asked; the frame names what the work removes |
 | `sealer` | the final, independent guarantor, above | the five steps above | none — its procedure is its definition | `guarantee.md` | its reference is the issue and the tree; it re-judges neither design nor quality; a claim is re-run, not read |
@@ -562,10 +592,10 @@ design.
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
-| S1 a round is one file | a warden reviews a fixture branch | `rounds/round-1.md` exists in the branch worktree with `Target SHA`, `## Findings` holding one `###` section per finding with its `severity:`, `location:` and `verdict:` lines and its fenced fix, `## Confirmations` with its `Confirms` column, `## Not judged` and `## Probes`, and no emoji in the file; no `round-1-report.md`; the warden eval's shape graders pass on it |
-| S2 the fix pass completes the record | a smith answers round 1 | every finding's `verdict:` line reads `fixed <commit>`, `answered` or `deferred <home>`, each `fixed` commit touching a path its `location:` names, and its `answer:` line is filled; where the fix went to a path the warden did not name, the `location:` line gained that coordinate and nothing else; no other line of the file changed (`git diff` of the record shows only those lines) |
-| S3 the check reads one line per finding, and refuses what it cannot read | a record whose `## Findings` holds a finding at `verdict: open`; one whose `verdict:` value is outside the four shapes (`confirmed`, `Fixed abc1234`, `fixed` with no commit, `fixed abc1234.`, `deferred` with no home, `**fixed** abc1234`); a finding with no `verdict:` line, or with two; a finding whose only `verdict:` stands inside its fenced fix; a `verdict:` line under `## Confirmations`; a record with no `## Findings`; a `fixed <sha>` naming a commit HEAD does not descend from; a fence or a `<!--` comment that never closes, with an open finding below it; pull request not a draft | `chain_check.py` exit 1 for each, naming the record, the line and the finding's heading, and saying which of the four shapes a value would have to take; the unclosed region named at the line that opened it; a draft prints the same and exits 0. A record whose findings all read `fixed <commit on the branch, touching a located path>`, `answered` or `deferred <home>`, and one with an empty `## Findings`, pass. `severity:` is read for nothing: a finding at `severity: anything` and `verdict: answered` passes (T25–T28, T31) |
-| S4 the last fixes are read | the last record's `Target SHA` is behind HEAD by a commit touching a file outside `seal/specs/<id>/` | exit 1 naming the commit and *a verifying round is owed*; HEAD moved only by record commits passes |
+| S1 a round is one file | a warden reviews a fixture branch | `rounds/round-1.md` exists in the branch worktree with one `target:` line, `## Findings` holding one `###` section per finding with its `severity:`, `location:` and `verdict:` lines and its fenced fix, `## Confirmations` with a `confirms:` line per entry where the round confirmed something, `## Not judged` and `## Probes`, and no emoji in the file; no `round-1-report.md`; the warden eval's shape graders pass on it |
+| S2 the fix pass completes the record | a smith answers round 1 | every finding's `verdict:` line reads `fixed <commit>`, `rejected` or `deferred <home>` — a repair made outside the tree with no commit reading `deferred <where it was made>` (Q11) — each `fixed` commit touching a path its `location:` names, and its `answer:` line is filled; where the fix went to a path the warden did not name, the `location:` line gained that coordinate and nothing else; no other line of the file changed (`git diff` of the record shows only those lines) |
+| S3 the check reads one line per finding, and refuses what it cannot read | a record whose `## Findings` holds a finding at `verdict: open`; one whose `verdict:` value is outside the four shapes (`confirmed`, `Fixed abc1234`, `fixed` with no commit, `fixed abc1234.`, `deferred` with no home, `**fixed** abc1234`); a finding with no `verdict:` line, or with two; a finding whose only `verdict:` stands inside its fenced fix; a `verdict:` line under `## Confirmations`; a record with no `## Findings`; a `fixed <sha>` naming a commit HEAD does not descend from; a fence or a `<!--` comment that never closes, with an open finding below it; pull request not a draft | `chain_check.py` exit 1 for each, naming the record, the line and the finding's heading, and saying which of the four shapes a value would have to take; the unclosed region named at the line that opened it; a draft prints the same and exits 0. A record whose findings all read `fixed <commit on the branch, touching a located path>`, `rejected` or `deferred <home>`, and one with an empty `## Findings`, pass this reading. `severity:` is read for nothing: a finding at `severity: anything` and `verdict: rejected` passes it (T25–T28, T31) |
+| S4 the last fixes are read | the last record's `target:` commit is behind HEAD by a commit touching a file outside `seal/specs/<id>/` | exit 1 naming the commit and *a verifying round is owed*; HEAD moved only by record commits passes |
 | S5 the broad gate has one home | `broad-gate --record` on a green run, either routing answer | `seal/specs/<id>/broad-gate.md` reads `<sha> against <base>`; no `Broad gate` row anywhere; a ready pull request whose file names a commit other than HEAD fails |
 | S6 the sealer guarantees | a sound fixture item with a pull request body | `guarantee.md` with the five sections and `Verdict: sound`; nothing else in the tree changed; the report labels every claim |
 | S7 the sealer catches a story the tree contradicts | a pull request body claims a removal the tree still carries; a phase record claims `seen red` for a case green against the old code | `Verdict: not sound — <the claim>` naming the party and the coordinate, once per case |
@@ -581,20 +611,26 @@ design.
 | S17 no rule is lost unseen | each rewritten file | the phase record lists every bold-led rule of the old file with its new coordinate or its removal and why; every test that pinned a sentence is green on the new one or removed with a row |
 | S18 the contract numbers anew | part B | `skills/agent-contract/SKILL.md` rules 1..N in order; no `§` citation outside it names a number it no longer carries (`grep -rn "§[0-9]"`) |
 | S19 nothing asks a person | the whole change | no `AskUserQuestion`, no `input()`, no new prompt; the eval scores itself; the sealer's `undecidable` is a written question, not a stop mid-run |
-| S20 every statement of the record's shape is the new one (phase 5d; the severity-keyed rule of phases 5a–5c and 5d-i's capitalised labels are history) | after phase 5d-iii | `git grep` outside `seal/specs/` and `changelog/0.*.md` for `## Verdicts`, `Paste-ready fixes`, `Executed probes`, `verdict_table`, `open_findings`, `CLOSES_BY`, `five-column`, `Grounds` cell, `#` cell, `🔴 or 🟡`, `bare-integer id`, `Severity:`, `Location:`, `Answer:`, `Fix of a fix`, `blocks merge`, `fix or justify` and `touches the row` finds nothing; `git grep -n "Verdict:"` finds only `guarantee.md`'s line and its readers (`chain_check.py#verdicts_of`, `templates/sdd-guarantee.md`, the sealer's definition, cases and graders), since the guarantee keeps its spelling (`plan.md` Alternative AM); `templates/config.md` §*What no row governs* lists the new literals and `tests/test_the_pull_request_language_is_the_repositorys.py::test_the_exclusion_list_holds_every_string_a_checker_matches` holds them to the check's constants; `bin/rules --check` exit 0 with every `Enforced by:` naming a test in the tree; `agents/sealer.md` step 3, `templates/sdd-guarantee.md`'s comment and `docs/the-review-record.md` §*The guarantee* keep the one-list design (T22, T23 unchanged) |
+| S20 every statement of the record's shape is the new one (phase 5d; the severity-keyed rule of phases 5a–5c and 5d-i's capitalised labels are history) | after phase 5d-iii | `git grep` outside `seal/specs/` and `changelog/0.*.md` for `## Verdicts`, `Paste-ready fixes`, `Executed probes`, `verdict_table`, `open_findings`, `CLOSES_BY`, `five-column`, `Grounds` cell, `#` cell, `🔴 or 🟡`, `bare-integer id`, `Severity:`, `Location:`, `Answer:`, `Fix of a fix`, `refixes`, `` `Confirms` cell ``, `blocks merge`, `fix or justify` and `touches the row` finds no statement of the shape — what it finds is a refused spelling the check, its cases, the old-shape fixtures or `docs/the-review-record.md`'s labels paragraph name on purpose, or history in a comment, each hit named in the phase record (from 5d-iv, `tests/test_the_record_is_written_in_words.py`'s docstring no longer among them); `git grep -n "Verdict:"` finds only `guarantee.md`'s line and its readers (`chain_check.py#verdicts_of`, `templates/sdd-guarantee.md`, the sealer's definition, cases and graders), since the guarantee keeps its spelling (`plan.md` Alternative AM); `templates/config.md` §*What no row governs* lists the new literals and `tests/test_the_pull_request_language_is_the_repositorys.py::test_the_exclusion_list_holds_every_string_a_checker_matches` holds them to the check's constants; `bin/rules --check` exit 0 with every `Enforced by:` naming a test in the tree; `agents/sealer.md` step 3, `templates/sdd-guarantee.md`'s comment and `docs/the-review-record.md` §*The guarantee* keep the one-list design (T22, T23 unchanged) |
 | S22 a `fixed` commit touches its finding's location | a ready pull request; a record whose finding reads `fixed <sha>` with `<sha>` on the branch and touching only a path its `location:` does not name; one whose commit touches one of the two paths named; one whose `location:` names a directory and the commit changes a file under it; one whose `location:` line the fix pass lengthened by the path its commit touched, the warden's coordinates before it; one whose `location:` the check cannot read (no backticks, a bare `:617`, two `location:` lines, none) at any verdict | exit 1 for the first, naming the finding, the commit and the paths it touched; the second, third and fourth pass; exit 1 for each of the fifth, naming the line and the one spelling; the sealer's definition names no such act (T33, T34, T40) |
-| S23 the channel between rounds is read | two records; round 1's findings read `fixed <sha>`, `answered` and `deferred #9`; round 2's `Confirms` cells and `refixes:` lines name some of them | exit 1 naming each `fixed` or `answered` finding of round 1 that round 2 neither confirms nor refixes, by `round-1#<n>` and its heading; the `deferred` one owes nothing; a reference round 2 writes that the check cannot read (`round 1's 3`, `Round-1#3`, `#3`), one naming a record the item has not got, or a number round 1 does not hold, is refused by line; a `Confirms` cell outside `round-<N>#<n>` and `none`, or a header whose first cell is not `Confirms`, is refused; a reference in round 1 is refused and `none` there passes; on a ready pull request a `fixed` or `answered` finding in the last record is refused as *a verifying round is owed*, and a last record of `deferred` findings passes (T35–T37) |
-| S24 a label in another spelling is refused, never skipped | a record with `Verdict: open`, `**verdict:** open`, `VERDICT: open`, `verdict : open`, `Fix of a fix: <unit>`, `Severity: must`, `Location: `path``, `Answer: …` | exit 1 for each, naming the line and the lowercase label it would have to read; the finding is not read past it (T32) |
+| S23 the channel between rounds is read | two records; round 1's findings read `fixed <sha>`, `rejected` and `deferred #9`; round 2's `confirms:` and `regression:` lines name some of them | exit 1 for each `fixed` or `rejected` finding of round 1 that round 2 names on neither, refused at that finding's own `### <n>.` heading line in `round-1.md`, the refusal naming round 2's record and the `round-1#<n>` it owes; the `deferred` one owes nothing; a reference round 2 writes that the check cannot read (`round 1's 3`, `Round-1#3`, `#3`), one naming a record the item has not got, or a number round 1 does not hold, is refused by line; a `confirms:` value outside `round-<N>#<n>` and `none`, a table row in `## Confirmations`, and a second `## Confirmations` are refused; a record with nothing to confirm and no `## Confirmations` passes; a reference in round 1 is refused and `confirms: none` there passes; on a ready pull request a `fixed` or `rejected` finding in the last record is refused at its `verdict:` line as *a verifying round is owed*, and a last record of `deferred` findings passes (T35–T37) |
+| S24 a label in another spelling is refused, never skipped | a record with `Verdict: open`, `**verdict:** open`, `VERDICT: open`, `verdict : open`, `Fix of a fix: <unit>`, `refixes: round-1#1`, `Target SHA: <sha>`, `Severity: must`, `Location: `path``, `Answer: …`; a `target:` or `confirms:` line inside a finding; a `confirms:` line outside `## Confirmations` | exit 1 for each, naming the line and the lowercase label it would have to read — `regression:` for the two old reference spellings, `target:` for `Target SHA` — or the place it belongs; the finding is not read past it (T32 and the out-of-place case) |
+| S25 the verdict says what happened to the defect (phase 5d-iv; Q11) | a fix pass meets a finding that held and was repaired by editing an issue or a pull request body, with no commit on the branch; and one that held and was repaired by a commit correcting a record | the first closes `deferred <where it was repaired>` (`deferred #956`) with `answer:` saying what changed there, and owes the next round nothing; the second closes `fixed <commit>`, the record's path on its `location:`; `docs/the-review-record.md` §*The round record* says so and a case pins the sentence (T41); `git grep` outside `seal/specs/` and `changelog/0.*.md`, and over this item's `changelog.md`, finds no sentence sending a repair to `rejected`, which every text this item touches gives one meaning, *the finding does not hold*; `chain_check.py` is unchanged, since it already reads `deferred <home>` and owes such a finding nothing |
 | S21 a number a reader acts on names its moment or goes (narrowed in phase 5c) | the shipped surfaces this item writes: `changelog.md`, and every `docs/` sentence this item rewrote | every figure in them is a measurement naming its commit, round or tag, a bound a named check holds the tree to, or gone (§*A number in this frame*). The frame's three documents are read at 680142f2 (`plan.md` §*Technical context*) and the builder's two at the commit each sentence or phase record names; a figure there is history at that moment, not a finding, and no agent reads it against the tree |
 
 ## Data & interfaces
 
 `templates/sdd-round.md`: the shape under §*What a round records*, one
-comment over `## Findings` documenting the five lowercase labels, the four
-`verdict:` values, the two severities `must` and `should`, the `location:`
-spelling and the `refixes:` reference, and one comment each over
-`## Confirmations` (the `Confirms` cell, `round-<N>#<n>` or `none`) and
-`## Not judged` saying what goes there; no emoji anywhere in it.
+comment under the `target:` line documenting its two shapes and the cap's
+extension line, one over `## Findings` documenting the five lowercase
+labels a finding holds, the four `verdict:` values, the two severities
+`must` and `should`, the `location:` spelling and the `regression:`
+reference, and one comment each over `## Confirmations` (a `confirms:` line
+per entry, `round-<N>#<n>` or `none`, its prose after it, the section left
+out where nothing is confirmed) and `## Not judged` saying what goes there;
+no emoji anywhere in it. From 5d-iv the `deferred <home>` value's line says
+a home is also where a repair with no commit was made, and the `rejected`
+line keeps its one meaning.
 `templates/sdd-guarantee.md`: `| Field | Value |` with `Target SHA`,
 `Broad gate`; `## Claims re-run` (`| Claim | Source | Command | Result |`, its
 comment reading *one row per act of `agents/sealer.md` step 3, whatever the
@@ -609,41 +645,61 @@ and an `Answered <date> by <who>: …` line under it where the owner answered.
 a draft prints every arm and exits 0. The `records` arm reads each record
 through one reader, `record_findings(reader, text, rel)`, which runs
 `unclosed` (a `<!--` comment or a fence that never closes, refused at its
-opener; 5d-i) and then `findings(reader, lines, rel)` over `reader.readable`'s
-lines: the one `## Findings` section (`FINDINGS_HEADING`), split at its
-`### ` headings, each section holding exactly one line matching
-`^verdict: (.*)$` (`VERDICT_LABEL`), the value read by `verdict_of(value)` as
-`OPEN`, `FIXED` with its commit, `ANSWERED` or `DEFERRED` with its home
-(`deferred_home`, `issue_of` kept for `release_seal.py` and the panel), else
-`None`; exactly one line matching `^location: (.*)$` (`LOCATION_LABEL`), its
-value read by `location_of(value)` as the list of paths of one or more
-`` `path` ``, `` `path:line` `` or `` `path:first-last` `` items joined by
-`, ` (`COORDINATE`), else `None`; at most one line matching
-`^refixes: (.*)$` (`REFIXES_LABEL`), its value read by `reference_of(value)`
-as `(round, finding)` from `round-<N>#<n>` or `(round, None)` from
-`round-<N>` (`REFERENCE`), else `None`. Before any of that, every readable
-line matching `MISSPELT_LABEL` — the first word, case-folded and stripped of
-`*`, `_` and `` ` ``, one of the five labels or `fix of a fix`, followed by
-`:` — that is not the exact lowercase form is an error naming the line and
-the label it would have to read. Every `None`, every section with no or two
-`verdict:` or `location:` lines or two `refixes:` lines, every labelled line
-outside a section of `## Findings`, and a missing or doubled `## Findings`
-is an error the arm names by path, line and the finding's heading. A `FIXED`
-whose commit HEAD does not descend from (`is_ancestor`) is refused, and so is
-one whose changed paths (`touched(root, commit)`, `git diff-tree
---no-commit-id --name-only -r --root <commit>`) hold none equal to or under
-a located path; on a ready pull request an `OPEN` finding fails too.
-`confirmations(reader, lines, rel)` reads the one `## Confirmations` section:
-its table's header whose first cell is `Confirms`, and each row's first cell
-as `reference_of` or `none`, else an error by line. `channel(records)` takes
-the item's records in number order and, for each pair N, N+1, names every
-finding of N at `FIXED` or `ANSWERED` that no `Confirms` cell and no
-`refixes:` line of N+1 references; it refuses any reference whose round is
-not an earlier record of the item or whose finding number that record does
-not hold, and any reference at all in the first record; on a ready pull
-request it names a `FIXED` or `ANSWERED` finding of the last record with
-`VERIFYING_ROUND`. Nothing of a record's `severity:` or `answer:` value is
-read, and no emoji is read for. The reader strips fences and comments first
+opener; 5d-i), then `findings(reader, lines, rel)` over `reader.readable`'s
+lines, then `record_target(reader, lines, rel)`. `findings` reads the one
+`## Findings` section (`FINDINGS_HEADING`), split at its `### ` headings,
+each section holding exactly one line matching `^verdict: (.*)$`
+(`VERDICT_LABEL`), the value read by `verdict_of(value)` as `OPEN`, `FIXED`
+with its commit, `REJECTED` or `DEFERRED` with its home (`deferred_home`,
+`issue_of` kept for `release_seal.py` and the panel), else `None`; exactly
+one line matching `^location: (.*)$` (`LOCATION_LABEL`), its value read by
+`location_of(value)` as the list of paths of one or more `` `path` ``,
+`` `path:line` `` or `` `path:first-last` `` items joined by `, `
+(`COORDINATE`), else `None`; at most one line matching
+`^regression: (.*)$` (`REGRESSION_LABEL`), its value read by
+`reference_of(value)` as `(round, finding)` from `round-<N>#<n>` or
+`(round, None)` from `round-<N>` (`REFERENCE`), else `None`; and returns a
+`Finding` per section — its `verdict:` line, heading, heading number,
+verdict, located paths, regression reference with that line, and heading
+line. Before any of that, every readable line matching `MISSPELT_LABEL` —
+the first word, case-folded and stripped of `*`, `_` and `` ` ``, one of the
+seven labels (`EXACT_LABEL`) or an old spelling, `Target SHA`, `refixes` or
+`fix of a fix` (`OLD_LABELS`), followed by `:` — that is not the exact
+lowercase form is an error naming the line and the label it would have to
+read (`spelt_otherwise`). Every `None`, every section with no or two
+`verdict:` or `location:` lines or two `regression:` lines, a finding's
+label outside a section of `## Findings`, a `target:` or `confirms:` line
+inside one, a `confirms:` line outside `## Confirmations`, and a missing or
+doubled `## Findings` is an error the arm names by path, line and the
+finding's heading. `record_target` reads the one `target:` line outside
+every finding (`TARGET_LABEL`, `TARGET_VALUE`): `<sha> against <base>` or
+`<sha>, fixes <a>..<b>`, the commit its first word; none (`NO_TARGET`), two,
+or another shape is an error by line. A `FIXED` whose commit HEAD does not
+descend from (`is_ancestor`) is refused, and so is one whose changed paths
+(`touched(root, commit)`, `git diff-tree --no-commit-id --name-only -r
+--root <commit>`) hold none equal to or under a located path; on a ready
+pull request an `OPEN` finding fails too. `confirmations(reader, lines,
+rel)` reads `## Confirmations` where the record has it — none is no error,
+two is `TWO_CONFIRMATIONS` — each `confirms:` line at the start of a line
+(`CONFIRMS_LABEL`) read as `none` or, through `reference_of`, as a
+`round-<N>#<n>` reference with its line; a value that is neither, and a
+table row in the section (`CONFIRMATIONS_TABLE`), are errors by line, and
+the prose after each line is read for nothing. `round_of(reader, text, rel,
+number)` reads one record for the arm: its findings, its `target:` commit,
+its `confirms:` references, and the number of every `### <n>. ` heading,
+read or refused, so a reference to a refused finding still names one the
+record holds. `channel(rounds)` takes the item's records in number order
+and, for each pair N, N+1, refuses every finding of N at `FIXED` or
+`REJECTED` that no `confirms:` and no `regression:` line of N+1 names, at
+that finding's own heading line in N's record, naming N+1's record and the
+reference it owes; it refuses any reference whose round is not an earlier
+record of the item or whose finding number that record does not hold, and
+any reference at all in the first record; on a ready pull request it
+refuses a `FIXED` or `REJECTED` finding of the last record at its
+`verdict:` line with `VERIFYING_ROUND`. A `DEFERRED` finding owes nothing,
+which is what makes Q11's `deferred <where it was repaired>` need no reader
+change. Nothing of a record's `severity:` or `answer:` value is read, and no
+emoji is read for. The reader strips fences and comments first
 (`reader.readable`), so a labelled line inside a fix block is not a line; a
 fence closed on the wrong line is the stated limit. The panel's
 `broad_gate.py#rounds_rows` and `release_seal.py#chain_counts` keep reading
@@ -663,22 +719,27 @@ smith's claims re-run, and the removals confirmed absent — and no reading of
 a `fixed` commit against a location.
 `docs/the-review-record.md`: the record, the four run rules, the handoff
 rule, the sealer's check, each with `Enforced by:`; §*The round record*
-states the shape, the five lowercase labels, the four values, the two
-severities, the location spelling and the channel's reference, with the
-touch rule's `Enforced by:` T34 in place of *nothing — the sealer reads*;
-§*What the check reads at the pull request*'s records paragraph states the
-labelled lines, the `Confirms` cell, the fail-closed reading and how it errs
-(a touching commit that fixes nothing; a fence closed on the wrong line),
-its `Enforced by:` the check's pins alone; §*The run*'s fix-of-a-fix rule
-names the `refixes:` line and its reference; §*The guarantee* points at
-`agents/sealer.md` step 3 and step 4 for the acts and lists none.
-`templates/config.md` §*What no row governs* lists the literals the check
-reads — `Target SHA`, `## Findings`, `## Confirmations`, `Confirms`,
-`verdict:`, `location:`, `refixes:`, `open`, `fixed`, `answered`, `deferred`,
-`none`, `round-<N>#<n>` — and the labels the parties and the eval graders
-read, `severity:`, `must`, `should`, `answer:`, the `## Not judged` and
-`## Probes` headings; the capitalised labels and `Fix of a fix:` leave the
-list. `evals/scripts/behaviour.py`: the shape grader `shape-findings` reads
+states the shape, the seven lowercase labels and the old spellings refused,
+the four values, the two severities, the location spelling, the `target:`
+line and the channel's reference, with the touch rule's `Enforced by:` T34
+in place of *nothing — the sealer reads*; its fix-pass paragraph says, from
+5d-iv, that a repair made outside the tree with no commit closes `deferred
+<where it was repaired>` and one made by a commit `fixed <commit>`, its
+`Enforced by:` gaining T41; §*What the check reads at the pull request*'s
+records paragraph states the labelled lines, the `confirms:` lines, the
+fail-closed reading and how it errs (a touching commit that fixes nothing;
+a fence closed on the wrong line), its `Enforced by:` the check's pins
+alone; §*The run*'s fix-of-a-fix rule names the `regression:` line and its
+reference; §*The guarantee* points at `agents/sealer.md` step 3 and step 4
+for the acts and lists none. `templates/config.md` §*What no row governs*
+lists the literals the check reads — `target:`, `## Findings`, `verdict:`
+with `open`, `fixed`, `rejected` and the `deferred` in `deferred <home>`,
+`location:`, `regression:`, `## Confirmations`, `confirms:`, `none`,
+`round-<N>#<n>` — and the labels the parties and the eval graders read,
+`severity:` with `must` and `should`, `answer:`, the `## Not judged` and
+`## Probes` headings, beside `guarantee.md`'s own `Target SHA`; the
+capitalised labels, `Fix of a fix:`, `refixes:`, `Confirms` and `answered`
+leave the list. `evals/scripts/behaviour.py`: the shape grader `shape-findings` reads
 `^## Findings` and the first `^### \d+\. ` section's `^verdict: ` line and
 holds the record free of emoji; `replay_targets.py#truth_pattern` and
 `seed_defects.py` emit `^location: .*<path and unit or lines>`; the nine
@@ -764,10 +825,12 @@ the parties' stories; it counts nothing against the tree.
 | `tests-todo.md` | the file kind; `docs/the-record-layout.md` row; `skills/implement/SKILL.md` §5 table row; `settle.py`'s reading | a prescribed test is a 🟡 row |
 | the three record documents | `docs/round-record-spec.md`, `docs/review-chain-spec.md`, `docs/review-handoff-protocol.md` | `docs/the-review-record.md`; the handoff rule in the orchestration file |
 | the severity-keyed reading of a verdict row (phase 5a) | `chain_check.py#severity_of`, `NOT_FINDINGS`, `FINDING_CLOSES`, the `ID_COLUMN` lookup in `#open_findings`; the `#`-cell rule as `docs/the-review-record.md` §*What the check reads at the pull request* stated it, `templates/sdd-round.md`'s closing comment, `chain_check.py`'s module docstring, `README.md`, `README.ko.md`, `.github/workflows/hygiene.yml` and `templates/hygiene.yml` where they said "no 🔴 or 🟡 row left open", and this item's `changelog.md` sentence | phase 5a replaced it with one reading of the `Verdict` cell; phase 5d removes that reading too, with the table (the rows below) |
-| the verdict table and its reader (phase 5d) | `templates/sdd-round.md`'s `## Verdicts` table, `## Paste-ready fixes` and `## Executed probes`; `chain_check.py#verdict_table`, `#verdict_of` as a cell reader, `#deferred_parts`, `#open_findings`, `VERDICTS`, `VERDICT_COLUMN`, `GROUNDS_COLUMN`, `BLOCKING`, `SHOULD`, `FINDINGS`, `CLOSES_BY`, `EVERY_CLOSE`, `FINDING_WORDS`, `CLOSED_WORDS`, `VOCAB`, `MARKER`, `SEPARATORS`, `HOME_MARKS`, `DEFERRED_HEAD_RE`, `OUT_OF_SCOPE`, `NO_HOME`; the words `confirmed`, `out of verified scope`, `withdrawn`, `not a defect`, `agreed, fixed` as verdicts; `tests/test_chain_check.py::TestVerdictTable`, `::TestOpenFindings` (T19, T24), `::TestVerdictOf` as it stands, `::TestDeferredHome` as it stands, `::TestMain::test_the_refusal_names_the_words_that_close_a_row_of_its_mark`, `::TestMain::test_a_record_written_by_the_old_generator_reads` (T13, the corpus run); the table fixtures of `tests/test_broad_gate.py`, `tests/test_the_seal_is_taken_once_by_the_sealer.py` (`VERDICT_HEADER`, `OPEN_ROW`, `record_text`, `deferring_record`) and `tests/test_the_release_seal_is_drawn.py` (`ROUND`); `tests/test_the_pull_request_language_is_the_repositorys.py#ROUND_RECORD_FIELDS` and the constants `_literal_strings` reads; `evals/scripts/behaviour.py`'s `shape-verdicts-table` grader and the `^\| (?:🔴\|🟡) \d+ \|` truth pattern of `replay_targets.py#truth_pattern` and `seed_defects.py`; `rule_cases.py#SEALER_ROUND` and the sealer scaffolds it wrote | §*What a round records*: a finding is a section with a `Verdict:` line, read by `chain_check.py#findings`, and the fail-closed reading is T25–T28; the other readers read through it, and the graders read `## Findings` and `Location:` |
+| the verdict table and its reader (phase 5d) | `templates/sdd-round.md`'s `## Verdicts` table, `## Paste-ready fixes` and `## Executed probes`; `chain_check.py#verdict_table`, `#verdict_of` as a cell reader, `#deferred_parts`, `#open_findings`, `VERDICTS`, `VERDICT_COLUMN`, `GROUNDS_COLUMN`, `BLOCKING`, `SHOULD`, `FINDINGS`, `CLOSES_BY`, `EVERY_CLOSE`, `FINDING_WORDS`, `CLOSED_WORDS`, `VOCAB`, `MARKER`, `SEPARATORS`, `HOME_MARKS`, `DEFERRED_HEAD_RE`, `OUT_OF_SCOPE`, `NO_HOME`; the words `confirmed`, `out of verified scope`, `withdrawn`, `not a defect`, `agreed, fixed` as verdicts; `tests/test_chain_check.py::TestVerdictTable`, `::TestOpenFindings` (T19, T24), `::TestVerdictOf` as it stands, `::TestDeferredHome` as it stands, `::TestMain::test_the_refusal_names_the_words_that_close_a_row_of_its_mark`, `::TestMain::test_a_record_written_by_the_old_generator_reads` (T13, the corpus run); the table fixtures of `tests/test_broad_gate.py`, `tests/test_the_seal_is_taken_once_by_the_sealer.py` (`VERDICT_HEADER`, `OPEN_ROW`, `record_text`, `deferring_record`) and `tests/test_the_release_seal_is_drawn.py` (`ROUND`); `tests/test_the_pull_request_language_is_the_repositorys.py#ROUND_RECORD_FIELDS` and the constants `_literal_strings` reads; `evals/scripts/behaviour.py`'s `shape-verdicts-table` grader and the `^\| (?:🔴\|🟡) \d+ \|` truth pattern of `replay_targets.py#truth_pattern` and `seed_defects.py`; `rule_cases.py#SEALER_ROUND` and the sealer scaffolds it wrote | §*What a round records*: a finding is a section with a `verdict:` line, read by `chain_check.py#findings`, and the fail-closed reading is T25–T28; the other readers read through it, and the graders read `## Findings` and `location:` |
 | the emoji vocabulary and the `#` cell as record rules (phase 5d) | `docs/the-review-record.md` §*The round record*'s vocabulary paragraph and §*What the check reads*' open-row paragraph; `skills/code-review/SKILL.md` §*Findings format*'s four-line block, the bare-integer-id paragraph, the Finding-cell paragraph and the Grounds-cell paragraph (#189); `agents/warden.md`'s `#` cell sentences (its ❓ row paragraph and §*Report*'s last two paragraphs); `templates/config.md`'s literal list rows for the headings, columns and words; `README.md:182`'s *no row left open*, `README.ko.md:173`'s 판정표 sentence, the step comments of `.github/workflows/hygiene.yml` and `templates/hygiene.yml`; this item's `changelog.md` first two entries where they state the table and the marks; `docs/the-agent-set.md:56`'s `Enforced by: tests/test_chain_check.py::TestVerdictTable` | two severities for people, `must` and `should` (the words set on 2026-10-16; 5d-i wrote `blocks merge` and `fix or justify`); a confirmation and a not-judged item are rows of their own sections; the sentences are rewritten in place to the shape and the `Enforced by:` lines name the new groups |
 | the sealer's act over a `fixed` commit's location (phase 5d-ii) | `agents/sealer.md` step 3's sentence *For every round-record row closed `fixed <commit>`, confirm the commit is on the branch and touches the row's `Location`*; this file's §*The sealer* step 3 clause and §*What a round records*' sealer row as they stood; `docs/the-review-record.md` §*The round record*'s *Enforced by: nothing — … the sealer reads every `fixed <commit>` against its finding's `Location:`* and §*What the check reads*' *the sealer reads that commit against the finding's `Location:`*; `plan.md` §*Operational impact*'s *its second act reads each `Verdict: fixed <commit>` against the finding's `Location:`* and Alternative AI's *the sealer keeps "touches the `Location:`"* | the check reads it: `chain_check.py#touched` against `location_of`, T33 and T34 (S22); the one-list design keeps its two pins, and T40 pins the two acts |
-| the capitalised labels, the two-word `Fix of a fix:` and the severities `blocks merge` and `fix or justify` (phase 5d-ii) | `templates/sdd-round.md`'s `Severity:`, `Location:`, `Verdict:`, `Fix of a fix:`, `Answer:` lines and its comment; `chain_check.py#VERDICT_LABEL` as `^Verdict: `; `docs/the-review-record.md` §*The round record* and §*What the check reads* where they spell them; `templates/config.md` §*What no row governs*' rows for them and `tests/test_the_pull_request_language_is_the_repositorys.py#ROUND_RECORD_FIELDS`; this item's six records' lines; then in 5d-iii `agents/warden.md` §*Report*, `agents/smith.md:190-193`, `skills/implement/SKILL.md` §5, `skills/code-review/SKILL.md` §*Findings format*, `skills/code-review/orchestration.md`'s two-cells paragraph, `evals/scripts/behaviour.py`'s `^Verdict: `, `replay_targets.py#truth_pattern` and `seed_defects.py`'s `^Location: `, `rule_cases.py#SEALER_ROUND`, this item's `changelog.md` | five lowercase labels, `must` and `should`, read fail-closed (S24; T32); `guarantee.md`'s `Verdict:` is not a round record's label and keeps its spelling (`plan.md` Alternative AM) |
+| the capitalised labels, the two-word `Fix of a fix:` and the severities `blocks merge` and `fix or justify` (phase 5d-ii) | `templates/sdd-round.md`'s `Severity:`, `Location:`, `Verdict:`, `Fix of a fix:`, `Answer:` lines and its comment; `chain_check.py#VERDICT_LABEL` as `^Verdict: `; `docs/the-review-record.md` §*The round record* and §*What the check reads* where they spell them; `templates/config.md` §*What no row governs*' rows for them and `tests/test_the_pull_request_language_is_the_repositorys.py#ROUND_RECORD_FIELDS`; this item's six records' lines; then in 5d-iii `agents/warden.md` §*Report*, `agents/smith.md:190-193`, `skills/implement/SKILL.md` §5, `skills/code-review/SKILL.md` §*Findings format*, `skills/code-review/orchestration.md`'s two-cells paragraph, `evals/scripts/behaviour.py`'s `^Verdict: `, `replay_targets.py#truth_pattern` and `seed_defects.py`'s `^Location: `, `rule_cases.py#SEALER_ROUND`, this item's `changelog.md` | lowercase labels, `must` and `should`, read fail-closed (S24; T32); `guarantee.md`'s `Verdict:` is not a round record's label and keeps its spelling (`plan.md` Alternative AM) |
+| the field table, the confirmations table, `refixes:` and `answered` (phase 5d-iii; the owner, 2026-10-16) | `templates/sdd-round.md`'s `\| Field \| Value \|` table with its `Target SHA` row, its `## Confirmations` table with the `Confirms` first column, its `refixes:` line and its `answered` value; `chain_check.py`'s `REFIXES_LABEL`, `ANSWERED`, `#target_of` reading a round record's `Target SHA` row (it reads `guarantee.md`'s alone now), and `#confirmations`' table and `Confirms`-header reading; the unconfirmed finding's refusal at line 0 of the next record; `docs/the-review-record.md`, `templates/config.md` §*What no row governs*, the language test's literals, the parties' texts, the READMEs and this item's `changelog.md` where they spell them; this item's six records' tables, `refixes:` lines and `## Confirmations` rows (rewritten at 92991623) | one `target:` line; a `confirms:` line per confirmation, the section optional and a second refused; `regression:`; `rejected`, owing the next round a `confirms:` or `regression:` line as `answered` did; an unconfirmed finding refused at its own heading in its own record; `Target SHA` and `refixes` read only as old spellings refused by line (S23, S24; T32, T36–T38). The guarantee's `Target SHA` row is the sealer's file and stays |
+| the sentences sending a repair with no commit to `rejected` (phase 5d-iv; `questions.md` Q11) | `docs/the-review-record.md` §*The round record*'s *A correction to a record, or a repair made outside the tree, produced no commit on the branch and closes `rejected` with where the repair is*; this item's `changelog.md` migration paragraph's *(`answered` is `rejected` now)*, which maps every old `answered` to `rejected`; `tests/test_the_record_is_written_in_words.py`'s module docstring naming *its `Confirms` cells*; whatever else `git grep` finds of the class at the phase's start | `deferred <where it was repaired>` for a repair outside the tree with no commit, `fixed <commit>` for one a commit made, a record correction among them; `rejected` for a finding that does not hold and nothing else, T41 pinning the document's sentence |
 | the emoji in the shipped text this item touches (phase 5d-iii) | `skills/code-review/SKILL.md` §*Findings format*'s four-line block (`🔴 🟡 🟢 ❓`), its `🟡` sentence, the `#`-cell paragraphs and the proof block's `· verdict:  🔴 n · 🟡 n · 🟢 n · ❓ n` line; `agents/warden.md:150-155` and `:262-264`; `skills/code-review/orchestration.md:112`; `README.md:91` and `README.ko.md:78-80` (the cap paragraph's `🔴`, stale since Q1 as well); the step comments of `.github/workflows/hygiene.yml` and `templates/hygiene.yml` where they name a mark; the panel's `rounds` row text where it names one | words: `must`, `should`, a confirmation, a thing not judged; T39 holds the template, the format and the two definitions to it. **Left to part B and #940, named here**: the `📋` proof-block marker every skill shares (`skills/code-review/SKILL.md:293`, `skills/implement/SKILL.md:529`), `skills/implement/SKILL.md:79` and `:458`'s `✅` (the `## Not verified` closing mark, `unverified_check.py`'s), `agents/smith.md` and `agents/framer.md` beyond the lines above, the other skills; the history citations in code comments (`broad_gate.py`, `hooks/sealer-stamp.py:118`: *round 1's 🟡 2*) are moments and stay (`overview.md`'s `⬜` row) |
 | the `.test_durations` entries the suite no longer collects (phase 5a) | 301 entries, 345.3 s, for cases this branch removed from modules that still exist (`rounds/round-2.md` 🟡 2, `executed`) | pruned by collection — an entry is live when `pytest --collect-only` collects its id — with the round-trip guard 1b875efc used; nothing re-measured, nothing kept in the tree to do it again. The collected cases with no price — held under `STALE_SHARE` by `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite`, and counted here by nothing — are priced by the next refresh from a `tests` run, which `CONTRIBUTING.md` §*Running the checks* owns |
 | the second and third list of the sealer's acts (phase 5b) | `docs/the-review-record.md` §*The guarantee*'s list of what the sealer re-runs and confirms; `templates/sdd-guarantee.md`'s comment over `## Claims re-run` listing the row kinds | `agents/sealer.md` step 3 lists the acts and §*The sealer* states them; both files point at step 3 and name no act, so `fixed <commit>` outside `seal/specs/` and `changelog/` stands only in the record's vocabulary (`docs/the-review-record.md` §*The round record*, `templates/sdd-round.md`) and in step 3 (`git grep`) |
