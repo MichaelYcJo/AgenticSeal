@@ -59,8 +59,9 @@
   and none of that round's findings is `fixed` or `rejected`, since no
   round read them. A label in any other spelling (`Verdict:`, `Target SHA`,
   `refixes:`), a value outside its shape (a `path#unit` coordinate among
-  them), a missing or doubled line and a fence that never closes are each
-  refused by line, never passed.
+  them), a missing or doubled line, a finding heading with no number or
+  with a number another heading carries, and a fence that never closes are
+  each refused by line, never passed.
   `broad-gate.md` names HEAD. `guarantee.md` names HEAD and reads `sound`.
   A draft prints every refusal and fails nothing. A declaration that
   reached the branch inside another pull request's squash, a commit GitHub

@@ -836,6 +836,33 @@ class TestFindings:
         marks = [c for c in text if EMOJI.match(c)]
         assert marks == [], marks
 
+    def test_a_heading_with_no_number_or_a_number_twice_is_refused(self):
+        """A finding is named across rounds by its heading's number, so a
+        heading with none, or a number a second heading also carries, is a
+        finding no `round-<N>#<n>` names alone: both are refused at the
+        heading, and the record's other findings still read."""
+        text = record(
+            "abc1234",
+            [
+                finding(1, "fixed abc1234"),
+                finding(1, "fixed abc1234", title="a second one"),
+                finding(2, "deferred #9").replace("### 2. ", "### "),
+                finding(3, "open"),
+            ],
+        )
+        lines = reader.readable(text)
+        found, errors = chain.findings(reader, lines, "r.md")
+        assert [f.number for f in found] == [1, 3]
+        assert [(line, why.split(" — ")[0]) for _r, line, why in errors] == [
+            (lines.index("### 1. a second one") + 1, "### 1. a second one"),
+            (
+                lines.index("### the parser drops a row") + 1,
+                "### the parser drops a row",
+            ),
+        ]
+        assert "a second finding numbered 1" in errors[0][2]
+        assert "no number" in errors[1][2]
+
 
 # --- record_findings ----------------------------------------------------------
 

@@ -685,7 +685,8 @@ def findings(reader, lines, rel):
     an old spelling and is not spelt as the label is refused, and a finding
     carrying one is not read past it. Everything the reader cannot read is
     an error `(rel, line, why)` naming the finding's heading, in line order:
-    no `## Findings` section or two, a finding with no `verdict:` or
+    no `## Findings` section or two, a heading with no number or with a
+    number an earlier heading carries, a finding with no `verdict:` or
     `location:` line or two of either, two `regression:` lines, a value none
     of the three readers can read, a finding's label outside a finding, a
     `confirms:` or `target:` line inside one, a `confirms:` line outside
@@ -710,8 +711,27 @@ def findings(reader, lines, rel):
             errors.append((rel, i + 1, OUTSIDE.format(label=f"{exact.group(1)}:")))
         elif exact and f"{exact.group(1)}:" == CONFIRMS and i not in confirming:
             errors.append((rel, i + 1, CONFIRMS_OUTSIDE))
+    numbers = set()
     for first, stop in spans:
         heading = lines[first].strip()
+        number = finding_number(heading)
+        if number is None or number in numbers:
+            errors.append(
+                (
+                    rel,
+                    first + 1,
+                    f"{heading} {DASH} "
+                    + (
+                        "no number: a finding's heading reads `### <n>. "
+                        "<symptom>`, and a later round names it by that `n`"
+                        if number is None
+                        else f"a second finding numbered {number}: a later "
+                        f"round's `round-<N>#{number}` would name both"
+                    ),
+                )
+            )
+            continue
+        numbers.add(number)
         said = [
             (i, label) for i in range(first + 1, stop) if (label := misspelt(lines[i]))
         ]

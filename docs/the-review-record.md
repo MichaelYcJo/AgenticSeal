@@ -128,7 +128,8 @@ finding reads `open`, and for anything the check cannot read: a verdict
 outside `open`, `fixed <commit>` (seven to forty lowercase hex digits),
 `rejected` and `deferred <home>`; a label in another spelling, or out of its
 place; a finding with no `verdict:` or `location:` line, or two of either;
-no `target:` line, two, or one it cannot read; a location or a reference it
+a finding heading with no number, or with a number another heading of the
+record carries; no `target:` line, two, or one it cannot read; a location or a reference it
 cannot read; a table row in `## Confirmations`; a record with no
 `## Findings` section, or two of either section; a `fixed` naming a commit
 HEAD does not descend from, or one that changed no located path; a
@@ -147,7 +148,7 @@ closed on the wrong line hides the lines between it and its false closer
 without being unclosed, which the orchestrator's reading of each record
 against the template and the next round's reading of the earlier records
 are there to catch.
-Enforced by: tests/test_chain_check.py::TestFindings::test_what_the_check_cannot_read_is_refused_by_name, tests/test_chain_check.py::TestRecordFindings::test_a_fence_or_comment_that_never_closes_is_refused_by_its_opener, tests/test_chain_check.py::TestConfirmations::test_a_line_or_a_table_the_check_cannot_read_is_refused_by_line, tests/test_chain_check.py::TestRecordTarget::test_no_line_two_lines_or_a_value_it_cannot_read_is_refused, tests/test_chain_check.py::TestChannel::test_a_reference_the_check_cannot_read_or_naming_no_finding_is_refused, tests/test_chain_check.py::TestMain::test_an_open_finding_fails_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_a_fixed_commit_head_does_not_descend_from_is_refused, tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused
+Enforced by: tests/test_chain_check.py::TestFindings::test_what_the_check_cannot_read_is_refused_by_name, tests/test_chain_check.py::TestFindings::test_a_heading_with_no_number_or_a_number_twice_is_refused, tests/test_chain_check.py::TestRecordFindings::test_a_fence_or_comment_that_never_closes_is_refused_by_its_opener, tests/test_chain_check.py::TestConfirmations::test_a_line_or_a_table_the_check_cannot_read_is_refused_by_line, tests/test_chain_check.py::TestRecordTarget::test_no_line_two_lines_or_a_value_it_cannot_read_is_refused, tests/test_chain_check.py::TestChannel::test_a_reference_the_check_cannot_read_or_naming_no_finding_is_refused, tests/test_chain_check.py::TestMain::test_an_open_finding_fails_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_a_fixed_commit_head_does_not_descend_from_is_refused, tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused
 
 **The last record is at HEAD, or only the work item's own records follow
 it, and none of its findings is `fixed` or `rejected`.** A commit after the

@@ -56,7 +56,8 @@ Then why it matters and the grounds, executed and read labelled apart (where
 block, the artefact itself; and `answer:`. A fix that went to a path
 `location:` does not name appends that coordinate to the line and says so in
 `answer:`. A ready pull request fails while a finding reads `open`; for a
-value or a label the check cannot read; for a `fixed` commit off the branch
+value or a label the check cannot read; for a heading with no number, or a
+number another heading carries; for a `fixed` commit off the branch
 or touching no located path; for a `fixed` or `rejected` finding the next
 round names on no `confirms:` or `regression:` line, or one in the last
 record, since a verifying round is owed; and for a fence or comment that
