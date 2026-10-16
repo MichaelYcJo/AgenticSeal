@@ -473,6 +473,13 @@ class TestGrammar:
         assert headings and all(chain.finding_number(h) == 1 for h in headings)
         for key in chain.SECTION_ROWS:
             assert len(chain.sections_of(reader, lines, key)) == 1, key
+        longer = record("abc1234", [finding(1, "open")]).replace(
+            "## Findings", "## Findings so far"
+        )
+        assert chain.findings(reader, reader.readable(longer), "r.md") == (
+            [],
+            [("r.md", 0, chain.NO_FINDINGS)],
+        )
 
         text = record(
             "abc1234",
@@ -510,6 +517,18 @@ class TestGrammar:
         )
         monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(wider), reader))
         assert chain.record_findings(reader, could, "r.md")[1] == []
+        # A table that let a finding go without a verdict would leave the check
+        # nothing to decide it on, so such a finding is still refused.
+        loose = doc_with(
+            tmp_path,
+            "| a finding | one | a verdict is",
+            "| a finding | at most one | a verdict is",
+        )
+        monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(loose), reader))
+        bare = record("abc1234", [finding(1, "x").replace("verdict: x\n", "")])
+        found, errors = chain.record_findings(reader, bare, "r.md")
+        assert found == [] and len(errors) == 1, errors
+        assert "no `verdict:` line the check can read" in errors[0][2], errors
 
     @pytest.mark.parametrize(
         "old, new, said",
