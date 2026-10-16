@@ -244,14 +244,19 @@ At the cap every finding still open takes the filing ladder below and reads
 `deferred <home>`. No person is asked mid-run.
 Enforced by: nothing — the orchestrator applies it, and the sealer reads the count and the extension lines
 
-**A fix of a fix stops the fix passes, at any round.** Where a finding stands
-in a unit the fixes under review added or changed, the warden writes its
-`regression:` line, naming the earlier finding as `round-<N>#<n>`, or the
-earlier round as `round-<N>` where no finding named the unit, and names the
-unit first in the grounds. A round carrying such a line gets no fix pass:
-the work item goes back to its framer, who writes `Reframed <date> by <who>,
-after round <N>.` under the mark at the foot of `spec.md`.
-Enforced by: nothing — the orchestrator applies it, and the sealer reads the mark in the records
+**A fix of a fix stops the fix passes, at any round.** A regression is a
+defect a fix pass's own commit introduced. Where a finding stands in a unit
+a fix pass's own commits added or changed, the warden writes its
+`regression:` line, naming the finding whose fix made the unit as
+`round-<N>#<n>`, or that round as `round-<N>` where no finding named the
+unit, and names the unit first in the grounds. A defect in a unit a build
+phase made, one the framer designed and the owner approved in `plan.md`, is
+an ordinary finding of new work, with no `regression:` line, even where the
+round that finds it reads that phase. A round carrying a `regression:` line
+gets no fix pass: the work item goes back to its framer, who writes
+`Reframed <date> by <who>, after round <N>.` under the mark at the foot of
+`spec.md`.
+Enforced by: tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made
 
 **A leftover finding takes the first rung that fits.** A new issue is the
 third rung, not the default:

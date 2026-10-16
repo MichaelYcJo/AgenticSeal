@@ -196,3 +196,26 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
             f"step 2 still carries `{gone}`. The framer ships, so the interval "
             "that clause covered is over and the escape reads as the rule"
         )
+
+
+def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():
+    """The owner's ruling of 2026-10-16, on round 7 of work item 1791933022:
+    a `regression:` line names a defect a fix pass's own commit introduced,
+    and a defect in a unit a build phase made, which the framer designed and
+    the owner approved, is an ordinary finding of new work, so its round
+    gets its fix pass. The document states it, and the template and the
+    warden, who write the line, say the same."""
+    run = flat(*RECORD)
+    run = run[run.index("## The run") : run.index("## The handoff")]
+    assert "A regression is a defect a fix pass's own commit introduced." in run
+    assert "is an ordinary finding of new work" in run
+    for carrier in (RECORD, WARDEN, ("templates", "sdd-round.md")):
+        text = flat(*carrier)
+        assert "a fix pass's own commits added or changed" in text, (
+            f"{'/'.join(carrier)} does not say a `regression:` line is for a "
+            "unit a fix pass's own commits made"
+        )
+        assert "the fixes under review added or changed" not in text, (
+            f"{'/'.join(carrier)} still gives a `regression:` line to any unit "
+            "the reviewed commits made, a build phase's among them"
+        )

@@ -89,7 +89,8 @@ it aside. For a review with no path in at all, open a fresh session and call
 either way.
 The review run is bounded: three finding rounds by default, and one more at
 a time only while each round finds fewer findings than the one before and
-none of them is a regression in the fixes under review. At the cap every
+none of them is a regression, a defect a fix pass's own commit introduced.
+At the cap every
 finding still open is handed on and reads `deferred <home>`, whether or not
 everything was resolved. What is left is handed over rather than
 carried — an unanswered finding to `seal/follow-up.md`, a decision only

@@ -44,10 +44,11 @@ labels:
                                     filing ladder, or where a repair with
                                     no commit was made
                                     (docs/the-review-record.md)
-  regression:  only on a finding in a unit the fixes under review added or
-               changed: the earlier finding as `round-<N>#<n>`, or
-               `round-<N>` for a fix pass no finding named. A round carrying
-               one gets no fix pass. Delete the line otherwise
+  regression:  only on a finding in a unit a fix pass's own commits added
+               or changed: the earlier finding as `round-<N>#<n>`, or
+               `round-<N>` for a fix pass no finding named. A unit a build
+               phase made is new work and takes none. A round carrying one
+               gets no fix pass. Delete the line otherwise
   answer:      the fix pass: what was done, why the finding does not hold,
                or where it went
 Then why it matters and the grounds, executed and read labelled apart (where

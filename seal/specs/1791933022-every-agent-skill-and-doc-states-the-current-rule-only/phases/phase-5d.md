@@ -630,3 +630,24 @@ targets in 60 files, T41 among them. `uvx ruff check` and
 exit 0 each. `chain_check.py --baseline origin/release/v0.22.0 --root
 <worktree>`: exit 0, printing the same three owed lines as at 9a4ce364:
 round 6 behind HEAD, and no `broad-gate.md` or `guarantee.md`.
+
+### Round 7 fix pass
+
+**The owner's decision, 2026-10-16.** Round 7 marked four of its five
+findings `regression: round-6#1`. Under `docs/the-review-record.md`
+§*The run* as it stood, that sent the item back to its framer with no fix
+pass. The owner ruled that a regression is a defect a fix pass's own commit
+introduced, and that a defect in a phase the framer designed and the owner
+approved, as 5d-i to 5d-iv were, is an ordinary finding of new work. So
+round 7 got a fix pass.
+
+The commit that adds this section states the ruling in place: §*The run*'s
+paragraph, the template's `regression:` comment, the warden's sentence on
+new units, the cap sentence of both READMEs and this item's `changelog.md`.
+`tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made`
+holds the document, the template and the warden to it. It failed against
+the old paragraph before the rewrite (exit 1, 1 failed). The four findings
+keep the `regression:` lines the warden wrote: the fix pass writes only
+`verdict:`, `answer:` and an appended coordinate. `spec.md` states the old
+rule in four places, which `overview.md`'s row *What a `regression:` line
+marks* names for the framer.

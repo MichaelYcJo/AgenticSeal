@@ -132,11 +132,14 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   ever looked at another round's fixes found seven defects in them. Report it
   the way you report anything. What changes is only where you looked.
 
-  The diff's new units are reviewed as code. A finding whose unit is one the
-  fixes under review added or changed carries a `regression:` line —
+  The diff's new units are reviewed as code. A finding whose unit is one a
+  fix pass's own commits added or changed carries a `regression:` line —
   `round-<N>#<n>` for the finding whose fix made that unit, `round-<N>` for
   a fix pass that no finding commissioned — and its grounds open with the
-  unit (`docs/the-review-record.md` §*The run*).
+  unit. A unit a build phase made, which the framer designed and the owner
+  approved, is new work even where your target carries it, and a finding
+  there takes no `regression:` line (`docs/the-review-record.md` §*The
+  run*).
 
   **A round told the run is capped still reports what it finds, at the
   severity it finds it.** What a cap decides is whether another round is

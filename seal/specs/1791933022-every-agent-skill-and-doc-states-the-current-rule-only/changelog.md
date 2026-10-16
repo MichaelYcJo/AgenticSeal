@@ -8,8 +8,8 @@
   lines: `severity:` (`must` or `should`, which no check reads),
   `location:` (backticked coordinates where the defect shows), `verdict:`
   (`open`, `fixed <commit>`, `rejected` or `deferred <home>`), a
-  `regression:` line where the finding sits in a unit the fixes under
-  review made, and the fix pass's `answer:`. The paste-ready fix sits inside
+  `regression:` line where the finding sits in a unit a fix pass's own
+  commits made, and the fix pass's `answer:`. The paste-ready fix sits inside
   its finding. What the round confirmed is a `confirms:` line under
   `## Confirmations`, left out when there is nothing to confirm; what it
   could not judge is a row of `## Not judged`; the commands it ran are
@@ -23,8 +23,9 @@
   rounds are stated once, in `docs/the-review-record.md`: a run ends with a
   verifying round, it has three finding rounds by default and extends one
   at a time while the findings shrink, a finding with a `regression:` line
-  sends the work item back to its framer, and a leftover finding takes the
-  first rung of the filing ladder that fits.
+  sends the work item back to its framer while a defect in a unit a build
+  phase made is an ordinary finding that gets its fix pass, and a leftover
+  finding takes the first rung of the filing ladder that fits.
   **A work item in flight when you update** keeps records in the old shape,
   and the check refuses each one by name once its pull request is ready.
   Before you mark it ready, rewrite each record: the `| Field | Value |`
