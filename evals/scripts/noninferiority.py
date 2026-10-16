@@ -140,11 +140,13 @@ def side_path(tree, base_path):
     """The PATH a side runs under: the tree's `bin/`, its `.shims/`, then
     BASE_PATH without any installed plugin's `bin/`.
 
+    An entry is compared in the platform's own spelling, so a Windows entry
+    under `\\.claude\\plugins\\cache\\` is dropped as a POSIX one is.
+
     Reads: nothing — it maps the string it is handed."""
+    cache = os.path.normcase(os.path.join(os.sep, ".claude", "plugins", "cache", ""))
     kept = [
-        p
-        for p in base_path.split(os.pathsep)
-        if p and "/.claude/plugins/cache/" not in p
+        p for p in base_path.split(os.pathsep) if p and cache not in os.path.normcase(p)
     ]
     return os.pathsep.join(
         [os.path.join(tree, "bin"), os.path.join(tree, ".shims"), *kept]

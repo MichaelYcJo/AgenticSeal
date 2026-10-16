@@ -14,8 +14,11 @@ owe a run, by design.
 
 import importlib.util
 import json
+import ntpath
 import os
+import posixpath
 import re
+import types
 
 import pytest
 
@@ -614,18 +617,39 @@ def test_only_a_directory_the_eval_kept_is_removed():
     assert ni.kept_root("/tmp/e-Ab12cD/trace.jsonl") is None
 
 
-def test_a_side_runs_the_tree_it_measures_and_no_installed_plugin():
+@pytest.mark.parametrize(
+    ("flavour", "pathsep", "tree", "base", "want"),
+    [
+        (
+            posixpath,
+            ":",
+            "/w/tree",
+            "/usr/bin:/Users/x/.claude/plugins/cache/p/p/1/bin:/bin",
+            ["/w/tree/bin", "/w/tree/.shims", "/usr/bin", "/bin"],
+        ),
+        (
+            ntpath,
+            ";",
+            "C:\\w\\tree",
+            "C:\\Windows;C:\\Users\\x\\.claude\\plugins\\cache\\p\\p\\1\\bin;"
+            "C:/Users/x/.Claude/Plugins/Cache/p/p/2/bin;C:\\bin",
+            ["C:\\w\\tree\\bin", "C:\\w\\tree\\.shims", "C:\\Windows", "C:\\bin"],
+        ),
+    ],
+    ids=["posix", "windows"],
+)
+def test_a_side_runs_the_tree_it_measures_and_no_installed_plugin(
+    monkeypatch, flavour, pathsep, tree, base, want
+):
     """Guards which plugin a side's sessions run: the measured tree's `bin/`
-    first, and no installed plugin's `bin/` at all."""
-    path = ni.side_path(
-        "/w/tree", "/usr/bin:/Users/x/.claude/plugins/cache/p/p/1/bin:/bin"
-    )
-    assert path.split(os.pathsep) == [
-        "/w/tree/bin",
-        "/w/tree/.shims",
-        "/usr/bin",
-        "/bin",
-    ]
+    first, and no installed plugin's `bin/` at all, in each platform's own
+    PATH spelling whichever platform runs the case. A filter spelt with `/`
+    alone keeps a Windows entry under `\\.claude\\plugins\\cache\\`, so a
+    Windows side would run the installed plugin; the POSIX case alone, run
+    on Windows, split nothing and dropped the whole PATH."""
+    os_like = types.SimpleNamespace(sep=flavour.sep, pathsep=pathsep, path=flavour)
+    monkeypatch.setattr(ni, "os", os_like)
+    assert ni.side_path(tree, base).split(pathsep) == want
 
 
 def test_a_truth_is_a_fixed_finding_the_next_round_confirmed():
