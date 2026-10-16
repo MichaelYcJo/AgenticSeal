@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Phase | 5d (5d-i, 5d-ii and 5d-iii) |
-| Commit | 5d-i: 44ad6eeb · 5d-ii: 9ef773c4 · 5d-iii: 9a4ce364, each the last build commit of its sub-phase; this record's commit follows it |
+| Phase | 5d (5d-i, 5d-ii, 5d-iii and 5d-iv) |
+| Commit | 5d-i: 44ad6eeb · 5d-ii: 9ef773c4 · 5d-iii: 9a4ce364 · 5d-iv: 274a9443, each the last build commit of its sub-phase; this record's commit follows it |
 
 ## What this phase was asked
 
@@ -104,6 +104,23 @@ commit, with `spec.md` left to the framer:
   confirmation or a regression reference as `answered` did. The reason
   given: the reader is mostly an agent, so every label and value is a plain
   English word.
+
+### 5d-iv
+
+`plan.md`'s row 5d-iv, approved at its line 16: the owner's answer to
+`questions.md` Q11. A repair made outside the tree with no commit closes
+`deferred <where it was repaired>`, one a commit made closes
+`fixed <commit>`, and `rejected` keeps the one meaning *the finding does
+not hold*. A text phase with no reader change. The spawn asked for the
+class re-grepped at the start, every hit named here; T41 seen red before
+`docs/the-review-record.md`'s fix-pass paragraph was rewritten in place,
+with T41 added to its `Enforced by:`; this item's `changelog.md:35`
+mapping each old close to its word; one clause each in the template's
+`deferred <home>` comment and the smith's fix-pass sentence, pointing at
+the document; T39's module docstring rewritten; the overview's row *A
+repair that made no commit*; this section and the row's Status. It also
+asked for `tests/test_docs_line_wrap.py` over the tree, since the framer
+had edited `spec.md`, `plan.md` and `questions.md` and run nothing.
 
 ## What this phase found
 
@@ -500,3 +517,116 @@ exit 0, 3,828 passed, 10 skipped; `tests/test_the_seal_is_taken_once_by_the_seal
 whose fixture 4ed5dd39 changed, on its own at 4ed5dd39's tree: exit 0, 378
 passed. Their first run at 9d61c520 found two pins on the warden's old
 words, re-pointed at e6f7a000.
+
+### 5d-iv
+
+**The frame held.** The two sentences the row names were where it said:
+`docs/the-review-record.md:61-62` and this item's `changelog.md:34-35`.
+The other coordinates it lists use `rejected` for a finding that does not
+hold and state no repair rule, as it says.
+
+**The commits.** 8445feb8 the document's paragraph, T41, the module
+docstring, the template's `deferred` line, the smith's fix-pass sentence
+and the changelog mapping; 78b08b01 the smith's clause moved onto its own
+line, so the line grep below reads it as the `deferred` it says; 274a9443
+the smith's `## Phases` rider re-stamped. The rider is the one defect this
+phase caused: 8445feb8 moved its section's hash, and
+`tests/test_a_rider_reaches_its_file.py` went red on two cases in the
+module run. The rider asks only that the waiver example above it stand
+verbatim. The edit is fifty lines below the example and adds no shell
+text, so it was read and re-stamped with
+`rider_check.py --reverify --only agents/smith.md`, not re-measured.
+
+**The red run.** T41 added alone at 85bf9e5c's document, which is the
+row's 096aafb9 document byte for byte (`git diff 096aafb9 85bf9e5c --
+docs/the-review-record.md` is empty):
+`bin/test tests/test_the_record_is_written_in_words.py -q -p no:xdist`,
+exit 1, 1 failed and 1 passed. It failed at the outside-the-tree assertion
+on the sentence *A correction to a record, or a repair made outside the
+tree, produced no commit on the branch and closes `rejected` with where
+the repair is.* After the rewrite, the same command gave exit 0, 2 passed.
+
+**The mutations.** `bin/mutation-check docs/the-review-record.md`, cases
+`-k test_a_repair_with_no_commit_closes_deferred_where_it_was_made`, at
+8445feb8. Both breaks were `red`, the tool exited 0, and `git status
+--short` was empty after each.
+
+| Break | Where T41 failed |
+|---|---|
+| the outside-the-tree sentence put back to closing `rejected` | the outside-the-tree assertion |
+| the `fixed <commit>` clause dropped from the record-correction sentence | the record-correction assertion |
+
+**The class.** It was enumerated at 85bf9e5c, before the first edit, over
+`agents/`, `skills/`, `docs/`, `templates/`, both READMEs and this item's
+`changelog.md`. Two hits sent a repair to `rejected`, and both were
+rewritten: `docs/the-review-record.md:61-62` and `changelog.md:34-35`.
+Every other hit stays, for the reason given.
+
+`git grep -n -i -E 'outside the tree|correction to a record|repair'`:
+
+- Uses of *repair* for something other than a finding's verdict, which
+  stay: `agents/smith.md:204` and `skills/code-review/orchestration.md:55`
+  (a fix repairs the coordinate a finding named);
+  `skills/code-review/orchestration.md:167` (the sealer's `not sound`
+  repair); `docs/branch-and-release.md:352, 365`;
+  `docs/issues-and-milestones.md:304`;
+  `docs/release-checklist.md:29, 295, 364`;
+  `docs/the-broad-gate.md:89, 90, 98, 219, 242`;
+  `docs/the-record-layout.md:115, 171, 174`; `skills/config/SKILL.md:130`;
+  `skills/update/SKILL.md:52, 54`; `skills/verify/SKILL.md:547`;
+  `templates/config.md:276, 290`; `templates/hygiene.yml:51`.
+- Code comments and docstrings about other repairs, which also stay:
+  `skills/implement/scripts/seal.py:1512, 1577`;
+  `skills/settle/scripts/settle.py:60`;
+  `skills/verify/scripts/arm_check.py:60, 301, 702`;
+  `skills/verify/scripts/broad_gate.py:341, 528, 537, 657, 1231, 1268, 2212`;
+  `skills/verify/scripts/seal_stamp.py:599, 898`;
+  `skills/verify/scripts/session_cost.py:1008, 2180, 2738, 2740, 2745, 2932, 3008`;
+  `skills/verify/scripts/unverified_check.py:1553`.
+
+`git grep -n -w rejected`:
+
+- The verdict meaning *the finding does not hold*, or a `fixed` or
+  `rejected` finding owing the next round a reference. These stay:
+  `README.md:197`; `README.ko.md:187`; `agents/smith.md:192, 284`;
+  `agents/warden.md:120, 210`; `docs/the-review-record.md:36, 71, 125,
+  132, 149, 152`; `changelog.md:10, 52, 56`;
+  `skills/code-review/SKILL.md:189`;
+  `skills/code-review/orchestration.md:96, 115`;
+  `skills/code-review/scripts/chain_check.py:19, 22, 160, 167, 168, 559,
+  994, 996`; `templates/config.md:126`;
+  `templates/sdd-round.md:41, 57, 82`.
+- The English word, not the verdict, which stays:
+  `docs/one-root-by-lifetime.md:694`;
+  `docs/the-review-and-parity-arms.md:66, 75, 76, 85`;
+  `skills/code-review/orchestration.md:114`;
+  `skills/verify/scripts/broad_gate.py:527`;
+  `templates/sdd-routing.md:77`.
+
+At 274a9443, S25's grep for a line naming a repair, a correction or the
+outside of the tree beside `` `rejected` `` found nothing outside
+`seal/specs/` and `changelog/0.*.md`, and nothing in this item's
+`changelog.md`. The only remaining hits are T41's own lines in
+`tests/test_the_record_is_written_in_words.py:103, 105`, which are the
+pin. At 8445feb8 the same grep also read `agents/smith.md:192`, because
+the new clause began on the line listing the verdicts. 78b08b01 moved the
+clause onto its own line.
+
+**Beside the row.** The plan's text for the changelog mapping reads
+`deferred <where>`. The fragment writes
+`deferred <where it was repaired>`, the spelling the document and the
+template use, so a user reads one value in both places. The six round
+records hold no `rejected` finding and were not edited.
+
+**The verification the row names.** At 274a9443: `bin/test` over the 31
+modules naming a file this phase touched (`docs/the-review-record.md`,
+`templates/sdd-round.md`, `agents/smith.md`, T39's module, this item's
+`changelog.md`), exit 0, 1,509 passed, 6 skipped. Their first run, at
+78b08b01, was the rider's two red cases above.
+`bin/test tests/test_docs_line_wrap.py -q -p no:xdist` over the tree:
+exit 0, 37 passed. `bin/rules --check --root <worktree>`: exit 0, 420
+targets in 60 files, T41 among them. `uvx ruff check` and
+`uvx ruff format --check` on `tests/test_the_record_is_written_in_words.py`:
+exit 0 each. `chain_check.py --baseline origin/release/v0.22.0 --root
+<worktree>`: exit 0, printing the same three owed lines as at 9a4ce364:
+round 6 behind HEAD, and no `broad-gate.md` or `guarantee.md`.
