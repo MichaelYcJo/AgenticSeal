@@ -36,8 +36,8 @@ suite was not run. It is `unverified`, and the sealer answers it.
 ### 1. A coordinate written `path#unit` reads as a path that ends in `#unit`, so the shape the spec refuses passes, and every `fixed` commit for such a finding is refused as touching nothing
 
 severity: should
-location: `skills/code-review/scripts/chain_check.py:140-141`, `evals/scripts/replay_targets.py:293-296`, `evals/scripts/rule_cases.py:280`, `tests/test_chain_check.py:442-478`
-verdict: open
+location: `skills/code-review/scripts/chain_check.py:140-141`, `evals/scripts/replay_targets.py:293-296`, `evals/scripts/rule_cases.py:280`, `tests/test_chain_check.py:442-478`, `evals/scripts/seed_defects.py:8`, `tests/test_a_rewritten_definition_proved_non_inferior.py:658`, `evals/behaviour/warden/`, `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/changelog.md:89`
+verdict: fixed f5ba02f1
 regression: round-6#1
 
 The unit: `COORDINATE_ITEM` and `COORDINATE`, which cf9b116e added for
@@ -112,11 +112,13 @@ python3 evals/scripts/seed_defects.py --case seeded-279a580b --case seeded-4d316
 python3 evals/scripts/rule_cases.py
 ```
 
+answer: Fixed at f5ba02f1. `COORDINATE_ITEM` and `COORDINATE` take no `#` in a path, and T33 refuses the three values, red on the old reader (exit 1, "assert ['a.py#unit'] is None"). `truth_pattern` reads a line window, taken from the unit's lines where an old location names a unit, and its path-only fallback refuses a following `#`; the new case `test_a_truth_never_matches_a_coordinate_the_check_refuses` was red on the old pattern. `rule_cases.py`'s grader reads the line window alone, and `seed_defects.py`'s docstring says a line window. The eight graders that held a `path#unit` option were regenerated with `--case` and `rule_cases.py`, and all twelve warden truths now read a line window, so the round's second Not judged row is answered. The fix also went to `seed_defects.py`, the new case's module, the regenerated graders under `evals/behaviour/warden/` and the changelog fragment, appended to `location:`. The `regression:` line stands as written: the owner ruled on 2026-10-16 that a defect in a phase the owner approved is new work, so this round got its fix pass (a6075755).
+
 ### 2. A finding heading with no number, or with a number a second heading also carries, is read anyway, so one confirmation answers two fixed findings and an unnumbered one is told to be named `round-<N>#None`
 
 severity: should
-location: `skills/code-review/scripts/chain_check.py:642-647`, `skills/code-review/scripts/chain_check.py:711-741`, `skills/code-review/scripts/chain_check.py:1029-1043`, `docs/the-review-record.md:126-134`, `tests/test_chain_check.py:575`
-verdict: open
+location: `skills/code-review/scripts/chain_check.py:642-647`, `skills/code-review/scripts/chain_check.py:711-741`, `skills/code-review/scripts/chain_check.py:1029-1043`, `docs/the-review-record.md:126-134`, `tests/test_chain_check.py:575`, `templates/sdd-round.md:59-60`, `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/changelog.md:90-91`
+verdict: fixed 7055985e
 regression: round-6#1
 
 The unit: `findings` and `finding_number`, which 193ce92e added and
@@ -211,11 +213,13 @@ a finding heading with no number, or with a number another heading of the
 record carries;
 ```
 
+answer: Fixed at 7055985e. `findings` refuses a heading with no number, or with a number an earlier heading carries, at the heading's line before reading its labels, so `channel` never meets `round-<N>#None` and one `confirms:` line answers one finding. The round's case, `test_a_heading_with_no_number_or_a_number_twice_is_refused`, was red on the old reader (exit 1, "assert [1, 1, None, 3] == [1, 3]") and passes. `docs/the-review-record.md` lists the refusal and names the case on its `Enforced by:` line. The template's list of what fails a ready pull request and the changelog fragment say the same, appended to `location:`.
+
 ### 3. The review skill ends a run on a verifying round whose `should` finding the smith closed `rejected`, and the check refuses that record as the last one
 
 severity: should
 location: `skills/code-review/orchestration.md:113-116`
-verdict: open
+verdict: fixed 46cd674a
 regression: round-6#1
 
 The unit: the sentence 9d61c520 rewrote, after cf9b116e added the
@@ -254,11 +258,13 @@ line, or on a finding's `regression:` line where the rejection does not
 hold, and the run ends at that round.
 ```
 
+answer: Fixed at 46cd674a with the round's paste. Such a round opens nothing needing a fix and does not consume the cap, its record is still not the last one, and one more verifying round reads the rejection and ends the run. The other statements of where a run ends, the two cases `agents/smith.md` gives for a failing ready pull request and the section's own paragraph on the cap, already agree.
+
 ### 4. The upgrade note cannot be followed for a 0.21.1 record: it names a script path no user's repository has, and it maps none of the note, carried and fragment rows or the `withdrawn`, `not a defect` and `agreed, fixed` verdicts such a record carries
 
 severity: should
 location: `seal/specs/1791933022-every-agent-skill-and-doc-states-the-current-rule-only/changelog.md:28-43`
-verdict: open
+verdict: fixed e3c73c89
 regression: round-6#1
 
 The unit: the paragraph *A work item in flight when you update*, which
@@ -332,11 +338,13 @@ already quotes stay where they are.
   --baseline origin/<base> --worktree` and fix what it still names.
 ```
 
+answer: Fixed at e3c73c89, from the round's pastes. The note runs the plugin's installed copy, `python3 ~/.claude/plugins/cache/<marketplace>/specseal/<version>/skills/code-review/scripts/chain_check.py --baseline origin/<base> --worktree`, in the work item's worktree. It maps `answered`, `withdrawn`, `not a defect`, `agreed, fixed` and a bare `fixed`, the note, `carried`, `fix-surface` and `fragment` rows, the `Fix of a fix` row to a `regression:` line, a two-commit `Target SHA` to its later commit and a `path#unit` to its path, and says the last record may hold no `fixed` or `rejected` finding, so such a run takes one more verifying round.
+
 ### 5. The orchestrator's delivery table still names a round's `Target SHA` and the warden's `fix of a fix` mark, and says a record carries two commits where HEAD moved, which the `target:` line refuses
 
 severity: should
 location: `skills/implement/orchestration.md:636-637`, `skills/implement/orchestration.md:639`
-verdict: open
+verdict: fixed dcc00054
 
 e9baf154..aa0c79a6 does not touch this file, so the finding names no
 earlier one. 5b637fee's message says the documents that named a round's
@@ -372,6 +380,8 @@ match. executed: the paste applied in the clone, and
 ```markdown
 | Orchestrator: verify before posting | `skills/code-review/orchestration.md` | still a sentence | The four checks are readings the orchestrator takes before posting, and nothing in the tree records that any of them happened. The one part a record carries is the new HEAD on the next round's `target:` line where HEAD moved |
 ```
+
+answer: Fixed at dcc00054 with the round's pastes for the three rows. `git grep -E "Target SHA|both SHAs|fix of a fix. mark"` over the file then finds nothing (exit 1).
 
 ## Confirmations
 
