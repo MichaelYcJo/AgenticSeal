@@ -272,6 +272,19 @@ class TestDefinition:
         assert "`outputs kept under broad-gate-<random>/`" in text
         assert "`seal-stamp --from <path>`" in text
 
+    def test_step_3_holds_two_acts_and_reads_no_location(self):
+        """T40 (S22): step 3 is the one list of the sealer's acts, and it holds
+        two — the sample of the smith's claims re-run, and the removals
+        confirmed absent. Whether a `fixed` commit touches its finding's
+        `location:` is the check's to read, so no act of step 3 reads it."""
+        step = between(SEALER, "3. **A claim against the fact.**", "4. **")
+        assert "Choose a sample of the smith's `executed`" in step, step
+        assert "For every `## Removes` row of `spec.md`" in step, step
+        assert "two acts" in step.lower(), step
+        assert step.count("For every") == 1, step
+        for word in ("touches", "Location", "location", "fixed <commit>"):
+            assert word not in step, word
+
 
 # --- the document that states the guarantee ------------------------------------
 

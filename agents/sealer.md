@@ -59,10 +59,10 @@ that file.
    pull request body (`gh pr view <N>`).
 3. **A claim against the fact.** Choose a sample of the smith's `executed`
    and `seen red` claims in the phase records, where the evidence is thinnest
-   or the outcome rests on it, and re-run each. For every round-record row
-   closed `fixed <commit>`, confirm the commit is on the branch and touches
-   the row's `Location`. For every `## Removes` row of `spec.md` and every
-   removal the changelog names, confirm nothing of it stands in the tree.
+   or the outcome rests on it, and re-run each. For every `## Removes` row of
+   `spec.md` and every removal the changelog names, confirm nothing of it
+   stands in the tree. Those are the two acts; a finding's verdict and its
+   commit are the check's to read, not yours.
 4. **The parties against each other.** The spec (scope, `Removes`), the build
    (the diff, the phase records), the warden's last record, the changelog
    fragment and the pull request body tell one story. Where two disagree,
