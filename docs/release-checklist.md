@@ -109,9 +109,12 @@ section, the section keeps the first gather's date, and
 `tests/test_release_hygiene.py` refuses a file that heads a version twice.
 Enforced by: tests/test_release_hygiene.py, tests/test_the_changelog_is_gathered_at_release.py::test_a_second_gather_for_the_same_version_appends_into_its_section
 
-## 2b. Settle what the release leaves behind — by hand, and not in that commit
+## 2b. Settle what earlier releases left behind — when the owner calls it
 
-**First, the process record. This part is never skipped.**
+**`settle` runs when the owner calls it, not at every release.** A release
+whose owner has not called it skips this step whole, the process record
+included, and the work items wait on disk for the settle the owner calls.
+When it runs, the process record goes first:
 
 ```bash
 settle
@@ -123,7 +126,7 @@ The first command ends with what the second would take. The second removes
 request from every work item already on `main`, which is every release before
 this one, and leaves `routing.md` and the SDD set for the fold below. No
 check reads that part after its release, and removing it judges nothing, so
-it runs on every release, including one that skips the fold. What the SDD set
+it runs at every settle, including one that skips the fold. What the SDD set
 still cites of it is read at the release tag. It is a branch and a
 pull request of its own, as the fold is, and it is not a work item either: its
 commit carries `: '[no-review]';` in front of the command. It exits 1 when a
@@ -152,9 +155,9 @@ settle --retire
 policy prose is a judgment act, and step 2 is two dry runs somebody reads
 followed by one mechanical commit; a release that stops for a person to write
 documentation is a release that stops. Nothing fails a build for an unsettled
-work item, so the honest answer on a busy release is to skip the fold and run
+work item, so the honest answer on a busy settle is to skip the fold and run
 it on its own later. The process record's removal above is not part of what
-is skipped, because it waits on no judgment.
+a settle skips, because it waits on no judgment.
 
 `skills/settle/SKILL.md` is the procedure. **A fold is not a work item**: it
 opens no directory under `seal/specs/`, the routing question is not asked for
