@@ -137,7 +137,7 @@ def record_reader():
         raise SystemExit(f"replay_targets: cannot load {CHECK}")
     check = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(check)
-    return check, check.load(check.READER, "specseal_unverified_reader")
+    return check, check.SHARED_READER
 
 
 def labelled(text):

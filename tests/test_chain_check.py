@@ -807,7 +807,14 @@ class TestReferenceOf:
             assert chain.reference_of(value) is None, value
 
 
-# --- record_target ------------------------------------------------------------
+# --- a record's target --------------------------------------------------------
+
+
+def target_of(text):
+    """`(the commit round_of reads off the record's target line, its
+    errors)`."""
+    read, errors = chain.round_of(reader, text, "r.md", 1)
+    return read.target, errors
 
 
 class TestRecordTarget:
@@ -822,10 +829,7 @@ class TestRecordTarget:
             ("abc1234, fixes 1111111..abc1234", "abc1234"),
         ):
             text = record("x").replace("target: x against main", f"target: {value}")
-            assert chain.record_target(reader, reader.readable(text), "r.md") == (
-                read,
-                [],
-            ), value
+            assert target_of(text) == (read, []), value
 
     def test_no_line_two_lines_or_a_value_it_cannot_read_is_refused(self):
         """S4: no `target:` line — the old `| Target SHA |` table row among
@@ -835,16 +839,13 @@ class TestRecordTarget:
             "target: x against main",
             "| Field | Value |\n|---|---|\n| Target SHA | abc1234 against main |",
         )
-        assert chain.record_target(reader, reader.readable(table), "r.md") == (
-            None,
-            [("r.md", 0, chain.NO_TARGET)],
-        )
+        assert target_of(table) == (None, [("r.md", 0, chain.NO_TARGET)])
         two = record("abc1234").replace(
             "## Findings", "target: abc1234 against main\n\n## Findings"
         )
         lines = reader.readable(two)
         second = [i + 1 for i, ln in enumerate(lines) if ln.startswith("target:")][1]
-        sha, errors = chain.record_target(reader, lines, "r.md")
+        sha, errors = target_of(two)
         assert sha is None and [line for _rel, line, _why in errors] == [second]
         assert "2 `target:` lines" in errors[0][2], errors
         for value in (
@@ -862,7 +863,7 @@ class TestRecordTarget:
             text = record("x").replace("target: x against main", f"target: {value}")
             lines = reader.readable(text)
             at = next(i + 1 for i, ln in enumerate(lines) if ln.startswith("target:"))
-            sha, errors = chain.record_target(reader, lines, "r.md")
+            sha, errors = target_of(text)
             assert sha is None, value
             assert [(rel, line) for rel, line, _why in errors] == [("r.md", at)], value
             assert "`<sha> against <base>`" in errors[0][2], value
@@ -1217,7 +1218,7 @@ class TestFindings:
         ]
         head = text.split(chain.FINDINGS_HEADING)[0]
         assert chain.table_rows(reader, reader.readable(head)) == []
-        assert chain.record_target(reader, lines, "t")[1] == []
+        assert chain.round_of(reader, text, "t", 1)[0].target == "1a2b3c4"
         fence = text.index("```", text.index("### 1. "))
         line_end = text.index("\n", fence) + 1
         fenced = text[:line_end] + "verdict: rejected\n" + text[line_end:]

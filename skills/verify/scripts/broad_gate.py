@@ -2588,9 +2588,9 @@ def rounds_rows(item):
     rows = [("rounds", str(len(records)))]
     try:
         chain = load(CHAIN, "specseal_chain_check_for_broad_gate")
-        reader = load(UNVERIFIED, "specseal_unverified_reader_for_broad_gate")
     except Refused:  # a label never stops a sealed run
         return rows
+    reader = chain.SHARED_READER
     count, homes = 0, []
     for path in records:
         try:

@@ -155,6 +155,7 @@ IN_CONFIRMATIONS = f"`{CONFIRMATIONS_HEADING}`"
 # What a refusal says of the place a label's row puts it.
 PLACED = {
     OUTSIDE_FINDINGS: "outside every finding",
+    IN_FINDING: "and with no emphasis",
     IN_CONFIRMATIONS: f"in `{CONFIRMATIONS_HEADING}`",
 }
 # One row of the table as `grammar` reads it: its `Line` cell, its shape
@@ -230,6 +231,17 @@ def load(path, name):
     return mod
 
 
+def section_end(reader, lines, start):
+    """The index of the line that ends the section opened at `start`: the
+    first heading of its level or shallower, else `len(lines)`."""
+    level = reader.heading_level(lines[start]) or 1
+    for i in range(start + 1, len(lines)):
+        found = reader.heading_level(lines[i])
+        if found is not None and found <= level:
+            return i
+    return len(lines)
+
+
 class GrammarError(ValueError):
     """The table `grammar` reads would not read: the sentence names the
     document, the line where there is one, and what it could not read."""
@@ -293,15 +305,7 @@ def grammar(path, reader):
     if len(starts) != 1:
         raise refuse(f"holds {len(starts)} `{GRAMMAR_SECTION}` sections, not one")
     start = starts[0]
-    level = reader.heading_level(lines[start])
-    end = next(
-        (
-            i
-            for i in range(start + 1, len(lines))
-            if (found := reader.heading_level(lines[i])) is not None and found <= level
-        ),
-        len(lines),
-    )
+    end = section_end(reader, lines, start)
     header = next(
         (
             i
@@ -406,18 +410,19 @@ def grammar_row(cells, refuse, number, rows, reader):
     return key, Row(key, shape, where, many, refused)
 
 
-# Loaded once, here. As a command, a reader or a table that will not load
-# ends the run at exit 2 naming the file; imported, the error is raised and
-# the importer decides what a check that cannot read a record means to it.
+# Loaded once, here, and read by `main` and by every importer through this
+# name. As a command, a reader or a table that will not load ends the run at
+# exit 2 naming the file; imported, the error is raised and the importer
+# decides what a check that cannot read a record means to it.
 try:
-    _GRAMMAR_READER = load(READER, "specseal_unverified_reader_for_grammar")
+    SHARED_READER = load(READER, "specseal_unverified_reader_for_grammar")
 except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
     if __name__ != "__main__":
         raise
     print(f"chain-check: the shared reader would not load ({_exc})", file=sys.stderr)
     raise SystemExit(2) from None
 try:
-    GRAMMAR = grammar(GRAMMAR_DOC, _GRAMMAR_READER)
+    GRAMMAR = grammar(GRAMMAR_DOC, SHARED_READER)
 except GrammarError as _exc:
     if __name__ != "__main__":
         raise
@@ -475,10 +480,10 @@ UNPLACED = (
 )
 
 
-def no_record_line(key):
-    """The refusal of a record holding no `key` line, which it needs one of."""
+def no_record_line(key, scope="a round record"):
+    """The refusal of a `scope` holding no `key` line, which it needs one of."""
     return (
-        f"no `{key}` line: a round record carries one, at the start of a line "
+        f"no `{key}` line: {scope} carries one, at the start of a line "
         f"{PLACED[GRAMMAR[key].where]}; {GRAMMAR[key].refused}"
     )
 
@@ -759,17 +764,6 @@ def table_rows(reader, lines):
     return out
 
 
-def section_end(reader, lines, start):
-    """The index of the line that ends the section opened at `start`: the
-    first heading of its level or shallower, else `len(lines)`."""
-    level = reader.heading_level(lines[start]) or 1
-    for i in range(start + 1, len(lines)):
-        found = reader.heading_level(lines[i])
-        if found is not None and found <= level:
-            return i
-    return len(lines)
-
-
 def label_of(line):
     """The label `line` opens with in its one spelling, the label then a
     space or the end of the line, or None."""
@@ -1024,25 +1018,9 @@ def finding_of(lines, first, stop, heading, rel):
     }
     errors, read = [], {}
     for row in rows:
-        said = at[row.line]
-        if not said and row.many == ONE:
-            errors.append(
-                (
-                    rel,
-                    first + 1,
-                    f"{heading} {DASH} no `{row.line}` line: a finding carries one, "
-                    f"at the start of a line and with no emphasis; {row.refused}",
-                )
-            )
-        elif len(said) > 1 and row.many in HOW_MANY:
-            errors.append(
-                (
-                    rel,
-                    said[1] + 1,
-                    f"{heading} {DASH} {len(said)} `{row.line}` lines; a finding "
-                    f"carries {HOW_MANY[row.many]}",
-                )
-            )
+        refused = counted(rel, row.line, at[row.line], "a finding", first, heading)
+        if refused:
+            errors.append(refused)
     for row in rows:
         said = at[row.line]
         if len(said) > 1 and row.many in HOW_MANY:
@@ -1132,17 +1110,19 @@ def unclosed(reader, text, rel):
     return errors
 
 
-def counted(rel, key, said, scope):
+def counted(rel, key, said, scope, first=-1, heading=None):
     """The refusal of `said`, the indexes of `key`'s lines in one `scope`,
-    where its row's `How many` does not allow that many, or None."""
+    where its row's `How many` does not allow that many, or None: at the
+    heading at index `first`, and led by it, where one is given."""
     row = GRAMMAR[key]
+    lead = f"{heading} {DASH} " if heading else ""
     if not said and row.many == ONE:
-        return (rel, 0, no_record_line(key))
+        return (rel, first + 1, lead + no_record_line(key, scope))
     if len(said) > 1 and row.many in HOW_MANY:
         return (
             rel,
             said[1] + 1,
-            f"{len(said)} `{key}` lines; {scope} carries {HOW_MANY[row.many]}",
+            f"{lead}{len(said)} `{key}` lines; {scope} carries {HOW_MANY[row.many]}",
         )
     return None
 
@@ -1183,11 +1163,19 @@ def record_lines(reader, lines, rel, key):
     return (None if errors else found), errors
 
 
-def record_target(reader, lines, rel):
-    """`(commit or None, errors)` for a record's one `target:` line, read by
-    `record_lines`; the commit is the row's `commit` part."""
-    found, errors = record_lines(reader, lines, rel, TARGET_ROW)
-    return (found["commit"] if found else None), errors
+def read_whole(reader, text, rel):
+    """`(lines, findings, errors, outside)` for one record, read once:
+    `readable`'s lines, `findings` over them with `unclosed`'s refusals
+    first and `record_lines`' after, and `{key: match or None}` for every
+    row the table places outside every finding."""
+    lines = reader.readable(text or "")
+    found, errors = findings(reader, lines, rel)
+    outside, said = {}, []
+    for key, row in GRAMMAR.items():
+        if row.where == OUTSIDE_FINDINGS:
+            outside[key], refused = record_lines(reader, lines, rel, key)
+            said += refused
+    return lines, found, unclosed(reader, text, rel) + errors + said, outside
 
 
 def record_findings(reader, text, rel):
@@ -1196,13 +1184,8 @@ def record_findings(reader, text, rel):
     finding: the one reader the arm, the panel and the release seal read a
     record through, so a region that hides findings, or a record naming no
     commit it reviewed, fails closed for each of them."""
-    lines = reader.readable(text or "")
-    found, errors = findings(reader, lines, rel)
-    said = []
-    for key, row in GRAMMAR.items():
-        if row.where == OUTSIDE_FINDINGS:
-            said += record_lines(reader, lines, rel, key)[1]
-    return found, unclosed(reader, text, rel) + errors + said
+    _lines, found, errors, _outside = read_whole(reader, text, rel)
+    return found, errors
 
 
 def confirmations(reader, lines, rel):
@@ -1247,14 +1230,14 @@ def confirmations(reader, lines, rel):
 
 
 def round_of(reader, text, rel, number):
-    """`(Round, errors)` for one record: its findings and its `target:`
-    commit through `record_findings` and `record_target`, its `confirms:`
+    """`(Round, errors)` for one record: its findings, its errors and its
+    `target:` line's `commit` part through `read_whole`, its `confirms:`
     references through `confirmations`, and the number of every `### <n>. `
     heading of its `## Findings`, read or refused, so a reference to a
-    refused finding still names one it holds."""
-    lines = reader.readable(text or "")
-    found, errors = record_findings(reader, text, rel)
-    target, _said = record_target(reader, lines, rel)
+    refused finding still names one it holds. A record whose `target:` line
+    `read_whole` refused has no target."""
+    lines, found, errors, outside = read_whole(reader, text, rel)
+    target = outside[TARGET_ROW]["commit"] if outside[TARGET_ROW] else None
     confirmed, said = confirmations(reader, lines, rel)
     _section, spans, _error = finding_spans(reader, lines)
     held = {finding_number(lines[first].strip()) for first, _stop in spans}
@@ -1354,7 +1337,7 @@ def under(path, located):
 def target_of(reader, text):
     """The first SHA-shaped word of `guarantee.md`'s `Target SHA` row, or
     None. A round record names its commit on a `target:` line instead
-    (`record_target`)."""
+    (`round_of`)."""
     rows = table_rows(reader, reader.readable(text or ""))
     found = SHA_RE.search(reader.visible(field(rows, TARGET) or ""))
     return found.group(0) if found else None
@@ -1554,7 +1537,7 @@ def records(reader, routing, root, item, rel, base):
             problems.extend(verdict_problems(root, path, f))
     problems.extend(channel(rounds))
     last = rounds[-1]
-    # A record naming no commit it reviewed was refused by `record_target`.
+    # A record naming no commit it reviewed was refused by `read_whole`.
     if last.target is not None:
         behind = follows(root, last.target, base, item)
         if behind is not None:
@@ -1763,8 +1746,8 @@ def main(argv=None):
     global WORKTREE
     WORKTREE = args.worktree
 
+    reader = SHARED_READER
     try:
-        reader = load(READER, "specseal_unverified_reader")
         routing = load(ROUTING, "specseal_routing")
     except (OSError, SyntaxError, ImportError, SystemExit) as exc:
         print(f"chain-check: the shared reader would not load ({exc})", file=sys.stderr)
