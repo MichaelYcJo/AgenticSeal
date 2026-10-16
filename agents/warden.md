@@ -116,8 +116,11 @@ axes, probe rules, record formats. This file adds only your role boundaries.
 - **A verifying round has a diff for a target, and answers rather than new
   findings.** A run ends with one: it is spawned after the previous round's
   fixes are committed, and its target is the diff of those fixes rather than
-  the branch. For each verdict that round recorded as closed, your job is
-  whether it is actually closed.
+  the branch. For each finding that round closed `fixed <commit>` or
+  `rejected`, your job is whether it is actually closed, and your record
+  says so by its reference, `round-<N>#<n>`: a `confirms:` line under
+  `## Confirmations` where it holds, or a finding of yours whose
+  `regression:` line names it where it does not.
 
   Recognise it from the prompt, which hands you a fix diff instead of a
   branch, and stay inside it. The reason is the round's job, not its price:
@@ -129,9 +132,11 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   ever looked at another round's fixes found seven defects in them. Report it
   the way you report anything. What changes is only where you looked.
 
-  The diff's new units are reviewed as code, and a finding whose unit is one
-  the fixes under review added or changed carries `fix of a fix` in its
-  Finding cell (`docs/the-review-record.md` §*The run*).
+  The diff's new units are reviewed as code. A finding whose unit is one the
+  fixes under review added or changed carries a `regression:` line —
+  `round-<N>#<n>` for the finding whose fix made that unit, `round-<N>` for
+  a fix pass that no finding commissioned — and its grounds open with the
+  unit (`docs/the-review-record.md` §*The run*).
 
   **A round told the run is capped still reports what it finds, at the
   severity it finds it.** What a cap decides is whether another round is
@@ -147,12 +152,12 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   §3 tells you to decline a prompt that orders one anyway and to name the
   instruction in your handover. Where that sentence goes is yours, because
   only you have the problem: your handover is a report rather than a
-  conversation, so it goes in as `❓ out of verified scope` with the caller
+  conversation, so it goes in as a row of `## Not judged` with the caller
   named as its answerer. A question with no field to sit in becomes a seal
   taken over an axis nobody decided.
 
-  That row takes a bare `❓` in its `#` cell, and only a 🔴 or 🟡 row carries
-  a bare-integer id (`docs/the-review-record.md` §*The round record*).
+  A thing not judged is never a finding: it takes no `### ` section and no
+  number (`docs/the-review-record.md` §*The round record*).
 
   Stated intent is the sharpest case, because it is often right. If the
   behavior is called deliberate, go looking for it in the policy documents,
@@ -192,8 +197,8 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   | What the original does — `seal/parity.md` pins a baseline SHA, so it cannot drift under you | Whether the new code matches it |
   | Where a subsystem lives, what a helper is for | Any verdict, on any axis |
 
-  A finding an earlier round closed `deferred <home>` is not written up as
-  new: name it as already deferred, and where, in the Grounds cell.
+  A finding an earlier round closed `deferred <home>` is not written up as a
+  new finding: say in the record that it stands deferred, and where.
 
   Read a carried fact once, use it, and say in the report that you carried it
   rather than re-established it. Re-derive it when its check fails, or when
@@ -202,8 +207,11 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   the half this round exists to redo.
 
   Its verdicts are still worth having — as the list of what to report on.
-  Every finding from an earlier round needs an answer this round: fixed, still
-  open, or no longer applicable, each with your own grounds.
+  Every finding the round before closed `fixed <commit>` or `rejected` needs
+  an answer this round, on your own grounds: a `confirms:` line naming it
+  where the close holds, or a finding whose `regression:` line names it
+  where it does not. The check refuses a closed finding no later round
+  names.
 - **The broad run's state is `broad-gate.md`'s, not your record's**
   (`docs/the-review-record.md` §*What the check reads at the pull request*).
   When your round leaves nothing open, say so: what comes due is the
@@ -217,8 +225,8 @@ axes, probe rules, record formats. This file adds only your role boundaries.
   reads and probes go out together, because a review reads independent
   things: the one instructed round that batched — 1.89 tools per turn — was
   the fastest round measured, while uninstructed rounds read only 1.29–1.31.
-  What §10 calls an axis you skipped has a name in your report rather than a
-  silence: `❓ out of verified scope`.
+  What §10 calls an axis you skipped has a place in your record rather than
+  a silence: a row of `## Not judged`.
 - **§9 applies to you although you edit less than the smith does**, and its
   second reason is why. A probe script, a scratch fixture, a file you patch
   to see whether a finding reproduces: each is an edit, and each written as a
@@ -258,14 +266,28 @@ A repository other than this one enforces other things. What generalises is
 the shape: the moment a record stops being chat text, whatever scans the tree
 scans it.
 
-Follow the `code-review` findings format: every finding with `file:line`,
-what is wrong, why it matters, and a paste-ready fix for **each 🔴 and each
-🟡** under `## Paste-ready fixes`, one fenced block each. A regression test
-to plant is a 🟡 row naming its destination file.
+The record opens with its `target:` line: the commit you reviewed and
+`against <base>`, or `<sha>, fixes <a>..<b>` for a verifying round.
+Follow the `code-review` findings format: one `### <n>. <symptom>` section
+per finding under `## Findings`, numbered from 1. Each holds its `severity:`
+(`must` or `should`), `location:` and `verdict: open` lines, and a
+`regression:` line where it applies; then what is wrong and why it matters, and
+the paste-ready fix in a fenced block inside the finding. `location:` names
+every place the defect shows, and the path the fix goes to where that
+differs, because a `fixed` commit must touch one of them. A regression test
+to plant is a `should` finding whose `location:` names its destination file.
 Findings from reading and findings from execution stay labeled apart, which
 is §4 in your own output.
 
-The severity goes in the `#` cell, never at the head of the Finding cell, and
-the rows take the shapes `templates/sdd-round.md` shows.
+What you confirmed holds is a `confirms:` line under `## Confirmations`,
+reading the earlier finding as `round-<N>#<n>`, or `none` where a claim the
+frame or the build made held, with what holds, where and how you know on
+the lines after it; what you could not judge is a row of `## Not judged`.
+Neither is a finding. With nothing to confirm, leave `## Confirmations` out.
+
+Write every label in lowercase as the first word of its line, with one space
+after its colon; the check refuses each other spelling. The record is
+written in words, with no emoji anywhere in it, and takes the shapes
+`templates/sdd-round.md` shows.
 
 End with the proof block — only files you actually opened.

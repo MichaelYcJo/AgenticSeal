@@ -39,9 +39,11 @@ routing question's first question through `AskUserQuestion` again, so it does
 that before the spawn (`skills/implement/orchestration.md`, *A run resumed in
 a new session*).
 
-**The fix pass fills the `Verdict` and `Grounds` cells of each open row of
-`rounds/round-N.md`, and nothing else** (`docs/the-review-record.md` §*The
-round record*); it writes no `phases/phase-N.md` and no `plan.md` row.
+**The fix pass changes two lines per open finding of `rounds/round-N.md`,
+its verdict and its answer, and nothing else but a coordinate it appends to
+`location:` where its fix went elsewhere**
+(`docs/the-review-record.md` §*The round record*); it writes no
+`phases/phase-N.md` and no `plan.md` row.
 
 **Two commits after the build are yours, not the smith's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
@@ -91,7 +93,7 @@ So a run ends with a **verifying round**, and three things define it.
 |---|---|
 | When | **after the fixes** for the previous round are committed — never before, or it reviews what has already been reviewed |
 | Target | the **diff of those fixes**, not the branch. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/the-review-record.md` §*The run* states the rule |
-| Job | the answers, not new findings. For each verdict the previous round recorded as closed, is it actually closed |
+| Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is, a finding whose `regression:` line names it where it is not |
 
 The new units in that diff are the exception: they have been reviewed by
 nobody, so the verifying round reviews them as code.
@@ -109,13 +111,14 @@ ladder** — `docs/the-review-record.md` §*The run* states the cap, the
 extension line the spawn prompt gives the warden, and the ladder.
 
 The condition is not *this round found nothing* — that would be unbounded, and
-it was considered and rejected. A verifying round that raises a 🟡 the smith
-answers with grounds has opened nothing needing a fix, and the run ends there.
+it was considered and rejected. A verifying round that raises a `should`
+finding the smith closes `rejected`, with its grounds, has opened nothing
+needing a fix, and the run ends there.
 
 ### A fix of a fix sends the work item back to its framer
 
 **The exit comes first, because a stop that names none is a wall.** When a
-round's warden marks a finding `fix of a fix`, no fix pass is commissioned and
+round's warden writes a finding's `regression:` line, no fix pass is commissioned and
 the work item goes back to its framer (`docs/the-review-record.md` §*The
 run*):
 
@@ -167,7 +170,7 @@ the sealer again at the new HEAD. Where it touches any other file it is a fix
 nobody reviewed: commit it, spawn a verifying round on its diff, and spawn
 the sealer once that round's record is committed. The sealer's broad run
 asks the records arm first, and that arm refuses a commit outside the work
-item after the last round's `Target SHA`, so a sealer spawned straight after
+item after the last round's `target:` commit, so a sealer spawned straight after
 the fix returns the same verdict. `undecidable` is a question for the owner,
 put after the run rather than during it; write the answer under the verdict
 as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
@@ -247,7 +250,7 @@ Never post reviewer output as-is. Check, by opening the coordinates yourself:
 4. Test-pass claims — run them; count skips, which masquerade as passes.
 
 Also check whether HEAD moved during the review; if source changed, those
-verdicts need a re-pass, and the next round's `Target SHA` names the new HEAD.
+verdicts need a re-pass, and the next round's `target:` line names the new HEAD.
 
 ## Orchestrator: closing the cycle
 

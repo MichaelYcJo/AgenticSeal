@@ -38,16 +38,17 @@ diff it reviews.
 
 ## The language the round records are written in
 
-The prose in `rounds/round-N.md` — its cell contents and the text beneath its
-tables — follows `Record language` in `config.md`, English when the row is
-absent. The root is `<repo>/seal/` where that directory exists and
-`$(git rev-parse --git-common-dir)/seal/` otherwise.
+The prose in `rounds/round-N.md` — what follows each label, the text under
+its headings and the cells of its tables — follows `Record language` in
+`config.md`, English when the row is absent. The root is `<repo>/seal/`
+where that directory exists and `$(git rev-parse --git-common-dir)/seal/`
+otherwise.
 
-What stays English regardless: every field name, section heading and
+What stays English regardless: every field name, section heading, label and
 vocabulary word the checkers match, listed in `templates/config.md` under
 *What no row governs*. `chain_check.py` reads those strings literally, so a
-translated `## Verdicts` or `Verdict` column is not a translation — it is a
-record the checker cannot read.
+translated `## Findings` heading or `verdict:` label is not a translation —
+it is a record the checker cannot read.
 
 **The report you post to the pull request is not a record.** It is prose for
 whoever opens that pull request, and follows `Commit and pull request
@@ -106,8 +107,9 @@ mutated while an external call was in flight.
 
 The security row earned its place the same way. Stage 2 has always named
 security, and the table is what makes an axis mandatory — an axis that lives
-in prose leaves no `❓` when nobody walks it. It also shares the concurrency
-row's exemption on its own grounds: it asks what an input
+in prose leaves no row of `## Not judged` when nobody walks it. It also
+shares the concurrency row's exemption on its own grounds: it asks what an
+input
 nobody sends in good faith does, and no amount of following the request in
 front of you answers it. Three of one round's four
 blocking findings had a stronger security frame than the one they were given,
@@ -119,8 +121,8 @@ alone.
 
 A fixed list covers the same ground on a bad day as on a good one, which is
 what it is for. The cost is the other half: an axis nobody wrote down is not
-reported as unjudged, it leaves no trace at all. `❓ out of verified scope`
-records that you looked and could not decide — there is no mark for what was
+reported as unjudged, it leaves no trace at all. A row of `## Not judged`
+records that you looked and could not decide — there is no row for what was
 never on the list.
 
 So name this change's own axes before starting, in the round's first minutes,
@@ -174,16 +176,19 @@ already judged are not re-walked — unchanged code keeps its verdict. Probes a
 previous round ran are only re-checked for "is it fixed now".
 
 The work item is the key, and its `routing.md` names the branch. The warden
-writes `rounds/round-N.md` from `templates/sdd-round.md`, the fix pass fills
-two cells of each open row, and every round file stays for the next round to
-read: `docs/the-review-record.md` §*The round record* states the fields, the
-vocabulary and who writes what.
+writes `rounds/round-N.md` from `templates/sdd-round.md`, the fix pass
+writes each finding's `verdict:` and `answer:` lines, and every round file
+stays for the next round to read: `docs/the-review-record.md` §*The round
+record* states the labels, the values and who writes what.
 
 What carries is **where to look, not what was concluded**. A later round opens
 those coordinates and reaches its own verdict; an axis marked clean in round 1
 can be broken by the fixes made for round 2, and inheriting that verdict is
-exactly how it goes unseen. Earlier verdicts set the agenda — every one needs
-an answer this round, on this round's grounds.
+exactly how it goes unseen. Earlier verdicts set the agenda, on this round's
+grounds: every finding the round before closed `fixed <commit>` or
+`rejected` is named by this round, by a `confirms:` line where the close
+holds or by a finding's `regression:` line where it does not, and the check
+refuses a finding no later round names.
 
 Re-deriving the verdict is not re-walking the code. Finding the coordinates is
 the expensive half, and `round-N.md` exists so it is paid once; a later round
@@ -201,29 +206,32 @@ nothing — no check exists that would tell you it went stale, which is exactly
 why the round has to reach it again.
 ## Findings format
 
-Severity names carry the required action, not just a rank:
+**A finding is one `### <n>. <symptom>` section under `## Findings`,
+numbered from 1, and the number in its heading is its id.** Its `severity:`
+line names the required action, not just a rank:
 
 ```
-🔴 blocks merge     — spec violation or defect; fix before merge
-🟡 fix or justify   — a defect the release would ship: the tool does something wrong, or tells a person something wrong; fix or justify
-🟢 pass             — verified equivalent (different implementation, same behavior, is a pass)
-❓ out of verified scope — could not judge; never silently counted as pass
+severity: must     — spec violation or defect; fix before merge
+severity: should   — a defect the release would ship: the tool does something wrong, or tells a person something wrong; fix, or say why not
 ```
 
-A sentence an agent reads and acts on is a defect when it is wrong, and is
-🟡; a sentence in a record that merely reads badly is not a finding.
+A wrong sentence that an agent reads and acts on is a `should` defect. A
+record's sentence that is only awkward is no finding at all.
 
-**Number the findings 1..N — the id is a bare integer**, led by the marker
-(`🔴 1`), and only a 🔴 or 🟡 row takes one; a 🟢 or ❓ row takes a bare
-marker in `#` (`docs/the-review-record.md` §*The round record*).
+**Two other kinds of entry are never findings.** What this round confirmed
+holds — a closed finding of the round before, read and found closed, or a
+claim the frame or the build made that held — is a `confirms:` line under
+`## Confirmations`. What
+it could not judge is a row of `## Not judged` naming who answers it, and it
+is never silently counted as a pass. An earlier round's finding is named
+`round-<N>#<n>` wherever this round refers to it
+(`docs/the-review-record.md` §*The round record*).
 
-An earlier round's number goes in the **Finding** cell, which is prose:
-`| 🟢 | round 2's finding 1, re-read | … |`. In the `#` cell it is digits, and
-digits there are an id.
-
-Every finding carries `file:line`, what is wrong, why it matters, and a
-paste-ready fix for 🔴/🟡. The report is written for posting as a PR comment,
-but **the user posts it** — publishing externally is the user's call.
+Every finding carries its `location:` line, what is wrong, why it matters,
+and a paste-ready fix. Its labels are lowercase words at the start of their
+lines, and the record is written in words, with no emoji anywhere in it. The
+report is written for posting as a PR comment, but **the user posts it** —
+publishing externally is the user's call.
 
 **Paste-ready means the snippet cannot mislead on its own.** A fix often needs
 a name the tree does not have yet — a field the schema never defined, a helper
@@ -241,13 +249,10 @@ too many names are missing for a snippet to stand, describe the change in
 sentences and say which document would have to exist for the code to be
 written.
 
-**Every one of those blocks goes under `## Paste-ready fixes`, the section of
-the record the fix pass opens.** A fix written into a Finding cell alone is
-rebuilt from a description by the fix pass.
-
-A Grounds cell is not the place either. It is one line of one table row, a
-paste-ready fix is a fenced block with comments in it, and a `|` inside that
-cell used to truncate the row without a word (#189).
+**Every one of those blocks goes inside the finding it fixes**, after the
+grounds and before the `answer:` line, so the fix pass opens one section and
+finds the what, the where, the why and the paste together. A fix described
+in prose alone is rebuilt from the description by the fix pass.
 
 **A fix touching an OS boundary states its assumed precondition.** The
 premises are the ones a snippet assumes without a line to show for them —
@@ -293,5 +298,5 @@ End with the proof block. Fill it only with files actually opened; write
 📋 code-review applied
 · spec:     <policy/SDD files and clauses read>
 · compared: <files opened for comparison, file:line>
-· verdict:  🔴 n · 🟡 n · 🟢 n · ❓ n
+· verdict:  must n · should n · confirmed n · not judged n
 ```

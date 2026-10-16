@@ -166,15 +166,16 @@ jobs:
       # goes red for one teaches people to write none. It fails for what the
       # author can fix: a declaration that says "through the review chain"
       # with no committed round record, a declaration that cannot be read,
-      # and — on a pull request that is not a draft — a verdict row of any
-      # mark still open, a last record behind HEAD, no `broad-gate.md` at HEAD, or no
+      # and — on a pull request that is not a draft — a finding still `open` or
+      # one the check cannot read, a last record behind HEAD or with a finding
+      # no round after it read, no `broad-gate.md` at HEAD, or no
       # `guarantee.md` reading `sound` at HEAD (`docs/the-review-record.md`
       # §*What the check reads at the pull request*).
       #
       # The draft state comes from GITHUB_EVENT_PATH, which this runner
       # already sets. A review still running opens its pull request as a
-      # draft, where every refusal prints and none fails. A round's `Target
-      # SHA` is read only as HEAD or an ancestor of it, so the check needs no
+      # draft, where every refusal prints and none fails. A round's `target:`
+      # commit is read only as HEAD or an ancestor of it, so the check needs no
       # ref the checkout does not already carry.
       - name: a declared review chain has the round record it claimed
         shell: bash

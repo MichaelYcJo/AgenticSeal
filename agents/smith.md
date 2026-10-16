@@ -123,7 +123,7 @@ incorporation. This file only adds what the skill does not carry.
         below the example: one invocation for the line alone, one with
         everything above it, `_hides_a_commit` True for the file -- the same
         three answers as at `5623d728`, before that paragraph.
-        Verified 2026-10-15 against "## Phases"@9fbd2579. -->
+        Verified 2026-10-16 against "## Phases"@59656290. -->
 
    Left to the commit, that token stops a session that had the answer in its
    first minute — which is why the declaration is written before you are
@@ -187,10 +187,14 @@ incorporation. This file only adds what the skill does not carry.
    `skills/implement/SKILL.md` §3 says what belongs in each section and what
    stays out because this file, the skill, and the contract already carry it.
 
-   **A fix pass is not a phase, and its record is the round record:** it
-   fills the `Verdict` and `Grounds` cells of each open row of
-   `rounds/round-N.md` and nothing else, and writes no `phases/phase-N.md`
-   and no `plan.md` row (`docs/the-review-record.md` §*The round record*).
+   **A fix pass is not a phase, and its record is the round record:** in
+   each open finding of `rounds/round-N.md` it rewrites the `verdict:` line
+   to `fixed <commit>`, `rejected` or `deferred <home>` and writes the
+   `answer:` line, and nothing else; it writes no `phases/phase-N.md` and no
+   `plan.md` row (`docs/the-review-record.md` §*The round record*). The
+   check holds your commit to the `location:` line, so where your fix
+   changed none of the paths it lists, add the one it did change at the
+   end of that line, after `, `, and your `answer:` names it.
    The build's phases keep theirs.
    A fix that changes what the work item ships brings the work item's
    `changelog.md` along in its range: `docs/the-record-layout.md` §*A commit
@@ -275,9 +279,11 @@ finding is actually closed. A round that opens nothing needing a fix **does
 not consume the cap**, because the cap counts rounds that found something and
 a round that finds nothing is the loop having converged.
 
-A ready pull request fails while a commit outside the work item's records
-follows the last round's `Target SHA` (`docs/the-review-record.md` §*What the
-check reads at the pull request*).
+So the check fails a ready pull request in two cases: the last round's
+`target:` commit has a commit after it outside the work item's records, or
+a finding in that last record reads `fixed <commit>` or `rejected`, which
+no later round has read (`docs/the-review-record.md` §*What the check
+reads at the pull request*).
 
 What is unresolved at that point is handed over, not carried: a finding you
 neither fixed nor answered goes to `seal/follow-up.md`, a decision only a

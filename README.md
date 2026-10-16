@@ -87,9 +87,11 @@ the author's account rather than evidence, and says in its report that it set
 it aside. For a review with no path in at all, open a fresh session and call
 `@agent-specseal:warden` there: the round history is files, so it is inherited
 either way.
-The review run is bounded: three rounds, or five while something marked
-🔴 *blocks merge* is still open and only to close it. Then it ends whether
-or not everything was resolved. What is left is handed over rather than
+The review run is bounded: three finding rounds by default, and one more at
+a time only while each round finds fewer findings than the one before and
+none of them is a regression in the fixes under review. At the cap every
+finding still open is handed on and reads `deferred <home>`, whether or not
+everything was resolved. What is left is handed over rather than
 carried — an unanswered finding to `seal/follow-up.md`, a decision only
 you can make to `questions.md`, an original whose behavior is plainly wrong
 recorded both ways — each named in the PR body. **The chain ends at a PR,
@@ -179,7 +181,7 @@ item writes `seal/specs/<id>/routing.md` before its first edit — which way it 
 and whether it opens a pull request — and the gate reads that instead of
 guessing from the absence of a mark. The check moved to the pull request: CI
 reads the same file out of the diff and, for anything routed through the
-chain, requires a committed round record with no row left open. A
+chain, requires a committed round record with no finding left unanswered. A
 pull request that declared neither way is not failed; it gets a notice saying
 nothing was checked.
 
@@ -191,9 +193,10 @@ the branch, and asking of each finding marked closed whether its fix holds. A ro
 that opens nothing needing a fix does not spend one of the three.
 
 A ready pull request fails while a commit outside the work item's records
-follows the last record's `Target SHA` — a review cannot have passed while the
-fixes that closed its findings went unread. On a draft it prints and names the
-verifying round.
+follows the commit on the last record's `target:` line, or while a finding of
+that record reads `fixed` or `rejected` — a review cannot have passed while
+the fixes that closed its findings went unread. On a draft it prints and
+names the verifying round.
 
 No gate transmits your code, your paths, or your prompts anywhere. Four side
 effects are worth stating outright: session-lease writes a timestamp file under
@@ -590,7 +593,7 @@ What this does not do is as load-bearing as what it does.
   makes a repeat visible. A hook could not tell the difference anyway —
   whether the rounds have settled is not a property of the command being run.
 - **Unread last fixes fail in one place.** A commit after the last record's
-  `Target SHA` fails a ready pull request; on a draft it prints and names the
+  `target:` commit fails a ready pull request; on a draft it prints and names the
   verifying round, and *Ready for review* re-runs the check. The way out costs
   no round — one verifying round at the diff of those fixes.
 - **A parity mark says someone compared, not that they compared well.** The

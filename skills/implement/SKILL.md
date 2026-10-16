@@ -489,10 +489,12 @@ handoff of judgment.
 Probes already run by a previous round (listed in `round-N.md`) are not
 rebuilt — only re-checked for whether the finding is now fixed.
 
-**A fix pass fills the `Verdict` and `Grounds` cells of each open row of
-`rounds/round-N.md` and writes no phase record** — `docs/the-review-record.md`
-§*The round record* names the three closing verdicts. The build's phases keep
-theirs.
+**A fix pass rewrites the `verdict:` line and writes the `answer:` line of
+each open finding in `rounds/round-N.md`, and writes no phase record** —
+`docs/the-review-record.md` §*The round record* names the three closing
+verdicts. A `fixed` commit must touch a path the finding's `location:`
+names; where the fix went somewhere else, the pass appends that coordinate
+to the line and says so in `answer:`. The build's phases keep theirs.
 
 A fix that changes what the work item ships brings the work item's
 `changelog.md` along, because the release gathers that fragment as it stands;
