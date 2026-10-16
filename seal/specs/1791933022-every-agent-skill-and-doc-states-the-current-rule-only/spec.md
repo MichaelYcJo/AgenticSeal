@@ -15,6 +15,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | `skills/implement/SKILL.md` §*3. The SDD file set* | The work alters what every spawn reads and what every pull request is checked against, which is the top rung |
 | #923's body, rewritten 2026-10-15 by the owner and split on 2026-10-16 | The one source for what was decided: the principle and what this item builds. Where this file and that body differ, the body holds. Since the owner's split of 2026-10-16 the body is part A alone, the review record and the sealer, in 0.22.0; part B — the agents written anew, the rules the rewrite states in place, the proof's two axes, the baseline — is #957, in `release: 0.22.1`, framed on its own after 0.22.0 is installed so old and new rules do not mix in one run. This file frames part A, and names what moved under `## Removes` |
 | The owner's ruling of 2026-10-16, on round 7 | A `regression:` line marks a defect a fix pass's own commit introduced. A defect in a phase the framer designed and the owner approved is an ordinary finding of new work, with no `regression:` line, and gets its fix pass. `docs/the-review-record.md` §*The run* states it, pinned by `tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made` (`phases/phase-5d.md` §*Round 7 fix pass*) |
+| The owner's decision of 2026-10-16, on round 8 | A round names an earlier finding by one of three relations, each a plain English label, and all three are needed now: `confirms: round-<N>#<n>` where the close holds, in `## Confirmations`; `reopens: round-<N>#<n>`, new, on a new finding where the earlier close does not hold — a rejection that was wrong, or a `fixed` commit that did not fix it — and no fix pass's own commit made the defect, an ordinary finding that gets its fix pass; `regression: round-<N>#<n>` on a new finding where a fix pass's own commit introduced the defect. The channel accepts `reopens:` as naming the earlier finding, like the other two, read fail-closed in the same way. Refined the same day: a `regression:` line does not send the work item to its framer by itself; the warden states in the finding's grounds what the frame says, what the fix did and where the defect came from, and the orchestrator routes on that sentence — the frame back to its framer where the fix built what the frame says and the defect is still there, an ordinary fix pass where the fix departed from the frame or the defect came from how the fix was written, and the framer for a second regression on the same unit after a fix-pass route (§*What leaves*'s `Fix of a fix` row states it). Round 8's three findings close `deferred the frame` and this frame takes them together (§*What a round records*, S9, S23, S24, S26, S27; `plan.md` row 5d-v) |
 | The owner's decision of 2026-10-16, after round 6 | The round record is designed anew from its jobs and not patched again. What the check read was the old generator's table with fields subtracted and a rule added per round, and the check missed one fact four times (rounds 1, 2, 5 and 6) for one reason: it told a finding from a non-finding by an emoji mark in a table that mixed three kinds of row, and every spelling it did not recognise fell to the passing side. What exists is a reference, not a constraint (`CLAUDE.md`). The rule the new shape embodies — a gate fails closed: input it cannot read is refused, never passed — is `questions.md` Q9's to put into `CLAUDE.md` or not |
 | The owner's decisions of 2026-10-16, on the record phase 5d-i built (44ad6eeb) | Six, each written into §*What a round records* and the check's facts below, in place: a `fixed <commit>` touches its finding's location and the check reads it, so the sealer's manual act leaves; the channel between rounds is a fact the check reads, through a reference in one spelling; every label is one lowercase word; the severities are `must` and `should`; no emoji in the record, the template, the findings format or the parties' instructions this item touches; the refusal of an unclosed fence or comment, which 5d-i's smith added, is a check fact here with its limit stated. Then, relayed during 5d-iii and built there: every label and value a plain English word an agent can guess the meaning of — one `target:` line for the field table, a `confirms:` line per confirmation in place of a table, the section optional and two refused, an unconfirmed finding refused at its own heading in its own record, `regression:` for `refixes:`, `rejected` for `answered`. And `questions.md` Q11's answer: a repair outside the tree closes `deferred <where>`, a repair by a commit `fixed <commit>`, and `rejected` means only that the finding does not hold (phase 5d-iv). Frame edits, not reframes: no round stopped the run, so the foot carries no `Reframed` line for them |
 | #942 (the test layout) | A test file per shipped module, its tests grouped by function, a success and a failure case per group. The test modules this item writes for the chain check and the broad gate follow it; the modules it deletes are listed by what they guarded, one line each |
@@ -184,8 +185,8 @@ the record, and from nothing that was there before:
 |---|---|---|
 | the warden | names the commit it reviewed, and leaves findings — what is wrong, where, why it matters, a paste-ready fix — and the probes it ran | the `target:` line; `## Findings`, one `###` section per finding; `## Probes` |
 | the smith's fix pass | answers each finding: the fixing commit, a rejection with its grounds, or where it was deferred | the finding's `verdict:` line and `answer:` line, a coordinate it may append to `location:`, and nothing else in the file |
-| the next round's warden | reads the earlier findings and their answers, confirms each that truly closed, names a regression where a fix pass's own commit introduced the defect, and notes what it could not judge | a `confirms:` line per entry of `## Confirmations` and the `regression:` line of a finding, both naming the earlier finding as `round-<N>#<n>`; `## Not judged`; earlier files are never edited or deleted |
-| the check at the pull request | four facts — is any finding without an answer; does each `fixed` commit sit on the branch and touch its finding's location; does the next round confirm, or name as a regression, every finding the fix pass closed `fixed` or `rejected`; is the last record at HEAD — and the record's `target:` commit | the `target:` line; every `verdict:`, `location:` and `regression:` line under `## Findings`; every `confirms:` line of `## Confirmations`; the labels in no other spelling and in no other place |
+| the next round's warden | reads the earlier findings and their answers, confirms each that truly closed, reopens one whose close does not hold where no fix pass's commit made the defect, names a regression where a fix pass's own commit introduced the defect, and notes what it could not judge | a `confirms:` line per entry of `## Confirmations`, and the `reopens:` or the `regression:` line of a finding, each naming the earlier finding as `round-<N>#<n>`; `## Not judged`; earlier files are never edited or deleted |
+| the check at the pull request | four facts — is any finding without an answer; does each `fixed` commit sit on the branch and touch its finding's location; does the next round confirm, reopen or name as a regression every finding the fix pass closed `fixed` or `rejected`; is the last record at HEAD — and the record's `target:` commit | the `target:` line; every `verdict:`, `location:`, `reopens:` and `regression:` line under `## Findings`; every `confirms:` line of `## Confirmations`; the labels in no other spelling and in no other place |
 | the sealer | reads the records as one party's story against the others (step 4); it re-checks no finding's verdict and no `fixed` commit, since the check reads both | nothing of a record that the check does not read |
 
 A round records **what it reviewed, what it found, and what answered it**, in
@@ -205,10 +206,11 @@ target: <sha> against <base>        (a verifying round: <sha>, fixes <a>..<b>)
 severity: must
 location: `path:12`
 verdict: open
-regression: round-<N-1>#<n>
+regression: round-<N-1>#<n>        (or reopens: round-<N-1>#<n>; at most one of the two)
 
 <why it matters and the grounds, executed and read labelled apart; where
-`regression:` stands, the unit a fix pass's own commit added or changed, first>
+`regression:` stands, the unit a fix pass's own commit added or changed, first;
+where `reopens:` stands, why the earlier close does not hold, first>
 
 ```<lang>
 <the paste-ready fix: the artefact, not a description of it>
@@ -236,22 +238,24 @@ confirms: none
 ````
 
 Eight things about it, each the whole of a rule, each as the owner's
-decisions of 2026-10-16 and Q11's answer left it:
+decisions of 2026-10-16, Q11's answer and the decision on round 8 left it:
 
 - **Every label is one plain lowercase English word at the start of a
   line, followed by `:` and one space, and the check refuses any other
   spelling as unreadable, never skips it.** The reader is mostly an agent,
   so every label and every value is a word whose meaning is guessable
-  without this repository's documents (the owner, 2026-10-16). Seven labels:
+  without this repository's documents (the owner, 2026-10-16). Eight labels:
   `target:` once per record, outside every section; `severity:`,
-  `location:`, `verdict:`, `regression:` and `answer:` inside a finding;
-  `confirms:` inside `## Confirmations`. A line whose first word,
-  case-folded and stripped of `*`, `_` and `` ` ``, is one of the seven or
+  `location:`, `verdict:`, `regression:`, `reopens:` and `answer:` inside a
+  finding; `confirms:` inside `## Confirmations` (`reopens:` from 5d-v, the
+  owner's decision on round 8). A line whose first word,
+  case-folded and stripped of `*`, `_` and `` ` ``, is one of the eight or
   an old spelling — `Target SHA`, `refixes`, `fix of a fix` — followed by
   `:`, and which is not the exact form, is refused by path and line as *a
   label in another spelling*, naming the label it would have to read —
-  `Verdict:`, `**verdict:**`, `VERDICT:`, `verdict :`, `Target SHA:` and
-  `refixes:` among them — and the finding is not read past it. A finding's
+  `Verdict:`, `**verdict:**`, `VERDICT:`, `verdict :`, `Reopens:`,
+  `Target SHA:` and `refixes:` among them — and the finding is not read
+  past it. A finding's
   label outside a finding, a `target:` or `confirms:` line inside one, and
   a `confirms:` line outside `## Confirmations` are refused the same way.
   A label with nothing after it, its trailing space trimmed, is the exact
@@ -315,23 +319,52 @@ decisions of 2026-10-16 and Q11's answer left it:
   `round-<N>#<n>`, the earlier record's number and the finding's heading
   number, in that spelling and no other (`plan.md` Alternative AO); `round-<N>`
   alone names a round's fix pass where the unit the regression stands in was
-  changed by no numbered finding. A reference stands in two places. Each
+  changed by no numbered finding. **A round names an earlier finding by one
+  of three relations, each its own label** (the owner, 2026-10-16, on round
+  8): `confirms:` where the close holds; `reopens:` on a new finding where
+  the earlier close does not hold — a `rejected` finding that holds after
+  all, or a `fixed` commit that did not fix it — and no fix pass's own
+  commit made the defect, an ordinary finding that gets its fix pass;
+  `regression:` on a new finding where a fix pass's own commit introduced
+  the defect, which the orchestrator routes by the comparison its grounds
+  state — to the framer or to an ordinary fix pass (§*What leaves*'s
+  `Fix of a fix` row). A reference stands in three places. Each
   entry of `## Confirmations` is a `confirms:` line reading `round-<N>#<n>`,
   or `none` for a claim of the frame or the build that matched, with the
   entry's prose on the lines after it; a table row in the section is
   refused. A finding's `regression:` line reads `round-<N>#<n>` or
-  `round-<N>`. A round with nothing to confirm leaves `## Confirmations`
+  `round-<N>`. A finding's `reopens:` line reads `round-<N>#<n>` alone,
+  since a close is a finding's verdict and a fix pass no finding named
+  closed nothing to reopen: `reopens: round-<N>` is refused by line. **A
+  finding carries at most one of `regression:` and `reopens:`**, and one
+  carrying both, or two of either, is refused at the second line, naming
+  which line each case takes — the two relations are routed differently,
+  one by the comparison with the frame and the other always to a fix pass,
+  so a finding holding both says neither. A round with
+  nothing to confirm leaves `## Confirmations`
   out, and a record holding two is refused. For every finding of round N
   whose verdict is `fixed <commit>` or `rejected`, the record of round N+1
-  must hold a `confirms:` or a `regression:` line naming it, else the check
+  must hold a `confirms:`, a `reopens:` or a `regression:` line naming it,
+  else the check
   refuses the finding at its own `### N.` heading line in round N's record,
   naming the next record and the reference it owes — the finding's own
   record is where it stands, and the later round is what has to answer it;
   a finding at `deferred <home>` needs no confirmation. A reference the
   check cannot read, one naming a record the item does not have, or a
-  finding number that record does not hold, is refused by path and line.
+  finding number that record does not hold, is refused by path and line,
+  on any of the three labels.
   Round 1 has no earlier record, so it owes nothing and every reference in
-  it is refused: its `confirms:` lines read `none`. On a ready pull request
+  it is refused: its `confirms:` lines read `none`. **How it errs, stated:**
+  the check reads that the earlier finding is named and on which line,
+  never whether the relation is true. Which of `reopens:` and `regression:`
+  a close that does not hold takes is the warden's reading of which commit
+  made the defect; a `reopens:` line written where a fix pass's commit made
+  it gets a fix pass the regression rule would have stopped, and the next
+  round's warden and the sealer, who read the records whole, are who catch
+  it. Nor does the check read the earlier finding's verdict for a
+  `reopens:` line, any more than for the other two: a reopened `deferred`
+  finding is the warden's claim that the deferral was wrong, which the
+  orchestrator reads (`plan.md` Alternative AZ). On a ready pull request
   a `fixed` or `rejected` finding in the last record is refused at its
   `verdict:` line as *a verifying round is owed* — the same words the
   `target:` rule prints — because nothing after it has read the fix or the
@@ -442,17 +475,17 @@ citation of an older issue, that is `read` and says so.
 | Mechanism | What it caught, as the history shows | What it costs | Verdict |
 |---|---|---|---|
 | `Target SHA` | every arm of the check rests on it; the proof's replay cases clone at it | one row | **stays**, as the record's one `target:` line (the owner, 2026-10-16) |
-| The `Verdicts` table in its five columns | the findings themselves; the proof's `truth-` graders read its rows | one cell held a finding's whole account and a `\|` in it broke the row (#189); three kinds of row shared one table, so a reader had to sort them by a mark; four of this item's six rounds found a spelling the sorting let through | **leaves** (reframed after round 6). A finding is a `###` section of `## Findings` with its labelled lines; a confirmation is a `confirms:` entry and a not-judged item a row, each in its own section. The `truth-` graders read the finding's `location:` line (§*The proof*) |
+| The `Verdicts` table in its five columns | the findings themselves; the proof's `truth-` graders read its rows | one cell held a finding's whole account and a `\|` in it broke the row (#189); three kinds of row shared one table, so a reader had to sort them by a mark; four of this item's six rounds found a spelling the sorting let through | **leaves** (reframed after round 6). A finding is a `###` section of `## Findings` with its labelled lines; a confirmation is a `confirms:` entry and a not-judged item a row, each in its own section. The `truth-` graders read a line window of the finding's `location:` line (§*The proof harness, as this item leaves it*) |
 | `Executed probes` and `Paste-ready fixes` | contract §4 in the record; the smith pastes | the warden writes them anyway | **stay**, as `## Probes` and as the fenced block inside each finding, where the fix pass reads it beside the finding it answers |
 | The emoji vocabulary 🔴 🟡 🟢 ❓ as record fields, the `#` cell and the bare-integer id | a severity a person reads at a glance | read by the check to tell a finding from a non-finding, which is the one fact rounds 1, 2, 5 and 6 each found read wrong once (a severity in the Finding cell, a 🟢 or ❓ cell over an `open`, `confirmed` on a 🔴 row, `**🔴 1**`) | **leaves the record** (reframed after round 6; the words set on 2026-10-16). `severity: must` or `should` is for people, and the finding's number is its heading's; the check reads neither, and no emoji stands anywhere in the record |
 | `round-N-report.md` beside `round-N.md` | nothing: the record was the report's tables copied | 19 files, 303 KB of 564 KB in 0.22.0; half of what a later round inherits | **leaves**; the warden writes `round-N.md` |
 | `round_record.py` (`new`, `close`, `notes`, `seal`), `bin/round-record{,.cmd}` | wrote the copy and the derived fields, applied the fix table, counted the notes | 5,596 lines, 35 test modules, the generator's refusals at the keyboard (#503, #866 in `docs/round-record-spec.md`, `read`) | **leaves whole** |
 | `Pass` box | whether a row is still open | a box that restates the table | **leaves**; the check reads the rows: no `open` verdict on a ready pull request |
-| The reading of a verdict row — which rows are findings, and which words close one (`chain_check.py#verdict_table`, `#verdict_of`, `#open_findings`, `CLOSES_BY`, `EVERY_CLOSE`, `FINDINGS`, `BLOCKING`, `SHOULD`, `FINDING_WORDS`, `CLOSED_WORDS`, and before phase 5a `#severity_of`, `NOT_FINDINGS`, `FINDING_CLOSES`, the `#` column found by its header) | nothing in the records it read: no 🔴 or 🟡 row of the 36 records at round 2 read a 🟢 or ❓ row's word (round 2's probe, `executed` by the warden). What its four versions carried was the hole each round found: round 1's let a severity outside the first cell hide an `open`; round 2's let a 🟢, ❓ or ⬜ `#` cell hide one; phase 5a's let a 🔴 row close `confirmed`, which rounds 3, 4 and 5 gave the sealer to catch and each found that backstop short; phase 5c's read the mark with `startswith` on the raw cell, so `**🔴 1** … confirmed` passed (round 6's 🟡 1). Each repair read the same cell by one more rule, and every spelling the rule did not know fell to the passing side | four readings in six rounds, three reframes, two word sets, and a rule the documents restated per round | **leaves whole** (reframed after round 6). The decision is what the check decides: whether every finding has an answer. So the record gives it that fact in one line it can read without sorting anything — `verdict: <value>` inside a finding's section — and the check refuses whatever it cannot read (§*What a round records*). The emoji marks, the mixed table, the word sets per mark and the old generator's words `withdrawn`, `not a defect` and `agreed, fixed` go with the reading; nothing reads an old record, so nothing needs them. Since 2026-10-16 the check reads three more facts of the same kind, each a labelled line in one spelling: a `fixed` commit touches a path of the finding's `location:`, the next record's `confirms:` and `regression:` lines name every finding the fix pass closed `fixed` or `rejected`, and a label in another spelling is refused. **How it errs, stated**: a `fixed <commit>` that touches the path and fixes nothing passes, and the verifying round's warden, whose `confirms:` line the check then requires, is who reads the fix; a fence closed on the wrong line hides what lies between (§*What a round records*). A finding the warden wrote outside `## Findings`, or without a `###` heading, is not a finding to the check: the template, the warden's definition and the eval's shape grader hold that shape, and a section with no `verdict:` line is refused rather than passed |
+| The reading of a verdict row — which rows are findings, and which words close one (`chain_check.py#verdict_table`, `#verdict_of`, `#open_findings`, `CLOSES_BY`, `EVERY_CLOSE`, `FINDINGS`, `BLOCKING`, `SHOULD`, `FINDING_WORDS`, `CLOSED_WORDS`, and before phase 5a `#severity_of`, `NOT_FINDINGS`, `FINDING_CLOSES`, the `#` column found by its header) | nothing in the records it read: no 🔴 or 🟡 row of the 36 records at round 2 read a 🟢 or ❓ row's word (round 2's probe, `executed` by the warden). What its four versions carried was the hole each round found: round 1's let a severity outside the first cell hide an `open`; round 2's let a 🟢, ❓ or ⬜ `#` cell hide one; phase 5a's let a 🔴 row close `confirmed`, which rounds 3, 4 and 5 gave the sealer to catch and each found that backstop short; phase 5c's read the mark with `startswith` on the raw cell, so `**🔴 1** … confirmed` passed (round 6's 🟡 1). Each repair read the same cell by one more rule, and every spelling the rule did not know fell to the passing side | four readings in six rounds, three reframes, two word sets, and a rule the documents restated per round | **leaves whole** (reframed after round 6). The decision is what the check decides: whether every finding has an answer. So the record gives it that fact in one line it can read without sorting anything — `verdict: <value>` inside a finding's section — and the check refuses whatever it cannot read (§*What a round records*). The emoji marks, the mixed table, the word sets per mark and the old generator's words `withdrawn`, `not a defect` and `agreed, fixed` go with the reading; nothing reads an old record, so nothing needs them. Since 2026-10-16 the check reads three more facts of the same kind, each a labelled line in one spelling: a `fixed` commit touches a path of the finding's `location:`, the next record's `confirms:`, `reopens:` and `regression:` lines name every finding the fix pass closed `fixed` or `rejected`, and a label in another spelling is refused. **How it errs, stated**: a `fixed <commit>` that touches the path and fixes nothing passes, and the verifying round's warden, whose `confirms:` line the check then requires, is who reads the fix; a fence closed on the wrong line hides what lies between (§*What a round records*). A finding the warden wrote outside `## Findings`, or without a `###` heading, is not a finding to the check: the template, the warden's definition and the eval's shape grader hold that shape, and a section with no `verdict:` line is refused rather than passed |
 | `Fixes checked by`, `Needs a fix`, `Written late` | the last fixes read by nobody (the verifying-round rule, #161 `read`); the record committed after its fixes. `Written late` read `no` 19/19 | three rows derived from facts the check can read | **the fields leave; the rule stays** as one check: the last record's `target:` commit is HEAD, or every commit after it touches only `seal/specs/<id>/`. A round after the last fix pass is therefore owed, as today |
 | `Fix range`, `Contract changes`, `New units`, the depth refusal, inherited coordinates | the verifying round's finding surface; a fix pass adding a unit nobody reviewed (#194, #211, #366 `read`). `Contract changes` read `none` 17/19; `New units` named in 9/19 | AST walks of the fix range in `round_record.py`, 198 s of tests for the floor and depth alone | **leave**; the warden's definition states that a verifying round reviews the whole fix diff, new units included, and the fix range is written on the `target:` line |
-| `Fix of a fix` count and its `second` stop | fired three times in 0.22.0 and sent #929 and #931 back to the framer; what it caught was fixes chasing one mechanism's edge cases, which `CLAUDE.md`'s tenet now states as a rule every agent reads | the count needs the fix range, the units and the depth above; 365 s of tests; four reframe spawns | **the judgment stays, the count leaves**: the warden writes a finding's `regression:` line where the defect is one a fix pass's own commit introduced, naming the earlier finding or fix pass; a defect in a phase the framer designed and the owner approved is an ordinary finding of new work with no such line (the owner, 2026-10-16, on round 7); a round carrying a `regression:` line gets no fix pass, at any round of the run, and the work item returns to its framer, who redraws the frame (`Reframed … after round N.` under the mark; `questions.md` Q1, the owner, 2026-10-15). Checked by nothing; the sealer reads the records |
-| `Loses a record or crashes` floor, the round cap, the one reopening | #161's 15-round run (`read`); `yes` 2/19 in 0.22.0; no 0.22.0 run reached the cap — the stop above ended them | three rules, 65 + 45 + 117 lines of spec, their arms in the check | **one orchestrator rule replaces them** (`skills/code-review/orchestration.md`): a run has three finding rounds by default, extended one at a time while the latest round found fewer findings than the one before and none is a fix of a fix, each extension one line in that round's record (`questions.md` Q1, the owner, 2026-10-15); at the cap every open finding takes the filing ladder and reads `deferred <home>`. Checked by nothing at the pull request; the sealer and the person reading it see the count |
+| `Fix of a fix` count and its `second` stop | fired three times in 0.22.0 and sent #929 and #931 back to the framer; what it caught was fixes chasing one mechanism's edge cases, which `CLAUDE.md`'s tenet now states as a rule every agent reads | the count needs the fix range, the units and the depth above; 365 s of tests; four reframe spawns | **the judgment stays, the count leaves**: the warden writes a finding's `regression:` line where the defect is one a fix pass's own commit introduced, naming the earlier finding or fix pass; a defect in a phase the framer designed and the owner approved is an ordinary finding of new work with no such line (the owner, 2026-10-16, on round 7); **a `regression:` line does not send the work item to its framer by itself; the fix is compared with the frame first** (the owner, 2026-10-16, refining the ruling on round 8). The warden who writes the line states the comparison in one sentence of the finding's grounds: what the frame says (the phase's `plan.md` row and `spec.md`), what the fix did, and where the defect came from. No label carries it, and the orchestrator routes on that sentence, at any round of the run. Where the fix built what the frame says and the defect is still there, the frame is wrong: the round gets no fix pass and the work item returns to its framer, who redraws the frame (`Reframed … after round N.` under the mark; `questions.md` Q1, the owner, 2026-10-15), and the run then goes on with the redesign's build and its rounds. Where the fix departed from the frame, or the defect came from how the fix was written — a paste-ready fix taken from a review record among them — the round gets an ordinary fix pass, and the smith is told what the frame says. A second regression on the same unit after a fix-pass route goes to the framer whatever the comparison says, which is the loop guard. Round 8's finding 2 is the measured case: its defect came from round 7's paste-ready fix, applied verbatim at 46cd674a, so under this rule it would have taken a fix pass; this reframe stands because `reopens:` needed a frame anyway (`plan.md`'s reframe paragraph after round 8). A close that does not hold where no fix pass's commit made the defect — a rejection that was wrong, a `fixed` commit that did not fix it — is raised again as an ordinary finding with a `reopens:` line naming it, and gets its fix pass (the owner, 2026-10-16, on round 8). Checked by nothing; the sealer reads the records |
+| `Loses a record or crashes` floor, the round cap, the one reopening | #161's 15-round run (`read`); `yes` 2/19 in 0.22.0; no 0.22.0 run reached the cap — the stop above ended them | three rules, 65 + 45 + 117 lines of spec, their arms in the check | **one orchestrator rule replaces them** (`skills/code-review/orchestration.md`): a run has three finding rounds by default, extended one at a time while the latest round found fewer findings than the one before and none is a regression, each extension one line in that round's record (`questions.md` Q1, the owner, 2026-10-15); at the cap every open finding takes the filing ladder and reads `deferred <home>`. Checked by nothing at the pull request; the sealer and the person reading it see the count |
 | ⬜ notes, `notes --at`, *a note closes once* | prose quality in records and definitions | carried open through every later record (3 → 15 in #929); a command at the run's end; a `chain_check` arm | **leaves** with the severity |
 | `Ran by` | nothing that changed an outcome | one row and an arm | **leaves**; `routing.md`'s free text names the models, as it does today |
 | `Broad gate` cell, and `broad-gate.md` where the work went straight to the pull request | the broad run happened at HEAD | two homes for one fact, `round_record.py seal`, `kept_broad_gate`, `seal_home` | **one home**, `broad-gate.md`, written by `broad-gate --record` on both routes |
@@ -461,7 +494,7 @@ citation of an older issue, that is `read` and says so.
 | `hooks/review-history-guard.py` | a reminder on `gh pr review` and `gh pr merge`; nothing recorded a catch | 303 lines, 6 test modules | **leaves**; the check at the pull request is the enforcement |
 | `chain_check.py`'s remaining arms | the declaration's vocabulary; a declared framer left `spec.md`, `plan.md` and the mark, and a `Reframed` line's author matches; a declared chain left at least one record, every verdict is closed, the last record is at HEAD; `broad-gate.md` and `guarantee.md` name HEAD on a ready pull request; a draft prints and fails nothing | one module, this repository's tests for it in one file (#942) | **stay**, rebuilt |
 | `pact_notices`, `fragment_left_behind` and the arms over removed things | the pact change records left in 0.22.0 (#944) | dead reads | **leave** |
-| `docs/round-record-spec.md`, `docs/review-chain-spec.md`, `docs/review-handoff-protocol.md` | the rules above, and their history | 2,725 lines, 63 test modules between them | **leave**; one `docs/the-review-record.md` states the record, the run's four rules (the verifying round, the cap, the `fix of a fix` stop, the filing ladder) and the handoff rule (coordinates, never prose), each with its `Enforced by:` or its link |
+| `docs/round-record-spec.md`, `docs/review-chain-spec.md`, `docs/review-handoff-protocol.md` | the rules above, and their history | 2,725 lines, 63 test modules between them | **leave**; one `docs/the-review-record.md` states the record, the run's four rules (the verifying round, the cap, the regression stop, the filing ladder) and the handoff rule (coordinates, never prose), each with its `Enforced by:` or its link |
 
 ### How the change reaches users of the plugin
 
@@ -489,9 +522,9 @@ only where it states the record or the sealer's job, in place:
 | Agent | What this item changes in it | Phase |
 |---|---|---|
 | `sealer` | written anew to §*The sealer*: `model: opus`, `skills: [agent-contract]`, the five steps, step 3 the one list of its acts (two from 5d-ii), `guarantee.md` its one write | 4; step 3 in 5b, 5c and 5d-ii |
-| `warden` | §*Report*: the record at `rounds/round-N.md` in the branch worktree under review, from the template, no separate report; the findings format in the record's lowercase labels, `must` and `should`, words only; a verifying round names every finding the fix pass closed `fixed` or `rejected` on a `confirms:` or a `regression:` line, by its `round-<N>#<n>`; a finding whose unit a fix pass's own commits added or changed carries a `regression:` line, and a defect in a unit a build phase made, which the framer designed and the owner approved, is new work with no such line (the owner, 2026-10-16, on round 7) | 3, 5d-iii, round 7's fix pass |
+| `warden` | §*Report*: the record at `rounds/round-N.md` in the branch worktree under review, from the template, no separate report; the findings format in the record's lowercase labels, `must` and `should`, words only; a verifying round names every finding the fix pass closed `fixed` or `rejected` on a `confirms:`, a `reopens:` or a `regression:` line, by its `round-<N>#<n>`; a finding whose unit a fix pass's own commits added or changed carries a `regression:` line, and a defect in a unit a build phase made, which the framer designed and the owner approved, is new work with no such line (the owner, 2026-10-16, on round 7); a finding raising an earlier close that does not hold, where no fix pass's commit made the defect, carries a `reopens:` line; and a finding carrying a `regression:` line states in one sentence of its grounds what the frame says, what the fix did and where the defect came from (the owner, 2026-10-16, on round 8) | 3, 5d-iii, round 7's fix pass, 5d-v |
 | `smith` | the fix pass: it rewrites each open finding's `verdict:` line to `fixed <commit>`, `rejected` or `deferred <home>`, a repair outside the tree with no commit `deferred <where it was repaired>`, writes its `answer:` line, and appends a coordinate to `location:` where its fix went elsewhere; the `fixed` commit touches the finding's `location:` | 3, 5d-iii, 5d-iv |
-| `framer` | its route back: the fix passes stop and the framer is spawned again where a round marks a regression, and `docs/the-review-record.md` §*The run* owns the rule | 3 |
+| `framer` | its route back: the fix passes stop and the framer is spawned again where a round marks a regression, and `docs/the-review-record.md` §*The run* owns the rule; from 5d-v, where the orchestrator routes a regression to the framer by the comparison with the frame (§*What leaves*'s `Fix of a fix` row) | 3, 5d-v |
 
 The scribe is unchanged. Of the contract, §11's list of the vocabulary a
 checker reads loses the fields the record dropped, and nothing else.
@@ -511,10 +544,13 @@ the gate. What this item changes in it:
   with those fields. After round 6 the shape grader reads the `## Findings`
   heading and a `### <n>. ` section with its `verdict:` line, and holds the
   record free of emoji with a `not_contains` pattern over the emoji ranges;
-  a `truth-` grader reads a finding's `location:` line for the path and unit
-  or line (`evals/scripts/behaviour.py`, `replay_targets.py#truth_pattern`,
-  `seed_defects.py`), in place of the table row they read. Rule 3 reads
-  shape graders on the new side only, since the old side's shape is the old
+  a `truth-` grader reads a finding's `location:` line for its path and a
+  line within ±15 of the truth, a unit's lines placing that window where an
+  old location named a unit, and never a `path#unit`, which the check
+  refuses (`evals/scripts/behaviour.py`, `replay_targets.py#truth_pattern`,
+  `seed_defects.py`; round 7's finding 1, f5ba02f1), in place of the table
+  row they read. `noninferiority.py#verdict`'s pass rule 3 reads shape
+  graders on the new side only, since the old side's shape is the old
   record's by construction; `reach-` graders stay at 100 % on both sides.
 - **The sealer's three cases are redesigned for the guarantor**: a sound
   fixture item (verdict `sound`, `guarantee.md` written, nothing else
@@ -532,7 +568,7 @@ the gate. What this item changes in it:
 ## Scope
 
 **In — this work item, part A of #923, its whole scope** (`plan.md` phases
-1–5 and the repairs 5a–5d-iv): the proof harness made light and the budget
+1–5 and the repairs 5a–5d-v): the proof harness made light and the budget
 concept gone (phases 1 and 2); the review record and its checker; the broad
 gate's one record file; the sealer as guarantor with its
 template, its check arm and its three cases; `docs/the-review-record.md` in
@@ -541,8 +577,14 @@ place of the three specs; the record sections of
 `skills/implement/orchestration.md`'s delivery table that named removed acts;
 `docs/the-agent-set.md`, `docs/the-record-layout.md` §*seal/specs/<work-item-id>/*
 and `docs/the-broad-gate.md` rewritten where this item makes a sentence of
-them false; the warden's shape graders; the tests sorted into #942's layout
-with every deleted module's guard named; the changelog fragment.
+them false; `templates/config.md` §*What no row governs*' list of the
+literals the check reads, which a test derives from the check's constants;
+the warden's shape graders; the tests sorted into #942's layout
+with every deleted module's guard named; the changelog fragment. The
+record's rules are stated in `docs/the-review-record.md` and restated where
+a party's text states them today; stating them once and having every other
+file point there is #957's, and phase 5d-v rewrites each statement in place
+rather than moving it.
 
 **Moved to #957 — part B, `release: 0.22.1`** (the owner's split,
 2026-10-16): the contract and the five definitions written anew, the
@@ -556,7 +598,8 @@ this item ships; `plan.md` §*Phases* names the commit at which this file's
 part-B phases last stood, its starting reference.
 
 **Out, and whose.** `skills/verify/SKILL.md`, `skills/settle/`, the small
-skills, `templates/` other than `sdd-round.md` and the new `sdd-guarantee.md`,
+skills, `templates/` other than `sdd-round.md`, the new `sdd-guarantee.md`
+and `config.md`'s literal list,
 `CONTRIBUTING.md`, `CLAUDE.md` — #940. `docs/` other than the files named
 above — #941. The agent-lifetime rule, the folding rule, the process archive
 — #945. The test suite's own layout beyond the modules this item writes or
@@ -577,7 +620,7 @@ design.
 | S6 the sealer guarantees | a sound fixture item with a pull request body | `guarantee.md` with the five sections and `Verdict: sound`; nothing else in the tree changed; the report labels every claim |
 | S7 the sealer catches a story the tree contradicts | a pull request body claims a removal the tree still carries; a phase record claims `seen red` for a case green against the old code | `Verdict: not sound — <the claim>` naming the party and the coordinate, once per case |
 | S8 the sealer's verdict gates | `guarantee.md` reads `not sound` or `undecidable`, or names a commit other than HEAD | exit 1 at a ready pull request naming the file and the verdict |
-| S9 the `fix of a fix` stop is a judgment, and it is about a fix pass's own commit | a warden's record gives a finding a `regression:` line because a fix pass's own commit introduced the defect, in any round of a run; and a round finds a defect in a unit a build phase made, which the framer designed and the owner approved | `docs/the-review-record.md` §*The run* says the first round gets no fix pass and the work item returns to its framer, who redraws the frame, and that the second is an ordinary finding of new work with no `regression:` line, which gets its fix pass; `tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made` holds the document, the template and the warden to it; `chain_check.py` reads the line as a reference for the channel (S23) and never to stop a fix pass; the sealer's parties check names it |
+| S9 the regression stop is a judgment, and it is about a fix pass's own commit | a warden's record gives a finding a `regression:` line because a fix pass's own commit introduced the defect, in any round of a run; a round finds a defect in a unit a build phase made, which the framer designed and the owner approved; and a verifying round finds that an earlier `rejected` finding holds after all, or that a `fixed` commit changed another unit and did not fix it, where no fix pass's commit made the defect | `docs/the-review-record.md` §*The run* says the first is routed by the comparison its grounds state (S27), the work item returning to its framer, who redraws the frame, where the fix built what the frame says, that the second is an ordinary finding of new work with no `regression:` line, which gets its fix pass, and that the third is an ordinary finding carrying a `reopens:` line naming the earlier finding, which gets its fix pass and sends nothing to the framer; `tests/test_the_rules_have_one_owner.py::test_a_regression_is_a_defect_a_fix_passs_own_commit_made` holds the document, the template and the warden to the first two, and `::test_a_close_that_does_not_hold_reopens_it` (T44) holds the document, the template, the warden, the review skill and the orchestration's verifying-round table to the third; `chain_check.py` reads either line as a reference for the channel (S23) and never to stop a fix pass; the sealer's parties check names it |
 | S10 nothing kept beside the tree | after phase 3 | no `round_record.py`, `bin/round-record{,.cmd}`, `review-history-guard.py`, `tests-todo.md` reader, `Fix range`, `Contract changes`, `New units`, `Fix of a fix`, `Needs a fix`, `Loses a record`, `Written late`, `Ran by`, `Fixes checked by`, `⬜`, `notes --at` outside `seal/specs/` and `changelog/` (`grep -rn` over the tree) |
 | S11 nothing reads an old record, and the check judges only what the pull request carries | a work item another pull request merged, its records in the old shape; a pull request whose own commits declare or change one work item | `chain_check.py` reads the records of the declared item alone and never opens the other items' `rounds/` (`TestMain`, the fixture tree holding a second item with an old-shape record); an old-shape record under a declared item is refused by name (S3). `.github/scripts/release_seal.py#chain_counts` and `broad_gate.py#rounds_rows` count `deferred` findings through the check's reader and report a record they cannot read as *not read*, never as 0 |
 | S12 the suite is lighter | after phase 3; after phase 5a | `.test_durations` summed over the modules that name `chain_check`, `broad_gate` is below 1,500 s (from 4,553 s); the deleted modules' guards listed one line each in `phases/phase-3.md`. After phase 5a the file holds no entry for a case the suite does not collect: `bin/test tests -q -k test_the_durations_file_prices_the_suite` exit 0, and `release_report.py#suite_seconds` sums the file as it is |
@@ -585,9 +628,11 @@ design.
 | S19 nothing asks a person | the whole change | no `AskUserQuestion`, no `input()`, no new prompt; the eval scores itself; the sealer's `undecidable` is a written question, not a stop mid-run |
 | S20 every statement of the record's shape is the new one (phase 5d; the severity-keyed rule of phases 5a–5c and 5d-i's capitalised labels are history) | after phase 5d-iii | `git grep` outside `seal/specs/` and `changelog/0.*.md` for `## Verdicts`, `Paste-ready fixes`, `Executed probes`, `verdict_table`, `open_findings`, `CLOSES_BY`, `five-column`, `Grounds` cell, `#` cell, `🔴 or 🟡`, `bare-integer id`, `Severity:`, `Location:`, `Answer:`, `Fix of a fix`, `refixes`, `` `Confirms` cell ``, `blocks merge`, `fix or justify` and `touches the row` finds no statement of the shape — what it finds is a refused spelling the check, its cases, the old-shape fixtures or `docs/the-review-record.md`'s labels paragraph name on purpose, or history in a comment, each hit named in the phase record (from 5d-iv, `tests/test_the_record_is_written_in_words.py`'s docstring no longer among them); `git grep -n "Verdict:"` finds only `guarantee.md`'s line and its readers (`chain_check.py#verdicts_of`, `templates/sdd-guarantee.md`, the sealer's definition, cases and graders), since the guarantee keeps its spelling (`plan.md` Alternative AM); `templates/config.md` §*What no row governs* lists the new literals and `tests/test_the_pull_request_language_is_the_repositorys.py::test_the_exclusion_list_holds_every_string_a_checker_matches` holds them to the check's constants; `bin/rules --check` exit 0 with every `Enforced by:` naming a test in the tree; `agents/sealer.md` step 3, `templates/sdd-guarantee.md`'s comment and `docs/the-review-record.md` §*The guarantee* keep the one-list design (T22, T23 unchanged) |
 | S22 a `fixed` commit touches its finding's location | a ready pull request; a record whose finding reads `fixed <sha>` with `<sha>` on the branch and touching only a path its `location:` does not name; one whose commit touches one of the two paths named; one whose `location:` names a directory and the commit changes a file under it; one whose `location:` line the fix pass lengthened by the path its commit touched, the warden's coordinates before it; one whose `location:` the check cannot read (no backticks, a bare `:617`, two `location:` lines, none) at any verdict | exit 1 for the first, naming the finding, the commit and the paths it touched; the second, third and fourth pass; exit 1 for each of the fifth, naming the line and the one spelling; the sealer's definition names no such act (T33, T34, T40) |
-| S23 the channel between rounds is read | two records; round 1's findings read `fixed <sha>`, `rejected` and `deferred #9`; round 2's `confirms:` and `regression:` lines name some of them | exit 1 for each `fixed` or `rejected` finding of round 1 that round 2 names on neither, refused at that finding's own `### <n>.` heading line in `round-1.md`, the refusal naming round 2's record and the `round-1#<n>` it owes; the `deferred` one owes nothing; a reference round 2 writes that the check cannot read (`round 1's 3`, `Round-1#3`, `#3`), one naming a record the item has not got, or a number round 1 does not hold, is refused by line; a `confirms:` value outside `round-<N>#<n>` and `none`, a table row in `## Confirmations`, and a second `## Confirmations` are refused; a record with nothing to confirm and no `## Confirmations` passes; a reference in round 1 is refused and `confirms: none` there passes; on a ready pull request a `fixed` or `rejected` finding in the last record is refused at its `verdict:` line as *a verifying round is owed*, and a last record of `deferred` findings passes (T35–T37) |
-| S24 a label in another spelling is refused, never skipped | a record with `Verdict: open`, `**verdict:** open`, `VERDICT: open`, `verdict : open`, `Fix of a fix: <unit>`, `refixes: round-1#1`, `Target SHA: <sha>`, `Severity: must`, `Location: `path``, `Answer: …`; a `target:` or `confirms:` line inside a finding; a `confirms:` line outside `## Confirmations` | exit 1 for each, naming the line and the lowercase label it would have to read — `regression:` for the two old reference spellings, `target:` for `Target SHA` — or the place it belongs; the finding is not read past it (T32 and the out-of-place case) |
+| S23 the channel between rounds is read | two records; round 1's findings read `fixed <sha>`, `rejected` and `deferred #9`; round 2's `confirms:`, `reopens:` and `regression:` lines name some of them; a round-2 finding carrying both a `reopens:` and a `regression:` line, one carrying two `reopens:` lines, and one reading `reopens: round-1` | each of the three labels covers the finding it names (5d-v: a `fixed` finding named only by a `reopens:` line, and a `rejected` one named only by a `reopens:` line, owe nothing more); the finding with both lines, the one with two, and `reopens: round-1` are each refused at the line that makes it so, naming which line a case takes or that a reopened close names a finding (T42, T43); exit 1 for each `fixed` or `rejected` finding of round 1 that round 2 names on none of the three, refused at that finding's own `### <n>.` heading line in `round-1.md`, the refusal naming round 2's record and the `round-1#<n>` it owes; the `deferred` one owes nothing; a reference round 2 writes that the check cannot read (`round 1's 3`, `Round-1#3`, `#3`), one naming a record the item has not got, or a number round 1 does not hold, is refused by line, on a `reopens:` line as on the other two; a `confirms:` value outside `round-<N>#<n>` and `none`, a table row in `## Confirmations`, and a second `## Confirmations` are refused; a record with nothing to confirm and no `## Confirmations` passes; a reference in round 1, a `reopens:` one among them, is refused and `confirms: none` there passes; on a ready pull request a `fixed` or `rejected` finding in the last record is refused at its `verdict:` line as *a verifying round is owed*, and a last record of `deferred` findings passes (T35–T37) |
+| S24 a label in another spelling is refused, never skipped | a record with `Verdict: open`, `**verdict:** open`, `VERDICT: open`, `verdict : open`, `Fix of a fix: <unit>`, `refixes: round-1#1`, `Reopens: round-1#1`, `**reopens:** round-1#1`, `Target SHA: <sha>`, `Severity: must`, `Location: `path``, `Answer: …`; a `target:` or `confirms:` line inside a finding; a `confirms:` line outside `## Confirmations` | exit 1 for each, naming the line and the lowercase label it would have to read — `regression:` for the two old reference spellings, `target:` for `Target SHA` — or the place it belongs; the finding is not read past it (T32 and the out-of-place case) |
 | S25 the verdict says what happened to the defect (phase 5d-iv; Q11) | a fix pass meets a finding that held and was repaired by editing an issue or a pull request body, with no commit on the branch; and one that held and was repaired by a commit correcting a record | the first closes `deferred <where it was repaired>` (`deferred #956`) with `answer:` saying what changed there, and owes the next round nothing; the second closes `fixed <commit>`, the record's path on its `location:`; `docs/the-review-record.md` §*The round record* says so and a case pins the sentence (T41); `git grep` outside `seal/specs/` and `changelog/0.*.md`, and over this item's `changelog.md`, finds no sentence sending a repair to `rejected`, which every text this item touches gives one meaning, *the finding does not hold*; `chain_check.py` is unchanged, since it already reads `deferred <home>` and owes such a finding nothing |
+| S26 the run ends where the check says it does (phase 5d-v; round 8's findings 1 and 2) | an orchestrator reads `skills/code-review/orchestration.md` §*the run ends with a verifying round* after a verifying round whose `should` finding the smith closed `rejected`; and after a round carrying a `regression:` line | the section says one more verifying round reads that answer and names it on a `confirms:` line where the rejection holds, or raises a finding with a `reopens:` line where it does not, which gets its fix pass and one more verifying round; that a round carrying a `regression:` line is routed by the comparison its grounds state (S27), and where it returns the work item to its framer the run goes on with the redesign's build and rounds; and that the run ends only on a round whose record holds no `open`, `fixed` or `rejected` finding — a verifying round, or the round at the cap whose open findings took the filing ladder and read `deferred <home>` — with no commit outside the item's records after its `target:`, which is what `chain_check.py` refuses at a ready pull request (S4, S23, T37); no sentence of it says the run ends at a round that names a rejection on a `regression:` line (`git grep -n "the run ends at that round"` finds nothing outside `seal/specs/`); T44 holds the section to it |
+| S27 a regression is routed by comparing the fix with the frame (phase 5d-v; the owner, 2026-10-16, refining the ruling on round 8) | a round carries a `regression:` line where (a) the fix built what the phase's `plan.md` row and `spec.md` say and the defect is still there; (b) the fix departed from the frame, or the defect came from how it was written, a paste-ready fix taken from a review record among them; (c) a second regression on the same unit after a fix-pass route | the finding's grounds state the comparison in one sentence — what the frame says, what the fix did, where the defect came from — and no new label carries it; (a) gets no fix pass and returns to the framer, (b) gets an ordinary fix pass with the smith told what the frame says, (c) returns to the framer whatever the comparison says; `docs/the-review-record.md` §*The run*'s regression paragraph says so, `skills/code-review/orchestration.md` routes on the sentence where it routes a regression, and `agents/warden.md` writes it where it writes the line; `tests/test_the_rules_have_one_owner.py::test_a_regression_is_routed_by_comparing_the_fix_with_the_frame` (T45) holds the document's paragraph to the three routes and the one sentence, and the orchestration and the warden to naming the comparison; `chain_check.py` reads none of it |
 | S21 a number a reader acts on names its moment or goes (narrowed in phase 5c) | the shipped surfaces this item writes: `changelog.md`, and every `docs/` sentence this item rewrote | every figure in them is a measurement naming its commit, round or tag, a bound a named check holds the tree to, or gone (§*A number in this frame*). The frame's three documents are read at 680142f2 (`plan.md` §*Technical context*) and the builder's two at the commit each sentence or phase record names; a figure there is history at that moment, not a finding, and no agent reads it against the tree |
 
 S14–S18 — the agents preload the contract alone, an agent opens its skill at
@@ -599,13 +644,16 @@ their numbers are not reused here.
 
 `templates/sdd-round.md`: the shape under §*What a round records*, one
 comment under the `target:` line documenting its two shapes and the cap's
-extension line, one over `## Findings` documenting the five lowercase
+extension line, one over `## Findings` documenting the six lowercase
 labels a finding holds, the four `verdict:` values, the two severities
-`must` and `should`, the `location:` spelling and the `regression:`
-reference, and one comment each over `## Confirmations` (a `confirms:` line
+`must` and `should`, the `location:` spelling, and the `regression:` and
+`reopens:` references with what each marks and that a finding carries at
+most one of them (`reopens:` from 5d-v), and one comment each over
+`## Confirmations` (a `confirms:` line
 per entry, `round-<N>#<n>` or `none`, its prose after it, the section left
-out where nothing is confirmed) and `## Not judged` saying what goes there;
-no emoji anywhere in it. From 5d-iv the `deferred <home>` value's line says
+out where nothing is confirmed, and every `fixed` or `rejected` finding of
+the round before named here or on a `reopens:` or `regression:` line) and
+`## Not judged` saying what goes there; no emoji anywhere in it. From 5d-iv the `deferred <home>` value's line says
 a home is also where a repair with no commit was made, and the `rejected`
 line keeps its one meaning.
 `templates/sdd-guarantee.md`: `| Field | Value |` with `Target SHA`,
@@ -635,16 +683,25 @@ one line matching `^location: (.*)$` (`LOCATION_LABEL`), its value read by
 (`COORDINATE`), else `None`; at most one line matching
 `^regression: (.*)$` (`REGRESSION_LABEL`), its value read by
 `reference_of(value)` as `(round, finding)` from `round-<N>#<n>` or
-`(round, None)` from `round-<N>` (`REFERENCE`), else `None`; and returns a
+`(round, None)` from `round-<N>` (`REFERENCE`), else `None`; from 5d-v, at
+most one line matching `^reopens: (.*)$` (`REOPENS` = `"reopens:"`,
+`REOPENS_LABEL`), its value read by `reference_of(value)` and refused where
+it names no finding (`round-<N>` alone: a reopened close is a finding's);
+and returns a
 `Finding` per section — its `verdict:` line, heading, heading number,
-verdict, located paths, regression reference with that line, and heading
+verdict, located paths, regression reference with that line, reopened
+reference with that line, and heading
 line. Before any of that, every readable line matching `MISSPELT_LABEL` —
 the first word, case-folded and stripped of `*`, `_` and `` ` ``, one of the
-seven labels (`EXACT_LABEL`) or an old spelling, `Target SHA`, `refixes` or
+eight labels (`EXACT_LABEL`, `reopens` among them from 5d-v) or an old
+spelling, `Target SHA`, `refixes` or
 `fix of a fix` (`OLD_LABELS`), followed by `:` — that is not the exact
 lowercase form is an error naming the line and the label it would have to
 read (`spelt_otherwise`). Every `None`, every section with no or two
-`verdict:` or `location:` lines or two `regression:` lines, a finding's
+`verdict:` or `location:` lines, two `regression:` lines, two `reopens:`
+lines, or one of each (refused at the later line, the refusal naming
+`regression:` for a defect a fix pass's own commit made and `reopens:` for
+a close that does not hold otherwise), a finding's
 label outside a section of `## Findings`, a `target:` or `confirms:` line
 inside one, a `confirms:` line outside `## Confirmations`, and a missing or
 doubled `## Findings` is an error the arm names by path, line and the
@@ -667,9 +724,10 @@ its `confirms:` references, and the number of every `### <n>. ` heading,
 read or refused, so a reference to a refused finding still names one the
 record holds. `channel(rounds)` takes the item's records in number order
 and, for each pair N, N+1, refuses every finding of N at `FIXED` or
-`REJECTED` that no `confirms:` and no `regression:` line of N+1 names, at
+`REJECTED` that no `confirms:`, `reopens:` or `regression:` line of N+1 names, at
 that finding's own heading line in N's record, naming N+1's record and the
-reference it owes; it refuses any reference whose round is not an earlier
+reference it owes, its message naming the three labels; it refuses any
+reference, on any of the three labels, whose round is not an earlier
 record of the item or whose finding number that record does not hold, and
 any reference at all in the first record; on a ready pull request it
 refuses a `FIXED` or `REJECTED` finding of the last record at its
@@ -696,37 +754,50 @@ smith's claims re-run, and the removals confirmed absent — and no reading of
 a `fixed` commit against a location.
 `docs/the-review-record.md`: the record, the four run rules, the handoff
 rule, the sealer's check, each with `Enforced by:`; §*The round record*
-states the shape, the seven lowercase labels and the old spellings refused,
+states the shape, the eight lowercase labels and the old spellings refused,
 the four values, the two severities, the location spelling, the `target:`
-line and the channel's reference, with the touch rule's `Enforced by:` T34
+line and the channel's reference on its three labels, `confirms:`,
+`reopens:` and `regression:` (5d-v), with the touch rule's `Enforced by:` T34
 in place of *nothing — the sealer reads*; its fix-pass paragraph says, from
 5d-iv, that a repair made outside the tree with no commit closes `deferred
 <where it was repaired>` and one made by a commit `fixed <commit>`, its
 `Enforced by:` gaining T41; §*What the check reads at the pull request*'s
 records paragraph states the labelled lines, the `confirms:` lines, the
-fail-closed reading and how it errs (a touching commit that fixes nothing;
-a fence closed on the wrong line), its `Enforced by:` the check's pins
-alone; §*The run*'s fix-of-a-fix rule names the `regression:` line and its
-reference, and says it marks a defect a fix pass's own commit introduced; §*The guarantee* points at `agents/sealer.md` step 3 and step 4
+fail-closed reading, a finding holding both a `reopens:` and a
+`regression:` line refused (5d-v), and how it errs (a touching commit that
+fixes nothing; a fence closed on the wrong line), its `Enforced by:` the
+check's pins alone; §*The run*'s regression rule names the `regression:`
+line and its reference, and says it marks a defect a fix pass's own commit
+introduced, and from 5d-v says that a `regression:` line is routed by the
+comparison of the fix with the frame its grounds state (S27; its bold
+sentence and `tests/test_the_rules_have_one_owner.py`'s rule 16 entry
+rewritten to it), and that a close that does not hold where no fix
+pass's commit made the defect is raised again on a `reopens:` line as an
+ordinary finding that gets its fix pass, its `Enforced by:` gaining T44 and
+T45, and its verifying-round rule names the three lines; §*The guarantee* points at `agents/sealer.md` step 3 and step 4
 for the acts and lists none. `templates/config.md` §*What no row governs*
 lists the literals the check reads — `target:`, `## Findings`, `verdict:`
 with `open`, `fixed`, `rejected` and the `deferred` in `deferred <home>`,
-`location:`, `regression:`, `## Confirmations`, `confirms:`, `none`,
-`round-<N>#<n>` — and the labels the parties and the eval graders read,
+`location:`, `regression:`, `reopens:` (5d-v), `## Confirmations`,
+`confirms:`, `none`, `round-<N>#<n>` — and the labels the parties and the eval graders read,
 `severity:` with `must` and `should`, `answer:`, the `## Not judged` and
 `## Probes` headings, beside `guarantee.md`'s own `Target SHA`; the
 capitalised labels, `Fix of a fix:`, `refixes:`, `Confirms` and `answered`
 leave the list. `evals/scripts/behaviour.py`: the shape grader `shape-findings` reads
 `^## Findings` and the first `^### \d+\. ` section's `^verdict: ` line and
 holds the record free of emoji; `replay_targets.py#truth_pattern` and
-`seed_defects.py` emit `^location: .*<path and unit or lines>`; the nine
+`seed_defects.py` emit `^location: .*<path>:<line window>`, the window ±15
+lines of the truth, and never match a `path#unit`; the nine
 warden cases and the three sealer cases are regenerated through
 `rule_cases.py`, `replay_targets.py --case` and `seed_defects.py --case`,
 and `rule_cases.py#SEALER_ROUND` is the new shape.
 `skills/code-review/orchestration.md`: §*the run ends
-with a verifying round*, §*the cap*, §*a fix of a fix*, §*the pull
+with a verifying round*, §*the cap*, §*a regression sends the work item
+back to its framer* (its heading as it stands at 80636f64), §*the pull
 request opens before round 1*, §*verify before posting* rewritten to the
-record above; §*a note closes once*, §*a fix pass adds the unit*, §*then say
+record above, and from 5d-v the verifying round's `Job` row and its
+closing paragraph to S26, and the regression section, heading and first
+paragraph, to S27; §*a note closes once*, §*a fix pass adds the unit*, §*then say
 who checked them*, §*and name the fix surface*, §*and say what ran the
 round*, §*and commit the record before commissioning the fixes* removed with
 the mechanisms; `skills/implement/orchestration.md` §*which of these acts runs
@@ -808,6 +879,8 @@ the parties' stories; it counts nothing against the tree.
 | the capitalised labels, the two-word `Fix of a fix:` and the severities `blocks merge` and `fix or justify` (phase 5d-ii) | `templates/sdd-round.md`'s `Severity:`, `Location:`, `Verdict:`, `Fix of a fix:`, `Answer:` lines and its comment; `chain_check.py#VERDICT_LABEL` as `^Verdict: `; `docs/the-review-record.md` §*The round record* and §*What the check reads* where they spell them; `templates/config.md` §*What no row governs*' rows for them and `tests/test_the_pull_request_language_is_the_repositorys.py#ROUND_RECORD_FIELDS`; this item's six records' lines; then in 5d-iii `agents/warden.md` §*Report*, `agents/smith.md:190-193`, `skills/implement/SKILL.md` §5, `skills/code-review/SKILL.md` §*Findings format*, `skills/code-review/orchestration.md`'s two-cells paragraph, `evals/scripts/behaviour.py`'s `^Verdict: `, `replay_targets.py#truth_pattern` and `seed_defects.py`'s `^Location: `, `rule_cases.py#SEALER_ROUND`, this item's `changelog.md` | lowercase labels, `must` and `should`, read fail-closed (S24; T32); `guarantee.md`'s `Verdict:` is not a round record's label and keeps its spelling (`plan.md` Alternative AM) |
 | the field table, the confirmations table, `refixes:` and `answered` (phase 5d-iii; the owner, 2026-10-16) | `templates/sdd-round.md`'s `\| Field \| Value \|` table with its `Target SHA` row, its `## Confirmations` table with the `Confirms` first column, its `refixes:` line and its `answered` value; `chain_check.py`'s `REFIXES_LABEL`, `ANSWERED`, `#target_of` reading a round record's `Target SHA` row (it reads `guarantee.md`'s alone now), and `#confirmations`' table and `Confirms`-header reading; the unconfirmed finding's refusal at line 0 of the next record; `docs/the-review-record.md`, `templates/config.md` §*What no row governs*, the language test's literals, the parties' texts, the READMEs and this item's `changelog.md` where they spell them; this item's six records' tables, `refixes:` lines and `## Confirmations` rows (rewritten at 92991623) | one `target:` line; a `confirms:` line per confirmation, the section optional and a second refused; `regression:`; `rejected`, owing the next round a `confirms:` or `regression:` line as `answered` did; an unconfirmed finding refused at its own heading in its own record; `Target SHA` and `refixes` read only as old spellings refused by line (S23, S24; T32, T36–T38). The guarantee's `Target SHA` row is the sealer's file and stays |
 | the sentences sending a repair with no commit to `rejected` (phase 5d-iv; `questions.md` Q11) | `docs/the-review-record.md` §*The round record*'s *A correction to a record, or a repair made outside the tree, produced no commit on the branch and closes `rejected` with where the repair is*; this item's `changelog.md` migration paragraph's *(`answered` is `rejected` now)*, which maps every old `answered` to `rejected`; `tests/test_the_record_is_written_in_words.py`'s module docstring naming *its `Confirms` cells*; whatever else `git grep` finds of the class at the phase's start | `deferred <where it was repaired>` for a repair outside the tree with no commit, `fixed <commit>` for one a commit made, a record correction among them; `rejected` for a finding that does not hold and nothing else, T41 pinning the document's sentence |
+| the two-way channel, and the run ending at a rejection named on a `regression:` line (phase 5d-v; round 8's findings 1 and 2) | `skills/code-review/orchestration.md:113-120`'s closing clause, *and names it on a `confirms:` line, or on a finding's `regression:` line where the rejection does not hold, and the run ends at that round*; every sentence giving a close that does not hold only a `regression:` line — *a finding whose `regression:` line names it where it does not* or the same in other words — at `agents/warden.md:119-123` and `:212-217`, `skills/code-review/SKILL.md:187-191`, `skills/code-review/orchestration.md:96`, `templates/sdd-round.md:62` and `:86-87`, `docs/the-review-record.md:74-77`, `:138` and `:227-228`, and this item's `changelog.md` where it says the same; whatever else `git grep -n "regression:\` line"` finds of the class at the phase's start | three relations, each its own line — `confirms:` where the close holds, `reopens:` where it does not and no fix pass's commit made the defect, `regression:` where one did (§*What a round records*); the run ends only on a round whose record holds no `open`, `fixed` or `rejected` finding (S26); T42–T44 |
+| a `regression:` line sending the work item to its framer by itself (phase 5d-v; the owner's refinement of 2026-10-16) | `docs/the-review-record.md` §*The run*'s *A regression stops the fix passes, at any round.* and *A round carrying a `regression:` line gets no fix pass: the work item goes back to its framer*; `templates/sdd-round.md:50-51`'s *A round carrying one gets no fix pass.*; `skills/code-review/orchestration.md:122-127`'s heading *A regression sends the work item back to its framer* and *When a round's warden writes a finding's `regression:` line, no fix pass is commissioned*, with `skills/implement/orchestration.md:637`'s delivery row that names the heading; `agents/framer.md:302-304`'s *When a round's warden gives a finding a `regression:` line, … the fix passes stop*; `tests/test_the_rules_have_one_owner.py`'s rule 16 entry pinning the first sentence; this item's `changelog.md:25-26`'s *a finding with a `regression:` line sends the work item back to its framer* | the comparison of the fix with the frame, stated by the warden in one sentence of the finding's grounds and routed on by the orchestrator: the framer where the fix built what the frame says, a fix pass where it departed or the defect came from how it was written, the framer for a second regression on the same unit after a fix-pass route (S27; T45) |
 | the emoji in the shipped text this item touches (phase 5d-iii) | `skills/code-review/SKILL.md` §*Findings format*'s four-line block (`🔴 🟡 🟢 ❓`), its `🟡` sentence, the `#`-cell paragraphs and the proof block's `· verdict:  🔴 n · 🟡 n · 🟢 n · ❓ n` line; `agents/warden.md:150-155` and `:262-264`; `skills/code-review/orchestration.md:112`; `README.md:91` and `README.ko.md:78-80` (the cap paragraph's `🔴`, stale since Q1 as well); the step comments of `.github/workflows/hygiene.yml` and `templates/hygiene.yml` where they name a mark; the panel's `rounds` row text where it names one | words: `must`, `should`, a confirmation, a thing not judged; T39 holds the template, the format and the two definitions to it. **Left to #957 and #940, named here**: the `📋` proof-block marker every skill shares (`skills/code-review/SKILL.md:293`, `skills/implement/SKILL.md:529`), `skills/implement/SKILL.md:79` and `:458`'s `✅` (the `## Not verified` closing mark, `unverified_check.py`'s), `agents/smith.md` and `agents/framer.md` beyond the lines above, the other skills; the history citations in code comments (`broad_gate.py`, `hooks/sealer-stamp.py:118`: *round 1's 🟡 2*) are moments and stay (`overview.md`'s `⬜` row) |
 | the `.test_durations` entries the suite no longer collects (phase 5a) | 301 entries, 345.3 s, for cases this branch removed from modules that still exist (`rounds/round-2.md` 🟡 2, `executed`) | pruned by collection — an entry is live when `pytest --collect-only` collects its id — with the round-trip guard 1b875efc used; nothing re-measured, nothing kept in the tree to do it again. The collected cases with no price — held under `STALE_SHARE` by `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite`, and counted here by nothing — are priced by the next refresh from a `tests` run, which `CONTRIBUTING.md` §*Running the checks* owns |
 | the second and third list of the sealer's acts (phase 5b) | `docs/the-review-record.md` §*The guarantee*'s list of what the sealer re-runs and confirms; `templates/sdd-guarantee.md`'s comment over `## Claims re-run` listing the row kinds | `agents/sealer.md` step 3 lists the acts and §*The sealer* states them; both files point at step 3 and name no act, so `fixed <commit>` outside `seal/specs/` and `changelog/` stands only in the record's vocabulary (`docs/the-review-record.md` §*The round record*, `templates/sdd-round.md`) and in step 3 (`git grep`) |
@@ -845,3 +918,4 @@ Reframed 2026-10-15 by framer, after round 2.
 Reframed 2026-10-15 by framer, after round 4.
 Reframed 2026-10-15 by framer, after round 5.
 Reframed 2026-10-16 by framer, after round 6.
+Reframed 2026-10-16 by framer, after round 8.

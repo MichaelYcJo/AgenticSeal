@@ -16,7 +16,7 @@ considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
   against the 19 records of 0.22.0 (alternatives B, D, E, F, O, P, Q).
 - ⬜ leaves the vocabulary; a wrong sentence an agent acts on is 🟡 and a
   sentence in a record is not a finding (alternative Q).
-- The `fix of a fix` stop is the warden's mark and the orchestrator's rule; the
+- The regression stop is the warden's `regression:` line and the orchestrator's rule; the
   cap is one orchestrator rule with one number; neither is a check at the pull
   request until a run shows the need (alternatives E, F, M).
 - The broad gate's one home is `broad-gate.md` on both routing answers.
@@ -151,6 +151,30 @@ considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.
   introduced, and a defect in a phase the framer designed and the owner
   approved is an ordinary finding — is written into `spec.md`, and left
   nothing open.
+- (reframe after round 8) The owner's decision on round 8 — three
+  relations, `confirms:`, `reopens:` and `regression:`, all needed now — and
+  its refinement the same day — a `regression:` line routed by comparing
+  the fix with the frame, the comparison one sentence of the grounds, no new
+  label, a second regression on one unit after a fix-pass route going to the
+  framer — are written into `spec.md`. What they left open the tree
+  answered (`plan.md` Alternatives AX–BA): `reopens:` reads
+  `round-<N>#<n>` alone and `reopens: round-<N>` is refused, since a fix
+  pass no finding named closed nothing to reopen; a finding holding both a
+  `reopens:` and a `regression:` line is refused at the later line, since
+  the two are routed differently and `regression:` already covers the
+  earlier finding; the check does not read the earlier finding's verdict
+  for a `reopens:` line, as it reads none for the other two; a `reopens:`
+  line may name any earlier record's finding, as the other two may; and
+  `templates/config.md`'s literal list gains `reopens:` in 5d-v, because
+  `tests/test_the_pull_request_language_is_the_repositorys.py` derives that
+  list from the check's constants and a new constant is red without it.
+  The orchestration's run-end sentence is rewritten to what the check
+  enforces: the run ends only on a round whose record holds no `open`,
+  `fixed` or `rejected` finding — a verifying round, or the round at the
+  cap whose open findings were deferred — which is the check's rule and
+  `docs/the-review-record.md` §*The run*'s. The frame's names for the
+  current stop now say *regression*; Q1's answer below keeps the owner's
+  words of 2026-10-15, which named it *a fix of a fix*.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
