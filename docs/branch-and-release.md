@@ -146,7 +146,7 @@ discards every commit the release branch wrote, and anything naming one of
 them by SHA stops resolving.
 <!-- specs/1788826000-a-stamp-names-content-not-a-commit -->
 **A `# RIDER:` comment's stamp names content, never a commit, and the
-`Target SHA` field in every `round-N.md` is what still names one.** The stamp
+`target:` line in every `round-N.md` is what still names one.** The stamp
 used to read `Verified … at <sha>`, and after a squash it resolved for nobody,
 which removed the one way a reader has to tell a live rider from a spent one;
 `tests/test_a_rider_reaches_its_file.py` went red for exactly that, and the
@@ -216,7 +216,7 @@ else about the sequence below changes.
   it. One squashed commit per branch, so the release branch reads as the
   changelog it is about to become.
 - **A squashed feature branch can be deleted once its pull request merged.**
-  `chain_check.py` reads a round's `Target SHA` only as HEAD or an ancestor of
+  `chain_check.py` reads a round's `target:` commit only as HEAD or an ancestor of
   it, so the commits a round reviewed are read while the pull request that
   carries them is open, and no step fetches a ref the checkout lacks. The
   checks ship to user repositories as `templates/hygiene.yml`, run from a

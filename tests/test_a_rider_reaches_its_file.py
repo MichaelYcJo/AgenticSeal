@@ -101,11 +101,11 @@ def test_the_header_states_the_stamp_form_riders_actually_carry():
 def test_the_record_says_why_target_sha_names_a_commit():
     """The other half of #239's answer, pinned beside the half it is about: a
     rider names content because a squash orphans the commit it was stamped
-    at, and a round record's `Target SHA` names a commit anyway, because it
+    at, and a round record's `target:` line names a commit anyway, because it
     records a moment and the check reads it only while the branch that holds
     the commit is open. Leaving that unwritten re-opens it."""
     text = " ".join(read(os.path.join(ROOT, "docs", "the-review-record.md")).split())
-    assert "`Target SHA` names a commit, not a content anchor" in text
+    assert "`target:` names a commit, not a content anchor" in text
     assert "records a moment" in text
 
 

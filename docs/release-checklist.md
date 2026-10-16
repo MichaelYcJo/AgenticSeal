@@ -24,7 +24,7 @@ running.
       branch actually needs something the release branch holds; the squash
       discards the merge commit either way.
       **Never rebase a work item's branch, for any reason** — every round
-      record names its branch's commits by `Target SHA`, a rebase orphans
+      record names its branch's commits on its `target:` line, a rebase orphans
       them, and that is the class this repository has a patch release about. That rule
       predates the baseline repair and outlives it; it used to be written
       here as a footnote to a workaround, which is the wrong place for a
@@ -217,7 +217,7 @@ gh pr create --base main --head release/vX.Y.Z \
 
 Its hygiene checks fail until step 4 is squashed in, by design. Then they go
 green without a push. Press ***Create a merge commit***, never squash: the
-review records name the release branch's commits by `Target SHA`, and a
+review records name the release branch's commits on their `target:` lines, and a
 squash discards them.
 
 **Read the release table before the merge.** The pull request's `tests` run
