@@ -56,6 +56,18 @@ import shutil
 import subprocess
 import sys
 
+if __name__ == "__main__":
+    # Before the grammar loads below: a refusal it prints at import must not
+    # meet a console's code page.
+    for _name, _errors in (
+        ("stdin", "replace"),
+        ("stdout", "replace"),
+        ("stderr", "backslashreplace"),
+    ):
+        _stream = getattr(sys, _name, None)
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors=_errors)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "routing.py")
@@ -295,7 +307,7 @@ def grammar(path, reader):
     rows = {}
     i = header + 2
     while i < end and (cells := reader.split_row(lines[i])) is not None:
-        rows.update([grammar_row(cells, refuse, i + 1, rows)])
+        rows.update([grammar_row(cells, refuse, i + 1, rows, reader)])
         i += 1
     labels = {k for k, row in rows.items() if k.endswith(":") and row.where != NOWHERE}
     for key, row in rows.items():
@@ -318,7 +330,7 @@ def grammar(path, reader):
     return rows
 
 
-def grammar_row(cells, refuse, number, rows):
+def grammar_row(cells, refuse, number, rows, reader):
     """`(Line, Row)` for one table row's `cells` at line `number`, or the
     GrammarError `refuse` makes, by `grammar`'s rules."""
     if len(cells) != len(GRAMMAR_COLUMNS):
@@ -354,7 +366,7 @@ def grammar_row(cells, refuse, number, rows):
         allowed = where == IN_RECORD and many in (ONE, AT_MOST_ONE)
     elif key == HEADING_ROW:
         allowed = where == IN_FINDINGS and many == EACH_ONCE
-    elif key.startswith("#"):
+    elif reader.heading_level(key) is not None:
         raise refuse(
             f"a `{key}` heading row, which the check reads nothing from", number
         )
@@ -1839,12 +1851,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
     sys.exit(main())
