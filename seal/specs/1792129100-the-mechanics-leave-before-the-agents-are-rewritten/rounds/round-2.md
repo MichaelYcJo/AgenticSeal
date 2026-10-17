@@ -28,7 +28,7 @@ three `Not judged` rows for #957 stand as written.
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:137-148`, `skills/code-review/scripts/chain_check.py:336-353`, `docs/the-review-record.md:63-71`, `seal/specs/1792129100-the-mechanics-leave-before-the-agents-are-rewritten/changelog.md:24-27`, `tests/test_chain_check.py:597-602`
-verdict: open
+verdict: fixed 6597fe14
 reopens: round-1#2
 
 Why the close does not hold. Round 1's finding 2 was a class: a table whose
@@ -108,7 +108,7 @@ changelog.md:24-27:
   file, never a pass.
 ```
 
-answer:
+answer: fixed for the class, by the first of the two repairs this record names rather than the paste. Enumerated by construction from what `grammar_row` admits: the two sections in `the record` at `one` or `at most one`, the heading in `## Findings` at `each number once`, an old spelling `nowhere` at `none`, and a label in each of three places (outside every finding, a finding, `## Confirmations`) at each of `one`, `at most one` and `any`, 13 combinations. Twelve were kept by their place's reader already: `finding_spans` refuses a missing `## Findings` at `one` and a second at either, `findings` refuses a heading number twice, `misspelt` refuses every line of an old spelling, `record_lines` counts a label outside the findings over the whole record, and `finding_of` counts one per finding. The thirteenth reader was `confirmations`, which counted nothing when the section was absent. It now refuses a missing section the table says is `one` and counts each row placed there against no lines, so every label in `## Confirmations` at `one`, `signed:` among them, is refused where a record leaves the section out. A refusal at load was the other way; it would have forbidden `one` for every row there whatever a later table means. The refusal at load stays only for the rows the check reads a meaning from, where the reader is the limit and not the place: `READ_ROWS` now gives each its place and the counts kept (`target:` outside every finding at `one`; `location:` and `verdict:` in a finding at `one`; `regression:` and `reopens:` in a finding at `one` or `at most one`, since one line's value is read; `confirms:` in `## Confirmations` at any count; the sections and heading as `grammar_row` already holds them), `HONOURED` leaves, and a read row moved elsewhere is refused too. That was the same class at the place axis: probed once at 8de484b4, a table with `verdict:` outside every finding loaded and left `finding_of` no verdict, and one with `target:` in a finding loaded and raised `KeyError` in `round_of`. `docs/the-review-record.md` and the changelog fragment say both rules in the same commit. Executed: five new cases red at 8de484b4 (5 failed: three DID NOT RAISE GrammarError for the moved rows, the section at `one` refused at load by `HONOURED`, the `signed:` row at `one` passing with no error), then `bin/test tests/test_chain_check.py -q` 78 passed, exit 0; `mutation-check` red for each of the place refusal, the count refusal, the absent section's refusal and the absent section's row count; 52 modules reading the check or the document, 2831 passed, 8 skipped, exit 0; `bin/rules --check` exit 0, 416 targets.
 
 ## Confirmations
 
