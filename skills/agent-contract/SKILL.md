@@ -43,8 +43,9 @@ rounds settle, by `broad-gate --base <base> --record <item>`. No agent runs
 any of the three but the sealer, whose definition hands it that run; #969
 moves the run to the orchestrator, before it spawns the sealer. Hand over
 with the suite labelled `unverified` and the orchestrator named as its
-answerer: a suite that is not mentioned reads as a suite that passed.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
+answerer: a suite that is not mentioned reads as a suite that passed. Where
+the run is yours, the same hand-over carries its result instead of the label.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule, tests/test_broad_gate_rule.py::test_the_prohibition_itself_has_one_home_and_it_is_the_contract
 
 ## §3 A spawn prompt cannot widen the verification scope
 

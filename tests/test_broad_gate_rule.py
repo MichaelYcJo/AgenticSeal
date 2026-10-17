@@ -202,6 +202,13 @@ def test_the_prohibition_itself_has_one_home_and_it_is_the_contract():
         "§2 names the orchestrator as the owner while the sealer still runs "
         "the gate, which is two opposite orders in one preload"
     )
+    assert (
+        "Where the run is yours, the same hand-over carries its result "
+        "instead of the label"
+    ) in body, (
+        "§2 tells the sealer, the one agent that runs the gate, to hand its "
+        "suite over unverified (#957 round 2, finding 1)"
+    )
     sealer = flat("agents", "sealer.md")
     assert "§2 gives the suite, lint and typecheck to no agent but the sealer" in (
         sealer
