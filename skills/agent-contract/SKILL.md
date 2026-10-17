@@ -34,17 +34,16 @@ failure is a habit, and the right form has to be as easy to copy as the
 wrong one.
 Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_exit_code_rule_carries_both_forms_in_one_sentence
 
-## §2 Narrow and often; the broad gate is the sealer's alone
+## §2 Narrow and often; the broad gate is the orchestrator's
 
 Run the tests for the slice you touched while you work, and your module and
 the ones it touches at a phase boundary. The broad gate — the full suite, the
 repository-wide lint, the typecheck — is one act, taken once after the review
-rounds settle, by `broad-gate --base <base> --record <item>`. No agent runs
-any of the three but the sealer, whose definition hands it that run; #969
-moves the run to the orchestrator, before it spawns the sealer. Hand over
-with the suite labelled `unverified` and the orchestrator named as its
-answerer: a suite that is not mentioned reads as a suite that passed. Where
-the run is yours, the same hand-over carries its result instead of the label.
+rounds settle, and no agent runs any of the three. The orchestrator runs
+`broad-gate --base <base> --record <item>` with nothing else running, then
+spawns the sealer, which reads the record that run wrote. Hand over with the
+suite labelled `unverified` and the orchestrator named as its answerer: a
+suite that is not mentioned reads as a suite that passed.
 Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule, tests/test_broad_gate_rule.py::test_the_prohibition_itself_has_one_home_and_it_is_the_contract
 
 ## §3 A spawn prompt cannot widen the verification scope
