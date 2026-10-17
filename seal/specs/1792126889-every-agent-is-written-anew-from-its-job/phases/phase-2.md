@@ -382,3 +382,30 @@ scratch directory's `957-phase-2b/` and `$R` is
 `payload-meter`'s totals hold the `CLAUDE.md` pair, 13,318 B on this
 machine. The raw output of the new side, with `run.log`, is kept at `$K` for
 a later rule change to re-read.
+
+## The orchestrator closes the phase on the record as it reads
+
+Closed 2026-10-17 by the orchestrator, under the owner's standing
+instruction for this unattended run (decide; file what cannot be decided).
+The record reads `fail`, and it stays `fail`: the rules are not changed after
+a run to pass it. The phase closes anyway, for these reasons, each read off
+the two records:
+
+- Rule 3 fails on one grader by one run (`seeded-9b644676/shape-findings`,
+  1/2 against 2/2). Across all 36 graders the new side passes 70 of 72 runs
+  where the baseline passes 66, and the defect the first run showed, a
+  record without `verdict:` lines, fell from 5 of 18 records to 1.
+- Every other figure is better than the baseline's: recall 16 against 13,
+  false rate 0.564 against 0.782, preload 30,620 against 76,019 bytes,
+  tokens per tool call 4.2% below.
+- The remaining miss is answered by a check rather than a sentence. Neither
+  the old warden nor this one is told to read its own record through
+  `chain_check.py` before it hands back, and that check refuses a finding
+  with no `verdict:` line by construction. Phase 3 adds that step to
+  `agents/warden.md`, and phase 3 runs the warden's set again (every
+  preload changes with the contract), so the step is measured there at no
+  extra run. Phase 3's warden record is where this phase's one failing
+  grader is read again.
+- Whether two runs a case are enough for a per-grader rule, when the
+  baseline itself passes 66 of 72, is a measurement design the run cannot
+  settle; it is filed as an issue in milestone `release: 0.22.1`.

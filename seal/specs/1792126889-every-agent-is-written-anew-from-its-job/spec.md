@@ -226,9 +226,11 @@ fallen, false rate within `FALSE_MARGIN` of the baseline's, each shape and
 reach grader passing on the new side at least as often as on the baseline,
 preload bytes below the baseline, and the tokens the run read across every
 model — the session's and the agent's under test, `modelUsage` — per tool
-call below the baseline's (owner, 2026-10-17, after phase 2: the warden read
-17.8% more tokens in all over 34% more calls, and found 17 truths where the
-baseline found 13; its tokens per call fell 12.3%). A run's tokens are about
+call below the baseline's (owner, 2026-10-17, after phase 2's first run: the
+warden read 17.8% more tokens in all and found 17 truths where the baseline
+found 13; the decision was taken on a hand count of the calls, 34% more and
+12.3% less per call, which the trace corrects to 19.3% more tool calls
+(746 to 890) and 1.25% less per call, `phases/phase-2.md`). A run's tokens are about
 its calls times the context each call carries: the rewrite controls the
 context, which the per-call figure reads, and how many calls the agent makes
 is its behaviour, which the outcome rules judge. Tokens per true find was
