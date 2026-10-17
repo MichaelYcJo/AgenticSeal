@@ -16,6 +16,7 @@ repository.
 """
 
 import glob
+import importlib.util
 import os
 import re
 
@@ -138,14 +139,73 @@ def sealer_grade_gaps(root=EVALS):
             gaps.append(f"{rel(d, root)}: no grader reads the verdict in guarantee.md")
         if any("Broad gate" in g for g in graders):
             gaps.append(f"{rel(d, root)}: a grader reads the `Broad gate` cell")
+        if not any(
+            re.search(r"^tool: 'Bash'$", g, re.M)
+            and re.search(r"^input_match: 'broad-gate\\s\+--base'$", g, re.M)
+            and re.search(r"^max: 0$", g, re.M)
+            for g in graders
+        ):
+            gaps.append(f"{rel(d, root)}: no grader bounds `broad-gate --base` at zero")
     return gaps
 
 
 def test_every_sealer_case_grades_the_guarantee():
     """T18. A sealer case grades the verdict line of `guarantee.md`, and none
-    grades the `Broad gate` cell the sealer no longer writes."""
+    grades the `Broad gate` cell the sealer no longer writes.
+
+    #969 T6: every sealer case also bounds a Bash `broad-gate --base` at zero
+    calls. The gate is the orchestrator's run before the spawn, and a sealer
+    that runs it again passes every other grader the cases have: #957's
+    phase 3 measured the sealer's first act as `broad-gate --record` in six
+    runs of six."""
     gaps = sealer_grade_gaps()
     assert not gaps, gaps
+
+
+def load_rule_cases():
+    """`evals/scripts/rule_cases.py` as a module, under a name of its own."""
+    path = os.path.join(EVALS, "scripts", "rule_cases.py")
+    spec = importlib.util.spec_from_file_location(
+        "specseal_rule_cases_for_layout", path
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def tree_bytes(top):
+    """{path relative to TOP: bytes} for every file under TOP."""
+    found = {}
+    for here, _, names in os.walk(top):
+        for name in names:
+            path = os.path.join(here, name)
+            with open(path, "rb") as f:
+                found[os.path.relpath(path, top)] = f.read()
+    return found
+
+
+def case_differences(generated, committed):
+    """Where the directory COMMITTED is not the directory GENERATED, one line
+    per file: only in one of them, or in both with other bytes."""
+    made, held = tree_bytes(generated), tree_bytes(committed)
+    out = [f"only in the generator's output: {p}" for p in sorted(made.keys() - held)]
+    out += [f"only in the tree: {p}" for p in sorted(held.keys() - made)]
+    out += [f"differs: {p}" for p in sorted(made.keys() & held) if made[p] != held[p]]
+    return out
+
+
+def test_the_sealer_cases_are_the_generators_output(tmp_path, capsys):
+    """#969 S11. `evals/behaviour/sealer/` is byte for byte what
+    `rule_cases.py` writes. A grader edited by hand is overwritten at the
+    next regeneration, so the baseline and a later side run different suites
+    while `--suite-rev` names one commit for both; nothing else compares the
+    committed cases with the generator."""
+    load_rule_cases().main(["--out", str(tmp_path)])
+    capsys.readouterr()
+    differences = case_differences(
+        tmp_path / "sealer", os.path.join(EVALS, "behaviour", "sealer")
+    )
+    assert not differences, differences
 
 
 def test_every_case_declares_a_case_yaml_and_a_prompt():
