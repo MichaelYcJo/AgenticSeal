@@ -16,10 +16,15 @@ and the measured preload go to `<out>.raw/` beside `--out`, and only then is
 each directory the eval kept removed. `--out` is the saved side with these
 additions under `specseal`: the preload's hashes and bytes, each run's
 report rows and cost (its trace's `result` event: `total_cost_usd`,
-`duration_ms`, `usage`), and whether the side was cut short. `run
+`duration_ms`, `modelUsage`), and whether the side was cut short. `run
 --from-raw` writes `--out` again from a saved side, with no eval run.
 `compare` writes the record the five pass rules judge, outcome first and
-then cost; `check` recomputes a record's verdict from its numbers.
+then cost, each against the baseline: recall not fallen, the false-finding
+rate within `FALSE_MARGIN` of the baseline's, each shape and reach grader
+passing on the new side at least as often as on the baseline, the preload's
+bytes below the baseline's, and the tokens read across every model below
+the baseline's. Spend and wall seconds are written and judge nothing.
+`check` recomputes a record's verdict from its numbers.
 
 Exit codes: 0 written, or the record's verdict holds · 1 the record's
 verdict is not `pass`, or it disagrees with its numbers · 2 nothing ran
@@ -47,7 +52,8 @@ CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
 # `location:` line.
 FINDING_ROW = re.compile(r"^location: .*$", re.M)
 FALSE_MARGIN = 0.05
-COST_MARGIN = 1.1
+# The three counts of a model's `modelUsage` entry a run read.
+READ_COUNTS = ("inputTokens", "cacheCreationInputTokens", "cacheReadInputTokens")
 COST_FIELDS = (
     "old_spend",
     "new_spend",
@@ -201,12 +207,14 @@ def report_rows(trace_path):
 
 
 def run_cost(trace_path):
-    """`{"total_cost_usd", "duration_ms", "usage"}` from the session's last
-    `result` event in the run's trace, or None where it has none.
+    """`{"total_cost_usd", "duration_ms", "modelUsage"}` from the session's
+    last `result` event in the run's trace, or None where it has none.
 
-    A subagent's event, one carrying `parent_tool_use_id`, is not the
-    session's; a line that is not a JSON object is skipped; a `result` event
-    missing any of the three fields is no cost."""
+    `modelUsage` holds every model's tokens, the spawned agent's among
+    them; the event's `usage` counts the case session alone and is not
+    read. A subagent's event, one carrying `parent_tool_use_id`, is not the
+    session's; a line that is not a JSON object is skipped; a field the
+    event lacks is None, never zero."""
     cost = None
     with open(trace_path, encoding="utf-8") as f:
         for line in f:
@@ -218,19 +226,29 @@ def run_cost(trace_path):
                 continue
             if event.get("type") != "result":
                 continue
-            usage = event.get("usage")
-            spend, ms = event.get("total_cost_usd"), event.get("duration_ms")
-            if isinstance(usage, dict) and spend is not None and ms is not None:
-                cost = {"total_cost_usd": spend, "duration_ms": ms, "usage": usage}
-            else:
-                cost = None
+            cost = {
+                k: event.get(k) for k in ("total_cost_usd", "duration_ms", "modelUsage")
+            }
     return cost
 
 
-def tokens_read(usage):
-    """The tokens a run read: input, cache creation and cache read."""
-    keys = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
-    return sum(int(usage.get(k) or 0) for k in keys)
+def tokens_read(model_usage):
+    """The tokens a run read across every model of MODEL_USAGE: input,
+    cache creation and cache read, summed.
+
+    No model, a model that is not an object, or a model missing one of the
+    three counts gives None, never a smaller figure."""
+    if not isinstance(model_usage, dict) or not model_usage:
+        return None
+    total = 0
+    for model in model_usage.values():
+        if not isinstance(model, dict):
+            return None
+        counts = [model.get(k) for k in READ_COUNTS]
+        if not all(isinstance(c, int) and not isinstance(c, bool) for c in counts):
+            return None
+        total += sum(counts)
+    return total
 
 
 def kept_root(trace_path):
@@ -422,11 +440,13 @@ def kind(name):
 def side_numbers(result):
     """`{"graders": {(case, grader): [kind, passed, runs]}, "rows", "false",
     "runs": {case: n}, "cut", "preload", "id", "spend", "tokens", "seconds",
-    "bytes"}` for one side, the last four pooled over every run.
+    "bytes"}` for one side, the last four pooled over every run, the tokens
+    read across every model.
 
-    A grader whose name carries no kind prefix is not counted. A side with
-    a run whose cost is unknown has no spend, tokens or seconds, and one
-    whose preload bytes were not recorded has no bytes: each is None."""
+    A grader whose name carries no kind prefix is not counted. Each of
+    spend, tokens and seconds is None where any run lacks it, a run with no
+    cost lacking all three, and bytes is None where the preload's bytes
+    were not recorded."""
     graders, runs_per_case = {}, {}
     rows = false = 0
     costs = []
@@ -452,8 +472,8 @@ def side_numbers(result):
                 rows += 1
                 if not any(t.search(row) for t in truths):
                     false += 1
-            costs.append((run.get("specseal") or {}).get("cost"))
-    known = bool(costs) and all(costs)
+            costs.append((run.get("specseal") or {}).get("cost") or {})
+    seconds = pooled(c.get("duration_ms") for c in costs)
     meta = result.get("specseal") or {}
     started = result.get("startedAt", "")
     digest = hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest()[
@@ -468,11 +488,19 @@ def side_numbers(result):
         "preload": meta.get("preload", {}),
         "id": f"{started} {digest}",
         "suite": {"rev": meta.get("suite_rev"), "tree": meta.get("suite_tree")},
-        "spend": sum(c["total_cost_usd"] for c in costs) if known else None,
-        "tokens": sum(tokens_read(c["usage"]) for c in costs) if known else None,
-        "seconds": sum(c["duration_ms"] for c in costs) / 1000 if known else None,
+        "spend": pooled(c.get("total_cost_usd") for c in costs),
+        "tokens": pooled(tokens_read(c.get("modelUsage")) for c in costs),
+        "seconds": seconds / 1000 if seconds is not None else None,
         "bytes": meta.get("preload_bytes"),
     }
+
+
+def pooled(values):
+    """The sum of VALUES, or None where there are none or any one is None."""
+    values = list(values)
+    if not values or any(v is None for v in values):
+        return None
+    return sum(values)
 
 
 def suite_tree(rev, agent):
@@ -494,8 +522,12 @@ def verdict(numbers):
     under `graders` beside `old_rows`, `old_false`, `new_rows`, `new_false`,
     `old_cut`, `new_cut` and every name in `COST_FIELDS`.
 
-    A missing key raises. A side whose spend, tokens or preload bytes are
-    None is no result; wall seconds are never judged."""
+    Each rule reads the new side against the baseline: 1 recall not fallen,
+    2 the false-finding rate within `FALSE_MARGIN` of the baseline's, 3 each
+    shape and reach grader passing at least as often, 4 the preload's bytes
+    below the baseline's, 5 the tokens read across every model below the
+    baseline's. A missing key raises. A side whose tokens or preload bytes
+    are None is no result; spend and wall seconds are never judged."""
     if numbers["old_cut"] or numbers["new_cut"]:
         sides = [
             s
@@ -506,7 +538,8 @@ def verdict(numbers):
     g = numbers["graders"]
     # A shape or reach grader one side lacks is the record's shape moving
     # between the two sides (0.22.0's round record dropped two), not a case
-    # run a different number of times; rule 3 below reads the new side alone.
+    # run a different number of times; rule 3 below judges one the baseline
+    # lacks on the new side alone, and one the new side lacks not at all.
     if any(
         old_runs != new_runs
         for k, _op, old_runs, _np, new_runs in g.values()
@@ -516,12 +549,12 @@ def verdict(numbers):
     unknown = [
         s
         for s, side in (("baseline", "old"), ("new", "new"))
-        if any(numbers[f"{side}_{k}"] is None for k in ("spend", "tokens", "bytes"))
+        if any(numbers[f"{side}_{k}"] is None for k in ("tokens", "bytes"))
     ]
     if unknown:
         return "no result", [
-            f"the {' and '.join(unknown)} side records no cost for every run "
-            "or no preload bytes"
+            f"the {' and '.join(unknown)} side records no tokens across every "
+            "model for every run, or no preload bytes"
         ]
     reasons = []
     truths = {key: v for key, v in g.items() if v[0] == "truth"}
@@ -543,26 +576,29 @@ def verdict(numbers):
     )
     if new_rate > old_rate + FALSE_MARGIN + 1e-9:
         reasons.append(f"false-finding rate rose from {old_rate:.3f} to {new_rate:.3f}")
-    for (case, name), (k, _op, _oruns, np_, nruns) in sorted(g.items()):
-        if k in ("shape", "reach") and np_ < nruns:
+    for (case, name), (k, op, oruns, np_, nruns) in sorted(g.items()):
+        if k not in ("shape", "reach") or not nruns:
+            continue
+        if not oruns and np_ < nruns:
             reasons.append(
-                f"shape grader {case}/{name} failed on the new side ({np_}/{nruns})"
+                f"{k} grader {case}/{name}, which the baseline lacks, failed on "
+                f"the new side ({np_}/{nruns}) (rule 3)"
+            )
+        elif oruns and np_ * oruns < op * nruns:
+            reasons.append(
+                f"{k} grader {case}/{name} passed {np_}/{nruns} on the new side, "
+                f"less often than the baseline's {op}/{oruns} (rule 3)"
             )
     if numbers["new_bytes"] >= numbers["old_bytes"]:
         reasons.append(
             f"the new preload is {numbers['new_bytes']} bytes, not below the "
             f"baseline's {numbers['old_bytes']} (rule 4)"
         )
-    for key, label, shown in (
-        ("tokens", "tokens read", "{:d}"),
-        ("spend", "spend", "${:.4f}"),
-    ):
-        old, new = numbers[f"old_{key}"], numbers[f"new_{key}"]
-        if new > old * COST_MARGIN + 1e-9:
-            reasons.append(
-                f"{label} rose from {shown.format(old)} to {shown.format(new)}, "
-                f"past {COST_MARGIN} times the baseline's (rule 4)"
-            )
+    if numbers["new_tokens"] >= numbers["old_tokens"]:
+        reasons.append(
+            f"the new side read {numbers['new_tokens']} tokens across every "
+            f"model, not below the baseline's {numbers['old_tokens']} (rule 5)"
+        )
     return ("fail" if reasons else "pass"), reasons
 
 
@@ -618,7 +654,7 @@ def rounded(value, places):
 HEADER = "| Kind | Case | Grader | Old passed | Old runs | New passed | New runs |"
 COST_ROWS = (
     ("spend", "spend USD", "{:.4f}", float),
-    ("tokens", "tokens read", "{:d}", int),
+    ("tokens", "tokens read, every model", "{:d}", int),
     ("seconds", "wall seconds", "{:.1f}", float),
     ("bytes", "preload bytes", "{:d}", int),
 )
