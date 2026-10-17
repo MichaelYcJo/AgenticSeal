@@ -40,12 +40,6 @@ def read_at(path):
         return f.read()
 
 
-# U+2013 EN DASH, built rather than typed. The definitions spell every ratio
-# range with one, so a hyphen would match nothing; a typed one is what the
-# linter reads as an ambiguous character.
-DASH = chr(0x2013)
-
-
 def test_verify_says_when_not_only_what():
     scope = read("skills", "verify", "SKILL.md")
     assert "## Scope" in scope, "verify lost the section that bounds the moment"
@@ -115,31 +109,18 @@ def test_verify_prices_the_run_that_repeats():
     )
 
 
-def test_the_smith_carries_the_batching_rule_it_actually_spends():
-    """Re-pointed in phase 4 of #107; it used to read the prohibition here.
-
-    The old premise was that the agent file is always in front of the smith
-    while the skill may not be. That premise stopped separating the two: the
-    contract arrives through the same `skills:` frontmatter the definition
-    does, so it is in front of the smith exactly as often. What is left for
-    the definition is the half the contract sends BACK to it -- §10 says the
-    numbers that judge each agent live in that agent's definition, because a
-    figure that measures a reviewer does not measure an implementer.
-
-    A number with no home is the failure here, not a rule with no copy. An
-    edit-test loop that is judged by the reviewer's 1.8 bar is being asked
-    for something a serial loop cannot give, which is how a rule stops being
-    read at all."""
-    smith = flat("agents", "smith.md")
-    assert f"1.08{DASH}1.17" in smith, (
-        "the implementer's own measured ratio went, and the only number left "
-        "in the tree is the one that judges a reviewer"
+def test_the_implementers_bar_is_not_the_reviewers_and_has_one_home():
+    """Contract §10 points each kind of segment at its bar in
+    `docs/the-review-record.md` §*The per-segment bars*, and the implementing
+    row is not judged by tools per turn: an edit-test loop judged by the
+    reviewer's bar is asked for what a serial loop cannot give. Since #957
+    no definition carries a second copy of a bar."""
+    contract = flat("skills", "agent-contract", "SKILL.md")
+    assert "`docs/the-review-record.md` §*The per-segment bars*" in contract
+    bars = flat("docs", "the-review-record.md")
+    assert "never tools per turn" in bars, (
+        "the implementing row lost the sentence that keeps it off the reviewer's bar"
     )
-    assert f"1.29{DASH}1.89" in smith, (
-        "the comparison went; a bare 1.08-1.17 reads as a target rather than "
-        "as what a serial loop can give"
-    )
-    assert "§10" in smith, "the implementer can no longer reach the rule"
 
 
 def test_the_smith_puts_both_answers_in_the_hand_back():
@@ -196,39 +177,45 @@ def contract_section(number):
 
 
 def test_the_prohibition_itself_has_one_home_and_it_is_the_contract():
-    """Phase 3 of #107 re-pointed this case; it used to read `agents/warden.md`.
-
-    The prohibition was stated in two definitions in near-identical words and
-    a third agent inherited neither, which is the duplication the contract
-    exists to end. The rule moved; the case moved with it rather than being
-    deleted, because a moved rule with no case is a rule that can be moved
-    again into nothing.
-
-    #120 re-pointed it a second time. §2 named the orchestrator, which is not
-    an agent, so the section forbade the run and assigned it to nobody in the
-    room -- and when `agents/sealer.md` arrived to take it, the contract every
-    agent reads first still said the act was somebody else's. Both halves are
-    asserted: the owner the section now names, and the sentence that named the
-    old one, absent. A contract carrying both owners is the state
-    `test_the_definition_names_the_sealer_as_the_suites_owner` already refuses
-    one file over, and presence alone cannot see it."""
+    """Contract §2 is the one home of the prohibition, and since #957 it names
+    the owner: no agent but the sealer runs the broad gate, by `broad-gate
+    --record`, and #969 is where the run moves to the orchestrator before it
+    spawns the sealer (`spec.md` §*The broad gate runs before the sealer*).
+    Until #969 the sealer's definition is what hands it the run, so §2 says
+    exactly that and no more (#957 round 1, finding 1)."""
     contract = " ".join(read("skills", "agent-contract", "SKILL.md").split())
     body = contract_section(2)
-    assert "the sealer's, whose whole procedure is that run" in body, (
-        "§2 stopped naming the agent the one broad act is assigned to, which "
-        "is the prohibition-with-no-owner #30 opens on"
+    assert "No agent runs any of the three but the sealer" in body, (
+        "§2 stopped forbidding the broad gate to every agent but its owner"
     )
-    assert "Whether it is yours is what your own definition says" in body, (
-        "the universal form went. Naming the sealer without it makes §2 a "
-        "rule about one agent, which is what this file's opening refuses"
+    assert "whose definition hands it that run" in body, (
+        "§2 stopped saying where the sealer's run is assigned"
     )
-    assert "is the orchestrator's, run once, after the review rounds settle" not in (
-        contract
-    ), "the old owner is still in the contract, so §2 now names two of them"
-    assert "orchestrator" not in body, (
-        "§2 names the orchestrator again. It is not an agent, so it cannot "
-        "hold an act this file assigns; the answerer of a handover is the "
-        "caller and belongs in the definition that hands over"
+    assert "broad-gate --base <base> --record <item>" in body, (
+        "§2 stopped naming the command the one act is"
+    )
+    assert "#969 moves the run to the orchestrator" in body, (
+        "§2 stopped naming the issue that moves the run, so a reader of the "
+        "sealer's definition and of #969 meets two owners with no order"
+    )
+    assert "it is the orchestrator's" not in body, (
+        "§2 names the orchestrator as the owner while the sealer still runs "
+        "the gate, which is two opposite orders in one preload"
+    )
+    assert (
+        "Where the run is yours, the same hand-over carries its result "
+        "instead of the label"
+    ) in body, (
+        "§2 tells the sealer, the one agent that runs the gate, to hand its "
+        "suite over unverified (#957 round 2, finding 1)"
+    )
+    sealer = flat("agents", "sealer.md")
+    assert "§2 gives the suite, lint and typecheck to no agent but the sealer" in (
+        sealer
+    ), "the sealer's definition recites a §2 that no longer stands"
+    assert "leaves each definition to say" not in sealer, (
+        "the sealer's definition still quotes the §2 that left the act to each "
+        "definition, beside a contract that names the sealer"
     )
     assert "Hand over with the suite labelled `unverified`" in contract, (
         "the label went, and a suite that is simply not mentioned reads as a "
@@ -236,62 +223,10 @@ def test_the_prohibition_itself_has_one_home_and_it_is_the_contract():
     )
 
 
-# §2's own count, and the marker a definition carries when it takes the act.
-# Both are read out of the tree below rather than trusted here: the word is
-# checked against §2's sentence, and the marker against the definition the
-# sentence points at, so neither can be edited without the other going red.
-COUNT_WORD = "One definition in this plugin does hand them over"
+# The marker a definition carries when it takes the act. #969 takes it out of
+# `agents/sealer.md` when it moves the run to the orchestrator, and replaces
+# the case below.
 ASSIGNS_THE_GATE = "spawned for exactly that"
-
-
-def test_only_one_definition_assigns_the_broad_gate():
-    """Round 1, finding 6 of #120. §2 says `One definition in this plugin does
-    hand them over`, and `One` is an aggregate -- which §5 of the same file
-    says is not a coordinate: the number can be checked while the claim it
-    stands for cannot.
-
-    So it is checked, from the glob rather than from a list.
-    `test_the_prohibition_itself_has_one_home_and_it_is_the_contract` pins the
-    sentence PRESENT; nothing counted the definitions to confirm the number is
-    still true. `questions.md` Q2 names the framer as arriving in 0.11.0, and
-    if its file assigns any of the three checks, §2 says `One` and is false
-    with nothing red.
-
-    **The direction this can still miss, stated rather than left to be
-    found.** It counts definitions carrying the marker below. A definition that
-    takes the broad gate in different words is invisible here -- the same
-    verbatim-versus-semantic trade
-    `tests/test_a_moved_rule_leaves_its_definition.py` makes and states, for
-    the same reason: no constant can decide when two sentences say the same
-    thing. What closes that direction is the other assertion, which fails if
-    the marker leaves the one definition that has it -- so the marker cannot
-    quietly stop being the thing this counts."""
-    agents = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
-    assert len(agents) >= 4, f"agents/*.md matched {len(agents)} files"
-    assigning = [
-        os.path.basename(path)
-        for path in agents
-        if ASSIGNS_THE_GATE in " ".join(read_at(path).split())
-    ]
-    # The tree fact first, and §2's sentence after it. Round 2, finding 8:
-    # with the order reversed, the document assertion fired first and named
-    # only itself, where the 0.11.0 arrival moves THREE things together --
-    # §2's prose, `COUNT_WORD`, and the list this compares against. Whichever
-    # of the two fails now, the reader is told about all three.
-    assert assigning == ["sealer.md"], (
-        f"{len(assigning)} definitions assign the broad gate ({assigning}) "
-        "and §2 says `One definition in this plugin does hand them over`. "
-        "Either that sentence needs the new count, or a definition took the "
-        "gate and the contract's sentence did not follow it. Three things "
-        "move together when it does: §2's prose, `COUNT_WORD` here, and this "
-        "comparison"
-    )
-    assert COUNT_WORD in flat("skills", "agent-contract", "SKILL.md"), (
-        "§2 no longer states the count this case checks, so the number and "
-        "the sentence have come apart. If the count changed, `COUNT_WORD` and "
-        f"the comparison against {assigning} move with it; if it did not, §2 "
-        "lost the sentence that makes this case worth running"
-    )
 
 
 # The sealer's own sentence counts the definitions that say nothing about the
@@ -316,8 +251,7 @@ def test_the_sealer_counts_the_silent_definitions_from_the_glob():
     set was four, false the moment `agents/framer.md` landed, and nothing in
     the tree was red about it.
 
-    The failure is the one `test_only_one_definition_assigns_the_broad_gate`
-    names one sentence over: a count is an aggregate, so §5 says it is a
+    The failure: a count is an aggregate, so §5 says it is a
     number a reader can check standing in for a claim they cannot. This counts
     it, from the same glob and the same marker, so the number and the agent
     set cannot come apart again.
@@ -369,9 +303,8 @@ def test_no_definition_promises_the_suite_once_the_rounds_settle():
     It matches one spelling. A definition that promises the suite in other
     words -- *yours once the rounds have settled* -- is invisible here, which
     round 2 of #120 measured by rewording the corrected sentence and watching
-    this case stay green. That is the same verbatim-versus-semantic trade
-    `test_only_one_definition_assigns_the_broad_gate` states above, for the
-    same reason: no constant decides when two sentences say the same thing.
+    this case stay green. That is a verbatim-versus-semantic trade: no
+    constant decides when two sentences say the same thing.
     What narrows it is that the wrong sentence had exactly one idiom in this
     tree, and the glob is what catches that idiom arriving in a second file --
     which is the copy this shape actually spreads by."""
@@ -415,17 +348,16 @@ def test_the_refusal_is_stated_once_and_names_both_directions():
         "the refusal half went; the principle and the disclosure alone read "
         "as `run it, but say so`"
     )
-    assert "Decline, and name the instruction in your handover" in contract, (
+    assert "decline, and name the instruction in your hand-back" in contract, (
         "`Decline` became separable from `name`, which is the state that was "
         "measured -- the run happened and the caller believed the prompt was "
         "honoured"
     )
-    assert "run nothing extra and ask in the handover" in contract, (
+    assert "run nothing extra and say in the hand-back" in contract, (
         "the contract lost the default for an instruction it cannot classify, "
         "so the rule above it decides nothing in the one case that needed "
         "deciding"
     )
-    assert "rather than refusing outright" in contract
 
 
 def test_the_reviewer_has_a_field_for_the_question_the_default_produces():

@@ -1,0 +1,1075 @@
+{
+ "schemaVersion": 1,
+ "claudeVersion": "2.1.302",
+ "startedAt": "2026-10-17T01:02:31.923Z",
+ "durationSeconds": 305,
+ "costUsd": 6.3830026,
+ "partial": false,
+ "suite": {
+  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-w7wpnqzg/tree",
+  "ablation": "none",
+  "threshold": 1,
+  "concurrency": 4,
+  "plugins": [
+   {
+    "name": "specseal",
+    "version": "0.22.0",
+    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-w7wpnqzg/tree"
+   }
+  ]
+ },
+ "cases": [
+  {
+   "name": "smith rule-smith-count-words",
+   "dir": "evals/behaviour/smith/rule-smith-count-words",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:smith` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nBuild phase 1 of work item `1790000012-count-words` in this clone, on branch `feat/count-words`; the base is `main`. The plan is approved. Commit as each step stands, push nothing, and hand back with the report your definition asks for. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1200,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-smith",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:smith\""
+     }
+    },
+    {
+     "name": "shape-built",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "src/textutil.py"
+      },
+      "pattern": "^def count_words\\(",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-committed",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "git(?:\\s+-C\\s+\\S+)?\\s+commit\\b"
+     }
+    },
+    {
+     "name": "shape-no-probe-left",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": "files",
+      "pattern": "test_tmp_",
+      "flags": "",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "shape-phase-record",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000012-count-words/phases/phase-1.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-tested",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "tests/test_textutil.py"
+      },
+      "pattern": "\\bcount_words\\(",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.7127912000000001,
+      "judgeCostUsd": 0,
+      "durationSeconds": 140,
+      "startedAt": "2026-10-17T01:02:31.969Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-bSLN1U/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def count_words\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000012-count-words/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\bcount_words\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.7127912000000001,
+        "duration_ms": 137713,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 36,
+          "outputTokens": 8879,
+          "cacheReadInputTokens": 879321,
+          "cacheCreationInputTokens": 63308,
+          "webSearchRequests": 0,
+          "costUSD": 0.7127912000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1197,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 20
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.8330792,
+      "judgeCostUsd": 0,
+      "durationSeconds": 131,
+      "startedAt": "2026-10-17T01:02:31.969Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-cCOhes/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def count_words\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000012-count-words/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\bcount_words\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.8330792,
+        "duration_ms": 128878,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 44,
+          "outputTokens": 9771,
+          "cacheReadInputTokens": 1138701,
+          "cacheCreationInputTokens": 73389,
+          "webSearchRequests": 0,
+          "costUSD": 0.8330792,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1115,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 27
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1,
+    "passRate": 1
+   }
+  },
+  {
+   "name": "smith rule-smith-is-palindrome",
+   "dir": "evals/behaviour/smith/rule-smith-is-palindrome",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:smith` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nBuild phase 1 of work item `1790000014-is-palindrome` in this clone, on branch `feat/is-palindrome`; the base is `main`. The plan is approved. Commit as each step stands, push nothing, and hand back with the report your definition asks for. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1200,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-smith",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:smith\""
+     }
+    },
+    {
+     "name": "shape-built",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "src/textutil.py"
+      },
+      "pattern": "^def is_palindrome\\(",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-committed",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "git(?:\\s+-C\\s+\\S+)?\\s+commit\\b"
+     }
+    },
+    {
+     "name": "shape-no-probe-left",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": "files",
+      "pattern": "test_tmp_",
+      "flags": "",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "shape-phase-record",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000014-is-palindrome/phases/phase-1.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-tested",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "tests/test_textutil.py"
+      },
+      "pattern": "\\bis_palindrome\\(",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.8054399999999998,
+      "judgeCostUsd": 0,
+      "durationSeconds": 143,
+      "startedAt": "2026-10-17T01:02:31.969Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-x4IQzz/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def is_palindrome\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000014-is-palindrome/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\bis_palindrome\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.8054399999999998,
+        "duration_ms": 141347,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 38,
+          "outputTokens": 9906,
+          "cacheReadInputTokens": 962575,
+          "cacheCreationInputTokens": 74287,
+          "webSearchRequests": 0,
+          "costUSD": 0.8054399999999998,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1423,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 22
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.8149784,
+      "judgeCostUsd": 0,
+      "durationSeconds": 145,
+      "startedAt": "2026-10-17T01:02:31.969Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-ztGRDD/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def is_palindrome\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000014-is-palindrome/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\bis_palindrome\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.8149784,
+        "duration_ms": 142372,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 38,
+          "outputTokens": 10149,
+          "cacheReadInputTokens": 973557,
+          "cacheCreationInputTokens": 74829,
+          "webSearchRequests": 0,
+          "costUSD": 0.8149784,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1166,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 22
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1,
+    "passRate": 1
+   }
+  },
+  {
+   "name": "smith rule-smith-slugify",
+   "dir": "evals/behaviour/smith/rule-smith-slugify",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:smith` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nBuild phase 1 of work item `1790000011-slugify` in this clone, on branch `feat/slugify`; the base is `main`. The plan is approved. Commit as each step stands, push nothing, and hand back with the report your definition asks for. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1200,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-smith",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:smith\""
+     }
+    },
+    {
+     "name": "shape-built",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "src/textutil.py"
+      },
+      "pattern": "^def slugify\\(",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-committed",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "git(?:\\s+-C\\s+\\S+)?\\s+commit\\b"
+     }
+    },
+    {
+     "name": "shape-no-probe-left",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": "files",
+      "pattern": "test_tmp_",
+      "flags": "",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "shape-phase-record",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000011-slugify/phases/phase-1.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-tested",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "tests/test_textutil.py"
+      },
+      "pattern": "\\bslugify\\(",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.7680288,
+      "judgeCostUsd": 0,
+      "durationSeconds": 142,
+      "startedAt": "2026-10-17T01:04:42.984Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-E69BvS/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def slugify\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000011-slugify/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\bslugify\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.7680288,
+        "duration_ms": 140338,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 42,
+          "outputTokens": 9331,
+          "cacheReadInputTokens": 1066024,
+          "cacheCreationInputTokens": 65200,
+          "webSearchRequests": 0,
+          "costUSD": 0.7680288,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1365,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 24
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.8652438000000001,
+      "judgeCostUsd": 0,
+      "durationSeconds": 165,
+      "startedAt": "2026-10-17T01:04:51.814Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-wMkEWr/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def slugify\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 3x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000011-slugify/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\bslugify\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.8652438000000001,
+        "duration_ms": 163276,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 44,
+          "outputTokens": 11912,
+          "cacheReadInputTokens": 1181184,
+          "cacheCreationInputTokens": 69483,
+          "webSearchRequests": 0,
+          "costUSD": 0.8652438000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 2433,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 33
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1,
+    "passRate": 1
+   }
+  },
+  {
+   "name": "smith rule-smith-truncate",
+   "dir": "evals/behaviour/smith/rule-smith-truncate",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:smith` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nBuild phase 1 of work item `1790000013-truncate` in this clone, on branch `feat/truncate`; the base is `main`. The plan is approved. Commit as each step stands, push nothing, and hand back with the report your definition asks for. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1200,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-smith",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:smith\""
+     }
+    },
+    {
+     "name": "shape-built",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "src/textutil.py"
+      },
+      "pattern": "^def truncate\\(",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-committed",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "git(?:\\s+-C\\s+\\S+)?\\s+commit\\b"
+     }
+    },
+    {
+     "name": "shape-no-probe-left",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": "files",
+      "pattern": "test_tmp_",
+      "flags": "",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "shape-phase-record",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000013-truncate/phases/phase-1.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-tested",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "tests/test_textutil.py"
+      },
+      "pattern": "\\btruncate\\(",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.7531978,
+      "judgeCostUsd": 0,
+      "durationSeconds": 152,
+      "startedAt": "2026-10-17T01:04:55.448Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-OvMbhR/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def truncate\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000013-truncate/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\btruncate\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.7531978,
+        "duration_ms": 150017,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 40,
+          "outputTokens": 9343,
+          "cacheReadInputTokens": 1008449,
+          "cacheCreationInputTokens": 64362,
+          "webSearchRequests": 0,
+          "costUSD": 0.7531978,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1448,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 22
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.8302434000000001,
+      "judgeCostUsd": 0,
+      "durationSeconds": 142,
+      "startedAt": "2026-10-17T01:04:56.478Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-lzqp0h/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def truncate\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000013-truncate/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\btruncate\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.8302434000000001,
+        "duration_ms": 140511,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 46,
+          "outputTokens": 10155,
+          "cacheReadInputTokens": 1215017,
+          "cacheCreationInputTokens": 68177,
+          "webSearchRequests": 0,
+          "costUSD": 0.8302434000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1207,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 27
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1,
+    "passRate": 1
+   }
+  }
+ ],
+ "aggregates": {
+  "casesTotal": 4,
+  "casesPassed": 4,
+  "overallScore": 1,
+  "overallPassRate": 1
+ },
+ "specseal": {
+  "agent": "smith",
+  "preload": {
+   "agents/smith.md": "65ab9a344c3bf62f1679a962447184182db7ba8d71a9d2ace4998df350eb4b1f",
+   "skills/agent-contract/SKILL.md": "a58c7a0541cc25660929a41f7bee1fe9e9976463e38397d74fd001764925ffa9",
+   "skills/implement/SKILL.md": "bafff509c7b31c46ba8be3bcd71681a8682c5af6c76bd3fa28a5d743415315d9",
+   "skills/writing-style/SKILL.md": "f509dfeeaec143e9c4d6580e77c919b885629da5bd28186db3bf569210dcd33e"
+  },
+  "preload_bytes": 94693,
+  "cut_short": false,
+  "rev": "af9c924b",
+  "suite_rev": "af9c924b7c5b03af5291017c226842655a8d83dd",
+  "suite_tree": "613190e8d1ff62a399c435b3e799b8e0b7aa6a8a"
+ }
+}

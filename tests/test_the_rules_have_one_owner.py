@@ -94,7 +94,7 @@ RULES = {
         VERIFY,
         "Every agent seals what it verified, and the one seal over the whole "
         "project is the sealer's.",
-        {SEALER: ONE_SEAL_IS_FINAL, WARDEN: ONE_SEAL_IS_FINAL},
+        {SEALER: ONE_SEAL_IS_FINAL},
     ),
     # From #401: the `Broad gate` row is the one value only a person can
     # write, and the criterion for it is folded into one owner.

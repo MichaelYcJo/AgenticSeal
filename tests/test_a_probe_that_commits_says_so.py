@@ -76,7 +76,6 @@ def test_the_contract_says_who_the_prompt_reaches():
     """Without the reason this reads as a style rule, and a session under
     pressure drops style rules first."""
     body = section(8)
-    assert "#36" in body, "the incident is not cited"
     assert "keyboard" in body, "nothing says the prompt reaches a person"
 
 
@@ -122,10 +121,6 @@ def test_the_procedure_a_reviewer_follows_carries_the_leavings_rule_too():
     assert "Contract §7 is about leavings, not files" in skill, (
         "the row's qualifier has no rule behind it, so a reviewer who reads "
         "`everything else it made` has nothing saying what that covers"
-    )
-    assert "left a git worktree behind" in skill, (
-        "the cost went. A rule with no incident behind it is the one a "
-        "session under pressure drops first, which is how this one was left"
     )
 
 

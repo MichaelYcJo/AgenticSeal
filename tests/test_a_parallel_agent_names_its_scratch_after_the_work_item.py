@@ -60,9 +60,9 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     probe, capture or fixture the round makes outside the clone sits beside
     it, which is also what makes *every one of them is gone* (§7) answerable
     by the agent that made them."""
-    where = section(WARDEN, "Where you work")
+    where = section(WARDEN, "Rules")
     assert CLONE in where, (
-        "agents/warden.md §Where you work does not name the clone directory "
+        "agents/warden.md §Rules does not name the clone directory "
         f"as `{CLONE}`, so two parallel wardens can clone to one name"
     )
     assert ROUND_HOME in where, (

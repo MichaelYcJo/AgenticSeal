@@ -34,8 +34,8 @@ this file is for people. -->
      `plan.md` and the questions: the `framer` subagent, or this session
      itself. OPTIONAL, on exactly the terms the `Implementation` row below
      has, and for the same reasons — read them there. A second copy of that
-     reasoning here is how the two rows drift apart, which is the failure the
-     contract records under §11 and §16.
+     reasoning here is how the two rows drift apart, which is the failure
+     contract §11 was written to end.
      HOW TO ANSWER IT — nobody is asked. `skills/implement/SKILL.md` §3's
      ladder decides whether a frame is drawn at all, so this row RECORDS which
      way it went rather than putting a fourth box in the routing question

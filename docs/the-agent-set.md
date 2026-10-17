@@ -23,11 +23,15 @@ honest: what is true of every agent is shared, what is one agent's own is in
 that agent's definition, and an agent whose definition is silent about an act
 does not take it.
 
-**Section numbers are never reused and never re-ordered.** A prompt saying
-*§3 is narrowed this round*, and a round record compared with another six
-months later, both hold only while §3 still means what it meant. A retired
-rule keeps its number and becomes one line naming what replaced it.
-Enforced by: tests/test_every_agent_reads_the_contract.py::test_every_definition_opens_with_the_contract_line, tests/test_every_agent_reads_the_contract.py::test_a_bare_name_is_delivered_by_the_frontmatter
+**From this edition, section numbers are never reused and never
+re-ordered.** #957 wrote the contract anew and kept each rule's number where
+the rule stayed: the old §16 joined §11, the old §17 moved to §16, and the
+four new rules took §17 to §20. From that edition on, a prompt saying *§3 is
+narrowed this round*, and a round record compared with another six months
+later, both hold only while §3 still means what it meant. A retired rule
+keeps its number and becomes one line naming what replaced it, and a new
+rule takes the next number.
+Enforced by: tests/test_every_agent_reads_the_contract.py::test_every_definition_has_the_shape_and_preloads_the_contract_alone
 
 <!-- specs/1789081272-the-writer-of-the-contract-is-not-its-executor -->
 **The party that draws a contract is not the party that executes it.** A

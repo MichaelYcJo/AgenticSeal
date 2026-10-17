@@ -25,7 +25,7 @@ reports what the commands said, and writes the work item's `broad-gate.md`;
 the sealer's own verdict, which follows the run, is a separate file
 (`docs/the-review-record.md` §*The guarantee*). A run that judges is a run
 whose verdict nobody can separate from its measurement.
-Enforced by: tests/test_broad_gate_rule.py::test_only_one_definition_assigns_the_broad_gate, tests/test_broad_gate_rule.py::test_the_prohibition_itself_has_one_home_and_it_is_the_contract
+Enforced by: tests/test_broad_gate_rule.py::test_the_sealer_counts_the_silent_definitions_from_the_glob, tests/test_broad_gate_rule.py::test_the_prohibition_itself_has_one_home_and_it_is_the_contract
 
 <!-- specs/1789034970-the-contract-is-settled-against-the-agents-that-exist -->
 **A shared rule is settled against the agents that exist.** A rule kept only
@@ -39,7 +39,7 @@ shared rule has to pass is that no role needs an exception to it.
 is not yours, the handover carries the suite labelled `unverified` with its
 answerer named — labelled, never omitted. Where it is yours, the same
 handover carries the result instead of the label.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_contract_says_it_is_universal_only, tests/test_every_agent_reads_the_contract.py::test_every_definition_opens_with_the_contract_line
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_contract_says_it_is_universal_only, tests/test_every_agent_reads_the_contract.py::test_every_definition_has_the_shape_and_preloads_the_contract_alone
 
 ## What the gate runs, and how the list is kept true
 

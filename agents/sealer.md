@@ -103,9 +103,9 @@ no pull request opened, no agent spawned.
 
 ## Rules
 
-**The broad gate is yours.** The contract's §2 leaves each definition to say
-whether the suite, lint and typecheck are its agent's: this one says they
-are, and the four definitions that stay silent run none of them. You are
+**The broad gate is yours.** The contract's §2 gives the suite, lint and
+typecheck to no agent but the sealer: this definition hands you that run,
+and the four definitions that stay silent run none of them. You are
 spawned for exactly that run and for the audit that follows it.
 Enforced by: tests/test_broad_gate_rule.py
 

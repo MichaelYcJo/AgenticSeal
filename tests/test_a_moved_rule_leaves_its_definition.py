@@ -22,7 +22,7 @@ A definition MAY cite a section by its number and say what the rule means
 for its own role, in its own words -- that is the application form, and
 phases 3 and 4 kept several deliberately: the warden's audit of the
 `unverified` label, its `## Not judged` row, the #36 cost of a
-prompt landing during a round, its 1.89; the smith's 1.08-1.17, its
+prompt landing during a round; the smith's 1.08-1.17, its
 hand-back as the place both answers land, its own waiver example as the
 patch §9's gate reads a commit out of. Every one of those is about one
 agent, and none of them is the rule.
@@ -47,7 +47,7 @@ and git rejects it`, which §8 and the design gate's waiver paragraph both
 spell because both are about the same git fact; the warden's 9-word echo of
 §6 is the next). The smallest run a REAL duplication produced, measured on
 the same files before phase 4 removed them, is 25 words (§10), then 31 (§9),
-37 (§16), 59 (§11) and 66 (§3). Fifteen sits between 10 and 25 with margin
+37 (the old §16, now part of §11), 59 (§11) and 66 (§3). Fifteen sits between 10 and 25 with margin
 on both sides, and both ends of that margin are printed by
 `test_the_window_sits_between_what_was_measured`, so a later edit that
 narrows the gap is red rather than silently mis-tuned.
@@ -56,7 +56,7 @@ The list of sections is derived from the contract, never typed here. A
 hand-copied list is a second source that disagrees with the first, and this
 repository has been bitten by exactly that -- `ROUND_RECORD_FIELDS` in
 `tests/test_the_pull_request_language_is_the_repositorys.py` carries the
-scar. A section added as §17 is checked on the day it lands, and so is a
+scar. A section added as §21 is checked on the day it lands, and so is a
 fourth agent definition, because both come from a glob.
 """
 
@@ -162,7 +162,7 @@ def test_the_globs_find_the_definitions_and_the_sections():
 def test_no_definition_carries_a_sections_own_sentences(path, number):
     """One case per section per definition, so a failure names both.
 
-    Both axes are derived: a §17 added tomorrow and a fourth agent added
+    Both axes are derived: a §21 added tomorrow and a fourth agent added
     tomorrow are each checked on the day they land, which is the miss with no
     other symptom."""
     duplicated = copied(SECTIONS[number], read(path))
@@ -360,17 +360,12 @@ def test_a_citation_is_not_a_copy():
     named here and asserted clean."""
     kept = {
         ("agents", "warden.md"): (
-            "§9 applies to you although you edit less than the smith does",
+            "so it goes through the `Edit` or `Write` tool (§9)",
             "whether that label is honest",
             "a row of `## Not judged`",
-            "1.89",
         ),
         ("agents", "smith.md"): (
-            # U+2013 EN DASH, built rather than typed: the definition spells
-            # the range with one, so a hyphen would match nothing.
-            "1.08" + chr(0x2013) + "1.17",
             "hand-back",
-            "§10's number for you",
             # The waiver example, named in this module's docstring since
             # phases 3 and 4 kept it deliberately — *the smith's own waiver
             # example as the patch §9's gate reads a commit out of* — and
@@ -403,3 +398,93 @@ def test_a_citation_is_not_a_copy():
             assert not copied(body, definition), (
                 f"{'/'.join(parts)}'s application prose reads as a copy of §{number}"
             )
+
+
+# --- the warden's own rules from the 0.22.0 run (#957) -----------------------
+
+WARDEN = os.path.join(ROOT, "agents", "warden.md")
+
+
+def warden_rule(lead):
+    """The `## Rules` paragraph of `agents/warden.md` that opens with **LEAD**,
+    flattened, or "" where none does."""
+    text = read(WARDEN)
+    rules = text[text.index("\n## Rules\n") :]
+    for paragraph in rules.split("\n\n"):
+        if paragraph.startswith(f"**{lead}**"):
+            return flat(paragraph)
+    return ""
+
+
+def test_the_warden_writes_its_record_in_the_branch_worktree():
+    """The warden writes its round record in the branch worktree, never the
+    main checkout (#957).
+
+    Twice in the 0.22.0 run a warden wrote its record to the main checkout.
+    Every eval case names the record's path in its prompt, so a definition
+    that dropped the rule would still pass them; this case reads the rule."""
+    rule = warden_rule("The record goes to the branch worktree.")
+    assert "in the worktree of the branch under review" in rule, rule
+    assert "never the main checkout" in rule, rule
+
+
+def test_the_warden_checks_its_record_in_the_branch_worktree():
+    """The hand-back check reads the tree the record is in (#957 round 1,
+    finding 8).
+
+    `chain_check.py`'s `--root` defaults to the session's directory, which is
+    the main checkout where the branch has a worktree of its own, so a check
+    with no `--root` passes or refuses on files that do not hold the record.
+    Every eval case runs in one tree, so none can see it; this case reads the
+    command."""
+    with open(os.path.join(ROOT, "agents", "warden.md"), encoding="utf-8") as f:
+        text = " ".join(f.read().split())
+    assert (
+        "chain_check.py --baseline <base> --root <the branch worktree> --worktree"
+        in text
+    ), "the warden's hand-back check names no `--root`, so it reads the session's tree"
+
+
+def test_the_warden_reads_each_new_test_against_its_group():
+    """A test the diff adds is read against its group, and one that covers
+    nothing its group does not is a finding (#957).
+
+    The owner's rule of 2026-10-15. No eval case plants a test that
+    duplicates its group, so nothing but this case reads the rule."""
+    rule = warden_rule("Each new test is read against its group.")
+    assert "against the tests of the function it covers" in rule, rule
+    assert "any pair a duplicate check" in rule, rule
+    assert "is a `should` finding" in rule, rule
+
+
+# A batching figure: a number within a few words of "tools per turn", either
+# side, in any spelling of the phrase.
+TOOLS_PER_TURN = re.compile(
+    r"\d\S*\s+(?:\w+\W+){0,3}?tools?\s+per\s+turn"
+    r"|tools?\s+per\s+turn\W+(?:\w+\W+){0,3}?\d",
+    re.I,
+)
+
+
+def figures(text):
+    return [m.group(0) for m in TOOLS_PER_TURN.finditer(" ".join(text.split()))]
+
+
+@pytest.mark.parametrize("path", AGENTS, ids=name)
+def test_no_definition_states_a_tools_per_turn_figure(path):
+    """T5: the per-segment bars live in `docs/the-review-record.md` §*The
+    per-segment bars*, and contract §10 says no definition states a second
+    copy. A copy in a definition drifts from the table and is read first."""
+    assert not figures(read(path)), f"{name(path)}: {figures(read(path))}"
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "**Your number is 1.4 tools per turn.**",
+        "measured at 2.3" + chr(0x2013) + "3.1 tools per turn",
+        "tools per turn **≥ 1.8**",
+    ],
+)
+def test_a_figure_in_any_spelling_is_caught(sentence):
+    assert figures(sentence), sentence
