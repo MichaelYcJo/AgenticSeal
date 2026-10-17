@@ -215,7 +215,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 56
       }
      },
      {
@@ -312,7 +313,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 63
       }
      }
     ]
@@ -475,7 +477,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 61
       }
      },
      {
@@ -556,7 +559,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 76
       }
      }
     ]
@@ -738,7 +742,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 51
       }
      },
      {
@@ -826,7 +831,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 46
       }
      }
     ]
@@ -986,7 +992,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 71
       }
      },
      {
@@ -1065,7 +1072,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 67
       }
      }
     ]
@@ -1225,7 +1233,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 16
       }
      },
      {
@@ -1305,7 +1314,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 12
       }
      }
     ]
@@ -1466,7 +1476,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 47
       }
      },
      {
@@ -1546,7 +1557,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 52
       }
      }
     ]
@@ -1706,7 +1718,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 62
       }
      },
      {
@@ -1787,7 +1800,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 42
       }
      }
     ]
@@ -1948,7 +1962,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 50
       }
      },
      {
@@ -2028,7 +2043,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 39
       }
      }
     ]
@@ -2188,7 +2204,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 34
       }
      },
      {
@@ -2267,7 +2284,8 @@
           "costBasis": "list"
          }
         }
-       }
+       },
+       "tool_calls": 45
       }
      }
     ]

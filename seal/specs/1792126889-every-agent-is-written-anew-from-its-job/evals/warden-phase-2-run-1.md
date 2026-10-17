@@ -4,8 +4,8 @@
 |---|---|
 | Agent | warden |
 | Phase | 2 |
-| Baseline run | 2026-10-17T01:17:39.397Z ce1db103140b |
-| New run | 2026-10-17T02:25:55.045Z ac73d5b8a77f |
+| Baseline run | 2026-10-17T01:17:39.397Z d9a7d879cb6e |
+| New run | 2026-10-17T02:25:55.045Z 1bf8b0b745ce |
 | Baseline suite | af9c924b7c5b03af5291017c226842655a8d83dd d8dfd549c0100c131019193b35655c59e7218282 |
 | New suite | af9c924b7c5b03af5291017c226842655a8d83dd d8dfd549c0100c131019193b35655c59e7218282 |
 | Baseline cut short | no |
@@ -18,10 +18,16 @@
 | New spend USD | 40.3114 |
 | Baseline tokens read, every model | 66468871 |
 | New tokens read, every model | 78306931 |
+| Baseline tool calls | 746 |
+| New tool calls | 890 |
 | Baseline wall seconds | 5779.5 |
 | New wall seconds | 7576.1 |
 | Baseline preload bytes | 76019 |
 | New preload bytes | 30508 |
+| Baseline tokens per tool call | 89100.4 |
+| New tokens per tool call | 87985.3 |
+| Baseline tokens per true find | 5112990 |
+| New tokens per true find | 4606290 |
 
 ## Graders
 
@@ -90,4 +96,3 @@ Verdict: fail
 - shape grader warden seeded-9b644676/shape-findings passed 0/2 on the new side, less often than the baseline's 2/2 (rule 3)
 - shape grader warden seeded-9b644676/shape-words-only passed 1/2 on the new side, less often than the baseline's 2/2 (rule 3)
 - shape grader warden seeded-ad447367/shape-findings passed 1/2 on the new side, less often than the baseline's 2/2 (rule 3)
-- the new side read 78306931 tokens across every model, not below the baseline's 66468871 (rule 5)
