@@ -625,9 +625,7 @@ def not_sealed(tree, base, failures, branch=None, ref=None):
     `failures` is a list of `(name, lines)` — the check that failed and the
     first lines of what it printed, as the gate kept them. `branch` and `ref`
     None leave their half out, which is the line a caller that names neither
-    has always got.
-
-    Reads: owned — the failing checks' first lines the gate kept; unknown passed"""
+    has always got."""
     out = [f"NOT SEALED   {sealed_names(tree, base, branch, ref)}", ""]
     # The widest name present, not a literal 8: `unverified` is ten
     # characters, so a fixed pad sets that one check's first line a column

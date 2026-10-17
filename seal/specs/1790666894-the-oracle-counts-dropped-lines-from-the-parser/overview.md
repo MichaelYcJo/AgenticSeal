@@ -23,8 +23,8 @@ property report a false disagreement with the hooks' walk (#677, #673 round
 | Item | Who must answer |
 |---|---|
 | The full suite, the repository-wide lint and the typecheck after this branch | the sealer, spawned by the orchestrator once the review rounds settle |
-| ✅ The S4 case on a Python other than the 3.13.9 `bin/test` built: CI's matrix runs 3.12 (`.github/workflows/test.yml`), and the spec measured its set on 3.14 | executed in phase 2 at `128dda72`: 17 passed on 3.12.12 and 3.14.4 (the first spawn), and 18 passed, the 17 and the guard, on 3.12.11 and 3.14.3 (the second), each through `uv run --isolated` with `markdown-it-py==4.2.0` |
-| ✅ The `Ran by` row of each phase record | the orchestrator named `specseal:smith on claude-opus-5-5` in phase 2's second spawn prompt, and both phase records carry it as given |
+| closed The S4 case on a Python other than the 3.13.9 `bin/test` built: CI's matrix runs 3.12 (`.github/workflows/test.yml`), and the spec measured its set on 3.14 | executed in phase 2 at `128dda72`: 17 passed on 3.12.12 and 3.14.4 (the first spawn), and 18 passed, the 17 and the guard, on 3.12.11 and 3.14.3 (the second), each through `uv run --isolated` with `markdown-it-py==4.2.0` |
+| closed The `Ran by` row of each phase record | the orchestrator named `specseal:smith on claude-opus-5-5` in phase 2's second spawn prompt, and both phase records carry it as given |
 
 ## Not done
 

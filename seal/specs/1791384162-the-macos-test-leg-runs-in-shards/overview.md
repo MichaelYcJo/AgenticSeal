@@ -23,7 +23,7 @@ now reads the matrix in one place.
 
 | Item | Who must answer |
 |---|---|
-| ✅ The three macOS shards' times, counts and sum against ubuntu's (`questions.md` Q1) | run 37700567455 at 3a946dd0, read by phase 2 on 2026-10-08: 5 m 22 s, 6 m 24 s, 6 m 56 s; 12,827 cases, ubuntu's count (`phases/phase-2.md`) |
+| closed The three macOS shards' times, counts and sum against ubuntu's (`questions.md` Q1) | run 37700567455 at 3a946dd0, read by phase 2 on 2026-10-08: 5 m 22 s, 6 m 24 s, 6 m 56 s; 12,827 cases, ubuntu's count (`phases/phase-2.md`) |
 | That GitHub reads each macOS shard's `timeout` of 15 | the pull request's run at the final SHA |
 | The whole suite at the final head | the sealer |
 

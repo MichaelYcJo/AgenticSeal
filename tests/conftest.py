@@ -1,7 +1,5 @@
 """The suite's shared helpers and fixtures, and the environment every case runs in.
 
-Reads: observed — the process environment it inherits, `os.environ`; unknown refused
-
 The module body sets that environment for every case and every child: the
 locale, git's template and maintenance, `gh`'s login and `PATH`. It reads
 the case ceiling from it too, and a ceiling that is not a positive number
@@ -37,9 +35,7 @@ REVIEW_CHAIN_DOCS = (
 
 def review_chain_text(root):
     """The review chain's documents under `root`, each whitespace-collapsed,
-    joined.
-
-    Reads: owned — this repository's documents; unknown refused"""
+    joined."""
     texts = []
     for parts in REVIEW_CHAIN_DOCS:
         with open(os.path.join(root, *parts), encoding="utf-8") as handle:
@@ -343,8 +339,6 @@ def gathered_entry(root, work_item_id):
     case pinning what a fragment says reads the fragment while it exists and
     this block after. The block runs from the marker to the next marker line
     or heading, which is where the gatherer puts the next entry.
-
-    Reads: owned — this repository's `changelog/X.Y.Z.md` files; unknown passed
     """
     start = f"<!-- specs/{work_item_id} -->"
     directory = os.path.join(root, "changelog")
@@ -972,8 +966,6 @@ def pytest_collection_modifyitems(session, items):
     collection on a shard as on ubuntu, and a case selected alone by `-k`
     still reads the suite. Under xdist each worker collects the whole suite
     and runs this hook itself.
-
-    Reads: observed — the items pytest collected, recorded unjudged; unknown passed
     """
     setattr(session, COLLECTED_NODE_IDS, [item.nodeid for item in items])
 
@@ -987,8 +979,6 @@ def posix_id(value, sep=os.sep):
     Windows, and the file then prices that case on Windows alone. Pass it as
     `ids=` where a parametrization's values are paths. `sep` is the platform's
     separator unless a case hands it Windows' to read this on POSIX.
-
-    Reads: nothing — rewrites the value its caller hands it
     """
     if not isinstance(value, str):
         return None

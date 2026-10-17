@@ -62,15 +62,11 @@ HEADER = (
 
 class Unreadable(Exception):
     """A tree or a file the table reads could not be read, and the sentence
-    says which.
-
-    Reads: nothing — an exception carrying the sentence its raiser wrote"""
+    says which."""
 
 
 def meter():
-    """`payload_meter.py`, loaded by path, or Unreadable.
-
-    Reads: owned — a module this repository ships beside this script; unknown refused"""
+    """`payload_meter.py`, loaded by path, or Unreadable."""
     if not os.path.isfile(METER):
         raise Unreadable(
             "cannot read skills/verify/scripts/payload_meter.py, which measures "
@@ -83,17 +79,13 @@ def meter():
 
 
 def lf_bytes(path):
-    """The bytes of the file at `path` with each CRLF counted as one LF.
-
-    Reads: observed — the file's bytes on disk; unknown refused"""
+    """The bytes of the file at `path` with each CRLF counted as one LF."""
     with open(path, "rb") as handle:
         return len(handle.read().replace(b"\r\n", b"\n"))
 
 
 def preloads(root, kernel):
-    """`{agent: bytes}` for every agent the tree at `root` defines.
-
-    Reads: owned — each agent definition's frontmatter and the files it names, through `payload_meter`; unknown refused"""
+    """`{agent: bytes}` for every agent the tree at `root` defines."""
     try:
         found = kernel.agents_in(root)
         out = {}
@@ -109,9 +101,7 @@ def preloads(root, kernel):
 
 def suite_seconds(root):
     """The seconds `.test_durations` in the tree at `root` prices every case
-    at, summed, or Unreadable.
-
-    Reads: observed — the JSON the suite's durations plugin wrote; unknown refused"""
+    at, summed, or Unreadable."""
     path = os.path.join(root, DURATIONS)
     try:
         with open(path, encoding="utf-8") as handle:
@@ -129,9 +119,7 @@ def suite_seconds(root):
 
 def documents(root):
     """`{path: bytes}` of `CLAUDE.md`, `CONTRIBUTING.md` and each `docs/*.md`
-    in the tree at `root`, each path written with `/`.
-
-    Reads: observed — the files' bytes on disk; unknown refused"""
+    in the tree at `root`, each path written with `/`."""
     out = {}
     for pattern in DOCUMENTS:
         for path in sorted(glob.glob(os.path.join(root, *pattern.split("/")))):
@@ -144,9 +132,7 @@ def leg_minutes(path):
     """`{leg: minutes}` for one run's job list at `path`, the minutes of a
     leg summed over its pytest jobs; `{}` where there is no such file, it is
     empty, or a line of it is no job. A job with no start or end time is not
-    counted, and a leg none of whose jobs has both is no reading.
-
-    Reads: observed — the job list GitHub's API returned, written by `gh`; unknown passed"""
+    counted, and a leg none of whose jobs has both is no reading."""
     if not path or not os.path.isfile(path):
         return {}
     legs = {}
@@ -175,9 +161,7 @@ def leg_minutes(path):
 
 def change(old, new, digits=0):
     """The Change cell: the difference and its share of the old reading, or
-    which side has no reading.
-
-    Reads: nothing — formats the numbers handed to it"""
+    which side has no reading."""
     if old is None and new is None:
         return ABSENT
     if old is None:
@@ -190,17 +174,13 @@ def change(old, new, digits=0):
 
 
 def cell(value, digits=0, missing=ABSENT):
-    """One reading as the table prints it.
-
-    Reads: nothing — formats the number handed to it"""
+    """One reading as the table prints it."""
     return missing if value is None else f"{value:,.{digits}f}"
 
 
 def table(tag, at, now, jobs_at, jobs_now):
     """The printed table: `at` and `now` are each `(preloads, seconds,
-    documents)`, `jobs_at` and `jobs_now` each `{leg: minutes}`.
-
-    Reads: nothing — formats the readings handed to it"""
+    documents)`, `jobs_at` and `jobs_now` each `{leg: minutes}`."""
     rows = []
     for agent in sorted(set(at[0]) | set(now[0])):
         old, new = at[0].get(agent), now[0].get(agent)
@@ -241,9 +221,7 @@ def table(tag, at, now, jobs_at, jobs_now):
 
 
 def reading(root, kernel):
-    """`(preloads, seconds, documents)` of the tree at `root`, or Unreadable.
-
-    Reads: observed — the tree at `root`, through `preloads`, `suite_seconds` and `documents`; unknown refused"""
+    """`(preloads, seconds, documents)` of the tree at `root`, or Unreadable."""
     if not os.path.isdir(root):
         raise Unreadable(f"{root} is no directory")
     return preloads(root, kernel), suite_seconds(root), documents(root)
@@ -251,9 +229,7 @@ def reading(root, kernel):
 
 def main(argv=None):
     """Read both trees and both job lists, print the table; exit 0 whatever
-    it shows, 2 where a tree cannot be read.
-
-    Reads: guess — the arguments and the trees and files they name; unknown refused"""
+    it shows, 2 where a tree cannot be read."""
     parser = argparse.ArgumentParser(description=__doc__.partition("\n")[0])
     parser.add_argument("--against", required=True, metavar="TAG")
     parser.add_argument("--at", required=True, metavar="DIR")

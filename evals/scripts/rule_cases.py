@@ -108,9 +108,7 @@ none
 
 
 def one_phase_plan(name, delivers):
-    """An approved one-phase `plan.md` for NAME that delivers DELIVERS.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """An approved one-phase `plan.md` for NAME that delivers DELIVERS."""
     return f"""# Implementation Plan: {name}
 
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
@@ -124,9 +122,7 @@ Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 
 
 def routing(branch, planning, implementation):
-    """A routing declaration under automation for BRANCH.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """A routing declaration under automation for BRANCH."""
     return f"""# routing
 
 | Axis | Answer |
@@ -142,9 +138,7 @@ def routing(branch, planning, implementation):
 
 
 def write(path, text):
-    """A scaffold line that writes TEXT to PATH, its directory made first.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """A scaffold line that writes TEXT to PATH, its directory made first."""
     delimiter = "SPECSEAL_EOF"
     if delimiter in text:
         raise ValueError(f"{path}: the text holds the heredoc delimiter")
@@ -152,9 +146,7 @@ def write(path, text):
 
 
 def base_project(item, branch, planning, implementation):
-    """Scaffold lines for the project on `main` and BRANCH checked out.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """Scaffold lines for the project on `main` and BRANCH checked out."""
     files = {
         "src/textutil.py": TEXTUTIL,
         "src/__init__.py": "",
@@ -178,9 +170,7 @@ def base_project(item, branch, planning, implementation):
 
 
 def orchestrate(agent, spawn, then):
-    """The case prompt: the session spawns AGENT once with SPAWN, then THEN.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """The case prompt: the session spawns AGENT once with SPAWN, then THEN."""
     return f"""You are the orchestrator of this repository. Spawn exactly one `specseal:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
 
 BEGIN PROMPT
@@ -191,9 +181,7 @@ END PROMPT"""
 
 
 def shape_regex(name, target, pattern, body, **extra):
-    """A `shape-` regex grader.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """A `shape-` regex grader."""
     return behaviour.grader(
         "shape", name, body, type="regex", target=target, pattern=pattern, **extra
     )
@@ -201,9 +189,7 @@ def shape_regex(name, target, pattern, body, **extra):
 
 def shape_tool(name, tool, body, **bounds):
     """A `shape-` tool_used grader. A `max: 0` carries `min: 0` with it: the
-    runner's `min` defaults to 1, so `max: 0` alone can never pass.
-
-    Reads: nothing — it formats the fields it is handed."""
+    runner's `min` defaults to 1, so `max: 0` alone can never pass."""
     if bounds.get("max") == 0:
         bounds.setdefault("min", 0)
     return behaviour.grader("shape", name, body, type="tool_used", tool=tool, **bounds)
@@ -213,9 +199,7 @@ def writes_only(name, allowed, body):
     """Two `shape-` graders that no `Write` and no `Edit` lands in the run's
     repository outside ALLOWED, a path or a folder relative to it.
 
-    The repository is the runner's `home/cwd/`, measured on 2.1.296 traces.
-
-    Reads: nothing — it formats the fields it is handed."""
+    The repository is the runner's `home/cwd/`, measured on 2.1.296 traces."""
     pattern = rf'"file_path"\s*:\s*"[^"]*/home/cwd/(?!{behaviour.js_escape(allowed)})'
     return [
         shape_tool(f"{name}-{tool.lower()}", tool, body, input_match=pattern, max=0)
@@ -229,9 +213,7 @@ WARDEN_ITEM = "1790000001-shout-ends-with-one-exclamation-mark"
 
 
 def warden_case():
-    """One review of a diff that drops the spec's exclamation mark.
-
-    Reads: nothing — it formats fixed text."""
+    """One review of a diff that drops the spec's exclamation mark."""
     item, branch = WARDEN_ITEM, "feat/shout-exclaims"
     spec = """# Feature Specification: shout ends with one exclamation mark
 
@@ -324,9 +306,7 @@ SMITH_BUILDS = (
 
 
 def smith_case(index, slug, signature, rule, example):
-    """One one-phase build against an approved plan.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """One one-phase build against an approved plan."""
     item = f"179000001{index}-{slug}"
     branch = f"feat/{slug}"
     name = signature.split("(")[0]
@@ -425,9 +405,7 @@ FRAMER_ISSUES = (
 
 
 def framer_case(index, slug, issue):
-    """One issue to frame as a work item whose routing is written.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """One issue to frame as a work item whose routing is written."""
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
     lines = base_project(item, branch, "framer", "smith")
@@ -595,9 +573,7 @@ def sealer_case(slug, true_case, extra, verdict, names):
     The build fixes `shout("")`; its phase record says the new case was seen
     red; the round record confirms it; the changelog and the pull request
     body describe it. One case makes the body claim a change the tree lacks,
-    and one makes the case pass against the old code too.
-
-    Reads: nothing — it formats the fields it is handed."""
+    and one makes the case pass against the old code too."""
     item = f"1790000030-guarantee-{slug}"
     branch = f"feat/guarantee-{slug}"
     folder = f"seal/specs/{item}"
@@ -696,9 +672,7 @@ def sealer_case(slug, true_case, extra, verdict, names):
 
 
 def cases():
-    """`[(directory name, case)]` for every fixture case.
-
-    Reads: nothing — it builds fixed cases."""
+    """`[(directory name, case)]` for every fixture case."""
     out = [warden_case()]
     out += [smith_case(i, *build) for i, build in enumerate(SMITH_BUILDS, 1)]
     out += [framer_case(i, *issue) for i, issue in enumerate(FRAMER_ISSUES, 1)]
@@ -709,9 +683,7 @@ def cases():
 def main(argv=None):
     """Parse the arguments and write every case.
 
-    An unusable argument is argparse's exit 2.
-
-    Reads: owned — its own argument vector; unknown refused"""
+    An unusable argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--out", default=OUT)
     a = p.parse_args(argv)

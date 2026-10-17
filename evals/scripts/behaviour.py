@@ -17,23 +17,17 @@ ORCHESTRATOR_TOOLS = ("Agent", "Task", "Bash", "Read", "Write", "Edit", "Glob", 
 
 
 def js_escape(text):
-    """`text` as a JavaScript regex matching it literally.
-
-    Reads: nothing — it maps the characters of a string it is handed."""
+    """`text` as a JavaScript regex matching it literally."""
     return "".join("\\" + c if c in "\\^$.*+?()[]{}|/" else c for c in text)
 
 
 def squote(text):
-    """`text` as a YAML single-quoted scalar, which takes no escapes.
-
-    Reads: nothing — it maps the characters of a string it is handed."""
+    """`text` as a YAML single-quoted scalar, which takes no escapes."""
     return "'" + text.replace("'", "''") + "'"
 
 
 def grader(kind, name, body, **fields):
-    """`(file name, text)` for one grader of KIND; FIELDS are its frontmatter.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """`(file name, text)` for one grader of KIND; FIELDS are its frontmatter."""
     if kind not in KINDS:
         raise ValueError(f"grader kind {kind!r} is not one of {KINDS}")
     lines = ["---"]
@@ -53,9 +47,7 @@ def grader(kind, name, body, **fields):
 
 def report_regex(kind, name, path, pattern, body, flags="m", **extra):
     """A regex grader over the file at PATH, multiline unless FLAGS says
-    otherwise; EXTRA are further frontmatter fields, `match` among them.
-
-    Reads: nothing — it formats the fields it is handed."""
+    otherwise; EXTRA are further frontmatter fields, `match` among them."""
     return grader(
         kind,
         name,
@@ -70,9 +62,7 @@ def report_regex(kind, name, path, pattern, body, flags="m", **extra):
 
 def reach(agent):
     """The grader that the session spawned `specseal:<agent>` through the
-    `Agent` tool, the way production does.
-
-    Reads: nothing — it formats the fields it is handed."""
+    `Agent` tool, the way production does."""
     return grader(
         "reach",
         agent,
@@ -101,9 +91,7 @@ EMOJI_RANGES = (
 def report_shape(agent, report):
     """The reach grader and the three shape graders of a warden round
     record at REPORT: it exists, it carries a finding in the record's shape,
-    and it is written in words.
-
-    Reads: nothing — it formats the fields it is handed."""
+    and it is written in words."""
     return [
         reach(agent),
         grader(
@@ -135,9 +123,7 @@ def report_shape(agent, report):
 def write_case(directory, *, name, tags, prompt, scaffold, graders, **execution):
     """Write one case under DIRECTORY, replacing what it held.
 
-    DIRECTORY is removed first when it exists.
-
-    Reads: observed — whether DIRECTORY exists, before it writes; unknown passed"""
+    DIRECTORY is removed first when it exists."""
     if os.path.isdir(directory):
         shutil.rmtree(directory)
     os.makedirs(os.path.join(directory, "graders"))

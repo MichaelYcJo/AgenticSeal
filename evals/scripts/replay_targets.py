@@ -2,15 +2,25 @@
 """Generate the warden's replay cases from round records.
 
 A replay case is a historical review target: the clone at the commit a
-round record reviewed (its `Target SHA` row, in the records these targets
-come from), the base its `## What this round was asked` paragraph names,
-and that paragraph as the round's spawn prompt. Its truth is every finding
-the round closed `fixed` that the next round confirmed closed — there a
-numbered red or yellow row, and a green row naming it; each is a `truth-`
-grader over the `location:` lines of the round record the warden writes
-today. Round records come
-from the working tree and from the last two release tags
-(`git show <tag>:seal/specs/<id>/rounds/round-N.md`).
+round record reviewed and the base it was reviewed against. Its truth is
+every finding the round closed `fixed` that the next round confirmed
+closed; each is a `truth-` grader over the `location:` lines of the round
+record the warden writes today. A record comes in one of two shapes:
+
+  labelled   0.22.0's record (`docs/the-review-record.md` §*The round
+             record*), read through `chain_check.py`'s own reader: the
+             commit and the base are its `target:` line, a finding is a
+             `### <n>. ` section at `verdict: fixed <commit>`, and the next
+             round confirms it on a `confirms: round-<N>#<n>` line. It
+             carries no asked paragraph, so the prompt carries none
+  table      the records before it: the `Target SHA` row, the base and the
+             prompt's paragraph from `## What this round was asked`, a
+             numbered red or yellow row, and a green row naming it
+
+Round records come from the working tree and from the last two release
+tags (`git show <tag>:seal/specs/<id>/rounds/round-N.md`); `--case` reads
+every release tag, so a committed case still regenerates after the release
+that moved its records out of the last two.
 
 Usage:
   replay_targets.py --list                 every round with truth, and why
@@ -19,16 +29,18 @@ Usage:
                                            one per work item, under DIR
                                            (evals/behaviour/warden/)
   replay_targets.py --case NAME [--out DIR]
-                                           write the named case alone, as
-                                           `--list` shows it (`replay-<id>-rN`);
-                                           repeatable
+                                           write the named case alone
+                                           (`replay-<id>-rN`), from any
+                                           release tag; repeatable
 
 Exit codes: 0 written or listed · 1 fewer targets than --count, or a
-named case not on the list · 2 the arguments were unusable.
+named case no release tag's records hold · 2 the arguments were unusable.
 """
 
 import argparse
 import ast
+import functools
+import importlib.util
 import os
 import re
 import subprocess
@@ -39,6 +51,8 @@ import behaviour
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour", "warden")
+CHECK = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
+SHA = re.compile(r"[0-9a-f]{7,40}")
 RECORD = re.compile(r"seal/specs/(?P<item>[^/]+)/rounds/round-(?P<n>\d+)\.md")
 FINDING = re.compile(r"^(?P<marker>🔴|🟡) (?P<k>\d+)$")
 CONFIRMS = re.compile(
@@ -59,9 +73,7 @@ MODEL = "claude-opus-5-5"
 def git(*args, check=True):
     """`git -C ROOT <args>`'s stdout.
 
-    A failure stops the run where CHECK is set and is empty otherwise.
-
-    Reads: observed — git's stdout for the arguments given; unknown mixed"""
+    A failure stops the run where CHECK is set and is empty otherwise."""
     run = subprocess.run(
         ["git", "-C", ROOT, *args], capture_output=True, text=True, encoding="utf-8"
     )
@@ -71,11 +83,10 @@ def git(*args, check=True):
 
 
 def last_tags(count=2):
-    """The COUNT highest `v*` release tags.
+    """The COUNT highest `v*` release tags, newest first; every one where
+    COUNT is None.
 
-    A tag that is not `vX.Y.Z` is skipped.
-
-    Reads: observed — `git tag --sort=-v:refname`; unknown passed"""
+    A tag that is not `vX.Y.Z` is skipped."""
     tags = [
         t
         for t in git("tag", "--sort=-v:refname").split("\n")
@@ -84,18 +95,24 @@ def last_tags(count=2):
     return tags[:count]
 
 
-def records(tags):
+def records(tags, items=None):
     """`{(item, n): text}` for every round record in the working tree and at
     TAGS, the tree read first and a tag's copy of the same round skipped.
+    Where ITEMS is given, only the work items whose `<epoch>` prefix it
+    names are read.
 
-    A path outside the record shape is skipped.
+    A path outside the record shape is skipped."""
 
-    Reads: observed — round records under ROOT and at each tag; unknown passed"""
+    def wanted(item):
+        return items is None or item.split("-")[0] in items
+
     found = {}
     specs = os.path.join(ROOT, "seal", "specs")
     for item in sorted(os.listdir(specs)) if os.path.isdir(specs) else []:
         rounds = os.path.join(specs, item, "rounds")
-        for name in sorted(os.listdir(rounds)) if os.path.isdir(rounds) else []:
+        if not wanted(item) or not os.path.isdir(rounds):
+            continue
+        for name in sorted(os.listdir(rounds)):
             m = RECORD.fullmatch(f"seal/specs/{item}/rounds/{name}")
             if m:
                 with open(os.path.join(rounds, name), encoding="utf-8") as f:
@@ -103,17 +120,77 @@ def records(tags):
     for tag in tags:
         for path in git("ls-tree", "-r", "--name-only", tag, "seal/specs").split("\n"):
             m = RECORD.fullmatch(path)
-            if m and (m["item"], int(m["n"])) not in found:
-                found[(m["item"], int(m["n"]))] = git("show", f"{tag}:{path}")
+            key = (m["item"], int(m["n"])) if m else None
+            if key and wanted(key[0]) and key not in found:
+                found[key] = git("show", f"{tag}:{path}")
     return found
+
+
+@functools.cache
+def record_reader():
+    """`(chain_check, its shared reader)`: the one reader of a labelled
+    record, `chain_check.py` beside this tree, loaded once.
+
+    A script that will not load stops the run naming it."""
+    spec = importlib.util.spec_from_file_location("specseal_chain_check", CHECK)
+    if spec is None or spec.loader is None:
+        raise SystemExit(f"replay_targets: cannot load {CHECK}")
+    check = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(check)
+    return check, check.SHARED_READER
+
+
+def labelled(text):
+    """True for a record in 0.22.0's labelled lines: one whose readable
+    lines hold a `target:` line, which no table record carries."""
+    check, reader = record_reader()
+    return any(
+        check.label_of(line) == check.TARGET_ROW for line in reader.readable(text)
+    )
+
+
+def labelled_round(text, rel, n):
+    """`(round, why)` for record N in labelled lines, read through
+    `chain_check.py#round_of`: `round` is `{"sha", "value", "findings",
+    "confirms"}` — the `target:` commit and the line's whole value, each
+    finding as `(n, symptom, its location value, fixed or not)`, and the
+    `(round, finding)` pairs its `confirms:` lines name.
+
+    A record the check refuses is `(None, the first refusal)`, so a replay
+    reads only what the pull request accepted."""
+    check, reader = record_reader()
+    found, errors = check.round_of(reader, text, rel, n)
+    if errors:
+        _rel, line, why = errors[0]
+        return None, f"the check refuses the record at line {line}: {why}"
+    lines = reader.readable(text)
+    value = next(
+        check.value_of(x) for x in lines if check.label_of(x) == check.TARGET_ROW
+    )
+    _section, spans, _error = check.finding_spans(reader, lines)
+    stops = {first + 1: stop for first, stop in spans}
+    rows = []
+    for f in found.findings:
+        location = next(
+            check.value_of(lines[i])
+            for i in range(f.heading_line, stops[f.heading_line])
+            if check.label_of(lines[i]) == check.LOCATION_ROW
+        )
+        symptom = f.heading.split(". ", 1)[1]
+        rows.append((f.number, symptom, location, f.verdict[0] == check.FIXED))
+    confirms = {reference for _line, reference in found.confirms}
+    return {
+        "sha": found.target,
+        "value": value,
+        "findings": rows,
+        "confirms": confirms,
+    }, ""
 
 
 def cells(line):
     """The cells of one table row, `\\|` kept inside its cell.
 
-    A line that is no row gives no cells.
-
-    Reads: guess — a line it is handed, split at every unescaped `|`; unknown passed"""
+    A line that is no row gives no cells."""
     if not line.startswith("|"):
         return []
     parts = re.split(r"(?<!\\)\|", line.strip())
@@ -123,9 +200,7 @@ def cells(line):
 def field(text, name):
     """The value of the `| NAME | value |` row of a record's header table.
 
-    No such row is None.
-
-    Reads: guess — the record text it is handed; unknown passed"""
+    No such row is None."""
     for line in text.split("\n"):
         row = cells(line)
         if len(row) == 2 and row[0] == name:
@@ -136,9 +211,7 @@ def field(text, name):
 def asked(text):
     """The `## What this round was asked` paragraph of a record.
 
-    A record without the section gives an empty string.
-
-    Reads: guess — the record text it is handed, up to the next `## `; unknown passed"""
+    A record without the section gives an empty string."""
     m = re.search(
         r"^## What this round was asked\n(?P<body>.*?)(?=^## )", text, re.M | re.S
     )
@@ -148,9 +221,7 @@ def asked(text):
 def resolve(rev):
     """The full SHA REV names as a commit, or an empty string.
 
-    A REV that does not resolve is an empty string.
-
-    Reads: observed — `git rev-parse --verify`; unknown passed"""
+    A REV that does not resolve is an empty string."""
     return git("rev-parse", "--verify", "-q", f"{rev}^{{commit}}", check=False).strip()
 
 
@@ -159,9 +230,7 @@ def base_of(paragraph, target):
     `against <ref> at <sha>`, then a fix range `<a>..<b>`'s start, then
     `against <ref>` read as its merge-base with TARGET; `("", None)` if none.
 
-    A paragraph naming none of the three gives no base.
-
-    Reads: guess — the paragraph it is handed, and git for each name; unknown passed"""
+    A paragraph naming none of the three gives no base."""
     m = AGAINST_AT.search(paragraph)
     if m and resolve(m["base"]):
         return resolve(m["base"]), m["ref"]
@@ -176,13 +245,30 @@ def base_of(paragraph, target):
     return "", None
 
 
+def target_base(value, target):
+    """`(base SHA, base ref or None)` a labelled record's `target:` VALUE
+    names for TARGET: a fix range `<a>..<b>`'s start, an `against <sha>`
+    commit, or `against <base>` read as the merge-base of TARGET and
+    `origin/<base>`; `("", None)` if none resolves."""
+    m = FIX_RANGE.search(value)
+    if m and resolve(m["base"]):
+        return resolve(m["base"]), None
+    _sha, _against, name = value.partition(" against ")
+    if SHA.fullmatch(name) and resolve(name):
+        return resolve(name), None
+    ref = name if name.startswith("origin/") else f"origin/{name}"
+    if name and resolve(ref):
+        base = git("merge-base", target, ref, check=False).strip()
+        if base:
+            return base, ref
+    return "", None
+
+
 def findings(text):
     """`[(marker, k, finding, location, verdict)]` for every numbered 🔴 and
     🟡 verdict row of a record.
 
-    A row of another shape is skipped.
-
-    Reads: guess — the record text it is handed; unknown passed"""
+    A row of another shape is skipped."""
     rows = []
     for line in text.split("\n"):
         row = cells(line)
@@ -193,12 +279,16 @@ def findings(text):
     return rows
 
 
-def confirmed(text, n):
-    """The finding numbers of round N a record's 🟢 rows confirm closed.
+def confirmed(text, n, rel="the next round's record"):
+    """The finding numbers of round N a record confirms closed: its
+    `confirms: round-<N>#<n>` lines where it is labelled, its 🟢 rows where
+    it is a table.
 
-    A 🟢 row that names no round N finding confirms nothing.
-
-    Reads: guess — the record text it is handed; unknown passed"""
+    A line or row that names no round N finding confirms nothing, and a
+    labelled record the check refuses confirms nothing at all."""
+    if labelled(text):
+        read, _why = labelled_round(text, rel, n + 1)
+        return {k for r, k in read["confirms"] if r == n} if read else set()
     done = set()
     for line in text.split("\n"):
         row = cells(line)
@@ -213,9 +303,7 @@ def enclosing(source, line):
     """`(names, (first, last))` of the innermost `def` or `class` holding LINE
     in Python SOURCE, outermost name first, or `([], None)`.
 
-    A source that does not parse gives no unit.
-
-    Reads: guess — the source text it is handed, through `ast`; unknown passed"""
+    A source that does not parse gives no unit."""
     try:
         tree = ast.parse(source)
     except SyntaxError:
@@ -239,9 +327,7 @@ def enclosing(source, line):
 def unit_span(source, dotted):
     """`(first, last)` of the unit DOTTED names in Python SOURCE, or None.
 
-    A unit not found gives None.
-
-    Reads: guess — the source text it is handed, through `ast`; unknown passed"""
+    A unit not found gives None."""
     try:
         tree = ast.parse(source)
     except SyntaxError:
@@ -269,9 +355,7 @@ def truth_pattern(location, target):
     Where no line can be read, the path alone or with a line. Never a
     `path#unit`, which `chain_check.py` refuses in a `location:` line.
 
-    A location naming no backticked path gives None.
-
-    Reads: observed — `git show TARGET:<path>` for a Python path; unknown passed"""
+    A location naming no backticked path gives None."""
     m = LOCATION.search(location)
     if not m:
         return None
@@ -293,49 +377,55 @@ def truth_pattern(location, target):
     return "^location: .*(?:" + option + ")"
 
 
-def targets(tags):
+def targets(tags, items=None):
     """`[target]` for every round with truth, and `[(item, n, why)]` for each
-    round left out.
+    round left out, over the records `records` reads at TAGS for ITEMS.
 
-    A round whose SHAs or branch do not resolve is left out with the reason.
-
-    Reads: observed — the records `records` returns, and git per SHA; unknown passed"""
-    found = records(tags)
+    A round whose SHAs or branch do not resolve, or a labelled record the
+    check refuses, is left out with the reason."""
+    found = records(tags, items)
     kept, left = [], []
     for (item, n), text in sorted(found.items()):
-        sha = field(text, "Target SHA") or ""
-        sha = sha.split()[0] if sha else ""
+        rel = f"seal/specs/{item}/rounds/round-{n}.md"
+        if labelled(text):
+            read, why = labelled_round(text, rel, n)
+            if read is None:
+                left.append((item, n, why))
+                continue
+            sha, para, label = read["sha"], "", "target"
+            rows = read["findings"]
+        else:
+            sha = field(text, "Target SHA") or ""
+            sha, para, label = sha.split()[0] if sha else "", asked(text), "Target SHA"
+            rows = [(k, f, at, "fixed" in v) for _m, k, f, at, v in findings(text)]
         nxt = found.get((item, n + 1))
         if not sha or not resolve(sha):
-            left.append((item, n, f"Target SHA {sha or '(none)'} does not resolve"))
+            left.append((item, n, f"{label} {sha or '(none)'} does not resolve"))
             continue
         if nxt is None:
             left.append((item, n, "no next round to confirm a fix"))
             continue
-        para = asked(text)
-        base, base_ref = base_of(para, sha)
+        if labelled(text):
+            base, base_ref = target_base(read["value"], sha)
+            names = "the target line"
+        else:
+            base, base_ref = base_of(para, sha)
+            names = "the asked paragraph"
         if not base:
-            left.append((item, n, "the asked paragraph names no base that resolves"))
+            left.append((item, n, f"{names} names no base that resolves"))
             continue
         routing = git("show", f"{sha}:seal/specs/{item}/routing.md", check=False)
         branch = field(routing, "Branch")
         if not branch:
             left.append((item, n, "routing.md at the target names no branch"))
             continue
-        done = confirmed(nxt, n)
+        done = confirmed(nxt, n, f"seal/specs/{item}/rounds/round-{n + 1}.md")
         truths = []
-        for marker, k, finding, location, verdict in findings(text):
-            if "fixed" in verdict and k in done:
+        for k, finding, location, fixed in rows:
+            if fixed and k in done:
                 pattern = truth_pattern(location, sha)
                 if pattern:
-                    truths.append(
-                        {
-                            "k": k,
-                            "marker": marker,
-                            "finding": finding,
-                            "pattern": pattern,
-                        }
-                    )
+                    truths.append({"k": k, "finding": finding, "pattern": pattern})
         if not truths:
             left.append((item, n, "no fixed finding the next round confirmed"))
             continue
@@ -360,9 +450,7 @@ def targets(tags):
 def origin_url():
     """The `origin` remote as an https URL a scaffold can fetch from.
 
-    A URL of another shape stops the run.
-
-    Reads: observed — `git remote get-url origin`; unknown refused"""
+    A URL of another shape stops the run."""
     url = git("remote", "get-url", "origin").strip()
     m = re.fullmatch(
         r"(?:git@github\.com:|https://github\.com/)(?P<repo>[\w.-]+/[\w.-]+?)(?:\.git)?",
@@ -375,26 +463,24 @@ def origin_url():
 
 def prompt(t):
     """The case prompt: the orchestrator's one spawn, then the report read
-    back so the run's trace holds it.
-
-    Reads: nothing — it formats the target it is handed."""
+    back so the run's trace holds it. The round's asked paragraph ends the
+    spawn where its record carried one, and nothing does where it did not."""
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
     base = f"`{t['base_ref']}` at `{t['base']}`" if t["base_ref"] else f"`{t['base']}`"
     asked = " ".join(t["asked"].split())
+    asked = f" {asked}" if asked else ""
     return f"""You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
 
 BEGIN PROMPT
 
-Review round {t["n"]} of work item `{t["item"]}`. The clone is the current directory, on branch `{t["branch"]}` at `{t["target"]}`; the base is {base}. Write the report to `{report}` and return its path. {asked}
+Review round {t["n"]} of work item `{t["item"]}`. The clone is the current directory, on branch `{t["branch"]}` at `{t["target"]}`; the base is {base}. Write the report to `{report}` and return its path.{asked}
 
 END PROMPT"""
 
 
 def scaffold(t, url):
     """The scaffold: the target and its base fetched, the branch checked out,
-    and the base ref the asked paragraph names.
-
-    Reads: nothing — it formats the target it is handed."""
+    and the base ref the asked paragraph names."""
     lines = [
         "git init -q .",
         f"git remote add origin {url}",
@@ -409,9 +495,7 @@ def scaffold(t, url):
 
 
 def graders(t):
-    """Reach, shape and truth graders for one target.
-
-    Reads: nothing — it formats the target it is handed."""
+    """Reach, shape and truth graders for one target."""
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
     out = behaviour.report_shape("warden", report)
     for truth in t["truths"]:
@@ -428,18 +512,15 @@ def graders(t):
 
 
 def case_name(t):
-    """The case's directory and display name.
-
-    Reads: nothing — it formats the target it is handed."""
+    """The case's directory and display name."""
     return f"replay-{t['item'].split('-')[0]}-r{t['n']}"
 
 
 def main(argv=None):
-    """Parse the arguments, then list or write.
+    """Parse the arguments, then list or write. `--case` reads its work
+    items' records at every release tag; the rest reads the last two.
 
-    An unusable argument is argparse's exit 2.
-
-    Reads: owned — its own argument vector; unknown refused"""
+    An unusable argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
     p.add_argument("--count", type=int, default=4)
@@ -448,7 +529,11 @@ def main(argv=None):
     p.add_argument("--model", default=MODEL)
     p.add_argument("--timeout", type=int, default=2400)
     a = p.parse_args(argv)
-    kept, left = targets(last_tags())
+    if a.case:
+        items = {name.removeprefix("replay-").rsplit("-r", 1)[0] for name in a.case}
+        kept, left = targets(last_tags(None), items)
+    else:
+        kept, left = targets(last_tags())
     if a.list:
         for t in sorted(kept, key=lambda t: t["size"]):
             print(f"{t['item']} r{t['n']}  {len(t['truths'])} truth  {t['size']} lines")

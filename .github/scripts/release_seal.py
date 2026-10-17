@@ -288,20 +288,11 @@ def readers():
     """`(routing, chain_check, the markdown reader)`: the modules the review
     chain's own gates read round records with, so the counts here are the
     ones a gate would read and a change to where records live has to move
-    these readers first."""
-    return (
-        module("specseal_routing", "hooks", "routing.py"),
-        module(
-            "specseal_chain_check", "skills", "code-review", "scripts", "chain_check.py"
-        ),
-        module(
-            "specseal_unverified_reader",
-            "skills",
-            "verify",
-            "scripts",
-            "unverified_check.py",
-        ),
+    these readers first. The markdown reader is the one the check loaded."""
+    chain = module(
+        "specseal_chain_check", "skills", "code-review", "scripts", "chain_check.py"
     )
+    return module("specseal_routing", "hooks", "routing.py"), chain, chain.SHARED_READER
 
 
 def labels_of(pull):
@@ -314,8 +305,6 @@ def labels_of(pull):
 def chain_counts(root, pulls):
     """`(items, rounds, capped, deferred)` for the release's pull requests,
     each a number or None for not read, with the log saying why.
-
-    Reads: guess — the work items' round records, through `chain_check.record_findings`, and the pull requests' labels; unknown refused
 
     `capped` counts the pull requests labelled `CAPPED_LABEL`. A pull request
     is a work item where exactly one `routing.md` under `root` names its head

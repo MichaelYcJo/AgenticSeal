@@ -108,9 +108,7 @@ def _session_cost():
     transcript could not be measured* and sends the reader to the transcript
     (#610). A copy of this script taken without its sibling is a broken
     plugin copy, where nothing ran, so it exits 2: the sentence to stderr,
-    then the int.
-
-    Reads: owned — the module this plugin ships beside this script; unknown refused"""
+    then the int."""
     path = os.path.join(HERE, "session_cost.py")
     if not os.path.isfile(path):
         sys.stderr.write(

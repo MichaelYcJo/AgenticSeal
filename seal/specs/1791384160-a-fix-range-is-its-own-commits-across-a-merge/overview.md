@@ -37,7 +37,7 @@ Two readers of a range walked it by the shape of its merges and read another wor
 
 | Item | Who must answer |
 |---|---|
-| ✅ `questions.md` Q3: the Windows leg's git emits `git grep -n -z` as `<rev>:<path>\0<line>\0<text>\n`, and `ls-tree -z` and `log --name-status -z` as measured on macOS; S10 and the three `-z` readers have run on macOS only | round 1's record: PR #878's Windows shards ran the changed modules on git 2.55.0.windows.5 with no failure among them and no skip on S10 |
+| closed `questions.md` Q3: the Windows leg's git emits `git grep -n -z` as `<rev>:<path>\0<line>\0<text>\n`, and `ls-tree -z` and `log --name-status -z` as measured on macOS; S10 and the three `-z` readers have run on macOS only | round 1's record: PR #878's Windows shards ran the changed modules on git 2.55.0.windows.5 with no failure among them and no skip on S10 |
 | the full suite, the repository-wide lint and the typecheck over this branch | the sealer, once, after the review rounds settle |
 
 ## Not done

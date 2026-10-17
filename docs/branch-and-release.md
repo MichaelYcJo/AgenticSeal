@@ -137,24 +137,21 @@ rule and the paragraphs below are why.
 | a hotfix branch | `main` | **3-way merge** | *Create a merge commit* |
 
 The last two rows are one rule: **anything reaching `main` is a merge commit.**
-A hotfix was squashed in once, and it cost nothing only because no rider stamp
-and no round record named its commits — which is a condition nobody should
-have to check at the merge button, so the ruleset does not offer the choice.
+A hotfix was squashed in once, and it cost nothing only because no round
+record named its commits — which is a condition nobody should have to check
+at the merge button, so the ruleset does not offer the choice.
 
 **What breaks when the last row is squashed** — measured. A squash
 discards every commit the release branch wrote, and anything naming one of
 them by SHA stops resolving.
 <!-- specs/1788826000-a-stamp-names-content-not-a-commit -->
-**A `# RIDER:` comment's stamp names content, never a commit, and the
-`target:` line in every `round-N.md` is what still names one.** The stamp
-used to read `Verified … at <sha>`, and after a squash it resolved for nobody,
-which removed the one way a reader has to tell a live rider from a spent one;
-`tests/test_a_rider_reaches_its_file.py` went red for exactly that, and the
-patch release after it exists to fix one line. Work item `1788826000` moved
-every stamp to an anchor and a hash, so a squash can no longer orphan one.
-The round records survived only
-because their feature branches had been restored to the remote first.
-Enforced by: tests/test_a_rider_reaches_its_file.py::test_no_rider_stamp_names_a_commit, tests/test_a_rider_reaches_its_file.py::test_every_rider_stamp_resolves_and_reproduces_its_hash
+**The `target:` line in every `round-N.md` is what still names a commit.**
+After a squash it resolves for nobody, which is why the check reads it only
+while the branch that holds the commit is open
+(`docs/the-review-record.md` §*The round record*). The round records of the
+squash that measured this survived only because their feature branches had
+been restored to the remote first.
+Enforced by: tests/test_a_rider_reaches_its_file.py::test_the_record_says_why_target_sha_names_a_commit
 
 <!-- specs/1790076050-the-release-tail-is-three-acts-no-document-names -->
 **A third reader points at those commits now, and it is outside this

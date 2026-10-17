@@ -245,11 +245,6 @@ adds any mechanism by what it takes away:
 - **Platform honesty.** Process inspection (`ps`, `lsof`, `/proc`) behaves
   differently across macOS, Linux, and Windows. If you cannot test a
   platform, say so in the PR rather than assuming.
-- **A `Reads:` line on every unit you add or change.** Each top-level `def`
-  and `class` of shipped Python says in its docstring what class of input it
-  decides from, and a changed unit leaves the census when it declares.
-  `docs/the-reader-registry.md` holds the grammar, and
-  `tests/test_a_reader_declares_its_input_class.py` refuses a unit without it.
 - **What it removes.** A pull request that adds a mechanism — a gate, a
   checker, a hook, a CI step, a rule — names the existing one it removes, or
   says why none can go, and with either answer what that one caught against

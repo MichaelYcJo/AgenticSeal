@@ -33,13 +33,19 @@ it. Not a walk through the diff.>
 line starting `none — <why>`. Leaving the placeholder row below fails the
 check — fill it in or write the `none` line instead.
 
-An item is closed by marking it, never by deleting the row:
+An item is closed by marking it, never by deleting the row: the Item cell
+opens with the word `closed`, lower case, then the item.
 
-    | ✅ <the item, kept> | <what closed it: the run, the session, the date> |
+    | closed <the item, kept> | <what closed it: the run, the session, the date> |
 
-An unmarked row counts open. Deleting the row — or this whole file — fails the
-next pull request, which is what keeps "I verified it" and "I tidied it away"
-from being the same edit.
+So an open item never opens with that word. An open item whose own text
+begins with the word `closed` reads as closed, and nothing refuses it:
+
+    | closed issues are not re-read | the owner |
+
+Word such an item to open with another word. An unmarked row counts open.
+Deleting the row — or this whole file — fails the next pull request, which is
+what keeps "I verified it" and "I tidied it away" from being the same edit.
 
 What the check compares is the NUMBER of rows, not their text, so the second
 cell is read by people rather than by it: a closing that leaves the original

@@ -201,7 +201,7 @@ OVERVIEW_CLOSED = """# x — overview
 
 | Item | Who must answer |
 |---|---|
-| ✅ a claim | run on 2026-01-01 |
+| closed a claim | run on 2026-01-01 |
 """
 
 MOMENT = "1700000006-release-0-1-0"

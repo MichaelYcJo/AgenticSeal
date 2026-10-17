@@ -15,8 +15,8 @@ second kind: nothing about the tree has been read yet.
 The invocation per script is the smallest one that reaches its loader:
 `settle.py` and `fold_check.py` load `hooks/optin.py` before they read the
 root, and
-`chain_check.py` loads its readers after argument parsing, so it needs its
-one required flag.
+`chain_check.py` loads the shared reader at import and `hooks/routing.py`
+after argument parsing, so it is given its one required flag.
 
 The two #610 added (`seal/specs/1790381329-the-deferred-sentences-and-pins/
 questions.md` Q4): `seal.py` loads at import, so any invocation argparse

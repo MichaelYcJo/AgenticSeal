@@ -122,8 +122,7 @@ incorporation. This file only adds what the skill does not carry.
         RE-MEASURED 2026-10-08, after #837 added a paragraph to this section
         below the example: one invocation for the line alone, one with
         everything above it, `_hides_a_commit` True for the file -- the same
-        three answers as at `5623d728`, before that paragraph.
-        Verified 2026-10-16 against "## Phases"@3e86429e. -->
+        three answers as at `5623d728`, before that paragraph. -->
 
    Left to the commit, that token stops a session that had the answer in its
    first minute — which is why the declaration is written before you are

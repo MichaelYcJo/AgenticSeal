@@ -121,22 +121,18 @@ every repository, whatever either row says:
 - **Branch names.** Still `<prefix>/<kebab-case-slug>` in ASCII: a branch
   name is typed into a shell and pasted into a URL.
 - **The field names, section headings and vocabulary a checker or a pinned
-  case reads literally** — a round record's `target:` line; its
-  `## Findings` heading and each finding's `verdict:` line, with its four
-  values `open`, `fixed`, `rejected` and the `deferred` in
-  `deferred <home>`, its `location:` line, its `regression:` line and its
-  `reopens:` line; its
-  `## Confirmations` heading and each `confirms:` line, reading `none` or a
-  reference spelt `round-<N>#<n>`; the labels the parties and the eval
-  graders read, `severity:` with its two words `must` and `should`, and
-  `answer:`, and the `## Not judged` and `## Probes` headings; a
+  case reads literally** — every cell of a round record's grammar, the
+  table in `docs/the-review-record.md` §*The round record*, which
+  `chain_check.py` reads; a round record's `## Not judged` and `## Probes`
+  headings, which the parties and the eval graders read; a
   `guarantee.md`'s `Target SHA`; a `broad-gate.md`'s `Broad gate`; an
   `overview.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns; a `spec.md`'s `## Removes` heading and the
   `nothing` in `nothing — <why>`. A translated field name is not a
   translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, the `✅` that closes a row, and a pact
+  section's `## X.Y.Z — <date>`, the word `closed` that opens a closed
+  `## Not verified` row, and a pact
   anchor's `pact:<name>/"<heading path>"@<hash>`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.

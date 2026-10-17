@@ -92,9 +92,7 @@ def toplevel(cwd):
 
 def load_stamp():
     """`seal_stamp.py`, or None where it cannot be imported, whatever its
-    import raises.
-
-    Reads: owned — the module this plugin ships beside the hook; unknown passed"""
+    import raises."""
     try:
         spec = importlib.util.spec_from_file_location(
             "specseal_seal_stamp_for_the_stop_hook", STAMP
