@@ -35,7 +35,7 @@ on outcome and cheaper in tokens against one baseline.
 
 | Item | Who must answer |
 |---|---|
-| CI on its three legs at phase 2's closing commit | the orchestrator |
+| closed CI on its three legs at phase 2's closing commit | the orchestrator, 2026-10-18: the `tests` workflow green on ubuntu, macOS and Windows at 314f6166 (run 39041691702), 155920f5 (run 39043767134) and 7e8e194e (run 39044553922), the last holding the code the broad gate ran at cc43f940 |
 | closed Whether a sentence can end the warden's record with no `verdict:` line (one in 18 in phase 2's run 2, five in 18 in run 1), or a check at the hand-back must | the orchestrator, 2026-10-17: a check — phase 3 had the warden read its record through `chain_check.py` before handing back; it did in 18 of 18 runs and no record lacked a `verdict:` line (`evals/warden-phase-3.md`) |
 
 ## Not done

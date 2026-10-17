@@ -20,7 +20,8 @@
 
   Each figure is the tree at `af9c924b` → at `93c1878c`, read from the work
   item's `evals/<agent>-phase-3.md` at `314f6166`. The smith and the framer
-  changed only through the contract; their own rewrites are #967 and #968.
+  changed through the contract and the loss of their tools-per-turn
+  figures; their own rewrites are #967 and #968.
   (`1792126889-every-agent-is-written-anew-from-its-job`, #957)
 - **The agent contract is written anew as twenty rules, each naming what
   enforces it (#957).** `skills/agent-contract/SKILL.md`, which every agent
