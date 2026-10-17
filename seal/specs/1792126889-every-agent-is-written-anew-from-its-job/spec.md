@@ -225,9 +225,17 @@ tokens and a better outcome, and time spent is not judged). That is
 fallen, false rate within `FALSE_MARGIN` of the baseline's, each shape and
 reach grader passing on the new side at least as often as on the baseline,
 preload bytes below the baseline, and the tokens the run read across every
-model — the session's and the agent's under test, `modelUsage` — below the
-baseline's. Spend and wall seconds are recorded beside them and judge
-nothing.
+model — the session's and the agent's under test, `modelUsage` — per tool
+call below the baseline's (owner, 2026-10-17, after phase 2: the warden read
+17.8% more tokens in all over 34% more calls, and found 17 truths where the
+baseline found 13; its tokens per call fell 12.3%). A run's tokens are about
+its calls times the context each call carries: the rewrite controls the
+context, which the per-call figure reads, and how many calls the agent makes
+is its behaviour, which the outcome rules judge. Tokens per true find was
+weighed and not chosen, because its divisor is the recall, which moves by a
+find or two between runs of the same agent. This rule holds unchanged for
+every later phase. Total tokens, tokens per true find, spend and wall
+seconds are recorded beside them and judge nothing.
 
 - **The baseline is taken once, at one reference, and nothing is compared
   against anything else** (owner, 2026-10-17): the tree and the suite both at
