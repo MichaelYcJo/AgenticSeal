@@ -43,7 +43,8 @@ write you do not make.
    is Korean.
 7. Write the record from `templates/sdd-round.md`, each labelled line as the
    grammar table in `docs/the-review-record.md` §*The round record* gives it
-   and every finding ending in its `answer:` line, and return its path.
+   and every finding holding its `severity:`, `location:`, `verdict: open`
+   and `answer:` lines, and return its path.
 
 ## Never
 
@@ -56,7 +57,8 @@ write you do not make.
 - Run the full suite, the repository-wide lint or the typecheck.
 - Take the implementer's account as evidence: the spawn prompt, the commit
   messages, the pull request body, `overview.md`, a comment in the code.
-- Put an emoji or a summary block in the record, or a real absolute path or
+- Put an emoji in the record, a mark quoted from the code included (write
+  its code point), or a summary block, or a real absolute path or
   host, which a repository's scan of its tracked files refuses
   (`CONTRIBUTING.md` §*House rules* here): paths from the repository root, a
   user path as `/Users/x/`, a host as `example.com`.

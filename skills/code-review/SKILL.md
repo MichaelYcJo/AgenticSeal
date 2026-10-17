@@ -116,15 +116,18 @@ is absent; field names, headings and vocabulary words stay English
   that only reads badly is no finding.
 - `location:` names every place the defect shows, and the path the fix
   changes where that is elsewhere, because a `fixed` commit must touch one.
+- Each finding carries one line of each row the table places in a finding
+  as `one`: `severity:`, `location:`, `verdict: open` and `answer:`, the last
+  left empty for the fix pass. The check refuses a finding missing any.
 - Each finding gives why it matters and its grounds, executed and read
   labelled apart, then the paste-ready fix in a fenced block, then its
-  `answer:` line, left empty for the fix pass. The check refuses a finding
-  with no `answer:` line.
+  `answer:` line.
 - What this round confirmed holds is a `confirms:` entry, and what it could
   not judge a row of `## Not judged` naming who answers it; neither is a
   finding.
 - The record is written in words: no emoji anywhere in it, and no summary
-  block under it.
+  block under it. A mark quoted from the code under review is written as its
+  code point (`U+1F7E1`) or in words, never as the character.
 
 Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_every_line_matches_its_row_whole, tests/test_the_record_is_written_in_words.py::test_the_template_the_format_and_the_two_definitions_carry_no_emoji, evals/behaviour/warden/rule-warden-one-finding/
 
