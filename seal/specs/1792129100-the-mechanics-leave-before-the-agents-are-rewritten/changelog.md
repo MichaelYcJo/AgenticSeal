@@ -22,9 +22,10 @@
   line or with two.
   A round record in flight that lacks either line adds it before it meets
   this release's check. Where the table itself cannot be read, because the
-  document is missing, a row will not parse or a row's `How many` allows
-  more than the check can read, `chain_check.py` stops with exit 2 naming
-  the file, never a pass.
+  document is missing, a row will not parse, or a row the check reads a
+  meaning from stands where the check does not look for it or has a
+  `How many` the check cannot keep, `chain_check.py` stops with exit 2
+  naming the file, never a pass.
   (`1792129100-the-mechanics-leave-before-the-agents-are-rewritten`, #964)
 - **A `## Not verified` row is closed by the word `closed` (#964).** The
   row's Item cell opens with `closed`, lower case, then the item, and the

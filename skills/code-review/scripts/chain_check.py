@@ -111,11 +111,10 @@ EACH_ONCE = "each number once"
 NOT_ANY = "none"
 # How a refusal says the count a row allows.
 HOW_MANY = {ONE: "one", AT_MOST_ONE: "one at most"}
-# The rows the check reads a meaning from, by their `Line` cell, with the
-# named parts of each row's shape it reads (`grammar` refuses a table that
-# lacks one).
 FINDINGS_HEADING = "## Findings"
 CONFIRMATIONS_HEADING = "## Confirmations"
+IN_FINDINGS = f"`{FINDINGS_HEADING}`"
+IN_CONFIRMATIONS = f"`{CONFIRMATIONS_HEADING}`"
 TARGET_ROW = "target:"
 HEADING_ROW = "### <n>. <symptom>"
 LOCATION_ROW = "location:"
@@ -123,35 +122,29 @@ VERDICT_ROW = "verdict:"
 REGRESSION_ROW = "regression:"
 REOPENS_ROW = "reopens:"
 CONFIRMS_ROW = "confirms:"
+# The rows the check reads a meaning from, by their `Line` cell: the place its
+# reader looks for each, the counts that reader can keep, and the named parts
+# of the shape it reads. `grammar` refuses a table that moves one, gives it
+# another count or lacks a part. A row read for one value keeps one line, and
+# a row decided on needs that line. Every other row may take any `Where` and
+# `How many` `grammar_row` admits for its kind, because the reader of each
+# place counts each word, a section left out included.
+Read = collections.namedtuple("Read", "where many parts")
 READ_ROWS = {
-    TARGET_ROW: ("commit",),
-    FINDINGS_HEADING: (),
-    HEADING_ROW: ("number",),
-    LOCATION_ROW: (),
-    VERDICT_ROW: ("commit", "home"),
-    REGRESSION_ROW: ("round", "finding"),
-    REOPENS_ROW: ("round", "finding"),
-    CONFIRMATIONS_HEADING: (),
-    CONFIRMS_ROW: ("round", "finding"),
-}
-# The counts the readers below can keep for a row they read, where that is
-# fewer than the table's words allow: a row read for one line keeps its last,
-# and `## Confirmations` may be absent, so nothing counts a line it would hold.
-HONOURED = {
-    TARGET_ROW: (ONE,),
-    LOCATION_ROW: (ONE,),
-    VERDICT_ROW: (ONE,),
-    REGRESSION_ROW: (ONE, AT_MOST_ONE),
-    REOPENS_ROW: (ONE, AT_MOST_ONE),
-    CONFIRMATIONS_HEADING: (AT_MOST_ONE,),
-    CONFIRMS_ROW: (AT_MOST_ONE, ANY),
+    TARGET_ROW: Read(OUTSIDE_FINDINGS, (ONE,), ("commit",)),
+    FINDINGS_HEADING: Read(IN_RECORD, (ONE, AT_MOST_ONE), ()),
+    HEADING_ROW: Read(IN_FINDINGS, (EACH_ONCE,), ("number",)),
+    LOCATION_ROW: Read(IN_FINDING, (ONE,), ()),
+    VERDICT_ROW: Read(IN_FINDING, (ONE,), ("commit", "home")),
+    REGRESSION_ROW: Read(IN_FINDING, (ONE, AT_MOST_ONE), ("round", "finding")),
+    REOPENS_ROW: Read(IN_FINDING, (ONE, AT_MOST_ONE), ("round", "finding")),
+    CONFIRMATIONS_HEADING: Read(IN_RECORD, (ONE, AT_MOST_ONE), ()),
+    CONFIRMS_ROW: Read(IN_CONFIRMATIONS, (ONE, AT_MOST_ONE, ANY), ("round", "finding")),
 }
 # Where a row may stand: the two sections in the record, the finding heading
 # in `## Findings`, and a label in one of three places, or nowhere for an
 # old spelling, which every line meaning it is refused as.
 SECTION_ROWS = (FINDINGS_HEADING, CONFIRMATIONS_HEADING)
-IN_FINDINGS = f"`{FINDINGS_HEADING}`"
-IN_CONFIRMATIONS = f"`{CONFIRMATIONS_HEADING}`"
 # What a refusal says of the place a label's row puts it.
 PLACED = {
     OUTSIDE_FINDINGS: "outside every finding",
@@ -284,9 +277,9 @@ def grammar(path, reader):
     outside every finding, in a finding or in `## Confirmations`, once, at
     most once or any number of times; and an old spelling nowhere, never,
     with `—` for its shape and a `Refused as` naming the one label it means.
-    Every row `READ_ROWS` names stands, with the named parts it reads and a
-    `How many` its reader can keep (`HONOURED`), and no heading row stands
-    that this file reads nothing from. Anything else
+    Every row `READ_ROWS` names stands where its reader looks, with a
+    `How many` that reader can keep and the named parts it reads, and no
+    heading row stands that this file reads nothing from. Anything else
     is GrammarError naming `path`, and the line where there is one."""
 
     def refuse(why, line=None):
@@ -333,22 +326,27 @@ def grammar(path, reader):
                 f"the `{key}` row's `Refused as` names no one label it is the old "
                 "spelling of"
             )
-    for key, parts in READ_ROWS.items():
+    for key, read in READ_ROWS.items():
         row = rows.get(key)
         if row is None or row.where == NOWHERE:
             raise refuse(f"the table has no `{key}` row, which the check reads")
-        lacking = [p for p in parts if p not in row.shape.groupindex]
+        lacking = [p for p in read.parts if p not in row.shape.groupindex]
         if lacking:
             raise refuse(
                 f"the `{key}` row's shape names no "
                 + ", ".join(f"`(?P<{p}>…)`" for p in lacking)
                 + ", which the check reads"
             )
-        if row.many not in HONOURED.get(key, (row.many,)):
+        if row.where != read.where:
+            raise refuse(
+                f'the `{key}` row stands "{row.where}", and the check reads it '
+                f'only where the table says "{read.where}"'
+            )
+        if row.many not in read.many:
             raise refuse(
                 f"the `{key}` row's `How many` is `{row.many}`, and the check can "
                 "honour only "
-                + " or ".join(f"`{many}`" for many in HONOURED[key])
+                + " or ".join(f"`{many}`" for many in read.many)
                 + " for it"
             )
     return rows
@@ -462,7 +460,12 @@ def section_count(key, many):
     return f"a second `{key}` section; a round record holds {HOW_MANY[many]}"
 
 
-NO_FINDINGS = f"no `{FINDINGS_HEADING}` section: {GRAMMAR[FINDINGS_HEADING].refused}"
+def no_section(key):
+    """The refusal of a record holding no `key` section, which it needs."""
+    return f"no `{key}` section: {GRAMMAR[key].refused}"
+
+
+NO_FINDINGS = no_section(FINDINGS_HEADING)
 TWO_FINDINGS = section_count(FINDINGS_HEADING, GRAMMAR[FINDINGS_HEADING].many)
 TWO_CONFIRMATIONS = section_count(
     CONFIRMATIONS_HEADING, GRAMMAR[CONFIRMATIONS_HEADING].many
@@ -1193,8 +1196,10 @@ def confirmations(reader, lines, rel):
     lines.
 
     A record with nothing to confirm may leave `## Confirmations` out, as
-    far as its row allows. In the section, each line of a row the table
-    places there is counted against the row and read against its shape
+    far as its row allows: a section the row says is `one` is refused where
+    it is absent, and each row the table places there is counted against
+    no lines, so one at `one` is refused too. In the section, each line of
+    such a row is counted against the row and read against its shape
     whole, and a `confirms:` line naming a finding is read with its line;
     one reading `none`, and the prose after any entry, are read for
     nothing. Everything else is an error by line: more sections than the row
@@ -1203,13 +1208,13 @@ def confirmations(reader, lines, rel):
     starts = sections_of(reader, lines, CONFIRMATIONS_HEADING)
     if len(starts) > 1:
         return [], [(rel, starts[1] + 1, TWO_CONFIRMATIONS)]
-    if not starts:
-        return [], []
-    start = starts[0]
     rows = [row for row in GRAMMAR.values() if row.where == IN_CONFIRMATIONS]
     at = {row.line: [] for row in rows}
     found, errors = [], []
-    for i in range(start + 1, section_end(reader, lines, start)):
+    if not starts and GRAMMAR[CONFIRMATIONS_HEADING].many == ONE:
+        errors.append((rel, 0, no_section(CONFIRMATIONS_HEADING)))
+    span = range(starts[0] + 1, section_end(reader, lines, starts[0])) if starts else ()
+    for i in span:
         if reader.split_row(lines[i]) is not None:
             errors.append((rel, i + 1, CONFIRMATIONS_TABLE))
             continue

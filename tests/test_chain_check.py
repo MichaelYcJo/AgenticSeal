@@ -591,14 +591,20 @@ class TestGrammar:
                 "`reopens:` row's `How many` is `any`",
             ),
             (
-                "| the record | at most one | each entry is",
-                "| the record | one | each entry is",
-                "`## Confirmations` row's `How many` is `one`",
+                "| a finding | one | a verdict is",
+                "| outside every finding | one | a verdict is",
+                '`verdict:` row stands "outside every finding", and the check '
+                'reads it only where the table says "a finding"',
+            ),
+            (
+                "| outside every finding | one | it names",
+                "| a finding | one | it names",
+                '`target:` row stands "a finding"',
             ),
             (
                 "| `## Confirmations` | any | it is",
-                "| `## Confirmations` | one | it is",
-                "`confirms:` row's `How many` is `one`",
+                "| a finding | any | it is",
+                '`confirms:` row stands "a finding"',
             ),
         ],
     )
@@ -612,7 +618,8 @@ class TestGrammar:
         row the check reads missing or naming no part it reads, an old
         spelling naming no label, a label whose shape does not open with
         it, a row twice, a heading row the check reads nothing from, and a
-        `How many` the check's reader of that row cannot honour — is refused
+        row the check reads a meaning from standing where its reader does not
+        look or allowing a `How many` that reader cannot keep — is refused
         naming the document. Run as a command beside such a document, the
         check exits 2 with that sentence and no traceback, and beside no
         document at all the same; imported, it raises the error for the
@@ -622,8 +629,10 @@ class TestGrammar:
         the check while it reads every record as holding nothing, and one
         loosening a count the reader cannot keep: `verdict:` at `any`, read
         as its last line, let a finding holding `open` then `deferred #5`
-        pass as deferred, and `## Confirmations` at `one` passed a record
-        with none. No other case hands the loader a document it cannot
+        pass as deferred; and one moving a read row: `verdict:` outside every
+        finding left `finding_of` no verdict to decide on, and `target:` in a
+        finding raised `KeyError` in `round_of`, a traceback where the check
+        owes exit 2. No other case hands the loader a document it cannot
         read."""
         path = doc_with(tmp_path, old, new)
         with pytest.raises(chain.GrammarError) as refused:
@@ -1319,6 +1328,53 @@ class TestConfirmations:
             [],
             [],
         )
+
+    @pytest.mark.parametrize(
+        "old, new, said",
+        [
+            (
+                "| the record | at most one | each entry is",
+                "| the record | one | each entry is",
+                "no `## Confirmations` section",
+            ),
+            (
+                row_of("confirms:"),
+                row_of("confirms:")
+                + "| `signed:` | `signed: .+` | `## Confirmations` | one | x |\n",
+                "no `signed:` line: `## Confirmations` carries one",
+            ),
+        ],
+    )
+    def test_a_section_left_out_is_counted_where_the_table_says_one(
+        self, monkeypatch, tmp_path, old, new, said
+    ):
+        """Round 2's finding 1 of #964: `## Confirmations` may be left out,
+        and its reader counted nothing in a section that was absent. So a
+        table giving the section, or any row placed in it, `one` loaded, and
+        a record leaving the section out passed without what the table asks
+        for. The reader now counts the section and each row placed in it
+        against no lines where it is absent, so `one` is kept for every row
+        there, the ones the check reads nothing from among them.
+
+        Protects: a `docs/` rewrite (#941) adding a row to
+        `## Confirmations` at `one`, or making the section `one`, and every
+        record that leaves the section out passing anyway. The loader cases
+        refuse only the rows the check reads a meaning from; no other case
+        reads a record without the section against such a table."""
+        left_out = record("abc1234", [finding(1, "open")]).replace(
+            "## Confirmations\n", ""
+        )
+        assert chain.CONFIRMATIONS_HEADING not in left_out
+        assert chain.round_of(reader, left_out, "r.md", 1)[1] == []
+        table = chain.grammar(str(doc_with(tmp_path, old, new)), reader)
+        monkeypatch.setattr(chain, "GRAMMAR", table)
+        errors = chain.round_of(reader, left_out, "r.md", 1)[1]
+        assert [(rel, line) for rel, line, _why in errors] == [("r.md", 0)], errors
+        assert said in errors[0][2], errors
+        signed = "signed: the warden\n\n" * ("signed" in new)
+        kept = record("abc1234", [finding(1, "open")], confirm("none") + signed)
+        monkeypatch.setattr(chain, "LABELS", (*chain.LABELS, "signed:"))
+        assert chain.round_of(reader, kept, "r.md", 1)[1] == []
 
     def test_a_line_or_a_table_the_check_cannot_read_is_refused_by_line(self):
         """S23 (T36): a `confirms:` value the grammar table's `confirms:` row
