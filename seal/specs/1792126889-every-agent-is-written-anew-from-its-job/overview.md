@@ -25,17 +25,21 @@ on outcome and cheaper in tokens against one baseline.
 | Phase 2: what rule 5 divides by | after phase 1b rule 5 judged the total tokens across every model; run 1 read 17.8% more in all with 19.3% more tool calls and four more truth finds | tokens across every model per tool call, every `tool_use` block of the trace; total, per true find, spend and seconds recorded and judging nothing | the owner, 2026-10-17, after phase 2's run 1; `spec.md` §*How the rewrite is proved not worse* rewritten to it |
 | Phase 2: the call counts the frame quotes | `spec.md` §*How the rewrite is proved not worse* says the warden made 34% more calls and its tokens per call fell 12.3%, from the smith's hand-summed 954 agent calls | the traces: 854 agent calls (+20.3%), 890 `tool_use` blocks against 746 (+19.3%), tokens per call -1.25% | `calls.py` over the kept raw output, `phases/phase-2.md`; rule 5 passes on either figure, and the frame's sentence is the frame's to correct |
 | Phase 2: sentences outside the frame's named files | `spec.md` §*Removes* names no README row and no `docs/` `Enforced by:` line for phase 2 | both READMEs' warden row and skills row, and the `Enforced by:` targets in `docs/the-agent-set.md` and `docs/the-broad-gate.md`, rewritten in the warden's commit | `spec.md` §*Grounding*, `CLAUDE.md` row: a change removes what stood on the old fact in the same commit |
+| Phase 3: the contract's section numbers | `plan.md` phase 3: "§1 to §N in the new order", every citation rewritten | each rule keeps its number where it stays, the new rules follow at §17 to §20, and 20 citations moved instead of every one | the plan fixes no order, and a renumbered citation is a site to rewrite and review for nothing (`phases/phase-3.md`) |
+| Phase 3: one spawn for the build and the evaluation | `plan.md` phase 3 is one row | built and evaluated by two spawns, after a first spawn surveyed for three hours and edited nothing and was stopped | the orchestrator's watchdog; a build and its paid evaluation are separate acts (`phases/phase-3.md`) |
+| Phase 3: the framer's verdict | `plan.md` phase 3: every agent's record reads `pass` | the framer reads `fail` on rule 5 (tokens per tool call +18.9%) with its own file nearly unchanged; the phase is closed on it | the framer is rewritten by #968, and the milestone's close judges every agent's last side against af9c924b, so the regression is carried, not dropped |
+| Phases 4 to 6 | `plan.md` rows 4 to 6: the smith, the framer, the sealer and the scribe in this item | moved to #967, #968, #969 and #970, each measured against the tree it starts from | the owner, 2026-10-17: one issue per agent, smaller reviews, independent merges |
 
 ## Not verified
 
 | Item | Who must answer |
 |---|---|
 | CI on its three legs at phase 2's closing commit | the orchestrator |
-| Whether a sentence can end the warden's record with no `verdict:` line (one in 18 in phase 2's run 2, five in 18 in run 1), or a check at the hand-back must | the orchestrator |
+| closed Whether a sentence can end the warden's record with no `verdict:` line (one in 18 in phase 2's run 2, five in 18 in run 1), or a check at the hand-back must | the orchestrator, 2026-10-17: a check — phase 3 had the warden read its record through `chain_check.py` before handing back; it did in 18 of 18 runs and no record lacked a `verdict:` line (`evals/warden-phase-3.md`) |
 
 ## Not done
 
-Nothing yet; the phases after phase 2 are `plan.md`'s rows.
+The smith, the framer, the sealer and the scribe are #967 to #970. The sealer's phase-3 record measures a definition that contradicted the new contract and is not the sealer's result. #966 holds the per-grader rule's sample size.
 
 ## Fed back into the spec
 
