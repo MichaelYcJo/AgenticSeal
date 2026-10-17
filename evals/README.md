@@ -18,13 +18,26 @@ tree's `bin/` first.
 
 **A rewrite of an agent's preload is proved not worse by running this suite
 on the old tree and on the new one, judged on outcome first and then on
-cost.** `scripts/noninferiority.py run` runs one agent's cases on one side
-and records, per run, the graders, the report's finding rows and the cost
-its trace's `result` event carries (spend, seconds, tokens), beside the
-preload's bytes. `compare` writes the record the five pass rules of
-`noninferiority.py#verdict` judge, and
-`tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes it.
-Nothing in the tree makes a later edit owe a run.
+cost, each against the baseline and none against an absolute.**
+`scripts/noninferiority.py run` runs one agent's cases on one side and
+records, per run, the graders, the report's finding rows and the cost its
+trace's `result` event carries (spend, seconds and `modelUsage`, every
+model's tokens), beside the preload's bytes. `compare` writes the record the
+five pass rules of `noninferiority.py#verdict` judge:
+
+1. recall has not fallen;
+2. the false-finding rate is within `FALSE_MARGIN` of the baseline's;
+3. each shape and reach grader passes on the new side at least as often as
+   on the baseline, and one the baseline lacks passes every new run;
+4. the preload is fewer bytes than the baseline's;
+5. the tokens read across every model, the spawned agent's included, are
+   fewer than the baseline's.
+
+Spend and wall seconds are written in the record and judge nothing. A side
+cut short, a case run a different number of times, or a run whose
+`modelUsage` is missing or short of a count is no result, never a pass.
+`tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes the
+record. Nothing in the tree makes a later edit owe a run.
 
 **Every grader reads an outcome, never a sentence of a definition.** A
 `truth-` grader is a real or seeded defect the report names, a `shape-`
