@@ -174,18 +174,6 @@ def test_the_protocol_names_the_progress_channel_and_the_stall_signal():
 # --- the batching expectation in the contracts ------------------------------
 
 
-def test_the_reviewers_contract_expects_batched_reads_and_probes():
-    """Task shape dominates: a review reads independent things, and the one
-    instructed round that batched (1.89 tools per turn) was the fastest
-    round measured. The reviewer's contract is where the expectation pays."""
-    warden = flat("agents", "warden.md")
-    assert "Independent reads and probes go out together" in warden
-    assert "1.89" in warden, (
-        "the measurement went, and an expectation with no number behind it "
-        "reads as style advice"
-    )
-
-
 def test_the_smiths_contract_does_not_demand_what_a_serial_loop_cannot_give():
     """The same rule lands on the smith with the caveat that keeps it
     honest: an edit-test loop is inherently serial (1.08-1.17 measured

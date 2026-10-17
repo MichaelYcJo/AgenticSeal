@@ -39,7 +39,7 @@ shared rule has to pass is that no role needs an exception to it.
 is not yours, the handover carries the suite labelled `unverified` with its
 answerer named — labelled, never omitted. Where it is yours, the same
 handover carries the result instead of the label.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_contract_says_it_is_universal_only, tests/test_every_agent_reads_the_contract.py::test_every_definition_opens_with_the_contract_line
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_contract_says_it_is_universal_only, tests/test_every_agent_reads_the_contract.py::test_every_definition_has_the_shape_and_preloads_the_contract_alone
 
 ## What the gate runs, and how the list is kept true
 

@@ -279,18 +279,15 @@ def test_the_owner_states_that_one_seal_is_final():
 
 
 def test_the_two_definitions_name_what_they_actually_keep():
-    """`agents/warden.md` kept `<git-dir>/specseal-reviewed`, which is the
-    mark that a review happened, and called it the seal. The rest of that
-    paragraph is unchanged — a record and not a barrier, waivable without
-    one, worth whatever is put behind it."""
+    """`agents/warden.md` called `<git-dir>/specseal-reviewed`, the mark that
+    a review happened, the seal. The warden names that file as the
+    reviewer's own mark, which it never writes, and claims no seal."""
     warden = flat("agents", "warden.md")
-    assert "You keep the review mark" in warden
+    assert "Write `<git-dir>/specseal-reviewed`" in warden
+    assert "the reviewer never writes its own mark" in warden
     assert "You keep the seal:" not in warden, (
         "the opening claims a word the sealer's definition claims two files "
         "over, and a reader opens them together"
-    )
-    assert "the commit gate can be waived without one" in warden, (
-        "the rewrite took the paragraph's meaning with the word"
     )
     sealer = flat("agents", "sealer.md")
     assert "You take the last seal" in sealer

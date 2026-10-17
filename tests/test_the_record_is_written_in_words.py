@@ -24,10 +24,6 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 # outside every range.
 EMOJI = re.compile("[\U0001f000-\U0001faff☀-➿⬀-⯿️]")
 
-# The proof block's marker is one every skill shares, and `spec.md` §*Removes*
-# leaves it to part B and #940 by name; its verdict line below it is words.
-SHARED_MARKER = "📋 code-review applied"
-
 
 def read(rel):
     with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
@@ -49,7 +45,7 @@ def emoji_lines(rel, lines, first=0):
     return [
         f"{rel}:{first + i + 1}: {line.strip()}"
         for i, line in enumerate(lines)
-        if EMOJI.search(line) and line.strip() != SHARED_MARKER
+        if EMOJI.search(line)
     ]
 
 
@@ -58,8 +54,8 @@ def test_the_template_the_format_and_the_two_definitions_carry_no_emoji():
     for rel in ("templates/sdd-round.md", "agents/warden.md", "agents/smith.md"):
         found += emoji_lines(rel, read(rel).split("\n"))
     rel = "skills/code-review/SKILL.md"
-    lines, start = section(read(rel), "## Findings format")
-    assert len(lines) > 40, f"{rel} §Findings format read as {len(lines)} lines"
+    lines, start = section(read(rel), "## The record")
+    assert len(lines) > 40, f"{rel} §The record read as {len(lines)} lines"
     found += emoji_lines(rel, lines, start)
     assert not found, "an emoji in a text that states the round record:\n" + "\n".join(
         found

@@ -8220,6 +8220,10 @@ PROBE = (
     "act: run it, and report it as a probe, never as a seal"
 )
 DEFINITIONS = ("smith.md", "warden.md")
+# The warden written anew in #957 names the run's record and the command,
+# `broad-gate`, not an agent, because the run's owner moves from the sealer
+# to the orchestrator in that item's phase 5.
+OWNER_NAMED = ("smith.md",)
 
 # The contract's own §2 and §6, read from the contract rather than typed, so a
 # section that is rewritten (#120) is compared as it then stands.
@@ -8259,7 +8263,7 @@ def section(number):
 # --- S6 the owner ------------------------------------------------------------
 
 
-@pytest.mark.parametrize("definition", DEFINITIONS)
+@pytest.mark.parametrize("definition", OWNER_NAMED)
 def test_the_definition_names_the_sealer_as_the_suites_owner(definition):
     """The rule reached both definitions with no owner in it. Naming the
     sealer in the skill alone would leave both agents reading a sentence that
@@ -8275,7 +8279,7 @@ def test_the_definition_names_the_sealer_as_the_suites_owner(definition):
     )
 
 
-@pytest.mark.parametrize("definition", DEFINITIONS)
+@pytest.mark.parametrize("definition", OWNER_NAMED)
 def test_the_owner_is_named_once_in_each_definition(definition):
     """Twice is how the two copies drift apart — which is the failure the
     contract exists to end, one file down."""

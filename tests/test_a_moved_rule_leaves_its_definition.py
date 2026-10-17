@@ -22,7 +22,7 @@ A definition MAY cite a section by its number and say what the rule means
 for its own role, in its own words -- that is the application form, and
 phases 3 and 4 kept several deliberately: the warden's audit of the
 `unverified` label, its `## Not judged` row, the #36 cost of a
-prompt landing during a round, its 1.89; the smith's 1.08-1.17, its
+prompt landing during a round; the smith's 1.08-1.17, its
 hand-back as the place both answers land, its own waiver example as the
 patch §9's gate reads a commit out of. Every one of those is about one
 agent, and none of them is the rule.
@@ -360,10 +360,9 @@ def test_a_citation_is_not_a_copy():
     named here and asserted clean."""
     kept = {
         ("agents", "warden.md"): (
-            "§9 applies to you although you edit less than the smith does",
+            "so it goes through the `Edit` or `Write` tool (§9)",
             "whether that label is honest",
             "a row of `## Not judged`",
-            "1.89",
         ),
         ("agents", "smith.md"): (
             # U+2013 EN DASH, built rather than typed: the definition spells
@@ -403,3 +402,43 @@ def test_a_citation_is_not_a_copy():
             assert not copied(body, definition), (
                 f"{'/'.join(parts)}'s application prose reads as a copy of §{number}"
             )
+
+
+# --- the warden's own rules from the 0.22.0 run (#957) -----------------------
+
+WARDEN = os.path.join(ROOT, "agents", "warden.md")
+
+
+def warden_rule(lead):
+    """The `## Rules` paragraph of `agents/warden.md` that opens with **LEAD**,
+    flattened, or "" where none does."""
+    text = read(WARDEN)
+    rules = text[text.index("\n## Rules\n") :]
+    for paragraph in rules.split("\n\n"):
+        if paragraph.startswith(f"**{lead}**"):
+            return flat(paragraph)
+    return ""
+
+
+def test_the_warden_writes_its_record_in_the_branch_worktree():
+    """The warden writes its round record in the branch worktree, never the
+    main checkout (#957).
+
+    Twice in the 0.22.0 run a warden wrote its record to the main checkout.
+    Every eval case names the record's path in its prompt, so a definition
+    that dropped the rule would still pass them; this case reads the rule."""
+    rule = warden_rule("The record goes to the branch worktree.")
+    assert "in the worktree of the branch under review" in rule, rule
+    assert "never the main checkout" in rule, rule
+
+
+def test_the_warden_reads_each_new_test_against_its_group():
+    """A test the diff adds is read against its group, and one that covers
+    nothing its group does not is a finding (#957).
+
+    The owner's rule of 2026-10-15. No eval case plants a test that
+    duplicates its group, so nothing but this case reads the rule."""
+    rule = warden_rule("Each new test is read against its group.")
+    assert "against the tests of the function it covers" in rule, rule
+    assert "any pair a duplicate check" in rule, rule
+    assert "is a `should` finding" in rule, rule

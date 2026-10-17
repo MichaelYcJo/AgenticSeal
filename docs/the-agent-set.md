@@ -27,7 +27,7 @@ does not take it.
 *§3 is narrowed this round*, and a round record compared with another six
 months later, both hold only while §3 still means what it meant. A retired
 rule keeps its number and becomes one line naming what replaced it.
-Enforced by: tests/test_every_agent_reads_the_contract.py::test_every_definition_opens_with_the_contract_line, tests/test_every_agent_reads_the_contract.py::test_a_bare_name_is_delivered_by_the_frontmatter
+Enforced by: tests/test_every_agent_reads_the_contract.py::test_every_definition_has_the_shape_and_preloads_the_contract_alone
 
 <!-- specs/1789081272-the-writer-of-the-contract-is-not-its-executor -->
 **The party that draws a contract is not the party that executes it.** A

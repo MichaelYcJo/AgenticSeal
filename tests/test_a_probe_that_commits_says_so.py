@@ -123,10 +123,6 @@ def test_the_procedure_a_reviewer_follows_carries_the_leavings_rule_too():
         "the row's qualifier has no rule behind it, so a reviewer who reads "
         "`everything else it made` has nothing saying what that covers"
     )
-    assert "left a git worktree behind" in skill, (
-        "the cost went. A rule with no incident behind it is the one a "
-        "session under pressure drops first, which is how this one was left"
-    )
 
 
 def test_the_fact_finder_points_at_the_rule_it_no_longer_restates():
