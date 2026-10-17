@@ -701,7 +701,7 @@ def resolve_base(root, given):
 def seal_home(root):
     """`<root>/seal/` where it exists, else `<git-common-dir>/seal/`, else
     None — the two places every `seal/…` path in this plugin resolves to
-    (`agent-contract` §16), read in that order."""
+    (`agent-contract` §11), read in that order."""
     shared = os.path.join(root, SEAL_DIR)
     if os.path.isdir(shared):
         return shared

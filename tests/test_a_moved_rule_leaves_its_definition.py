@@ -47,7 +47,7 @@ and git rejects it`, which §8 and the design gate's waiver paragraph both
 spell because both are about the same git fact; the warden's 9-word echo of
 §6 is the next). The smallest run a REAL duplication produced, measured on
 the same files before phase 4 removed them, is 25 words (§10), then 31 (§9),
-37 (§16), 59 (§11) and 66 (§3). Fifteen sits between 10 and 25 with margin
+37 (the old §16, now part of §11), 59 (§11) and 66 (§3). Fifteen sits between 10 and 25 with margin
 on both sides, and both ends of that margin are printed by
 `test_the_window_sits_between_what_was_measured`, so a later edit that
 narrows the gap is red rather than silently mis-tuned.
@@ -56,7 +56,7 @@ The list of sections is derived from the contract, never typed here. A
 hand-copied list is a second source that disagrees with the first, and this
 repository has been bitten by exactly that -- `ROUND_RECORD_FIELDS` in
 `tests/test_the_pull_request_language_is_the_repositorys.py` carries the
-scar. A section added as §17 is checked on the day it lands, and so is a
+scar. A section added as §21 is checked on the day it lands, and so is a
 fourth agent definition, because both come from a glob.
 """
 
@@ -162,7 +162,7 @@ def test_the_globs_find_the_definitions_and_the_sections():
 def test_no_definition_carries_a_sections_own_sentences(path, number):
     """One case per section per definition, so a failure names both.
 
-    Both axes are derived: a §17 added tomorrow and a fourth agent added
+    Both axes are derived: a §21 added tomorrow and a fourth agent added
     tomorrow are each checked on the day they land, which is the miss with no
     other symptom."""
     duplicated = copied(SECTIONS[number], read(path))
@@ -365,11 +365,7 @@ def test_a_citation_is_not_a_copy():
             "a row of `## Not judged`",
         ),
         ("agents", "smith.md"): (
-            # U+2013 EN DASH, built rather than typed: the definition spells
-            # the range with one, so a hyphen would match nothing.
-            "1.08" + chr(0x2013) + "1.17",
             "hand-back",
-            "§10's number for you",
             # The waiver example, named in this module's docstring since
             # phases 3 and 4 kept it deliberately — *the smith's own waiver
             # example as the patch §9's gate reads a commit out of* — and
@@ -442,3 +438,36 @@ def test_the_warden_reads_each_new_test_against_its_group():
     assert "against the tests of the function it covers" in rule, rule
     assert "any pair a duplicate check" in rule, rule
     assert "is a `should` finding" in rule, rule
+
+
+# A batching figure: a number within a few words of "tools per turn", either
+# side, in any spelling of the phrase.
+TOOLS_PER_TURN = re.compile(
+    r"\d\S*\s+(?:\w+\W+){0,3}?tools?\s+per\s+turn"
+    r"|tools?\s+per\s+turn\W+(?:\w+\W+){0,3}?\d",
+    re.I,
+)
+
+
+def figures(text):
+    return [m.group(0) for m in TOOLS_PER_TURN.finditer(" ".join(text.split()))]
+
+
+@pytest.mark.parametrize("path", AGENTS, ids=name)
+def test_no_definition_states_a_tools_per_turn_figure(path):
+    """T5: the per-segment bars live in `docs/the-review-record.md` §*The
+    per-segment bars*, and contract §10 says no definition states a second
+    copy. A copy in a definition drifts from the table and is read first."""
+    assert not figures(read(path)), f"{name(path)}: {figures(read(path))}"
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "**Your number is 1.4 tools per turn.**",
+        "measured at 2.3" + chr(0x2013) + "3.1 tools per turn",
+        "tools per turn **≥ 1.8**",
+    ],
+)
+def test_a_figure_in_any_spelling_is_caught(sentence):
+    assert figures(sentence), sentence

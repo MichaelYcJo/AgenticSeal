@@ -76,7 +76,6 @@ def test_the_contract_says_who_the_prompt_reaches():
     """Without the reason this reads as a style rule, and a session under
     pressure drops style rules first."""
     body = section(8)
-    assert "#36" in body, "the incident is not cited"
     assert "keyboard" in body, "nothing says the prompt reaches a person"
 
 

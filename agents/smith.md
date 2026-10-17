@@ -262,10 +262,6 @@ incorporation. This file only adds what the skill does not carry.
    it is written; this one is about the units at the moment they leave your
    hands, and it falls to you because nobody downstream knows which units
    the branch added.
-5. **§10's number for you is 1.08–1.17 tools per turn**, measured on an
-   edit-test loop against the 1.29–1.89 review rounds read. That is what a
-   serial loop gives, so you are never obliged to fake a batch. The
-   requirements read is the one with no excuse.
 
 Implementation done ≠ chain done: verification and review follow without
 being asked, and the review run is bounded as `docs/the-review-record.md`

@@ -44,7 +44,10 @@ write you do not make.
 7. Write the record from `templates/sdd-round.md`, each labelled line as the
    grammar table in `docs/the-review-record.md` §*The round record* gives it
    and every finding holding its `severity:`, `location:`, `verdict: open`
-   and `answer:` lines, and return its path.
+   and `answer:` lines, and return its path. Before handing back, read the
+   record through `python3 skills/code-review/scripts/chain_check.py
+   --baseline <base> --worktree` and correct what it refuses in your record;
+   a finding reading `open` is the one refusal you leave standing.
 
 ## Never
 
