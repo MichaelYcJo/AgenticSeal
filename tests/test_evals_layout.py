@@ -162,6 +162,55 @@ def test_every_sealer_case_grades_the_guarantee():
     assert not gaps, gaps
 
 
+def test_a_bound_on_the_sealers_run_that_is_not_zero_is_a_gap(tmp_path):
+    """#969 T6's reader, on a case the tree does not hold. Every committed
+    sealer case bounds the gate at zero, so a reader that stopped checking
+    the tool, the command or the bound would still pass on the tree; each of
+    the three is changed here alone and each must be named."""
+    case = tmp_path / "behaviour" / "sealer" / "c"
+    (case / "graders").mkdir(parents=True)
+    (case / "prompt.md").write_text("x\n", encoding="utf-8")
+    (case / "graders" / "shape-verdict.md").write_text(
+        "---\npath: 'seal/specs/i/guarantee.md'\npattern: '^Verdict:'\n---\nv\n",
+        encoding="utf-8",
+    )
+    bound = (
+        "---\ntype: 'tool_used'\ntool: 'Bash'\n"
+        "input_match: 'broad-gate\\s+--base'\nmax: 0\nmin: 0\n---\ng\n"
+    )
+    grader = case / "graders" / "shape-runs-no-broad-gate.md"
+    grader.write_text(bound, encoding="utf-8")
+    assert sealer_grade_gaps(str(tmp_path)) == []
+    gap = f"{os.path.join('behaviour', 'sealer', 'c')}: no grader bounds `broad-gate --base` at zero"
+    for old, new in (
+        ("max: 0\n", "max: 1\n"),
+        ("tool: 'Bash'", "tool: 'Write'"),
+        ("\\s+--base", "\\s+--preflight"),
+    ):
+        grader.write_text(bound.replace(old, new), encoding="utf-8")
+        assert sealer_grade_gaps(str(tmp_path)) == [gap], old
+
+
+def test_each_way_a_committed_case_leaves_the_generator_is_named(tmp_path):
+    """#969 S11's reader, on a pair the tree does not hold. The tree's cases
+    equal the generator's, so a reader that missed a file on one side or a
+    file with other bytes would still pass on the tree; here each of the
+    three is present once."""
+    made, held = tmp_path / "made", tmp_path / "held"
+    for top in (made, held):
+        (top / "c" / "graders").mkdir(parents=True)
+        (top / "c" / "case.yaml").write_text("same\n", encoding="utf-8")
+    (made / "c" / "graders" / "shape-a.md").write_text("a\n", encoding="utf-8")
+    (held / "c" / "graders" / "shape-a.md").write_text("a, by hand\n", encoding="utf-8")
+    (made / "c" / "scaffold.sh").write_text("set -eu\n", encoding="utf-8")
+    (held / "c" / "prompt.md").write_text("p\n", encoding="utf-8")
+    assert case_differences(made, held) == [
+        f"only in the generator's output: {os.path.join('c', 'scaffold.sh')}",
+        f"only in the tree: {os.path.join('c', 'prompt.md')}",
+        f"differs: {os.path.join('c', 'graders', 'shape-a.md')}",
+    ]
+
+
 def load_rule_cases():
     """`evals/scripts/rule_cases.py` as a module, under a name of its own."""
     path = os.path.join(EVALS, "scripts", "rule_cases.py")
