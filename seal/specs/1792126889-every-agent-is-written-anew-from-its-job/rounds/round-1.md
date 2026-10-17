@@ -8,7 +8,7 @@ target: 2dfa53a9 against af9c924b
 
 severity: must
 location: `skills/agent-contract/SKILL.md:37`, `agents/sealer.md:40`, `agents/sealer.md:106`, `skills/code-review/orchestration.md:180`, `CONTRIBUTING.md:107`, `bin/test:23`, `agents/smith.md:299`, `docs/the-broad-gate.md:11`, `skills/code-review/scripts/chain_check.py:1570`, `tests/test_broad_gate_rule.py:187`, `tests/test_the_agent_contract_holds_the_universal_rules.py:41`
-verdict: open
+verdict: fixed 91741abf
 
 Contract §2 at 2dfa53a9 says the broad gate "is the orchestrator's: it runs
 `broad-gate --base <base> --record <item>` ... before it spawns the sealer,
@@ -66,13 +66,13 @@ passed.
 Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
 ```
 
-answer:
+answer: Fixed as the round proposed, with the move named: §2 now says no agent runs any of the three but the sealer, whose definition hands it that run, and that #969 moves the run to the orchestrator before it spawns the sealer. `agents/sealer.md:106` recites that §2. `PINS[2]` and `test_the_prohibition_itself_has_one_home_and_it_is_the_contract` hold the new words, refuse `it is the orchestrator's` in §2, and read the sealer's recital; both seen red against the old §2 and the old recital. `orchestration.md`, `CONTRIBUTING.md`, `bin/test`, `docs/the-broad-gate.md` and `chain_check.py` were already true of this tree and are untouched. No other contract section says no agent runs the gate. The changelog fragment and an `overview.md` divergence row came in the same commit, and 59d42bcc points two test comments at #969 instead of phase 5.
 
 ### 2. The verdict passes a new side that never ran most of the cases, where every case has only shape and reach graders
 
 severity: must
 location: `evals/scripts/noninferiority.py:589`, `evals/scripts/noninferiority.py:627`, `evals/README.md:40`, `tests/test_a_rewritten_definition_proved_non_inferior.py:144`
-verdict: open
+verdict: fixed 857aa1af
 
 `verdict` returns "no result" when "the two sides ran a case a different
 number of times", but its check skips every shape or reach grader with zero
@@ -113,13 +113,13 @@ the fail-open reading and changes with the fix, to `no result`.
 Rule 3's `if not oruns` branch is then unreachable from `compare`; keep it
 or drop it with its two cases, and say which in the answer.
 
-answer:
+answer: Fixed at the case rather than at every grader: a case the baseline ran and the new side did not is `no result`, naming the case, whatever graders it carries; the tolerance for a shape or reach grader one side lacks stays for a case both sides ran. So rule 3's `if not oruns` branch stays reachable and is kept. Two cases are new, a side cut to one case of four and a baseline-only shape grader in a case the new side never ran, both seen red (`pass`) before the fix; the case at `:144` keeps `pass` and its name now says the grader is in a case both sides ran. `check` re-read all six records with their verdicts unchanged: warden-phase-3 and smith-phase-3 exit 0, framer-phase-3, sealer-phase-3, warden-phase-2 and warden-phase-2-run-1 exit 1 with their recorded reasons.
 
 ### 3. The four definitions not yet rewritten lost every pin that they preload the contract
 
 severity: should
 location: `tests/test_every_agent_reads_the_contract.py:32`, `tests/test_every_agent_reads_the_contract.py:131`
-verdict: open
+verdict: fixed d20fc32d
 
 At af9c924b, `test_a_bare_name_is_delivered_by_the_frontmatter` and
 `test_every_definition_opens_with_the_contract_line` held, for every file
@@ -169,13 +169,13 @@ NOT_YET_REWRITTEN = {
 
 and the skip message reads `f"{name(path)} is written anew in {NOT_YET_REWRITTEN[name(path)]}"`.
 
-answer:
+answer: Fixed as proposed: `test_every_definition_preloads_the_contract` holds `agent-contract` in the `skills:` list of every file under `agents/`, skipping none, and was seen red with it removed from `agents/smith.md`. The shape case's skips name #967 to #970 and its message reads as proposed.
 
 ### 4. The README and the docstrings state rule 1 as "recall has not fallen" while the code lets one find go
 
 severity: should
 location: `evals/README.md:29`, `evals/scripts/noninferiority.py:23`, `evals/scripts/noninferiority.py:569`
-verdict: open
+verdict: fixed 857aa1af
 
 `verdict` lets recall fall by one find where every lost truth grader is
 still found by some new run (`noninferiority.py:612`, the `noise` branch,
@@ -194,13 +194,13 @@ hand reads that record as failing rule 1. Read, not executed.
 
 and the same clause in the two docstrings.
 
-answer:
+answer: Fixed in the commit of finding 2: `evals/README.md:29`, the module docstring and `verdict`'s docstring state rule 1 with its one-find allowance in the round's words, and `verdict`'s docstring now also lists the no-result cases, the unrun case among them.
 
 ### 5. The agent-set document says the contract was numbered anew from §1, and the build reused §16 for another rule
 
 severity: should
 location: `docs/the-agent-set.md:26`, `seal/specs/1792126889-every-agent-is-written-anew-from-its-job/questions.md:15`
-verdict: open
+verdict: fixed 901cd79b
 
 `docs/the-agent-set.md:26-31` says "The contract was written anew and
 numbered anew from §1 in #957". Phase 3 did not do that: each rule kept its
@@ -231,13 +231,13 @@ keeps its number and becomes one line naming what replaced it, and a new
 rule takes the next number.
 ```
 
-answer:
+answer: Fixed by making the sentences say what the build did; the numbers stand as built (§16 is the commit rule, the old §16 is part of §11). `docs/the-agent-set.md` takes the round's paragraph, `questions.md:15` says the same, and the docstring of `test_every_cited_section_exists`, which also said "numbered anew", names the two moved numbers.
 
 ### 6. Phases 3 to 6 of the plan carry their Status in a fifth cell that a renderer drops
 
 severity: should
 location: `seal/specs/1792126889-every-agent-is-written-anew-from-its-job/plan.md:153`
-verdict: open
+verdict: fixed 927f64e9
 
 The Phases table has four columns. Rows 3, 4, 5 and 6 end `... || <status>
 |`, which is five cells (`awk -F'|'` over the table, executed: rows 1, 1b
@@ -256,13 +256,13 @@ The fix deletes the empty cell in each of the four rows, for example row 3:
 ... `git grep -n -E "§[0-9]+"` over `agents/ skills/ docs/ templates/ hooks/ tests/ CONTRIBUTING.md` naming only sections the contract has, which T3 holds | 314f6166, closed by the orchestrator: ... |
 ```
 
-answer:
+answer: Fixed: the empty cell is gone from rows 3 to 6, and `awk -F'|'` over the table now gives four cells for each of rows 1, 1b and 2 to 6.
 
 ### 7. The changelog fragment carries no per-agent table and no commit for any figure, and calls 12 defects run twice "24 known defects"
 
 severity: should
 location: `seal/specs/1792126889-every-agent-is-written-anew-from-its-job/changelog.md:10`
-verdict: open
+verdict: fixed 927f64e9
 
 `spec.md` S16 and §*A number in this frame names its moment or its bound*
 ask the fragment for a per-agent table of preload bytes, tokens read, spend
@@ -294,13 +294,13 @@ with one row each for the smith, the framer and the sealer from their
 phase-3 records, the framer's `fail` and the sealer's "not the sealer's
 result" stated as they are.
 
-answer:
+answer: Fixed for the agents this item measured after the contract: the fragment says "12 known defects, each run twice, 16 of 24 finds where ... 13", and a table gives the warden, the smith and the framer their preload bytes, tokens per tool call, spend and verdict, the framer's `fail` stated, each figure the tree at af9c924b against 93c1878c, read from `evals/<agent>-phase-3.md` at 314f6166. The 16 and 13 were recounted from the warden record's 12 truth rows. The sealer has no row: its phase-3 record measures a definition #969 rewrites, which `overview.md` §*Not done* already says.
 
 ### 8. The warden's hand-back check reads the session's directory, not the branch worktree its record is in
 
 severity: should
 location: `agents/warden.md:47`
-verdict: open
+verdict: fixed 0067cff0
 
 Step 7 names `python3 skills/code-review/scripts/chain_check.py --baseline
 <base> --worktree` with no `--root`. `chain_check.py`'s `--root` defaults to
@@ -321,7 +321,7 @@ since their scaffold has one tree. This round's own spawn prompt adds
    refusal you leave standing.
 ```
 
-answer:
+answer: Fixed as proposed, still one sentence: the command names `--root <the branch worktree>`. `test_the_warden_checks_its_record_in_the_branch_worktree` reads the command and was seen red with `--root` taken out.
 
 ## Confirmations
 
