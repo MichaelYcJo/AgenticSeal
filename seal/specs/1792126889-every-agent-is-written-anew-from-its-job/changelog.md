@@ -17,8 +17,8 @@
   rule that stayed keeps its section number; the four new ones are §17 to
   §20: clean up only what you started, fix or report a check that refuses
   correct code rather than bending the code, rewrite a text in place, and do
-  not avoid the change a problem calls for. Its §2 now says no agent runs
-  the broad gate. Two numbers moved: the old `§16` is now part of `§11`,
+  not avoid the change a problem calls for. Its §2 now says no agent but the
+  sealer runs the broad gate. Two numbers moved: the old `§16` is now part of `§11`,
   and the old `§17`, the commit rule, is now `§16`; a spawn prompt of your
   own that cites either is rewritten to the new number.
   (`1792126889-every-agent-is-written-anew-from-its-job`, #957)

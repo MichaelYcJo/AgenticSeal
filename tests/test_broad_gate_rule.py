@@ -178,21 +178,37 @@ def contract_section(number):
 
 def test_the_prohibition_itself_has_one_home_and_it_is_the_contract():
     """Contract §2 is the one home of the prohibition, and since #957 it names
-    the owner: no agent runs the broad gate, the orchestrator runs it with
-    `broad-gate --record` before it spawns the sealer, and a definition is not
-    where the act is assigned (`spec.md` §*The broad gate runs before the
-    sealer*)."""
+    the owner: no agent but the sealer runs the broad gate, by `broad-gate
+    --record`, and #969 is where the run moves to the orchestrator before it
+    spawns the sealer (`spec.md` §*The broad gate runs before the sealer*).
+    Until #969 the sealer's definition is what hands it the run, so §2 says
+    exactly that and no more (#957 round 1, finding 1)."""
     contract = " ".join(read("skills", "agent-contract", "SKILL.md").split())
     body = contract_section(2)
-    assert "No agent runs any of the three" in body, (
-        "§2 stopped forbidding the broad gate to every agent"
+    assert "No agent runs any of the three but the sealer" in body, (
+        "§2 stopped forbidding the broad gate to every agent but its owner"
     )
-    assert "it is the orchestrator's" in body, "§2 stopped naming the owner"
-    assert "before it spawns the sealer" in body, (
-        "§2 stopped saying the run comes before the sealer's spawn"
+    assert "whose definition hands it that run" in body, (
+        "§2 stopped saying where the sealer's run is assigned"
     )
-    assert "a definition is not where the act is assigned" in body, (
-        "§2 lets a definition hand itself the run again"
+    assert "broad-gate --base <base> --record <item>" in body, (
+        "§2 stopped naming the command the one act is"
+    )
+    assert "#969 moves the run to the orchestrator" in body, (
+        "§2 stopped naming the issue that moves the run, so a reader of the "
+        "sealer's definition and of #969 meets two owners with no order"
+    )
+    assert "it is the orchestrator's" not in body, (
+        "§2 names the orchestrator as the owner while the sealer still runs "
+        "the gate, which is two opposite orders in one preload"
+    )
+    sealer = flat("agents", "sealer.md")
+    assert "§2 gives the suite, lint and typecheck to no agent but the sealer" in (
+        sealer
+    ), "the sealer's definition recites a §2 that no longer stands"
+    assert "leaves each definition to say" not in sealer, (
+        "the sealer's definition still quotes the §2 that left the act to each "
+        "definition, beside a contract that names the sealer"
     )
     assert "Hand over with the suite labelled `unverified`" in contract, (
         "the label went, and a suite that is simply not mentioned reads as a "
