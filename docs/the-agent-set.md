@@ -57,7 +57,7 @@ Enforced by: tests/test_chain_check.py::TestFrame
 ## What each party writes, and when
 
 **A review round is one file the warden writes, the fix pass writes two lines
-of each finding it answers, the sealer's broad run writes `broad-gate.md`, and
+of each finding it answers, the orchestrator's broad run writes `broad-gate.md`, and
 the sealer's verdict is `guarantee.md`.** `docs/the-review-record.md` holds
 what each of those files carries.
 Enforced by: tests/test_chain_check.py::TestFindings

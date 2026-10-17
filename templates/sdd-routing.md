@@ -24,7 +24,7 @@ this file is for people. -->
 
 <!-- Review — `through the review chain` or `straight to the PR`. The first
      owes a committed `rounds/round-N.md` at the pull request; the second
-     turns off the reviewer alone and owes the sealer's `broad-gate.md` in
+     turns off the reviewer alone and owes the orchestrator's `broad-gate.md` in
      this directory at a ready pull request — the one broad run, at a SHA,
      against the base. Neither is *no enforcement*: a change belonging to no
      work item is the routing question's `no work item` answer, recorded as

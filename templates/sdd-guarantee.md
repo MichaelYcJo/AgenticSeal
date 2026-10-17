@@ -7,8 +7,8 @@ sealer alone and committed by the orchestrator beside `broad-gate.md`.
 
 | Field | Value |
 |---|---|
-| Target SHA | <the commit audited, `<sha> against <base>`> |
-| Broad gate | <`sealed`, or `not sealed — <the failing check, as the gate printed it>`> |
+| Target SHA | <the commit audited, `<sha> against <base>`, and on a later run `; earlier run: <sha> <verdict>`> |
+| Broad gate | <the run `broad-gate.md` names, `<sha> against <base>`> |
 
 ## Claims re-run
 

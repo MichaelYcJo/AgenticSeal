@@ -47,7 +47,8 @@ picture first.
 
 **A sealed run is drawn where a person sees it, and that is rarely where it
 ran** (#400). The gate draws only on a terminal, and only over a written
-cell. A recorded seal on a pipe — which is every sealer's run — writes the
+cell. A recorded seal on a pipe — which is every run a session's Bash call
+takes — writes the
 panel's rows to a values file under the git common dir instead, keyed by the
 Claude Code session, and
 `hooks/sealer-stamp.py` draws each undrawn file once, at the end of that
@@ -671,10 +672,10 @@ def is_terminal(stream):
 
 # --- a sealed run's values, drawn by somebody else -----------------------
 #
-# The gate's stdout on a sealer's run is a pipe into a report nobody sees
+# The gate's stdout on a Bash call is a pipe into a tool result nobody sees
 # unfolded (#400), so it writes the run's panel here and a `Stop` hook in the
-# session that spawned the sealer draws it. The directory is under the git
-# COMMON dir because the sealer's root and that session's cwd are different
+# session that ran the gate draws it. The directory is under the git
+# COMMON dir because the gate's root and that session's cwd can be different
 # worktrees of one clone, and the common dir is the one place both resolve
 # alike. It is keyed by session so that a concurrent session of the same
 # clone does not draw, and take, a stamp that is not its own.

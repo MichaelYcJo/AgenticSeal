@@ -326,7 +326,7 @@ retires the directory. Which file each agent writes is
 | `phases/phase-N.md` | what one build phase was asked, found and removed |
 | `rounds/round-N.md` | what one review round read, found and closed |
 | `changelog.md` | this work item's entry in the next release's notes |
-| `broad-gate.md` | the sealer's one broad run, on either routing answer |
+| `broad-gate.md` | the orchestrator's one broad run, on either routing answer |
 | `guarantee.md` | whether the sealer found the work sound, against the issue and the tree |
 
 **The files keep these paths and stop mattering at two different times.**

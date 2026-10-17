@@ -1567,8 +1567,9 @@ def broad_gate(reader, root, item, base):
             (
                 rel,
                 0,
-                "git carries no broad-gate file: the sealer runs `broad-gate "
-                "--base <base> --record <item>`, which writes it on a green run",
+                "git carries no broad-gate file: the orchestrator runs "
+                "`broad-gate --base <base> --record <item>` before it spawns "
+                "the sealer, and the run writes it on a green run",
             )
         ]
     sha = newest_run(reader, text)

@@ -37,7 +37,8 @@ half: `<repo>/seal/` where that directory exists, and
 2. spec · plan (framer) → smith → the draft pull request opens
    (`skills/code-review/orchestration.md` §*Orchestrator: the pull request
    opens before round 1, and a phase is re-run* owns when) → warden rounds →
-   `broad-gate --preflight`, yours → sealer → the pull request is marked
+   `broad-gate --preflight`, yours → `broad-gate --record`, yours → sealer →
+   the pull request is marked
    ready.
 3. The pull request body carries `Closes #N`; the release workflow closes the
    ticket when the release reaches `main`.
@@ -272,7 +273,7 @@ makes both fit.
 
 | Order | Label | Description |
 |---|---|---|
-| 1 | **automation** | Every party runs: the framer frames it, `smith` builds it, `warden` reviews it, the sealer takes the broad run, and the pull request opens. **This is the last question — nothing stops to ask again.** |
+| 1 | **automation** | Every party runs: the framer frames it, `smith` builds it, `warden` reviews it, you take the broad run, the sealer audits it, and the pull request opens. **This is the last question — nothing stops to ask again.** |
 | 2 | **per axis** | The four boxes below are the answer. |
 | 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. Every commit needs `[no-review]` typed in front of it, and nothing checks this change at the pull request. |
 
@@ -444,10 +445,10 @@ What the four combinations do:
 
 | Review | Destination | During the work | At the end | What CI checks |
 |---|---|---|---|---|
-| chain | open the PR | the review arm stays silent | the PR opens | a round record is required, and the sealer's `broad-gate.md` beside it |
+| chain | open the PR | the review arm stays silent | the PR opens | a round record is required, and your one broad run's `broad-gate.md` beside it |
 | chain | stop before the PR | the review arm stays silent | the branch is handed back, committed and unpushed | **nothing runs** — say so in the handback |
-| direct | open the PR | the review arm stays silent | the sealer takes the broad run, then the PR opens | the sealer's `broad-gate.md` in the work item's directory — the one broad run, at a SHA, against the base — and no round record; the answer turns off the reviewer alone |
-| direct | stop before the PR | the review arm stays silent | the branch is handed back | **nothing runs** — say so in the handback; the sealer's record is owed when a pull request opens |
+| direct | open the PR | the review arm stays silent | you take the broad run, the sealer audits it, then the PR opens | your one broad run's `broad-gate.md` in the work item's directory — the one broad run, at a SHA, against the base — and no round record; the answer turns off the reviewer alone |
+| direct | stop before the PR | the review arm stays silent | the branch is handed back | **nothing runs** — say so in the handback; the broad run's record is owed when a pull request opens |
 
 That column is about the review arm. The gate has two arms, they are separate
 opt-ins, and each has terms that **wake** it and terms that **quiet** it.
@@ -508,7 +509,7 @@ What must not happen instead is a standing waiver. A session-level switch that
 turns the gate off leaves it nothing to do but stay quiet, which is the state
 the gate exists to end. The routing declaration is not that switch: it moves
 the check rather than removing it — the chain answer is checked at the pull
-request against the round record, the direct answer against the sealer's
+request against the round record, the direct answer against the broad run's
 `broad-gate.md` at the same place — and there is no third value meaning no
 enforcement anywhere. The declaration silences the review arm for either
 answer, so no token checks the direct answer at any commit; what the answer
@@ -635,7 +636,7 @@ not a closed-looking one.
 | Orchestrator: a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A resumed fix pass and a fresh spawn leave identical trees, so nothing at the pull request can tell them apart, and the measured difference between them is 282 calls against 30, and the choice of session is in no file |
 | Orchestrator: the run ends with a verifying round | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It fails a ready pull request when a commit touching a file outside the work item's records follows the commit on the last record's `target:` line, or a finding of that record reads `fixed <commit>` or `rejected`, which is the run whose own last fixes nobody opened; on a draft it prints and names the verifying round. What it cannot read is the cap: the extension lines are the warden's, and the sealer reads the count |
 | A regression is routed by comparing the fix with the frame | `skills/code-review/orchestration.md` | still a sentence | The warden's `regression:` line routes nothing mechanical, and neither does the sentence of its grounds the route reads: `skills/code-review/scripts/chain_check.py` reads the line only as a reference to an earlier finding, and the `Reframed` line only for its author against the declaration, and the sealer reads the records |
-| Orchestrator: the pull request opens before round 1, and a phase is re-run | `skills/code-review/orchestration.md` | still a sentence | A pull request opened after the rounds leaves the same tree as one opened before them, so nothing reads the timing, and nothing records that a closed phase's suite and lint were re-run before the next phase spawned. What is delivered is the step the section ends on: `skills/code-review/scripts/chain_check.py` fails a ready pull request whose `broad-gate.md` is absent or names a commit other than HEAD, which is what makes the sealer's spawn happen. The step before that spawn, `broad-gate --preflight` (#638), is recorded nowhere either, and a session that skips it loses time and nothing else: the sealer asks the same arms and refuses the same way |
+| Orchestrator: the pull request opens before round 1, and a phase is re-run | `skills/code-review/orchestration.md` | still a sentence | A pull request opened after the rounds leaves the same tree as one opened before them, so nothing reads the timing, and nothing records that a closed phase's suite and lint were re-run before the next phase spawned. What is delivered is the step the section ends on: `skills/code-review/scripts/chain_check.py` fails a ready pull request whose `broad-gate.md` is absent or names a commit other than HEAD, which is what makes the orchestrator's broad run and the sealer's spawn after it happen. The step before that run, `broad-gate --preflight` (#638), is recorded nowhere either, and a session that skips it loses time and nothing else: the broad run asks the same arms and refuses the same way |
 | Orchestrator: verify before posting | `skills/code-review/orchestration.md` | still a sentence | The four checks are readings the orchestrator takes before posting, and nothing in the tree records that any of them happened. The one part a record carries is the new HEAD on the next round's `target:` line where HEAD moved |
 | Orchestrator: closing the cycle | `skills/code-review/orchestration.md` | check: `hooks/commit-review-gate.py` | The review arm quiets on a mark standing at HEAD, so a cycle left unclosed meets the gate at the next commit. On a branch with a routing declaration in force the declaration quiets that arm first, and that is every branch this workflow routes, so for those the missing mark is never noticed |
 

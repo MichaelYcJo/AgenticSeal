@@ -228,8 +228,9 @@ Enforced by: tests/test_chain_check.py::TestChanged, tests/test_chain_check.py::
 of the smith and the warden, that the work before it is sound.** Its
 reference is the issue body and the tree, never an agent's word or the
 orchestrator's summary. It runs after the pull request body and the
-changelog fragment are written, on both routing answers, and its order of
-work is `agents/sealer.md`'s.
+changelog fragment are written and the orchestrator's broad run has written
+`broad-gate.md`, on both routing answers; it reads that record and runs
+nothing broad, and its order of work is `agents/sealer.md`'s.
 
 **It checks a claim against the fact, and the parties against each other.**
 The acts are `agents/sealer.md` step 3's and step 4's, and this section

@@ -255,7 +255,8 @@ they are the two to name rather than some new mark invented for it.
   values it is drawn from, when every check passed and `broad-gate.md` was
   written, and on no other path. It draws on a person's terminal itself; anywhere
   else the `Stop` hook draws those values at the end of the turn of the
-  session that spawned the sealer. So seeing the drawing means the last seal
+  orchestrator's session, which ran the gate before it spawned the sealer.
+  So seeing the drawing means the last seal
   was earned.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
@@ -394,17 +395,19 @@ particular rounds — a work item has build phases with a progression of their
 own and a review chain with its own — so a reader who reaches for the moment
 has to guess, and one who reaches for the record does not.
 
-**It belongs to the `sealer`, and the four conditions above are the whole of
-the run.** The rule used to say when the gate fires and which agents may not
-take it, and named nobody who may — so it was assembled from these sentences
-by whichever session remembered them, differently each time. `agents/sealer.md`
-is the agent, `broad-gate --base <base> --record <item>` is the command, and
+**It belongs to the orchestrator, and the four conditions above are the whole
+of the run.** The rule used to say when the gate fires and which agents may
+not take it, and named nobody who may — so it was assembled from these
+sentences by whichever session remembered them, differently each time. No
+agent runs it: `broad-gate --base <base> --record <item>` is the command the
+orchestrator types, with nothing else running, and
 `skills/code-review/orchestration.md` §*Orchestrator: the pull request opens
-before round 1, and a phase is re-run* owns when it is spawned. The run
-judges no failure and fixes none; what the sealer guarantees after it is
-`docs/the-review-record.md` §*The guarantee*.
-`broad-gate --preflight`, which the orchestrator runs before that spawn, is
-not this run: it runs the gate's record arms, runs no suite, and seals
+before round 1, and a phase is re-run* owns when, before the sealer is
+spawned. The run judges no failure and fixes none; the sealer reads its
+record, and what it guarantees after it is `docs/the-review-record.md`
+§*The guarantee*.
+`broad-gate --preflight`, which the orchestrator runs before the broad run,
+is not this run: it runs the gate's record arms, runs no suite, and seals
 nothing (#638).
 
 **An expensive suite argues for this placement, not against it.** A run that
@@ -425,8 +428,8 @@ last fetch — which is why the stamp's panel names the ref beside the commit
 on the `base` row rather than the commit alone, and the `SEALED` line names it as
 `<ref> @ <commit>`.
 
-**What the sealer's seal covers is declared rather than remembered.** The arms
-exist so that its one run says what CI will say, and for three releases the
+**What the broad run's stamp covers is declared rather than remembered.** The
+arms exist so that the one run says what CI will say, and for three releases the
 list was kept in step with `.github/workflows/hygiene.yml` by whoever
 remembered. #424 added a step to that workflow's `release` job, nobody added
 the arm, and no case in the suite went red — so from that merge onward a green
@@ -944,7 +947,7 @@ never in a column of it.
 - Satisfaction vocabulary before the run: should, probably, seems, likely.
 - A new test that passed on first run and was never seen red (condition 2).
 - Partial evidence generalized — one endpoint checked, "API works" claimed.
-- A broad run reported as the sealer's seal when edits followed it — including the
+- A broad run reported as the gate's stamp when edits followed it — including the
   one small fix made after it.
 - A pre-existing failure counted as this work's, or waved past without
   being named. Both need the base comparison; neither survives it.

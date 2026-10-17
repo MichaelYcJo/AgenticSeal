@@ -6,7 +6,8 @@ repository-wide lint and the typecheck run once, after the review rounds
 settle, and for three releases nobody was assigned that run: contract §2
 forbade it to the smith and the warden, and the orchestrator that took it by
 default kept hundreds of output lines in the one context a release cannot
-replace. This command is the run, as a thing the sealer types.
+replace. This command is the run, as a thing the orchestrator types once,
+with nothing else running, before it spawns the sealer (#969).
 
 What it does, in order, from the repository root:
 
@@ -82,8 +83,8 @@ Anywhere else a recorded seal draws nothing and prints one line beginning
 `<git-common-dir>/specseal-stamp/<session>/`; `hooks/sealer-stamp.py` draws
 it at the end of the turn of the session named by `CLAUDE_CODE_SESSION_ID`.
 Without `--record` there is no file, so on a terminal or off one the line
-says nothing was recorded, and nothing is written or drawn. A sealer's
-stdout is a pipe, so a sealer's run never draws. Both lines name what was
+says nothing was recorded, and nothing is written or drawn. A Bash call's
+stdout is a pipe, so the orchestrator's run never draws. Both lines name what was
 sealed as `<branch> @ <tree> against <ref> @ <base commit>`, the branch left
 out on a detached HEAD and the ref left out where it is the commit itself
 (#666). The failure form is `NOT SEALED` with the same names and the failing
@@ -109,7 +110,7 @@ adds no worktree, prints no coverage line, and prints no line beginning
 `SEALED` or `NOT SEALED`: its stdout opens `PREFLIGHT PASSED` or `PREFLIGHT
 FAILED`, the failing arms under the second in the failure form's own words.
 `--record` beside it is refused, because a preflight writes nothing. It is
-not the broad gate and replaces no part of the sealer's run.
+not the broad gate and replaces no part of the orchestrator's broad run.
 
 Usage:
   broad-gate --base <ref> [--root DIR] [--record <item>] [--shape]
@@ -524,7 +525,7 @@ def moved_line(root, base):
     Printed and then the run continues. A refusal was the ticket's second
     direction and `plan.md` §*Alternatives considered* rejected it: its only
     repair is a `git fetch` and a second nine-minute gate, performed by a
-    person the sealer has no way to ask, and it fires on the ordinary release
+    person the run has no way to ask, and it fires on the ordinary release
     case where a sibling merges while this branch is open.
 
     **Nothing prints where the two agree.** A line on every run is a line
@@ -540,9 +541,9 @@ def moved_line(root, base):
     an upstream — answers with something that is not `origin/<base>`, and the
     workflow spells `origin/<base>` literally. Where the two part, the line
     says what THIS checkout declares and names the ref a runner would read
-    beside it. `agents/sealer.md` has the sealer quote this line in its
-    report, so a sentence that can be wrong here is wrong in a report
-    (round 1, finding 2).
+    beside it. `skills/code-review/orchestration.md` has the orchestrator
+    quote this line, so a sentence that can be wrong here is wrong in what
+    a person reads (round 1, finding 2).
 
     **And it names a runner's ref only where a runner could hold one.** The
     clause above was over-claimed by one spelling: `--base @{-1}` passes
@@ -729,7 +730,7 @@ def broad_command(home):
 
     **Two states are refused, not read as no row** (#867): a `config.md`
     that is there and will not read, and a `Broad gate` row written twice.
-    Either raises `Refused` naming the path, so the sealer's gate exits 2
+    Either raises `Refused` naming the path, so the broad gate exits 2
     with nothing run. Read as no row, an unreadable file was reported as a
     missing row, which sent a person to add a row the file already held,
     and a doubled row ran its first command.
@@ -1085,7 +1086,7 @@ def missing_row(home):
         f"broad-gate: {os.path.join(home, CONFIG)} has no `{ROW}` row, so "
         "there is no command to seal over — and choosing one is not this "
         "session's to do. There is no default because a row is a thing a "
-        "person wrote, and what the sealer's seal covers is exactly that "
+        "person wrote, and what the gate's stamp covers is exactly that "
         "(`skills/verify/SKILL.md` §*The Seal Test*): a session that picks a "
         "command here seals its own choice.\n"
         "Take it to whoever owns the repository. `/specseal:config` is where "
@@ -2140,7 +2141,7 @@ def compare_at_base(root, base, command, files, keep):
 
 # --- the workflow this gate is a local reading of ---------------------------
 #
-# The gate exists so the sealer's one run says what CI will say. It said a
+# The gate exists so the one broad run says what CI will say. It said a
 # SHORTER list than CI for one release: `.github/workflows/hygiene.yml`'s
 # `release` job gained a step in #424, nobody extended the gate, and no case
 # in the suite went red for it — a coverage probe over the eight structural
@@ -2260,7 +2261,7 @@ def job_steps(text, job):
 # **Which of the steps CI runs depends on the base** (#666). Three run only
 # on a pull request into `main` (`ONLY_AT_MAIN`), so the `workflow` count is taken over
 # `steps_for(workflow, base)` rather than over this table: a step CI does not
-# ask of a pull request is neither answered nor unanswered by the sealer's run.
+# ask of a pull request is neither answered nor unanswered by the broad run.
 PARTITION = (
     (
         "every issue this pull request claims, and every one it only names",
@@ -2371,7 +2372,7 @@ def steps_for(workflow, given):
 
     Every step of the job, less `ONLY_AT_MAIN` where the base is not `main`.
     A step left out here is neither answered nor unanswered: CI does not ask
-    it of this pull request, so the sealer's run neither covers it nor misses
+    it of this pull request, so the broad run neither covers it nor misses
     it. `given` None — no base known — leaves out what a base that is not
     `main` would, which is what every caller that knows no base has been
     asked about."""
@@ -2432,7 +2433,7 @@ def coverage_line(text, given):
 
     **Over the steps CI runs for this base** (#666, `steps_for`), and one
     clause saying how many it left out and why (`left_out_clause`): a step CI
-    does not ask of this pull request is not a step the sealer's run failed
+    does not ask of this pull request is not a step the broad run failed
     to answer, and naming it among the unanswered sent a reader to four steps
     no run of this pull request would ever ask.
 
@@ -2703,7 +2704,7 @@ def panel(
     took it off. NOT `("lint", "clean")` either: the row is
     one shell command line and nothing in it says which part is a linter
     (`templates/config.md` §*Broad gate*), so `clean` over a row with no
-    linter in it is the sealer's stamp asserting a check that never ran."""
+    linter in it is the gate's stamp asserting a check that never ran."""
     stamp = stamp_module()
     rows = [("SEALED", ""), ("tree", tree)]
     if branch:
@@ -2973,10 +2974,10 @@ def gate(args, console_wants_letters, terminal=False):
     checks = {}
     # The first of `verify`'s four conditions is to name the command before
     # running it, and the row is the only part of this run the gate did not
-    # choose. `agents/sealer.md` asks the sealer to quote it and let the
-    # reader judge it — and the sealer opens no repository file, by its own
-    # rule, so it has to arrive here (round 1's 🟡 9). `run` wrote it to the
-    # kept output file and nothing reached the report.
+    # choose. `skills/code-review/orchestration.md` asks the orchestrator to
+    # quote the gate's lines and let the reader judge them, so the row has to
+    # arrive here (round 1's 🟡 9). `run` wrote it to the kept output file and
+    # nothing reached the report.
     said = moved_line(root, base)
     if said:
         sys.stderr.write(said + "\n")
@@ -3150,7 +3151,7 @@ DRAWN_AT_TURN_END = (
 # hands over to it) while the `Stop` hook that draws the file, and the
 # `seal-stamp` a person types, are the installed plugin's: one older than
 # #853 refuses a values file without a numeric `scale` and leaves the
-# sealer's stamp undrawn (#869 round 1's 🟡 3). Remove it, and its pin in
+# gate's stamp undrawn (#869 round 1's 🟡 3). Remove it, and its pin in
 # `tests/test_the_seal_is_taken_once_by_the_sealer.py`, in the first release
 # after 0.21, once no installed plugin older than #853 is left to draw.
 SCALE_FOR_OLDER_HOOKS = 0.9
