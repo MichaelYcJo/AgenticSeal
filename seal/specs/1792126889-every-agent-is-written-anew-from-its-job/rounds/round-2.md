@@ -8,7 +8,7 @@ target: 155920f5, fixes 45f0d963..155920f5
 
 severity: must
 location: `skills/agent-contract/SKILL.md:42-46`, `agents/sealer.md:75`, `docs/the-broad-gate.md:38-41`, `tests/test_broad_gate_rule.py:179`
-verdict: open
+verdict: fixed 8d7e6a44
 regression: round-1#1
 
 The unit is contract §2, which 91741abf rewrote. The frame (`spec.md:153-154`,
@@ -58,13 +58,13 @@ the run is yours, the same hand-over carries its result instead of the label.
     )
 ```
 
-answer:
+answer: Fixed as proposed. §2 ends "Where the run is yours, the same hand-over carries its result instead of the label." and names the broad-gate case beside its `Enforced by:` target. The pin is in `test_the_prohibition_itself_has_one_home_and_it_is_the_contract`, and it was seen red (exit 1, that case failing) against §2 at 74c6a75a before the sentence was added. A grep of the contract and `agents/` finds no other sentence telling every agent to label the suite `unverified`. `agents/smith.md:232` and `agents/warden.md:140` speak of the smith's own hand-over, and `docs/the-broad-gate.md:38-41` already carries the exception.
 
 ### 2. The changelog fragment says a warden spawn preloads 27,032 bytes, and at this HEAD it preloads 27,018
 
 severity: should
 location: `seal/specs/1792126889-every-agent-is-written-anew-from-its-job/changelog.md:6`
-verdict: open
+verdict: fixed ea8b0c9d
 regression: round-1#7
 
 The unit is the fragment's first bullet, which 927f64e9 rewrote. The frame
@@ -93,7 +93,7 @@ has to say when its figure was read.
   its evaluation (`93c1878c`) where it preloaded 76,019 at `af9c924b`. Before
 ```
 
-answer:
+answer: Fixed as proposed: the bullet keeps the measured figure and names its moment, 93c1878c. The harness's `preload_bytes` at 8d7e6a44 gives 27,198, because finding 1's sentence is 180 bytes; a figure stated for HEAD would move again with the next edit. Rule 4 still holds by arithmetic, 27,198 < 76,019. The table under the bullet already names its commits.
 
 ## Confirmations
 
