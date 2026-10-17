@@ -144,3 +144,163 @@ narration):**
 **Not run here:** the four agents' evaluation sets (`evals/<agent>-phase-3.md`)
 are the next spawn's, and the full suite is the orchestrator's, after the
 rounds settle.
+
+## The evaluation (spawn 3b)
+
+Asked: run the sealer's, the smith's, the framer's and the warden's sets
+once each, in that order, paid, against the build at 93c1878c with the suite
+at af9c924b and the baselines as they stand; keep each side's raw output in
+`SpecSeal-worktrees/957-phase-3-raw/<agent>/`; write `evals/<agent>-phase-3.json`
+by `run --from-raw` and `evals/<agent>-phase-3.md` by `compare`; stop before
+the next agent past $90; re-run only on a named transient; change no rule and
+no definition. Ran by specseal:smith on Opus 5.5.
+
+**Two verdicts read `pass` and two read `fail`.** The smith and the warden
+pass. The framer fails rule 5 alone. The sealer fails rules 3 and 5, and its
+record is not the sealer's result (below). Nothing was cut short, every side
+read `partial: false`, and nothing was re-run: neither failure has a
+transient cause to name.
+
+| | sealer base | sealer 3 | smith base | smith 3 | framer base | framer 3 | warden base | warden 3 |
+|---|---|---|---|---|---|---|---|---|
+| Verdict | | fail (3, 5) | | pass | | fail (5) | | pass |
+| Truth finds (recall) | 4 of 4 | 3 of 4 | none | none | none | none | 13 of 24 | 16 of 24 |
+| Report rows / false rows | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 55 / 43 | 47 / 31 |
+| False rate | 0 | 0 | 0 | 0 | 0 | 0 | 0.782 | 0.660 |
+| Shape and reach passes | 30 of 30 | 29 of 30 | 48 of 48 | 48 of 48 | 64 of 64 | 64 of 64 | 66 of 72 | 70 of 72 |
+| Preload bytes (agent share) | 28,358 | 24,527 | 94,693 | 90,594 | 93,453 | 89,310 | 76,019 | 27,032 |
+| Tool calls, every `tool_use` block | 97 | 84 | 197 | 183 | 112 | 141 | 746 | 833 |
+| Tokens per tool call (rule 5) | 34,268.9 | 36,861.5 | 45,574.6 | 45,194.4 | 28,253.1 | 33,595.1 | 89,100.4 | 80,940.4 |
+| Tokens read, every model | 3,324,087 | 3,096,365 | 8,978,191 | 8,270,573 | 3,164,345 | 4,736,908 | 66,468,871 | 67,423,379 |
+| Tokens per true find | 831,022 | 1,032,122 | unknown | unknown | unknown | unknown | 5,112,990 | 4,213,961 |
+| Spend USD | 3.0366 | 4.0836 | 6.3830 | 5.9980 | 16.5896 | 17.3532 | 36.0352 | 36.6656 |
+| Session seconds | 577.2 | 578.6 | 1,144.5 | 1,320.6 | 1,875.0 | 2,027.6 | 5,779.5 | 6,807.8 |
+| Eval wall seconds | 194 | 1,244 | 305 | 409 | 565 | 627 | 1,602 | 1,860 |
+
+Every figure but the wall seconds is `noninferiority.py#side_numbers` over the
+committed side files (`summary.py`, a scratch script); the tool calls agree
+with a separate count of every `tool_use` block in the kept traces (sealer
+84, smith 183, framer 141, warden 833, and the baselines' 97, 197, 112, 746).
+The wall seconds are each eval's `durationSeconds`.
+
+**The phase's spend is $64.1004** (sealer 4.0836, smith 5.9980, framer
+17.3532, warden 36.6656). The running total never neared the $90 stop.
+
+**`payload-meter` at ab2dda7c** (no file under `agents/` or `skills/` changed
+after 93c1878c), each total holding the 13,318 B `CLAUDE.md` pair:
+
+| Agent | Preloaded files, bytes | Total bytes | Tokens, estimated |
+|---|---|---|---|
+| sealer | `agents/sealer.md` 7,990; contract 16,537 | 37,845 | 11,827 |
+| smith | `agents/smith.md` 20,829; contract 16,537; `implement` 32,228; `writing-style` 21,000 | 103,912 | 32,472 |
+| framer | `agents/framer.md` 19,545; contract 16,537; `implement` 32,228; `writing-style` 21,000 | 102,628 | 32,071 |
+| warden | `agents/warden.md` 10,495; contract 16,537 | 40,350 | 12,610 |
+
+### The sealer: measured against a definition the contract now contradicts
+
+**Not to be read as the sealer's result.** `agents/sealer.md` still says the
+broad gate is the sealer's, and the new contract's §2 says no agent runs it;
+phase 5 rewrites the sealer with the gate before it and measures the sealer
+for decision. The orchestrator dropped the sealer from this phase while the
+run was in flight and, on finding it had already finished (exit 0, $4.08,
+1,244 s, not partial), kept this record under that label.
+
+What the record says, as read: rule 3, `rule-sealer-untrue-body/shape-verdict`
+1/2 against 2/2, and rule 5, 36,861.5 tokens per call against 34,268.9.
+Recall fell by one find (`truth-untrue-body` 1/2), which rule 1 reads as
+noise.
+
+**What the runs did about the gate** (`gate.py` over both sides' traces): in
+6 of 6 runs on each side, the sealer's first act after locating the clone
+was `broad-gate --base main --record <item>`. The contract's new §2 did not
+stop it. Every first call on both sides exited 134: the eval sandbox blocks
+the pyenv interpreter's library (`libpython3.12.dylib ... blocked by
+sandbox`). On the baseline all six runs worked round it with a shim to
+another interpreter and reached `SEALED` (2 or 3 gate calls each). On the
+new side five did; run 004 (`rule-sealer-untrue-body`, run 0) made one gate
+call, read the refusal, re-ran the phase record's seen-red claim itself,
+found the pull request body's untrue README claim, and then wrote no
+`guarantee.md`, handing back that no verdict can be recorded without the
+gate. That one run is both rule 3's shortfall and the lost find. Rule 5
+does not rest on it: its 33,992 tokens per call are below the side's
+figure, and the other five runs read 34,937 to 39,202 against the
+baseline's 29,518 to 36,481 (`permodel.py`). Whether the new §2 shaped that stop is not
+measured: `unverified`, answerer phase 5's measurement. The sandbox's
+interpreter refusal is the same on both sides and in every run, so it is
+not a transient this spawn could re-run away.
+
+### The smith: `pass`
+
+Every grader passed on every run on both sides, the preload fell 4,099
+bytes, calls fell 197 to 183, and tokens per call fell 0.8%. No smith run on
+either side ran a broad check (`broad-gate`, a whole-suite `unittest
+discover`, `pytest`, `ruff` or `mypy`): 0 commands on both.
+
+### The framer: `fail`, rule 5 alone
+
+Every grader passed on every run on both sides, and the preload fell 4,143
+bytes. Rule 5: 33,595.1 tokens per call against 28,253.1 (+18.9%), with
+calls up 112 to 141 (+25.9%) and total tokens up 49.7%. Every token is the
+one model's (`claude-fable-5-1`) on both sides.
+
+What it points at, read from the traces: the new side's runs explored more.
+Bash calls rose 26 to 42 and Reads 47 to 54, and the new runs opened files no
+baseline run opened: `docs/the-record-layout.md` 7 times (grepping its
+changelog-fragment rules), the contract 3 times, `templates/sdd-routing.md`,
+`sdd-overview.md`, `seal-README.md`, `config.md` and `sdd-changelog.md`.
+No sentence in the framer's preload names `the-record-layout.md` or the
+changelog fragment at either revision (`git grep` over `agents/framer.md`
+and the contract), so which change drove the exploration is not shown.
+Tokens per call grow with the calls a run makes, since each call carries the
+context before it, so more exploration raises rule 5's figure as well as the
+total. The per-run figure is wide on both sides (baseline 19,415 to 54,983
+tokens per call; new 24,258 to 66,117) over two runs a case. `unverified`,
+answerer the orchestrator: whether phase 4's rewrite of the framer is where
+this is answered.
+
+### The warden: `pass`, and the questions phase 2 left
+
+**Phase 2's failing grader does not recur.** `seeded-9b644676/shape-findings`
+passed 2/2 (run 2 of phase 2: 1/2). **No record with a finding lacks its
+`verdict:` line**: in all 18 printed records the `### <n>.` findings equal the
+`verdict:` lines (`scan.py`; phase 2's run 2 had three records short, one of
+them with none). Two records hold no finding at all, both
+`replay-1791779434-r5` (a verifying round whose records confirm earlier
+findings and open none). That grader was 0/2 on the baseline as well, and
+it is the side's only shortfall: 70 of 72.
+
+**The warden reads its record through `chain_check.py` in every run.**
+Counted from the traces (`ccorder.py`): 39 agent calls run
+`chain_check.py … --worktree`, in 18 of 18 runs, and in every run at least
+one comes after the agent's first write of the round record. The baseline
+made 0 such calls in 18 runs, and phase 2's run 2 made 1 in 1 run. Those 39
+calls account for 39 of the 87 calls the side added over the baseline;
+tokens per call still fell 9.2%.
+
+Recall is 16 of 24 as in phase 2 (three finds up on the baseline net), the
+false rate 0.660 against the baseline's 0.782 (phase 2's run 2: 0.564), and
+the preload 27,032 bytes against 76,019.
+
+### `plan.md`'s Status cell for phase 3 stays empty
+
+Its Verified-by cell asks for all four records reading `pass`. Two read
+`fail`, and the orchestrator decided (2026-10-17) that the sealer is measured
+in phase 5, so the cell stays empty: sealer measured in phase 5, and the
+framer's rule 5 is the orchestrator's call.
+
+### Commands, each with its exit code
+
+`$S` is the session scratch directory's `957-phase-3b/`, `$K` is
+`SpecSeal-worktrees/957-phase-3-raw/`, `$E` is this work item's `evals/`.
+
+| Command | Exit |
+|---|---|
+| `python3 evals/scripts/noninferiority.py run --agent <a> --rev 93c1878c --suite-rev af9c924b --out $S/<a>-phase-3.json --runs 2 -j 4`, for sealer, smith, framer, warden | 0 each |
+| `cp -R $S/<a>-phase-3.raw $K/<a>/`, with the run's log as `run.log` | 0 each |
+| `noninferiority.py run --from-raw $K/<a>/<a>-phase-3.raw --out $E/<a>-phase-3.json`, then `cmp` with `$S` | 0, 0 each |
+| `noninferiority.py compare --agent <a> --phase 3 --old $E/baseline-<a>.json --new $E/<a>-phase-3.json --out $E/<a>-phase-3.md` | 0 each: sealer `fail`, smith `pass`, framer `fail`, warden `pass` |
+| `noninferiority.py check $E/<a>-phase-3.md` | sealer 1, smith 0, framer 1, warden 0 |
+| `bin/payload-meter --agent <a>` | 0 each |
+| `python3 -I $S/scan.py`, `gate.py`, `ccorder.py`, `summary.py`, `permodel.py` over the kept sides and the baselines | 0 each |
+
+The scratch scripts were deleted with `$S`; what they counted is above.
