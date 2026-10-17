@@ -8222,7 +8222,7 @@ PROBE = (
 DEFINITIONS = ("smith.md", "warden.md")
 # The warden written anew in #957 names the run's record and the command,
 # `broad-gate`, not an agent, because the run's owner moves from the sealer
-# to the orchestrator in that item's phase 5.
+# to the orchestrator in #969.
 OWNER_NAMED = ("smith.md",)
 
 # The contract's own §2 and §6, read from the contract rather than typed, so a

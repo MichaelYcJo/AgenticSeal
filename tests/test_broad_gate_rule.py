@@ -216,8 +216,9 @@ def test_the_prohibition_itself_has_one_home_and_it_is_the_contract():
     )
 
 
-# The marker a definition carries when it takes the act. #957's phase 5 takes
-# it out of `agents/sealer.md` and replaces the case below with T7.
+# The marker a definition carries when it takes the act. #969 takes it out of
+# `agents/sealer.md` when it moves the run to the orchestrator, and replaces
+# the case below.
 ASSIGNS_THE_GATE = "spawned for exactly that"
 
 
