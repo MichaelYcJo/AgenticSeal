@@ -445,9 +445,9 @@ What the four combinations do:
 
 | Review | Destination | During the work | At the end | What CI checks |
 |---|---|---|---|---|
-| chain | open the PR | the review arm stays silent | the PR opens | a round record is required, and your one broad run's `broad-gate.md` beside it |
+| chain | open the PR | the review arm stays silent | the PR opens | a round record is required, and the broad run's `broad-gate.md` beside it |
 | chain | stop before the PR | the review arm stays silent | the branch is handed back, committed and unpushed | **nothing runs** — say so in the handback |
-| direct | open the PR | the review arm stays silent | you take the broad run, the sealer audits it, then the PR opens | your one broad run's `broad-gate.md` in the work item's directory — the one broad run, at a SHA, against the base — and no round record; the answer turns off the reviewer alone |
+| direct | open the PR | the review arm stays silent | you take the broad run, the sealer audits it, then the PR opens | the broad run's `broad-gate.md` in the work item's directory — the one broad run, at a SHA, against the base — and no round record; the answer turns off the reviewer alone |
 | direct | stop before the PR | the review arm stays silent | the branch is handed back | **nothing runs** — say so in the handback; the broad run's record is owed when a pull request opens |
 
 That column is about the review arm. The gate has two arms, they are separate

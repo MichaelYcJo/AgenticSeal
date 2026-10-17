@@ -4990,7 +4990,8 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     ):
         assert not hasattr(gate, retired), f"broad_gate.py still carries {retired}"
     readers = {
-        ("agents", "sealer.md"): "`new?`",
+        # #969: the orchestrator meets the gate's words now, not the sealer.
+        ("skills", "code-review", "orchestration.md"): "`new?`",
         ("agents", "smith.md"): "`new?` is neither",
         ("skills", "verify", "SKILL.md"): "**New?**",
         ("README.md",): "new? → not measured at the base",
@@ -8344,15 +8345,6 @@ def test_the_sealer_preloads_the_contract_and_nothing_else():
     )
 
 
-def test_the_sealer_names_the_command_it_runs():
-    """The procedure is the command; a definition that describes the checks
-    instead is a second source that drifts from `broad_gate.py`."""
-    text = " ".join(sealer_text().split())
-    assert "broad-gate --base <base> --record <item>" in text, (
-        "the sealer's definition does not name the command that is its whole procedure"
-    )
-
-
 def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     """§6 says what an agent writes is named in its own definition and nothing
     else, so this file is the whole of the sealer's permission. A write nobody
@@ -8446,13 +8438,18 @@ def test_the_window_the_sealer_shipped_under_is_closed():
     )
     assert "§2 as it stands" not in text, "the section heading survived"
     assert "§2" in text, (
-        "the definition stopped citing §2 altogether. §2 now says the "
-        "assignment lives in the definition rather than in the contract, so a "
-        "silent definition makes that pointer name a file that does not answer"
+        "the definition stopped citing §2 altogether, so the sealer meets the "
+        "rule that keeps the run out of its hands nowhere in its own file"
     )
-    assert "spawned for exactly that" in text, (
-        "the positive assignment went with the apology. Deleting the window "
-        "without it leaves the one act nobody's again, which is #30's opening"
+    # #969 moved the run to the orchestrator: the positive assignment is now
+    # §2's and the orchestration's, and the sealer's file says whose it is.
+    assert "spawned for exactly that" not in text, (
+        "the sealer's assignment of the run is back beside a §2 that gives "
+        "the run to no agent"
+    )
+    assert "the orchestrator runs it" in text, (
+        "the definition says the run is not the sealer's without saying whose "
+        "it is, which is #30's opening: an act nobody holds"
     )
 
 

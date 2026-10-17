@@ -991,7 +991,7 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     for said in (
         "**The stamp is drawn for you at the end of your turn, and you never draw one (#400).**",
         "So put the result text first",
-        "Draw none yourself, neither with `seal-stamp` nor by relaying the sealer's log.",
+        "Draw none yourself, neither with `seal-stamp` nor by relaying the gate's log.",
         "On a red run relay the `NOT SEALED` lines, and nothing is drawn.",
         # Round 1's 🟡 1: the command is named on every line that points at a
         # values file now, and it stays the person's wherever it appears.
@@ -1096,18 +1096,19 @@ def flat(*parts):
 def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
     """S16, the sealer's half (contract §14). `agents/sealer.md` said the
     drawing arrives as letters and to pass it through, which the 0.15.6 run
-    did — every seal behind `ctrl+o`. It now says the gate draws nothing in a
-    sealer, that the session which spawned it has the stamp drawn, that the
-    sealer draws none by either route, and that the exit-0 outcome is the
-    `SEALED` line; and the old instruction is gone."""
+    did — every seal behind `ctrl+o`. Since #969 the sealer runs no gate, so
+    there is no line of the gate's for it to pass on: it says it draws no
+    stamp, and that the stamp is drawn in the orchestrator's session from
+    the orchestrator's own run; and the old instruction is gone."""
     text = flat("agents", "sealer.md")
     for said in (
-        "**The gate draws nothing in a sealer, and neither do you**",
-        "A hook in the session that spawned you draws that file once",
-        "Do not draw it yourself, neither with `seal-stamp` nor from the file",
-        "The gate printed one line beginning `SEALED`",
+        "or draw a stamp",
+        "the stamp is drawn in the orchestrator's session from its own run",
     ):
         assert said in text, said
+    assert "seal-stamp --from" not in text, (
+        "the sealer is told to pass on a stamp command from a run it did not take"
+    )
     assert "the drawing arrives as letters" not in text
     assert "pass it through as it came" not in text
     # Round 1's ⬜ 6: no gate draws in a sealer, so the `gate` row says which

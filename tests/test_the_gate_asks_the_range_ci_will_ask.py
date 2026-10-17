@@ -715,7 +715,9 @@ def test_the_gate_reaches_for_the_spelling_the_workflow_uses(tmp_path):
 
 # --- phase 5: the documents say which base, and go red if they stop ---------
 
-SEALER = os.path.join(ROOT, "agents", "sealer.md")
+# #969 moved the base rule with the run, from the sealer's step 1 to the
+# orchestration that now runs the gate before the sealer is spawned.
+REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
 VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
 # Each document needs ONE block carrying both halves — that the base is
@@ -730,7 +732,7 @@ VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 # the docstring says — a check that cannot fail, which is the counterfeit
 # `skills/verify/SKILL.md` §*The Seal Test* is about. Measured: deleting the
 # docstring's paragraph left this case green.
-DESCRIBES_THE_BASE = (SEALER, VERIFY)
+DESCRIBES_THE_BASE = (REVIEW_ORCH, VERIFY)
 
 
 def says_what_the_base_resolves_to(text):
@@ -778,11 +780,13 @@ def test_the_documents_name_the_panel_row_the_gate_actually_prints():
     """The ref beside the base commit is the half of the stamp a reader uses
     to tell a fresh base from a stale one. From #666 it was the row under
     `base`, and since #832's S5a it is the `base` row itself, beside the
-    commit; `from` is not a row the panel has. The sealer passes the gate's
-    lines on and describes no panel row, so only a stale name is refused."""
-    said = " ".join(read(SEALER).split())
+    commit; `from` is not a row the panel has. The orchestrator quotes the
+    gate's lines and describes no panel row, so only a stale name is refused."""
+    said = " ".join(read(REVIEW_ORCH).split())
     assert "the row under `base` carries the ref" not in said
-    assert "`from`" not in said, "agents/sealer.md names a row the panel lost"
+    assert "`from`" not in said, (
+        "skills/code-review/orchestration.md names a row the panel lost"
+    )
     mod = gate_module()
     base = mod.Base("base", "aaaaaaa", "origin/base", "bbbbbbb")
     checks = {

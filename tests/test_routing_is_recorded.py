@@ -237,7 +237,7 @@ def test_the_first_option_does_not_let_the_model_pick_the_review_answer(repo):
     The option tells the model to write the declaration and said nothing about
     which Review answer to write. `straight to the PR` silences this arm for
     every later commit on the branch, and at the pull request `chain_check.py`
-    requires the sealer's `broad-gate.md` of it and no reviewer's record -- so
+    requires the broad run's `broad-gate.md` of it and no reviewer's record -- so
     a model filling that row in for itself takes the waiver the option below
     spells out, and takes it more quietly: the
     `[no-review]` form leaves the word in the command where a reader can point
@@ -258,7 +258,7 @@ def test_the_first_option_says_what_the_direct_answer_owes(repo):
 
     The option said `straight to the PR` is the one CI requires nothing for,
     which has been false since `chain_check.py#direct_seal` required the
-    sealer's `broad-gate.md` at a ready pull request. A model reading the
+    broad run's `broad-gate.md` at a ready pull request. A model reading the
     option as written would tell the user the direct answer is unchecked.
     """
     opt_in(repo)

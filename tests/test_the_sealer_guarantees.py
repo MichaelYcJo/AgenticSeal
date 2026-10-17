@@ -147,6 +147,26 @@ class TestTemplate:
         assert ["Party", "Says", "Agrees with", "Disagrees with"] in [
             [c.strip() for c in r] for r in rows
         ]
+        # T4, S9 of #969: `sealed` has one meaning in this file. The cell
+        # quotes the run `broad-gate.md` names; it never says `sealed`, which
+        # a reader would take for the sealer's verdict.
+        cell = next(c[1] for c in rows if c[0].strip() == "Broad gate")
+        assert "sealed" not in cell, cell
+        assert "`broad-gate.md` names" in cell, cell
+
+    def test_the_target_row_keeps_an_earlier_run(self):
+        """T3, S5 of #969. A re-run at a new HEAD keeps the earlier verdict on
+        the `Target SHA` row as `; earlier run: <sha> <verdict>`, the form
+        `broad-gate.md` already uses, and the definition re-runs only what a
+        commit since touched. Protects: a full re-audit for a records-only
+        commit, and an earlier verdict lost when the file is rewritten."""
+        text = TEMPLATE.read_text(encoding="utf-8")
+        rows = chain.table_rows(reader, reader.readable(text))
+        cell = next(c[1] for c in rows if c[0].strip() == "Target SHA")
+        assert "; earlier run: <sha> <verdict>" in cell, cell
+        rule = between(SEALER, "**The guarantee covers HEAD", "Enforced by:")
+        assert "; earlier run: <sha> <verdict>" in rule, rule
+        assert "re-runs only the claims whose coordinates a commit since" in rule
 
     def test_the_unfilled_template_is_no_guarantee(self):
         text = TEMPLATE.read_text(encoding="utf-8")
@@ -260,20 +280,50 @@ class TestDefinition:
     def test_the_sealer_writes_the_guarantee_from_the_template(self):
         text = " ".join(SEALER.read_text(encoding="utf-8").split())
         assert "templates/sdd-guarantee.md" in text
-        assert "broad-gate --base <base> --record <item>" in text
         assert "judges nothing" not in text
 
-    def test_the_sealer_quotes_what_only_the_gate_can_tell(self):
-        """The moved base, the copy of the gate that ran, the outputs
-        directory and the stamp's command are lines a reader learns from
-        nowhere else, and the scratch log carries the work item's id so two
-        sealers of one session never share it."""
-        text = " ".join(SEALER.read_text(encoding="utf-8").split())
-        assert "<scratchpad>/<work-item-id>/broad-gate.log" in text
+    def test_step_1_reads_the_record_and_runs_nothing(self):
+        """T2, S1 of #969. Step 1 reads `broad-gate.md` and the commits after
+        the run it names, and refuses with `not sound — no broad run at HEAD`
+        where the record is absent or followed by a path outside the work
+        item's records; no step of the definition runs `broad-gate --base`.
+
+        Protects: the sealer re-running a suite the orchestrator just ran
+        (the 240K-token second run #957 measured), and a sealer that runs
+        nothing and still writes a verdict over a run that never happened.
+        Its conduct is the `shape-runs-no-broad-gate` and `truth-no-gate`
+        graders' (`evals/behaviour/sealer/rule-sealer-no-gate/`); this holds
+        the words the spawn reads."""
+        step = " ".join(
+            between(SEALER, "1. **Read the gate's record.**", "2. **").split()
+        )
+        assert "`broad-gate.md`" in step, step
+        assert "log --name-only <named>..HEAD" in step, step
+        assert "`Verdict: not sound — no broad run at HEAD`" in step, step
+        assert "Absent" in step and "any other path" in step, step
+        order = between(SEALER, "## Order of work", "## Never")
+        assert "broad-gate --base" not in order, (
+            "a step of the sealer's definition runs the broad gate"
+        )
+        never = " ".join(between(SEALER, "## Never", "## Rules").split())
+        assert "the typecheck or `broad-gate`" in never, never
+
+    def test_the_orchestration_quotes_what_only_the_gate_can_tell(self):
+        """Moved by #969 from the sealer with the run. The moved base, the
+        copy of the gate that ran and the outputs directory are lines a reader
+        learns from nowhere else, and the orchestrator who runs the gate is
+        the one who quotes them; the sealer, which sees no gate output, no
+        longer carries the instruction."""
+        text = " ".join(
+            (ROOT / "skills" / "code-review" / "orchestration.md")
+            .read_text(encoding="utf-8")
+            .split()
+        )
         assert "where resolving the base moved it" in text.lower()
         assert "the tree's copy of the gate" in text
         assert "`outputs kept under broad-gate-<random>/`" in text
-        assert "`seal-stamp --from <path>`" in text
+        sealer = " ".join(SEALER.read_text(encoding="utf-8").split())
+        assert "outputs kept under" not in sealer
 
     def test_step_3_holds_two_acts_and_reads_no_location(self):
         """T40 (S22): step 3 is the one list of the sealer's acts, and it holds

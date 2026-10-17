@@ -186,11 +186,12 @@ def test_the_runner_behind_the_wrapper_says_the_same_thing():
     negative pin in `tests/test_the_seal_is_taken_once_by_the_sealer.py` is
     applied to the two agent definitions only."""
     runner = read(os.path.join(ROOT, ".github", "scripts", "run_tests.py"))
-    assert "is the sealer's, run once after" in runner, (
+    assert "is the orchestrator's, run once after" in runner, (
         "the file `bin/test` execs no longer says whose the full suite is"
     )
-    assert "is the orchestrator's" not in runner, (
-        "the wrapper and the module it runs name two different owners for one command"
+    assert "is the sealer's" not in runner, (
+        "the wrapper and the module it runs name two different owners for one "
+        "command; since #969 no agent runs it"
     )
 
 
@@ -199,14 +200,18 @@ def test_the_wrapper_points_at_the_contract_rather_than_inviting_a_full_run():
     `skills/agent-contract/SKILL.md` §2 forbids to smith and warden. The file
     a session reads before typing it says so, and names where the rule is.
 
-    Re-pointed by #30 from `orchestrator` to `sealer`. The rule forbade the
-    run to two agents and assigned it to none, so the comment named the
-    participant that happened to take it; naming the agent is what makes the
-    sentence readable without knowing who is driving."""
+    Re-pointed by #30 from `orchestrator` to `sealer`, and back by #969, which
+    moved the run out of every agent: the orchestrator takes it before it
+    spawns the sealer, so the comment names that participant and says every
+    agent is forbidden it."""
     text = read(os.path.join(BIN, "test"))
-    assert "agent-contract" in text and "sealer" in text, (
-        "bin/test no longer says the full suite is the sealer's, so a "
+    flat = " ".join(text.split())
+    assert "agent-contract" in text and "is the orchestrator's" in flat, (
+        "bin/test no longer says the full suite is the orchestrator's, so a "
         "segment reading it has nothing telling it not to"
+    )
+    assert "forbids it to every agent" in flat, (
+        "bin/test no longer says no agent runs the full suite"
     )
 
 

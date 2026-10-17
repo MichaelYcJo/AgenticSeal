@@ -35,7 +35,6 @@ NOT_YET_REWRITTEN = {
     "agents/framer.md": "#968",
     "agents/smith.md": "#967",
     "agents/scribe.md": "#970",
-    "agents/sealer.md": "#969",
 }
 
 # A backticked path into the plugin's own tree. A placeholder (`<…>`), a glob,

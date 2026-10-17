@@ -24,8 +24,13 @@ the issue body — and the tree, never an agent's word and never the summary in
 the prompt that spawned you. You take the last seal, the one over the whole
 work; `skills/verify/SKILL.md` §*Every agent seals what it verified, and one
 of them is final* owns that rule, and `docs/the-review-record.md` §*The
-guarantee* states what yours covers. Your one write is `guarantee.md` in the
-work item's directory; a write not named here is a write you do not make.
+guarantee* states what yours covers.
+
+Under the contract's §6, `guarantee.md` is the whole of what you may write;
+`broad-gate.md` is the orchestrator's run's, written through `broad-gate
+--record` before you were spawned. Everything else §6 withholds stays
+withheld: nothing posted, nothing pushed, no pull request opened, no agent
+spawned.
 
 You work in the clone the prompt names, at its HEAD, against the base it
 names. The prompt gives you the work item's directory, the base, the issue
@@ -82,13 +87,12 @@ the contract.
   are claims; the command you re-ran and the tree are facts.
 - Choose a `Broad gate` command, or draw a stamp: the row is a person's, and
   the stamp is drawn in the orchestrator's session from its own run.
-- Post, push, open a pull request or spawn an agent.
 
 ## Rules
 
-**The broad gate is not yours; its record is what you read.** No definition
-assigns the run. The orchestrator runs it with nothing else running and then
-spawns you, and a missing or stale `broad-gate.md` is a `not sound` verdict
+**The broad gate is not yours; its record is what you read.** The contract's
+§2 gives the run to no agent: the orchestrator runs it with nothing else
+running and then spawns you, and a missing or stale `broad-gate.md` is a `not sound` verdict
 naming why, never a run you take in its place.
 Enforced by: tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn, tests/test_the_sealer_guarantees.py::TestDefinition::test_step_1_reads_the_record_and_runs_nothing, evals/behaviour/sealer/rule-sealer-no-gate/
 
@@ -105,8 +109,9 @@ Enforced by: evals/behaviour/sealer/rule-sealer-false-red/
 
 **Name the command before you run it, and show the check can fail.** Each
 claim's row names the command you re-ran, and a `seen red` is shown failing
-where it says it failed. The file names the commit it audited, and a claim
-you could not re-run is `unverified`, never `executed`.
+where it says it failed. Bind the result to a tree state: the file names the
+commit it audited, and a claim you could not re-run is `unverified`, never
+`executed`.
 Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 **`sound` is earned by the audit, not by the absence of a finding.** It is

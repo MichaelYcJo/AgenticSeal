@@ -189,9 +189,14 @@ base and the work item's directory**, the issue and the pull request. The
 sealer reads that record, audits the work against the issue and the tree,
 and writes `guarantee.md` (`docs/the-review-record.md` §*The guarantee*); it
 runs nothing broad, and a missing or stale record comes back `not sound —
-no broad run at HEAD`. On exit 1 spawn nothing: repair the failing check,
-review the repair where it touched a file outside the work item's records,
-and run the gate again. On exit 2 nothing ran; a refusal about the row goes
+no broad run at HEAD`.
+
+**On exit 1 spawn nothing.** The word beside each failing file says whether
+it predates the work: `new` is this work's to repair, `failing on base too`
+is a follow-up to name, and `new?` carries the reason nothing at the base
+measured it, so run that file at the base before treating it as either.
+Review a repair where it touched a file outside the work item's records, and
+run the gate again. On exit 2 nothing ran; a refusal about the row goes
 to a person, as *A refusal about the `Broad gate` row* below says.
 
 **Pass the base as a plain branch name, and quote the lines only the gate can
@@ -220,7 +225,7 @@ arm of the gate except the `Broad gate` row, in the gate's order and over the
 same resolved base, once every refusal of the row has been applied; the row is
 read and not run. It takes seconds where the broad run takes a suite, so a
 refusal on a record arm, which the broad run would return after that suite,
-arrives before it. Read its exit code directly and spawn only on 0. On
+arrives before it. Read its exit code directly and take the broad run only on 0. On
 1 its `PREFLIGHT FAILED` lines name each failing arm with its first lines and
 the file holding the rest: correct the record, commit, and run it again. On 2
 it refused before anything ran, and a refusal about the row goes to a person,
