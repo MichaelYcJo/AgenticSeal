@@ -22,20 +22,25 @@ cost, each against the baseline and none against an absolute.**
 `scripts/noninferiority.py run` runs one agent's cases on one side and
 records, per run, the graders, the report's finding rows and the cost its
 trace's `result` event carries (spend, seconds and `modelUsage`, every
-model's tokens), beside the preload's bytes. `compare` writes the record the
-five pass rules of `noninferiority.py#verdict` judge:
+model's tokens) and its tool calls (every `tool_use` block in the trace,
+the session's and the agent's), beside the preload's bytes. `compare` writes
+the record the five pass rules of `noninferiority.py#verdict` judge:
 
 1. recall has not fallen;
 2. the false-finding rate is within `FALSE_MARGIN` of the baseline's;
 3. each shape and reach grader passes on the new side at least as often as
    on the baseline, and one the baseline lacks passes every new run;
 4. the preload is fewer bytes than the baseline's;
-5. the tokens read across every model, the spawned agent's included, are
-   fewer than the baseline's.
+5. the tokens read across every model, the spawned agent's included, per
+   tool call are fewer than the baseline's. The rewrite controls the context
+   each call carries, and how many calls an agent makes is its behaviour,
+   which rules 1 to 3 judge (`noninferiority.py#tool_calls`).
 
-Spend and wall seconds are written in the record and judge nothing. A side
-cut short, a case run a different number of times, or a run whose
-`modelUsage` is missing or short of a count is no result, never a pass.
+Total tokens, tokens per true find, spend and wall seconds are written in
+the record and judge nothing. A side cut short, a case run a different
+number of times, a run whose `modelUsage` is missing or short of a count, or
+one whose trace cannot be read or holds no tool call is no result, never a
+pass.
 `tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes the
 record. Nothing in the tree makes a later edit owe a run.
 

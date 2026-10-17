@@ -15,15 +15,17 @@ for is saved before anything reads it**: the eval's JSON, every run's trace
 and the measured preload go to `<out>.raw/` beside `--out`, and only then is
 each directory the eval kept removed. `--out` is the saved side with these
 additions under `specseal`: the preload's hashes and bytes, each run's
-report rows and cost (its trace's `result` event: `total_cost_usd`,
-`duration_ms`, `modelUsage`), and whether the side was cut short. `run
---from-raw` writes `--out` again from a saved side, with no eval run.
-`compare` writes the record the five pass rules judge, outcome first and
-then cost, each against the baseline: recall not fallen, the false-finding
-rate within `FALSE_MARGIN` of the baseline's, each shape and reach grader
-passing on the new side at least as often as on the baseline, the preload's
-bytes below the baseline's, and the tokens read across every model below
-the baseline's. Spend and wall seconds are written and judge nothing.
+report rows, cost (its trace's `result` event: `total_cost_usd`,
+`duration_ms`, `modelUsage`) and tool calls (every `tool_use` block in its
+trace), and whether the side was cut short. `run --from-raw` writes `--out`
+again from a saved side, with no eval run. `compare` writes the record the
+five pass rules judge, outcome first and then cost, each against the
+baseline: recall not fallen, the false-finding rate within `FALSE_MARGIN`
+of the baseline's, each shape and reach grader passing on the new side at
+least as often as on the baseline, the preload's bytes below the
+baseline's, and the tokens read across every model per tool call below the
+baseline's. Total tokens, tokens per true find, spend and wall seconds are
+written and judge nothing.
 `check` recomputes a record's verdict from its numbers.
 
 Exit codes: 0 written, or the record's verdict holds · 1 the record's
@@ -59,6 +61,8 @@ COST_FIELDS = (
     "new_spend",
     "old_tokens",
     "new_tokens",
+    "old_calls",
+    "new_calls",
     "old_seconds",
     "new_seconds",
     "old_bytes",
@@ -232,6 +236,43 @@ def run_cost(trace_path):
     return cost
 
 
+def tool_calls(trace_path):
+    """The tool calls a run made: every `tool_use` block in its trace, the
+    case session's and the spawned agent's alike, a block an event repeats
+    counted once by its id; or None where the trace cannot be read or holds
+    none.
+
+    Rule 5 divides a run's tokens by this. A run's tokens are about its
+    calls times the context each call carries, and the rewrite controls the
+    context while how many calls an agent makes is its behaviour, which the
+    outcome rules judge. Tokens per true find was weighed and not chosen: its
+    divisor is the recall, which moves by a find or two between runs of the
+    same agent (owner, 2026-10-17). A line that is not a JSON object is
+    skipped; no count is never zero calls."""
+    seen, count = set(), 0
+    try:
+        with open(trace_path, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    event = json.loads(line)
+                except ValueError:
+                    continue
+                message = event.get("message") if isinstance(event, dict) else None
+                content = message.get("content") if isinstance(message, dict) else None
+                for block in content if isinstance(content, list) else []:
+                    if not isinstance(block, dict) or block.get("type") != "tool_use":
+                        continue
+                    ident = block.get("id")
+                    if ident is not None:
+                        if ident in seen:
+                            continue
+                        seen.add(ident)
+                    count += 1
+    except OSError:
+        return None
+    return count or None
+
+
 def tokens_read(model_usage):
     """The tokens a run read across every model of MODEL_USAGE: input,
     cache creation and cache read, summed.
@@ -341,6 +382,7 @@ def annotate(saved):
         run["specseal"] = {
             "report_rows": report_rows(trace) if trace else [],
             "cost": run_cost(trace) if trace else None,
+            "tool_calls": tool_calls(trace) if trace else None,
         }
         if run.get("error"):
             cut = True
@@ -439,17 +481,17 @@ def kind(name):
 
 def side_numbers(result):
     """`{"graders": {(case, grader): [kind, passed, runs]}, "rows", "false",
-    "runs": {case: n}, "cut", "preload", "id", "spend", "tokens", "seconds",
-    "bytes"}` for one side, the last four pooled over every run, the tokens
-    read across every model.
+    "runs": {case: n}, "cut", "preload", "id", "spend", "tokens", "calls",
+    "seconds", "bytes"}` for one side, the last five pooled over every run,
+    the tokens read across every model and the calls every `tool_use` block.
 
     A grader whose name carries no kind prefix is not counted. Each of
-    spend, tokens and seconds is None where any run lacks it, a run with no
-    cost lacking all three, and bytes is None where the preload's bytes
-    were not recorded."""
+    spend, tokens, calls and seconds is None where any run lacks it, a run
+    with no cost lacking the first, second and fourth, and bytes is None
+    where the preload's bytes were not recorded."""
     graders, runs_per_case = {}, {}
     rows = false = 0
-    costs = []
+    costs, calls = [], []
     for case in result.get("cases", []):
         name = case["name"]
         truths = [
@@ -473,6 +515,7 @@ def side_numbers(result):
                 if not any(t.search(row) for t in truths):
                     false += 1
             costs.append((run.get("specseal") or {}).get("cost") or {})
+            calls.append((run.get("specseal") or {}).get("tool_calls"))
     seconds = pooled(c.get("duration_ms") for c in costs)
     meta = result.get("specseal") or {}
     started = result.get("startedAt", "")
@@ -490,6 +533,7 @@ def side_numbers(result):
         "suite": {"rev": meta.get("suite_rev"), "tree": meta.get("suite_tree")},
         "spend": pooled(c.get("total_cost_usd") for c in costs),
         "tokens": pooled(tokens_read(c.get("modelUsage")) for c in costs),
+        "calls": pooled(calls),
         "seconds": seconds / 1000 if seconds is not None else None,
         "bytes": meta.get("preload_bytes"),
     }
@@ -525,9 +569,11 @@ def verdict(numbers):
     Each rule reads the new side against the baseline: 1 recall not fallen,
     2 the false-finding rate within `FALSE_MARGIN` of the baseline's, 3 each
     shape and reach grader passing at least as often, 4 the preload's bytes
-    below the baseline's, 5 the tokens read across every model below the
-    baseline's. A missing key raises. A side whose tokens or preload bytes
-    are None is no result; spend and wall seconds are never judged."""
+    below the baseline's, 5 the tokens read across every model per tool call
+    below the baseline's (`tool_calls` says why per call). A missing key
+    raises. A side whose tokens, tool calls or preload bytes are None, or
+    whose tool calls are none, is no result; total tokens, tokens per true
+    find, spend and wall seconds are never judged."""
     if numbers["old_cut"] or numbers["new_cut"]:
         sides = [
             s
@@ -549,12 +595,13 @@ def verdict(numbers):
     unknown = [
         s
         for s, side in (("baseline", "old"), ("new", "new"))
-        if any(numbers[f"{side}_{k}"] is None for k in ("tokens", "bytes"))
+        if any(numbers[f"{side}_{k}"] is None for k in ("tokens", "calls", "bytes"))
+        or not numbers[f"{side}_calls"]
     ]
     if unknown:
         return "no result", [
             f"the {' and '.join(unknown)} side records no tokens across every "
-            "model for every run, or no preload bytes"
+            "model or no tool calls for every run, or no preload bytes"
         ]
     reasons = []
     truths = {key: v for key, v in g.items() if v[0] == "truth"}
@@ -594,10 +641,17 @@ def verdict(numbers):
             f"the new preload is {numbers['new_bytes']} bytes, not below the "
             f"baseline's {numbers['old_bytes']} (rule 4)"
         )
-    if numbers["new_tokens"] >= numbers["old_tokens"]:
+    # Cross-multiplied, so equal per-call figures compare equal exactly.
+    if numbers["new_tokens"] * numbers["old_calls"] >= (
+        numbers["old_tokens"] * numbers["new_calls"]
+    ):
         reasons.append(
-            f"the new side read {numbers['new_tokens']} tokens across every "
-            f"model, not below the baseline's {numbers['old_tokens']} (rule 5)"
+            "the new side read "
+            f"{numbers['new_tokens'] / numbers['new_calls']:.1f} tokens across "
+            f"every model per tool call ({numbers['new_tokens']} over "
+            f"{numbers['new_calls']}), not below the baseline's "
+            f"{numbers['old_tokens'] / numbers['old_calls']:.1f} "
+            f"({numbers['old_tokens']} over {numbers['old_calls']}) (rule 5)"
         )
     return ("fail" if reasons else "pass"), reasons
 
@@ -635,6 +689,7 @@ def merged(old, new):
             for key, places in (
                 ("spend", 4),
                 ("tokens", 0),
+                ("calls", 0),
                 ("seconds", 1),
                 ("bytes", 0),
             )
@@ -655,19 +710,40 @@ HEADER = "| Kind | Case | Grader | Old passed | Old runs | New passed | New runs
 COST_ROWS = (
     ("spend", "spend USD", "{:.4f}", float),
     ("tokens", "tokens read, every model", "{:d}", int),
+    ("calls", "tool calls", "{:d}", int),
     ("seconds", "wall seconds", "{:.1f}", float),
     ("bytes", "preload bytes", "{:d}", int),
 )
 
 
+def per(value, divisor, shown):
+    """VALUE over DIVISOR in SHOWN's format, `unknown` where either is None
+    or the divisor is none."""
+    if value is None or not divisor:
+        return "unknown"
+    return shown.format(value / divisor)
+
+
 def cost_rows(numbers):
     """The record's header rows for both sides' cost, `unknown` where a
-    number is None."""
+    number is None, then the two derived rows a reader compares by: tokens
+    per tool call, which rule 5 judges from the rows above it, and tokens
+    per true find, which judges nothing. Neither derived row is read back."""
     lines = []
     for key, label, shown, _parse in COST_ROWS:
         for side, name in (("old", "Baseline"), ("new", "New")):
             value = numbers[f"{side}_{key}"]
             cell = "unknown" if value is None else shown.format(value)
+            lines.append(f"| {name} {label} | {cell} |")
+    truths = [v for v in numbers["graders"].values() if v[0] == "truth"]
+    found = {"old": sum(v[1] for v in truths), "new": sum(v[3] for v in truths)}
+    for label, divisor, shown in (
+        ("tokens per tool call", "calls", "{:.1f}"),
+        ("tokens per true find", "found", "{:.0f}"),
+    ):
+        for side, name in (("old", "Baseline"), ("new", "New")):
+            by = found[side] if divisor == "found" else numbers[f"{side}_{divisor}"]
+            cell = per(numbers[f"{side}_tokens"], by, shown)
             lines.append(f"| {name} {label} | {cell} |")
     return lines
 

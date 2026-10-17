@@ -6,8 +6,10 @@ under the work item. The verdict is the five rules applied to the record's
 own numbers, outcome first and then cost, each against the baseline and
 none against an absolute (#957), so a record saying `pass` over failing
 numbers is red. A run's tokens are read across every model off its trace's
-`result` event `modelUsage`, so a run with none is no result rather than
-free; its spend and wall seconds are written and judge nothing.
+`result` event `modelUsage` and judged per tool call, every `tool_use` block
+its trace holds, so a run with no tokens or no calls is no result rather
+than free; its total tokens, tokens per true find, spend and wall seconds
+are written and judge nothing.
 
 What it cannot see: a grader that matches the wrong thing passes, which the
 phase's review reads; and nothing here makes a later edit of a definition
@@ -44,8 +46,8 @@ ni = load()
 def numbers(**over):
     """Numbers every rule passes: two truths found twice a side, a tenth of
     the rows false, every shape grader green, and a new side that read a
-    tenth fewer tokens across every model and spent the same from a preload
-    half the size."""
+    tenth fewer tokens across every model over as many tool calls and spent
+    the same from a preload half the size."""
     graders = {
         ("c1", "truth-1"): ("truth", 2, 2, 2, 2),
         ("c1", "truth-2"): ("truth", 2, 2, 2, 2),
@@ -65,6 +67,8 @@ def numbers(**over):
         "new_spend": 10.0,
         "old_tokens": 1000000,
         "new_tokens": 900000,
+        "old_calls": 100,
+        "new_calls": 100,
         "old_seconds": 600.0,
         "new_seconds": 600.0,
         "old_bytes": 100000,
@@ -145,23 +149,37 @@ CASES = {
         numbers(new_bytes=100000),
         "fail",
     ),
-    "rule 5: tokens read across every model 1.2 times the baseline's": (
+    "rule 5: tokens per tool call 1.2 times the baseline's": (
         numbers(new_tokens=1200000),
         "fail",
     ),
     # Catches a token rule with a margin, which passes a rewrite that read
-    # more than the baseline; before #957 it was 1.1 times. The 1.2 case
-    # above fails under any margin below it, so only a rise inside the old
-    # margin tells the two readings apart.
-    "rule 5: tokens read across every model 1.05 times the baseline's": (
+    # more per call than the baseline; before #957 it was 1.1 times. The 1.2
+    # case above fails under any margin below it, so only a rise inside the
+    # old margin tells the two readings apart.
+    "rule 5: tokens per tool call 1.05 times the baseline's": (
         numbers(new_tokens=1050000),
         "fail",
     ),
-    # Catches a token rule that compares with `>` where the rule says
-    # strictly below: a rewrite that read exactly as much passes. No other
-    # case puts the two sides' tokens equal.
-    "rule 5: tokens read across every model equal to the baseline's": (
-        numbers(new_tokens=1000000),
+    # Catches rule 5 still judging the total (owner, 2026-10-17, after phase
+    # 2): a rewrite whose calls each carry less context, and which makes more
+    # of them, reads more tokens in all and passes. No other case moves the
+    # calls.
+    "rule 5: tokens per tool call falling while the total rises": (
+        numbers(new_tokens=1200000, new_calls=150),
+        "pass",
+    ),
+    # Catches the same rule the other way: fewer tokens in all over fewer
+    # calls, each carrying more, fails. A rule reading the total passes it.
+    "rule 5: tokens per tool call rising while the total falls": (
+        numbers(new_tokens=900000, new_calls=80),
+        "fail",
+    ),
+    # Catches a per-call comparison with `>` where the rule says strictly
+    # below: equal per call, over more calls and more tokens, passes. No
+    # other case puts the two sides' per-call figures equal.
+    "rule 5: tokens per tool call equal to the baseline's": (
+        numbers(new_tokens=1200000, new_calls=120),
         "fail",
     ),
     # Catches spend still judged, with or without a margin: a dearer side
@@ -185,6 +203,17 @@ CASES = {
     "no result: the new side cut short": (numbers(new_cut=True), "no result"),
     "no result: a side with a run whose tokens are unknown": (
         numbers(new_spend=None, new_tokens=None, new_seconds=None),
+        "no result",
+    ),
+    # Catches a side whose tool calls could not be counted read as judged:
+    # with no divisor there is no per-call figure, and a zero would be a
+    # division nobody can make. The token case above leaves the calls known.
+    "no result: a side whose tool calls are unknown": (
+        numbers(new_calls=None),
+        "no result",
+    ),
+    "no result: a side with no tool calls": (
+        numbers(old_calls=0),
         "no result",
     ),
     "no result: a side whose preload bytes are unknown": (
@@ -222,6 +251,7 @@ def side(
     tokens=1000000,
     seconds=600.0,
     size=100000,
+    calls=100,
 ):
     return {
         "graders": {k: [v[0], v[1], v[2]] for k, v in graders.items()},
@@ -234,6 +264,7 @@ def side(
         "suite": suite or SUITE,
         "spend": spend,
         "tokens": tokens,
+        "calls": calls,
         "seconds": seconds,
         "bytes": size,
     }
@@ -247,10 +278,12 @@ def record(old_graders, new_graders, **new):
 
 def test_a_record_reads_back_to_the_numbers_it_was_written_from():
     """Guards S1: the record carries both sides' spend, tokens read across
-    every model, wall seconds and preload bytes, and they read back to the
-    numbers the verdict was computed from, so editing one is judged again.
-    The tokens row says it counts every model, because the case session's
-    own `usage` was 1.9% to 11.6% of it on the baseline (#957 phase 1)."""
+    every model, tool calls, wall seconds and preload bytes, and they read
+    back to the numbers the verdict was computed from, so editing one is
+    judged again. The tokens row says it counts every model, because the
+    case session's own `usage` was 1.9% to 11.6% of it on the baseline (#957
+    phase 1); the per-call and per-find rows are derived for a reader and
+    read back as nothing."""
     g = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "shape-x"): ("shape", 2, 2)}
     text = record(g, g, spend=10.123456, tokens=900000, seconds=512.34)
     numbers_back, stated, preload = ni.parse_record(text)
@@ -263,14 +296,18 @@ def test_a_record_reads_back_to_the_numbers_it_was_written_from():
         "new_spend": 10.1235,
         "old_tokens": 1000000,
         "new_tokens": 900000,
+        "old_calls": 100,
+        "new_calls": 100,
         "old_seconds": 600.0,
         "new_seconds": 512.3,
         "old_bytes": 100000,
         "new_bytes": 50000,
     }
-    row = "| New tokens read, every model | {} |"
-    assert row.format(900000) in text, text
-    hungrier = text.replace(row.format(900000), row.format(1000000))
+    assert "| New tokens per tool call | 9000.0 |" in text, text
+    assert "| New tokens per true find | 450000 |" in text, text
+    row = "| New tool calls | {} |"
+    assert row.format(100) in text, text
+    hungrier = text.replace(row.format(100), row.format(90))
     assert hungrier != text
     problems = ni.check_record(hungrier)
     assert any("says `pass` and its numbers give `fail`" in p for p in problems), (
@@ -281,16 +318,19 @@ def test_a_record_reads_back_to_the_numbers_it_was_written_from():
 
 def test_spend_and_wall_seconds_are_written_and_never_judge():
     """Guards S3 as #957 turned it: a new side that spent 1.2 times the
-    baseline and took ten times its wall seconds, reading fewer tokens with
-    an equal outcome, passes with both numbers written; the same side
-    reading as many tokens as the baseline fails naming rule 5, and neither
-    spend nor seconds is ever a reason. The rule cases above never render a
-    record, so only this one reads the reasons a record prints."""
+    baseline and took ten times its wall seconds, reading more tokens in all
+    and fewer per tool call with an equal outcome, passes with every number
+    written; the same side reading as many per call as the baseline fails
+    naming rule 5, and neither spend, seconds, the total nor the per-find
+    figure is ever a reason. The rule cases above never render a record, so
+    only this one reads the reasons a record prints."""
     g = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "shape-x"): ("shape", 2, 2)}
-    text = record(g, g, spend=12.0, seconds=6000.0, tokens=900000)
+    text = record(g, g, spend=12.0, seconds=6000.0, tokens=1200000, calls=150)
     assert "Verdict: pass" in text, text
     assert "| New spend USD | 12.0000 |" in text
     assert "| New wall seconds | 6000.0 |" in text
+    assert "| New tokens read, every model | 1200000 |" in text
+    assert "| New tokens per true find | 600000 |" in text
     text = record(g, g, spend=12.0, seconds=6000.0, tokens=1000000)
     assert "Verdict: fail" in text, text
     reasons = text.split("Verdict: fail", 1)[1]
@@ -533,6 +573,50 @@ def test_a_run_records_what_it_cost(tmp_path, monkeypatch):
     runs.append({"graders": [], "specseal": {"cost": cost, "report_rows": []}})
     assert ni.side_numbers(data)["spend"] is None
     assert ni.side_numbers(data)["tokens"] is None
+
+
+def assistant(blocks, parent=None):
+    """An assistant event holding BLOCKS, the agent's where PARENT is set."""
+    event = {"type": "assistant", "message": {"content": blocks}}
+    if parent:
+        event["parent_tool_use_id"] = parent
+    return event
+
+
+def use(name, ident):
+    return {"type": "tool_use", "id": ident, "name": name, "input": {}}
+
+
+def test_a_run_counts_every_tool_call_its_trace_holds(tmp_path, monkeypatch):
+    """Guards rule 5's divisor: a run's tool calls are every `tool_use` block
+    in its trace, the case session's and the spawned agent's alike, a block
+    an event repeats counted once by its id; a trace holding none, or one
+    that cannot be read, gives no count, so the side is no result rather
+    than divided by nothing (owner, 2026-10-17). The cost case above reads
+    a trace with no calls at all; only this one counts them."""
+    events = [
+        {"type": "system", "subtype": "init"},
+        assistant([{"type": "text", "text": "spawning"}, use("Agent", "t1")]),
+        assistant([use("Bash", "t2"), use("Read", "t3")], parent="t1"),
+        assistant([use("Read", "t3")], parent="t1"),
+        {"type": "user", "message": "a string message holds no call"},
+        RESULT,
+    ]
+    data, _plugin = run_one_side(tmp_path, monkeypatch, events)
+    assert data["cases"][0]["arms"]["with"][0]["specseal"]["tool_calls"] == 3
+    counted = ni.side_numbers(data)
+    assert counted["calls"] == 3
+
+    where = tmp_path / "none"
+    where.mkdir()
+    data, _plugin = run_one_side(where, monkeypatch, [{"type": "system"}, RESULT])
+    assert data["cases"][0]["arms"]["with"][0]["specseal"]["tool_calls"] is None
+    uncounted = ni.side_numbers(data)
+    assert uncounted["calls"] is None
+    verdict, reasons = ni.verdict(ni.merged(counted, uncounted))
+    assert verdict == "no result", (verdict, reasons)
+    assert any("tool calls" in r for r in reasons), reasons
+    assert ni.tool_calls(str(tmp_path / "no-such-trace.jsonl")) is None
 
 
 @pytest.mark.parametrize(
