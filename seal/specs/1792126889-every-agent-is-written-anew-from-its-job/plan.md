@@ -73,9 +73,10 @@ phases act on are in #964's `spec.md`, not here.
   eval` with `--max-cost-usd 100`, and saves spend, seconds and tokens from
   the trace's `result` event; `compare` writes the record `#verdict` judges
   by five rules and `tests/test_a_rewritten_definition_proved_non_inferior.py`
-  recomputes. No baseline exists. The harness is green on Windows and reads
-  the 0.22.0 record once #964's phase 1 has merged; this item does not
-  touch it.
+  recomputes. The baseline is phase 1's, at af9c924b. The harness is green
+  on Windows and reads the 0.22.0 record since #964's phase 1; this item
+  touches it once, in phase 1b, where `verdict` judges every rule against
+  the baseline and counts every model's tokens.
 - **The suite and CI.** 7,329 cases priced at 3,371 s; one run is 55 runner
   minutes over three legs, under 11 minutes wall, 208 billable minutes if
   private (#964's `spec.md` holds the reading). The 42 agent-pin modules
