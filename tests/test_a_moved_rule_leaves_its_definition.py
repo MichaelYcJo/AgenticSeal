@@ -428,6 +428,23 @@ def test_the_warden_writes_its_record_in_the_branch_worktree():
     assert "never the main checkout" in rule, rule
 
 
+def test_the_warden_checks_its_record_in_the_branch_worktree():
+    """The hand-back check reads the tree the record is in (#957 round 1,
+    finding 8).
+
+    `chain_check.py`'s `--root` defaults to the session's directory, which is
+    the main checkout where the branch has a worktree of its own, so a check
+    with no `--root` passes or refuses on files that do not hold the record.
+    Every eval case runs in one tree, so none can see it; this case reads the
+    command."""
+    with open(os.path.join(ROOT, "agents", "warden.md"), encoding="utf-8") as f:
+        text = " ".join(f.read().split())
+    assert (
+        "chain_check.py --baseline <base> --root <the branch worktree> --worktree"
+        in text
+    ), "the warden's hand-back check names no `--root`, so it reads the session's tree"
+
+
 def test_the_warden_reads_each_new_test_against_its_group():
     """A test the diff adds is read against its group, and one that covers
     nothing its group does not is a finding (#957).

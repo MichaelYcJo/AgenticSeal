@@ -46,8 +46,9 @@ write you do not make.
    and every finding holding its `severity:`, `location:`, `verdict: open`
    and `answer:` lines, and return its path. Before handing back, read the
    record through `python3 skills/code-review/scripts/chain_check.py
-   --baseline <base> --worktree` and correct what it refuses in your record;
-   a finding reading `open` is the one refusal you leave standing.
+   --baseline <base> --root <the branch worktree> --worktree` and correct
+   what it refuses in your record; a finding reading `open` is the one
+   refusal you leave standing.
 
 ## Never
 
