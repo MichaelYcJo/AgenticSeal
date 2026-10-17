@@ -12,9 +12,11 @@ in `spec.md` and in `plan.md`'s Alternatives table. What the tree answered
 about the mechanics — the `Reads:` lines, the grammar's placement, the
 closing mark, the red Windows case — is in #964's `questions.md`.
 
-- **The contract is renumbered from §1**, and every citation in the tree is
-  rewritten in the same commit; the never-reuse rule holds from this edition
-  (`plan.md` Alternative F).
+- **The contract keeps each rule's number where the rule stays**: the old
+  §16 joined §11, the old §17 moved to §16, and the four new rules took §17
+  to §20, with the 20 moved citations rewritten in the same commit; the
+  never-reuse rule holds from this edition (`plan.md` Alternative F,
+  `phases/phase-3.md`).
 - **`Enforced by:` keeps its spelling here**; its rename is #941's, with
   `rules.py` as the reader (Alternative N).
 - **No scribe case is written**; the scribe is measured on bytes, and its

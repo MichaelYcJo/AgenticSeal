@@ -323,8 +323,9 @@ def dangling(files, numbers):
 
 def test_every_cited_section_exists():
     """T3: every contract section the tree cites is a section the contract
-    has. The contract was numbered anew in #957, and a citation left at an
-    old number points a reader at a different rule or at none."""
+    has. #957 moved two numbers (the old §16 into §11, the old §17 to §16),
+    and a citation left at an old number points a reader at a different rule
+    or at none."""
     numbers = set(spans(read()))
     files = [(rel, read(rel)) for rel in tree_files()]
     assert len(files) > 100, "the walk found almost nothing to read"
