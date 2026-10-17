@@ -223,10 +223,13 @@ passes where its outcome holds or improves and its cost falls, which is
 grader passing on the new side, preload bytes below the baseline, tokens and
 spend within `COST_MARGIN`).
 
-- **The baseline is taken once**, on the released tree this branch is cut
-  from (d4552372), for the warden, the smith, the framer and the sealer, with
-  the suite as it stands at the baseline commit (`run --rev d4552372
-  --suite-rev HEAD`), and committed as
+- **The baseline is taken once, at one reference, and nothing is compared
+  against anything else** (owner, 2026-10-17): the tree and the suite both at
+  af9c924b, `release/v0.22.1` after #964 merged, for the warden, the smith,
+  the framer and the sealer (`run --rev af9c924b --suite-rev af9c924b`).
+  Every new side of every phase runs with `--suite-rev af9c924b` too, and
+  `compare` refuses two sides whose suites differ (exit 2), so a changed case
+  can never be read as a changed agent. It is committed as
   `seal/specs/<id>/evals/baseline-<agent>.json`; the raw output stays
   outside the tree. Nothing has been baselined yet (`executed`: the only
   files under #923's `evals/` are two notes). The harness that runs it is
