@@ -3,10 +3,11 @@
 - **The warden preloads the contract alone and opens `code-review` and
   `writing-style` at the step that needs them (#957).** `agents/warden.md`
   and `skills/code-review/SKILL.md` are written anew from the warden's job,
-  about half their former size, and a warden spawn preloads 27,032 bytes
-  where it preloaded 76,019. Before it hands back, the warden reads its round
-  record through `chain_check.py` and corrects what the check refuses, so a
-  finding without its `verdict:` line no longer reaches the fix pass. On this
+  about half their former size, and a warden spawn preloaded 27,032 bytes at
+  its evaluation (`93c1878c`) where it preloaded 76,019 at `af9c924b`. Before
+  it hands back, the warden reads its round record through `chain_check.py`
+  and corrects what the check refuses, so a finding without its `verdict:`
+  line no longer reaches the fix pass. On this
   repository's evaluation of 12 known defects, each run twice, it made 16 of
   24 finds where the warden at the start of the release made 13, wrote fewer
   false findings, and read 9.2% fewer tokens per tool call. Nothing to do.
