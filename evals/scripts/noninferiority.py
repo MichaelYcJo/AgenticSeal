@@ -20,7 +20,9 @@ report rows, cost (its trace's `result` event: `total_cost_usd`,
 trace), and whether the side was cut short. `run --from-raw` writes `--out`
 again from a saved side, with no eval run. `compare` writes the record the
 five pass rules judge, outcome first and then cost, each against the
-baseline: recall not fallen, the false-finding rate within `FALSE_MARGIN`
+baseline: recall not fallen, except by one find where every truth grader
+that lost it is still found by at least one new run, the false-finding rate
+within `FALSE_MARGIN`
 of the baseline's, each shape and reach grader passing on the new side at
 least as often as on the baseline, the preload's bytes below the
 baseline's, and the tokens read across every model per tool call below the
@@ -567,13 +569,17 @@ def verdict(numbers):
     `old_cut`, `new_cut` and every name in `COST_FIELDS`.
 
     Each rule reads the new side against the baseline: 1 recall not fallen,
-    2 the false-finding rate within `FALSE_MARGIN` of the baseline's, 3 each
-    shape and reach grader passing at least as often, 4 the preload's bytes
-    below the baseline's, 5 the tokens read across every model per tool call
-    below the baseline's (`tool_calls` says why per call). A missing key
-    raises. A side whose tokens, tool calls or preload bytes are None, or
-    whose tool calls are none, is no result; total tokens, tokens per true
-    find, spend and wall seconds are never judged."""
+    except by one find where every truth grader that lost it is still found
+    by at least one new run, 2 the false-finding rate within `FALSE_MARGIN`
+    of the baseline's, 3 each shape and reach grader passing at least as
+    often, 4 the preload's bytes below the baseline's, 5 the tokens read
+    across every model per tool call below the baseline's (`tool_calls` says
+    why per call). A missing key raises. A side cut short, a case the
+    baseline ran and the new side did not, whatever its graders, a case run
+    a different number of times, and a side whose tokens, tool calls or
+    preload bytes are None, or whose tool calls are none, are no result;
+    total tokens, tokens per true find, spend and wall seconds are never
+    judged."""
     if numbers["old_cut"] or numbers["new_cut"]:
         sides = [
             s
@@ -582,10 +588,23 @@ def verdict(numbers):
         ]
         return "no result", [f"the {' and '.join(sides)} side was cut short"]
     g = numbers["graders"]
-    # A shape or reach grader one side lacks is the record's shape moving
-    # between the two sides (0.22.0's round record dropped two), not a case
-    # run a different number of times; rule 3 below judges one the baseline
-    # lacks on the new side alone, and one the new side lacks not at all.
+    # A case the baseline ran and the new side did not is no result whatever
+    # graders it carries: a case of shape and reach graders alone would
+    # otherwise leave no trace in any rule below (#957 round 1, finding 2).
+    old_case, new_case = {}, {}
+    for (case, _name), (_k, _op, old_runs, _np, new_runs) in g.items():
+        old_case[case] = max(old_case.get(case, 0), old_runs)
+        new_case[case] = max(new_case.get(case, 0), new_runs)
+    unrun = sorted(c for c in old_case if old_case[c] and not new_case[c])
+    if unrun:
+        return "no result", [
+            f"the new side did not run {', '.join(unrun)}, which the baseline ran"
+        ]
+    # Inside a case both sides ran, a shape or reach grader one side lacks is
+    # the record's shape moving between the two sides (0.22.0's round record
+    # dropped two), not a case run a different number of times; rule 3 below
+    # judges one the baseline lacks on the new side alone, and one the new
+    # side lacks not at all.
     if any(
         old_runs != new_runs
         for k, _op, old_runs, _np, new_runs in g.values()

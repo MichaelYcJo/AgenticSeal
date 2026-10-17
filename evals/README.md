@@ -26,7 +26,8 @@ model's tokens) and its tool calls (every `tool_use` block in the trace,
 the session's and the agent's), beside the preload's bytes. `compare` writes
 the record the five pass rules of `noninferiority.py#verdict` judge:
 
-1. recall has not fallen;
+1. recall has not fallen, except by one find where every truth grader that
+   lost it is still found by at least one new run;
 2. the false-finding rate is within `FALSE_MARGIN` of the baseline's;
 3. each shape and reach grader passes on the new side at least as often as
    on the baseline, and one the baseline lacks passes every new run;
@@ -37,8 +38,9 @@ the record the five pass rules of `noninferiority.py#verdict` judge:
    which rules 1 to 3 judge (`noninferiority.py#tool_calls`).
 
 Total tokens, tokens per true find, spend and wall seconds are written in
-the record and judge nothing. A side cut short, a case run a different
-number of times, a run whose `modelUsage` is missing or short of a count, or
+the record and judge nothing. A side cut short, a case the baseline ran and
+the new side did not, whatever its graders, a case run a different number
+of times, a run whose `modelUsage` is missing or short of a count, or
 one whose trace cannot be read or holds no tool call is no result, never a
 pass.
 `tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes the

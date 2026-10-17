@@ -141,9 +141,42 @@ CASES = {
         numbers(graders={("c1", "reach-sealer"): ("reach", 0, 0, 1, 2)}),
         "fail",
     ),
-    "rule 3: a shape grader only the baseline carried is not judged": (
+    # The tolerance for a grader one side lacks holds only inside a case both
+    # sides ran: `c1` is run twice a side here, so the grader the new side
+    # lacks is the record's shape moving, not a case left unrun.
+    "rule 3: a shape grader only the baseline carried, in a case both sides ran, is not judged": (
         numbers(graders={("c1", "shape-needs-a-fix"): ("shape", 2, 2, 0, 0)}),
         "pass",
+    ),
+    # Catches the tolerance above reaching a whole case: a case the new side
+    # never ran, carrying only shape graders, left no trace in any rule and
+    # the side passed (#957 round 1, finding 2). The case above keeps the
+    # grader inside a case the new side ran, so it cannot tell.
+    "no result: a case the baseline ran and the new side did not, whatever its graders": (
+        numbers(graders={("c2", "shape-needs-a-fix"): ("shape", 2, 2, 0, 0)}),
+        "no result",
+    ),
+    # The measured shape of the same defect: the smith's phase-3 side cut to
+    # one of its four cases, every case carrying shape and reach graders
+    # alone, read `pass`.
+    "no result: a side cut to one case of four": (
+        numbers(
+            graders={
+                (case, grader): (
+                    k,
+                    2,
+                    2,
+                    2 if case == "c1" else 0,
+                    2 if case == "c1" else 0,
+                )
+                for case in ("c1", "c2", "c3", "c4")
+                for grader, k in (
+                    ("shape-report-exists", "shape"),
+                    ("reach-smith", "reach"),
+                )
+            }
+        ),
+        "no result",
     ),
     "rule 4: a preload no smaller than the baseline's": (
         numbers(new_bytes=100000),
