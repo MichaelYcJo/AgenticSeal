@@ -23,7 +23,10 @@ a second time.
 
 ## Not done
 
-nothing yet
+| Item | Who must answer |
+|---|---|
+| T7, `noninferiority.py model` (S7), which phase 4 says phase 3's commit builds, was in neither phase-3 spawn and is not built (`phases/phase-3.md`) | the orchestrator, before phase 4 |
+| *The sealer's two files* still names `broad-gate.md` as the sealer's (`chain_check.py#SEALERS_FILES` and its messages, `docs/the-review-record.md:251`), and `skills/verify/SKILL.md` §*Every agent seals what it verified* still calls the drawn stamp the sealer's seal | the orchestrator, with phase 5's word sweep |
 
 ## Fed back into the spec
 
