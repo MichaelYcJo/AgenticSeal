@@ -217,11 +217,17 @@ replayed round finds, the seeded defects it catches, its false findings, and
 the sealer's verdict — the `truth-` graders, the false-finding rate and the
 `shape-` and `reach-` graders of `evals/behaviour/<agent>/`. **Cost**: the
 bytes a spawn reads, the tokens its runs read and the spend. A rewrite
-passes where its outcome holds or improves and its cost falls, which is
-`evals/scripts/noninferiority.py#verdict`'s five rules as they stand
-(recall not fallen, false rate within `FALSE_MARGIN`, every shape and reach
-grader passing on the new side, preload bytes below the baseline, tokens and
-spend within `COST_MARGIN`).
+passes where its outcome holds or improves and its tokens fall, every one of
+them judged against the baseline and none against an absolute (owner,
+2026-10-17: the baseline is the reference, not a bar; the focus is fewer
+tokens and a better outcome, and time spent is not judged). That is
+`evals/scripts/noninferiority.py#verdict`'s rules after phase 1b: recall not
+fallen, false rate within `FALSE_MARGIN` of the baseline's, each shape and
+reach grader passing on the new side at least as often as on the baseline,
+preload bytes below the baseline, and the tokens the run read across every
+model — the session's and the agent's under test, `modelUsage` — below the
+baseline's. Spend and wall seconds are recorded beside them and judge
+nothing.
 
 - **The baseline is taken once, at one reference, and nothing is compared
   against anything else** (owner, 2026-10-17): the tree and the suite both at
