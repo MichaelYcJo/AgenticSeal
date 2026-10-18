@@ -45,17 +45,31 @@ same six.
 The cost figures are recorded, not judged: the two sides ran different
 suites.
 
-**The reference a later sealer change compares against** is this side:
-`suite_tree` b46fd08b364a0320268249cbef7c06ed4533f315 at suite rev
-b394e929b414dcf0520b7d365e5e3fd56e4c764d. A later change passes
+**Round 1 added a fifth case, `rule-sealer-stale-gate`, so the orchestrator
+re-ran the reference on the five-case suite at 90fa7046** (round 1's fixes,
+suite at the same commit). Every grader passed in both runs, 68 of 68: the
+four cases above at 14, 14, 12 and 14 of their passes again, and the new
+case 14 of 14, its truth `^Verdict:.*no broad run` included. That side
+replaces the four-case side in `evals/reference-sealer.json`.
+
+| Figure | Four cases (b394e929) | Five cases (90fa7046) |
+|---|---|---|
+| Runs / cut short | 8 / no | 10 / no |
+| Spend USD | 2.9882 | 3.0973 |
+| Session seconds | 395.1 | 423.1 |
+| Tool calls | 76 | 73 |
+| Tokens read, every model | 2,648,585 | 2,564,595 |
+| Tokens per tool call | 34,849.8 | 35,131.4 |
+| Preload bytes | 23,825 | 24,209 |
+| Graders passed | 54 of 54 | 68 of 68 |
+
+**The reference a later sealer change compares against** is the five-case
+side: `suite_tree` 5c3e81195bb9d2319018e2f3abfd5aaf1d9e5447 at suite rev
+90fa7046273cc3e93cfaabc450982fe42ab62bb5. A later change passes
 `evals/reference-sealer.json` to `compare --old`.
 
-**Round 1 adds a fifth case, `rule-sealer-stale-gate`, so the reference is
-re-run on the five-case suite after round 1**; the orchestrator writes its
-figures here, and until then the side above measured four cases.
-
-**Spend.** The item's four sides: 3.1901 + 2.8036 + 1.4076 + 2.9882 =
-**10.3895 USD**, under the item's $40 (`questions.md` Q5's estimate was $17
+**Spend.** The item's five sides: 3.1901 + 2.8036 + 1.4076 + 2.9882 +
+3.0973 = **13.4868 USD**, under the item's $40 (`questions.md` Q5's estimate was $17
 to $22).
 
 ## Commands
@@ -69,3 +83,5 @@ to $22).
 | `noninferiority.py run --agent sealer --rev b394e929 --suite-rev b394e929 --out $P/reference-sealer.json --runs 2 -j 4 --max-cost-usd 10` | 0 |
 | `cp -R $P/reference-sealer.raw $K`, `diff -r` | 0, 0 |
 | `run --agent sealer --from-raw $K --out $E/reference-sealer.json`, `cmp` against the scratch copy | 0, 0 |
+| after round 1: `noninferiority.py run --agent sealer --rev 90fa7046 --suite-rev 90fa7046 --out $P2/reference-sealer.json --runs 2 -j 4 --max-cost-usd 10`, `$P2` the scratch `969-phase-6b/` | 0 |
+| `cp -R $P2/reference-sealer.raw SpecSeal-worktrees/969-phase-6b-raw`, `diff -r`; `run --from-raw` into `$E/reference-sealer.json`, `cmp` | 0, 0, 0, 0 |

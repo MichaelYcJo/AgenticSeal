@@ -18,14 +18,15 @@
   | Agent | Tree | Preload bytes | Tokens per tool call | Spend USD | Graders passed | Verdict |
   |---|---|---|---|---|---|---|
   | sealer | `2fc33333` → `5ca68b5d`, one suite (`c2544c8f`) | 24,652 → 23,792 | 35,490.9 → 33,386.8 | 3.1901 → 2.8036 | 39 → 54 of 54 | pass |
-  | sealer | at the close, `b394e929`, the renamed suite | 23,825 | 34,849.8 | 2.9882 | 54 of 54 | none: the reference a later sealer change compares against, never compared across suites |
+  | sealer | at the close, `90fa7046`, the renamed five-case suite | 24,209 | 35,131.4 | 3.0973 | 68 of 68 | none: the reference a later sealer change compares against, never compared across suites |
 
   Each figure is read with `noninferiority.py#side_numbers` from the work
   item's `evals/baseline-sealer.json` (committed at `9184881a`),
   `evals/sealer-phase-4.json` and `evals/sealer-sonnet-phase-4.json`
-  (`d27f7994`) and `evals/reference-sealer.json` (`cb1940e3`); the verdict
-  is `evals/sealer-phase-4.md` at `d27f7994`. Each side is 8 runs, none cut
-  short.
+  (`d27f7994`) and `evals/reference-sealer.json` (re-run after round 1
+  on the five-case suite); the verdict is `evals/sealer-phase-4.md` at
+  `d27f7994`. The four-case sides are 8 runs each and the reference 10,
+  none cut short.
   (`1792252400-the-sealer-reads-the-gate-the-orchestrator-ran`, #969)
 - **The sealer's verdict reads `sealed`, `withheld — <reason>` or
   `undecided — <question>` (#969).** These replace `sound`, `not sound` and
