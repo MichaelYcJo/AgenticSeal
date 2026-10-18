@@ -8,7 +8,7 @@ target: 4279671d against release/v0.22.2
 
 severity: should
 location: `seal/specs/1792126889-every-agent-is-written-anew-from-its-job/spec.md:224-227`
-verdict: open
+verdict: fixed 7d2bc3d1
 
 Why it matters. #957 shipped in 0.22.1 (`git tag --contains 2fc33333`
 prints `v0.22.1`), so its `spec.md` is now the input `settle` folds into
@@ -63,7 +63,7 @@ agent in 0.22.2), preload bytes below the baseline, and the tokens the run
 read across every
 ```
 
-answer:
+answer: The rule 3 clause in #957's `spec.md` is rewritten in place with the suggested wording. It points to rule 3 of `evals/README.md` §*The behaviour suite* and says #957's phases judged each grader on its own. A sweep of the whole tree for the rule's words turned up three more statements, and each stands as a record of its own phase: `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/spec.md:215` (#967 S3's verification cell), `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/spec.md:203` (#969 S4's acceptance) and `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/evals/sealer-model.md:73` (an old reason line). The four the round listed stand for the round's reasons.
 
 ## Confirmations
 
