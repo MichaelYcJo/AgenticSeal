@@ -26,7 +26,9 @@ smith passed; warden failed on rule 4 (its preload unchanged, by
 construction) and on one two-run grader; the framer's side was cut short by
 the account's usage limit in two runs. Before its re-run was taken, #969
 merged into `release/v0.22.1` (4a6e24f6) and changed contract §2, which all
-three agents preload, and one sentence of `agents/warden.md`. Under the
+three agents preload, one sentence of `agents/warden.md`, and
+`docs/the-review-record.md`, `skills/code-review/scripts/chain_check.py` and
+`agents/sealer.md`, which the warden reads in the evaluated tree. Under the
 milestone's rolling baseline an agent whose read set changed is measured
 again, so the three sides were taken again on the merged tree, and the
 framer's re-run is one of them.
@@ -65,23 +67,35 @@ and reach grader passed on both sides (72 of 72), so the 91 of 96 against
 86 is the five more truths. Rule 4 now passes, since
 #969's §2 is shorter. The 0.8% is not traced to a sentence of this item's
 files: the same `writing-style` text read at 7053c184 gave 81,965.0 tokens
-per call, 6.0% below the baseline, and the only files the warden reads that
-differ between the two takes are #969's contract §2 and its one warden
-sentence. Two takes of one text 6.8 points apart is the run-to-run spread
-#966 holds, so the fail is recorded as it reads and nothing is rerun. All
-18 runs opened `writing-style` at their record step.
+per call, 6.0% below the baseline, and every file the warden reads that
+differs between the two takes is #969's: contract §2, one sentence of
+`agents/warden.md`, `docs/the-review-record.md` and
+`skills/code-review/scripts/chain_check.py` (each named at the evaluated
+tree's path in 17 or 18 of each take's 18 runs) and `agents/sealer.md` (in
+2 and 1). `skills/code-review/orchestration.md` is named in 6 runs of each
+take, every time as the reviewed fixture's own copy rather than the
+plugin's. Two takes 6.8 points apart is the run-to-run spread #966 holds,
+so the fail is recorded as it reads and nothing is rerun. All 18 runs
+opened `writing-style` at their record step.
 
 **The framer's `fail` is rule 5, and it goes to #968 (decision 5).** Its
 total tokens fell 0.5% and its spend 4.6%, with every grader passing, but it
-made 11 fewer tool calls, so tokens per call rose 9.5%. It opened
-`writing-style` in none of its eight runs, so this item's restructuring of
-that file is not the cause; the per-call rise repeats #957's framer reading
-(+18.9%), which `agents/framer.md` owns and #968 rewrites.
+made 11 fewer tool calls, so tokens per call rose 9.5%: fewer calls on a
+smaller read. It preloads `implement` and `writing-style`, both rewritten
+here, so all eight runs read both at startup and no count of opens clears
+them; no sentence of this item's files is identified as the cause. The
+fail is recorded as it reads and carried to #968, which measures the framer
+on a tree carrying this item.
 
 **Spend for this phase (eval `costUsd`):** the first take 60.5128 (smith
 5.6044, warden 38.3511, framer 16.5573, two framer runs of it cut short);
 the second take 63.2293 (smith 5.3675, warden 41.7424, framer 16.1196);
 **123.7421 in all**.
+
+**The smith's side is taken again after round 1.** Round 1's fixes changed
+`agents/smith.md` at a72d5b53, after the take measured above, so the
+orchestrator re-runs the smith's side on the fixed tree and fills its
+figures here.
 
 ## Commands
 
@@ -95,3 +109,4 @@ The first take's commands are the same with `967-phase-4/`, rev 7053c184.
 | `cp -R $S/<a>-phase-4.raw $K/<a>`, `diff -r`; `run --agent <a> --from-raw $K/<a> --out $E/<a>-phase-4.json`; `cmp` against the scratch copy, each agent | 0 each |
 | `compare --agent <a> --phase 4 --old $E/baseline-<a>.json --new $E/<a>-phase-4.json --out $E/<a>-phase-4.md`, each agent | 0 each |
 | the warden's and the framer's traces read for `writing-style` opens | 0 |
+| the warden's traces of both takes read for each file `git diff --name-only 7053c184 af716289` lists, at the evaluated tree's path and at the reviewed fixture's (round 1's fix pass) | 0 |
