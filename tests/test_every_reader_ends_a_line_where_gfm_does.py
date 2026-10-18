@@ -444,6 +444,11 @@ OUT_OF_CLASS = {
         1,
         "the disc's mark chart, a grid of `.` and `M`, not a document's lines",
     ),
+    # #975: the paths a commit touched (`git diff-tree`) and the round records
+    # it holds (`git ls-tree`); `guarantee.md` itself is read through
+    # `chain_check.py`'s readers.
+    ("skills/verify/scripts/seal_stamp.py", "queue_for_guarantee"): (1, GIT),
+    ("skills/verify/scripts/seal_stamp.py", "_queue_one"): (1, GIT),
     ("skills/verify/scripts/payload_meter.py", "frontmatter"): (1, YAML),
     ("skills/verify/scripts/session_cost.py", "open_log"): (1, TOOL),
     ("skills/verify/scripts/unverified_check.py", "overviews_at"): (1, GIT),
