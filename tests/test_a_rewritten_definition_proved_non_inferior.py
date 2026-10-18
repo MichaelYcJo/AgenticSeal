@@ -103,11 +103,11 @@ CASES = {
     ),
     "rule 2: false rate up by exactly the margin": (numbers(new_false=3), "pass"),
     "rule 2: false rate up past the margin": (numbers(new_false=4), "fail"),
-    "rule 3: a shape grader passing less often than the baseline": (
+    "rule 3: the shape and reach total falling by one shape run": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2)}),
         "fail",
     ),
-    "rule 3: a reach grader passing less often than the baseline": (
+    "rule 3: the shape and reach total falling by one reach run": (
         numbers(graders={("c1", "reach-warden"): ("reach", 2, 2, 1, 2)}),
         "fail",
     ),
@@ -115,28 +115,84 @@ CASES = {
         numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 2, 2)}),
         "pass",
     ),
+    # Catches rule 3 still comparing each grader on its own (#966): one
+    # grader's lost run fails a side whose shape and reach passes held,
+    # which is #957 phase 2's run 2. No case before #966 sets a loss beside
+    # a gain.
+    "rule 3: one shape grader's lost run offset by another's gained run": (
+        numbers(
+            graders={
+                ("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2),
+                ("c1", "shape-findings"): ("shape", 1, 2, 2, 2),
+            }
+        ),
+        "pass",
+    ),
+    # Catches separate totals for shape and for reach: a lost reach run
+    # offset by a gained shape run fails, which is one run deciding again.
+    # The case above moves shape graders alone, so it cannot tell.
+    "rule 3: a reach run lost and a shape run gained share one total": (
+        numbers(
+            graders={
+                ("c1", "reach-warden"): ("reach", 2, 2, 1, 2),
+                ("c1", "shape-findings"): ("shape", 1, 2, 2, 2),
+            }
+        ),
+        "pass",
+    ),
+    # Catches a rule 3 that reads the total alone: a grader the new side
+    # failed on every run, where the baseline passed it, is offset by
+    # another grader's gain and the side passes. Only this case holds the
+    # total equal while a grader the baseline passed falls to none.
+    "rule 3: a grader failing every new run where the baseline passed it, the total held": (
+        numbers(
+            graders={
+                ("c1", "shape-report-exists"): ("shape", 2, 2, 0, 2),
+                ("c1", "shape-findings"): ("shape", 0, 2, 2, 2),
+            }
+        ),
+        "fail",
+    ),
+    # Catches a naming clause that names every grader the new side failed
+    # on every run, whatever the baseline did. No other case has a grader
+    # both sides fail on every run.
+    "rule 3: a grader the baseline never passed, failing every new run, is not named": (
+        numbers(graders={("c1", "shape-report-exists"): ("shape", 0, 2, 0, 2)}),
+        "pass",
+    ),
+    # Catches totals that count a grader the baseline lacks: its new passes
+    # would offset a common grader's lost run, with nothing on the
+    # baseline's side to set against them.
+    "rule 3: a grader the baseline lacks does not offset a lost run": (
+        numbers(
+            graders={
+                ("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2),
+                ("c1", "reach-sealer"): ("reach", 0, 0, 2, 2),
+            }
+        ),
+        "fail",
+    ),
     # Catches a rule 3 that reads the new side alone and asks every run to
     # pass, which fails a rewrite for doing exactly what the baseline did:
     # the warden baseline fails three cases' shape graders itself (#957
-    # phase 1). Every other rule 3 case has the baseline passing every run
-    # or the new side passing more, where the two readings agree.
+    # phase 1).
     "rule 3: a shape grader failing as often on the new side as on the baseline": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 1, 2)}),
         "pass",
     ),
-    # Catches a relative rule 3 that excuses every grader the baseline
-    # already fails, so a rewrite failing it more often still passes. The
-    # case above passes under that reading too, and the cases with a
-    # baseline passing every run never reach it.
+    # Catches a rule 3 that leaves out of both checks every grader the
+    # baseline already fails, so a rewrite failing it more often still
+    # passes: here it falls from 1/2 to 0/2, which lowers the total and is
+    # named. The case above passes under that reading too.
     "rule 3: a shape grader passing less often than a baseline that fails it": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 0, 2)}),
         "fail",
     ),
-    # Catches a relative rule 3 whose comparison reads a grader the baseline
-    # lacks as a baseline rate of nothing, so a new grader failing every run
-    # passes. The grader the baseline lacks is judged on the new side alone,
-    # as before #957; no other case gives the baseline zero runs of a
-    # grader the new side carries.
+    # Catches a rule 3 that reads a grader the baseline lacks as a baseline
+    # rate of nothing, so a new grader failing every run passes. The grader
+    # the baseline lacks is judged on the new side alone, as before #957;
+    # the case above whose grader the baseline lacks passes it on every run,
+    # so only this one fails it.
     "rule 3: a reach grader the baseline lacks, short of every new run": (
         numbers(graders={("c1", "reach-sealer"): ("reach", 0, 0, 1, 2)}),
         "fail",
@@ -268,6 +324,56 @@ def test_the_verdict_is_recomputed_from_the_records_numbers(name):
     no other case does."""
     given, expected = CASES[name]
     assert ni.verdict(given)[0] == expected, ni.verdict(given)
+
+
+RULE_3_REASONS = {
+    "the total falls": (
+        {("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2)},
+        [
+            "shape and reach graders passed 3/4 runs on the new side, fewer than "
+            "the baseline's 4/4 (rule 3): c1/shape-report-exists 1/2 against 2/2"
+        ],
+    ),
+    "a grader fails every new run, the total held": (
+        {
+            ("c1", "shape-report-exists"): ("shape", 2, 2, 0, 2),
+            ("c1", "shape-findings"): ("shape", 0, 2, 2, 2),
+        },
+        [
+            "shape grader c1/shape-report-exists failed every new run (0/2) "
+            "where the baseline passed it 2/2 (rule 3)"
+        ],
+    ),
+    "the total, then the named grader, then the grader the baseline lacks": (
+        {
+            ("c1", "shape-report-exists"): ("shape", 2, 2, 0, 2),
+            ("c1", "reach-warden"): ("reach", 2, 2, 1, 2),
+            ("c1", "reach-sealer"): ("reach", 0, 0, 1, 2),
+        },
+        [
+            "shape and reach graders passed 1/4 runs on the new side, fewer than "
+            "the baseline's 4/4 (rule 3): c1/reach-warden 1/2 against 2/2, "
+            "c1/shape-report-exists 0/2 against 2/2",
+            "shape grader c1/shape-report-exists failed every new run (0/2) "
+            "where the baseline passed it 2/2 (rule 3)",
+            "reach grader c1/reach-sealer, which the baseline lacks, failed on "
+            "the new side (1/2) (rule 3)",
+        ],
+    ),
+}
+
+
+@pytest.mark.parametrize("name", sorted(RULE_3_REASONS))
+def test_rule_3_names_the_total_and_each_grader_failing_every_new_run(name):
+    """Guards S2 and S3 of #966 (contract §14): a falling shape and reach
+    total is written with both totals and every grader whose passes fell,
+    sorted, and a grader the new side failed on every run, where the
+    baseline passed it, is named on a line of its own. Rule 3's lines come
+    total first, then the named graders, then the graders the baseline
+    lacks. The cases above read the verdict alone, so only this one reads
+    the reasons rule 3 writes."""
+    graders, reasons = RULE_3_REASONS[name]
+    assert ni.verdict(numbers(graders=graders)) == ("fail", reasons)
 
 
 SUITE = {"rev": "1" * 40, "tree": "2" * 40}

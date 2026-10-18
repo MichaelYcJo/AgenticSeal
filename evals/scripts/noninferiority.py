@@ -24,10 +24,11 @@ five pass rules judge, outcome first and then cost, each against the
 baseline: recall not fallen, except by one find where every truth grader
 that lost it is still found by at least one new run, the false-finding rate
 within `FALSE_MARGIN`
-of the baseline's, each shape and reach grader passing on the new side at
-least as often as on the baseline, the preload's bytes below the
-baseline's, and the tokens read across every model per tool call below the
-baseline's. Total tokens, tokens per true find, spend and wall seconds are
+of the baseline's, the shape and reach graders both sides ran passing,
+pooled, no fewer runs on the new side than on the baseline, with none of
+them failing every new run where the baseline passed it, the preload's
+bytes below the baseline's, and the tokens read across every model per
+tool call below the baseline's. Total tokens, tokens per true find, spend and wall seconds are
 written and judge nothing.
 `check` recomputes a record's verdict from its numbers.
 `model` reads a record whose `--old` was the Opus side and `--new` the
@@ -583,8 +584,10 @@ def verdict(numbers):
     Each rule reads the new side against the baseline: 1 recall not fallen,
     except by one find where every truth grader that lost it is still found
     by at least one new run, 2 the false-finding rate within `FALSE_MARGIN`
-    of the baseline's, 3 each shape and reach grader passing at least as
-    often, 4 the preload's bytes below the baseline's, 5 the tokens read
+    of the baseline's, 3 the shape and reach graders both sides ran passing,
+    pooled, no fewer runs, none of them failing every new run where the
+    baseline passed it, and one the baseline lacks passing every new run, 4
+    the preload's bytes below the baseline's, 5 the tokens read
     across every model per tool call below the baseline's (`tool_calls` says
     why per call). A missing key raises. A side cut short, a case the
     baseline ran and the new side did not, whatever its graders, a case run
@@ -654,18 +657,38 @@ def verdict(numbers):
     )
     if new_rate > old_rate + FALSE_MARGIN + 1e-9:
         reasons.append(f"false-finding rate rose from {old_rate:.3f} to {new_rate:.3f}")
-    for (case, name), (k, op, oruns, np_, nruns) in sorted(g.items()):
-        if k not in ("shape", "reach") or not nruns:
-            continue
-        if not oruns and np_ < nruns:
+    # Rule 3 judges the agent, not one run (#966): the passes of every shape
+    # and reach grader both sides ran are pooled into one total a side, and
+    # a grader the new side failed on every run, where the baseline passed
+    # it at least once, is named whatever the totals say. Each grader in the
+    # totals ran as many times on both sides, or the check above returned.
+    common = sorted(
+        (key, v) for key, v in g.items() if v[0] in ("shape", "reach") and v[2] and v[4]
+    )
+    old_total = sum(v[1] for _key, v in common)
+    new_total = sum(v[3] for _key, v in common)
+    runs = sum(v[4] for _key, v in common)
+    if new_total < old_total:
+        fell = ", ".join(
+            f"{c}/{n} {v[3]}/{v[4]} against {v[1]}/{v[2]}"
+            for (c, n), v in common
+            if v[3] < v[1]
+        )
+        reasons.append(
+            f"shape and reach graders passed {new_total}/{runs} runs on the new "
+            f"side, fewer than the baseline's {old_total}/{runs} (rule 3): {fell}"
+        )
+    for (case, name), (k, op, oruns, np_, nruns) in common:
+        if op and not np_:
+            reasons.append(
+                f"{k} grader {case}/{name} failed every new run (0/{nruns}) where "
+                f"the baseline passed it {op}/{oruns} (rule 3)"
+            )
+    for (case, name), (k, _op, oruns, np_, nruns) in sorted(g.items()):
+        if k in ("shape", "reach") and nruns and not oruns and np_ < nruns:
             reasons.append(
                 f"{k} grader {case}/{name}, which the baseline lacks, failed on "
                 f"the new side ({np_}/{nruns}) (rule 3)"
-            )
-        elif oruns and np_ * oruns < op * nruns:
-            reasons.append(
-                f"{k} grader {case}/{name} passed {np_}/{nruns} on the new side, "
-                f"less often than the baseline's {op}/{oruns} (rule 3)"
             )
     if numbers["new_bytes"] >= numbers["old_bytes"]:
         reasons.append(

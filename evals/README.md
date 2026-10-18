@@ -29,8 +29,10 @@ the record the five pass rules of `noninferiority.py#verdict` judge:
 1. recall has not fallen, except by one find where every truth grader that
    lost it is still found by at least one new run;
 2. the false-finding rate is within `FALSE_MARGIN` of the baseline's;
-3. each shape and reach grader passes on the new side at least as often as
-   on the baseline, and one the baseline lacks passes every new run;
+3. the shape and reach graders both sides ran, pooled, pass no fewer runs
+   on the new side than on the baseline; one of them the new side failed on
+   every run, where the baseline passed it at least once, fails the side by
+   name; and one the baseline lacks passes every new run;
 4. the preload is fewer bytes than the baseline's;
 5. the tokens read across every model, the spawned agent's included, per
    tool call are fewer than the baseline's. The rewrite controls the context
