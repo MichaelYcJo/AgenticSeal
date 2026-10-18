@@ -41,10 +41,12 @@ Every `skills/`, `templates/` and `docs/` path in this file is the plugin's,
 at the root two directories above the base directory the harness printed with
 the contract. The base arrives as a plain branch name, which may be missing
 here or behind its remote, so resolve it once as `broad-gate` does
-(`broad_gate.py#resolve_base`): the first of `<name>@{upstream}`,
+(`broad_gate.py#resolve_base`): take the first of `<name>@{upstream}`,
 `origin/<name>` and `<name>` that `git -C <root> rev-parse --verify --quiet`
-answers is every `<base>` below, and where none answers the verdict is
-`undecided — the base <name> resolves to no commit here`.
+answers, and every `<base>` below is the commit it prints, never the ref,
+since the at-base clone holds the commit and not the remote-tracking ref.
+Where none answers, write `guarantee.md` with
+`Verdict: withheld — the base <name> resolves to no commit here` and return.
 
 ## Order of work
 

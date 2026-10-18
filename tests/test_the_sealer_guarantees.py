@@ -349,17 +349,22 @@ class TestDefinition:
         # Round 2 of #969, finding 1: the base arrives as a plain branch name,
         # a local ref, and a worktree with only `origin/<base>` gives step 1's
         # `^<base>` exit 128. It is resolved once, as the gate resolves it, and
-        # every `<base>` after it is that ref.
+        # every `<base>` after it is that ref's commit. Round 3, findings 1
+        # and 2: the at-base clone carries no remote-tracking ref, so the
+        # ref names nothing there; and a base resolving to nothing is the
+        # orchestrator's input to repair, so `withheld`, not `undecided`.
         intro = " ".join(
             between(SEALER, "You work in the clone", "## Order of work").split()
         )
         assert "`broad_gate.py#resolve_base`" in intro, intro
         assert (
-            "the first of `<name>@{upstream}`, `origin/<name>` and `<name>` "
-            "that `git -C <root> rev-parse --verify --quiet` answers is every "
-            "`<base>` below"
+            "take the first of `<name>@{upstream}`, `origin/<name>` and "
+            "`<name>` that `git -C <root> rev-parse --verify --quiet` answers, "
+            "and every `<base>` below is the commit it prints"
         ) in intro, intro
-        assert "`undecided — the base <name> resolves to no commit here`" in intro
+        assert (
+            "`Verdict: withheld — the base <name> resolves to no commit here`"
+        ) in intro, intro
         order = between(SEALER, "## Order of work", "## Never")
         assert "broad-gate --base" not in order, (
             "a step of the sealer's definition runs the broad gate"
