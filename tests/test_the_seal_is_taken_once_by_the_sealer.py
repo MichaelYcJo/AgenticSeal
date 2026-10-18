@@ -2061,7 +2061,7 @@ def test_the_forms_that_stay_allowed_are_sealed_exactly_as_today(
     assert PASSED in out.stdout and FAILED not in out.stdout
     suite = (keep / "suite.txt").read_text(encoding="utf-8")
     assert gate_module().suite_counts(head_run(keep, repo)) == "1 passed", (
-        f"{why}\nthe gate sealed without the row's suite running:\n{suite}"
+        f"{why}\nthe gate passed without the row's suite running:\n{suite}"
     )
 
 
@@ -3971,7 +3971,7 @@ def test_the_gate_names_the_row_it_sealed_over(repo, tmp_path):
     printed = out.stdout + out.stderr
     assert f"`{gate.ROW}` says:" in printed, printed
     assert "-m pytest" in printed, (
-        "the gate does not name the command it sealed over, so the sealer "
+        "the gate does not name the command it ran, so the sealer "
         f"cannot quote it:\n{printed}"
     )
 
@@ -8130,7 +8130,7 @@ def test_the_panel_reports_the_rows_exit_code_and_asserts_no_linter(a_recorded_r
     at = rows.index(("suite", "✓ 1 passed"))
     assert rows[at + 1] == ("chain", "✓ exit 0"), rows
     assert not any("clean" in cell for row in values["rows"] if row for cell in row), (
-        "the seal still asserts a linter over a row that has none in it"
+        "the gate's report still asserts a linter over a row that has none in it"
     )
 
 

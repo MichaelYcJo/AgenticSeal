@@ -51,14 +51,15 @@ def test_verify_says_when_not_only_what():
     ):
         assert row in scope, f"the Scope table lost its `{row}` row"
     assert "against the base commit" in scope
-    assert "Nothing edits between the broad seal and the PR" in scope
+    assert "Nothing edits between the broad run and the PR" in scope
+    assert "broad seal" not in scope
 
 
 def test_the_broad_gate_section_states_its_own_timing():
     """The Scope table settles when the gate fires; the section did not repeat
     it, and a session that jumped to the section by its heading ran the whole
     suite before review. Two sessions did exactly that, 22 minutes between
-    them, and both seals were void by the first review finding.
+    them, and both runs were void by the first review finding.
 
     The baseline is the same failure one step further in: it is reached for
     once an unexplained failure appears, not before one exists."""

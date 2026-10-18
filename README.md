@@ -73,7 +73,7 @@ half the session's tool time. The smith hands over with the suite
 `unverified` and says so; narrowing the scope is honest only because the label
 is not omitted. At the gate, the run is read against the base commit: a
 failure that predates the work is named as a follow-up rather than chased, and
-nothing edits between that seal and the PR.
+nothing edits between that run and the PR.
 
 `verify` is the smith's own gate before it hands anything over: run the
 checks, read the full output, and label each claim as executed, read, or

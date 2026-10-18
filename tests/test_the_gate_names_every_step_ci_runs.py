@@ -169,7 +169,7 @@ def test_every_step_the_workflow_runs_is_classified():
         f"these steps of `hygiene.yml`'s `{gate.RELEASE_JOB}` job are in no "
         f"row of `broad_gate.py#PARTITION`: {missing}. Add an arm that mirrors "
         "each, or a row excluding it with the reason no arm can — there is no "
-        "third state, and a step with no row is a seal that covers less than "
+        "third state, and a step with no row is a run that covers less than "
         "the merge is judged by"
     )
 
