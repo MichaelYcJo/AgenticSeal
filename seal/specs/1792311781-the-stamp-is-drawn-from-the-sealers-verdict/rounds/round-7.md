@@ -8,7 +8,7 @@ target: 6cc463d0, fixes 9960f6e4..6cc463d0
 
 severity: should
 location: `docs/the-review-record.md:289-292`, `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/changelog.md:16-21`, `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/overview.md:26`, `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/overview.md:54-59`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:1447`
-verdict: open
+verdict: fixed 9a1330e8
 regression: round-6#1
 
 The unit is the limit sentence d1af2e22 wrote into §*The stamp* and the
@@ -96,13 +96,13 @@ lands:
     )
 ```
 
-answer:
+answer: the record's fix, applied as written. §*The stamp* now states the limit for "a clone that holds no values file for the work item" and adds that the clone that drew the stamp keeps its values file, so an amend there draws nothing; the fragment says "another clone, one that never wrote this work item's stamp values itself" and carries the same added sentence; `overview.md`'s round-3 row and its Not done bullet take the qualifier. The class was enumerated by `git grep` of `had not fetched`, `rewritten there` and `no earlier .sealed` outside the round records: those four places and `seal_stamp.py`'s once comment, which already named the clone, and `questions.md` Q9, which says "a second clone" and is not this pass's. The pin is in `test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does`. executed: that case red before the docs sentence changed (`AssertionError: the limit names the clone it holds in`), green after; the stamp, line-wrap, one-word, pasted-passage, real-identifier and words modules 131 passed, the changelog module 52 passed; `uvx ruff check` and `uvx ruff format --check` of the test module exit 0; `bin/rules --check` exit 0. read: `git grep -n -F` of `draws the stamp again in that clone` and `the history is the only record the rule reads` under `tests/` finds only that case, and both phrases stand.
 
 ### 2. The memo records the widened limit only as the chosen side, so the sealer reading `spec.md` against the tree meets an amend-only limit the frame calls undecided
 
 severity: should
 location: `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/overview.md:26`, `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/spec.md:88-94`, `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/plan.md:145`, `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/plan.md:157`
-verdict: open
+verdict: fixed 1efe22f3
 regression: round-6#1
 
 The unit is `overview.md`'s §*Where spec and implementation diverged*, whose
@@ -140,7 +140,7 @@ A new row after the round-3 row:
 | The double-stamp limit's extent (round 6) | `spec.md` §*Scope*: "The amend of the sealing commit itself in a second clone, which draws the stamp again there … Q8 was not asked about it and this reframe does not decide it. It stays a stated limit"; `plan.md:145` and its B1 row: "An amend of the sealing commit itself in a second clone draws again there (round 3's stated limit, left standing)" | the class, stated in the fragment, §*The stamp* and `seal_stamp.py`'s once comment: a `sealed` committed over a history that carries no earlier `sealed`, in a clone that holds no values file for the work item, the sealing commit amended or rewritten there over its own parent or a second seal on a copy of the branch that had not fetched the first (d1af2e22) | round 6's finding 1 drew a second stamp from `rebase --force-rebase` and from an unfetched second seal beside the amend (`rounds/round-6.md`); `questions.md` Q9 (a) decided what `spec.md` left undecided: a stated limit, since across clones the history is the only record read and nothing beside the tree counts stamps. The frame's documents are left as written, and this row is where the difference is recorded |
 ```
 
-answer:
+answer: the row is in `overview.md` after the round-3 row, as the record wrote it with two changes: `plan.md`'s side quotes the §*Technical context* sentence and the B1 row each in its own words, by section rather than line, and the Chosen cell names 9a1330e8 beside d1af2e22, since finding 1's qualifier landed there. The round-3 row's "Spec says" cell now reads that B1 named nothing for a second clone at round 3 and, since the reframe after round 5, names the amend in a second clone as round 3's stated limit, pointing to the new row. `spec.md` and `plan.md` are left as written. executed: each quoted span checked present in `spec.md` and `plan.md` with whitespace folded (four of four); the one-word, real-identifier, words and pasted-passage modules 40 passed; `bin/unverified-check` exit 0. read: nothing executes a memo's divergence rows; the sealer reads them.
 
 ## Confirmations
 
