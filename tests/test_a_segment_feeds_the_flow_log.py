@@ -3,7 +3,8 @@ log what it found" used to live only in a person's message
 (`~/.claude/projects/.../memory/measure-every-segment-to-89.md`), retyped
 every session and naming a hardcoded issue number that goes stale the moment
 that issue closes. It moves into `skills/verify/SKILL.md`, between
-`## Seal block` and `## Counterfeits (stop on sight)`, so a session does it
+`## The cost of the run you repeat` and `## Counterfeits (stop on sight)`, so
+a session does it
 because the skill says so, and the destination becomes a
 `flow-measurement`-labelled GitHub issue instead of a number.
 
@@ -126,15 +127,17 @@ def test_skill_has_no_html_comments_at_all():
     )
 
 
-def test_the_section_exists_between_seal_block_and_counterfeits():
+def test_the_section_exists_between_the_cost_of_a_repeat_and_counterfeits():
+    """The section that stood before it, `## Seal block`, left with the proof
+    block (#967); the measuring section still follows the one that prices a
+    repeated run, which is the command it uses."""
     text = read()
-    seal_idx = text.index("## Seal block")
+    cost_idx = text.index("## The cost of the run you repeat")
     section_idx = text.index(SECTION_HEADING)
     counterfeits_idx = text.index("## Counterfeits (stop on sight)")
-    assert seal_idx < section_idx < counterfeits_idx, (
-        "the flow-log section must sit between `## Seal block` and "
-        "`## Counterfeits (stop on sight)` — that is the placement `plan.md` "
-        "fixed for phase 1"
+    assert cost_idx < section_idx < counterfeits_idx, (
+        "the flow-log section must sit between `## The cost of the run you "
+        "repeat` and `## Counterfeits (stop on sight)`"
     )
 
 

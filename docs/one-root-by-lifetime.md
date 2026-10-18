@@ -133,9 +133,9 @@ export/import pair.
 
 **What the names say.** `seal/specs/<id>/` holds the spec and its process
 record. The binding of a rule to the code is the test its `Enforced by:` line
-names — what the product name seals, rather than one of the seals an agent takes
-(`skills/verify/SKILL.md` §*Every agent seals what it verified, and one of
-them is final*).
+names — what the product name seals, rather than the sealer's seal
+(`skills/verify/SKILL.md` §*The hand-back's labels carry the claims, and the
+one seal is the sealer's*).
 
 ## What happens at a release
 

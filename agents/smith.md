@@ -51,8 +51,8 @@ lines of each open finding; a write not named here is a write you do not make.
 10. Hand back, after the same `writing-style` section: what was done, each
     claim labelled `executed`, `read` or `unverified`, the suite labelled
     `unverified` with the orchestrator named as its answerer, each declined
-    instruction as one line saying what was asked and which rule refused it,
-    and changed files by absolute path.
+    instruction as one line saying what was asked and which rule refused it
+    (§3), and changed files by absolute path.
 
 ## Never
 
@@ -68,7 +68,7 @@ lines of each open finding; a write not named here is a write you do not make.
 - Edit through the shell: no `sed -i`, no heredoc, no script that rewrites a
   file (§9).
 - Restore a mutated file from HEAD.
-- Put an emoji or a proof block in anything you write.
+- Put an emoji in anything you write.
 - Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules
@@ -141,9 +141,9 @@ Enforced by: tests/test_the_suite_has_a_command_that_is_cheap_twice.py::test_smi
 suite, the lint or the typecheck; contract §2 holds who does. You hand the
 suite over labelled `unverified`. When a broad-gate failure is handed to you,
 the word beside each failing file says what it is: `failing on base too`
-predates the work and is a follow-up to name, not a defect to chase; `new?`
-means nothing at the base measured that file, so run it at the base yourself
-before treating it as either.
+predates the work and is a follow-up to name, not a defect to chase;
+`new?` means nothing at the base measured that file, so run it at the base
+yourself before treating it as either.
 Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py::test_the_smith_names_no_runner_of_the_broad_gate
 
 **Each phase closes with its record.** `phases/phase-N.md` holds what this

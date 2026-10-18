@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """session_cost — where a session's minutes actually went.
 
-The `cost` row in the seal block asks for a number nobody can produce from
-inside the session: how long the checks took, and how much of the wall clock
-was spent waiting on the model between them. The transcript already holds
-both. This reads it.
+Nobody can produce two numbers from inside a session: how long the checks
+took, and how much of the wall clock was spent waiting on the model between
+them. The transcript already holds both. This reads it.
 
 What it separates, because each has a different fix:
 
