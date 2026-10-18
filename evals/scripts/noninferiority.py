@@ -7,6 +7,7 @@
   noninferiority.py compare --agent A --phase N --old OLD.json --new NEW.json
       --out RECORD.md
   noninferiority.py check RECORD.md
+  noninferiority.py model RECORD.md
 
 `run` copies the plugin tree at REV (or DIR) into a temporary directory,
 puts the suite at SUITE-REV's `evals/behaviour/` into it, and runs
@@ -29,10 +30,15 @@ baseline's, and the tokens read across every model per tool call below the
 baseline's. Total tokens, tokens per true find, spend and wall seconds are
 written and judge nothing.
 `check` recomputes a record's verdict from its numbers.
+`model` reads a record whose `--old` was the Opus side and `--new` the
+Sonnet side, and prints `sonnet` only where no truth, shape or reach grader
+passes on the Sonnet side less often and its spend is lower, else `opus`;
+then one line saying why. The record's own verdict does not decide it.
 
-Exit codes: 0 written, or the record's verdict holds · 1 the record's
-verdict is not `pass`, or it disagrees with its numbers · 2 nothing ran
-(arguments, a missing tool, an unreadable input).
+Exit codes: 0 written, the record's verdict holds, or a model was decided ·
+1 the record's verdict is not `pass`, or it disagrees with its numbers · 2
+nothing ran (arguments, a missing tool, an unreadable input), or `model` was
+handed a record that disagrees with its numbers or ran two suites.
 """
 
 import argparse
@@ -876,25 +882,56 @@ def suite_problem(text):
     return None
 
 
-def check_record(text):
-    """`[problem]` for a record: its stated verdict against the one its
-    numbers give, and anything but `pass`.
+def read_record(text):
+    """`(numbers, computed verdict, reasons, [problem])` for a record, the
+    problems being what makes it unsound whatever its verdict: its suites,
+    and a stated verdict its numbers do not give.
 
-    A record that does not parse is a problem, never a pass."""
+    A record that does not parse is a problem, and its first three are
+    None, None and no reasons."""
     try:
         numbers, stated, _preload = parse_record(text)
     except (ValueError, TypeError) as e:
-        return [f"the record does not parse: {e}"]
+        return None, None, [], [f"the record does not parse: {e}"]
     computed, reasons = verdict(numbers)
-    problems = []
-    suites = suite_problem(text)
-    if suites:
-        problems.append(suites)
+    problems = [p for p in (suite_problem(text),) if p]
     if stated != computed:
         problems.append(f"it says `{stated}` and its numbers give `{computed}`")
-    if computed != "pass":
+    return numbers, computed, reasons, problems
+
+
+def check_record(text):
+    """`[problem]` for a record: what `read_record` finds unsound, and
+    anything but `pass`."""
+    numbers, computed, reasons, problems = read_record(text)
+    if numbers is not None and computed != "pass":
         problems.append(f"its numbers give `{computed}`: " + "; ".join(reasons))
     return problems
+
+
+def cheaper_model(numbers):
+    """`(model, reason)` from a record whose baseline is the Opus side and
+    whose new side is Sonnet: `sonnet` only where no grader, truth, shape or
+    reach, passes on the Sonnet side less often and its spend is lower.
+
+    A side cut short, or any other no result, is `opus`; so is a spend
+    either side does not record."""
+    result, reasons = verdict(numbers)
+    if result == "no result":
+        return "opus", "; ".join(reasons)
+    lost = [
+        f"{k} grader {case}/{name} passed {np_}/{nruns} on Sonnet, {op}/{oruns} on Opus"
+        for (case, name), (k, op, oruns, np_, nruns) in sorted(
+            numbers["graders"].items()
+        )
+        if np_ * oruns < op * nruns
+    ]
+    if lost:
+        return "opus", "; ".join(lost)
+    old, new = numbers["old_spend"], numbers["new_spend"]
+    if old is None or new is None or new >= old:
+        return "opus", f"Sonnet spent {new} USD, not below Opus's {old}"
+    return "sonnet", f"every grader holds and Sonnet spent {new} USD, below {old}"
 
 
 def compare(a):
@@ -940,6 +977,22 @@ def check(a):
     return 1 if problems else 0
 
 
+def model(a):
+    """`model`: print the sealer's model a record decides, then its reason.
+
+    A record that cannot be read, does not parse, or is unsound exits 2."""
+    try:
+        with open(a.record, encoding="utf-8") as f:
+            numbers, _computed, _reasons, problems = read_record(f.read())
+    except OSError as e:
+        problems = [f"the record cannot be read: {e}"]
+    if problems:
+        print("\n".join(problems), file=sys.stderr)
+        return 2
+    print("\n".join(cheaper_model(numbers)))
+    return 0
+
+
 def main(argv=None):
     """Parse the arguments and run one subcommand.
 
@@ -966,8 +1019,11 @@ def main(argv=None):
     c.add_argument("--out", required=True)
     k = sub.add_parser("check")
     k.add_argument("record")
+    m = sub.add_parser("model")
+    m.add_argument("record")
     a = p.parse_args(argv)
-    return {"run": run_side, "compare": compare, "check": check}[a.command](a)
+    commands = {"run": run_side, "compare": compare, "check": check, "model": model}
+    return commands[a.command](a)
 
 
 if __name__ == "__main__":
