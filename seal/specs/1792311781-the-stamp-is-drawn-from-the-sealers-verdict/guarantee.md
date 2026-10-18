@@ -1,0 +1,71 @@
+# 1792311781-the-stamp-is-drawn-from-the-sealers-verdict — guarantee
+
+<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md, written by the
+sealer alone and committed by the orchestrator beside `broad-gate.md`.
+`docs/the-review-record.md` §*The guarantee* holds the rules and
+`agents/sealer.md` the order of work. -->
+
+| Field | Value |
+|---|---|
+| Target SHA | f2f7b6d5 against f6ae6db6 |
+| Broad gate | 2475178a against f6ae6db6 |
+
+## Claims re-run
+
+<!-- One row per act of `agents/sealer.md` step 3, whatever the act, and one
+per thing the act checks. `Result` reads `holds`, or `does not hold — <what
+came back>`, and a `does not hold` is what the verdict names. -->
+
+`<base>` is `release/v0.22.1` resolved as `broad_gate.py#resolve_base` does:
+`release/v0.22.1@{upstream}` and the local branch do not resolve here, and
+`origin/release/v0.22.1` answers f6ae6db6. Every `seen red` below was re-run
+in a clone of the branch at f2f7b6d5 under the session scratch directory
+(`<item>/at-base/`), with every changed file outside `tests/` and `seal/specs/`
+restored from f6ae6db6 (or from the commit the claim names), and the clone
+removed afterwards; the tree under audit was not changed.
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad run is at HEAD or followed only by this item's records | `broad-gate.md:5` (`2475178a against f6ae6db6`) | `git log --no-merges --name-only 2475178a..HEAD ^f6ae6db6`; `git merge-base --is-ancestor 2475178a HEAD` | holds — one commit, f2f7b6d5, touching only `seal/specs/1792311781-…/broad-gate.md`; 2475178a is an ancestor of HEAD (executed) |
+| `test_the_gate_never_says_sealed` was seen red against the gate before the change | `phases/phase-1.md:75-79` | at-base clone, code restored from f6ae6db6; `pytest tests/test_one_word_one_meaning.py::test_the_gate_never_says_sealed`; the same at f2f7b6d5 | holds — failed (`skills/verify/scripts/broad_gate.py says \`SEALED\``); passed at f2f7b6d5 (executed) |
+| S4's `test_a_sealed_guarantees_commit_queues_one_stamp` failed before the writer existed | `phases/phase-2.md:77-78` | at-base clone, code restored from f6ae6db6; `pytest tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_guarantees_commit_queues_one_stamp`; the same at f2f7b6d5 | holds — failed (`ValueError: not enough values to unpack (expected 1, got 0)`: nothing queued); passed at f2f7b6d5 (executed) |
+| S5 was shown red by dropping the verdict test | `phases/phase-2.md:78-80` | in the clone, `_queue_one`'s `if len(verdicts) != 1 or … != chain.SEALED: return None` removed (asserted to match once); `pytest …::test_a_withheld_or_undecided_guarantee_queues_nothing`; file restored | holds — 2 failed (both parameters); restored (executed) |
+| `test_a_sealed_item_rebased_in_another_clone_queues_nothing` was red against `seal_stamp.py` as 96cd142b carries it | `phases/phase-6.md:35-40` (5f43a5c3's file, identical to 96cd142b's: `git diff --stat 5f43a5c3 96cd142b -- skills/verify/scripts/seal_stamp.py` is empty) | in the clone, `git checkout 96cd142b -- skills/verify/scripts/seal_stamp.py`; `pytest …::test_a_sealed_item_rebased_in_another_clone_queues_nothing …::test_a_sealed_item_recommitted_in_another_clone_queues_nothing` | holds — the rebased case failed (the second clone printed the queued line), the recommit case passed; both passed at f2f7b6d5 (executed) |
+| Replacing `if sealed_before(…)` with `if False:` turns both cross-clone cases red | `phases/phase-6.md:46-51` | in the clone, that line replaced (asserted to match once); `pytest` of the recommitted and rebased cases; file restored | holds — 2 failed; restored (executed) |
+| S10's pin `test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does` is red against the documents before the change | `phases/phase-6.md:42-45`, `spec.md:115` | at-base clone, documents restored from f6ae6db6; `pytest` of that case; the same at f2f7b6d5 | holds — failed (`'## Where the stamp is drawn' … is contained` in `docs/the-broad-gate.md`); passed at f2f7b6d5 (executed) |
+| S2: a terminal run with no record draws nothing and writes no values file, red against the old gate | `spec.md:107`, `phases/phase-1.md:76-79` | at-base clone, code restored from f6ae6db6; `pytest tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_terminal_run_with_no_record_draws_nothing`; the same at f2f7b6d5 | holds — failed (the old gate printed `SEALED   feature @ … · nothing was recorded`); passed at f2f7b6d5 (executed) |
+| `test_every_splitlines_call_left_is_named_with_its_reason` is green once the two units are named | `phases/phase-5.md:50-56` | `pytest tests/test_every_reader_ends_a_line_where_gfm_does.py::test_every_splitlines_call_left_is_named_with_its_reason` at f2f7b6d5 | holds — passed (executed) |
+| The sealer's evaluation reads `pass`, and the measured definition is HEAD's | `phases/phase-4.md:71`, `evals/sealer-phase-4.md` | `python3 evals/scripts/noninferiority.py check seal/specs/1792311781-…/evals/sealer-phase-4.md`; `git diff --stat 981b0acc HEAD -- agents/sealer.md skills/agent-contract/ evals/behaviour/sealer/`; `git rev-parse HEAD:evals/behaviour/sealer` | holds — exit 0; empty diff; `5c3e8119…`, the suite tree both sides name (executed) |
+| Every `Enforced by:` target resolves | `phases/phase-3.md:76` | `bin/rules --check` at f2f7b6d5 | holds — exit 0, "all 497 `Enforced by:` targets in 60 rule files resolve" (executed) |
+| S14: the stubs are not rewritten | `spec.md:119` | `git diff --stat f6ae6db6 HEAD -- hooks/git/` | holds — empty (executed) |
+| Every sentence that called the broad gate's run a stamp or a seal was found by sweeping the shipped documents for `gate's stamp`, `broad gate's stamp`, `gate draws` … and reworded | `phases/phase-3.md:42-46` | `git grep -n -i -e "gate's stamp" -e "gate draws" -e "Where the stamp is drawn" -- ':(exclude,glob)seal/specs/**' ':!CHANGELOG.md' ':!changelog/'` | does not hold — `assets/seals/README.md:1` "every emblem the broad gate's stamp has carried" and `:3-4` "The broad gate draws a stamp when a run earns it (`docs/the-broad-gate.md` §*Where the stamp is drawn*)" stand unchanged since 149ca9ec; `assets/` ships with the plugin (it is in the installed 0.22.0 copy). The other hits are test docstrings and failure-message pins, which `overview.md` §*Not done* leaves as history (executed) |
+| Removes: the gate's values-file write and its outcome names | `spec.md:177` | `grep -nE 'SESSION_VAR\|NOTHING_RECORDED\|VALUES_UNWRITTEN\|NO_SESSION_FOUND\|DRAWN_AT_TURN_END\|SCALE_FOR_OLDER_HOOKS\|def common_dir\|def signal' skills/verify/scripts/broad_gate.py` | holds — no hit (executed) |
+| Removes: the gate's terminal drawing and the terminal/pipe fork | `spec.md:178` | `grep -nE 'if terminal and item is not None\|console_is_terminal\|is_terminal' skills/verify/scripts/broad_gate.py` | holds — no hit (executed) |
+| Removes: `SEALED` / `NOT SEALED` as the gate's heads | `spec.md:179` | `grep -n SEALED` of `broad_gate.py`, `bin/broad-gate`, `bin/broad-gate.cmd`, `docs/the-broad-gate.md`; `grep -nE 'NOT SEALED\|def not_sealed'` of `seal_stamp.py` | holds — no hit (executed) |
+| Removes: the panel's `SEALED` title row in the gate's rows | `spec.md:180` | `grep -n '("SEALED", "")' skills/verify/scripts/broad_gate.py` | holds — no hit (executed) |
+| Removes: `docs/the-broad-gate.md` §*Where the stamp is drawn* | `spec.md:181` | `grep -n '^## ' docs/the-broad-gate.md`; `git grep -n 'Where the stamp is drawn' -- ':!seal/specs/' ':!CHANGELOG.md'` | does not hold — the section is gone from `docs/the-broad-gate.md`, but `assets/seals/README.md:4` still cites it as where the broad gate's stamp is described (the other hit, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:1321`, asserts its absence) (executed) |
+| Removes: the orchestrator's stamp paragraph as it stood | `spec.md:182` | `grep -n 'The stamp is drawn for you' skills/code-review/orchestration.md`; read lines 241-260 | holds — line 241 now reads the stamp is drawn at the end of the turn in which `guarantee.md` reading `sealed` was committed (executed, read) |
+| Removes: the sealer's clause *from its own run* | `spec.md:183` | `grep -n 'from its own run' agents/sealer.md`; read line 99-100 | holds — no hit; the clause reads "a stamp is drawn once from your committed `sealed`" (executed) |
+| Removes: the **Form** bullet's account of the gate drawing | `spec.md:184` | `grep -n 'the \`SEALED\` line names it as' skills/verify/SKILL.md`; read line 257 | holds — no hit; line 257 says the broad gate draws nothing (executed) |
+| Removes: the hook's docstring sentences about the gate's `SEALED` line | `spec.md:185` | `grep -n -i 'broad gate.*SEALED\|SEALED.*line'` of `hooks/sealer-stamp.py`, `hooks/dispatch.py`; `git diff f6ae6db6...HEAD -- hooks/sealer-stamp.py` | holds — the one hit (`sealer-stamp.py:20`) names the stamp's own label; the hook's diff is words only (executed, read) |
+| Removes: the bin header and module docstring saying the gate stamps | `spec.md:186` | `grep -n "broad gate's stamp\|gate's stamp"` of `bin/seal-stamp`, `bin/seal-stamp.cmd`, `seal_stamp.py` | holds — no hit; `main`'s description reads "Print the sealer's stamp" (executed) |
+| Removes: README sentences saying the gate leaves the stamp | `spec.md:187` | the same grep of `README.md`, `README.ko.md` | holds — no hit (executed) |
+| Removes: the bin inventory's description | `spec.md:188` | the same grep of `tests/test_a_reference_root_is_read_and_never_taken.py` | holds — no hit (executed) |
+| Removes: six gate cases about the values file and the terminal drawing | `spec.md:189` | `grep -nE` of the six names over `tests/*.py`; read `test_the_seal_is_taken_once_by_the_sealer.py:3036-3045` | holds — five names gone; `test_a_terminal_run_with_no_record_draws_nothing` keeps its name with S2's body (no disc, no values file), and is the red case above (executed, read) |
+| Removes: `sealed_before`'s target condition and the case that held it | `spec.md:190` | `sed` of `sealed_before` grepped for `target_of\|merge-base`; `git grep -n 'over a commit then in its history'` and `git grep -n does_not_count_as_stamped`, both excluding `seal/specs/**` | holds — no hit (executed) |
+| Removes: the fragment's clause that a repaired row draws the stamp | `spec.md:191` | `git grep -n 'corrects that row in place'` excluding the rounds, `plan.md` and `spec.md` | holds — the one hit is `phases/phase-6.md:55` quoting the frame's check (executed) |
+| Changelog removal: the `scale` key is written by nothing | `spec.md:12`, `spec.md:128-130` | `grep -n '"scale"'` of `seal_stamp.py`, `broad_gate.py`, `hooks/sealer-stamp.py` | holds — no hit (executed) |
+| Changelog removal: the suite's counts are no longer on the stamp | `changelog.md:32-35` | read `seal_stamp.py#guarantee_rows` | holds — rows are title, tree, branch, base, item, a blank, gate, rounds (read) |
+
+## The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| The issue body (#975) | The stamp is drawn once per work item from `guarantee.md` reading `sealed`, never from the gate's run; the gate's line never says `SEALED` and draws nothing; a re-seal after `withheld` draws it then; item 4: "the hook, `bin/seal-stamp`, the values file and the docs say what draws the stamp" | the spec, the build's code, the changelog, the pull request body | `assets/seals/README.md:1, 3-4`, which says the broad gate draws the stamp |
+| The spec | S1–S14 as the issue asks; `## Removes` takes out §*Where the stamp is drawn* and every sentence on the old fact (`spec.md:12`); the release's PNG out of scope; the amend in a second clone a stated limit left undecided (`spec.md:88-94`) | the issue; the build's code and tests; the changelog; the pull request body. Its amend-only limit against the class the docs state is recorded in `overview.md:27` and decided by `questions.md` Q9 (a), so it is not an unrecorded disagreement | the tree at `assets/seals/README.md:4`, a citation of the section its Removes row takes out |
+| The build (the diff, phases 1–7) | The gate prints `BROAD GATE PASSED`/`FAILED` and draws nothing; `post-commit` queues the stamp from a `sealed` guarantee once per work item; the words follow; phase 3 says the sweep found and reworded every sentence calling the gate's run a stamp | the issue and the spec in code and tests (every sampled `seen red` and `executed` claim held); round 8; the changelog; the pull request body | the tree, on phase 3's sweep claim (`phases/phase-3.md:42-46`): `assets/seals/README.md:1, 3-4` was not reworded |
+| The last round (round 8) | No finding; round 7's two closes hold; the limit is stated with the clone it holds in | the build, the changelog, `overview.md`, the spec through its divergence row | none it names; it did not read `assets/` (no round did) |
+| The changelog fragment | The stamp is the sealer's, queued at a `sealed` guarantee's commit, once per work item with the stated limits; the gate says `BROAD GATE PASSED`/`FAILED` and draws nothing; `seal-stamp --from`, the hook and `specseal-stamp/` unchanged; the sealer measured `pass` | the code (the hook's diff is words only), the pull request body, `evals/sealer-phase-4.md` (re-checked), the issue | none |
+| The pull request body | The same story as the fragment, the measurement table, Q1–Q9 under the owner's delegation, eight rounds, `release_seal.py`'s `SEALED` left out | the changelog, `questions.md`, `phases/phase-4.md` ($7.07), the round count (eight files), the issue | none in its own text; it rests on the build's words being complete, which `assets/seals/README.md` contradicts |
+
+Verdict: withheld — the smith's claim that every sentence calling the broad gate's run a stamp was swept and reworded (`phases/phase-3.md:42-46`), and the spec's removal of `docs/the-broad-gate.md` §*Where the stamp is drawn* (`spec.md:181`), do not hold in the tree: `assets/seals/README.md:1` ("every emblem the broad gate's stamp has carried") and `assets/seals/README.md:3-4` ("The broad gate draws a stamp when a run earns it (`docs/the-broad-gate.md` §*Where the stamp is drawn*)") still say the gate draws the stamp and cite the removed section, against #975 item 4
