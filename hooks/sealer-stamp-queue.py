@@ -49,7 +49,7 @@ GUARANTEE = re.compile(r"/seal/specs/[^/]+/guarantee\.md$")
 
 def shaped(path):
     """Whether `path` ends in `/seal/specs/<id>/guarantee.md`."""
-    normal = os.path.normpath(path).replace(os.sep, "/").replace("\\", "/")
+    normal = os.path.normpath(path).replace(os.sep, "/")
     return bool(GUARANTEE.search(normal))
 
 
