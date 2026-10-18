@@ -216,6 +216,37 @@ class TestVerdictsOf:
         assert [v for _n, v in found] == ["sealed", "with"]
 
 
+# --- earlier_verdicts ----------------------------------------------------------
+
+
+class TestEarlierVerdicts:
+    """#975: the stamp is drawn once per work item, held by the `Target SHA`
+    row's own `; earlier run: <sha> <verdict>` chain rather than a count kept
+    beside the tree. One reader of that chain, beside the check's other
+    readers of the same row."""
+
+    def test_each_earlier_run_is_read_with_its_verdict_word(self):
+        cell = (
+            "ccc3333 against main; earlier run: bbb2222 sealed; "
+            "earlier run: aaa1111 withheld — the README is stale"
+        )
+        assert chain.earlier_verdicts(cell) == [
+            ("bbb2222", chain.SEALED),
+            ("aaa1111", chain.WITHHELD),
+        ]
+
+    def test_a_first_run_has_none_and_an_entry_without_a_sha_is_left_out(self):
+        assert chain.earlier_verdicts("aaa1111 against main") == []
+        assert chain.earlier_verdicts("") == []
+        assert chain.earlier_verdicts(None) == []
+        cell = "bbb2222 against main; earlier run: an earlier one, sealed"
+        assert chain.earlier_verdicts(cell) == []
+
+    def test_an_entry_naming_its_base_and_emphasis_still_reads_its_word(self):
+        cell = "ccc3333 against main; earlier run: `bbb2222` against main **sealed**"
+        assert chain.earlier_verdicts(cell) == [("bbb2222", chain.SEALED)]
+
+
 # --- guarantee: the arm --------------------------------------------------------
 
 

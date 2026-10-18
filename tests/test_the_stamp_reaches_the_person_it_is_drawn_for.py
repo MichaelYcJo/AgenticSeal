@@ -501,6 +501,232 @@ def test_the_hook_is_registered_for_stop_and_nothing_else():
     assert dispatch.GROUPS["stop"] == ("sealer-stamp.py",)
 
 
+# --- #975 S4-S9: the stamp is queued at the commit of a `sealed` guarantee ----
+#
+# The owner's rule of 2026-10-18: the stamp means every party verified the
+# work item, the sealer last, and the work is done, so it is drawn once per
+# work item from the sealer's `sealed` and never from the broad gate's run.
+# git's `post-commit`, which already runs after every judged commit in the
+# worktree the commit landed in, reads the committed `guarantee.md` and queues
+# one values file for the session; the `Stop` hook above draws it.
+
+HOOKS_DIR = os.path.join(ROOT, "hooks")
+ITEM_NAME = "1799000000-an-item"
+ITEM_ID = "1799000000"
+
+
+def commitgate_module():
+    """`hooks/commitgate.py`, which imports its siblings by their plain
+    names, as `hooks/git/post-commit.py` puts them on the path."""
+    if HOOKS_DIR not in sys.path:
+        sys.path.insert(0, HOOKS_DIR)
+    return _load(
+        "specseal_commitgate_for_the_stamp", os.path.join(HOOKS_DIR, "commitgate.py")
+    )
+
+
+def commit_all(repo, message):
+    """Everything in `repo` committed, driven from Python (§8)."""
+    git(repo, "add", "-A")
+    git(
+        repo,
+        "-c",
+        "user.name=e",
+        "-c",
+        "user.email=e@example.com",
+        "commit",
+        "-qm",
+        message,
+    )
+
+
+def guarantee_text(target, base, verdict, earlier=""):
+    """A `guarantee.md` in `templates/sdd-guarantee.md`'s shape: its `Target
+    SHA` row, with `earlier` after it, and one `Verdict:` line."""
+    return (
+        "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
+        f"| Target SHA | {target} against {base}{earlier} |\n"
+        f"| Broad gate | {target} against {base} |\n\nVerdict: {verdict}\n"
+    )
+
+
+def guaranteed(tmp_path, verdict="sealed", earlier="", branch="feat/x"):
+    """An opted-in repository on `branch` whose work item carries two round
+    records, then one commit adding its closing records — `broad-gate.md`
+    naming the commit before it, and `guarantee.md` reading `verdict` over
+    that commit. Returns (repo, target, base)."""
+    repo = opted_in(tmp_path)
+    git(repo, "switch", "-qc", branch)
+    item = repo / "seal" / "specs" / ITEM_NAME
+    (item / "rounds").mkdir(parents=True)
+    for n in (1, 2):
+        (item / "rounds" / f"round-{n}.md").write_text("x\n", encoding="utf-8")
+    commit_all(repo, "the rounds")
+    target = git(repo, "rev-parse", "--short", "HEAD").stdout.strip()
+    base = git(repo, "rev-parse", "--short", "main").stdout.strip()
+    (item / "broad-gate.md").write_text(
+        f"| Field | Value |\n|---|---|\n| Broad gate | {target} against {base} |\n",
+        encoding="utf-8",
+    )
+    (item / "guarantee.md").write_text(
+        guarantee_text(target, base, verdict, earlier), encoding="utf-8"
+    )
+    commit_all(repo, "the closing records")
+    return repo, target, base
+
+
+def after_the_commit(repo, session="s-1"):
+    """What `post-commit` printed in `repo` for a Claude session."""
+    import io
+
+    out = io.StringIO()
+    environ = {"CLAUDE_CODE_SESSION_ID": session}
+    assert commitgate_module().post_commit(str(repo), environ, out) == 0
+    return out.getvalue()
+
+
+def queued(repo):
+    """Every values file under `repo`'s git common dir, drawn or not."""
+    found = []
+    for directory, _dirs, names in os.walk(repo / ".git" / "specseal-stamp"):
+        found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
+    return sorted(found)
+
+
+def test_a_sealed_guarantees_commit_queues_one_stamp(tmp_path):
+    """#975 S4. The commit adds `guarantee.md` reading `sealed` over a
+    `Target SHA` with no earlier run, so `post-commit` writes one values
+    file for the session, named by the work item's id and the audited
+    commit, and prints one line naming it and `seal-stamp --from`. The
+    main session's `Stop` then draws it once, labelled with what was
+    sealed. Red at `ddb5cf1a`: the hook queued nothing."""
+    mod = stamp_module()
+    repo, target, base = guaranteed(tmp_path)
+    said = after_the_commit(repo)
+    (path,) = queued(repo)
+    assert os.path.dirname(path) == str(repo / ".git" / "specseal-stamp" / "s-1")
+    assert os.path.basename(path).endswith(f"-{ITEM_ID}-{target}.json"), path
+    assert said == (
+        f"specseal: the stamp for {ITEM_ID} is drawn at the end of this turn "
+        f"from {path}; where none appears, `seal-stamp --from {mod.quote(path)}` "
+        "draws it\n"
+    ), said
+    lines = message(stop(repo))
+    assert lines[0] == f"SEALED feat/x @ {target} against {base} · {ITEM_NAME}", lines
+    assert stop(repo) == "", "the stamp was drawn twice"
+
+
+@pytest.mark.parametrize(
+    "verdict",
+    ["withheld — the README is stale", "undecided — does #12 ask for the flag?"],
+)
+def test_a_withheld_or_undecided_guarantee_queues_nothing(tmp_path, verdict):
+    """#975 S5. The finished-work stamp is not drawn over unfinished work:
+    a committed guarantee that does not read `sealed` queues nothing and
+    says nothing about a stamp. Nor does a later commit that does not touch
+    the guarantee."""
+    repo, _target, _base = guaranteed(tmp_path, verdict=verdict)
+    assert after_the_commit(repo) == ""
+    (repo / "README.md").write_text("x\n", encoding="utf-8")
+    commit_all(repo, "something else")
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == []
+
+
+def test_a_reseal_after_withheld_queues_the_stamp(tmp_path):
+    """#975 S6. The sealer withheld at one commit, the work was fixed, and
+    the sealer's second run reads `sealed`, keeping the earlier verdict on
+    the row: that commit draws the stamp."""
+    repo, target, _base = guaranteed(
+        tmp_path, earlier="; earlier run: abc1234 withheld — the README is stale"
+    )
+    assert after_the_commit(repo)
+    (path,) = queued(repo)
+    assert path.endswith(f"-{ITEM_ID}-{target}.json"), path
+
+
+def test_a_second_sealed_verdict_queues_nothing(tmp_path):
+    """#975 S7. A work item is stamped once: a guarantee whose `Target SHA`
+    row carries an earlier run reading `sealed` was stamped at that run, so
+    a later `sealed` queues nothing — held by the row the tree carries and
+    no count beside it."""
+    repo, _target, _base = guaranteed(
+        tmp_path,
+        earlier="; earlier run: bbb2222 sealed; earlier run: abc1234 withheld — x",
+    )
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == []
+
+
+def test_a_recommit_of_the_same_guarantee_queues_no_second_file(tmp_path):
+    """#975 S8. An amend, and a second commit naming the same audited
+    commit, find the first file — pending, or drawn and renamed — under any
+    session's directory of the clone, and queue nothing more."""
+    repo, _target, _base = guaranteed(tmp_path)
+    assert after_the_commit(repo, session="s-1")
+    git(
+        repo,
+        "-c",
+        "user.name=e",
+        "-c",
+        "user.email=e@example.com",
+        "commit",
+        "--amend",
+        "-qm",
+        "the closing records, again",
+    )
+    assert after_the_commit(repo, session="s-2") == ""
+    assert len(queued(repo)) == 1, queued(repo)
+    stop(repo)
+    (drawn_file,) = queued(repo)
+    assert drawn_file.endswith(".drawn.json"), drawn_file
+    git(
+        repo,
+        "-c",
+        "user.name=e",
+        "-c",
+        "user.email=e@example.com",
+        "commit",
+        "--amend",
+        "-qm",
+        "the closing records, a third time",
+    )
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == [drawn_file]
+
+
+def test_the_guarantee_stamps_rows_are_read_from_the_records(tmp_path):
+    """#975 S9, `questions.md` Q1's answer (a). The stamp carries what the
+    records at the commit say and nothing re-measured: its title, the
+    audited commit with the branch under it, the base, the work item's id,
+    then the newest broad run `broad-gate.md` names and the count of round
+    records. No `scale` is written."""
+    mod = stamp_module()
+    repo, target, base = guaranteed(tmp_path)
+    after_the_commit(repo)
+    (path,) = queued(repo)
+    said = mod.read_values(path)
+    assert said["rows"] == [
+        ("SEALED", ""),
+        ("tree", target),
+        ("", "feat/x"),
+        ("base", base),
+        ("item", ITEM_ID),
+        None,
+        ("gate", f"✓ {target}"),
+        ("rounds", "2"),
+    ], said["rows"]
+    assert "scale" not in said, said
+    assert (said["tree"], said["base"], said["from"], said["branch"]) == (
+        target,
+        base,
+        None,
+        "feat/x",
+    ), said
+    assert said["item"] == str(repo / "seal" / "specs" / ITEM_NAME), said
+    assert said["session"] == "s-1" and said["pr"] is None, said
+
+
 # --- #717: the hook's whole message is held under a budget --------------------
 
 # What `broad_gate.panel` returns for a real run since #832 — `full_values()`'s

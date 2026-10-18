@@ -1361,6 +1361,25 @@ def target_of(reader, text):
     return found.group(0) if found else None
 
 
+def earlier_verdicts(cell):
+    """`[(sha, word)]` for each `; earlier run: <sha> <verdict>` entry of a
+    `guarantee.md` `Target SHA` cell, in the order written (#975): `word` is
+    `verdict_word` of what follows the SHA, past an `against <base>` where an
+    entry names one. An entry whose first word is not SHA-shaped is left
+    out. The stamp is drawn once per work item, and an earlier entry reading
+    `sealed` is how the row says it was drawn already."""
+    out = []
+    for entry in (cell or "").split(EARLIER_RUN)[1:]:
+        words = EMPHASIS.sub("", entry).split()
+        if not words or not SHA_RE.fullmatch(words[0]):
+            continue
+        rest = words[1:]
+        if len(rest) >= 2 and rest[0] == "against":
+            rest = rest[2:]
+        out.append((words[0], verdict_word(" ".join(rest))))
+    return out
+
+
 def newest_run(reader, text):
     """The commit the newest run of `broad-gate.md`'s `Broad gate` row was
     taken at — the first word of its first entry, where that word is

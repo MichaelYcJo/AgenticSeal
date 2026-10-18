@@ -77,10 +77,13 @@ reaches this file through `bin/seal-stamp`: `hooks/launch.py` refuses it with
 
 import argparse
 import collections
+import importlib.util
 import json
 import math
 import os
 import re
+import shlex
+import subprocess
 import sys
 import time
 
@@ -781,17 +784,20 @@ def drawn_path(path):
     return stem + DRAWN
 
 
-def write_values(common, session, values, now=None):
-    """Write one run's `values` for `session`; returns the file's path.
+def write_values(common, session, values, now=None, key=None):
+    """Write one stamp's `values` for `session`; returns the file's path.
 
     Written to a hidden temporary name and renamed into place, so a hook
     listing the directory never reads half a file. The name leads with the
-    time in nanoseconds, so a name sort is oldest first. Raises `OSError`
-    where the directory cannot be made or the file cannot be written."""
+    time in nanoseconds, so a name sort is oldest first, and ends with `key`
+    — `<id>-<target sha>` for a guarantee's stamp (`queue_for_guarantee`) —
+    or the tree's name where no key is given. Raises `OSError` where the
+    directory cannot be made or the file cannot be written."""
     directory = values_dir(common, session)
     os.makedirs(directory, exist_ok=True)
     moment = time.time_ns() if now is None else now
-    name = f"{moment}-{os.path.basename(str(values.get('tree') or 'tree'))}"
+    tail = key or os.path.basename(str(values.get("tree") or "tree"))
+    name = f"{moment}-{tail}"
     path = os.path.join(directory, name + PENDING)
     temporary = os.path.join(directory, f".{name}.tmp")
     with open(temporary, "w", encoding="utf-8") as handle:
@@ -893,28 +899,206 @@ def label(values):
     return f"SEALED {names}{f' · {pr}' if pr else ''}{where}"
 
 
+# --- the stamp, queued at a sealed guarantee's commit (#975) ---------------
+#
+# The owner's rule of 2026-10-18: the stamp means every party verified the
+# work item, the sealer last, and the work is done. So it is drawn once per
+# work item, from `guarantee.md` reading `sealed`, never from the broad
+# gate's run. git's `post-commit` (`hooks/commitgate.py#post_commit`) runs
+# after every judged commit, in the worktree the commit landed in, and calls
+# `queue_for_guarantee`; the `Stop` hook draws what it queued.
+#
+# Once per work item is held by two facts the tree and the clone carry, and
+# no count kept beside them: the `Target SHA` row's `; earlier run: <sha>
+# <verdict>` chain — a `sealed` after a `sealed` was stamped at the first —
+# and the file's name, `<ns>-<id>-<target sha>.json`, which a re-commit of
+# the same guarantee finds under any session's directory, pending or drawn.
+
+# A committed guarantee's path, in shared mode, where a commit carries it. A
+# local-mode root sits under the git directory and no commit ever carries
+# it, so no stamp is queued there.
+GUARANTEE_PATH = re.compile(r"^seal/specs/([^/]+)/guarantee\.md$")
+ROUND_FILE = re.compile(r"^round-\d+\.md$")
+CHAIN_CHECK = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "..",
+    "code-review",
+    "scripts",
+    "chain_check.py",
+)
+# The line `post-commit` prints on stdout, which git prints into the commit
+# command's output. It names the way to draw the stamp by hand, because the
+# hook draws nothing, and says nothing, where it cannot: a `python3` that
+# cannot load this file, a main session whose working directory is outside
+# this clone, a plugin older than the hook (`docs/the-review-record.md`
+# §*The stamp*).
+QUEUED = (
+    "specseal: the stamp for {id} is drawn at the end of this turn from "
+    "{path}; where none appears, `seal-stamp --from {command}` draws it"
+)
+
+
+def quote(path, windows=None):
+    """`path` quoted for the shell a person types `seal-stamp --from` into:
+    double quotes on Windows, `shlex.quote` elsewhere, so a checkout whose
+    path holds a space prints a command that runs as printed.
+    `broad_gate.quote` says why double quotes are `cmd.exe`'s."""
+    if windows is None:
+        windows = os.name == "nt"
+    return f'"{path}"' if windows else shlex.quote(path)
+
+
+def _git(cwd, *args):
+    """stdout of a git call in `cwd`, or None on a non-zero exit."""
+    r = subprocess.run(
+        ["git", "-C", cwd, *args],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return r.stdout if r.returncode == 0 else None
+
+
+def _chain_check():
+    """`chain_check.py`, whose readers of `guarantee.md` and `broad-gate.md`
+    are the ones the pull request's check uses, so the row has one grammar."""
+    spec = importlib.util.spec_from_file_location(
+        "specseal_chain_check_for_the_stamp", CHAIN_CHECK
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def already_queued(common, key):
+    """True where a values file ending in `-<key>` stands under any session's
+    directory of the clone, pending or drawn."""
+    root = os.path.join(common, VALUES_DIR)
+    try:
+        sessions = os.listdir(root)
+    except OSError:
+        return False
+    for session in sessions:
+        try:
+            names = os.listdir(os.path.join(root, session))
+        except OSError:
+            continue
+        for name in names:
+            if name.endswith((f"-{key}{PENDING}", f"-{key}{DRAWN}")):
+                return True
+    return False
+
+
+def guarantee_rows(target, branch, base, ident, run, rounds):
+    """The stamp's rows for a sealed guarantee (#975, `questions.md` Q1's
+    answer (a)): what the records at the commit say and nothing measured
+    again — the title, the audited commit with the branch under it, the
+    base, the work item's id, a blank, then the newest run `broad-gate.md`
+    names and the count of round records. A row whose record is absent is
+    left out; `rounds` reads `0` where the work item had none."""
+    rows = [TITLE_ROW, ("tree", fit(target))]
+    if branch:
+        rows.append(("", fit(branch)))
+    if base:
+        rows.append(("base", fit(base, keep="tail")))
+    rows += [("item", ident), None]
+    if run:
+        rows.append(("gate", fit(f"{TICK}{run}")))
+    rows.append(("rounds", str(rounds)))
+    return rows
+
+
+def queue_for_guarantee(top, common, session, now=None):
+    """The lines `post-commit` prints for the commit at HEAD of `top`: one
+    per work item whose `guarantee.md` the commit touched, reads one
+    `Verdict:` of `sealed`, carries no earlier run reading `sealed`, and has
+    no values file queued already. Each writes one values file for
+    `session` under `common` first. Raises whatever reading or writing
+    raises; the caller is silent on every failure."""
+    touched = _git(
+        top, "diff-tree", "--no-commit-id", "--name-only", "-r", "--root", "HEAD"
+    )
+    items = [
+        found.group(1)
+        for path in (touched or "").splitlines()
+        for found in [GUARANTEE_PATH.match(path.strip())]
+        if found
+    ]
+    if not items:
+        return []
+    chain = _chain_check()
+    said = []
+    for name in items:
+        line = _queue_one(chain, top, common, session, name, now)
+        if line:
+            said.append(line)
+    return said
+
+
+def _queue_one(chain, top, common, session, name, now):
+    """The line for one work item's guarantee, or None where it queues
+    nothing (`queue_for_guarantee` says when)."""
+    reader = chain.SHARED_READER
+    rel = f"seal/specs/{name}"
+    text = _git(top, "show", f"HEAD:{rel}/guarantee.md")
+    if text is None:
+        return None
+    verdicts = chain.verdicts_of(reader, text)
+    if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
+        return None
+    target = chain.target_of(reader, text)
+    if target is None:
+        return None
+    rows = chain.table_rows(reader, reader.readable(text))
+    cell = reader.visible(chain.field(rows, chain.TARGET) or "")
+    if any(word == chain.SEALED for _sha, word in chain.earlier_verdicts(cell)):
+        return None
+    ident = item_value(name)
+    key = f"{ident}-{target}"
+    if already_queued(common, key):
+        return None
+    newest = chain.EMPHASIS.sub("", cell.split(chain.EARLIER_RUN)[0]).split()
+    base = newest[2] if len(newest) >= 3 and newest[1] == "against" else None
+    gate_text = _git(top, "show", f"HEAD:{rel}/{chain.BROAD_GATE_FILE}")
+    run = chain.newest_run(reader, gate_text) if gate_text else None
+    listed = _git(top, "ls-tree", "--name-only", "HEAD", f"{rel}/rounds/") or ""
+    rounds = sum(
+        1 for path in listed.splitlines() if ROUND_FILE.match(os.path.basename(path))
+    )
+    branch = (_git(top, "symbolic-ref", "--short", "-q", "HEAD") or "").strip()
+    values = {
+        "tree": target,
+        "base": base,
+        "from": None,
+        "branch": branch or None,
+        "pr": None,
+        "item": os.path.join(top, *rel.split("/")),
+        "session": session or None,
+        "rows": guarantee_rows(target, branch, base, ident, run, rounds),
+    }
+    path = write_values(common, session, values, now=now, key=key)
+    return QUEUED.format(id=ident, path=path, command=quote(path))
+
+
 # --- a person's command --------------------------------------------------
 
-# Neutral values in the panel's shape, so `seal-stamp` shows a person what the
-# gate will print without a gate having run — every row `broad_gate.panel`
-# can return, the conditional ones included, in its order; a case in
-# `tests/test_the_seal_is_taken_once_by_the_sealer.py` holds the labels
-# against `panel`'s. The shapes are the owner's of 2026-10-07: the ref beside
-# its commit, a `✓` on a result row, ` · ` and `→` between parts, a dim `·`
-# before a row that is not a pass.
+# Neutral values in the stamp's shape, so `seal-stamp` shows a person what a
+# sealed guarantee's commit draws without one having been committed — every
+# row `guarantee_rows` can return, the conditional ones included, in its
+# order; a case in `tests/test_the_seal_is_taken_once_by_the_sealer.py`
+# holds the labels against `guarantee_rows`'. Since #975 the stamp carries
+# what the records say and no suite counts: those are the broad gate's
+# report's, which the gate prints as text.
 SAMPLE_ROWS = [
     ("SEALED", ""),
     ("tree", "c46fd2d"),
     ("", "feat/12-a-branch"),
-    ("base", "1e2bed9  origin/release/next"),
-    ("item", "#34 · 1799000000"),
-    ("gate", "tree 1.2.3"),
+    ("base", "1e2bed9"),
+    ("item", "1799000000"),
     None,
-    ("suite", "✓ 768 passed · 1 skipped"),
-    ("chain", "✓ exit 0"),
-    ("CI also", "· 4 more steps"),
-    ("rounds", "3 · capped"),
-    ("", "2 deferred → #56"),
+    ("gate", "✓ c46fd2d"),
+    ("rounds", "3"),
 ]
 
 

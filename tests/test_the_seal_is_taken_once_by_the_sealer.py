@@ -779,8 +779,10 @@ def test_the_twin_writes_the_discs_nine_letters_and_the_text_in_ascii():
     assert len(set(mod.KEY.values())) == 9, mod.KEY
     ascii_ = {"·": ".", "✓": "+", "─": "-", "→": ">"}
     assert ascii_ == mod.TWIN_ASCII, mod.TWIN_ASCII
-    letter = mod.compose(mod.SAMPLE_ROWS)
-    twin = mod.stamp(mod.SAMPLE_ROWS, shape=True)
+    # The sample as it stood at 5623d728 carries all four of the owner's
+    # characters; since #975 the stamp's own sample carries `✓` and `─` alone.
+    letter = mod.compose(SAMPLE_AT_5623D728)
+    twin = mod.stamp(SAMPLE_AT_5623D728, shape=True)
     seen = set()
     for line, said in zip(letter.cells, twin, strict=True):
         assert said.isascii(), said
@@ -3625,57 +3627,36 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert "or where no invoked copy was handed over to compare" in comment
 
 
-def test_the_sample_carries_every_row_the_panel_can(tmp_path):
-    """A16. `seal-stamp` with no arguments shows a person what the gate will
-    print, and it read `lint clean` from #400 to #666 because nothing held
-    the two lists together. Its labels, in order, are the labels `panel`
-    returns for a run with every conditional row present."""
-    gate = gate_module()
-    workflow = (
-        "jobs:\n  release:\n    steps:\n"
-        "      - name: a declared review chain has the round record it claimed\n"
-    )
-    rows = gate.panel(
-        "c46fd2db",
-        gate.Base("release/x", "1e2bed90", "origin/release/x", "1e2bed90"),
-        checks_with(gate, "", "total: 1 ok · 0 drifted · 0 broken\n"),
-        record_of(tmp_path / "1799000000-an-item", deferring_record()),
-        workflow,
-        copy="tree 1.2.3",
-        branch="feature",
-        run=a_run(gate, passed=1),
+def test_the_sample_carries_every_row_the_stamp_can():
+    """A16. `seal-stamp` with no arguments shows a person what a stamp
+    draws, and it read `lint clean` from #400 to #666 because nothing held
+    the two lists together. Since #975 the stamp is drawn from a sealed
+    guarantee, so its labels, in order, are the labels `guarantee_rows`
+    returns with every conditional row present."""
+    mod = module()
+    rows = mod.guarantee_rows(
+        "c46fd2db", "feature", "1e2bed90", "1799000000", "c46fd2db", 3
     )
     labels = [None if row is None else row[0] for row in rows]
-    # The sample opens with the stamp's title; the gate's report carries none
-    # since #975.
-    title, *rest = module().SAMPLE_ROWS
-    assert title == module().TITLE_ROW, title
-    sample = [None if row is None else row[0] for row in rest]
+    sample = [None if row is None else row[0] for row in mod.SAMPLE_ROWS]
     assert sample == labels, (sample, labels)
     # #717's A19, positively: the sequence itself, so the two lists cannot
-    # agree by losing the same row. #832's S5a: the ref beside the commit,
-    # a blank before the result rows, and `chain` back among them.
+    # agree by losing the same row.
     assert labels == [
+        "SEALED",
         "tree",
         "",
         "base",
         "item",
-        "gate",
         None,
-        "suite",
-        "chain",
-        "CI also",
+        "gate",
         "rounds",
-        "",
     ], labels
-    # And the sample's values are in the shapes `panel` writes them in.
-    for row, sample in zip(rows, rest, strict=True):
+    # And the sample's values are in the shapes `guarantee_rows` writes them in.
+    for row, sample in zip(rows, mod.SAMPLE_ROWS, strict=True):
         if row is None:
             continue
-        for mark in ("✓ ", "· "):
-            assert row[1].startswith(mark) == sample[1].startswith(mark), (row, sample)
-        for mark in ("→", "  "):
-            assert (mark in row[1]) == (mark in sample[1]), (row, sample)
+        assert row[1].startswith("✓ ") == sample[1].startswith("✓ "), (row, sample)
 
 
 def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
