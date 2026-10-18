@@ -276,7 +276,9 @@ def test_the_old_words_are_refused_by_line(item, capsys):
     """T8, S8 of #969: a `guarantee.md` written before the words changed,
     reading `sound`, `not sound` or `undecidable`, fails a ready pull request
     on its `Verdict:` line, and the line says the word changed and what to
-    do: run the broad gate again and spawn the sealer at HEAD. Protects: two
+    do: spawn the sealer again at HEAD over the committed `broad-gate.md`,
+    and run the broad gate first only where that record does not stand at
+    HEAD (round 1 of #969, finding 4). Protects: two
     spellings in one tree, where the check takes `sound` for the new
     `sealed`, or refuses it with a line nobody can place."""
     root, sha = item
@@ -293,8 +295,12 @@ def test_the_old_words_are_refused_by_line(item, capsys):
         word = old.split(" — ")[0]
         assert f"`{word}` is a word the verdict no longer uses" in line, line
         assert "`sealed`" in line and "`withheld — <reason>`" in line, line
-        assert "`broad-gate --base <base> --record <item>`" in line, line
-        assert "spawn the sealer again at HEAD" in line, line
+        assert "The committed `broad-gate.md` still stands" in line, line
+        assert "spawn the sealer again at HEAD, which writes the new word" in line
+        assert (
+            "run `broad-gate --base <base> --record <item>` first only where "
+            "`broad-gate.md` does not stand at HEAD"
+        ) in line, line
 
 
 # --- the definition that writes it ---------------------------------------------
