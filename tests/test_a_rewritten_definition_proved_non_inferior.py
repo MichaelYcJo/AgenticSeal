@@ -505,7 +505,7 @@ def test_the_model_is_decided_by_the_truths_and_the_spend(tmp_path, capsys):
     }
     code, out = model_of(tmp_path, capsys, g, g)
     assert (code, out[0]) == (0, "sonnet"), out
-    assert "Verdict: fail" in (tmp_path / "sealer-model.md").read_text()
+    assert "Verdict: fail" in (tmp_path / "sealer-model.md").read_text(encoding="utf-8")
     for name, kind in (
         ("truth-1", "truth"),
         ("shape-commits-nothing", "shape"),
@@ -526,7 +526,7 @@ def test_the_model_is_decided_by_the_truths_and_the_spend(tmp_path, capsys):
     assert len(out) == 2 and "cut short" in out[1], out
     path = tmp_path / "sealer-model.md"
     model_of(tmp_path, capsys, g, g)
-    edited = path.read_text().replace("Verdict: fail", "Verdict: pass")
+    edited = path.read_text(encoding="utf-8").replace("Verdict: fail", "Verdict: pass")
     path.write_text(edited, encoding="utf-8")
     assert ni.main(["model", str(path)]) == 2
     other = {"rev": "3" * 40, "tree": "4" * 40}
