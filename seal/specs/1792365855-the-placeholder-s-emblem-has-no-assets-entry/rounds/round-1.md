@@ -17,7 +17,7 @@ checked as a claim.
 
 severity: should
 location: `assets/seals/README.md:84-87`, `assets/seals/README.md:99`, `assets/seals/README.md:105-111`
-verdict: open
+verdict: fixed eba4fa05
 
 The repository's `CLAUDE.md` says a fact has one source, and every other
 place links to it. `assets/seals/README.md` now says that the frame is
@@ -51,7 +51,7 @@ The owner looked at these three marks the same day and shipped none of
 them; they wait here for #857.
 ```
 
-answer:
+answer: Holds. The entry's **Issue** line is now the one home for the mark, its chart file and #857. Lines 105-111 are the round's rewrite, used verbatim. §*The next entry* now reads "The mark that replaces the placeholder S gets its entry once a tag carries it", which names the mark without restating who chooses it. The same class also covered the parchment sheet: the entry said #832 "took the parchment sheet away", and §*Candidates for #857* already states that the owner retired it. The entry drops that clause. A `grep` for `#857`, `seal-mark.txt`, `Georgia` and `parchment` on the page now finds each fact once, plus links to it and alt text.
 
 ## Confirmations
 
