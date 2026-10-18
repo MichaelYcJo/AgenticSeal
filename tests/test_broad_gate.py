@@ -158,8 +158,10 @@ class TestRoundsRows:
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
     def test_the_item_row_is_the_ids_digits(self):
-        assert gate.item_value("seal/specs/1799000004-a-name") == "1799000004"
-        assert gate.item_value("plain") == "plain"
+        # `seal_stamp`'s since #975, which the gate's `panel` reads it from.
+        stamp = gate.stamp_module()
+        assert stamp.item_value("seal/specs/1799000004-a-name") == "1799000004"
+        assert stamp.item_value("plain") == "plain"
 
 
 # --- the gate end to end ------------------------------------------------------

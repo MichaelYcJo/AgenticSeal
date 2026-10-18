@@ -45,7 +45,7 @@ upstream where the checkout declares one, else `refs/remotes/origin/<base>`,
 else the ref as given. Every consumer takes that commit, including the
 scratch worktree and the `Broad gate` cell. A branch name in a local checkout
 is a LOCAL ref and a runner has no local branches, so a checkout one commit
-behind its remote sealed green over a question nobody asked while CI refused
+behind its remote passed green over a question nobody asked while CI refused
 the same commit on the same check (#423). Where resolving MOVES the answer
 one line says so and the run continues; where it does not, nothing extra
 prints. Nothing is fetched.
@@ -69,28 +69,22 @@ worktree, and label each file `new`, `failing on base too`, or
 any run. It decides nothing about any of the words: they go in the report
 and the reader acts.
 
-**Drawn on success only, and only where a person is looking** (#400). The
-stamp — the disc and a panel carrying the tree and its branch, the base and
-the ref it came from, the work item and its pull request, the suite's counts,
-the chain's exit, how many more steps CI runs
-than this seal answers, and the round count when `--record` names a work
-item, with the deferred findings' homes beneath it (`rounds_rows`) — a list
-too long for its row continuing on the row beneath it (`panel`) — is
-`seal_stamp.stamp`'s, and it is drawn only over a written file. On a
-terminal a recorded seal draws it once, in the form `pick_shape` chooses.
-Anywhere else a recorded seal draws nothing and prints one line beginning
-`SEALED`, naming the values file the panel's rows were written to, under
-`<git-common-dir>/specseal-stamp/<session>/`; `hooks/sealer-stamp.py` draws
-it at the end of the turn of the session named by `CLAUDE_CODE_SESSION_ID`.
-Without `--record` there is no file, so on a terminal or off one the line
-says nothing was recorded, and nothing is written or drawn. A Bash call's
-stdout is a pipe, so the orchestrator's run never draws. Both lines name what was
-sealed as `<branch> @ <tree> against <ref> @ <base commit>`, the branch left
-out on a detached HEAD and the ref left out where it is the commit itself
-(#666). The failure form is `NOT SEALED` with the same names and the failing
-checks with their first lines, no drawing and no file. A recorded seal adds
-one line after the stamp or the `SEALED` line, where git still sees
-`broad-gate.md` uncommitted: CI reads HEAD.
+**It judges nothing and draws nothing** (#975). The verdict word `sealed`
+is the sealer's, in `guarantee.md`, and the stamp is drawn from that
+verdict at its commit, never from this run. A run that passes prints one
+form on every stream: `BROAD GATE PASSED   <branch> @ <tree> against <ref>
+@ <base commit>`, the branch left out on a detached HEAD and the ref left
+out where it is the commit itself (#666); under it the panel's rows as
+plain text (`panel`, `report_lines`) — the tree and its branch, the base
+and the ref it came from, the work item, the suite's counts, the chain's
+exit, how many more steps CI runs than this run answers, and the round
+count when `--record` names a work item, with the deferred findings' homes
+beneath it (`rounds_rows`); and last, where git still sees `broad-gate.md`
+uncommitted, one line saying so: CI reads HEAD. The owner's marks are
+written in ASCII on a console that is not UTF-8, or under `--shape`. A run
+that fails prints `BROAD GATE FAILED` with the same names and the failing
+checks with their first lines (`failed_form`). No run writes a values file
+or a drawing.
 
 `--record <item>` writes `<item>/broad-gate.md` on success, on either routing
 answer: one `Broad gate` row holding `<tree> against <base commit>`, newest
@@ -99,16 +93,16 @@ file already records at the same commit against the same base replaced
 rather than repeated (`kept_runs`). It is the run's one record;
 `chain_check.py` reads it at the pull request.
 
-**`--preflight` runs arms 2 to 4 alone, and seals nothing** (#638). It is the
+**`--preflight` runs arms 2 to 4 alone, and writes nothing** (#638). It is the
 orchestrator's step before it spawns the sealer: the same base resolved the
 same way, every refusal of the row applied, and then every arm above except
 the row, in the same order, with the same arguments, each output kept the
 same way. The row is read and never run, so a refusal on a record arm — an
 unverified row deleted, a chain refusal — arrives in seconds rather
-than after a whole suite. It writes no file, no values file and no stamp,
-adds no worktree, prints no coverage line, and prints no line beginning
-`SEALED` or `NOT SEALED`: its stdout opens `PREFLIGHT PASSED` or `PREFLIGHT
-FAILED`, the failing arms under the second in the failure form's own words.
+than after a whole suite. It writes no file, adds no worktree, prints no
+coverage line, and prints no line beginning `BROAD GATE`: its stdout opens
+`PREFLIGHT PASSED` or `PREFLIGHT FAILED`, the failing arms under the second
+in the failure form's own words.
 `--record` beside it is refused, because a preflight writes nothing. It is
 not the broad gate and replaces no part of the orchestrator's broad run.
 
@@ -117,7 +111,7 @@ Usage:
              [--keep-output DIR]
   broad-gate --preflight --base <ref> [--root DIR] [--keep-output DIR]
 
-Exit codes: 0 sealed · 1 not sealed · 2 refused — no row, no repository, a
+Exit codes: 0 passed · 1 failed · 2 refused — no row, no repository, a
 base that does not resolve, a copy of the plugin whose sibling will not
 load (a malformed `seal-mark.txt` among them), a `broad-gate.md` that could
 not be written; nothing ran on 2 except where the refusal names what ran.
@@ -190,74 +184,11 @@ QUOTED = 8
 
 NEW, ON_BASE = "new", "failing on base too"
 
-# How many columns a panel value is given (#832, `spec.md` S5a of work item
-# 1791270164): the widest that keeps the stamp's widest line inside an
-# 80-column terminal, the floor a command line's output is held to. The open
-# layout has no frame, so the terminal is the bound: 28 columns of disc, `GAP`
-# (3) clear, a label of seven and a space, and the value — 28 + 3 + 8 + 41 =
-# 80. Before #832 it was 23, what `seal_stamp.letter`'s 36-column frame left.
-# A longer value runs past the terminal's edge or wraps into the disc's
-# column, so the gate elides before it does (round 1, finding 5 of #666): a
-# cut ref would read as a whole ref, and nothing prints beside the row on a
-# run where the given and resolved bases agree (A4).
-#
-# Stated here and measured over there, and neither may move without the other
-# going red: `test_the_panel_value_width_is_what_the_stamp_actually_gives`
-# draws a value of this width and measures the stamp's widest line.
-PANEL_VALUE_WIDTH = 41
-ELISION = "..."
-# The panel's own characters (#832 S5a, the owner's design of 2026-10-07):
-# the separator inside a value, the arrow before a deferral's homes, the mark
-# on a result row that passed and the mark on a row that is not a pass. They
-# are the owner's and not ASCII; `seal_stamp`'s letter twin, which exists for
-# a console that is not UTF-8, maps them where it writes them.
-SEP, ARROW, TICK, DOT = " · ", "→", "✓ ", "· "
-
-
-def fit(value, keep="head", width=None):
-    """`value` as the panel can carry it: unchanged where it fits, else
-    elided to `width` — `PANEL_VALUE_WIDTH` unless a caller names less —
-    with `ELISION` on the side that was cut.
-
-    `keep="head"` for a branch name, whose issue number leads and is what a
-    reader matches to a ticket; `keep="tail"` for a ref, where the
-    `origin/` a runner reads is the part a reader can infer. Every value
-    `panel` returns passes through here, so no row is wider than the frame
-    and none is cut by it without a marker (#666). `width` is the room a
-    ref has beside its commit on the `base` row (#832)."""
-    value = str(value)
-    width = PANEL_VALUE_WIDTH if width is None else width
-    if len(value) <= width:
-        return value
-    room = width - len(ELISION)
-    return ELISION + value[-room:] if keep == "tail" else value[:room] + ELISION
-
-
-def wrapped(label, pieces):
-    """A list on as many panel rows as it needs: the first row under `label`,
-    the rest as `""` rows beneath it (round 1's 🟡 1 of #666).
-
-    The owner chose continuation rows over a wider panel (`questions.md`
-    Q1), so a list of counts or homes continues rather than losing its tail
-    to `...`; only a branch or a ref, which have no bound, are elided. Each
-    piece but the first carries the separator that joins it to the one
-    before (`", #664"`, or `" · 11 skipped"` since #832). A row is broken
-    before a piece that would not fit, and keeps that separator's mark — the
-    comma, or the ` ·` — at its end so the reader sees the list goes on; two
-    columns are held back for it on every piece but the last, because ` ·`
-    is two. One piece wider than the frame by itself is still elided by
-    `fit`."""
-    rows, line = [], ""
-    for n, piece in enumerate(pieces):
-        room = PANEL_VALUE_WIDTH - (0 if n == len(pieces) - 1 else 2)
-        if line and len(line + piece) > room:
-            lead = piece[: len(piece) - len(piece.lstrip(", ·"))]
-            rows.append(line + lead.rstrip())
-            line = piece.lstrip(", ·")
-        else:
-            line += piece
-    rows.append(line)
-    return [(label if n == 0 else "", fit(row)) for n, row in enumerate(rows)]
+# How a panel value is cut, continued and marked — `PANEL_VALUE_WIDTH`,
+# `ELISION`, `fit`, `wrapped` and the owner's `SEP`, `ARROW`, `TICK` and
+# `DOT` — is `seal_stamp.py`'s since #975, which composes the stamp's rows
+# from a `sealed` guarantee; this gate's report reads them through
+# `stamp_module()`, so the two write a row by one set of rules.
 
 
 # pytest's short-summary line for a failed test, `FAILED path::name - why`,
@@ -321,9 +252,10 @@ def repo_root(start):
 def branch_name(root):
     """The branch checked out at `root`, or None on a detached HEAD.
 
-    What the `SEALED` and `NOT SEALED` lines name beside the tree (#666): a
-    head naming two commits told a reader which hash was sealed and never
-    which branch, so a stamp was matched to its work by hand. `symbolic-ref
+    What the `BROAD GATE PASSED` and `BROAD GATE FAILED` lines name beside
+    the tree (#666): a head naming two commits told a reader which hash it
+    was about and never which branch, so a line was matched to its work by
+    hand. `symbolic-ref
     -q` exits non-zero on a detached HEAD and prints nothing, which is the
     None the lines read as *leave the branch out*."""
     out = git(root, "symbolic-ref", "--short", "-q", "HEAD")
@@ -411,7 +343,7 @@ def copy_origin(root, plugin=PLUGIN, running=None):
     origin = (
         "tree" if under(__file__ if running is None else running, root) else "plugin"
     )
-    return fit(f"{origin} {plugin_version(plugin)}")
+    return stamp_module().fit(f"{origin} {plugin_version(plugin)}")
 
 
 def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
@@ -661,7 +593,7 @@ def resolve_base(root, given):
          itself, and every gate fixture in the suite is that repository.
          **What does NOT stay the same there is what the consumers are
          handed.** The resolution turns the ref into its commit for them too,
-         so that repository's `Broad gate` cell, its `NOT SEALED` line and the
+         so that repository's `Broad gate` cell, its `BROAD GATE FAILED` line and the
          baselines the child checks quote back all name a hash where they
          named a branch. One assertion in
          `tests/test_the_seal_is_taken_once_by_the_sealer.py` moved for it,
@@ -2429,7 +2361,7 @@ def unanswered(text, given):
 
 
 def coverage_line(text, given):
-    """One line naming the steps this seal did not answer, or None.
+    """One line naming the steps this run did not answer, or None.
 
     **Over the steps CI runs for this base** (#666, `steps_for`), and one
     clause saying how many it left out and why (`left_out_clause`): a step CI
@@ -2461,7 +2393,7 @@ def coverage_line(text, given):
     left = left_out_clause(text, given)
     if not short:
         return (
-            f"broad-gate: this seal answers every one of the {len(steps)} "
+            f"broad-gate: this run answers every one of the {len(steps)} "
             f"`{RELEASE_JOB}` steps {WORKFLOW} runs for this base." + left
         )
     classified = {name for name, _, _ in PARTITION}
@@ -2469,7 +2401,7 @@ def coverage_line(text, given):
     unknown = [step for step in short if step not in classified]
     said = (
         f"broad-gate: {WORKFLOW}'s `{RELEASE_JOB}` job runs {len(steps)} "
-        f"steps for this base and this seal answers {len(steps) - len(short)}." + left
+        f"steps for this base and this run answers {len(steps) - len(short)}." + left
     )
     if excluded:
         said += (
@@ -2589,8 +2521,9 @@ def rounds_rows(item):
     rows = [("rounds", str(len(records)))]
     try:
         chain = load(CHAIN, "specseal_chain_check_for_broad_gate")
-    except Refused:  # a label never stops a sealed run
+    except Refused:  # a label never stops a run that passed
         return rows
+    stamp = stamp_module()
     reader = chain.SHARED_READER
     count, homes = 0, []
     for path in records:
@@ -2608,18 +2541,11 @@ def rounds_rows(item):
                 homes.append(home)
             count += 1
     if count and homes:
-        pieces = [f"{count} deferred {ARROW}", f" {homes[0]}"]
-        rows += wrapped("", pieces + [f", {home}" for home in homes[1:]])
+        pieces = [f"{count} deferred {stamp.ARROW}", f" {homes[0]}"]
+        rows += stamp.wrapped("", pieces + [f", {home}" for home in homes[1:]])
     elif count:
         rows.append(("", f"{count} deferred"))
     return rows
-
-
-def item_value(item):
-    """The `item` row: the digits before the first `-` of the work item
-    directory's name, or the whole name where it has no `-`."""
-    name = os.path.basename(os.path.normpath(item))
-    return name.split("-", 1)[0] or name
 
 
 def panel(
@@ -2632,9 +2558,11 @@ def panel(
     branch=None,
     run=None,
 ):
-    """The stamp's rows, as `(label, value)`, with `""` as the label of a row
+    """The report's rows, as `(label, value)`, with `""` as the label of a row
     that continues the one above it (#666) and `None` for the blank line
-    between the identity rows and the result rows (#832).
+    between the identity rows and the result rows (#832). Printed as text
+    under the `BROAD GATE PASSED` line (`report_lines`); since #975 they are
+    no stamp's, and carry no title row.
 
     `base` is a `Base`. `copy` is `gate_copy`'s value and None leaves the
     `gate` row out; `branch` is `branch_name`'s, None on a detached HEAD;
@@ -2642,7 +2570,6 @@ def panel(
     `suite` row prints (#869) — never the row's printed output, which a test
     can print into.
 
-      SEALED
       tree      <tree>
                 <branch>                   absent on a detached HEAD
       base      <commit>  <Base.ref>       the commit alone where the ref IS it
@@ -2663,19 +2590,19 @@ def panel(
     of a row that is not a pass.
     `exit N` stays where a row has no count to print, because then it is the
     only statement of what that arm did. The failure form keeps every arm's
-    exit code (`failure_lines`). The drawing does not know which label
+    exit code (`failure_lines`). The text block does not know which label
     starts the result rows, so the blank before them is `None` here rather
-    than a rule there; an older values file without one draws without it.
+    than a rule there.
 
     **The values are the owner's characters** — ` · ` (`SEP`), `→`
-    (`ARROW`), `✓ ` (`TICK`) and `· ` (`DOT`). They were ASCII, ` . ` and
-    `->`, until #832, for the letter twin's console that is not UTF-8
-    (`seal_stamp.pick_shape`), where `·` and `→` print as `?`. That console
-    is served where it is drawn for: the twin maps the four to ASCII as it
-    writes them, and the values stay what the owner chose.
+    (`ARROW`), `✓ ` (`TICK`) and `· ` (`DOT`), `seal_stamp`'s. They were
+    ASCII, ` . ` and `->`, until #832, for a console that is not UTF-8,
+    where `·` and `→` print as `?`. That console is served where the report
+    is printed: `report_lines` maps the four to ASCII there, and the values
+    stay what the owner chose.
 
     **The panel keeps its width, and nothing on it is cut by the frame.**
-    A value is given `PANEL_VALUE_WIDTH` columns, the widest that keeps the
+    A value is given `PANEL_VALUE_WIDTH` columns, the widest that keeps a
     stamp inside 80, and the owner chose continuation rows over a wider
     stamp (`questions.md` Q1 of #666). So the branch goes on the row under
     its label, where it has the whole width; a list — the suite's counts,
@@ -2689,7 +2616,7 @@ def panel(
     lands on a second remote the prefix is NOT inferable, and the line the
     gate prints is what names that ref in full — it fires whenever the given
     and resolved commits differ (`questions.md` W1, round 1 finding 5); the
-    `SEALED` line names it in full as well.
+    `BROAD GATE PASSED` line names it in full as well.
 
     **Where the moved-base line does not fire, the ref on the `base` row is
     the only statement a reader gets.** A4 keeps the line silent where the
@@ -2704,30 +2631,32 @@ def panel(
     took it off. NOT `("lint", "clean")` either: the row is
     one shell command line and nothing in it says which part is a linter
     (`templates/config.md` §*Broad gate*), so `clean` over a row with no
-    linter in it is the gate's stamp asserting a check that never ran."""
+    linter in it is the gate's report asserting a check that never ran."""
     stamp = stamp_module()
-    rows = [("SEALED", ""), ("tree", tree)]
+    fit = stamp.fit
+    rows = [("tree", tree)]
     if branch:
         rows.append(("", fit(branch)))
     if stamp.ref_is_commit(base.ref, base.commit):
         rows.append(("base", base.commit))
     else:
-        room = PANEL_VALUE_WIDTH - len(f"{base.commit}  ")
+        room = stamp.PANEL_VALUE_WIDTH - len(f"{base.commit}  ")
         ref = fit(base.ref, keep="tail", width=room)
         rows.append(("base", f"{base.commit}  {ref}"))
     if item is not None:
-        rows.append(("item", item_value(item)))
+        rows.append(("item", stamp.item_value(item)))
     if copy:
         rows.append(("gate", copy))
     rows.append(None)
     counts = suite_counts(run) if run is not None else None
+    tick, sep = stamp.TICK, stamp.SEP
     if counts:
         first, *more = counts.split(", ")
-        rows += wrapped(SUITE, [TICK + first, *(SEP + part for part in more)])
+        rows += stamp.wrapped(SUITE, [tick + first, *(sep + part for part in more)])
     else:
         rows.append((SUITE, f"exit {checks[SUITE].code}"))
-    rows.append((CHAIN_NAME, f"{TICK}exit {checks[CHAIN_NAME].code}"))
-    # What this seal did NOT answer, which a reader otherwise reconstructs
+    rows.append((CHAIN_NAME, f"{tick}exit {checks[CHAIN_NAME].code}"))
+    # What this run did NOT answer, which a reader otherwise reconstructs
     # from two files (#468). A COUNT, because a panel value is
     # `PANEL_VALUE_WIDTH` columns and a step name is a sentence — the names
     # go to stderr beside the command line, where `coverage_line` puts them
@@ -2750,7 +2679,7 @@ def panel(
     # `CI also`, seven columns already (`questions.md` Q15 of 1791270164).
     if job_steps(workflow, RELEASE_JOB) if workflow else []:
         short = len(unanswered(workflow, base.given))
-        rows.append(("CI also", f"{DOT}{short} more steps"))
+        rows.append(("CI also", f"{stamp.DOT}{short} more steps"))
     if item is not None:
         rows += rounds_rows(item)
     return [None if row is None else (row[0], fit(row[1])) for row in rows]
@@ -2875,18 +2804,66 @@ NO_RECORD_HERE = (
 
 
 # --- the command -------------------------------------------------------------
+#
+# The first line of a run's stdout (#975). The verdict word `sealed` is the
+# sealer's, in `guarantee.md`, and this run comes before the sealer is spawned
+# and judges nothing, so its heads say what it did: the broad gate passed or
+# failed. `{names}` is `seal_stamp.sealed_names`'s `<branch> @ <tree> against
+# <ref> @ <base commit>`. Beside the preflight's heads below, so the two
+# kinds of run are told apart by their first word.
+GATE_PASSED = "BROAD GATE PASSED   {names}"
+GATE_FAILED = "BROAD GATE FAILED   {names}"
+
+
+def failed_form(tree, base, failures, branch=None, ref=None):
+    """The failure form, as lines: `GATE_FAILED` over `<branch> @ <tree>
+    against <ref> @ <base>`, then each failing check's name with its first
+    lines under it.
+
+    `failures` is a list of `(name, lines)` — the check that failed and the
+    first lines of what it printed, as the gate kept them. `branch` and `ref`
+    None leave their half out, which is the line a caller that names neither
+    has always got."""
+    names = stamp_module().sealed_names(tree, base, branch, ref)
+    out = [GATE_FAILED.format(names=names), ""]
+    # The widest name present, not a literal 8: `unverified` is ten
+    # characters, so a fixed pad sets that one check's first line a column
+    # out from every other check's.
+    pad = max([len(name) for name, _ in failures] + [8])
+    for name, lines in failures:
+        lines = list(lines) or ["(no output)"]
+        out.append(f"  {name:<{pad}} {lines[0]}")
+        out.extend(f"  {'':<{pad}} {line}" for line in lines[1:])
+    return out
+
+
+def report_lines(rows, ascii_marks=False):
+    """`panel`'s rows as the plain text a passing run prints under its head
+    (#975): each label padded as the stamp's text block pads it, the value
+    after it, a blank line for a `None` row; no disc, no colour, and the
+    same bytes on a terminal as on a pipe. `ascii_marks` writes the owner's
+    `·`, `✓`, `─` and `→` as the letter twin does, for a console that is not
+    UTF-8 or for `--shape`."""
+    stamp = stamp_module()
+    out = []
+    for cells in stamp.text_lines(rows):
+        line = "".join(char or " " for char, _fg, _bg, _style in cells)
+        if ascii_marks:
+            line = "".join(stamp.TWIN_ASCII.get(char, char) for char in line)
+        out.append(line.rstrip())
+    return out
 
 
 # --- the preflight (#638) -----------------------------------------------------
 #
 # The record arms, typed by the orchestrator before it spawns the sealer.
-# Neither head begins `SEALED` or `NOT SEALED`: a preflight is read by the same
-# eyes and the same tests that read a seal, and either word on it would be
-# taken for one.
+# Its heads say `PREFLIGHT`, not `BROAD GATE`: a preflight runs no row, and a
+# reader who took it for the broad run would take a suite nobody ran for a
+# suite that passed.
 PREFLIGHT_PASSED = "PREFLIGHT PASSED   {tree} against {base}"
 PREFLIGHT_FAILED = "PREFLIGHT FAILED   {tree} against {base}"
 PREFLIGHT_TAIL = (
-    " · the record arms: the `Broad gate` row was not run and nothing is sealed"
+    " · the record arms: the `Broad gate` row was not run and nothing is written"
 )
 # Appended to the stderr line that quotes the row, so a reader sees the row
 # was read — every refusal about it still applies — and not handed to a shell.
@@ -2904,12 +2881,11 @@ def preflight_line(head, tree, base):
     return head.format(tree=tree, base=base) + PREFLIGHT_TAIL
 
 
-def gate(args, console_wants_letters, terminal=False):
-    """The run. `terminal` is whether stdout has a person in front of it:
-    only then, and only over a written `broad-gate.md`, is the stamp drawn here, and
-    every other sealed run signals instead (#400). Its default is the pipe, which is what every caller that
-    is not `__main__` — a case driving this in process — is writing to."""
-    stamp = stamp_module()
+def gate(args, ascii_marks=False):
+    """The run. `ascii_marks` is whether the report writes the owner's marks
+    in ASCII: `is_utf8` asked of stdout as the process found it, negated,
+    which is what `__main__` passes. The report is the same text on a
+    terminal and a pipe, and nothing is drawn on either (#975)."""
     root = repo_root(os.path.abspath(args.root or os.getcwd()))
     if root is None:
         raise Refused(
@@ -2986,10 +2962,10 @@ def gate(args, console_wants_letters, terminal=False):
         + (ROW_NOT_RUN if args.preflight else "")
         + "\n"
     )
-    # Before the checks rather than after them, so a run that comes back NOT
-    # SEALED carries it too: what this run's seal would not have covered is as
-    # much a fact about a failed run as about a sealed one. A preflight prints
-    # none: the line says what THIS SEAL answers, and a preflight seals nothing.
+    # Before the checks rather than after them, so a run that comes back
+    # failed carries it too: what this run would not have covered is as much
+    # a fact about a failed run as about a passing one. A preflight prints
+    # none: the line says what THIS RUN answers, and a preflight runs no row.
     workflow = workflow_text(root)
     coverage = (
         coverage_line(workflow, base.given) if workflow and not args.preflight else None
@@ -3017,7 +2993,7 @@ def gate(args, console_wants_letters, terminal=False):
         root,
         keep,
     )
-    # `--sealing` (#866): this run writes `broad-gate.md` after it seals, so
+    # `--sealing` (#866): this run writes `broad-gate.md` after it passes, so
     # the check prints that one arm and does not fail on it. The pull request's state
     # is the check's to read -- the payload, else `gh` -- and nothing is
     # written into the environment for it.
@@ -3053,13 +3029,12 @@ def gate(args, console_wants_letters, terminal=False):
         failures.append((name, failure_lines(check, verdicts, record)))
     sys.stderr.write(f"broad-gate: outputs kept under {keep}\n")
     if failures:
-        form = stamp.not_sealed(tree, base.commit, failures, branch, base.ref)
+        form = failed_form(tree, base.commit, failures, branch, base.ref)
         if args.preflight:
-            # The same per-check lines under a first line that is not a
-            # verdict on a seal. The form is `seal_stamp`'s, kept in one
-            # place, and only its head is the preflight's (`phases/phase-1.md`
-            # of 1790815611 says why the head is replaced here rather than
-            # passed in).
+            # The same per-check lines under a first line that names the
+            # preflight. The form is kept in one place, and only its head is
+            # the preflight's (`phases/phase-1.md` of 1790815611 says why the
+            # head is replaced here rather than passed in).
             form[0] = preflight_line(PREFLIGHT_FAILED, tree, base.commit)
         sys.stdout.write("\n".join(form) + "\n")
         return 1
@@ -3078,46 +3053,22 @@ def gate(args, console_wants_letters, terminal=False):
         branch=branch,
         run=head,
     )
-    # The file is in the working tree and CI reads HEAD (#666): said after
-    # the stamp or the `SEALED` line, on the same stream, and only where git
-    # still sees it uncommitted.
+    # One form on every stream (#975): the head, the panel's rows as text,
+    # and — the file being in the working tree while CI reads HEAD (#666) —
+    # the line saying so, only where git still sees it uncommitted. Nothing
+    # is drawn and no values file is written: the stamp is the sealer's,
+    # queued at the commit of a `guarantee.md` reading `sealed`.
+    names = stamp_module().sealed_names(tree, base.commit, branch, base.ref)
+    lines = [GATE_PASSED.format(names=names)]
+    lines += report_lines(rows, ascii_marks=args.shape or ascii_marks)
     uncommitted = uncommitted_line(root, written)
-    if terminal and item is not None:
-        # A person is in front of this stream, and it is the one place the
-        # gate draws. Once, and no values file is left for anyone else to
-        # draw a second time (#400). Only over a written file: #400's
-        # Done-when says no other path draws a stamp, so a run without
-        # `--record` signals on a terminal too.
-        shape = args.shape or console_wants_letters
-        sys.stdout.write("\n" + "\n".join(stamp.stamp(rows, shape)) + "\n\n")
-        if uncommitted:
-            sys.stdout.write(uncommitted + "\n")
-        return 0
-    sys.stdout.write(
-        signal(
-            stamp,
-            root,
-            tree,
-            base,
-            item,
-            rows,
-            branch=branch,
-        )
-        + "\n"
-    )
     if uncommitted:
-        sys.stdout.write(uncommitted + "\n")
+        lines.append(uncommitted)
+    sys.stdout.write("\n".join(lines) + "\n")
     return 0
 
 
-# The variable Claude Code sets in every Bash call, a subagent's included, to
-# the id of the MAIN session — the id a `Stop` payload carries as `session_id`
-# (`questions.md` Q2 of 1790562543, measured 2026-09-28). It is not
-# documented, and where it is absent the values land under `none/`, which no
-# hook reads, and the signal line says so.
-SESSION_VAR = "CLAUDE_CODE_SESSION_ID"
-
-# The second variable the gate reads, and the one it sets itself: `main`
+# The one variable the gate reads, and it sets it itself: `main`
 # hands the tree's copy, on the redirect, the realpath of the copy the caller
 # invoked, and nobody else sets or reads it. `gate_copy` compares the two
 # files' bytes to decide whether the panel's `gate` row says anything (#666).
@@ -3125,38 +3076,7 @@ SESSION_VAR = "CLAUDE_CODE_SESSION_ID"
 # copy older than #666, which sets no such variable.
 INVOKED_AS_VAR = "SPECSEAL_BROAD_GATE_INVOKED_AS"
 
-NOTHING_RECORDED = (
-    " · nothing was recorded (no --record), so no stamp is written or drawn"
-)
-VALUES_UNWRITTEN = " · nothing will be drawn: the stamp's values could not be written"
-NO_SESSION_FOUND = (
-    " · no Claude Code session was found, so no hook draws the stamp; "
-    "`seal-stamp --from {command}` draws it"
-)
-# The recovery is named on this line too (round 1's 🟡 1). The hook draws
-# nothing, and says nothing, where it cannot: a `python3` that cannot load
-# `seal_stamp.py`, a main session whose working directory is outside this
-# clone, or a plugin older than the hook. The gate cannot see any
-# of those, so it names the way to draw the stamp by hand on every line that
-# names a values file. `NOTHING_RECORDED` and `VALUES_UNWRITTEN` name none,
-# because neither run left a drawing to recover.
-DRAWN_AT_TURN_END = (
-    " · the stamp is drawn at the end of the turn of session {session}, from "
-    "{path}; where none appears, `seal-stamp --from {command}` draws it"
-)
-
-# The `scale` every values file still carries, and what it was before #853
-# retired the scale. Read by nothing in this tree. Written for one release
-# cycle, 0.21's, because the gate a session runs is the tree's copy (`main`
-# hands over to it) while the `Stop` hook that draws the file, and the
-# `seal-stamp` a person types, are the installed plugin's: one older than
-# #853 refuses a values file without a numeric `scale` and leaves the
-# gate's stamp undrawn (#869 round 1's 🟡 3). Remove it, and its pin in
-# `tests/test_the_seal_is_taken_once_by_the_sealer.py`, in the first release
-# after 0.21, once no installed plugin older than #853 is left to draw.
-SCALE_FOR_OLDER_HOOKS = 0.9
-
-# The line after the `SEALED` line on a recorded seal (#666): the gate writes
+# The last line of a recorded run that passed (#666): the gate writes
 # `broad-gate.md` into the working tree and commits nothing, and CI reads HEAD.
 CELL_UNCOMMITTED = (
     "broad-gate: the run is written to {path} and not committed. CI reads "
@@ -3183,71 +3103,10 @@ def uncommitted_line(root, path):
     return CELL_UNCOMMITTED.format(path=rel)
 
 
-def common_dir(root):
-    """The git common dir of `root`, absolute, or None."""
-    common = git(root, "rev-parse", "--git-common-dir")
-    if not (common and common.strip()):
-        return None
-    return os.path.normpath(os.path.join(root, common.strip()))
-
-
-def signal(stamp, root, tree, base, item, rows, branch=None):
-    """The one line a sealed run prints where nobody can see a drawing.
-
-    It starts with `SEALED` and carries `<branch> @ <tree> against <ref> @
-    <base commit>` (`seal_stamp.sealed_names`), the way the failure form
-    starts `NOT SEALED`. On a recorded seal it writes the panel's `rows` to a
-    values file first and names it: the drawing is then the hook's, in the
-    session that spawned the run, and this line is what reaches the report. A
-    values file that cannot be written leaves the run sealed — every check
-    passed and `broad-gate.md` was written — and says on stderr why nothing
-    will be drawn.
-
-    The values file carries `branch` beside the keys it always had, which
-    `seal_stamp.label` reads for the line above the drawing, and `pr` as
-    null: no record names a pull request. Its `scale` is read by nothing since #853 — the disc has one size
-    — and is still written, as the constant `SCALE_FOR_OLDER_HOOKS`, for
-    the one release cycle a hook older than #853 can meet the file
-    (`docs/the-broad-gate.md` §*Where the stamp is drawn*)."""
-    head = f"SEALED   {stamp.sealed_names(tree, base.commit, branch, base.ref)}"
-    if item is None:
-        return head + NOTHING_RECORDED
-    session = os.environ.get(SESSION_VAR)
-    values = {
-        "tree": tree,
-        "base": base.commit,
-        "from": base.ref,
-        "branch": branch,
-        "pr": None,
-        "item": item,
-        "session": session or None,
-        "scale": SCALE_FOR_OLDER_HOOKS,
-        "rows": rows,
-    }
-    common = common_dir(root)
-    try:
-        if common is None:
-            raise OSError(f"{root} has no git common directory")
-        path = stamp.write_values(common, session, values)
-    except OSError as exc:
-        sys.stderr.write(
-            f"broad-gate: the stamp's values could not be written ({exc}), so "
-            "nothing will be drawn. The run is still sealed: every check passed "
-            "and broad-gate.md was written\n"
-        )
-        return head + VALUES_UNWRITTEN
-    # Quoted for the shell the person types it into, so a checkout whose path
-    # holds a space prints a command that runs as printed (round 1's ⬜ 5).
-    command = quote(path)
-    if stamp.session_key(session) == stamp.NO_SESSION:
-        return head + NO_SESSION_FOUND.format(command=command)
-    return head + DRAWN_AT_TURN_END.format(session=session, path=path, command=command)
-
-
-def main(argv=None, console_wants_letters=None, console_is_terminal=None):
-    """`console_wants_letters` is `pick_shape` asked of stdout as the process
-    found it, and `console_is_terminal` is `is_terminal` asked of it —
-    `__main__` asks both before it reconfigures the streams."""
+def main(argv=None, console_wants_ascii=None):
+    """`console_wants_ascii` is `is_utf8` asked of stdout as the process
+    found it, negated — `__main__` asks before it reconfigures the
+    streams."""
     try:
         stamp = load(STAMP, "specseal_seal_stamp_for_broad_gate")
     except Refused as exc:
@@ -3256,7 +3115,8 @@ def main(argv=None, console_wants_letters=None, console_is_terminal=None):
     parser = argparse.ArgumentParser(
         prog="broad-gate",
         description="The one broad run, after the rounds settle: the "
-        "repository's command and the plugin's checks, then the stamp.",
+        "repository's command and the plugin's checks, then a report that "
+        "says whether they passed. It judges nothing and draws nothing.",
     )
     parser.add_argument("--base", required=True, help="the branch this merges into")
     parser.add_argument("--root", default=None, help="the repository (default: cwd)")
@@ -3267,7 +3127,9 @@ def main(argv=None, console_wants_letters=None, console_is_terminal=None):
         help="the work item whose broad-gate.md records this run",
     )
     parser.add_argument(
-        "--shape", action="store_true", help="the letter twin, whatever the console"
+        "--shape",
+        action="store_true",
+        help="the report's marks in ASCII, whatever the console",
     )
     parser.add_argument(
         "--keep-output",
@@ -3279,7 +3141,7 @@ def main(argv=None, console_wants_letters=None, console_is_terminal=None):
         "--preflight",
         action="store_true",
         help="the record arms, before the sealer is spawned: the row is read "
-        "and not run, and nothing is sealed or written (#638)",
+        "and not run, and nothing is written (#638)",
     )
     # The redirect is decided from `parse_known_args`, before this copy's
     # parser can refuse an argument only the tree's copy knows: a flag added
@@ -3312,28 +3174,25 @@ def main(argv=None, console_wants_letters=None, console_is_terminal=None):
     args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
     if root is not None:
         sys.stderr.write(running_line(root) + "\n")
-    if console_wants_letters is None:
-        console_wants_letters = stamp.pick_shape(sys.stdout)
-    if console_is_terminal is None:
-        console_is_terminal = stamp.is_terminal(sys.stdout)
+    if console_wants_ascii is None:
+        console_wants_ascii = not stamp.is_utf8(sys.stdout)
     try:
-        return gate(args, console_wants_letters, terminal=console_is_terminal)
+        return gate(args, console_wants_ascii)
     except Refused as exc:
         sys.stderr.write(str(exc) + "\n")
         return 2
 
 
 if __name__ == "__main__":
-    # Which form, and whether a person is looking at all, asked of stdout as
-    # the process found it — before the loop below moves every stream to
-    # UTF-8 (`seal_stamp.py` measured why).
+    # Whether the report's marks go out in ASCII, asked of stdout as the
+    # process found it — before the loop below moves every stream to UTF-8
+    # (`seal_stamp.py` measured why).
     try:
         _stamp = load(STAMP, "specseal_seal_stamp_for_broad_gate")
     except Refused as _exc:
         sys.stderr.write(str(_exc) + "\n")
         sys.exit(2)
-    _letters = _stamp.pick_shape(sys.stdout)
-    _terminal = _stamp.is_terminal(sys.stdout)
+    _ascii = not _stamp.is_utf8(sys.stdout)
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),
@@ -3342,4 +3201,4 @@ if __name__ == "__main__":
         _stream = getattr(sys, _name, None)
         if hasattr(_stream, "reconfigure"):
             _stream.reconfigure(encoding="utf-8", errors=_errors)
-    sys.exit(main(console_wants_letters=_letters, console_is_terminal=_terminal))
+    sys.exit(main(console_wants_ascii=_ascii))

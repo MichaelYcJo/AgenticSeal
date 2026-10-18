@@ -352,6 +352,59 @@ def test_no_instructing_document_leaves_an_instance_anonymous():
             )
 
 
+# --- "sealed" — the sealer's verdict, never the broad gate's line ----------
+
+# #975, the owner's rule of 2026-10-18: the word `sealed` is the sealer's
+# verdict in `guarantee.md` and nothing else's. The broad gate runs before the
+# sealer is spawned and judges nothing, so its pass line reads `BROAD GATE
+# PASSED` and its failure line `BROAD GATE FAILED`, and a reader who met
+# `SEALED` on a green suite took the suite for the sealer's verdict (#967's
+# run). The gate's own files are held to never saying it.
+GATE_SWEPT = (
+    ("skills", "verify", "scripts", "broad_gate.py"),
+    ("bin", "broad-gate"),
+    ("bin", "broad-gate.cmd"),
+)
+
+# The token, and every phrase the gate's files used for a run that passed.
+# Case-sensitive for the token, which is what a reader sees as the verdict;
+# the phrases are matched in any case.
+GATE_TOKEN = re.compile(r"\bSEALED\b")
+GATE_PHRASES = (
+    "not sealed",
+    "a sealed run",
+    "the sealed run",
+    "a recorded seal",
+    "seals nothing",
+    "nothing is sealed",
+    "is sealed",
+    "was sealed",
+    # The coverage line on stderr said what `this seal answers` of CI's
+    # steps; it says `this run` since #975.
+    "this seal",
+)
+
+
+def test_the_gate_never_says_sealed():
+    """#975 S1. Neither the token nor a phrase that calls a passing run
+    sealed is left in the gate's files, so no line the gate prints and no
+    sentence describing it gives the sealer's word to a test run."""
+    for parts in GATE_SWEPT:
+        text = flat(*parts)
+        found = GATE_TOKEN.search(text)
+        assert found is None, (
+            f"{'/'.join(parts)} says `SEALED`: "
+            f"...{text[max(found.start() - 60, 0) : found.end() + 60]}..."
+        )
+        lowered = text.lower()
+        for phrase in GATE_PHRASES:
+            at = lowered.find(phrase)
+            assert at == -1, (
+                f"{'/'.join(parts)} says `{phrase}`: "
+                f"...{text[max(at - 60, 0) : at + 60]}..."
+            )
+
+
 # --- "segment" — one agent's stretch of a chain, never a spawn cycle -------
 
 # The seventh word, and the one this repository's own measurement vocabulary

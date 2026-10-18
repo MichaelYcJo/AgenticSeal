@@ -39,11 +39,9 @@ instead, so `admitted` carries as many of the oldest stamps as fit with
 their disc and leaves the rest for the next `Stop`. Only one stamp that does
 not fit with its disc alone is drawn as the text block with no disc.
 
-The stamp prints on success only. The failure form, `not_sealed`, is the words
-`NOT SEALED`, the branch and the tree, the base's ref and its commit
-(`sealed_names`), and the failing checks with their first lines — no drawing,
-because a picture that says *sealed* beside a word that says *not* is read
-picture first.
+The broad gate draws nothing since #975: its report is text on every stream,
+and it imports the panel's text rules from here (`fit`, `wrapped`, the
+owner's marks) and `sealed_names` for its head.
 
 **A sealed run is drawn where a person sees it, and that is rarely where it
 ran** (#400). The gate draws only on a terminal, and only over a written
@@ -61,9 +59,8 @@ Usage:
   seal-stamp --shape              the letter twin
   seal-stamp --from <file>        a sealed run's values file, drawn once
 
-The gate imports `stamp(rows, shape)`, `not_sealed(tree, base,
-failures, branch, ref)`, `sealed_names`, `pick_shape(stream)`,
-`is_terminal(stream)` and `write_values`;
+The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
+`text_lines`, `TWIN_ASCII` and the panel's text rules;
 the hook imports `pending`, `read_values`, `claim` and `stamp`.
 `.github/scripts/release_seal.py`, which the tag push runs, drew a
 release's seal from this module's cells as a PNG, one cell to one rectangle
@@ -410,6 +407,89 @@ def strip_ansi(s):
     return re.sub(r"\x1b\[[0-9;]*m", "", s)
 
 
+# --- the panel's text rules ------------------------------------------------
+#
+# How a row's value is cut, continued and marked. They were the broad gate's
+# until #975, when the stamp left the gate's run: the stamp's writer
+# (`queue_for_guarantee`) composes rows too, and the gate's plain report
+# imports them from here, so both write a row by one set of rules.
+
+# How many columns a panel value is given (#832, `spec.md` S5a of work item
+# 1791270164): the widest that keeps the stamp's widest line inside an
+# 80-column terminal, the floor a command line's output is held to. The open
+# layout has no frame, so the terminal is the bound: 28 columns of disc, `GAP`
+# (3) clear, a label of seven and a space, and the value — 28 + 3 + 8 + 41 =
+# 80. Before #832 it was 23, what the 36-column frame of the stamp then left.
+# A longer value runs past the terminal's edge or wraps into the disc's
+# column, so a value is elided before it does (round 1, finding 5 of #666): a
+# cut ref would read as a whole ref.
+#
+# Stated here and measured over there, and neither may move without the other
+# going red: `test_the_panel_value_width_is_what_the_stamp_actually_gives`
+# draws a value of this width and measures the stamp's widest line.
+PANEL_VALUE_WIDTH = 41
+ELISION = "..."
+# The panel's own characters (#832 S5a, the owner's design of 2026-10-07):
+# the separator inside a value, the arrow before a deferral's homes, the mark
+# on a result row that passed and the mark on a row that is not a pass. They
+# are the owner's and not ASCII; the letter twin, which exists for a console
+# that is not UTF-8, maps them where it writes them (`TWIN_ASCII`).
+SEP, ARROW, TICK, DOT = " · ", "→", "✓ ", "· "
+
+
+def fit(value, keep="head", width=None):
+    """`value` as the panel can carry it: unchanged where it fits, else
+    elided to `width` — `PANEL_VALUE_WIDTH` unless a caller names less —
+    with `ELISION` on the side that was cut.
+
+    `keep="head"` for a branch name, whose issue number leads and is what a
+    reader matches to a ticket; `keep="tail"` for a ref, where the
+    `origin/` a runner reads is the part a reader can infer. Every value a
+    panel carries passes through here, so no row is wider than the frame
+    and none is cut by it without a marker (#666). `width` is the room a
+    ref has beside its commit on the `base` row (#832)."""
+    value = str(value)
+    width = PANEL_VALUE_WIDTH if width is None else width
+    if len(value) <= width:
+        return value
+    room = width - len(ELISION)
+    return ELISION + value[-room:] if keep == "tail" else value[:room] + ELISION
+
+
+def wrapped(label, pieces):
+    """A list on as many panel rows as it needs: the first row under `label`,
+    the rest as `""` rows beneath it (round 1's 🟡 1 of #666).
+
+    The owner chose continuation rows over a wider panel (`questions.md`
+    Q1), so a list of counts or homes continues rather than losing its tail
+    to `...`; only a branch or a ref, which have no bound, are elided. Each
+    piece but the first carries the separator that joins it to the one
+    before (`", #664"`, or `" · 11 skipped"` since #832). A row is broken
+    before a piece that would not fit, and keeps that separator's mark — the
+    comma, or the ` ·` — at its end so the reader sees the list goes on; two
+    columns are held back for it on every piece but the last, because ` ·`
+    is two. One piece wider than the frame by itself is still elided by
+    `fit`."""
+    rows, line = [], ""
+    for n, piece in enumerate(pieces):
+        room = PANEL_VALUE_WIDTH - (0 if n == len(pieces) - 1 else 2)
+        if line and len(line + piece) > room:
+            lead = piece[: len(piece) - len(piece.lstrip(", ·"))]
+            rows.append(line + lead.rstrip())
+            line = piece.lstrip(", ·")
+        else:
+            line += piece
+    rows.append(line)
+    return [(label if n == 0 else "", fit(row)) for n, row in enumerate(rows)]
+
+
+def item_value(item):
+    """The `item` row: the digits before the first `-` of the work item
+    directory's name, or the whole name where it has no `-`."""
+    name = os.path.basename(os.path.normpath(item))
+    return name.split("-", 1)[0] or name
+
+
 # --- the stamp: the disc at the left, the text block at the right ---------
 #
 # #832, the owner's layout of 2026-10-07 (`spec.md` decision 6 of work item
@@ -541,7 +621,7 @@ def admitted(blocks, budget=MESSAGE_BUDGET):
     cannot stall. A text block with no disc is about 50 characters a row with
     its codes (925 with its label for the widest panel this tree can
     produce, measured 2026-10-07), its width bounded by
-    `broad_gate.PANEL_VALUE_WIDTH`.
+    `PANEL_VALUE_WIDTH`.
 
     A size is counted in UTF-16 units, which is what the harness counts
     (`MESSAGE_LIMIT`): a character outside the BMP is two. `budget` is a
@@ -618,51 +698,35 @@ def ref_is_commit(ref, base):
     )
 
 
-def not_sealed(tree, base, failures, branch=None, ref=None):
-    """The failure form, as lines: `NOT SEALED <branch> @ <tree> against
-    <ref> @ <base>` (`sealed_names`), then each failing check's name with its
-    first lines under it. No drawing.
-
-    `failures` is a list of `(name, lines)` — the check that failed and the
-    first lines of what it printed, as the gate kept them. `branch` and `ref`
-    None leave their half out, which is the line a caller that names neither
-    has always got."""
-    out = [f"NOT SEALED   {sealed_names(tree, base, branch, ref)}", ""]
-    # The widest name present, not a literal 8: `unverified` is ten
-    # characters, so a fixed pad sets that one check's first line a column
-    # out from every other check's.
-    pad = max([len(name) for name, _ in failures] + [8])
-    for name, lines in failures:
-        lines = list(lines) or ["(no output)"]
-        out.append(f"  {name:<{pad}} {lines[0]}")
-        out.extend(f"  {'':<{pad}} {line}" for line in lines[1:])
-    return out
-
-
 def pick_shape(stream):
     """True when `stream` gets the letter twin: anything that is not a UTF-8
     terminal. A console on another codepage draws UTF-8 half-blocks as
     mojibake, and a pipe has no terminal to draw colour on, so `seal-stamp`
-    on one prints the twin; the gate asks `is_terminal` first and draws
-    nothing on a pipe at all (#400). Asked BEFORE the stream is reconfigured to UTF-8 — after
+    on one prints the twin. Asked BEFORE the stream is reconfigured to UTF-8 — after
     that call every stream answers `utf-8`, and a cp949 console would get the
     blocks it cannot draw."""
-    encoding = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
-    if encoding != "utf8":
+    if not is_utf8(stream):
         return True
     return not is_terminal(stream)
+
+
+def is_utf8(stream):
+    """True when `stream` says its encoding is UTF-8, whatever it is attached
+    to. The half of `pick_shape` the broad gate asks on its own since #975:
+    its report is text on every stream, and only a console that is not UTF-8
+    gets the owner's marks in ASCII. Asked before the streams are
+    reconfigured, for `pick_shape`'s reason."""
+    encoding = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
+    return encoding == "utf8"
 
 
 def is_terminal(stream):
     """True when `stream` is a terminal, whatever its encoding.
 
-    The other half of what `pick_shape` used to fold into one answer, split
-    out because the gate asks two different questions (#400): whether to
-    draw at all — only a terminal has a person in front of it — and, where
-    it draws, which form. A cp949 terminal is a terminal that gets letters,
-    and a UTF-8 pipe is not a terminal. Asked with `pick_shape`, before the
-    streams are reconfigured, so both answers describe the stream as the
-    process found it."""
+    The other half of `pick_shape`, beside `is_utf8`: a cp949 terminal is a
+    terminal that gets letters, and a UTF-8 pipe is not a terminal (#400).
+    Asked with `pick_shape`, before the streams are reconfigured, so both
+    answers describe the stream as the process found it."""
     isatty = getattr(stream, "isatty", None)
     try:
         return bool(isatty and isatty())
@@ -740,8 +804,8 @@ def read_values(path):
     """A values file as the gate wrote it, with each row a `(label, value)`
     pair or None. Raises `ValueError` with the refusal sentence for a file
     that cannot be read or is not in that shape. A `scale` key, which every
-    gate through 0.21's cycle writes (`broad_gate.SCALE_FOR_OLDER_HOOKS`), is
-    read as nothing: such a file draws as one written without it."""
+    gate before #975 wrote, is read as nothing: such a file draws
+    as one written without it."""
     try:
         with open(path, encoding="utf-8") as handle:
             data = json.load(handle)

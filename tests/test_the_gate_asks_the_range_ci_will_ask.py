@@ -444,10 +444,10 @@ def test_the_unverified_arm_reports_what_ci_reports(tmp_path):
     keep = tmp_path / "out"
     out = run_gate(work, keep)
     assert out.returncode == 1, (
-        f"the gate sealed a branch the same check refuses at CI:\n"
+        f"the gate passed a branch the same check refuses at CI:\n"
         f"{out.stdout}\n{out.stderr}"
     )
-    assert "NOT SEALED" in out.stdout, out.stdout
+    assert out.stdout.startswith("BROAD GATE FAILED   "), out.stdout
     assert "unverified" in out.stdout, out.stdout
     assert "1700000001-a-sibling" in read(os.path.join(str(keep), "unverified.txt"))
 
@@ -536,13 +536,11 @@ def test_a_base_with_no_local_commit_at_all_is_told_so_and_runs(tmp_path):
 
 def test_the_panel_names_the_ref_the_base_came_from(tmp_path):
     """A6, over `panel`'s rows and over what a reader actually sees.
-    `seal_stamp.letter` cuts a value at the frame, so rows alone would not
-    show that the ref survives the rendering.
 
-    Since #400 a piped run draws no panel — the hook draws it later from the
-    rows — so the rendering is asked of `seal_stamp.stamp` over those rows,
-    and the run itself is asked what its `SEALED` line carries: the commit
-    the resolved ref names, never the local one behind it."""
+    Since #975 the run prints the rows as text under its head, so the run
+    itself is asked what its `BROAD GATE PASSED` line and its `base` row
+    carry: the commit the resolved ref names, never the local one behind
+    it."""
     mod = gate_module()
     base = mod.Base("base", "aaaaaaa", "origin/base", "bbbbbbb")
     checks = {
@@ -554,29 +552,28 @@ def test_the_panel_names_the_ref_the_base_came_from(tmp_path):
     # its own; #832's S5a puts it on the `base` row, two spaces after the
     # commit, the owner's design of 2026-10-07.
     assert ("base", "bbbbbbb  origin/base") in rows, rows
-    drawn = "\n".join(_load("specseal_seal_stamp", STAMP).stamp(rows, shape=True))
-    assert re.search(r"\bbase\s+bbbbbbb  origin/base\b", drawn), (
-        f"the rendered panel does not carry the ref beside the commit:\n{drawn}"
-    )
 
     work = behind_gate_repo(tmp_path)
     out = run_gate(work, tmp_path / "out")
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    said = [line for line in out.stdout.splitlines() if line.startswith("SEALED")]
+    printed = out.stdout.splitlines()
+    said = [line for line in printed if line.startswith("BROAD GATE PASSED")]
     assert len(said) == 1, out.stdout
     # #666: the resolved ref is named beside the commit it resolved to.
     assert f"against origin/base @ {short(work, 'origin/base')}" in said[0], said
     assert short(work, "base") not in said[0], f"the line names the local ref: {said}"
+    row = f"base    {short(work, 'origin/base')}  origin/base"
+    assert row in printed, f"the printed panel does not carry the ref:\n{out.stdout}"
 
 
 def test_the_failure_form_names_the_base_the_checks_were_asked_about(tmp_path):
-    """A7. `NOT SEALED <tree> against <base>` is what a reader meets on a red
-    run, and it carries the same base the panel would have."""
+    """A7. `BROAD GATE FAILED <tree> against <base>` is what a reader meets
+    on a red run, and it carries the same base the panel would have."""
     work = behind_gate_repo(tmp_path, plant=True)
     out = run_gate(work, tmp_path / "out")
     assert out.returncode == 1, f"{out.stdout}\n{out.stderr}"
     head = out.stdout.splitlines()[0]
-    assert head.startswith("NOT SEALED"), head
+    assert head.startswith("BROAD GATE FAILED"), head
     assert f"against origin/base @ {short(work, 'origin/base')}" in head, head
     assert short(work, "base") not in head, (
         f"the failure form names the local ref: {head}"
@@ -1042,8 +1039,8 @@ def ref_row_of(mod, ref, given="release/x"):
 
 def test_the_panel_value_width_is_what_the_stamp_actually_gives():
     """Two statements of one fact, and neither may move without the other
-    going red. `broad_gate` elides a value at `PANEL_VALUE_WIDTH`, and the
-    stamp is what decides how wide a value can be — measured here by
+    going red. `seal_stamp.fit` elides a value at `PANEL_VALUE_WIDTH`, and
+    the stamp is what decides how wide a value can be — measured here by
     drawing one rather than by restating the formula.
 
     Before #832 the decider was `seal_stamp.letter`'s frame, which cut a
@@ -1052,7 +1049,8 @@ def test_the_panel_value_width_is_what_the_stamp_actually_gives():
     `PANEL_VALUE_WIDTH` under a seven-column label, beside the disc, makes
     the stamp's widest line exactly 80 columns, whole — one column more
     would run past an 80-column terminal."""
-    stamp, width = stamp_module(), gate_module().PANEL_VALUE_WIDTH
+    stamp = stamp_module()
+    width = stamp.PANEL_VALUE_WIDTH
     rows = [("SEALED", ""), ("CI also", "x" * width)]
     for shape in (False, True):
         lines = [stamp.strip_ansi(line) for line in stamp.stamp(rows, shape)]
@@ -1072,14 +1070,15 @@ def test_a_ref_too_long_for_the_panel_says_it_was_cut(tmp_path):
     on a second remote the prefix is not inferable, which is round 1's finding
     2 and the cost `panel`'s docstring now states."""
     mod = gate_module()
+    width = stamp_module().PANEL_VALUE_WIDTH
     long_ref = "origin/release/2026-09-21-hotfix-of-the-hotfix"
-    assert len(long_ref) > mod.PANEL_VALUE_WIDTH, "the fixture ref already fits"
+    assert len(long_ref) > width, "the fixture ref already fits"
     shown = ref_row_of(mod, long_ref)
     assert shown != long_ref[: len(shown)], f"the ref was cut with no marker: {shown!r}"
     assert shown.endswith("hotfix"), shown
     # #832's S5a: the ref shares the `base` row with the commit, so it is
     # elided to the room the commit and the two spaces leave.
-    assert len("bbbbbbb  " + shown) == mod.PANEL_VALUE_WIDTH, shown
+    assert len("bbbbbbb  " + shown) == width, shown
     rendered = "\n".join(stamp_module().stamp([("base", "bbbbbbb  " + shown)], True))
     assert shown in rendered, f"the marker cost the tail its place: {rendered!r}"
 
