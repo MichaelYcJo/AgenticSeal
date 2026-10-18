@@ -82,9 +82,8 @@ directory and points the module there.
   0.22.0 (#944) and became the sealer's shorter panel in 0.22.1 (#975).
   The file is v0.22.1's, the last tag when this entry was written.
 - **Issue:** #832, through pull request #859. #832 settled the 28-cell
-  frame, took the parchment sheet away, and left the mark a placeholder:
-  Georgia Bold's S, held in `skills/verify/scripts/seal-mark.txt`. What
-  the mark becomes is #857.
+  frame and left the mark a placeholder: Georgia Bold's S, held in
+  `skills/verify/scripts/seal-mark.txt`. What the mark becomes is #857.
 - **Draw it again:**
 
   ```
@@ -96,19 +95,16 @@ directory and points the module there.
 
 ## The next entry
 
-The placeholder S stays on the stamp until #857 chooses the mark. That
-mark's entry is written once a tag carries it, because an entry is drawn
-from its tag.
+The mark that replaces the placeholder S gets its entry once a tag carries
+it, because an entry is drawn from its tag.
 
 ## Candidates for #857
 
-The stamp that follows the red lily keeps a disc whose frame the owner
-settled on 2026-10-07: 28 cells across, a wax edge, a rim lit from the
-upper left, a groove and the field. Its mark is a placeholder, Georgia
-Bold's S, held as one chart: `skills/verify/scripts/seal-mark.txt`, 28 lines
-of 28 characters over `.M`. What the mark becomes is #857. The owner looked
-at these three the same day and shipped none of them; they wait here for
-#857.
+The placeholder S above stands on the disc whose frame the owner settled
+on 2026-10-07: 28 cells across, a wax edge, a rim lit from the upper left,
+a groove and the field. Its chart is 28 lines of 28 characters over `.M`.
+The owner looked at these three marks the same day and shipped none of
+them; they wait here for #857.
 
 Each candidate is three files, and no code reads any of them:
 
