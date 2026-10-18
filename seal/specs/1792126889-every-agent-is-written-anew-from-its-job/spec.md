@@ -222,9 +222,11 @@ them judged against the baseline and none against an absolute (owner,
 2026-10-17: the baseline is the reference, not a bar; the focus is fewer
 tokens and a better outcome, and time spent is not judged). That is
 `evals/scripts/noninferiority.py#verdict`'s rules after phase 1b: recall not
-fallen, false rate within `FALSE_MARGIN` of the baseline's, each shape and
-reach grader passing on the new side at least as often as on the baseline,
-preload bytes below the baseline, and the tokens the run read across every
+fallen, false rate within `FALSE_MARGIN` of the baseline's, the shape and
+reach graders as rule 3 of `evals/README.md` §*The behaviour suite* states
+them (#957's phases judged each grader on its own; #966 pooled them per
+agent in 0.22.2), preload bytes below the baseline, and the tokens the run
+read across every
 model — the session's and the agent's under test, `modelUsage` — per tool
 call below the baseline's (owner, 2026-10-17, after phase 2's first run: the
 warden read 17.8% more tokens in all and found 17 truths where the baseline
