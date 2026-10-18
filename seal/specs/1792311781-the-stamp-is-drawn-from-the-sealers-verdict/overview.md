@@ -1,0 +1,63 @@
+# 1792311781-the-stamp-is-drawn-from-the-sealers-verdict — overview
+
+<!-- The closing memo (implement skill, step 4). Written at phase 5 from what
+the phase records and the round records wrote when each call was made. Only
+what the diff cannot show goes here. -->
+
+## Why this work exists
+
+The stamp a person sees now means the sealer verified the work item: it is
+drawn once, at the commit of a `guarantee.md` reading `sealed`, and the broad
+gate's run prints `BROAD GATE PASSED` or `BROAD GATE FAILED` and draws nothing.
+
+## Where spec and implementation diverged
+
+| Divergence | Spec says / code did | Chosen | Grounds |
+|---|---|---|---|
+| The ASCII marks on a UTF-8 pipe (phase 1) | `spec.md` S3: "the same bytes on a terminal and a pipe, the letter twin's ASCII marks on a console that is not UTF-8"; `plan.md` row 1: "the twin's ASCII where `pick_shape` says so", and `pick_shape` answers True for every pipe | the spec's reading: the ASCII choice asks only the encoding, through `seal_stamp.is_utf8`, which `pick_shape` now calls too (fe201329) | the two frame documents disagree on a UTF-8 pipe, and S3 is the scenario the review reads (`phases/phase-1.md`) |
+| The gate's other lines that called its run a seal (phase 1, round 1) | `spec.md` S1 names the pass line and a list of phrases; the coverage line said `this seal answers`, `PREFLIGHT_TAIL` said `nothing is sealed`, and the refusals said "no command to seal over" | all of them say `run`, `pass` or `written` (fe201329, 42ff7d11), and the sweep reads the class by construction rather than by listed phrases | contract §12; `questions.md` Q4 (a) reached the refusals (`phases/phase-1.md`, `rounds/round-1.md` finding 1) |
+| Where `earlier_verdicts`' cases live (phase 2) | `plan.md` row 2: "`tests/test_chain_check.py` gains `earlier_verdicts`' cases" | `tests/test_the_sealer_guarantees.py::TestEarlierVerdicts`, beside `TestVerdictsOf` | that module holds the readers of `guarantee.md`, the group a new case starts from (`phases/phase-2.md`) |
+| A blank row in the stamp (phase 2) | `spec.md` S9 lists the rows `SEALED`, `tree`, `base`, `item`, `gate`, `rounds` | a blank stands between the identity rows and `gate` | the owner's 2026-10-07 layout gives every panel that blank (`phases/phase-2.md`) |
+| Local mode draws no stamp (phase 2) | spec silent; S4's writer reads `seal/specs/<id>/guarantee.md` among the commit's paths, which is the shared-mode layout alone | stated in `docs/the-review-record.md` §*The stamp*'s unchecked paragraph; no second trigger | a missing stamp, never a false one; `questions.md` Q5 (a), and the trigger is #976 (`phases/phase-2.md`) |
+| The commit-gate document's heading (phase 3) | `plan.md` row 3 names `docs/the-commit-gate-inside-git.md:14` | the heading is kept, and the second duty is named in the opening paragraph and the **Latency** bullet | other documents cite that heading as §*The commit gate inside git* (`phases/phase-3.md`) |
+| `bin/seal-stamp.cmd` (phase 3) | `spec.md` §*Scope* and `plan.md` row 3 list it among the files whose words change | unchanged | it names no stamp and no gate (`phases/phase-3.md`) |
+| What §*The stamp*'s unchecked paragraph names (phase 3) | `spec.md` S10 names four silences | six: S10's four, local mode, and a person's own commit | the paragraph is where a person looks for why no stamp appeared; the person's own commit is `spec.md` §*Scope*'s (`phases/phase-3.md`) |
+| Once per work item (round 1) | `plan.md` B1 holds it by the `Target SHA` row's earlier run and the file name `<ns>-<id>-<target sha>`, and accepts "a re-run after a `sealed` whose row was rewritten without the earlier run would draw again"; `spec.md` S8 matches the name with its target | a values file for the work item's id, whatever commit it named, is not written twice, and a commit whose audited commit is not in its history queues nothing (33a5b676) | round 1's finding 3 drew a second stamp from a fresh re-seal row and from a squash in another clone; the owner's rule is never twice (`rounds/round-1.md`); S8 stays true as a narrower case |
+| The sealer's `## Never` clause (round 1) | S12 and §*Scope* say it reads that the stamp is drawn in the orchestrator's session from the sealer's committed `sealed` verdict, once per work item; 6f7aacb2 made it "a stamp is drawn once from your committed `sealed`" | the shorter clause | phase 4's evaluation failed rule 4 alone at 24,757 preload bytes against #969's 24,702; the shorter clause brings the preload to 24,700 and still says what the owner's rule says: drawn once, from the sealer's committed `sealed`, never from the gate's run (`phases/phase-4.md`, `rounds/round-2.md` finding 3) |
+| The words that called a broad run a seal outside the gate (phase 3, rounds 1 and 2) | phase 3 left the Seal Test's vocabulary standing, and round 1's fix pass left `the broad seal`, `that seal` and the twenty runs called seals for the owner | reworded to `run` in both READMEs and `skills/verify/SKILL.md`, and in four test failure messages (212db890, 56395233); the concept name, the counterfeit seal and the sealer's seal stay | `questions.md` Q6 (a): words a person reads in the gate's output and the documents follow, and code names and the concept name stay (`rounds/round-2.md` finding 1) |
+
+## Not verified
+
+| Item | Who must answer |
+|---|---|
+| The full suite, the repository-wide lint and the typecheck at the last round's commit | the orchestrator's `broad-gate --base release/v0.22.1 --record <item>`, after the rounds settle |
+| A stamp drawn from a real `sealed` guarantee in a person's session: this item's own run draws none, because the installed plugin's `post-commit` is 0.22.0's (`plan.md` §*Operational impact*) | the owner, on the first run after updating to 0.22.1 |
+| Once per work item for a commit touching a `sealed` guarantee in a second clone of the same branch with no new run, held only by the sealer's `; earlier run:` row | the orchestrator, under the owner's delegation (`rounds/round-2.md` §*Not judged*) |
+| CI on its three legs at the pull request's head | the orchestrator, at the pull request |
+
+## Not done
+
+- `.github/scripts/release_seal.py` still labels the release's PNG `SEALED`.
+  It is a different object from the work item's stamp, and `spec.md`
+  §*Scope* puts it out; whether the word may stand there is the owner's.
+- A clone whose git hooks slot is somebody else's, and local mode, draw no
+  stamp. Both are stated in §*The stamp*; no second trigger was built
+  (`plan.md` A3, `questions.md` Q5, #976).
+- Test docstrings and comments that tell how the gate used to seal are left
+  as history. Q6 (a) reaches the words a person reads in the gate's output
+  and the documents, and a failure message is one of them; a docstring is
+  not.
+- `agents/warden.md` says a coverage probe is reported "never as a seal".
+  That names the concept a claim is held to, not the gate's run, and
+  changing the definition would move the warden's measured preload.
+
+## Fed back into the spec
+
+Inferred during implementation, and open to a planner to overturn:
+
+- `docs/the-review-record.md` §*The stamp*: once per work item is held by the
+  work item's id alone in the clone's values files, whatever commit they
+  named, and by the audited commit being in the committing commit's history
+  (round 1's fix, 33a5b676).
+- The same section's unchecked paragraph names local mode and a person's own
+  commit beside S10's four silences (phase 3).
