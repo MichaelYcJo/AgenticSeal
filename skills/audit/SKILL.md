@@ -50,12 +50,12 @@ directory, and removing one means deleting the file.
 ```
 ## Audit Results
 
-✅ Passed: [N] rules
-⚠️ Warnings: [N]
-❌ Violations: [N]
+passed: [N] rules
+warnings: [N]
+violations: [N]
 
 [For each violation:]
-❌ [rule name] - [severity]
+violation: [rule name] - [severity]
    [file:line] [what's wrong]
    Fix: [suggestion]
 ```
