@@ -300,7 +300,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
 
     # The bootstrap and the parity setup are the orchestrator's half of the
     # skill since #292, so the file that has to point at the template is
-    # `orchestration.md`, not the `SKILL.md` every smith spawn preloads.
+    # `orchestration.md`, not the `SKILL.md` every smith spawn opens.
     implement = open(
         os.path.join(ROOT, "skills", "implement", "orchestration.md"),
         encoding="utf-8",

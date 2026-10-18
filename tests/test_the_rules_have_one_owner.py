@@ -110,8 +110,9 @@ RULES = {
     "14 a finding is filed where somebody will act": (
         RECORD,
         "A leftover finding takes the first rung that fits.",
-        # The smith's copy of the ladder left with #967: a smith reaches it
-        # through `implement`, which it opens at its first step.
+        # The smith's copy of the ladder left with #967. Filing is the
+        # orchestrator's act (the ladder's own `Enforced by:` says so), and a
+        # smith hands a leftover back with its answerer (its step 10).
         {
             TRACKER: "`docs/the-review-record.md` §*The run* owns where a filed "
             "finding goes",

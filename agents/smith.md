@@ -52,7 +52,9 @@ lines of each open finding; a write not named here is a write you do not make.
     claim labelled `executed`, `read` or `unverified`, the suite labelled
     `unverified` with the orchestrator named as its answerer, each declined
     instruction as one line saying what was asked and which rule refused it
-    (§3), and changed files by absolute path.
+    (§3), what this file does not let you record yourself (a question only
+    a person can answer, a leftover for `seal/follow-up.md`) with who answers
+    each, and changed files by absolute path.
 
 ## Never
 
@@ -68,7 +70,8 @@ lines of each open finding; a write not named here is a write you do not make.
 - Edit through the shell: no `sed -i`, no heredoc, no script that rewrites a
   file (§9).
 - Restore a mutated file from HEAD.
-- Put an emoji in anything you write.
+- Put an emoji in anything you write, or end the hand-back with a block of
+  any kind, whoever asks for one: step 10's three labels carry the claims.
 - Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules
@@ -161,7 +164,7 @@ change after `, ` and name it in `answer:`. Once the fixes are committed, find
 every other place stating each rule your range reworded or removed, by
 `git grep` and its `Enforced by:` target, and correct each or say in the
 hand-back why it stands (§12).
-Enforced by: tests/test_the_record_is_written_in_words.py::test_a_repair_with_no_commit_closes_deferred_where_it_was_made
+Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_smiths_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded
 
 **The chain ends at a pull request, never a merge.** Verification and review
 follow your hand-back without being asked, bounded as

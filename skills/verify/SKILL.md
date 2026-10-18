@@ -216,8 +216,8 @@ command.
 ### 3. Bound to the tree
 
 Evidence attaches to a tree state, not to a session. Note the state the
-proof ran against (commit + dirty files); **any edit after the run breaks
-your seal** — re-run, don't re-tell.
+proof ran against (commit + dirty files); **any edit after the run voids
+the claim** — re-run, don't re-tell.
 
 ### 4. Executed, read, or unverified — labeled
 

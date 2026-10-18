@@ -511,6 +511,25 @@ def test_the_smiths_four_rules_stand_with_their_enforcers():
     )
 
 
+def test_the_smiths_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded():
+    """The smith's half of the fix pass: the two lines it writes, the
+    coordinate it appends, and the sweep for every other place stating a rule
+    its range reworded (contract §12). The record's grammar is
+    `docs/the-review-record.md`'s and is held there; this holds the
+    definition's paragraph, which no other case reads."""
+    paragraph = flat(
+        smith_rule("A fix pass writes two lines of each finding and no phase record.")
+    )
+    assert paragraph, "`agents/smith.md` lost its fix-pass rule"
+    for clause in (
+        "`fixed <commit>`, `rejected` or `deferred <home>`",
+        "`deferred <where it was repaired>`",
+        "append the one it did change after `, `",
+        "find every other place stating each rule your range reworded or removed",
+    ):
+        assert clause in paragraph, f"the fix-pass rule lost {clause!r}"
+
+
 # A batching figure: a number within a few words of "tools per turn", either
 # side, in any spelling of the phrase.
 TOOLS_PER_TURN = re.compile(
