@@ -1439,8 +1439,7 @@ def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
     text = flat("agents", "sealer.md")
     for said in (
         "or draw a stamp",
-        "the stamp is drawn in the orchestrator's session from your committed "
-        "`sealed` verdict, once per work item",
+        "a stamp is drawn once from your committed `sealed`.",
     ):
         assert said in text, said
     assert "from its own run" not in text, "the stamp is not the run's"
