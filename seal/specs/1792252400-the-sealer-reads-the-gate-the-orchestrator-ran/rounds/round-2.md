@@ -8,7 +8,7 @@ target: a380dcb7, fixes 884b7044..a380dcb7
 
 severity: must
 location: `agents/sealer.md:36-38`, `agents/sealer.md:46-58`, `agents/sealer.md:111`, `tests/test_the_sealer_guarantees.py:331-347`
-verdict: open
+verdict: fixed e15490c5
 regression: round-1#3
 
 The unit is step 1's command, `git -C <root> log --no-merges --name-only
@@ -85,13 +85,13 @@ and return.
         assert "the plain branch name the prompt names" not in step, step
 ```
 
-answer:
+answer: e15490c5 resolves the base once, in the paragraph before the steps, citing `broad_gate.py#resolve_base`: the first of `<name>@{upstream}`, `origin/<name>` and `<name>` that `git -C <root> rev-parse --verify --quiet` answers is every `<base>` below (step 1's range, step 2's diff, the at-base restore), and none answering is `undecided — the base <name> resolves to no commit here`; step 1 drops "the plain branch name the prompt names". Probed read-only in the worktree: `release/v0.22.1@{upstream}` 1, `origin/release/v0.22.1` 0, `release/v0.22.1` 1, and `git log --no-merges --name-only 884b7044..HEAD ^origin/release/v0.22.1` 0. `test_step_1_reads_the_record_and_runs_nothing` holds the sentence, its three parts and the old words' absence; `mutation-check` gave red for each of four breaks. The reference measured the earlier text; `phases/phase-6.md` says it is re-run after this fix, and `overview.md` records the departure (a94ebe23).
 
 ### 2. The old-word refusal says the committed `broad-gate.md` "still stands" before it knows, beside the check's own line saying it does not
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:91-97`, `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/changelog.md:36-41`, `tests/test_the_sealer_guarantees.py:276-303`
-verdict: open
+verdict: fixed e15490c5
 regression: round-1#4
 
 The unit is `RETIRED_SAYS` as 8313e330 rewrote it, and the changelog
@@ -145,13 +145,13 @@ The four test lines replace the assertions at
 `tests/test_the_sealer_guarantees.py:298-303`, and the docstring at 278-281
 moves with them.
 
-answer:
+answer: e15490c5 states the remedy as a condition and asserts nothing about the record: "Where `broad-gate.md` names a run at HEAD, or one followed only by the work item's records, spawn the sealer again at HEAD, which writes the new word; otherwise run `broad-gate --base <base> --record <item>` and commit `broad-gate.md` first", and `changelog.md` says the same. `test_the_old_words_are_refused_by_line` asserts both halves and "still stands" absent, its docstring moved with it; `mutation-check` gave red for "still stands" put back, the condition dropped and the condition widened.
 
 ### 3. Two tests still say the sealer owns the broad run, and one no longer pins the owner at all
 
 severity: should
-location: `tests/test_the_suite_has_a_command_that_is_cheap_twice.py:1222-1243`, `tests/test_broad_gate_rule.py:397-400`
-verdict: open
+location: `tests/test_the_suite_has_a_command_that_is_cheap_twice.py:1222-1243`, `tests/test_broad_gate_rule.py:397-400`, `tests/test_the_seal_is_taken_once_by_the_sealer.py:3231`, `tests/test_the_seal_is_taken_once_by_the_sealer.py:3790`, `tests/test_the_gate_names_every_step_ci_runs.py:1030`
+verdict: fixed 2076c4d6
 reopens: round-1#2
 
 Round 1's finding 2 named the class: present-tense sentences that give the
@@ -216,13 +216,13 @@ def test_the_section_says_the_full_run_is_the_orchestrators():
     the broad run asks the same arms — and its grounds name the step."""
 ```
 
-answer:
+answer: 2076c4d6 renames the case `test_the_section_says_the_full_run_is_the_orchestrators` and asserts "The full suite is the orchestrator's" (`mutation-check` red with "the sealer's" put back), and fixes the `test_broad_gate_rule.py` docstring to "the broad run asks the same arms". The class grep `git grep -n -i -P "sealer'?s?\b.{0,40}(broad|gate|stamp|capture|log|arms)"` (the `-E` form matches nothing: `\b` is not ERE) gave 93 lines outside `seal/specs/` and `changelog/` before the fix and 93 after it (the rewritten lines still say "gate"), and a second with `relay`, `passes`, `suite`, `lint`, `typecheck`, `preflight` gave 8 before and 5 after. Three more present-tense sites, appended to `location:` and rewritten in the same commit: the docstring at `tests/test_the_seal_is_taken_once_by_the_sealer.py:3231` and the comment at `:3790` ("the sealer passes/relays the gate's lines"), and the docstring at `tests/test_the_gate_names_every_step_ci_runs.py:1030`; since #969 the sealer sees no output of the gate's. Every other hit is a `.test_durations` key or test name, the `sealer-stamp` hook, the sealer reading a record, past-tense history (`docs/the-agent-set.md:111`, `docs/the-broad-gate.md:122, 124`, `tests/test_evals_layout.py:123, 341`, `tests/test_a_parallel_agent_names_its_scratch_after_the_work_item.py:6`, the fixture text of `tests/test_a_process_record_drop_passes_the_readers.py:58, 62`), or the orchestrator's run before the spawn. Left to #967 and #968: `agents/smith.md:299`, `agents/framer.md:24`, `tests/test_the_seal_is_taken_once_by_the_sealer.py:8322` (8323 after this commit's comment line), and `skills/verify/SKILL.md`, which this grep does not hit.
 
 ### 4. The closing memo records none of round 1's three departures from the frame
 
 severity: should
 location: `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/overview.md:12-23`
-verdict: open
+verdict: fixed a94ebe23
 regression: round-1
 
 The unit is `overview.md`'s table *Where spec and implementation diverged*,
@@ -251,7 +251,7 @@ belongs in this table rather than in an edit to the frame.
 | S3's case (round 1) | `spec.md` S3 is verified by the fourth case, `rule-sealer-no-gate`, which scaffolds no record | a fifth case, `rule-sealer-stale-gate`, scaffolds a record a code commit follows (71f3e739); the reference was re-run on the five cases | round 1's finding 5: no case held the stale half of step 1 (`rounds/round-1.md`, `phases/phase-6.md`) |
 ```
 
-answer:
+answer: a94ebe23 adds the three rows, the remedy's row worded for e15490c5's condition, and a fourth for this pass's base resolution, which departs from `spec.md` §*The act* (step 1 there names no base, and steps 2 to 5 stay as 0.22.0 left them).
 
 ## Confirmations
 
