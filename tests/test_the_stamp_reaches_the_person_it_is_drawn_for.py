@@ -1148,6 +1148,127 @@ def test_the_edit_gate_leaves_shared_mode_to_post_commit(tmp_path):
     notes.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
     assert queue_local(notes) == []
     assert queued(local) == []
+    # The gate's half: a `Write` of the shared guarantee says nothing.
+    assert post_edit(edit_payload(item / "guarantee.md", shared), shared) == ""
+    assert queued(shared) == []
+
+
+# --- #976 S6: the `post-edit` gate queues it at the write ---------------------
+
+QUEUE_GATE = "sealer-stamp-queue.py"
+
+
+def post_edit(body, cwd):
+    """`dispatch.py post-edit` as the harness runs it after a file edit:
+    `body` on stdin, a dict sent as JSON and a string as it is, and what the
+    group printed."""
+    r = subprocess.run(
+        [sys.executable, DISPATCH, "post-edit"],
+        input=body if isinstance(body, str) else json.dumps(body),
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=60,
+        cwd=str(cwd),
+    )
+    assert r.returncode == 0, r.stderr
+    return r.stdout
+
+
+def edit_payload(path, cwd, tool="Write", session="s-1", **extra):
+    """A `PostToolUse` payload for `tool` on the file at `path`."""
+    body = {
+        "hook_event_name": "PostToolUse",
+        "tool_name": tool,
+        "tool_input": {"file_path": str(path)},
+        "cwd": str(cwd),
+    }
+    if session:
+        body["session_id"] = session
+    body.update(extra)
+    return body
+
+
+@pytest.mark.parametrize("tool", ["Write", "Edit"])
+def test_the_edit_gate_queues_a_local_mode_sealed_guarantee(tmp_path, tool):
+    """#976 S6. A `Write` or `Edit` that leaves a local-mode `guarantee.md`
+    reading `sealed` runs the `post-edit` group, whose gate queues the work
+    item's one values file for the payload's session and prints one JSON
+    object whose `systemMessage` is the writer's line. The repository is
+    found from the edited file, never from the payload's `cwd`, which here
+    is outside it. The main session's `Stop` then draws the file this gate
+    wrote, once. Red at f6ad0b2c: no gate in the group queued anything."""
+    mod = stamp_module()
+    repo, target, base, path = local_guaranteed(tmp_path)
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    out = post_edit(edit_payload(path, elsewhere, tool=tool), elsewhere)
+    (written,) = queued(repo)
+    real = os.path.realpath(written)
+    line = mod.QUEUED.format(id=ITEM_ID, path=real, command=mod.quote(real))
+    assert json.loads(out) == {"systemMessage": line}, out
+    lines = message(stop(repo))
+    assert lines[0] == f"SEALED feat/x @ {target} against {base} · {ITEM_NAME}", lines
+    assert stop(repo) == "", "the stamp was drawn twice"
+
+
+def test_a_subagents_write_queues_and_draws_nothing(tmp_path):
+    """#976 S6. The sealer writes its own `guarantee.md`, so the payload
+    carries its `agent_id` beside the main session's `session_id`
+    (`questions.md` Q1). Queueing is not drawing: the gate queues the same
+    file for the main session, the subagent's end draws nothing and leaves
+    it, and the main session's `Stop` draws it."""
+    repo, _target, _base, path = local_guaranteed(tmp_path)
+    sealer = {"agent_id": "a-1", "agent_type": "specseal:sealer"}
+    assert json.loads(post_edit(edit_payload(path, repo, **sealer), repo))
+    (written,) = queued(repo)
+    assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
+    assert stop(repo, agent_id="a-1") == ""
+    assert queued(repo) == [written]
+    assert message(stop(repo))[0].startswith("SEALED feat/x @ ")
+
+
+@pytest.mark.parametrize(
+    "given",
+    [
+        lambda path, cwd: edit_payload(path.parent / "notes.md", cwd),
+        lambda path, cwd: edit_payload(cwd / "docs" / "guarantee.md", cwd),
+        lambda path, cwd: edit_payload(path, cwd, tool="NotebookEdit"),
+        lambda path, cwd: edit_payload(path, cwd, session=None),
+        lambda path, cwd: "a payload that is not JSON",
+    ],
+    ids=[
+        "another file of the item",
+        "a guarantee.md outside seal/specs",
+        "NotebookEdit",
+        "no session_id",
+        "not JSON",
+    ],
+)
+def test_the_edit_gate_is_silent_off_a_guarantee(tmp_path, given, monkeypatch):
+    """#976 S6. The gate runs after every file edit in every repository, so
+    for any other edit it says nothing and writes nothing, and it loads
+    `seal_stamp.py`, its only way to `git`, only once the edit has matched:
+    a `Write` or `Edit`, with a session, of `…/seal/specs/<id>/guarantee.md`.
+    The order is asked of the gate itself, with its loader replaced, and the
+    guarantee's own `Write` is the control that the loader is reached."""
+    repo, _target, _base, path = local_guaranteed(tmp_path)
+    (path.parent / "notes.md").write_text(
+        path.read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    body = given(path, repo)
+    assert post_edit(body, repo) == ""
+    assert queued(repo) == []
+    gate = _load(
+        "specseal_queue_gate_for_its_order", os.path.join(HOOKS_DIR, QUEUE_GATE)
+    )
+    loads = []
+    monkeypatch.setattr(gate, "load_stamp", lambda: loads.append(1))
+    for sent, expected in ((body, []), (edit_payload(path, repo), [1])):
+        text = sent if isinstance(sent, str) else json.dumps(sent)
+        monkeypatch.setattr(sys, "stdin", __import__("io").StringIO(text))
+        gate.main()
+        assert loads == expected, (sent, loads)
 
 
 # --- #717: the hook's whole message is held under a budget --------------------
@@ -1752,14 +1873,18 @@ def test_both_readmes_list_the_stamp_hook():
     """Round 1's 🟡 4. The hook inventory a user reads to learn what runs on
     their machine did not list the `Stop` hook, in either edition: the gate
     table, the opt-in list, the count of gates that wake on a condition, and
-    the side effects. The editions move together, so both are read."""
+    the side effects. The editions move together, so both are read.
+
+    #976 S7: the gate that queues a local-mode stamp at the write has its own
+    row, and the count and the opt-in list that row made false say twelve
+    gates and two stamp hooks."""
     for edition, count, opt_in, effects, clause in (
         (
             "README.md",
-            "Eight of the eleven gates",
+            "Nine of the twelve gates",
             # The opt-in list's own words: the count sentence names the stamp
-            # hook too, so the bare name would pass with the list unchanged.
-            "the two implementer hooks, the stamp hook and the version check.",
+            # hooks too, so the bare name would pass with the list unchanged.
+            "the two implementer hooks, the two stamp hooks and the version check.",
             "Four side effects",
             # The clause's own words (round 2's ⬜ 2): the gate-table row
             # carries `specseal-stamp/` too, so the bare directory passed
@@ -1769,19 +1894,22 @@ def test_both_readmes_list_the_stamp_hook():
         ),
         (
             "README.ko.md",
-            "게이트 열하나 중 여덟",
-            "구현자 훅 둘, 도장 훅, 버전 확인이다.",
+            "게이트 열둘 중 아홉",
+            "구현자 훅 둘, 도장 훅 둘, 버전 확인이다.",
             "네 가지 부수 효과",
             "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
         ),
     ):
         text = flat(edition)
-        table = [ln for ln in text.split("| ") if ln.startswith("sealer-stamp ")]
-        assert table, f"{edition}'s gate table has no `sealer-stamp` row"
+        for gate in ("sealer-stamp", "sealer-stamp-queue"):
+            table = [ln for ln in text.split("| ") if ln.startswith(f"{gate} ")]
+            assert table, f"{edition}'s gate table has no `{gate}` row"
         assert count in text, (edition, count)
         assert opt_in in text, (edition, opt_in)
         assert effects in text and clause in text, (edition, effects, clause)
-        assert "Seven of the ten" not in text and "게이트 열 중 일곱" not in text
+        for gone in ("Seven of the ten", "게이트 열 중 일곱", "Eight of the eleven"):
+            assert gone not in text, (edition, gone)
+        assert "게이트 열하나 중 여덟" not in text, edition
     # #975 S11: both editions say the stamp's values are written at the
     # commit of a sealed guarantee, and neither says the broad gate leaves
     # them.
