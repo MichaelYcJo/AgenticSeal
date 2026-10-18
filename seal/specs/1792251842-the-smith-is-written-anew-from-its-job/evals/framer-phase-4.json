@@ -1,0 +1,1153 @@
+{
+ "schemaVersion": 1,
+ "claudeVersion": "2.1.302",
+ "startedAt": "2026-10-18T02:26:50.918Z",
+ "durationSeconds": 487,
+ "costUsd": 16.55726075,
+ "partial": false,
+ "suite": {
+  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-l12mv33w/tree",
+  "ablation": "none",
+  "threshold": 1,
+  "concurrency": 4,
+  "plugins": [
+   {
+    "name": "specseal",
+    "version": "0.22.0",
+    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-l12mv33w/tree"
+   }
+  ]
+ },
+ "cases": [
+  {
+   "name": "framer rule-framer-document-helpers",
+   "dir": "evals/behaviour/framer/rule-framer-document-helpers",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:framer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nFrame issue #104 as work item `1790000024-document-helpers`, on branch `feat/document-helpers` in this clone; its `routing.md` is written. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there. The issue reads: The README says nothing about what the helpers do. Document each one.\n\nEND PROMPT",
+   "model": "claude-fable-5-1",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1200,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-framer",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:framer\""
+     }
+    },
+    {
+     "name": "shape-builds-nothing-edit",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Edit",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000024-document-helpers\\/)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-builds-nothing-write",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Write",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000024-document-helpers\\/)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-marks-the-spec",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000024-document-helpers/spec.md"
+      },
+      "pattern": "^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-phases-carry-verified-by",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000024-document-helpers/plan.md"
+      },
+      "pattern": "^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-writes-plan",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000024-document-helpers/plan.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-writes-questions",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000024-document-helpers/questions.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-writes-spec",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000024-document-helpers/spec.md",
+      "exists": true
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 2.4339592500000005,
+      "judgeCostUsd": 0,
+      "durationSeconds": 266,
+      "startedAt": "2026-10-18T02:26:50.959Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-YO8PIC/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-framer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-marks-the-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phases-carry-verified-by",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-plan",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000024-document-helpers/plan.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-questions",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000024-document-helpers/questions.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000024-document-helpers/spec.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 2.4339592500000005,
+        "duration_ms": 264343,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 196,
+          "outputTokens": 19652,
+          "cacheReadInputTokens": 295117,
+          "cacheCreationInputTokens": 95463,
+          "webSearchRequests": 0,
+          "costUSD": 2.4339592500000005,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 10243,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 11
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 1.988158,
+      "judgeCostUsd": 0,
+      "durationSeconds": 182,
+      "startedAt": "2026-10-18T02:26:50.959Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-EM3gJ3/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-framer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-marks-the-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phases-carry-verified-by",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-plan",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000024-document-helpers/plan.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-questions",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000024-document-helpers/questions.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000024-document-helpers/spec.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 1.988158,
+        "duration_ms": 180328,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 260,
+          "outputTokens": 12187,
+          "cacheReadInputTokens": 407912,
+          "cacheCreationInputTokens": 87578,
+          "webSearchRequests": 0,
+          "costUSD": 1.988158,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 3671,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 8
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1,
+    "passRate": 1
+   }
+  },
+  {
+   "name": "framer rule-framer-keep-trailing-space",
+   "dir": "evals/behaviour/framer/rule-framer-keep-trailing-space",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:framer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nFrame issue #102 as work item `1790000022-keep-trailing-space`, on branch `feat/keep-trailing-space` in this clone; its `routing.md` is written. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there. The issue reads: `shout` upper-cases trailing whitespace away when the text ends in a newline: `shout(\"hi\\n\")` gives `\"HI\\n!\"`. The mark should come before the trailing whitespace.\n\nEND PROMPT",
+   "model": "claude-fable-5-1",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1200,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-framer",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:framer\""
+     }
+    },
+    {
+     "name": "shape-builds-nothing-edit",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Edit",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000022-keep-trailing-space\\/)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-builds-nothing-write",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Write",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000022-keep-trailing-space\\/)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-marks-the-spec",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000022-keep-trailing-space/spec.md"
+      },
+      "pattern": "^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-phases-carry-verified-by",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000022-keep-trailing-space/plan.md"
+      },
+      "pattern": "^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-writes-plan",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000022-keep-trailing-space/plan.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-writes-questions",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000022-keep-trailing-space/questions.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-writes-spec",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000022-keep-trailing-space/spec.md",
+      "exists": true
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 2.37372475,
+      "judgeCostUsd": 0,
+      "durationSeconds": 248,
+      "startedAt": "2026-10-18T02:26:50.959Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-1n6cTt/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-framer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-marks-the-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phases-carry-verified-by",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-plan",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000022-keep-trailing-space/plan.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-questions",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000022-keep-trailing-space/questions.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000022-keep-trailing-space/spec.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 2.37372475,
+        "duration_ms": 246014,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 196,
+          "outputTokens": 18294,
+          "cacheReadInputTokens": 296189,
+          "cacheCreationInputTokens": 96050,
+          "webSearchRequests": 0,
+          "costUSD": 2.37372475,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 7729,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 16
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 2.2817852500000004,
+      "judgeCostUsd": 0,
+      "durationSeconds": 222,
+      "startedAt": "2026-10-18T02:26:50.959Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-F17pAm/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-framer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-marks-the-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phases-carry-verified-by",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-plan",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000022-keep-trailing-space/plan.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-questions",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000022-keep-trailing-space/questions.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000022-keep-trailing-space/spec.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 2.2817852500000004,
+        "duration_ms": 219761,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 324,
+          "outputTokens": 15969,
+          "cacheReadInputTokens": 531611,
+          "cacheCreationInputTokens": 93313,
+          "webSearchRequests": 0,
+          "costUSD": 2.2817852500000004,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 6710,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 10
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1,
+    "passRate": 1
+   }
+  },
+  {
+   "name": "framer rule-framer-loud-flag",
+   "dir": "evals/behaviour/framer/rule-framer-loud-flag",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:framer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nFrame issue #101 as work item `1790000021-loud-flag`, on branch `feat/loud-flag` in this clone; its `routing.md` is written. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there. The issue reads: A command line `python3 -m src.textutil TEXT` should print `shout(TEXT)`, and `--twice` should print it twice.\n\nEND PROMPT",
+   "model": "claude-fable-5-1",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1200,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-framer",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:framer\""
+     }
+    },
+    {
+     "name": "shape-builds-nothing-edit",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Edit",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000021-loud-flag\\/)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-builds-nothing-write",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Write",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000021-loud-flag\\/)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-marks-the-spec",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000021-loud-flag/spec.md"
+      },
+      "pattern": "^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-phases-carry-verified-by",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000021-loud-flag/plan.md"
+      },
+      "pattern": "^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-writes-plan",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000021-loud-flag/plan.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-writes-questions",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000021-loud-flag/questions.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-writes-spec",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000021-loud-flag/spec.md",
+      "exists": true
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 1.9157699999999998,
+      "judgeCostUsd": 0,
+      "durationSeconds": 216,
+      "startedAt": "2026-10-18T02:29:53.216Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-lehlNa/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-framer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-marks-the-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phases-carry-verified-by",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-plan",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000021-loud-flag/plan.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-questions",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000021-loud-flag/questions.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000021-loud-flag/spec.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 1.9157699999999998,
+        "duration_ms": 214507,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 260,
+          "outputTokens": 15765,
+          "cacheReadInputTokens": 435670,
+          "cacheCreationInputTokens": 71019,
+          "webSearchRequests": 0,
+          "costUSD": 1.9157699999999998,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 4692,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 8
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 2.04025925,
+      "judgeCostUsd": 0,
+      "durationSeconds": 240,
+      "startedAt": "2026-10-18T02:30:32.678Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-2FFIJ9/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-framer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-marks-the-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phases-carry-verified-by",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-plan",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000021-loud-flag/plan.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-questions",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000021-loud-flag/questions.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000021-loud-flag/spec.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 2.04025925,
+        "duration_ms": 238018,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 260,
+          "outputTokens": 17849,
+          "cacheReadInputTokens": 445117,
+          "cacheCreationInputTokens": 72581,
+          "webSearchRequests": 0,
+          "costUSD": 2.04025925,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 7322,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 8
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1,
+    "passRate": 1
+   }
+  },
+  {
+   "name": "framer rule-framer-word-count",
+   "dir": "evals/behaviour/framer/rule-framer-word-count",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:framer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nFrame issue #103 as work item `1790000023-word-count`, on branch `feat/word-count` in this clone; its `routing.md` is written. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there. The issue reads: We need a word count for the text helpers, and the README should say what counts as a word.\n\nEND PROMPT",
+   "model": "claude-fable-5-1",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1200,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-framer",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:framer\""
+     }
+    },
+    {
+     "name": "shape-builds-nothing-edit",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Edit",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000023-word-count\\/)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-builds-nothing-write",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Write",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000023-word-count\\/)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-marks-the-spec",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000023-word-count/spec.md"
+      },
+      "pattern": "^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-phases-carry-verified-by",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000023-word-count/plan.md"
+      },
+      "pattern": "^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-writes-plan",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000023-word-count/plan.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-writes-questions",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000023-word-count/questions.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-writes-spec",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000023-word-count/spec.md",
+      "exists": true
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0,
+      "passed": false,
+      "turns": 2,
+      "costUsd": 1.7812187499999999,
+      "judgeCostUsd": 0,
+      "durationSeconds": 239,
+      "startedAt": "2026-10-18T02:30:58.900Z",
+      "error": "exit 1: You've hit your session limit · resets 3:10pm (Asia/Seoul)",
+      "tracePath": "/private/tmp/e-tFl4DY/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 1.7812187499999999,
+        "duration_ms": 237862,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 164,
+          "outputTokens": 15946,
+          "cacheReadInputTokens": 284415,
+          "cacheCreationInputTokens": 64272,
+          "webSearchRequests": 0,
+          "costUSD": 1.7812187499999999,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 6552,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 16
+      }
+     },
+     {
+      "score": 0,
+      "passed": false,
+      "turns": 2,
+      "costUsd": 1.7423855,
+      "judgeCostUsd": 0,
+      "durationSeconds": 219,
+      "startedAt": "2026-10-18T02:31:17.256Z",
+      "error": "exit 1: You've hit your session limit · resets 3:10pm (Asia/Seoul)",
+      "tracePath": "/private/tmp/e-mHpyrP/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 1.7423855,
+        "duration_ms": 217859,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 132,
+          "outputTokens": 15708,
+          "cacheReadInputTokens": 222672,
+          "cacheCreationInputTokens": 63379,
+          "webSearchRequests": 0,
+          "costUSD": 1.7423855,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 6237,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 17
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0,
+    "passRate": 0
+   }
+  }
+ ],
+ "aggregates": {
+  "casesTotal": 4,
+  "casesPassed": 3,
+  "overallScore": 0.75,
+  "overallPassRate": 0.75
+ },
+ "specseal": {
+  "agent": "framer",
+  "preload": {
+   "agents/framer.md": "c2e7a7d7437485042ebda52e71a6a7137f9a1511258feb2e779ac19db9769486",
+   "skills/agent-contract/SKILL.md": "9764cedd19617d9ba1af4d05a27384004456cf72c5333390c49cb7d57f7110dc",
+   "skills/implement/SKILL.md": "dbff9bdf37f25fa177ad93cd49aac7a5260e4da73ccd2c47e7da6cd4d3340556",
+   "skills/writing-style/SKILL.md": "5e1a12a78c7058f5e91059cf384ef33c38f8f816042d029bacad4be4b111e1bb"
+  },
+  "preload_bytes": 86421,
+  "cut_short": true,
+  "rev": "7053c184",
+  "suite_rev": "af9c924b7c5b03af5291017c226842655a8d83dd",
+  "suite_tree": "62f007f6dedd9ba73b0cb08df7cf497f8179bc82"
+ }
+}
