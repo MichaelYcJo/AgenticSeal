@@ -8,7 +8,7 @@ target: 37d7e68d against origin/release/v0.22.1
 
 severity: should
 location: `agents/smith.md:17-21`, `agents/smith.md:51-55`, `tests/test_the_rules_have_one_owner.py:113-114`
-verdict: open
+verdict: fixed a72d5b53
 
 Read. `spec.md` §*Data & interfaces* gives the hand-back five parts, the last
 two "changed files with absolute paths, what only a person can answer". Step
@@ -70,13 +70,13 @@ target.
          {
 ```
 
-answer:
+answer: a72d5b53 applies the paste-ready text: step 10 hands back a question only a person can answer and a leftover for `seal/follow-up.md` with who answers each, and rule 14's comment says filing is the orchestrator's act and the smith hands a leftover back at step 10; `implement` gains no link, since the rewritten comment no longer claims it holds one.
 
 ### 2. The smith's fix-pass rule names an `Enforced by:` case that never opens `agents/smith.md`
 
 severity: should
 location: `agents/smith.md:155-164`, `tests/test_a_moved_rule_leaves_its_definition.py`
-verdict: open
+verdict: fixed a72d5b53
 
 Executed. `tests/test_the_record_is_written_in_words.py::test_a_repair_with_no_commit_closes_deferred_where_it_was_made`
 reads `docs/the-review-record.md` §*The round record* and nothing else.
@@ -132,13 +132,13 @@ each). `bin/rules --check` resolved 483 of 483 with the new target.
  # A batching figure: a number within a few words of "tools per turn", either
 ```
 
-answer:
+answer: a72d5b53 plants `test_the_smiths_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded` as written and points the rule's `Enforced by:` at it; green on the tree, and `red` (exit 0) under `mutation-check` deleting the bold lead and under "find" made "skip" in the sweep sentence, each run after the commit.
 
 ### 3. The smith's `## Never` drops the proof block the frame put there, and the changelog promises a behaviour that rests on it
 
 severity: should
 location: `agents/smith.md:71`, `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/changelog.md:16-17`
-verdict: open
+verdict: fixed a72d5b53
 
 Read. `spec.md` §*The shape this item gives each file* lists under
 `## Never`: "put an emoji or a proof block in anything it writes". Line 71
@@ -168,13 +168,13 @@ module. It uses neither spelling T6's `PROOF_BLOCK` pattern refuses.
  - Write in a reference root, or move, edit or copy a file out of one.
 ```
 
-answer:
+answer: a72d5b53 writes the line as given, so `## Never` refuses a block at the end of the hand-back whoever asks, which is the definition sentence the changelog's promise needed; `agents/smith.md` reads 10,276 B (`wc -c`), under 10,527.
 
 ### 4. `implement`'s orchestrator half still says a smith spawn preloads `implement`
 
 severity: should
 location: `skills/implement/orchestration.md:19-21`, `tests/test_chain_hooks_hardening.py:303`
-verdict: open
+verdict: fixed a72d5b53
 
 Read. `skills/implement/orchestration.md:19` reads "a `smith` spawn preloads
 that one and never this". Since e61ac4e1 the smith preloads `agent-contract`
@@ -211,13 +211,13 @@ line wrap and pasted passages among them, ran green (943 passed), and
 +    # `orchestration.md`, not the `SKILL.md` every smith spawn opens.
 ```
 
-answer:
+answer: a72d5b53 makes both say a smith spawn opens `implement` at its first step; `git grep` finds no other place saying a smith preloads it (`tests/test_review_axes.py:112` and `tests/test_waiver_decided_at_start.py:50` say no smith spawn preloads `orchestration.md`, which stays true).
 
 ### 5. `verify`'s condition 3 still tells every reader that an edit breaks "your seal"
 
 severity: should
 location: `skills/verify/SKILL.md:219-220`
-verdict: open
+verdict: fixed a72d5b53
 
 Read. The rewritten section at `skills/verify/SKILL.md:239-244` says an
 agent's hand-back carries its claims under the labels and "neither is a
@@ -245,13 +245,13 @@ Executed. With the edit, `test_one_word_one_meaning.py` and the modules naming
 +the claim** — re-run, don't re-tell.
 ```
 
-answer:
+answer: a72d5b53 makes condition 3 read "any edit after the run voids the claim"; `git grep -F` for "your seal" and "breaks your" now finds nothing in the tree.
 
 ### 6. Phase 4 clears this item of the warden's fail on a list of changed files that leaves out two the warden read
 
 severity: should
 location: `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/phases/phase-4.md:27-29`, `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/phases/phase-4.md:66-71`, `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/overview.md:32`, `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/changelog.md:37-38`
-verdict: open
+verdict: fixed 44387d56
 
 Executed. `git diff --stat 7053c184 af716289 -- agents skills templates docs`
 lists, besides contract §2 and one line of `agents/warden.md`,
@@ -306,13 +306,13 @@ In `overview.md:32`, the Grounds cell's "changing contract §2, which all three
 agents preload, and one sentence of `agents/warden.md`" takes the same two
 additions as `phase-4.md:27-29` above.
 
-answer:
+answer: 44387d56 names every file #969 changed that the warden reads, recounted over both takes' kept traces by the path a tool call names: `docs/the-review-record.md` and `skills/code-review/scripts/chain_check.py` at the evaluated tree's path in 17 or 18 of each take's 18 runs, and `agents/sealer.md` in 2 and 1, beside contract §2 and the warden's sentence; round 1's "`skills/code-review/orchestration.md` in 6" reproduces as a substring count, but every one of those calls names the reviewed fixture's copy (`home/cwd`, or a `git diff` of the fixture's own commits), so the records say that instead of counting it as a read; the judgement that the fail is not this item's stands, since every such file is #969's.
 
 ### 7. Phase 4 clears this item of the framer's fail because the framer never opened `writing-style`, which it preloads
 
 severity: should
 location: `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/phases/phase-4.md:76-79`, `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/overview.md:51-53`
-verdict: open
+verdict: fixed 44387d56
 
 Read. `agents/framer.md` at af716289 lists `agent-contract`, `implement` and
 `writing-style` under `skills:`, and `evals/framer-phase-4.json`'s
@@ -353,13 +353,13 @@ carry the call; whether it does is the orchestrator's, and is a row of
 +#957's reading, taken before either changed. The warden's
 ```
 
-answer:
+answer: 44387d56 rewrites the framer's ground in `phases/phase-4.md` and `overview.md` to the orchestrator's text: it preloads `implement` and `writing-style`, so all eight runs read both; total tokens fell 0.5% and tool calls fell 11, so the per-call rise is fewer calls on a smaller read; no sentence of this item's files is identified as the cause; the fail is recorded as it reads and carried to #968, which measures the framer on a tree carrying this item.
 
 ### 8. The memo's spend divergence says its row below is open, and that row is closed
 
 severity: should
 location: `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/overview.md:36`
-verdict: open
+verdict: fixed 44387d56
 
 Read. 37d7e68d closed the `## Not verified` row at `overview.md:47` with the
 owner's answer ("decide and go with your recommendation"), and left the
@@ -374,7 +374,7 @@ fact"). `unverified-check` counts rows and cannot see it.
 | Q1's spend stop passed (phase 4's second take) | `questions.md` Q1: this item stops before the next agent once its summed spend passes $150 | phase 1 spent 104.1452 and phase 4's first take 60.5128, so the item stood at 164.6580 before the second take, which spent 63.2293 more; the item's total is 227.8873 | the owner, asked on 2026-10-18 whether to spend about $60 past the night's $200, answered "decide and go with your recommendation", and the orchestrator took the second take; the `## Not verified` row below is closed with that answer |
 ```
 
-answer:
+answer: 44387d56 replaces the row's Grounds cell with round 1's text, so it says the owner's answer closed the stop and points at the closed `## Not verified` row.
 
 ## Confirmations
 
