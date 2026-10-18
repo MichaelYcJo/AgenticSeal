@@ -59,9 +59,15 @@ and the README rows are unchanged.
 - Q3: the sandbox's interpreter refusal (`blocked by sandbox`) appears in 6 of
   the Opus side's 8 traces, and every run reached its verdict with every
   grader passing, so the re-run works round it as the baseline's did.
-- Q4: the Sonnet side's traces name `claude-sonnet-5-5` in 90 assistant
-  events and `claude-opus-5-5` in none, so `run --tree` honoured the copy's
-  `model: sonnet`.
+- Q4: the Sonnet side's traces hold 79 assistant events, all naming
+  `claude-sonnet-5-5`: 60 are the sealer's (each with a `parent_tool_use_id`)
+  and 19 the case session's, which runs on Sonnet by `case.yaml`. The Opus
+  side's 73 sealer events all name `claude-opus-5-5`, beside 17 session
+  events on Sonnet. So `run --tree` honoured the copy's `model: sonnet`.
+  Recounted after round 1, which found the 90 first written here to be the
+  Opus side's total: every `traces/*.jsonl` line parsed as JSON, kept where
+  `type` is `assistant`, and counted by `message.model` and by whether
+  `parent_tool_use_id` is set.
 - Q5: the item's sides so far cost 3.1901 + 2.8036 + 1.4076 = 7.4013 USD;
   phase 6's reference side is the fourth.
 
@@ -82,6 +88,7 @@ and the README rows are unchanged.
 | `check $E/sealer-phase-4.md` | 0 |
 | `check $E/sealer-model.md` | 1, the record reads `fail` |
 | `model $E/sealer-model.md` | 0, `opus` |
+| After round 1 (finding 7): `run --agent sealer --from-raw $K/sealer-sonnet-phase-4 --out $E/sealer-sonnet-phase-4.json`, whose `rev` now reads `tree`, then the `compare` for `sealer-model.md` above, `check` on both records and `model` | 0; 0; 0 and 1; 0, `opus` |
 
 The raw output is kept at `SpecSeal-worktrees/969-phase-4-raw/` for a later
 rule change to re-read at no cost.

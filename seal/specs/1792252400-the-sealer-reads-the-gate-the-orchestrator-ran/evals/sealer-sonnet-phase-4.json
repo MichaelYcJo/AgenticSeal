@@ -1160,7 +1160,7 @@
   },
   "preload_bytes": 23794,
   "cut_short": false,
-  "rev": "/private/tmp/claude-501/-Users-yc-Documents-GitHub-SpecSeal/0c0657fb-9bf3-4df8-9b8f-eeac7298a2ca/scratchpad/969-phase-4/sonnet-tree",
+  "rev": "tree",
   "suite_rev": "c2544c8f67e96a766d064d0c2b246c0d72326b6a",
   "suite_tree": "72c702939a50dab96a52afdc0d7f4f50b225d9ef"
  }
