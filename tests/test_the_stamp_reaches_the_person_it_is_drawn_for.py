@@ -599,11 +599,17 @@ def test_a_sealed_guarantees_commit_queues_one_stamp(tmp_path):
     file for the session, named by the work item's id and the audited
     commit, and prints one line naming it and `seal-stamp --from`. The
     main session's `Stop` then draws it once, labelled with what was
-    sealed. Red at `ddb5cf1a`: the hook queued nothing."""
+    sealed. Red at `ddb5cf1a`: the hook queued nothing.
+
+    Under a directory whose name holds a space, so the command the line
+    names is quoted for the shell a person types it into."""
     mod = stamp_module()
-    repo, target, base = guaranteed(tmp_path)
+    spaced = tmp_path / "a checkout"
+    spaced.mkdir()
+    repo, target, base = guaranteed(spaced)
     said = after_the_commit(repo)
     (path,) = queued(repo)
+    assert " " in path and f"--from {path}`" not in said, said
     assert os.path.dirname(path) == str(repo / ".git" / "specseal-stamp" / "s-1")
     assert os.path.basename(path).endswith(f"-{ITEM_ID}-{target}.json"), path
     assert said == (
