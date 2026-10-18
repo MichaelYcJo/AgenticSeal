@@ -3103,12 +3103,12 @@ def uncommitted_line(root, path):
     return CELL_UNCOMMITTED.format(path=rel)
 
 
-def main(argv=None, console_wants_ascii=None):
+def main(argv=None, console_wants_ascii=False):
     """`console_wants_ascii` is `is_utf8` asked of stdout as the process
     found it, negated — `__main__` asks before it reconfigures the
-    streams."""
+    streams. A caller in process names it, or gets the owner's marks."""
     try:
-        stamp = load(STAMP, "specseal_seal_stamp_for_broad_gate")
+        load(STAMP, "specseal_seal_stamp_for_broad_gate")
     except Refused as exc:
         sys.stderr.write(str(exc) + "\n")
         return 2
@@ -3174,8 +3174,6 @@ def main(argv=None, console_wants_ascii=None):
     args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
     if root is not None:
         sys.stderr.write(running_line(root) + "\n")
-    if console_wants_ascii is None:
-        console_wants_ascii = not stamp.is_utf8(sys.stdout)
     try:
         return gate(args, console_wants_ascii)
     except Refused as exc:
