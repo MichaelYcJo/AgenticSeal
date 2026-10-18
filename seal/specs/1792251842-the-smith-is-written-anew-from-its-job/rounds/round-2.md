@@ -8,7 +8,7 @@ target: 2c7716bd, fixes 3d97e196..2c7716bd
 
 severity: should
 location: `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/phases/phase-4.md:38-42`, `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/overview.md:32`
-verdict: open
+verdict: fixed eb75405c
 reopens: round-1#6
 
 Read. Round 1's finding 6 was that the records describe what #969 changed in
@@ -47,13 +47,13 @@ Executed. The recount behind the corrected sentences holds (see
 +| Phase 4 taken twice, the second on the merged tree (phase 4) | `plan.md` row 4 runs the three agents once at phase 3's commit, against phase 1's baselines | the first take at 7053c184 (records 668fd5f4, a3bf3832) is history; the record is the second take at af716289, this branch with `release/v0.22.1` merged in at 16e8d4c8 plus two test fixes no agent reads; the baselines stay phase 1's at 2fc33333 by the orchestrator's decision (2026-10-18) | #969 merged into `release/v0.22.1` (4a6e24f6) before the framer's re-run was taken, changing contract §2, which all three agents preload, one sentence of `agents/warden.md`, and `docs/the-review-record.md`, `skills/code-review/scripts/chain_check.py` and `agents/sealer.md`, which the warden reads in the evaluated tree; an agent whose read set changed is measured again. Re-taking the baselines would have cost about $60, so the comparison includes #969's changes named here as well as this item's (`phases/phase-4.md`) |
 ```
 
-answer:
+answer: eb75405c takes the paste-ready text in both units: `phases/phase-4.md` now says the comparison includes "#969's changes named above", and `overview.md`'s Grounds cell for the phase-4 row ends "#969's changes named here", each pointing at the list of contract §2, the warden's sentence, `docs/the-review-record.md`, `skills/code-review/scripts/chain_check.py` and `agents/sealer.md` a few lines earlier. `git grep -F` for "few contract" and "§2 change" finds them outside the round records only in #969's own `questions.md`, about a different fact.
 
 ### 2. The smith's re-take after round 1 is missing from the changelog's commit coordinate and from the memo
 
 severity: should
 location: `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/changelog.md:45-46`, `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/overview.md:36`
-verdict: open
+verdict: fixed eb75405c
 regression: round-1
 
 The unit is the record of the smith's third side, at 28d6a453. `plan.md`
@@ -101,13 +101,13 @@ The row below goes into `overview.md`'s divergence table after the row
 | The smith's side taken a third time, after round 1 (phase 4) | `plan.md` row 4 runs an agent's set a second time only for a `fail` its own sentence caused, and no third run; `questions.md` Q1 stops this item before the next agent once its spend passes $150 | the side at 28d6a453 (committed at 2c7716bd) is the smith's record in `evals/smith-phase-4.json` and `.md`; the af716289 side is history | round 1's fixes changed `agents/smith.md` at a72d5b53 after that side was measured, and an agent whose read set changed is measured again (`phases/phase-4.md`); the take spent 5.4509 with the item at 227.8873, so the item's total is 233.3382 |
 ```
 
-answer:
+answer: eb75405c names `6f3ee98b` for the warden's and the framer's records and `2c7716bd` for the smith's in `changelog.md` (each read with `git log -1` on the six files), and adds the divergence row to `overview.md`: the third take was the orchestrator's, so that the record measures the text that ships, and the owner's "decide and go with your recommendation" of 2026-10-18 was given to the orchestrator's recommendation to re-measure on the merged tree, a delegation the orchestrator applied to this take as well. Recounting the total from the phase records showed the second take's sides, 5.3675 + 41.7424 + 16.1196, sum to 63.2295 and not the 63.2293 written (63.2296 from the three JSONs' `costUsd`), so the same commit corrects 63.2293, 123.7421, 129.1930 and 227.8873 in `phases/phase-4.md`, `phases/phase-5.md` and `overview.md` to 63.2295, 123.7423, 129.1932 and 227.8875; the item's evaluation total is 104.1452 + 129.1932 = 233.3384, not 233.3382.
 
 ### 3. No case holds the two sentences round 1's fixes put into the smith's hand-back, so a trim can take back the changelog's promise with every case green
 
 severity: should
 location: `agents/smith.md:55-57`, `agents/smith.md:73-74`, `tests/test_a_moved_rule_leaves_its_definition.py`
-verdict: open
+verdict: fixed eb75405c
 regression: round-1#3
 
 The units are step 10's new clause (a question only a person can answer,
@@ -165,7 +165,7 @@ The probe file is deleted.
  # A batching figure: a number within a few words of "tools per turn", either
 ```
 
-answer:
+answer: eb75405c plants the paste-ready case as `tests/test_a_moved_rule_leaves_its_definition.py::test_the_smiths_hand_back_carries_what_it_may_not_record_and_ends_in_no_block`: green on the tree, then `red` under `mutation-check` (`-p no:xdist`) making "any kind, whoever asks for one" read "any kind" and "a question only" read "a note only", with `agents/smith.md`'s sha256 unchanged after each restore. Neither sentence nor any rule paragraph about the hand-back carries an `Enforced by:` line (`## Order of work` and `## Never` have none, and `spec.md` asks one only of `## Rules`), and `agents/smith.md` stays byte for byte, so no line was re-pointed and this answer is where the case is named.
 
 ## Confirmations
 
