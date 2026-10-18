@@ -1346,8 +1346,12 @@ def resealed_draws_nothing(clone, base_ref):
 
 @pytest.mark.parametrize(
     "earlier",
-    ["", "; earlier run: deadbee sealed"],
-    ids=["the row written fresh", "the row keeps the refused run"],
+    ["", "; earlier run: deadbee sealed", "; earlier run: deadbee0 sealed"],
+    ids=[
+        "the row written fresh",
+        "the row keeps the refused run",
+        "the row keeps it spelled longer",
+    ],
 )
 def test_a_seal_this_clone_refused_does_not_count_as_stamped(tmp_path, earlier):
     """1792363231 S11, #975 round 4's measured shape (`rounds/round-4.md` finding
@@ -1372,6 +1376,32 @@ def test_a_seal_this_clone_refused_does_not_count_as_stamped(tmp_path, earlier):
     commit_all(repo, "a note in the guarantee")
     assert after_the_commit(repo) == ""
     assert queued(repo) == [path]
+
+
+def test_a_refusal_record_skips_only_its_own_verdict(tmp_path):
+    """1792363231 S11's reader half. A record answers for one work item and
+    one commit spelled at least seven characters long, so it skips nothing
+    else. A record another work item left over the same commit leaves this
+    item's earlier `sealed` counted, and so does a record of this item where
+    the earlier `sealed` names no commit at all."""
+    mod = stamp_module()
+    for name in ("other item", "no target"):
+        (tmp_path / name).mkdir()
+    repo, _target, _base = guaranteed(
+        tmp_path / "other item", earlier="; earlier run: deadbee sealed"
+    )
+    mod.record_refusal(str(repo / ".git"), "1700000000", "deadbee")
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == []
+    repo, target, base = guaranteed(tmp_path / "no target", verdict="withheld — x")
+    item = repo / "seal" / "specs" / ITEM_NAME / "guarantee.md"
+    item.write_text("# an item — guarantee\n\nVerdict: sealed\n", encoding="utf-8")
+    commit_all(repo, "a sealed that names no commit")
+    assert after_the_commit(repo) == ""
+    mod.record_refusal(str(repo / ".git"), ITEM_ID, "deadbee")
+    seal_and_commit(repo, target, base, "the sealer again")
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == []
 
 
 def test_a_seal_over_a_commit_off_the_branch_then_repaired_draws_once(tmp_path):
@@ -1468,11 +1498,13 @@ def test_an_amend_in_a_fresh_clone_writes_no_refusal(tmp_path):
 
 
 def test_a_body_edit_over_a_rewritten_seal_writes_no_refusal(tmp_path):
-    """1792363231 S13, the shape `spec.md` gives guard 3. In the same fresh clone a
-    plain commit edits the body of the rewritten `sealed`, which still names
-    the commit the clone does not hold. That `sealed` was in the history
-    before the edit, so it writes no record, and the sealer's re-run queues
-    nothing."""
+    """1792363231 S13, the shape `spec.md` gives guard 3. In the same fresh
+    clone a plain commit edits the body of the rewritten `sealed`, which
+    still names the commit the clone does not hold. That `sealed` was in the
+    history before the edit, so `sealed_before` refuses the edit before the
+    ancestry refusal is reached, no record is written, and the sealer's
+    re-run queues nothing. Guard 3 itself was not built: no case could fail
+    it (`phases/phase-3.md`)."""
     other, _target = rebased_and_cloned_fresh(tmp_path)
     item = other / "seal" / "specs" / ITEM_NAME / "guarantee.md"
     item.write_text(item.read_text(encoding="utf-8") + "\na note\n", encoding="utf-8")

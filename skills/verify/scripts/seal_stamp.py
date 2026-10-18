@@ -1168,29 +1168,20 @@ def plain_commit(subject):
     return (subject or "").startswith(PLAIN_COMMITS)
 
 
-def _stamped_nowhere_else(chain, top, path, target):
+def _stamped_nowhere_else(top, target):
     """Whether HEAD's `sealed` over `target`, refused because `target` is
     not in HEAD's history, cannot have been stamped in another clone, so
     that this clone may record the refusal. The caller asks only at the
     ancestry refusal, after the chain, `sealed_before` and `already_queued`
-    let the verdict through. Then three facts must hold. HEAD's newest
-    reflog entry is a plain or an initial commit (`plain_commit`). The
-    guarantee at `HEAD^` did not read one `sealed` over the same target, so
-    this commit introduced the verdict. And `target` does not resolve, or
-    HEAD's side holds no patch-equivalent copy of it, so the verdict was
-    not audited before a rebase that moved the commit."""
+    let the verdict through. So no `sealed` in HEAD's history counts, and
+    HEAD introduced this one: `HEAD^`'s guarantee reads no `sealed` this
+    clone did not already refuse. Then two facts must hold. HEAD's newest
+    reflog entry is a plain or an initial commit (`plain_commit`). And
+    `target` does not resolve, or HEAD's side holds no patch-equivalent copy
+    of it, so the verdict was not audited before a rebase that moved the
+    commit."""
     if not plain_commit(_git(top, "reflog", "-1", "--format=%gs", "HEAD")):
         return False
-    reader = chain.SHARED_READER
-    before = _git(top, "show", f"HEAD^:{path}")
-    if before is not None:
-        verdicts = chain.verdicts_of(reader, before)
-        if (
-            len(verdicts) == 1
-            and chain.verdict_word(verdicts[0][1]) == chain.SEALED
-            and _same_commit(chain.target_of(reader, before), target)
-        ):
-            return False
     full = (
         _git(top, "rev-parse", "--verify", "-q", f"{target}^{{commit}}") or ""
     ).strip()
@@ -1239,7 +1230,7 @@ def _queue_one(chain, top, common, session, name, now):
     # Precondition: `target` resolves in this clone; where it does not,
     # `merge-base` exits 128 and nothing is queued.
     if _git(top, "merge-base", "--is-ancestor", target, "HEAD") is None:
-        if _stamped_nowhere_else(chain, top, f"{rel}/guarantee.md", target):
+        if _stamped_nowhere_else(top, target):
             record_refusal(common, ident, target)
         return None
     gate_text = _git(top, "show", f"HEAD:{rel}/{chain.BROAD_GATE_FILE}")
