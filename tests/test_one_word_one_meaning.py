@@ -421,14 +421,15 @@ def test_the_gate_never_says_sealed():
 # `--sealing` flag and `chain_check.SEALING`, the verdict word in backticks,
 # the Seal Test, a work item the sealer sealed, and the fold markers that name
 # spec directories. `questions.md` Q6 (a) keeps the code names and the concept
-# name. `sealed_names` and `CHAIN_SEALING` need no entry: `_` is a word
+# name. A name goes on past its `-`, `_` or `.`, so a `seal.` that closes a
+# sentence is the word and stays refused. `sealed_names` and `CHAIN_SEALING` need no entry: `_` is a word
 # character, so the word below never starts or ends inside them.
 # Anything else calls the gate's own run a seal (#975, `questions.md` Q4).
 GATE_SEAL_NAMES = re.compile(
     r"<!--[^>]*-->"
     r"|\bseal/\S*"
     r'|"seal"'
-    r"|\bseal[-_.][\w.-]*"
+    r"|\bseal[-_.]\w[\w.-]*"
     r"|\bseal mode\b"
     r"|\bsealer\w*"
     r"|specseal\w*"
@@ -455,6 +456,15 @@ def test_the_gate_calls_its_run_no_seal_by_construction():
             if GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)):
                 found.append(f"{'/'.join(parts)}:{n}: {line.strip()}")
     assert not found, "\n".join(found)
+
+
+def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
+    """#975 round 2. A name joins `seal` to more of the name; `seal.` that
+    closes a sentence is the word, and the sweep refuses it."""
+    for line in ('"the broad run is no seal."', "# a run is not a seal."):
+        assert GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
+    for line in ("`seal-stamp --from`", "seal_stamp.py", "seal-mark.txt"):
+        assert not GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
 
 
 # --- "segment" — one agent's stretch of a chain, never a spawn cycle -------
