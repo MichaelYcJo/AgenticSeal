@@ -31,6 +31,8 @@ import os
 import re
 import subprocess
 
+from conftest import on_disk
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
@@ -446,15 +448,17 @@ def cited_files():
         capture_output=True,
         check=True,
     ).stdout.decode("utf-8")
-    for rel in listed.split("\0"):
-        if not rel.endswith((".md", ".py", ".yaml", ".yml", ".json", ".txt")):
-            continue
-        if rel.startswith(NOT_CITATIONS):
-            continue
-        path = os.path.join(ROOT, rel)
-        if os.path.isfile(path):
-            with open(path, encoding="utf-8") as f:
-                yield rel, f.read()
+    wanted = [
+        rel
+        for rel in listed.split("\0")
+        if rel.endswith((".md", ".py", ".yaml", ".yml", ".json", ".txt"))
+        and not rel.startswith(NOT_CITATIONS)
+    ]
+    # A positive sweep: a file the working tree deleted cites nothing.
+    present, _missing = on_disk(ROOT, wanted)
+    for rel in present:
+        with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
+            yield rel, f.read()
 
 
 def test_every_cited_heading_of_implement_exists():
