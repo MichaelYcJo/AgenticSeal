@@ -43,5 +43,6 @@
   Each figure is read with `noninferiority.py#side_numbers` from the work
   item's `evals/baseline-<agent>.json` (committed at `b4e72dbe`, `dc8991c2`
   and `adbbea77`) and `evals/<agent>-phase-4.json`; the verdict is
-  `evals/<agent>-phase-4.md`, both committed at `6f3ee98b`.
+  `evals/<agent>-phase-4.md`, both committed at `6f3ee98b` for the warden
+  and the framer and at `2c7716bd` for the smith.
   (`1792251842-the-smith-is-written-anew-from-its-job`, #967)

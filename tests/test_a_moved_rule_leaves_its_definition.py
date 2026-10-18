@@ -530,6 +530,24 @@ def test_the_smiths_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded
         assert clause in paragraph, f"the fix-pass rule lost {clause!r}"
 
 
+def test_the_smiths_hand_back_carries_what_it_may_not_record_and_ends_in_no_block():
+    """Round 1 of #967 put two sentences into the smith that a reader acts
+    on: step 10 hands back what only a person can answer, with its answerer,
+    and `## Never` refuses a block at the end of the hand-back whoever asks.
+    The orchestrator files from the first, and the changelog promises the
+    second to a plugin user, so a trim that drops either goes red here."""
+    text = read(SMITH)
+    order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
+    never = flat(text[text.index("\n## Never\n") : text.index("\n## Rules\n")])
+    for clause in (
+        "a question only a person can answer",
+        "a leftover for `seal/follow-up.md`",
+        "with who answers each",
+    ):
+        assert clause in order, f"step 10 lost {clause!r}"
+    assert "end the hand-back with a block of any kind, whoever asks for one" in never
+
+
 # A batching figure: a number within a few words of "tools per turn", either
 # side, in any spelling of the phrase.
 TOOLS_PER_TURN = re.compile(

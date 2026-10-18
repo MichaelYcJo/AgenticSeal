@@ -37,9 +37,8 @@ framer's re-run is one of them.
 16e8d4c8, plus two test fixes that no agent reads), is the record:
 `evals/<agent>-phase-4.json` and `.md`. The baselines stay those of phase 1
 at 2fc33333 (the orchestrator's decision, 2026-10-18): re-taking them on the
-merged tree would cost about $60 more for a difference of a few contract
-sentences, so the comparison below includes #969's §2 change as well as
-this item's, and says so.
+merged tree would cost about $60 more, so the comparison below includes
+#969's changes named above as well as this item's, and says so.
 
 ## What this phase found
 
@@ -89,8 +88,8 @@ on a tree carrying this item.
 
 **Spend for this phase (eval `costUsd`):** the first take 60.5128 (smith
 5.6044, warden 38.3511, framer 16.5573, two framer runs of it cut short);
-the second take 63.2293 (smith 5.3675, warden 41.7424, framer 16.1196);
-**123.7421 in all**.
+the second take 63.2295 (smith 5.3675, warden 41.7424, framer 16.1196);
+**123.7423 in all**.
 
 **The smith's side was taken again after round 1.** Round 1's fixes changed
 `agents/smith.md` at a72d5b53, after the take measured above, so the
@@ -109,7 +108,7 @@ the side in `evals/smith-phase-4.json` and `.md` now: **pass**, every rule.
 All 8 runs opened `skills/implement/SKILL.md` and all 8 opened
 `skills/writing-style/SKILL.md` (a `tool_use` line naming each path, per
 trace in `SpecSeal-worktrees/967-phase-4c-raw/smith/traces`). The
-phase's spend becomes **129.1930** with this side's 5.4509.
+phase's spend becomes **129.1932** with this side's 5.4509.
 
 ## Commands
 

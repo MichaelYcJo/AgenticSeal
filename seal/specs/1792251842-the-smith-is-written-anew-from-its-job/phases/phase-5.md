@@ -78,11 +78,11 @@ take.
 **The item passed `questions.md` Q1's $150 stop before phase 4's second
 take.** From the phase records' eval `costUsd`: phase 1 104.1452, phase 4's
 first take 60.5128, so 164.6580 before the second take started, and
-63.2293 for it, 227.8873 in all. Q1's own answer is a stop before the next
+63.2295 for it, 227.8875 in all. Q1's own answer is a stop before the next
 agent once the item's spend passes $150. The tree records the orchestrator's
 decision to keep the baselines and none to pass the stop, so it stands in
 `overview.md` as a divergence and an open `## Not verified` row with the
-orchestrator as answerer. Of the 227.8873, 38.3854 (phase 1's first
+orchestrator as answerer. Of the 227.8875, 38.3854 (phase 1's first
 attempt) and 60.5128 (phase 4's first take) bought no record that stands.
 
 **#973's red Windows leg and this branch's green one are both read off
