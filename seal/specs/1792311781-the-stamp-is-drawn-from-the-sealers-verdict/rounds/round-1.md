@@ -8,7 +8,7 @@ target: 56172bbe against release/v0.22.1
 
 severity: must
 location: `skills/verify/scripts/broad_gate.py:17`, `skills/verify/scripts/broad_gate.py:282-283`, `skills/verify/scripts/broad_gate.py:353`, `skills/verify/scripts/broad_gate.py:413`, `skills/verify/scripts/broad_gate.py:855`, `skills/verify/scripts/broad_gate.py:990`, `skills/verify/scripts/broad_gate.py:1001`, `skills/verify/scripts/broad_gate.py:1010-1011`, `skills/verify/scripts/broad_gate.py:1019-1023`, `skills/verify/scripts/broad_gate.py:1058`, `skills/verify/scripts/broad_gate.py:1064`, `skills/verify/scripts/broad_gate.py:1074`, `skills/verify/scripts/broad_gate.py:1168`, `skills/verify/scripts/broad_gate.py:2245`, `skills/verify/scripts/broad_gate.py:2263`, `skills/verify/scripts/broad_gate.py:2918`, `tests/test_one_word_one_meaning.py:372-411`, `tests/test_one_word_one_meaning.py:599-606`
-verdict: open
+verdict: fixed 42ff7d11
 
 `questions.md` Q4 was answered (a) on 2026-10-18: the gate's sentences that
 say `seal` for the gate's own run say `run` or `pass`, and the fix belongs to
@@ -125,13 +125,13 @@ crosses the literal seam at `broad_gate.py:1057-1058` after the rewording:
     joined = "never read it, and there is no command to run"
 ```
 
-answer:
+answer: the 18 lines reworded as the record gives them, and the seam pin at `tests/test_one_word_one_meaning.py` moved to `there is no command to run`. `test_the_gate_calls_its_run_no_seal_by_construction` added with `GATE_SEAL_NAMES` as given, with two changes: the verdict word in backticks is taken out lower-case only, so `` `SEALED` `` stays refused by this case as well as by the token case, and the comment says why `sealed_names` and `CHAIN_SEALING` need no entry (`_` is a word character) while `--sealing` and `chain_check.SEALING` do, per Q6 (a). `GATE_PHRASES` is kept: `spec.md` S1 names its phrases and the seam-safety case reads it. executed: the new case red at a0ee12eb on exactly the 18 lines this record lists, green after; `bin/test tests/test_one_word_one_meaning.py tests/test_broad_gate.py tests/test_the_broad_gate_row_is_asked_for_and_runs_as_written.py tests/test_the_gate_names_every_step_ci_runs.py tests/test_the_seal_is_taken_once_by_the_sealer.py -q` 463 passed
 
 ### 2. Documents outside the gate still call its run a seal, and one moved paragraph still calls the stamp a run's
 
 severity: should
 location: `templates/config.md:27-28`, `skills/config/SKILL.md:53`, `skills/config/SKILL.md:81`, `skills/verify/SKILL.md:408-409`, `skills/verify/SKILL.md:471`, `docs/the-review-record.md:303-304`, `hooks/sealer-stamp.py:114`, `tests/test_broad_gate_rule.py:446`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:1213`
-verdict: open
+verdict: fixed 212db890
 
 Claimed: phase 3's record says every sentence that called the broad gate's
 run a stamp or a seal was found by sweeping the shipped documents for six
@@ -199,13 +199,13 @@ The two pins move with them:
     assert "one stamp of a real work item's size goes out per message" in rule
 ```
 
-answer:
+answer: the seven sentences reworded and both pins moved, each pin seen red against the old documents first (executed: 3 failed, the third being the class member below). One paste-ready line did not hold: `skills/config/SKILL.md:53` as given made a 20-word run shared with `templates/config.md:27-28`, which `tests/test_no_passage_is_pasted_into_a_second_file.py` refused (executed), so it reads `because what a command nobody chose reports proves nothing`. The class, enumerated by a whitespace-folded sweep of the shipped tree for `seal` words near gate, run, suite or stamp words: also fixed are `templates/config.md:315` and `hooks/config.py:273` (the #429 twins, which credited the sealer with the run), and `skills/verify/SKILL.md`'s coverage section, which called the gate's run a seal three times (the heading `A run says what it did not answer`, `a green run covered`, `A run on a SpecSeal feature branch reads`), with its pin `tests/test_the_seal_is_taken_once_by_the_sealer.py::test_the_documents_name_the_ci_also_row` moved and an absence assertion added; the test docstrings and messages carrying the same sentences follow. Left, as Seal Test vocabulary the round puts to the owner: `the broad seal` and `the one broad seal` in `skills/verify/SKILL.md` (its line 251 defines that seal as the sealer's), `README.md`'s `that seal`, `Not one of those seals survived`, `seals a tree that is going to change`, and a default of `true` seals everything. executed: the pinning modules and `tests/test_docs_line_wrap.py`, `tests/test_no_passage_is_pasted_into_a_second_file.py` green
 
 ### 3. Once per work item rests on a row an agent writes and on one clone's files, so a fresh re-seal row or a squash in another clone draws a second stamp
 
 severity: should
 location: `skills/verify/scripts/seal_stamp.py:977-993`, `skills/verify/scripts/seal_stamp.py:1058-1063`, `docs/the-review-record.md:281-285`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`
-verdict: open
+verdict: fixed 33a5b676
 
 The owner's rule in #975 is that a work item is stamped once, never twice.
 The build holds it with two facts. The first is the `Target SHA` row's `;
@@ -344,7 +344,7 @@ run:` chain reads `sealed` was stamped at that run, which holds across
 clones. The stamp carries what the records at the
 ```
 
-answer:
+answer: `already_queued` matches the work item's id alone, and `_queue_one` queues nothing where `merge-base --is-ancestor <target> HEAD` fails, as the record gives them; `queue_for_guarantee`'s docstring, the module comment above `GUARANTEE_PATH`, and `docs/the-review-record.md` §*The stamp* with both cases on its `Enforced by:` line state the three facts. This closes the failure scenario `plan.md` B1 accepted (a re-run whose row lost its earlier run); `spec.md` S8 stays true as a narrower case. executed: both new cases red at a0ee12eb (each queued a file), green after; `test_a_reseal_after_withheld_queues_the_stamp`, `test_a_second_sealed_verdict_queues_nothing`, `test_a_recommit_of_the_same_guarantee_queues_no_second_file` and `test_a_sealed_guarantees_commit_queues_one_stamp` green; `mutation-check` breaking the ancestor test (`if False:`) turned the squash case red, and breaking the id match (`parts[2]`) turned the re-seal and re-commit cases red; `bin/rules --check` exit 0
 
 ## Confirmations
 
