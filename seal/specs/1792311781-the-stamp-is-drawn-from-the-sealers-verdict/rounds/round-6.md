@@ -8,7 +8,7 @@ target: 1f1e795b, fixes 96cd142b..1f1e795b
 
 severity: should
 location: `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/changelog.md:14-18`, `docs/the-review-record.md:286-288`, `skills/verify/scripts/seal_stamp.py:924-927`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:1393-1396`
-verdict: open
+verdict: fixed d1af2e22
 
 The unit is the statement of the once rule's limit, which phase 6 built as
 the frame wrote it. It is new work of the redesign, so this finding names no
@@ -101,13 +101,13 @@ sentence lands:
     )
 ```
 
-answer:
+answer: the limit is stated as its class, per `questions.md` Q9 (a): a `sealed` committed over a history that carries no earlier `sealed` draws the stamp again in that clone, the sealing commit amended or rewritten there over its own parent or a second seal on a copy that had not fetched the first, with the reason in one clause (across clones the history is the only record the rule reads, and nothing beside the tree counts stamps). It is in the fragment, in `docs/the-review-record.md` §*The stamp* ("was stamped then" now reads "counts as stamped then"), in `seal_stamp.py`'s once comment, and in `overview.md`'s round-3 row, its closed Not verified row and a new Not done bullet. The record's pin is in `test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does`, with a second assertion on the reason clause. executed: that case red before the docs sentence landed (`AssertionError: the double-stamp limit is stated where the rule is`), green after; the stamp, line-wrap, one-word, real-identifier and pasted-passage modules 128 passed; `uvx ruff check` and `uvx ruff format --check` of the two Python files exit 0. read: `git grep -n -F` of `was stamped then`, `holds across clones`, `one exception is a second clone` and `corrects the row draws none` under `tests/` finds no pin. Left standing and not this pass's to write: `spec.md:88-94` and `plan.md:145` and its B1 row still state the limit as an amend alone; they are the framer's documents.
 
 ### 2. The fragment names one instance of the missing-stamp gap, and a guarantee sealed by a person or in a clone with foreign hooks suppresses every later stamp unsaid
 
 severity: should
 location: `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/changelog.md:19-22`, `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/changelog.md:27-32`
-verdict: open
+verdict: fixed d1af2e22
 
 The unit is the fragment's clause that phase 6 rewrote (`plan.md` row 6).
 It is new work of the redesign.
@@ -147,13 +147,13 @@ Lines 19-22 of the fragment become:
   that gap. The stamp's rows
 ```
 
-answer:
+answer: the fragment's once paragraph now says that a `sealed` which queued nothing because a person committed it outside a Claude session, or a clone whose git hooks slot is somebody else's committed it, counts as the work item's one stamp too, so no later commit of that history draws it, a corrected row or a re-seal from a clone that carries the hooks among them; the second paragraph's foreign-hooks sentence points back to it. Local mode is left out of that clause, since no commit there carries `guarantee.md` and the history never reads `sealed`. read: `git grep -n -F` of the changed sentences under `tests/` finds no pin, so no case moves.
 
 ### 3. No case holds the never-twice direction against the narrower form the frame rejected, which passes every case
 
 severity: should
 location: `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:809`, `docs/the-review-record.md:291`
-verdict: open
+verdict: fixed 5cd007dd
 
 The unit is phase 6's set of cases for `sealed_before`. It is new work of
 the redesign.
@@ -232,7 +232,7 @@ rebased case's entry:
 tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing,
 ```
 
-answer:
+answer: the record's case is planted as given, after the rebased case, and named on the rule's `Enforced by:` line. executed: green at HEAD with the rebased case (2 passed); `mutation-check` of `sealed_before` with the B4 form (an earlier `sealed` counts only where `rev-parse -q --verify <its target>^{commit}` succeeds) printed `red`: the new case failed, the fresh clone printing the queued line, while `test_a_sealed_item_rebased_in_another_clone_queues_nothing` still passed, which is the gap the finding names; the file's hash was restored. The stamp and line-wrap modules 91 passed; `bin/rules --check` exit 0; `uvx ruff check` and `uvx ruff format --check` exit 0.
 
 ## Confirmations
 
