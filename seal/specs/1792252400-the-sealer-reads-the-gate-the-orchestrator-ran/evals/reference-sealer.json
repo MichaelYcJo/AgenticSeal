@@ -1,12 +1,12 @@
 {
  "schemaVersion": 1,
  "claudeVersion": "2.1.302",
- "startedAt": "2026-10-18T02:52:51.634Z",
- "durationSeconds": 194,
- "costUsd": 3.3431105,
+ "startedAt": "2026-10-18T03:09:06.468Z",
+ "durationSeconds": 182,
+ "costUsd": 3.3897899,
  "partial": false,
  "suite": {
-  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-0p68m7g0/tree",
+  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-rkuzwshv/tree",
   "ablation": "none",
   "threshold": 1,
   "concurrency": 4,
@@ -14,7 +14,7 @@
    {
     "name": "specseal",
     "version": "0.22.0",
-    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-0p68m7g0/tree"
+    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-rkuzwshv/tree"
    }
   ]
  },
@@ -117,12 +117,12 @@
       "score": 1,
       "passed": true,
       "turns": 1,
-      "costUsd": 0.41184960000000004,
+      "costUsd": 0.4495659,
       "judgeCostUsd": 0,
-      "durationSeconds": 75,
-      "startedAt": "2026-10-18T02:52:51.677Z",
+      "durationSeconds": 82,
+      "startedAt": "2026-10-18T03:09:06.516Z",
       "error": null,
-      "tracePath": "/private/tmp/e-7hZO8d/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-mu8kEK/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -185,16 +185,16 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.41184960000000004,
-        "duration_ms": 1316,
+        "total_cost_usd": 0.4495659,
+        "duration_ms": 1353,
         "modelUsage": {
          "claude-sonnet-5-5": {
           "inputTokens": 8,
-          "outputTokens": 323,
-          "cacheReadInputTokens": 48644,
-          "cacheCreationInputTokens": 15164,
+          "outputTokens": 327,
+          "cacheReadInputTokens": 48629,
+          "cacheCreationInputTokens": 15276,
           "webSearchRequests": 0,
-          "costUSD": 0.06876639999999999,
+          "costUSD": 0.0692529,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
           "thinkingTokens": 0,
@@ -203,34 +203,34 @@
           "costBasis": "list"
          },
          "claude-opus-5-5": {
-          "inputTokens": 16,
-          "outputTokens": 5478,
-          "cacheReadInputTokens": 220171,
-          "cacheCreationInputTokens": 37885,
+          "inputTokens": 18,
+          "outputTokens": 6251,
+          "cacheReadInputTokens": 253480,
+          "cacheCreationInputTokens": 40905,
           "webSearchRequests": 0,
-          "costUSD": 0.34308320000000003,
+          "costUSD": 0.380313,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 602,
+          "thinkingTokens": 442,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 8
+       "tool_calls": 11
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 1,
-      "costUsd": 0.4139427,
+      "costUsd": 0.4061301,
       "judgeCostUsd": 0,
-      "durationSeconds": 84,
-      "startedAt": "2026-10-18T02:52:51.677Z",
+      "durationSeconds": 75,
+      "startedAt": "2026-10-18T03:09:06.516Z",
       "error": null,
-      "tracePath": "/private/tmp/e-6MMFJg/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-MuCf2N/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -293,16 +293,16 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.4139427,
-        "duration_ms": 1263,
+        "total_cost_usd": 0.4061301,
+        "duration_ms": 1329,
         "modelUsage": {
          "claude-sonnet-5-5": {
           "inputTokens": 8,
-          "outputTokens": 319,
-          "cacheReadInputTokens": 48631,
-          "cacheCreationInputTokens": 14866,
+          "outputTokens": 317,
+          "cacheReadInputTokens": 48627,
+          "cacheCreationInputTokens": 14847,
           "webSearchRequests": 0,
-          "costUSD": 0.0675331,
+          "costUSD": 0.0674367,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
           "thinkingTokens": 0,
@@ -311,15 +311,15 @@
           "costBasis": "list"
          },
          "claude-opus-5-5": {
-          "inputTokens": 14,
-          "outputTokens": 5534,
-          "cacheReadInputTokens": 193093,
-          "cacheCreationInputTokens": 39411,
+          "inputTokens": 18,
+          "outputTokens": 5234,
+          "cacheReadInputTokens": 247807,
+          "cacheCreationInputTokens": 36876,
           "webSearchRequests": 0,
-          "costUSD": 0.3464096,
+          "costUSD": 0.33869340000000003,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 501,
+          "thinkingTokens": 365,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
@@ -433,121 +433,13 @@
      {
       "score": 1,
       "passed": true,
-      "turns": 1,
-      "costUsd": 0.2940084,
-      "judgeCostUsd": 0,
-      "durationSeconds": 35,
-      "startedAt": "2026-10-18T02:52:51.677Z",
-      "error": null,
-      "tracePath": "/private/tmp/e-uQNXpP/out/trace.jsonl",
-      "skippedPaidGraders": false,
-      "graders": [
-       {
-        "name": "reach-sealer",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Agent called 1x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-commits-nothing",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Bash called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-runs-no-broad-gate",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Bash called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-verdict",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^Verdict:\\s*\\**withheld\\b",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-writes-only-the-guarantee-edit",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Edit called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-writes-only-the-guarantee-write",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Write called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "truth-no-gate",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^Verdict:.*no broad run",
-        "withOnly": false,
-        "scored": true
-       }
-      ],
-      "specseal": {
-       "report_rows": [],
-       "cost": {
-        "total_cost_usd": 0.2940084,
-        "duration_ms": 1254,
-        "modelUsage": {
-         "claude-sonnet-5-5": {
-          "inputTokens": 8,
-          "outputTokens": 325,
-          "cacheReadInputTokens": 48622,
-          "cacheCreationInputTokens": 14704,
-          "webSearchRequests": 0,
-          "costUSD": 0.0669442,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 0,
-          "canonicalModel": "claude-sonnet-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-         },
-         "claude-opus-5-5": {
-          "inputTokens": 8,
-          "outputTokens": 2841,
-          "cacheReadInputTokens": 82886,
-          "cacheCreationInputTokens": 30727,
-          "webSearchRequests": 0,
-          "costUSD": 0.22706420000000002,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 185,
-          "canonicalModel": "claude-opus-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-         }
-        }
-       },
-       "tool_calls": 5
-      }
-     },
-     {
-      "score": 1,
-      "passed": true,
       "turns": 2,
-      "costUsd": 0.27891930000000004,
+      "costUsd": 0.29411090000000006,
       "judgeCostUsd": 0,
       "durationSeconds": 39,
-      "startedAt": "2026-10-18T02:52:51.677Z",
+      "startedAt": "2026-10-18T03:09:06.516Z",
       "error": null,
-      "tracePath": "/private/tmp/e-4kPadl/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-lsJweU/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -610,16 +502,16 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.27891930000000004,
-        "duration_ms": 36659,
+        "total_cost_usd": 0.29411090000000006,
+        "duration_ms": 37329,
         "modelUsage": {
          "claude-sonnet-5-5": {
           "inputTokens": 4,
           "outputTokens": 325,
           "cacheReadInputTokens": 27657,
-          "cacheCreationInputTokens": 14127,
+          "cacheCreationInputTokens": 14581,
           "webSearchRequests": 0,
-          "costUSD": 0.06253170000000001,
+          "costUSD": 0.06434770000000001,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
           "thinkingTokens": 0,
@@ -629,14 +521,14 @@
          },
          "claude-opus-5-5": {
           "inputTokens": 8,
-          "outputTokens": 2555,
-          "cacheReadInputTokens": 81553,
-          "cacheCreationInputTokens": 29789,
+          "outputTokens": 3103,
+          "cacheReadInputTokens": 82581,
+          "cacheCreationInputTokens": 30231,
           "webSearchRequests": 0,
-          "costUSD": 0.21638760000000004,
+          "costUSD": 0.22976320000000003,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 282,
+          "thinkingTokens": 173,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
@@ -644,6 +536,114 @@
         }
        },
        "tool_calls": 4
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 1,
+      "costUsd": 0.28842159999999994,
+      "judgeCostUsd": 0,
+      "durationSeconds": 36,
+      "startedAt": "2026-10-18T03:09:06.516Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-pAYGe6/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:\\s*\\**withheld\\b",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-no-gate",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:.*no broad run",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.28842159999999994,
+        "duration_ms": 1237,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 322,
+          "cacheReadInputTokens": 48602,
+          "cacheCreationInputTokens": 14657,
+          "webSearchRequests": 0,
+          "costUSD": 0.0667242,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 10,
+          "outputTokens": 2445,
+          "cacheReadInputTokens": 111362,
+          "cacheCreationInputTokens": 30097,
+          "webSearchRequests": 0,
+          "costUSD": 0.22169740000000002,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 200,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 5
       }
      }
     ]
@@ -737,12 +737,12 @@
       "score": 1,
       "passed": true,
       "turns": 1,
-      "costUsd": 0.4215908,
+      "costUsd": 0.3718556,
       "judgeCostUsd": 0,
-      "durationSeconds": 90,
-      "startedAt": "2026-10-18T02:53:27.088Z",
+      "durationSeconds": 77,
+      "startedAt": "2026-10-18T03:09:42.831Z",
       "error": null,
-      "tracePath": "/private/tmp/e-7KerM8/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-d0v1se/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -797,16 +797,116 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.4215908,
-        "duration_ms": 1230,
+        "total_cost_usd": 0.3718556,
+        "duration_ms": 1465,
         "modelUsage": {
          "claude-sonnet-5-5": {
           "inputTokens": 8,
-          "outputTokens": 324,
-          "cacheReadInputTokens": 48498,
-          "cacheCreationInputTokens": 14874,
+          "outputTokens": 322,
+          "cacheReadInputTokens": 48510,
+          "cacheCreationInputTokens": 15603,
           "webSearchRequests": 0,
-          "costUSD": 0.0676018,
+          "costUSD": 0.07049899999999999,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 16,
+          "outputTokens": 6056,
+          "cacheReadInputTokens": 228363,
+          "cacheCreationInputTokens": 26900,
+          "webSearchRequests": 0,
+          "costUSD": 0.30135660000000003,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 755,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 8
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 1,
+      "costUsd": 0.40198470000000003,
+      "judgeCostUsd": 0,
+      "durationSeconds": 98,
+      "startedAt": "2026-10-18T03:09:45.788Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-Exg2QC/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:\\s*\\**sealed\\**\\s*$",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.40198470000000003,
+        "duration_ms": 1399,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 323,
+          "cacheReadInputTokens": 48637,
+          "cacheCreationInputTokens": 14870,
+          "webSearchRequests": 0,
+          "costUSD": 0.0675897,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
           "thinkingTokens": 0,
@@ -816,121 +916,21 @@
          },
          "claude-opus-5-5": {
           "inputTokens": 24,
-          "outputTokens": 6686,
-          "cacheReadInputTokens": 368665,
-          "cacheCreationInputTokens": 29288,
+          "outputTokens": 5798,
+          "cacheReadInputTokens": 368270,
+          "cacheCreationInputTokens": 28937,
           "webSearchRequests": 0,
-          "costUSD": 0.3539890000000001,
+          "costUSD": 0.334395,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 783,
+          "thinkingTokens": 857,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 14
-      }
-     },
-     {
-      "score": 1,
-      "passed": true,
-      "turns": 2,
-      "costUsd": 0.3514018,
-      "judgeCostUsd": 0,
-      "durationSeconds": 71,
-      "startedAt": "2026-10-18T02:53:30.312Z",
-      "error": null,
-      "tracePath": "/private/tmp/e-k3tdcz/out/trace.jsonl",
-      "skippedPaidGraders": false,
-      "graders": [
-       {
-        "name": "reach-sealer",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Agent called 1x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-commits-nothing",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Bash called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-runs-no-broad-gate",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Bash called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-verdict",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^Verdict:\\s*\\**sealed\\**\\s*$",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-writes-only-the-guarantee-edit",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Edit called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-writes-only-the-guarantee-write",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Write called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       }
-      ],
-      "specseal": {
-       "report_rows": [],
-       "cost": {
-        "total_cost_usd": 0.3514018,
-        "duration_ms": 69069,
-        "modelUsage": {
-         "claude-sonnet-5-5": {
-          "inputTokens": 4,
-          "outputTokens": 322,
-          "cacheReadInputTokens": 27738,
-          "cacheCreationInputTokens": 14164,
-          "webSearchRequests": 0,
-          "costUSD": 0.0626578,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 0,
-          "canonicalModel": "claude-sonnet-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-         },
-         "claude-opus-5-5": {
-          "inputTokens": 18,
-          "outputTokens": 4896,
-          "cacheReadInputTokens": 263935,
-          "cacheCreationInputTokens": 27593,
-          "webSearchRequests": 0,
-          "costUSD": 0.288744,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 549,
-          "canonicalModel": "claude-opus-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-         }
-        }
-       },
-       "tool_calls": 10
+       "tool_calls": 12
       }
      }
     ]
@@ -1038,12 +1038,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.24151320000000004,
+      "costUsd": 0.2627601,
       "judgeCostUsd": 0,
-      "durationSeconds": 38,
-      "startedAt": "2026-10-18T02:54:06.904Z",
+      "durationSeconds": 45,
+      "startedAt": "2026-10-18T03:10:21.576Z",
       "error": null,
-      "tracePath": "/private/tmp/e-vjrnot/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-1Ydw4p/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1106,16 +1106,16 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.24151320000000004,
-        "duration_ms": 35857,
+        "total_cost_usd": 0.2627601,
+        "duration_ms": 43409,
         "modelUsage": {
          "claude-sonnet-5-5": {
           "inputTokens": 4,
-          "outputTokens": 331,
-          "cacheReadInputTokens": 27692,
-          "cacheCreationInputTokens": 14593,
+          "outputTokens": 330,
+          "cacheReadInputTokens": 27817,
+          "cacheCreationInputTokens": 14717,
           "webSearchRequests": 0,
-          "costUSD": 0.0644592,
+          "costUSD": 0.06495770000000001,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
           "thinkingTokens": 0,
@@ -1124,34 +1124,34 @@
           "costBasis": "list"
          },
          "claude-opus-5-5": {
-          "inputTokens": 10,
-          "outputTokens": 2848,
-          "cacheReadInputTokens": 119420,
-          "cacheCreationInputTokens": 19234,
+          "inputTokens": 12,
+          "outputTokens": 3346,
+          "cacheReadInputTokens": 150672,
+          "cacheCreationInputTokens": 20140,
           "webSearchRequests": 0,
-          "costUSD": 0.17705400000000002,
+          "costUSD": 0.1978024,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 122,
+          "thinkingTokens": 200,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 5
+       "tool_calls": 6
       }
      },
      {
       "score": 1,
       "passed": true,
-      "turns": 1,
-      "costUsd": 0.24666,
+      "turns": 2,
+      "costUsd": 0.25379029999999997,
       "judgeCostUsd": 0,
-      "durationSeconds": 41,
-      "startedAt": "2026-10-18T02:54:15.220Z",
+      "durationSeconds": 42,
+      "startedAt": "2026-10-18T03:10:28.391Z",
       "error": null,
-      "tracePath": "/private/tmp/e-B4bTWY/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-7MZxsh/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1214,16 +1214,16 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.24666,
-        "duration_ms": 1569,
+        "total_cost_usd": 0.25379029999999997,
+        "duration_ms": 40065,
         "modelUsage": {
          "claude-sonnet-5-5": {
-          "inputTokens": 8,
-          "outputTokens": 330,
-          "cacheReadInputTokens": 48686,
-          "cacheCreationInputTokens": 15020,
+          "inputTokens": 4,
+          "outputTokens": 331,
+          "cacheReadInputTokens": 27749,
+          "cacheCreationInputTokens": 14606,
           "webSearchRequests": 0,
-          "costUSD": 0.06826460000000001,
+          "costUSD": 0.0645169,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
           "thinkingTokens": 0,
@@ -1233,14 +1233,14 @@
          },
          "claude-opus-5-5": {
           "inputTokens": 10,
-          "outputTokens": 2793,
-          "cacheReadInputTokens": 120052,
-          "cacheCreationInputTokens": 19697,
+          "outputTokens": 3209,
+          "cacheReadInputTokens": 121117,
+          "cacheCreationInputTokens": 20166,
           "webSearchRequests": 0,
-          "costUSD": 0.1783954,
+          "costUSD": 0.18927340000000004,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 139,
+          "thinkingTokens": 235,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
@@ -1355,12 +1355,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.3385874,
+      "costUsd": 0.3379209,
       "judgeCostUsd": 0,
-      "durationSeconds": 71,
-      "startedAt": "2026-10-18T02:54:41.008Z",
+      "durationSeconds": 64,
+      "startedAt": "2026-10-18T03:10:59.704Z",
       "error": null,
-      "tracePath": "/private/tmp/e-i5YKYv/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-pikz4B/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1423,16 +1423,16 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.3385874,
-        "duration_ms": 69269,
+        "total_cost_usd": 0.3379209,
+        "duration_ms": 62611,
         "modelUsage": {
          "claude-sonnet-5-5": {
           "inputTokens": 4,
           "outputTokens": 326,
-          "cacheReadInputTokens": 27746,
-          "cacheCreationInputTokens": 14254,
+          "cacheReadInputTokens": 27681,
+          "cacheCreationInputTokens": 14084,
           "webSearchRequests": 0,
-          "costUSD": 0.06305859999999999,
+          "costUSD": 0.0623721,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
           "thinkingTokens": 0,
@@ -1442,14 +1442,14 @@
          },
          "claude-opus-5-5": {
           "inputTokens": 18,
-          "outputTokens": 5003,
-          "cacheReadInputTokens": 251084,
-          "cacheCreationInputTokens": 25036,
+          "outputTokens": 4662,
+          "cacheReadInputTokens": 263184,
+          "cacheCreationInputTokens": 25920,
           "webSearchRequests": 0,
-          "costUSD": 0.2755288,
+          "costUSD": 0.27554880000000004,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 382,
+          "thinkingTokens": 248,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
@@ -1462,13 +1462,13 @@
      {
       "score": 1,
       "passed": true,
-      "turns": 2,
-      "costUsd": 0.3446373,
+      "turns": 1,
+      "costUsd": 0.3232498,
       "judgeCostUsd": 0,
-      "durationSeconds": 82,
-      "startedAt": "2026-10-18T02:54:44.428Z",
+      "durationSeconds": 62,
+      "startedAt": "2026-10-18T03:11:06.523Z",
       "error": null,
-      "tracePath": "/private/tmp/e-ykFg1p/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-cqe3Ya/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1531,16 +1531,16 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.3446373,
-        "duration_ms": 77916,
+        "total_cost_usd": 0.3232498,
+        "duration_ms": 1454,
         "modelUsage": {
          "claude-sonnet-5-5": {
-          "inputTokens": 4,
-          "outputTokens": 326,
-          "cacheReadInputTokens": 27745,
-          "cacheCreationInputTokens": 14267,
+          "inputTokens": 8,
+          "outputTokens": 328,
+          "cacheReadInputTokens": 48804,
+          "cacheCreationInputTokens": 15086,
           "webSearchRequests": 0,
-          "costUSD": 0.0631105,
+          "costUSD": 0.0685204,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
           "thinkingTokens": 0,
@@ -1549,15 +1549,15 @@
           "costBasis": "list"
          },
          "claude-opus-5-5": {
-          "inputTokens": 16,
-          "outputTokens": 4890,
-          "cacheReadInputTokens": 232314,
-          "cacheCreationInputTokens": 27440,
+          "inputTokens": 14,
+          "outputTokens": 4578,
+          "cacheReadInputTokens": 191992,
+          "cacheCreationInputTokens": 24943,
           "webSearchRequests": 0,
-          "costUSD": 0.2815268000000001,
+          "costUSD": 0.2547294,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 459,
+          "thinkingTokens": 315,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
@@ -1584,13 +1584,13 @@
  "specseal": {
   "agent": "sealer",
   "preload": {
-   "agents/sealer.md": "1ee24557140328348508b8d57e8ca7b3944501ee0867597bb23f0efb1ce4b710",
+   "agents/sealer.md": "071c14d8e9eefdeb833f7655a29ed9fb04998b0c452cb57a1a42c410131320c0",
    "skills/agent-contract/SKILL.md": "642b0da67c6795a1aa75ba16d0b17bac4e48639d05134bcdb050c34fcec6ee4e"
   },
-  "preload_bytes": 24555,
+  "preload_bytes": 24702,
   "cut_short": false,
-  "rev": "6f76b0b0",
-  "suite_rev": "6f76b0b03f40f10efc977d68f82cbf259e1c6fe6",
+  "rev": "1483d8ba",
+  "suite_rev": "1483d8bae3c220242f0c87653bb9b8f87fdcec45",
   "suite_tree": "5c3e81195bb9d2319018e2f3abfd5aaf1d9e5447"
  }
 }

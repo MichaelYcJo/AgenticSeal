@@ -18,12 +18,12 @@
   | Agent | Tree | Preload bytes | Tokens per tool call | Spend USD | Graders passed | Verdict |
   |---|---|---|---|---|---|---|
   | sealer | `2fc33333` → `5ca68b5d`, one suite (`c2544c8f`) | 24,652 → 23,792 | 35,490.9 → 33,386.8 | 3.1901 → 2.8036 | 39 → 54 of 54 | pass |
-  | sealer | at the close, `6f76b0b0`, the renamed five-case suite | 24,555 | 35,677.5 | 3.3431 | 68 of 68 | none: the reference a later sealer change compares against, never compared across suites |
+  | sealer | at the close, `1483d8ba`, the renamed five-case suite | 24,702 | 37,080.5 | 3.3898 | 68 of 68 | none: the reference a later sealer change compares against, never compared across suites |
 
   Each figure is read with `noninferiority.py#side_numbers` from the work
   item's `evals/baseline-sealer.json` (committed at `9184881a`),
   `evals/sealer-phase-4.json` and `evals/sealer-sonnet-phase-4.json`
-  (`d27f7994`) and `evals/reference-sealer.json` (re-run after round 2
+  (`d27f7994`) and `evals/reference-sealer.json` (re-run after round 3
   on the five-case suite); the verdict is `evals/sealer-phase-4.md` at
   `d27f7994`. The four-case sides are 8 runs each and the reference 10,
   none cut short.
