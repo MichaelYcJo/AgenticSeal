@@ -42,7 +42,7 @@ dispatcher writes a record under `<git-common-dir>/specseal-gate-failure/`,
 keyed by session and gate, in an opted-in repository, and also where
 `optin.py` is itself the broken module, because that one cannot tell. The
 `stop` group says each pending record once as a `systemMessage`, before the
-broad gate's stamp where there is one, and nothing the report adds carries a
+sealer's stamp where there is one, and nothing the report adds carries a
 decision. Before this, a skipped gate read exactly like an allow and nobody
 was told. What it still cannot say is a failure it had nowhere to write: a
 git directory it cannot write to is as silent as before.

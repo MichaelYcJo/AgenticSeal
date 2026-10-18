@@ -189,7 +189,7 @@ SHIPPED = {
     "mutation-check": (NO_WALK, "breaks and restores the one file it is named"),
     "deferral-check": (NO_WALK, "reads the pull request body and round records"),
     "seal": (NOT_A_CHECK, "the mode command, writing seal/config.md"),
-    "seal-stamp": (NOT_A_CHECK, "draws the broad gate's stamp"),
+    "seal-stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
     "session-cost": (NOT_A_CHECK, "measures a transcript"),
     "payload-meter": (NOT_A_CHECK, "measures a spawn's payload"),
     "test": (NOT_A_CHECK, "this repository's own suite runner"),

@@ -25,8 +25,8 @@ its neighbours down with it.
 And it is said (#28). A skipped gate used to read exactly like an allow, with
 nobody told. Now the skip writes a record under the git common dir, once per
 gate per session, and the `stop` group says every pending record at the end
-of the main session's turn as a `systemMessage`, placed before the broad
-gate's stamp. Nothing the report adds decides anything, and a group whose gates all
+of the main session's turn as a `systemMessage`, placed before the sealer's
+stamp. Nothing the report adds decides anything, and a group whose gates all
 ran prints what it printed before.
 """
 
@@ -112,8 +112,9 @@ GROUPS = {
         "root-migrate.py",
         "hook-install.py",
     ),
-    # The end of a main-session turn, where a sealed run's stamp is drawn
-    # after the text it belongs under (#400). One gate, like `post-agent`,
+    # The end of a main-session turn, where the stamp a `sealed` guarantee's
+    # commit queued is drawn after the text it belongs under (#400, #975).
+    # One gate, like `post-agent`,
     # because nothing else here has anything to say when a turn ends.
     "stop": ("sealer-stamp.py",),
 }

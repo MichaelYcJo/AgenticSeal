@@ -1,11 +1,14 @@
-# assets/seals/ — every emblem the broad gate's stamp has carried
+# assets/seals/ — the emblems the stamp has carried
 
-The broad gate draws a stamp when a run earns it
-(`docs/the-broad-gate.md` §*Where the stamp is drawn*): the panel of what
-it read, and a wax disc with an emblem pressed into it. The emblem has
-changed since #30 first drew it. This directory keeps each version as the
-terminal drew it, so a reader can see an earlier one without checking out
-an old tag.
+The stamp is the sealer's. It is drawn once per work item, at the commit of
+a `guarantee.md` reading `sealed` (`docs/the-review-record.md` §*The
+stamp*): the panel of what the records at that commit say, and a wax disc
+with an emblem pressed into it. Before #975 the broad gate's run drew it
+when the run passed. It drew the gold lily and the red lily below, and from
+0.20.0 through 0.22.0 the placeholder S that §*Candidates for #857*
+describes, which has no entry here yet. The emblem has changed since #30
+first drew it. This directory keeps each version as the terminal drew it,
+so a reader can see an earlier one without checking out an old tag.
 
 Each entry is two files, and no code reads either of them:
 
@@ -64,7 +67,8 @@ twin rather than the colours.
 
 ## The next entry
 
-The emblem that follows the red lily is added when its release is tagged.
+The emblem that follows the red lily, the placeholder S, has been on every
+release's stamp since 0.20.0 and has no entry yet.
 The version check in `tests/test_release_hygiene.py` refuses a version at
 or above the running one unless a tag names it, so an entry written before
 its tag cannot name its release.

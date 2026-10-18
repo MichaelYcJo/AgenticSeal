@@ -270,8 +270,8 @@ def unfenced(lines, text=None):
     position for it. So a fenced example above the live table, or above a
     table that has no parseable row yet, is a shape this plugin's own
     documented procedure produces; before this rule the example's rows were
-    the rows every gate got, and the sealer's seal was taken over a command
-    nobody chose.
+    the rows every gate got, and the broad run ran a command nobody
+    chose.
 
     **It yields positions, not surviving text alone.** `gfm_table` returns
     each row's line, `config_table` hands that index on, and `with_row`

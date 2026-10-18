@@ -890,7 +890,7 @@ def finding_spans(reader, lines):
         for i in range(start + 1, end)
         if reader.heading_level(lines[i]) == FINDING_LEVEL
     ]
-    return (start, end), list(zip(heads, [*heads[1:], end], strict=False)), None
+    return (start, end), list(zip(heads, [*heads[1:], end])), None
 
 
 def finding_number(heading):
@@ -1359,6 +1359,25 @@ def target_of(reader, text):
     rows = table_rows(reader, reader.readable(text or ""))
     found = SHA_RE.search(reader.visible(field(rows, TARGET) or ""))
     return found.group(0) if found else None
+
+
+def earlier_verdicts(cell):
+    """`[(sha, word)]` for each `; earlier run: <sha> <verdict>` entry of a
+    `guarantee.md` `Target SHA` cell, in the order written (#975): `word` is
+    `verdict_word` of what follows the SHA, past an `against <base>` where an
+    entry names one. An entry whose first word is not SHA-shaped is left
+    out. The stamp is drawn once per work item, and an earlier entry reading
+    `sealed` is how the row says it was drawn already."""
+    out = []
+    for entry in (cell or "").split(EARLIER_RUN)[1:]:
+        words = EMPHASIS.sub("", entry).split()
+        if not words or not SHA_RE.fullmatch(words[0]):
+            continue
+        rest = words[1:]
+        if len(rest) >= 2 and rest[0] == "against":
+            rest = rest[2:]
+        out.append((words[0], verdict_word(" ".join(rest))))
+    return out
 
 
 def newest_run(reader, text):

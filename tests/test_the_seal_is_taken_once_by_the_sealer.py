@@ -172,9 +172,8 @@ def test_the_failure_form_lines_up_the_widest_check_name():
     """A round 1 record correction. The name column was padded to a literal
     8 and `unverified` is ten characters, so that one check's first line sat
     a column out from every other check's — on the form a reader scans to
-    find which check failed."""
-    mod = module()
-    out = mod.not_sealed(
+    find which check failed. The form is the gate's since #975."""
+    out = gate_module().failed_form(
         "aaa1111", "bbb2222", [("suite", ["one"]), ("unverified", ["two"])]
     )
     columns = {
@@ -292,7 +291,7 @@ def test_a_line_writes_one_sgr_per_change_and_no_reset_inside_it():
     no two are adjacent, and no part twice in one; no reset inside a line,
     and `\\x1b[0m` closing a line that wrote a code. A blank keeps the
     foreground and the style as set and writes nothing, unless a background
-    is still set from the disc, which it ends. Read over a real run's stamp,
+    is still set from the disc, which it ends. Read over a real work item's stamp,
     with its disc and without (whose blank lines write nothing at all), and
     over the disc alone, against the count of changes taken from
     `compose`'s cells here.
@@ -780,8 +779,10 @@ def test_the_twin_writes_the_discs_nine_letters_and_the_text_in_ascii():
     assert len(set(mod.KEY.values())) == 9, mod.KEY
     ascii_ = {"·": ".", "✓": "+", "─": "-", "→": ">"}
     assert ascii_ == mod.TWIN_ASCII, mod.TWIN_ASCII
-    letter = mod.compose(mod.SAMPLE_ROWS)
-    twin = mod.stamp(mod.SAMPLE_ROWS, shape=True)
+    # The sample as it stood at 5623d728 carries all four of the owner's
+    # characters; since #975 the stamp's own sample carries `✓` and `─` alone.
+    letter = mod.compose(SAMPLE_AT_5623D728)
+    twin = mod.stamp(SAMPLE_AT_5623D728, shape=True)
     seen = set()
     for line, said in zip(letter.cells, twin, strict=True):
         assert said.isascii(), said
@@ -1018,18 +1019,19 @@ def test_no_scale_is_left_to_ask_for():
 # --- the failure form ------------------------------------------------------
 
 
-def test_not_sealed_carries_no_disc_and_names_every_failure():
+def test_the_failure_form_carries_no_disc_and_names_every_failure():
     """#30 §*On failure*: no drawing. What a person needs then is which checks
-    broke, and a 22-row picture pushes that off the screen — and a picture
-    that says *sealed* beside a word that says *not* is read picture first."""
+    broke, and a 22-row picture pushes that off the screen. Since #975 the
+    form is the gate's, under `BROAD GATE FAILED`, and never says `sealed`."""
     mod = module()
     failures = [
         ("suite", ["3 failed, 765 passed", "tests/test_x.py::test_y FAILED"]),
         ("chain", ["1 error"]),
     ]
-    lines = mod.not_sealed("c46fd2d", "1e2bed9", failures)
+    lines = gate_module().failed_form("c46fd2d", "1e2bed9", failures)
     text = "\n".join(lines)
-    assert "NOT SEALED" in lines[0], f"the first line is not the verdict: {lines[0]!r}"
+    assert lines[0].startswith("BROAD GATE FAILED   "), lines[0]
+    assert "SEALED" not in text.upper(), text
     assert "c46fd2d" in lines[0] and "1e2bed9" in lines[0], (
         "the failure form does not name the tree and the base"
     )
@@ -1379,13 +1381,23 @@ def repo(tmp_path, _template):
     return d
 
 
-def run_gate(repo, *extra, keep=None, wrapper=False, session=None, cwd=None, env=None):
+def run_gate(
+    repo,
+    *extra,
+    keep=None,
+    wrapper=False,
+    session=None,
+    cwd=None,
+    env=None,
+    shape=True,
+):
     """`broad_gate.py --base base --root <repo> --shape`, its outputs kept
-    under `keep`; returns the completed process. stdout is a pipe, so a
-    sealed run signals rather than draws; `session` is the Claude Code
-    session the run belongs to, and None runs it with no session at all.
-    `cwd` is where the gate is started, which a relative `keep` is read
-    from, and `env` holds variables the gate's environment gains."""
+    under `keep`; returns the completed process. stdout is a pipe; `shape`
+    False leaves `--shape` out, so the report's marks are the owner's where
+    the pipe is UTF-8. `session` is the Claude Code session the run belongs
+    to, and None runs it with no session at all. `cwd` is where the gate is
+    started, which a relative `keep` is read from, and `env` holds variables
+    the gate's environment gains."""
     keep = keep or repo.parent / "out"
     added, env = env, env_without_a_pull_request()
     env.update(added or {})
@@ -1396,7 +1408,7 @@ def run_gate(repo, *extra, keep=None, wrapper=False, session=None, cwd=None, env
         "base",
         "--root",
         str(repo),
-        "--shape",
+        *(["--shape"] if shape else []),
         "--keep-output",
         str(keep),
         *extra,
@@ -1422,69 +1434,99 @@ def short(repo, ref):
 
 
 def values_files(repo):
-    """Every values file the gate has written for `repo`, drawn or not.
+    """Every values file anything has written for `repo`, drawn or not.
 
-    Read from the git dir rather than from what the gate printed: since #400
-    a sealed run on a pipe prints no disc at all, so a disc missing from
-    stdout proves nothing about a run that should not have been sealed. A
-    file here is what a hook would have drawn."""
+    Read from the git dir rather than from what the gate printed: a file
+    here is what a hook would draw, and since #975 the gate writes none —
+    the stamp is queued at the commit of a `sealed` guarantee."""
     found = []
     for directory, _dirs, names in os.walk(repo / ".git" / VALUES_DIR):
         found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
     return sorted(found)
 
 
-def signal_lines(text):
-    """The lines of `text` that are the gate's `SEALED` signal."""
-    return [line for line in text.splitlines() if line.startswith("SEALED")]
+# The gate's two heads since #975: the word `sealed` is the sealer's verdict,
+# and the gate's line says only whether the broad run passed.
+PASSED = "BROAD GATE PASSED"
+FAILED = "BROAD GATE FAILED"
 
 
-def head_of(repo, word="SEALED", branch="feature"):
-    """What a `SEALED` or `NOT SEALED` line opens with over the fixture
-    (#666): the branch and the tree, then the base's ref and its commit. The
-    fixture has no remote, so the ref is `base` as given."""
+def passed_lines(text):
+    """The lines of `text` that are the gate's `BROAD GATE PASSED` head."""
+    return [line for line in text.splitlines() if line.startswith(PASSED)]
+
+
+def head_of(repo, word=PASSED, branch="feature"):
+    """What a `BROAD GATE PASSED` or `BROAD GATE FAILED` line opens with over
+    the fixture (#666): the branch and the tree, then the base's ref and its
+    commit. The fixture has no remote, so the ref is `base` as given."""
     named = f"{branch} @ {short(repo, 'HEAD')}" if branch else short(repo, "HEAD")
     return f"{word}   {named} against base @ {short(repo, 'base')}"
 
 
-def sealed_values(repo, tmp_path, session="s-1"):
-    """A settled item sealed through `--record` on a pipe, with `session` set:
-    the completed process and the one values file's contents."""
+def report_of(stdout):
+    """The panel rows a passing run printed under its head (#975), read back
+    as `{"rows": [...]}` — `(label, value)` pairs, `""` for a continuation,
+    None for the blank line — the shape `row_of` reads. The label is the
+    first `LABEL_WIDTH` columns, as `seal_stamp.text_lines` pads it; the
+    lines after the head stop at the `broad-gate:` line, which is no row."""
+    lines = stdout.splitlines()
+    (at,) = [i for i, line in enumerate(lines) if line.startswith(PASSED)]
+    width = module().LABEL_WIDTH
+    rows = []
+    for line in lines[at + 1 :]:
+        if line.startswith("broad-gate:"):
+            break
+        rows.append(None if not line else (line[:width].strip(), line[width + 1 :]))
+    return {"rows": rows}
+
+
+# What `run_gate` adds to the environment for a report in the owner's marks:
+# a pipe whose encoding is UTF-8 whatever the machine's locale says.
+UTF8_PIPE = {"PYTHONIOENCODING": "utf-8"}
+
+
+def recorded_report(repo, tmp_path, session="s-1"):
+    """A settled item run through `--record` on a UTF-8 pipe, with `session`
+    set: the completed process and the report it printed (`report_of`)."""
     settled_item(repo)
     out = run_gate(
-        repo, "--record", str(repo / ITEM), keep=tmp_path / "out", session=session
+        repo,
+        "--record",
+        str(repo / ITEM),
+        keep=tmp_path / "out",
+        session=session,
+        shape=False,
+        env=UTF8_PIPE,
     )
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    files = values_files(repo)
-    assert len(files) == 1, f"one values file expected, found {files}"
-    return out, module().read_values(files[0])
+    return out, report_of(out.stdout)
 
 
 @pytest.fixture(scope="module")
-def a_sealed_run(tmp_path_factory, _template):
-    """One settled item sealed through `--record` on a pipe, with a session,
+def a_recorded_run(tmp_path_factory, _template):
+    """One settled item run through `--record` on a pipe, with a session,
     shared by the cases that only read what that run printed and left.
 
     Six cases each ran this same gate, end to end, to read a different line
     or row of its output: 10-12 s a case on the Windows leg of run
-    37429940700 (#841). Every claim among them is about one sealed run, so
+    37429940700 (#841). Every claim among them is about one passing run, so
     one run keeps them all. Serially that leaves one run where there were
     six; under xdist the fixture is built once per worker that draws one of
     the six, so up to one run per worker. A case that
     changes the tree, the record or the values directory before the run
     keeps its own `repo`, and no case given this one writes to it.
 
-    Under a directory whose name holds a space, for the reason
-    `test_a_recorded_seal_on_a_pipe_signals_and_draws_nothing` gives. A
-    module-scoped fixture is set up before `_no_ambient_pull_request` runs,
-    which costs nothing here: every script this run starts is given
-    `env_without_a_pull_request()`.
+    Under a directory whose name holds a space, so a path the run prints is
+    read with the space in it. A module-scoped fixture is set up before
+    `_no_ambient_pull_request` runs, which costs nothing here: every script
+    this run starts is given `env_without_a_pull_request()`.
 
-    Returns (the repository, the completed process, the values)."""
-    scratch = tmp_path_factory.mktemp("sealed-once")
+    Returns (the repository, the completed process, the report's rows)."""
+    scratch = tmp_path_factory.mktemp("recorded-once")
     repo = scratch / "a checkout" / "repo"
     shutil.copytree(_template, repo)
-    out, values = sealed_values(repo, scratch, session="s-1")
+    out, values = recorded_report(repo, scratch, session="s-1")
     return repo, out, values
 
 
@@ -1536,8 +1578,8 @@ def test_the_gate_runs_the_copy_the_tree_ships_with_the_same_arguments(repo, tmp
     assert "'--base', 'base'" in out.stdout and repr(str(repo)) in out.stdout, (
         f"the tree's copy was not handed the argument vector as given:\n{out.stdout}"
     )
-    assert "SEALED" not in out.stdout, (
-        "the invoking copy went on to seal after handing over"
+    assert "BROAD GATE" not in out.stdout, (
+        "the invoking copy went on to run the checks after handing over"
     )
     line = next(
         (line for line in out.stderr.splitlines() if "ships its own gate" in line),
@@ -1585,17 +1627,17 @@ def test_a_shipped_copy_that_is_this_file_by_realpath_is_not_a_redirect(repo):
     assert gate_module().shipped_gate(str(repo)) is None
 
 
-def test_a_repository_shipping_no_gate_runs_the_invoked_copy(a_sealed_run):
-    """A9 and A10 together, on a sealed run. The fixture ships no gate, so the
-    invoked copy runs as before, and stderr carries one line naming the
+def test_a_repository_shipping_no_gate_runs_the_invoked_copy(a_recorded_run):
+    """A9 and A10 together, on a passing run. The fixture ships no gate, so
+    the invoked copy runs as before, and stderr carries one line naming the
     running copy's absolute path and `plugin <version>`. Red at `9f846733`:
     no such line.
 
     Since #666 the panel carries NO `gate` row here (A8): the copy that ran
     is the copy that was invoked, so the row would say nothing, which is the
     owner's complaint about the row on every stamp. The panel is read from
-    the run's values file, because a sealed run on a pipe does not draw it."""
-    _repo, out, values = a_sealed_run
+    the report the run printed (#975)."""
+    _repo, out, values = a_recorded_run
     assert row_of(values, "gate") is None, values["rows"]
     assert f"broad-gate: gate {os.path.realpath(GATE)} (plugin " in out.stderr, (
         f"no stderr line names the running copy's path:\n{out.stderr}"
@@ -1696,8 +1738,7 @@ def test_the_gate_takes_the_invoked_path_out_of_the_environment(
     monkeypatch.setenv(gate.INVOKED_AS_VAR, "/x/elsewhere/broad_gate.py")
     gate.main(
         ["--base", "base", "--root", str(repo), "--keep-output", str(tmp_path / "o")],
-        console_wants_letters=True,
-        console_is_terminal=False,
+        console_wants_ascii=True,
     )
     assert gate.INVOKED_AS_VAR not in os.environ
 
@@ -1715,9 +1756,9 @@ def test_the_gate_row_fits_the_panel_for_a_nine_character_version(tmp_path):
             json.dumps({"version": version}), encoding="utf-8"
         )
         value = gate.copy_origin(str(tmp_path), plugin=str(fake))
-        assert len(value) <= gate.PANEL_VALUE_WIDTH, value
+        assert len(value) <= module().PANEL_VALUE_WIDTH, value
         assert value.startswith("plugin "), value
-    assert gate.copy_origin(str(tmp_path), plugin=str(fake)).endswith(gate.ELISION)
+    assert gate.copy_origin(str(tmp_path), plugin=str(fake)).endswith(module().ELISION)
     rows = gate.panel(
         "ccccccc",
         gate.Base("base", "cccccccc", "base", "cccccccc"),
@@ -1732,7 +1773,7 @@ def test_the_gate_row_fits_the_panel_for_a_nine_character_version(tmp_path):
 
 
 def test_without_the_row_the_gate_names_it_and_runs_nothing(tmp_path):
-    """S3. A seal taken over a command nobody chose is the counterfeit
+    """S3. A run over a command nobody chose is the counterfeit
     `verify` names, so an absent row is a refusal rather than a default: the
     row is named, exit 2, and no check ran — the output directory holds
     nothing."""
@@ -1846,7 +1887,7 @@ def test_a_failing_row_with_no_record_says_so_on_the_form(repo, tmp_path, row):
     among its first lines and is nowhere counted."""
     out = run_gate(set_row(repo, row), keep=tmp_path / "out")
     assert out.returncode == 1, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
-    assert "NOT SEALED" in out.stdout, out.stdout
+    assert FAILED in out.stdout, out.stdout
     gate = gate_module()
     lines = [line.strip() for line in out.stdout.splitlines()]
     assert gate.NO_RECORD_HERE in lines, out.stdout
@@ -1873,9 +1914,8 @@ def test_a_row_wrapped_in_backticks_is_refused_and_shown_rewritten(repo, tmp_pat
 def test_the_wrapped_row_that_would_have_seal_a_red_suite_is_refused(repo, tmp_path):
     """A2. The quiet direction, which is the one that matters: the same
     content exits 1 bare and exited 0 wrapped, with the failure still on the
-    screen. Bare, the gate is NOT SEALED. Wrapped, it refuses rather than
-    sealing — and under the revert this case was written against, it drew the
-    stamp.
+    screen. Bare, the gate fails. Wrapped, it refuses rather than passing —
+    and under the revert this case was written against, it drew the stamp.
 
     **The pair is POSIX command substitution, and `cmd.exe` does not have
     it.** `FAILS_BUT_PRINTS_A_COMMAND` is a `;`-separated line ending in
@@ -1889,7 +1929,7 @@ def test_the_wrapped_row_that_would_have_seal_a_red_suite_is_refused(repo, tmp_p
     keep = tmp_path / "out"
     bare = run_gate(set_row(repo, FAILS_BUT_PRINTS_A_COMMAND), keep=keep)
     assert bare.returncode == 1, f"{bare.stdout}\n{bare.stderr}"
-    assert "NOT SEALED" in bare.stdout, bare.stdout
+    assert FAILED in bare.stdout, bare.stdout
 
     said = refusal_of(repo, f"`{FAILS_BUT_PRINTS_A_COMMAND}`", tmp_path / "out2")
     assert "DISCARDED" in said, said
@@ -2018,10 +2058,10 @@ def test_the_forms_that_stay_allowed_are_sealed_exactly_as_today(
     keep = tmp_path / "out"
     out = run_gate(set_row(repo, value), keep=keep)
     assert out.returncode == 0, f"{why}\n{out.stdout}\n{out.stderr}"
-    assert "SEALED" in out.stdout and "NOT SEALED" not in out.stdout
+    assert PASSED in out.stdout and FAILED not in out.stdout
     suite = (keep / "suite.txt").read_text(encoding="utf-8")
     assert gate_module().suite_counts(head_run(keep, repo)) == "1 passed", (
-        f"{why}\nthe gate sealed without the row's suite running:\n{suite}"
+        f"{why}\nthe gate passed without the row's suite running:\n{suite}"
     )
 
 
@@ -2859,25 +2899,25 @@ def test_a_padded_value_is_read_as_the_value_it_pads(pad):
     assert f"as meant:   | {ROW} | {SUITE_ROW} |" in said, said
 
 
-# --- S1 sealed ---------------------------------------------------------------
+# --- S1 the gate passes, and says only that ----------------------------------
 
 
-def test_a_green_tree_is_sealed_with_every_check_run_in_order(repo, tmp_path):
-    """S1 of #30, and S9 of 1790562543. Every check runs, its exit code is
+def test_a_green_tree_passes_with_every_check_run_in_order(repo, tmp_path):
+    """S1 of #30, and #975's S1 and S2. Every check runs, its exit code is
     read off the process and kept with its output. Without `--record` a green
-    run on a pipe is sealed and draws nothing: one `SEALED` line naming the
-    tree and the base and saying nothing was recorded, no disc in either
-    form, and no values file for anyone to draw — drawing a stamp takes the
-    exit 0 AND the written cell (#400's Done-when). The panel's rows are
-    pinned where they are drawn from, in the recorded case below."""
+    run prints `BROAD GATE PASSED` naming the tree and the base, the panel's
+    rows as text with no `item` or `rounds` row, no disc in either form, no
+    word `SEALED`, and no values file for anyone to draw: the stamp is the
+    sealer's, drawn from a `sealed` guarantee and never from this run."""
     keep = tmp_path / "out"
     out = run_gate(repo, keep=keep, session="s-1")
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    assert "NOT SEALED" not in out.stdout
-    said = signal_lines(out.stdout)
-    assert len(said) == 1, f"one `SEALED` line expected:\n{out.stdout}"
-    assert said[0].startswith(head_of(repo)), said
-    assert "nothing was recorded" in said[0], said
+    assert FAILED not in out.stdout
+    said = passed_lines(out.stdout)
+    assert len(said) == 1, f"one `{PASSED}` line expected:\n{out.stdout}"
+    assert said[0] == head_of(repo), said
+    assert out.stdout.startswith(said[0]), out.stdout
+    assert not re.search(r"\bSEALED\b|\bsealed\b(?!-)", out.stdout), out.stdout
     # No cell was written, so nothing is uncommitted and the line that says
     # so is absent (#666's S2).
     assert "not committed" not in out.stdout, out.stdout
@@ -2885,7 +2925,9 @@ def test_a_green_tree_is_sealed_with_every_check_run_in_order(repo, tmp_path):
     assert not SGR.search(out.stdout), "a piped run carries colour codes"
     assert not any(c in out.stdout for c in HALF_BLOCKS), "a piped run drew blocks"
     assert not re.search(r"\brounds\b", out.stdout), "a rounds row without --record"
-    assert not values_files(repo), "a run with no cell written left a stamp to draw"
+    assert not re.search(r"^item\b", out.stdout, re.M), "an item row without --record"
+    assert re.search(r"^tree    \S", out.stdout, re.M), out.stdout
+    assert not values_files(repo), "the gate wrote a stamp's values"
     gate = gate_module()
     order = [
         gate.SUITE,
@@ -2903,62 +2945,39 @@ def test_a_green_tree_is_sealed_with_every_check_run_in_order(repo, tmp_path):
     assert times == sorted(times), f"the checks did not run in order: {times}"
 
 
-# --- 1790562543: a sealer's run signals, and the panel waits in a file -------
+# --- #975 S2 and S3: a recorded run draws nothing, on any stream -------------
 
 
-def test_a_recorded_seal_on_a_pipe_signals_and_draws_nothing(a_sealed_run):
-    """S1 of 1790562543 (#400). A sealer's stdout is a pipe into a report
-    that arrives folded, so the gate draws nothing there — not the block
-    form, not the letter twin, even under the `--shape` `run_gate` passes.
-    It writes one values file under the git common dir, keyed by the
-    session, and prints one `SEALED` line naming the tree, the base commit
-    and that file. The hook draws the file; this line is what the report
-    carries.
-
-    Run under a directory whose name holds a space (round 2's ⬜ 3): with no
-    space the quoted and unquoted path are the same bytes, so the quoting
-    assertion below could not tell a quoted command from a bare one.
-    `a_sealed_run` is built under such a directory."""
-    repo, out, _values = a_sealed_run
-    assert " " in str(repo), repo
-    said = signal_lines(out.stdout)
-    assert len(said) == 1, f"one `SEALED` line expected:\n{out.stdout}"
-    (path,) = values_files(repo)
-    assert said[0].startswith(head_of(repo)), said
-    assert path in said[0], f"the line does not name the file {path}: {said}"
-    assert "session s-1" in said[0], said
-    # Round 1's 🟡 1. The hook draws nothing, and says nothing, where it
-    # cannot — a `python3` under the floor, a session outside this clone, a
-    # plugin older than the hook — so the common line names the recovery too.
-    assert f"`seal-stamp --from {gate_module().quote(path)}`" in said[0], said
-    assert " " in path and f"--from {path}`" not in said[0], said
-    assert os.path.dirname(path) == str(repo / ".git" / VALUES_DIR / "s-1"), path
-    assert not path.endswith(".drawn.json"), "the file was marked drawn by the gate"
+def test_a_recorded_run_on_a_pipe_writes_no_values_file(a_recorded_run):
+    """#975 S2, on a pipe — every run a session's Bash call takes. With a
+    session set and `--record` given, the run writes `broad-gate.md` and
+    nothing under `<git-common-dir>/specseal-stamp/`: no file for a hook to
+    draw, because the stamp is drawn from the sealer's `sealed` verdict at
+    its commit, and this run comes before the sealer has read anything
+    (#975's finding on #967). Nothing is drawn on the stream either."""
+    repo, out, _values = a_recorded_run
+    assert (repo / ITEM / "broad-gate.md").is_file(), "the run wrote no record"
+    assert not (repo / ".git" / VALUES_DIR).exists(), values_files(repo)
+    (said,) = passed_lines(out.stdout)
+    assert said == head_of(repo), said
+    assert not re.search(r"\bSEALED\b|\bsealed\b(?!-)", out.stdout), out.stdout
+    assert "seal-stamp" not in out.stdout, out.stdout
     assert crown_of() not in out.stdout, "a piped run drew the twin"
     assert not SGR.search(out.stdout), "a piped run carries colour codes"
     assert not any(c in out.stdout for c in HALF_BLOCKS), "a piped run drew blocks"
 
 
-def test_the_values_file_holds_this_runs_panel(a_sealed_run):
-    """S2 and S13 of 1790562543. The file holds the rows `panel` returned for
-    this run — in `panel`'s order — and the constant `scale` 0.9, read by
-    nothing since #853 and written for 0.21's cycle so a hook older than
-    #853 still draws it (#869 round 1's 🟡 3). Nothing downstream re-derives
-    a row: the drawing is these values.
-
-    #666's A5: the whole sequence, positively, so a row that went missing
-    cannot pass by being absent. The branch continues under `tree` and the
-    base's ref under `base`; `item` is the work item's id with no pull
-    request, because the fixture's record reads `not yet opened`; no `gate`
-    row, because the fixture ships no gate; `from` and `row` are gone. No
-    `CI also` row: the fixture has no workflow.
-
-    #832's S5a, the owner's design of 2026-10-07, puts the result rows in
-    one shape: the base's ref beside its commit, a blank before the results,
-    a `✓` on each result row and `chain ✓ exit 0`."""
-    repo, _out, values = a_sealed_run
+def test_the_report_carries_this_runs_panel(a_recorded_run):
+    """#975 S3, and #666's A5: the whole report, positively, so a row that
+    went missing cannot pass by being absent. The head, then `panel`'s rows
+    as text in `panel`'s order with no title row — the branch continuing
+    under `tree`, the base's ref beside its commit, `item` the work item's
+    id, a blank before the results, a `✓` on each result row (#832's S5a,
+    the owner's design of 2026-10-07), `rounds 2` — then the line saying
+    `broad-gate.md` is not committed. No `gate` row, because the fixture
+    ships no gate; no `CI also` row, because it has no workflow."""
+    repo, out, values = a_recorded_run
     assert values["rows"] == [
-        ("SEALED", ""),
         ("tree", short(repo, "HEAD")),
         ("", "feature"),
         ("base", f"{short(repo, 'base')}  base"),
@@ -2968,92 +2987,60 @@ def test_the_values_file_holds_this_runs_panel(a_sealed_run):
         ("chain", "✓ exit 0"),
         ("rounds", "2"),
     ], values["rows"]
-    # #869 round 1's 🟡 3: a constant for the installed hook, for one
-    # release; this assertion goes with `SCALE_FOR_OLDER_HOOKS`.
-    assert values["scale"] == gate_module().SCALE_FOR_OLDER_HOOKS == 0.9, values
-    assert values["session"] == "s-1" and values["item"] == str(repo / ITEM)
-    assert (values["tree"], values["base"]) == (
-        short(repo, "HEAD"),
-        short(repo, "base"),
-    )
+    lines = out.stdout.splitlines()
+    assert lines[0] == head_of(repo), lines
+    assert lines[1] == f"tree    {short(repo, 'HEAD')}", lines
+    assert lines[-1].startswith("broad-gate: the run is written to "), lines
+    assert len(lines) == 1 + len(values["rows"]) + 1, lines
 
 
-def test_a_run_with_no_session_says_so_and_names_the_hand_command(repo, tmp_path):
-    """S14. With `CLAUDE_CODE_SESSION_ID` unset the run is still sealed and
-    its values still written, under `none/`, which no hook reads. The line
-    says no session was found and names `seal-stamp --from <path>`, so the
-    stamp is not lost and nothing claims it will appear.
+def test_a_recorded_run_on_a_terminal_prints_the_same_report(a_recorded_run, tmp_path):
+    """#975 S2 and S3, on a terminal: a person's hand-run prints the report
+    in the same bytes a UTF-8 pipe gets — no disc, no colour, no title — and
+    writes no values file. Before #975 this was the one place the gate drew
+    the stamp.
 
-    Round 1's ⬜ 5: the path is quoted for the platform's shell, so a
-    checkout whose path holds a space prints a command that runs as typed.
-    The fixture is moved under such a directory to show it."""
-    spaced = tmp_path / "a checkout" / "repo"
-    # The parent first, so the move is a rename on every platform. Without
-    # it `shutil.move` falls back to a copy and an `rmtree`, which Windows
-    # refuses over git's read-only object files.
-    spaced.parent.mkdir(parents=True)
-    shutil.move(str(repo), str(spaced))
-    settled_item(spaced)
-    out = run_gate(spaced, "--record", str(spaced / ITEM), keep=tmp_path / "out")
-    assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    (path,) = values_files(spaced)
-    assert " " in path, path
-    assert os.path.basename(os.path.dirname(path)) == module().NO_SESSION, path
-    (said,) = signal_lines(out.stdout)
-    assert "no Claude Code session was found" in said, said
-    assert f"`seal-stamp --from {gate_module().quote(path)}`" in said, said
-    assert f"--from {path}`" not in said, f"the path is unquoted: {said}"
-
-
-def test_values_that_cannot_be_written_leave_the_seal_standing(repo, tmp_path):
-    """S15. The values directory cannot be made — a FILE stands where it
-    goes, which refuses on every platform and under every user, where a
-    permission bit would not stop root. The checks passed and `broad-gate.md`
-    was written, so the run is still sealed, exit 0; stderr says why nothing
-    will be drawn and the `SEALED` line says nothing will be."""
-    settled_item(repo)
-    (repo / ".git" / VALUES_DIR).write_text("in the way\n", encoding="utf-8")
-    out = run_gate(
-        repo, "--record", str(repo / ITEM), keep=tmp_path / "out", session="s-1"
-    )
-    assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    assert "the stamp's values could not be written" in out.stderr, out.stderr
-    (said,) = signal_lines(out.stdout)
-    assert "nothing will be drawn" in said, said
-    assert (repo / ITEM / "broad-gate.md").is_file(), (
-        "the run was not written, so this is not the state S15 is about"
-    )
-
-
-def test_a_person_at_a_terminal_sees_the_stamp_drawn_once(repo, tmp_path):
-    """S10. A hand-run on a UTF-8 terminal draws the stamp there, once, in
-    the block form, and prints no `SEALED` signal line beside it: the
-    drawing IS the signal, and no values file is left for a hook to draw it
-    a second time. A tool call has no terminal to reach this path with
-    (#400, *The blocking measurement*), so it is a person's alone.
-
-    Driven through a pseudo-terminal, which POSIX has and Windows does not."""
-    settled_item(repo)
-    code, screen = on_a_terminal(repo, tmp_path, "--record", str(repo / ITEM))
+    Driven through a pseudo-terminal, which POSIX has and Windows does not.
+    Over a copy of the fixture's checkout, re-run at the same commit against
+    the same base, so `broad-gate.md` takes the same bytes and stays
+    uncommitted."""
+    repo, out, _values = a_recorded_run
+    copy = tmp_path / "a checkout" / "repo"
+    copy.parent.mkdir(parents=True)
+    shutil.copytree(repo, copy)
+    code, screen = on_a_terminal(copy, tmp_path, "--record", str(copy / ITEM))
     assert code == 0, screen
-    assert screen.count("SEALED") == 1, f"the stamp was not drawn once:\n{screen}"
-    assert any(c in screen for c in HALF_BLOCKS), "a UTF-8 terminal got no blocks"
-    assert not signal_lines(SGR.sub("", screen).replace("\r", "")), screen
-    assert not values_files(repo), "a drawn run left a file for a hook to draw again"
-    # #666's S2 on this path too: the file is in the working tree here as well.
-    assert "run is written to" in screen and "not committed" in screen, screen
+    screen = screen.replace("\r", "")
+    assert not SGR.search(screen), f"colour on a terminal:\n{screen}"
+    assert not any(c in screen for c in HALF_BLOCKS), f"a disc was drawn:\n{screen}"
+    assert screen == out.stdout.replace(str(repo), str(copy)), (screen, out.stdout)
+    assert not (copy / ".git" / VALUES_DIR).exists(), values_files(copy)
+
+
+@pytest.mark.parametrize(
+    "shape, env",
+    [(True, UTF8_PIPE), (False, {"PYTHONIOENCODING": "latin-1"})],
+    ids=["--shape", "a-console-that-is-not-utf8"],
+)
+def test_the_marks_go_out_in_ascii_where_utf8_cannot(repo, tmp_path, shape, env):
+    """#975 S3: the owner's `✓`, `·` and `→` are written as the letter twin
+    writes them — `+`, `.` and `>` — under `--shape`, and on a stream whose
+    encoding is not UTF-8 without it; the rows are otherwise the same."""
+    out = run_gate(repo, keep=tmp_path / "out", shape=shape, env=env)
+    assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
+    lines = out.stdout.splitlines()
+    assert "suite   + 1 passed" in lines and "chain   + exit 0" in lines, lines
+    assert not any(mark in out.stdout for mark in ("✓", "·", "→")), out.stdout
 
 
 def test_a_terminal_run_with_no_record_draws_nothing(repo, tmp_path):
-    """#400's Done-when, on a terminal: drawing a stamp takes the exit 0 AND
-    the written cell, and no other path draws one. A green hand-run without
-    `--record` wrote no cell, so a person's terminal gets the `SEALED` line
-    saying nothing was recorded and no disc, the same as a pipe does (S9)."""
+    """#975 S2, without `--record`, on a terminal: the head and the rows, no
+    disc, no values file — the same as a pipe."""
     code, screen = on_a_terminal(repo, tmp_path)
     assert code == 0, screen
     assert not any(c in screen for c in HALF_BLOCKS), f"a disc was drawn:\n{screen}"
-    said = signal_lines(SGR.sub("", screen).replace("\r", ""))
-    assert len(said) == 1 and "nothing was recorded" in said[0], screen
+    said = passed_lines(SGR.sub("", screen).replace("\r", ""))
+    assert said == [head_of(repo)], screen
     assert not values_files(repo)
 
 
@@ -3107,14 +3094,14 @@ def test_the_wrapper_runs_the_same_gate(repo):
     this is the first case that exercises it."""
     out = run_gate(repo, wrapper=True)
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    assert "SEALED" in out.stdout
+    assert passed_lines(out.stdout) == [head_of(repo)], out.stdout
 
 
-# --- #666: the lines name what they sealed, and say to commit the cell -------
+# --- #666: the lines name what they ran over, and say to commit the cell -----
 #
 # 0.16.0's first real stamp named the base and never the branch, so a reader
 # matched the line to its work by hash. The head now reads `<branch> @ <tree>
-# against <ref> @ <base commit>`, and a recorded seal says on the next line
+# against <ref> @ <base commit>`, and a recorded run says on its last line
 # that the cell it wrote is not committed, because CI reads HEAD.
 
 
@@ -3132,24 +3119,22 @@ def set_field(path, label, value):
     )
 
 
-def test_a_recorded_seal_says_the_file_is_written_and_not_committed(a_sealed_run):
-    """A1 and S2. The line after the `SEALED` line names `broad-gate.md`,
-    says it is not committed, and says CI reads HEAD — on the same stream, so
-    the sealer passes both on together. The file IS uncommitted, which is
-    what makes the line true: `git status` names it."""
-    repo, out, values = a_sealed_run
+def test_a_recorded_run_says_the_file_is_written_and_not_committed(a_recorded_run):
+    """A1 and S2. The report's last line names `broad-gate.md`, says it is
+    not committed, and says CI reads HEAD — on the same stream as the head,
+    so the orchestrator reads both together. The file IS uncommitted, which
+    is what makes the line true: `git status` names it."""
+    repo, out, _values = a_recorded_run
     lines = out.stdout.splitlines()
-    (at,) = [i for i, line in enumerate(lines) if line.startswith("SEALED")]
     rel = os.path.join(ITEM, "broad-gate.md").replace("/", os.sep)
-    assert lines[at + 1] == gate_module().CELL_UNCOMMITTED.format(path=rel), lines
-    assert lines[at + 1] == (
+    assert lines[-1] == gate_module().CELL_UNCOMMITTED.format(path=rel), lines
+    assert lines[-1] == (
         f"broad-gate: the run is written to {rel} and not committed. CI reads "
         "HEAD, so commit it before the pull request is marked ready"
     )
     assert git(repo, "status", "--porcelain", "--", rel).stdout.strip(), (
         "the line says the file is uncommitted over a file git calls clean"
     )
-    assert values["branch"] == "feature" and values["pr"] is None, values
 
 
 def test_the_line_is_absent_where_the_file_is_committed(repo):
@@ -3173,9 +3158,9 @@ def test_a_detached_head_names_the_tree_alone(repo, tmp_path):
     git(repo, "switch", "-q", "--detach")
     out = run_gate(repo, keep=tmp_path / "out")
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    (said,) = signal_lines(out.stdout)
+    (said,) = passed_lines(out.stdout)
     assert said.startswith(head_of(repo, branch=None)), said
-    assert said.split(" against ", 1)[0] == f"SEALED   {short(repo, 'HEAD')}", said
+    assert said.split(" against ", 1)[0] == f"{PASSED}   {short(repo, 'HEAD')}", said
 
 
 def test_a_base_given_as_a_commit_is_named_once(repo, tmp_path):
@@ -3185,9 +3170,9 @@ def test_a_base_given_as_a_commit_is_named_once(repo, tmp_path):
     commit_ = git(repo, "rev-parse", "base").stdout.strip()
     out = run_gate(repo, "--base", commit_, keep=tmp_path / "out")
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    (said,) = signal_lines(out.stdout)
-    assert said.startswith(
-        f"SEALED   feature @ {short(repo, 'HEAD')} against {short(repo, 'base')} · "
+    (said,) = passed_lines(out.stdout)
+    assert said == (
+        f"{PASSED}   feature @ {short(repo, 'HEAD')} against {short(repo, 'base')}"
     ), said
 
 
@@ -3212,16 +3197,16 @@ def test_the_names_collapse_only_where_a_part_would_repeat(branch, ref, said):
 
 
 def test_the_failure_form_takes_the_same_names():
-    """A4's head, at the unit: `not_sealed` names the branch and the ref the
-    way the `SEALED` line does, and a caller naming neither gets the line it
-    always got."""
-    mod = module()
+    """A4's head, at the unit: `failed_form` names the branch and the ref the
+    way the `BROAD GATE PASSED` line does, and a caller naming neither gets
+    the line it always got."""
+    mod = gate_module()
     failures = [("suite", ["1 failed"])]
-    assert mod.not_sealed("aaa1111", "bbb2222", failures, "feat/x", "origin/base")[
+    assert mod.failed_form("aaa1111", "bbb2222", failures, "feat/x", "origin/base")[
         0
-    ] == ("NOT SEALED   feat/x @ aaa1111 against origin/base @ bbb2222")
-    assert mod.not_sealed("aaa1111", "bbb2222", failures)[0] == (
-        "NOT SEALED   aaa1111 against bbb2222"
+    ] == ("BROAD GATE FAILED   feat/x @ aaa1111 against origin/base @ bbb2222")
+    assert mod.failed_form("aaa1111", "bbb2222", failures)[0] == (
+        "BROAD GATE FAILED   aaa1111 against bbb2222"
     )
 
 
@@ -3234,7 +3219,7 @@ def test_the_documents_name_the_line_that_says_to_commit_the_cell():
         read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
     )
     assert (
-        "the line under it says `broad-gate.md` is written and not committed: "
+        "the report's last line says `broad-gate.md` is written and not committed: "
         "CI reads HEAD, so commit it before the pull request is marked ready"
     ) in orchestration
 
@@ -3278,8 +3263,9 @@ def test_no_value_on_the_panel_is_wider_than_the_frame_gives(tmp_path):
     keeps its HEAD and ends in the marker, the ref starts with the marker and
     keeps its TAIL, and the rendered panel carries both. A value the frame
     cut would read as a shorter true statement, which is what the marker
-    exists to prevent."""
-    gate = gate_module()
+    exists to prevent. The width and the marker are `seal_stamp`'s since
+    #975."""
+    gate, stamp = gate_module(), module()
     assert len(LONG_BRANCH) == 73, len(LONG_BRANCH)
     item = tmp_path / "1799000000-an-item-with-a-long-name"
     # The longest `rounds` continuation: three homes, one a path.
@@ -3319,18 +3305,18 @@ def test_no_value_on_the_panel_is_wider_than_the_frame_gives(tmp_path):
     elided = [
         v
         for v in (*values, ref)
-        if v.endswith(gate.ELISION) or v.startswith(gate.ELISION)
+        if v.endswith(stamp.ELISION) or v.startswith(stamp.ELISION)
     ]
     assert len(elided) == 2, f"only the branch and the ref are elided: {elided}"
-    assert all(len(v) <= gate.PANEL_VALUE_WIDTH for v in values), [
-        v for v in values if len(v) > gate.PANEL_VALUE_WIDTH
+    assert all(len(v) <= stamp.PANEL_VALUE_WIDTH for v in values), [
+        v for v in values if len(v) > stamp.PANEL_VALUE_WIDTH
     ]
-    assert len(joined) == gate.PANEL_VALUE_WIDTH, joined
+    assert len(joined) == stamp.PANEL_VALUE_WIDTH, joined
     branch = rows[rows.index(("tree", "c46fd2db")) + 1]
-    assert branch[0] == "" and branch[1].endswith(gate.ELISION), branch
-    assert LONG_BRANCH.startswith(branch[1][: -len(gate.ELISION)]), branch
-    assert ref.startswith(gate.ELISION), ref
-    assert LONG_REF.endswith(ref[len(gate.ELISION) :]), ref
+    assert branch[0] == "" and branch[1].endswith(stamp.ELISION), branch
+    assert LONG_BRANCH.startswith(branch[1][: -len(stamp.ELISION)]), branch
+    assert ref.startswith(stamp.ELISION), ref
+    assert LONG_REF.endswith(ref[len(stamp.ELISION) :]), ref
     assert ("item", "1799000000") in rows, rows
     drawn = "\n".join(module().stamp(rows, shape=True))
     assert branch[1] in drawn and ref in drawn, drawn
@@ -3410,8 +3396,8 @@ def test_a_list_too_long_for_its_row_continues_beneath_it():
     #832's S5a: at `PANEL_VALUE_WIDTH` 41, and over the owner's separators —
     the suite's counts joined by ` · ` behind a `✓`, the homes after `→` —
     a row broken before a ` · ` piece keeps the `·` at its end, as one
-    broken before a `, ` piece keeps the comma."""
-    gate = gate_module()
+    broken before a `, ` piece keeps the comma. `seal_stamp`'s since #975."""
+    gate = module()
     assert gate.PANEL_VALUE_WIDTH == 41
     assert gate.wrapped(
         "suite", ["✓ 12345 passed", " · 67890 skipped", " · 12 xfailed"]
@@ -3463,7 +3449,7 @@ def test_a_list_too_long_for_its_row_continues_beneath_it():
 def test_the_suite_carries_its_counts_and_nothing_under_them(counts, rows):
     """#717's A8, `suite`. The counts the row's pytest recorded, wrapped as
     #666 wraps them, and the row after the last counts row is the chain's
-    label — not `exit 0`, which a `SEALED` stamp already says. Where there
+    label — not `exit 0`, which a passing report already says. Where there
     is no record the row reads `exit N`, which is then the only statement
     of what the suite did. #832's S5a: the counts stand behind a `✓` and are
     joined by ` · `, the owner's design of 2026-10-07."""
@@ -3565,7 +3551,6 @@ def test_the_result_rows_carry_a_tick_and_a_blank_row_stands_before_them(tmp_pat
         run=a_run(gate, passed=1),
     )
     assert rows == [
-        ("SEALED", ""),
         ("tree", "c46fd2db"),
         ("", "feature"),
         ("base", "1e2bed90  origin/release/x"),
@@ -3598,8 +3583,9 @@ def test_a_run_with_no_record_has_no_item_and_no_rounds():
 
 
 def test_the_item_row_is_the_id_alone_without_a_pull_request(tmp_path):
-    """A7. `<id>` is the digits before the first `-` of the directory's name."""
-    gate = gate_module()
+    """A7. `<id>` is the digits before the first `-` of the directory's name.
+    `seal_stamp`'s since #975, which writes the stamp's `item` row too."""
+    gate = module()
     item = str(tmp_path / "1790815615-the-seal-names-what-it-sealed")
     assert gate.item_value(item) == "1790815615"
     assert gate.item_value(str(tmp_path / "plain")) == "plain"
@@ -3641,54 +3627,36 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert "or where no invoked copy was handed over to compare" in comment
 
 
-def test_the_sample_carries_every_row_the_panel_can(tmp_path):
-    """A16. `seal-stamp` with no arguments shows a person what the gate will
-    print, and it read `lint clean` from #400 to #666 because nothing held
-    the two lists together. Its labels, in order, are the labels `panel`
-    returns for a run with every conditional row present."""
-    gate = gate_module()
-    workflow = (
-        "jobs:\n  release:\n    steps:\n"
-        "      - name: a declared review chain has the round record it claimed\n"
-    )
-    rows = gate.panel(
-        "c46fd2db",
-        gate.Base("release/x", "1e2bed90", "origin/release/x", "1e2bed90"),
-        checks_with(gate, "", "total: 1 ok · 0 drifted · 0 broken\n"),
-        record_of(tmp_path / "1799000000-an-item", deferring_record()),
-        workflow,
-        copy="tree 1.2.3",
-        branch="feature",
-        run=a_run(gate, passed=1),
+def test_the_sample_carries_every_row_the_stamp_can():
+    """A16. `seal-stamp` with no arguments shows a person what a stamp
+    draws, and it read `lint clean` from #400 to #666 because nothing held
+    the two lists together. Since #975 the stamp is drawn from a sealed
+    guarantee, so its labels, in order, are the labels `guarantee_rows`
+    returns with every conditional row present."""
+    mod = module()
+    rows = mod.guarantee_rows(
+        "c46fd2db", "feature", "1e2bed90", "1799000000", "c46fd2db", 3
     )
     labels = [None if row is None else row[0] for row in rows]
-    sample = [None if row is None else row[0] for row in module().SAMPLE_ROWS]
+    sample = [None if row is None else row[0] for row in mod.SAMPLE_ROWS]
     assert sample == labels, (sample, labels)
     # #717's A19, positively: the sequence itself, so the two lists cannot
-    # agree by losing the same row. #832's S5a: the ref beside the commit,
-    # a blank before the result rows, and `chain` back among them.
+    # agree by losing the same row.
     assert labels == [
         "SEALED",
         "tree",
         "",
         "base",
         "item",
-        "gate",
         None,
-        "suite",
-        "chain",
-        "CI also",
+        "gate",
         "rounds",
-        "",
     ], labels
-    # And the sample's values are in the shapes `panel` writes them in.
-    for row, sample in zip(rows, module().SAMPLE_ROWS, strict=True):
+    # And the sample's values are in the shapes `guarantee_rows` writes them in.
+    for row, sample in zip(rows, mod.SAMPLE_ROWS, strict=True):
         if row is None:
             continue
-        for mark in ("✓ ", "· "):
-            assert row[1].startswith(mark) == sample[1].startswith(mark), (row, sample)
-        for mark in ("→", "  "):
-            assert (mark in row[1]) == (mark in sample[1]), (row, sample)
+        assert row[1].startswith("✓ ") == sample[1].startswith("✓ "), (row, sample)
 
 
 def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
@@ -3754,8 +3722,8 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
     # #832's S5a: the module docstring and `panel`'s row diagram name the
     # rows the owner's design of 2026-10-07 put back.
     assert (
-        "the suite's counts, the chain's exit, how many more steps CI "
-        "runs than this seal answers"
+        "the suite's counts, the chain's exit, how many more steps CI runs "
+        "than this run answers"
     ) in gate
     assert "the ledger's `ok` count, how many more steps" not in gate
     assert "CI also · <n> more steps absent without a hygiene workflow" in gate
@@ -3773,7 +3741,7 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
 
 def test_the_documents_name_the_ci_also_row():
     """#717, S7 for the rows (`agent-contract` §14). `skills/verify/SKILL.md`
-    §*A seal says what it did not answer* and `agents/sealer.md` named the
+    §*A run says what it did not answer* and `agents/sealer.md` named the
     `workflow` row and its `<n> of <total> not answered` reading; both name
     the `CI also` row and its `<n> more steps` now, and the denominator is
     said to be on the stderr line. #832's S5a: the row's value leads with a
@@ -3783,7 +3751,10 @@ def test_the_documents_name_the_ci_also_row():
         read_document(os.path.join("skills", "verify", "SKILL.md")).split()
     )
     assert "the panel carries a `CI also` row — *· <n> more steps* —" in verify
-    assert "A feature seal of SpecSeal itself reads `CI also · 3 more steps`" in verify
+    assert (
+        "A run on a SpecSeal feature branch reads `CI also · 3 more steps`"
+    ) in verify
+    assert "A feature seal of" not in verify
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
     assert "the panel carries a `workflow` row" not in verify
@@ -3889,26 +3860,32 @@ def test_the_panels_home_is_the_gates_home(tmp_path, value, home):
     assert " ".join(value for _, value in rows[1:]) == f"1 deferred → {home}", rows
 
 
-def test_a_capped_run_is_sealed_with_its_deferral_on_the_stamp(repo, tmp_path):
+def test_a_capped_run_reports_its_deferral(repo, tmp_path):
     """End to end, over the fixture `capped_item` builds: round 1 closed its
-    one finding `deferred #999`. The gate seals it, and the values file's
-    `rounds` row and the row beneath it say so."""
+    one finding `deferred #999`. The gate passes, and the report's `rounds`
+    row and the row beneath it say so."""
     capped_item(repo)
     out = run_gate(
-        repo, "--record", str(repo / ITEM), keep=tmp_path / "out", session="s-1"
+        repo,
+        "--record",
+        str(repo / ITEM),
+        keep=tmp_path / "out",
+        session="s-1",
+        shape=False,
+        env=UTF8_PIPE,
     )
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
-    (path,) = values_files(repo)
-    rows = module().read_values(path)["rows"]
+    rows = report_of(out.stdout)["rows"]
     assert rows[-2:] == [("rounds", "1"), ("", "1 deferred → #999")], rows
+    assert not values_files(repo), "the gate wrote a stamp's values"
 
 
-# --- S2 not sealed -----------------------------------------------------------
+# --- S2 the gate fails ---------------------------------------------------------
 
 
-def test_a_failing_test_is_not_sealed_and_is_new_when_the_base_passes(repo):
-    """S2. One planted failure: `NOT SEALED <tree> against <base>`, the
-    failing check named with its first lines, the failing file labelled
+def test_a_failing_test_fails_the_gate_and_is_new_when_the_base_passes(repo):
+    """S2. One planted failure: `BROAD GATE FAILED <tree> against <base>`,
+    the failing check named with its first lines, the failing file labelled
     `new` because the base does not fail it, no disc, exit 1. The scratch
     worktree the comparison used is gone afterwards."""
     write(repo, "tests/test_two.py", FAILING_TEST)
@@ -3916,14 +3893,11 @@ def test_a_failing_test_is_not_sealed_and_is_new_when_the_base_passes(repo):
     out = run_gate(repo, session="s-1")
     assert out.returncode == 1, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
     first = out.stdout.strip().splitlines()[0]
-    assert first == head_of(repo, "NOT SEALED"), first
+    assert first == head_of(repo, FAILED), first
     assert "not committed" not in out.stdout, "a red run said a cell was written"
     assert crown_of() not in out.stdout, "the failure form drew the disc"
-    # S7 of 1790562543. A piped run draws no disc even when it seals, so the
-    # line above no longer proves the failure form drew nothing; what a hook
-    # would draw is a values file, and a red run leaves none.
     assert not values_files(repo), "a red run left a stamp for a hook to draw"
-    assert not signal_lines(out.stdout), "a red run printed the `SEALED` signal"
+    assert not passed_lines(out.stdout), f"a red run printed `{PASSED}`"
     assert not any(c in out.stdout for c in HALF_BLOCKS)
     assert re.search(r"^\s+suite\s", out.stdout, re.M), "the failing check is unnamed"
     gate = gate_module()
@@ -3942,7 +3916,8 @@ def test_a_failing_test_is_not_sealed_and_is_new_when_the_base_passes(repo):
 def test_a_failure_the_base_shares_is_labelled_failing_on_base_too(tmp_path):
     """S2, the other word. The base already fails the same file, so the
     comparison — taken reactively, in a scratch worktree at the base — says
-    so. The gate decides nothing about it: still `NOT SEALED`, exit 1."""
+    so. The gate decides nothing about it: still `BROAD GATE FAILED`, exit
+    1."""
     repo = build_repo(tmp_path / "repo", row=FILES_ROW, base_failing=True)
     out = run_gate(repo)
     assert out.returncode == 1, f"exit {out.returncode}\n{out.stdout}\n{out.stderr}"
@@ -3996,7 +3971,7 @@ def test_the_gate_names_the_row_it_sealed_over(repo, tmp_path):
     printed = out.stdout + out.stderr
     assert f"`{gate.ROW}` says:" in printed, printed
     assert "-m pytest" in printed, (
-        "the gate does not name the command it sealed over, so the sealer "
+        "the gate does not name the command it ran, so the sealer "
         f"cannot quote it:\n{printed}"
     )
 
@@ -7855,11 +7830,11 @@ def test_a_plugin_check_that_fails_is_named_and_the_suite_is_not_compared(repo):
 # `broad-gate --preflight` is the orchestrator's step before the sealer's
 # spawn: the same command, the same resolved base, the same row refusals, and
 # then the record arms alone. It runs no row, writes no cell, values file or
-# stamp, and prints no line a reader could take for a seal.
+# stamp, and prints no line a reader could take for the broad run's.
 
 PREFLIGHT_PASSED = "PREFLIGHT PASSED   {tree} against {base}"
 PREFLIGHT_FAILED = "PREFLIGHT FAILED   {tree} against {base}"
-NOT_RUN = "the `Broad gate` row was not run and nothing is sealed"
+NOT_RUN = "the `Broad gate` row was not run and nothing is written"
 
 
 def record_arms():
@@ -7896,17 +7871,19 @@ def record_arms():
 
 
 def no_seal_line(text):
-    """True when no line of `text` is one a reader could take for a seal."""
+    """True when no line of `text` is one a reader could take for the broad
+    run's verdict, or for the sealer's."""
     return not any(
-        line.startswith(("SEALED", "NOT SEALED")) for line in text.splitlines()
+        line.startswith(("BROAD GATE", "SEALED", "NOT SEALED"))
+        for line in text.splitlines()
     )
 
 
 def test_a_green_tree_preflights_green_and_seals_nothing(repo, tmp_path):
     """S1. Every record arm runs, in the gate's order, with its output kept the
     way the full run keeps it; the row does not run, so there is no
-    `suite.txt`. Nothing is sealed: no `SEALED` line, no values file even with
-    a session set, no disc in either form and no colour. The one line on
+    `suite.txt`. Nothing is written: no `BROAD GATE` line, no values file even
+    with a session set, no disc in either form and no colour. The one line on
     stdout names the preflight, the tree and the resolved base."""
     keep = tmp_path / "out"
     out = run_gate(repo, "--preflight", keep=keep, session="s-1")
@@ -7941,31 +7918,31 @@ def test_a_green_tree_preflights_green_and_seals_nothing(repo, tmp_path):
 
 def test_the_preflight_prints_no_coverage_line(repo, tmp_path):
     """Spec §*Data & interfaces*, step 2. The coverage line says what THIS
-    SEAL answers of the workflow's `release` job, and a preflight seals
-    nothing, so it prints none — over a fixture carrying this repository's own
+    RUN answers of the workflow's `release` job, and a preflight runs no
+    row, so it prints none — over a fixture carrying this repository's own
     workflow, where the full run over the same tree prints it."""
     workflow = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
     with open(workflow, encoding="utf-8") as handle:
         write(repo, ".github/workflows/hygiene.yml", handle.read())
     commit(repo, "the workflow")
-    said = "this seal answers"
+    said = "this run answers"
     full = run_gate(repo, keep=tmp_path / "full")
     assert said in full.stderr, f"the full run printed no coverage line:\n{full.stderr}"
     out = run_gate(repo, "--preflight", keep=tmp_path / "pre")
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
     assert said not in out.stderr, (
-        f"a preflight claimed a seal's coverage:\n{out.stderr}"
+        f"a preflight claimed the broad run's coverage:\n{out.stderr}"
     )
 
 
 def test_the_preflight_does_not_run_the_row(repo, tmp_path):
     """S2, the case that shows the flag does something. The row is `exit 1`,
-    so the full gate over this tree is NOT SEALED; the preflight over the same
+    so the full gate over this tree fails; the preflight over the same
     tree passes, because it never hands the row to a shell."""
     set_row(repo, "exit 1")
     full = run_gate(repo, keep=tmp_path / "full")
     assert full.returncode == 1, f"{full.stdout}\n{full.stderr}"
-    assert "NOT SEALED" in full.stdout, full.stdout
+    assert FAILED in full.stdout, full.stdout
     keep = tmp_path / "pre"
     out = run_gate(repo, "--preflight", keep=keep)
     assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
@@ -8117,12 +8094,12 @@ def capped_item(repo):
     return one
 
 
-def test_the_gate_with_record_writes_the_file_and_counts_its_rounds(a_sealed_run):
+def test_the_gate_with_record_writes_the_file_and_counts_its_rounds(a_recorded_run):
     """S1 with `--record`: the checks pass, `broad-gate.md` names the tree
     and the base commit the gate compared against, the round records are
-    untouched, and the panel carries `rounds 2` — read from the values file
-    since #400, which is where a piped run's panel is."""
-    repo, _out, values = a_sealed_run
+    untouched, and the panel carries `rounds 2` — read from the report the
+    run printed (#975)."""
+    repo, _out, values = a_recorded_run
     assert row_of(values, "rounds") == "2", values["rows"]
     text = (repo / ITEM / "broad-gate.md").read_text(encoding="utf-8")
     assert f"| {ROW} | {short(repo, 'HEAD')} against {short(repo, 'base')} |" in text, (
@@ -8131,7 +8108,7 @@ def test_the_gate_with_record_writes_the_file_and_counts_its_rounds(a_sealed_run
     assert ROW not in (repo / ROUNDS / "round-2.md").read_text(encoding="utf-8")
 
 
-def test_the_panel_reports_the_rows_exit_code_and_asserts_no_linter(a_sealed_run):
+def test_the_panel_reports_the_rows_exit_code_and_asserts_no_linter(a_recorded_run):
     """Round 1's 🟡 3. The panel carried `lint  clean` as a literal, beside
     four rows read from what the checks printed.
 
@@ -8143,17 +8120,17 @@ def test_the_panel_reports_the_rows_exit_code_and_asserts_no_linter(a_sealed_run
     reader trusts BECAUSE it is drawn on success alone.
 
     The fixture's row is a bare pytest call, with no linter in it at all.
-    Read from the values file since #400, which is where a piped run's panel
-    is. Since #666 the exit code continued under `suite` rather than on a
+    Read from the report the run printed (#975). Since #666 the exit code
+    continued under `suite` rather than on a
     `row` of its own, and since #717 it is not on the panel at all: a drawn
-    panel's row came back 0 by construction, which `SEALED` says, so the row
+    panel's row came back 0 by construction, which the passing head says, so the row
     after the counts is the chain's. #832 puts a `✓` on both rows."""
-    _repo, _out, values = a_sealed_run
+    _repo, _out, values = a_recorded_run
     rows = values["rows"]
     at = rows.index(("suite", "✓ 1 passed"))
     assert rows[at + 1] == ("chain", "✓ exit 0"), rows
     assert not any("clean" in cell for row in values["rows"] if row for cell in row), (
-        "the seal still asserts a linter over a row that has none in it"
+        "the gate's report still asserts a linter over a row that has none in it"
     )
 
 

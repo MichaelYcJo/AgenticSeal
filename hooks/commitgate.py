@@ -1,5 +1,5 @@
 """The commit gate as git runs it: `pre-commit`, its `reference-transaction`
-backstop, and `post-commit`'s notice (#692).
+backstop, and `post-commit`'s notice (#692) and stamp (#975).
 
 `hooks/git/*.py` are thin entry points into this module, so that a case can
 drive one hook in-process and the stubs run the same code from a shell. What
@@ -312,15 +312,41 @@ def _notice_module():
     return module
 
 
+def _stamp_module():
+    spec = importlib.util.spec_from_file_location(
+        "specseal_seal_stamp_for_post_commit",
+        os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "skills",
+            "verify",
+            "scripts",
+            "seal_stamp.py",
+        ),
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def post_commit(cwd, environ, stream):
+    """Two duties after a commit git made, each silent on every failure: the
+    implementer notice, and since #975 the stamp — queued where the commit
+    carries a `guarantee.md` reading `sealed` (`seal_stamp.queue_for_guarantee`
+    says when), for the `Stop` hook to draw at the end of the session's turn."""
     context = _context(cwd, environ)
     if context is None:
         return 0
-    _top, _common, session = context
+    top, common, session = context
     try:
         said = _notice_module().notify(cwd, session)
     except Exception:
-        return 0
+        said = ""
     if said:
         stream.write(said + "\n")
+    try:
+        queued = _stamp_module().queue_for_guarantee(top, common, session)
+    except (Exception, SystemExit):
+        return 0
+    for line in queued:
+        stream.write(line + "\n")
     return 0

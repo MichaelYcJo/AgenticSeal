@@ -4,7 +4,7 @@ remembered, and nothing held the two lists against each other (#468).
 `skills/verify/scripts/broad_gate.py#gate` runs a handful of arms so the
 sealer's one run says what CI will say. `.github/workflows/hygiene.yml`'s
 `release` job runs ten named steps. #424 added one of them and the gate
-was not extended, so from that merge onward a green seal covered a
+was not extended, so from that merge onward a green run covered a
 shorter list than the merge is judged by — and no case in the suite went red
 for it.
 
@@ -169,7 +169,7 @@ def test_every_step_the_workflow_runs_is_classified():
         f"these steps of `hygiene.yml`'s `{gate.RELEASE_JOB}` job are in no "
         f"row of `broad_gate.py#PARTITION`: {missing}. Add an arm that mirrors "
         "each, or a row excluding it with the reason no arm can — there is no "
-        "third state, and a step with no row is a seal that covers less than "
+        "third state, and a step with no row is a run that covers less than "
         "the merge is judged by"
     )
 
@@ -387,16 +387,16 @@ def run_gate(repo, keep, base="base"):
     )
 
 
-def test_the_fixture_branch_is_sealed(tmp_path):
+def test_the_fixture_branch_passes(tmp_path):
     """The other cases' starting point: every arm passes on the fixture, so a
     refusal below is the one thing each case changed."""
     repo = sealable_repo(tmp_path)
     result = run_gate(repo, tmp_path / "out")
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "SEALED" in result.stdout, result.stdout
+    assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
 
 
-def test_a_mode_row_that_disagrees_with_the_folder_is_not_sealed(tmp_path):
+def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(tmp_path):
     """A3's behavioural half for the other arm #468 added. `seal/config.md`
     says the root lives under the git directory and the root is committed in
     the tree, which is the one direction of that disagreement CI can ever
@@ -410,7 +410,7 @@ def test_a_mode_row_that_disagrees_with_the_folder_is_not_sealed(tmp_path):
     commit(repo, "the row now says local while the folder is committed")
     result = run_gate(repo, tmp_path / "out")
     assert result.returncode == 1, result.stdout + result.stderr
-    assert "NOT SEALED" in result.stdout, result.stdout
+    assert result.stdout.startswith("BROAD GATE FAILED   "), result.stdout
     assert gate.MODE_NAME in result.stdout, (
         f"the failure form does not name the `{gate.MODE_NAME}` arm:\n{result.stdout}"
     )
@@ -463,35 +463,33 @@ def with_workflow(repo):
     return repo
 
 
-def test_the_stamp_says_how_many_steps_the_seal_did_not_answer(tmp_path):
-    """A6, on the rendered output rather than on the data behind it.
+def test_the_report_says_how_many_steps_the_run_did_not_answer(tmp_path):
+    """A6, on the printed output rather than on the data behind it.
 
     W1's choice, recorded: **the panel carries the count and the names go to
     the stream beside it.** The panel gives a value 41 columns since #832
-    (23 before it) — `broad_gate.PANEL_VALUE_WIDTH` — and three
+    (23 before it) — `seal_stamp.PANEL_VALUE_WIDTH` — and three
     step names do not fit in it, let alone fourteen. A reader given only a
     number would have to reconstruct WHICH from two files, which is the
     reconstruction this work item exists to remove, so both are printed and
     neither alone.
 
-    The rendered half is asked of `seal_stamp.stamp` over the run's rows
-    since #400: a piped run draws no panel, and the hook that draws it later
-    draws exactly these rows."""
+    The printed half is read off the run's own stdout since #975, where the
+    panel's rows are text under the `BROAD GATE PASSED` line."""
     repo = with_workflow(sealable_repo(tmp_path))
     result = run_gate(repo, tmp_path / "out")
     assert result.returncode == 0, result.stdout + result.stderr
 
-    drawn = _load("specseal_seal_stamp", STAMP).stamp(panel_rows(repo), shape=True)
-    rendered = [line for line in drawn if "more steps" in line]
+    printed = result.stdout.splitlines()
+    rendered = [line for line in printed if "more steps" in line]
     assert len(rendered) == 1, (
-        "the stamp says nothing about the steps this seal did not answer:\n"
-        + "\n".join(drawn)
+        "the report says nothing about the steps this run did not answer:\n"
+        + result.stdout
     )
-    # Whole, not cut. `seal_stamp.letter` truncates AT THE FRAME with no
-    # marker, so a value one column too wide reads on the stamp as a shorter
-    # true statement — which is the failure mode the elision beside the `from`
-    # row was added for. The substring is the assertion: a cut value would not
-    # carry its tail.
+    # Whole, not cut: a value one column too wide would read as a shorter
+    # true statement — which is the failure mode the elision beside the
+    # `from` row was added for. The substring is the assertion: a cut value
+    # would not carry its tail.
     #
     # #666: over the steps CI runs for THIS base. The milestone step runs only
     # on a pull request into `main` and the base here is `base`, so it is
@@ -499,12 +497,13 @@ def test_the_stamp_says_how_many_steps_the_seal_did_not_answer(tmp_path):
     #
     # #717: the owner's wording, `CI also  <n> more steps`. The denominator
     # left the panel for the stderr line beside the names, asserted below.
-    # #832's S5a: the value leads with a dim `·`, which the twin writes `.`.
-    assert re.search(r"CI also +[·.] 1 more steps", rendered[0]), rendered[0]
+    # #832's S5a: the value leads with a dim `·`, which `--shape` writes `.`.
+    assert re.search(r"^CI also [·.] 1 more steps$", rendered[0]), rendered[0]
+    width = _load("specseal_seal_stamp", STAMP).PANEL_VALUE_WIDTH
     value = next(v for _, v in [r for r in panel_rows(repo) if r] if "more steps" in v)
-    assert len(value) <= gate.PANEL_VALUE_WIDTH, (
+    assert len(value) <= width, (
         f"the value is {len(value)} columns and the panel gives "
-        f"{gate.PANEL_VALUE_WIDTH}: {value!r}. This is W1's whole reason for a "
+        f"{width}: {value!r}. This is W1's whole reason for a "
         "count rather than the names"
     )
 
@@ -515,7 +514,7 @@ def test_the_stamp_says_how_many_steps_the_seal_did_not_answer(tmp_path):
         result.stderr
     ), result.stderr
     assert (
-        "runs 2 steps for this base and this seal answers 1. 1 more runs only on "
+        "runs 2 steps for this base and this run answers 1. 1 more runs only on "
         "a pull request into `main`, so this count leaves it out."
     ) in result.stderr, result.stderr
     assert (
@@ -541,7 +540,7 @@ def test_a_seal_that_answers_every_step_says_so(tmp_path):
     result = run_gate(repo, tmp_path / "out")
     assert result.returncode == 0, result.stdout + result.stderr
     assert (
-        "this seal answers every one of the 1 `release` steps "
+        "this run answers every one of the 1 `release` steps "
         f"{gate.WORKFLOW} runs for this base. 1 more runs only on a pull request "
         "into `main`, so this count leaves it out."
     ) in result.stderr, result.stderr
@@ -649,12 +648,12 @@ def test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm():
 # row's exit code from `row` to the row under `suite` — which this fixture's
 # empty output, carrying no pytest counts, does not have. No row here is
 # about the workflow: a run without one is still the run it was. #717 took
-# `chain` off, because a drawn panel is green by construction and `SEALED`
-# already says its exit was 0. #832's S5a, the owner's design of 2026-10-07,
+# `chain` off, because a drawn panel is green by construction and its title
+# already said its exit was 0. #832's S5a, the owner's design of 2026-10-07,
 # put it back with a `✓`, and the base's ref beside its commit on one row.
-# #944 took the `ledger` row off with the ledger.
+# #944 took the `ledger` row off with the ledger, and #975 the title row, when
+# the rows became the gate's printed report and no stamp's.
 HISTORICAL_ROWS = (
-    "SEALED",
     "tree",
     "base",
     "suite",
@@ -737,7 +736,7 @@ def test_a_workflow_that_is_not_utf8_leaves_the_run_as_it_was(tmp_path):
     assert gate.workflow_text(str(repo)) is None
     result = run_gate(repo, tmp_path / "out")
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "SEALED" in result.stdout, result.stdout
+    assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
     assert "Traceback" not in result.stderr, result.stderr
     # No `workflow` row on the stamp is `workflow_text(root)` being None,
     # asserted above: it is the one input `panel` takes the row from, and the
@@ -826,7 +825,7 @@ def test_the_two_clauses_render_together_and_hold_the_right_names():
     the sentence that goes wrong if either clause ever learns to claim the
     other's steps."""
     said = gate.coverage_line(MIXED_WORKFLOW, "base")
-    assert "runs 3 steps for this base and this seal answers 1" in said, said
+    assert "runs 3 steps for this base and this run answers 1" in said, said
 
     reasoned, _, unknown = said.partition(
         "In no row of `broad_gate.py#PARTITION` at all"
@@ -999,7 +998,7 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     said = gate.coverage_line(read(HYGIENE), "release/x")
     assert said.startswith(
         f"broad-gate: {gate.WORKFLOW}'s `release` job runs 6 steps for this base "
-        "and this seal answers 3. 3 more run only on a pull request into `main`, "
+        "and this run answers 3. 3 more run only on a pull request into `main`, "
         "so this count leaves them out."
     ), said
     for step in FEATURE_UNANSWERED:
@@ -1017,7 +1016,7 @@ def test_a_release_seal_counts_every_step_ci_runs_for_it():
         said = gate.coverage_line(read(HYGIENE), given)
         assert said.startswith(
             f"broad-gate: {gate.WORKFLOW}'s `release` job runs 9 steps for this "
-            "base and this seal answers 3."
+            "base and this run answers 3."
         ), said
         assert "leaves" not in said.split("Not answered", 1)[0], said
         for step in gate.ONLY_AT_MAIN:

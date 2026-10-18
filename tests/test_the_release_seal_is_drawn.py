@@ -206,7 +206,7 @@ def test_rsvg_convert_draws_the_seal_transparent_round_and_in_its_colours(tmp_pa
 
 # --- S8: the rows are fixed and fit -----------------------------------------
 
-GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
+STAMP_SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 
 
 def test_the_rows_are_the_fixed_set_in_order_and_fit_the_panel():
@@ -220,13 +220,13 @@ def test_the_rows_are_the_fixed_set_in_order_and_fit_the_panel():
     The two widths were one number until #832: `broad_gate`'s became 41 for
     the open layout's 80 columns (S5a), and the release's rows are out of
     that work item's scope, so the release keeps 23 and no longer follows
-    the gate's."""
+    the gate's. The gate's width is `seal_stamp.py`'s since #975."""
     mod = seal()
     rows = mod.release_rows("1.2.3", "aaa11111bbbb", 10, 0, (7003, 66), (10, 27, 6, 13))
     assert rows == [*ROWS[:4], ("issues", "0 closed"), *ROWS[5:]], rows
     assert all(len(label) <= 8 for label in mod.LABELS), mod.LABELS
     assert [label for label, _ in rows if label] == list(mod.LABELS)
-    width = load(GATE, "broad_gate_for_the_release_rows").PANEL_VALUE_WIDTH
+    width = load(STAMP_SCRIPT, "seal_stamp_for_the_release_rows").PANEL_VALUE_WIDTH
     assert mod.PANEL_VALUE_WIDTH == 23 < width, (mod.PANEL_VALUE_WIDTH, width)
     assert all(len(value) <= mod.PANEL_VALUE_WIDTH for _, value in rows), rows
 

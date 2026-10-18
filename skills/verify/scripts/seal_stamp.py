@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""seal-stamp — the drawing the broad gate prints when it was earned.
+"""seal-stamp — the sealer's stamp, drawn from a `sealed` guarantee.
 
-Issue #30 §*What it prints*, redrawn by #717 and #832. Two things side by
-side on the terminal's own background, and nothing else: at the left a wax
-disc with the disc's mark pressed into it, and three columns right of it
-the panel's text — a bold red `SEALED` and a dim rule, then what the gate
-read: the tree and its branch, the base and its ref, the work item, the
-suite's counts, the chain's exit, the steps CI also runs, the
-rounds (`broad_gate.panel` owns the list). The disc is COMPUTED — `hypot`
+Issue #30 §*What it prints*, redrawn by #717 and #832, and since #975 drawn
+once per work item from the sealer's verdict rather than the broad gate's
+run. Two things side by side on the terminal's own background, and nothing
+else: at the left a wax disc with the disc's mark pressed into it, and three
+columns right of it the panel's text — a bold red `SEALED` and a dim rule,
+then what the records at the guarantee's commit say: the audited commit and
+its branch, the base, the work item, the newest broad run and the round
+count (`guarantee_rows` owns the list). The disc is COMPUTED — `hypot`
 for its edge, its rim and its groove — and only the disc's mark is
 authored: a 28 x 28 chart in `seal-mark.txt` beside this file, read as data
 (`read_chart`). Four hand-typed discs came before #30's and every one was
@@ -31,7 +32,7 @@ its drop shadow; the text as itself, with the owner's `·`, `✓`, `─` and
 `→` written `.`, `+`, `-` and `>` — for a console that cannot render
 half-blocks, and for `seal-stamp` on a pipe. The twin is chosen when
 stdout is not a UTF-8 terminal, or on `--shape`. An agent's report carries
-neither: since #400 the gate draws nothing on a pipe.
+neither: no Bash call's pipe is drawn on.
 
 **The `Stop` hook's message is held under a budget** (#717): the harness
 persists a `systemMessage` longer than `MESSAGE_LIMIT` and shows a preview
@@ -39,38 +40,36 @@ instead, so `admitted` carries as many of the oldest stamps as fit with
 their disc and leaves the rest for the next `Stop`. Only one stamp that does
 not fit with its disc alone is drawn as the text block with no disc.
 
-The stamp prints on success only. The failure form, `not_sealed`, is the words
-`NOT SEALED`, the branch and the tree, the base's ref and its commit
-(`sealed_names`), and the failing checks with their first lines — no drawing,
-because a picture that says *sealed* beside a word that says *not* is read
-picture first.
+The broad gate draws nothing since #975: its report is text on every stream,
+and it imports the panel's text rules from here (`fit`, `wrapped`, the
+owner's marks) and `sealed_names` for its head.
 
-**A sealed run is drawn where a person sees it, and that is rarely where it
-ran** (#400). The gate draws only on a terminal, and only over a written
-cell. A recorded seal on a pipe — which is every run a session's Bash call
-takes — writes the
-panel's rows to a values file under the git common dir instead, keyed by the
-Claude Code session, and
-`hooks/sealer-stamp.py` draws each undrawn file once, at the end of that
-session's turn. This module owns the file: `write_values`, `read_values`,
-`pending` and `claim`. Drawing claims the file first, by renaming it to
-`.drawn.json`, so a file is drawn once whoever draws it.
+**The stamp is drawn where a person sees it, once per work item** (#400,
+#975). git's `post-commit` (`hooks/commitgate.py#post_commit`) calls
+`queue_for_guarantee` after every judged commit; where the commit carries a
+`guarantee.md` reading `sealed` and stamped by no earlier run or commit, it
+writes the stamp's rows to a values file under the git common dir, keyed by
+the Claude Code session, and `hooks/sealer-stamp.py` draws each undrawn file
+once, at the end of that session's turn. This module owns the file:
+`queue_for_guarantee` and `write_values`, `read_values`, `pending` and
+`claim`. Drawing claims the file first, by renaming it to `.drawn.json`, so
+a file is drawn once whoever draws it.
 
 Usage:
   seal-stamp                      the stamp over sample rows, for a person
   seal-stamp --shape              the letter twin
-  seal-stamp --from <file>        a sealed run's values file, drawn once
+  seal-stamp --from <file>        a queued stamp's values file, drawn once
 
-The gate imports `stamp(rows, shape)`, `not_sealed(tree, base,
-failures, branch, ref)`, `sealed_names`, `pick_shape(stream)`,
-`is_terminal(stream)` and `write_values`;
-the hook imports `pending`, `read_values`, `claim` and `stamp`.
+The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
+`text_lines`, `TWIN_ASCII` and the panel's text rules; the commit hook
+imports `queue_for_guarantee`; the hook imports `pending`, `read_values`,
+`claim` and `stamp`.
 `.github/scripts/release_seal.py`, which the tag push runs, drew a
 release's seal from this module's cells as a PNG, one cell to one rectangle
 (#718), until #832 drew it from the owner's SVG instead. That script is the
 repository's own and the plugin ships nothing that runs it. The command
-exists so a person can see the drawing without running a gate, and so a
-values file no hook drew can still be drawn by hand.
+exists so a person can see the drawing without a guarantee committed, and
+so a values file no hook drew can still be drawn by hand.
 
 Exit codes: 0 printed · 2 refused — a values file that is unreadable or
 drawn already; nothing was written on 2. An interpreter below the floor never
@@ -80,10 +79,13 @@ reaches this file through `bin/seal-stamp`: `hooks/launch.py` refuses it with
 
 import argparse
 import collections
+import importlib.util
 import json
 import math
 import os
 import re
+import shlex
+import subprocess
 import sys
 import time
 
@@ -410,6 +412,89 @@ def strip_ansi(s):
     return re.sub(r"\x1b\[[0-9;]*m", "", s)
 
 
+# --- the panel's text rules ------------------------------------------------
+#
+# How a row's value is cut, continued and marked. They were the broad gate's
+# until #975, when the stamp left the gate's run: the stamp's writer
+# (`queue_for_guarantee`) composes rows too, and the gate's plain report
+# imports them from here, so both write a row by one set of rules.
+
+# How many columns a panel value is given (#832, `spec.md` S5a of work item
+# 1791270164): the widest that keeps the stamp's widest line inside an
+# 80-column terminal, the floor a command line's output is held to. The open
+# layout has no frame, so the terminal is the bound: 28 columns of disc, `GAP`
+# (3) clear, a label of seven and a space, and the value — 28 + 3 + 8 + 41 =
+# 80. Before #832 it was 23, what the 36-column frame of the stamp then left.
+# A longer value runs past the terminal's edge or wraps into the disc's
+# column, so a value is elided before it does (round 1, finding 5 of #666): a
+# cut ref would read as a whole ref.
+#
+# Stated here and measured over there, and neither may move without the other
+# going red: `test_the_panel_value_width_is_what_the_stamp_actually_gives`
+# draws a value of this width and measures the stamp's widest line.
+PANEL_VALUE_WIDTH = 41
+ELISION = "..."
+# The panel's own characters (#832 S5a, the owner's design of 2026-10-07):
+# the separator inside a value, the arrow before a deferral's homes, the mark
+# on a result row that passed and the mark on a row that is not a pass. They
+# are the owner's and not ASCII; the letter twin, which exists for a console
+# that is not UTF-8, maps them where it writes them (`TWIN_ASCII`).
+SEP, ARROW, TICK, DOT = " · ", "→", "✓ ", "· "
+
+
+def fit(value, keep="head", width=None):
+    """`value` as the panel can carry it: unchanged where it fits, else
+    elided to `width` — `PANEL_VALUE_WIDTH` unless a caller names less —
+    with `ELISION` on the side that was cut.
+
+    `keep="head"` for a branch name, whose issue number leads and is what a
+    reader matches to a ticket; `keep="tail"` for a ref, where the
+    `origin/` a runner reads is the part a reader can infer. Every value a
+    panel carries passes through here, so no row is wider than the frame
+    and none is cut by it without a marker (#666). `width` is the room a
+    ref has beside its commit on the `base` row (#832)."""
+    value = str(value)
+    width = PANEL_VALUE_WIDTH if width is None else width
+    if len(value) <= width:
+        return value
+    room = width - len(ELISION)
+    return ELISION + value[-room:] if keep == "tail" else value[:room] + ELISION
+
+
+def wrapped(label, pieces):
+    """A list on as many panel rows as it needs: the first row under `label`,
+    the rest as `""` rows beneath it (round 1's 🟡 1 of #666).
+
+    The owner chose continuation rows over a wider panel (`questions.md`
+    Q1), so a list of counts or homes continues rather than losing its tail
+    to `...`; only a branch or a ref, which have no bound, are elided. Each
+    piece but the first carries the separator that joins it to the one
+    before (`", #664"`, or `" · 11 skipped"` since #832). A row is broken
+    before a piece that would not fit, and keeps that separator's mark — the
+    comma, or the ` ·` — at its end so the reader sees the list goes on; two
+    columns are held back for it on every piece but the last, because ` ·`
+    is two. One piece wider than the frame by itself is still elided by
+    `fit`."""
+    rows, line = [], ""
+    for n, piece in enumerate(pieces):
+        room = PANEL_VALUE_WIDTH - (0 if n == len(pieces) - 1 else 2)
+        if line and len(line + piece) > room:
+            lead = piece[: len(piece) - len(piece.lstrip(", ·"))]
+            rows.append(line + lead.rstrip())
+            line = piece.lstrip(", ·")
+        else:
+            line += piece
+    rows.append(line)
+    return [(label if n == 0 else "", fit(row)) for n, row in enumerate(rows)]
+
+
+def item_value(item):
+    """The `item` row: the digits before the first `-` of the work item
+    directory's name, or the whole name where it has no `-`."""
+    name = os.path.basename(os.path.normpath(item))
+    return name.split("-", 1)[0] or name
+
+
 # --- the stamp: the disc at the left, the text block at the right ---------
 #
 # #832, the owner's layout of 2026-10-07 (`spec.md` decision 6 of work item
@@ -454,8 +539,9 @@ def text_lines(rows):
     `✓ ` with the `✓` green, a leading `· ` with the `·` dim. A `None` row
     is a blank line; a `""` label is seven spaces and one, so its value
     stands under the value above it. The rows are drawn as given:
-    `broad_gate.panel` owns their shape, and a values file an older gate
-    wrote draws its older rows in this layout."""
+    `guarantee_rows` owns the stamp's shape, `broad_gate.panel` the gate's
+    report's, and a values file an older gate wrote draws its older rows in
+    this layout."""
     rows, lines = list(rows), []
     if rows and rows[0] is not None and tuple(rows[0]) == TITLE_ROW:
         title = text_cells("SEALED ", "bold", TITLE_RED)
@@ -511,7 +597,7 @@ def compose(rows, disc=True):
     return Letter(cells, width, height, where)
 
 
-# --- what the gate calls -------------------------------------------------
+# --- what the hook and the gate call ---------------------------------------
 
 
 def stamp(rows, shape=False, disc=True):
@@ -541,7 +627,7 @@ def admitted(blocks, budget=MESSAGE_BUDGET):
     cannot stall. A text block with no disc is about 50 characters a row with
     its codes (925 with its label for the widest panel this tree can
     produce, measured 2026-10-07), its width bounded by
-    `broad_gate.PANEL_VALUE_WIDTH`.
+    `PANEL_VALUE_WIDTH`.
 
     A size is counted in UTF-16 units, which is what the harness counts
     (`MESSAGE_LIMIT`): a character outside the BMP is two. `budget` is a
@@ -579,11 +665,12 @@ HEX_REF = re.compile(r"[0-9a-fA-F]{4,40}")
 
 
 def sealed_names(tree, base, branch=None, ref=None):
-    """`<branch> @ <tree> against <ref> @ <base>` — what a `SEALED` line, a
-    `NOT SEALED` line and a drawn stamp's label say was sealed (#666).
+    """`<branch> @ <tree> against <ref> @ <base>` — what the broad gate's
+    `BROAD GATE PASSED` and `BROAD GATE FAILED` lines say they measured, and
+    what a drawn stamp's label says was sealed (#666, #975).
 
     A head naming two commits named neither the branch nor the base's ref,
-    so a reader matched a stamp to its work by hash alone. One composer for
+    so a reader matched a line to its work by hash alone. One composer for
     the three lines, because two spellings of one sentence drift.
 
     Two collapses, and each leaves a part out rather than printing it twice:
@@ -618,51 +705,35 @@ def ref_is_commit(ref, base):
     )
 
 
-def not_sealed(tree, base, failures, branch=None, ref=None):
-    """The failure form, as lines: `NOT SEALED <branch> @ <tree> against
-    <ref> @ <base>` (`sealed_names`), then each failing check's name with its
-    first lines under it. No drawing.
-
-    `failures` is a list of `(name, lines)` — the check that failed and the
-    first lines of what it printed, as the gate kept them. `branch` and `ref`
-    None leave their half out, which is the line a caller that names neither
-    has always got."""
-    out = [f"NOT SEALED   {sealed_names(tree, base, branch, ref)}", ""]
-    # The widest name present, not a literal 8: `unverified` is ten
-    # characters, so a fixed pad sets that one check's first line a column
-    # out from every other check's.
-    pad = max([len(name) for name, _ in failures] + [8])
-    for name, lines in failures:
-        lines = list(lines) or ["(no output)"]
-        out.append(f"  {name:<{pad}} {lines[0]}")
-        out.extend(f"  {'':<{pad}} {line}" for line in lines[1:])
-    return out
-
-
 def pick_shape(stream):
     """True when `stream` gets the letter twin: anything that is not a UTF-8
     terminal. A console on another codepage draws UTF-8 half-blocks as
     mojibake, and a pipe has no terminal to draw colour on, so `seal-stamp`
-    on one prints the twin; the gate asks `is_terminal` first and draws
-    nothing on a pipe at all (#400). Asked BEFORE the stream is reconfigured to UTF-8 — after
+    on one prints the twin. Asked BEFORE the stream is reconfigured to UTF-8 — after
     that call every stream answers `utf-8`, and a cp949 console would get the
     blocks it cannot draw."""
-    encoding = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
-    if encoding != "utf8":
+    if not is_utf8(stream):
         return True
     return not is_terminal(stream)
+
+
+def is_utf8(stream):
+    """True when `stream` says its encoding is UTF-8, whatever it is attached
+    to. The half of `pick_shape` the broad gate asks on its own since #975:
+    its report is text on every stream, and only a console that is not UTF-8
+    gets the owner's marks in ASCII. Asked before the streams are
+    reconfigured, for `pick_shape`'s reason."""
+    encoding = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
+    return encoding == "utf8"
 
 
 def is_terminal(stream):
     """True when `stream` is a terminal, whatever its encoding.
 
-    The other half of what `pick_shape` used to fold into one answer, split
-    out because the gate asks two different questions (#400): whether to
-    draw at all — only a terminal has a person in front of it — and, where
-    it draws, which form. A cp949 terminal is a terminal that gets letters,
-    and a UTF-8 pipe is not a terminal. Asked with `pick_shape`, before the
-    streams are reconfigured, so both answers describe the stream as the
-    process found it."""
+    The other half of `pick_shape`, beside `is_utf8`: a cp949 terminal is a
+    terminal that gets letters, and a UTF-8 pipe is not a terminal (#400).
+    Asked with `pick_shape`, before the streams are reconfigured, so both
+    answers describe the stream as the process found it."""
     isatty = getattr(stream, "isatty", None)
     try:
         return bool(isatty and isatty())
@@ -670,18 +741,20 @@ def is_terminal(stream):
         return False
 
 
-# --- a sealed run's values, drawn by somebody else -----------------------
+# --- a stamp's values, drawn by somebody else ------------------------------
 #
-# The gate's stdout on a Bash call is a pipe into a tool result nobody sees
-# unfolded (#400), so it writes the run's panel here and a `Stop` hook in the
-# session that ran the gate draws it. The directory is under the git
-# COMMON dir because the gate's root and that session's cwd can be different
-# worktrees of one clone, and the common dir is the one place both resolve
-# alike. It is keyed by session so that a concurrent session of the same
-# clone does not draw, and take, a stamp that is not its own.
+# A Bash call's stdout is a pipe into a tool result nobody sees unfolded
+# (#400), so the stamp's rows are written here — since #975 by the commit of
+# a `sealed` guarantee (`queue_for_guarantee`) — and a `Stop` hook in the
+# session that made the commit draws them. The directory is under the git
+# COMMON dir because the worktree the commit landed in and that session's
+# cwd can be different worktrees of one clone, and the common dir is the one
+# place both resolve alike. It is keyed by session so that a concurrent
+# session of the same clone does not draw, and take, a stamp that is not its
+# own.
 
 VALUES_DIR = "specseal-stamp"
-# The key of a run no Claude Code session was found for. No hook reads it;
+# The key of a stamp no Claude Code session was found for. No hook reads it;
 # `seal-stamp --from` is how such a file is drawn.
 NO_SESSION = "none"
 PENDING = ".json"
@@ -689,11 +762,10 @@ DRAWN = ".drawn.json"
 
 VALUES_UNREADABLE = "seal-stamp: {path} cannot be read ({why}). Nothing was drawn."
 VALUES_MALFORMED = (
-    "seal-stamp: {path} is not a values file the broad gate wrote: {why}. "
-    "Nothing was drawn."
+    "seal-stamp: {path} is not a stamp's values file: {why}. Nothing was drawn."
 )
 VALUES_DRAWN = (
-    "seal-stamp: {path} was drawn already, and a sealed run's values are drawn "
+    "seal-stamp: {path} was drawn already, and a stamp's values are drawn "
     "once. Nothing was drawn; the values stay in {drawn}."
 )
 
@@ -717,17 +789,20 @@ def drawn_path(path):
     return stem + DRAWN
 
 
-def write_values(common, session, values, now=None):
-    """Write one run's `values` for `session`; returns the file's path.
+def write_values(common, session, values, now=None, key=None):
+    """Write one stamp's `values` for `session`; returns the file's path.
 
     Written to a hidden temporary name and renamed into place, so a hook
     listing the directory never reads half a file. The name leads with the
-    time in nanoseconds, so a name sort is oldest first. Raises `OSError`
-    where the directory cannot be made or the file cannot be written."""
+    time in nanoseconds, so a name sort is oldest first, and ends with `key`
+    — `<id>-<target sha>` for a guarantee's stamp (`queue_for_guarantee`) —
+    or the tree's name where no key is given. Raises `OSError` where the
+    directory cannot be made or the file cannot be written."""
     directory = values_dir(common, session)
     os.makedirs(directory, exist_ok=True)
     moment = time.time_ns() if now is None else now
-    name = f"{moment}-{os.path.basename(str(values.get('tree') or 'tree'))}"
+    tail = key or os.path.basename(str(values.get("tree") or "tree"))
+    name = f"{moment}-{tail}"
     path = os.path.join(directory, name + PENDING)
     temporary = os.path.join(directory, f".{name}.tmp")
     with open(temporary, "w", encoding="utf-8") as handle:
@@ -737,11 +812,11 @@ def write_values(common, session, values, now=None):
 
 
 def read_values(path):
-    """A values file as the gate wrote it, with each row a `(label, value)`
+    """A values file as it was written, with each row a `(label, value)`
     pair or None. Raises `ValueError` with the refusal sentence for a file
     that cannot be read or is not in that shape. A `scale` key, which every
-    gate through 0.21's cycle writes (`broad_gate.SCALE_FOR_OLDER_HOOKS`), is
-    read as nothing: such a file draws as one written without it."""
+    gate before #975 wrote, is read as nothing: such a file draws
+    as one written without it."""
     try:
         with open(path, encoding="utf-8") as handle:
             data = json.load(handle)
@@ -811,13 +886,11 @@ def label(values):
     work item. The harness shows a hook message's first line as a dim label,
     so this is the line that must not be blank.
 
-    A file carrying `branch` — written by a gate that has #666, `null` on a
-    detached HEAD — gets the `SEALED` line's own names (`sealed_names`) and
-    then ` · #<pr>` where the record named a pull request (#666). **A file
-    without the key draws the label it always drew**, `SEALED <tree> against
-    <base> · <item>`: the file is written by the gate the TREE ships and read
-    by the hook the INSTALLED plugin ships, so a file from an older gate may
-    still be pending when a newer hook draws it."""
+    A file carrying `branch` — every file since #666, `null` on a detached
+    HEAD — gets `sealed_names`'s names and then ` · #<pr>` where the file
+    names a pull request (#666). **A file without the key draws the label it
+    always drew**, `SEALED <tree> against <base> · <item>`: a file an older
+    gate wrote may still be pending when a newer hook draws it."""
     item = values.get("item")
     where = f" · {os.path.basename(os.path.normpath(item))}" if item else ""
     if "branch" not in values:
@@ -829,28 +902,262 @@ def label(values):
     return f"SEALED {names}{f' · {pr}' if pr else ''}{where}"
 
 
+# --- the stamp, queued at a sealed guarantee's commit (#975) ---------------
+#
+# The owner's rule of 2026-10-18: the stamp means every party verified the
+# work item, the sealer last, and the work is done. So it is drawn once per
+# work item, from `guarantee.md` reading `sealed`, never from the broad
+# gate's run. git's `post-commit` (`hooks/commitgate.py#post_commit`) runs
+# after every judged commit, in the worktree the commit landed in, and calls
+# `queue_for_guarantee`; the `Stop` hook draws what it queued.
+#
+# Once per work item is held by four facts the tree and the clone carry,
+# and no count kept beside them: a values file whose name,
+# `<ns>-<id>-<target sha>.json`, carries the work item's id, under any
+# session's directory, pending or drawn, whatever commit it named; the
+# audited commit standing in HEAD's history, so a squash or a cherry-pick of
+# the guarantee elsewhere queues nothing; the guarantee reading `sealed` at
+# an earlier commit of that history (`sealed_before`); and the `Target SHA`
+# row's `; earlier run: <sha> <verdict>` chain — a `sealed` after a `sealed`
+# was stamped at the first. The last two hold across clones. A `sealed` that
+# drew nothing counts too, since the history cannot tell it from one stamped
+# before a rebase, so the work item then draws no stamp: the gap #976
+# carries. A `sealed` committed over a history that carries no earlier
+# `sealed` is caught by neither, so it queues again in a clone that holds no
+# values file for the work item: the sealing commit amended or rewritten
+# there over its own parent, or a second seal on a copy of the branch that
+# had not fetched the first. Its row is the one just written. That is a
+# stated limit (`questions.md` Q9): across clones the history is the only
+# record read, and nothing beside the tree counts stamps.
+
+# A committed guarantee's path, in shared mode, where a commit carries it. A
+# local-mode root sits under the git directory and no commit ever carries
+# it, so no stamp is queued there.
+GUARANTEE_PATH = re.compile(r"^seal/specs/([^/]+)/guarantee\.md$")
+ROUND_FILE = re.compile(r"^round-\d+\.md$")
+CHAIN_CHECK = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "..",
+    "code-review",
+    "scripts",
+    "chain_check.py",
+)
+# The line `post-commit` prints on stdout, which git prints into the commit
+# command's output. It names the way to draw the stamp by hand, because the
+# hook draws nothing, and says nothing, where it cannot: a `python3` that
+# cannot load this file, a main session whose working directory is outside
+# this clone, a plugin older than the hook (`docs/the-review-record.md`
+# §*The stamp*).
+QUEUED = (
+    "specseal: the stamp for {id} is drawn at the end of this turn from "
+    "{path}; where none appears, `seal-stamp --from {command}` draws it"
+)
+
+
+def quote(path, windows=None):
+    """`path` quoted for the shell a person types `seal-stamp --from` into:
+    double quotes on Windows, `shlex.quote` elsewhere, so a checkout whose
+    path holds a space prints a command that runs as printed.
+    `broad_gate.quote` says why double quotes are `cmd.exe`'s."""
+    if windows is None:
+        windows = os.name == "nt"
+    return f'"{path}"' if windows else shlex.quote(path)
+
+
+def _git(cwd, *args):
+    """stdout of a git call in `cwd`, or None on a non-zero exit."""
+    r = subprocess.run(
+        ["git", "-C", cwd, *args],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return r.stdout if r.returncode == 0 else None
+
+
+def _chain_check():
+    """`chain_check.py`, whose readers of `guarantee.md` and `broad-gate.md`
+    are the ones the pull request's check uses, so the row has one grammar."""
+    spec = importlib.util.spec_from_file_location(
+        "specseal_chain_check_for_the_stamp", CHAIN_CHECK
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def already_queued(common, ident):
+    """True where a values file for work item `ident` stands under any
+    session's directory of the clone, pending or drawn. A work item is
+    stamped once (#975), whatever commit its guarantee audited, so the
+    audited commit is not part of the question. A name is
+    `<ns>-<ident>-<target>.json`; a file an older gate wrote is
+    `<ns>-<tree>.json` and has no middle part to match."""
+    root = os.path.join(common, VALUES_DIR)
+    try:
+        sessions = os.listdir(root)
+    except OSError:
+        return False
+    for session in sessions:
+        try:
+            names = os.listdir(os.path.join(root, session))
+        except OSError:
+            continue
+        for name in names:
+            parts = name.split("-")
+            if (
+                len(parts) == 3
+                and parts[1] == ident
+                and name.endswith((PENDING, DRAWN))
+            ):
+                return True
+    return False
+
+
+def guarantee_rows(target, branch, base, ident, run, rounds):
+    """The stamp's rows for a sealed guarantee (#975, `questions.md` Q1's
+    answer (a)): what the records at the commit say and nothing measured
+    again — the title, the audited commit with the branch under it, the
+    base, the work item's id, a blank, then the newest run `broad-gate.md`
+    names and the count of round records. A row whose record is absent is
+    left out; `rounds` reads `0` where the work item had none."""
+    rows = [TITLE_ROW, ("tree", fit(target))]
+    if branch:
+        rows.append(("", fit(branch)))
+    if base:
+        rows.append(("base", fit(base, keep="tail")))
+    rows += [("item", ident), None]
+    if run:
+        rows.append(("gate", fit(f"{TICK}{run}")))
+    rows.append(("rounds", str(rounds)))
+    return rows
+
+
+def queue_for_guarantee(top, common, session, now=None):
+    """The lines `post-commit` prints for the commit at HEAD of `top`: one
+    per work item whose `guarantee.md` the commit touched, reads one
+    `Verdict:` of `sealed`, carries no earlier run reading `sealed`, read
+    no `sealed` at an earlier commit of HEAD's history, has no values file
+    in the clone already, and audited a commit in HEAD's history. Each
+    writes one values file for `session` under `common` first. A `sealed`
+    that drew nothing counts as an earlier one too, and the work item's
+    missing stamp is the gap #976 carries. Raises whatever reading or
+    writing raises; the caller is silent on every failure."""
+    touched = _git(
+        top, "diff-tree", "--no-commit-id", "--name-only", "-r", "--root", "HEAD"
+    )
+    items = [
+        found.group(1)
+        for path in (touched or "").splitlines()
+        for found in [GUARANTEE_PATH.match(path.strip())]
+        if found
+    ]
+    if not items:
+        return []
+    chain = _chain_check()
+    said = []
+    for name in items:
+        line = _queue_one(chain, top, common, session, name, now)
+        if line:
+            said.append(line)
+    return said
+
+
+def sealed_before(chain, top, path):
+    """True where `path` read one `Verdict:` of `sealed` at a commit before
+    HEAD in HEAD's history, whatever that verdict's `Target SHA` named. That
+    commit was stamped where it was made, in this clone or another, so what
+    the history carries holds across clones, a rebase among them, and asks
+    nothing of the row an agent writes. The history cannot tell such a
+    `sealed` from one that drew nothing, a `sealed` over a commit the branch
+    does not hold among them, so that one counts too: the work item then
+    draws no stamp, the gap #976 carries (#975 round 5, `questions.md` Q8).
+    A root commit has no parent: `git log` exits 128 and the history is
+    empty."""
+    reader = chain.SHARED_READER
+    for sha in (_git(top, "log", "--format=%H", "HEAD^", "--", path) or "").split():
+        text = _git(top, "show", f"{sha}:{path}")
+        if text is None:
+            continue
+        verdicts = chain.verdicts_of(reader, text)
+        if len(verdicts) == 1 and chain.verdict_word(verdicts[0][1]) == chain.SEALED:
+            return True
+    return False
+
+
+def _queue_one(chain, top, common, session, name, now):
+    """The line for one work item's guarantee, or None where it queues
+    nothing (`queue_for_guarantee` says when)."""
+    reader = chain.SHARED_READER
+    rel = f"seal/specs/{name}"
+    text = _git(top, "show", f"HEAD:{rel}/guarantee.md")
+    if text is None:
+        return None
+    verdicts = chain.verdicts_of(reader, text)
+    if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
+        return None
+    target = chain.target_of(reader, text)
+    if target is None:
+        return None
+    rows = chain.table_rows(reader, reader.readable(text))
+    cell = reader.visible(chain.field(rows, chain.TARGET) or "")
+    if any(word == chain.SEALED for _sha, word in chain.earlier_verdicts(cell)):
+        return None
+    if sealed_before(chain, top, f"{rel}/guarantee.md"):
+        return None
+    ident = item_value(name)
+    if already_queued(common, ident):
+        return None
+    # The audited commit is in this commit's history. A squash or a
+    # cherry-pick of the guarantee onto another branch, in this clone or
+    # another, carries a verdict that was stamped where it was made.
+    # Precondition: `target` resolves in this clone; where it does not,
+    # `merge-base` exits 128 and nothing is queued.
+    if _git(top, "merge-base", "--is-ancestor", target, "HEAD") is None:
+        return None
+    key = f"{ident}-{target}"
+    newest = chain.EMPHASIS.sub("", cell.split(chain.EARLIER_RUN)[0]).split()
+    base = newest[2] if len(newest) >= 3 and newest[1] == "against" else None
+    gate_text = _git(top, "show", f"HEAD:{rel}/{chain.BROAD_GATE_FILE}")
+    run = chain.newest_run(reader, gate_text) if gate_text else None
+    listed = _git(top, "ls-tree", "--name-only", "HEAD", f"{rel}/rounds/") or ""
+    rounds = sum(
+        1 for path in listed.splitlines() if ROUND_FILE.match(os.path.basename(path))
+    )
+    branch = (_git(top, "symbolic-ref", "--short", "-q", "HEAD") or "").strip()
+    values = {
+        "tree": target,
+        "base": base,
+        "from": None,
+        "branch": branch or None,
+        "pr": None,
+        "item": os.path.join(top, *rel.split("/")),
+        "session": session or None,
+        "rows": guarantee_rows(target, branch, base, ident, run, rounds),
+    }
+    path = write_values(common, session, values, now=now, key=key)
+    return QUEUED.format(id=ident, path=path, command=quote(path))
+
+
 # --- a person's command --------------------------------------------------
 
-# Neutral values in the panel's shape, so `seal-stamp` shows a person what the
-# gate will print without a gate having run — every row `broad_gate.panel`
-# can return, the conditional ones included, in its order; a case in
-# `tests/test_the_seal_is_taken_once_by_the_sealer.py` holds the labels
-# against `panel`'s. The shapes are the owner's of 2026-10-07: the ref beside
-# its commit, a `✓` on a result row, ` · ` and `→` between parts, a dim `·`
-# before a row that is not a pass.
+# Neutral values in the stamp's shape, so `seal-stamp` shows a person what a
+# sealed guarantee's commit draws without one having been committed — every
+# row `guarantee_rows` can return, the conditional ones included, in its
+# order; a case in `tests/test_the_seal_is_taken_once_by_the_sealer.py`
+# holds the labels against `guarantee_rows`'. Since #975 the stamp carries
+# what the records say and no suite counts: those are the broad gate's
+# report's, which the gate prints as text.
 SAMPLE_ROWS = [
     ("SEALED", ""),
     ("tree", "c46fd2d"),
     ("", "feat/12-a-branch"),
-    ("base", "1e2bed9  origin/release/next"),
-    ("item", "#34 · 1799000000"),
-    ("gate", "tree 1.2.3"),
+    ("base", "1e2bed9"),
+    ("item", "1799000000"),
     None,
-    ("suite", "✓ 768 passed · 1 skipped"),
-    ("chain", "✓ exit 0"),
-    ("CI also", "· 4 more steps"),
-    ("rounds", "3 · capped"),
-    ("", "2 deferred → #56"),
+    ("gate", "✓ c46fd2d"),
+    ("rounds", "3"),
 ]
 
 
@@ -861,7 +1168,8 @@ def main(argv=None, console_wants_letters=None):
     both name; a direct call may leave it to be asked here."""
     parser = argparse.ArgumentParser(
         prog="seal-stamp",
-        description="Print the broad gate's stamp — the letter a green run draws.",
+        description="Print the sealer's stamp — what the commit of a sealed "
+        "guarantee draws.",
     )
     parser.add_argument(
         "--shape", action="store_true", help="the letter twin, whatever the console"
@@ -871,7 +1179,7 @@ def main(argv=None, console_wants_letters=None):
         dest="values",
         default=None,
         metavar="FILE",
-        help="draw a sealed run's values file, once, instead of the sample",
+        help="draw a queued stamp's values file, once, instead of the sample",
     )
     args = parser.parse_args(argv)
     if console_wants_letters is None:

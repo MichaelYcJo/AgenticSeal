@@ -51,14 +51,15 @@ def test_verify_says_when_not_only_what():
     ):
         assert row in scope, f"the Scope table lost its `{row}` row"
     assert "against the base commit" in scope
-    assert "Nothing edits between the broad seal and the PR" in scope
+    assert "Nothing edits between the broad run and the PR" in scope
+    assert "broad seal" not in scope
 
 
 def test_the_broad_gate_section_states_its_own_timing():
     """The Scope table settles when the gate fires; the section did not repeat
     it, and a session that jumped to the section by its heading ran the whole
     suite before review. Two sessions did exactly that, 22 minutes between
-    them, and both seals were void by the first review finding.
+    them, and both runs were void by the first review finding.
 
     The baseline is the same failure one step further in: it is reached for
     once an unexplained failure appears, not before one exists."""
@@ -443,7 +444,7 @@ def test_the_skill_says_the_preflight_is_not_the_broad_gate():
     assert PREFLIGHT in text, "the broad gate section does not name the preflight"
     at = text.index(PREFLIGHT)
     said = text[max(0, at - 300) : at + 500]
-    assert "runs no suite" in said and "seals nothing" in said, said
+    assert "runs no suite" in said and "writes nothing" in said, said
     assert "orchestrator" in said, said
     assert "--preflight" not in read("agents", "sealer.md"), (
         "the sealer's definition names the preflight"

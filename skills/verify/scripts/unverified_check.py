@@ -713,8 +713,8 @@ def readable(text):
     `docs/the-record-layout.md` §*The fold, and what tells it from a
     deletion* gives: a region nobody closed is blanked to the end, and the
     readers that judge a record refuse the table it hid as absent, while
-    `broad_gate.py`'s label, which never stops a sealed run, is drawn
-    without it.
+    `broad_gate.py`'s label, which never stops a run that passed, is
+    printed without it.
 
     Every read starts here — the working tree and the base revision alike —
     which is what keeps the two sides of the comparison counting the same

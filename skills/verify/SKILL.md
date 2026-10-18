@@ -248,15 +248,15 @@ run.
 
 - **Scope.** An agent's hand-back covers what that agent touched. The
   sealer's seal covers a tree nobody is still editing — which is why *nothing
-  edits between the broad seal and the PR* is a rule about that one seal.
-- **Form.** The sealer's seal is the only mark drawn, and
-  only over a run that earned it: `broad-gate` draws the stamp, or writes the
-  values it is drawn from, when every check passed and `broad-gate.md` was
-  written, and on no other path. It draws on a person's terminal itself; anywhere
-  else the `Stop` hook draws those values at the end of the turn of the
-  orchestrator's session, which ran the gate before it spawned the sealer.
-  So seeing the drawing means the last seal
-  was earned.
+  edits between the broad run and the PR* is a rule that seal rests on.
+- **Form.** The sealer's seal is the only mark drawn, and only over a verdict
+  that earned it: the stamp is drawn from the sealer's `guarantee.md` reading
+  `sealed`, once per work item, at the end of the turn in which that file is
+  committed. git's `post-commit` writes the values it is drawn from, and the
+  `Stop` hook draws them in the orchestrator's session
+  (`docs/the-review-record.md` §*The stamp*). The broad gate draws nothing:
+  its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges
+  nothing. So seeing the drawing means the last seal was earned.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
 reference to an INSTANCE names whose** — the sealer's seal, the warden's
@@ -270,11 +270,11 @@ seal* names an auditor and not what is audited.
 Condition 3 decides where a broad check belongs. Evidence binds to a tree
 state, so **any run followed by an edit was spent, not banked**. Measured on
 one work item here: twenty broad runs, every one of them followed by more
-edits — 121 after the first, 1 after the last. Not one of those seals survived
+edits — 121 after the first, 1 after the last. Not one of those runs survived
 to the handoff, and they cost more than half the session's tool time.
 
-Review rounds are edits you have already scheduled. Sealing the whole suite
-before them seals a tree that is going to change.
+Review rounds are edits you have already scheduled. Running the whole suite
+before them measures a tree that is going to change.
 
 | When | What runs | Seal |
 |---|---|---|
@@ -282,7 +282,7 @@ before them seals a tree that is going to change.
 | Phase boundary | your module and the ones it touches, in parallel | `executed`, scoped |
 | Handoff to review | nothing broad | the suite is `unverified`, and says so |
 | Review rounds 1..n | what the fix touches | `executed`, narrow |
-| **After the rounds settle** | full suite, lint, typecheck — **once** | the one broad seal |
+| **After the rounds settle** | full suite, lint, typecheck — **once** | `executed`, broad, once |
 
 Narrowing is not permission to go quiet. A suite you did not run is
 `unverified` with who answers it, never omitted — condition 4 is what makes
@@ -382,7 +382,7 @@ re-run broad gate and a re-pushed pull request to clear it.
 **It fires after the review rounds settle, never before them.** Nothing broad
 runs at the handoff to review; the hand-back carries the suite as
 `unverified`, and that label is what keeps the narrow scope honest. §Scope
-holds the reason and the measurement — a seal taken before the rounds is spent
+holds the reason and the measurement — a run taken before the rounds is spent
 by the first finding. Findings are the expected case rather than the
 exception: the review chain runs three finding rounds by default
 (`docs/the-review-record.md` §*The run*).
@@ -405,7 +405,7 @@ spawned. The run judges no failure and fixes none; the sealer reads its
 record, and what it guarantees after it is `docs/the-review-record.md`
 §*The guarantee*.
 `broad-gate --preflight`, which the orchestrator runs before the broad run,
-is not this run: it runs the gate's record arms, runs no suite, and seals
+is not this run: it runs the gate's record arms, runs no suite, and writes
 nothing (#638).
 
 **An expensive suite argues for this placement, not against it.** A run that
@@ -417,21 +417,21 @@ Moving it ahead of the rounds means paying it twice.
 upstream where the checkout declares one, else `origin/<base>`, else the ref
 as given. Every check it runs takes that one commit — the two baselines, the scratch worktree the base comparison checks out, and
 `broad-gate.md`. A plain branch name is a LOCAL ref and a runner has no
-local branches, so a checkout one commit behind its remote used to seal green
+local branches, so a checkout one commit behind its remote used to pass green
 over a question nobody was asking while CI refused the same commit (#423).
 Where resolving moves the answer the gate prints one line naming both refs,
 both commits and the distance, and runs anyway; where the two agree it prints
 nothing. It never fetches, so a remote-tracking ref is only as fresh as the
-last fetch — which is why the stamp's panel names the ref beside the commit
-on the `base` row rather than the commit alone, and the `SEALED` line names it as
-`<ref> @ <commit>`.
+last fetch — which is why the gate's report names the ref beside the commit
+on the `base` row rather than the commit alone, and the `BROAD GATE PASSED`
+line names it as `<ref> @ <commit>`.
 
-**What the broad run's stamp covers is declared rather than remembered.** The
+**What the broad run covers is declared rather than remembered.** The
 arms exist so that the one run says what CI will say, and for three releases the
 list was kept in step with `.github/workflows/hygiene.yml` by whoever
 remembered. #424 added a step to that workflow's `release` job, nobody added
 the arm, and no case in the suite went red — so from that merge onward a green
-seal covered a shorter list than the merge was judged by.
+run covered a shorter list than the merge was judged by.
 `skills/verify/scripts/broad_gate.py`'s `PARTITION` is the declaration that
 ends it: every step of that job is mirrored by a named arm or excluded with a
 written reason, there is no third state, and a case holds the table against
@@ -439,7 +439,7 @@ the workflow from both sides. A step added to the workflow fails the suite
 until somebody classifies it, and a row naming a step that was renamed away
 fails it too.
 
-**A seal says what it did not answer.** Where the repository being gated has
+**A run says what it did not answer.** Where the repository being gated has
 that workflow, the panel carries a `CI also` row — *· <n> more steps* — and the
 names of those steps go to stderr beside the line that names the
 repository's own command, with the total they are counted out of. The dim
@@ -451,7 +451,7 @@ sees neither, and nothing else about its run changes. Both are counted over
 the steps CI runs for the base (#666): a step CI does not ask of this pull
 request — three of SpecSeal's run only on a pull request into `main` — is
 neither answered nor unanswered, so the count leaves it out and the line says
-how many it left out and why. A feature seal of SpecSeal itself reads `CI
+how many it left out and why. A run on a SpecSeal feature branch reads `CI
 also · 3 more steps`, and the line says they are three of the six CI runs
 for that base.
 
@@ -468,7 +468,7 @@ condition, so the class stays open for the next kind.
 SpecSeal's own `release` job have a local answer and no arm: two run a
 script under `.github/scripts/`, which no plugin ships, and one is shell
 written inline in the workflow with no script either side can share. A
-repository that wants checks of its own sealed names them in the `Broad gate`
+repository that wants checks of its own run names them in the `Broad gate`
 row of `seal/config.md` — the row this gate already runs first — rather than
 in the arm list of a script that ships to everybody.
 
@@ -526,7 +526,7 @@ review chain's rounds. A fourth trip is not another bug; it means the narrow
 scope is missing a class of breakage, which is an architecture question for
 the user — the same reading as the 3+ Fix Rule.
 
-**Nothing edits between the broad seal and the PR.** The tree that passed is
+**Nothing edits between the broad run and the PR.** The tree that passed is
 the tree that ships. One more small fix after the run means the run is stale,
 and the gate is paid for again.
 
@@ -911,7 +911,7 @@ never in a column of it.
 - Satisfaction vocabulary before the run: should, probably, seems, likely.
 - A new test that passed on first run and was never seen red (condition 2).
 - Partial evidence generalized — one endpoint checked, "API works" claimed.
-- A broad run reported as the gate's stamp when edits followed it — including the
+- A broad run reported as the gate's pass when edits followed it — including the
   one small fix made after it.
 - A pre-existing failure counted as this work's, or waved past without
   being named. Both need the base comparison; neither survives it.
