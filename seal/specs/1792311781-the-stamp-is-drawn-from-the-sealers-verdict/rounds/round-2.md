@@ -8,7 +8,7 @@ target: 981b0acc, fixes a0ee12eb..981b0acc
 
 severity: should
 location: `README.md:76`, `README.ko.md:68`, `README.ko.md:70`, `README.ko.md:73`, `skills/verify/SKILL.md:251`, `skills/verify/SKILL.md:273`, `skills/verify/SKILL.md:276-277`, `skills/verify/SKILL.md:285`, `skills/verify/SKILL.md:385`, `skills/verify/SKILL.md:529`, `tests/test_broad_gate_rule.py:54`, `tests/test_the_gate_names_every_step_ci_runs.py:172`, `tests/test_the_seal_is_taken_once_by_the_sealer.py:3974`
-verdict: open
+verdict: fixed 56395233
 reopens: round-1#2
 
 Why the close does not hold. Round 1's finding 2 was a class: documents
@@ -104,13 +104,13 @@ skills/verify/SKILL.md:529
         "the gate does not name the command it ran, so the sealer "
 ```
 
-answer:
+answer: reworded as the record gives them: `README.md:76`, `README.ko.md:68`, `:70` and `:73` (실행, not 봉인), `skills/verify/SKILL.md:251`, `:273`, `:276-277`, `:285` (`` `executed`, broad, once ``), `:385` and `:529`, and the two messages. The pin at `tests/test_broad_gate_rule.py:54` moved to `Nothing edits between the broad run and the PR` and holds `broad seal` absent; it was seen red against the documents before they changed (executed). The class, enumerated by a whitespace-folded sweep of every tracked file outside `seal/specs/`, `changelog/` and `CHANGELOG.md` for a `seal` word within 90 characters of a run, suite, gate, broad or edit word, names taken out, and by an AST walk of every test's assertion message: two more messages called the gate's run or report a seal and follow (`tests/test_the_seal_is_taken_once_by_the_sealer.py` `the gate passed without the row's suite running`, `the gate's report still asserts a linter`), and one docstring in `tests/test_broad_gate_rule.py` beside the moved pin. Judged the concept or the sealer's seal and left: `templates/config.md:222`'s counterfeit, `skills/verify/SKILL.md`'s `Seal` column and `a sealed claim`, `agents/warden.md`'s `never as a seal` (a probe is not a claim's seal, and the warden's preload is measured), the release seal and `seal mode`. Test docstrings and comments that tell how the gate used to seal are history and stay (`overview.md` §*Not done*). executed: `bin/test tests/test_broad_gate_rule.py tests/test_the_gate_names_every_step_ci_runs.py tests/test_one_word_one_meaning.py tests/test_docs_line_wrap.py tests/test_no_passage_is_pasted_into_a_second_file.py tests/test_release_hygiene.py tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py -q` 220 passed; `bin/test tests/test_the_seal_is_taken_once_by_the_sealer.py tests/test_the_rules_have_one_owner.py -q` 395 passed
 
 ### 2. The gate's construction sweep takes a `seal` that ends a sentence out as a name, so the word is never refused
 
 severity: should
 location: `tests/test_one_word_one_meaning.py:431`
-verdict: open
+verdict: fixed 4fee2bad
 regression: round-1#1
 
 The unit is `GATE_SEAL_NAMES` in `tests/test_one_word_one_meaning.py:427-440`,
@@ -154,13 +154,13 @@ def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
         assert not GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
 ```
 
-answer:
+answer: line 431 reads `\bseal[-_.]\w[\w.-]*` as the record gives it, the comment above `GATE_SEAL_NAMES` says a name goes on past its `-`, `_` or `.`, and `test_the_gate_sweep_reads_a_seal_that_ends_a_sentence` is added as given. No other sweep has a name alternative of this shape (`grep` of `seal[-_.]` over `tests/`, the scripts and the hooks: line 431 alone). executed: the new case red against line 431 as it stood (`"the broad run is no "` left after the names were taken out), green after; `bin/test tests/test_one_word_one_meaning.py -q` 24 passed
 
 ### 3. spec.md S12 still states the sealer clause that 6f7aacb2 shortened, and no record says the two diverge
 
 severity: should
 location: `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/spec.md:99`, `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/spec.md:155`, `seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/overview.md`
-verdict: open
+verdict: fixed dece9cb0
 regression: round-1
 
 The unit is `agents/sealer.md:99-100`, which 6f7aacb2 changed. The frame's
@@ -195,7 +195,7 @@ phase 5 writes:
 | The sealer's `## Never` clause | S12 and §*Scope* say it reads that the stamp is drawn in the orchestrator's session from the sealer's committed `sealed` verdict, once per work item; 6f7aacb2 made it "a stamp is drawn once from your committed `sealed`" | the shorter clause | phase 4's evaluation failed rule 4 alone at 24,757 preload bytes against #969's 24,702; the shorter clause brings the preload to 24,700 and still says what the owner's rule says: drawn once, from the sealer's committed `sealed`, never from the gate's run |
 ```
 
-answer:
+answer: the divergence is recorded in `overview.md` §*Where spec and implementation diverged* with the record's row, and `spec.md` is not edited: `skills/implement/SKILL.md` §3 makes `spec.md` the framer's, and step 4 sends a divergence to the builder's memo with both sides quoted and the grounds. executed: `bin/unverified-check --baseline origin/release/v0.22.1` on the item reads the memo, exit 0; `tests/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` red with the memo removed, green with it
 
 ## Confirmations
 
