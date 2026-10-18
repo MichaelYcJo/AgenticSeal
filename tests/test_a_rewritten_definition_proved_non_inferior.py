@@ -546,12 +546,13 @@ def test_a_record_with_no_truth_grader_decides_opus(tmp_path, capsys):
         assert (code, out[0]) == (0, "opus"), (graders, out)
         assert len(out) == 2 and "no truth grader" in out[1], (graders, out)
     # Either side alone: a truth grader the other side never ran counts zero
-    # runs there, which the lost-grader rule cannot see.
+    # runs there, so that side ran the case a different number of times,
+    # which is a no result and `opus` already.
     truth = {**shape, ("c1", "truth-1"): ("truth", 2, 2)}
     for old, new, side in ((truth, shape, "Sonnet"), (shape, truth, "Opus")):
         code, out = model_of(tmp_path, capsys, old, new)
         assert (code, out[0]) == (0, "opus"), (side, out)
-        assert f"no truth grader on the {side} side" in out[1], (side, out)
+        assert "different number of times" in out[1], (side, out)
 
 
 # --- what a side's run saves and records -------------------------------------
