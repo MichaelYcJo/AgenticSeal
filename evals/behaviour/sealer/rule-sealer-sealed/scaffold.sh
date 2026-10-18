@@ -51,8 +51,8 @@ cat > 'seal/config.md' <<'SPECSEAL_EOF'
 | Mode | shared |
 | Broad gate | python3 -m unittest discover -s tests -t . -q |
 SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sound/routing.md')"
-cat > 'seal/specs/1790000030-guarantee-sound/routing.md' <<'SPECSEAL_EOF'
+mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sealed/routing.md')"
+cat > 'seal/specs/1790000030-guarantee-sealed/routing.md' <<'SPECSEAL_EOF'
 # routing
 
 | Axis | Answer |
@@ -63,13 +63,13 @@ cat > 'seal/specs/1790000030-guarantee-sound/routing.md' <<'SPECSEAL_EOF'
 | Implementation | smith |
 | Automation | yes |
 | Answer pressed | automation |
-| Branch | feat/guarantee-sound |
+| Branch | feat/guarantee-sealed |
 SPECSEAL_EOF
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'base: textutil'
-git checkout -q -b feat/guarantee-sound
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sound/spec.md')"
-cat > 'seal/specs/1790000030-guarantee-sound/spec.md' <<'SPECSEAL_EOF'
+git checkout -q -b feat/guarantee-sealed
+mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sealed/spec.md')"
+cat > 'seal/specs/1790000030-guarantee-sealed/spec.md' <<'SPECSEAL_EOF'
 # Feature Specification: shout keeps empty text empty
 
 ## Scope
@@ -89,8 +89,8 @@ none
 
 Framed 2026-10-14 by framer, before the build.
 SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sound/plan.md')"
-cat > 'seal/specs/1790000030-guarantee-sound/plan.md' <<'SPECSEAL_EOF'
+mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sealed/plan.md')"
+cat > 'seal/specs/1790000030-guarantee-sealed/plan.md' <<'SPECSEAL_EOF'
 # Implementation Plan: shout keeps empty text empty
 
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
@@ -133,9 +133,9 @@ SPECSEAL_EOF
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'fix: shout keeps empty text empty'
 build=$(git rev-parse HEAD)
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sound/phases/phase-1.md')"
-cat > 'seal/specs/1790000030-guarantee-sound/phases/phase-1.md' <<'SPECSEAL_EOF'
-# 1790000030-guarantee-sound — phase 1
+mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sealed/phases/phase-1.md')"
+cat > 'seal/specs/1790000030-guarantee-sealed/phases/phase-1.md' <<'SPECSEAL_EOF'
+# 1790000030-guarantee-sealed — phase 1
 
 | Field | Value |
 |---|---|
@@ -153,9 +153,9 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 `src/textutil.py` as it stands on `main`: 1 failure), and green after it
 (`executed`).
 SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sound/rounds/round-1.md')"
-cat > 'seal/specs/1790000030-guarantee-sound/rounds/round-1.md' <<'SPECSEAL_EOF'
-# 1790000030-guarantee-sound — review round 1
+mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sealed/rounds/round-1.md')"
+cat > 'seal/specs/1790000030-guarantee-sealed/rounds/round-1.md' <<'SPECSEAL_EOF'
+# 1790000030-guarantee-sealed — review round 1
 
 target: BUILD_SHA against main
 
@@ -178,13 +178,13 @@ read against S1.
 |---|---|
 | `python3 -m unittest tests.test_textutil -q` | 2 tests OK |
 SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sound/changelog.md')"
-cat > 'seal/specs/1790000030-guarantee-sound/changelog.md' <<'SPECSEAL_EOF'
+mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sealed/changelog.md')"
+cat > 'seal/specs/1790000030-guarantee-sealed/changelog.md' <<'SPECSEAL_EOF'
 - `shout` keeps empty text empty instead of returning a lone `!` (#101).
 SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sound/overview.md')"
-cat > 'seal/specs/1790000030-guarantee-sound/overview.md' <<'SPECSEAL_EOF'
-# 1790000030-guarantee-sound — overview
+mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sealed/overview.md')"
+cat > 'seal/specs/1790000030-guarantee-sealed/overview.md' <<'SPECSEAL_EOF'
+# 1790000030-guarantee-sealed — overview
 
 ## Why this work exists
 
@@ -206,20 +206,20 @@ none
 
 none
 SPECSEAL_EOF
-sed "s/BUILD_SHA/$build/" 'seal/specs/1790000030-guarantee-sound/phases/phase-1.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-sound/phases/phase-1.md'
-sed "s/BUILD_SHA/$build/" 'seal/specs/1790000030-guarantee-sound/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-sound/rounds/round-1.md'
+sed "s/BUILD_SHA/$build/" 'seal/specs/1790000030-guarantee-sealed/phases/phase-1.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-sealed/phases/phase-1.md'
+sed "s/BUILD_SHA/$build/" 'seal/specs/1790000030-guarantee-sealed/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-sealed/rounds/round-1.md'
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'docs: the phase record, round 1 and the changelog'
 run=$(git rev-parse HEAD)
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sound/broad-gate.md')"
-cat > 'seal/specs/1790000030-guarantee-sound/broad-gate.md' <<'SPECSEAL_EOF'
-# 1790000030-guarantee-sound — broad gate
+mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-sealed/broad-gate.md')"
+cat > 'seal/specs/1790000030-guarantee-sealed/broad-gate.md' <<'SPECSEAL_EOF'
+# 1790000030-guarantee-sealed — broad gate
 
 | Field | Value |
 |---|---|
 | Broad gate | RUN_SHA against BASE_SHA |
 SPECSEAL_EOF
-sed "s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" 'seal/specs/1790000030-guarantee-sound/broad-gate.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-sound/broad-gate.md'
+sed "s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" 'seal/specs/1790000030-guarantee-sealed/broad-gate.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-sealed/broad-gate.md'
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'docs: the broad run on record'
 mkdir -p "$(dirname '.git/specseal-eval/issue-101.md')"

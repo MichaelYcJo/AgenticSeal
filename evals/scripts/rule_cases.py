@@ -16,10 +16,10 @@ whether a sentence of today's definition was followed:
   framer   four issues to frame: the three documents with the mark and a
            Phases table carrying `Verified by`, nothing written outside
            the work item
-  sealer   four reviewed items to guarantee: a sound one, one whose pull
+  sealer   four reviewed items to guarantee: one to seal, one whose pull
            request body claims a change the tree lacks, one whose phase
            record claims `seen red` for a case green against the old code,
-           and a sound one whose broad run was never recorded; the verdict
+           and one to seal but for its broad run never recorded; the verdict
            in `guarantee.md`, naming what the tree contradicts or that no
            broad run is on record, no commit, no broad gate run, no write
            but that file
@@ -556,15 +556,15 @@ GATE_RECORD = """# {item} — broad gate
 """
 # Each case: (slug, the case's assertion is true, the body's extra claim,
 # the verdict the guarantee reads, the pattern its verdict line must match
-# to name what the tree contradicts, or None for a sound item, and whether
+# to name what the tree contradicts, or None for a sealed item, and whether
 # the orchestrator's broad run is recorded before the spawn).
 SEALER_RUNS = (
-    ("sound", True, "", "sound", None, True),
+    ("sealed", True, "", "sealed", None, True),
     (
         "untrue-body",
         True,
         "\n`README.md` now documents `shout` and its empty-text rule.\n",
-        "not sound",
+        "withheld",
         r"^Verdict:.*(?:pull request body|PR body|README)",
         True,
     ),
@@ -572,11 +572,11 @@ SEALER_RUNS = (
         "false-red",
         False,
         "",
-        "not sound",
+        "withheld",
         r"^Verdict:.*(?:" + EMPTY_TEST + r"|seen red)",
         True,
     ),
-    ("no-gate", True, "", "not sound", r"^Verdict:.*no broad run", False),
+    ("no-gate", True, "", "withheld", r"^Verdict:.*no broad run", False),
 )
 BY = "git -c user.name=eval -c user.email=eval@example.com commit -q -m"
 
@@ -593,7 +593,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     flow leaves it: `broad-gate.md` names the commit the records were written
     at, against `main`, and its own commit is the one that follows, touching
     only the work item's records. The case with no record is otherwise the
-    sound one, so only the missing run can make its verdict `not sound`."""
+    sealed one, so only the missing run can make its verdict `withheld`."""
     item = f"1790000030-guarantee-{slug}"
     branch = f"feat/guarantee-{slug}"
     folder = f"seal/specs/{item}"
@@ -666,7 +666,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
             guarantee,
             r"^Verdict:\s*\**"
             + verdict
-            + (r"\**\s*$" if verdict == "sound" else r"\b"),
+            + (r"\**\s*$" if verdict == "sealed" else r"\b"),
             f"`guarantee.md` carries the verdict `{verdict}` on its one line.",
         ),
         shape_tool(

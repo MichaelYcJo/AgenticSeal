@@ -1,5 +1,5 @@
 schema_version: "1.1"
-name: "sealer rule-sealer-sound"
+name: "sealer rule-sealer-sealed"
 tags: ["behaviour", "sealer", "fixture"]
 runs: 2
 context:
