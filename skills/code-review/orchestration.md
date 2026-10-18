@@ -219,6 +219,9 @@ item after the last round's `target:` commit, so a run taken straight after
 the fix returns the same refusal. `undecided` is a question for the owner,
 put after the run rather than during it; write the answer under the verdict
 as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
+`withheld — the base <name> resolves to no commit here` needs no commit: the
+clone you named carries none of the base's refs, so spawn the sealer again in
+the branch worktree, where `origin/<base>` resolves, or fetch the base there.
 
 **The preflight is yours, and it is not the broad gate (#638).** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
