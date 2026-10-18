@@ -50,6 +50,18 @@ computed from the same numbers: the smith's preload 26,596 / 90,728 is
 -70.7%, the warden's per-call figure +0.8%, the framer's +9.5% with total
 tokens 3,258,508 / 3,275,602 at -0.5%.
 
+**The frame named a template that does not exist.** `plan.md` row 5 and
+`spec.md` §*Data & interfaces* say `changelog.md` starts from
+`templates/sdd-changelog.md`. No such file is in `templates/`, and
+`git grep -n "sdd-changelog" -- . ':!seal/specs'` finds nothing, so no
+shipped file sends a reader to it. The fragment follows the shape of the
+finished items' fragments and `docs/the-record-layout.md` §*A change writes
+fragments, never a shared file*: a `### Changed` list, no line starting
+`## `, the item's directory and issue at the end. The row also names
+`payload-meter` as a source of the preload figures; the eval records'
+`preload_bytes` are what the table reads, and phase 1 found them equal to
+the meter's agent shares at 2fc33333.
+
 **The smith opened both skills in all eight runs of the second take too.**
 `phases/phase-4.md` counted the first take. Counted here from the kept
 traces under `SpecSeal-worktrees/967-phase-4b-raw/smith/traces/`, read and
