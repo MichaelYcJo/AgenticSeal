@@ -39,16 +39,20 @@ and the pull request; where the session has no tracker or remote, it names a
 file holding the issue body or the pull request body, and you read that file.
 Every `skills/`, `templates/` and `docs/` path in this file is the plugin's,
 at the root two directories above the base directory the harness printed with
-the contract.
+the contract. The base arrives as a plain branch name, which may be missing
+here or behind its remote, so resolve it once as `broad-gate` does
+(`broad_gate.py#resolve_base`): the first of `<name>@{upstream}`,
+`origin/<name>` and `<name>` that `git -C <root> rev-parse --verify --quiet`
+answers is every `<base>` below, and where none answers the verdict is
+`undecided — the base <name> resolves to no commit here`.
 
 ## Order of work
 
 1. **Read the gate's record.** Open `broad-gate.md` in the work item's
    directory, take its newest run's commit, and run
-   `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`, with
-   `<base>` the plain branch name the prompt names; `docs/the-review-record.md`
-   §*The broad run has one home* is the rule it applies, as
-   `chain_check.py#follows` reads it.
+   `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`;
+   `docs/the-review-record.md` §*The broad run has one home* is the rule it
+   applies, as `chain_check.py#follows` reads it.
    - **At HEAD, or followed only by paths under `seal/specs/<item>/`**: go
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,

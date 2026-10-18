@@ -276,9 +276,11 @@ def test_the_old_words_are_refused_by_line(item, capsys):
     """T8, S8 of #969: a `guarantee.md` written before the words changed,
     reading `sound`, `not sound` or `undecidable`, fails a ready pull request
     on its `Verdict:` line, and the line says the word changed and what to
-    do: spawn the sealer again at HEAD over the committed `broad-gate.md`,
-    and run the broad gate first only where that record does not stand at
-    HEAD (round 1 of #969, finding 4). Protects: two
+    do: spawn the sealer again at HEAD where `broad-gate.md` names a run at
+    HEAD or one followed only by the work item's records, and otherwise run
+    the broad gate first (round 1 of #969, finding 4). The line asserts
+    nothing about the record it did not read (round 2, finding 2): the same
+    pass's `broad_gate` line may say the record is behind HEAD. Protects: two
     spellings in one tree, where the check takes `sound` for the new
     `sealed`, or refuses it with a line nobody can place."""
     root, sha = item
@@ -295,12 +297,16 @@ def test_the_old_words_are_refused_by_line(item, capsys):
         word = old.split(" — ")[0]
         assert f"`{word}` is a word the verdict no longer uses" in line, line
         assert "`sealed`" in line and "`withheld — <reason>`" in line, line
-        assert "The committed `broad-gate.md` still stands" in line, line
-        assert "spawn the sealer again at HEAD, which writes the new word" in line
         assert (
-            "run `broad-gate --base <base> --record <item>` first only where "
-            "`broad-gate.md` does not stand at HEAD"
+            "Where `broad-gate.md` names a run at HEAD, or one followed only "
+            "by the work item's records, spawn the sealer again at HEAD, which "
+            "writes the new word"
         ) in line, line
+        assert (
+            "otherwise run `broad-gate --base <base> --record <item>` and "
+            "commit `broad-gate.md` first"
+        ) in line, line
+        assert "still stands" not in line, line
 
 
 # --- the definition that writes it ---------------------------------------------
@@ -339,6 +345,21 @@ class TestDefinition:
         assert "`Verdict: withheld — no broad run at HEAD`" in step, step
         assert "Absent" in step and "any other path" in step, step
         assert "not an ancestor of HEAD" in step, step
+        assert "the plain branch name the prompt names" not in step, step
+        # Round 2 of #969, finding 1: the base arrives as a plain branch name,
+        # a local ref, and a worktree with only `origin/<base>` gives step 1's
+        # `^<base>` exit 128. It is resolved once, as the gate resolves it, and
+        # every `<base>` after it is that ref.
+        intro = " ".join(
+            between(SEALER, "You work in the clone", "## Order of work").split()
+        )
+        assert "`broad_gate.py#resolve_base`" in intro, intro
+        assert (
+            "the first of `<name>@{upstream}`, `origin/<name>` and `<name>` "
+            "that `git -C <root> rev-parse --verify --quiet` answers is every "
+            "`<base>` below"
+        ) in intro, intro
+        assert "`undecided — the base <name> resolves to no commit here`" in intro
         order = between(SEALER, "## Order of work", "## Never")
         assert "broad-gate --base" not in order, (
             "a step of the sealer's definition runs the broad gate"

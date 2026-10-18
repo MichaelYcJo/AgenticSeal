@@ -90,10 +90,11 @@ UNDECIDED = "undecided"
 RETIRED_VERDICTS = ("sound", "not sound", "undecidable")
 RETIRED_SAYS = (
     "is a word the verdict no longer uses: it reads `sealed`, "
-    "`withheld — <reason>` or `undecided — <question>` now. The committed "
-    "`broad-gate.md` still stands: spawn the sealer again at HEAD, which "
-    "writes the new word, and run `broad-gate --base <base> --record <item>` "
-    "first only where `broad-gate.md` does not stand at HEAD"
+    "`withheld — <reason>` or `undecided — <question>` now. Where "
+    "`broad-gate.md` names a run at HEAD, or one followed only by the work "
+    "item's records, spawn the sealer again at HEAD, which writes the new "
+    "word; otherwise run `broad-gate --base <base> --record <item>` and "
+    "commit `broad-gate.md` first"
 )
 # What a broad-gate entry is separated from the run behind it by. The newest
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
