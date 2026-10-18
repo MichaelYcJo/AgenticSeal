@@ -37,9 +37,9 @@
   suite (`af9c924b`), eight runs a side for the smith and the framer and
   eighteen for the warden, none cut short. The second tree includes #969's
   changes, merged in at `16e8d4c8`, as well as this item's: contract §2,
-  which all three agents preload, and for the warden
-  `docs/the-review-record.md`, `skills/code-review/scripts/chain_check.py`
-  and `agents/sealer.md` too.
+  which all three agents preload, and for the warden its own
+  `agents/warden.md` (one sentence), `docs/the-review-record.md`,
+  `skills/code-review/scripts/chain_check.py` and `agents/sealer.md` too.
   Each figure is read with `noninferiority.py#side_numbers` from the work
   item's `evals/baseline-<agent>.json` (committed at `b4e72dbe`, `dc8991c2`
   and `adbbea77`) and `evals/<agent>-phase-4.json`; the verdict is

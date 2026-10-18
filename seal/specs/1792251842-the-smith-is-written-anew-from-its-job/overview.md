@@ -60,8 +60,9 @@ cause. The warden's
 `writing-style` text gave 6.0% below the baseline in the first take, and
 two takes 6.8 points apart is the spread #966 holds.
 `skills/legacy-parity/SKILL.md`'s four emoji are #970's, and T6 skips the
-file by name until then. `.test_durations:5897` still names the case T6
-replaced; CI rewrites that file. The white square in 72 lines of 35 files
+file by name until then. `.test_durations` still names five cases this item
+removed or replaced (`:1957`, `:1958`, `:5897`, `:6583`, `:6644`); CI
+rewrites that file. The white square in 72 lines of 35 files
 outside T6's corpus is code comments and eval prompts quoting past rounds,
 and it stays.
 
