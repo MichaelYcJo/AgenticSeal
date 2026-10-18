@@ -81,8 +81,8 @@ No document under `docs/` states the evaluation's rules. Their one home is
   by it.
 - **`run --from-raw`.** The issue names it as the means of the re-read. The
   raw output it reads is gone:
-  `/Users/michael/Documents/GitHub/SpecSeal-worktrees/` holds only `976`,
-  and a search of `/Users/michael` and `/private/tmp` six levels down finds
+  the worktrees directory beside the checkout holds only `976`, and a
+  search of the home directory and `/private/tmp` six levels down finds
   no `957-*raw*` directory (read, 2026-10-19). It is also not needed:
   `compare` reads the saved sides, and those are committed (Grounding,
   guarantee row).
