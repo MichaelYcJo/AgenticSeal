@@ -3227,8 +3227,8 @@ def test_the_failure_form_takes_the_same_names():
 
 def test_the_documents_name_the_line_that_says_to_commit_the_cell():
     """S2's documentation (`agent-contract` §14). The orchestrator is told
-    what to do with the line — the commit is the orchestrator's act. The
-    sealer passes the gate's lines on as they came and is told no line's
+    what to do with the line — the commit is the orchestrator's act. Since
+    #969 the sealer sees none of the gate's lines and is told no line's
     wording (`tests/test_the_sealer_guarantees.py::TestDefinition`)."""
     orchestration = " ".join(
         read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
@@ -3787,7 +3787,8 @@ def test_the_documents_name_the_ci_also_row():
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
     assert "the panel carries a `workflow` row" not in verify
-    # The sealer relays the gate's lines and names no panel row (#923).
+    # The sealer sees no output of the gate's (#969) and names no panel row
+    # (#923).
     assert "the `workflow` count" not in " ".join(sealer_text().split())
 
 
@@ -4990,7 +4991,8 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     ):
         assert not hasattr(gate, retired), f"broad_gate.py still carries {retired}"
     readers = {
-        ("agents", "sealer.md"): "`new?`",
+        # #969: the orchestrator meets the gate's words now, not the sealer.
+        ("skills", "code-review", "orchestration.md"): "`new?`",
         ("agents", "smith.md"): "`new?` is neither",
         ("skills", "verify", "SKILL.md"): "**New?**",
         ("README.md",): "new? → not measured at the base",
@@ -8306,7 +8308,10 @@ def test_the_warden_says_what_comes_due():
     positioned to say the gate is next. Saying so without naming what is
     spawned leaves the orchestrator to remember the sealer exists."""
     warden = agent("warden.md")
-    assert "what comes due is the sealer's spawn" in warden, (
+    assert (
+        "what comes due is the orchestrator's broad run, and the sealer's "
+        "spawn after it"
+    ) in " ".join(warden.split()), (
         "the warden says the broad run is next and does not say who takes it"
     )
 
@@ -8341,15 +8346,6 @@ def test_the_sealer_preloads_the_contract_and_nothing_else():
     assert re.findall(r"^  - (\S+)", head, re.M) == ["agent-contract"], (
         "the sealer's `skills:` list is not `agent-contract` alone, so a body "
         "rides every spawn for a procedure that is one command"
-    )
-
-
-def test_the_sealer_names_the_command_it_runs():
-    """The procedure is the command; a definition that describes the checks
-    instead is a second source that drifts from `broad_gate.py`."""
-    text = " ".join(sealer_text().split())
-    assert "broad-gate --base <base> --record <item>" in text, (
-        "the sealer's definition does not name the command that is its whole procedure"
     )
 
 
@@ -8446,13 +8442,18 @@ def test_the_window_the_sealer_shipped_under_is_closed():
     )
     assert "§2 as it stands" not in text, "the section heading survived"
     assert "§2" in text, (
-        "the definition stopped citing §2 altogether. §2 now says the "
-        "assignment lives in the definition rather than in the contract, so a "
-        "silent definition makes that pointer name a file that does not answer"
+        "the definition stopped citing §2 altogether, so the sealer meets the "
+        "rule that keeps the run out of its hands nowhere in its own file"
     )
-    assert "spawned for exactly that" in text, (
-        "the positive assignment went with the apology. Deleting the window "
-        "without it leaves the one act nobody's again, which is #30's opening"
+    # #969 moved the run to the orchestrator: the positive assignment is now
+    # §2's and the orchestration's, and the sealer's file says whose it is.
+    assert "spawned for exactly that" not in text, (
+        "the sealer's assignment of the run is back beside a §2 that gives "
+        "the run to no agent"
+    )
+    assert "the orchestrator runs it" in text, (
+        "the definition says the run is not the sealer's without saying whose "
+        "it is, which is #30's opening: an act nobody holds"
     )
 
 

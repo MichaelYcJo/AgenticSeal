@@ -466,6 +466,96 @@ def test_check_refuses_a_record_whose_sides_ran_different_suites(tmp_path):
     assert any("names no suite" in p for p in ni.check_record(unnamed))
 
 
+# --- T7: the sealer's model, by the graders and the spend ---------------------
+
+
+def model_of(tmp_path, capsys, old_graders, new_graders, **new):
+    """`model` over a record `compare` could have written with the Opus side
+    as `--old` and the Sonnet side as `--new`: `(exit, printed lines)`. The
+    Sonnet side spends half by default, and its preload is two bytes larger
+    (`sonnet` against `opus` in `model:`), so the record's own verdict fails
+    rule 4 and `check` would refuse it, which `model` must not."""
+    new.setdefault("spend", 5.0)
+    new.setdefault("size", 100002)
+    path = tmp_path / "sealer-model.md"
+    path.write_text(
+        ni.render("sealer", 4, side(old_graders), side(new_graders, **new)),
+        encoding="utf-8",
+    )
+    code = ni.main(["model", str(path)])
+    return code, capsys.readouterr().out.splitlines()
+
+
+def test_the_model_is_decided_by_the_truths_and_the_spend(tmp_path, capsys):
+    """Guards S7: `noninferiority.py model` prints `sonnet` only where no
+    grader, truth, shape or reach, passes on the Sonnet side less often than
+    on the Opus side and the Sonnet side spent less; anything else, a side cut
+    short included, prints `opus` and one line naming why.
+
+    The defects: a drop decided by cost alone (#957 S10), and a cheaper model
+    that commits or writes outside its file, which every truth grader passes
+    and only a shape grader sees (`questions.md` Q2's default). Nothing else
+    catches either: `verdict` never judges spend, forgives one lost find as
+    noise, and fails every model record on rule 4 whatever the graders say,
+    so `check` refuses the very record this reads."""
+    g = {
+        ("c1", "truth-1"): ("truth", 2, 2),
+        ("c1", "shape-commits-nothing"): ("shape", 2, 2),
+        ("c1", "reach-sealer"): ("reach", 2, 2),
+    }
+    code, out = model_of(tmp_path, capsys, g, g)
+    assert (code, out[0]) == (0, "sonnet"), out
+    assert "Verdict: fail" in (tmp_path / "sealer-model.md").read_text(encoding="utf-8")
+    for name, kind in (
+        ("truth-1", "truth"),
+        ("shape-commits-nothing", "shape"),
+        ("reach-sealer", "reach"),
+    ):
+        lost = {**g, ("c1", name): (kind, 1, 2)}
+        code, out = model_of(tmp_path, capsys, g, lost)
+        assert (code, out[0]) == (0, "opus"), (name, out)
+        assert len(out) == 2 and name in out[1], (name, out)
+    for spend in (10.0, 12.0):
+        code, out = model_of(tmp_path, capsys, g, g, spend=spend)
+        assert (code, out[0]) == (0, "opus"), (spend, out)
+        assert len(out) == 2 and "spen" in out[1], (spend, out)
+    code, out = model_of(tmp_path, capsys, g, g, spend=None)
+    assert (code, out[0]) == (0, "opus"), out
+    code, out = model_of(tmp_path, capsys, g, g, cut=True)
+    assert (code, out[0]) == (0, "opus"), out
+    assert len(out) == 2 and "cut short" in out[1], out
+    path = tmp_path / "sealer-model.md"
+    model_of(tmp_path, capsys, g, g)
+    edited = path.read_text(encoding="utf-8").replace("Verdict: fail", "Verdict: pass")
+    path.write_text(edited, encoding="utf-8")
+    assert ni.main(["model", str(path)]) == 2
+    other = {"rev": "3" * 40, "tree": "4" * 40}
+    model_of(tmp_path, capsys, g, g, suite=other)
+    assert ni.main(["model", str(path)]) == 2
+    assert ni.main(["model", str(tmp_path / "absent.md")]) == 2
+
+
+def test_a_record_with_no_truth_grader_decides_opus(tmp_path, capsys):
+    """Round 1 of #969, finding 6. S7 decides the model by every truth
+    grader, so a record that carries none measured no outcome: `sonnet` there
+    is a drop decided by cost alone, the defect S7 names. No graders at all,
+    and a lone shape grader, both print `opus` and a reason saying so."""
+    shape = {("c1", "shape-commits-nothing"): ("shape", 2, 2)}
+    reach = {**shape, ("c1", "reach-sealer"): ("reach", 2, 2)}
+    for graders in ({}, shape, reach):
+        code, out = model_of(tmp_path, capsys, graders, graders)
+        assert (code, out[0]) == (0, "opus"), (graders, out)
+        assert len(out) == 2 and "no truth grader" in out[1], (graders, out)
+    # Either side alone: a truth grader the other side never ran counts zero
+    # runs there, so that side ran the case a different number of times,
+    # which is a no result and `opus` already.
+    truth = {**shape, ("c1", "truth-1"): ("truth", 2, 2)}
+    for old, new, side in ((truth, shape, "Sonnet"), (shape, truth, "Opus")):
+        code, out = model_of(tmp_path, capsys, old, new)
+        assert (code, out[0]) == (0, "opus"), (side, out)
+        assert "different number of times" in out[1], (side, out)
+
+
 # --- what a side's run saves and records -------------------------------------
 
 
@@ -761,6 +851,18 @@ def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved
     assert side["specseal"]["agent"] == "warden"
     assert side["specseal"]["preload"] == ni.preload_hashes(str(plugin), "warden")
     assert side["specseal"]["cut_short"] is False
+    # Round 1 of #969, finding 7: a `--tree` side's `rev` names no machine
+    # path, since a committed record may not carry one (CONTRIBUTING.md
+    # §House rules); the preload's hashes already name the content.
+    assert side["specseal"]["rev"] == "tree", side["specseal"]["rev"]
+    meta = json.loads((saved / "meta.json").read_text(encoding="utf-8"))
+    assert meta["rev"] == "tree", meta["rev"]
+    # A side saved before that, its `rev` an absolute path, reads back the same.
+    meta["rev"] = str(tmp_path / "sonnet-tree")
+    (saved / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+    assert ni.main(["run", "--from-raw", str(saved), "--out", str(out)]) == 0
+    side = json.loads(out.read_text(encoding="utf-8"))
+    assert side["specseal"]["rev"] == "tree", side["specseal"]["rev"]
 
 
 # --- the numbers a side is read to -------------------------------------------

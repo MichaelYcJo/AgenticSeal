@@ -93,7 +93,7 @@ prints the interpreter it used.
 
 ```bash
 bin/test tests/test_session_cost.py -q   # one module — the form to type
-bin/test                                 # everything, in parallel — the sealer's run
+bin/test                                 # everything, in parallel — the orchestrator's broad run
 uvx ruff check . && uvx ruff format .    # the linter this plugin runs on your code
 ```
 
@@ -104,9 +104,9 @@ that lacks that version (#667, #718, #647). What the whole run costs is a
 figure with a date and a machine, recorded in the work item that measured
 it, not here.
 
-**Name a module.** The full suite is the sealer's, run once after the review
-rounds settle — `skills/agent-contract/SKILL.md` §2 forbids it to smith and
-warden, and `agents/sealer.md` is the agent it is assigned to. A cheap runner
+**Name a module.** The full suite is the orchestrator's, run once after the
+review rounds settle and before the sealer is spawned —
+`skills/agent-contract/SKILL.md` §2 forbids it to every agent. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 

@@ -142,7 +142,7 @@ whether the number is green. A spawn prompt that orders one of the three is
 declined, and the instruction goes in as a row of `## Not judged` with the
 caller named as its answerer, since your hand-back is a report rather than a
 conversation. When your round leaves nothing open, say so: what comes due is
-the sealer's spawn.
+the orchestrator's broad run, and the sealer's spawn after it.
 Enforced by: tests/test_broad_gate_rule.py::test_the_warden_audits_the_scope_of_a_seal, tests/test_broad_gate_rule.py::test_the_reviewer_has_a_field_for_the_question_the_default_produces, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_the_warden_says_what_comes_due
 
 **Runs are narrow, through the repository's runner.** Find the runner before

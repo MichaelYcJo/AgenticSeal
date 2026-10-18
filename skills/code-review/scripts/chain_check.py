@@ -26,8 +26,8 @@ judged (`carried_by`). The arms are five:
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
                 touches only the work item's own directory
   guarantee     `guarantee.md` names HEAD, or every commit after it touches
-                only the sealer's two files, and its one `Verdict:` line
-                reads `sound`
+                only the closing records, and its one `Verdict:` line
+                reads `sealed`
 
 A ready pull request fails on any of them. A draft, or a run that observed no
 pull request, prints the same lines and exits 0. `docs/the-review-record.md`
@@ -76,13 +76,26 @@ TARGET = "Target SHA"
 BROAD_GATE = "Broad gate"
 BROAD_GATE_FILE = "broad-gate.md"
 GUARANTEE_FILE = "guarantee.md"
-# The sealer's two files: the only ones that may follow the commit its
-# guarantee names, since it audited everything else on the branch.
-SEALERS_FILES = (BROAD_GATE_FILE, GUARANTEE_FILE)
+# The closing records: the orchestrator's run writes the one, the sealer the
+# other, and they are the only files that may follow the commit the
+# guarantee names, since the sealer audited everything else on the branch.
+CLOSING_RECORDS = (BROAD_GATE_FILE, GUARANTEE_FILE)
 VERDICT_LINE = re.compile(r"^Verdict:\s*(.*?)\s*$")
-SOUND = "sound"
-NOT_SOUND = "not sound"
-UNDECIDABLE = "undecidable"
+SEALED = "sealed"
+WITHHELD = "withheld"
+UNDECIDED = "undecided"
+# The words the verdict used before #969. A guarantee still carrying one was
+# written by a sealer that ran before the words changed, so it is refused on
+# its line with what to do, never read as the new word it meant.
+RETIRED_VERDICTS = ("sound", "not sound", "undecidable")
+RETIRED_SAYS = (
+    "is a word the verdict no longer uses: it reads `sealed`, "
+    "`withheld — <reason>` or `undecided — <question>` now. Where "
+    "`broad-gate.md` names a run at HEAD, or one followed only by the work "
+    "item's records, spawn the sealer again at HEAD, which writes the new "
+    "word; otherwise run `broad-gate --base <base> --record <item>` and "
+    "commit `broad-gate.md` first"
+)
 # What a broad-gate entry is separated from the run behind it by. The newest
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
 EARLIER_RUN = "; earlier run: "
@@ -1567,8 +1580,9 @@ def broad_gate(reader, root, item, base):
             (
                 rel,
                 0,
-                "git carries no broad-gate file: the sealer runs `broad-gate "
-                "--base <base> --record <item>`, which writes it on a green run",
+                "git carries no broad-gate file: the orchestrator runs "
+                "`broad-gate --base <base> --record <item>` before it spawns "
+                "the sealer, and the run writes it on a green run",
             )
         ]
     sha = newest_run(reader, text)
@@ -1592,12 +1606,13 @@ def verdicts_of(reader, text):
 
 
 def verdict_word(value):
-    """`sound`, `not sound` or `undecidable` where the value begins with one
-    of them, else the value as it reads."""
+    """`sealed` where the value is that word alone; `withheld`, `undecided`,
+    or a word of `RETIRED_VERDICTS`, where the value begins with one; else
+    the value as it reads."""
     s = value.strip().lower()
-    if s == SOUND:
-        return SOUND
-    for word in (NOT_SOUND, UNDECIDABLE):
+    if s in (SEALED, RETIRED_VERDICTS[0]):
+        return s
+    for word in (WITHHELD, UNDECIDED, *RETIRED_VERDICTS[1:]):
         if s == word or s.startswith(word + " "):
             return word
     return value.strip()
@@ -1605,8 +1620,9 @@ def verdict_word(value):
 
 def guarantee(reader, root, item, base):
     """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
-    commit, a commit with anything but the sealer's two files after it, or
-    one `Verdict:` line that does not read `sound`."""
+    commit, a commit with anything but the closing records after it, a word
+    of `RETIRED_VERDICTS` on its `Verdict:` line, or one `Verdict:` line that
+    does not read `sealed`."""
     rel = f"{item}/{GUARANTEE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1615,7 +1631,7 @@ def guarantee(reader, root, item, base):
                 rel,
                 0,
                 "git carries no guarantee file: the sealer writes it from "
-                "`templates/sdd-guarantee.md` after its broad run",
+                "`templates/sdd-guarantee.md` after the orchestrator's broad run",
             )
         ]
     problems = []
@@ -1623,13 +1639,13 @@ def guarantee(reader, root, item, base):
     if sha is None:
         problems.append((rel, 0, f"no SHA in its `{TARGET}` row"))
     else:
-        behind = follows(root, sha, base, item, only=SEALERS_FILES)
+        behind = follows(root, sha, base, item, only=CLOSING_RECORDS)
         if behind is not None:
             problems.append(
                 (
                     rel,
                     0,
-                    follows_reason(behind, "the guarantee", "the sealer's two files")
+                    follows_reason(behind, "the guarantee", "the closing records")
                     + ("; the sealer runs again" if behind[0] == "after" else ""),
                 )
             )
@@ -1642,14 +1658,24 @@ def guarantee(reader, root, item, base):
                 f"{len(verdicts)} `Verdict:` lines; the guarantee carries one",
             )
         )
-    elif verdict_word(verdicts[0][1]) != SOUND:
+    elif verdict_word(verdicts[0][1]) in RETIRED_VERDICTS:
+        line, value = verdicts[0]
+        word = verdict_word(value)
+        problems.append(
+            (
+                rel,
+                line,
+                f"the sealer's verdict reads `{value}`: `{word}` {RETIRED_SAYS}",
+            )
+        )
+    elif verdict_word(verdicts[0][1]) != SEALED:
         line, value = verdicts[0]
         problems.append(
             (
                 rel,
                 line,
                 f"the sealer's verdict reads `{value}`, and a ready pull request "
-                f"needs `{SOUND}`: fix what it names, or answer its question "
+                f"needs `{SEALED}`: fix what it names, or answer its question "
                 "under it, and the sealer runs again at the new HEAD",
             )
         )

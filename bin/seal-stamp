@@ -4,7 +4,7 @@
 # tool's PATH while the plugin is enabled, so a person can type it and see the
 # drawing without a gate having run. With `--from`, it draws a sealed run's
 # values file once, for a run no hook drew. It is not how a session ends a
-# segment: the session that spawned the sealer has the stamp drawn for it at
+# segment: the session that ran the broad gate has the stamp drawn for it at
 # the end of its turn.
 #
 # Resolves the script relative to this file, not the caller's cwd, so it works

@@ -8,24 +8,24 @@ of who takes it, what it runs, and what it is allowed to say.
 It is a policy document: it outranks the SDD set, and a work item that finds
 it wrong corrects it rather than working around it.
 
-## One act, one owner, and the owner is an agent
+## One act, one owner, and the owner is the orchestrator
 
 <!-- specs/1789002694-two-agents-are-forbidden-the-seal-and-nobody-is-assigned-it -->
-**A prohibition with no holder is a prohibition every reader reasons past.**
-The rule forbidding the implementer and the reviewer to run the broad gate
-was written twice, in two agent definitions, and assigned the act to a party
-that was not an agent — so every reader met a rule with nobody in the room to
-perform it, and both readers reasoned past it. The gate belongs to an agent
-whose whole procedure is that run, and the assignment lives in that agent's
-own definition rather than in the shared rules, which is where the next such
-assignment will live too.
+<!-- specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran -->
+**A prohibition needs a holder, and the holder is the orchestrator.** No
+agent runs the broad gate. The orchestrator runs `broad-gate --base <base>
+--record <item>` once the rounds settle, with nothing else running, commits
+the record, and then spawns the sealer, which reads that record and runs
+nothing broad. A run inside an agent was a second run of a suite the
+orchestrator could take once, and a prohibition with no holder at all is one
+every reader reasons past.
 
 The run judges nothing. `broad-gate` runs the repository's broad command,
 reports what the commands said, and writes the work item's `broad-gate.md`;
 the sealer's own verdict, which follows the run, is a separate file
 (`docs/the-review-record.md` §*The guarantee*). A run that judges is a run
 whose verdict nobody can separate from its measurement.
-Enforced by: tests/test_broad_gate_rule.py::test_the_sealer_counts_the_silent_definitions_from_the_glob, tests/test_broad_gate_rule.py::test_the_prohibition_itself_has_one_home_and_it_is_the_contract
+Enforced by: tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn
 
 <!-- specs/1789034970-the-contract-is-settled-against-the-agents-that-exist -->
 **A shared rule is settled against the agents that exist.** A rule kept only
@@ -35,10 +35,9 @@ is bound by lives in one file every agent receives before its first tool
 call; what one agent alone does lives in that agent's definition. The test a
 shared rule has to pass is that no role needs an exception to it.
 
-**A suite that is not mentioned reads as a suite that passed.** Where the act
-is not yours, the handover carries the suite labelled `unverified` with its
-answerer named — labelled, never omitted. Where it is yours, the same
-handover carries the result instead of the label.
+**A suite that is not mentioned reads as a suite that passed.** An agent's
+handover carries the suite labelled `unverified` with the orchestrator named
+as its answerer — labelled, never omitted.
 Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_contract_says_it_is_universal_only, tests/test_every_agent_reads_the_contract.py::test_every_definition_has_the_shape_and_preloads_the_contract_alone
 
 ## What the gate runs, and how the list is kept true
@@ -119,10 +118,12 @@ Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 <!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
 **The stamp is drawn once, where a person sees it, and only over a run that
-earned it.** A sealer's stdout is a pipe into a report that reaches the
-person folded, so a stamp drawn there was never seen. The 0.15.6 stopgap,
-re-printing the sealer's log, drew it twice, colourless and cut. So the gate
-draws only on a terminal, and only over a written `broad-gate.md`. On a pipe, a recorded
+earned it.** The run's stdout is a pipe into a tool result that reaches the
+person folded — a sealer's report when the sealer ran the gate, the
+orchestrator's Bash call since #969 — so a stamp drawn there was never seen.
+The 0.15.6 stopgap, re-printing the sealer's log, drew it twice, colourless
+and cut. So the gate draws only on a terminal, and only over a written
+`broad-gate.md`. On a pipe, a recorded
 seal writes the panel's rows
 to a values file under the git common dir, keyed by the session that spawned
 the run, and prints one `SEALED` line naming it. A `Stop` hook draws each

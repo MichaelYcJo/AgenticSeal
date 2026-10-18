@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Stop hook: draw the sealer's stamp in the session that spawned the sealer.
+"""Stop hook: draw the broad gate's stamp in the session that ran the gate.
 
-Issue #400, work item 1790562543. A sealer's stdout is a pipe into a report
-that reaches the person folded behind `ctrl+o`, so a stamp drawn there was
-never seen. The broad gate therefore draws nothing on a pipe: a recorded seal
+Issue #400, work item 1790562543. A Bash call's stdout is a pipe into a tool
+result that reaches the person folded behind `ctrl+o`, so a stamp drawn there
+was never seen. Since #969 the orchestrator runs the gate before it spawns
+the sealer, and the pipe is its own Bash call's. The broad gate therefore
+draws nothing on a pipe: a recorded seal
 writes its panel's rows to a values file under
 `<git-common-dir>/specseal-stamp/<session>/`, keyed by
 `CLAUDE_CODE_SESSION_ID`, which every Bash call of a session and of its
@@ -18,11 +20,11 @@ line 1 is a label naming what was sealed and the drawing starts on line 2.
 **Only the main session's `Stop`.** `SubagentStop` carries the same
 `session_id` — the parent's — and differs by `agent_id` alone (`questions.md`
 Q2, measured 2026-09-28), so a payload carrying `agent_id` is a subagent's
-end and draws nothing: the sealer's own end must not take its own stamp. So
-does any event that is not `Stop`.
+end and draws nothing: a subagent's end must not take the session's stamp.
+So does any event that is not `Stop`.
 
 **Which repository.** The payload's `cwd`, which is the main checkout while
-the sealer ran in a linked worktree of the same clone; the git COMMON dir is
+the gate ran in a linked worktree of the same clone; the git COMMON dir is
 the one place both resolve alike. It is found by walking up from `cwd` to the
 `.git` entry, and where that entry is a directory the common dir IS it, with
 no process started. The hook fires at the end of every turn, so a session
@@ -49,8 +51,8 @@ drawing rather than repeating one.
 that is not JSON, a repository that is not opted in, a file that is not a
 run's values. That includes a `python3` that cannot load `seal_stamp.py` —
 a hook runs under whatever `python3` the harness finds, and no launcher
-stands in front of it — where this draws nothing and the `SEALED` line in the
-sealer's report, which names the file and `seal-stamp --from` wherever a
+stands in front of it — where this draws nothing and the gate's `SEALED`
+line in the session's own output, which names the file and `seal-stamp --from` wherever a
 values file was written, is what remains. The same line is what remains where
 the main session's working directory is outside the sealed clone, and where
 its plugin predates this hook; `docs/the-broad-gate.md` §*Where the stamp is

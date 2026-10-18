@@ -57,7 +57,7 @@ Enforced by: tests/test_chain_check.py::TestFrame
 ## What each party writes, and when
 
 **A review round is one file the warden writes, the fix pass writes two lines
-of each finding it answers, the sealer's broad run writes `broad-gate.md`, and
+of each finding it answers, the orchestrator's broad run writes `broad-gate.md`, and
 the sealer's verdict is `guarantee.md`.** `docs/the-review-record.md` holds
 what each of those files carries.
 Enforced by: tests/test_chain_check.py::TestFindings
@@ -110,8 +110,8 @@ items ran their chains from one session: two wardens cloned into the same
 directory, a third's clone had its HEAD moved by a foreign checkout for
 fifty-five seconds, and two sealers wrote one capture file over each other
 (#544). So the warden's clone is `<scratchpad>/<work-item-id>/round-<n>/clone`
-with every probe of the round beside it, the sealer's capture carries the
-work item id, and the verify skill's capture example is no longer a path
+with every probe of the round beside it, the orchestrator's broad-gate log
+carries the work item id, and the verify skill's capture example is no longer a path
 every session on the machine shares. The name lives in the definitions,
 where a rule arrives by mechanism, and not in a spawn prompt, which is where
 it had gone missing; one directory per work item and round is also what lets

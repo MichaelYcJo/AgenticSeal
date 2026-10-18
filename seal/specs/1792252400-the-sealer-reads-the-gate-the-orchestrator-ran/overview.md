@@ -1,0 +1,50 @@
+# 1792252400-the-sealer-reads-the-gate-the-orchestrator-ran — overview
+
+<!-- The closing memo (implement skill, step 4). Opened at phase 1's divergence
+and closed by phase 7. Only what the diff cannot show goes here. -->
+
+## Why this work exists
+
+The broad gate becomes the orchestrator's one command before the sealer is
+spawned, so the sealer reads the record that run wrote, no longer runs it a
+second time, and writes its verdict as `sealed`, `withheld` or `undecided`.
+
+## Where spec and implementation diverged
+
+| Divergence | Spec says / code did | Chosen | Grounds |
+|---|---|---|---|
+| Which commit the sealer cases' `broad-gate.md` names (phase 1) | `plan.md` row 1: "naming `$build against $(git rev-parse main)` … so the run's SHA is followed by one records-only commit". `$build` is followed by two. The scaffold names the commit the records were written at, which one commit follows: the record's own | the stated property: one records-only commit | the row contradicts itself, and the property is the one `spec.md` §*The act, as this item leaves it* orders: the gate runs once the pull request body and `changelog.md` are written. Either reading passes `chain_check.broad_gate` (`phases/phase-1.md`) |
+| T7 and `noninferiority.py model` (phase 3) | `plan.md` row 3 closes with phase 3's commit, and row 4 runs `model` "built in phase 3's commit". Phase 3 first closed at 394ed499 (de849341) without T7, which was in neither of its two spawns | built afterwards by a later spawn, test-first, at 1459b26f; phase 3 re-closed there (ed486efd) | phase 4 cannot decide the model without it, and T7 was seen red against de849341 before the build (`phases/phase-3.md`) |
+| Contract §2's `Enforced by:` line (phase 3) | `plan.md` row 3 is verified by `bin/rules --check` exit 0. 394ed499 renamed the case §2 named, so the check exited 1 on one of 464 targets from 394ed499 to 1459b26f | the orchestrator repointed the line at 5ca68b5d, and phase 4's Opus side ran at 5ca68b5d rather than at phase 3's commit | phase 4's side then reads the contract as it stands; the row's exit 0 did not hold at 394ed499, and the phase record says so (`phases/phase-3.md`) |
+| The sealed case's name (phase 5) | `plan.md` row 5 regenerates the four cases; row 6 reads each grader's passed count against phase 4's | `rule-sealer-sound` renamed `rule-sealer-sealed`, with its directory, work item and branch; phase 6's table maps the two by hand | the case's slug names the verdict, and its six graders are unchanged but for the verdict regex (`phases/phase-5.md`, `phases/phase-6.md`) |
+| The class grep for the old words (phase 5) | `plan.md` row 5: `git grep -n -E "\bsound\b\|not sound\|undecidable"` | `git grep -n -w` over `sound` and `undecidable` in every case, the plan's form reported beside it | in `git grep -E`, `\b` did not match a word boundary: the plan's form missed `SOUND = "sound"` in `chain_check.py` (`phases/phase-5.md`) |
+| Edits outside row 5's list (phase 5) | `plan.md` row 5 names no `docs/the-broad-gate.md` or `docs/the-review-and-parity-arms.md` line and no `chain_check.py` refusal message | three pre-existing long lines rewrapped without a word changed (`agents/sealer.md:95`, `docs/the-broad-gate.md:123`, `docs/the-review-and-parity-arms.md:108`); the missing-guarantee message says the orchestrator's broad run (53d5c471); `docs/the-review-and-parity-arms.md:100` names the orchestrator | `tests/test_docs_line_wrap.py` was red at phase 4's tree on those three lines; the two owner sentences are the class phase 3's grep missed (contract §12) |
+| The reference side's revision (phase 6) | `plan.md` row 6: `run --rev <phase 5> --suite-rev <phase 5>` | `--rev b394e929 --suite-rev b394e929`, the commit after phase 5's close that gives T7's two record reads `encoding="utf-8"` | phase 5 left that pre-existing failure to the orchestrator before any broad run; `git diff --stat 284b3597 b394e929 -- evals/behaviour` is empty, so the suite is phase 5's; after round 1 added `rule-sealer-stale-gate` the reference was re-run at `--rev 90fa7046 --suite-rev 90fa7046`, after round 2's step-1 fix at `--rev 6f76b0b0 --suite-rev 6f76b0b0`, and after round 3's at `--rev 1483d8ba --suite-rev 1483d8ba`, which replaces them (`phases/phase-6.md`) |
+| The sealer's step 1 command (round 1) | `spec.md` §*The act, as this item leaves it*: `git log --name-only <sha>..HEAD` | `git log --no-merges --name-only <named>..HEAD ^<base>`, withholding on a commit that does not resolve or HEAD does not descend from (6366ee46) | round 1's finding 3: the plan's range counts the base's commits merged in after the run, which `chain_check.py#follows` excludes with `--no-merges` and `^<base>` (`rounds/round-1.md`) |
+| The in-flight remedy for a `guarantee.md` reading `sound` (round 1) | `plan.md` *Operational impact*: run `broad-gate --record`, commit, then spawn the sealer | spawn the sealer again at HEAD where `broad-gate.md` names a run at HEAD or one followed only by the work item's records, and run the broad gate first otherwise, in `RETIRED_SAYS` and `changelog.md` (8313e330, worded as a condition in e15490c5) | round 1's finding 4: the record the old sealer committed is followed only by records, so a second broad run buys one word; round 2's finding 2: the message asserts nothing about the record it did not read (`rounds/round-1.md`, `rounds/round-2.md`) |
+| S3's case (round 1) | `spec.md` S3 is verified by the fourth case, `rule-sealer-no-gate`, which scaffolds no record | a fifth case, `rule-sealer-stale-gate`, scaffolds a record a code commit follows (71f3e739); the reference was re-run on the five cases | round 1's finding 5: no case held the stale half of step 1 (`rounds/round-1.md`, `phases/phase-6.md`) |
+| The base the sealer's steps read (round 2) | `spec.md` §*The act* gives step 1 no base and leaves steps 2 to 5 as 0.22.0 left them, where `<base>` was the name the prompt gave | the definition resolves the base once, as `broad_gate.py#resolve_base` does, to the first of `<name>@{upstream}`, `origin/<name>` and `<name>` that resolves, and every `<base>` after it is that ref's commit; none resolving is `withheld` (e15490c5; the commit and `withheld` in 3e6d3896, round 3) | round 2's finding 1: a work item's worktree has only `origin/<base>`, so `^<base>` as given exited 128, and a local branch behind its remote would not exclude the base's newer commits; round 3: the at-base clone holds the commit and not the ref, and a missing ref is the orchestrator's to repair (`rounds/round-2.md`, `rounds/round-3.md`) |
+| The Opus pin (`spec.md` §*Removes*, the last row) | `spec.md` says `tests/test_the_sealer_guarantees.py::TestDefinition::test_the_sealer_runs_on_opus_with_the_contract_alone` leaves for a case that `model:` is one word and the preload is the contract alone | the pin is kept as it stands | the row was written before the model was measured, for a definition whose `model:` might change; phase 4's `noninferiority.py model` printed `opus`, so the pin holds a fact the measurement decided, and replacing it would loosen what it checks (found by the sealer at c0e0a8de) |
+| `skills/verify/SKILL.md` §*Every agent seals what it verified* | `plan.md` row 3 lists `skills/verify/SKILL.md`; the section still says "The sealer's is the only one drawn" while the orchestrator's run draws it | left to #967; the sites row 3 named at 397-404, 428 and 947 were rewritten | `questions.md` Q7 names that section as #967's, and the word `seal` is held by `tests/test_one_word_one_meaning.py`; phase 5 found none of the old verdict words there (`phases/phase-3.md`, `phases/phase-5.md`) |
+
+## Not verified
+
+| Item | Who must answer |
+|---|---|
+| closed The four regenerated sealer cases have not run on a model: no grader of `rule-sealer-no-gate` and no `shape-runs-no-broad-gate` has read a trace | the orchestrator's sides: the baseline at 2fc33333 (9184881a) read both, 0 of 2 and 0 of 8; phase 4 at 5ca68b5d (d27f7994) and the reference at b394e929 (cb1940e3) passed every grader, 54 of 54, and the five-case references at 90fa7046, 6f76b0b0 and 1483d8ba 68 of 68 each (`phases/phase-2.md`, `phases/phase-4.md`, `phases/phase-6.md`) |
+| closed The full suite, the repository-wide lint and the typecheck at the last round's commit | the orchestrator's `broad-gate --base release/v0.22.1 --record <item>` after round 6: `SEALED … @ 086696d4 against origin/release/v0.22.1 @ 2fc33333`, its record `broad-gate.md` committed at c0e0a8de |
+| `rule-sealer-stale-gate` has not been seen failing on a sealer that skips step 1's range (contract §15); only its generator check went red, before the cases were copied (round 1's fix) | the orchestrator, with a paid side on a sealer whose step 1 skips the range; not taken in this item, so the case stands on the red generator check and the 2 of 2 passes of each reference side that ran it |
+| CI on its three legs at the pull request's head | the orchestrator, at the pull request |
+
+## Not done
+
+| Item | Who must answer |
+|---|---|
+| `skills/verify/SKILL.md` §*Every agent seals what it verified* calls the drawn stamp the sealer's | #967, which owns that section (`questions.md` Q7) |
+| The warden, the smith and the framer are not measured again for contract §2's change | the owner, `questions.md` Q1; the default, not here, is built |
+| Round 1's fix changes one sentence of `agents/warden.md` (what comes due is the orchestrator's broad run, then the sealer's spawn), so the warden's read set moved after its last measured side; nothing is measured here | the milestone close, which re-judges the warden's side |
+
+## Fed back into the spec
+
+none — the answered questions are measurements and sorting work (Q3 to Q7);
+none of them states a rule a `docs/` policy would carry.
