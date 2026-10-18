@@ -851,6 +851,18 @@ def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved
     assert side["specseal"]["agent"] == "warden"
     assert side["specseal"]["preload"] == ni.preload_hashes(str(plugin), "warden")
     assert side["specseal"]["cut_short"] is False
+    # Round 1 of #969, finding 7: a `--tree` side's `rev` names no machine
+    # path, since a committed record may not carry one (CONTRIBUTING.md
+    # §House rules); the preload's hashes already name the content.
+    assert side["specseal"]["rev"] == "tree", side["specseal"]["rev"]
+    meta = json.loads((saved / "meta.json").read_text(encoding="utf-8"))
+    assert meta["rev"] == "tree", meta["rev"]
+    # A side saved before that, its `rev` an absolute path, reads back the same.
+    meta["rev"] = str(tmp_path / "sonnet-tree")
+    (saved / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+    assert ni.main(["run", "--from-raw", str(saved), "--out", str(out)]) == 0
+    side = json.loads(out.read_text(encoding="utf-8"))
+    assert side["specseal"]["rev"] == "tree", side["specseal"]["rev"]
 
 
 # --- the numbers a side is read to -------------------------------------------

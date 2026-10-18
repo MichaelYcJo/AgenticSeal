@@ -399,7 +399,7 @@ def annotate(saved):
         "preload": meta["preload"],
         "preload_bytes": meta.get("preload_bytes"),
         "cut_short": cut,
-        "rev": meta["rev"],
+        "rev": TREE_REV if os.path.isabs(meta["rev"]) else meta["rev"],
         "suite_rev": meta["suite_rev"],
         "suite_tree": meta.get("suite_tree"),
     }
@@ -423,6 +423,12 @@ def call_eval(command, env):
         print("claude is not on PATH", file=sys.stderr)
         raise SystemExit(2)
     subprocess.run(command, env=env)
+
+
+# What a `--tree` side records as its `rev`. A machine path would put the
+# account name into a committed record, and the preload's hashes already name
+# the content; a side saved with an absolute path reads back as this too.
+TREE_REV = "tree"
 
 
 def run_side(a):
@@ -462,7 +468,7 @@ def run_side(a):
             "agent": a.agent,
             "preload": preload_hashes(tree, a.agent),
             "preload_bytes": preload_bytes(tree, a.agent),
-            "rev": a.rev or os.path.abspath(a.tree),
+            "rev": a.rev or TREE_REV,
             "suite_rev": git_bytes("rev-parse", a.suite_rev).decode("utf-8").strip(),
             "suite_tree": suite_tree(a.suite_rev, a.agent),
         }
