@@ -1,8 +1,9 @@
-"""`straight to the PR` owes the sealer's `broad-gate.md`, and every document
+"""`straight to the PR` owes the broad run's `broad-gate.md`, and every document
 that describes the answer says so (#241).
 
-`chain_check.py#broad_gate` requires the sealer's file at a ready pull
-request: the one broad run, at a SHA, against the base. Seven places went on saying the direct answer requires nothing — the
+`chain_check.py#broad_gate` requires that file at a ready pull request: the
+one broad run, at a SHA, against the base, which the orchestrator takes
+before it spawns the sealer (#969). Seven places went on saying the direct answer requires nothing — the
 specification's declaration table, the checker's own inventory, the
 orchestration skill's four-combinations table and its closing paragraph, the
 commit gate's first option, that option's own test, and the routing template's
@@ -28,7 +29,7 @@ from conftest import REVIEW_CHAIN_DOCS, review_chain_text
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-STANDS = "the sealer's `broad-gate.md`"
+STANDS = "the broad run's `broad-gate.md`"
 
 # (the sentence that is gone, or None where the file never carried one; the
 # sentence that stands). The standing phrase is one no other sentence of the

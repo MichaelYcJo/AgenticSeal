@@ -225,11 +225,12 @@ Enforced by: tests/test_chain_check.py::TestChanged, tests/test_chain_check.py::
 ## The guarantee
 
 **The sealer is the final, independent guarantor: it verifies, independently
-of the smith and the warden, that the work before it is sound.** Its
+of the smith and the warden, that the work before it holds.** Its
 reference is the issue body and the tree, never an agent's word or the
 orchestrator's summary. It runs after the pull request body and the
-changelog fragment are written, on both routing answers, and its order of
-work is `agents/sealer.md`'s.
+changelog fragment are written and the orchestrator's broad run has written
+`broad-gate.md`, on both routing answers; it reads that record and runs
+nothing broad, and its order of work is `agents/sealer.md`'s.
 
 **It checks a claim against the fact, and the parties against each other.**
 The acts are `agents/sealer.md` step 3's and step 4's, and this section
@@ -240,18 +241,20 @@ Enforced by: tests/test_the_sealer_guarantees.py::TestDocument::test_the_guarant
 
 **Its verdict is `guarantee.md`, from `templates/sdd-guarantee.md`**: the
 commit and base, the broad gate's result, the claims re-run, the parties
-compared, and one `Verdict:` line — `sound`, `not sound — <what>`, or
-`undecidable — <question>`. An undecidable question is the owner's: the
+compared, and one `Verdict:` line — `sealed`, `withheld — <reason>`, or
+`undecided — <question>`. An undecided question is the owner's: the
 answer goes on a line under the verdict, and the sealer runs again at the
 new HEAD.
 Enforced by: tests/test_the_sealer_guarantees.py::TestTemplate, tests/test_the_sealer_guarantees.py::TestDefinition
 
 **A ready pull request passes only where `guarantee.md` names HEAD and reads
-`sound`.** Only the sealer's two files, `broad-gate.md` and `guarantee.md`,
+`sealed`.** Only the closing records, `broad-gate.md` and `guarantee.md`,
 may follow the commit it names, since every other file on the branch is one
-it audited. `not sound`, `undecidable`, an unfilled template, two `Verdict:`
-lines or a stale commit each fail naming the file; a draft prints them.
-Enforced by: tests/test_the_sealer_guarantees.py::test_a_verdict_other_than_sound_fails_a_ready_pull_request, tests/test_the_sealer_guarantees.py::TestGuarantee
+the sealer audited. `withheld`, `undecided`, an unfilled template, two
+`Verdict:` lines or a stale commit each fail naming the file; a draft prints
+them. A word the verdict used before it read `sealed` fails naming its line
+and saying the word changed.
+Enforced by: tests/test_the_sealer_guarantees.py::test_a_verdict_other_than_sealed_fails_a_ready_pull_request, tests/test_the_sealer_guarantees.py::test_the_old_words_are_refused_by_line, tests/test_the_sealer_guarantees.py::TestGuarantee
 
 **How it errs.** It samples, so a false claim outside the sample passes, and
 the sample is written in the file so the miss can be found afterwards.

@@ -39,10 +39,10 @@ pytest runs with the repository root as its working directory, so a path
 argument is read relative to the root from whichever directory the command
 was typed in.
 
-The full suite is the sealer's, run once after the review rounds settle:
-`skills/agent-contract/SKILL.md` forbids it to smith and warden, and
-`agents/sealer.md` is the agent it is assigned to, which is why naming one
-module is the ordinary use.
+The full suite is the orchestrator's, run once after the review rounds
+settle and before the sealer is spawned: `skills/agent-contract/SKILL.md`
+forbids it to every agent, which is why naming one module is the ordinary
+use.
 
 The suite runs in parallel by default (#337). `pytest-xdist` is installed
 beside `pytest` on both build strategies and added to an adopted `.venv` that

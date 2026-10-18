@@ -147,7 +147,7 @@ def gate_file(sha):
     )
 
 
-def guarantee_file(sha, verdict="sound"):
+def guarantee_file(sha, verdict="sealed"):
     return (
         "# 1791999999-a-work-item — guarantee\n\n"
         "| Field | Value |\n|---|---|\n"
@@ -168,7 +168,7 @@ def branch(tmp_path):
     shape with a finding open (S11). `feature/x` adds the declaration, a code
     commit, round 1 at that commit with its one finding `fixed` by it, round
     2 — the verifying round — confirming `round-1#1` with nothing of its own,
-    and the sealer's two files. Returns `(root, code commit)`.
+    and the closing records. Returns `(root, code commit)`.
     """
     d = tmp_path / "r"
     d.mkdir()
@@ -214,17 +214,17 @@ def branch(tmp_path):
         gate_file(f"{reviewed} against main; earlier run: {'1' * 40}"),
     )
     write(d, f"{ITEM}/guarantee.md", guarantee_file(reviewed))
-    commit(d, "the sealer's two files")
+    commit(d, "the closing records")
     return d, code
 
 
 def seal(d):
-    """The sealer's two files naming HEAD, committed: what a branch carries
+    """The closing records naming HEAD, committed: what a branch carries
     once the sealer has audited what is on it."""
     head = git(d, "rev-parse", "HEAD")
     write(d, f"{ITEM}/broad-gate.md", gate_file(f"{head} against main"))
     write(d, f"{ITEM}/guarantee.md", guarantee_file(head))
-    commit(d, "the sealer's two files, again")
+    commit(d, "the closing records, again")
 
 
 @pytest.fixture

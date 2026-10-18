@@ -25,8 +25,8 @@ its neighbours down with it.
 And it is said (#28). A skipped gate used to read exactly like an allow, with
 nobody told. Now the skip writes a record under the git common dir, once per
 gate per session, and the `stop` group says every pending record at the end
-of the main session's turn as a `systemMessage`, placed before the sealer's
-stamp. Nothing the report adds decides anything, and a group whose gates all
+of the main session's turn as a `systemMessage`, placed before the broad
+gate's stamp. Nothing the report adds decides anything, and a group whose gates all
 ran prints what it printed before.
 """
 

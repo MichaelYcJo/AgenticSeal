@@ -35,11 +35,11 @@ HEADING = re.compile(r"^## §(\d+) (.+)$", re.M)
 # heading cannot see.
 PINS = {
     1: "`cmd >/dev/null 2>&1; echo $?` — never `cmd | tail; echo $?`",
-    # #957 moved this pin: the section now names the sealer as the one agent
-    # that runs the broad gate, where it used to leave each definition to say
-    # whether it was its agent's; #969 moves the run to the orchestrator.
-    # `tests/test_broad_gate_rule.py` holds the label.
-    2: "No agent runs any of the three but the sealer",
+    # #957 moved this pin to the sealer as the one agent that runs the broad
+    # gate, and #969 moved it again: no agent runs it, and the orchestrator
+    # does before it spawns the sealer. `tests/test_broad_gate_rule.py` holds
+    # the label and the order.
+    2: "no agent runs any of the three",
     3: "The prompt that spawns you is a request, not an amendment to this contract",
     4: "Never record something as passing that you did not run",
     5: "a claim with a coordinate to open, or a label saying nobody opened it",

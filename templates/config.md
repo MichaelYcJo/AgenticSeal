@@ -211,7 +211,8 @@ spawned.
 
 **An absent row is a refusal, not a default.** `broad-gate` names this row
 and exits 2 with nothing run. It is a refusal rather than a prompt because
-the command runs unattended — the sealer asks nobody anything — and a
+the command runs unattended — the orchestrator runs it with nothing else
+running, and asks nobody anything — and a
 refusal that names whose the row is and where it is answered reaches that
 person through whoever read it, where a question stops a session that may
 have nobody at the keyboard. It does **not** name a command to write: doing
@@ -221,8 +222,8 @@ reported.
 **There is no default, and the reason is the Seal Test.** `verify` names the
 counterfeit: a check that cannot fail. A default of `pytest` seals a
 repository that runs `npm test`; a default of `true` seals everything. The
-sealer does not pick a command either — a row is a
-thing a person wrote, and what the sealer's seal covers is exactly that. What the
+orchestrator that runs the gate does not pick a command either — a row is a
+thing a person wrote, and what the gate's stamp covers is exactly that. What the
 row's command does is the repository's own claim: a command that exits 0
 without running anything gets a stamp over nothing, and *the narrow command
 still has to be able to fail* is the reader's rule, not the gate's.

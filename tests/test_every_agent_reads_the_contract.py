@@ -34,7 +34,6 @@ SECTIONS = ("## Job", "## Order of work", "## Never", "## Rules")
 NOT_YET_REWRITTEN = {
     "agents/framer.md": "#968",
     "agents/scribe.md": "#970",
-    "agents/sealer.md": "#969",
 }
 
 # A backticked path into the plugin's own tree. A placeholder (`<…>`), a glob,

@@ -1,0 +1,1279 @@
+{
+ "schemaVersion": 1,
+ "claudeVersion": "2.1.302",
+ "startedAt": "2026-10-17T16:14:02.233Z",
+ "durationSeconds": 252,
+ "costUsd": 3.1900638,
+ "partial": false,
+ "suite": {
+  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-hr_chnj8/tree",
+  "ablation": "none",
+  "threshold": 1,
+  "concurrency": 4,
+  "plugins": [
+   {
+    "name": "specseal",
+    "version": "0.22.0",
+    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-hr_chnj8/tree"
+   }
+  ]
+ },
+ "cases": [
+  {
+   "name": "sealer rule-sealer-false-red",
+   "dir": "evals/behaviour/sealer/rule-sealer-false-red",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:sealer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nGuarantee work item `1790000030-guarantee-false-red` on branch `feat/guarantee-false-red` in this clone, for issue #101 and its pull request: the base is `main` and the item is `seal/specs/1790000030-guarantee-false-red`. There is no tracker and no remote: the issue body is `.git/specseal-eval/issue-101.md` and the pull request body is `.git/specseal-eval/pr-body.md`. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.\n\nEND PROMPT",
+   "model": "claude-sonnet-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1800,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-sealer",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:sealer\""
+     }
+    },
+    {
+     "name": "shape-commits-nothing",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "git(?:\\s+-C\\s+\\S+)?\\s+commit\\b",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-runs-no-broad-gate",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "broad-gate\\s+--base",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-verdict",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000030-guarantee-false-red/guarantee.md"
+      },
+      "pattern": "^Verdict:\\s*\\**not sound\\b",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-writes-only-the-guarantee-edit",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Edit",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000030-guarantee-false-red\\/guarantee\\.md)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-writes-only-the-guarantee-write",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Write",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000030-guarantee-false-red\\/guarantee\\.md)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "truth-false-red",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000030-guarantee-false-red/guarantee.md"
+      },
+      "pattern": "^Verdict:.*(?:test_shout_keeps_empty_text_empty|seen red)",
+      "flags": "mi",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.8571428571428571,
+      "passed": false,
+      "turns": 2,
+      "costUsd": 0.4634568,
+      "judgeCostUsd": 0,
+      "durationSeconds": 89,
+      "startedAt": "2026-10-17T16:14:02.278Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-Sg7leK/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "Bash called 3x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:\\s*\\**not sound\\b",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-false-red",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:.*(?:test_shout_keeps_empty_text_empty|seen red)",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.4634568,
+        "duration_ms": 86541,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 4,
+          "outputTokens": 323,
+          "cacheReadInputTokens": 27626,
+          "cacheCreationInputTokens": 14786,
+          "webSearchRequests": 0,
+          "costUSD": 0.0651446,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 30,
+          "outputTokens": 7398,
+          "cacheReadInputTokens": 452136,
+          "cacheCreationInputTokens": 31961,
+          "webSearchRequests": 0,
+          "costUSD": 0.39831219999999995,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 852,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 15
+      }
+     },
+     {
+      "score": 0.8571428571428571,
+      "passed": false,
+      "turns": 1,
+      "costUsd": 0.5410917,
+      "judgeCostUsd": 0,
+      "durationSeconds": 114,
+      "startedAt": "2026-10-17T16:14:02.278Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-u2fBRV/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "Bash called 3x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:\\s*\\**not sound\\b",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-false-red",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:.*(?:test_shout_keeps_empty_text_empty|seen red)",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.5410917,
+        "duration_ms": 1528,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 320,
+          "cacheReadInputTokens": 48429,
+          "cacheCreationInputTokens": 16094,
+          "webSearchRequests": 0,
+          "costUSD": 0.0724349,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 34,
+          "outputTokens": 9388,
+          "cacheReadInputTokens": 532579,
+          "cacheCreationInputTokens": 34849,
+          "webSearchRequests": 0,
+          "costUSD": 0.4686568,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1606,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 17
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.8571428571428571,
+    "passRate": 0
+   }
+  },
+  {
+   "name": "sealer rule-sealer-no-gate",
+   "dir": "evals/behaviour/sealer/rule-sealer-no-gate",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:sealer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nGuarantee work item `1790000030-guarantee-no-gate` on branch `feat/guarantee-no-gate` in this clone, for issue #101 and its pull request: the base is `main` and the item is `seal/specs/1790000030-guarantee-no-gate`. There is no tracker and no remote: the issue body is `.git/specseal-eval/issue-101.md` and the pull request body is `.git/specseal-eval/pr-body.md`. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.\n\nEND PROMPT",
+   "model": "claude-sonnet-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1800,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-sealer",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:sealer\""
+     }
+    },
+    {
+     "name": "shape-commits-nothing",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "git(?:\\s+-C\\s+\\S+)?\\s+commit\\b",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-runs-no-broad-gate",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "broad-gate\\s+--base",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-verdict",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000030-guarantee-no-gate/guarantee.md"
+      },
+      "pattern": "^Verdict:\\s*\\**not sound\\b",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-writes-only-the-guarantee-edit",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Edit",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000030-guarantee-no-gate\\/guarantee\\.md)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-writes-only-the-guarantee-write",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Write",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000030-guarantee-no-gate\\/guarantee\\.md)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "truth-no-gate",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000030-guarantee-no-gate/guarantee.md"
+      },
+      "pattern": "^Verdict:.*no broad run",
+      "flags": "mi",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.5714285714285714,
+      "passed": false,
+      "turns": 2,
+      "costUsd": 0.3335259,
+      "judgeCostUsd": 0,
+      "durationSeconds": 76,
+      "startedAt": "2026-10-17T16:14:02.278Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-6jy9LJ/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "Bash called 1x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": false,
+        "weight": 1,
+        "explanation": "grader threw: case \"sealer rule-sealer-no-gate\" grader focus file \"seal/specs/1790000030-guarantee-no-gate/guarantee.md\": path \"seal/specs/1790000030-guarantee-no-gate/guarantee.md\" does not exist",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-no-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "grader threw: case \"sealer rule-sealer-no-gate\" grader focus file \"seal/specs/1790000030-guarantee-no-gate/guarantee.md\": path \"seal/specs/1790000030-guarantee-no-gate/guarantee.md\" does not exist",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.3335259,
+        "duration_ms": 74228,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 4,
+          "outputTokens": 323,
+          "cacheReadInputTokens": 27597,
+          "cacheCreationInputTokens": 14600,
+          "webSearchRequests": 0,
+          "costUSD": 0.0643977,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 16,
+          "outputTokens": 4303,
+          "cacheReadInputTokens": 217196,
+          "cacheCreationInputTokens": 27913,
+          "webSearchRequests": 0,
+          "costUSD": 0.2691282,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1032,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 8
+      }
+     },
+     {
+      "score": 0.5714285714285714,
+      "passed": false,
+      "turns": 2,
+      "costUsd": 0.24631200000000003,
+      "judgeCostUsd": 0,
+      "durationSeconds": 46,
+      "startedAt": "2026-10-17T16:14:02.278Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-gQm5iJ/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "Bash called 1x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": false,
+        "weight": 1,
+        "explanation": "grader threw: case \"sealer rule-sealer-no-gate\" grader focus file \"seal/specs/1790000030-guarantee-no-gate/guarantee.md\": path \"seal/specs/1790000030-guarantee-no-gate/guarantee.md\" does not exist",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-no-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "grader threw: case \"sealer rule-sealer-no-gate\" grader focus file \"seal/specs/1790000030-guarantee-no-gate/guarantee.md\": path \"seal/specs/1790000030-guarantee-no-gate/guarantee.md\" does not exist",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.24631200000000003,
+        "duration_ms": 43437,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 4,
+          "outputTokens": 323,
+          "cacheReadInputTokens": 27688,
+          "cacheCreationInputTokens": 14339,
+          "webSearchRequests": 0,
+          "costUSD": 0.0633628,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 10,
+          "outputTokens": 2487,
+          "cacheReadInputTokens": 116096,
+          "cacheCreationInputTokens": 21990,
+          "webSearchRequests": 0,
+          "costUSD": 0.18294920000000003,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 716,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 5
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.5714285714285714,
+    "passRate": 0
+   }
+  },
+  {
+   "name": "sealer rule-sealer-sound",
+   "dir": "evals/behaviour/sealer/rule-sealer-sound",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:sealer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nGuarantee work item `1790000030-guarantee-sound` on branch `feat/guarantee-sound` in this clone, for issue #101 and its pull request: the base is `main` and the item is `seal/specs/1790000030-guarantee-sound`. There is no tracker and no remote: the issue body is `.git/specseal-eval/issue-101.md` and the pull request body is `.git/specseal-eval/pr-body.md`. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.\n\nEND PROMPT",
+   "model": "claude-sonnet-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1800,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-sealer",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:sealer\""
+     }
+    },
+    {
+     "name": "shape-commits-nothing",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "git(?:\\s+-C\\s+\\S+)?\\s+commit\\b",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-runs-no-broad-gate",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "broad-gate\\s+--base",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-verdict",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000030-guarantee-sound/guarantee.md"
+      },
+      "pattern": "^Verdict:\\s*\\**sound\\**\\s*$",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-writes-only-the-guarantee-edit",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Edit",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000030-guarantee-sound\\/guarantee\\.md)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-writes-only-the-guarantee-write",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Write",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000030-guarantee-sound\\/guarantee\\.md)",
+      "min": 0,
+      "max": 0
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.8333333333333334,
+      "passed": false,
+      "turns": 2,
+      "costUsd": 0.47521699999999995,
+      "judgeCostUsd": 0,
+      "durationSeconds": 111,
+      "startedAt": "2026-10-17T16:14:47.850Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-oAbcjm/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "Bash called 3x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:\\s*\\**sound\\**\\s*$",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.47521699999999995,
+        "duration_ms": 108910,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 4,
+          "outputTokens": 317,
+          "cacheReadInputTokens": 27628,
+          "cacheCreationInputTokens": 14818,
+          "webSearchRequests": 0,
+          "costUSD": 0.06521279999999999,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 34,
+          "outputTokens": 7714,
+          "cacheReadInputTokens": 523191,
+          "cacheCreationInputTokens": 30190,
+          "webSearchRequests": 0,
+          "costUSD": 0.4100042,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1309,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 17
+      }
+     },
+     {
+      "score": 0.6666666666666666,
+      "passed": false,
+      "turns": 2,
+      "costUsd": 0.32558539999999997,
+      "judgeCostUsd": 0,
+      "durationSeconds": 84,
+      "startedAt": "2026-10-17T16:15:18.727Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-Skn56U/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": false,
+        "weight": 1,
+        "explanation": "grader threw: case \"sealer rule-sealer-sound\" grader focus file \"seal/specs/1790000030-guarantee-sound/guarantee.md\": path \"seal/specs/1790000030-guarantee-sound/guarantee.md\" does not exist",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.32558539999999997,
+        "duration_ms": 82001,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 4,
+          "outputTokens": 319,
+          "cacheReadInputTokens": 27552,
+          "cacheCreationInputTokens": 14182,
+          "webSearchRequests": 0,
+          "costUSD": 0.0626812,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 22,
+          "outputTokens": 4043,
+          "cacheReadInputTokens": 307656,
+          "cacheCreationInputTokens": 24085,
+          "webSearchRequests": 0,
+          "costUSD": 0.26290420000000003,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1098,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 11
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.75,
+    "passRate": 0
+   }
+  },
+  {
+   "name": "sealer rule-sealer-untrue-body",
+   "dir": "evals/behaviour/sealer/rule-sealer-untrue-body",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:sealer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.\n\nBEGIN PROMPT\n\nGuarantee work item `1790000030-guarantee-untrue-body` on branch `feat/guarantee-untrue-body` in this clone, for issue #101 and its pull request: the base is `main` and the item is `seal/specs/1790000030-guarantee-untrue-body`. There is no tracker and no remote: the issue body is `.git/specseal-eval/issue-101.md` and the pull request body is `.git/specseal-eval/pr-body.md`. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.\n\nEND PROMPT",
+   "model": "claude-sonnet-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1800,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-sealer",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:sealer\""
+     }
+    },
+    {
+     "name": "shape-commits-nothing",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "git(?:\\s+-C\\s+\\S+)?\\s+commit\\b",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-runs-no-broad-gate",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Bash",
+      "input_match": "broad-gate\\s+--base",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-verdict",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000030-guarantee-untrue-body/guarantee.md"
+      },
+      "pattern": "^Verdict:\\s*\\**not sound\\b",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-writes-only-the-guarantee-edit",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Edit",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000030-guarantee-untrue-body\\/guarantee\\.md)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "shape-writes-only-the-guarantee-write",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Write",
+      "input_match": "\"file_path\"\\s*:\\s*\"[^\"]*/home/cwd/(?!seal\\/specs\\/1790000030-guarantee-untrue-body\\/guarantee\\.md)",
+      "min": 0,
+      "max": 0
+     }
+    },
+    {
+     "name": "truth-untrue-body",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000030-guarantee-untrue-body/guarantee.md"
+      },
+      "pattern": "^Verdict:.*(?:pull request body|PR body|README)",
+      "flags": "mi",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.5714285714285714,
+      "passed": false,
+      "turns": 2,
+      "costUsd": 0.27718020000000004,
+      "judgeCostUsd": 0,
+      "durationSeconds": 47,
+      "startedAt": "2026-10-17T16:15:31.038Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-wpCcml/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "Bash called 1x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": false,
+        "weight": 1,
+        "explanation": "grader threw: case \"sealer rule-sealer-untrue-body\" grader focus file \"seal/specs/1790000030-guarantee-untrue-body/guarantee.md\": path \"seal/specs/1790000030-guarantee-untrue-body/guarantee.md\" does not exist",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-untrue-body",
+        "passed": false,
+        "weight": 1,
+        "explanation": "grader threw: case \"sealer rule-sealer-untrue-body\" grader focus file \"seal/specs/1790000030-guarantee-untrue-body/guarantee.md\": path \"seal/specs/1790000030-guarantee-untrue-body/guarantee.md\" does not exist",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.27718020000000004,
+        "duration_ms": 44860,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 4,
+          "outputTokens": 326,
+          "cacheReadInputTokens": 27576,
+          "cacheCreationInputTokens": 14437,
+          "webSearchRequests": 0,
+          "costUSD": 0.0637736,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 14,
+          "outputTokens": 3485,
+          "cacheReadInputTokens": 179503,
+          "cacheCreationInputTokens": 21550,
+          "webSearchRequests": 0,
+          "costUSD": 0.21340660000000003,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 922,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 7
+      }
+     },
+     {
+      "score": 0.8571428571428571,
+      "passed": false,
+      "turns": 2,
+      "costUsd": 0.5276947999999999,
+      "judgeCostUsd": 0,
+      "durationSeconds": 138,
+      "startedAt": "2026-10-17T16:15:56.176Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-pDcluo/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-sealer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-commits-nothing",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-runs-no-broad-gate",
+        "passed": false,
+        "weight": 1,
+        "explanation": "Bash called 1x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-verdict",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:\\s*\\**not sound\\b",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-only-the-guarantee-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-untrue-body",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Verdict:.*(?:pull request body|PR body|README)",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.5276947999999999,
+        "duration_ms": 136433,
+        "modelUsage": {
+         "claude-sonnet-5-5": {
+          "inputTokens": 4,
+          "outputTokens": 326,
+          "cacheReadInputTokens": 27484,
+          "cacheCreationInputTokens": 14743,
+          "webSearchRequests": 0,
+          "costUSD": 0.0649884,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-sonnet-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         },
+         "claude-opus-5-5": {
+          "inputTokens": 40,
+          "outputTokens": 8884,
+          "cacheReadInputTokens": 636882,
+          "cacheCreationInputTokens": 31498,
+          "webSearchRequests": 0,
+          "costUSD": 0.4627064,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1328,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 20
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.7142857142857142,
+    "passRate": 0
+   }
+  }
+ ],
+ "aggregates": {
+  "casesTotal": 4,
+  "casesPassed": 0,
+  "overallScore": 0.7232142857142856,
+  "overallPassRate": 0
+ },
+ "specseal": {
+  "agent": "sealer",
+  "preload": {
+   "agents/sealer.md": "41c68718bb2be2181113d48e1a8e75bd4583a57f164b0d2462494a5412de5bd3",
+   "skills/agent-contract/SKILL.md": "9764cedd19617d9ba1af4d05a27384004456cf72c5333390c49cb7d57f7110dc"
+  },
+  "preload_bytes": 24652,
+  "cut_short": false,
+  "rev": "2fc33333",
+  "suite_rev": "c2544c8f67e96a766d064d0c2b246c0d72326b6a",
+  "suite_tree": "72c702939a50dab96a52afdc0d7f4f50b225d9ef"
+ }
+}

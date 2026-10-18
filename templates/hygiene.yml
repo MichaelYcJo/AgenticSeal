@@ -83,7 +83,7 @@ jobs:
       # declaration with no committed round, a finding still `open` or one the
       # check cannot read, a last record behind HEAD or with a finding no
       # round after it read, no `broad-gate.md` at HEAD, and no
-      # `guarantee.md` reading `sound` at HEAD. A round's `target:`
+      # `guarantee.md` reading `sealed` at HEAD. A round's `target:`
       # commit is read only as HEAD or an ancestor of it, so the check
       # needs no ref the checkout does not already carry.
       - name: a declared review chain has the round record it claimed
