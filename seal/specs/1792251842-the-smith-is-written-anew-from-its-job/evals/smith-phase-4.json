@@ -1,12 +1,12 @@
 {
  "schemaVersion": 1,
  "claudeVersion": "2.1.302",
- "startedAt": "2026-10-18T01:52:21.003Z",
- "durationSeconds": 279,
- "costUsd": 5.604367,
+ "startedAt": "2026-10-18T04:01:07.018Z",
+ "durationSeconds": 304,
+ "costUsd": 5.3675451999999995,
  "partial": false,
  "suite": {
-  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-02_spoaa/tree",
+  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-gp_faf02/tree",
   "ablation": "none",
   "threshold": 1,
   "concurrency": 4,
@@ -14,7 +14,7 @@
    {
     "name": "specseal",
     "version": "0.22.0",
-    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-02_spoaa/tree"
+    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-gp_faf02/tree"
    }
   ]
  },
@@ -102,12 +102,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.6980076000000002,
+      "costUsd": 0.620761,
       "judgeCostUsd": 0,
-      "durationSeconds": 118,
-      "startedAt": "2026-10-18T01:52:21.051Z",
+      "durationSeconds": 140,
+      "startedAt": "2026-10-18T04:01:07.119Z",
       "error": null,
-      "tracePath": "/private/tmp/e-ofCoY6/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-icFecI/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -162,38 +162,38 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.6980076000000002,
-        "duration_ms": 116160,
+        "total_cost_usd": 0.620761,
+        "duration_ms": 138462,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 44,
-          "outputTokens": 8047,
-          "cacheReadInputTokens": 860718,
-          "cacheCreationInputTokens": 64534,
+          "inputTokens": 40,
+          "outputTokens": 7246,
+          "cacheReadInputTokens": 802200,
+          "cacheCreationInputTokens": 54686,
           "webSearchRequests": 0,
-          "costUSD": 0.6980076000000002,
+          "costUSD": 0.620761,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 1394,
+          "thinkingTokens": 1006,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 24
+       "tool_calls": 22
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.7087049999999999,
+      "costUsd": 0.6642646000000001,
       "judgeCostUsd": 0,
-      "durationSeconds": 116,
-      "startedAt": "2026-10-18T01:52:21.051Z",
+      "durationSeconds": 151,
+      "startedAt": "2026-10-18T04:01:07.119Z",
       "error": null,
-      "tracePath": "/private/tmp/e-bwDIO4/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-yiFmOY/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -248,26 +248,26 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.7087049999999999,
-        "duration_ms": 113791,
+        "total_cost_usd": 0.6642646000000001,
+        "duration_ms": 149362,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 44,
-          "outputTokens": 7756,
-          "cacheReadInputTokens": 894470,
-          "cacheCreationInputTokens": 66506,
+          "inputTokens": 46,
+          "outputTokens": 8498,
+          "cacheReadInputTokens": 904138,
+          "cacheCreationInputTokens": 54144,
           "webSearchRequests": 0,
-          "costUSD": 0.7087049999999999,
+          "costUSD": 0.6642646000000001,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 801,
+          "thinkingTokens": 1030,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 24
+       "tool_calls": 27
       }
      }
     ]
@@ -360,12 +360,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.6554204000000001,
+      "costUsd": 0.5738002,
       "judgeCostUsd": 0,
-      "durationSeconds": 126,
-      "startedAt": "2026-10-18T01:52:21.052Z",
+      "durationSeconds": 117,
+      "startedAt": "2026-10-18T04:01:07.119Z",
       "error": null,
-      "tracePath": "/private/tmp/e-MQWLBm/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-Hiulgu/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -420,38 +420,38 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.6554204000000001,
-        "duration_ms": 123661,
+        "total_cost_usd": 0.5738002,
+        "duration_ms": 115329,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 48,
-          "outputTokens": 8643,
-          "cacheReadInputTokens": 963367,
-          "cacheCreationInputTokens": 49443,
+          "inputTokens": 38,
+          "outputTokens": 7345,
+          "cacheReadInputTokens": 742286,
+          "cacheCreationInputTokens": 47149,
           "webSearchRequests": 0,
-          "costUSD": 0.6554204000000001,
+          "costUSD": 0.5738002,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 778,
+          "thinkingTokens": 850,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 28
+       "tool_calls": 22
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.7744443999999999,
+      "costUsd": 0.605906,
       "judgeCostUsd": 0,
-      "durationSeconds": 126,
-      "startedAt": "2026-10-18T01:52:21.052Z",
+      "durationSeconds": 97,
+      "startedAt": "2026-10-18T04:01:07.119Z",
       "error": null,
-      "tracePath": "/private/tmp/e-cN93Bs/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-NuVLj4/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -506,26 +506,26 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.7744443999999999,
-        "duration_ms": 123649,
+        "total_cost_usd": 0.605906,
+        "duration_ms": 94895,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 48,
-          "outputTokens": 9828,
-          "cacheReadInputTokens": 987907,
-          "cacheCreationInputTokens": 67489,
+          "inputTokens": 32,
+          "outputTokens": 6422,
+          "cacheReadInputTokens": 576945,
+          "cacheCreationInputTokens": 63868,
           "webSearchRequests": 0,
-          "costUSD": 0.7744443999999999,
+          "costUSD": 0.605906,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 1528,
+          "thinkingTokens": 946,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 30
+       "tool_calls": 17
       }
      }
     ]
@@ -618,98 +618,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.7064090000000001,
+      "costUsd": 0.7850358000000001,
       "judgeCostUsd": 0,
-      "durationSeconds": 148,
-      "startedAt": "2026-10-18T01:54:16.920Z",
+      "durationSeconds": 174,
+      "startedAt": "2026-10-18T04:02:43.812Z",
       "error": null,
-      "tracePath": "/private/tmp/e-Xigvqt/out/trace.jsonl",
-      "skippedPaidGraders": false,
-      "graders": [
-       {
-        "name": "reach-smith",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Agent called 1x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-built",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^def slugify\\(",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-committed",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Bash called 2x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-no-probe-left",
-        "passed": true,
-        "weight": 1,
-        "explanation": "pattern absent as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-phase-record",
-        "passed": true,
-        "weight": 1,
-        "explanation": "seal/specs/1790000011-slugify/phases/phase-1.md exists as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-tested",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched \\bslugify\\(",
-        "withOnly": false,
-        "scored": true
-       }
-      ],
-      "specseal": {
-       "report_rows": [],
-       "cost": {
-        "total_cost_usd": 0.7064090000000001,
-        "duration_ms": 146526,
-        "modelUsage": {
-         "claude-opus-5-5": {
-          "inputTokens": 44,
-          "outputTokens": 9725,
-          "cacheReadInputTokens": 916945,
-          "cacheCreationInputTokens": 57267,
-          "webSearchRequests": 0,
-          "costUSD": 0.7064090000000001,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 1236,
-          "canonicalModel": "claude-opus-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-         }
-        }
-       },
-       "tool_calls": 25
-      }
-     },
-     {
-      "score": 1,
-      "passed": true,
-      "turns": 2,
-      "costUsd": 0.6564367999999999,
-      "judgeCostUsd": 0,
-      "durationSeconds": 161,
-      "startedAt": "2026-10-18T01:54:19.324Z",
-      "error": null,
-      "tracePath": "/private/tmp/e-BmbsRI/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-wYbv8X/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -764,26 +678,112 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.6564367999999999,
-        "duration_ms": 158951,
+        "total_cost_usd": 0.7850358000000001,
+        "duration_ms": 172569,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 38,
-          "outputTokens": 8927,
-          "cacheReadInputTokens": 751329,
-          "cacheCreationInputTokens": 57025,
+          "inputTokens": 50,
+          "outputTokens": 11421,
+          "cacheReadInputTokens": 1085204,
+          "cacheCreationInputTokens": 59241,
           "webSearchRequests": 0,
-          "costUSD": 0.6564367999999999,
+          "costUSD": 0.7850358000000001,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 1483,
+          "thinkingTokens": 1948,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 25
+       "tool_calls": 37
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.7768219999999999,
+      "judgeCostUsd": 0,
+      "durationSeconds": 155,
+      "startedAt": "2026-10-18T04:03:04.245Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-BFC363/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def slugify\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000011-slugify/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\bslugify\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.7768219999999999,
+        "duration_ms": 153515,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 56,
+          "outputTokens": 10898,
+          "cacheReadInputTokens": 1137185,
+          "cacheCreationInputTokens": 57797,
+          "webSearchRequests": 0,
+          "costUSD": 0.7768219999999999,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 2426,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 30
       }
      }
     ]
@@ -876,98 +876,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.6875247999999999,
+      "costUsd": 0.6447356000000001,
       "judgeCostUsd": 0,
-      "durationSeconds": 119,
-      "startedAt": "2026-10-18T01:54:26.792Z",
+      "durationSeconds": 107,
+      "startedAt": "2026-10-18T04:03:27.358Z",
       "error": null,
-      "tracePath": "/private/tmp/e-7SbGbd/out/trace.jsonl",
-      "skippedPaidGraders": false,
-      "graders": [
-       {
-        "name": "reach-smith",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Agent called 1x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-built",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^def truncate\\(",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-committed",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Bash called 3x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-no-probe-left",
-        "passed": true,
-        "weight": 1,
-        "explanation": "pattern absent as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-phase-record",
-        "passed": true,
-        "weight": 1,
-        "explanation": "seal/specs/1790000013-truncate/phases/phase-1.md exists as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-tested",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched \\btruncate\\(",
-        "withOnly": false,
-        "scored": true
-       }
-      ],
-      "specseal": {
-       "report_rows": [],
-       "cost": {
-        "total_cost_usd": 0.6875247999999999,
-        "duration_ms": 116916,
-        "modelUsage": {
-         "claude-opus-5-5": {
-          "inputTokens": 42,
-          "outputTokens": 9921,
-          "cacheReadInputTokens": 837309,
-          "cacheCreationInputTokens": 55811,
-          "webSearchRequests": 0,
-          "costUSD": 0.6875247999999999,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 2094,
-          "canonicalModel": "claude-opus-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-         }
-        }
-       },
-       "tool_calls": 25
-      }
-     },
-     {
-      "score": 1,
-      "passed": true,
-      "turns": 2,
-      "costUsd": 0.7174190000000001,
-      "judgeCostUsd": 0,
-      "durationSeconds": 154,
-      "startedAt": "2026-10-18T01:54:26.816Z",
-      "error": null,
-      "tracePath": "/private/tmp/e-xAeK6w/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-WGXR6G/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1022,26 +936,112 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.7174190000000001,
-        "duration_ms": 151915,
+        "total_cost_usd": 0.6447356000000001,
+        "duration_ms": 105792,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 46,
-          "outputTokens": 9998,
-          "cacheReadInputTokens": 954510,
-          "cacheCreationInputTokens": 56799,
+          "inputTokens": 40,
+          "outputTokens": 8358,
+          "cacheReadInputTokens": 790283,
+          "cacheCreationInputTokens": 55308,
           "webSearchRequests": 0,
-          "costUSD": 0.7174190000000001,
+          "costUSD": 0.6447356000000001,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 1223,
+          "thinkingTokens": 1330,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 29
+       "tool_calls": 25
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.6962199999999998,
+      "judgeCostUsd": 0,
+      "durationSeconds": 153,
+      "startedAt": "2026-10-18T04:03:38.261Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-kxYLsP/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def truncate\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 3x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000013-truncate/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\btruncate\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.6962199999999998,
+        "duration_ms": 151426,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 42,
+          "outputTokens": 9877,
+          "cacheReadInputTokens": 854915,
+          "cacheCreationInputTokens": 56894,
+          "webSearchRequests": 0,
+          "costUSD": 0.6962199999999998,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 1454,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 24
       }
      }
     ]
@@ -1062,11 +1062,11 @@
   "agent": "smith",
   "preload": {
    "agents/smith.md": "fdaeb3a0cb7c8b62923f92ce8e31eceb20c197677c96ca64535cf24d453cde01",
-   "skills/agent-contract/SKILL.md": "9764cedd19617d9ba1af4d05a27384004456cf72c5333390c49cb7d57f7110dc"
+   "skills/agent-contract/SKILL.md": "642b0da67c6795a1aa75ba16d0b17bac4e48639d05134bcdb050c34fcec6ee4e"
   },
-  "preload_bytes": 26664,
+  "preload_bytes": 26596,
   "cut_short": false,
-  "rev": "7053c184",
+  "rev": "af716289",
   "suite_rev": "af9c924b7c5b03af5291017c226842655a8d83dd",
   "suite_tree": "613190e8d1ff62a399c435b3e799b8e0b7aa6a8a"
  }

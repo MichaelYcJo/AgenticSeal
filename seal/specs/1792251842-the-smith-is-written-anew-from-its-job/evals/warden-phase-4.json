@@ -1,12 +1,12 @@
 {
  "schemaVersion": 1,
  "claudeVersion": "2.1.302",
- "startedAt": "2026-10-18T01:57:03.155Z",
- "durationSeconds": 1783,
- "costUsd": 38.35107500000001,
+ "startedAt": "2026-10-18T04:06:13.352Z",
+ "durationSeconds": 2019,
+ "costUsd": 41.742395599999995,
  "partial": false,
  "suite": {
-  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-yc6eaesu/tree",
+  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-9g2736vi/tree",
   "ablation": "none",
   "threshold": 1,
   "concurrency": 4,
@@ -14,7 +14,7 @@
    {
     "name": "specseal",
     "version": "0.22.0",
-    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-yc6eaesu/tree"
+    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-9g2736vi/tree"
    }
   ]
  },
@@ -121,15 +121,15 @@
    "arms": {
     "with": [
      {
-      "score": 0.7142857142857143,
+      "score": 0.8571428571428571,
       "passed": false,
       "turns": 3,
-      "costUsd": 2.945813400000001,
+      "costUsd": 4.296757,
       "judgeCostUsd": 0,
-      "durationSeconds": 508,
-      "startedAt": "2026-10-18T01:57:03.214Z",
+      "durationSeconds": 687,
+      "startedAt": "2026-10-18T04:06:13.409Z",
       "error": null,
-      "tracePath": "/private/tmp/e-SLwObO/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-fPcmGE/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -166,9 +166,9 @@
        },
        {
         "name": "truth-1",
-        "passed": false,
+        "passed": true,
         "weight": 1,
-        "explanation": "pattern not found in file seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md",
+        "explanation": "matched ^location: .*(?:skills\\/evidence-check\\/scripts\\/correction_check\\.py:(?:765|766|767|768|769|770|771|772|773|774|775|776|777|778|779|780|781|782|783|784|785|786|787|788|789|790|791|792|793|794|795)(?!\\d))",
         "withOnly": false,
         "scored": true
        },
@@ -191,42 +191,45 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `skills/verify/scripts/unverified_check.py:767`, `skills/verify/scripts/unverified_check.py:882`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/survivors.md:27`",
-        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md:56-73`, `hooks/worktree-guard.py:1400`"
+        "location: `skills/evidence-check/scripts/correction_check.py:780`, `skills/evidence-check/scripts/correction_check.py:792`",
+        "location: `skills/verify/scripts/unverified_check.py:767`, `skills/verify/scripts/unverified_check.py:882`",
+        "location: `hooks/dispatch.py:449`, `hooks/version-check.py:65`, `skills/code-review/scripts/round_record.py:3642`, `skills/code-review/scripts/survivor_check.py:1129`, `skills/implement/scripts/seal.py:293`, `hooks/routing.py:448`, `hooks/routing.py:526`, `skills/verify/scripts/arm_check.py:408`, `tests/conftest.py:752`, `tests/conftest.py:812`, `skills/verify/scripts/deferral_check.py:191`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md`",
+        "location: `hooks/optin.py:224`",
+        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:49-66`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:212`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md:56-66`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md:134`"
        ],
        "cost": {
-        "total_cost_usd": 2.945813400000001,
-        "duration_ms": 502516,
+        "total_cost_usd": 4.296757,
+        "duration_ms": 681730,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 88,
-          "outputTokens": 45831,
-          "cacheReadInputTokens": 4896467,
-          "cacheCreationInputTokens": 196868,
+          "inputTokens": 122,
+          "outputTokens": 53806,
+          "cacheReadInputTokens": 9026885,
+          "cacheCreationInputTokens": 268165,
           "webSearchRequests": 0,
-          "costUSD": 2.945813400000001,
+          "costUSD": 4.296757,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 24973,
+          "thinkingTokens": 25942,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 49
+       "tool_calls": 69
       }
      },
      {
-      "score": 0.5714285714285714,
+      "score": 0.8571428571428571,
       "passed": false,
       "turns": 3,
-      "costUsd": 3.447583400000001,
+      "costUsd": 4.78529,
       "judgeCostUsd": 0,
-      "durationSeconds": 610,
-      "startedAt": "2026-10-18T01:57:03.214Z",
+      "durationSeconds": 854,
+      "startedAt": "2026-10-18T04:06:13.409Z",
       "error": null,
-      "tracePath": "/private/tmp/e-ZuLSz8/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-luzvNi/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -263,17 +266,17 @@
        },
        {
         "name": "truth-1",
-        "passed": false,
+        "passed": true,
         "weight": 1,
-        "explanation": "pattern not found in file seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md",
+        "explanation": "matched ^location: .*(?:skills\\/evidence-check\\/scripts\\/correction_check\\.py:(?:765|766|767|768|769|770|771|772|773|774|775|776|777|778|779|780|781|782|783|784|785|786|787|788|789|790|791|792|793|794|795)(?!\\d))",
         "withOnly": false,
         "scored": true
        },
        {
         "name": "truth-2",
-        "passed": false,
+        "passed": true,
         "weight": 1,
-        "explanation": "pattern not found in file seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md",
+        "explanation": "matched ^location: .*(?:hooks\\/routing\\.py:(?:400|401|402|403|404|405|406|407|408|409|410|411|412|413|414|415|416|417|418|419|420|421|422|423|424|425|426|427|428|429|430)(?!\\d))",
         "withOnly": false,
         "scored": true
        },
@@ -288,37 +291,37 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `hooks/dispatch.py:449-451`, `skills/verify/scripts/unverified_check.py:767`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/survivors.md:27`",
-        "location: `hooks/sealer-stamp.py:97`",
-        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md:59-66`"
+        "location: `skills/verify/scripts/unverified_check.py:767`, `skills/verify/scripts/deferral_check.py:191`, `hooks/routing.py:415`, `hooks/routing.py:448`, `hooks/routing.py:526`, `tests/conftest.py:752`, `tests/conftest.py:812`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/survivors.md:26-28`",
+        "location: `skills/evidence-check/scripts/correction_check.py:780`, `skills/evidence-check/scripts/correction_check.py:792`, `skills/verify/scripts/session_cost.py:2838`, `hooks/routing.py:415`, `skills/verify/scripts/arm_check.py:408`",
+        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md:59-66`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md:134`"
        ],
        "cost": {
-        "total_cost_usd": 3.447583400000001,
-        "duration_ms": 604730,
+        "total_cost_usd": 4.78529,
+        "duration_ms": 849849,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 102,
-          "outputTokens": 50526,
-          "cacheReadInputTokens": 6657432,
-          "cacheCreationInputTokens": 207259,
+          "inputTokens": 158,
+          "outputTokens": 59324,
+          "cacheReadInputTokens": 11464605,
+          "cacheCreationInputTokens": 247285,
           "webSearchRequests": 0,
-          "costUSD": 3.447583400000001,
+          "costUSD": 4.78529,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 24855,
+          "thinkingTokens": 27231,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 62
+       "tool_calls": 83
       }
      }
     ]
    },
    "aggregates": {
-    "score": 0.6428571428571428,
+    "score": 0.8571428571428571,
     "passRate": 0
    }
   },
@@ -399,12 +402,12 @@
       "score": 0.8,
       "passed": false,
       "turns": 3,
-      "costUsd": 3.0399644000000006,
+      "costUsd": 2.9449053999999992,
       "judgeCostUsd": 0,
-      "durationSeconds": 553,
-      "startedAt": "2026-10-18T01:57:03.215Z",
+      "durationSeconds": 493,
+      "startedAt": "2026-10-18T04:06:13.409Z",
       "error": null,
-      "tracePath": "/private/tmp/e-XalqSJ/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-verk5V/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -450,43 +453,41 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:12-17`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/questions.md:57-61`",
-        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:231-245`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:341`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:42-44`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/handoff.md:39`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/handoff.md:142-144`",
-        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/questions.md:51-56`"
+        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:231-245`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:43-44`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/handoff.md:39`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/handoff.md:142-144`"
        ],
        "cost": {
-        "total_cost_usd": 3.0399644000000006,
-        "duration_ms": 548407,
+        "total_cost_usd": 2.9449053999999992,
+        "duration_ms": 488819,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 108,
-          "outputTokens": 46663,
-          "cacheReadInputTokens": 5556442,
-          "cacheCreationInputTokens": 185498,
+          "inputTokens": 110,
+          "outputTokens": 41152,
+          "cacheReadInputTokens": 5817942,
+          "cacheCreationInputTokens": 178641,
           "webSearchRequests": 0,
-          "costUSD": 3.0399644000000006,
+          "costUSD": 2.9449053999999992,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 25744,
+          "thinkingTokens": 19557,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 60
+       "tool_calls": 65
       }
      },
      {
-      "score": 0.8,
-      "passed": false,
+      "score": 1,
+      "passed": true,
       "turns": 3,
-      "costUsd": 2.4166613999999997,
+      "costUsd": 2.761243600000001,
       "judgeCostUsd": 0,
-      "durationSeconds": 525,
-      "startedAt": "2026-10-18T01:57:03.215Z",
+      "durationSeconds": 653,
+      "startedAt": "2026-10-18T04:06:13.409Z",
       "error": null,
-      "tracePath": "/private/tmp/e-EpHtal/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-pLvvaC/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -523,47 +524,48 @@
        },
        {
         "name": "truth-2",
-        "passed": false,
+        "passed": true,
         "weight": 1,
-        "explanation": "pattern not found in file seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md",
+        "explanation": "matched ^location: .*(?:docs\\/the-reader-registry\\.md:(?:144|145|146|147|148|149|150|151|152|153|154|155|156|157|158|159|160|161|162|163|164|165|166|167|168|169|170|171|172|173|174)(?!\\d))",
         "withOnly": false,
         "scored": true
        }
       ],
       "specseal": {
        "report_rows": [
-        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:230-234`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:243-245`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/questions.md:51-53`",
-        "location: `docs/the-reader-registry.md:31-36`, `tests/test_a_reader_declares_its_input_class.py`",
-        "location: `skills/evidence-check/scripts/evidence_check.py:6038`, `skills/evidence-check/scripts/evidence_check.py:6070`, `skills/evidence-check/scripts/evidence_check.py:6250`, `skills/evidence-check/scripts/evidence_check.py:6338`"
+        "location: `docs/the-reader-registry.md:17`, `docs/the-reader-registry.md:31-36`",
+        "location: `docs/the-reader-registry.md:147-165`, `docs/the-reader-registry.md:35-36`",
+        "location: `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:233-234`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:244-245`, `seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:7`, `tests/test_a_reader_declares_its_input_class.py:6`",
+        "location: `docs/the-reader-registry.md:31-36`, `tests/test_a_reader_declares_its_input_class.py`"
        ],
        "cost": {
-        "total_cost_usd": 2.4166613999999997,
-        "duration_ms": 519392,
+        "total_cost_usd": 2.761243600000001,
+        "duration_ms": 648542,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 100,
-          "outputTokens": 36372,
-          "cacheReadInputTokens": 4515897,
-          "cacheCreationInputTokens": 144535,
+          "inputTokens": 102,
+          "outputTokens": 45651,
+          "cacheReadInputTokens": 4954928,
+          "cacheCreationInputTokens": 157461,
           "webSearchRequests": 0,
-          "costUSD": 2.4166613999999997,
+          "costUSD": 2.761243600000001,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 16722,
+          "thinkingTokens": 24186,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 58
+       "tool_calls": 56
       }
      }
     ]
    },
    "aggregates": {
-    "score": 0.8,
-    "passRate": 0
+    "score": 0.9,
+    "passRate": 0.5
    }
   },
   {
@@ -657,12 +659,12 @@
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 2.4088990000000003,
+      "costUsd": 2.370089,
       "judgeCostUsd": 0,
-      "durationSeconds": 461,
-      "startedAt": "2026-10-18T02:05:30.918Z",
+      "durationSeconds": 495,
+      "startedAt": "2026-10-18T04:14:26.845Z",
       "error": null,
-      "tracePath": "/private/tmp/e-fnneer/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-McsMD0/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -716,113 +718,23 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/changelog.md:13-17`, `skills/code-review/orchestration.md:369-372`, `docs/round-record-spec.md:693-694`, `skills/code-review/scripts/round_record.py:2350-2352`, `skills/code-review/scripts/round_record.py:3391-3392`",
-        "location: `docs/the-record-layout.md:147-153`, `skills/code-review/scripts/chain_check.py:4497-4500`, `skills/code-review/scripts/chain_check.py:4568-4570`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:1`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:3`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:5`"
+        "location: `docs/the-record-layout.md:148-150`, `skills/code-review/scripts/chain_check.py:4497-4500`, `skills/code-review/scripts/chain_check.py:4568-4570`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:1`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:3`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:5`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/overview.md:24`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/phases/phase-1.md:35-37`",
+        "location: `docs/round-record-spec.md:693-694`, `skills/code-review/orchestration.md:369-370`, `skills/code-review/scripts/round_record.py:3391-3392`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/changelog.md:13-17`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:12`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:14`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:16`"
        ],
        "cost": {
-        "total_cost_usd": 2.4088990000000003,
-        "duration_ms": 456886,
+        "total_cost_usd": 2.370089,
+        "duration_ms": 492127,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 100,
-          "outputTokens": 38503,
-          "cacheReadInputTokens": 4272670,
-          "cacheCreationInputTokens": 143812,
+          "inputTokens": 112,
+          "outputTokens": 32947,
+          "cacheReadInputTokens": 4688685,
+          "cacheCreationInputTokens": 141925,
           "webSearchRequests": 0,
-          "costUSD": 2.4088990000000003,
+          "costUSD": 2.370089,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 16329,
-          "canonicalModel": "claude-opus-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-         }
-        }
-       },
-       "tool_calls": 55
-      }
-     },
-     {
-      "score": 1,
-      "passed": true,
-      "turns": 3,
-      "costUsd": 2.5091876000000006,
-      "judgeCostUsd": 0,
-      "durationSeconds": 470,
-      "startedAt": "2026-10-18T02:05:47.824Z",
-      "error": null,
-      "tracePath": "/private/tmp/e-R5YiLh/out/trace.jsonl",
-      "skippedPaidGraders": false,
-      "graders": [
-       {
-        "name": "reach-warden",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Agent called 1x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-findings",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-report-exists",
-        "passed": true,
-        "weight": 1,
-        "explanation": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md exists as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-words-only",
-        "passed": true,
-        "weight": 1,
-        "explanation": "pattern absent as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "truth-1",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^location: .*(?:docs\\/the-record-layout\\.md:(?:133|134|135|136|137|138|139|140|141|142|143|144|145|146|147|148|149|150|151|152|153|154|155|156|157|158|159|160|161|162|163)(?!\\d))",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "truth-2",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^location: .*(?:skills\\/code-review\\/orchestration\\.md:(?:355|356|357|358|359|360|361|362|363|364|365|366|367|368|369|370|371|372|373|374|375|376|377|378|379|380|381|382|383|384|385)(?!\\d))",
-        "withOnly": false,
-        "scored": true
-       }
-      ],
-      "specseal": {
-       "report_rows": [
-        "location: `docs/round-record-spec.md:693-695`, `skills/code-review/orchestration.md:369-371`, `skills/code-review/scripts/round_record.py:3391-3392`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:4`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:11-12`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:14`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:16`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/changelog.md:14`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/changelog.md:19-20`",
-        "location: `docs/the-record-layout.md:148-150`, `skills/code-review/scripts/chain_check.py:4498-4499`, `skills/code-review/scripts/chain_check.py:4568-4570`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:1`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:3`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:5`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/overview.md:24`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/phases/phase-1.md:36-37`",
-        "location: `tests/test_the_fixes_close_the_record.py`, `docs/the-record-layout.md:156`"
-       ],
-       "cost": {
-        "total_cost_usd": 2.5091876000000006,
-        "duration_ms": 465689,
-        "modelUsage": {
-         "claude-opus-5-5": {
-          "inputTokens": 106,
-          "outputTokens": 38908,
-          "cacheReadInputTokens": 4721853,
-          "cacheCreationInputTokens": 143230,
-          "webSearchRequests": 0,
-          "costUSD": 2.5091876000000006,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 15496,
+          "thinkingTokens": 11571,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
@@ -831,12 +743,101 @@
        },
        "tool_calls": 58
       }
+     },
+     {
+      "score": 0.8333333333333334,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 2.3440922000000004,
+      "judgeCostUsd": 0,
+      "durationSeconds": 479,
+      "startedAt": "2026-10-18T04:17:06.347Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-YM12KV/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-1",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^location: .*(?:docs\\/the-record-layout\\.md:(?:133|134|135|136|137|138|139|140|141|142|143|144|145|146|147|148|149|150|151|152|153|154|155|156|157|158|159|160|161|162|163)(?!\\d))",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-2",
+        "passed": false,
+        "weight": 1,
+        "explanation": "pattern not found in file seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:4`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:2`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/changelog.md:20-28`, `skills/code-review/scripts/chain_check.py:4564-4570`",
+        "location: `docs/the-record-layout.md:147-151`, `skills/code-review/scripts/chain_check.py:4497-4500`, `skills/code-review/scripts/chain_check.py:4568-4570`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:1`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:3`, `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md:5`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/phases/phase-1.md:34-39`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/overview.md:24`"
+       ],
+       "cost": {
+        "total_cost_usd": 2.3440922000000004,
+        "duration_ms": 475387,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 88,
+          "outputTokens": 37205,
+          "cacheReadInputTokens": 3992346,
+          "cacheCreationInputTokens": 147126,
+          "webSearchRequests": 0,
+          "costUSD": 2.3440922000000004,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 15662,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 49
+      }
      }
     ]
    },
    "aggregates": {
-    "score": 1,
-    "passRate": 1
+    "score": 0.9166666666666667,
+    "passRate": 0.5
    }
   },
   {
@@ -913,15 +914,15 @@
    "arms": {
     "with": [
      {
-      "score": 0.6,
-      "passed": false,
+      "score": 1,
+      "passed": true,
       "turns": 3,
-      "costUsd": 2.716419,
+      "costUsd": 2.7544942000000003,
       "judgeCostUsd": 0,
-      "durationSeconds": 609,
-      "startedAt": "2026-10-18T02:06:15.773Z",
+      "durationSeconds": 580,
+      "startedAt": "2026-10-18T04:17:39.939Z",
       "error": null,
-      "tracePath": "/private/tmp/e-PiCuk4/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-IRaCaf/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -934,9 +935,9 @@
        },
        {
         "name": "shape-findings",
-        "passed": false,
+        "passed": true,
         "weight": 1,
-        "explanation": "pattern not found in file seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md",
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
         "withOnly": false,
         "scored": true
        },
@@ -958,48 +959,51 @@
        },
        {
         "name": "truth-1",
-        "passed": false,
+        "passed": true,
         "weight": 1,
-        "explanation": "pattern not found in file seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md",
+        "explanation": "matched ^location: .*(?:docs\\/worktree-guard-spec\\.md:(?:22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52)(?!\\d))",
         "withOnly": false,
         "scored": true
        }
       ],
       "specseal": {
-       "report_rows": [],
+       "report_rows": [
+        "location: `hooks/worktree-guard.py:1269-1286`, `hooks/worktree-guard.py:3253-3260`, `hooks/worktree-guard.py:3292`, `docs/worktree-guard-spec.md:37`, `docs/worktree-guard-spec.md:61-63`",
+        "location: `tests/test_the_guard_asks_once_per_session.py:2098-2104`, `tests/test_the_guard_asks_once_per_session.py:1903-1909`"
+       ],
        "cost": {
-        "total_cost_usd": 2.716419,
-        "duration_ms": 604865,
+        "total_cost_usd": 2.7544942000000003,
+        "duration_ms": 576568,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 118,
-          "outputTokens": 41460,
-          "cacheReadInputTokens": 5428830,
-          "cacheCreationInputTokens": 148111,
+          "inputTokens": 120,
+          "outputTokens": 44624,
+          "cacheReadInputTokens": 5197161,
+          "cacheCreationInputTokens": 150903,
           "webSearchRequests": 0,
-          "costUSD": 2.716419,
+          "costUSD": 2.7544942000000003,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 19079,
+          "thinkingTokens": 20961,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 63
+       "tool_calls": 64
       }
      },
      {
       "score": 0.8,
       "passed": false,
       "turns": 3,
-      "costUsd": 2.915088800000001,
+      "costUsd": 2.3214433999999997,
       "judgeCostUsd": 0,
-      "durationSeconds": 604,
-      "startedAt": "2026-10-18T02:07:13.515Z",
+      "durationSeconds": 469,
+      "startedAt": "2026-10-18T04:20:27.262Z",
       "error": null,
-      "tracePath": "/private/tmp/e-L3Ph4y/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-ERaRnm/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1045,36 +1049,36 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `tests/test_the_guard_asks_once_per_session.py:1939-1940`"
+        "location: `tests/test_the_guard_asks_once_per_session.py:1903-1909`, `tests/test_the_guard_asks_once_per_session.py:2104`"
        ],
        "cost": {
-        "total_cost_usd": 2.915088800000001,
-        "duration_ms": 599394,
+        "total_cost_usd": 2.3214433999999997,
+        "duration_ms": 465093,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 114,
-          "outputTokens": 48319,
-          "cacheReadInputTokens": 5533869,
-          "cacheCreationInputTokens": 155550,
+          "inputTokens": 100,
+          "outputTokens": 38008,
+          "cacheReadInputTokens": 4039467,
+          "cacheCreationInputTokens": 137824,
           "webSearchRequests": 0,
-          "costUSD": 2.915088800000001,
+          "costUSD": 2.3214433999999997,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 21742,
+          "thinkingTokens": 15732,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 64
+       "tool_calls": 53
       }
      }
     ]
    },
    "aggregates": {
-    "score": 0.7,
-    "passRate": 0
+    "score": 0.9,
+    "passRate": 0.5
    }
   },
   {
@@ -1154,12 +1158,12 @@
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 0.5879516,
+      "costUsd": 0.5759312,
       "judgeCostUsd": 0,
-      "durationSeconds": 98,
-      "startedAt": "2026-10-18T02:13:11.532Z",
+      "durationSeconds": 106,
+      "startedAt": "2026-10-18T04:22:42.312Z",
       "error": null,
-      "tracePath": "/private/tmp/e-9G3kQP/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-enTzy1/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1209,19 +1213,19 @@
         "location: `tests/test_textutil.py`"
        ],
        "cost": {
-        "total_cost_usd": 0.5879516,
-        "duration_ms": 95829,
+        "total_cost_usd": 0.5759312,
+        "duration_ms": 104347,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 36,
-          "outputTokens": 7154,
-          "cacheReadInputTokens": 639558,
-          "cacheCreationInputTokens": 53798,
+          "inputTokens": 30,
+          "outputTokens": 7286,
+          "cacheReadInputTokens": 523756,
+          "cacheCreationInputTokens": 55432,
           "webSearchRequests": 0,
-          "costUSD": 0.5879516,
+          "costUSD": 0.5759312,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 874,
+          "thinkingTokens": 1118,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
@@ -1235,12 +1239,12 @@
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 0.6095432,
+      "costUsd": 0.5715882,
       "judgeCostUsd": 0,
       "durationSeconds": 104,
-      "startedAt": "2026-10-18T02:13:37.916Z",
+      "startedAt": "2026-10-18T04:24:27.972Z",
       "error": null,
-      "tracePath": "/private/tmp/e-Czn6pv/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-gVQzMi/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1290,26 +1294,26 @@
         "location: `tests/test_textutil.py`"
        ],
        "cost": {
-        "total_cost_usd": 0.6095432,
-        "duration_ms": 102794,
+        "total_cost_usd": 0.5715882,
+        "duration_ms": 102788,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 34,
-          "outputTokens": 7904,
-          "cacheReadInputTokens": 609406,
-          "cacheCreationInputTokens": 56204,
+          "inputTokens": 30,
+          "outputTokens": 7274,
+          "cacheReadInputTokens": 506906,
+          "cacheCreationInputTokens": 55241,
           "webSearchRequests": 0,
-          "costUSD": 0.6095432,
+          "costUSD": 0.5715882,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 784,
+          "thinkingTokens": 1147,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 20
+       "tool_calls": 18
       }
      }
     ]
@@ -1396,12 +1400,12 @@
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 1.8219258000000007,
+      "costUsd": 2.5262458000000003,
       "judgeCostUsd": 0,
-      "durationSeconds": 265,
-      "startedAt": "2026-10-18T02:14:49.053Z",
+      "durationSeconds": 383,
+      "startedAt": "2026-10-18T04:25:05.057Z",
       "error": null,
-      "tracePath": "/private/tmp/e-dNkZhu/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-tlQp3G/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1447,43 +1451,44 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `skills/code-review/scripts/chain_check.py:1877`, `skills/code-review/scripts/round_record.py:4428`, `skills/code-review/scripts/round_record.py:4376`, `skills/code-review/scripts/chain_check.py:4622`",
+        "location: `skills/code-review/scripts/chain_check.py:1877`, `skills/code-review/scripts/round_record.py:2594`, `skills/code-review/scripts/round_record.py:4428`, `skills/code-review/scripts/round_record.py:4794`, `skills/code-review/scripts/chain_check.py:4618`",
         "location: `tests/test_a_note_closes_once_at_the_runs_end.py:97-114`",
-        "location: `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:92`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:161`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/plan.md:114`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/overview.md:19-22`"
+        "location: `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:92`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:161`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/plan.md:114`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/overview.md:19-22`",
+        "location: `skills/code-review/scripts/chain_check.py:858`, `skills/code-review/scripts/chain_check.py:865`, `skills/code-review/scripts/round_record.py:2621`, `tests/test_a_note_closes_once_at_the_runs_end.py:48`, `tests/test_a_note_closes_once_at_the_runs_end.py:616`, `tests/test_a_note_closes_once_at_the_runs_end.py:647`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/overview.md:34-38`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/survivors.md:3-7`"
        ],
        "cost": {
-        "total_cost_usd": 1.8219258000000007,
-        "duration_ms": 260579,
+        "total_cost_usd": 2.5262458000000003,
+        "duration_ms": 378934,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 76,
-          "outputTokens": 21894,
-          "cacheReadInputTokens": 3056364,
-          "cacheCreationInputTokens": 142726,
+          "inputTokens": 94,
+          "outputTokens": 29145,
+          "cacheReadInputTokens": 4962204,
+          "cacheCreationInputTokens": 177465,
           "webSearchRequests": 0,
-          "costUSD": 1.8219258000000007,
+          "costUSD": 2.5262458000000003,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 6822,
+          "thinkingTokens": 9940,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 43
+       "tool_calls": 57
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 2.2403124,
+      "costUsd": 2.2151511999999998,
       "judgeCostUsd": 0,
-      "durationSeconds": 360,
-      "startedAt": "2026-10-18T02:15:22.350Z",
+      "durationSeconds": 364,
+      "startedAt": "2026-10-18T04:26:12.103Z",
       "error": null,
-      "tracePath": "/private/tmp/e-Y4MUuY/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-KZ6ngx/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1529,31 +1534,31 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `skills/code-review/scripts/chain_check.py:1877`, `skills/code-review/scripts/chain_check.py:4603-4720`, `skills/code-review/scripts/round_record.py:4376-4380`, `skills/code-review/scripts/round_record.py:4428`, `skills/code-review/scripts/round_record.py:4790-4794`, `tests/test_a_note_closes_once_at_the_runs_end.py:97-114`",
-        "location: `skills/code-review/scripts/chain_check.py:858`, `skills/code-review/scripts/chain_check.py:864`, `skills/code-review/scripts/round_record.py:2621`, `tests/test_a_note_closes_once_at_the_runs_end.py:48-50`, `tests/test_a_note_closes_once_at_the_runs_end.py:616`, `tests/test_a_note_closes_once_at_the_runs_end.py:647`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/overview.md:34-38`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/survivors.md`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/plan.md:114-117`",
-        "location: `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:92`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:161`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/overview.md:19-22`, `skills/code-review/scripts/chain_check.py:868`"
+        "location: `skills/code-review/scripts/chain_check.py:1877`, `skills/code-review/scripts/round_record.py`, `tests/test_a_note_closes_once_at_the_runs_end.py:97-114`",
+        "location: `skills/code-review/scripts/chain_check.py:858`, `skills/code-review/scripts/chain_check.py:864`, `skills/code-review/scripts/round_record.py:2621`, `tests/test_a_note_closes_once_at_the_runs_end.py:48-50`, `seal/ledger/1791384154-a-records-finding-closes-once-at-the-runs-end.md`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/overview.md:34-38`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/survivors.md:3-7`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/plan.md:114-117`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/phases`",
+        "location: `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/overview.md:19-22`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:92`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:155`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:161`"
        ],
        "cost": {
-        "total_cost_usd": 2.2403124,
-        "duration_ms": 355949,
+        "total_cost_usd": 2.2151511999999998,
+        "duration_ms": 359916,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 86,
-          "outputTokens": 29875,
-          "cacheReadInputTokens": 3937652,
-          "cacheCreationInputTokens": 158666,
+          "inputTokens": 88,
+          "outputTokens": 28236,
+          "cacheReadInputTokens": 3929331,
+          "cacheCreationInputTokens": 160185,
           "webSearchRequests": 0,
-          "costUSD": 2.2403124,
+          "costUSD": 2.2151511999999998,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 11152,
+          "thinkingTokens": 8849,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 55
+       "tool_calls": 60
       }
      }
     ]
@@ -1640,12 +1645,12 @@
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 1.8199205999999997,
+      "costUsd": 2.0910612,
       "judgeCostUsd": 0,
-      "durationSeconds": 294,
-      "startedAt": "2026-10-18T02:16:24.418Z",
+      "durationSeconds": 339,
+      "startedAt": "2026-10-18T04:27:19.799Z",
       "error": null,
-      "tracePath": "/private/tmp/e-rgvfwP/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-0U1nvZ/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1691,42 +1696,42 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `hooks/worktree-guard.py:3154`, `tests/test_the_idle_session_rows_ask_nobody.py:238`, `seal/ledger/1791781864-the-idle-session-rows-ask-nobody.md:3`",
-        "location: `seal/specs/1791781864-the-idle-session-rows-ask-nobody/overview.md:27`, `seal/specs/1791781864-the-idle-session-rows-ask-nobody/handoff.md:12`, `seal/specs/1791781864-the-idle-session-rows-ask-nobody/handoff.md:17`"
+        "location: `hooks/worktree-guard.py:3154`",
+        "location: `seal/ledger/1791781864-the-idle-session-rows-ask-nobody.md:3`, `seal/ledger/1791781864-the-idle-session-rows-ask-nobody.md:7-8`, `seal/ledger/1791781864-the-idle-session-rows-ask-nobody.md:10`, `seal/ledger/1791781864-the-idle-session-rows-ask-nobody.md:16`, `seal/specs/1791781864-the-idle-session-rows-ask-nobody/overview.md:27`, `seal/specs/1791781864-the-idle-session-rows-ask-nobody/handoff.md:12-17`, `seal/specs/1791781864-the-idle-session-rows-ask-nobody/survivors.md:11`"
        ],
        "cost": {
-        "total_cost_usd": 1.8199205999999997,
-        "duration_ms": 289816,
+        "total_cost_usd": 2.0910612,
+        "duration_ms": 335356,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 88,
-          "outputTokens": 21851,
-          "cacheReadInputTokens": 3349303,
-          "cacheCreationInputTokens": 131272,
+          "inputTokens": 94,
+          "outputTokens": 22120,
+          "cacheReadInputTokens": 4280246,
+          "cacheCreationInputTokens": 146707,
           "webSearchRequests": 0,
-          "costUSD": 1.8199205999999997,
+          "costUSD": 2.0910612,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 6987,
+          "thinkingTokens": 5032,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 47
+       "tool_calls": 52
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 1.8338530000000004,
+      "costUsd": 2.0967529999999996,
       "judgeCostUsd": 0,
-      "durationSeconds": 259,
-      "startedAt": "2026-10-18T02:17:17.572Z",
+      "durationSeconds": 385,
+      "startedAt": "2026-10-18T04:28:16.208Z",
       "error": null,
-      "tracePath": "/private/tmp/e-osKu52/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-7q6YBa/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1772,29 +1777,30 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `hooks/worktree-guard.py:3154`, `seal/ledger/1791781864-the-idle-session-rows-ask-nobody.md`"
+        "location: `hooks/worktree-guard.py:3154`",
+        "location: `hooks/worktree-guard.py:3134`, `tests/test_the_idle_session_rows_ask_nobody.py:16`, `tests/test_the_idle_session_rows_ask_nobody.py:186`, `tests/test_the_idle_session_rows_ask_nobody.py:405`, `tests/test_the_idle_session_rows_ask_nobody.py:459`, `tests/test_the_idle_session_rows_ask_nobody.py:487-494`, `seal/ledger/1791781864-the-idle-session-rows-ask-nobody.md:16`, `seal/specs/1791781864-the-idle-session-rows-ask-nobody/overview.md`, `seal/specs/1791781864-the-idle-session-rows-ask-nobody/handoff.md:12-17`, `seal/specs/1791781864-the-idle-session-rows-ask-nobody/survivors.md`"
        ],
        "cost": {
-        "total_cost_usd": 1.8338530000000004,
-        "duration_ms": 254860,
+        "total_cost_usd": 2.0967529999999996,
+        "duration_ms": 380714,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 84,
-          "outputTokens": 18886,
-          "cacheReadInputTokens": 3489495,
-          "cacheCreationInputTokens": 140953,
+          "inputTokens": 96,
+          "outputTokens": 24716,
+          "cacheReadInputTokens": 4114985,
+          "cacheCreationInputTokens": 144078,
           "webSearchRequests": 0,
-          "costUSD": 1.8338530000000004,
+          "costUSD": 2.0967529999999996,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 5556,
+          "thinkingTokens": 6937,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 45
+       "tool_calls": 54
       }
      }
     ]
@@ -1881,12 +1887,12 @@
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 1.9685434000000006,
+      "costUsd": 1.7214109999999996,
       "judgeCostUsd": 0,
-      "durationSeconds": 331,
-      "startedAt": "2026-10-18T02:19:13.657Z",
+      "durationSeconds": 257,
+      "startedAt": "2026-10-18T04:31:28.218Z",
       "error": null,
-      "tracePath": "/private/tmp/e-xhq19j/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-1bDtyS/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -1932,43 +1938,42 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `.github/scripts/plugin_directory_check.py:236`, `tests/test_the_plugin_directory_answers_the_box.py:158-200`",
-        "location: `tests/test_the_plugin_directory_answers_the_box.py:368`, `tests/test_the_plugin_directory_answers_the_box.py:385`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:173`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:182`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:191`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:267`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:297`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:357`, `tests/test_no_real_identifiers.py:188`, `seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/overview.md:17-21`, `seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/survivors.md:3-11`, `seal/ledger/1791384161-the-plugin-directory-check-reads-the-directory.md:1-4`",
-        "location: `tests/test_the_plugin_directory_answers_the_box.py:384-391`, `.github/scripts/plugin_directory_check.py:295-300`"
+        "location: `.github/scripts/plugin_directory_check.py:236`",
+        "location: `tests/test_the_plugin_directory_answers_the_box.py:182-200`"
        ],
        "cost": {
-        "total_cost_usd": 1.9685434000000006,
-        "duration_ms": 326833,
+        "total_cost_usd": 1.7214109999999996,
+        "duration_ms": 253882,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 84,
-          "outputTokens": 24999,
-          "cacheReadInputTokens": 3579082,
-          "cacheCreationInputTokens": 139036,
+          "inputTokens": 82,
+          "outputTokens": 20518,
+          "cacheReadInputTokens": 3171655,
+          "cacheCreationInputTokens": 124092,
           "webSearchRequests": 0,
-          "costUSD": 1.9685434000000006,
+          "costUSD": 1.7214109999999996,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 9047,
+          "thinkingTokens": 5504,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 51
+       "tool_calls": 49
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 1.7427221999999998,
+      "costUsd": 1.9295344,
       "judgeCostUsd": 0,
-      "durationSeconds": 291,
-      "startedAt": "2026-10-18T02:21:18.396Z",
+      "durationSeconds": 351,
+      "startedAt": "2026-10-18T04:32:15.670Z",
       "error": null,
-      "tracePath": "/private/tmp/e-GkvdT4/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-FJoUax/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -2015,30 +2020,30 @@
       "specseal": {
        "report_rows": [
         "location: `.github/scripts/plugin_directory_check.py:236`, `tests/test_the_plugin_directory_answers_the_box.py:182-200`",
-        "location: `tests/test_no_real_identifiers.py:30-38`, `tests/test_no_real_identifiers.py:72-80`, `tests/test_no_real_identifiers.py:181-201`",
-        "location: `tests/test_the_plugin_directory_answers_the_box.py:384-391`, `.github/scripts/plugin_directory_check.py:295-300`"
+        "location: `tests/test_no_real_identifiers.py:72-82`, `tests/test_no_real_identifiers.py:185-201`",
+        "location: `seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/overview.md:17-21`, `seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/survivors.md:3-11`, `seal/ledger/1791384161-the-plugin-directory-check-reads-the-directory.md:1-4`, `seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/plan.md:100-102`, `tests/test_the_plugin_directory_answers_the_box.py:368`, `tests/test_the_plugin_directory_answers_the_box.py:385`, `tests/test_no_real_identifiers.py:188`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:173`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:182`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:191`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:267`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:297`, `tests/test_the_release_tail_does_not_end_at_the_tag.py:357`"
        ],
        "cost": {
-        "total_cost_usd": 1.7427221999999998,
-        "duration_ms": 286956,
+        "total_cost_usd": 1.9295344,
+        "duration_ms": 346976,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 76,
-          "outputTokens": 23350,
-          "cacheReadInputTokens": 2884536,
-          "cacheCreationInputTokens": 127707,
+          "inputTokens": 74,
+          "outputTokens": 27224,
+          "cacheReadInputTokens": 3056497,
+          "cacheCreationInputTokens": 141979,
           "webSearchRequests": 0,
-          "costUSD": 1.7427221999999998,
+          "costUSD": 1.9295344,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 7881,
+          "thinkingTokens": 8919,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 41
+       "tool_calls": 50
       }
      }
     ]
@@ -2125,12 +2130,12 @@
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 1.4676454,
+      "costUsd": 1.8897334000000003,
       "judgeCostUsd": 0,
-      "durationSeconds": 207,
-      "startedAt": "2026-10-18T02:21:22.670Z",
+      "durationSeconds": 342,
+      "startedAt": "2026-10-18T04:32:58.614Z",
       "error": null,
-      "tracePath": "/private/tmp/e-e5DBoY/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-dfihQj/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -2176,41 +2181,42 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `skills/code-review/scripts/chain_check.py:4647`, `skills/code-review/scripts/chain_check.py:4832`, `skills/code-review/scripts/chain_check.py:4856`, `skills/code-review/scripts/round_record.py:2382`, `skills/code-review/scripts/round_record.py:3467`, `skills/code-review/scripts/round_record.py:4583`"
+        "location: `skills/code-review/scripts/chain_check.py:4647`, `skills/code-review/scripts/chain_check.py:4832`, `skills/code-review/scripts/round_record.py:3467`, `skills/code-review/scripts/round_record.py:4583`",
+        "location: `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/questions.md:60`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/overview.md:40`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/overview.md:45`"
        ],
        "cost": {
-        "total_cost_usd": 1.4676454,
-        "duration_ms": 202889,
+        "total_cost_usd": 1.8897334000000003,
+        "duration_ms": 338003,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 62,
-          "outputTokens": 17518,
-          "cacheReadInputTokens": 2254767,
-          "cacheCreationInputTokens": 122355,
+          "inputTokens": 92,
+          "outputTokens": 22826,
+          "cacheReadInputTokens": 3643437,
+          "cacheCreationInputTokens": 129563,
           "webSearchRequests": 0,
-          "costUSD": 1.4676454,
+          "costUSD": 1.8897334000000003,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 6485,
+          "thinkingTokens": 8642,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 36
+       "tool_calls": 48
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 3,
-      "costUsd": 1.8590404000000003,
+      "costUsd": 1.5466714000000001,
       "judgeCostUsd": 0,
-      "durationSeconds": 310,
-      "startedAt": "2026-10-18T02:21:36.331Z",
+      "durationSeconds": 312,
+      "startedAt": "2026-10-18T04:34:40.824Z",
       "error": null,
-      "tracePath": "/private/tmp/e-LqHxmT/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-OB1VO6/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -2256,30 +2262,29 @@
       ],
       "specseal": {
        "report_rows": [
-        "location: `skills/code-review/scripts/chain_check.py:4647`",
-        "location: `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/questions.md`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/overview.md`"
+        "location: `skills/code-review/scripts/chain_check.py:4647`, `skills/code-review/scripts/chain_check.py:4832`, `skills/code-review/scripts/chain_check.py:4856`, `skills/code-review/scripts/chain_check.py:4862`, `skills/code-review/scripts/round_record.py:2382`, `skills/code-review/scripts/round_record.py:3467`, `skills/code-review/scripts/round_record.py:4305`, `skills/code-review/scripts/round_record.py:4583`"
        ],
        "cost": {
-        "total_cost_usd": 1.8590404000000003,
-        "duration_ms": 305861,
+        "total_cost_usd": 1.5466714000000001,
+        "duration_ms": 307687,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 88,
-          "outputTokens": 21835,
-          "cacheReadInputTokens": 3559832,
-          "cacheCreationInputTokens": 130887,
+          "inputTokens": 70,
+          "outputTokens": 19299,
+          "cacheReadInputTokens": 2534317,
+          "cacheCreationInputTokens": 119567,
           "webSearchRequests": 0,
-          "costUSD": 1.8590404000000003,
+          "costUSD": 1.5466714000000001,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 7469,
+          "thinkingTokens": 5237,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 47
+       "tool_calls": 37
       }
      }
     ]
@@ -2292,19 +2297,19 @@
  ],
  "aggregates": {
   "casesTotal": 9,
-  "casesPassed": 6,
-  "overallScore": 0.9047619047619047,
-  "overallPassRate": 0.6666666666666666
+  "casesPassed": 5,
+  "overallScore": 0.9526455026455027,
+  "overallPassRate": 0.7222222222222222
  },
  "specseal": {
   "agent": "warden",
   "preload": {
-   "agents/warden.md": "13d9b9ac81eefe60980ecb686a845c72eabdca8d612819379e138a2d7c47a41e",
-   "skills/agent-contract/SKILL.md": "9764cedd19617d9ba1af4d05a27384004456cf72c5333390c49cb7d57f7110dc"
+   "agents/warden.md": "9506b5628d228124f33df01e62636b8a730e6a1e2756ecfc5836e70d71b49764",
+   "skills/agent-contract/SKILL.md": "642b0da67c6795a1aa75ba16d0b17bac4e48639d05134bcdb050c34fcec6ee4e"
   },
-  "preload_bytes": 27198,
+  "preload_bytes": 27173,
   "cut_short": false,
-  "rev": "7053c184",
+  "rev": "af716289",
   "suite_rev": "af9c924b7c5b03af5291017c226842655a8d83dd",
   "suite_tree": "d8dfd549c0100c131019193b35655c59e7218282"
  }

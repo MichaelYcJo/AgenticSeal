@@ -1,12 +1,12 @@
 {
  "schemaVersion": 1,
  "claudeVersion": "2.1.302",
- "startedAt": "2026-10-18T02:26:50.918Z",
- "durationSeconds": 487,
- "costUsd": 16.55726075,
+ "startedAt": "2026-10-18T04:39:56.920Z",
+ "durationSeconds": 598,
+ "costUsd": 16.11962025,
  "partial": false,
  "suite": {
-  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-l12mv33w/tree",
+  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-bdglgruq/tree",
   "ablation": "none",
   "threshold": 1,
   "concurrency": 4,
@@ -14,7 +14,7 @@
    {
     "name": "specseal",
     "version": "0.22.0",
-    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-l12mv33w/tree"
+    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-bdglgruq/tree"
    }
   ]
  },
@@ -122,12 +122,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 2.4339592500000005,
+      "costUsd": 1.70890625,
       "judgeCostUsd": 0,
-      "durationSeconds": 266,
-      "startedAt": "2026-10-18T02:26:50.959Z",
+      "durationSeconds": 237,
+      "startedAt": "2026-10-18T04:39:56.971Z",
       "error": null,
-      "tracePath": "/private/tmp/e-YO8PIC/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-NOJyvU/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -198,121 +198,19 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 2.4339592500000005,
-        "duration_ms": 264343,
-        "modelUsage": {
-         "claude-fable-5-1": {
-          "inputTokens": 196,
-          "outputTokens": 19652,
-          "cacheReadInputTokens": 295117,
-          "cacheCreationInputTokens": 95463,
-          "webSearchRequests": 0,
-          "costUSD": 2.4339592500000005,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 64000,
-          "thinkingTokens": 10243,
-          "canonicalModel": "claude-fable-5-1",
-          "provider": "firstParty",
-          "costBasis": "list"
-         }
-        }
-       },
-       "tool_calls": 11
-      }
-     },
-     {
-      "score": 1,
-      "passed": true,
-      "turns": 2,
-      "costUsd": 1.988158,
-      "judgeCostUsd": 0,
-      "durationSeconds": 182,
-      "startedAt": "2026-10-18T02:26:50.959Z",
-      "error": null,
-      "tracePath": "/private/tmp/e-EM3gJ3/out/trace.jsonl",
-      "skippedPaidGraders": false,
-      "graders": [
-       {
-        "name": "reach-framer",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Agent called 1x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-builds-nothing-edit",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Edit called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-builds-nothing-write",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Write called 0x (expected 0..0)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-marks-the-spec",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-phases-carry-verified-by",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-writes-plan",
-        "passed": true,
-        "weight": 1,
-        "explanation": "seal/specs/1790000024-document-helpers/plan.md exists as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-writes-questions",
-        "passed": true,
-        "weight": 1,
-        "explanation": "seal/specs/1790000024-document-helpers/questions.md exists as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-writes-spec",
-        "passed": true,
-        "weight": 1,
-        "explanation": "seal/specs/1790000024-document-helpers/spec.md exists as expected",
-        "withOnly": false,
-        "scored": true
-       }
-      ],
-      "specseal": {
-       "report_rows": [],
-       "cost": {
-        "total_cost_usd": 1.988158,
-        "duration_ms": 180328,
+        "total_cost_usd": 1.70890625,
+        "duration_ms": 235059,
         "modelUsage": {
          "claude-fable-5-1": {
           "inputTokens": 260,
-          "outputTokens": 12187,
-          "cacheReadInputTokens": 407912,
-          "cacheCreationInputTokens": 87578,
+          "outputTokens": 14970,
+          "cacheReadInputTokens": 455635,
+          "cacheCreationInputTokens": 52876,
           "webSearchRequests": 0,
-          "costUSD": 1.988158,
+          "costUSD": 1.70890625,
           "contextWindow": 1000000,
           "maxOutputTokens": 64000,
-          "thinkingTokens": 3671,
+          "thinkingTokens": 4980,
           "canonicalModel": "claude-fable-5-1",
           "provider": "firstParty",
           "costBasis": "list"
@@ -320,6 +218,108 @@
         }
        },
        "tool_calls": 8
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 2.18032725,
+      "judgeCostUsd": 0,
+      "durationSeconds": 219,
+      "startedAt": "2026-10-18T04:39:56.971Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-i3JetN/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-framer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-marks-the-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phases-carry-verified-by",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-plan",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000024-document-helpers/plan.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-questions",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000024-document-helpers/questions.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000024-document-helpers/spec.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 2.18032725,
+        "duration_ms": 217622,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 164,
+          "outputTokens": 15964,
+          "cacheReadInputTokens": 230399,
+          "cacheCreationInputTokens": 91275,
+          "webSearchRequests": 0,
+          "costUSD": 2.18032725,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 6355,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 9
       }
      }
     ]
@@ -432,12 +432,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 2.37372475,
+      "costUsd": 2.0134145,
       "judgeCostUsd": 0,
-      "durationSeconds": 248,
-      "startedAt": "2026-10-18T02:26:50.959Z",
+      "durationSeconds": 264,
+      "startedAt": "2026-10-18T04:39:56.971Z",
       "error": null,
-      "tracePath": "/private/tmp/e-1n6cTt/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-wxne1t/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -508,19 +508,19 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 2.37372475,
-        "duration_ms": 246014,
+        "total_cost_usd": 2.0134145,
+        "duration_ms": 262237,
         "modelUsage": {
          "claude-fable-5-1": {
-          "inputTokens": 196,
-          "outputTokens": 18294,
-          "cacheReadInputTokens": 296189,
-          "cacheCreationInputTokens": 96050,
+          "inputTokens": 228,
+          "outputTokens": 15365,
+          "cacheReadInputTokens": 365798,
+          "cacheCreationInputTokens": 77581,
           "webSearchRequests": 0,
-          "costUSD": 2.37372475,
+          "costUSD": 2.0134145,
           "contextWindow": 1000000,
           "maxOutputTokens": 64000,
-          "thinkingTokens": 7729,
+          "thinkingTokens": 5015,
           "canonicalModel": "claude-fable-5-1",
           "provider": "firstParty",
           "costBasis": "list"
@@ -534,12 +534,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 2.2817852500000004,
+      "costUsd": 1.8350062500000002,
       "judgeCostUsd": 0,
-      "durationSeconds": 222,
-      "startedAt": "2026-10-18T02:26:50.959Z",
+      "durationSeconds": 220,
+      "startedAt": "2026-10-18T04:39:56.971Z",
       "error": null,
-      "tracePath": "/private/tmp/e-F17pAm/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-miGd0g/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -610,26 +610,26 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 2.2817852500000004,
-        "duration_ms": 219761,
+        "total_cost_usd": 1.8350062500000002,
+        "duration_ms": 218315,
         "modelUsage": {
          "claude-fable-5-1": {
-          "inputTokens": 324,
-          "outputTokens": 15969,
-          "cacheReadInputTokens": 531611,
-          "cacheCreationInputTokens": 93313,
+          "inputTokens": 132,
+          "outputTokens": 13176,
+          "cacheReadInputTokens": 187845,
+          "cacheCreationInputTokens": 75774,
           "webSearchRequests": 0,
-          "costUSD": 2.2817852500000004,
+          "costUSD": 1.8350062500000002,
           "contextWindow": 1000000,
           "maxOutputTokens": 64000,
-          "thinkingTokens": 6710,
+          "thinkingTokens": 4075,
           "canonicalModel": "claude-fable-5-1",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 10
+       "tool_calls": 15
       }
      }
     ]
@@ -742,12 +742,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 1.9157699999999998,
+      "costUsd": 2.26023275,
       "judgeCostUsd": 0,
-      "durationSeconds": 216,
-      "startedAt": "2026-10-18T02:29:53.216Z",
+      "durationSeconds": 294,
+      "startedAt": "2026-10-18T04:43:36.278Z",
       "error": null,
-      "tracePath": "/private/tmp/e-lehlNa/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-NPIQtq/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -818,38 +818,38 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 1.9157699999999998,
-        "duration_ms": 214507,
+        "total_cost_usd": 2.26023275,
+        "duration_ms": 292763,
         "modelUsage": {
          "claude-fable-5-1": {
           "inputTokens": 260,
-          "outputTokens": 15765,
-          "cacheReadInputTokens": 435670,
-          "cacheCreationInputTokens": 71019,
+          "outputTokens": 20862,
+          "cacheReadInputTokens": 447711,
+          "cacheCreationInputTokens": 78150,
           "webSearchRequests": 0,
-          "costUSD": 1.9157699999999998,
+          "costUSD": 2.26023275,
           "contextWindow": 1000000,
           "maxOutputTokens": 64000,
-          "thinkingTokens": 4692,
+          "thinkingTokens": 10555,
           "canonicalModel": "claude-fable-5-1",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 8
+       "tool_calls": 10
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 2.04025925,
+      "costUsd": 1.8552412500000002,
       "judgeCostUsd": 0,
-      "durationSeconds": 240,
-      "startedAt": "2026-10-18T02:30:32.678Z",
+      "durationSeconds": 210,
+      "startedAt": "2026-10-18T04:43:36.957Z",
       "error": null,
-      "tracePath": "/private/tmp/e-2FFIJ9/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-YhHcEy/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -920,26 +920,26 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 2.04025925,
-        "duration_ms": 238018,
+        "total_cost_usd": 1.8552412500000002,
+        "duration_ms": 209172,
         "modelUsage": {
          "claude-fable-5-1": {
-          "inputTokens": 260,
-          "outputTokens": 17849,
-          "cacheReadInputTokens": 445117,
-          "cacheCreationInputTokens": 72581,
+          "inputTokens": 164,
+          "outputTokens": 15599,
+          "cacheReadInputTokens": 247935,
+          "cacheCreationInputTokens": 70944,
           "webSearchRequests": 0,
-          "costUSD": 2.04025925,
+          "costUSD": 1.8552412500000002,
           "contextWindow": 1000000,
           "maxOutputTokens": 64000,
-          "thinkingTokens": 7322,
+          "thinkingTokens": 5083,
           "canonicalModel": "claude-fable-5-1",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 8
+       "tool_calls": 15
       }
      }
     ]
@@ -1049,70 +1049,98 @@
    "arms": {
     "with": [
      {
-      "score": 0,
-      "passed": false,
+      "score": 1,
+      "passed": true,
       "turns": 2,
-      "costUsd": 1.7812187499999999,
+      "costUsd": 2.04783425,
       "judgeCostUsd": 0,
-      "durationSeconds": 239,
-      "startedAt": "2026-10-18T02:30:58.900Z",
-      "error": "exit 1: You've hit your session limit · resets 3:10pm (Asia/Seoul)",
-      "tracePath": "/private/tmp/e-tFl4DY/out/trace.jsonl",
+      "durationSeconds": 265,
+      "startedAt": "2026-10-18T04:43:53.721Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-bbuKet/out/trace.jsonl",
       "skippedPaidGraders": false,
-      "graders": [],
-      "specseal": {
-       "report_rows": [],
-       "cost": {
-        "total_cost_usd": 1.7812187499999999,
-        "duration_ms": 237862,
-        "modelUsage": {
-         "claude-fable-5-1": {
-          "inputTokens": 164,
-          "outputTokens": 15946,
-          "cacheReadInputTokens": 284415,
-          "cacheCreationInputTokens": 64272,
-          "webSearchRequests": 0,
-          "costUSD": 1.7812187499999999,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 64000,
-          "thinkingTokens": 6552,
-          "canonicalModel": "claude-fable-5-1",
-          "provider": "firstParty",
-          "costBasis": "list"
-         }
-        }
+      "graders": [
+       {
+        "name": "reach-framer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
        },
-       "tool_calls": 16
-      }
-     },
-     {
-      "score": 0,
-      "passed": false,
-      "turns": 2,
-      "costUsd": 1.7423855,
-      "judgeCostUsd": 0,
-      "durationSeconds": 219,
-      "startedAt": "2026-10-18T02:31:17.256Z",
-      "error": "exit 1: You've hit your session limit · resets 3:10pm (Asia/Seoul)",
-      "tracePath": "/private/tmp/e-mHpyrP/out/trace.jsonl",
-      "skippedPaidGraders": false,
-      "graders": [],
+       {
+        "name": "shape-builds-nothing-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-marks-the-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phases-carry-verified-by",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-plan",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000023-word-count/plan.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-questions",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000023-word-count/questions.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000023-word-count/spec.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 1.7423855,
-        "duration_ms": 217859,
+        "total_cost_usd": 2.04783425,
+        "duration_ms": 263631,
         "modelUsage": {
          "claude-fable-5-1": {
-          "inputTokens": 132,
-          "outputTokens": 15708,
-          "cacheReadInputTokens": 222672,
-          "cacheCreationInputTokens": 63379,
+          "inputTokens": 196,
+          "outputTokens": 18348,
+          "cacheReadInputTokens": 329407,
+          "cacheCreationInputTokens": 73470,
           "webSearchRequests": 0,
-          "costUSD": 1.7423855,
+          "costUSD": 2.04783425,
           "contextWindow": 1000000,
           "maxOutputTokens": 64000,
-          "thinkingTokens": 6237,
+          "thinkingTokens": 8102,
           "canonicalModel": "claude-fable-5-1",
           "provider": "firstParty",
           "costBasis": "list"
@@ -1121,32 +1149,134 @@
        },
        "tool_calls": 17
       }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 2.2186577499999998,
+      "judgeCostUsd": 0,
+      "durationSeconds": 334,
+      "startedAt": "2026-10-18T04:44:20.916Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-a6YDRd/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-framer",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-edit",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Edit called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-builds-nothing-write",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Write called 0x (expected 0..0)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-marks-the-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^Framed \\d{4}-\\d{2}-\\d{2} by framer",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phases-carry-verified-by",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^\\| Phase \\| Delivers \\| Verified by \\| Status \\|",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-plan",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000023-word-count/plan.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-questions",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000023-word-count/questions.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-writes-spec",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000023-word-count/spec.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 2.2186577499999998,
+        "duration_ms": 332294,
+        "modelUsage": {
+         "claude-fable-5-1": {
+          "inputTokens": 228,
+          "outputTokens": 20092,
+          "cacheReadInputTokens": 393101,
+          "cacheCreationInputTokens": 78975,
+          "webSearchRequests": 0,
+          "costUSD": 2.2186577499999998,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 8281,
+          "canonicalModel": "claude-fable-5-1",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 19
+      }
      }
     ]
    },
    "aggregates": {
-    "score": 0,
-    "passRate": 0
+    "score": 1,
+    "passRate": 1
    }
   }
  ],
  "aggregates": {
   "casesTotal": 4,
-  "casesPassed": 3,
-  "overallScore": 0.75,
-  "overallPassRate": 0.75
+  "casesPassed": 4,
+  "overallScore": 1,
+  "overallPassRate": 1
  },
  "specseal": {
   "agent": "framer",
   "preload": {
    "agents/framer.md": "c2e7a7d7437485042ebda52e71a6a7137f9a1511258feb2e779ac19db9769486",
-   "skills/agent-contract/SKILL.md": "9764cedd19617d9ba1af4d05a27384004456cf72c5333390c49cb7d57f7110dc",
+   "skills/agent-contract/SKILL.md": "642b0da67c6795a1aa75ba16d0b17bac4e48639d05134bcdb050c34fcec6ee4e",
    "skills/implement/SKILL.md": "dbff9bdf37f25fa177ad93cd49aac7a5260e4da73ccd2c47e7da6cd4d3340556",
    "skills/writing-style/SKILL.md": "5e1a12a78c7058f5e91059cf384ef33c38f8f816042d029bacad4be4b111e1bb"
   },
-  "preload_bytes": 86421,
-  "cut_short": true,
-  "rev": "7053c184",
+  "preload_bytes": 86353,
+  "cut_short": false,
+  "rev": "af716289",
   "suite_rev": "af9c924b7c5b03af5291017c226842655a8d83dd",
   "suite_tree": "62f007f6dedd9ba73b0cb08df7cf497f8179bc82"
  }
