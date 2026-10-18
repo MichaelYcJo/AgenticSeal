@@ -52,6 +52,9 @@ four cases above at 14, 14, 12 and 14 of their passes again, and the new
 case 14 of 14, its truth `^Verdict:.*no broad run` included. That side
 replaces the four-case side in `evals/reference-sealer.json`.
 
+Round 2's step-1 fix (e15490c5) changes `agents/sealer.md`, so the reference
+is re-run after it; the figures below measured the definition at 90fa7046.
+
 | Figure | Four cases (b394e929) | Five cases (90fa7046) |
 |---|---|---|
 | Runs / cut short | 8 / no | 10 / no |
