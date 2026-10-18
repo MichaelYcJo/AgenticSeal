@@ -630,10 +630,9 @@ def main():
 if __name__ == "__main__":
     # THE entry point, and the only one that matters in production: `hooks.json`
     # spawns this file and nothing else, and it loads each gate with
-    # `exec_module` and calls `main()` in-process. Seven of the eleven
-    # `__main__` blocks in this tree are therefore unreachable when Claude Code
-    # runs them -- so this block is where the streams get fixed, not each
-    # gate's.
+    # `exec_module` and calls `main()` in-process. The `__main__` block of
+    # every gate `GROUPS` names is therefore unreachable when Claude Code runs
+    # it -- so this block is where the streams get fixed, not each gate's.
     #
     # A console whose encoding is not UTF-8 cannot encode the em dash, arrow
     # and middle dot these gates print, and the UnicodeEncodeError leaves
