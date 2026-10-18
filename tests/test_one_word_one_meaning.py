@@ -477,12 +477,19 @@ def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
 # #975: the stamp is drawn once per work item from the sealer's `sealed`
 # (`docs/the-review-record.md` §*The stamp*), and `docs/the-broad-gate.md`
 # §*Where the stamp is drawn* is gone. Read by construction rather than by a
-# list of sentences: the gate, possessive or not, with at most two words before
-# `stamp` — `gate's stamp`, `gate draws a stamp`, `gate stamps` — and the
+# list of sentences: the gate, possessive or not, with at most three words
+# before `stamp`, each of which may carry an apostrophe (`gate's stamp`,
+# `gate draws a stamp`, `gate's run draws the stamp`, `gate's run's stamp`,
+# `gate stamps`); the passive `stamp drawn by` or `from the gate`; and the
 # removed section's name. `The broad gate draws nothing` stays allowed, which
-# is what `skills/verify/SKILL.md` and `seal_stamp.py` say since #975.
+# is what `skills/verify/SKILL.md` and `seal_stamp.py` say since #975. `The
+# gate draws no stamp` would be refused, and no swept file says it.
 STAMP_GIVEN_TO_THE_GATE = re.compile(
-    r"\bgate(?:'s)?(?:\s+\w+){0,2}\s+stamps?\b|Where the stamp is drawn", re.I
+    r"\bgate(?:'s)?(?:\s+[\w']+){0,3}\s+stamps?\b"
+    r"|\bstamps?\s+(?:is\s+|was\s+)?drawn\s+(?:by|from)\s+"
+    r"the\s+(?:broad[\s-])?gate"
+    r"|Where the stamp is drawn",
+    re.I,
 )
 
 
@@ -500,6 +507,36 @@ def test_no_instructing_document_gives_the_stamp_to_the_broad_gate():
                 f"{'/'.join(parts)}: ...{text[max(hit.start() - 60, 0) : hit.end() + 60]}..."
             )
     assert not found, "\n".join(found)
+
+
+def test_the_stamp_sweep_reads_the_gates_run_and_the_passive():
+    """#975 round 9, finding 1. The first pattern allowed two words between
+    `gate` and `stamp`, so the phrase #975's documents use for the old drawer,
+    `the broad gate's run`, went past it, and so did the passive order. Red
+    with the two-word window: the first six sentences below pass it.
+    `the stamp the broad gate draws` still passes the wider pattern, and no
+    swept file says it."""
+    given_to_the_gate = (
+        "the broad gate's run draws the stamp",
+        "the broad gate's run drew the stamp",
+        "the broad gate's run's stamp",
+        "a stamp drawn by the broad gate",
+        "the stamp is drawn from the broad gate's run",
+        "a stamp drawn from the broad-gate run",
+        "The broad gate draws a stamp",
+        "the broad gate's stamp",
+        "the broad gate draws its stamp",
+        "the broad-gate stamps the tree",
+    )
+    for sentence in given_to_the_gate:
+        assert STAMP_GIVEN_TO_THE_GATE.search(sentence), sentence
+    true_sentences = (
+        "The broad gate draws nothing",
+        "the broad gate's run drew it when the run passed",
+        "The stamp is the sealer's.",
+    )
+    for sentence in true_sentences:
+        assert not STAMP_GIVEN_TO_THE_GATE.search(sentence), sentence
 
 
 # --- "segment" — one agent's stretch of a chain, never a spawn cycle -------
@@ -660,8 +697,9 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
         *SEAL_BARE_IS_THE_CONCEPT,
         *SEGMENT_LOOSE,
         *GATE_PHRASES,
-        # The stamp sweep's pattern carries one apostrophe and no second
-        # quote, so no seam the fold could delete lies inside what it reads.
+        # The stamp sweep's pattern carries two apostrophes and no other
+        # quote, with more than blanks and a string prefix between them, so
+        # no seam the fold could delete lies inside what it reads.
         STAMP_GIVEN_TO_THE_GATE.pattern,
     )
     for phrase in swept:
