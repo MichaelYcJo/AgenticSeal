@@ -216,8 +216,8 @@ command.
 ### 3. Bound to the tree
 
 Evidence attaches to a tree state, not to a session. Note the state the
-proof ran against (commit + dirty files); **any edit after the run breaks
-your seal** — re-run, don't re-tell.
+proof ran against (commit + dirty files); **any edit after the run voids
+the claim** — re-run, don't re-tell.
 
 ### 4. Executed, read, or unverified — labeled
 
@@ -233,24 +233,23 @@ is the lie this whole skill exists to prevent.
    label `read` or `unverified`, never "should work".
 3. Run fresh; read the FULL output; record exit code and the line that
    proves or refutes (conditions 2–3).
-4. Any claim red or unproven → report the actual state. Your seal is
+4. Any claim red or unproven → report the actual state. The claim is
    withheld, not negotiated.
 
-## Every agent seals what it verified, and one of them is final
+## The hand-back's labels carry the claims, and the one seal is the sealer's
 
-**Every agent seals what it verified, and the one seal over the whole project
-is the sealer's.** A smith's proof block is that smith's seal over its own
-slice and is legitimate; a warden's report seals what its review looked at.
-So the word is not overloaded by having many instances. What was missing is
-that one of them is final, and nothing anywhere said so.
+**The hand-back's labels carry the claims, and the one seal over the whole
+project is the sealer's `guarantee.md`.** An agent hands its claims back under
+condition 4's three labels, and a warden's report says what its review looked
+at; neither is a seal and neither ends in a block.
 
-Two properties already in the design tell the final one apart, which is why
-they are the two to name rather than some new mark invented for it.
+Two properties tell the sealer's seal apart from every other account of a
+run.
 
-- **Scope.** Every other seal covers what that agent touched. The sealer's
-  covers a tree nobody is still editing — which is why *nothing edits between
-  the broad seal and the PR* is a rule about that one seal and about no other.
-- **Form.** Every other seal is text. The sealer's is the only one drawn, and
+- **Scope.** An agent's hand-back covers what that agent touched. The
+  sealer's seal covers a tree nobody is still editing — which is why *nothing
+  edits between the broad seal and the PR* is a rule about that one seal.
+- **Form.** The sealer's seal is the only mark drawn, and
   only over a run that earned it: `broad-gate` draws the stamp, or writes the
   values it is drawn from, when every check passed and `broad-gate.md` was
   written, and on no other path. It draws on a person's terminal itself; anywhere
@@ -260,12 +259,11 @@ they are the two to name rather than some new mark invented for it.
   was earned.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
-reference to an INSTANCE names whose** — the smith's seal, the sealer's seal,
-the warden's review mark. The concept and its formats stay bare: the Seal
-Test, a seal block, a counterfeit seal, SpecSeal itself. The shape to watch
-for is a sentence that names one party and leaves the seal anonymous —
-*the warden's audit of the seal* names an auditor and not what is audited,
-and the answer there is the smith's.
+reference to an INSTANCE names whose** — the sealer's seal, the warden's
+review mark. The concept and its formats stay bare: the Seal Test, a
+counterfeit seal, SpecSeal itself. The shape to watch for is a sentence that
+names one party and leaves the seal anonymous — *the warden's audit of the
+seal* names an auditor and not what is audited.
 
 ## Scope — cheap and often, broad and once
 
@@ -308,7 +306,7 @@ warning: No Python files found under the given path(s)
 All checks passed!                                        (exit 0)
 ```
 
-Exit 0, nothing read, and a green line in the seal block. Before a narrow
+Exit 0, nothing read, and a green line in the hand-back. Before a narrow
 command counts, say which files it opened. If the answer is none, the honest
 row is `unverified`, not a passing one.
 
@@ -382,7 +380,7 @@ re-run broad gate and a re-pushed pull request to clear it.
 ## The broad gate — after the rounds, then compare against the base
 
 **It fires after the review rounds settle, never before them.** Nothing broad
-runs at the handoff to review; the proof block carries the suite as
+runs at the handoff to review; the hand-back carries the suite as
 `unverified`, and that label is what keeps the narrow scope honest. §Scope
 holds the reason and the measurement — a seal taken before the rounds is spent
 by the first finding. Findings are the expected case rather than the
@@ -570,46 +568,12 @@ work item's three times in one run (#544).
 
 `session-cost` reads a finished transcript and reports the split — command
 time, model time between calls, the repeats, and how many tools went out per
-turn. It is what fills the `cost` row, since none of it is visible from
-inside:
+turn. None of it is visible from inside the session:
 
 ```
 session-cost --latest          # newest transcript for this repo
 session-cost <transcript.jsonl>
 ```
-
-## Seal block
-
-End with this block. Values that cannot be filled honestly stay `none —
-<reason>` (an unfillable row is a finding, not an embarrassment):
-
-```
-🔏 verify sealed @ <commit-ish>[+dirty: <files>]
-· <claim> — <command> → <key output line> (exit <n>)  [executed]
-· <claim> — <where read, file:line>                   [read]
-· <claim> — unverified; <who/what answers>            [unverified]
-· broad gate: <not yet — due when the last round record has no finding open | ran at <sha> vs base <sha>[; earlier run: <sha> vs base <sha>]>
-· cost: <n> check runs, <m> minutes of command time
-· red proven: <how the check was seen failing, or none — <reason>>
-```
-
-The `cost` row is there because nobody notices this from inside. One session
-spent 22 of its 26 command-minutes in the test runner across fourteen runs,
-and that only surfaced when someone parsed the transcript afterwards —
-`session-cost` is that parse, made repeatable. A number
-in the report puts it in front of the person who can decide the suite is worth
-fixing — the same reason `none — <reason>` is written rather than omitted.
-
-The `broad gate` row is what makes "once" survive a handoff. A session picking
-up round 3 watched neither round before it, and no command leaves a trace in
-the code it ran against — so it either repeats a run that is already sealed or
-ships assuming somebody else made it. It belongs in `round-N.md` too, where
-the next session actually looks.
-
-The block feeds forward: the smith ends reports with it, the warden audits
-the smith's seal instead of re-deriving it, and the round records carry it across
-sessions. A seal the warden cannot audit from the block alone was not a
-seal.
 
 ## Measure the segment, and feed the flow log
 

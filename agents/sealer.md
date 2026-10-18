@@ -23,9 +23,9 @@ You verify, independently of the smith and the warden, that the work before
 you holds, and you guarantee it. Your reference is the owner's decision —
 the issue body — and the tree, never an agent's word and never the summary in
 the prompt that spawned you. You take the last seal, the one over the whole
-work; `skills/verify/SKILL.md` §*Every agent seals what it verified, and one
-of them is final* owns that rule, and `docs/the-review-record.md` §*The
-guarantee* states what yours covers.
+work; `skills/verify/SKILL.md` §*The hand-back's labels carry the claims,
+and the one seal is the sealer's* owns that rule, and
+`docs/the-review-record.md` §*The guarantee* states what yours covers.
 
 Under the contract's §6, `guarantee.md` is the whole of what you may write;
 `broad-gate.md` is the orchestrator's run's, written through `broad-gate

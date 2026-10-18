@@ -1268,11 +1268,11 @@ def test_smith_finds_the_runner_before_inventing_a_command():
     `agents/smith.md` reaches every segment at startup with nobody typing
     anything."""
     smith = flat("agents", "smith.md")
-    assert "Find the runner before you invent a command" in smith, (
+    assert "Find the runner, and type the narrow form." in smith, (
         "a segment whose prompt omits the runner has nothing telling it one "
         "exists, which is what the repeats measured"
     )
-    assert "Type the narrow form, one module" in smith, (
+    assert "run one module at a time" in smith, (
         "smith is pointed at a command that runs the full suite and not at "
         "the form §2 leaves it"
     )

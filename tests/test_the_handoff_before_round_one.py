@@ -131,10 +131,11 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
     # design gate two hundred lines up says asking questions `one at a time`
     # is a cost paid repeatedly -- an unrelated sentence holding the phrase
     # up. Measured while showing this case red, 2026-09-03.
-    assert (
-        "Mutation-test every unit you added, one at a time, before you hand "
-        "over." in smith
-    ), (
+    # Since #967 the act is the rule's lead and the moment is its step in
+    # `## Order of work`: after the commit, before the narrow checks and the
+    # hand-back.
+    assert "Commit, then run `mutation-check` over each unit you added." in smith
+    assert "Mutation-test every unit you added, one command each." in smith, (
         "`agents/smith.md` does not mandate mutating what it added, on that "
         "cadence, at that moment. `spec.md` of work item 1788433011 puts the "
         "rule in the smith's own layer -- *only the agent that adds units "

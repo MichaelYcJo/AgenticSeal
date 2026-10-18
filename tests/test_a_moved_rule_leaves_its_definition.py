@@ -44,8 +44,9 @@ counterfeit `CONTRIBUTING.md` refuses.
 three definitions after phase 4, the longest run any KEPT application shares
 with any section is 10 words (`agents/smith.md`'s `a bare word is a pathspec
 and git rejects it`, which §8 and the design gate's waiver paragraph both
-spell because both are about the same git fact; the warden's 9-word echo of
-§6 is the next). The smallest run a REAL duplication produced, measured on
+spelled because both were about the same git fact; the warden's 9-word echo
+of §6 was the next). Both left with their rewrites (#957, #967), and the
+widest kept run since is 8 words, `agents/framer.md` with §5. The smallest run a REAL duplication produced, measured on
 the same files before phase 4 removed them, is 25 words (§10), then 31 (§9),
 37 (the old §16, now part of §11), 59 (§11) and 66 (§3). Fifteen sits between 10 and 25 with margin
 on both sides, and both ends of that margin are printed by
@@ -312,20 +313,22 @@ def test_the_smith_claims_no_act_another_definition_owns():
 def test_what_replaced_them_says_whose_the_act_is():
     """An absence alone leaves a hole a reader fills with the old behaviour.
 
-    So the removal owes its replacement: phase 2 is the caller's spawn, and
-    the acts are named where they went. Without this the smith meets a phase
-    2 that simply says less and reasons its way back.
+    So the removal owes its replacement: the routing batch and the plan's
+    approval happened before the smith was spawned, and its `## Never` says
+    so beside the act it rules out. Without this the smith meets a design
+    gate that simply says less and reasons its way back.
     """
     smith = flat(read(SMITH))
-    assert "Phase 2 is your caller's spawn" in smith, (
-        "nothing says whose the design gate is now, so a smith meeting an "
+    assert "the routing batch was asked and written before you were spawned" in (
+        smith
+    ), (
+        "nothing says whose the routing batch is, so a smith meeting an "
         "unanswered question asks it"
     )
-    for owner in ("agents/framer.md", "skills/implement/orchestration.md"):
-        assert owner in smith, (
-            f"the replacement does not name `{owner}` as an owner of what "
-            "was removed, so the acts went nowhere a reader can follow"
-        )
+    assert "`plan.md`'s approval line is the gate" in smith, (
+        "nothing says the design gate already happened, so a smith presents "
+        "approaches and waits for a go"
+    )
 
 
 def test_the_smith_stops_where_a_declared_frame_is_absent():
@@ -340,12 +343,12 @@ def test_the_smith_stops_where_a_declared_frame_is_absent():
     smith = flat(read(SMITH))
     assert (
         "Where `routing.md` declares a framer and no `spec.md` is there, stop "
-        "and say so rather than building" in smith
+        "and hand that back" in smith
     ), (
         "the smith has no instruction for a declared frame that is not there, "
         "which is the state the removed inference told it to build through"
     )
-    assert "A missing frame is not evidence about the rung" in smith, (
+    assert "A missing `spec.md` is not evidence about the rung" in smith, (
         "the instruction arrives with no reason, so the next edit reads it as "
         "caution and softens it"
     )
@@ -364,27 +367,12 @@ def test_a_citation_is_not_a_copy():
             "whether that label is honest",
             "a row of `## Not judged`",
         ),
+        # The smith's waiver example, its RIDER and its pointer at §8 left
+        # with its rewrite (#967): the waiver is one rule sentence now, held
+        # by `test_the_smiths_four_rules_stand_with_their_enforcers`.
         ("agents", "smith.md"): (
             "hand-back",
-            # The waiver example, named in this module's docstring since
-            # phases 3 and 4 kept it deliberately — *the smith's own waiver
-            # example as the patch §9's gate reads a commit out of* — and
-            # asserted here only once #419 gave something a reason to remove
-            # it. It sits inside the line range that work item measured the
-            # design gate at, so a removal keyed on lines takes it with them
-            # and turns this module's stated carve-out into a lie.
-            #
-            # It is also the pair that SETS `LONGEST_KEPT_APPLICATION`: §8 and
-            # this paragraph both spell the same git fact, and the ten words
-            # below are the run the docstring measures. Delete the example and
-            # the number above stops describing the tree.
-            "a bare word is a pathspec and git rejects it",
-            "RIDER: the waiver example above puts a commit command",
-            # #55: the waiver is the last shape and not the answer, said in
-            # the smith's own words beside the example. §8 carries the three
-            # shapes and reaches this agent by mechanism, so the definition
-            # names it rather than copying its table.
-            "Contract §8 names the two shapes to reach for before it",
+            "the last way past the gate and never the first",
         ),
     }
     for parts, phrases in kept.items():
@@ -455,6 +443,109 @@ def test_the_warden_reads_each_new_test_against_its_group():
     assert "against the tests of the function it covers" in rule, rule
     assert "any pair a duplicate check" in rule, rule
     assert "is a `should` finding" in rule, rule
+
+
+# --- the smith's own rules from its rewrite (#967) ---------------------------
+
+
+def smith_rule(lead):
+    """The `## Rules` paragraph of `agents/smith.md` that opens with **LEAD**,
+    as written, or "" where none does."""
+    text = read(SMITH)
+    rules = text[text.index("\n## Rules\n") :]
+    for paragraph in rules.split("\n\n"):
+        if paragraph.startswith(f"**{lead}**"):
+            return paragraph
+    return ""
+
+
+# The four rules decision 1 of #967 names, each by its lead and the clauses
+# that make it the rule rather than its title.
+SMITHS_FOUR_RULES = {
+    "A new test starts from its group.": (
+        "Before writing a case, read the tests of the function it covers",
+        "any pair a duplicate check in the repository names",
+        "add the case to that group",
+    ),
+    "Commit before you mutate, and restore from `mutation-check`'s copy.": (
+        "A revert through `git checkout -- <file>` restores the committed state",
+        "`mutation-check` holds the bytes it read",
+    ),
+    "Three failed fixes stop the work.": (
+        "The same bug through three failed fixes is the architecture talking",
+        "Three returns through the broad gate read the same way",
+    ),
+    "The waiver is one command's.": (
+        "`: '[no-review]'; git commit …`",
+        "`git -c specseal.waive=review commit …`",
+        "the last way past the gate and never the first",
+    ),
+}
+
+# A sentence ends at one of these when whitespace or the end follows it, so a
+# dot inside `specseal.waive` or a file name is not an end.
+SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
+
+
+def test_the_smiths_four_rules_stand_with_their_enforcers():
+    """T3 of #967: S4's four rules each keep their paragraph, their clauses
+    and an `Enforced by:` line, and the waiver stays one sentence.
+
+    These four have no eval case that plants their breach, so a later trim
+    could drop any of them with every grader green — #107's failure, a rule
+    that left the repository while the suite passed."""
+    for lead, clauses in SMITHS_FOUR_RULES.items():
+        paragraph = smith_rule(lead)
+        assert paragraph, f"`agents/smith.md` lost the rule {lead!r}"
+        assert re.search(r"^Enforced by: \S", paragraph, re.M), (
+            f"{lead!r} has no `Enforced by:` line, so nothing names what holds it"
+        )
+        said = flat(paragraph)
+        for clause in clauses:
+            assert clause in said, f"{lead!r} lost {clause!r}"
+    waiver = smith_rule("The waiver is one command's.")
+    body = waiver.split("**", 2)[2].split("\nEnforced by:", 1)[0]
+    assert len(SENTENCE_END.findall(body)) == 1, (
+        "the waiver is stated in more than one sentence again, which is the "
+        f"narration the rewrite removed: {flat(body)!r}"
+    )
+
+
+def test_the_smiths_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded():
+    """The smith's half of the fix pass: the two lines it writes, the
+    coordinate it appends, and the sweep for every other place stating a rule
+    its range reworded (contract §12). The record's grammar is
+    `docs/the-review-record.md`'s and is held there; this holds the
+    definition's paragraph, which no other case reads."""
+    paragraph = flat(
+        smith_rule("A fix pass writes two lines of each finding and no phase record.")
+    )
+    assert paragraph, "`agents/smith.md` lost its fix-pass rule"
+    for clause in (
+        "`fixed <commit>`, `rejected` or `deferred <home>`",
+        "`deferred <where it was repaired>`",
+        "append the one it did change after `, `",
+        "find every other place stating each rule your range reworded or removed",
+    ):
+        assert clause in paragraph, f"the fix-pass rule lost {clause!r}"
+
+
+def test_the_smiths_hand_back_carries_what_it_may_not_record_and_ends_in_no_block():
+    """Round 1 of #967 put two sentences into the smith that a reader acts
+    on: step 10 hands back what only a person can answer, with its answerer,
+    and `## Never` refuses a block at the end of the hand-back whoever asks.
+    The orchestrator files from the first, and the changelog promises the
+    second to a plugin user, so a trim that drops either goes red here."""
+    text = read(SMITH)
+    order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
+    never = flat(text[text.index("\n## Never\n") : text.index("\n## Rules\n")])
+    for clause in (
+        "a question only a person can answer",
+        "a leftover for `seal/follow-up.md`",
+        "with who answers each",
+    ):
+        assert clause in order, f"step 10 lost {clause!r}"
+    assert "end the hand-back with a block of any kind, whoever asks for one" in never
 
 
 # A batching figure: a number within a few words of "tools per turn", either

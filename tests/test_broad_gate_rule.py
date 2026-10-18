@@ -89,15 +89,6 @@ def test_the_owner_names_the_row_the_phrase_stood_for():
     )
 
 
-def test_the_seal_block_asks_for_the_row_too():
-    """The `broad gate` row of the proof block is filled by a session that
-    may load nothing else. It used to read `due after the rounds settle`,
-    which is the phrase this change exists to replace."""
-    block = flat("skills", "verify", "SKILL.md")
-    assert "due when the last round record has no finding open" in block
-    assert "not yet — due after the rounds settle" not in block
-
-
 def test_verify_prices_the_run_that_repeats():
     """Scope decides how often; it says nothing about what each run costs, and
     the narrow run is the one that multiplies."""
@@ -141,7 +132,7 @@ def test_the_smith_puts_both_answers_in_the_hand_back():
     assert "§2" in smith and "§3" in smith, (
         "the implementer can no longer reach the rules its hand-back answers"
     )
-    assert "labeled `unverified`" in smith, (
+    assert "the suite labelled `unverified`" in smith, (
         "the suite stopped going over labelled, and a suite that is simply "
         "not mentioned reads as a suite that passed"
     )
@@ -149,7 +140,7 @@ def test_the_smith_puts_both_answers_in_the_hand_back():
         "the label lost its answerer, and a deferral to nobody is how "
         "`someone will look at it` becomes `nobody did`"
     )
-    assert "what was asked, and which rule refused it" in smith, (
+    assert "saying what was asked and which rule refused it" in smith, (
         "the declined instruction stopped being disclosed, which is how an "
         "override stays invisible"
     )
@@ -345,14 +336,6 @@ def test_the_broad_gate_state_survives_a_handoff():
         "the record lost the file that tells the next session whether the one "
         "broad run already happened"
     )
-    assert "broad gate:" in read("skills", "verify", "SKILL.md"), (
-        "the seal block stopped carrying the state the record needs"
-    )
-
-
-def test_the_seal_reports_what_the_checks_cost():
-    """Nobody notices the runner eating the session from inside it."""
-    assert "· cost:" in read("skills", "verify", "SKILL.md")
 
 
 def test_the_preset_block_states_the_rule_the_loaded_files_assume():

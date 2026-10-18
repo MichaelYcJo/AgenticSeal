@@ -1,4 +1,4 @@
-"""session_cost: the numbers the seal's `cost` row asks for.
+"""session_cost: the numbers nobody can produce from inside a session.
 
 The report exists because nobody can produce these from inside a session. The
 fixture below is a hand-built transcript with known answers, so a change to

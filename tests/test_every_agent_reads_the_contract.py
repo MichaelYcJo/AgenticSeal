@@ -8,9 +8,9 @@ step that needs it, by its path, so a path a definition names has to be a
 file in the tree.
 
 The checks glob `agents/*.md` rather than naming the five, so a sixth
-definition arriving in another shape is red on the day it lands. The four not
+definition arriving in another shape is red on the day it lands. The three not
 yet written anew are skipped by name from the shape case until the issue that
-rewrites each, #967 to #970; every definition, rewritten or not, is held to
+rewrites each, #968 to #970; every definition, rewritten or not, is held to
 preloading the contract.
 """
 
@@ -33,7 +33,6 @@ SECTIONS = ("## Job", "## Order of work", "## Never", "## Rules")
 # it anew deletes its entry; the preload case below skips none.
 NOT_YET_REWRITTEN = {
     "agents/framer.md": "#968",
-    "agents/smith.md": "#967",
     "agents/scribe.md": "#970",
 }
 
@@ -138,7 +137,7 @@ def test_every_definition_has_the_shape_and_preloads_the_contract_alone(path):
 def test_every_definition_preloads_the_contract(path):
     """The contract arrives by the `skills:` list, rewritten definition or
     not, and every rule it carries rests on that arrival. The shape case
-    above skips the four that #967 to #970 rewrite; this one skips none, so
+    above skips the ones #968 to #970 rewrite; this one skips none, so
     a definition that drops `agent-contract` is red whatever its shape
     (#957 round 1, finding 3)."""
     head, _body = split(read(path))

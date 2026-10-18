@@ -8,8 +8,8 @@
 test.
 
 Coding agents make claims. SpecSeal makes each claim leave something you can
-open: a **proof block** the smith prints at the end of its response, naming the
-policy files it read, the cases it saw fail first, and what it actually ran, a
+open: a **hand-back** in which each agent labels every claim `executed`,
+`read` or `unverified` and names who answers what it did not run, a
 **review mark** (`.git/specseal-reviewed`, holding the reviewed HEAD sha) that
 a commit hook looks for, and an **`Enforced by:` line** under each rule a
 policy document states, naming the test that holds it.
@@ -36,7 +36,7 @@ works outside the context entirely (hooks).
 | Who / what | Follows | What it concretely is |
 |---|---|---|
 | **framer** (subagent) | `agent-contract` · `implement` · `writing-style` | Writes the work item's `spec.md`, `plan.md` and `questions.md` before anybody builds, and is spawned where the SDD ladder already calls for a spec. It reads the repository widely and collects everything a person has to answer into one batch, so approving `plan.md` is the run's one interruption. It writes no code — the party that draws the contract is not the party that executes it, which is what gives the warden's *spec compliance first* a document somebody else wrote to check against |
-| **smith** (Claude Code subagent) | `agent-contract` · `implement` · `writing-style` | Implements against the spec, then prints a three-line proof block: which policy files it opened, which cases it added and how each was seen red, what it executed versus merely read. The block is a disclosure the skill requires, not something a hook verifies — but `none — <reason>` in a row is visible to you |
+| **smith** (Claude Code subagent) | `agent-contract` | Builds one phase of a work item against the spec, or runs one fix pass over a round record. It opens `implement` at its first step and `writing-style` before it writes a record, and hands back each claim labelled `executed`, `read` or `unverified`, with the full suite labelled `unverified` and its answerer named |
 | **warden** (subagent) | `agent-contract` | Reviews spec compliance first, then quality. It opens `code-review` at its first step and `writing-style` before it writes its round record. Once its report is verified the orchestrator writes the reviewed HEAD sha to `.git/specseal-reviewed`, which is what the commit gate looks for — the reviewer never writes its own mark |
 | **scribe** (subagent) | `agent-contract` · `legacy-parity` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. Appears only in repos that declare `seal/parity.md` |
 | **sealer** (subagent, Opus) | `agent-contract` | The final, independent guarantor. After the rounds settle, the pull request body and changelog are written, and the orchestrator has run the one broad gate (`broad-gate`, which writes `broad-gate.md`), it reads that record and runs nothing broad itself, re-runs a sample of the implementer's claims, and reads the spec, the build, the last review, the changelog and the pull request body against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
@@ -252,7 +252,7 @@ wrong for every other machine.
 |---|---|
 | `deferral-check . [--kind all]` | resolve the answerer an `unverified` row names — does anything here actually run the check you are deferring? Separates *answers on pull requests* from *answers too late*, *local hook only*, and *nothing* |
 | `unverified-check . [--baseline <ref>]` | read the rows those `unverified` labels left behind — what is still open, in which work item, and who was named to answer it. Fails on a section it cannot read, because a tolerant reader reports zero and zero reads as *all closed*. With `--baseline`, it compares counts against `git merge-base <ref> HEAD`: the point where this branch forked from that ref on a branch checkout, and the base's tip in CI, which checks a pull request out already merged into the base. Either way a work item that landed on the base afterwards is not this branch's removal. A table with fewer rows than at that commit fails, as does an `overview.md` that was there and is gone. Replacing one row with another keeps the count and passes |
-| `session-cost --latest` | where a session's minutes went — command time, model time between calls, checks re-run for a result already produced, and how many tools went out per turn. Fills the seal's `cost` row, which nothing inside a session can measure |
+| `session-cost --latest` | where a session's minutes went — command time, model time between calls, checks re-run for a result already produced, and how many tools went out per turn — numbers nothing inside a session can measure |
 | `session-cost --segments <transcript>` | one row per agent the run spawned, read from that agent's own transcript: its span, calls, tools per turn, mean gap and tokens. That span is in no other column — where a harness writes a spawn's result on acceptance, the `--spawns` table reads seconds for an agent that ran twenty minutes. A resumed agent is one row per stretch of work, so no span covers the wait between two of them — whether the command is given the run's transcript or that agent's own — and a segment that spawned an agent of its own prints a line saying so. Under the table it names each row whose tools per turn sit under its kind's bar — a warden's or a framer's; a smith's edit-test loop is exempt — and counts the rows it could not grade |
 | `settle [--retire]` | what `seal/specs/` is still holding — the released work items whose spec no policy document has absorbed yet. It writes no policy prose: that half is a judgment, and `settle` supplies the corpus a session writes it from. `--retire` then removes the directories that prose already covers, and the released ones with no `spec.md` whose record holds nothing open, because a moment states no rule to fold. A directory whose record was closed on this branch but is still open where `--released-at` and `HEAD` meet stays. CI asks there too until `--released-at` moves on past that commit, and once it has, `settle` names the merge that brings the closure here. `settle --retire-process` is a removal of its own and runs first at every release, fold or no fold: it takes `rounds/`, `phases/` and the files written only for a pull request from every released work item and leaves `routing.md` and the SDD set, and `settle` with no flag ends with what it would take |
 | `fold-check [--shape-from <id>] [--ceiling <n>]` | holds the statements a fold wrote to `settle`'s two rules, over the top level of `docs/`: every statement from the cutoff on opens with a bold rule sentence and carries one `Enforced by:` line whose targets exist, and no document grows past the ceiling unless it is listed with its fold markers frozen. The cutoff, the ceiling and the listing are `seal/config.md` rows the repository writes; a row it leaves out is a check that does not run, and the output says so. A flag replaces its row for one run, so `--shape-from 0` lists every statement still missing the shape |
@@ -590,11 +590,9 @@ What this does not do is as load-bearing as what it does.
 - **`fold-check` proves a named test exists, not that it asserts the rule.**
   A target that resolves while the test checks something else reads clean,
   and a rule written as `nothing — <why>` is held by nobody.
-- **The proof block is a disclosure, not enforcement.** No hook reads it. Its
-  value is that a `none — <reason>` row is visible to you in the transcript.
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops
   a session from running the full suite mid-round; what exists is the
-  instruction, the warden's audit of the smith's seal, and `broad-gate.md`, which
+  instruction, the warden's audit of the smith's labels, and `broad-gate.md`, which
   makes a repeat visible. A hook could not tell the difference anyway —
   whether the rounds have settled is not a property of the command being run.
 - **Unread last fixes fail in one place.** A commit after the last record's

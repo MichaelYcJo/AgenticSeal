@@ -2,32 +2,59 @@
 
 The record's facts are its labelled lines; a mark the check does not read is
 a mark a reader has to sort, and sorting marks is what four rounds of this
-repository found read wrong. So the template, the review skill's findings
-format and the two definitions that write or fill a round carry no emoji at
-all (T39). Each verdict word means one thing, too: a repair with no commit
-on the branch closes `deferred <where it was repaired>`, one a commit made
-closes `fixed <commit>`, and `rejected` is a finding that does not hold
-(T41). Both cases are `spec.md`'s of
+repository found read wrong. So no file an agent reads as instruction carries
+an emoji or a proof block: every definition, every skill's `SKILL.md` and
+every template (T6 of `1792251842-the-smith-is-written-anew-from-its-job`,
+which took over T39's four files). Each verdict word means one thing, too: a
+repair with no commit on the branch closes `deferred <where it was
+repaired>`, one a commit made closes `fixed <commit>`, and `rejected` is a
+finding that does not hold (T41, `spec.md` of
 `1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
-§*What a round records*.
+§*What a round records*).
 """
 
+import glob
 import os
 import re
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 # Pictographs, the dingbats and miscellaneous symbols the old marks came from
-# (U+2600-U+27BF: the check mark, the cross), the arrows-and-shapes block the
-# white square came from, and the variation selector that asks for the
+# (U+2600-U+27BF: the check mark, the cross), the technical block
+# (U+2300-U+23FF: the hourglass, the stopwatch), the arrows-and-shapes block
+# the white square came from, and the variation selector that asks for the
 # emoji rendering. Dashes, arrows and mathematical signs prose uses sit
 # outside every range.
-EMOJI = re.compile("[\U0001f000-\U0001faff☀-➿⬀-⯿️]")
+EMOJI = re.compile("[\U0001f000-\U0001faff☀-➿⬀-⯿⌀-⏿️]")
+
+# A proof block's head line, `<mark> <skill> applied`, and a seal line's
+# `sealed @ <sha>`. The hand-back's labels carry the claims now, and the
+# sealer's `guarantee.md` is the one seal.
+PROOF_BLOCK = re.compile(
+    r"^[^\w\n]*[a-z][\w-]* applied[ \t]*$|\bsealed @", re.MULTILINE
+)
+
+# The files an agent reads as instruction.
+CORPUS = ("agents/*.md", "skills/*/SKILL.md", "templates/*.md")
+
+# A file whose marks another issue owns, and the issue. The entry leaves with
+# its issue, the way `NOT_YET_REWRITTEN` skips a definition not yet rewritten.
+SKIP = {"skills/legacy-parity/SKILL.md": "#970"}
 
 
 def read(rel):
     with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
         return f.read()
+
+
+def corpus():
+    """Every file CORPUS names, relative to the root, with forward slashes."""
+    found = []
+    for pattern in CORPUS:
+        paths = sorted(glob.glob(os.path.join(ROOT, pattern)))
+        assert paths, f"{pattern} names no file"
+        found += [os.path.relpath(p, ROOT).replace(os.sep, "/") for p in paths]
+    return found
 
 
 def section(text, heading):
@@ -41,24 +68,31 @@ def section(text, heading):
     return lines[start:end], start
 
 
-def emoji_lines(rel, lines, first=0):
-    return [
-        f"{rel}:{first + i + 1}: {line.strip()}"
-        for i, line in enumerate(lines)
-        if EMOJI.search(line)
-    ]
-
-
-def test_the_template_the_format_and_the_two_definitions_carry_no_emoji():
+def test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block():
+    files = corpus()
+    for rel, issue in SKIP.items():
+        assert re.fullmatch(r"#\d+", issue), (
+            f"the skip entry for {rel} names no issue ({issue!r}): a skip with "
+            "nobody to end it is a hole in the corpus"
+        )
+        assert rel in files, f"the skip entry {rel} names no file the corpus reads"
+        assert EMOJI.search(read(rel)), (
+            f"{rel} carries no mark any more: its skip entry leaves with {issue}"
+        )
     found = []
-    for rel in ("templates/sdd-round.md", "agents/warden.md", "agents/smith.md"):
-        found += emoji_lines(rel, read(rel).split("\n"))
-    rel = "skills/code-review/SKILL.md"
-    lines, start = section(read(rel), "## The record")
-    assert len(lines) > 40, f"{rel} §The record read as {len(lines)} lines"
-    found += emoji_lines(rel, lines, start)
-    assert not found, "an emoji in a text that states the round record:\n" + "\n".join(
-        found
+    for rel in files:
+        if rel in SKIP:
+            continue
+        text = read(rel)
+        for n, line in enumerate(text.split("\n"), 1):
+            if EMOJI.search(line):
+                found.append(f"{rel}:{n}: {line.strip()}")
+        for m in PROOF_BLOCK.finditer(text):
+            n = text.count("\n", 0, m.start()) + 1
+            found.append(f"{rel}:{n}: a proof block: {m.group().strip()}")
+    assert not found, (
+        "a mark or a proof block in a file an agent reads; write the word:\n"
+        + "\n".join(found)
     )
 
 

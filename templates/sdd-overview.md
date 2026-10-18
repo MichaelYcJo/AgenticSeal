@@ -6,11 +6,6 @@ the diff cannot show goes here, and each part is written when it happens rather
 than reconstructed at the end. A rule that must outlive this work item goes
 to its home under `docs/` with the test that holds it, not here. -->
 
-📋 implement applied
-· spec:     <policy/SDD files and clauses actually read>
-· tests:    <the cases this work added or changed, and how each was seen red>
-· verified: <what was executed vs. what was only read>
-
 ## Scope confirmation
 
 <Second-rung work only — it alters nothing observable and is more than one

@@ -73,11 +73,12 @@ def flat(*parts):
 
 def test_the_start_is_the_moment_before_the_first_edit():
     """Not the start of a round, and not the start of a session. A round does
-    not restart it and a resumed session does not restart it."""
+    not restart it and a resumed session does not restart it. The smith's
+    copy left with its design-gate narration (#967): it is spawned after
+    that moment and names no start of its own."""
     for parts in (
         ("skills", "implement", "SKILL.md"),
         ("CLAUDE.md",),
-        ("agents", "smith.md"),
     ):
         assert "before the first edit" in flat(*parts), "/".join(parts)
 
@@ -151,7 +152,7 @@ def test_the_bound_is_on_the_review_run_and_never_on_the_cycle():
 
 def test_the_smith_calls_the_whole_thing_a_review_run():
     smith = flat("agents", "smith.md")
-    assert "the review run is bounded" in smith
+    assert "bounded as `docs/the-review-record.md` §*The run* states" in smith
     assert "the cycle is bounded" not in smith
 
 
@@ -177,14 +178,16 @@ def test_the_row_that_could_not_be_true_is_corrected_not_reworded():
 # The word reached three referents at once. `agents/warden.md` opened *You
 # keep the seal* about `<git-dir>/specseal-reviewed`, `agents/sealer.md`
 # opens *You take the seal* about the broad gate's stamp, and `README.md`
-# said *the warden's audit of the seal* about a third thing again, the
-# smith's proof block — two of them in files a reader opens together.
+# said *the warden's audit of the seal* about a third thing again — two of
+# them in files a reader opens together.
 #
-# The rule that resolves it is that more than one seal is CORRECT: every
-# agent seals what it verified, and one of them is final. So the fix is not
-# fewer seals, it is that a reference to an instance names whose.
+# The rule that resolves it is that a reference to an instance names whose.
+# Since #967 the third referent is gone: an agent's hand-back carries its
+# claims under the three labels, and the one seal is the sealer's.
 SEAL_OWNER = ("skills", "verify", "SKILL.md")
-SEAL_RULE = "## Every agent seals what it verified, and one of them is final"
+SEAL_RULE = (
+    "## The hand-back's labels carry the claims, and the one seal is the sealer's"
+)
 
 # Files that instruct somebody, swept below. A record of what was true when
 # it was written is not brought to a new wording, so `seal/` is not here.
@@ -258,21 +261,19 @@ SEAL_BARE = "the seal"
 # instance with nobody's name on it.
 SEAL_BARE_IS_THE_CONCEPT = (
     " Test",  # the Seal Test
-    " block",  # the seal block
-    "'s `cost` row",  # a field of that block
     " is a different mark and a different agent's",  # the warden's link
 )
 
 
 def test_the_owner_states_that_one_seal_is_final():
     """The rule the three referents were missing. It is stated once, by the
-    file that holds the Seal Test and the seal block, and the two agent
-    definitions link to it rather than restating it —
-    `tests/test_the_rules_have_one_owner.py` is what holds that pairing."""
+    file that holds the Seal Test, and the sealer's definition links to it
+    rather than restating it — `tests/test_the_rules_have_one_owner.py` is
+    what holds that pairing."""
     owner = flat(*SEAL_OWNER)
     assert (
-        "Every agent seals what it verified, and the one seal over the whole "
-        "project is the sealer's."
+        "The hand-back's labels carry the claims, and the one seal over the "
+        "whole project is the sealer's `guarantee.md`."
     ) in owner
     assert "every reference to an INSTANCE names whose" in owner
     assert "The concept and its formats stay bare" in owner
@@ -294,13 +295,13 @@ def test_the_two_definitions_name_what_they_actually_keep():
     assert "You take the seal." not in sealer
 
 
-def test_the_readme_says_whose_seal_the_warden_audits():
+def test_the_readme_says_what_the_warden_audits():
     """The shape to look for: a sentence naming one party and leaving the
-    audited seal anonymous. The answer there is the smith's proof block,
-    three bullets from one describing the `Broad gate` cell — so a reader of
-    that list met the word twice on one screen meaning two things."""
+    audited thing anonymous. It was the smith's proof block, three bullets
+    from one describing the `Broad gate` cell; since #967 the smith carries
+    no seal, and what the warden audits is the labels on its hand-back."""
     readme = flat("README.md")
-    assert "the warden's audit of the smith's seal" in readme
+    assert "the warden's audit of the smith's labels" in readme
     assert "the warden's audit of the seal," not in readme
 
 

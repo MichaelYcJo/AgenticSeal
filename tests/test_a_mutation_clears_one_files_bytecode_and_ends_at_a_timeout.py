@@ -1019,18 +1019,15 @@ def test_the_smiths_definition_names_the_command_and_no_directory_to_clear():
     assert "tests/__pycache__" not in smith, (
         "`agents/smith.md` still names a directory to clear between mutations"
     )
-    assert (
-        "Mutation-test every unit you added, one at a time, before you hand over."
-        in smith
-    )
+    assert "Mutation-test every unit you added, one command each." in smith
     assert "watch one go red" in smith
 
 
 def test_the_boundaries_bullet_says_the_command_holds_the_copy():
     smith = flat("agents", "smith.md")
-    bullet = smith[smith.index("**Commit before you mutate") :]
-    bullet = bullet[: bullet.index("## Report")]
-    assert "`mutation-check` holds that copy" in bullet, bullet
+    rule = smith[smith.index("**Commit before you mutate") :]
+    rule = rule[: rule.index("Enforced by:")]
+    assert "`mutation-check` holds the bytes it read" in rule, rule
 
 
 def test_the_verify_skill_says_what_each_verdict_means_and_what_the_bound_ends():
@@ -1073,7 +1070,7 @@ def test_the_default_bound_is_the_one_both_documents_state(tmp_path, monkeypatch
     assert mc.main([str(target), "--replace", "1", "2", "--tests", "x"]) == 0
     assert seen["timeout"] == mc.DEFAULT_TIMEOUT == 300.0
     bound = f"{mc.DEFAULT_TIMEOUT:g}"
-    assert f"bound ({bound} s unless `--timeout`" in flat("agents", "smith.md")
+    assert f"bounded at {bound} s unless `--timeout`" in flat("agents", "smith.md")
     assert f"{bound} seconds by default" in flat("skills", "verify", "SKILL.md")
 
 

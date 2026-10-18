@@ -4993,7 +4993,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     readers = {
         # #969: the orchestrator meets the gate's words now, not the sealer.
         ("skills", "code-review", "orchestration.md"): "`new?`",
-        ("agents", "smith.md"): "`new?` is neither",
+        ("agents", "smith.md"): "`new?` means nothing at the base measured that file",
         ("skills", "verify", "SKILL.md"): "**New?**",
         ("README.md",): "new? → not measured at the base",
         ("README.ko.md",): "new? → base 에서 재지 못했다",
@@ -8209,23 +8209,23 @@ def test_a_runners_event_payload_is_what_judges_the_fixture(
 # =============================================================================
 
 # `agents/smith.md` and `agents/warden.md` each carried the rule with no owner
-# in it: *the full suite is the orchestrator's*. #30's opening argument is that
-# a rule forbidding two agents an act and assigning it to nobody is assigned to
-# whoever remembers. The sentence names the sealer in both, and the definitions
-# are where it has to be named — a document a session loads on demand reaches
-# the session that already knew.
+# in it: *the full suite is the orchestrator's*. #30 named the sealer in both.
+# Both were written anew since (#957, #967) and name no runner: the run's
+# owner moves from the sealer to the orchestrator in #969, and contract §2 is
+# where a reader finds it. What each definition still owes is the coverage
+# probe, in its own words.
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
-OWNED = "the full suite is the sealer's, once, after the rounds settle"
-UNOWNED = "the full suite is the orchestrator's"
-PROBE = (
-    "a coverage probe — nothing in the suite catches this — is a different "
-    "act: run it, and report it as a probe, never as a seal"
-)
-DEFINITIONS = ("smith.md", "warden.md")
-# The warden written anew in #957 names the run's record and the command,
-# `broad-gate`, not an agent, because the run's owner moves from the sealer
-# to the orchestrator in #969.
-OWNER_NAMED = ("smith.md",)
+PROBE = {
+    "smith.md": (
+        "Asking whether the suite catches something is a coverage probe, a "
+        "different act: run it over the module that should catch it and "
+        "report it as a probe."
+    ),
+    "warden.md": (
+        "a coverage probe — nothing in the suite catches this — is a different "
+        "act: run it, and report it as a probe, never as a seal"
+    ),
+}
 
 # The contract's own §2 and §6, read from the contract rather than typed, so a
 # section that is rewritten (#120) is compared as it then stands.
@@ -8265,39 +8265,13 @@ def section(number):
 # --- S6 the owner ------------------------------------------------------------
 
 
-@pytest.mark.parametrize("definition", OWNER_NAMED)
-def test_the_definition_names_the_sealer_as_the_suites_owner(definition):
-    """The rule reached both definitions with no owner in it. Naming the
-    sealer in the skill alone would leave both agents reading a sentence that
-    forbids without assigning, which is the state #30 opens with."""
-    text = agent(definition)
-    assert OWNED in text, (
-        f"agents/{definition} no longer says whose the full suite is, so the "
-        "rule forbids it to this agent and assigns it to nobody"
-    )
-    assert UNOWNED not in text, (
-        f"agents/{definition} still names the orchestrator as the suite's "
-        "owner beside the sealer, which is two owners for one act"
-    )
-
-
-@pytest.mark.parametrize("definition", OWNER_NAMED)
-def test_the_owner_is_named_once_in_each_definition(definition):
-    """Twice is how the two copies drift apart — which is the failure the
-    contract exists to end, one file down."""
-    assert agent(definition).count(OWNED) == 1, (
-        f"agents/{definition} states the owner sentence "
-        f"{agent(definition).count(OWNED)} times"
-    )
-
-
-@pytest.mark.parametrize("definition", DEFINITIONS)
+@pytest.mark.parametrize("definition", sorted(PROBE))
 def test_the_definition_separates_a_coverage_probe_from_a_seal(definition):
-    """The near miss the owner sentence creates. *Does anything in the suite
-    catch this* is answered by running the suite, and an agent that reads only
-    *the full suite is the sealer's* either does not ask it or reports the
-    answer as a seal. It is a probe: run it, and label it one."""
-    assert PROBE in agent(definition), (
+    """The near miss a rule against the full suite creates. *Does anything in
+    the suite catch this* is answered by running the suite, and an agent that
+    reads only *the full suite is not yours* either does not ask it or reports
+    the answer as a seal. It is a probe: run it, and label it one."""
+    assert PROBE[definition] in agent(definition), (
         f"agents/{definition} does not separate a coverage probe from a seal, "
         "so the one run that is not a seal has no name"
     )
@@ -8316,13 +8290,40 @@ def test_the_warden_says_what_comes_due():
     )
 
 
-def test_the_smith_says_who_takes_the_gate_it_hands_to():
-    """`Then the broad gate runs once` named no runner, in the file the
-    implementer reads at the end of every chain."""
+# Every party that could be written in as the broad gate's runner. A runner
+# named in the smith's definition is a sentence #969 makes false by moving the
+# run, from a worktree that does not touch this file (`spec.md` decision 6 of
+# work item 1792251842).
+RUNNERS = ("sealer", "orchestrator", "warden", "framer", "scribe", "session", "owner")
+# A sentence anywhere in the file that hands the run to somebody: a party, then
+# a verb of taking it, then the run, inside one sentence.
+HANDS_THE_RUN = re.compile(
+    r"\b(?:" + "|".join(RUNNERS) + r")s?\b[^.]{0,60}?\b(?:takes?|runs?|owns?)\b"
+    r"[^.]{0,40}?\b(?:broad gate|full suite)",
+    re.I,
+)
+
+
+def test_the_smith_names_no_runner_of_the_broad_gate():
+    """T4 of #967 (S5): the smith says it does not run the broad gate and
+    names nobody who does; contract §2 holds who does.
+
+    This replaced a case that asserted *Then the sealer takes the broad gate
+    once*. #969 moves the run to the orchestrator in a worktree beside this
+    one, so either owner written here is false in one of the two trees."""
     smith = agent("smith.md")
-    assert "Then the sealer takes the broad gate once" in smith, (
-        "the smith's closing paragraph still leaves the broad run unassigned"
+    start = smith.index("**The broad gate is not yours, and its label is.**")
+    rule = smith[start : smith.index("Enforced by:", start)]
+    assert "You do not run the full suite, the lint or the typecheck" in rule, (
+        "the smith's gate rule stopped saying the run is not the smith's"
     )
+    assert "contract §2 holds who does" in rule, (
+        "the rule stopped pointing at where the runner is named"
+    )
+    named = [party for party in RUNNERS if re.search(rf"\b{party}", rule, re.I)]
+    assert not named, f"the smith's gate rule names {named}: {rule}"
+    handed = HANDS_THE_RUN.findall(smith)
+    assert not handed, f"`agents/smith.md` hands the broad gate to somebody: {handed}"
 
 
 # --- S7 the fourth definition ------------------------------------------------

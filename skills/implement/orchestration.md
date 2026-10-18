@@ -16,9 +16,9 @@ order before it needs any step of it.
 `skills/implement/SKILL.md` is the other half and holds the implementation
 itself — the record language, the document layout, the spec-first procedure,
 the test-first cadence, the SDD file set, the closing memo and the review
-incorporation. An orchestrator reads both; a `smith` spawn preloads that one
-and never this, because asking a person and writing `routing.md` are acts
-`agents/smith.md` leaves to the session that spawned it.
+incorporation. An orchestrator reads both; a `smith` spawn opens that one at
+its first step and never this, because asking a person and writing
+`routing.md` are acts `agents/smith.md` leaves to the session that spawned it.
 
 Nothing changed in the three sections #292 moved out of
 `skills/implement/SKILL.md`, except one sentence a `# RIDER:` had asked to
