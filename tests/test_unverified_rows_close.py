@@ -652,13 +652,14 @@ def test_the_memo_keeps_one_line_of_purpose():
 def test_the_ladder_does_not_still_say_at_the_end():
     """Three of the four parts are written when they happen. A ladder that
     still says `overview.md at the end` contradicts the step above it, and the
-    contradiction is what sessions resolve by reconstructing at the end."""
+    contradiction is what sessions resolve by reconstructing at the end. The
+    smith's copy of the ladder left with #967; it opens the skill instead."""
     skill = collapsed("skills", "implement", "SKILL.md")
     assert "`overview.md` at the end" not in skill
     assert (
         "opened at the first divergence, unverified item, or fed-back clause" in skill
     )
-    assert "only the closing memo, kept as you go" in collapsed("agents", "smith.md")
+    assert "`overview.md` at the end" not in collapsed("agents", "smith.md")
 
 
 def test_the_skill_states_the_closing_convention():

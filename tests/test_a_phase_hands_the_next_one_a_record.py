@@ -256,7 +256,7 @@ def test_smith_is_told_to_write_the_phase_record():
     assert "templates/sdd-phase.md" in smith, (
         "agents/smith.md does not name the template a phase record starts from"
     )
-    assert "each phase's close" in smith or "phase's close" in smith, (
+    assert "Each phase closes with its record" in smith, (
         "agents/smith.md does not say WHEN to write the record — a "
         "session that finds the file but not the timing writes it late or "
         "never"

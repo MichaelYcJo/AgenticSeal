@@ -15,7 +15,8 @@ description: |
 # implement — spec-driven implementation
 
 Methodology for implementing against written specs, leaving a case behind
-each rule, and closing the loop with review. Opened by the `smith` agent at its first step; usable directly.
+each rule, and closing the loop with review. Opened by the `smith` agent at
+its first step; usable directly.
 
 **`skills/agent-contract/SKILL.md` binds this session too, and only if you
 load it.** A session driving the work directly reads this skill and never
@@ -59,8 +60,9 @@ rather than by a person: every field name, section heading and vocabulary
 word the checkers match, listed in `templates/config.md` under *What no row
 governs* — that list is derived from the checkers' own constants, so it
 cannot drift from them; `<!-- specs/<work-item-id> -->` and the other
-markers; a `drained` line and the `closed` that opens a closed row; and all code — identifiers, comments, docstrings, file names, test function
-names. A translated field name is not a translation, it is a checker that
+markers; a `drained` line and the `closed` that opens a closed row; and all
+code — identifiers, comments, docstrings, file names, test function names. A
+translated field name is not a translation, it is a checker that
 stops reading.
 
 ## Document layout — two roots, three lifetimes

@@ -1202,13 +1202,18 @@ def test_the_release_target_is_asked_before_the_work_starts():
     # The branch question is part of the routing section, which is the
     # orchestrator's half of `implement` since #292; the yes/no tell it
     # answers to stays in the implementer's half. The skill is read as both.
+    # `agents/smith.md` carried the same paragraph until #967: the smith opens
+    # no pull request and asks nothing, so the question is not its own, and
+    # what stays for it is the absence below.
+    assert "## Unreleased" not in " ".join(read_text("agents", "smith.md").split()), (
+        "smith.md prescribes a changelog heading again"
+    )
     for parts, text in (
         (
             ("skills", "implement", "orchestration.md"),
             read_text("skills", "implement", "SKILL.md")
             + read_text("skills", "implement", "orchestration.md"),
         ),
-        (("agents", "smith.md"), read_text("agents", "smith.md")),
     ):
         # Collapsed, because both files wrap these sentences at different
         # columns and a literal match would be asserting the line breaks.
