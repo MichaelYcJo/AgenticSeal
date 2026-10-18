@@ -116,7 +116,7 @@ worth: something, only because somebody other than the author wrote it, and
 the contract names a review that certifies itself as what the commit gate
 exists to catch. What the author's own
 check leaves that CI can read is what it RAN — the broad gate at a SHA against
-a base — and that is the broad run's stamp, which `straight to the PR` already
+a base — and that is the broad run's record, which `straight to the PR` already
 owes in the row above. The reading half, *here is what I checked*, is prose,
 and prose is not evidence. So a change its author checked declares `straight
 to the PR` and takes the broad run; what that answer turns off is the reviewer,

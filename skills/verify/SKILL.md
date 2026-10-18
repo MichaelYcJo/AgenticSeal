@@ -249,14 +249,14 @@ run.
 - **Scope.** An agent's hand-back covers what that agent touched. The
   sealer's seal covers a tree nobody is still editing — which is why *nothing
   edits between the broad seal and the PR* is a rule about that one seal.
-- **Form.** The sealer's seal is the only mark drawn, and
-  only over a run that earned it: `broad-gate` draws the stamp, or writes the
-  values it is drawn from, when every check passed and `broad-gate.md` was
-  written, and on no other path. It draws on a person's terminal itself; anywhere
-  else the `Stop` hook draws those values at the end of the turn of the
-  orchestrator's session, which ran the gate before it spawned the sealer.
-  So seeing the drawing means the last seal
-  was earned.
+- **Form.** The sealer's seal is the only mark drawn, and only over a verdict
+  that earned it: the stamp is drawn from the sealer's `guarantee.md` reading
+  `sealed`, once per work item, at the end of the turn in which that file is
+  committed. git's `post-commit` writes the values it is drawn from, and the
+  `Stop` hook draws them in the orchestrator's session
+  (`docs/the-review-record.md` §*The stamp*). The broad gate draws nothing:
+  its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges
+  nothing. So seeing the drawing means the last seal was earned.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
 reference to an INSTANCE names whose** — the sealer's seal, the warden's
@@ -417,16 +417,16 @@ Moving it ahead of the rounds means paying it twice.
 upstream where the checkout declares one, else `origin/<base>`, else the ref
 as given. Every check it runs takes that one commit — the two baselines, the scratch worktree the base comparison checks out, and
 `broad-gate.md`. A plain branch name is a LOCAL ref and a runner has no
-local branches, so a checkout one commit behind its remote used to seal green
+local branches, so a checkout one commit behind its remote used to pass green
 over a question nobody was asking while CI refused the same commit (#423).
 Where resolving moves the answer the gate prints one line naming both refs,
 both commits and the distance, and runs anyway; where the two agree it prints
 nothing. It never fetches, so a remote-tracking ref is only as fresh as the
-last fetch — which is why the stamp's panel names the ref beside the commit
-on the `base` row rather than the commit alone, and the `SEALED` line names it as
-`<ref> @ <commit>`.
+last fetch — which is why the gate's report names the ref beside the commit
+on the `base` row rather than the commit alone, and the `BROAD GATE PASSED`
+line names it as `<ref> @ <commit>`.
 
-**What the broad run's stamp covers is declared rather than remembered.** The
+**What the broad run covers is declared rather than remembered.** The
 arms exist so that the one run says what CI will say, and for three releases the
 list was kept in step with `.github/workflows/hygiene.yml` by whoever
 remembered. #424 added a step to that workflow's `release` job, nobody added
@@ -911,7 +911,7 @@ never in a column of it.
 - Satisfaction vocabulary before the run: should, probably, seems, likely.
 - A new test that passed on first run and was never seen red (condition 2).
 - Partial evidence generalized — one endpoint checked, "API works" claimed.
-- A broad run reported as the gate's stamp when edits followed it — including the
+- A broad run reported as the gate's pass when edits followed it — including the
   one small fix made after it.
 - A pre-existing failure counted as this work's, or waved past without
   being named. Both need the base comparison; neither survives it.

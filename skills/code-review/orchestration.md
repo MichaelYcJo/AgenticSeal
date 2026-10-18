@@ -233,42 +233,47 @@ arrives before it. Read its exit code directly and take the broad run only on 0.
 1 its `PREFLIGHT FAILED` lines name each failing arm with its first lines and
 the file holding the rest: correct the record, commit, and run it again. On 2
 it refused before anything ran, and a refusal about the row goes to a person,
-as *A refusal about the `Broad gate` row* below says. It writes no file, no
-values file and no stamp, and prints no `SEALED` line, so it seals nothing.
+as *A refusal about the `Broad gate` row* below says. It writes no file and
+prints no `BROAD GATE` line, so nothing it prints reads as the broad run's.
 A session that skips the preflight loses only time: the broad run asks the
 same arms, and refuses the same way after its suite.
 
-**The stamp is drawn for you at the end of your turn, and you never draw
-one (#400).** A green recorded run on your Bash call's pipe draws nothing.
-It writes the stamp's values to a file and prints one `SEALED` line naming
-it, and the `Stop` hook draws that file after your text, when your turn ends.
-So put the result text first: what was
-sealed, the lines worth quoting, and what happens next. Then end the turn,
-and the drawing lands last with nothing after it. Draw none yourself,
-neither with `seal-stamp` nor by relaying the gate's log. The 0.15.6 run
-relayed the log, and the person saw the same stamp twice, the copy
-colourless and cut. The `SEALED` line names the branch and the tree it
-sealed and the ref and the commit it was compared against, and the line
-under it says `broad-gate.md` is written and not committed: CI reads HEAD,
-so commit it before the pull request is marked ready, or the one broad run
-is recorded nowhere CI looks. On a red run relay
-the `NOT SEALED` lines, and nothing
-is drawn. Wherever the `SEALED` line names `seal-stamp --from`, quote it as
-it stands: that command is the person's to type, and never yours. Every line
-that names a values file names it, because the hook draws nothing and says
-nothing where it cannot: a `python3` that cannot load `seal_stamp.py`, a
-working directory outside the sealed clone, or a plugin older than the hook.
+**The stamp is drawn for you at the end of the turn in which `guarantee.md`
+reading `sealed` is committed, and you never draw one (#975).** The broad run
+draws nothing: its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED`,
+which say whether the broad command passed and judge nothing. The stamp means
+every party verified the work item, the sealer last, so it is drawn once per
+work item from the sealer's verdict: when you commit its `guarantee.md` and
+the one `Verdict:` reads `sealed`, git's `post-commit` writes the stamp's
+values and prints one line naming them, and the `Stop` hook draws them after
+your text. So put the result text first in that turn: what was sealed, the
+lines worth quoting, and what happens next. Then end the turn, and the
+drawing lands last with nothing after it. Draw none yourself, neither with
+`seal-stamp` nor by relaying a log. The 0.15.6 run relayed the log, and the
+person saw the same stamp twice, the copy colourless and cut. The `BROAD GATE
+PASSED` line names the branch and the tree the run measured and the ref and
+the commit it was compared against, the panel's rows follow it as text, and
+the report's last line says `broad-gate.md` is written and not committed: CI
+reads HEAD, so commit it before the pull request is marked ready, or the one
+broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
+FAILED` lines. Wherever the commit's line names `seal-stamp --from`, quote it
+as it stands: that command is the person's to type, and never yours. The line
+names it because the hook draws nothing and says nothing where it cannot: a
+`python3` that cannot load `seal_stamp.py`, a working directory outside the
+clone, or a plugin older than the hook. Where git's hooks slot is somebody
+else's no line prints and no stamp is drawn, and the pull request's check is
+what says the work item was sealed.
 
 **A refusal about the `Broad gate` row goes to a person, and the run stops
 until they answer.** Your broad run comes back exit 2 two ways that are
 about the row rather than about the work: the repository declares no row, or
 its row is one the gate would not run as the command it reads as. Neither is
 yours to settle, and no agent's — the row is the one value in this flow only
-a person may write, because there is no default and the gate's seal covers
+a person may write, because there is no default and the broad run covers
 exactly what a person wrote. Put the gate's own sentence in front of
 whoever owns the repository, name `/specseal:config` as where they answer it, and
 leave the pull request as a draft until they have. Filling the row in to get
-past the refusal is #401: it is what happened, and the stamp then covered a
+past the refusal is #401: it is what happened, and the run then covered a
 command the person had never seen.
 
 **A session that has compacted hands the next round to a fresh one, and the

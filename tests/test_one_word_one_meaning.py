@@ -228,6 +228,15 @@ SEAL_SWEPT = (
     # Third time the list was closed where somebody had looked, which is why
     # the file goes in rather than the sentence alone being repaired.
     ("skills", "verify", "scripts", "broad_gate.py"),
+    # #975 moved the stamp from the broad gate's run to the sealer's verdict.
+    # The files that draw it, queue it and run the gate it left say whose
+    # stamp it is, so they are swept too.
+    ("hooks", "sealer-stamp.py"),
+    ("hooks", "dispatch.py"),
+    ("hooks", "commitgate.py"),
+    ("bin", "seal-stamp"),
+    ("bin", "broad-gate"),
+    ("docs", "the-broad-gate.md"),
 )
 
 # The two places that DISCUSS the word rather than use it: the rule's own
@@ -364,6 +373,7 @@ GATE_SWEPT = (
     ("skills", "verify", "scripts", "broad_gate.py"),
     ("bin", "broad-gate"),
     ("bin", "broad-gate.cmd"),
+    ("docs", "the-broad-gate.md"),
 )
 
 # The token, and every phrase the gate's files used for a run that passed.
@@ -518,14 +528,15 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
     green. The set is now every phrase either sweep searches for, read from
     the constants the sweeps themselves read.
 
-    WHY SEVEN PHRASES ARE THE WHOLE OF WHAT IS AT RISK, which is a fact about
-    the MEMBER lists rather than about the phrases: `flat` folds the seam for
-    `.py` members only, and across both sweeps four members are `.py`. Every
-    other phrase these sweeps look for is searched in a markdown member, where
-    the fold never runs at all. That makes this a closed set and not a short
-    list of examples — and because the closure rests on the member lists, it
-    stops holding the moment a `.py` member joins either sweep. So the members
-    are pinned below too.
+    WHY THE PHRASES BELOW ARE THE WHOLE OF WHAT IS AT RISK, which is a fact
+    about the MEMBER lists rather than about the phrases: `flat` folds the
+    seam for `.py` members only, and the `.py` members of the three sweeps
+    are pinned below. Every other phrase these sweeps look for is searched in
+    a markdown member, where the fold never runs at all. That makes this a
+    closed set and not a short list of examples — and because the closure
+    rests on the member lists, it stops holding the moment a `.py` member
+    joins a sweep. So the members are pinned below too. #975 added the third
+    sweep, `GATE_PHRASES` over `GATE_SWEPT`, and three hooks to `SEAL_SWEPT`.
 
     WHAT THIS CASE STILL CANNOT SEE: whether a phrase was added to a sweep
     without going through the constants. See `SEAL_BARE`'s comment for why
@@ -540,7 +551,7 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
     # reader to stop believing it.
     folded = {
         "/".join(parts)
-        for parts in (*SEAL_SWEPT, *SEGMENT_SWEPT)
+        for parts in (*SEAL_SWEPT, *SEGMENT_SWEPT, *GATE_SWEPT)
         if parts[-1].endswith(".py")
     }
     assert folded == {
@@ -548,13 +559,16 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
         "skills/verify/scripts/broad_gate.py",
         "skills/verify/scripts/session_cost.py",
         "tests/test_session_cost.py",
+        "hooks/sealer-stamp.py",
+        "hooks/dispatch.py",
+        "hooks/commitgate.py",
     }, (
         "the set of members `flat` folds has moved, so the closure this case "
         "rests on has to be re-taken: every phrase the sweep over "
         f"{sorted(folded)} looks for belongs in the set below, and the "
         "docstring's count has to be brought to the new list"
     )
-    swept = (SEAL_BARE, *SEAL_BARE_IS_THE_CONCEPT, *SEGMENT_LOOSE)
+    swept = (SEAL_BARE, *SEAL_BARE_IS_THE_CONCEPT, *SEGMENT_LOOSE, *GATE_PHRASES)
     for phrase in swept:
         assert LITERAL_SEAM.search(phrase) is None, (
             f"the fold can land inside {phrase!r}, so a deletion could cut "

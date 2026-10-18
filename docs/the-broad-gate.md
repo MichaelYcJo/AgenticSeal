@@ -27,6 +27,17 @@ the sealer's own verdict, which follows the run, is a separate file
 whose verdict nobody can separate from its measurement.
 Enforced by: tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn
 
+<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
+**What the run prints says only whether it passed, and it draws nothing.**
+Its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED` over the branch,
+the tree and the base it measured; a passing run prints its panel's rows as
+text under that line, the same bytes on a terminal as on a pipe, and writes
+no values file and no drawing. The verdict word `sealed` is the sealer's,
+and the stamp is drawn from that verdict at its commit
+(`docs/the-review-record.md` §*The stamp*), so a green suite is never read
+as a sealed work item.
+Enforced by: tests/test_one_word_one_meaning.py::test_the_gate_never_says_sealed, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_recorded_run_on_a_pipe_writes_no_values_file, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_recorded_run_on_a_terminal_prints_the_same_report
+
 <!-- specs/1789034970-the-contract-is-settled-against-the-agents-that-exist -->
 **A shared rule is settled against the agents that exist.** A rule kept only
 in whoever last wrote a spawn prompt goes missing without a trace, and a rule
@@ -90,7 +101,7 @@ half a repair.
 Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_broad_gate_line_only_inside_a_fence_is_named_and_not_called_absent
 
 <!-- specs/1790206436-the-runs-instruments-cost-wall-clock -->
-**The gate that measures a tree is the copy that tree ships, and the stamp
+**The gate that measures a tree is the copy that tree ships, and its report
 says which copy measured it.** A gate found on PATH is the installed plugin's, so
 a branch that changed the gate was measured by the copy that predated the
 change: seven arms in the tree against five installed on one sealer's run,
@@ -110,79 +121,9 @@ the copy that ran is not byte for byte the copy invoked, or where the tree's
 copy ran with no invoked copy named to compare against — invoked directly,
 or redirected by an installed copy older than #666 — and the pull request
 asks the same scripts again. The row prints nowhere else: on every
-redirected seal of a tree whose gate the branch did not change it said the
+redirected run over a tree whose gate the branch did not change it said the
 same thing and was read by nobody (#666).
 Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py
-
-## Where the stamp is drawn
-
-<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
-**The stamp is drawn once, where a person sees it, and only over a run that
-earned it.** The run's stdout is a pipe into a tool result that reaches the
-person folded — a sealer's report when the sealer ran the gate, the
-orchestrator's Bash call since #969 — so a stamp drawn there was never seen.
-The 0.15.6 stopgap, re-printing the sealer's log, drew it twice, colourless
-and cut. So the gate draws only on a terminal, and only over a written
-`broad-gate.md`. On a pipe, a recorded
-seal writes the panel's rows
-to a values file under the git common dir, keyed by the session that spawned
-the run, and prints one `SEALED` line naming it. A `Stop` hook draws each
-undrawn file of its own session once, after that turn's text, and a
-subagent's end draws nothing. The write sits on the gate's own code path,
-reached only when every check passed and the file was written. No session's
-reading or act stands between the verdict and the drawing, and what is drawn
-is the run's values rather than a sample anybody can print.
-Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_main_sessions_stop_draws_each_undrawn_file_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_end_draws_nothing_and_leaves_the_file, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_recorded_seal_on_a_pipe_signals_and_draws_nothing
-
-<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
-**The hook holds its whole message under a budget named in the code, and
-steps the drawing down rather than letting the harness persist it.** The
-harness writes a `Stop` hook's `systemMessage` longer than 10,000 characters
-to a file and shows the person a 2 KB preview, so a stamp past that size is
-not seen. `seal_stamp.MESSAGE_LIMIT` is that number, measured with a scratch
-hook; `MESSAGE_BUDGET` keeps 1,000 characters of it back for the gate-failure
-report `hooks/dispatch.py` prepends to the same message. The harness counts
-UTF-16 units, so a character outside the BMP is two, and so does the hook.
-One message carries as many of the oldest pending stamps as fit together
-with their disc. A stamp has two rungs, with its disc and then without it:
-the owner's disc is drawn 28 cells across and has one size, so there is no
-smaller disc to step to, and since #853 no scale either. That disc is most
-of a stamp's size, so one real run's
-stamp goes out per message and a second waits for the next turn. A seal past
-what one message can carry stays pending and is drawn at the next turn's
-end, and a single stamp that does not fit with its disc by itself is the
-only one drawn as the text block with no disc. A stamp can
-come out without its disc or a turn later, and a session that ends first
-leaves it for `seal-stamp --from`. The gate's own terminal
-drawing and `seal-stamp` are not budgeted, because neither is a hook's
-message.
-Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_hooks_message_is_under_the_budget_for_one_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_two_files_in_one_turn_are_under_the_budget_together, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_seals_past_what_one_message_carries_wait_for_the_next_turn, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_ladder_steps_down_in_order_and_ends_with_no_disc
-
-<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
-<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
-**What the person's screen shows is not checked, and neither is the order of
-the text above it.** The cases prove that the hook emits the right bytes for
-the right payload. A screenshot of the probe proved once that such bytes
-render unfolded, in colour, after the turn's final text. Whether a given
-run's stamp was seen, and whether the orchestrator wrote its result in the
-turn the stamp closed, are read by the person and by nobody else. So is how
-the stamp reads on a light background as well as a dark one. Nothing outside
-the disc is painted, so its text is in the terminal's own colours and theme —
-dim labels, a green `✓`, the title in the seal's red — and the owner reads
-the first real seal on each background.
-**Nor is the hook's silence where it cannot draw.** It draws nothing and
-says nothing where the main session's `python3` cannot load
-`seal_stamp.py`, since no launcher stands in front of a hook; where that session's
-working directory is outside the clone the run sealed; or where its plugin
-predates the hook. A hook older than #853 refuses a values file that carries
-no numeric `scale`, so through 0.21's cycle the gate still writes `"scale":
-0.9`, which nothing in the tree reads, and the installed hook and
-`seal-stamp` draw what the tree's gate writes; the first release after 0.21
-stops writing it. So every `SEALED` line that names a values file names
-`seal-stamp --from <path>` too, and a stamp that did not appear is drawn by
-hand from it, once.
-Enforced by: nothing — no case, hook or workflow can observe a screen; the
-owner reads it on the first real run after a change to this surface.
 
 ## What the runner owes the person who typed it
 

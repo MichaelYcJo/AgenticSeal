@@ -3219,7 +3219,7 @@ def test_the_documents_name_the_line_that_says_to_commit_the_cell():
         read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
     )
     assert (
-        "the line under it says `broad-gate.md` is written and not committed: "
+        "the report's last line says `broad-gate.md` is written and not committed: "
         "CI reads HEAD, so commit it before the pull request is marked ready"
     ) in orchestration
 

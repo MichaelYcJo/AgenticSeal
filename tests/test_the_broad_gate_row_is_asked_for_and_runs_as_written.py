@@ -173,7 +173,7 @@ ALLOWED = {
     # mid-line form has to be in ONE of the two lists. It is here, with what
     # it costs, because telling it from a `2>&1` or a quoted `&` needs the
     # shell parser this list exists to avoid.
-    "an `&` anywhere but at the end": "may still be running when the gate stamps",
+    "an `&` anywhere but at the end": "may still be running when the gate reports",
 }
 
 

@@ -97,7 +97,8 @@ Where none answers, write `guarantee.md` with
   `fixed`, the pull request body's list of changes and the prompt's summary
   are claims; the command you re-ran and the tree are facts.
 - Choose a `Broad gate` command, or draw a stamp: the row is a person's, and
-  the stamp is drawn in the orchestrator's session from its own run.
+  the stamp is drawn in the orchestrator's session from your committed
+  `sealed` verdict, once per work item.
 
 ## Rules
 

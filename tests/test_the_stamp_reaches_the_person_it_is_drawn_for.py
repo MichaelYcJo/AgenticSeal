@@ -1163,17 +1163,28 @@ def test_admitteds_docstring_fits_the_line_length():
     assert wide == [], wide
 
 
+def stamp_section():
+    """`docs/the-review-record.md` §*The stamp*, flattened: the stamp's rules
+    stand beside the verdict they are drawn from since #975, and
+    `docs/the-broad-gate.md` keeps none of them."""
+    text = flat("docs", "the-review-record.md")
+    assert "## Where the stamp is drawn" not in flat("docs", "the-broad-gate.md")
+    section = text.split("## The stamp ", 1)[1]
+    assert text.index("## The guarantee") < text.index("## The stamp ")
+    return section.split("## The run", 1)[0]
+
+
 def test_the_policy_states_the_budget_and_names_its_case():
-    """A18. `docs/the-broad-gate.md` §*Where the stamp is drawn* carries the
-    budget rule under #717's marker, and its `Enforced by:` line names A3's
-    case; the marker stands a second time over the paragraph nothing
-    enforces. #832 and #853: the rule names the two rungs, with the disc and
-    the text block alone, the owner's disc 28 cells across, and one real
-    run to a message; the unchecked paragraph says nothing outside the disc
-    is painted, so the stamp is read in the terminal's own theme, where it
-    gave the parchment's contrast figures before decision 6 of work item
-    1791270164 retired the sheet."""
-    text = flat("docs", "the-broad-gate.md")
+    """A18. `docs/the-review-record.md` §*The stamp* carries the budget rule
+    under #717's marker, and its `Enforced by:` line names A3's case; the
+    marker stands a second time over the paragraph nothing enforces. #832
+    and #853: the rule names the two rungs, with the disc and the text block
+    alone, the owner's disc 28 cells across, and one real run to a message;
+    the unchecked paragraph says nothing outside the disc is painted, so the
+    stamp is read in the terminal's own theme, where it gave the parchment's
+    contrast figures before decision 6 of work item 1791270164 retired the
+    sheet. The section moved from `docs/the-broad-gate.md` with #975."""
+    text = stamp_section()
     marker = "<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->"
     assert text.count(marker) == 2, "the rule and the unchecked half, one marker each"
     unchecked = text.split(marker)[2]
@@ -1205,80 +1216,103 @@ def test_the_policy_states_the_budget_and_names_its_case():
     assert "0.80 and 0.75" not in rule and "at 0.75 by itself" not in rule
     assert "24 cells" not in rule and "§ fragment" not in rule
     assert "14 cells" not in rule and "sheet" not in rule
-    section = text.split("## Where the stamp is drawn", 1)[1]
-    assert marker in section.split("## What the runner owes", 1)[0]
+    assert "The gate's own terminal drawing" not in rule, "the gate draws nothing"
 
 
 # --- S16: the rules are where they are read ----------------------------------
 
 
 def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
-    """S16, the orchestrator's half (contract §14). The rule sits in the
-    section that spawns the sealer: the stamp is drawn at the end of the
-    turn, the result text comes first, the orchestrator draws none — by
-    `seal-stamp` or by relaying the sealer's log, which 0.15.6 did — and a
-    red run relays `NOT SEALED` with nothing drawn."""
+    """S16, the orchestrator's half (contract §14), and #975 S13. The rule
+    sits in the section that spawns the sealer: the stamp is drawn at the end
+    of the turn in which the sealer's `sealed` guarantee is committed, the
+    result text comes first, the orchestrator draws none — by `seal-stamp` or
+    by relaying a log, which 0.15.6 did — the broad run's lines are quoted as
+    `BROAD GATE PASSED` and `BROAD GATE FAILED`, and no line of the run says
+    `SEALED`."""
     text = flat("skills", "code-review", "orchestration.md")
     section = text.split("## Orchestrator: the pull request opens before round 1", 1)[1]
     section = section.split("## Orchestrator: verify before posting", 1)[0]
     for said in (
-        "**The stamp is drawn for you at the end of your turn, and you never draw one (#400).**",
+        "**The stamp is drawn for you at the end of the turn in which "
+        "`guarantee.md` reading `sealed` is committed, and you never draw one "
+        "(#975).**",
+        "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
+        "`BROAD GATE FAILED`",
         "So put the result text first",
-        "Draw none yourself, neither with `seal-stamp` nor by relaying the gate's log.",
-        "On a red run relay the `NOT SEALED` lines, and nothing is drawn.",
-        # Round 1's 🟡 1: the command is named on every line that points at a
-        # values file now, and it stays the person's wherever it appears.
-        "Wherever the `SEALED` line names `seal-stamp --from`, quote it as it "
+        "Draw none yourself, neither with `seal-stamp` nor by relaying a log.",
+        "On a red run relay the `BROAD GATE FAILED` lines.",
+        # Round 1's 🟡 1 of #400: the command is named on the line that points
+        # at a values file, and it stays the person's wherever it appears.
+        "Wherever the commit's line names `seal-stamp --from`, quote it as it "
         "stands: that command is the person's to type, and never yours.",
     ):
         assert said in section, said
+    assert "SEALED" not in section, "a line of the broad run is quoted as SEALED"
 
 
 def test_the_form_bullet_says_what_draws_the_final_seal():
-    """S16, `verify`'s half. The **Form** bullet said `broad-gate` prints the
-    disc on success alone, which stopped being true of a sealer's run: it now
-    says the gate draws on a terminal and the `Stop` hook draws elsewhere,
-    both only over a written `broad-gate.md`."""
+    """S16, `verify`'s half, and #975 S13. The **Form** bullet said
+    `broad-gate` draws the stamp when every check passed; the stamp is the
+    sealer's now, drawn once per work item from its `sealed` guarantee at
+    that file's commit, and the gate draws nothing."""
     text = flat("skills", "verify", "SKILL.md")
     assert "`broad-gate` prints the disc on success alone" not in text
+    assert "`broad-gate` draws the stamp" not in text
     for said in (
-        "when every check passed and `broad-gate.md` was written, and on no other path",
-        "the `Stop` hook draws those values at the end of the turn",
+        "the stamp is drawn from the sealer's `guarantee.md` reading `sealed`, "
+        "once per work item",
+        "the `Stop` hook draws them in the orchestrator's session",
+        "The broad gate draws nothing",
     ):
         assert said in text, said
 
 
 def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
-    """S16, the policy's half. `docs/the-broad-gate.md` carries the rule
-    under this work item's marker with an `Enforced by:` line naming the
-    hook's cases, and a second statement saying what the screen shows is
-    enforced by nothing."""
-    text = flat("docs", "the-broad-gate.md")
+    """S16, the policy's half, and #975 S10 and S13. `docs/the-review-record.md`
+    §*The stamp* carries the drawing rule under #400's and #975's markers
+    with an `Enforced by:` line naming the cases that queue and draw it, and
+    a second statement saying what the screen shows is enforced by nothing.
+    That statement names every place the hook is silent — a foreign hooks
+    slot, a local-mode root, a `python3` that cannot load `seal_stamp.py`, a
+    main session outside the clone, a plugin older than the hook — and
+    `seal-stamp --from <path>` for where a file was written."""
+    text = stamp_section()
     marker = "<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->"
+    ours = "<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->"
     assert text.count(marker) == 2, "the rule and the unchecked half, one marker each"
+    assert text.count(ours) == 2, "the rule and the unchecked half, one marker each"
     rule, unchecked = text.split(marker)[1:3]
-    assert "**The stamp is drawn once, where a person sees it" in rule
-    assert "::test_the_main_sessions_stop_draws_each_undrawn_file_once" in rule
+    assert (
+        "**The stamp is drawn once per work item, from the sealer's `sealed`, at "
+        "the end of the turn in which `guarantee.md` reading it was committed.**"
+    ) in rule
+    for case in (
+        "::test_a_sealed_guarantees_commit_queues_one_stamp",
+        "::test_a_withheld_or_undecided_guarantee_queues_nothing",
+        "::test_a_second_sealed_verdict_queues_nothing",
+        "::test_a_recommit_of_the_same_guarantee_queues_no_second_file",
+        "::test_the_main_sessions_stop_draws_each_undrawn_file_once",
+    ):
+        assert case in rule, case
     assert "**What the person's screen shows is not checked" in unchecked
     assert "Enforced by: nothing — no case, hook or workflow can observe a screen" in (
         unchecked
     )
-    # Round 1's 🟡 1: the hook's silence where it cannot draw is stated where
-    # a person looks for why no stamp appeared, with the way to draw it.
+    # Round 1's 🟡 1 of #400: the hook's silence where it cannot draw is
+    # stated where a person looks for why no stamp appeared, with the way to
+    # draw it.
     assert "**Nor is the hook's silence where it cannot draw.**" in unchecked
-    # Round 2's ⬜ 1: not EVERY sealed line — a run with no `--record` and
-    # one whose values could not be written name no file and no command.
-    assert (
-        "every `SEALED` line that names a values file names `seal-stamp --from "
-        "<path>` too"
-    ) in unchecked
-    assert "every sealed `SEALED` line" not in text
-    # Round 1's ⬜ 6: a terminal draws only over a written record, and the
-    # `gate` row names the copy that measured, since in a sealer none draws.
-    assert (
-        "the gate draws only on a terminal, and only over a written `broad-gate.md`"
-        in rule
-    )
+    for silence in (
+        "where git's hooks slot is somebody else's",
+        "in local mode",
+        "cannot load `seal_stamp.py`",
+        "outside the clone the commit landed in",
+        "predates the hook",
+    ):
+        assert silence in unchecked, silence
+    assert "names `seal-stamp --from <path>`" in unchecked
+    assert "`SEALED` line" not in text, "the gate's line is quoted as SEALED"
     assert "the stamp says which copy drew it" not in text
 
 
@@ -1316,6 +1350,33 @@ def test_both_readmes_list_the_stamp_hook():
         assert opt_in in text, (edition, opt_in)
         assert effects in text and clause in text, (edition, effects, clause)
         assert "Seven of the ten" not in text and "게이트 열 중 일곱" not in text
+    # #975 S11: both editions say the stamp's values are written at the
+    # commit of a sealed guarantee, and neither says the broad gate leaves
+    # them.
+    for edition, said, gone in (
+        (
+            "README.md",
+            (
+                "queued at the commit of a work item's `guarantee.md` reading `sealed`",
+                "the commit of a `guarantee.md` reading `sealed` writes the stamp's "
+                "values under",
+            ),
+            ("the broad gate left for this session", "a sealed broad-gate run writes"),
+        ),
+        (
+            "README.ko.md",
+            (
+                "작업 항목의 `guarantee.md` 가 `sealed` 로 커밋될 때 남는",
+                "`sealed` 로 읽히는 `guarantee.md` 를 커밋하면 도장에 들어갈 값을",
+            ),
+            ("광역 관문이 이 세션 앞으로", "광역 관문 실행은 도장에 들어갈 값을"),
+        ),
+    ):
+        text = flat(edition)
+        for phrase in said:
+            assert phrase in text, (edition, phrase)
+        for phrase in gone:
+            assert phrase not in text, (edition, phrase)
 
 
 # --- S16: the sealer is told it draws nothing --------------------------------
@@ -1331,14 +1392,17 @@ def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
     drawing arrives as letters and to pass it through, which the 0.15.6 run
     did — every seal behind `ctrl+o`. Since #969 the sealer runs no gate, so
     there is no line of the gate's for it to pass on: it says it draws no
-    stamp, and that the stamp is drawn in the orchestrator's session from
-    the orchestrator's own run; and the old instruction is gone."""
+    stamp. Since #975 the stamp is drawn in the orchestrator's session from
+    the sealer's own committed `sealed` verdict, once per work item, and
+    never from the orchestrator's run; the old instructions are gone."""
     text = flat("agents", "sealer.md")
     for said in (
         "or draw a stamp",
-        "the stamp is drawn in the orchestrator's session from its own run",
+        "the stamp is drawn in the orchestrator's session from your committed "
+        "`sealed` verdict, once per work item",
     ):
         assert said in text, said
+    assert "from its own run" not in text, "the stamp is not the run's"
     assert "seal-stamp --from" not in text, (
         "the sealer is told to pass on a stamp command from a run it did not take"
     )

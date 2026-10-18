@@ -262,6 +262,83 @@ Whether five stories agree is a judgment, so a disagreement it does not see
 is missed.
 Enforced by: nothing — the guarantee's own tables are what a reader audits
 
+## The stamp
+
+<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
+<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
+**The stamp is drawn once per work item, from the sealer's `sealed`, at the
+end of the turn in which `guarantee.md` reading it was committed.** The stamp
+means every party verified the work item, the sealer last, and the work is
+done (#975), so it is drawn from that verdict and never from the broad
+gate's run, which comes before the sealer has read anything and draws
+nothing (`docs/the-broad-gate.md` §*One act, one owner*). git's
+`post-commit` runs after the commit, in the worktree it landed in. Where the
+commit carries a work item's `guarantee.md` whose one `Verdict:` reads
+`sealed`, it writes the stamp's values under
+`<git-common-dir>/specseal-stamp/<session>/` and prints one line naming the
+file and `seal-stamp --from <path>`. A `Stop` hook draws each undrawn file of
+its own session once, after that turn's text, and a subagent's end draws
+nothing. `withheld` and `undecided` queue nothing. Once per work item is held
+by what the tree and the clone carry, with no count beside them: a `Target
+SHA` row whose `; earlier run:` chain reads `sealed` was stamped at that run,
+and a file already named for the work item and the audited commit, pending
+or drawn, is not written twice. The stamp carries what the records at the
+commit say: the audited commit and its branch, the base, the work item, the
+newest broad run and the count of round records.
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_guarantees_commit_queues_one_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_withheld_or_undecided_guarantee_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_after_withheld_queues_the_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_second_sealed_verdict_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_recommit_of_the_same_guarantee_queues_no_second_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_stamps_rows_are_read_from_the_records, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_main_sessions_stop_draws_each_undrawn_file_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_end_draws_nothing_and_leaves_the_file, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output
+
+<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
+**The hook holds its whole message under a budget named in the code, and
+steps the drawing down rather than letting the harness persist it.** The
+harness writes a `Stop` hook's `systemMessage` longer than 10,000 characters
+to a file and shows the person a 2 KB preview, so a stamp past that size is
+not seen. `seal_stamp.MESSAGE_LIMIT` is that number, measured with a scratch
+hook; `MESSAGE_BUDGET` keeps 1,000 characters of it back for the gate-failure
+report `hooks/dispatch.py` prepends to the same message. The harness counts
+UTF-16 units, so a character outside the BMP is two, and so does the hook.
+One message carries as many of the oldest pending stamps as fit together
+with their disc. A stamp has two rungs, with its disc and then without it:
+the owner's disc is drawn 28 cells across and has one size, so there is no
+smaller disc to step to, and since #853 no scale either. That disc is most
+of a stamp's size, so one real run's
+stamp goes out per message and a second waits for the next turn. A seal past
+what one message can carry stays pending and is drawn at the next turn's
+end, and a single stamp that does not fit with its disc by itself is the
+only one drawn as the text block with no disc. A stamp can
+come out without its disc or a turn later, and a session that ends first
+leaves it for `seal-stamp --from`. `seal-stamp` is not budgeted, because it
+is no hook's message.
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_hooks_message_is_under_the_budget_for_one_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_two_files_in_one_turn_are_under_the_budget_together, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_seals_past_what_one_message_carries_wait_for_the_next_turn, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_ladder_steps_down_in_order_and_ends_with_no_disc
+
+<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
+<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
+<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
+**What the person's screen shows is not checked, and neither is the order of
+the text above it.** The cases prove that the hook emits the right bytes for
+the right payload. A screenshot of the probe proved once that such bytes
+render unfolded, in colour, after the turn's final text. Whether a given
+work item's stamp was seen, and whether the orchestrator wrote its result in
+the turn the stamp closed, are read by the person and by nobody else. So is
+how the stamp reads on a light background as well as a dark one. Nothing
+outside the disc is painted, so its text is in the terminal's own colours and
+theme — dim labels, a green `✓`, the title in the stamp's red — and the owner
+reads the first real stamp on each background.
+**Nor is the hook's silence where it cannot draw.** No stamp is queued, and
+nothing is said, where git's hooks slot is somebody else's (`core.hooksPath`,
+or a hook file the plugin did not write), since none of its stubs runs there;
+in local mode, where the `seal/` root sits under the git directory and no
+commit carries `guarantee.md`; or for a person's own commit with no Claude
+session behind it, which has no turn to draw at. The hook draws nothing and
+says nothing where the main session's `python3` cannot load `seal_stamp.py`,
+since no launcher stands in front of a hook; where that session's working
+directory is outside the clone the commit landed in; or where its plugin
+predates the hook. Where a file was written, the line `post-commit` printed
+names `seal-stamp --from <path>`, and a stamp that did not appear is drawn by
+hand from it, once. Where none was, the pull request's check is what says the
+work item was sealed.
+Enforced by: nothing — no case, hook or workflow can observe a screen; the
+owner reads it on the first real run after a change to this surface.
+
 ## The run
 
 **A run ends with a verifying round.** It is spawned after the last fixes are

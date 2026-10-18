@@ -1018,7 +1018,7 @@ def missing_row(home):
         f"broad-gate: {os.path.join(home, CONFIG)} has no `{ROW}` row, so "
         "there is no command to seal over — and choosing one is not this "
         "session's to do. There is no default because a row is a thing a "
-        "person wrote, and what the gate's stamp covers is exactly that "
+        "person wrote, and what the broad run covers is exactly that "
         "(`skills/verify/SKILL.md` §*The Seal Test*): a session that picks a "
         "command here seals its own choice.\n"
         "Take it to whoever owns the repository. `/specseal:config` is where "
@@ -2090,11 +2090,11 @@ def compare_at_base(root, base, command, files, keep):
 #
 # **A reason is prose, never a category.** `EXCLUDED` tells the next reader
 # nothing, and the reason is the whole value of the row — it is what a person
-# checks when they wonder whether this gate's seal covers them.
+# checks when they wonder whether this gate's run covers them.
 #
 # What this does NOT close, stated rather than left to be found: an exclusion
 # can be written to make the case green rather than to state a truth, and the
-# partition would then be total and this gate's stamp still short of what the
+# partition would then be total and this gate's run still short of what the
 # merge is judged by. That hole is real and open; what the declaration buys is
 # that the omission is now a sentence somebody wrote and signed rather than a
 # silence.
