@@ -922,9 +922,13 @@ def label(values):
 # was stamped at the first. The last two hold across clones. A `sealed` that
 # drew nothing counts too, since the history cannot tell it from one stamped
 # before a rebase, so the work item then draws no stamp: the gap #976
-# carries. An amend of the sealing commit itself in a second clone is not
-# caught by either: its parent predates the guarantee and its row is the one
-# just written.
+# carries. A `sealed` committed over a history that carries no earlier
+# `sealed` is caught by neither, so it queues again in a clone that holds no
+# values file for the work item: the sealing commit amended or rewritten
+# there over its own parent, or a second seal on a copy of the branch that
+# had not fetched the first. Its row is the one just written. That is a
+# stated limit (`questions.md` Q9): across clones the history is the only
+# record read, and nothing beside the tree counts stamps.
 
 # A committed guarantee's path, in shared mode, where a commit carries it. A
 # local-mode root sits under the git directory and no commit ever carries

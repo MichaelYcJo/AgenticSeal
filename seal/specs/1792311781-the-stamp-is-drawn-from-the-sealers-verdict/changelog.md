@@ -12,14 +12,22 @@
   `undecided` draw nothing. A re-seal after `withheld` draws the stamp then,
   and a work item that was already stamped draws nothing more, whatever
   commit the new verdict names. That holds in another clone of the same
-  branch too, since its history shows the guarantee already read `sealed`;
-  the one exception is a second clone amending the sealing commit itself,
-  which draws the stamp again there. A squash or a cherry-pick of the
-  guarantee onto another branch draws nothing either, and neither does a
-  `sealed` whose `Target SHA` names a commit the branch does not hold. That
-  `sealed` still counts as the work item's one stamp, so a later commit that
-  corrects the row draws none either: the history cannot tell it from a
-  stamp drawn before a rebase, and #976 carries that gap. The stamp's rows
+  branch too, since its history shows the guarantee already read `sealed`.
+  It does not hold where a clone commits a `sealed` over a history that
+  carries no earlier `sealed`: the sealing commit amended or rewritten
+  there over its own parent, or a second seal on a copy of the branch that
+  had not fetched the first. That clone draws the stamp again, because
+  across clones the history is the only record read and nothing beside the
+  tree counts stamps. A squash or a cherry-pick of the guarantee onto
+  another branch draws nothing, and neither does a `sealed` whose
+  `Target SHA` names a commit the branch does not hold. That `sealed` still
+  counts as the work item's one stamp, and so does a `sealed` that queued
+  nothing because a person committed it outside a Claude session, or a
+  clone whose git hooks slot is somebody else's committed it: no later
+  commit of that history draws the stamp, a corrected row or a re-seal
+  from a clone that carries the hooks among them. The history cannot tell
+  such a `sealed` from a stamp drawn before a rebase, and #976 carries that
+  gap. The stamp's rows
   are what the records at that commit say: the audited commit and its branch,
   the base, the work item, the newest broad run, and the count of round
   records. The suite's counts are no longer on it.
@@ -29,7 +37,9 @@
   somebody else's (`core.hooksPath`, or a hook file the plugin did not
   write) draws no stamp and prints no line, and neither does a repository in
   local mode, where no commit carries `guarantee.md` (#976). There the pull
-  request's check is what says the work item was sealed.
+  request's check is what says the work item was sealed, and a `sealed`
+  committed where the hooks slot is somebody else's still counts as the
+  work item's stamp afterwards, as above.
 
   The sealer's definition changed by one clause, so it was measured again
   against #969's reference on the same five-case suite:

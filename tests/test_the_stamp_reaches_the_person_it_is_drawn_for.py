@@ -1394,6 +1394,14 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "**The stamp is drawn once per work item, from the sealer's `sealed`, at "
         "the end of the turn in which `guarantee.md` reading it was committed.**"
     ) in rule
+    # #975 round 6's finding 1: the double-stamp limit is stated where the
+    # rule is, as the class `sealed_before` cannot see, with its reason.
+    assert "draws the stamp again in that clone" in rule, (
+        "the double-stamp limit is stated where the rule is"
+    )
+    assert "the history is the only record the rule reads" in rule, (
+        "the limit says why it is one"
+    )
     for case in (
         "::test_a_sealed_guarantees_commit_queues_one_stamp",
         "::test_a_withheld_or_undecided_guarantee_queues_nothing",
