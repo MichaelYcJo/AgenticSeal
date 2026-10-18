@@ -557,7 +557,8 @@ GATE_RECORD = """# {item} — broad gate
 # Each case: (slug, the case's assertion is true, the body's extra claim,
 # the verdict the guarantee reads, the pattern its verdict line must match
 # to name what the tree contradicts, or None for a sealed item, and whether
-# the orchestrator's broad run is recorded before the spawn).
+# the orchestrator's broad run is recorded before the spawn: True, False, or
+# "stale" for a record a code commit follows).
 SEALER_RUNS = (
     ("sealed", True, "", "sealed", None, True),
     (
@@ -577,7 +578,17 @@ SEALER_RUNS = (
         True,
     ),
     ("no-gate", True, "", "withheld", r"^Verdict:.*no broad run", False),
+    ("stale-gate", True, "", "withheld", r"^Verdict:.*no broad run", "stale"),
 )
+# What the truth grader says it holds, by GATE: the record stands, is absent,
+# or is followed by a code commit.
+SEALER_TRUTH = {
+    True: "The verdict names the party and the claim the tree contradicts.",
+    False: "The verdict says no broad run is on record at HEAD: "
+    "`broad-gate.md` is absent, so nothing broad ran.",
+    "stale": "The verdict says no broad run is on record at HEAD: a code "
+    "commit follows the run `broad-gate.md` names.",
+}
 BY = "git -c user.name=eval -c user.email=eval@example.com commit -q -m"
 
 
@@ -593,7 +604,9 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     flow leaves it: `broad-gate.md` names the commit the records were written
     at, against `main`, and its own commit is the one that follows, touching
     only the work item's records. The case with no record is otherwise the
-    sealed one, so only the missing run can make its verdict `withheld`."""
+    sealed one, so only the missing run can make its verdict `withheld`.
+    Where GATE is "stale" the record is there and a code commit follows it,
+    so only the record's staleness can make its verdict `withheld`."""
     item = f"1790000030-guarantee-{slug}"
     branch = f"feat/guarantee-{slug}"
     folder = f"seal/specs/{item}"
@@ -646,6 +659,12 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
             "git add -A",
             f"{BY} 'docs: the broad run on record'",
         ]
+    if gate == "stale":
+        lines += [
+            "printf '\\n' >> src/textutil.py",
+            "git add -A",
+            f"{BY} 'fix: a code commit after the broad run'",
+        ]
     lines += [
         write(f"{evidence}/issue-101.md", ISSUE),
         write(f"{evidence}/pr-body.md", PR_BODY.format(test=EMPTY_TEST, extra=extra)),
@@ -697,10 +716,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
                 slug,
                 guarantee,
                 names,
-                "The verdict names the party and the claim the tree contradicts."
-                if gate
-                else "The verdict says no broad run is on record at HEAD: "
-                "`broad-gate.md` is absent, so nothing broad ran.",
+                SEALER_TRUTH[gate],
                 flags="mi",
             )
         )

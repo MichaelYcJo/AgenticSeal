@@ -50,6 +50,10 @@ suites.
 b394e929b414dcf0520b7d365e5e3fd56e4c764d. A later change passes
 `evals/reference-sealer.json` to `compare --old`.
 
+**Round 1 adds a fifth case, `rule-sealer-stale-gate`, so the reference is
+re-run on the five-case suite after round 1**; the orchestrator writes its
+figures here, and until then the side above measured four cases.
+
 **Spend.** The item's four sides: 3.1901 + 2.8036 + 1.4076 + 2.9882 =
 **10.3895 USD**, under the item's $40 (`questions.md` Q5's estimate was $17
 to $22).
