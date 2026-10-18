@@ -28,18 +28,30 @@ Each is argued in `plan.md` §*Alternatives considered* or `spec.md`.
 5. *Whether `agents/sealer.md` changes, and whether that owes a run.* The
    clause says the stamp is drawn from the sealer's *committed* `sealed`,
    which is false in local mode, so the word goes (contract §19). #957's
-   rule measures any changed read set, so phase 4 runs one side against
+   rule measures any changed read set, so phase 5 runs one side against
    #975's phase-4 side. The definition shrinks by one word, so rule 4
    (preload) cannot get worse.
 6. *Where the line `seal-stamp --from <path>` goes in local mode.* There is
    no commit output to carry it, so it goes as the edit gate's
    `systemMessage`. `seal_stamp.QUEUED` is unchanged, so both modes say one
    sentence.
+7. *The form Q2's (b) is built in.* Q2's option (b) named A8, patch-equivalence
+   inside `sealed_before`. Reading #975's rounds 4 and 5 against it settled
+   that A8 alone is round 4's shape again. It is a condition over ancestry
+   evaluated at read time, so a conflicted rebase draws a second stamp, and
+   it cannot help round 4's measured `deadbee` case, which does not resolve.
+   So the mechanism is a refusal record the refusing writer leaves in its
+   own clone, which the once readers skip (`plan.md` A11). Patch-equivalence
+   is its guard 4, where it can only withhold a record (`plan.md`
+   §*Technical context*, *The guard, stated once*). The owner's answer was
+   to build a mechanism, and this is the form that keeps round 5's two cases
+   green.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
 | Q1 | Does a `PostToolUse` hook fired by a subagent's `Write` carry the main session's `session_id`? The local values file is keyed by it, and the main session's `Stop` reads only its own directory. #400's `questions.md` Q2 measured this for `SubagentStop` on 2026-09-28, and `hooks/hooksession.py` measured it for the environment variable a subagent's Bash child carries. Nobody has measured it for `PostToolUse`. The tree cannot answer it, because it is the harness's behaviour, and no case can spawn a subagent (contract §6) | a measurement — the orchestrator, before phase 2 closes: a scratch `PostToolUse` hook logging `session_id` and `agent_id`, then any subagent that writes one file, then compare with the main session's id. Or the owner, on the first local-mode run after 0.22.2 | (a) it is the parent's id: the build stands as framed; (b) it is the subagent's own id: the gate keys the file by the payload's parent id where the payload names one, or the stamp is missing and §*The stamp* says so | (a), the same shape as `SubagentStop` | answered (a) 2026-10-19 by the orchestrator, by measurement: `hooks/session-lease.py`, a `PostToolUse` hook on `Write\|Edit\|NotebookEdit`, names its lease file by the payload's `session_id`. The only process that wrote into this worktree before b1dd8e79's framer finished was that framer subagent, and `.git/worktrees/976/specseal-leases/` held exactly one file, `df5caeb2-ee37-44ef-8c91-cb0853f0eb20`, the main session's id (stamped 07:49–07:51). The framer's transcript lines carry the same `sessionId` |
-| Q2 | #976's comment carries #975's Q7 gap. A `sealed` over a commit the branch does not hold draws nothing, and the corrected re-seal draws nothing either, because the history cannot tell it from a `sealed` stamped before a rebase (#975 Q8, never twice). Does #976 close with that gap as a stated limit, or build a mechanism? The tree argues for the limit: the gap only follows a guarantee the pull request's check already refuses as stale, and the one mechanism found (A8, patch-equivalence) adds a fourth reading to the reader rounds 3 to 6 kept regressing. But the owner sent the gap to this issue, and closing the issue without a mechanism is the owner's to accept | a person (the repository owner) | (a) a stated limit: the "#976 carries" sentences say so (S8), and no code changes for it; (b) build A8 in shared mode's `sealed_before`, as one more phase with its own red cases against round 5's rebase case | (a); the build proceeds on it under `Automation \| yes`, and an answer of (b) is one later phase that touches `sealed_before` alone | open |
+| Q2 | #976's comment carries #975's Q7 gap. A `sealed` over a commit the branch does not hold draws nothing, and the corrected re-seal draws nothing either, because the history cannot tell it from a `sealed` stamped before a rebase (#975 Q8, never twice). Does #976 close with that gap as a stated limit, or build a mechanism? The tree argues for the limit: the gap only follows a guarantee the pull request's check already refuses as stale, and the one mechanism found (A8, patch-equivalence) adds a fourth reading to the reader rounds 3 to 6 kept regressing. But the owner sent the gap to this issue, and closing the issue without a mechanism is the owner's to accept | a person (the repository owner) | (a) a stated limit: the "#976 carries" sentences say so (S8), and no code changes for it; (b) build A8 in shared mode's `sealed_before`, as one more phase with its own red cases against round 5's rebase case | (a); the build proceeds on it under `Automation \| yes`, and an answer of (b) is one later phase that touches `sealed_before` alone | answered (b) 2026-10-19 by the repository owner: "막는 장치를 만들도록 해 — 한계만 적으면 계속 공백인 거잖아". Built as phase 3 in the form the head's item 7 gives |
+| Q4 | Does `git reflog -1 --format=%gs HEAD`, read inside `post-commit`, already show the commit that triggered it, and with which subjects across the git versions CI runs: `commit:` for a plain commit, `commit (amend):`, `rebase (pick):` or `rebase (continue):`, `cherry-pick:`, `commit (merge):`? Guard 2 reads it, and a subject it does not know must write no record | a measurement — phase 3's guard-2 cases run each of those commands against real git in the fixtures, on every CI leg | — | — | open |
 | Q3 | On Windows, does `os.path.realpath` on the payload's `file_path` and on `git rev-parse --git-common-dir` give two strings that compare equal, given drive-letter case and separators? | the work — phase 2 meets it in the Windows leg of CI and normalizes with `os.path.normcase` where the leg says so | — | — | open |
 
 **`Who can answer` takes one of three values and nothing else.** They were one
@@ -66,10 +78,9 @@ never by whoever asked. Sorting the rows this way is also what keeps the
 batch short enough to answer in one sitting: two of the three kinds never
 needed a person at all.
 
-Q2 is a person's row and does not stop this build. The owner pressed
-`automation` (`routing.md`). The default builds the same trigger as either
-answer, and an answer of (b) adds one phase to shared mode's reader and
-changes nothing in the local trigger.
+Q2 was the one person's row. The owner answered it during the run, after
+phase 1 had closed, and the answer added phase 3 without changing phase 1's
+trigger.
 
 Answered rows feed back into docs/ (policy clause or open-questions section)
 before this directory's work merges.
