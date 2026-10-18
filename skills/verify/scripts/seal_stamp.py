@@ -911,11 +911,14 @@ def label(values):
 # after every judged commit, in the worktree the commit landed in, and calls
 # `queue_for_guarantee`; the `Stop` hook draws what it queued.
 #
-# Once per work item is held by two facts the tree and the clone carry, and
-# no count kept beside them: the `Target SHA` row's `; earlier run: <sha>
-# <verdict>` chain — a `sealed` after a `sealed` was stamped at the first —
-# and the file's name, `<ns>-<id>-<target sha>.json`, which a re-commit of
-# the same guarantee finds under any session's directory, pending or drawn.
+# Once per work item is held by three facts the tree and the clone carry,
+# and no count kept beside them: a values file whose name,
+# `<ns>-<id>-<target sha>.json`, carries the work item's id, under any
+# session's directory, pending or drawn, whatever commit it named; the
+# audited commit standing in HEAD's history, so a squash or a cherry-pick of
+# the guarantee elsewhere queues nothing; and the `Target SHA` row's `;
+# earlier run: <sha> <verdict>` chain — a `sealed` after a `sealed` was
+# stamped at the first — which holds across clones.
 
 # A committed guarantee's path, in shared mode, where a commit carries it. A
 # local-mode root sits under the git directory and no commit ever carries
@@ -974,9 +977,13 @@ def _chain_check():
     return module
 
 
-def already_queued(common, key):
-    """True where a values file ending in `-<key>` stands under any session's
-    directory of the clone, pending or drawn."""
+def already_queued(common, ident):
+    """True where a values file for work item `ident` stands under any
+    session's directory of the clone, pending or drawn. A work item is
+    stamped once (#975), whatever commit its guarantee audited, so the
+    audited commit is not part of the question. A name is
+    `<ns>-<ident>-<target>.json`; a file an older gate wrote is
+    `<ns>-<tree>.json` and has no middle part to match."""
     root = os.path.join(common, VALUES_DIR)
     try:
         sessions = os.listdir(root)
@@ -988,7 +995,12 @@ def already_queued(common, key):
         except OSError:
             continue
         for name in names:
-            if name.endswith((f"-{key}{PENDING}", f"-{key}{DRAWN}")):
+            parts = name.split("-")
+            if (
+                len(parts) == 3
+                and parts[1] == ident
+                and name.endswith((PENDING, DRAWN))
+            ):
                 return True
     return False
 
@@ -1015,8 +1027,9 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
 def queue_for_guarantee(top, common, session, now=None):
     """The lines `post-commit` prints for the commit at HEAD of `top`: one
     per work item whose `guarantee.md` the commit touched, reads one
-    `Verdict:` of `sealed`, carries no earlier run reading `sealed`, and has
-    no values file queued already. Each writes one values file for
+    `Verdict:` of `sealed`, carries no earlier run reading `sealed`, has no
+    values file in the clone already, and audited a commit in HEAD's
+    history. Each writes one values file for
     `session` under `common` first. Raises whatever reading or writing
     raises; the caller is silent on every failure."""
     touched = _git(
@@ -1058,9 +1071,16 @@ def _queue_one(chain, top, common, session, name, now):
     if any(word == chain.SEALED for _sha, word in chain.earlier_verdicts(cell)):
         return None
     ident = item_value(name)
-    key = f"{ident}-{target}"
-    if already_queued(common, key):
+    if already_queued(common, ident):
         return None
+    # The audited commit is in this commit's history. A squash or a
+    # cherry-pick of the guarantee onto another branch, in this clone or
+    # another, carries a verdict that was stamped where it was made.
+    # Precondition: `target` resolves in this clone; where it does not,
+    # `merge-base` exits 128 and nothing is queued.
+    if _git(top, "merge-base", "--is-ancestor", target, "HEAD") is None:
+        return None
+    key = f"{ident}-{target}"
     newest = chain.EMPHASIS.sub("", cell.split(chain.EARLIER_RUN)[0]).split()
     base = newest[2] if len(newest) >= 3 and newest[1] == "against" else None
     gate_text = _git(top, "show", f"HEAD:{rel}/{chain.BROAD_GATE_FILE}")

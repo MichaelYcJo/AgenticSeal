@@ -701,6 +701,47 @@ def test_a_recommit_of_the_same_guarantee_queues_no_second_file(tmp_path):
     assert queued(repo) == [drawn_file]
 
 
+def test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing(tmp_path):
+    """#975, once per work item. The sealer ran again at a new commit and
+    wrote its row fresh, without `; earlier run: <sha> sealed`: the clone
+    already holds the work item's stamp, so nothing more is queued. Red at
+    a0ee12eb: the key named the audited commit, so a second file stood
+    beside the drawn one."""
+    repo, _target, base = guaranteed(tmp_path)
+    assert after_the_commit(repo)
+    stop(repo)
+    item = repo / "seal" / "specs" / ITEM_NAME
+    (repo / "x.txt").write_text("a fix after the seal\n", encoding="utf-8")
+    commit_all(repo, "a fix")
+    new = git(repo, "rev-parse", "--short", "HEAD").stdout.strip()
+    (item / "guarantee.md").write_text(
+        guarantee_text(new, base, "sealed"), encoding="utf-8"
+    )
+    commit_all(repo, "the sealer again, its row written fresh")
+    assert after_the_commit(repo) == ""
+    assert len(queued(repo)) == 1, queued(repo)
+
+
+def test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing(tmp_path):
+    """#975, once per work item. The guarantee was stamped in one clone; a
+    squash of its branch in another clone carries the verdict onto a commit
+    whose history does not hold the audited commit, so nothing is queued.
+    Red at a0ee12eb: the second clone held no values file, so it queued
+    one."""
+    repo, _target, _base = guaranteed(tmp_path)
+    assert after_the_commit(repo)
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+    )
+    git(other, "switch", "-q", "main")
+    git(other, "fetch", "-q", "origin", "feat/x:feat/x")
+    git(other, "merge", "--squash", "feat/x")
+    commit_all(other, "the squash, elsewhere")
+    assert after_the_commit(other) == ""
+    assert queued(other) == []
+
+
 def test_the_guarantee_stamps_rows_are_read_from_the_records(tmp_path):
     """#975 S9, `questions.md` Q1's answer (a). The stamp carries what the
     records at the commit say and nothing re-measured: its title, the
