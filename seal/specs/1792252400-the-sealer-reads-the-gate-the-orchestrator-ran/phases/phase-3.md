@@ -134,17 +134,18 @@ and nothing else:
   disagrees with its numbers. A cut-short side and an unrecorded spend print
   `opus`. Each truth grader is judged on its own, so the one lost find
   `verdict` forgives as noise still prints `opus`.
-- **`bin/rules --check` exits 1 at 1459b26f** on one of 464 targets:
-  `skills/agent-contract/SKILL.md:47` (§2) names
+- **`bin/rules --check` exited 1 from 394ed499 to 1459b26f** on one of 464
+  targets: `skills/agent-contract/SKILL.md:47` (§2) named
   `tests/test_broad_gate_rule.py::test_the_prohibition_itself_has_one_home_and_it_is_the_contract`,
   which 394ed499 renamed to
   `test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn`.
-  T7's diff touches neither file, and T7's spawn was barred from `skills/`.
-  The orchestrator repoints the line before the review round.
+  The orchestrator repointed the line in the commit that adds this sentence,
+  before phase 4, so phase 4's side reads the contract as it now stands; the
+  phase-3b row below reading exit 0 did not hold at 394ed499.
 
 | Figure | Value |
 |---|---|
-| Preload bytes, `agents/sealer.md` + contract | 23,768 (7,189 + 16,579), against 24,652 at 2fc33333 |
+| Preload bytes, `agents/sealer.md` + contract | 23,792 (7,189 + 16,603) after the §2 repoint, 23,768 at 394ed499, against 24,652 at 2fc33333 |
 | `payload-meter --agent sealer` total, with the CLAUDE.md pair | 37,086 B, about 11,590 tokens (estimated, 3.2 B/token) |
 
 ## Commands
@@ -160,4 +161,6 @@ and nothing else:
 | T7: `bin/test tests/test_a_rewritten_definition_proved_non_inferior.py tests/test_evals_layout.py -q` at 1459b26f | 0, 79 passed |
 | T7: `uvx ruff check` / `uvx ruff format --check` over `noninferiority.py` and the test module | 0 / 0 |
 | T7: `bin/rules --check` at 1459b26f | 1, 1 of 464 targets does not resolve (the §2 line above) |
+| `bin/rules --check` after the §2 repoint | 0, 464 targets in 60 files resolve |
+| `bin/test` over `test_broad_gate_rule`, `test_the_agent_contract_holds_the_universal_rules`, `test_every_agent_reads_the_contract`, `test_no_passage_is_pasted_into_a_second_file` after the repoint | 0, 110 passed, 3 skipped |
 | T7: `mutation-check` × 9 over `cheaper_model`, `read_record`, `check_record` and `model` | 0 each, every one `red` |
