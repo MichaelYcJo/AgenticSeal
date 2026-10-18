@@ -883,6 +883,247 @@ def test_the_guarantee_stamps_rows_are_read_from_the_records(tmp_path):
     assert said["session"] == "s-1" and said["pr"] is None, said
 
 
+# --- #976: in local mode the stamp is queued at the write ---------------------
+#
+# A local-mode root sits under the git common dir and no commit carries it,
+# so `post-commit` never sees its `guarantee.md`. `queue_for_local_guarantee`
+# reads the file the sealer wrote, from disk, and queues the same values file
+# the shared writer would; the `Stop` hook above draws it.
+
+GUARANTEE_TEMPLATE = os.path.join(ROOT, "templates", "sdd-guarantee.md")
+
+
+def routing_text(branch="feat/x"):
+    """A `routing.md` in `templates/sdd-routing.md`'s shape, naming `branch`
+    in its `Branch` row, or with no `Branch` row where `branch` is None."""
+    rows = (
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+    )
+    return rows + (f"| Branch | {branch} |\n" if branch else "")
+
+
+def local_guaranteed(tmp_path, verdict="sealed", earlier="", linked=False):
+    """A repository in local mode — no `seal/` in its tree, its root under
+    the git common dir (contract §11) — whose branch `feat/x` carries the
+    audited commit, checked out in the main checkout or, with `linked`, in a
+    linked worktree of it. The work item under that root holds `routing.md`
+    naming the branch, two round records, `broad-gate.md` naming the audited
+    commit and `guarantee.md` reading `verdict` over it. Returns (repo,
+    target, base, the guarantee's path)."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", "main")
+    (repo / "README.md").write_text("x\n", encoding="utf-8")
+    commit_all(repo, "x")
+    where = repo
+    if linked:
+        where = tmp_path / "linked"
+        git(repo, "worktree", "add", "-q", str(where), "-b", "feat/x")
+    else:
+        git(repo, "switch", "-qc", "feat/x")
+    (where / "work.txt").write_text("the work\n", encoding="utf-8")
+    commit_all(where, "the work")
+    target = git(where, "rev-parse", "--short", "HEAD").stdout.strip()
+    base = git(repo, "rev-parse", "--short", "main").stdout.strip()
+    item = repo / ".git" / "seal" / "specs" / ITEM_NAME
+    (item / "rounds").mkdir(parents=True)
+    for n in (1, 2):
+        (item / "rounds" / f"round-{n}.md").write_text("x\n", encoding="utf-8")
+    (item / "routing.md").write_text(routing_text(), encoding="utf-8")
+    (item / "broad-gate.md").write_text(
+        f"| Field | Value |\n|---|---|\n| Broad gate | {target} against {base} |\n",
+        encoding="utf-8",
+    )
+    path = item / "guarantee.md"
+    path.write_text(guarantee_text(target, base, verdict, earlier), encoding="utf-8")
+    return repo, target, base, path
+
+
+def queue_local(path, session="s-1"):
+    """What the local writer returned for the `guarantee.md` at `path`."""
+    return stamp_module().queue_for_local_guarantee(str(path), session)
+
+
+@pytest.mark.parametrize("linked", [False, True], ids=["main checkout", "linked"])
+def test_a_local_mode_sealed_guarantee_queues_one_stamp(tmp_path, linked):
+    """#976 S1. A local-mode `guarantee.md` reading `sealed` over a commit on
+    the `Branch` row's branch, with no earlier run reading `sealed`, queues
+    one values file for the session under the common dir, named by the work
+    item's id and the audited commit, with the rows the shared writer
+    builds from the same records, and returns the one line `post-commit`
+    prints in shared mode. The main session's `Stop` then draws it once.
+    The same from a linked worktree, whose common dir is the main
+    checkout's `.git`. Red at d8f9eaef: `seal_stamp` had no local writer."""
+    mod = stamp_module()
+    repo, target, base, path = local_guaranteed(tmp_path, linked=linked)
+    said = queue_local(path)
+    (written,) = queued(repo)
+    assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
+    assert os.path.basename(written).endswith(f"-{ITEM_ID}-{target}.json"), written
+    real = os.path.realpath(written)
+    assert said == [mod.QUEUED.format(id=ITEM_ID, path=real, command=mod.quote(real))]
+    values = mod.read_values(written)
+    assert values["rows"] == [
+        ("SEALED", ""),
+        ("tree", target),
+        ("", "feat/x"),
+        ("base", base),
+        ("item", ITEM_ID),
+        None,
+        ("gate", f"✓ {target}"),
+        ("rounds", "2"),
+    ], values["rows"]
+    assert (values["tree"], values["base"], values["from"], values["branch"]) == (
+        target,
+        base,
+        None,
+        "feat/x",
+    ), values
+    assert values["item"] == os.path.realpath(path.parent), values
+    assert values["session"] == "s-1" and values["pr"] is None, values
+    lines = message(stop(repo))
+    assert lines[0] == f"SEALED feat/x @ {target} against {base} · {ITEM_NAME}", lines
+    assert stop(repo) == "", "the stamp was drawn twice"
+
+
+@pytest.mark.parametrize(
+    "written",
+    [
+        lambda t, b: guarantee_text(t, b, "withheld — the README is stale"),
+        lambda t, b: guarantee_text(t, b, "undecided — does #12 ask for the flag?"),
+        lambda t, b: guarantee_text(t, b, "sealed") + "\nVerdict: withheld — x\n",
+        lambda t, b: open(GUARANTEE_TEMPLATE, encoding="utf-8").read(),
+    ],
+    ids=["withheld", "undecided", "two verdicts", "the unfilled template"],
+)
+def test_a_local_mode_withheld_or_undecided_guarantee_queues_nothing(tmp_path, written):
+    """#976 S2. The finished-work stamp is not drawn over unfinished work in
+    local mode either: a guarantee that does not read one `Verdict:` of
+    `sealed` queues nothing and returns no line."""
+    repo, target, base, path = local_guaranteed(tmp_path)
+    path.write_text(written(target, base), encoding="utf-8")
+    assert queue_local(path) == []
+    assert queued(repo) == []
+
+
+def test_a_local_mode_reseal_after_withheld_queues_the_stamp(tmp_path):
+    """#976 S3. The sealer withheld, the work was fixed, and its second run
+    reads `sealed` with the earlier verdict kept on the row: that write
+    queues the stamp."""
+    repo, target, _base, path = local_guaranteed(
+        tmp_path, earlier="; earlier run: abc1234 withheld — the README is stale"
+    )
+    assert queue_local(path)
+    (written,) = queued(repo)
+    assert written.endswith(f"-{ITEM_ID}-{target}.json"), written
+
+
+def test_a_local_mode_second_sealed_queues_nothing(tmp_path):
+    """#976 S3, once per work item. A row whose earlier-run chain reads
+    `sealed` was stamped at that run, so it queues nothing. A values file
+    for the work item under any session's directory of the clone, pending
+    or drawn, is a complete record in local mode, since the root and the
+    values directory share the common dir: a second write queues nothing
+    beside it."""
+    repo, target, base, path = local_guaranteed(
+        tmp_path,
+        earlier="; earlier run: bbb2222 sealed; earlier run: abc1234 withheld — x",
+    )
+    assert queue_local(path) == []
+    assert queued(repo) == []
+    path.write_text(guarantee_text(target, base, "sealed"), encoding="utf-8")
+    assert queue_local(path, session="s-1")
+    assert queue_local(path, session="s-2") == []
+    assert len(queued(repo)) == 1, queued(repo)
+    stop(repo)
+    (drawn_file,) = queued(repo)
+    assert drawn_file.endswith(".drawn.json"), drawn_file
+    assert queue_local(path, session="s-3") == []
+    assert queued(repo) == [drawn_file]
+
+
+def _unresolved(repo, item, target, base):
+    (item / "guarantee.md").write_text(
+        guarantee_text("dead0000", base, "sealed"), encoding="utf-8"
+    )
+
+
+def _off_the_branch(repo, item, target, base):
+    tree = git(repo, "rev-parse", "main^{tree}").stdout.strip()
+    elsewhere = git(
+        repo,
+        "-c",
+        "user.name=e",
+        "-c",
+        "user.email=e@example.com",
+        "commit-tree",
+        tree,
+        "-p",
+        "main",
+        "-m",
+        "a commit no branch holds",
+    ).stdout.strip()
+    (item / "guarantee.md").write_text(
+        guarantee_text(elsewhere[:7], base, "sealed"), encoding="utf-8"
+    )
+
+
+def _no_routing(repo, item, target, base):
+    (item / "routing.md").unlink()
+
+
+def _no_branch_row(repo, item, target, base):
+    (item / "routing.md").write_text(routing_text(None), encoding="utf-8")
+
+
+def _a_branch_gone(repo, item, target, base):
+    (item / "routing.md").write_text(routing_text("feat/merged"), encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    "given",
+    [_unresolved, _off_the_branch, _no_routing, _no_branch_row, _a_branch_gone],
+    ids=[
+        "the target does not resolve",
+        "the target is off the branch",
+        "no routing.md",
+        "no Branch row",
+        "a branch the clone no longer holds",
+    ],
+)
+def test_a_local_mode_guarantee_off_its_branch_queues_nothing(tmp_path, given):
+    """#976 S4. `settle` never retires a local-mode work item, so a `sealed`
+    the clone wrote long ago still stands under its root. A verdict over a
+    commit the work item's branch does not hold — or one whose branch cannot
+    be named or is gone — queues nothing, so editing an old guarantee draws
+    no stamp for work finished long ago."""
+    repo, target, base, path = local_guaranteed(tmp_path)
+    given(repo, path.parent, target, base)
+    assert queue_local(path) == []
+    assert queued(repo) == []
+
+
+def test_the_edit_gate_leaves_shared_mode_to_post_commit(tmp_path):
+    """#976 S5, the writer's half. A `guarantee.md` reading `sealed` under
+    `<repo>/seal/` is shared mode's, whose stamp `post-commit` queues at the
+    commit; and a root under the git common dir of a repository that also
+    has `<repo>/seal/` is shared too (contract §11). The local writer queues
+    nothing for either, where every other fact would queue."""
+    for name in ("shared", "both"):
+        (tmp_path / name).mkdir()
+    shared, _target, _base = guaranteed(tmp_path / "shared")
+    item = shared / "seal" / "specs" / ITEM_NAME
+    (item / "routing.md").write_text(routing_text(), encoding="utf-8")
+    assert queue_local(item / "guarantee.md") == []
+    assert queued(shared) == []
+    both, _target, _base, path = local_guaranteed(tmp_path / "both")
+    (both / "seal").mkdir()
+    assert queue_local(path) == []
+    assert queued(both) == []
+
+
 # --- #717: the hook's whole message is held under a budget --------------------
 
 # What `broad_gate.panel` returns for a real run since #832 — `full_values()`'s

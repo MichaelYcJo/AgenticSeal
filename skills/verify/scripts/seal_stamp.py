@@ -1116,28 +1116,154 @@ def _queue_one(chain, top, common, session, name, now):
     # `merge-base` exits 128 and nothing is queued.
     if _git(top, "merge-base", "--is-ancestor", target, "HEAD") is None:
         return None
+    gate_text = _git(top, "show", f"HEAD:{rel}/{chain.BROAD_GATE_FILE}")
+    listed = _git(top, "ls-tree", "--name-only", "HEAD", f"{rel}/rounds/") or ""
+    branch = (_git(top, "symbolic-ref", "--short", "-q", "HEAD") or "").strip()
+    return _queue_values(
+        chain,
+        common,
+        session,
+        now,
+        ident=ident,
+        target=target,
+        cell=cell,
+        gate_text=gate_text,
+        rounds=listed.splitlines(),
+        branch=branch,
+        item=os.path.join(top, *rel.split("/")),
+    )
+
+
+def _queue_values(
+    chain, common, session, now, *, ident, target, cell, gate_text, rounds, branch, item
+):
+    """Write one work item's stamp for `session` under `common` and return
+    the line that names it. Both writers call it once a guarantee has passed
+    their refusals, each having read the records its own way: `_queue_one`
+    from the commit, `queue_for_local_guarantee` from disk. `cell` is the
+    `Target SHA` row, `gate_text` the `broad-gate.md` beside the guarantee or
+    None, `rounds` the paths of what its `rounds/` holds and `branch` the
+    branch the audited commit stands on, or "" where none is named."""
+    reader = chain.SHARED_READER
     key = f"{ident}-{target}"
     newest = chain.EMPHASIS.sub("", cell.split(chain.EARLIER_RUN)[0]).split()
     base = newest[2] if len(newest) >= 3 and newest[1] == "against" else None
-    gate_text = _git(top, "show", f"HEAD:{rel}/{chain.BROAD_GATE_FILE}")
     run = chain.newest_run(reader, gate_text) if gate_text else None
-    listed = _git(top, "ls-tree", "--name-only", "HEAD", f"{rel}/rounds/") or ""
-    rounds = sum(
-        1 for path in listed.splitlines() if ROUND_FILE.match(os.path.basename(path))
-    )
-    branch = (_git(top, "symbolic-ref", "--short", "-q", "HEAD") or "").strip()
+    count = sum(1 for path in rounds if ROUND_FILE.match(os.path.basename(path)))
     values = {
         "tree": target,
         "base": base,
         "from": None,
         "branch": branch or None,
         "pr": None,
-        "item": os.path.join(top, *rel.split("/")),
+        "item": item,
         "session": session or None,
-        "rows": guarantee_rows(target, branch, base, ident, run, rounds),
+        "rows": guarantee_rows(target, branch, base, ident, run, count),
     }
     path = write_values(common, session, values, now=now, key=key)
     return QUEUED.format(id=ident, path=path, command=quote(path))
+
+
+def _same_place(path):
+    """`path` spelled the one way two spellings of a place compare equal in:
+    resolved through links, as macOS's `/private` is, and in the platform's
+    case."""
+    return os.path.normcase(os.path.realpath(path))
+
+
+def _read(path):
+    """The text of `path`, or None where it cannot be read."""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            return handle.read()
+    except (OSError, ValueError):
+        return None
+
+
+def queue_for_local_guarantee(path, session, now=None):
+    """The lines a write of the local-mode `guarantee.md` at `path` says:
+    one where it queued the work item's stamp for `session`, else none.
+
+    A local-mode root sits under the git common dir and no commit carries
+    it, so this reads the file from disk where `queue_for_guarantee` reads
+    a commit. `path` must be `<common>/seal/specs/<id>/guarantee.md`, where
+    `<common>` is the repository's git common dir and `seal/` under it is
+    the repository's root (`optin.home_at`): a repository with
+    `<repo>/seal/` is shared mode, whose stamp the commit queues. It then
+    queues where the file reads one `Verdict:` of `sealed`, its `Target SHA`
+    row names a commit and carries no earlier run reading `sealed`, the
+    clone holds no values file for the work item, and the audited commit is
+    an ancestor of the branch the work item's `routing.md` names in its
+    `Branch` row. No history is read, because a local root has none, and
+    none is needed: the root and the values files share the common dir, so
+    a values file for the id, pending or drawn, is a complete record of the
+    work item's stamp in this clone. The branch is what keeps a `sealed`
+    written long ago quiet, since `settle` retires no local-mode work item.
+    Raises whatever reading the records or writing the values raises; the
+    caller is silent on every failure."""
+    real = os.path.realpath(path)
+    item = os.path.dirname(real)
+    specs = os.path.dirname(item)
+    seal = os.path.dirname(specs)
+    common = os.path.dirname(seal)
+    names = (os.path.basename(real), os.path.basename(specs), os.path.basename(seal))
+    if names != ("guarantee.md", "specs", "seal"):
+        return []
+    listed = _git(common, "worktree", "list", "--porcelain") or ""
+    first = listed.split("\n", 1)[0]
+    if not first.startswith("worktree "):
+        return []
+    chain = _chain_check()
+    routing = chain.load(chain.ROUTING, "specseal_routing_for_the_stamp")
+    root = first[len("worktree ") :]
+    found = routing.optin.git_common_dir(root)
+    if not found or _same_place(found) != _same_place(common):
+        return []
+    home = routing.optin.home_at(root, found)
+    if not home or _same_place(home) != _same_place(seal):
+        return []
+    text = _read(real)
+    if text is None:
+        return []
+    reader = chain.SHARED_READER
+    verdicts = chain.verdicts_of(reader, text)
+    if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
+        return []
+    target = chain.target_of(reader, text)
+    if target is None:
+        return []
+    rows = chain.table_rows(reader, reader.readable(text))
+    cell = reader.visible(chain.field(rows, chain.TARGET) or "")
+    if any(word == chain.SEALED for _sha, word in chain.earlier_verdicts(cell)):
+        return []
+    ident = item_value(item)
+    if already_queued(common, ident):
+        return []
+    declared = routing.parse(_read(os.path.join(item, routing.FILENAME)) or "")
+    branch = (declared or {}).get("branch")
+    # Precondition: `target` and the branch resolve in this clone; where
+    # either does not, `merge-base` exits 128 and nothing is queued.
+    ref = f"refs/heads/{branch}"
+    if not branch or _git(common, "merge-base", "--is-ancestor", target, ref) is None:
+        return []
+    try:
+        rounds = os.listdir(os.path.join(item, "rounds"))
+    except OSError:
+        rounds = []
+    line = _queue_values(
+        chain,
+        common,
+        session,
+        now,
+        ident=ident,
+        target=target,
+        cell=cell,
+        gate_text=_read(os.path.join(item, chain.BROAD_GATE_FILE)),
+        rounds=rounds,
+        branch=branch,
+        item=item,
+    )
+    return [line]
 
 
 # --- a person's command --------------------------------------------------
