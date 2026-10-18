@@ -134,7 +134,7 @@ def test_a_sealed_item_rebased_in_another_clone_queues_nothing(tmp_path):
     assert queued(other) == []
 ```
 
-answer:
+answer: the run went back to the framer (Q8 (a), never twice); the reframed plan rebuilt `sealed_before` on round 3's condition in phase 6 (b2f97fb1), with this finding's rebase case as its proof, and phase 7 (ffefb57e) brought the memo along.
 
 ## Confirmations
 
