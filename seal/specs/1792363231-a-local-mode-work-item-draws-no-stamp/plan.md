@@ -5,6 +5,7 @@ artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
 Approved 2026-10-19 by the orchestrator, under the owner's `automation` answer, when `smith` was spawned.
+Approved 2026-10-19 by the orchestrator, under the owner's `automation` answer and Q2's answer (b), when `smith` was resumed for phase 2 after the reframe at a7572788: the refusal record (A11) is taken over A8 because A8's read-time patch comparison double-draws after a conflicted rebase, and the owner's ask was a mechanism that closes the gap, not A8's shape.
 
 <!-- The line above is the record that the gate happened. Fill it in at the
 spawn: reading this plan and spawning the builder IS the approval, so nothing
