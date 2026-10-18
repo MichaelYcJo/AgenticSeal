@@ -16,7 +16,7 @@ below places in a finding, why it matters with its grounds, and the
 paste-ready fix in a fenced block. The record is written in words, and no
 emoji stands anywhere in it. No report file stands beside it and nothing
 generates, copies or derives any part of it.
-Enforced by: tests/test_chain_check.py::TestFindings::test_the_template_is_the_record_the_check_reads, tests/test_the_record_is_written_in_words.py::test_the_template_the_format_and_the_two_definitions_carry_no_emoji
+Enforced by: tests/test_chain_check.py::TestFindings::test_the_template_is_the_record_the_check_reads, tests/test_the_record_is_written_in_words.py::test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block
 
 **The record's grammar is the table below, and nothing else states it.**
 Each labelled line and finding heading of a record is one row's, and the

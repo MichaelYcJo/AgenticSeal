@@ -129,7 +129,7 @@ is absent; field names, headings and vocabulary words stay English
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.
 
-Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_every_line_matches_its_row_whole, tests/test_the_record_is_written_in_words.py::test_the_template_the_format_and_the_two_definitions_carry_no_emoji, evals/behaviour/warden/rule-warden-one-finding/
+Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_every_line_matches_its_row_whole, tests/test_the_record_is_written_in_words.py::test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block, evals/behaviour/warden/rule-warden-one-finding/
 
 **Paste-ready means the snippet cannot mislead on its own.** Mark a name the
 tree does not have at the line that uses it:
