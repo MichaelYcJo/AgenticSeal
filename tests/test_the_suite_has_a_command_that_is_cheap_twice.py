@@ -1219,23 +1219,23 @@ def test_the_section_keeps_the_broad_once_rule():
     assert "Run the broad ones once" in section
 
 
-def test_the_section_says_the_full_run_is_the_sealers():
+def test_the_section_says_the_full_run_is_the_orchestrators():
     """`bin/test` with no arguments runs the whole suite, which
-    §2 forbids to smith and warden. The section that makes it cheap is the
+    §2 forbids to every agent. The section that makes it cheap is the
     section that has to say who it is for, and name the form a segment
     types.
 
-    Re-pointed by #30: who it is for is the `sealer` now, and phase 3 left the
-    case under its old name on purpose. `seal/ledger.md`'s R4 row cited it as
-    a coordinate, and renaming a unit REMOVES an anchor where changing its
-    body only drifts one — so the rename waited for the phase that touches
-    the ledger. That phase removed the coordinate from R4 and wrote the new
-    claim into this work item's own fragment, which is where a claim goes
-    when the code it cited stops existing under that name."""
-    section = running_the_checks()
-    assert "agent-contract" in section and "sealer" in section, (
+    Re-pointed by #30 to the `sealer`, and by #969 to the orchestrator,
+    which takes the run before it spawns the sealer. The owner is read from
+    its own sentence: the word `sealer` alone also matches the section's
+    *before the sealer is spawned*, so it held nothing."""
+    section = " ".join(running_the_checks().split())
+    assert "agent-contract" in section, (
         "the section makes the full suite cheap and says nothing about the "
         "rule that forbids it to a segment"
+    )
+    assert "The full suite is the orchestrator's" in section, (
+        "the section no longer says whose the full suite is"
     )
     assert "bin/test tests/" in section, (
         "no narrow form is shown, so the only command a segment can copy is "

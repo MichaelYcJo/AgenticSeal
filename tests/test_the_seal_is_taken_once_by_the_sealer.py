@@ -3227,8 +3227,8 @@ def test_the_failure_form_takes_the_same_names():
 
 def test_the_documents_name_the_line_that_says_to_commit_the_cell():
     """S2's documentation (`agent-contract` §14). The orchestrator is told
-    what to do with the line — the commit is the orchestrator's act. The
-    sealer passes the gate's lines on as they came and is told no line's
+    what to do with the line — the commit is the orchestrator's act. Since
+    #969 the sealer sees none of the gate's lines and is told no line's
     wording (`tests/test_the_sealer_guarantees.py::TestDefinition`)."""
     orchestration = " ".join(
         read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
@@ -3787,7 +3787,8 @@ def test_the_documents_name_the_ci_also_row():
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
     assert "the panel carries a `workflow` row" not in verify
-    # The sealer relays the gate's lines and names no panel row (#923).
+    # The sealer sees no output of the gate's (#969) and names no panel row
+    # (#923).
     assert "the `workflow` count" not in " ".join(sealer_text().split())
 
 

@@ -398,7 +398,7 @@ def joined(lines):
 def test_the_acts_table_row_names_the_preflight_and_stays_a_sentence():
     """S8's other half. The row for that section keeps `still a sentence` —
     a session that skips the preflight loses time and nothing else, because
-    the sealer asks the same arms — and its grounds name the step."""
+    the broad run asks the same arms — and its grounds name the step."""
     rows = [
         line
         for line in read("skills", "implement", "orchestration.md").splitlines()
