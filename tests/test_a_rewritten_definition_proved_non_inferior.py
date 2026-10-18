@@ -541,7 +541,8 @@ def test_a_record_with_no_truth_grader_decides_opus(tmp_path, capsys):
     is a drop decided by cost alone, the defect S7 names. No graders at all,
     and a lone shape grader, both print `opus` and a reason saying so."""
     shape = {("c1", "shape-commits-nothing"): ("shape", 2, 2)}
-    for graders in ({}, shape):
+    reach = {**shape, ("c1", "reach-sealer"): ("reach", 2, 2)}
+    for graders in ({}, shape, reach):
         code, out = model_of(tmp_path, capsys, graders, graders)
         assert (code, out[0]) == (0, "opus"), (graders, out)
         assert len(out) == 2 and "no truth grader" in out[1], (graders, out)
