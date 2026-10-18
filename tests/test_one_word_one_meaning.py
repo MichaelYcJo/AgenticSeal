@@ -415,6 +415,48 @@ def test_the_gate_never_says_sealed():
             )
 
 
+# Every `seal` word the gate's files may carry is part of a name: a path under
+# the `seal/` root, a script or a command (`seal-stamp`, `seal_stamp`,
+# `seal mode`, `seal.py`, `seal-mark.txt`), the sealer, the chain arm's
+# `--sealing` flag and `chain_check.SEALING`, the verdict word in backticks,
+# the Seal Test, a work item the sealer sealed, and the fold markers that name
+# spec directories. `questions.md` Q6 (a) keeps the code names and the concept
+# name. `sealed_names` and `CHAIN_SEALING` need no entry: `_` is a word
+# character, so the word below never starts or ends inside them.
+# Anything else calls the gate's own run a seal (#975, `questions.md` Q4).
+GATE_SEAL_NAMES = re.compile(
+    r"<!--[^>]*-->"
+    r"|\bseal/\S*"
+    r'|"seal"'
+    r"|\bseal[-_.][\w.-]*"
+    r"|\bseal mode\b"
+    r"|\bsealer\w*"
+    r"|specseal\w*"
+    r"|--sealing\b|(?-i:\b\w*SEALING\w*\b)"
+    r"|(?-i:`sealed`)"
+    r"|\bSeal Test\b"
+    r"|\bsealed work item\b",
+    re.I,
+)
+GATE_SEAL_WORD = re.compile(r"\bseal(?:s|ed|ing)?\b", re.I)
+
+
+def test_the_gate_calls_its_run_no_seal_by_construction():
+    """#975 Q4 (a). `GATE_PHRASES` lists the spellings somebody thought of,
+    and "no command to seal over" was not one of them. This reads every line
+    of the gate's files with its names taken out and refuses any `seal` word
+    left, so the next spelling is caught without being listed. The verdict
+    word in backticks is taken out lower-case only, so `` `SEALED` `` is
+    still refused here as well as by the token case above. Red at 56172bbe
+    on 18 lines of `broad_gate.py`."""
+    found = []
+    for parts in GATE_SWEPT:
+        for n, line in enumerate(read(*parts).splitlines(), 1):
+            if GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)):
+                found.append(f"{'/'.join(parts)}:{n}: {line.strip()}")
+    assert not found, "\n".join(found)
+
+
 # --- "segment" — one agent's stretch of a chain, never a spawn cycle -------
 
 # The seventh word, and the one this repository's own measurement vocabulary
@@ -596,7 +638,7 @@ def test_flat_is_what_folds_the_seam_and_it_folds_python_only():
     a swept file carrying a shell command whose two quoted arguments are not
     a seam and would be cut together.
     """
-    joined = "never read it, and there is no command to seal over"
+    joined = "never read it, and there is no command to run"
     assert joined in flat("skills", "verify", "scripts", "broad_gate.py"), (
         "`flat` no longer reads across a string-literal seam, so the sweep "
         "below is blind to an instance split over two literals again"

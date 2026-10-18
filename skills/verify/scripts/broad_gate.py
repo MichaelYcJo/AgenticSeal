@@ -14,7 +14,7 @@ What it does, in order, from the repository root:
   1. the repository's own broad command — the `Broad gate` row of
      `seal/config.md`, one shell command line the repository wrote for
      itself. **A row is refused four ways, and all four are exit 2 with
-     nothing run**: no row at all, because a seal taken over a command nobody
+     nothing run**: no row at all, because a run over a command nobody
      chose is the counterfeit `verify` names; a `Broad gate` line the table
      walker did not read, because it refused that line or one above it,
      which the refusal quotes back with the walker's sentence rather than
@@ -279,8 +279,8 @@ def branch_name(root):
 # copy's bytes differ from the one the caller invoked, or where no invoked
 # copy was handed over to compare — the tree's copy run directly, or
 # redirected by an installed copy older than #666 (`gate_copy`). A
-# tree that breaks an arm seals itself — that is the stated cost, named on
-# the stamp by `tree` and caught at the pull request by the same scripts.
+# tree that breaks an arm passes itself — that is the stated cost, named
+# in the report by `tree` and caught at the pull request by the same scripts.
 
 GATE_REL = os.path.join("skills", "verify", "scripts", "broad_gate.py")
 PLUGIN_JSON = os.path.join(".claude-plugin", "plugin.json")
@@ -350,7 +350,7 @@ def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
     """The panel's `gate` row, or None where it would say nothing (#666).
 
     The row printed on every stamp from 0.15.1 (#475), and in this repository
-    every seal is redirected to the tree's copy, so it read `tree <version>`
+    every run is redirected to the tree's copy, so it read `tree <version>`
     every time and told nobody anything. It prints now only where the copy
     that measured the tree is NOT the copy the caller invoked:
 
@@ -410,7 +410,7 @@ def redirect_line(root, shipped):
 # a choice the workflow made: a runner's checkout has no local branch, so the
 # remote-tracking ref is the only thing that resolves there. This gate was
 # handed the ref AS TYPED and so resolved the LOCAL one, and the two part as
-# soon as the local ref falls behind — #423, where the gate sealed a branch
+# soon as the local ref falls behind — #423, where the gate passed a branch
 # green and CI refused the same commit.
 #
 # `tests/test_the_gate_asks_the_range_ci_will_ask.py` holds this spelling
@@ -852,7 +852,7 @@ def fenced_row(home):
     **The one question about a fenced line anybody asks, and this gate is the
     only one that may ask it.** `hooks/config.py#unfenced` makes a fenced line
     invisible to the one walk of that table, which is what stops an example
-    from being the command this gate seals over (#429). It also makes a
+    from being the command this gate runs (#429). It also makes a
     `Broad gate` line written only inside a fence look exactly like no row at
     all — and then the absent-row refusal below is a true sentence about a
     cause that is not the real one, which is the failure #415 was opened
@@ -987,7 +987,7 @@ def missing_row(home):
             "this repository's own answer, so no walk of that table reads it "
             "— not this gate's reader, not the mode gate's, and not "
             "`seal mode`'s writer. The row is not absent: it is written where "
-            f"nothing reads it, and there is no command to seal over.\n{where}\n"
+            f"nothing reads it, and there is no command to run.\n{where}\n"
             "`templates/config.md` §*What is refused, and what stays allowed* "
             "is where the rule says so, and `/specseal:config` is the door to "
             "the file. Nothing ran."
@@ -998,7 +998,7 @@ def missing_row(home):
         # is one somebody took out of the table, so no walk reads it, and
         # neither the absent-row sentence nor the fence sentence is true of
         # it. The one act is the person's: take it out of the comment if it
-        # is the command to seal over.
+        # is the command to run.
         return (
             f"broad-gate: {os.path.join(home, CONFIG)} has a `{ROW}` line and "
             "this is it, written inside an HTML comment:\n"
@@ -1007,8 +1007,8 @@ def missing_row(home):
             "repository's answer, so no walk of that table reads it — not this "
             "gate's reader, not the mode gate's, and not `seal mode`'s writer. "
             "The row is not absent and it is not in a code fence: it is "
-            "commented out, and there is no command to seal over.\n"
-            "If it is the command to seal over, take the row out of the "
+            "commented out, and there is no command to run.\n"
+            "If it is the command to run, take the row out of the "
             "comment and into the `| Item | Value |` table.\n"
             "`templates/config.md` §*What is refused, and what stays allowed* "
             "is where the rule says so, and `/specseal:config` is the door to "
@@ -1016,11 +1016,11 @@ def missing_row(home):
         )
     return (
         f"broad-gate: {os.path.join(home, CONFIG)} has no `{ROW}` row, so "
-        "there is no command to seal over — and choosing one is not this "
+        "there is no command to run — and choosing one is not this "
         "session's to do. There is no default because a row is a thing a "
         "person wrote, and what the broad run covers is exactly that "
         "(`skills/verify/SKILL.md` §*The Seal Test*): a session that picks a "
-        "command here seals its own choice.\n"
+        "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/specseal:config` is where "
         f"they answer it — it shows every row and adds this one with its "
         "section — and `templates/config.md` §*Choosing a value — the "
@@ -1055,13 +1055,13 @@ def walker_refusal(home, mine):
     if stopped is not None and stopped.strip() == mine.strip():
         where = (
             f"That line is the `{ROW}` row, so the walk never read it, and "
-            "there is no command to seal over."
+            "there is no command to run."
         )
     else:
         where = (
             f"The `{ROW}` row is written below it, and the walk never "
             f"reached it:\n    {mine.strip()}\n"
-            "So there is no command to seal over."
+            "So there is no command to run."
         )
     escape = ""
     if (
@@ -1071,7 +1071,7 @@ def walker_refusal(home, mine):
     ):
         # GitHub ends the cell at the bare pipe too, so the command it shows
         # for this row is not the one written here; running either would
-        # seal over a command nobody chose (#871, shape 7).
+        # run a command nobody chose (#871, shape 7).
         escape = (
             "\nA cell of that table ends at a bare `|`, so GitHub shows this "
             "row cut off at the pipe and the command it shows is not the one "
@@ -1165,7 +1165,7 @@ def not_as_written(home, command):
         form = "ends in a single `&`"
         does = (
             "so `/bin/sh` backgrounds the whole line and answers 0 before any "
-            "check has finished. A seal drawn from that 0 covers nothing that "
+            "check has finished. A pass read from that 0 covers nothing that "
             "ran. Under `cmd.exe` the same character separates two commands "
             "instead, which is a different wrong answer refused for the same "
             "reason: the exit code read is not the checks'"
@@ -2242,7 +2242,7 @@ PARTITION = (
         None,
         "runs `.github/scripts/claude_block.py` over this repository's own "
         "CLAUDE.md. The plugin does not ship that script, and a repository "
-        "that wants it sealed names it in the `Broad gate` row",
+        "that wants it run names it in the `Broad gate` row",
     ),
     (
         "both READMEs move together",
@@ -2260,7 +2260,7 @@ MAIN = "main"
 # In `hygiene.yml` each of the three opens its `run:` with `if [ "${{
 # github.base_ref }}" != "main" ]; then … exit 0`: a release pull request is
 # where the version moves, the fragments are gathered, and the milestone is
-# judged. On any other base CI never asks them, so a seal that counted them
+# judged. On any other base CI never asks them, so a run that counted them
 # as *not answered* would count questions nobody asks. None of the three is
 # mirrored, so no arm changes; what changes is the denominator of the
 # `workflow` count and the names beside it.
@@ -2915,7 +2915,7 @@ def gate(args, ascii_marks=False):
         raise Refused(unrunnable)
     head = git(root, "rev-parse", "--short", "HEAD")
     if head is None:
-        raise Refused(f"broad-gate: {root} has no HEAD to seal — nothing ran")
+        raise Refused(f"broad-gate: {root} has no HEAD to run over — nothing ran")
     # The one read of `args.base` in this file, and the count is held by a
     # case: a seventh consumer written later cannot take the unresolved value
     # without that case going red (`spec.md` §*The class, enumerated by
