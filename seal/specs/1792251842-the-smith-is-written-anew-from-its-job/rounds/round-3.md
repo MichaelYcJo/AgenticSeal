@@ -8,7 +8,7 @@ target: 700a8a08, fixes 21321cd1..700a8a08
 
 severity: should
 location: `seal/specs/1792251842-the-smith-is-written-anew-from-its-job/overview.md:36`
-verdict: open
+verdict: fixed 65c596fd
 reopens: round-2#2
 
 Why the close does not hold. Round 2's finding 2 was that the memo did not
@@ -46,7 +46,7 @@ The rung this round would give it, as the cap's last round: rung 1 of
 `docs/the-review-record.md` §*The run*. The branch owns the unit, the fix
 is one cell of the memo, and it goes into the diff before the pull request.
 
-answer:
+answer: Rung 1, the branch owns the memo. The orchestrator replaced the row's text with the line above as written, in 65c596fd; `test_unverified_rows_close`, `test_docs_line_wrap` and `test_one_word_one_meaning` exit 0.
 
 ## Confirmations
 
