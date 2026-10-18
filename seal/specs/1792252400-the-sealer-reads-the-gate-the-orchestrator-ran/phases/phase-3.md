@@ -123,9 +123,24 @@ and nothing else:
   says the sealer's seal is the drawn one. The drawing now comes from the
   orchestrator's run. That is a question about the word `seal`, which
   `tests/test_one_word_one_meaning.py` holds. It is for phase 5 or the owner.
-- **T7, `noninferiority.py model`**, which phase 4 says is built in phase 3's
-  commit, was in neither spawn's prompt and is not built. It belongs to the
-  orchestrator, before phase 4.
+- **T7, `noninferiority.py model`**, is built at 1459b26f, test-first. Its
+  case, `test_the_model_is_decided_by_the_truths_and_the_spend`, ran red
+  against de849341 (exit 1: `SystemExit: 2`, `invalid choice: 'model'`) and
+  green after the build. It does not go through `check_record`. That
+  function refuses every record whose verdict is not `pass`, and a model
+  record fails rule 4 by construction: the Sonnet copy's `model:` line is
+  two bytes longer. `model` exits 2 only where `read_record` finds the record
+  unsound: it does not parse, it ran two suites, or its stated verdict
+  disagrees with its numbers. A cut-short side and an unrecorded spend print
+  `opus`. Each truth grader is judged on its own, so the one lost find
+  `verdict` forgives as noise still prints `opus`.
+- **`bin/rules --check` exits 1 at 1459b26f** on one of 464 targets:
+  `skills/agent-contract/SKILL.md:47` (§2) names
+  `tests/test_broad_gate_rule.py::test_the_prohibition_itself_has_one_home_and_it_is_the_contract`,
+  which 394ed499 renamed to
+  `test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn`.
+  T7's diff touches neither file, and T7's spawn was barred from `skills/`.
+  The orchestrator repoints the line before the review round.
 
 | Figure | Value |
 |---|---|
@@ -141,3 +156,8 @@ and nothing else:
 | `uvx ruff check` / `uvx ruff format --check` over the changed `.py` | 0 / 0 |
 | `payload-meter --root <worktree> --agent sealer` | 0 |
 | `mutation-check` × 17, as the table above | 0 each, every one `red` |
+| T7: `bin/test tests/test_a_rewritten_definition_proved_non_inferior.py -k test_the_model_is_decided_by_the_truths_and_the_spend`, before the build | 1, 1 failed (`invalid choice: 'model'`) |
+| T7: `bin/test tests/test_a_rewritten_definition_proved_non_inferior.py tests/test_evals_layout.py -q` at 1459b26f | 0, 79 passed |
+| T7: `uvx ruff check` / `uvx ruff format --check` over `noninferiority.py` and the test module | 0 / 0 |
+| T7: `bin/rules --check` at 1459b26f | 1, 1 of 464 targets does not resolve (the §2 line above) |
+| T7: `mutation-check` × 9 over `cheaper_model`, `read_record`, `check_record` and `model` | 0 each, every one `red` |
