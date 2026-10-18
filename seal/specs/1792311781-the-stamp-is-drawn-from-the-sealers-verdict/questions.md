@@ -13,12 +13,14 @@ Each is argued in `plan.md` §*Alternatives considered* or `spec.md`.
    the worktree it landed in (`plan.md` A1). The orchestrator already commits
    `guarantee.md` before the pull request is marked ready, so that commit is
    the HEAD the stamp names.
-2. *How once per work item is held with nothing stored beside the tree* — by
-   the `Target SHA` row's own `; earlier run: <sha> <verdict>` chain (a
-   `sealed` after a `sealed` queues nothing) and by the values file's name
-   `<ns>-<id>-<target sha>` (a re-commit of the same guarantee queues no
-   second file). The `.drawn.json` claim is the one marker that exists today
-   (`plan.md` B1).
+2. *How once per work item is held with nothing stored beside the tree* — as
+   it reads after rounds 1 and 3 and the reframe after round 5: by the values
+   file's name matched on the work item's id alone, by the audited commit
+   standing in the committing commit's history, by the guarantee having read
+   `sealed` at no earlier commit of that history whatever that verdict named,
+   and by the `Target SHA` row's `; earlier run:` chain reading no `sealed`.
+   Q8 chose the direction where the history cannot tell: never twice, and
+   the missing stamp is the accepted gap (`plan.md` B1, B3, B4).
 3. *Whether the names change* — `hooks/sealer-stamp.py`, `bin/seal-stamp`,
    `seal_stamp.py` and `specseal-stamp/` keep their names; the stamp is the
    sealer's now, so the names say the true thing and only the words inside
