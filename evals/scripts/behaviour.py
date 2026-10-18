@@ -148,11 +148,19 @@ def write_case(directory, *, name, tags, prompt, scaffold, graders, **execution)
         "prompt.md": prompt.strip() + "\n",
         "scaffold.sh": "set -eu\n" + scaffold.strip() + "\n",
     }
+    # The committed cases are LF (`.gitattributes`), and a case is compared
+    # byte for byte with what this writes, so the newline is never the
+    # platform's.
     for rel, text in files.items():
-        with open(os.path.join(directory, rel), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(directory, rel), "w", encoding="utf-8", newline="\n"
+        ) as f:
             f.write(text)
     for file_name, text in graders:
         with open(
-            os.path.join(directory, "graders", file_name), "w", encoding="utf-8"
+            os.path.join(directory, "graders", file_name),
+            "w",
+            encoding="utf-8",
+            newline="\n",
         ) as f:
             f.write(text)
