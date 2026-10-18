@@ -105,8 +105,8 @@ GROUPS = {
     # cannot forge.
     "post-agent": ("worktree_consent.py",),
     # `sealer-stamp-queue.py` queues a local-mode stamp at the write of its
-    # `sealed` guarantee, which no commit carries (#976); `sealer-stamp.py`
-    # in `stop` draws it.
+    # `sealed` guarantee, which no commit carries (work item 1792363231);
+    # `sealer-stamp.py` in `stop` draws it.
     "post-edit": ("lint-python.py", "session-lease.py", "sealer-stamp-queue.py"),
     # The git hooks are installed last, into the root the migration above may
     # just have moved.

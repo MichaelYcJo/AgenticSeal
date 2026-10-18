@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """PostToolUse(Write|Edit): queue a local-mode work item's stamp at the write
-of its `sealed` guarantee (#976).
+of its `sealed` guarantee (work item 1792363231).
 
 In local mode the `seal/` root sits under the git common dir, and no commit
 ever carries it, so git's `post-commit`, which queues the stamp in shared
