@@ -1445,6 +1445,12 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     assert "the history is the only record the rule reads" in rule, (
         "the limit says why it is one"
     )
+    # #975 round 7's finding 1: the limit names the clone it holds in. The
+    # clone that drew the stamp keeps its values file, and an amend there
+    # queues nothing (`test_a_recommit_of_the_same_guarantee_queues_no_second_file`).
+    assert "in a clone that holds no values file for the work item" in rule, (
+        "the limit names the clone it holds in"
+    )
     for case in (
         "::test_a_sealed_guarantees_commit_queues_one_stamp",
         "::test_a_withheld_or_undecided_guarantee_queues_nothing",

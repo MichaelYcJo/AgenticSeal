@@ -287,9 +287,11 @@ guarantee elsewhere, queues nothing; and a guarantee that read `sealed` at an
 earlier commit of that history, or whose `Target SHA` row's `; earlier run:`
 chain reads `sealed`, counts as stamped then, which holds across clones. It
 does not hold for a `sealed` committed over a history that carries no earlier
-`sealed`, which draws the stamp again in that clone: the sealing commit amended
-or rewritten there over its own parent, or a second seal on a copy of the
-branch that had not fetched the first. That is a stated limit, since across
+`sealed` in a clone that holds no values file for the work item, which draws
+the stamp again in that clone: the sealing commit amended or rewritten there
+over its own parent, or a second seal on a copy of the branch that had not
+fetched the first. The clone that drew the stamp keeps its values file, so an
+amend there draws nothing. That is a stated limit, since across
 clones the history is the only record the rule reads, and nothing beside the
 tree counts stamps. The stamp carries what the records at the commit say: the audited commit and its branch, the base, the work item, the
 newest broad run and the count of round records.

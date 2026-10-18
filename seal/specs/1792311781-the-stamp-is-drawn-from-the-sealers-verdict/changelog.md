@@ -13,12 +13,14 @@
   and a work item that was already stamped draws nothing more, whatever
   commit the new verdict names. That holds in another clone of the same
   branch too, since its history shows the guarantee already read `sealed`.
-  It does not hold where a clone commits a `sealed` over a history that
+  It does not hold where another clone, one that never wrote this work
+  item's stamp values itself, commits a `sealed` over a history that
   carries no earlier `sealed`: the sealing commit amended or rewritten
   there over its own parent, or a second seal on a copy of the branch that
   had not fetched the first. That clone draws the stamp again, because
   across clones the history is the only record read and nothing beside the
-  tree counts stamps. A squash or a cherry-pick of the guarantee onto
+  tree counts stamps. The clone that drew the stamp keeps its values, so an
+  amend there draws nothing. A squash or a cherry-pick of the guarantee onto
   another branch draws nothing, and neither does a `sealed` whose
   `Target SHA` names a commit the branch does not hold. That `sealed` still
   counts as the work item's one stamp, and so does a `sealed` that queued
