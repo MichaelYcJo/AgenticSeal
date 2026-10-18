@@ -916,8 +916,9 @@ def label(values):
 # `<ns>-<id>-<target sha>.json`, carries the work item's id, under any
 # session's directory, pending or drawn, whatever commit it named; the
 # audited commit standing in HEAD's history, so a squash or a cherry-pick of
-# the guarantee elsewhere queues nothing; the guarantee reading `sealed` at
-# an earlier commit of that history (`sealed_before`); and the `Target SHA`
+# the guarantee elsewhere queues nothing; the guarantee reading `sealed`,
+# over a commit then in its history, at an earlier commit of that history
+# (`sealed_before`); and the `Target SHA`
 # row's `; earlier run: <sha> <verdict>` chain — a `sealed` after a `sealed`
 # was stamped at the first. The last two hold across clones. An amend of the
 # sealing commit itself in a second clone is not caught by either: its
@@ -1031,7 +1032,8 @@ def queue_for_guarantee(top, common, session, now=None):
     """The lines `post-commit` prints for the commit at HEAD of `top`: one
     per work item whose `guarantee.md` the commit touched, reads one
     `Verdict:` of `sealed`, carries no earlier run reading `sealed`, read
-    no `sealed` at an earlier commit of HEAD's history, has no values file
+    no `sealed` over a commit then in its history at an earlier commit of
+    HEAD's history, has no values file
     in the clone already, and audited a commit in HEAD's history. Each writes one values file for
     `session` under `common` first. Raises whatever reading or writing
     raises; the caller is silent on every failure."""
@@ -1056,18 +1058,25 @@ def queue_for_guarantee(top, common, session, now=None):
 
 
 def sealed_before(chain, top, path):
-    """True where `path` read one `Verdict:` of `sealed` at a commit before
-    HEAD in HEAD's history. That commit was stamped where it was made, in
-    this clone or another, so what the history carries holds across clones
-    and asks nothing of the row an agent writes. A root commit has no
-    parent: `git log` exits 128 and the history is empty."""
+    """True where `path` read one `Verdict:` of `sealed`, over a commit then
+    in its history, at a commit before HEAD in HEAD's history. That commit
+    was stamped where it was made, in this clone or another, so what the
+    history carries holds across clones and asks nothing of the row an
+    agent writes. A `sealed` over a commit not in its own history queued
+    nothing there (`_queue_one`), so it does not count: a row naming a
+    commit this clone does not hold, and repaired later, draws the stamp at
+    the repair (#975 round 4). A root commit has no parent: `git log` exits
+    128 and the history is empty."""
     reader = chain.SHARED_READER
     for sha in (_git(top, "log", "--format=%H", "HEAD^", "--", path) or "").split():
         text = _git(top, "show", f"{sha}:{path}")
         if text is None:
             continue
         verdicts = chain.verdicts_of(reader, text)
-        if len(verdicts) == 1 and chain.verdict_word(verdicts[0][1]) == chain.SEALED:
+        if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
+            continue
+        target = chain.target_of(reader, text)
+        if target and _git(top, "merge-base", "--is-ancestor", target, sha) is not None:
             return True
     return False
 
