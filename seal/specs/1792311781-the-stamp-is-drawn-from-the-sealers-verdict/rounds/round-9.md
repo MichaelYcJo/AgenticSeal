@@ -15,7 +15,7 @@ drew.
 
 severity: should
 location: `tests/test_one_word_one_meaning.py:477-486`
-verdict: open
+verdict: fixed fa551683
 regression: round-8
 
 The unit is `STAMP_GIVEN_TO_THE_GATE` and the comment above it
@@ -78,13 +78,13 @@ STAMP_GIVEN_TO_THE_GATE = re.compile(
 )
 ```
 
-answer:
+answer: the record's pattern and comment, applied as written; the fold case's comment now says the pattern carries two apostrophes with more than blanks and a string prefix between them. `test_the_stamp_sweep_reads_the_gates_run_and_the_passive` pins ten sentences that give the stamp to the gate (the record's nine it refuses, and `a stamp drawn from the broad-gate run`) and three true ones it lets pass; `the stamp the broad gate draws` is named in its docstring as still passing. executed: that case red against the two-word pattern on `the broad gate's run draws the stamp`, green after; with the widened pattern, `The broad gate's run draws the stamp.` planted in `assets/seals/README.md` turned `test_no_instructing_document_gives_the_stamp_to_the_broad_gate` red, and the plant was removed; the module 26 passed with no hit in any `SEAL_SWEPT` file, the `LITERAL_SEAM` closure case among them; `uvx ruff check` and `uvx ruff format --check` exit 0. read: `git grep -n -F` of the old comments' `at most two words` and `one apostrophe and no second` under `tests/` finds nothing after the change, so no other case pinned them.
 
 ### 2. The emblems page leaves out the S that 0.20.0 to 0.22.0 carried, under a heading that says every emblem
 
 severity: should
 location: `assets/seals/README.md:1`, `assets/seals/README.md:6-8`, `assets/seals/README.md:69`
-verdict: open
+verdict: fixed 9e8c1532
 
 The new history sentence is true of what it names, and the page around it
 is not complete. A reader asking which emblems the gate's run drew before
@@ -138,7 +138,7 @@ The emblem that follows the red lily, the placeholder S, has been on every
 release's stamp since 0.20.0 and has no entry yet.
 ```
 
-answer:
+answer: the record's wording, applied as written to the title, the history paragraph and line 69's first sentence; the rest of line 69's paragraph stands. The page now claims only the gold lily and the red lily as entries and names the S as having none. The S's own entry, its `.ans` and `.png`, is filed as #978 (milestone `release: 0.22.2`) and is not this pass's. The class was enumerated by `git grep -n -i -E` of `every emblem`, `each emblem`, `both emblems` and `all emblems` outside `seal/specs/` and `CHANGELOG.md`: the page's title and history sentence, and the `SEAL_SWEPT` comment at `tests/test_one_word_one_meaning.py:240`, which said "every emblem the stamp has carried" and now says "the emblems"; `overview.md`'s emblems-page row names the S and #978, and its Not done names the missing entry. executed: the one-word, real-identifier, line-wrap, pasted-passage and words modules 82 passed with the page changed, the stamp sweep finding no hit on its new sentences. read: no test reads the page's text other than the stamp sweep (`git grep` of `assets/seals` under `tests/`).
 
 ## Confirmations
 
