@@ -5,6 +5,7 @@ artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
 Approved 2026-10-18 by the orchestrator, under the owner's `automation` answer, when `smith` was spawned.
+Approved 2026-10-18 by the orchestrator, under the owner's `automation` answer, when `smith` was spawned for the reframe after round 5.
 
 <!-- The line above is the record that the gate happened. Fill it in at the
 spawn: reading this plan and spawning the builder IS the approval, so nothing
