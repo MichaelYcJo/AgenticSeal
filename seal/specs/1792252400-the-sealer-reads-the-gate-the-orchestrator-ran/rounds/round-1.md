@@ -7,8 +7,8 @@ target: 73d0d409 against release/v0.22.1
 ### 1. The sealer is told a records-only commit after its guarantee owes no new audit, and the check refuses exactly that commit
 
 severity: must
-location: `agents/sealer.md:124-127`
-verdict: open
+location: `agents/sealer.md:124-127`, `tests/test_the_sealer_guarantees.py`
+verdict: fixed 6366ee46
 
 The rule *The guarantee covers HEAD* now reads "A commit after the one
 `guarantee.md` names, other than yours and the work item's records, owes a
@@ -42,13 +42,13 @@ again, and keeps the earlier verdict on the `Target SHA` row as
 `; earlier run: <sha> <verdict>`.
 ```
 
-answer:
+answer: Taken as proposed in 6366ee46, worded as `docs/the-review-record.md` words it: "other than one touching only the closing records, `broad-gate.md` and `guarantee.md`, owes a new audit". 2d0babf9 rewrapped the paragraph and named the new pin `TestDefinition::test_the_guarantee_rule_exempts_only_the_closing_records` on its `Enforced by:` line; the pin went red under `mutation-check` restoring the old words.
 
 ### 2. Seven sentences outside the two #967 and #968 files still give the broad run, its stamp or its log to the sealer
 
 severity: must
-location: `templates/config.md:213-214`, `templates/config.md:223-225`, `skills/verify/scripts/seal_stamp.py:864`, `docs/commit-review-gate-spec.md:44-45`, `docs/the-review-and-parity-arms.md:119`, `docs/the-agent-set.md:113`, `agents/warden.md:144-145`, `tests/test_the_seal_is_taken_once_by_the_sealer.py:8310`
-verdict: open
+location: `templates/config.md:213-214`, `templates/config.md:223-225`, `skills/verify/scripts/seal_stamp.py:864`, `docs/commit-review-gate-spec.md:44-45`, `docs/the-review-and-parity-arms.md:119`, `docs/the-agent-set.md:113`, `agents/warden.md:144-145`, `tests/test_the_seal_is_taken_once_by_the_sealer.py:8310`, `tests/test_a_reference_root_is_read_and_never_taken.py`, `tests/test_the_gate_asks_the_range_ci_will_ask.py`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`, `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/overview.md`
+verdict: fixed 2d0babf9
 
 S12 says the class grep finds nothing outside `seal/specs/`, `changelog/`,
 `agents/smith.md` and `agents/framer.md`. The grep `spec.md` names looks
@@ -123,13 +123,13 @@ tests/test_the_seal_is_taken_once_by_the_sealer.py:8310
     assert "what comes due is the orchestrator's broad run" in warden, (
 ```
 
-answer:
+answer: 2d0babf9 rewrites the seven sentences to the fact (the orchestrator runs `broad-gate --record`; the stamp is the broad gate's, drawn from that run) and re-points the warden's pin, which went red under `mutation-check` restoring the old sentence. The wider grep `git grep -n -i -E "sealer'?s? (stamp|capture|log|spawn|run|broad)|broad.{0,30}(by|from) the sealer"` outside `seal/specs/` and `changelog/` found three more present-tense sites, all test text, rewritten in the same commit: the `seal-stamp` row of `tests/test_a_reference_root_is_read_and_never_taken.py:192`, the A12 docstring of `tests/test_the_gate_asks_the_range_ci_will_ask.py:403` and the module docstring of `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:1-7`; its other hits are past-tense history (`docs/the-broad-gate.md:96, 124`, `tests/test_evals_layout.py:341`, the 1790562543 section heading at `tests/test_the_seal_is_taken_once_by_the_sealer.py:2906`) or the sealer re-running its audit (`docs/the-review-record.md:246`, `chain_check.py:1647, 1677`), which stand. Left to #967 and #968, found by `git grep -n -i -w sealer`: `agents/framer.md:24`, `agents/smith.md:219, 299, 305`, `skills/verify/SKILL.md:242, 250, 253`. `overview.md`'s Not done names the warden's moved read set for the milestone close.
 
 ### 3. The sealer's step 1 counts commits the base brought in, and the check it cites does not
 
 severity: should
-location: `agents/sealer.md:46-54`
-verdict: open
+location: `agents/sealer.md:46-54`, `tests/test_the_sealer_guarantees.py`
+verdict: fixed 6366ee46
 
 Read, both directions. Step 1 runs `git -C <root> log --name-only <named>..HEAD`
 and withholds on any path outside `seal/specs/<item>/`. The rule it cites is
@@ -167,13 +167,13 @@ should take the check's.
      path where one follows, and return. Nothing broad is run in its place.
 ```
 
-answer:
+answer: 6366ee46: step 1 runs `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>` with `<base>` the plain branch name the prompt names, cites `chain_check.py#follows`, and withholds on a commit that does not resolve or is not an ancestor of HEAD. `test_step_1_reads_the_record_and_runs_nothing` pins both, and went red under `mutation-check` dropping `--no-merges` and dropping the ancestor clause.
 
 ### 4. The refusal of an old verdict word, and the changelog, order a full broad run where spawning the sealer again is enough
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:91-96`, `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/changelog.md:35-39`, `tests/test_the_sealer_guarantees.py:295-297`
-verdict: open
+verdict: fixed 8313e330
 
 Read. A work item in flight at the update carries the pair the old sealer
 wrote: `broad-gate.md` at the commit it audited, and `guarantee.md` reading
@@ -208,13 +208,13 @@ RETIRED_SAYS = (
   is written in the new words over the code it audited.
 ```
 
-answer:
+answer: 8313e330: `RETIRED_SAYS` now says the committed `broad-gate.md` still stands, to spawn the sealer again at HEAD, which writes the new word, and to run `broad-gate --base <base> --record <item>` first only where `broad-gate.md` does not stand at HEAD; the changelog paragraph says the same, and `test_the_old_words_are_refused_by_line` pins the three phrases, seen red against the old message before it changed.
 
 ### 5. A broad-gate record followed by a code commit, the stale half of step 1, is held by no case
 
 severity: should
-location: `evals/scripts/rule_cases.py:561-579`, `evals/scripts/rule_cases.py:641-650`
-verdict: open
+location: `evals/scripts/rule_cases.py:561-579`, `evals/scripts/rule_cases.py:641-650`, `evals/behaviour/sealer/rule-sealer-stale-gate`, `agents/sealer.md`, `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/phases/phase-6.md`
+verdict: fixed 71f3e739
 
 S3 promises a withheld verdict for "no `broad-gate.md`, or one whose newest
 run is followed by a commit outside the item's records". Read:
@@ -247,13 +247,13 @@ The truth grader's description is chosen by `if gate`, and `"stale"` is
 truthy. In the `report_regex` call write
 `if gate is True else "The verdict says no broad run is on record at HEAD."`.
 
-answer:
+answer: 71f3e739 adds `rule-sealer-stale-gate` to `SEALER_RUNS` (a `broad-gate.md`, then a code commit to `src/textutil.py`; verdict `withheld`, truth `^Verdict:.*no broad run`), with the truth grader's text chosen from a `SEALER_TRUTH` table by GATE; the regenerated `evals/behaviour/sealer/` is copied in (`diff -r` 0), the step-1 rule's `Enforced by:` names the case, and `phases/phase-6.md` says the reference is re-run on the five-case suite after round 1. `test_the_sealer_cases_are_the_generators_output` was red before the copy. No paid side was run here.
 
 ### 6. `noninferiority.py model` prints `sonnet` for a record that carries no truth grader
 
 severity: should
-location: `evals/scripts/noninferiority.py:912-934`
-verdict: open
+location: `evals/scripts/noninferiority.py:912-934`, `tests/test_a_rewritten_definition_proved_non_inferior.py`
+verdict: fixed 126219d3
 
 The docstring and S7 decide the model "by every truth grader". Executed:
 `cheaper_model` over numbers with `graders={}` returned `('sonnet', 'every
@@ -279,13 +279,13 @@ A case for T7, seen red against the current function first:
 `model_of(tmp_path, capsys, {("c1", "shape-commits-nothing"): ("shape", 2, 2)}, {("c1", "shape-commits-nothing"): ("shape", 2, 2)})`
 asserting `(0, "opus")`.
 
-answer:
+answer: `cheaper_model` returns `opus` with "the record carries no truth grader, so no outcome was measured" where no truth grader is in the record (5f4e43cf, settled in 126219d3, cases completed in 3e5fe505). The decision's "either side" needs no branch of its own: a truth grader one side lacks counts zero runs there, so that side ran the case a different number of times and `verdict` already gives `no result`, hence `opus`; the case asserts that for each side alone. `test_a_record_with_no_truth_grader_decides_opus` (no graders, a lone shape grader, shape and reach) was red against the old function; `mutation-check` gave red for the branch removed and for the kind test widened to `!= "shape"`, the second only after 3e5fe505 added the reach case.
 
 ### 7. A committed eval record carries a machine path with the account name in it
 
 severity: should
-location: `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/evals/sealer-sonnet-phase-4.json:1163`, `evals/scripts/noninferiority.py:465`
-verdict: open
+location: `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/evals/sealer-sonnet-phase-4.json:1163`, `evals/scripts/noninferiority.py:465`, `tests/test_a_rewritten_definition_proved_non_inferior.py`, `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/evals/sealer-model.md`
+verdict: fixed b5a11876
 
 Executed: a `git grep` for the scratchpad's path pieces over the item's
 `evals/` finds one line. The Sonnet side's `specseal.rev` is the absolute
@@ -308,13 +308,13 @@ Then set `rev` to `tree sonnet-tree` in the kept raw side's `meta.json`
 the record with `run --from-raw` and `compare` for `evals/sealer-model.md`.
 No eval runs. The `New run` digest of `sealer-model.md` moves with the JSON.
 
-answer:
+answer: b5a11876: a `--tree` side writes `rev` as `tree` (`TREE_REV`), and `--from-raw` reads a saved absolute `rev` back as `tree`, so the kept raw side's `meta.json` was left untouched; the case in `test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved` was red first and both units went red under `mutation-check`. e7406985 re-derives `sealer-sonnet-phase-4.json` with `run --from-raw` and `sealer-model.md` with phase 4's `compare` (`New run` digest ff22d7855802 to 2ffff3f1e708); `check` exits 0 and 1, `model` prints `opus`. A grep for the account path finds nothing in the item's `evals/`; the 32 `tracePath` lines of the form `/private/tmp/e-XXXXXX/out/trace.jsonl` the eval itself writes into every side, here and in earlier items' records on the base, are left as they stand.
 
 ### 8. The Q4 answer counts 90 Sonnet assistant events, and the traces hold 79, 60 of them the sealer's
 
 severity: should
 location: `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/phases/phase-4.md:62-64`, `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/questions.md:43`
-verdict: open
+verdict: fixed e7406985
 
 Executed over the kept traces, `SpecSeal-worktrees/969-phase-4-raw/sealer-sonnet-phase-4/traces/`:
 79 events of type `assistant`, every one naming `claude-sonnet-5-5`. 60
@@ -338,7 +338,7 @@ In `questions.md:43`, write `answered 2026-10-18 by the work: the sealer's
 60 events on Sonnet, none on Opus (phases/phase-4.md)` in place of `90 Sonnet
 events, no Opus`.
 
-answer:
+answer: e7406985: recounted from the kept traces (every `traces/*.jsonl` line parsed, `type` `assistant`, by `message.model` and `parent_tool_use_id`): Sonnet side 79 events, 60 the sealer's and 19 the session's, all `claude-sonnet-5-5`; Opus side 73 sealer events on `claude-opus-5-5` and 17 session events on Sonnet, 90 in all, which is where the old figure came from. `phases/phase-4.md` and `questions.md` Q4 carry the figure and the counting rule; the conclusion holds.
 
 ## Confirmations
 
