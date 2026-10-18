@@ -45,11 +45,14 @@ the contract.
 
 1. **Read the gate's record.** Open `broad-gate.md` in the work item's
    directory, take its newest run's commit, and run
-   `git -C <root> log --name-only <named>..HEAD`; `docs/the-review-record.md`
-   §*The broad run has one home* is the rule it applies.
+   `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`, with
+   `<base>` the plain branch name the prompt names; `docs/the-review-record.md`
+   §*The broad run has one home* is the rule it applies, as
+   `chain_check.py#follows` reads it.
    - **At HEAD, or followed only by paths under `seal/specs/<item>/`**: go
      on.
-   - **Absent, or followed by any other path**: write `guarantee.md` with
+   - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
+     or followed by any other path**: write `guarantee.md` with
      `Verdict: withheld — no broad run at HEAD`, naming the commit and the
      path where one follows, and return. Nothing broad is run in its place.
 2. **Read, yourself**: the issue body (`gh issue view <N>`), the diff
@@ -122,9 +125,9 @@ and every party was compared, each with its row in `guarantee.md`.
 Enforced by: evals/behaviour/sealer/rule-sealer-sealed/
 
 **The guarantee covers HEAD, and a re-run audits what came after.** A commit
-after the one `guarantee.md` names, other than yours and the work item's
-records, owes a new audit, and the check at the pull request refuses the file
-until it has one. Where an earlier `guarantee.md` stands, the new audit
+after the one `guarantee.md` names, other than one touching only the closing
+records, `broad-gate.md` and `guarantee.md`, owes a new audit, and the check
+at the pull request refuses the file until it has one. Where an earlier `guarantee.md` stands, the new audit
 re-runs only the claims whose coordinates a commit since its `Target SHA`
 touched, reads the parties again, and keeps the earlier verdict on the
 `Target SHA` row as `; earlier run: <sha> <verdict>`.

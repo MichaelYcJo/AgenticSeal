@@ -328,15 +328,32 @@ class TestDefinition:
             between(SEALER, "1. **Read the gate's record.**", "2. **").split()
         )
         assert "`broad-gate.md`" in step, step
-        assert "log --name-only <named>..HEAD" in step, step
+        assert "log --no-merges --name-only <named>..HEAD ^<base>" in step, step
+        assert "`chain_check.py#follows`" in step, step
         assert "`Verdict: withheld — no broad run at HEAD`" in step, step
         assert "Absent" in step and "any other path" in step, step
+        assert "not an ancestor of HEAD" in step, step
         order = between(SEALER, "## Order of work", "## Never")
         assert "broad-gate --base" not in order, (
             "a step of the sealer's definition runs the broad gate"
         )
         never = " ".join(between(SEALER, "## Never", "## Rules").split())
         assert "the typecheck or `broad-gate`" in never, never
+
+    def test_the_guarantee_rule_exempts_only_the_closing_records(self):
+        """Round 1 of #969, finding 1. `chain_check.py#guarantee` lets only
+        `broad-gate.md` and `guarantee.md` follow the commit the guarantee
+        names (`follows(..., only=CLOSING_RECORDS)`); a sealer told that any
+        record of the work item may follow keeps an earlier verdict over a
+        changelog or phase record it never read, and the check refuses it."""
+        rule = " ".join(
+            between(SEALER, "**The guarantee covers HEAD", "Enforced by:").split()
+        )
+        assert (
+            "other than one touching only the closing records, `broad-gate.md` "
+            "and `guarantee.md`, owes a new audit"
+        ) in rule, rule
+        assert "work item's records" not in rule, rule
 
     def test_the_orchestration_quotes_what_only_the_gate_can_tell(self):
         """Moved by #969 from the sealer with the run. The moved base, the
