@@ -237,6 +237,11 @@ SEAL_SWEPT = (
     ("bin", "seal-stamp"),
     ("bin", "broad-gate"),
     ("docs", "the-broad-gate.md"),
+    # The page that keeps every emblem the stamp has carried. Nothing read it
+    # when #975 moved the stamp, so it still called each emblem the broad
+    # gate's and cited the section #975 removed, and the sealer's guarantee
+    # at f2f7b6d5 read `withheld` on it.
+    ("assets", "seals", "README.md"),
 )
 
 # The two places that DISCUSS the word rather than use it: the rule's own
@@ -467,6 +472,36 @@ def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
         assert not GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
 
 
+# --- "the stamp" — the sealer's, never the broad gate's --------------------
+
+# #975: the stamp is drawn once per work item from the sealer's `sealed`
+# (`docs/the-review-record.md` §*The stamp*), and `docs/the-broad-gate.md`
+# §*Where the stamp is drawn* is gone. Read by construction rather than by a
+# list of sentences: the gate, possessive or not, with at most two words before
+# `stamp` — `gate's stamp`, `gate draws a stamp`, `gate stamps` — and the
+# removed section's name. `The broad gate draws nothing` stays allowed, which
+# is what `skills/verify/SKILL.md` and `seal_stamp.py` say since #975.
+STAMP_GIVEN_TO_THE_GATE = re.compile(
+    r"\bgate(?:'s)?(?:\s+\w+){0,2}\s+stamps?\b|Where the stamp is drawn", re.I
+)
+
+
+def test_no_instructing_document_gives_the_stamp_to_the_broad_gate():
+    """#975 item 4, and the sealer's `withheld` at f2f7b6d5. Every file
+    `SEAL_SWEPT` reads says the stamp is the sealer's: none calls it the broad
+    gate's, says the gate draws one, or cites the section #975 removed. Red on
+    `assets/seals/README.md` as f2f7b6d5 carries it, at its heading and its
+    first paragraph."""
+    found = []
+    for parts in SEAL_SWEPT:
+        text = flat(*parts)
+        for hit in STAMP_GIVEN_TO_THE_GATE.finditer(text):
+            found.append(
+                f"{'/'.join(parts)}: ...{text[max(hit.start() - 60, 0) : hit.end() + 60]}..."
+            )
+    assert not found, "\n".join(found)
+
+
 # --- "segment" — one agent's stretch of a chain, never a spawn cycle -------
 
 # The seventh word, and the one this repository's own measurement vocabulary
@@ -620,7 +655,15 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
         f"{sorted(folded)} looks for belongs in the set below, and the "
         "docstring's count has to be brought to the new list"
     )
-    swept = (SEAL_BARE, *SEAL_BARE_IS_THE_CONCEPT, *SEGMENT_LOOSE, *GATE_PHRASES)
+    swept = (
+        SEAL_BARE,
+        *SEAL_BARE_IS_THE_CONCEPT,
+        *SEGMENT_LOOSE,
+        *GATE_PHRASES,
+        # The stamp sweep's pattern carries one apostrophe and no second
+        # quote, so no seam the fold could delete lies inside what it reads.
+        STAMP_GIVEN_TO_THE_GATE.pattern,
+    )
     for phrase in swept:
         assert LITERAL_SEAM.search(phrase) is None, (
             f"the fold can land inside {phrase!r}, so a deletion could cut "

@@ -1,11 +1,13 @@
-# assets/seals/ — every emblem the broad gate's stamp has carried
+# assets/seals/ — every emblem the stamp has carried
 
-The broad gate draws a stamp when a run earns it
-(`docs/the-broad-gate.md` §*Where the stamp is drawn*): the panel of what
-it read, and a wax disc with an emblem pressed into it. The emblem has
-changed since #30 first drew it. This directory keeps each version as the
-terminal drew it, so a reader can see an earlier one without checking out
-an old tag.
+The stamp is the sealer's. It is drawn once per work item, at the commit of
+a `guarantee.md` reading `sealed` (`docs/the-review-record.md` §*The
+stamp*): the panel of what the records at that commit say, and a wax disc
+with an emblem pressed into it. Before #975 the broad gate's run drew it
+when the run passed, and both emblems a release carried below, the gold
+lily and the red lily, were drawn that way. The emblem has changed since #30
+first drew it. This directory keeps each version as the terminal drew it,
+so a reader can see an earlier one without checking out an old tag.
 
 Each entry is two files, and no code reads either of them:
 
