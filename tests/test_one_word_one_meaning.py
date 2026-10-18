@@ -237,7 +237,7 @@ SEAL_SWEPT = (
     ("bin", "seal-stamp"),
     ("bin", "broad-gate"),
     ("docs", "the-broad-gate.md"),
-    # The page that keeps every emblem the stamp has carried. Nothing read it
+    # The page that keeps the emblems the stamp has carried. Nothing read it
     # when #975 moved the stamp, so it still called each emblem the broad
     # gate's and cited the section #975 removed, and the sealer's guarantee
     # at f2f7b6d5 read `withheld` on it.
