@@ -169,7 +169,7 @@ jobs:
       # and — on a pull request that is not a draft — a finding still `open` or
       # one the check cannot read, a last record behind HEAD or with a finding
       # no round after it read, no `broad-gate.md` at HEAD, or no
-      # `guarantee.md` reading `sound` at HEAD (`docs/the-review-record.md`
+      # `guarantee.md` reading `sealed` at HEAD (`docs/the-review-record.md`
       # §*What the check reads at the pull request*).
       #
       # The draft state comes from GITHUB_EVENT_PATH, which this runner

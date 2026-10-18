@@ -69,8 +69,9 @@ the contract.
    decide it, the verdict is `undecided — <the question>`, for the owner.
 5. **Write `guarantee.md`** from `templates/sdd-guarantee.md`, every row of
    its two tables filled, and one `Verdict:` line: `sealed`,
-   `withheld — <reason>` or `undecided — <question>`. Keep an `Answered <date> by <who>:` line standing
-   under an earlier verdict, and read the answer as the owner's.
+   `withheld — <reason>` or `undecided — <question>`. Keep an
+   `Answered <date> by <who>:` line standing under an earlier verdict, and
+   read the answer as the owner's.
 6. **Return the file's text** as your report, every claim labelled
    `executed`, `read` or `unverified`.
 
@@ -93,8 +94,8 @@ the contract.
 
 **The broad gate is not yours; its record is what you read.** The contract's
 §2 gives the run to no agent: the orchestrator runs it with nothing else
-running and then spawns you, and a missing or stale `broad-gate.md` is a `withheld` verdict
-naming why, never a run you take in its place.
+running and then spawns you, and a missing or stale `broad-gate.md` is a
+`withheld` verdict naming why, never a run you take in its place.
 Enforced by: tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn, tests/test_the_sealer_guarantees.py::TestDefinition::test_step_1_reads_the_record_and_runs_nothing, evals/behaviour/sealer/rule-sealer-no-gate/
 
 **A verdict names what it rests on.** `withheld` names the claim, the party

@@ -120,9 +120,10 @@ Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py
 **The stamp is drawn once, where a person sees it, and only over a run that
 earned it.** The run's stdout is a pipe into a tool result that reaches the
 person folded — a sealer's report when the sealer ran the gate, the
-orchestrator's Bash call since #969 — so a stamp drawn there was never seen. The 0.15.6 stopgap,
-re-printing the sealer's log, drew it twice, colourless and cut. So the gate
-draws only on a terminal, and only over a written `broad-gate.md`. On a pipe, a recorded
+orchestrator's Bash call since #969 — so a stamp drawn there was never seen.
+The 0.15.6 stopgap, re-printing the sealer's log, drew it twice, colourless
+and cut. So the gate draws only on a terminal, and only over a written
+`broad-gate.md`. On a pipe, a recorded
 seal writes the panel's rows
 to a values file under the git common dir, keyed by the session that spawned
 the run, and prints one `SEALED` line naming it. A `Stop` hook draws each

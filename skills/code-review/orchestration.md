@@ -188,7 +188,7 @@ directly. **On exit 0 commit `broad-gate.md`, then spawn `sealer` with the
 base and the work item's directory**, the issue and the pull request. The
 sealer reads that record, audits the work against the issue and the tree,
 and writes `guarantee.md` (`docs/the-review-record.md` §*The guarantee*); it
-runs nothing broad, and a missing or stale record comes back `not sound —
+runs nothing broad, and a missing or stale record comes back `withheld —
 no broad run at HEAD`.
 
 **On exit 1 spawn nothing.** The word beside each failing file says whether
@@ -206,8 +206,8 @@ where resolving the base moved it, where the run handed itself to the tree's
 copy of the gate, and its `outputs kept under broad-gate-<random>/` line;
 each is a fact a reader learns from nowhere else.
 
-**Commit `guarantee.md`; a verdict other than `sound` keeps the pull request
-a draft.** `not sound` names the claim and the coordinate. Where the repair
+**Commit `guarantee.md`; a verdict other than `sealed` keeps the pull request
+a draft.** `withheld` names the claim and the coordinate. Where the repair
 touches only the work item's own records — a phase record, the changelog
 fragment — or the pull request body, make it, commit, and spawn the sealer
 again at the new HEAD: the record commits after the run leave it standing.
@@ -216,7 +216,7 @@ a verifying round on its diff, and once that round's record is committed run
 the broad gate again, commit its record, and spawn the sealer. Your broad run
 asks the records arm first, and that arm refuses a commit outside the work
 item after the last round's `target:` commit, so a run taken straight after
-the fix returns the same refusal. `undecidable` is a question for the owner,
+the fix returns the same refusal. `undecided` is a question for the owner,
 put after the run rather than during it; write the answer under the verdict
 as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
 

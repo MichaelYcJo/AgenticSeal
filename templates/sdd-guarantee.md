@@ -26,8 +26,8 @@ came back>`, and a `does not hold` is what the verdict names. -->
 |---|---|---|---|
 | <the spec · the build · the last round · the changelog · the pull request body> | <what it says the work is> | <the parties and facts it agrees with> | <none, or what contradicts it> |
 
-<!-- One line: `sound`, `not sound — <the claim, its party, its coordinate>`
-or `undecidable — <the question, for the owner>`. An owner's answer is a line
+<!-- One line: `sealed`, `withheld — <the claim, its party, its coordinate>`
+or `undecided — <the question, for the owner>`. An owner's answer is a line
 under it, `Answered <date> by <who>: <answer>`, which the next run keeps. -->
 
-Verdict: <sound · not sound — <what> · undecidable — <question>>
+Verdict: <sealed · withheld — <reason> · undecided — <question>>
