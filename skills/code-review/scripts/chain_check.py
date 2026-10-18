@@ -890,7 +890,7 @@ def finding_spans(reader, lines):
         for i in range(start + 1, end)
         if reader.heading_level(lines[i]) == FINDING_LEVEL
     ]
-    return (start, end), list(zip(heads, [*heads[1:], end], strict=False)), None
+    return (start, end), list(zip(heads, [*heads[1:], end])), None
 
 
 def finding_number(heading):
