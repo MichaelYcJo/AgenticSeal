@@ -36,6 +36,7 @@ second time, and writes its verdict as `sealed`, `withheld` or `undecided`.
 |---|---|
 | `skills/verify/SKILL.md` §*Every agent seals what it verified* calls the drawn stamp the sealer's | #967, which owns that section (`questions.md` Q7) |
 | The warden, the smith and the framer are not measured again for contract §2's change | the owner, `questions.md` Q1; the default, not here, is built |
+| Round 1's fix changes one sentence of `agents/warden.md` (what comes due is the orchestrator's broad run, then the sealer's spawn), so the warden's read set moved after its last measured side; nothing is measured here | the milestone close, which re-judges the warden's side |
 
 ## Fed back into the spec
 

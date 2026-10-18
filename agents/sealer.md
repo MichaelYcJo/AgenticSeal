@@ -127,8 +127,9 @@ Enforced by: evals/behaviour/sealer/rule-sealer-sealed/
 **The guarantee covers HEAD, and a re-run audits what came after.** A commit
 after the one `guarantee.md` names, other than one touching only the closing
 records, `broad-gate.md` and `guarantee.md`, owes a new audit, and the check
-at the pull request refuses the file until it has one. Where an earlier `guarantee.md` stands, the new audit
-re-runs only the claims whose coordinates a commit since its `Target SHA`
-touched, reads the parties again, and keeps the earlier verdict on the
-`Target SHA` row as `; earlier run: <sha> <verdict>`.
-Enforced by: tests/test_the_sealer_guarantees.py::TestGuarantee
+at the pull request refuses the file until it has one. Where an earlier
+`guarantee.md` stands, the new audit re-runs only the claims whose
+coordinates a commit since its `Target SHA` touched, reads the parties again,
+and keeps the earlier verdict on the `Target SHA` row as
+`; earlier run: <sha> <verdict>`.
+Enforced by: tests/test_the_sealer_guarantees.py::TestGuarantee, tests/test_the_sealer_guarantees.py::TestDefinition::test_the_guarantee_rule_exempts_only_the_closing_records

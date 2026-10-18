@@ -1,10 +1,11 @@
-"""The sealer's stamp reaches the person it is drawn for (#400).
+"""The broad gate's stamp reaches the person it is drawn for (#400).
 
-Work item 1790562543. A sealer's stdout is a pipe into a report that arrives
+Work item 1790562543. A sealer's stdout was a pipe into a report that arrived
 folded behind `ctrl+o`, so a stamp drawn there was never seen. The gate now
 draws only on a terminal; a recorded seal on a pipe writes its panel to a
 values file under the git common dir, and a `Stop` hook in the session that
-spawned the sealer draws each undrawn file once, after that turn's text.
+ran the gate (since #969 the orchestrator's) draws each undrawn file once,
+after that turn's text.
 
 This module holds the stamp's half — the values file, `seal-stamp --from`,
 the scale #853 retired. The gate's half is in

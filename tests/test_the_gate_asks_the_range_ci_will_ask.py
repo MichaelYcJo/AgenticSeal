@@ -400,8 +400,8 @@ def test_a_base_that_resolves_nowhere_comes_back_with_no_commit(tmp_path):
 def test_a_linked_worktree_reads_the_same_remote_tracking_refs(tmp_path):
     """A12. Remote-tracking refs and branch tracking config live in the common
     git directory, so a worktree answers as the main checkout does — and the
-    sealer runs from a worktree in this repository's own flow, which is why
-    the claim is worth a case rather than a sentence."""
+    orchestrator runs the gate from a worktree in this repository's own flow,
+    which is why the claim is worth a case rather than a sentence."""
     work = behind_clone(tmp_path)
     linked = tmp_path / "linked"
     git(work, "worktree", "add", "-q", "--detach", str(linked), "base")

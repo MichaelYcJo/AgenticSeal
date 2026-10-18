@@ -8307,7 +8307,10 @@ def test_the_warden_says_what_comes_due():
     positioned to say the gate is next. Saying so without naming what is
     spawned leaves the orchestrator to remember the sealer exists."""
     warden = agent("warden.md")
-    assert "what comes due is the sealer's spawn" in warden, (
+    assert (
+        "what comes due is the orchestrator's broad run, and the sealer's "
+        "spawn after it"
+    ) in " ".join(warden.split()), (
         "the warden says the broad run is next and does not say who takes it"
     )
 

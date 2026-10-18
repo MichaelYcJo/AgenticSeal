@@ -861,7 +861,7 @@ def main(argv=None, console_wants_letters=None):
     both name; a direct call may leave it to be asked here."""
     parser = argparse.ArgumentParser(
         prog="seal-stamp",
-        description="Print the sealer's seal — the letter the broad gate stamps.",
+        description="Print the broad gate's stamp — the letter a green run draws.",
     )
     parser.add_argument(
         "--shape", action="store_true", help="the letter twin, whatever the console"
