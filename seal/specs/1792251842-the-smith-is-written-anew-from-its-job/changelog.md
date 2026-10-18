@@ -28,11 +28,12 @@
 
   | Agent | Preload bytes | Tokens per tool call | Spend USD | Graders passed | Verdict |
   |---|---|---|---|---|---|
-  | smith | 90,728 → 26,596 | 43,068.0 → 35,993.1 | 6.6210 → 5.3675 | 48 → 48 of 48 | pass |
+  | smith | 90,728 → 26,879 | 43,068.0 → 35,691.6 | 6.6210 → 5.4509 | 48 → 48 of 48 | pass |
   | warden | 27,198 → 27,173 | 87,197.6 → 87,862.4 | 42.2333 → 41.7424 | 86 → 91 of 96 | fail, rule 5 alone: tokens per call up 0.8%, five more truths found |
   | framer | 89,444 → 86,353 | 27,296.7 → 29,894.6 | 16.9055 → 16.1196 | 64 → 64 of 64 | fail, rule 5 alone: tokens per call up 9.5% with total tokens down 0.5%, carried to #968 |
 
-  Each pair is the tree at `2fc33333` → the tree at `af716289`, on one
+  Each pair is the tree at `2fc33333` → the tree at `af716289` (the
+  smith's at `28d6a453`, after round 1's fixes to its definition), on one
   suite (`af9c924b`), eight runs a side for the smith and the framer and
   eighteen for the warden, none cut short. The second tree includes #969's
   changes, merged in at `16e8d4c8`, as well as this item's: contract §2,

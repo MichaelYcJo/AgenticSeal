@@ -1,12 +1,12 @@
 {
  "schemaVersion": 1,
  "claudeVersion": "2.1.302",
- "startedAt": "2026-10-18T04:01:07.018Z",
- "durationSeconds": 304,
- "costUsd": 5.3675451999999995,
+ "startedAt": "2026-10-18T05:35:58.543Z",
+ "durationSeconds": 306,
+ "costUsd": 5.450868400000001,
  "partial": false,
  "suite": {
-  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-gp_faf02/tree",
+  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-c11th_da/tree",
   "ablation": "none",
   "threshold": 1,
   "concurrency": 4,
@@ -14,7 +14,7 @@
    {
     "name": "specseal",
     "version": "0.22.0",
-    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-gp_faf02/tree"
+    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-c11th_da/tree"
    }
   ]
  },
@@ -102,12 +102,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.620761,
+      "costUsd": 0.6592996000000002,
       "judgeCostUsd": 0,
-      "durationSeconds": 140,
-      "startedAt": "2026-10-18T04:01:07.119Z",
+      "durationSeconds": 92,
+      "startedAt": "2026-10-18T05:35:58.579Z",
       "error": null,
-      "tracePath": "/private/tmp/e-icFecI/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-nAlmdn/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -162,19 +162,19 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.620761,
-        "duration_ms": 138462,
+        "total_cost_usd": 0.6592996000000002,
+        "duration_ms": 90369,
         "modelUsage": {
          "claude-opus-5-5": {
           "inputTokens": 40,
-          "outputTokens": 7246,
-          "cacheReadInputTokens": 802200,
-          "cacheCreationInputTokens": 54686,
+          "outputTokens": 7072,
+          "cacheReadInputTokens": 769623,
+          "cacheCreationInputTokens": 64226,
           "webSearchRequests": 0,
-          "costUSD": 0.620761,
+          "costUSD": 0.6592996000000002,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 1006,
+          "thinkingTokens": 842,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
@@ -188,12 +188,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.6642646000000001,
+      "costUsd": 0.6385360000000001,
       "judgeCostUsd": 0,
-      "durationSeconds": 151,
-      "startedAt": "2026-10-18T04:01:07.119Z",
+      "durationSeconds": 161,
+      "startedAt": "2026-10-18T05:35:58.579Z",
       "error": null,
-      "tracePath": "/private/tmp/e-yiFmOY/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-ZvpEA7/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -248,19 +248,19 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.6642646000000001,
-        "duration_ms": 149362,
+        "total_cost_usd": 0.6385360000000001,
+        "duration_ms": 158725,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 46,
-          "outputTokens": 8498,
-          "cacheReadInputTokens": 904138,
-          "cacheCreationInputTokens": 54144,
+          "inputTokens": 42,
+          "outputTokens": 9124,
+          "cacheReadInputTokens": 849015,
+          "cacheCreationInputTokens": 48661,
           "webSearchRequests": 0,
-          "costUSD": 0.6642646000000001,
+          "costUSD": 0.6385360000000001,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 1030,
+          "thinkingTokens": 1386,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
@@ -360,12 +360,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.5738002,
+      "costUsd": 0.7810911999999998,
       "judgeCostUsd": 0,
-      "durationSeconds": 117,
-      "startedAt": "2026-10-18T04:01:07.119Z",
+      "durationSeconds": 119,
+      "startedAt": "2026-10-18T05:35:58.579Z",
       "error": null,
-      "tracePath": "/private/tmp/e-Hiulgu/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-OD3QhQ/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -420,38 +420,38 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.5738002,
-        "duration_ms": 115329,
+        "total_cost_usd": 0.7810911999999998,
+        "duration_ms": 117083,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 38,
-          "outputTokens": 7345,
-          "cacheReadInputTokens": 742286,
-          "cacheCreationInputTokens": 47149,
+          "inputTokens": 46,
+          "outputTokens": 9605,
+          "cacheReadInputTokens": 976411,
+          "cacheCreationInputTokens": 70068,
           "webSearchRequests": 0,
-          "costUSD": 0.5738002,
+          "costUSD": 0.7810911999999998,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 850,
+          "thinkingTokens": 1363,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 22
+       "tool_calls": 25
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.605906,
+      "costUsd": 0.5679607999999999,
       "judgeCostUsd": 0,
-      "durationSeconds": 97,
-      "startedAt": "2026-10-18T04:01:07.119Z",
+      "durationSeconds": 137,
+      "startedAt": "2026-10-18T05:35:58.579Z",
       "error": null,
-      "tracePath": "/private/tmp/e-NuVLj4/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-qHScyN/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -506,26 +506,26 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.605906,
-        "duration_ms": 94895,
+        "total_cost_usd": 0.5679607999999999,
+        "duration_ms": 134937,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 32,
-          "outputTokens": 6422,
-          "cacheReadInputTokens": 576945,
-          "cacheCreationInputTokens": 63868,
+          "inputTokens": 34,
+          "outputTokens": 7529,
+          "cacheReadInputTokens": 654304,
+          "cacheCreationInputTokens": 48713,
           "webSearchRequests": 0,
-          "costUSD": 0.605906,
+          "costUSD": 0.5679607999999999,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 946,
+          "thinkingTokens": 956,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 17
+       "tool_calls": 20
       }
      }
     ]
@@ -618,98 +618,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.7850358000000001,
+      "costUsd": 0.7467431999999998,
       "judgeCostUsd": 0,
-      "durationSeconds": 174,
-      "startedAt": "2026-10-18T04:02:43.812Z",
+      "durationSeconds": 143,
+      "startedAt": "2026-10-18T05:37:30.920Z",
       "error": null,
-      "tracePath": "/private/tmp/e-wYbv8X/out/trace.jsonl",
-      "skippedPaidGraders": false,
-      "graders": [
-       {
-        "name": "reach-smith",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Agent called 1x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-built",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched ^def slugify\\(",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-committed",
-        "passed": true,
-        "weight": 1,
-        "explanation": "Bash called 3x (expected 1..∞)",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-no-probe-left",
-        "passed": true,
-        "weight": 1,
-        "explanation": "pattern absent as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-phase-record",
-        "passed": true,
-        "weight": 1,
-        "explanation": "seal/specs/1790000011-slugify/phases/phase-1.md exists as expected",
-        "withOnly": false,
-        "scored": true
-       },
-       {
-        "name": "shape-tested",
-        "passed": true,
-        "weight": 1,
-        "explanation": "matched \\bslugify\\(",
-        "withOnly": false,
-        "scored": true
-       }
-      ],
-      "specseal": {
-       "report_rows": [],
-       "cost": {
-        "total_cost_usd": 0.7850358000000001,
-        "duration_ms": 172569,
-        "modelUsage": {
-         "claude-opus-5-5": {
-          "inputTokens": 50,
-          "outputTokens": 11421,
-          "cacheReadInputTokens": 1085204,
-          "cacheCreationInputTokens": 59241,
-          "webSearchRequests": 0,
-          "costUSD": 0.7850358000000001,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 1948,
-          "canonicalModel": "claude-opus-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-         }
-        }
-       },
-       "tool_calls": 37
-      }
-     },
-     {
-      "score": 1,
-      "passed": true,
-      "turns": 2,
-      "costUsd": 0.7768219999999999,
-      "judgeCostUsd": 0,
-      "durationSeconds": 155,
-      "startedAt": "2026-10-18T04:03:04.245Z",
-      "error": null,
-      "tracePath": "/private/tmp/e-BFC363/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-hjn0oh/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -764,26 +678,112 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.7768219999999999,
-        "duration_ms": 153515,
+        "total_cost_usd": 0.7467431999999998,
+        "duration_ms": 141163,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 56,
-          "outputTokens": 10898,
-          "cacheReadInputTokens": 1137185,
-          "cacheCreationInputTokens": 57797,
+          "inputTokens": 50,
+          "outputTokens": 10290,
+          "cacheReadInputTokens": 1057476,
+          "cacheCreationInputTokens": 57308,
           "webSearchRequests": 0,
-          "costUSD": 0.7768219999999999,
+          "costUSD": 0.7467431999999998,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 2426,
+          "thinkingTokens": 1754,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 30
+       "tool_calls": 29
+      }
+     },
+     {
+      "score": 1,
+      "passed": true,
+      "turns": 2,
+      "costUsd": 0.6966704,
+      "judgeCostUsd": 0,
+      "durationSeconds": 105,
+      "startedAt": "2026-10-18T05:37:57.634Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-s2YfVn/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-smith",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-built",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^def slugify\\(",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-committed",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Bash called 2x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-no-probe-left",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-phase-record",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000011-slugify/phases/phase-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-tested",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched \\bslugify\\(",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 0.6966704,
+        "duration_ms": 104110,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 50,
+          "outputTokens": 8610,
+          "cacheReadInputTokens": 1036437,
+          "cacheCreationInputTokens": 54825,
+          "webSearchRequests": 0,
+          "costUSD": 0.6966704,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 537,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 36
       }
      }
     ]
@@ -876,12 +876,12 @@
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.6447356000000001,
+      "costUsd": 0.6645238,
       "judgeCostUsd": 0,
-      "durationSeconds": 107,
-      "startedAt": "2026-10-18T04:03:27.358Z",
+      "durationSeconds": 120,
+      "startedAt": "2026-10-18T05:38:15.741Z",
       "error": null,
-      "tracePath": "/private/tmp/e-WGXR6G/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-uV3YIH/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -936,38 +936,38 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.6447356000000001,
-        "duration_ms": 105792,
+        "total_cost_usd": 0.6645238,
+        "duration_ms": 118621,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 40,
-          "outputTokens": 8358,
-          "cacheReadInputTokens": 790283,
-          "cacheCreationInputTokens": 55308,
+          "inputTokens": 44,
+          "outputTokens": 8443,
+          "cacheReadInputTokens": 882889,
+          "cacheCreationInputTokens": 55283,
           "webSearchRequests": 0,
-          "costUSD": 0.6447356000000001,
+          "costUSD": 0.6645238,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 1330,
+          "thinkingTokens": 980,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 25
+       "tool_calls": 26
       }
      },
      {
       "score": 1,
       "passed": true,
       "turns": 2,
-      "costUsd": 0.6962199999999998,
+      "costUsd": 0.6960433999999999,
       "judgeCostUsd": 0,
-      "durationSeconds": 153,
-      "startedAt": "2026-10-18T04:03:38.261Z",
+      "durationSeconds": 146,
+      "startedAt": "2026-10-18T05:38:39.273Z",
       "error": null,
-      "tracePath": "/private/tmp/e-kxYLsP/out/trace.jsonl",
+      "tracePath": "/private/tmp/e-L7J4W7/out/trace.jsonl",
       "skippedPaidGraders": false,
       "graders": [
        {
@@ -990,7 +990,7 @@
         "name": "shape-committed",
         "passed": true,
         "weight": 1,
-        "explanation": "Bash called 3x (expected 1..∞)",
+        "explanation": "Bash called 2x (expected 1..∞)",
         "withOnly": false,
         "scored": true
        },
@@ -1022,26 +1022,26 @@
       "specseal": {
        "report_rows": [],
        "cost": {
-        "total_cost_usd": 0.6962199999999998,
-        "duration_ms": 151426,
+        "total_cost_usd": 0.6960433999999999,
+        "duration_ms": 144372,
         "modelUsage": {
          "claude-opus-5-5": {
-          "inputTokens": 42,
-          "outputTokens": 9877,
-          "cacheReadInputTokens": 854915,
-          "cacheCreationInputTokens": 56894,
+          "inputTokens": 44,
+          "outputTokens": 9843,
+          "cacheReadInputTokens": 885202,
+          "cacheCreationInputTokens": 55820,
           "webSearchRequests": 0,
-          "costUSD": 0.6962199999999998,
+          "costUSD": 0.6960433999999999,
           "contextWindow": 1000000,
           "maxOutputTokens": 128000,
-          "thinkingTokens": 1454,
+          "thinkingTokens": 1226,
           "canonicalModel": "claude-opus-5-5",
           "provider": "firstParty",
           "costBasis": "list"
          }
         }
        },
-       "tool_calls": 24
+       "tool_calls": 27
       }
      }
     ]
@@ -1061,12 +1061,12 @@
  "specseal": {
   "agent": "smith",
   "preload": {
-   "agents/smith.md": "fdaeb3a0cb7c8b62923f92ce8e31eceb20c197677c96ca64535cf24d453cde01",
+   "agents/smith.md": "ada69687174775dce4aa1acb203e83e5a1747d2db48d6d34fcb3ab4d1cb51bf0",
    "skills/agent-contract/SKILL.md": "642b0da67c6795a1aa75ba16d0b17bac4e48639d05134bcdb050c34fcec6ee4e"
   },
-  "preload_bytes": 26596,
+  "preload_bytes": 26879,
   "cut_short": false,
-  "rev": "af716289",
+  "rev": "28d6a453",
   "suite_rev": "af9c924b7c5b03af5291017c226842655a8d83dd",
   "suite_tree": "613190e8d1ff62a399c435b3e799b8e0b7aa6a8a"
  }

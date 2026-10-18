@@ -92,10 +92,24 @@ on a tree carrying this item.
 the second take 63.2293 (smith 5.3675, warden 41.7424, framer 16.1196);
 **123.7421 in all**.
 
-**The smith's side is taken again after round 1.** Round 1's fixes changed
+**The smith's side was taken again after round 1.** Round 1's fixes changed
 `agents/smith.md` at a72d5b53, after the take measured above, so the
-orchestrator re-runs the smith's side on the fixed tree and fills its
-figures here.
+orchestrator re-ran the smith's side at 28d6a453 on the same suite. It is
+the side in `evals/smith-phase-4.json` and `.md` now: **pass**, every rule.
+
+| Figure, 2fc33333 → 28d6a453 | smith |
+|---|---|
+| Runs / cut short | 8 / no |
+| Preload bytes (agent share) | 90,728 → 26,879 (−70.4%) |
+| Tokens per tool call | 43,068.0 → 35,691.6 (−17.1%) |
+| Tool calls | 222 → 212 |
+| Spend USD | 6.6210 → 5.4509 (−17.7%) |
+| Graders passed | 48 → 48 of 48 |
+
+All 8 runs opened `skills/implement/SKILL.md` and all 8 opened
+`skills/writing-style/SKILL.md` (a `tool_use` line naming each path, per
+trace in `SpecSeal-worktrees/967-phase-4c-raw/smith/traces`). The
+phase's spend becomes **129.1930** with this side's 5.4509.
 
 ## Commands
 
@@ -109,4 +123,5 @@ The first take's commands are the same with `967-phase-4/`, rev 7053c184.
 | `cp -R $S/<a>-phase-4.raw $K/<a>`, `diff -r`; `run --agent <a> --from-raw $K/<a> --out $E/<a>-phase-4.json`; `cmp` against the scratch copy, each agent | 0 each |
 | `compare --agent <a> --phase 4 --old $E/baseline-<a>.json --new $E/<a>-phase-4.json --out $E/<a>-phase-4.md`, each agent | 0 each |
 | the warden's and the framer's traces read for `writing-style` opens | 0 |
+| after round 1: `run --agent smith --rev 28d6a453 --suite-rev af9c924b --runs 2 -j 4 --max-cost-usd 12` through the scratch `967-phase-4c/` and `SpecSeal-worktrees/967-phase-4c-raw/smith`, then `diff -r`, `--from-raw`, `cmp`, `compare` | 0, 0, 0, 0, 0 |
 | the warden's traces of both takes read for each file `git diff --name-only 7053c184 af716289` lists, at the evaluated tree's path and at the reviewed fixture's (round 1's fix pass) | 0 |

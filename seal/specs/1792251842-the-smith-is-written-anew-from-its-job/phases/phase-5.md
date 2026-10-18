@@ -50,6 +50,10 @@ computed from the same numbers: the smith's preload 26,596 / 90,728 is
 -70.7%, the warden's per-call figure +0.8%, the framer's +9.5% with total
 tokens 3,258,508 / 3,275,602 at -0.5%.
 
+After round 1 the smith's side was taken again at 28d6a453, and the
+changelog's smith row now reads that side; `phases/phase-4.md` traces it.
+The table above is the close as this phase wrote it.
+
 **The frame named a template that does not exist.** `plan.md` row 5 and
 `spec.md` §*Data & interfaces* say `changelog.md` starts from
 `templates/sdd-changelog.md`. No such file is in `templates/`, and
