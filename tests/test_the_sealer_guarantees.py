@@ -67,7 +67,7 @@ def guarantee(sha, verdict):
         "# 1791999990-a-guaranteed-item — guarantee\n\n"
         "| Field | Value |\n|---|---|\n"
         f"| Target SHA | {sha} against main |\n"
-        "| Broad gate | sealed |\n\n"
+        f"| Broad gate | {sha} against main, as `broad-gate.md` names it |\n\n"
         "## Claims re-run\n\n"
         "| Claim | Source | Command | Result |\n|---|---|---|---|\n\n"
         "## The parties\n\n"
