@@ -1164,13 +1164,6 @@ def _queue_values(
     return QUEUED.format(id=ident, path=path, command=quote(path))
 
 
-def _same_place(path):
-    """`path` spelled the one way two spellings of a place compare equal in:
-    resolved through links, as macOS's `/private` is, and in the platform's
-    case."""
-    return os.path.normcase(os.path.realpath(path))
-
-
 def _read(path):
     """The text of `path`, or None where it cannot be read."""
     try:
@@ -1209,22 +1202,20 @@ def queue_for_local_guarantee(path, session, now=None):
     names = (os.path.basename(real), os.path.basename(specs), os.path.basename(seal))
     if names != ("guarantee.md", "specs", "seal"):
         return []
+    # The main worktree, which `git worktree list` names first; "" where
+    # `common` is no git directory, and `git_common_dir("")` is "".
     listed = _git(common, "worktree", "list", "--porcelain") or ""
-    first = listed.split("\n", 1)[0]
-    if not first.startswith("worktree "):
-        return []
+    root = listed.split("\n", 1)[0].partition("worktree ")[2]
     chain = _chain_check()
     routing = chain.load(chain.ROUTING, "specseal_routing_for_the_stamp")
-    root = first[len("worktree ") :]
     found = routing.optin.git_common_dir(root)
-    if not found or _same_place(found) != _same_place(common):
+    if not found or os.path.realpath(found) != common:
         return []
     home = routing.optin.home_at(root, found)
-    if not home or _same_place(home) != _same_place(seal):
+    if not home or os.path.realpath(home) != seal:
         return []
-    text = _read(real)
-    if text is None:
-        return []
+    with open(real, encoding="utf-8") as handle:
+        text = handle.read()
     reader = chain.SHARED_READER
     verdicts = chain.verdicts_of(reader, text)
     if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:

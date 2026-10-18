@@ -1011,13 +1011,18 @@ def test_a_local_mode_withheld_or_undecided_guarantee_queues_nothing(tmp_path, w
 def test_a_local_mode_reseal_after_withheld_queues_the_stamp(tmp_path):
     """#976 S3. The sealer withheld, the work was fixed, and its second run
     reads `sealed` with the earlier verdict kept on the row: that write
-    queues the stamp."""
+    queues the stamp. A work item whose review went straight to the pull
+    request holds no `rounds/`, and its stamp reads `0` rounds."""
     repo, target, _base, path = local_guaranteed(
         tmp_path, earlier="; earlier run: abc1234 withheld — the README is stale"
     )
+    for name in ("round-1.md", "round-2.md"):
+        (path.parent / "rounds" / name).unlink()
+    (path.parent / "rounds").rmdir()
     assert queue_local(path)
     (written,) = queued(repo)
     assert written.endswith(f"-{ITEM_ID}-{target}.json"), written
+    assert stamp_module().read_values(written)["rows"][-1] == ("rounds", "0")
 
 
 def test_a_local_mode_second_sealed_queues_nothing(tmp_path):
@@ -1070,6 +1075,12 @@ def _off_the_branch(repo, item, target, base):
     )
 
 
+def _no_target(repo, item, target, base):
+    (item / "guarantee.md").write_text(
+        "# an item — guarantee\n\nVerdict: sealed\n", encoding="utf-8"
+    )
+
+
 def _no_routing(repo, item, target, base):
     (item / "routing.md").unlink()
 
@@ -1084,8 +1095,16 @@ def _a_branch_gone(repo, item, target, base):
 
 @pytest.mark.parametrize(
     "given",
-    [_unresolved, _off_the_branch, _no_routing, _no_branch_row, _a_branch_gone],
+    [
+        _no_target,
+        _unresolved,
+        _off_the_branch,
+        _no_routing,
+        _no_branch_row,
+        _a_branch_gone,
+    ],
     ids=[
+        "no Target SHA row",
         "the target does not resolve",
         "the target is off the branch",
         "no routing.md",
@@ -1110,8 +1129,10 @@ def test_the_edit_gate_leaves_shared_mode_to_post_commit(tmp_path):
     `<repo>/seal/` is shared mode's, whose stamp `post-commit` queues at the
     commit; and a root under the git common dir of a repository that also
     has `<repo>/seal/` is shared too (contract §11). The local writer queues
-    nothing for either, where every other fact would queue."""
-    for name in ("shared", "both"):
+    nothing for either, where every other fact would queue; nor for the
+    same `sealed` text under a local work item in a file that is not its
+    `guarantee.md`."""
+    for name in ("shared", "both", "local"):
         (tmp_path / name).mkdir()
     shared, _target, _base = guaranteed(tmp_path / "shared")
     item = shared / "seal" / "specs" / ITEM_NAME
@@ -1122,6 +1143,11 @@ def test_the_edit_gate_leaves_shared_mode_to_post_commit(tmp_path):
     (both / "seal").mkdir()
     assert queue_local(path) == []
     assert queued(both) == []
+    local, _target, _base, path = local_guaranteed(tmp_path / "local")
+    notes = path.parent / "notes.md"
+    notes.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
+    assert queue_local(notes) == []
+    assert queued(local) == []
 
 
 # --- #717: the hook's whole message is held under a budget --------------------
