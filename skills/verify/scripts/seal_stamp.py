@@ -47,10 +47,10 @@ owner's marks) and `sealed_names` for its head.
 **The stamp is drawn where a person sees it, once per work item** (#400,
 #975). git's `post-commit` (`hooks/commitgate.py#post_commit`) calls
 `queue_for_guarantee` after every judged commit; where the commit carries a
-`guarantee.md` reading `sealed` and stamped by no earlier run, it writes the
-stamp's rows to a values file under the git common dir, keyed by the Claude
-Code session, and `hooks/sealer-stamp.py` draws each undrawn file once, at
-the end of that session's turn. This module owns the file:
+`guarantee.md` reading `sealed` and stamped by no earlier run or commit, it
+writes the stamp's rows to a values file under the git common dir, keyed by
+the Claude Code session, and `hooks/sealer-stamp.py` draws each undrawn file
+once, at the end of that session's turn. This module owns the file:
 `queue_for_guarantee` and `write_values`, `read_values`, `pending` and
 `claim`. Drawing claims the file first, by renaming it to `.drawn.json`, so
 a file is drawn once whoever draws it.
@@ -911,14 +911,17 @@ def label(values):
 # after every judged commit, in the worktree the commit landed in, and calls
 # `queue_for_guarantee`; the `Stop` hook draws what it queued.
 #
-# Once per work item is held by three facts the tree and the clone carry,
+# Once per work item is held by four facts the tree and the clone carry,
 # and no count kept beside them: a values file whose name,
 # `<ns>-<id>-<target sha>.json`, carries the work item's id, under any
 # session's directory, pending or drawn, whatever commit it named; the
 # audited commit standing in HEAD's history, so a squash or a cherry-pick of
-# the guarantee elsewhere queues nothing; and the `Target SHA` row's `;
-# earlier run: <sha> <verdict>` chain — a `sealed` after a `sealed` was
-# stamped at the first — which holds across clones.
+# the guarantee elsewhere queues nothing; the guarantee reading `sealed` at
+# an earlier commit of that history (`sealed_before`); and the `Target SHA`
+# row's `; earlier run: <sha> <verdict>` chain — a `sealed` after a `sealed`
+# was stamped at the first. The last two hold across clones. An amend of the
+# sealing commit itself in a second clone is not caught by either: its
+# parent predates the guarantee and its row is the one just written.
 
 # A committed guarantee's path, in shared mode, where a commit carries it. A
 # local-mode root sits under the git directory and no commit ever carries
@@ -1027,9 +1030,9 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
 def queue_for_guarantee(top, common, session, now=None):
     """The lines `post-commit` prints for the commit at HEAD of `top`: one
     per work item whose `guarantee.md` the commit touched, reads one
-    `Verdict:` of `sealed`, carries no earlier run reading `sealed`, has no
-    values file in the clone already, and audited a commit in HEAD's
-    history. Each writes one values file for
+    `Verdict:` of `sealed`, carries no earlier run reading `sealed`, read
+    no `sealed` at an earlier commit of HEAD's history, has no values file
+    in the clone already, and audited a commit in HEAD's history. Each writes one values file for
     `session` under `common` first. Raises whatever reading or writing
     raises; the caller is silent on every failure."""
     touched = _git(
@@ -1052,6 +1055,23 @@ def queue_for_guarantee(top, common, session, now=None):
     return said
 
 
+def sealed_before(chain, top, path):
+    """True where `path` read one `Verdict:` of `sealed` at a commit before
+    HEAD in HEAD's history. That commit was stamped where it was made, in
+    this clone or another, so what the history carries holds across clones
+    and asks nothing of the row an agent writes. A root commit has no
+    parent: `git log` exits 128 and the history is empty."""
+    reader = chain.SHARED_READER
+    for sha in (_git(top, "log", "--format=%H", "HEAD^", "--", path) or "").split():
+        text = _git(top, "show", f"{sha}:{path}")
+        if text is None:
+            continue
+        verdicts = chain.verdicts_of(reader, text)
+        if len(verdicts) == 1 and chain.verdict_word(verdicts[0][1]) == chain.SEALED:
+            return True
+    return False
+
+
 def _queue_one(chain, top, common, session, name, now):
     """The line for one work item's guarantee, or None where it queues
     nothing (`queue_for_guarantee` says when)."""
@@ -1069,6 +1089,8 @@ def _queue_one(chain, top, common, session, name, now):
     rows = chain.table_rows(reader, reader.readable(text))
     cell = reader.visible(chain.field(rows, chain.TARGET) or "")
     if any(word == chain.SEALED for _sha, word in chain.earlier_verdicts(cell)):
+        return None
+    if sealed_before(chain, top, f"{rel}/guarantee.md"):
         return None
     ident = item_value(name)
     if already_queued(common, ident):

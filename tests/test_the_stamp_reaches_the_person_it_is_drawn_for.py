@@ -742,6 +742,33 @@ def test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing(tmp_path):
     assert queued(other) == []
 
 
+def test_a_sealed_item_recommitted_in_another_clone_queues_nothing(tmp_path):
+    """#975 round 3, once per work item. The guarantee was stamped in one
+    clone. In a second clone of the same branch, a commit that edits the
+    sealed guarantee with no new run, and a re-seal whose row lost its
+    earlier run, each find `sealed` earlier in the guarantee's history, so
+    nothing is queued. Red at b81de037: the second clone held no values
+    file, so the first of them queued one."""
+    repo, _target, base = guaranteed(tmp_path)
+    assert after_the_commit(repo)
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+    )
+    git(other, "switch", "-q", "feat/x")
+    item = other / "seal" / "specs" / ITEM_NAME / "guarantee.md"
+    item.write_text(item.read_text(encoding="utf-8") + "\na note\n", encoding="utf-8")
+    commit_all(other, "a note in the guarantee, no new run")
+    assert after_the_commit(other) == ""
+    (other / "x.txt").write_text("a fix after the seal\n", encoding="utf-8")
+    commit_all(other, "a fix")
+    new = git(other, "rev-parse", "--short", "HEAD").stdout.strip()
+    item.write_text(guarantee_text(new, base, "sealed"), encoding="utf-8")
+    commit_all(other, "the sealer again, its row written fresh")
+    assert after_the_commit(other) == ""
+    assert queued(other) == []
+
+
 def test_the_guarantee_stamps_rows_are_read_from_the_records(tmp_path):
     """#975 S9, `questions.md` Q1's answer (a). The stamp carries what the
     records at the commit say and nothing re-measured: its title, the

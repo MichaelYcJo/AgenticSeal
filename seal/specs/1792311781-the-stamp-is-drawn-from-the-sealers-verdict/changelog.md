@@ -10,8 +10,11 @@
   from <path>; where none appears, `seal-stamp --from <path>` draws it``. The
   `Stop` hook draws it after the turn's text, as before. `withheld` and
   `undecided` draw nothing. A re-seal after `withheld` draws the stamp then,
-  and a work item that was already stamped in this clone draws nothing more,
-  whatever commit the new verdict names. A squash or a cherry-pick of the
+  and a work item that was already stamped draws nothing more, whatever
+  commit the new verdict names. That holds in another clone of the same
+  branch too, since its history shows the guarantee already read `sealed`;
+  the one exception is a second clone amending the sealing commit itself,
+  which draws the stamp again there. A squash or a cherry-pick of the
   guarantee onto another branch draws nothing either. The stamp's rows are
   what the records at that commit say: the audited commit and its branch,
   the base, the work item, the newest broad run, and the count of round
