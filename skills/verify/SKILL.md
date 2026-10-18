@@ -405,7 +405,7 @@ spawned. The run judges no failure and fixes none; the sealer reads its
 record, and what it guarantees after it is `docs/the-review-record.md`
 §*The guarantee*.
 `broad-gate --preflight`, which the orchestrator runs before the broad run,
-is not this run: it runs the gate's record arms, runs no suite, and seals
+is not this run: it runs the gate's record arms, runs no suite, and writes
 nothing (#638).
 
 **An expensive suite argues for this placement, not against it.** A run that
@@ -431,7 +431,7 @@ arms exist so that the one run says what CI will say, and for three releases the
 list was kept in step with `.github/workflows/hygiene.yml` by whoever
 remembered. #424 added a step to that workflow's `release` job, nobody added
 the arm, and no case in the suite went red — so from that merge onward a green
-seal covered a shorter list than the merge was judged by.
+run covered a shorter list than the merge was judged by.
 `skills/verify/scripts/broad_gate.py`'s `PARTITION` is the declaration that
 ends it: every step of that job is mirrored by a named arm or excluded with a
 written reason, there is no third state, and a case holds the table against
@@ -439,7 +439,7 @@ the workflow from both sides. A step added to the workflow fails the suite
 until somebody classifies it, and a row naming a step that was renamed away
 fails it too.
 
-**A seal says what it did not answer.** Where the repository being gated has
+**A run says what it did not answer.** Where the repository being gated has
 that workflow, the panel carries a `CI also` row — *· <n> more steps* — and the
 names of those steps go to stderr beside the line that names the
 repository's own command, with the total they are counted out of. The dim
@@ -451,7 +451,7 @@ sees neither, and nothing else about its run changes. Both are counted over
 the steps CI runs for the base (#666): a step CI does not ask of this pull
 request — three of SpecSeal's run only on a pull request into `main` — is
 neither answered nor unanswered, so the count leaves it out and the line says
-how many it left out and why. A feature seal of SpecSeal itself reads `CI
+how many it left out and why. A run on a SpecSeal feature branch reads `CI
 also · 3 more steps`, and the line says they are three of the six CI runs
 for that base.
 
@@ -468,7 +468,7 @@ condition, so the class stays open for the next kind.
 SpecSeal's own `release` job have a local answer and no arm: two run a
 script under `.github/scripts/`, which no plugin ships, and one is shell
 written inline in the workflow with no script either side can share. A
-repository that wants checks of its own sealed names them in the `Broad gate`
+repository that wants checks of its own run names them in the `Broad gate`
 row of `seal/config.md` — the row this gate already runs first — rather than
 in the arm list of a script that ships to everybody.
 

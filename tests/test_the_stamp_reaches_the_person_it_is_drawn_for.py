@@ -349,7 +349,7 @@ SMALL_ROWS = [("SEALED", ""), ("tree", "aaa1111"), ("", "feat/x"), ("rounds", "2
 def test_several_files_come_out_one_stop_each_oldest_first(tmp_path):
     """Several pending seals come out one `Stop` at a time, oldest first,
     each stamp whole under its own label and with its disc, and a file that
-    is not a run's values is skipped and left where it is rather than taking
+    is not a stamp's values is skipped and left where it is rather than taking
     the others down.
 
     Phase 2's name for #717's case. The pair has to be over the budget
@@ -820,7 +820,7 @@ def test_the_hooks_message_is_under_the_budget_for_one_file(tmp_path):
     assert len(text) <= mod.MESSAGE_BUDGET, len(text)
     assert text.split("\n", 1)[0] == mod.label(full_values())
     assert text == drawn(mod, mod.label(full_values()), FULL_ROWS), (
-        "a real run's stamp no longer fits the budget with its disc"
+        "a real work item's stamp no longer fits the budget with its disc"
     )
 
 
@@ -844,7 +844,7 @@ REFERENCE_ROWS = [
     ("flow", "· 4 of 9 not answered"),
     ("rounds", "2"),
 ]
-# The owner's reference for a real run's stamp, chosen on 2026-10-07: design 3
+# The owner's reference for a real work item's stamp, chosen on 2026-10-07: design 3
 # of `frames.py`, `~/Desktop/specseal-frame-3-open.ans` on the owner's
 # machine (`spec.md` decision 6 and S3 of work item 1791270164). Transcribed
 # from that file's SGR stream and half-blocks by a script that read no line
@@ -1210,7 +1210,7 @@ def test_the_policy_states_the_budget_and_names_its_case():
         "is no smaller disc to step to, and since #853 no scale either"
     ) in rule
     assert "0.90" not in rule and "at every scale" not in rule
-    assert "one real run's stamp goes out per message" in rule
+    assert "one stamp of a real work item's size goes out per message" in rule
     assert "does not fit with its disc by itself is the only one drawn" in rule
     assert "as the text block with no disc" in rule
     assert "0.80 and 0.75" not in rule and "at 0.75 by itself" not in rule

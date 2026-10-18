@@ -443,7 +443,7 @@ def test_the_skill_says_the_preflight_is_not_the_broad_gate():
     assert PREFLIGHT in text, "the broad gate section does not name the preflight"
     at = text.index(PREFLIGHT)
     said = text[max(0, at - 300) : at + 500]
-    assert "runs no suite" in said and "seals nothing" in said, said
+    assert "runs no suite" in said and "writes nothing" in said, said
     assert "orchestrator" in said, said
     assert "--preflight" not in read("agents", "sealer.md"), (
         "the sealer's definition names the preflight"

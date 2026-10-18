@@ -300,8 +300,8 @@ One message carries as many of the oldest pending stamps as fit together
 with their disc. A stamp has two rungs, with its disc and then without it:
 the owner's disc is drawn 28 cells across and has one size, so there is no
 smaller disc to step to, and since #853 no scale either. That disc is most
-of a stamp's size, so one real run's
-stamp goes out per message and a second waits for the next turn. A seal past
+of a stamp's size, so one stamp of a real work item's size
+goes out per message and a second waits for the next turn. A seal past
 what one message can carry stays pending and is drawn at the next turn's
 end, and a single stamp that does not fit with its disc by itself is the
 only one drawn as the text block with no disc. A stamp can

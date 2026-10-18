@@ -24,8 +24,8 @@ row. Two prompts per session per repository, then silence, and nothing at all
 once the row exists. The section on it below says how the command fills it in.
 
 `Broad gate` is the other, and its absence is not a prompt but a refusal:
-`broad-gate` names the row and exits 2 with nothing run, because a seal taken
-over a command nobody chose seals nothing. The section on it below says why
+`broad-gate` names the row and exits 2 with nothing run, because a run
+over a command nobody chose proves nothing. The section on it below says why
 there is no default.
 
 **A row written twice has no value, and a file that will not read is
@@ -312,7 +312,7 @@ What it prevents is quiet and was reachable by following this plugin's own
 procedure. The block `/specseal:config` copies out of this file carries the
 fenced example row above, and nothing said where in `seal/config.md` it had to
 land; pasted above the live table, or above a table with no parseable row yet,
-the example WAS the table every gate read — the sealer's seal taken over a
+the example WAS the table every gate read — a broad run over a
 plausible command nobody chose (#429). **`broad-gate` says so by name**: where
 this gate's row exists only inside a fence, the refusal quotes that line and
 says where it has to move to, rather than reporting the row absent.

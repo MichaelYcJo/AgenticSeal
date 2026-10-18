@@ -291,7 +291,7 @@ def test_a_line_writes_one_sgr_per_change_and_no_reset_inside_it():
     no two are adjacent, and no part twice in one; no reset inside a line,
     and `\\x1b[0m` closing a line that wrote a code. A blank keeps the
     foreground and the style as set and writes nothing, unless a background
-    is still set from the disc, which it ends. Read over a real run's stamp,
+    is still set from the disc, which it ends. Read over a real work item's stamp,
     with its disc and without (whose blank lines write nothing at all), and
     over the disc alone, against the count of changes taken from
     `compose`'s cells here.
@@ -1773,7 +1773,7 @@ def test_the_gate_row_fits_the_panel_for_a_nine_character_version(tmp_path):
 
 
 def test_without_the_row_the_gate_names_it_and_runs_nothing(tmp_path):
-    """S3. A seal taken over a command nobody chose is the counterfeit
+    """S3. A run over a command nobody chose is the counterfeit
     `verify` names, so an absent row is a refusal rather than a default: the
     row is named, exit 2, and no check ran — the output directory holds
     nothing."""
@@ -3741,7 +3741,7 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
 
 def test_the_documents_name_the_ci_also_row():
     """#717, S7 for the rows (`agent-contract` §14). `skills/verify/SKILL.md`
-    §*A seal says what it did not answer* and `agents/sealer.md` named the
+    §*A run says what it did not answer* and `agents/sealer.md` named the
     `workflow` row and its `<n> of <total> not answered` reading; both name
     the `CI also` row and its `<n> more steps` now, and the denominator is
     said to be on the stderr line. #832's S5a: the row's value leads with a
@@ -3751,7 +3751,10 @@ def test_the_documents_name_the_ci_also_row():
         read_document(os.path.join("skills", "verify", "SKILL.md")).split()
     )
     assert "the panel carries a `CI also` row — *· <n> more steps* —" in verify
-    assert "A feature seal of SpecSeal itself reads `CI also · 3 more steps`" in verify
+    assert (
+        "A run on a SpecSeal feature branch reads `CI also · 3 more steps`"
+    ) in verify
+    assert "A feature seal of" not in verify
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
     assert "the panel carries a `workflow` row" not in verify

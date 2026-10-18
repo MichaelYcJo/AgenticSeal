@@ -111,7 +111,7 @@ def load_stamp():
 def drawings(stamp, directory):
     """The message block for every undrawn file in `directory`, oldest
     first. Each block is built whole, label included, before its file is
-    claimed, so a file that is not a run's values — whatever it fails on — is
+    claimed, so a file that is not a stamp's values — whatever it fails on — is
     left where it is and takes no other file's drawing with it.
 
     It used to catch `ValueError` alone and build the label after the claim,

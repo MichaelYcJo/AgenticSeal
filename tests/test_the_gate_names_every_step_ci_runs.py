@@ -4,7 +4,7 @@ remembered, and nothing held the two lists against each other (#468).
 `skills/verify/scripts/broad_gate.py#gate` runs a handful of arms so the
 sealer's one run says what CI will say. `.github/workflows/hygiene.yml`'s
 `release` job runs ten named steps. #424 added one of them and the gate
-was not extended, so from that merge onward a green seal covered a
+was not extended, so from that merge onward a green run covered a
 shorter list than the merge is judged by — and no case in the suite went red
 for it.
 

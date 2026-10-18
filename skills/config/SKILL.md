@@ -50,7 +50,7 @@ exactly those.
 row, an empty value, a file that does not parse. Say the default and the
 reason rather than showing a blank. **The `Broad gate` row has no default
 at all**: absent, `broad-gate` names the row and exits 2 with nothing run,
-because a seal over a command nobody chose seals nothing. Show it as absent
+because what a command nobody chose reports proves nothing. Show it as absent
 and say what happens without it.
 
 **2. For the mode, show what is true as well as what is written.** That row is
@@ -78,7 +78,7 @@ second answer.
   walk of that table — not the gates' reader, not the mode gate's, and not
   `seal mode`'s writer. Pasted above the live table, or above a table that has
   no parseable row yet, that example used to be the table every gate read, and
-  the sealer sealed over its command (#429). Put the prose under the table the
+  the broad run ran its command (#429). Put the prose under the table the
   repository actually answers in, and where the `Broad gate` row exists only
   inside a fence, `broad-gate` quotes that line and says to move it.
 
