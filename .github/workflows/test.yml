@@ -107,12 +107,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.timeout }}
     steps:
-      # Not shallow. `tests/test_a_rider_reaches_its_file.py` asks git whether
-      # a recorded SHA is an ancestor of HEAD, and at depth 1 no SHA is: the
-      # run went red on all four matrix legs for a reason that had nothing to
-      # do with the code. A checkout that cannot answer the question is not a
-      # pass either, so the test fails loudly on a shallow clone rather than
-      # skipping.
+      # Not shallow. A case resolves a commit this repository's own records
+      # name -- `tests/test_the_frozen_reading_never_grows.py` shows
+      # `86256492:hooks/cmdline.py` -- and at depth 1 the commit is missing
+      # rather than wrong, so the case skips where it should have answered.
+      # `tests/test_ci_gives_the_checks_what_they_need.py` holds every job
+      # that runs pytest to the whole history.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0

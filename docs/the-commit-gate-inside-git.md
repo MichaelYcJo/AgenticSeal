@@ -9,7 +9,9 @@ declaration, is `docs/the-review-and-parity-arms.md`'s. The PreToolUse
 reading that judges where git cannot, the registration of the hooks and the
 implementer mark are `docs/commit-review-gate-spec.md`'s. The review run
 those hooks serve, and what the pull-request check reads of a round record,
-are `docs/the-review-record.md`'s. Update spec and code together.
+are `docs/the-review-record.md`'s, and so is the stamp `post-commit` queues
+when a commit carries a `guarantee.md` reading `sealed` (§*The stamp*).
+Update spec and code together.
 
 ## The commit gate inside git (pre-commit · reference-transaction · post-commit)
 
@@ -233,9 +235,15 @@ Enforced by: tests/test_the_hook_surface_git_offers.py::test_no_git_refuses_a_sw
 - **Latency.** A judged commit starts one interpreter in `pre-commit`, one in
   `reference-transaction` at `prepared`, and, once it lands, one in
   `post-commit`, which has no narrowing line: 209–400 ms a commit on the
-  machine phase 1 measured under load, against 57 ms with no hooks (M10). A
-  ref update that is not a commit, a fetch's among them, starts none, and so
-  does a person's own commit where no lease file stands in the clone. A lease
+  machine phase 1 measured under load, against 57 ms with no hooks (M10).
+  Since #975 `post-commit` has a second duty, the stamp: it asks git for the
+  paths the commit touched and reads further only where one is a work item's
+  `guarantee.md`. Measured by #975's phase 2 on one machine, as medians of 11
+  commits: 343 ms an ordinary judged commit against 333 ms without that
+  duty, and 375 ms against 336 ms for the commit that adds a `sealed`
+  guarantee. A ref update that is not a commit, a fetch's among them, starts
+  none, and so does a person's own commit where no lease file stands in the
+  clone. A lease
   stands for up to a day after its session's last tool call
   (`hooks/session-lease.py` prunes files older than that), and while one does
   a person's commit pays three interpreter starts, `pre-commit`,

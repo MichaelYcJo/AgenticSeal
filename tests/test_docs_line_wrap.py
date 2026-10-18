@@ -19,9 +19,10 @@ with `prose_lines` and `display_width` below — a number written by hand goes
 stale silently, and two of these four had (#422 reported one of them):
 
     agents/scribe.md               160
-    agents/smith.md                109
     skills/writing-style/SKILL.md  209
-    skills/implement/SKILL.md       90
+
+`agents/smith.md` and `skills/implement/SKILL.md` were on this list until
+#967 wrote them anew, wrapped, and they joined `COVERED`.
 
 `skills/commit-pr-convention/SKILL.md` is covered: it was written wrapped, so
 it never had a maximum to bring down.
@@ -30,6 +31,7 @@ Add a file here once its prose fits, rather than raising LIMIT — the limit is
 the thing with value.
 """
 
+import fnmatch
 import importlib.util
 import os
 import re
@@ -64,6 +66,25 @@ def _fold_check():
 # targets — not `nothing — <why>`, whose reason is prose, and not one outside
 # any statement.
 fold_check = _fold_check()
+
+
+def _rules():
+    path = os.path.join(ROOT, ".github", "scripts", "rules.py")
+    spec = importlib.util.spec_from_file_location("specseal_rules_wrap", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# In a rule file a line of targets outside any statement has a reader too:
+# `rules --check` resolves every `Enforced by:` line a rule file shows, which
+# is how an agent definition closes each rule (#957).
+rules = _rules()
+
+
+def is_rule_file(relative):
+    """Whether `rules --check` reads RELATIVE's `Enforced by:` lines."""
+    return any(fnmatch.fnmatch(relative, p) for p in rules.RULE_FILES)
 
 
 def _fence_reader():
@@ -122,14 +143,17 @@ COVERED = [
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under. It was
     # the first `agents/*.md` file to arrive that way; `framer.md` below is
-    # the second, and `smith.md` and `scribe.md` sit at 109 and 160, which is
-    # why the docstring lists those two instead of this list holding them.
-    # Whether those two join this list is an open row in `seal/follow-up.md`
-    # for the repository owner; a corrected number is not that argument.
+    # the second. `scribe.md` sits at 160, which is why the docstring lists it
+    # instead of this list holding it.
     "agents/sealer.md",
     # The fifth definition (#84), on the sealer's terms exactly: a file
     # written wrapped has no sweep to owe, so it goes in at birth.
     "agents/framer.md",
+    # Written anew and wrapped in #967, alone rather than with the scribe:
+    # `questions.md` Q2 of work item 1792251842 took the default, and the
+    # follow-up row is narrowed to the scribe for #970.
+    "agents/smith.md",
+    "skills/implement/SKILL.md",
     "skills/code-review/SKILL.md",
     # The orchestrator's half of the same file (#265). It arrives
     # already wrapped, because it was wrapped as part of the file it
@@ -196,21 +220,22 @@ def display_width(line):
     return sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in line)
 
 
-def prose_lines(text):
+def prose_lines(text, rule_file=False):
     """Every line that is hand-wrapped prose.
 
     Skipped: YAML frontmatter, fenced code, table rows, images and block
     quotes (all wrap on their own terms or not at all), any line carrying a
     URL, which cannot be broken, a fold marker, which cannot be broken
-    either, and a folded statement's `Enforced by:` line of targets.
+    either, and an `Enforced by:` line of targets.
 
     **An `Enforced by:` line of targets is not prose either.** The shape
     counts exactly one such line per statement, so a wrapped one is two lines
     and a broken shape, and a single `path::test` target already overflows
     the limit for most tests in this repository. The lines skipped are the
-    ones `fold_check.enforced_lines` returns and no others, so a
-    `nothing — <why>` line and one outside any statement are still held
-    here.
+    ones `fold_check.enforced_lines` returns and, in a RULE_FILE, the ones
+    `rules.py#enforcer_lines` reads as targets, and no others, so a
+    `nothing — <why>` line, and outside a rule file one outside any
+    statement, are still held here.
 
     **A fold marker is not prose.** `<!-- specs/<work-item-id> -->` is the
     record `settle` reads to know a work item's spec was absorbed by a policy
@@ -227,6 +252,12 @@ def prose_lines(text):
     """
     lines = text.splitlines()
     enforced = set(fold_check.enforced_lines(text))
+    if rule_file:
+        enforced |= {
+            number
+            for number, _heading, value in rules.enforcer_lines(text)
+            if rules.targets_of(value)
+        }
     fenced = fenced_numbers(lines)
     in_frontmatter = lines[:1] == ["---"]
     for number, line in enumerate(lines, 1):
@@ -254,7 +285,7 @@ def test_prose_stays_within_the_wrap_limit(relative):
         text = handle.read()
     over = [
         (number, display_width(line))
-        for number, line in prose_lines(text)
+        for number, line in prose_lines(text, rule_file=is_rule_file(relative))
         if display_width(line) > LIMIT
     ]
     assert not over, "\n".join(
@@ -361,6 +392,28 @@ def test_an_enforced_by_line_with_targets_is_skipped_and_the_next_line_is_not():
     numbers = [n for n, _line in prose_lines(text)]
     assert 5 not in numbers, f"the Enforced-by line was read as prose: {numbers}"
     assert 6 in numbers and 4 in numbers, numbers
+
+
+def test_a_line_of_targets_in_a_rule_file_is_skipped_wherever_it_stands():
+    """A rule file's `Enforced by:` line of targets is not prose, inside a
+    fold statement or not (#957).
+
+    An agent definition closes each rule with one such line, and
+    `rules --check` reads every one in a rule file as targets and resolves
+    each, so a wrapped line is a broken target. The skip is that reader's:
+    `rules.py#enforcer_lines` naming targets, in a file `RULE_FILES` names. A
+    `nothing — <why>` line is still prose, and outside a rule file a loose
+    line is still held, which the case below keeps."""
+    loose = f"Enforced by: {WIDE_TARGET}"
+    reason = "Enforced by: nothing — " + "only a reader can tell this " * 3
+    text = f"# D\n\n**Rule.** It holds.\n{loose}\n\n**Other.** It too.\n{reason}\n"
+    numbers = [n for n, _ in prose_lines(text, rule_file=True)]
+    assert 4 not in numbers, numbers
+    assert 3 in numbers and 7 in numbers, numbers
+    assert 4 in [n for n, _ in prose_lines(text)]
+    assert is_rule_file("agents/warden.md")
+    assert is_rule_file("skills/code-review/SKILL.md")
+    assert not is_rule_file("README.md")
 
 
 def test_an_enforced_by_line_the_reader_does_not_read_is_still_prose():

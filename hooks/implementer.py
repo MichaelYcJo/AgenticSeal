@@ -13,7 +13,7 @@ spellings of one path is a mark that is written and never found.
 **One module for BOTH axes**, for that same reason one storey up. A second
 module beside this one would hold a `git_dir`, a `write` and a `stands` that
 differ from these by a constant, and a near-identical copy is the failure
-contract §11 and §16 each record having already been paid for -- each of them a
+contract §11 was written to end -- a
 rule that sat in two definitions in near-identical words while a third carried
 none. So the axis is an ARGUMENT here, never a second file: two constants, and
 one reader that walks them.

@@ -11,47 +11,91 @@ produce and what holds them.
 from `templates/sdd-round.md`, in the branch worktree under review: a
 `target:` line, then `## Findings` with one `### <n>. <symptom>` section per
 finding, `## Confirmations` where the round confirmed something,
-`## Not judged` and `## Probes`. A finding holds its `severity:`,
-`location:` and `verdict:` lines, a `regression:` or a `reopens:` line where
-one applies, why it matters with its grounds, the paste-ready fix in a fenced block, and its
-`answer:` line. The record is written in words, and no emoji stands anywhere
-in it. No report file stands beside it and nothing generates, copies or
-derives any part of it.
-Enforced by: tests/test_chain_check.py::TestFindings::test_the_template_is_the_record_the_check_reads, tests/test_the_record_is_written_in_words.py::test_the_template_the_format_and_the_two_definitions_carry_no_emoji
+`## Not judged` and `## Probes`. A finding holds the labelled lines the table
+below places in a finding, why it matters with its grounds, and the
+paste-ready fix in a fenced block. The record is written in words, and no
+emoji stands anywhere in it. No report file stands beside it and nothing
+generates, copies or derives any part of it.
+Enforced by: tests/test_chain_check.py::TestFindings::test_the_template_is_the_record_the_check_reads, tests/test_the_record_is_written_in_words.py::test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block
 
-**Every label is one lowercase word at the start of its line, and no other
-spelling is read.** The eight are `target:`, `severity:`, `location:`,
-`verdict:`, `regression:`, `reopens:`, `answer:` and `confirms:`, each
-followed by one space, with no emphasis. A line that means one of them, or
-an old spelling — `Target SHA`, `refixes`, `fix of a fix` — and is spelt
-another way — `VERDICT:`, `**verdict:**`, `verdict :`, `Reopens:` — is
-refused at its line, and the
-finding carrying it is not read past it, so a finding holding both
-spellings does not pass on the lowercase one. A finding's label outside a
-finding, a `target:` or `confirms:` line inside one, and a `confirms:` line
-outside `## Confirmations` are refused the same way.
-Enforced by: tests/test_chain_check.py::TestFindings::test_a_label_in_another_spelling_is_refused_by_line, tests/test_chain_check.py::TestFindings::test_a_target_or_confirms_line_out_of_its_place_is_refused, tests/test_chain_check.py::TestFindings::test_a_reopens_line_names_one_finding_and_never_beside_a_regression_line
+**The record's grammar is the table below, and nothing else states it.**
+Each labelled line and finding heading of a record is one row's, and the
+check accepts it only where it matches the row's `Shape` whole, stands where
+`Where` says and is as many as `How many` allows. Otherwise it is refused at
+its line with the row's `Refused as`. `How many` counts per finding for a
+line in a finding, and per record for every other line. A label is its
+`Line` cell exactly: lowercase, at the start of the line, followed by one
+space or by nothing, with no emphasis and no table cell. A line that means a
+label and is spelt another way, in another case, under emphasis, with a
+space before the colon, or as an old spelling a `nowhere` row names, is
+refused at its line, and the finding carrying it is not read past it. So a
+finding holding both spellings does not pass on the lowercase one. Three
+rules span rows: a finding carries at most one of a `regression:` and a
+`reopens:` line, no two findings share a heading number, and
+`## Confirmations` holds no table row. No `Record language` translates a
+cell of the table.
+Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_every_line_matches_its_row_whole, tests/test_chain_check.py::TestFindings::test_a_label_in_another_spelling_is_refused_by_line, tests/test_chain_check.py::TestFindings::test_a_target_or_confirms_line_out_of_its_place_is_refused, tests/test_chain_check.py::TestFindings::test_a_reopens_line_names_one_finding_and_never_beside_a_regression_line
 
-**A finding's `verdict:` reads one of four values, and severity is for
-people.** The warden writes `open`; the fix pass answers with
-`fixed <commit>`, `rejected` (the finding does not hold, and `answer:` says
-why) or `deferred <home>`. `severity:` reads `must` (fix before merge) or
-`should` (fix, or say why not), and no check reads it. What this round
-confirmed holds is a `confirms:` entry of `## Confirmations`, and what it
-could not judge a row of `## Not judged` with who answers it; neither is a
-finding. A wrong sentence an agent reads and acts on is `should`; a sentence
-in a record that merely reads badly is not a finding.
+| Line | Shape | Where | How many | Refused as |
+|---|---|---|---|---|
+| `target:` | `target: (?P<commit>[0-9a-f]{7,40})(?: against [\w./-]*\w\|, fixes [0-9a-f]{7,40}\.\.[0-9a-f]{7,40})` | outside every finding | one | it names the reviewed commit as `<sha> against <base>`, or `<sha>, fixes <a>..<b>` for a verifying round |
+| `## Findings` | `## Findings` | the record | one | a round record holds one, with a `### ` section and one `verdict:` line per finding |
+| `### <n>. <symptom>` | `### (?P<number>[1-9][0-9]*)\. .+` | `## Findings` | each number once | no number: a finding's heading reads `### <n>. <symptom>`, and a later round names it by that `n` |
+| `severity:` | `severity: (?:must\|should)` | a finding | one | a severity is `must` or `should` |
+| `location:` | `` location: `[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`(?:, `[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`)* `` | a finding | one | a location is one or more of `path`, `path:line` or `path:first-last`, each backticked, joined by `, ` |
+| `verdict:` | `verdict: (?:open\|rejected\|fixed (?P<commit>[0-9a-f]{7,40})\|deferred (?P<home>\S(?:.*\S)?))` | a finding | one | a verdict is `open`, `fixed <commit>`, `rejected` or `deferred <home>` |
+| `regression:` | `regression: round-(?P<round>[1-9][0-9]*)(?:#(?P<finding>[1-9][0-9]*))?` | a finding | at most one | a reference is `round-<N>#<n>` or `round-<N>` |
+| `reopens:` | `reopens: round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*)` | a finding | at most one | a reopened close is a finding's, so the reference is `round-<N>#<n>` |
+| `answer:` | `answer:(?: .*)?` | a finding | one | an answer is prose after the label |
+| `## Confirmations` | `## Confirmations` | the record | at most one | each entry is a `confirms:` line at the start of a line, then its prose |
+| `confirms:` | `confirms: (?:none\|round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*))` | `## Confirmations` | any | it is `round-<N>#<n>` or `none` |
+| `Target SHA:` | — | nowhere | none | the old spelling of `target:` |
+| `refixes:` | — | nowhere | none | an old spelling of `regression:` |
+| `fix of a fix:` | — | nowhere | none | an old spelling of `regression:` |
+
+**`chain_check.py` reads the table from this section and stops at exit 2
+where it cannot.** It loads the table once, when it is imported, from
+`docs/the-review-record.md` beside itself, which every copy of the plugin
+carries, the hygiene workflow's clone among them. It finds the table by this
+section's heading and the table's header row. A document it cannot open, a
+section or a header row it cannot find, and a row it cannot read stop it at
+exit 2 naming this file, never a pass. A row it cannot read is one whose
+shape does not compile, whose `Where` or `How many` is a word the table does
+not use, a row the check reads a meaning from that is missing, one whose
+shape lacks the named part, such as `(?P<commit>…)`, the check reads out of
+it, or one that stands where the check does not look for it or whose
+`How many` the check cannot keep. `target:` stands outside every finding
+and is `one`. `location:`, `verdict:`, `regression:` and `reopens:` stand in
+a finding, and since the check reads one line of each, the first two are
+`one` and the last two `one` or `at most one`. `confirms:` stands in
+`## Confirmations`. Every other row may take any `Where` and `How many` the
+table uses for its kind, because the check counts each: a section, or a
+line in a section, that the table says is `one` is refused where a record
+leaves it out, `## Confirmations` included. So a rewrite of `docs/` that
+moves this heading or the table, as #941's will, moves the loader's path in
+the same commit, or every check that reads a record stops.
+Enforced by: tests/test_chain_check.py::TestGrammar::test_a_document_the_check_cannot_read_is_exit_2_naming_it, tests/test_chain_check.py::TestConfirmations::test_a_section_left_out_is_counted_where_the_table_says_one
+
+**A finding's `verdict:` decides it, and severity is for people.** The
+warden writes `open`; the fix pass answers with `fixed <commit>`,
+`rejected` (the finding does not hold, and `answer:` says why) or
+`deferred <home>`. `severity:` is `must` (fix before merge) or `should`
+(fix, or say why not); the check holds it to its row and decides nothing on
+it. What this round confirmed holds is a `confirms:` entry of
+`## Confirmations`, and what it could not judge a row of `## Not judged`
+with who answers it; neither is a finding. A wrong sentence an agent reads
+and acts on is `should`; a sentence in a record that merely reads badly is
+not a finding.
 Enforced by: tests/test_chain_check.py::TestVerdictOf::test_the_four_values_read_and_nothing_else_does
 
 **A finding's `location:` names where the defect shows, and a `fixed` commit
-touches it.** A finding's one such line lists a backticked coordinate for
-each place the defect shows, and for the file its paste-ready fix changes
-where that is elsewhere, joined by `, `; a coordinate is `path`,
-`path:line` or `path:first-last`, the path from the root. A line the check
-cannot read is refused whatever the verdict. A `fixed <commit>` changes at
-least one named path, or a path under one; whether a fix that touched one of
-three is complete is the verifying round's to judge. It errs where a commit
-touches a named path and fixes nothing, which the verifying round reads.
+touches it.** Its coordinates are each place the defect shows, and the file
+its paste-ready fix changes where that is elsewhere, each path from the
+root. A line the check cannot read is refused whatever the verdict. A
+`fixed <commit>` changes at least one named path, or a path under one;
+whether a fix that touched one of three is complete is the verifying round's
+to judge. It errs where a commit touches a named path and fixes nothing,
+which the verifying round reads.
 Enforced by: tests/test_chain_check.py::TestLocationOf::test_one_or_more_backticked_coordinates_read_and_nothing_else_does, tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused
 
 **The fix pass writes two lines per finding and nothing else in the file.**
@@ -67,24 +111,22 @@ on the branch and closes `deferred <where it was repaired>`, such as
 round nothing. `rejected` means only that the finding does not hold.
 Enforced by: tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused, tests/test_the_record_is_written_in_words.py::test_a_repair_with_no_commit_closes_deferred_where_it_was_made
 
-**Each round answers to the next by reference.** A reference is
-`round-<N>#<n>`, the earlier record's number and the finding's heading
-number, or `round-<N>` for a round's fix pass that no finding named. A
-round names an earlier finding by one of three relations, each its own
-line: `confirms:` where its close holds; `reopens:` on a new finding where
-the close does not hold and no fix pass's commit made the defect;
-`regression:` on a new finding where a fix pass's own commit introduced
-it. Each entry of `## Confirmations` is a `confirms:` line reading
-`round-<N>#<n>`, or `none` for a claim of the frame or the build that
-matched, with its prose on the lines after it; a `regression:` line reads
-a reference, and a `reopens:` line reads `round-<N>#<n>` alone, since a
-fix pass no finding named closed nothing to reopen. Every finding of round
+**Each round answers to the next by reference.** A reference names an
+earlier record by its number and one of its findings by the finding's
+heading number, or, for a round's fix pass that no finding named, the
+record alone; the table's rows say which line takes which. A round names an
+earlier finding by one of three relations, each its own line: `confirms:`
+where its close holds; `reopens:` on a new finding where the close does not
+hold and no fix pass's commit made the defect; `regression:` on a new
+finding where a fix pass's own commit introduced it. A `reopens:` line
+names a finding, since a fix pass no finding named closed nothing to
+reopen, and a `confirms: none` entry is a claim of the frame or the build
+that matched, with its prose on the lines after it. Every finding of round
 N at `fixed <commit>` or `rejected` is named by a `confirms:`, a
 `reopens:` or a `regression:` line of round N+1, and one left unnamed is
 refused at its own heading in round N's record; a `deferred <home>`
 finding owes nothing. Round 1 has no earlier record, so its entries read
-`none`. A round with nothing to confirm leaves `## Confirmations` out; a
-record holds one at most.
+`none`. A round with nothing to confirm leaves `## Confirmations` out.
 Enforced by: tests/test_chain_check.py::TestReferenceOf::test_a_round_and_a_finding_read_and_nothing_else_does, tests/test_chain_check.py::TestChannel::test_every_fixed_or_rejected_finding_is_confirmed_or_named_a_regression, tests/test_chain_check.py::TestConfirmations::test_each_confirms_line_reads_as_a_reference_or_none, tests/test_chain_check.py::TestChannel::test_a_reopens_line_answers_the_earlier_finding_as_the_other_two_do
 
 **Every round file stays, so a finding can be followed from the round that
@@ -95,11 +137,10 @@ left to read them.
 Enforced by: tests/test_settle_retires_the_process_record.py::test_the_process_record_leaves_and_the_sdd_set_stays
 
 **`target:` names a commit, not a content anchor, because a round records a
-moment.** The record's one `target:` line reads `<sha> against <base>`, or
-`<sha>, fixes <a>..<b>` for a verifying round, and its first word is the
-reviewed commit. No such line, two, or a value of another shape is refused.
-A squash orphans the commit after the merge, and the check reads it only
-while the branch that holds it is open.
+moment.** The record's one `target:` line names the reviewed commit, with
+the base a round that read the branch read it against, or the fix range a
+verifying round read. A squash orphans the commit after the merge, and the
+check reads it only while the branch that holds it is open.
 Enforced by: tests/test_chain_check.py::TestFollows, tests/test_chain_check.py::TestRecordTarget
 
 ## What the check reads at the pull request
@@ -126,32 +167,19 @@ commit someone makes under GitHub's identity with a number reads as carried.
 Enforced by: tests/test_chain_check.py::TestCarriedBy, tests/test_chain_check.py::TestMain::test_a_release_pull_request_leaves_a_squashed_item_to_its_own_pull_request, tests/test_chain_check.py::TestMain::test_an_item_the_release_pull_requests_own_commit_changes_is_judged
 
 **Of a round record the check reads its labelled lines, and refuses what it
-cannot read.** It reads the record's one `target:` line; inside each `### `
-section of the one `## Findings` section, one `verdict:` line, one
-`location:` line and at most one of a `regression:` and a `reopens:` line;
-and in `## Confirmations`, where the record has it, each `confirms:` line —
-each in
-the one spelling the record's rules give. A ready pull request fails while a
-finding reads `open`, and for anything the check cannot read: a verdict
-outside `open`, `fixed <commit>` (seven to forty lowercase hex digits),
-`rejected` and `deferred <home>`; a label in another spelling, or out of its
-place; a finding with no `verdict:` or `location:` line, or two of either;
-a finding holding both a `regression:` and a `reopens:` line, or a
-`reopens:` line naming a round alone;
-a finding heading with no number, or with a number another heading of the
-record carries; no `target:` line, two, or one it cannot read; a location or a reference it
-cannot read; a table row in `## Confirmations`; a record with no
-`## Findings` section, or two of either section; a `fixed` naming a commit
-HEAD does not descend from, or one that changed no located path; a
-reference naming no earlier record, or a finding that record does not hold,
-and any reference in round 1; a `fixed` or `rejected` finding the next
+cannot read.** It reads every line §*The round record*'s table has a row
+for, and a ready pull request fails for any line that table refuses. It
+fails, too, while a finding reads `open`; for a `fixed` naming a commit HEAD
+does not descend from, or one that changed no located path; for a reference
+naming no earlier record, or a finding that record does not hold, and any
+reference in round 1; and for a `fixed` or `rejected` finding the next
 record names on no `confirms:`, `reopens:` or `regression:` line. A labelled
-line inside
-a fence or a comment is not a line, so a finding whose only verdict stands
-in its fix block has none, and a fence or a comment that never closes, which
-would hide every finding after it, is refused at the line that opened it.
-Each refusal names the record, the line and the finding's heading. No emoji,
-severity or answer is read for the decision. It errs two ways where the
+line inside a fence or a comment is not a line, so a finding whose only
+verdict stands in its fix block has none, and a fence or a comment that
+never closes, which would hide every finding after it, is refused at the
+line that opened it. Each refusal names the record, the line and the
+finding's heading. No emoji is read, and neither severity nor answer
+decides anything. It errs two ways where the
 shape holds and the fact does not: a `fixed` commit that touches a named
 path and fixes nothing passes, and the verifying round's warden, whose
 `confirms:` line the check then requires, is who reads the fix; and a fence
@@ -197,11 +225,12 @@ Enforced by: tests/test_chain_check.py::TestChanged, tests/test_chain_check.py::
 ## The guarantee
 
 **The sealer is the final, independent guarantor: it verifies, independently
-of the smith and the warden, that the work before it is sound.** Its
+of the smith and the warden, that the work before it holds.** Its
 reference is the issue body and the tree, never an agent's word or the
 orchestrator's summary. It runs after the pull request body and the
-changelog fragment are written, on both routing answers, and its order of
-work is `agents/sealer.md`'s.
+changelog fragment are written and the orchestrator's broad run has written
+`broad-gate.md`, on both routing answers; it reads that record and runs
+nothing broad, and its order of work is `agents/sealer.md`'s.
 
 **It checks a claim against the fact, and the parties against each other.**
 The acts are `agents/sealer.md` step 3's and step 4's, and this section
@@ -212,24 +241,117 @@ Enforced by: tests/test_the_sealer_guarantees.py::TestDocument::test_the_guarant
 
 **Its verdict is `guarantee.md`, from `templates/sdd-guarantee.md`**: the
 commit and base, the broad gate's result, the claims re-run, the parties
-compared, and one `Verdict:` line — `sound`, `not sound — <what>`, or
-`undecidable — <question>`. An undecidable question is the owner's: the
+compared, and one `Verdict:` line — `sealed`, `withheld — <reason>`, or
+`undecided — <question>`. An undecided question is the owner's: the
 answer goes on a line under the verdict, and the sealer runs again at the
 new HEAD.
 Enforced by: tests/test_the_sealer_guarantees.py::TestTemplate, tests/test_the_sealer_guarantees.py::TestDefinition
 
 **A ready pull request passes only where `guarantee.md` names HEAD and reads
-`sound`.** Only the sealer's two files, `broad-gate.md` and `guarantee.md`,
+`sealed`.** Only the closing records, `broad-gate.md` and `guarantee.md`,
 may follow the commit it names, since every other file on the branch is one
-it audited. `not sound`, `undecidable`, an unfilled template, two `Verdict:`
-lines or a stale commit each fail naming the file; a draft prints them.
-Enforced by: tests/test_the_sealer_guarantees.py::test_a_verdict_other_than_sound_fails_a_ready_pull_request, tests/test_the_sealer_guarantees.py::TestGuarantee
+the sealer audited. `withheld`, `undecided`, an unfilled template, two
+`Verdict:` lines or a stale commit each fail naming the file; a draft prints
+them. A word the verdict used before it read `sealed` fails naming its line
+and saying the word changed.
+Enforced by: tests/test_the_sealer_guarantees.py::test_a_verdict_other_than_sealed_fails_a_ready_pull_request, tests/test_the_sealer_guarantees.py::test_the_old_words_are_refused_by_line, tests/test_the_sealer_guarantees.py::TestGuarantee
 
 **How it errs.** It samples, so a false claim outside the sample passes, and
 the sample is written in the file so the miss can be found afterwards.
 Whether five stories agree is a judgment, so a disagreement it does not see
 is missed.
 Enforced by: nothing — the guarantee's own tables are what a reader audits
+
+## The stamp
+
+<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
+<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
+**The stamp is drawn once per work item, from the sealer's `sealed`, at the
+end of the turn in which `guarantee.md` reading it was committed.** The stamp
+means every party verified the work item, the sealer last, and the work is
+done (#975), so it is drawn from that verdict and never from the broad
+gate's run, which comes before the sealer has read anything and draws
+nothing (`docs/the-broad-gate.md` §*One act, one owner*). git's
+`post-commit` runs after the commit, in the worktree it landed in. Where the
+commit carries a work item's `guarantee.md` whose one `Verdict:` reads
+`sealed`, it writes the stamp's values under
+`<git-common-dir>/specseal-stamp/<session>/` and prints one line naming the
+file and `seal-stamp --from <path>`. A `Stop` hook draws each undrawn file of
+its own session once, after that turn's text, and a subagent's end draws
+nothing. `withheld` and `undecided` queue nothing. Once per work item is held
+by what the clone and the tree carry, with no count beside them: a values
+file already named for the work item, pending or drawn, under any session's
+directory is not written twice, whatever commit it named; a commit whose
+audited commit is not in its own history, a squash or a cherry-pick of the
+guarantee elsewhere, queues nothing; and a guarantee that read `sealed` at an
+earlier commit of that history, or whose `Target SHA` row's `; earlier run:`
+chain reads `sealed`, counts as stamped then, which holds across clones. It
+does not hold for a `sealed` committed over a history that carries no earlier
+`sealed` in a clone that holds no values file for the work item, which draws
+the stamp again in that clone: the sealing commit amended or rewritten there
+over its own parent, or a second seal on a copy of the branch that had not
+fetched the first. The clone that drew the stamp keeps its values file, so an
+amend there draws nothing. That is a stated limit, since across
+clones the history is the only record the rule reads, and nothing beside the
+tree counts stamps. The stamp carries what the records at the commit say: the audited commit and its branch, the base, the work item, the
+newest broad run and the count of round records.
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_guarantees_commit_queues_one_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_withheld_or_undecided_guarantee_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_after_withheld_queues_the_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_second_sealed_verdict_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_recommit_of_the_same_guarantee_queues_no_second_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_recommitted_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_stamps_rows_are_read_from_the_records, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_main_sessions_stop_draws_each_undrawn_file_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_end_draws_nothing_and_leaves_the_file, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output
+
+<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
+**The hook holds its whole message under a budget named in the code, and
+steps the drawing down rather than letting the harness persist it.** The
+harness writes a `Stop` hook's `systemMessage` longer than 10,000 characters
+to a file and shows the person a 2 KB preview, so a stamp past that size is
+not seen. `seal_stamp.MESSAGE_LIMIT` is that number, measured with a scratch
+hook; `MESSAGE_BUDGET` keeps 1,000 characters of it back for the gate-failure
+report `hooks/dispatch.py` prepends to the same message. The harness counts
+UTF-16 units, so a character outside the BMP is two, and so does the hook.
+One message carries as many of the oldest pending stamps as fit together
+with their disc. A stamp has two rungs, with its disc and then without it:
+the owner's disc is drawn 28 cells across and has one size, so there is no
+smaller disc to step to, and since #853 no scale either. That disc is most
+of a stamp's size, so one stamp of a real work item's size
+goes out per message and a second waits for the next turn. A seal past
+what one message can carry stays pending and is drawn at the next turn's
+end, and a single stamp that does not fit with its disc by itself is the
+only one drawn as the text block with no disc. A stamp can
+come out without its disc or a turn later, and a session that ends first
+leaves it for `seal-stamp --from`. `seal-stamp` is not budgeted, because it
+is no hook's message.
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_hooks_message_is_under_the_budget_for_one_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_two_files_in_one_turn_are_under_the_budget_together, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_seals_past_what_one_message_carries_wait_for_the_next_turn, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_ladder_steps_down_in_order_and_ends_with_no_disc
+
+<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
+<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
+<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
+**What the person's screen shows is not checked, and neither is the order of
+the text above it.** The cases prove that the hook emits the right bytes for
+the right payload. A screenshot of the probe proved once that such bytes
+render unfolded, in colour, after the turn's final text. Whether a given
+work item's stamp was seen, and whether the orchestrator wrote its result in
+the turn the stamp closed, are read by the person and by nobody else. So is
+how the stamp reads on a light background as well as a dark one. Nothing
+outside the disc is painted, so its text is in the terminal's own colours and
+theme — dim labels, a green `✓`, the title in the stamp's red — and the owner
+reads the first real stamp on each background.
+**Nor is the hook's silence where it cannot draw.** No stamp is queued, and
+nothing is said, where git's hooks slot is somebody else's (`core.hooksPath`,
+or a hook file the plugin did not write), since none of its stubs runs there;
+in local mode, where the `seal/` root sits under the git directory and no
+commit carries `guarantee.md`; or for a person's own commit with no Claude
+session behind it, which has no turn to draw at. No stamp is queued either
+where the guarantee's history already read `sealed` and that verdict drew
+nothing, a `sealed` over a commit the branch does not hold among them: once
+per work item reads the history, and the work item's stamp is then the
+gap #976 carries. The hook draws nothing and
+says nothing where the main session's `python3` cannot load `seal_stamp.py`,
+since no launcher stands in front of a hook; where that session's working
+directory is outside the clone the commit landed in; or where its plugin
+predates the hook. Where a file was written, the line `post-commit` printed
+names `seal-stamp --from <path>`, and a stamp that did not appear is drawn by
+hand from it, once. Where none was, the pull request's check is what says the
+work item was sealed.
+Enforced by: nothing — no case, hook or workflow can observe a screen; the
+owner reads it on the first real run after a change to this surface.
 
 ## The run
 

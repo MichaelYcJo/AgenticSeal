@@ -175,76 +175,105 @@ review* fires `ready_for_review`, re-runs the check and fails the pull
 request if the record is still missing. Nothing that can reach `main` is
 exempt.
 
-**`broad-gate.md` is read at a READY pull request.** So the sequence has two
-more steps before the draft goes ready: a run of the record arms, which is
-yours, and then a spawn. **Run `broad-gate --preflight --base <base>`, and on
-its exit 0 spawn `sealer`, with the base and the work item's directory**, the
-issue and the pull request, once the pull request body and the work item's
-`changelog.md` are written, since the sealer audits both. The sealer runs
-`broad-gate --base <base> --record <item>`, which takes the one broad pass
-now that the rounds have settled and, on a green run, writes `broad-gate.md`;
-then it audits the work against the issue and the tree and writes
-`guarantee.md` (`docs/the-review-record.md` §*The guarantee*). You read what
-it returns; you do not take the run yourself.
+**`broad-gate.md` is read at a READY pull request.** So the sequence has
+three more steps before the draft goes ready, once the pull request body and
+the work item's `changelog.md` are written: the preflight, the broad run, and
+then a spawn. The first two are yours, and no agent takes either.
+**Run `broad-gate --preflight --base <base>`; on its exit 0, with nothing else
+running, run `broad-gate --base <base> --record <item>`**, which takes the
+one broad pass now that the rounds have settled and, on a green run, writes
+`broad-gate.md`. Send its output to `<scratchpad>/<work-item-id>/broad-gate.log`,
+making the directory first, and read the whole log and the exit code
+directly. **On exit 0 commit `broad-gate.md`, then spawn `sealer` with the
+base and the work item's directory**, the issue and the pull request. The
+sealer reads that record, audits the work against the issue and the tree,
+and writes `guarantee.md` (`docs/the-review-record.md` §*The guarantee*); it
+runs nothing broad, and a missing or stale record comes back `withheld —
+no broad run at HEAD`.
 
-**Commit the sealer's two files together; a verdict other than `sound` keeps
-the pull request a draft.** `not sound` names the claim and the coordinate.
-Where the repair touches only the work item's own records — a phase record,
-the changelog fragment — or the pull request body, make it, commit, and spawn
-the sealer again at the new HEAD. Where it touches any other file it is a fix
-nobody reviewed: commit it, spawn a verifying round on its diff, and spawn
-the sealer once that round's record is committed. The sealer's broad run
+**On exit 1 spawn nothing.** The word beside each failing file says whether
+it predates the work: `new` is this work's to repair, `failing on base too`
+is a follow-up to name, and `new?` carries the reason nothing at the base
+measured it, so run that file at the base before treating it as either.
+Review a repair where it touched a file outside the work item's records, and
+run the gate again. On exit 2 nothing ran; a refusal about the row goes
+to a person, as *A refusal about the `Broad gate` row* below says.
+
+**Pass the base as a plain branch name, and quote the lines only the gate can
+tell.** The gate resolves the base to the ref CI reads: the base's upstream
+where the checkout declares one, else `origin/<base>`. Quote, as printed,
+where resolving the base moved it, where the run handed itself to the tree's
+copy of the gate, and its `outputs kept under broad-gate-<random>/` line;
+each is a fact a reader learns from nowhere else.
+
+**Commit `guarantee.md`; a verdict other than `sealed` keeps the pull request
+a draft.** `withheld` names the claim and the coordinate. Where the repair
+touches only the work item's own records — a phase record, the changelog
+fragment — or the pull request body, make it, commit, and spawn the sealer
+again at the new HEAD: the record commits after the run leave it standing.
+Where it touches any other file it is a fix nobody reviewed: commit it, spawn
+a verifying round on its diff, and once that round's record is committed run
+the broad gate again, commit its record, and spawn the sealer. Your broad run
 asks the records arm first, and that arm refuses a commit outside the work
-item after the last round's `target:` commit, so a sealer spawned straight after
-the fix returns the same verdict. `undecidable` is a question for the owner,
+item after the last round's `target:` commit, so a run taken straight after
+the fix returns the same refusal. `undecided` is a question for the owner,
 put after the run rather than during it; write the answer under the verdict
 as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
+`withheld — the base <name> resolves to no commit here` needs no commit: a
+`git clone` of the branch worktree copies its branches and none of its
+`origin/` refs, so spawn the sealer again with the branch worktree itself as
+its clone, where `origin/<base>` or, with no remote, `<base>` resolves.
 
 **The preflight is yours, and it is not the broad gate (#638).** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
 same resolved base, once every refusal of the row has been applied; the row is
-read and not run. It takes seconds where the sealer's run takes a suite, so a
-refusal on a record arm, which the sealer would return after that suite,
-arrives before the spawn. Read its exit code directly and spawn only on 0. On
+read and not run. It takes seconds where the broad run takes a suite, so a
+refusal on a record arm, which the broad run would return after that suite,
+arrives before it. Read its exit code directly and take the broad run only on 0. On
 1 its `PREFLIGHT FAILED` lines name each failing arm with its first lines and
 the file holding the rest: correct the record, commit, and run it again. On 2
 it refused before anything ran, and a refusal about the row goes to a person,
-as *A refusal about the `Broad gate` row* below says. It writes no file, no
-values file and no stamp, and prints no `SEALED` line, so it seals nothing.
-A session that skips the preflight loses only time: the sealer asks the same
-arms, and refuses the same way after its suite.
+as *A refusal about the `Broad gate` row* below says. It writes no file and
+prints no `BROAD GATE` line, so nothing it prints reads as the broad run's.
+A session that skips the preflight loses only time: the broad run asks the
+same arms, and refuses the same way after its suite.
 
-**The stamp is drawn for you at the end of your turn, and you never draw
-one (#400).** A green recorded run on the sealer's pipe draws nothing. It
-writes the stamp's values to a file and prints one `SEALED` line naming it,
-and the `Stop` hook draws that file after your text, when your turn ends.
-So put the result text first: what was
-sealed, the lines worth quoting, and what happens next. Then end the turn,
-and the drawing lands last with nothing after it. Draw none yourself,
-neither with `seal-stamp` nor by relaying the sealer's log. The 0.15.6 run
-relayed the log, and the person saw the same stamp twice, the copy
-colourless and cut. The `SEALED` line names the branch and the tree it
-sealed and the ref and the commit it was compared against, and the line
-under it says `broad-gate.md` is written and not committed: CI reads HEAD,
-so commit it before the pull request is marked ready, or the one broad run
-is recorded nowhere CI looks. On a red run relay
-the `NOT SEALED` lines, and nothing
-is drawn. Wherever the `SEALED` line names `seal-stamp --from`, quote it as
-it stands: that command is the person's to type, and never yours. Every line
-that names a values file names it, because the hook draws nothing and says
-nothing where it cannot: a `python3` that cannot load `seal_stamp.py`, a
-working directory outside the sealed clone, or a plugin older than the hook.
+**The stamp is drawn for you at the end of the turn in which `guarantee.md`
+reading `sealed` is committed, and you never draw one (#975).** The broad run
+draws nothing: its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED`,
+which say whether the broad command passed and judge nothing. The stamp means
+every party verified the work item, the sealer last, so it is drawn once per
+work item from the sealer's verdict: when you commit its `guarantee.md` and
+the one `Verdict:` reads `sealed`, git's `post-commit` writes the stamp's
+values and prints one line naming them, and the `Stop` hook draws them after
+your text. So put the result text first in that turn: what was sealed, the
+lines worth quoting, and what happens next. Then end the turn, and the
+drawing lands last with nothing after it. Draw none yourself, neither with
+`seal-stamp` nor by relaying a log. The 0.15.6 run relayed the log, and the
+person saw the same stamp twice, the copy colourless and cut. The `BROAD GATE
+PASSED` line names the branch and the tree the run measured and the ref and
+the commit it was compared against, the panel's rows follow it as text, and
+the report's last line says `broad-gate.md` is written and not committed: CI
+reads HEAD, so commit it before the pull request is marked ready, or the one
+broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
+FAILED` lines. Wherever the commit's line names `seal-stamp --from`, quote it
+as it stands: that command is the person's to type, and never yours. The line
+names it because the hook draws nothing and says nothing where it cannot: a
+`python3` that cannot load `seal_stamp.py`, a working directory outside the
+clone, or a plugin older than the hook. Where git's hooks slot is somebody
+else's no line prints and no stamp is drawn, and the pull request's check is
+what says the work item was sealed.
 
 **A refusal about the `Broad gate` row goes to a person, and the run stops
-until they answer.** The sealer comes back exit 2 two ways that are about the
-row rather than about the work: the repository declares no row, or its row is
-one the gate would not run as the command it reads as. Neither is yours to
-settle and neither is the sealer's — the row is the one value in this flow
-only a person may write, because there is no default and the sealer's seal
-covers exactly what a person wrote. Put the gate's own sentence in front of
+until they answer.** Your broad run comes back exit 2 two ways that are
+about the row rather than about the work: the repository declares no row, or
+its row is one the gate would not run as the command it reads as. Neither is
+yours to settle, and no agent's — the row is the one value in this flow only
+a person may write, because there is no default and the broad run covers
+exactly what a person wrote. Put the gate's own sentence in front of
 whoever owns the repository, name `/specseal:config` as where they answer it, and
 leave the pull request as a draft until they have. Filling the row in to get
-past the refusal is #401: it is what happened, and the stamp then covered a
+past the refusal is #401: it is what happened, and the run then covered a
 command the person had never seen.
 
 **A session that has compacted hands the next round to a fresh one, and the

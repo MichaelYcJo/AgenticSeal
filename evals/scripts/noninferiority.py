@@ -7,6 +7,7 @@
   noninferiority.py compare --agent A --phase N --old OLD.json --new NEW.json
       --out RECORD.md
   noninferiority.py check RECORD.md
+  noninferiority.py model RECORD.md
 
 `run` copies the plugin tree at REV (or DIR) into a temporary directory,
 puts the suite at SUITE-REV's `evals/behaviour/` into it, and runs
@@ -15,15 +16,29 @@ for is saved before anything reads it**: the eval's JSON, every run's trace
 and the measured preload go to `<out>.raw/` beside `--out`, and only then is
 each directory the eval kept removed. `--out` is the saved side with these
 additions under `specseal`: the preload's hashes and bytes, each run's
-report rows and cost (its trace's `result` event: `total_cost_usd`,
-`duration_ms`, `usage`), and whether the side was cut short. `run
---from-raw` writes `--out` again from a saved side, with no eval run.
-`compare` writes the record the five pass rules judge, outcome first and
-then cost; `check` recomputes a record's verdict from its numbers.
+report rows, cost (its trace's `result` event: `total_cost_usd`,
+`duration_ms`, `modelUsage`) and tool calls (every `tool_use` block in its
+trace), and whether the side was cut short. `run --from-raw` writes `--out`
+again from a saved side, with no eval run. `compare` writes the record the
+five pass rules judge, outcome first and then cost, each against the
+baseline: recall not fallen, except by one find where every truth grader
+that lost it is still found by at least one new run, the false-finding rate
+within `FALSE_MARGIN`
+of the baseline's, each shape and reach grader passing on the new side at
+least as often as on the baseline, the preload's bytes below the
+baseline's, and the tokens read across every model per tool call below the
+baseline's. Total tokens, tokens per true find, spend and wall seconds are
+written and judge nothing.
+`check` recomputes a record's verdict from its numbers.
+`model` reads a record whose `--old` was the Opus side and `--new` the
+Sonnet side, and prints `sonnet` only where no truth, shape or reach grader
+passes on the Sonnet side less often and its spend is lower, else `opus`;
+then one line saying why. The record's own verdict does not decide it.
 
-Exit codes: 0 written, or the record's verdict holds · 1 the record's
-verdict is not `pass`, or it disagrees with its numbers · 2 nothing ran
-(arguments, a missing tool, an unreadable input).
+Exit codes: 0 written, the record's verdict holds, or a model was decided ·
+1 the record's verdict is not `pass`, or it disagrees with its numbers · 2
+nothing ran (arguments, a missing tool, an unreadable input), or `model` was
+handed a record that disagrees with its numbers or ran two suites.
 """
 
 import argparse
@@ -47,12 +62,15 @@ CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
 # `location:` line.
 FINDING_ROW = re.compile(r"^location: .*$", re.M)
 FALSE_MARGIN = 0.05
-COST_MARGIN = 1.1
+# The three counts of a model's `modelUsage` entry a run read.
+READ_COUNTS = ("inputTokens", "cacheCreationInputTokens", "cacheReadInputTokens")
 COST_FIELDS = (
     "old_spend",
     "new_spend",
     "old_tokens",
     "new_tokens",
+    "old_calls",
+    "new_calls",
     "old_seconds",
     "new_seconds",
     "old_bytes",
@@ -68,9 +86,7 @@ def preload_files(tree, agent):
     """The files AGENT's spawn preloads in TREE: its definition and every
     skill its `skills:` frontmatter lists.
 
-    A definition with no frontmatter stops the run.
-
-    Reads: owned — `agents/<agent>.md`'s frontmatter; unknown refused"""
+    A definition with no frontmatter stops the run."""
     rel = f"agents/{agent}.md"
     with open(os.path.join(tree, rel), encoding="utf-8") as f:
         text = f.read()
@@ -87,9 +103,7 @@ def preload_files(tree, agent):
 def preload_hashes(tree, agent):
     """`{path: sha256}` of AGENT's preload in TREE.
 
-    A missing file stops the run.
-
-    Reads: observed — the bytes of each file `preload_files` names; unknown refused"""
+    A missing file stops the run."""
     out = {}
     for rel in preload_files(tree, agent):
         with open(os.path.join(tree, rel), "rb") as f:
@@ -100,9 +114,7 @@ def preload_hashes(tree, agent):
 def preload_bytes(tree, agent):
     """The bytes of AGENT's preload in TREE, every file summed.
 
-    A missing file stops the run.
-
-    Reads: observed — the size of each file `preload_files` names; unknown refused"""
+    A missing file stops the run."""
     return sum(
         os.path.getsize(os.path.join(tree, rel)) for rel in preload_files(tree, agent)
     )
@@ -114,9 +126,7 @@ def preload_bytes(tree, agent):
 def git_bytes(*args):
     """`git -C ROOT <args>`'s stdout as bytes.
 
-    A non-zero exit stops the run.
-
-    Reads: observed — git's stdout; unknown refused"""
+    A non-zero exit stops the run."""
     run = subprocess.run(["git", "-C", ROOT, *args], capture_output=True)
     if run.returncode != 0:
         raise SystemExit(
@@ -128,9 +138,7 @@ def git_bytes(*args):
 def extract(rev, paths, into):
     """Write REV's PATHS (the whole tree when empty) under INTO.
 
-    A member that would land outside INTO stops the run.
-
-    Reads: observed — `git archive`'s tar stream; unknown refused"""
+    A member that would land outside INTO stops the run."""
     data = git_bytes("archive", "--format=tar", rev, *paths)
     with tarfile.open(fileobj=io.BytesIO(data)) as tar:
         tar.extractall(into, filter="data")
@@ -140,11 +148,11 @@ def side_path(tree, base_path):
     """The PATH a side runs under: the tree's `bin/`, its `.shims/`, then
     BASE_PATH without any installed plugin's `bin/`.
 
-    Reads: nothing — it maps the string it is handed."""
+    An entry is compared in the platform's own spelling, so a Windows entry
+    under `\\.claude\\plugins\\cache\\` is dropped as a POSIX one is."""
+    cache = os.path.normcase(os.path.join(os.sep, ".claude", "plugins", "cache", ""))
     kept = [
-        p
-        for p in base_path.split(os.pathsep)
-        if p and "/.claude/plugins/cache/" not in p
+        p for p in base_path.split(os.pathsep) if p and cache not in os.path.normcase(p)
     ]
     return os.pathsep.join(
         [os.path.join(tree, "bin"), os.path.join(tree, ".shims"), *kept]
@@ -156,9 +164,7 @@ def write_git_shim(tree):
     put a `git` under the tree's `.shims/` that runs the Command Line Tools'
     binary directly.
 
-    No such binary writes no shim.
-
-    Reads: observed — whether `CLT_GIT` exists on this machine; unknown passed"""
+    No such binary writes no shim."""
     if sys.platform != "darwin" or not os.path.isfile(CLT_GIT):
         return
     shims = os.path.join(tree, ".shims")
@@ -177,9 +183,7 @@ def report_rows(trace_path):
     Only an event whose `message` is an object with a list `content` holds
     tool calls; a line that is not a JSON object, a `message` that is a
     string (a `permission_denied` event's) and a string `content` are
-    skipped. A run that printed no report gives no rows.
-
-    Reads: observed — the run's trace, one JSON event per line; unknown passed"""
+    skipped. A run that printed no report gives no rows."""
     commands, last = {}, ""
     with open(trace_path, encoding="utf-8") as f:
         for line in f:
@@ -215,14 +219,14 @@ def report_rows(trace_path):
 
 
 def run_cost(trace_path):
-    """`{"total_cost_usd", "duration_ms", "usage"}` from the session's last
-    `result` event in the run's trace, or None where it has none.
+    """`{"total_cost_usd", "duration_ms", "modelUsage"}` from the session's
+    last `result` event in the run's trace, or None where it has none.
 
-    A subagent's event, one carrying `parent_tool_use_id`, is not the
-    session's; a line that is not a JSON object is skipped; a `result` event
-    missing any of the three fields is no cost.
-
-    Reads: observed — the run's trace, one JSON event per line; unknown refused"""
+    `modelUsage` holds every model's tokens, the spawned agent's among
+    them; the event's `usage` counts the case session alone and is not
+    read. A subagent's event, one carrying `parent_tool_use_id`, is not the
+    session's; a line that is not a JSON object is skipped; a field the
+    event lacks is None, never zero."""
     cost = None
     with open(trace_path, encoding="utf-8") as f:
         for line in f:
@@ -234,28 +238,71 @@ def run_cost(trace_path):
                 continue
             if event.get("type") != "result":
                 continue
-            usage = event.get("usage")
-            spend, ms = event.get("total_cost_usd"), event.get("duration_ms")
-            if isinstance(usage, dict) and spend is not None and ms is not None:
-                cost = {"total_cost_usd": spend, "duration_ms": ms, "usage": usage}
-            else:
-                cost = None
+            cost = {
+                k: event.get(k) for k in ("total_cost_usd", "duration_ms", "modelUsage")
+            }
     return cost
 
 
-def tokens_read(usage):
-    """The tokens a run read: input, cache creation and cache read.
+def tool_calls(trace_path):
+    """The tool calls a run made: every `tool_use` block in its trace, the
+    case session's and the spawned agent's alike, a block an event repeats
+    counted once by its id; or None where the trace cannot be read or holds
+    none.
 
-    Reads: owned — a `usage` object `run_cost` kept; unknown passed"""
-    keys = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
-    return sum(int(usage.get(k) or 0) for k in keys)
+    Rule 5 divides a run's tokens by this. A run's tokens are about its
+    calls times the context each call carries, and the rewrite controls the
+    context while how many calls an agent makes is its behaviour, which the
+    outcome rules judge. Tokens per true find was weighed and not chosen: its
+    divisor is the recall, which moves by a find or two between runs of the
+    same agent (owner, 2026-10-17). A line that is not a JSON object is
+    skipped; no count is never zero calls."""
+    seen, count = set(), 0
+    try:
+        with open(trace_path, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    event = json.loads(line)
+                except ValueError:
+                    continue
+                message = event.get("message") if isinstance(event, dict) else None
+                content = message.get("content") if isinstance(message, dict) else None
+                for block in content if isinstance(content, list) else []:
+                    if not isinstance(block, dict) or block.get("type") != "tool_use":
+                        continue
+                    ident = block.get("id")
+                    if ident is not None:
+                        if ident in seen:
+                            continue
+                        seen.add(ident)
+                    count += 1
+    except OSError:
+        return None
+    return count or None
+
+
+def tokens_read(model_usage):
+    """The tokens a run read across every model of MODEL_USAGE: input,
+    cache creation and cache read, summed.
+
+    No model, a model that is not an object, or a model missing one of the
+    three counts gives None, never a smaller figure."""
+    if not isinstance(model_usage, dict) or not model_usage:
+        return None
+    total = 0
+    for model in model_usage.values():
+        if not isinstance(model, dict):
+            return None
+        counts = [model.get(k) for k in READ_COUNTS]
+        if not all(isinstance(c, int) and not isinstance(c, bool) for c in counts):
+            return None
+        total += sum(counts)
+    return total
 
 
 def kept_root(trace_path):
     """The directory a kept run lives in, or None when the trace sits
-    anywhere but `<tmp>/e-*/out/` or `<tmp>/claude-eval-*/out/`.
-
-    Reads: nothing — it maps the path it is handed."""
+    anywhere but `<tmp>/e-*/out/` or `<tmp>/claude-eval-*/out/`."""
     root = os.path.dirname(os.path.dirname(trace_path))
     name = os.path.basename(root)
     if os.path.basename(os.path.dirname(trace_path)) != "out":
@@ -269,9 +316,7 @@ def remove_kept(root):
     """Remove a kept run's directory, which the eval leaves read-only.
 
     Each directory is opened before it is walked; a path already gone is
-    skipped.
-
-    Reads: observed — the directory tree under ROOT; unknown passed"""
+    skipped."""
     for path in (root, os.path.join(root, "sealed")):
         try:
             os.chmod(path, stat.S_IRWXU)
@@ -287,9 +332,7 @@ def remove_kept(root):
 
 
 def runs_of(result):
-    """`[(key, run)]` for every run of an eval result, KEY its position.
-
-    Reads: owned — an eval result's `cases` and `arms`; unknown passed"""
+    """`[(key, run)]` for every run of an eval result, KEY its position."""
     out = []
     for c, case in enumerate(result.get("cases", [])):
         for arm, runs in sorted(case.get("arms", {}).items()):
@@ -298,9 +341,7 @@ def runs_of(result):
 
 
 def saved_dir(out):
-    """The directory a side's paid output is saved in, beside OUT.
-
-    Reads: nothing — it maps the path it is handed."""
+    """The directory a side's paid output is saved in, beside OUT."""
     return os.path.splitext(out)[0] + ".raw"
 
 
@@ -309,9 +350,7 @@ def save_side(raw, saved, meta):
     run: the eval's JSON byte for byte, every trace under `traces/`, and
     META with the trace each run's position maps to.
 
-    A run whose trace is missing maps to none.
-
-    Reads: observed — the eval's JSON and each run's trace; unknown passed"""
+    A run whose trace is missing maps to none."""
     os.makedirs(os.path.join(saved, "traces"), exist_ok=True)
     shutil.copyfile(raw, os.path.join(saved, "raw.json"))
     with open(raw, encoding="utf-8") as f:
@@ -339,9 +378,7 @@ def annotate(saved):
     whether the side was cut short.
 
     A run with no saved trace has no rows and no cost, and a run's error
-    makes the side cut short.
-
-    Reads: owned — a directory `save_side` wrote; unknown refused"""
+    makes the side cut short."""
     with open(os.path.join(saved, "raw.json"), encoding="utf-8") as f:
         result = json.load(f)
     with open(os.path.join(saved, "meta.json"), encoding="utf-8") as f:
@@ -353,6 +390,7 @@ def annotate(saved):
         run["specseal"] = {
             "report_rows": report_rows(trace) if trace else [],
             "cost": run_cost(trace) if trace else None,
+            "tool_calls": tool_calls(trace) if trace else None,
         }
         if run.get("error"):
             cut = True
@@ -361,7 +399,7 @@ def annotate(saved):
         "preload": meta["preload"],
         "preload_bytes": meta.get("preload_bytes"),
         "cut_short": cut,
-        "rev": meta["rev"],
+        "rev": TREE_REV if os.path.isabs(meta["rev"]) else meta["rev"],
         "suite_rev": meta["suite_rev"],
         "suite_tree": meta.get("suite_tree"),
     }
@@ -369,9 +407,7 @@ def annotate(saved):
 
 
 def write_side(saved, out):
-    """Write OUT from the side SAVED holds.
-
-    Reads: owned — a directory `save_side` wrote; unknown refused"""
+    """Write OUT from the side SAVED holds."""
     result = annotate(saved)
     with open(out, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=1, ensure_ascii=False)
@@ -382,21 +418,23 @@ def write_side(saved, out):
 def call_eval(command, env):
     """Run `claude plugin eval` as COMMAND under ENV.
 
-    A machine with no `claude` stops the run before anything is spent.
-
-    Reads: observed — whether `claude` is on ENV's PATH; unknown refused"""
+    A machine with no `claude` stops the run before anything is spent."""
     if not shutil.which("claude", path=env.get("PATH")):
         print("claude is not on PATH", file=sys.stderr)
         raise SystemExit(2)
     subprocess.run(command, env=env)
 
 
+# What a `--tree` side records as its `rev`. A machine path would put the
+# account name into a committed record, and the preload's hashes already name
+# the content; a side saved with an absolute path reads back as this too.
+TREE_REV = "tree"
+
+
 def run_side(a):
     """`run`: one side of one agent's suite, or `--from-raw` a saved side.
 
-    An eval that writes no JSON stops the run.
-
-    Reads: observed — the tree at REV or DIR, the suite, the eval's JSON; unknown refused"""
+    An eval that writes no JSON stops the run."""
     if a.from_raw:
         return write_side(a.from_raw, a.out)
     if not a.agent:
@@ -430,7 +468,7 @@ def run_side(a):
             "agent": a.agent,
             "preload": preload_hashes(tree, a.agent),
             "preload_bytes": preload_bytes(tree, a.agent),
-            "rev": a.rev or os.path.abspath(a.tree),
+            "rev": a.rev or TREE_REV,
             "suite_rev": git_bytes("rev-parse", a.suite_rev).decode("utf-8").strip(),
             "suite_tree": suite_tree(a.suite_rev, a.agent),
         }
@@ -450,26 +488,24 @@ def run_side(a):
 
 
 def kind(name):
-    """A grader's kind, from its name's prefix, or None.
-
-    Reads: nothing — it maps the name it is handed."""
+    """A grader's kind, from its name's prefix, or None."""
     head = name.split("-", 1)[0]
     return head if head in ("reach", "shape", "truth") else None
 
 
 def side_numbers(result):
     """`{"graders": {(case, grader): [kind, passed, runs]}, "rows", "false",
-    "runs": {case: n}, "cut", "preload", "id", "spend", "tokens", "seconds",
-    "bytes"}` for one side, the last four pooled over every run.
+    "runs": {case: n}, "cut", "preload", "id", "spend", "tokens", "calls",
+    "seconds", "bytes"}` for one side, the last five pooled over every run,
+    the tokens read across every model and the calls every `tool_use` block.
 
-    A grader whose name carries no kind prefix is not counted. A side with
-    a run whose cost is unknown has no spend, tokens or seconds, and one
-    whose preload bytes were not recorded has no bytes: each is None.
-
-    Reads: owned — an eval result `run` wrote; unknown passed"""
+    A grader whose name carries no kind prefix is not counted. Each of
+    spend, tokens, calls and seconds is None where any run lacks it, a run
+    with no cost lacking the first, second and fourth, and bytes is None
+    where the preload's bytes were not recorded."""
     graders, runs_per_case = {}, {}
     rows = false = 0
-    costs = []
+    costs, calls = [], []
     for case in result.get("cases", []):
         name = case["name"]
         truths = [
@@ -492,8 +528,9 @@ def side_numbers(result):
                 rows += 1
                 if not any(t.search(row) for t in truths):
                     false += 1
-            costs.append((run.get("specseal") or {}).get("cost"))
-    known = bool(costs) and all(costs)
+            costs.append((run.get("specseal") or {}).get("cost") or {})
+            calls.append((run.get("specseal") or {}).get("tool_calls"))
+    seconds = pooled(c.get("duration_ms") for c in costs)
     meta = result.get("specseal") or {}
     started = result.get("startedAt", "")
     digest = hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest()[
@@ -508,27 +545,32 @@ def side_numbers(result):
         "preload": meta.get("preload", {}),
         "id": f"{started} {digest}",
         "suite": {"rev": meta.get("suite_rev"), "tree": meta.get("suite_tree")},
-        "spend": sum(c["total_cost_usd"] for c in costs) if known else None,
-        "tokens": sum(tokens_read(c["usage"]) for c in costs) if known else None,
-        "seconds": sum(c["duration_ms"] for c in costs) / 1000 if known else None,
+        "spend": pooled(c.get("total_cost_usd") for c in costs),
+        "tokens": pooled(tokens_read(c.get("modelUsage")) for c in costs),
+        "calls": pooled(calls),
+        "seconds": seconds / 1000 if seconds is not None else None,
         "bytes": meta.get("preload_bytes"),
     }
+
+
+def pooled(values):
+    """The sum of VALUES, or None where there are none or any one is None."""
+    values = list(values)
+    if not values or any(v is None for v in values):
+        return None
+    return sum(values)
 
 
 def suite_tree(rev, agent):
     """The git tree hash of `evals/behaviour/<agent>/` at REV: the suite's
     identity, which a commit that leaves the cases alone does not move.
 
-    A REV or a directory git does not resolve stops the run.
-
-    Reads: observed — `git rev-parse <rev>:<path>`; unknown refused"""
+    A REV or a directory git does not resolve stops the run."""
     return git_bytes("rev-parse", f"{rev}:{SUITE}/{agent}").decode("utf-8").strip()
 
 
 def suite_name(suite):
-    """`<commit> <tree>` for a side's suite, the form a record carries.
-
-    Reads: nothing — it formats the suite it is handed."""
+    """`<commit> <tree>` for a side's suite, the form a record carries."""
     return f"{suite['rev']} {suite['tree']}"
 
 
@@ -538,10 +580,18 @@ def verdict(numbers):
     under `graders` beside `old_rows`, `old_false`, `new_rows`, `new_false`,
     `old_cut`, `new_cut` and every name in `COST_FIELDS`.
 
-    A missing key raises. A side whose spend, tokens or preload bytes are
-    None is no result; wall seconds are never judged.
-
-    Reads: owned — a numbers object `merged` or `parse_record` builds; unknown refused"""
+    Each rule reads the new side against the baseline: 1 recall not fallen,
+    except by one find where every truth grader that lost it is still found
+    by at least one new run, 2 the false-finding rate within `FALSE_MARGIN`
+    of the baseline's, 3 each shape and reach grader passing at least as
+    often, 4 the preload's bytes below the baseline's, 5 the tokens read
+    across every model per tool call below the baseline's (`tool_calls` says
+    why per call). A missing key raises. A side cut short, a case the
+    baseline ran and the new side did not, whatever its graders, a case run
+    a different number of times, and a side whose tokens, tool calls or
+    preload bytes are None, or whose tool calls are none, are no result;
+    total tokens, tokens per true find, spend and wall seconds are never
+    judged."""
     if numbers["old_cut"] or numbers["new_cut"]:
         sides = [
             s
@@ -550,9 +600,23 @@ def verdict(numbers):
         ]
         return "no result", [f"the {' and '.join(sides)} side was cut short"]
     g = numbers["graders"]
-    # A shape or reach grader one side lacks is the record's shape moving
-    # between the two sides (0.22.0's round record dropped two), not a case
-    # run a different number of times; rule 3 below reads the new side alone.
+    # A case the baseline ran and the new side did not is no result whatever
+    # graders it carries: a case of shape and reach graders alone would
+    # otherwise leave no trace in any rule below (#957 round 1, finding 2).
+    old_case, new_case = {}, {}
+    for (case, _name), (_k, _op, old_runs, _np, new_runs) in g.items():
+        old_case[case] = max(old_case.get(case, 0), old_runs)
+        new_case[case] = max(new_case.get(case, 0), new_runs)
+    unrun = sorted(c for c in old_case if old_case[c] and not new_case[c])
+    if unrun:
+        return "no result", [
+            f"the new side did not run {', '.join(unrun)}, which the baseline ran"
+        ]
+    # Inside a case both sides ran, a shape or reach grader one side lacks is
+    # the record's shape moving between the two sides (0.22.0's round record
+    # dropped two), not a case run a different number of times; rule 3 below
+    # judges one the baseline lacks on the new side alone, and one the new
+    # side lacks not at all.
     if any(
         old_runs != new_runs
         for k, _op, old_runs, _np, new_runs in g.values()
@@ -562,12 +626,13 @@ def verdict(numbers):
     unknown = [
         s
         for s, side in (("baseline", "old"), ("new", "new"))
-        if any(numbers[f"{side}_{k}"] is None for k in ("spend", "tokens", "bytes"))
+        if any(numbers[f"{side}_{k}"] is None for k in ("tokens", "calls", "bytes"))
+        or not numbers[f"{side}_calls"]
     ]
     if unknown:
         return "no result", [
-            f"the {' and '.join(unknown)} side records no cost for every run "
-            "or no preload bytes"
+            f"the {' and '.join(unknown)} side records no tokens across every "
+            "model or no tool calls for every run, or no preload bytes"
         ]
     reasons = []
     truths = {key: v for key, v in g.items() if v[0] == "truth"}
@@ -589,26 +654,36 @@ def verdict(numbers):
     )
     if new_rate > old_rate + FALSE_MARGIN + 1e-9:
         reasons.append(f"false-finding rate rose from {old_rate:.3f} to {new_rate:.3f}")
-    for (case, name), (k, _op, _oruns, np_, nruns) in sorted(g.items()):
-        if k in ("shape", "reach") and np_ < nruns:
+    for (case, name), (k, op, oruns, np_, nruns) in sorted(g.items()):
+        if k not in ("shape", "reach") or not nruns:
+            continue
+        if not oruns and np_ < nruns:
             reasons.append(
-                f"shape grader {case}/{name} failed on the new side ({np_}/{nruns})"
+                f"{k} grader {case}/{name}, which the baseline lacks, failed on "
+                f"the new side ({np_}/{nruns}) (rule 3)"
+            )
+        elif oruns and np_ * oruns < op * nruns:
+            reasons.append(
+                f"{k} grader {case}/{name} passed {np_}/{nruns} on the new side, "
+                f"less often than the baseline's {op}/{oruns} (rule 3)"
             )
     if numbers["new_bytes"] >= numbers["old_bytes"]:
         reasons.append(
             f"the new preload is {numbers['new_bytes']} bytes, not below the "
             f"baseline's {numbers['old_bytes']} (rule 4)"
         )
-    for key, label, shown in (
-        ("tokens", "tokens read", "{:d}"),
-        ("spend", "spend", "${:.4f}"),
+    # Cross-multiplied, so equal per-call figures compare equal exactly.
+    if numbers["new_tokens"] * numbers["old_calls"] >= (
+        numbers["old_tokens"] * numbers["new_calls"]
     ):
-        old, new = numbers[f"old_{key}"], numbers[f"new_{key}"]
-        if new > old * COST_MARGIN + 1e-9:
-            reasons.append(
-                f"{label} rose from {shown.format(old)} to {shown.format(new)}, "
-                f"past {COST_MARGIN} times the baseline's (rule 4)"
-            )
+        reasons.append(
+            "the new side read "
+            f"{numbers['new_tokens'] / numbers['new_calls']:.1f} tokens across "
+            f"every model per tool call ({numbers['new_tokens']} over "
+            f"{numbers['new_calls']}), not below the baseline's "
+            f"{numbers['old_tokens'] / numbers['old_calls']:.1f} "
+            f"({numbers['old_tokens']} over {numbers['old_calls']}) (rule 5)"
+        )
     return ("fail" if reasons else "pass"), reasons
 
 
@@ -617,9 +692,7 @@ def merged(old, new):
     rounded to four places and seconds to one, the precision a record
     carries, so a record reads back to the numbers it was judged on.
 
-    A grader one side lacks counts zero runs there.
-
-    Reads: owned — two objects `side_numbers` built; unknown passed"""
+    A grader one side lacks counts zero runs there."""
     keys = sorted(set(old["graders"]) | set(new["graders"]))
     graders = {}
     for key in keys:
@@ -647,6 +720,7 @@ def merged(old, new):
             for key, places in (
                 ("spend", 4),
                 ("tokens", 0),
+                ("calls", 0),
                 ("seconds", 1),
                 ("bytes", 0),
             )
@@ -655,9 +729,7 @@ def merged(old, new):
 
 
 def rounded(value, places):
-    """VALUE at PLACES decimals, an integer at none; None stays None.
-
-    Reads: nothing — it maps the number it is handed."""
+    """VALUE at PLACES decimals, an integer at none; None stays None."""
     if value is None:
         return None
     return int(value) if places == 0 else round(float(value), places)
@@ -668,30 +740,47 @@ def rounded(value, places):
 HEADER = "| Kind | Case | Grader | Old passed | Old runs | New passed | New runs |"
 COST_ROWS = (
     ("spend", "spend USD", "{:.4f}", float),
-    ("tokens", "tokens read", "{:d}", int),
+    ("tokens", "tokens read, every model", "{:d}", int),
+    ("calls", "tool calls", "{:d}", int),
     ("seconds", "wall seconds", "{:.1f}", float),
     ("bytes", "preload bytes", "{:d}", int),
 )
 
 
+def per(value, divisor, shown):
+    """VALUE over DIVISOR in SHOWN's format, `unknown` where either is None
+    or the divisor is none."""
+    if value is None or not divisor:
+        return "unknown"
+    return shown.format(value / divisor)
+
+
 def cost_rows(numbers):
     """The record's header rows for both sides' cost, `unknown` where a
-    number is None.
-
-    Reads: nothing — it formats the numbers it is handed."""
+    number is None, then the two derived rows a reader compares by: tokens
+    per tool call, which rule 5 judges from the rows above it, and tokens
+    per true find, which judges nothing. Neither derived row is read back."""
     lines = []
     for key, label, shown, _parse in COST_ROWS:
         for side, name in (("old", "Baseline"), ("new", "New")):
             value = numbers[f"{side}_{key}"]
             cell = "unknown" if value is None else shown.format(value)
             lines.append(f"| {name} {label} | {cell} |")
+    truths = [v for v in numbers["graders"].values() if v[0] == "truth"]
+    found = {"old": sum(v[1] for v in truths), "new": sum(v[3] for v in truths)}
+    for label, divisor, shown in (
+        ("tokens per tool call", "calls", "{:.1f}"),
+        ("tokens per true find", "found", "{:.0f}"),
+    ):
+        for side, name in (("old", "Baseline"), ("new", "New")):
+            by = found[side] if divisor == "found" else numbers[f"{side}_{divisor}"]
+            cell = per(numbers[f"{side}_tokens"], by, shown)
+            lines.append(f"| {name} {label} | {cell} |")
     return lines
 
 
 def render(agent, phase, old, new):
-    """The record `compare` writes.
-
-    Reads: nothing — it formats the numbers it is handed."""
+    """The record `compare` writes."""
     numbers = merged(old, new)
     result, reasons = verdict(numbers)
     lines = [
@@ -730,9 +819,7 @@ def render(agent, phase, old, new):
 def table(text, heading):
     """The body rows of the first table under `## HEADING`, as cell lists.
 
-    A missing heading gives no rows.
-
-    Reads: owned — a record `render` wrote; unknown passed"""
+    A missing heading gives no rows."""
     m = re.search(
         rf"^## {re.escape(heading)}\n(?P<body>.*?)(?=^## |\Z)", text, re.M | re.S
     )
@@ -746,9 +833,7 @@ def table(text, heading):
 def header_field(text, name):
     """A `| NAME | value |` row of the record's header table, or None.
 
-    A missing row is None.
-
-    Reads: owned — a record `render` wrote; unknown passed"""
+    A missing row is None."""
     m = re.search(rf"^\| {re.escape(name)} \| (?P<v>[^|]*) \|$", text, re.M)
     return m["v"].strip() if m else None
 
@@ -757,9 +842,7 @@ def parse_record(text):
     """`(numbers, stated verdict, new preload)` read back from a record.
 
     A count that is not an integer raises ValueError; a cost row that is
-    missing or says `unknown` reads as None.
-
-    Reads: owned — a record `render` wrote; unknown refused"""
+    missing or says `unknown` reads as None."""
     graders = {}
     for row in table(text, "Graders"):
         k, case, name, op, oruns, np_, nruns = row
@@ -786,9 +869,7 @@ def parse_record(text):
 
 
 def differ(old, new):
-    """The sentence that two sides ran different suites, naming both.
-
-    Reads: nothing — it formats the two suites it is handed."""
+    """The sentence that two sides ran different suites, naming both."""
     return (
         f"the two sides ran different suites: the baseline at {old} and the new "
         f"side at {new} (`<commit> <tree of {SUITE}/<agent>>`); a changed suite "
@@ -798,9 +879,7 @@ def differ(old, new):
 
 def suite_problem(text):
     """The problem with a record's two suites, or None: a side naming none,
-    or two different trees.
-
-    Reads: owned — a record `render` wrote; unknown refused"""
+    or two different trees."""
     old, new = header_field(text, "Baseline suite"), header_field(text, "New suite")
     if not old or not new:
         return "the record names no suite for one of its sides"
@@ -809,35 +888,67 @@ def suite_problem(text):
     return None
 
 
-def check_record(text):
-    """`[problem]` for a record: its stated verdict against the one its
-    numbers give, and anything but `pass`.
+def read_record(text):
+    """`(numbers, computed verdict, reasons, [problem])` for a record, the
+    problems being what makes it unsound whatever its verdict: its suites,
+    and a stated verdict its numbers do not give.
 
-    A record that does not parse is a problem, never a pass.
-
-    Reads: owned — a record `render` wrote; unknown refused"""
+    A record that does not parse is a problem, and its first three are
+    None, None and no reasons."""
     try:
         numbers, stated, _preload = parse_record(text)
     except (ValueError, TypeError) as e:
-        return [f"the record does not parse: {e}"]
+        return None, None, [], [f"the record does not parse: {e}"]
     computed, reasons = verdict(numbers)
-    problems = []
-    suites = suite_problem(text)
-    if suites:
-        problems.append(suites)
+    problems = [p for p in (suite_problem(text),) if p]
     if stated != computed:
         problems.append(f"it says `{stated}` and its numbers give `{computed}`")
-    if computed != "pass":
+    return numbers, computed, reasons, problems
+
+
+def check_record(text):
+    """`[problem]` for a record: what `read_record` finds unsound, and
+    anything but `pass`."""
+    numbers, computed, reasons, problems = read_record(text)
+    if numbers is not None and computed != "pass":
         problems.append(f"its numbers give `{computed}`: " + "; ".join(reasons))
     return problems
+
+
+def cheaper_model(numbers):
+    """`(model, reason)` from a record whose baseline is the Opus side and
+    whose new side is Sonnet: `sonnet` only where no grader, truth, shape or
+    reach, passes on the Sonnet side less often and its spend is lower.
+
+    A side cut short, or any other no result, is `opus`; so is a spend
+    either side does not record, and a record that carries no truth grader,
+    since it measured no outcome and `sonnet` would rest on cost alone. A
+    truth grader one side lacks is already a no result: that side ran its
+    case a different number of times."""
+    result, reasons = verdict(numbers)
+    if result == "no result":
+        return "opus", "; ".join(reasons)
+    if not any(v[0] == "truth" for v in numbers["graders"].values()):
+        return "opus", "the record carries no truth grader, so no outcome was measured"
+    lost = [
+        f"{k} grader {case}/{name} passed {np_}/{nruns} on Sonnet, {op}/{oruns} on Opus"
+        for (case, name), (k, op, oruns, np_, nruns) in sorted(
+            numbers["graders"].items()
+        )
+        if np_ * oruns < op * nruns
+    ]
+    if lost:
+        return "opus", "; ".join(lost)
+    old, new = numbers["old_spend"], numbers["new_spend"]
+    if old is None or new is None or new >= old:
+        return "opus", f"Sonnet spent {new} USD, not below Opus's {old}"
+    return "sonnet", f"every grader holds and Sonnet spent {new} USD, below {old}"
 
 
 def compare(a):
     """`compare`: write the record of one agent's phase.
 
-    A file that is not JSON stops the run.
-
-    Reads: owned — two JSON files `run` wrote; unknown refused"""
+    A file that is not JSON stops the run."""
     with open(a.old, encoding="utf-8") as f:
         old = side_numbers(json.load(f))
     with open(a.new, encoding="utf-8") as f:
@@ -865,9 +976,7 @@ def compare(a):
 def check(a):
     """`check`: recompute a record's verdict.
 
-    A record that does not parse is reported and exits 1.
-
-    Reads: owned — the record file named; unknown refused"""
+    A record that does not parse is reported and exits 1."""
     with open(a.record, encoding="utf-8") as f:
         text = f.read()
     problems = check_record(text)
@@ -879,12 +988,26 @@ def check(a):
     return 1 if problems else 0
 
 
+def model(a):
+    """`model`: print the sealer's model a record decides, then its reason.
+
+    A record that cannot be read, does not parse, or is unsound exits 2."""
+    try:
+        with open(a.record, encoding="utf-8") as f:
+            numbers, _computed, _reasons, problems = read_record(f.read())
+    except OSError as e:
+        problems = [f"the record cannot be read: {e}"]
+    if problems:
+        print("\n".join(problems), file=sys.stderr)
+        return 2
+    print("\n".join(cheaper_model(numbers)))
+    return 0
+
+
 def main(argv=None):
     """Parse the arguments and run one subcommand.
 
-    An unusable argument is argparse's exit 2.
-
-    Reads: owned — its own argument vector; unknown refused"""
+    An unusable argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="command", required=True)
     r = sub.add_parser("run")
@@ -907,8 +1030,11 @@ def main(argv=None):
     c.add_argument("--out", required=True)
     k = sub.add_parser("check")
     k.add_argument("record")
+    m = sub.add_parser("model")
+    m.add_argument("record")
     a = p.parse_args(argv)
-    return {"run": run_side, "compare": compare, "check": check}[a.command](a)
+    commands = {"run": run_side, "compare": compare, "check": check, "model": model}
+    return commands[a.command](a)
 
 
 if __name__ == "__main__":

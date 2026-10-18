@@ -80,18 +80,14 @@ SIBLINGS = {
 
 
 class Unreadable(Exception):
-    """Nothing could be read, and the sentence says why.
-
-    Reads: nothing — an exception carrying the sentence its raiser wrote"""
+    """Nothing could be read, and the sentence says why."""
 
 
 _loaded = {}
 
 
 def sibling(key):
-    """The module `SIBLINGS[key]` names, loaded by path once, or Unreadable.
-
-    Reads: owned — a module this repository ships beside this script; unknown refused"""
+    """The module `SIBLINGS[key]` names, loaded by path once, or Unreadable."""
     if key in _loaded:
         return _loaded[key]
     rel, purpose = SIBLINGS[key]
@@ -109,9 +105,7 @@ def shown_lines(text):
     """`[(line, shown, heading)]` for one markdown document: each GFM line
     (`unverified_check.py#gfm_lines`), whether a renderer shows it outside a
     fence or a comment (`hooks/config.py#unfenced`), and the text of the
-    heading it stands under, "" above the first.
-
-    Reads: guess — a person's markdown, through `unverified_check.py#gfm_lines`, `#heading_level` and `hooks/config.py#unfenced`; unknown passed"""
+    heading it stands under, "" above the first."""
     reader = sibling("unverified_check")
     lines = reader.gfm_lines(text)
     shown = {index for index, _ in sibling("config").unfenced(lines)}
@@ -126,9 +120,7 @@ def shown_lines(text):
 
 def enforcer_lines(text):
     """`[(line number, heading, value)]` for every `Enforced by:` line one
-    markdown document shows, inside a rule paragraph or not.
-
-    Reads: guess — a person's markdown, through `shown_lines`; unknown passed"""
+    markdown document shows, inside a rule paragraph or not."""
     return [
         (index + 1, heading, line.strip()[len(RULE_CLOSER) :].strip())
         for index, (line, visible, heading) in enumerate(shown_lines(text))
@@ -138,9 +130,7 @@ def enforcer_lines(text):
 
 def rule_files(root):
     """`{path: text}` of every rule file in the tree at `root`, by
-    `RULE_FILES`, its path written with `/`.
-
-    Reads: observed — the files on disk, decoded; unknown passed"""
+    `RULE_FILES`, its path written with `/`."""
     out = {}
     for pattern in RULE_FILES:
         for path in sorted(glob.glob(os.path.join(root, *pattern.split("/")))):
@@ -154,9 +144,7 @@ def rule_files(root):
 def targets_of(value):
     """The targets an `Enforced by:` value names, none where it says
     `nothing — <why>` — read by `fold_check.py#names_targets`, so `rules` and
-    `fold-check` split one line alike.
-
-    Reads: guess — the value of a line a person wrote; unknown passed"""
+    `fold-check` split one line alike."""
     if not sibling("fold_check").names_targets(value):
         return []
     return value.split(",")
@@ -167,9 +155,7 @@ def target_problem(root, target):
     or None where it does. An eval case directory, `evals/behaviour/<agent>/
     <case>/` with its slash, resolves where it holds `case.yaml`; every other
     target is `fold_check.py#target_problem`'s, and a Python file it cannot
-    parse is Unreadable.
-
-    Reads: observed — the tree at `root`, through `fold_check.py#target_problem`; unknown refused"""
+    parse is Unreadable."""
     cell = target.strip().strip("`")
     if cell.startswith(EVAL_CASES) and cell.endswith("/"):
         parts = cell[len(EVAL_CASES) : -1].split("/")
@@ -192,9 +178,7 @@ def target_problem(root, target):
 def unresolved(root):
     """`(failures, files, targets)`: each `Enforced by:` target in the rule
     files at `root` that does not resolve, as `path:line §*heading*: why`,
-    and how many rule files and targets were read.
-
-    Reads: guess — the rule files, through `rule_files`, `enforcer_lines` and `target_problem`; unknown refused"""
+    and how many rule files and targets were read."""
     found, read, files = [], 0, rule_files(root)
     for path, text in files.items():
         for number, heading, value in enforcer_lines(text):
@@ -208,9 +192,7 @@ def unresolved(root):
 
 def check(root):
     """Print each target that does not resolve and the count read; the exit
-    code is the verdict.
-
-    Reads: guess — the rule files at `root`, through `unresolved`; unknown refused"""
+    code is the verdict."""
     found, files, targets = unresolved(root)
     for failure in found:
         print(f"rules: {failure}")
@@ -226,9 +208,7 @@ def check(root):
 
 def first_sentence(doc):
     """The first sentence of a docstring's first paragraph, its whitespace
-    folded, or the whole paragraph where it holds no sentence end.
-
-    Reads: guess — a docstring a person wrote, handed by its caller; unknown passed"""
+    folded, or the whole paragraph where it holds no sentence end."""
     paragraph = " ".join(doc.strip().split("\n\n", 1)[0].split())
     found = SENTENCE.match(paragraph)
     return found.group(1) if found else paragraph
@@ -243,9 +223,7 @@ def docstring(root, target):
     the file as `coordinates.py#named_unit` does, into an `if`, a `try` or a
     `with` and never into another `def`, so its one span for the name is the
     unit `target_problem` accepted, and the definition read is the one that
-    starts and ends there.
-
-    Reads: observed — the Python file the target names, parsed, through `coordinates.py#py_spans`; unknown passed"""
+    starts and ends there."""
     path, _, name = target.strip().strip("`").partition("::")
     if not path.endswith(".py"):
         return None
@@ -273,9 +251,7 @@ def docstring(root, target):
 
 def describe(root, target):
     """One printed line for one target: what its docstring says it guards,
-    or why it says nothing.
-
-    Reads: observed — the tree at `root`, through `target_problem` and `docstring`; unknown passed"""
+    or why it says nothing."""
     cell = target.strip().strip("`")
     try:
         problem = target_problem(root, cell)
@@ -294,9 +270,7 @@ def describe(root, target):
 
 def render(root, text):
     """The printed walk of one document: each heading, and under it each
-    `Enforced by:` line's targets described, or a line saying it has none.
-
-    Reads: guess — a person's markdown, through `shown_lines`; unknown passed"""
+    `Enforced by:` line's targets described, or a line saying it has none."""
     out, heading, held = [], None, False
     for number, (line, visible, _) in enumerate(shown_lines(text), 1):
         stripped = line.strip()
@@ -323,9 +297,7 @@ def render(root, text):
 
 def main(argv=None):
     """Read DOC and print its walk, or check every rule file with `--check`;
-    the exit code says which, as the module docstring lists.
-
-    Reads: guess — the arguments and the document they name; unknown refused"""
+    the exit code says which, as the module docstring lists."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("doc", nargs="?")
     parser.add_argument(

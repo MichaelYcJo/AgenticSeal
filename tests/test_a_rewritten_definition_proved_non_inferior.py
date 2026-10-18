@@ -3,9 +3,13 @@
 `evals/scripts/noninferiority.py` judges a new side of the behaviour suite
 against a baseline by five pass rules and writes `evals/<agent>-phase-N.md`
 under the work item. The verdict is the five rules applied to the record's
-own numbers, outcome first and then cost, so a record saying `pass` over
-failing numbers is red; and a run's cost is read off its trace's `result`
-event, so a run with none is no result rather than free.
+own numbers, outcome first and then cost, each against the baseline and
+none against an absolute (#957), so a record saying `pass` over failing
+numbers is red. A run's tokens are read across every model off its trace's
+`result` event `modelUsage` and judged per tool call, every `tool_use` block
+its trace holds, so a run with no tokens or no calls is no result rather
+than free; its total tokens, tokens per true find, spend and wall seconds
+are written and judge nothing.
 
 What it cannot see: a grader that matches the wrong thing passes, which the
 phase's review reads; and nothing here makes a later edit of a definition
@@ -14,8 +18,11 @@ owe a run, by design.
 
 import importlib.util
 import json
+import ntpath
 import os
+import posixpath
 import re
+import types
 
 import pytest
 
@@ -38,8 +45,9 @@ ni = load()
 
 def numbers(**over):
     """Numbers every rule passes: two truths found twice a side, a tenth of
-    the rows false, every shape grader green, and a new side that read the
-    same tokens and spent the same from a preload half the size."""
+    the rows false, every shape grader green, and a new side that read a
+    tenth fewer tokens across every model over as many tool calls and spent
+    the same from a preload half the size."""
     graders = {
         ("c1", "truth-1"): ("truth", 2, 2, 2, 2),
         ("c1", "truth-2"): ("truth", 2, 2, 2, 2),
@@ -58,7 +66,9 @@ def numbers(**over):
         "old_spend": 10.0,
         "new_spend": 10.0,
         "old_tokens": 1000000,
-        "new_tokens": 1000000,
+        "new_tokens": 900000,
+        "old_calls": 100,
+        "new_calls": 100,
         "old_seconds": 600.0,
         "new_seconds": 600.0,
         "old_bytes": 100000,
@@ -93,59 +103,158 @@ CASES = {
     ),
     "rule 2: false rate up by exactly the margin": (numbers(new_false=3), "pass"),
     "rule 2: false rate up past the margin": (numbers(new_false=4), "fail"),
-    "rule 3: a shape grader short of every new run": (
+    "rule 3: a shape grader passing less often than the baseline": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2)}),
         "fail",
     ),
-    "rule 3: a reach grader short of every new run": (
+    "rule 3: a reach grader passing less often than the baseline": (
         numbers(graders={("c1", "reach-warden"): ("reach", 2, 2, 1, 2)}),
         "fail",
     ),
-    # Rule 3 reads the new side alone (#923): the record's shape moves
-    # between the sides, so a baseline's shape is not the new tree's defect.
-    "rule 3: a shape grader short on the baseline is not judged": (
+    "rule 3: a new side passing more often than the baseline": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 2, 2)}),
         "pass",
     ),
-    "rule 3: a shape grader only the baseline carried is not judged": (
+    # Catches a rule 3 that reads the new side alone and asks every run to
+    # pass, which fails a rewrite for doing exactly what the baseline did:
+    # the warden baseline fails three cases' shape graders itself (#957
+    # phase 1). Every other rule 3 case has the baseline passing every run
+    # or the new side passing more, where the two readings agree.
+    "rule 3: a shape grader failing as often on the new side as on the baseline": (
+        numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 1, 2)}),
+        "pass",
+    ),
+    # Catches a relative rule 3 that excuses every grader the baseline
+    # already fails, so a rewrite failing it more often still passes. The
+    # case above passes under that reading too, and the cases with a
+    # baseline passing every run never reach it.
+    "rule 3: a shape grader passing less often than a baseline that fails it": (
+        numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 0, 2)}),
+        "fail",
+    ),
+    # Catches a relative rule 3 whose comparison reads a grader the baseline
+    # lacks as a baseline rate of nothing, so a new grader failing every run
+    # passes. The grader the baseline lacks is judged on the new side alone,
+    # as before #957; no other case gives the baseline zero runs of a
+    # grader the new side carries.
+    "rule 3: a reach grader the baseline lacks, short of every new run": (
+        numbers(graders={("c1", "reach-sealer"): ("reach", 0, 0, 1, 2)}),
+        "fail",
+    ),
+    # The tolerance for a grader one side lacks holds only inside a case both
+    # sides ran: `c1` is run twice a side here, so the grader the new side
+    # lacks is the record's shape moving, not a case left unrun.
+    "rule 3: a shape grader only the baseline carried, in a case both sides ran, is not judged": (
         numbers(graders={("c1", "shape-needs-a-fix"): ("shape", 2, 2, 0, 0)}),
         "pass",
     ),
-    "rule 4: spend 1.2 times the baseline's, outcome equal": (
-        numbers(new_spend=12.0),
-        "fail",
+    # Catches the tolerance above reaching a whole case: a case the new side
+    # never ran, carrying only shape graders, left no trace in any rule and
+    # the side passed (#957 round 1, finding 2). The case above keeps the
+    # grader inside a case the new side ran, so it cannot tell.
+    "no result: a case the baseline ran and the new side did not, whatever its graders": (
+        numbers(graders={("c2", "shape-needs-a-fix"): ("shape", 2, 2, 0, 0)}),
+        "no result",
     ),
-    "rule 4: spend at exactly 1.1 times the baseline's": (
-        numbers(new_spend=11.0),
-        "pass",
-    ),
-    "rule 4: tokens read 1.2 times the baseline's, outcome equal": (
-        numbers(new_tokens=1200000),
-        "fail",
-    ),
-    "rule 4: tokens read at exactly 1.1 times the baseline's": (
-        numbers(new_tokens=1100000),
-        "pass",
+    # The measured shape of the same defect: the smith's phase-3 side cut to
+    # one of its four cases, every case carrying shape and reach graders
+    # alone, read `pass`.
+    "no result: a side cut to one case of four": (
+        numbers(
+            graders={
+                (case, grader): (
+                    k,
+                    2,
+                    2,
+                    2 if case == "c1" else 0,
+                    2 if case == "c1" else 0,
+                )
+                for case in ("c1", "c2", "c3", "c4")
+                for grader, k in (
+                    ("shape-report-exists", "shape"),
+                    ("reach-smith", "reach"),
+                )
+            }
+        ),
+        "no result",
     ),
     "rule 4: a preload no smaller than the baseline's": (
         numbers(new_bytes=100000),
         "fail",
     ),
-    "rule 4: wall seconds doubled are written and not judged": (
+    "rule 5: tokens per tool call 1.2 times the baseline's": (
+        numbers(new_tokens=1200000),
+        "fail",
+    ),
+    # Catches a token rule with a margin, which passes a rewrite that read
+    # more per call than the baseline; before #957 it was 1.1 times. The 1.2
+    # case above fails under any margin below it, so only a rise inside the
+    # old margin tells the two readings apart.
+    "rule 5: tokens per tool call 1.05 times the baseline's": (
+        numbers(new_tokens=1050000),
+        "fail",
+    ),
+    # Catches rule 5 still judging the total (owner, 2026-10-17, after phase
+    # 2): a rewrite whose calls each carry less context, and which makes more
+    # of them, reads more tokens in all and passes. No other case moves the
+    # calls.
+    "rule 5: tokens per tool call falling while the total rises": (
+        numbers(new_tokens=1200000, new_calls=150),
+        "pass",
+    ),
+    # Catches the same rule the other way: fewer tokens in all over fewer
+    # calls, each carrying more, fails. A rule reading the total passes it.
+    "rule 5: tokens per tool call rising while the total falls": (
+        numbers(new_tokens=900000, new_calls=80),
+        "fail",
+    ),
+    # Catches a per-call comparison with `>` where the rule says strictly
+    # below: equal per call, over more calls and more tokens, passes. No
+    # other case puts the two sides' per-call figures equal.
+    "rule 5: tokens per tool call equal to the baseline's": (
+        numbers(new_tokens=1200000, new_calls=120),
+        "fail",
+    ),
+    # Catches spend still judged, with or without a margin: a dearer side
+    # with fewer tokens and an equal outcome fails. Spend is written and
+    # judges nothing (#957); no other case moves spend alone.
+    "spend 1.2 times the baseline's is written and not judged": (
+        numbers(new_spend=12.0),
+        "pass",
+    ),
+    "wall seconds doubled are written and not judged": (
         numbers(new_seconds=1200.0),
         "pass",
     ),
-    "rule 5: the new side cut short": (numbers(new_cut=True), "no result"),
-    "rule 5: a side with a run whose cost is unknown": (
+    # Catches spend's absence judged in its place: a side whose spend is
+    # unknown while its tokens are known is no result. The run-level case
+    # below makes tokens and spend unknown together, so it cannot tell.
+    "spend and wall seconds unknown, tokens known, are not judged": (
+        numbers(new_spend=None, new_seconds=None),
+        "pass",
+    ),
+    "no result: the new side cut short": (numbers(new_cut=True), "no result"),
+    "no result: a side with a run whose tokens are unknown": (
         numbers(new_spend=None, new_tokens=None, new_seconds=None),
         "no result",
     ),
-    "rule 5: a side whose preload bytes are unknown": (
+    # Catches a side whose tool calls could not be counted read as judged:
+    # with no divisor there is no per-call figure, and a zero would be a
+    # division nobody can make. The token case above leaves the calls known.
+    "no result: a side whose tool calls are unknown": (
+        numbers(new_calls=None),
+        "no result",
+    ),
+    "no result: a side with no tool calls": (
+        numbers(old_calls=0),
+        "no result",
+    ),
+    "no result: a side whose preload bytes are unknown": (
         numbers(old_bytes=None),
         "no result",
     ),
-    "rule 5: the baseline cut short": (numbers(old_cut=True), "no result"),
-    "rule 5: the sides ran a case a different number of times": (
+    "no result: the baseline cut short": (numbers(old_cut=True), "no result"),
+    "no result: the sides ran a case a different number of times": (
         numbers(graders={("c1", "truth-1"): ("truth", 2, 2, 1, 1)}),
         "no result",
     ),
@@ -154,6 +263,9 @@ CASES = {
 
 @pytest.mark.parametrize("name", sorted(CASES))
 def test_the_verdict_is_recomputed_from_the_records_numbers(name):
+    """Guards each pass rule on its own: the case's name says which, and a
+    comment above a case added for #957 names the defect it catches and why
+    no other case does."""
     given, expected = CASES[name]
     assert ni.verdict(given)[0] == expected, ni.verdict(given)
 
@@ -172,6 +284,7 @@ def side(
     tokens=1000000,
     seconds=600.0,
     size=100000,
+    calls=100,
 ):
     return {
         "graders": {k: [v[0], v[1], v[2]] for k, v in graders.items()},
@@ -184,6 +297,7 @@ def side(
         "suite": suite or SUITE,
         "spend": spend,
         "tokens": tokens,
+        "calls": calls,
         "seconds": seconds,
         "bytes": size,
     }
@@ -191,13 +305,18 @@ def side(
 
 def record(old_graders, new_graders, **new):
     new.setdefault("size", 50000)
+    new.setdefault("tokens", 900000)
     return ni.render("warden", 3, side(old_graders), side(new_graders, **new))
 
 
 def test_a_record_reads_back_to_the_numbers_it_was_written_from():
-    """Guards S1: the record carries both sides' spend, tokens read, wall
-    seconds and preload bytes, and they read back to the numbers the
-    verdict was computed from, so editing one is judged again."""
+    """Guards S1: the record carries both sides' spend, tokens read across
+    every model, tool calls, wall seconds and preload bytes, and they read
+    back to the numbers the verdict was computed from, so editing one is
+    judged again. The tokens row says it counts every model, because the
+    case session's own `usage` was 1.9% to 11.6% of it on the baseline (#957
+    phase 1); the per-call and per-find rows are derived for a reader and
+    read back as nothing."""
     g = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "shape-x"): ("shape", 2, 2)}
     text = record(g, g, spend=10.123456, tokens=900000, seconds=512.34)
     numbers_back, stated, preload = ni.parse_record(text)
@@ -210,31 +329,46 @@ def test_a_record_reads_back_to_the_numbers_it_was_written_from():
         "new_spend": 10.1235,
         "old_tokens": 1000000,
         "new_tokens": 900000,
+        "old_calls": 100,
+        "new_calls": 100,
         "old_seconds": 600.0,
         "new_seconds": 512.3,
         "old_bytes": 100000,
         "new_bytes": 50000,
     }
-    dearer = text.replace("| New spend USD | 10.1235 |", "| New spend USD | 12.0000 |")
-    assert dearer != text
-    problems = ni.check_record(dearer)
+    assert "| New tokens per tool call | 9000.0 |" in text, text
+    assert "| New tokens per true find | 450000 |" in text, text
+    row = "| New tool calls | {} |"
+    assert row.format(100) in text, text
+    hungrier = text.replace(row.format(100), row.format(90))
+    assert hungrier != text
+    problems = ni.check_record(hungrier)
     assert any("says `pass` and its numbers give `fail`" in p for p in problems), (
         problems
     )
-    assert any("spend rose" in p and "rule 4" in p for p in problems), problems
+    assert any("rule 5" in p for p in problems), problems
 
 
-def test_a_costlier_side_fails_naming_rule_4_and_wall_seconds_never_judge():
-    """Guards S3: a new side whose pooled spend is 1.2 times the baseline's,
-    outcome equal, fails and says which rule; wall seconds are written and
-    never a reason."""
+def test_spend_and_wall_seconds_are_written_and_never_judge():
+    """Guards S3 as #957 turned it: a new side that spent 1.2 times the
+    baseline and took ten times its wall seconds, reading more tokens in all
+    and fewer per tool call with an equal outcome, passes with every number
+    written; the same side reading as many per call as the baseline fails
+    naming rule 5, and neither spend, seconds, the total nor the per-find
+    figure is ever a reason. The rule cases above never render a record, so
+    only this one reads the reasons a record prints."""
     g = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "shape-x"): ("shape", 2, 2)}
-    text = record(g, g, spend=12.0, seconds=6000.0)
-    assert "Verdict: fail" in text
+    text = record(g, g, spend=12.0, seconds=6000.0, tokens=1200000, calls=150)
+    assert "Verdict: pass" in text, text
+    assert "| New spend USD | 12.0000 |" in text
     assert "| New wall seconds | 6000.0 |" in text
+    assert "| New tokens read, every model | 1200000 |" in text
+    assert "| New tokens per true find | 600000 |" in text
+    text = record(g, g, spend=12.0, seconds=6000.0, tokens=1000000)
+    assert "Verdict: fail" in text, text
     reasons = text.split("Verdict: fail", 1)[1]
-    assert "rule 4" in reasons and "spend rose from $10.0000 to $12.0000" in reasons
-    assert "seconds" not in reasons, reasons
+    assert "rule 5" in reasons and "1000000" in reasons, reasons
+    assert "spend" not in reasons and "seconds" not in reasons, reasons
 
 
 def test_a_record_saying_pass_over_failing_numbers_is_red():
@@ -332,6 +466,96 @@ def test_check_refuses_a_record_whose_sides_ran_different_suites(tmp_path):
     assert any("names no suite" in p for p in ni.check_record(unnamed))
 
 
+# --- T7: the sealer's model, by the graders and the spend ---------------------
+
+
+def model_of(tmp_path, capsys, old_graders, new_graders, **new):
+    """`model` over a record `compare` could have written with the Opus side
+    as `--old` and the Sonnet side as `--new`: `(exit, printed lines)`. The
+    Sonnet side spends half by default, and its preload is two bytes larger
+    (`sonnet` against `opus` in `model:`), so the record's own verdict fails
+    rule 4 and `check` would refuse it, which `model` must not."""
+    new.setdefault("spend", 5.0)
+    new.setdefault("size", 100002)
+    path = tmp_path / "sealer-model.md"
+    path.write_text(
+        ni.render("sealer", 4, side(old_graders), side(new_graders, **new)),
+        encoding="utf-8",
+    )
+    code = ni.main(["model", str(path)])
+    return code, capsys.readouterr().out.splitlines()
+
+
+def test_the_model_is_decided_by_the_truths_and_the_spend(tmp_path, capsys):
+    """Guards S7: `noninferiority.py model` prints `sonnet` only where no
+    grader, truth, shape or reach, passes on the Sonnet side less often than
+    on the Opus side and the Sonnet side spent less; anything else, a side cut
+    short included, prints `opus` and one line naming why.
+
+    The defects: a drop decided by cost alone (#957 S10), and a cheaper model
+    that commits or writes outside its file, which every truth grader passes
+    and only a shape grader sees (`questions.md` Q2's default). Nothing else
+    catches either: `verdict` never judges spend, forgives one lost find as
+    noise, and fails every model record on rule 4 whatever the graders say,
+    so `check` refuses the very record this reads."""
+    g = {
+        ("c1", "truth-1"): ("truth", 2, 2),
+        ("c1", "shape-commits-nothing"): ("shape", 2, 2),
+        ("c1", "reach-sealer"): ("reach", 2, 2),
+    }
+    code, out = model_of(tmp_path, capsys, g, g)
+    assert (code, out[0]) == (0, "sonnet"), out
+    assert "Verdict: fail" in (tmp_path / "sealer-model.md").read_text(encoding="utf-8")
+    for name, kind in (
+        ("truth-1", "truth"),
+        ("shape-commits-nothing", "shape"),
+        ("reach-sealer", "reach"),
+    ):
+        lost = {**g, ("c1", name): (kind, 1, 2)}
+        code, out = model_of(tmp_path, capsys, g, lost)
+        assert (code, out[0]) == (0, "opus"), (name, out)
+        assert len(out) == 2 and name in out[1], (name, out)
+    for spend in (10.0, 12.0):
+        code, out = model_of(tmp_path, capsys, g, g, spend=spend)
+        assert (code, out[0]) == (0, "opus"), (spend, out)
+        assert len(out) == 2 and "spen" in out[1], (spend, out)
+    code, out = model_of(tmp_path, capsys, g, g, spend=None)
+    assert (code, out[0]) == (0, "opus"), out
+    code, out = model_of(tmp_path, capsys, g, g, cut=True)
+    assert (code, out[0]) == (0, "opus"), out
+    assert len(out) == 2 and "cut short" in out[1], out
+    path = tmp_path / "sealer-model.md"
+    model_of(tmp_path, capsys, g, g)
+    edited = path.read_text(encoding="utf-8").replace("Verdict: fail", "Verdict: pass")
+    path.write_text(edited, encoding="utf-8")
+    assert ni.main(["model", str(path)]) == 2
+    other = {"rev": "3" * 40, "tree": "4" * 40}
+    model_of(tmp_path, capsys, g, g, suite=other)
+    assert ni.main(["model", str(path)]) == 2
+    assert ni.main(["model", str(tmp_path / "absent.md")]) == 2
+
+
+def test_a_record_with_no_truth_grader_decides_opus(tmp_path, capsys):
+    """Round 1 of #969, finding 6. S7 decides the model by every truth
+    grader, so a record that carries none measured no outcome: `sonnet` there
+    is a drop decided by cost alone, the defect S7 names. No graders at all,
+    and a lone shape grader, both print `opus` and a reason saying so."""
+    shape = {("c1", "shape-commits-nothing"): ("shape", 2, 2)}
+    reach = {**shape, ("c1", "reach-sealer"): ("reach", 2, 2)}
+    for graders in ({}, shape, reach):
+        code, out = model_of(tmp_path, capsys, graders, graders)
+        assert (code, out[0]) == (0, "opus"), (graders, out)
+        assert len(out) == 2 and "no truth grader" in out[1], (graders, out)
+    # Either side alone: a truth grader the other side never ran counts zero
+    # runs there, so that side ran the case a different number of times,
+    # which is a no result and `opus` already.
+    truth = {**shape, ("c1", "truth-1"): ("truth", 2, 2)}
+    for old, new, side in ((truth, shape, "Sonnet"), (shape, truth, "Opus")):
+        code, out = model_of(tmp_path, capsys, old, new)
+        assert (code, out[0]) == (0, "opus"), (side, out)
+        assert "different number of times" in out[1], (side, out)
+
+
 # --- what a side's run saves and records -------------------------------------
 
 
@@ -393,21 +617,43 @@ RESULT = {
     "subtype": "success",
     "total_cost_usd": 2.5,
     "duration_ms": 412000,
+    # The case session's own tokens, which leave out the agent it spawned.
     "usage": {
         "input_tokens": 40,
         "cache_creation_input_tokens": 60000,
         "cache_read_input_tokens": 900000,
         "output_tokens": 7000,
     },
+    # Every model's tokens, the spawned agent's among them, in the shape a
+    # 2.1.296 trace carries (#957 phase 1).
+    "modelUsage": {
+        "claude-sonnet-5-5": {
+            "inputTokens": 4,
+            "outputTokens": 323,
+            "cacheReadInputTokens": 27598,
+            "cacheCreationInputTokens": 15057,
+            "costUSD": 0.07,
+        },
+        "claude-opus-5-5": {
+            "inputTokens": 28,
+            "outputTokens": 8835,
+            "cacheReadInputTokens": 445032,
+            "cacheCreationInputTokens": 43597,
+            "costUSD": 0.48,
+        },
+    },
 }
 
 
 def test_a_run_records_what_it_cost(tmp_path, monkeypatch):
-    """Guards S1 and Q12: each run's spend, seconds and usage are read off
-    its trace's top-level `result` event and pooled per side, tokens read
-    being input plus cache creation plus cache read; a subagent's event is
-    not the session's; and a trace with no `result` event is a side whose
-    cost is unknown, which the verdict refuses as no result, never free."""
+    """Guards S1 and Q12: each run's spend, seconds and `modelUsage` are read
+    off its trace's top-level `result` event and pooled per side, tokens
+    read being input plus cache creation plus cache read summed over every
+    model, so the agent the case spawned is counted and not only the case
+    session's `usage`; a subagent's event is not the session's; and a trace
+    with no `result` event, or one whose `result` event has no
+    `modelUsage`, is a side whose tokens are unknown, which the verdict
+    refuses as no result, never free (#957)."""
     sub = dict(RESULT, total_cost_usd=99.0, parent_tool_use_id="s")
     events = [{"type": "system", "subtype": "init"}, sub, RESULT]
     data, plugin = run_one_side(tmp_path, monkeypatch, events)
@@ -415,32 +661,132 @@ def test_a_run_records_what_it_cost(tmp_path, monkeypatch):
     assert cost == {
         "total_cost_usd": 2.5,
         "duration_ms": 412000,
-        "usage": RESULT["usage"],
+        "modelUsage": RESULT["modelUsage"],
     }
     size = sum(
         os.path.getsize(plugin / p) for p in ni.preload_files(str(plugin), "warden")
     )
     assert data["specseal"]["preload_bytes"] == size
     numbers_one = ni.side_numbers(data)
-    assert (numbers_one["spend"], numbers_one["tokens"]) == (2.5, 960040)
+    every_model = 4 + 27598 + 15057 + 28 + 445032 + 43597
+    assert (numbers_one["spend"], numbers_one["tokens"]) == (2.5, every_model)
     assert (numbers_one["seconds"], numbers_one["bytes"]) == (412.0, size)
 
-    bare = tmp_path / "bare"
-    bare.mkdir()
-    data, _ = run_one_side(bare, monkeypatch, [{"type": "system"}, sub])
-    assert data["cases"][0]["arms"]["with"][0]["specseal"]["cost"] is None
-    unknown = ni.side_numbers(data)
-    assert unknown["spend"] is None and unknown["tokens"] is None
-    merged = ni.merged(numbers_one, unknown)
-    verdict, reasons = ni.verdict(merged)
-    assert verdict == "no result", (verdict, reasons)
-    assert any("cost" in r for r in reasons), reasons
+    for name, last in (
+        ("bare", sub),
+        ("no-model-usage", {k: v for k, v in RESULT.items() if k != "modelUsage"}),
+    ):
+        where = tmp_path / name
+        where.mkdir()
+        data, _ = run_one_side(where, monkeypatch, [{"type": "system"}, last])
+        unknown = ni.side_numbers(data)
+        assert unknown["tokens"] is None, name
+        verdict, reasons = ni.verdict(ni.merged(numbers_one, unknown))
+        assert verdict == "no result", (name, verdict, reasons)
+        assert any("tokens" in r for r in reasons), reasons
+    # A `result` event with no `modelUsage` still writes its spend and
+    # seconds, which judge nothing.
+    assert (unknown["spend"], unknown["seconds"]) == (2.5, 412.0)
+    assert data["cases"][0]["arms"]["with"][0]["specseal"]["cost"]["modelUsage"] is None
 
     # One run of two with no cost leaves the side's pooled cost unknown,
     # not the other run's cost alone.
     runs = data["cases"][0]["arms"]["with"]
+    runs[0]["specseal"]["cost"] = None
     runs.append({"graders": [], "specseal": {"cost": cost, "report_rows": []}})
     assert ni.side_numbers(data)["spend"] is None
+    assert ni.side_numbers(data)["tokens"] is None
+
+
+def assistant(blocks, parent=None):
+    """An assistant event holding BLOCKS, the agent's where PARENT is set."""
+    event = {"type": "assistant", "message": {"content": blocks}}
+    if parent:
+        event["parent_tool_use_id"] = parent
+    return event
+
+
+def use(name, ident):
+    return {"type": "tool_use", "id": ident, "name": name, "input": {}}
+
+
+def test_a_run_counts_every_tool_call_its_trace_holds(tmp_path, monkeypatch):
+    """Guards rule 5's divisor: a run's tool calls are every `tool_use` block
+    in its trace, the case session's and the spawned agent's alike, a block
+    an event repeats counted once by its id; a trace holding none, or one
+    that cannot be read, gives no count, so the side is no result rather
+    than divided by nothing (owner, 2026-10-17). The cost case above reads
+    a trace with no calls at all; only this one counts them."""
+    events = [
+        {"type": "system", "subtype": "init"},
+        assistant([{"type": "text", "text": "spawning"}, use("Agent", "t1")]),
+        assistant([use("Bash", "t2"), use("Read", "t3")], parent="t1"),
+        assistant([use("Read", "t3")], parent="t1"),
+        {"type": "user", "message": "a string message holds no call"},
+        RESULT,
+    ]
+    data, _plugin = run_one_side(tmp_path, monkeypatch, events)
+    assert data["cases"][0]["arms"]["with"][0]["specseal"]["tool_calls"] == 3
+    counted = ni.side_numbers(data)
+    assert counted["calls"] == 3
+
+    where = tmp_path / "none"
+    where.mkdir()
+    data, _plugin = run_one_side(where, monkeypatch, [{"type": "system"}, RESULT])
+    assert data["cases"][0]["arms"]["with"][0]["specseal"]["tool_calls"] is None
+    uncounted = ni.side_numbers(data)
+    assert uncounted["calls"] is None
+    verdict, reasons = ni.verdict(ni.merged(counted, uncounted))
+    assert verdict == "no result", (verdict, reasons)
+    assert any("tool calls" in r for r in reasons), reasons
+    assert ni.tool_calls(str(tmp_path / "no-such-trace.jsonl")) is None
+
+
+@pytest.mark.parametrize(
+    ("model_usage", "want"),
+    [
+        (None, None),
+        ({}, None),
+        ({"m": "x"}, None),
+        ({"m": {"inputTokens": 1, "cacheReadInputTokens": 2}}, None),
+        (
+            {
+                "m": {
+                    "inputTokens": 1,
+                    "cacheReadInputTokens": 2,
+                    "cacheCreationInputTokens": None,
+                }
+            },
+            None,
+        ),
+        (
+            {
+                "a": {
+                    "inputTokens": 1,
+                    "cacheReadInputTokens": 2,
+                    "cacheCreationInputTokens": 3,
+                    "outputTokens": 100,
+                },
+                "b": {
+                    "inputTokens": 10,
+                    "cacheReadInputTokens": 20,
+                    "cacheCreationInputTokens": 30,
+                },
+            },
+            66,
+        ),
+    ],
+    ids=["absent", "empty", "not-a-model", "missing-count", "null-count", "two-models"],
+)
+def test_a_model_usage_missing_a_count_is_no_token_figure(model_usage, want):
+    """Guards rule 5's input against a short trace: a `modelUsage` that is
+    absent, empty, or has a model missing one of the three counts gives no
+    token figure, never a smaller one, and two whole models sum their input,
+    cache-creation and cache-read tokens and nothing else. A count read as
+    zero makes a broken run look cheaper, and rule 5 then passes the rewrite
+    on it. The run-level case above holds one whole `modelUsage` and one
+    absent; only this one reaches a model whose counts are partial."""
+    assert ni.tokens_read(model_usage) == want
 
 
 def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved(
@@ -505,6 +851,18 @@ def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved
     assert side["specseal"]["agent"] == "warden"
     assert side["specseal"]["preload"] == ni.preload_hashes(str(plugin), "warden")
     assert side["specseal"]["cut_short"] is False
+    # Round 1 of #969, finding 7: a `--tree` side's `rev` names no machine
+    # path, since a committed record may not carry one (CONTRIBUTING.md
+    # §House rules); the preload's hashes already name the content.
+    assert side["specseal"]["rev"] == "tree", side["specseal"]["rev"]
+    meta = json.loads((saved / "meta.json").read_text(encoding="utf-8"))
+    assert meta["rev"] == "tree", meta["rev"]
+    # A side saved before that, its `rev` an absolute path, reads back the same.
+    meta["rev"] = str(tmp_path / "sonnet-tree")
+    (saved / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+    assert ni.main(["run", "--from-raw", str(saved), "--out", str(out)]) == 0
+    side = json.loads(out.read_text(encoding="utf-8"))
+    assert side["specseal"]["rev"] == "tree", side["specseal"]["rev"]
 
 
 # --- the numbers a side is read to -------------------------------------------
@@ -614,18 +972,39 @@ def test_only_a_directory_the_eval_kept_is_removed():
     assert ni.kept_root("/tmp/e-Ab12cD/trace.jsonl") is None
 
 
-def test_a_side_runs_the_tree_it_measures_and_no_installed_plugin():
+@pytest.mark.parametrize(
+    ("flavour", "pathsep", "tree", "base", "want"),
+    [
+        (
+            posixpath,
+            ":",
+            "/w/tree",
+            "/usr/bin:/Users/x/.claude/plugins/cache/p/p/1/bin:/bin",
+            ["/w/tree/bin", "/w/tree/.shims", "/usr/bin", "/bin"],
+        ),
+        (
+            ntpath,
+            ";",
+            "C:\\w\\tree",
+            "C:\\Windows;C:\\Users\\x\\.claude\\plugins\\cache\\p\\p\\1\\bin;"
+            "C:/Users/x/.Claude/Plugins/Cache/p/p/2/bin;C:\\bin",
+            ["C:\\w\\tree\\bin", "C:\\w\\tree\\.shims", "C:\\Windows", "C:\\bin"],
+        ),
+    ],
+    ids=["posix", "windows"],
+)
+def test_a_side_runs_the_tree_it_measures_and_no_installed_plugin(
+    monkeypatch, flavour, pathsep, tree, base, want
+):
     """Guards which plugin a side's sessions run: the measured tree's `bin/`
-    first, and no installed plugin's `bin/` at all."""
-    path = ni.side_path(
-        "/w/tree", "/usr/bin:/Users/x/.claude/plugins/cache/p/p/1/bin:/bin"
-    )
-    assert path.split(os.pathsep) == [
-        "/w/tree/bin",
-        "/w/tree/.shims",
-        "/usr/bin",
-        "/bin",
-    ]
+    first, and no installed plugin's `bin/` at all, in each platform's own
+    PATH spelling whichever platform runs the case. A filter spelt with `/`
+    alone keeps a Windows entry under `\\.claude\\plugins\\cache\\`, so a
+    Windows side would run the installed plugin; the POSIX case alone, run
+    on Windows, split nothing and dropped the whole PATH."""
+    os_like = types.SimpleNamespace(sep=flavour.sep, pathsep=pathsep, path=flavour)
+    monkeypatch.setattr(ni, "os", os_like)
+    assert ni.side_path(tree, base).split(pathsep) == want
 
 
 def test_a_truth_is_a_fixed_finding_the_next_round_confirmed():
@@ -639,6 +1018,208 @@ def test_a_truth_is_a_fixed_finding_the_next_round_confirmed():
         "| 🟡 5 | round 1's finding 5 is closed | `a.md:9` | open | read |\n"
     )
     assert rt.confirmed(nxt, 1) == {2, 4}
+
+
+LABELLED_ROUND_1 = """# i — review round 1
+
+target: 1a2b3c4 against main
+
+## Findings
+
+### 1. a fixed defect
+
+severity: must
+location: `src/a.py:12`, `docs/a.md`
+verdict: fixed abc1234
+
+why it matters.
+
+answer: fixed
+
+### 2. a finding that does not hold
+
+severity: should
+location: `src/b.py:3`
+verdict: rejected
+
+answer: it holds
+
+## Confirmations
+
+confirms: none
+a claim of the frame that matched.
+"""
+
+LABELLED_ROUND_2 = """# i — review round 2
+
+target: 2b3c4d5, fixes 1a2b3c4..2b3c4d5
+
+## Findings
+
+## Confirmations
+
+confirms: round-1#1
+holds.
+
+confirms: round-1#2
+holds.
+
+confirms: round-3#1
+another round's.
+"""
+
+
+def test_a_truth_of_a_labelled_record_is_a_fixed_finding_the_next_round_confirms():
+    """Guards the replay set's ground truth on 0.22.0's record: a finding is
+    a `### <n>. ` section read through `chain_check.py`'s own reader, with
+    its `location:` value whole and whether its `verdict:` is `fixed`, and
+    the next round confirms it on a `confirms: round-<N>#<n>` line. The
+    table case above reads only the old rows, so without this one a reader
+    that found no finding in any labelled record, which is what the
+    generator did before #964, left every 0.22.0 round out unnoticed."""
+    rt = load_script("replay_targets")
+    rel = "seal/specs/i/rounds/round-1.md"
+    assert rt.labelled(LABELLED_ROUND_1)
+    assert not rt.labelled("| 🟢 | round 1's finding 2 is closed | `a:1` | confirmed |")
+    read, why = rt.labelled_round(LABELLED_ROUND_1, rel, 1)
+    assert why == ""
+    assert read["sha"] == "1a2b3c4"
+    assert read["value"] == "1a2b3c4 against main"
+    assert read["findings"] == [
+        (1, "a fixed defect", "`src/a.py:12`, `docs/a.md`", True),
+        (2, "a finding that does not hold", "`src/b.py:3`", False),
+    ]
+    assert rt.confirmed(LABELLED_ROUND_2, 1) == {1, 2}
+    assert rt.confirmed(LABELLED_ROUND_2, 2) == set()
+
+
+def test_a_labelled_record_the_check_refuses_gives_no_truth():
+    """Guards that a replay reads only what a pull request accepted: a
+    record `chain_check.py` refuses is left out naming the refusal, and a
+    next record it refuses confirms nothing, so a grader is never built on
+    a line the check would not read. Nothing else holds the generator to
+    the check's refusals, which is the class #923 found leaking three
+    times."""
+    rt = load_script("replay_targets")
+    rel = "seal/specs/i/rounds/round-1.md"
+    bad = LABELLED_ROUND_1.replace("fixed abc1234", "fixed abc1234 and more")
+    read, why = rt.labelled_round(bad, rel, 1)
+    assert read is None
+    assert why.startswith("the check refuses the record at line 11: ")
+    assert "reads `verdict: fixed abc1234 and more`" in why
+    worse = LABELLED_ROUND_2.replace("round-1#1\n", "round-1#1 and more\n")
+    assert rt.confirmed(worse, 1) == set()
+
+
+def test_a_labelled_target_names_its_base(monkeypatch):
+    """Guards where a labelled replay's clone starts: a fix range's first
+    commit, an `against <sha>` commit, or the merge-base with
+    `origin/<base>` for `against <base>`, and no base where none resolves,
+    which leaves the round out rather than cloning the wrong range. The old
+    reader found a base only in an asked paragraph, which 0.22.0's record
+    does not carry."""
+    rt = load_script("replay_targets")
+    known = {"1a2b3c4": "1" * 40, "ce448bbe": "c" * 40, "origin/main": "d" * 40}
+    monkeypatch.setattr(rt, "resolve", lambda rev: known.get(rev, ""))
+    monkeypatch.setattr(
+        rt,
+        "git",
+        lambda *a, **_k: "m" * 40 + "\n" if a[:2] == ("merge-base", "T") else "",
+    )
+    fixes = rt.target_base("2b3c4d5, fixes 1a2b3c4..2b3c4d5", "T")
+    assert fixes == ("1" * 40, None)
+    assert rt.target_base("2b3c4d5 against ce448bbe", "T") == ("c" * 40, None)
+    assert rt.target_base("2b3c4d5 against main", "T") == ("m" * 40, "origin/main")
+    assert rt.target_base("2b3c4d5 against gone", "T") == ("", None)
+
+
+def test_records_read_only_the_named_items(monkeypatch, tmp_path):
+    """Guards `--case`'s reach over every release tag: only the named work
+    items' records are read, so reading all tags costs one listing a tag and
+    a `git show` per named record, never one per record in the history."""
+    rt = load_script("replay_targets")
+    shown = []
+
+    def git(*args, check=True):
+        if args[0] == "ls-tree":
+            return (
+                "seal/specs/1791-a/rounds/round-1.md\n"
+                "seal/specs/1792-b/rounds/round-1.md\n"
+            )
+        shown.append(args[1])
+        return f"text of {args[1]}"
+
+    monkeypatch.setattr(rt, "ROOT", str(tmp_path))
+    monkeypatch.setattr(rt, "git", git)
+    found = rt.records(["v1.0.0"], {"1791"})
+    assert found == {
+        ("1791-a", 1): "text of v1.0.0:seal/specs/1791-a/rounds/round-1.md"
+    }
+    assert shown == ["v1.0.0:seal/specs/1791-a/rounds/round-1.md"]
+
+
+@pytest.mark.parametrize(
+    ("script", "name", "items"),
+    [
+        ("replay_targets", "replay-1791382684-r2", {"1791382684"}),
+        ("seed_defects", "seeded-279a580b", {"279a580b"}),
+    ],
+)
+def test_a_named_case_is_read_at_every_release_tag(monkeypatch, script, name, items):
+    """Guards that a committed case regenerates after the release that moved
+    its records or commits out of the window `--list` reads: `--case` reads
+    every release tag, for the named items alone. Before #964 both
+    generators read the last two or three tags, and none of the eight
+    committed replay and seeded cases was still on either list once 0.22.0
+    was tagged, so `--case` exited 1 for each."""
+    module = load_script(script)
+    rt = module if script == "replay_targets" else module.rt
+    calls = []
+    monkeypatch.setattr(rt, "last_tags", lambda count=2: calls.append(count) or [])
+    monkeypatch.setattr(
+        module, "targets", lambda tags, only=None: calls.append(only) or ([], [])
+    )
+    monkeypatch.setattr(rt, "origin_url", lambda: "https://example.com/x/y.git")
+    assert module.main(["--case", name]) == 1
+    assert calls == [None, items]
+    calls.clear()
+    assert module.main(["--list"]) == 0
+    assert calls[1] is None and calls[0] in (2, 3)
+
+
+def test_a_seeded_case_is_looked_for_among_the_named_commits_alone(monkeypatch):
+    """Guards what reading every release tag costs the seeded generator: a
+    shipped commit `--case` does not name is skipped before any git call
+    for it, so the whole history is listed and only the named commits are
+    read. The wiring case above stubs `targets`, so only this one reaches
+    the filter."""
+    sd = load_script("seed_defects")
+    monkeypatch.setattr(sd, "shipped", lambda _tags: ["aaaaaaaa1111", "bbbbbbbb2222"])
+    monkeypatch.setattr(sd.rt, "git", lambda *_a, **_k: "")
+    kept, left = sd.targets(["v1.0.0"], {"aaaaaaaa"})
+    assert kept == []
+    assert left == [("aaaaaaaa1111", "not a squashed pull request")]
+    assert len(sd.targets(["v1.0.0"])[1]) == 2
+
+
+def test_a_record_with_no_asked_paragraph_ends_the_spawn_at_the_report():
+    """Guards the replay prompt of a labelled record, which carries no asked
+    paragraph: the spawn ends at the report's path with nothing after it,
+    and a table record's paragraph still follows that sentence after one
+    space, as the four committed cases were written."""
+    rt = load_script("replay_targets")
+    t = {
+        "item": "1-i",
+        "n": 2,
+        "branch": "b",
+        "target": "t" * 40,
+        "base": "a" * 40,
+        "base_ref": None,
+        "asked": "",
+    }
+    assert "and return its path.\n\nEND PROMPT" in rt.prompt(t)
+    t["asked"] = "Round 2,\n  the verifying round."
+    assert "and return its path. Round 2, the verifying round.\n\nEND" in rt.prompt(t)
 
 
 def test_a_truth_pattern_holds_its_line_window_and_no_further():

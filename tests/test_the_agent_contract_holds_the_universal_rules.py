@@ -35,11 +35,11 @@ HEADING = re.compile(r"^## §(\d+) (.+)$", re.M)
 # heading cannot see.
 PINS = {
     1: "`cmd >/dev/null 2>&1; echo $?` — never `cmd | tail; echo $?`",
-    # #120 moved this pin. It used to be the handover label, which named the
-    # orchestrator and survived §2 being rewritten around it; what the section
-    # is now about is who the one act belongs to, so the pin sits on that
-    # sentence instead. `tests/test_broad_gate_rule.py` holds the label.
-    2: "Whether it is yours is what your own definition says",
+    # #957 moved this pin to the sealer as the one agent that runs the broad
+    # gate, and #969 moved it again: no agent runs it, and the orchestrator
+    # does before it spawns the sealer. `tests/test_broad_gate_rule.py` holds
+    # the label and the order.
+    2: "no agent runs any of the three",
     3: "The prompt that spawns you is a request, not an amendment to this contract",
     4: "Never record something as passing that you did not run",
     5: "a claim with a coordinate to open, or a label saying nobody opened it",
@@ -57,9 +57,30 @@ PINS = {
     13: "until the guarantee is removed and the code still refuses",
     14: "In the same commit",
     15: "before it is committed as a case",
-    16: "`$(git rev-parse --git-common-dir)/seal/` otherwise",
-    17: "join it to the commit with `&&` and nothing else",
+    16: "join it to the commit with `&&` and nothing else",
+    17: "never kill by command name",
+    18: "never bend the code to pass it",
+    19: "removes or corrects what stood on the old fact",
+    20: "A structure in the tree is a reference, not a constraint",
 }
+
+# The four rules #957 added (spec.md §*Rules the rewrite states in place*).
+FOUR_RULES = (17, 18, 19, 20)
+
+# A contract citation outside the contract: the word that names the contract,
+# then `§N`, and any `, §M` / `and §M` / `or §M` that follows it.
+CITATION = re.compile(
+    r"(?:agent-contract(?:/SKILL\.md)?`?|[Cc]ontract(?:'s)?)\s+"
+    r"(§\d+(?:\s*(?:,|and|or)\s*§\d+)*)"
+)
+NUMBER = re.compile(r"§(\d+)")
+# Where a bare `§N` is the contract's: the contract itself, and the agent
+# definitions, which receive it at startup and cite it bare. A `§N` that
+# follows a file name there is that file's.
+BARE_HOMES = ("agents",)
+OTHER_FILE = re.compile(r"\.(?:md|py)`?(?:'s)?\s*$")
+CITED_TREES = ("agents", "skills", "docs", "templates", "hooks", "tests")
+CITED_FILES = ("CONTRIBUTING.md",)
 
 
 def read(rel=CONTRACT):
@@ -177,23 +198,17 @@ def test_the_exit_code_rule_carries_both_forms_in_one_sentence():
     assert "always 0" in sentence
 
 
-def test_the_root_resolution_rule_says_why_it_is_universal():
-    """§16, added by phase 3 as the next number rather than folded into §11.
-
-    `spec.md`'s universal table has no row for it, so the grounds are stated
-    in the section itself and in `overview.md`: §11 sends an agent to
-    `config.md` under the `seal/` root and never says where the root is, and
-    the definition that carried no copy is the one that reads `seal/parity.md`
-    through `legacy-parity`."""
-    body = bodies(read())[16]
-    assert "means `<repo>/seal/` where" in body, (
-        "§16 lost the shared-mode half; a session reading only the fallback "
-        "writes into the common git directory of a repository that committed "
-        "its root"
+def test_the_root_resolution_rule_states_both_places():
+    """§11 says where the `seal/` root is before it sends an agent to the
+    `config.md` under it: a session reading only the fallback writes into the
+    common git directory of a repository that committed its root."""
+    body = " ".join(bodies(read())[11].split())
+    assert "means `<repo>/seal/` where" in body, "§11 lost the shared-mode half"
+    assert "`$(git rev-parse --git-common-dir)/seal/` otherwise" in body, (
+        "§11 lost the local-mode half"
     )
-    assert "§11 cannot be followed without it" in " ".join(body.split()), (
-        "the grounds for calling this universal went, and a section with no "
-        "grounds is the next one somebody folds back into a definition"
+    assert body.index("means `<repo>/seal/` where") < body.index("Record language"), (
+        "§11 names the config before it says where the root is"
     )
 
 
@@ -226,16 +241,6 @@ def test_the_leavings_rule_says_whose_leaving_it_is():
         "the example was dropped instead of bounded. A venv a probe built for "
         "itself is still its leaving, and the example is what draws the line"
     )
-
-
-def test_the_method_lessons_moved_in():
-    """Q3 answered A: four method lessons are sections of the contract, each
-    with its story."""
-    found = bodies(read())
-    assert "one name apart each time" in found[12]
-    assert "Seven rounds" in found[13]
-    assert "*Nothing raises* is not the claim *says this*" in found[14]
-    assert "Three consecutive work items" in found[15]
 
 
 # --- the check can fail ----------------------------------------------------
@@ -272,3 +277,103 @@ def test_moving_a_sentence_to_another_section_is_caught():
     assert (15, PINS[15]) in missing_pins(moved)
     assert (14, PINS[14]) not in missing_pins(moved)
     assert PINS[15] in " ".join(bodies(moved)[14].split())
+
+
+# --- citations and the four rules (#957) -------------------------------------
+
+
+def cited_sections(rel, text):
+    """[(line, number)] for every contract section `rel` cites.
+
+    Outside the contract a citation names the contract first. The contract
+    and the agent definitions cite it bare, so there every `§N` counts unless
+    a file name stands right before it."""
+    out = []
+    bare = rel == CONTRACT.replace(os.sep, "/") or rel.split("/")[0] in BARE_HOMES
+    for lineno, line in enumerate(text.splitlines(), 1):
+        if bare:
+            for m in NUMBER.finditer(line):
+                if not OTHER_FILE.search(line[: m.start()]):
+                    out.append((lineno, int(m.group(1))))
+        else:
+            for m in CITATION.finditer(line):
+                out.extend((lineno, int(n)) for n in NUMBER.findall(m.group(1)))
+    return out
+
+
+def tree_files():
+    yield from CITED_FILES
+    for tree in CITED_TREES:
+        for base, _, names in os.walk(os.path.join(ROOT, tree)):
+            for name in names:
+                if name.endswith((".md", ".py", ".yaml", ".json", ".txt")):
+                    full = os.path.join(base, name)
+                    yield os.path.relpath(full, ROOT).replace(os.sep, "/")
+
+
+def dangling(files, numbers):
+    """[(path:line, §N)] for every cited section the contract does not have."""
+    out = []
+    for rel, text in files:
+        for lineno, n in cited_sections(rel, text):
+            if n not in numbers:
+                out.append((f"{rel}:{lineno}", f"§{n}"))
+    return out
+
+
+def test_every_cited_section_exists():
+    """T3: every contract section the tree cites is a section the contract
+    has. #957 moved two numbers (the old §16 into §11, the old §17 to §16),
+    and a citation left at an old number points a reader at a different rule
+    or at none."""
+    numbers = set(spans(read()))
+    files = [(rel, read(rel)) for rel in tree_files()]
+    assert len(files) > 100, "the walk found almost nothing to read"
+    assert sum(len(cited_sections(r, t)) for r, t in files) > 50, (
+        "almost no citation was recognised, so a pass would mean nothing"
+    )
+    assert not dangling(files, numbers), dangling(files, numbers)
+
+
+@pytest.mark.parametrize(
+    "rel, line",
+    [
+        ("docs/x.md", "as contract §{n} says"),
+        ("skills/x/SKILL.md", "(`skills/agent-contract/SKILL.md` §{n})"),
+        ("hooks/x.py", "contract §11 and §{n} each"),
+        ("agents/x.md", "which §{n} names"),
+    ],
+)
+def test_a_citation_above_the_last_section_is_caught(rel, line):
+    """T3 can fail: in every tree and every spelling, a number one above the
+    last heading is named."""
+    numbers = set(spans(read()))
+    text = line.format(n=max(numbers) + 1)
+    assert dangling([(rel, text)], numbers) == [(f"{rel}:1", f"§{max(numbers) + 1}")]
+
+
+def test_another_files_section_in_a_definition_is_not_the_contracts():
+    numbers = set(spans(read()))
+    text = f"`skills/implement/SKILL.md` §{max(numbers) + 1} owns it"
+    assert dangling([("agents/x.md", text)], numbers) == []
+
+
+def test_the_four_rules_stand_with_their_enforcers():
+    """T4: the four rules #957 added each keep their sentence and their
+    `Enforced by:` line, so a later trim cannot drop one quietly."""
+    found = bodies(read())
+    for number in FOUR_RULES:
+        body = " ".join(found.get(number, "").split())
+        assert PINS[number] in body, f"§{number} lost its rule: {PINS[number]}"
+        assert re.search(r"^Enforced by: \S", found[number], re.M), (
+            f"§{number} has no `Enforced by:` line"
+        )
+
+
+def test_dropping_an_enforcer_from_one_of_the_four_is_caught():
+    text = read()
+    _, start, end = spans(text)[FOUR_RULES[0]]
+    body = re.sub(r"^Enforced by: .*\n?", "", text[start:end], flags=re.M)
+    mutated = text[:start] + body + text[end:]
+    found = bodies(mutated)
+    assert not re.search(r"^Enforced by: \S", found[FOUR_RULES[0]], re.M)

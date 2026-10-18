@@ -173,7 +173,7 @@ ALLOWED = {
     # mid-line form has to be in ONE of the two lists. It is here, with what
     # it costs, because telling it from a `2>&1` or a quoted `&` needs the
     # shell parser this list exists to avoid.
-    "an `&` anywhere but at the end": "may still be running when the gate stamps",
+    "an `&` anywhere but at the end": "may still be running when the gate reports",
 }
 
 
@@ -546,22 +546,26 @@ def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered()
     assert "Nothing ran" in said
 
 
-def test_the_sealer_is_told_the_row_refusal_is_a_persons_and_not_its_own():
-    """`agents/sealer.md` already said the sealer judges nothing. What it did
-    not say is what to do with the one refusal that has an obvious action
-    attached, which is the refusal #401 watched a session take."""
+def test_the_row_refusal_is_a_persons_and_the_sealer_chooses_no_command():
+    """The one refusal with an obvious action attached, which is the refusal
+    #401 watched a session take. Since #969 the orchestrator meets it, in its
+    own run before the spawn, so the orchestration names both refusals; the
+    sealer runs no gate and is told it chooses no `Broad gate` command."""
     sealer = flat(read(*SEALER))
-    assert "goes back to a person, and never to you" in sealer
-    assert "/specseal:config" in sealer
-    assert "seal your own choice" in sealer
-    # The bullet on its own, not the file. Asserted against the whole file
-    # this passed while the bullet said nothing, because the paragraph below
-    # carries the same phrase -- which is the counterfeit `agent-contract`
-    # §15 exists to catch, met while catching it.
-    bullet = read(*SEALER).split("- **Exit 2, refused, and nothing ran**", 1)[1]
-    bullet = flat(bullet.split("\n\n", 1)[0])
-    assert "would not run as the command it reads as" in bullet, (
-        "the exit-2 bullet names only the absent row, not the refused one"
+    assert "Choose a `Broad gate` command" in sealer
+    assert "the row is a person's" in sealer
+    # The paragraph on its own, not the file: asserted against the whole file
+    # a phrase elsewhere would carry it, which is the counterfeit
+    # `agent-contract` §15 exists to catch.
+    paragraph = read(*REVIEW_ORCH).split(
+        "**A refusal about the `Broad gate` row goes to a person", 1
+    )[1]
+    paragraph = flat(paragraph.split("\n\n", 1)[0])
+    assert "would not run as the command it reads as" in paragraph, (
+        "the refusal paragraph names only the absent row, not the refused one"
+    )
+    assert "Your broad run comes back exit 2" in paragraph, (
+        "the refusal paragraph does not say whose run meets it"
     )
 
 

@@ -19,7 +19,6 @@
 # has to delete that case first. The docstring and comments below are
 # 86256492's and describe that commit: where they say "both gates" or name a
 # reader, read them as of that commit.
-# Verified 2026-10-01 against walk_directories@672f1550
 """Reading a shell command line: where one invocation ends, and what git it is.
 
 Two gates ask the same three questions of the string the harness hands them.

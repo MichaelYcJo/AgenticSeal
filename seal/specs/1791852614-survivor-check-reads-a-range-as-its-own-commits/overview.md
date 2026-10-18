@@ -24,7 +24,7 @@ On a two-dot range holding a merge of the base, the survivor sweep read another 
 | Item | Who must answer |
 |---|---|
 | the own-commits pass on the Windows leg's git: `own_changes` asks `cat-file --batch` for `<full>^:<path>`, measured on macOS only | CI's Windows shards at this pull request |
-| ✅ `owned`'s refusal where `own_commits` returns None, which needs git to fail inside `git log` after the range resolved; no case reaches it | round 1's 🟡 2: `test_a_range_whose_own_commits_cannot_be_listed_is_refused` reaches it through a stub chain module, with the timeout beside it, at 7f08b48f |
+| closed `owned`'s refusal where `own_commits` returns None, which needs git to fail inside `git log` after the range resolved; no case reaches it | round 1's 🟡 2: `test_a_range_whose_own_commits_cannot_be_listed_is_refused` reaches it through a stub chain module, with the timeout beside it, at 7f08b48f |
 | the full suite, repository-wide lint and typecheck | the sealer, after the review rounds settle |
 
 ## Not done

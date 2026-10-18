@@ -93,7 +93,7 @@ prints the interpreter it used.
 
 ```bash
 bin/test tests/test_session_cost.py -q   # one module — the form to type
-bin/test                                 # everything, in parallel — the sealer's run
+bin/test                                 # everything, in parallel — the orchestrator's broad run
 uvx ruff check . && uvx ruff format .    # the linter this plugin runs on your code
 ```
 
@@ -104,9 +104,9 @@ that lacks that version (#667, #718, #647). What the whole run costs is a
 figure with a date and a machine, recorded in the work item that measured
 it, not here.
 
-**Name a module.** The full suite is the sealer's, run once after the review
-rounds settle — `skills/agent-contract/SKILL.md` §2 forbids it to smith and
-warden, and `agents/sealer.md` is the agent it is assigned to. A cheap runner
+**Name a module.** The full suite is the orchestrator's, run once after the
+review rounds settle and before the sealer is spawned —
+`skills/agent-contract/SKILL.md` §2 forbids it to every agent. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
@@ -245,11 +245,6 @@ adds any mechanism by what it takes away:
 - **Platform honesty.** Process inspection (`ps`, `lsof`, `/proc`) behaves
   differently across macOS, Linux, and Windows. If you cannot test a
   platform, say so in the PR rather than assuming.
-- **A `Reads:` line on every unit you add or change.** Each top-level `def`
-  and `class` of shipped Python says in its docstring what class of input it
-  decides from, and a changed unit leaves the census when it declares.
-  `docs/the-reader-registry.md` holds the grammar, and
-  `tests/test_a_reader_declares_its_input_class.py` refuses a unit without it.
 - **What it removes.** A pull request that adds a mechanism — a gate, a
   checker, a hook, a CI step, a rule — names the existing one it removes, or
   says why none can go, and with either answer what that one caught against

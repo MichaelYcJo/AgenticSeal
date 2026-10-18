@@ -1609,6 +1609,32 @@ def test_the_notice_follows_a_commit_git_made(world):
     assert "answers `Implementation`" not in second.stdout + second.stderr
 
 
+def test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output(world):
+    """#975 S4, through the stub git runs: the commit that adds a work item's
+    `guarantee.md` reading `sealed` prints one line saying where the stamp's
+    values wait and how to draw them by hand, and the file is there."""
+    item = world.w / "seal" / "specs" / "1790000000-x"
+    head = world.head(world.w)[:8]
+    (item / "guarantee.md").write_text(
+        "| Field | Value |\n|---|---|\n"
+        f"| Target SHA | {head} against release |\n\nVerdict: sealed\n",
+        encoding="utf-8",
+    )
+    g(world.w, "add", "-A", home=world.home, session="")
+    got = g(world.w, "commit", "-q", "-m", "the guarantee", home=world.home)
+    said = got.stdout + got.stderr
+    assert (
+        "specseal: the stamp for 1790000000 is drawn at the end of this turn from "
+        in (said)
+    ), said
+    values = world.main / ".git" / "specseal-stamp" / SESSION
+    (name,) = os.listdir(values)
+    assert name.endswith(f"-1790000000-{head}.json"), name
+    path = str(values / name)
+    quoted = f'"{path}"' if os.name == "nt" else shlex.quote(path)
+    assert f"`seal-stamp --from {quoted}`" in said, said
+
+
 def test_the_post_tool_use_notice_stands_aside_where_git_says_it(world, monkeypatch):
     notice = load_hook_module("implementer-notice.py", "notice_beside_post_commit")
     routing_md = world.w / "seal" / "specs" / "1790000000-x" / "routing.md"

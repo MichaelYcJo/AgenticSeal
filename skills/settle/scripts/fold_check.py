@@ -146,10 +146,7 @@ def reader():
 
 
 def coordinates():
-    """`coordinates.py`, loaded once on first use, for `named_unit`.
-
-    Reads: observed — the coordinate kernel's own module, executed by the interpreter; unknown refused
-    """
+    """`coordinates.py`, loaded once on first use, for `named_unit`."""
     if "coordinates" not in _loaded:
         _loaded["coordinates"] = load(
             COORDINATES,
@@ -242,9 +239,7 @@ def bound(ids, cutoff):
 def target_problem(root, target):
     """Why `target` does not resolve under `root`, or None when it does: a
     file inside the repository, or a `def` or `class` its Python file
-    defines once.
-
-    Reads: observed — the file the target names, through `coordinates.py#named_unit`; unknown refused"""
+    defines once."""
     target = target.strip().strip("`")
     if not target:
         return "an empty target"
@@ -499,8 +494,6 @@ def config_rows(home):
     root and no file are no row at all; a file that is there and will not
     read is `Unusable`, in the reader's own sentence (#867), because reading
     it as no row turned every check this command runs off at exit 0.
-
-    Reads: guess — a person's `| Item | Value |` table, through `hooks/config.py#config_table`; unknown refused
 
     **A table the walker refused is `Unusable` where it did not read one of
     the three rows this command reads** (#871), in the walker's sentence: an

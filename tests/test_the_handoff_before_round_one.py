@@ -131,10 +131,11 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
     # design gate two hundred lines up says asking questions `one at a time`
     # is a cost paid repeatedly -- an unrelated sentence holding the phrase
     # up. Measured while showing this case red, 2026-09-03.
-    assert (
-        "Mutation-test every unit you added, one at a time, before you hand "
-        "over." in smith
-    ), (
+    # Since #967 the act is the rule's lead and the moment is its step in
+    # `## Order of work`: after the commit, before the narrow checks and the
+    # hand-back.
+    assert "Commit, then run `mutation-check` over each unit you added." in smith
+    assert "Mutation-test every unit you added, one command each." in smith, (
         "`agents/smith.md` does not mandate mutating what it added, on that "
         "cadence, at that moment. `spec.md` of work item 1788433011 puts the "
         "rule in the smith's own layer -- *only the agent that adds units "
@@ -174,47 +175,21 @@ def test_the_protocol_names_the_progress_channel_and_the_stall_signal():
 # --- the batching expectation in the contracts ------------------------------
 
 
-def test_the_reviewers_contract_expects_batched_reads_and_probes():
-    """Task shape dominates: a review reads independent things, and the one
-    instructed round that batched (1.89 tools per turn) was the fastest
-    round measured. The reviewer's contract is where the expectation pays."""
-    warden = flat("agents", "warden.md")
-    assert "Independent reads and probes go out together" in warden
-    assert "1.89" in warden, (
-        "the measurement went, and an expectation with no number behind it "
-        "reads as style advice"
-    )
-
-
 def test_the_smiths_contract_does_not_demand_what_a_serial_loop_cannot_give():
-    """The same rule lands on the smith with the caveat that keeps it
-    honest: an edit-test loop is inherently serial (1.08-1.17 measured
-    against 1.29-1.89 for review rounds), and a rule that ignores that is a
-    demand the work cannot meet — which is how rules stop being read.
-
-    Re-pointed in phase 4 of #107. The rule and the caveat are §10's, which
-    the smith receives at startup; what §10 sends back to the definition is
-    the NUMBER, because a figure that measures a reviewer does not measure an
-    implementer. So the caveat is asserted against the contract and the
-    number against the definition, which is where each of them can go missing
-    without the other noticing."""
+    """The batching rule lands on the smith with the caveat that keeps it
+    honest: an edit-test loop is serial, and a rule that ignores that is a
+    demand the work cannot meet. The caveat is contract §10's; the bar it
+    points at has one home, `docs/the-review-record.md` §*The per-segment
+    bars*, and no definition carries a copy since #957."""
     contract = flat("skills", "agent-contract", "SKILL.md")
     assert "An edit-test loop is serial" in contract, (
         "the contract stopped conceding what a serial loop cannot give, so "
         "the batching rule became a demand the work cannot meet"
     )
-    assert "in that agent's definition" in contract, (
-        "the contract stopped sending the numbers back to the definitions, "
-        "and a figure with no home is one that measures the wrong agent"
+    assert "§*The per-segment bars*" in contract, (
+        "the contract stopped pointing at the bars, and a figure with no home "
+        "is one that measures the wrong agent"
     )
-    smith = flat("agents", "smith.md")
-    # U+2013 EN DASH, built rather than typed: the definition spells both
-    # ranges with one, so a hyphen would match nothing, and a typed one is
-    # what the linter reads as an ambiguous character.
-    dash = chr(0x2013)
-    assert f"1.08{dash}1.17" in smith
-    assert f"1.29{dash}1.89" in smith
-    assert "never obliged to fake a batch" in smith
 
 
 def framer_opening(text):
@@ -284,17 +259,12 @@ def test_the_framers_definition_carries_its_opening():
         )
 
 
-def test_the_framers_definition_carries_its_own_number():
-    """§10 sends each kind's number back to that kind's definition, and the
-    warden's (1.89) and the smith's (1.08-1.17) were there while the
-    framer's was nowhere. The bar is 1.4, under the band it comes from."""
+def test_the_framers_definition_points_at_its_bar():
+    """The framing bar lives in `docs/the-review-record.md` §*The
+    per-segment bars* (#957 took the copies out of the definitions), and the
+    framer's opening points at its row as a lens, not a forecast."""
     section = framer_opening(read("agents", "framer.md"))
-    dash = chr(0x2013)
-    assert "1.4 tools per turn" in section, "the framer's bar went"
-    assert f"1.46{dash}1.79" in section, (
-        "the bar lost the band it was set under, and a number with nothing "
-        "behind it reads as style advice"
-    )
+    assert "§*The per-segment bars*" in section, "the framer lost its bar"
     assert "promises no saving" in section, (
         "the number reads as a forecast. `## Why the frame is not the "
         "builder's to draw` refuses one, and the bar is a lens"

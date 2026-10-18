@@ -42,7 +42,7 @@ its file.
 |---|---|
 | The full suite, the repository-wide lint and the typecheck | the sealer, spawned by the orchestrator after the review rounds settle |
 | The new cases on the Windows and Linux legs (the vendored copy, the node-id paths with `/`) | CI at the pull request |
-| ✅ `bin/evidence-check --strict .` after `origin/release/v0.21.0` is merged in: its head carries 22 drifted coordinates this branch does not (`templates/config.md#"# Repository config"`, `tests/test_every_reader_ends_a_line_where_gfm_does.py#OUT_OF_CLASS`) | measured at the integration step: release head ad447367 merged at df42a36c, the drift read and re-stamped, `--strict` exit 0 (§*The release branch's integration drift, cleared here*) |
+| closed `bin/evidence-check --strict .` after `origin/release/v0.21.0` is merged in: its head carries 22 drifted coordinates this branch does not (`templates/config.md#"# Repository config"`, `tests/test_every_reader_ends_a_line_where_gfm_does.py#OUT_OF_CLASS`) | measured at the integration step: release head ad447367 merged at df42a36c, the drift read and re-stamped, `--strict` exit 0 (§*The release branch's integration drift, cleared here*) |
 | `bin/evidence-check --strict .` once #870, which edits `evidence_check.py` beside this, lands on the release branch | the orchestrator, at whichever of the two lands second (`plan.md` §*Sequencing with the siblings*) |
 | The ledger arm over this repository's own test rows, read against the record of the full suite the seal runs (every cited case of this item's fragment, parametrised ones included) | the sealer's broad gate, after the rounds settle; no full suite runs before it |
 | Whether CI should observe too (`questions.md` Q7) | the repository owner; built on its default (a), no |

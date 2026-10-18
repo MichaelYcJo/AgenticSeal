@@ -2,8 +2,8 @@
 named by content (#870, #519, #867).
 
 `skills/verify/scripts/coordinates.py` is the coordinate kernel
-`fold_check.py`, `rider_check.py`, `pact_check.py`, `chain_check.py` and the
-reader registry load. These are its cases:
+`fold_check.py`, `pact_check.py` and `chain_check.py` load. These are its
+cases:
 
   the unit        a symbol through `ast`, a heading path in markdown, a
                   quoted line's paragraph anywhere, and a bare symbol refused
@@ -23,7 +23,6 @@ import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 KERNEL = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
-RIDER = os.path.join(ROOT, ".github", "scripts", "rider_check.py")
 
 
 def _load(name, path):
@@ -202,16 +201,13 @@ REFUSED = [
 
 @pytest.mark.parametrize("suffix", REFUSED)
 def test_a_bare_symbol_outside_the_two_parsers_is_refused_with_the_shape(suffix):
-    """One sentence for every suffix, with the anchor's shape on it; the
-    rider check returns the same sentence, read from the same answer."""
+    """One sentence for every suffix, with the anchor's shape on it."""
     path = f"src/unit{suffix}"
     text = "f() {\n  x\n}\n\nf:\n  - a\n"
     unit = ec.resolve_unit(path, "f", text)
     named = f"`{suffix}`" if suffix else "a file with no suffix"
     assert unit.places == [] and unit.refused == no_rule(path, named), unit.refused
     assert ec.bounding_rule(path) is None
-    riders = _load("rider_check_kernel_" + (suffix.strip(".") or "none"), RIDER)
-    assert riders.region_lines(ec, path, "f", text) == (None, no_rule(path, named))
 
 
 def test_a_bare_symbol_in_markdown_is_refused_and_names_the_heading_path():

@@ -24,8 +24,8 @@ row. Two prompts per session per repository, then silence, and nothing at all
 once the row exists. The section on it below says how the command fills it in.
 
 `Broad gate` is the other, and its absence is not a prompt but a refusal:
-`broad-gate` names the row and exits 2 with nothing run, because a seal taken
-over a command nobody chose seals nothing. The section on it below says why
+`broad-gate` names the row and exits 2 with nothing run, because a run
+over a command nobody chose proves nothing. The section on it below says why
 there is no default.
 
 **A row written twice has no value, and a file that will not read is
@@ -121,22 +121,18 @@ every repository, whatever either row says:
 - **Branch names.** Still `<prefix>/<kebab-case-slug>` in ASCII: a branch
   name is typed into a shell and pasted into a URL.
 - **The field names, section headings and vocabulary a checker or a pinned
-  case reads literally** — a round record's `target:` line; its
-  `## Findings` heading and each finding's `verdict:` line, with its four
-  values `open`, `fixed`, `rejected` and the `deferred` in
-  `deferred <home>`, its `location:` line, its `regression:` line and its
-  `reopens:` line; its
-  `## Confirmations` heading and each `confirms:` line, reading `none` or a
-  reference spelt `round-<N>#<n>`; the labels the parties and the eval
-  graders read, `severity:` with its two words `must` and `should`, and
-  `answer:`, and the `## Not judged` and `## Probes` headings; a
+  case reads literally** — every cell of a round record's grammar, the
+  table in `docs/the-review-record.md` §*The round record*, which
+  `chain_check.py` reads; a round record's `## Not judged` and `## Probes`
+  headings, which the parties and the eval graders read; a
   `guarantee.md`'s `Target SHA`; a `broad-gate.md`'s `Broad gate`; an
   `overview.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns; a `spec.md`'s `## Removes` heading and the
   `nothing` in `nothing — <why>`. A translated field name is not a
   translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, the `✅` that closes a row, and a pact
+  section's `## X.Y.Z — <date>`, the word `closed` that opens a closed
+  `## Not verified` row, and a pact
   anchor's `pact:<name>/"<heading path>"@<hash>`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
@@ -215,7 +211,8 @@ spawned.
 
 **An absent row is a refusal, not a default.** `broad-gate` names this row
 and exits 2 with nothing run. It is a refusal rather than a prompt because
-the command runs unattended — the sealer asks nobody anything — and a
+the command runs unattended — the orchestrator runs it with nothing else
+running, and asks nobody anything — and a
 refusal that names whose the row is and where it is answered reaches that
 person through whoever read it, where a question stops a session that may
 have nobody at the keyboard. It does **not** name a command to write: doing
@@ -225,10 +222,10 @@ reported.
 **There is no default, and the reason is the Seal Test.** `verify` names the
 counterfeit: a check that cannot fail. A default of `pytest` seals a
 repository that runs `npm test`; a default of `true` seals everything. The
-sealer does not pick a command either — a row is a
-thing a person wrote, and what the sealer's seal covers is exactly that. What the
+orchestrator that runs the gate does not pick a command either — a row is a
+thing a person wrote, and what the broad run covers is exactly that. What the
 row's command does is the repository's own claim: a command that exits 0
-without running anything gets a stamp over nothing, and *the narrow command
+without running anything passes over nothing, and *the narrow command
 still has to be able to fail* is the reader's rule, not the gate's.
 
 **Which shell runs the row, and what it is handed.** `/bin/sh` on macOS and
@@ -315,7 +312,7 @@ What it prevents is quiet and was reachable by following this plugin's own
 procedure. The block `/specseal:config` copies out of this file carries the
 fenced example row above, and nothing said where in `seal/config.md` it had to
 land; pasted above the live table, or above a table with no parseable row yet,
-the example WAS the table every gate read — the sealer's seal taken over a
+the example WAS the table every gate read — a broad run over a
 plausible command nobody chose (#429). **`broad-gate` says so by name**: where
 this gate's row exists only inside a fence, the refusal quotes that line and
 says where it has to move to, rather than reporting the row absent.
@@ -344,7 +341,7 @@ rather than paid for by a refusal:
 | `$(…)` **inside** a longer line | nothing. `pytest -n $(nproc)` still runs as the command it reads as |
 | `;`, `\|\|`, quotes, redirection, variables, globs | the row answers with whatever the composition the repository wrote answers with. That is the repository's own claim about itself, which is what this row already is |
 | a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` is green whenever `tee` is — the repository's own claim about itself. **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `broad-gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line, and the mode gate says nothing. Written LAST in its table the line has nothing under it, and `broad-gate`'s refusal says the rows below it go unread only where a row is written below it |
-| an `&` anywhere but at the end | the command before it is backgrounded and its status discarded, exactly as a `;` discards one — and unlike a `;`, it may still be running when the gate stamps, writing into the tree the stamp is about. That is `/bin/sh`; `cmd.exe` sequences the two commands instead, so nothing is left running and the status read is the second command's. Telling an operator `&` from a `2>&1` or a quoted `&` needs the shell parser this list exists to avoid, so it stays the row author's own composition. The **trailing** form is refused, because nothing composes after it and the whole line goes to the background |
+| an `&` anywhere but at the end | the command before it is backgrounded and its status discarded, exactly as a `;` discards one — and unlike a `;`, it may still be running when the gate reports, writing into the tree the report is about. That is `/bin/sh`; `cmd.exe` sequences the two commands instead, so nothing is left running and the status read is the second command's. Telling an operator `&` from a `2>&1` or a quoted `&` needs the shell parser this list exists to avoid, so it stays the row author's own composition. The **trailing** form is refused, because nothing composes after it and the whole line goes to the background |
 
 ### Choosing a value — the criterion
 

@@ -7,7 +7,7 @@ answers it, inherit and record — only genuinely NEW rules belong here. -->
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
-| Q1 | | | | | ⬜ |
+| Q1 | | | | | open |
 
 **`Who can answer` takes one of three values and nothing else.** They were one
 shape on the page before this, and #84's second comment measured all three
@@ -28,9 +28,10 @@ inside a single run's four rows.
 
 **The framer opens rows and does not own their answers.** A row is a question
 put to somebody else, so opening one costs little and closes nothing — and the
-`Status` column is ticked by whoever answered, never by whoever asked. Sorting
-the rows this way is also what keeps the batch short enough to answer in one
-sitting: two of the three kinds never needed a person at all.
+`Status` column is written by whoever answered, as `answered <date> by <who>`,
+never by whoever asked. Sorting the rows this way is also what keeps the
+batch short enough to answer in one sitting: two of the three kinds never
+needed a person at all.
 
 Answered rows feed back into docs/ (policy clause or open-questions section)
 before this directory's work merges.

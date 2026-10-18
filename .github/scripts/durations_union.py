@@ -43,16 +43,11 @@ import sys
 
 
 class Refusal(Exception):
-    """A reason the parts cannot make the whole suite.
-
-    Reads: nothing — it carries the sentence a caller built
-    """
+    """A reason the parts cannot make the whole suite."""
 
 
 def durations_map(text, what):
     """The `{node id: seconds}` map `text` holds, or `Refusal` naming `what`.
-
-    Reads: observed — a JSON a program wrote, pytest-split's durations map; unknown refused
 
     A map is a JSON object whose keys are strings and whose values are
     non-negative numbers; a boolean is not a number here, although Python
@@ -78,10 +73,7 @@ def durations_map(text, what):
 
 
 def read_map(path, what):
-    """`durations_map` of the file at `path`.
-
-    Reads: observed — a file a program wrote, read whole as UTF-8; unknown refused
-    """
+    """`durations_map` of the file at `path`."""
     try:
         with open(path, encoding="utf-8") as handle:
             text = handle.read()
@@ -94,8 +86,6 @@ def find_parts(directory):
     """`[(label, path)]` for every file under `directory`, sorted by
     label; one that is not a readable part is refused where it is read. A label is the file's directory relative to `directory`, written
     with `/`, or the file's name when it sits in `directory` itself.
-
-    Reads: observed — a directory listing; unknown refused
     """
     if not os.path.isdir(directory):
         raise Refusal("the parts directory does not exist: no part was downloaded")
@@ -112,8 +102,6 @@ def find_parts(directory):
 
 def union(parts):
     """The one map the parts make, `parts` being `[(label, map)]`.
-
-    Reads: nothing — it joins maps its caller read and validated
 
     An id in two parts is refused naming both, because the parts of one
     division are disjoint and a duplicate means a part is not a shard's.
@@ -139,18 +127,12 @@ def union(parts):
 
 
 def rendered(merged):
-    """The union as pytest-split writes a durations file, with LF line ends.
-
-    Reads: nothing — it formats its argument
-    """
+    """The union as pytest-split writes a durations file, with LF line ends."""
     return json.dumps(merged, indent=4, sort_keys=True)
 
 
 def report(parts, merged, committed):
-    """The summary's lines, `parts` being `[(label, map)]`.
-
-    Reads: nothing — it formats maps its caller read and validated
-    """
+    """The summary's lines, `parts` being `[(label, map)]`."""
     live, held = sum(merged.values()), sum(committed.values())
     unpriced = [node for node in merged if node not in committed]
     dead = [node for node in committed if node not in merged]
@@ -195,8 +177,6 @@ def report(parts, merged, committed):
 def emit(lines, env):
     """Append `lines` to `$GITHUB_STEP_SUMMARY` where `env` sets it, or print
     them.
-
-    Reads: observed — the environment's `GITHUB_STEP_SUMMARY`; unknown passed
     """
     target = env.get("GITHUB_STEP_SUMMARY")
     text = "\n".join(lines) + "\n"
@@ -208,10 +188,7 @@ def emit(lines, env):
 
 
 def arguments(argv):
-    """The command line, parsed.
-
-    Reads: owned — this script's own options; unknown refused
-    """
+    """The command line, parsed."""
     parser = argparse.ArgumentParser(
         description="Union the Windows shards' durations parts (#931)."
     )
@@ -225,8 +202,6 @@ def arguments(argv):
 def main(argv=None, env=None):
     """Exit 0 having written the union and its report, or 2 having written
     nothing but the reason.
-
-    Reads: observed — the parts and the committed file, through `read_map`; unknown refused
     """
     args = arguments(argv)
     env = os.environ if env is None else env

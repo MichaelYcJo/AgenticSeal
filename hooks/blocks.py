@@ -1,13 +1,13 @@
 """Shared reader: which lines of a markdown file does a renderer put inside a
 fenced code block or an HTML comment block, and where can this module not say?
 
-Three readers decide from a markdown file what a person declared or wrote:
+Two readers decide from a markdown file what a person declared:
 `hooks/config.py` (the `| Item | Value |` table, on every Bash call through
-`mode-gate` and `broad-gate`), `hooks/routing.py` (the routing declaration, on
-every commit and at the pull request), and `.github/scripts/rider_check.py`
-(the riders). A row quoted in a fenced example, or parked in an HTML comment,
-is not a row anybody gave, and each reader used to decide that by a rule of
-its own or by none (#667, #658). This is the one walk all three read.
+`mode-gate` and `broad-gate`) and `hooks/routing.py` (the routing
+declaration, on every commit and at the pull request). A row quoted in a
+fenced example, or parked in an HTML comment, is not a row anybody gave, and
+each reader used to decide that by a rule of its own or by none (#667, #658).
+This is the one walk both read.
 
 **What it models: two block constructs, by CommonMark's own block rules.**
 
@@ -373,8 +373,6 @@ def gfm_lines(text, keepends=False):
     """TEXT's lines as GFM reads them, the way `str.splitlines` returns them
     otherwise: no trailing empty line, and each line's end kept only when
     KEEPENDS asks. `unverified_check.py#gfm_lines`, copied (see `GFM_LINE_RE`).
-
-    Reads: guess — a person's markdown text its caller hands it; unknown passed
     """
     lines = GFM_LINE_RE.findall(text)
     return lines if keepends else [line.rstrip("\r\n") for line in lines]

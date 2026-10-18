@@ -133,9 +133,9 @@ export/import pair.
 
 **What the names say.** `seal/specs/<id>/` holds the spec and its process
 record. The binding of a rule to the code is the test its `Enforced by:` line
-names — what the product name seals, rather than one of the seals an agent takes
-(`skills/verify/SKILL.md` §*Every agent seals what it verified, and one of
-them is final*).
+names — what the product name seals, rather than the sealer's seal
+(`skills/verify/SKILL.md` §*The hand-back's labels carry the claims, and the
+one seal is the sealer's*).
 
 ## What happens at a release
 
@@ -204,9 +204,7 @@ re-anchored, stamped, and orphaned by a squash. `settle` rewrites
 `docs/` and removes directories on every release, so anything coupled to a
 path or a position inside a work item would break the same way. What still
 carries such a coupling is short: a round record's `Target SHA` (read while
-its pull request is open, and gone with the record). A `# RIDER:`
-comment's stamp named a commit too, until work item `1788826000` moved every
-stamp to a content anchor.
+its pull request is open, and gone with the record).
 
 **What keeps `settle` light**, since it is the heaviest step this design
 adds:

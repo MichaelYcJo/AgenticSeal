@@ -79,8 +79,8 @@ jobs:
     timeout-minutes: 60
     continue-on-error: true
     steps:
-      # Not shallow, for `test.yml`'s reason: a case asks git whether a
-      # recorded SHA is an ancestor of HEAD, and at depth 1 none is.
+      # Not shallow, for `test.yml`'s reason: a case resolves a commit
+      # the records name, and at depth 1 the commit is missing.
       - uses: actions/checkout@v4
         continue-on-error: true
         with:

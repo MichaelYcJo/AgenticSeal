@@ -26,7 +26,7 @@ the diff bounds the round and does not make it cheap, and a related false
 | Item | Who must answer |
 |---|---|
 | #639's figure (median 0.83 × round 1's span over 29 verifying rounds of 0.14.0–0.15.5, range 0.26–1.27, five at or above round 1), which `docs/review-chain-spec.md` now prints (`questions.md` Q1) | a measurement: the author of #639, over the metered blocks of #496, #535, #577, #601 and #619 |
-| ✅ #89's comparison "#82's six rounds averaged three times the calls for fewer", which the #81 carriers quoted. It was read from #89's comment of 2026-09-03T02:26Z and not re-derived from #82's rows | answered false by review round 1 (🟡 1) against #89's own #82 readings (35, 38, 36, 29, 30 calls, seven findings in round 2), re-read by the fix pass, and removed from the carriers at `14ddebd6` |
+| closed #89's comparison "#82's six rounds averaged three times the calls for fewer", which the #81 carriers quoted. It was read from #89's comment of 2026-09-03T02:26Z and not re-derived from #82's rows | answered false by review round 1 (🟡 1) against #89's own #82 readings (35, 38, 36, 29, 30 calls, seven findings in round 2), re-read by the fix pass, and removed from the carriers at `14ddebd6` |
 | The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
 
 ## Not done

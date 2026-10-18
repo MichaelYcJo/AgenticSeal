@@ -46,9 +46,11 @@ this makes, and a row that arrived on the base after the branch was cut is not
 this branch's business: the fork point never had it, and the merge holds it
 too. `merge_base` carries what the old footing cost (#272).
 
-An item is closed by marking it, never by deleting it: prefix the Item cell
-with the check mark and say in the second cell what closed it. Anything
-unmarked counts open, so the silent direction is always "still open".
+An item is closed by marking it, never by deleting it: the Item cell opens
+with the word `closed`, and the second cell says what closed it. Anything
+unmarked counts open, so the silent direction is "still open", except for an
+open item whose own text begins with the word `closed`, which reads as closed
+and which only a reader catches.
 
 Deliberately a text scan of markdown, not a parser library: the gates here are
 stdlib-only, and the format it accepts is one line long. That format is strict
@@ -72,7 +74,15 @@ import sys
 OVERVIEW = "overview.md"
 HEADING = "## Not verified"
 HEADER = ("Item", "Who must answer")
-CLOSED = "✅"
+CLOSED = "closed"
+# The emoji a closed row opened with before the word, U+2705, spelt by its code
+# point so no emoji stands in this file. The working tree's reading refuses it
+# naming the edit; a base revision's reads it as the word, because nobody can
+# edit a commit that already happened.
+OLD_MARK = chr(0x2705)
+# The closing word's other spellings, refused rather than read as open: a
+# capital or a trailing colon would otherwise turn a closing into an open row.
+NEAR_CLOSED = ":;,."
 PLACEHOLDER = re.compile(r"^<[^>]*>$")
 # Characters that occupy no width: the two variation selectors, the zero-width
 # family, and the byte-order mark. None of them make a marker into a claim.
@@ -197,9 +207,7 @@ def gfm_lines(text, keepends=False):
 
     `skills/verify/scripts/coordinates.py#gfm_lines` asks this one, `hooks/blocks.py#gfm_lines` is the copy a hook keeps, and
     `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds them
-    equal.
-
-    Reads: guess — a person's markdown text its caller hands it; unknown passed"""
+    equal."""
     lines = GFM_LINE_RE.findall(text)
     return lines if keepends else [line.rstrip("\r\n") for line in lines]
 
@@ -228,10 +236,10 @@ def is_header(cells):
 def visible(s):
     """`s` without characters that take no space on screen.
 
-    Many keyboards emit U+2705 followed by U+FE0F, and a zero-width space
-    pastes in from anywhere. Either one makes `| \u2705 | done |` survive a
-    plain `.strip()` while looking exactly like a bare check mark, which is
-    the one row shape this refuses."""
+    A zero-width space pastes in from anywhere, and many keyboards emit the
+    old mark followed by U+FE0F. Either one makes `| closed\\u200b | done |`
+    survive a plain `.strip()` while looking exactly like a bare `closed`,
+    which is the one row shape this refuses."""
     return s.translate({ord(c): None for c in INVISIBLE}).strip()
 
 
@@ -310,11 +318,10 @@ def fence_opener(line):
         `tests/test_unverified_rows_close.py#test_the_fence_rule_agrees_with_the_config_reader`
         holds the copy in step, shape by shape. It is the delimiter half of
         `hooks/blocks.py#walk`, which adds a line-start HTML comment block to
-        the fence and which `hooks/config.py`, `hooks/routing.py#table_rows`
-        and `.github/scripts/rider_check.py#comment_blocks`, through its
-        `quoted_lines`, read (#667, #658). It stays apart from `live_lines` on
-        purpose: a hook row or a rider is safe at its old reading where the
-        walk is unsure, and a marker is safe parked;
+        the fence and which `hooks/config.py` and
+        `hooks/routing.py#table_rows` read (#667, #658). It stays apart from
+        `live_lines` on purpose: a hook row is safe at its old reading where
+        the walk is unsure, and a marker is safe parked;
       - `.github/scripts/close_issues_on_release.py#FENCE`, and
         `issue_claims_check.py` and `label_merged_on_release_branch.py`
         through it, read a pull request body by GitHub's rule and open a
@@ -343,9 +350,7 @@ def fence_opener(line):
     **A new reader that decides by line whether it stands inside a fence
     belongs in one of these two lists**, and a reviewer of one has this
     docstring to check it against — nothing else can reach a reader that
-    does not exist yet.
-
-    Reads: guess — one line of a person's markdown its caller hands it; unknown passed"""
+    does not exist yet."""
     m = FENCE_RE.match(line.rstrip("\r\n"))
     if not m:
         return None
@@ -386,8 +391,6 @@ def fence_spans(lines):
     line that HOLDS something — a fold marker, an open row — reads it,
     because only a block that closes is certainly a quotation
     (`docs/the-record-layout.md`'s *A marker counts only on a live line*).
-
-    Reads: guess — the lines of a person's markdown its caller hands it, by the shared fence rule; unknown mixed
     """
     spans, opener, first = [], None, None
     for n, line in enumerate(lines):
@@ -537,8 +540,6 @@ def heading_level(line):
     and as a pattern in `fold_check.py`; the first two read a `#NNN`-led
     line as a heading and ended a `## Not verified` or `## Verdicts` section
     there.
-
-    Reads: owned — one line a caller handed in, held to CommonMark 4.2's ATX rule; unknown passed
     """
     indent = len(line) - len(line.lstrip(" "))
     if indent > 3:
@@ -632,8 +633,6 @@ def _partner_ahead(lines, start_line, width):
 def live_lines(lines):
     """`(the line, it begins live)` for each line — both readings, ANDed.
 
-    Reads: guess — markdown lines, under two readings of a block model nobody computes; unknown mixed
-
     A line that excuses something is not taken on doubt, the second of the
     three answers `docs/the-record-layout.md` §*The fold, and what tells
     it from a deletion* gives: what this parks, the fold and `settle` refuse
@@ -709,15 +708,13 @@ def live_lines(lines):
 def readable(text):
     """The lines a reader should judge: no comment text, no fenced blocks.
 
-    Reads: guess — a record's lines, a round record or an `overview.md`; unknown mixed
-
     A line a record's rows are counted on is blanked the same way on both
     sides of a comparison, the third of the three answers
     `docs/the-record-layout.md` §*The fold, and what tells it from a
     deletion* gives: a region nobody closed is blanked to the end, and the
     readers that judge a record refuse the table it hid as absent, while
-    `broad_gate.py`'s label, which never stops a sealed run, is drawn
-    without it.
+    `broad_gate.py`'s label, which never stops a run that passed, is
+    printed without it.
 
     Every read starts here — the working tree and the base revision alike —
     which is what keeps the two sides of the comparison counting the same
@@ -820,21 +817,52 @@ def parse_section(body, offset, strict_header=True):
         if PLACEHOLDER.match(seen[0]) or PLACEHOLDER.match(seen[1]):
             errors.append((line_no, "the template's placeholder is still in the row"))
             continue
-        if seen[0].startswith(CLOSED):
-            rest = visible(seen[0][len(CLOSED) :])
+        word, rest = closing_word(seen[0])
+        if word == OLD_MARK and strict_header:
+            errors.append(
+                (
+                    line_no,
+                    f"the row opens with U+2705, which no longer closes a row: a "
+                    f"closed row opens with the word `{CLOSED}`, so write "
+                    f"`| {CLOSED} {rest or '<the item>'} | <what closed it> |`",
+                )
+            )
+            continue
+        if word in (CLOSED, OLD_MARK):
             if not rest:
                 errors.append(
                     (
                         line_no,
-                        f"a bare {CLOSED} — the row keeps the item's text, and "
-                        "the second cell says what closed it",
+                        f"a bare `{CLOSED}` — the row keeps the item's text "
+                        "after the word, and the second cell says what closed it",
                     )
                 )
                 continue
             closed_rows.append((line_no, rest, who))
+        elif word.lower().rstrip(NEAR_CLOSED) == CLOSED:
+            errors.append(
+                (
+                    line_no,
+                    f"`{word}` is not the closing word: a closed row opens with "
+                    f"`{CLOSED}`, lower case, then a space and the item",
+                )
+            )
         else:
             open_rows.append((line_no, item, who))
     return open_rows, closed_rows, errors
+
+
+def closing_word(cell):
+    """`(first word, the rest)` of an Item cell already through `visible`.
+
+    The old mark is its own word whether or not a space follows it, which is
+    how it was written; every other word ends at whitespace."""
+    if cell.startswith(OLD_MARK):
+        return OLD_MARK, visible(cell[len(OLD_MARK) :])
+    parts = cell.split(None, 1)
+    word = parts[0] if parts else ""
+    rest = parts[1].strip() if len(parts) > 1 else ""
+    return word, rest
 
 
 def check_file(path):
@@ -880,10 +908,14 @@ def check_text(text, heading=HEADING, strict_header=True):
     second column from `Who` to `Who must answer` — so relaxing the heading
     alone would still have stopped comparing them.
 
-    Nothing else relaxes. A legacy header still has to be a two-cell row whose
-    first column is `Item`, and every row below it is read exactly as the
-    working tree's rows are. The relaxation ends when every base carries the
-    canonical wording."""
+    One more thing relaxes with `strict_header`, for the same reason: a row
+    opening with the old mark, U+2705, is read at a base as the word
+    `closed`, where the working tree refuses it naming the edit. Read as a
+    refusal there, every base written before the word would go uncompared,
+    and a row deleted against it would pass. Nothing else relaxes. A legacy
+    header still has to be a two-cell row whose first column is `Item`, and
+    every other row below it is read exactly as the working tree's rows are.
+    The relaxation ends when every base carries the canonical wording."""
     lines = readable(text)
 
     found = sections(lines, heading)
@@ -1300,9 +1332,7 @@ SPEC = "spec.md"
 
 def tree_at(root, ref, directory):
     """Repo-relative paths under `directory` at `ref`; the disk when `ref` is
-    None. `directory` is `/`-joined, and so is every path returned.
-
-    Reads: observed — the paths git holds at `ref`, or the disk; unknown passed"""
+    None. `directory` is `/`-joined, and so is every path returned."""
     if ref is None:
         top = under_root(root, directory)
         out = []
@@ -1344,9 +1374,7 @@ def open_record_rows(root, ref, directory):
     An overview whose section cannot be read is one entry saying so, never
     zero rows: a count this cannot read is not a count of nothing, which is
     the rule `check_text` above is written to. A base revision is read with
-    the same relaxations the `--baseline` comparison gives it.
-
-    Reads: guess — a work item's `overview.md` at `ref`, through `check_text`; unknown mixed"""
+    the same relaxations the `--baseline` comparison gives it."""
     found = []
     overview = _text_at(root, ref, f"{directory}/{OVERVIEW}")
     if overview is not None:
@@ -1383,9 +1411,7 @@ def retired_by_rule(root, ref, directory):
     (`wrote_a_spec`), so a `spec.md` deleted in one commit, or in an earlier
     pull request that has already merged, and the directory in the next still
     reads as a deletion. That is what makes this a rule about what the work
-    item was, rather than about what it was left looking like.
-
-    Reads: observed — the tree git holds at `ref`, or the disk; unknown passed"""
+    item was, rather than about what it was left looking like."""
     paths = tree_at(root, ref, directory)
     if not paths:
         return False
@@ -1491,9 +1517,7 @@ def show(root, ref, rel):
 
 
 def annotate(kind, path, line, message):
-    """A GitHub annotation in CI, a plain line anywhere else.
-
-    Reads: observed — the `GITHUB_ACTIONS` environment variable; unknown passed"""
+    """A GitHub annotation in CI, a plain line anywhere else."""
     if os.environ.get("GITHUB_ACTIONS"):
         # An annotation is matched against the diff by path, and GitHub spells
         # those the way git does. Every caller passes `display_path` output,
@@ -1672,8 +1696,8 @@ def main(argv=None):
                         rel,
                         1,
                         f"{was} rows at {named}, {now} here. An item leaves "
-                        f"this table by being marked {CLOSED} with what closed it, "
-                        "never by being deleted",
+                        f"this table by opening with the word `{CLOSED}` and "
+                        "saying what closed it, never by being deleted",
                     )
                 )
 
@@ -1789,14 +1813,18 @@ def main(argv=None):
         for line in deleted:
             print(line)
         print(
-            "\nRe-add the row with " + CLOSED + " and what closed it. Deleting "
-            "and verifying have to look different, or they are the same edit."
+            f"\nRe-add the row, its Item cell opening with the word `{CLOSED}` "
+            "and the second cell saying what closed it. Deleting and verifying "
+            "have to look different, or they are the same edit."
         )
     if bad or deleted:
         return 1
 
     if total_open == 0:
-        print(f"open: 0 — every recorded item carries {CLOSED} and what closed it.")
+        print(
+            f"open: 0 — every recorded item opens with `{CLOSED}` and says what "
+            "closed it."
+        )
     return 0
 
 

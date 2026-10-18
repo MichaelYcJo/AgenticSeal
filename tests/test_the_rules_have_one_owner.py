@@ -22,7 +22,6 @@ RECORD = ("docs", "the-review-record.md")
 SKILL = ("skills", "code-review", "SKILL.md")
 # The orchestrator's half of the review skill (#265).
 ORCH = ("skills", "code-review", "orchestration.md")
-SMITH = ("agents", "smith.md")
 WARDEN = ("agents", "warden.md")
 IMPLEMENT = ("skills", "implement", "SKILL.md")
 # The orchestrator's half of the implement skill (#292). The order a ticket
@@ -38,8 +37,8 @@ CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ROUND_TEMPLATE = ("templates", "sdd-round.md")
 
 ONE_SEAL_IS_FINAL = (
-    "`skills/verify/SKILL.md` §*Every agent seals what it verified, and "
-    "one of them is final* owns that rule"
+    "`skills/verify/SKILL.md` §*The hand-back's labels carry the claims, and "
+    "the one seal is the sealer's* owns that rule"
 )
 BEFORE_ROUND_ONE = (
     "`skills/code-review/orchestration.md` §*Orchestrator: the pull request "
@@ -90,11 +89,13 @@ RULES = {
         "A hand-back's verification claim is a claim.",
         {},
     ),
-    "10 every agent seals what it verified, and one seal is final": (
+    # Since #967 an agent's hand-back carries its claims under the three
+    # labels and no agent but the sealer takes a seal.
+    "10 the hand-back's labels carry the claims, and one seal is the sealer's": (
         VERIFY,
-        "Every agent seals what it verified, and the one seal over the whole "
-        "project is the sealer's.",
-        {SEALER: ONE_SEAL_IS_FINAL, WARDEN: ONE_SEAL_IS_FINAL},
+        "The hand-back's labels carry the claims, and the one seal over the "
+        "whole project is the sealer's `guarantee.md`.",
+        {SEALER: ONE_SEAL_IS_FINAL},
     ),
     # From #401: the `Broad gate` row is the one value only a person can
     # write, and the criterion for it is folded into one owner.
@@ -109,8 +110,10 @@ RULES = {
     "14 a finding is filed where somebody will act": (
         RECORD,
         "A leftover finding takes the first rung that fits.",
+        # The smith's copy of the ladder left with #967. Filing is the
+        # orchestrator's act (the ladder's own `Enforced by:` says so), and a
+        # smith hands a leftover back with its answerer (its step 10).
         {
-            SMITH: "`docs/the-review-record.md` §*The run* owns the ladder",
             TRACKER: "`docs/the-review-record.md` §*The run* owns where a filed "
             "finding goes",
         },
@@ -121,7 +124,7 @@ RULES = {
         RECORD_LAYOUT,
         "A commit after the build that changes what the work item ships "
         "updates the work item's `changelog.md` in the same range.",
-        {SMITH: FRAGMENT_OWNER, IMPLEMENT: FRAGMENT_OWNER, ORCH: FRAGMENT_OWNER},
+        {IMPLEMENT: FRAGMENT_OWNER, ORCH: FRAGMENT_OWNER},
     ),
     # From #823, and since 0.22.0 one mark rather than a count of two
     # (`questions.md` Q1 of work item 1791933022), routed by the comparison
@@ -178,10 +181,11 @@ def test_the_order_opens_the_draft_between_the_build_and_the_rounds():
     step = text[text.index("2. spec · plan") : text.index("3. The pull request body")]
     assert "smith → the draft pull request opens (" in step
     # 1790815611 (#638) wrote the orchestrator's preflight in as the step
-    # before the sealer's spawn, so the arrows carry it.
+    # before the sealer's spawn, and #969 the broad run after it: the sealer
+    # reads the run's record, so the run comes before the spawn.
     assert (
-        ") → warden rounds → `broad-gate --preflight`, yours → sealer → the pull "
-        "request is marked ready." in step
+        ") → warden rounds → `broad-gate --preflight`, yours → `broad-gate "
+        "--record`, yours → sealer → the pull request is marked ready." in step
     )
     assert step.index("the draft pull request opens") < step.index("warden rounds")
 

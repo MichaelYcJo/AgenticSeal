@@ -29,6 +29,9 @@ the drift it is guarding against.
 
 import os
 import re
+import subprocess
+
+from conftest import on_disk
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
@@ -67,31 +70,27 @@ KNOWN_PROSE = {
             "used to read *6+ files, a new module, or an architectural choice*, and two of",
             "beside the contract. Progress does the same thing one file up, in `plan.md`'s",
             "also the four files that were not committed yet*.",
-            "calls, 128 shell edits across 47 files, 2.7 edits per file, and a column",
             "- **One file, and it qualifies.** A change to an agent's persona is two files",
-            "finished at eight files with five of them arriving in review rounds 2 and 3.",
             "*six files* was a count, and two people can disagree about a borderline case.",
-        }
-    ),
-    ("agents", "smith.md"): frozenset(
-        {
-            "A two-file wording change to an agent's persona is over it at the first",
         }
     ),
 }
 
 
 def test_the_top_rung_names_behaviour_rather_than_a_count():
-    """S6. The rung itself, in the skill and in the agent that reads it.
+    """S6. The rung itself, in the skill the builder opens.
 
     A count is the thing being replaced, so `6+ files` may not survive as the
-    condition anywhere — a session reading the agent file and a session
-    reading the skill would otherwise apply two different tests.
+    condition anywhere. The smith's copy of the rung left with #967, and the
+    skill is the one place it is stated; the sweep below still reads the
+    smith's definition, so a count written back into it is caught.
     """
     skill = read("skills", "implement", "SKILL.md")
-    smith = read("agents", "smith.md")
-    for text, who in ((skill, "implement/SKILL.md"), (smith, "agents/smith.md")):
-        assert "observable behaviour" in text, f"{who} lost the condition"
+    assert "observable behaviour" in skill, "implement/SKILL.md lost the condition"
+    for text, who in (
+        (skill, "implement/SKILL.md"),
+        (read("agents", "smith.md"), "agents/smith.md"),
+    ):
         assert "| 6+ files" not in text, f"{who} still has the count as a rung"
 
     # Every document a session fills in, not only the two above, and every
@@ -138,16 +137,13 @@ def test_the_rung_gives_both_directions():
 
     One direction alone is how a rule gets read as "when in doubt, write
     one" or "when in doubt, don't". The small change that qualifies and the
-    large one that does not are both measured cases in this repository, and
-    naming them is what stops the rung being re-read as a count.
+    large one that does not are both named, and naming them is what stops the
+    rung being re-read as a count. The branch that measured the first
+    direction is history since #967, kept in the issue rather than the skill.
     """
     skill = read("skills", "implement", "SKILL.md")
     assert "One file, and it qualifies" in skill
     assert "Many files, and it does not" in skill
-    assert "warden-persona-accuracy" in skill, (
-        "the worked example is a real branch that missed the rung by growing "
-        "past it — without it the direction is an assertion"
-    )
     assert "issue #35" in skill, (
         "the count never said when it was taken, and that is the half a "
         "reader has to be able to look up"
@@ -214,21 +210,17 @@ def test_the_plugin_home_is_described_as_permanent_throughout():
 # --- the status column ------------------------------------------------------
 
 
-def test_smith_and_the_skill_list_the_same_second_rung_work():
-    """Two documents decide the same rung, and only one is always loaded.
+def test_the_skill_lists_the_second_rung_work_and_what_lifts_it():
+    """The examples are where the rung drifted, not the condition.
 
-    Round 1 found them split: the skill named four kinds of second-rung work
-    and `agents/smith.md` named three, so a change touching only tests was
-    decidable by one and not the other. The check above pins the CONDITION;
-    nothing pinned the examples, which is where they actually drifted.
+    Round 1 found two documents split: the skill named four kinds of
+    second-rung work and `agents/smith.md` named three, so a change touching
+    only tests was decidable by one and not the other. Since #967 the smith
+    opens the skill and keeps no copy, so the list has one home, held here.
 
-    Whitespace-normalised because the two wrap at different widths.
+    Whitespace-normalised because the file is wrapped.
     """
-
-    def flat(*parts):
-        return " ".join(read(*parts).split())
-
-    skill, smith = flat("skills", "implement", "SKILL.md"), flat("agents", "smith.md")
+    skill = " ".join(read("skills", "implement", "SKILL.md").split())
     for example in (
         "a refactor",
         "a performance pass",
@@ -236,14 +228,12 @@ def test_smith_and_the_skill_list_the_same_second_rung_work():
         "a test that pins what already holds",
     ):
         assert example in skill, f"the skill lost `{example}`"
-        assert example in smith, f"the smith lost `{example}`"
 
-    # The exception that lifts a default, in both. Naming the value is what
-    # moves a change up a rung, and a document that dropped the sentence
-    # would silently make the four a closed list again.
+    # The exception that lifts a default. Naming the value is what moves a
+    # change up a rung, and a document that dropped the sentence would
+    # silently make the four a closed list again.
     for named in ("a timeout", "a retry count", "a rate", "a size cap"):
         assert named in skill, f"the skill lost `{named}`"
-        assert named in smith, f"the smith lost `{named}`"
 
 
 def test_the_plan_template_carries_a_status_column():
@@ -288,9 +278,9 @@ def test_the_planner_writes_into_the_plan():
 
 def test_what_the_status_column_gives_up_is_written_down():
     """A phase row is not a dependency graph, and a document that does not
-    say so gets a checker built on it."""
-    skill = read("skills", "implement", "SKILL.md")
-    assert "does not fit in a phase row" in skill
+    say so gets a checker built on it. The planner, which produces the finer
+    structure, says so; `implement`'s account of the trade left with its
+    narration (#967)."""
     planner = read("skills", "feature-planner", "SKILL.md")
     assert "do not survive into the file" in planner
 
@@ -416,4 +406,75 @@ def test_the_file_set_names_who_writes_each_file():
     assert "Approved <date> by <who>" in rows["`plan.md`"]["Holds"], (
         "§3's table stops naming the approval line, so the only document "
         "that describes the whole set never mentions the record of the gate"
+    )
+
+
+# --- every heading of `implement` the tree cites is one it has (#967) --------
+
+# What names the skill right before a section: its path, or its name in
+# backticks. Read over whitespace-collapsed text, because a citation wraps.
+SKILL_NAMED = r"(?:skills/implement/SKILL\.md`?|`implement`)"
+CITED_NUMBER = re.compile(SKILL_NAMED + r"\s+§(\d+)\b")
+CITED_TITLE = re.compile(SKILL_NAMED + r"(?:\s+§| skill's )\*([^*]+)\*")
+# Records of what was true when they were written are not brought to a new
+# heading, so they are not read.
+NOT_CITATIONS = ("seal/specs/", "changelog/", "CHANGELOG.md")
+
+
+def implement_headings(text):
+    """({step numbers}, {heading titles}) of `implement`'s `##`/`###` lines."""
+    titles = {m.group(1) for m in re.finditer(r"^#{2,3} (.+)$", text, re.M)}
+    numbers = {int(m.group(1)) for m in re.finditer(r"^### (\d+)\. ", text, re.M)}
+    return numbers, titles
+
+
+def dangling_implement_citations(files, numbers, titles):
+    """[(path, citation)] for every cited section `implement` does not have."""
+    out = []
+    for rel, text in files:
+        flat = " ".join(text.split())
+        for m in CITED_NUMBER.finditer(flat):
+            if int(m.group(1)) not in numbers:
+                out.append((rel, f"§{m.group(1)}"))
+        for m in CITED_TITLE.finditer(flat):
+            if m.group(1) not in titles:
+                out.append((rel, f"§*{m.group(1)}*"))
+    return out
+
+
+def cited_files():
+    listed = subprocess.run(
+        ["git", "-C", ROOT, "ls-files", "-z"],
+        capture_output=True,
+        check=True,
+    ).stdout.decode("utf-8")
+    wanted = [
+        rel
+        for rel in listed.split("\0")
+        if rel.endswith((".md", ".py", ".yaml", ".yml", ".json", ".txt"))
+        and not rel.startswith(NOT_CITATIONS)
+    ]
+    # A positive sweep: a file the working tree deleted cites nothing.
+    present, _missing = on_disk(ROOT, wanted)
+    for rel in present:
+        with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
+            yield rel, f.read()
+
+
+def test_every_cited_heading_of_implement_exists():
+    """T5 of #967 (S7): a step renamed or renumbered in a rewrite of
+    `skills/implement/SKILL.md` leaves `CLAUDE.md`'s citations of its steps 1
+    and 2, the hooks' `§1` and the frame's `§3` pointing at nothing, and no
+    case read them."""
+    numbers, titles = implement_headings(read("skills", "implement", "SKILL.md"))
+    files = list(cited_files())
+    found = sum(
+        len(CITED_NUMBER.findall(" ".join(t.split())))
+        + len(CITED_TITLE.findall(" ".join(t.split())))
+        for _, t in files
+    )
+    assert found >= 10, f"only {found} citations recognised, so a pass means nothing"
+    dangling = dangling_implement_citations(files, numbers, titles)
+    assert not dangling, (
+        f"a citation of `implement` names a heading it does not have: {dangling}"
     )

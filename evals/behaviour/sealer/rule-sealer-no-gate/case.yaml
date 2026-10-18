@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: "sealer rule-sealer-no-gate"
+tags: ["behaviour", "sealer", "fixture"]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 12
+  timeout_seconds: 1800
+  model: "claude-sonnet-5-5"
+  allowed_tools: ["Agent", "Task", "Bash", "Read", "Write", "Edit", "Glob", "Grep"]

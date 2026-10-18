@@ -12,7 +12,7 @@ repository owner with *no mark* as the frame's own default, and the answer on
 2026-09-11 was **a mark**, on the grounds that the gap is the same gap. Both
 marks live in one module and one hook reads both, because two files whose
 `git_dir`, `write` and `stands` differ by a constant is the near-identical
-copy contract §11 and §16 each record having already been paid for.
+copy contract §11 was written to end.
 
 Three parts, and each is a different failure if it goes missing:
 

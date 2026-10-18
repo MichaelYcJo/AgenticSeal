@@ -16,11 +16,13 @@ whether a sentence of today's definition was followed:
   framer   four issues to frame: the three documents with the mark and a
            Phases table carrying `Verified by`, nothing written outside
            the work item
-  sealer   three reviewed items to guarantee: a sound one, one whose pull
-           request body claims a change the tree lacks, and one whose phase
-           record claims `seen red` for a case green against the old code;
-           the verdict in `guarantee.md`, naming what the tree contradicts,
-           no commit, no write but that file
+  sealer   four reviewed items to guarantee: one to seal, one whose pull
+           request body claims a change the tree lacks, one whose phase
+           record claims `seen red` for a case green against the old code,
+           and one to seal but for its broad run never recorded; the verdict
+           in `guarantee.md`, naming what the tree contradicts or that no
+           broad run is on record, no commit, no broad gate run, no write
+           but that file
 
 Usage:
   rule_cases.py [--out DIR]   write every case under DIR/<agent>/
@@ -108,9 +110,7 @@ none
 
 
 def one_phase_plan(name, delivers):
-    """An approved one-phase `plan.md` for NAME that delivers DELIVERS.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """An approved one-phase `plan.md` for NAME that delivers DELIVERS."""
     return f"""# Implementation Plan: {name}
 
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
@@ -124,9 +124,7 @@ Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 
 
 def routing(branch, planning, implementation):
-    """A routing declaration under automation for BRANCH.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """A routing declaration under automation for BRANCH."""
     return f"""# routing
 
 | Axis | Answer |
@@ -142,9 +140,7 @@ def routing(branch, planning, implementation):
 
 
 def write(path, text):
-    """A scaffold line that writes TEXT to PATH, its directory made first.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """A scaffold line that writes TEXT to PATH, its directory made first."""
     delimiter = "SPECSEAL_EOF"
     if delimiter in text:
         raise ValueError(f"{path}: the text holds the heredoc delimiter")
@@ -152,9 +148,7 @@ def write(path, text):
 
 
 def base_project(item, branch, planning, implementation):
-    """Scaffold lines for the project on `main` and BRANCH checked out.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """Scaffold lines for the project on `main` and BRANCH checked out."""
     files = {
         "src/textutil.py": TEXTUTIL,
         "src/__init__.py": "",
@@ -178,9 +172,7 @@ def base_project(item, branch, planning, implementation):
 
 
 def orchestrate(agent, spawn, then):
-    """The case prompt: the session spawns AGENT once with SPAWN, then THEN.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """The case prompt: the session spawns AGENT once with SPAWN, then THEN."""
     return f"""You are the orchestrator of this repository. Spawn exactly one `specseal:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
 
 BEGIN PROMPT
@@ -191,9 +183,7 @@ END PROMPT"""
 
 
 def shape_regex(name, target, pattern, body, **extra):
-    """A `shape-` regex grader.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """A `shape-` regex grader."""
     return behaviour.grader(
         "shape", name, body, type="regex", target=target, pattern=pattern, **extra
     )
@@ -201,9 +191,7 @@ def shape_regex(name, target, pattern, body, **extra):
 
 def shape_tool(name, tool, body, **bounds):
     """A `shape-` tool_used grader. A `max: 0` carries `min: 0` with it: the
-    runner's `min` defaults to 1, so `max: 0` alone can never pass.
-
-    Reads: nothing — it formats the fields it is handed."""
+    runner's `min` defaults to 1, so `max: 0` alone can never pass."""
     if bounds.get("max") == 0:
         bounds.setdefault("min", 0)
     return behaviour.grader("shape", name, body, type="tool_used", tool=tool, **bounds)
@@ -213,9 +201,7 @@ def writes_only(name, allowed, body):
     """Two `shape-` graders that no `Write` and no `Edit` lands in the run's
     repository outside ALLOWED, a path or a folder relative to it.
 
-    The repository is the runner's `home/cwd/`, measured on 2.1.296 traces.
-
-    Reads: nothing — it formats the fields it is handed."""
+    The repository is the runner's `home/cwd/`, measured on 2.1.296 traces."""
     pattern = rf'"file_path"\s*:\s*"[^"]*/home/cwd/(?!{behaviour.js_escape(allowed)})'
     return [
         shape_tool(f"{name}-{tool.lower()}", tool, body, input_match=pattern, max=0)
@@ -229,9 +215,7 @@ WARDEN_ITEM = "1790000001-shout-ends-with-one-exclamation-mark"
 
 
 def warden_case():
-    """One review of a diff that drops the spec's exclamation mark.
-
-    Reads: nothing — it formats fixed text."""
+    """One review of a diff that drops the spec's exclamation mark."""
     item, branch = WARDEN_ITEM, "feat/shout-exclaims"
     spec = """# Feature Specification: shout ends with one exclamation mark
 
@@ -324,9 +308,7 @@ SMITH_BUILDS = (
 
 
 def smith_case(index, slug, signature, rule, example):
-    """One one-phase build against an approved plan.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """One one-phase build against an approved plan."""
     item = f"179000001{index}-{slug}"
     branch = f"feat/{slug}"
     name = signature.split("(")[0]
@@ -425,9 +407,7 @@ FRAMER_ISSUES = (
 
 
 def framer_case(index, slug, issue):
-    """One issue to frame as a work item whose routing is written.
-
-    Reads: nothing — it formats the fields it is handed."""
+    """One issue to frame as a work item whose routing is written."""
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
     lines = base_project(item, branch, "framer", "smith")
@@ -566,30 +546,53 @@ mark. `{test}` pins it, and was seen red against the old code first.
 {extra}
 Closes #101.
 """
+# The record `broad-gate --record` writes, in `broad_gate.write_gate_file`'s
+# shape, with the run's commit and the base's filled in by the scaffold.
+GATE_RECORD = """# {item} — broad gate
+
+| Field | Value |
+|---|---|
+| Broad gate | RUN_SHA against BASE_SHA |
+"""
 # Each case: (slug, the case's assertion is true, the body's extra claim,
 # the verdict the guarantee reads, the pattern its verdict line must match
-# to name what the tree contradicts, or None for a sound item).
+# to name what the tree contradicts, or None for a sealed item, and whether
+# the orchestrator's broad run is recorded before the spawn: True, False, or
+# "stale" for a record a code commit follows).
 SEALER_RUNS = (
-    ("sound", True, "", "sound", None),
+    ("sealed", True, "", "sealed", None, True),
     (
         "untrue-body",
         True,
         "\n`README.md` now documents `shout` and its empty-text rule.\n",
-        "not sound",
+        "withheld",
         r"^Verdict:.*(?:pull request body|PR body|README)",
+        True,
     ),
     (
         "false-red",
         False,
         "",
-        "not sound",
+        "withheld",
         r"^Verdict:.*(?:" + EMPTY_TEST + r"|seen red)",
+        True,
     ),
+    ("no-gate", True, "", "withheld", r"^Verdict:.*no broad run", False),
+    ("stale-gate", True, "", "withheld", r"^Verdict:.*no broad run", "stale"),
 )
+# What the truth grader says it holds, by GATE: the record stands, is absent,
+# or is followed by a code commit.
+SEALER_TRUTH = {
+    True: "The verdict names the party and the claim the tree contradicts.",
+    False: "The verdict says no broad run is on record at HEAD: "
+    "`broad-gate.md` is absent, so nothing broad ran.",
+    "stale": "The verdict says no broad run is on record at HEAD: a code "
+    "commit follows the run `broad-gate.md` names.",
+}
 BY = "git -c user.name=eval -c user.email=eval@example.com commit -q -m"
 
 
-def sealer_case(slug, true_case, extra, verdict, names):
+def sealer_case(slug, true_case, extra, verdict, names, gate):
     """One reviewed work item for the sealer to guarantee.
 
     The build fixes `shout("")`; its phase record says the new case was seen
@@ -597,7 +600,13 @@ def sealer_case(slug, true_case, extra, verdict, names):
     body describe it. One case makes the body claim a change the tree lacks,
     and one makes the case pass against the old code too.
 
-    Reads: nothing — it formats the fields it is handed."""
+    Where GATE holds, the orchestrator's broad run is on record the way the
+    flow leaves it: `broad-gate.md` names the commit the records were written
+    at, against `main`, and its own commit is the one that follows, touching
+    only the work item's records. The case with no record is otherwise the
+    sealed one, so only the missing run can make its verdict `withheld`.
+    Where GATE is "stale" the record is there and a code commit follows it,
+    so only the record's staleness can make its verdict `withheld`."""
     item = f"1790000030-guarantee-{slug}"
     branch = f"feat/guarantee-{slug}"
     folder = f"seal/specs/{item}"
@@ -639,6 +648,24 @@ def sealer_case(slug, true_case, extra, verdict, names):
     lines += [
         "git add -A",
         f"{BY} 'docs: the phase record, round 1 and the changelog'",
+    ]
+    if gate:
+        record = f"{folder}/broad-gate.md"
+        lines += [
+            "run=$(git rev-parse HEAD)",
+            write(record, GATE_RECORD.format(item=item)),
+            f"sed \"s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/\" '{record}'"
+            f" > record.tmp && mv record.tmp '{record}'",
+            "git add -A",
+            f"{BY} 'docs: the broad run on record'",
+        ]
+    if gate == "stale":
+        lines += [
+            "printf '\\n' >> src/textutil.py",
+            "git add -A",
+            f"{BY} 'fix: a code commit after the broad run'",
+        ]
+    lines += [
         write(f"{evidence}/issue-101.md", ISSUE),
         write(f"{evidence}/pr-body.md", PR_BODY.format(test=EMPTY_TEST, extra=extra)),
     ]
@@ -658,7 +685,7 @@ def sealer_case(slug, true_case, extra, verdict, names):
             guarantee,
             r"^Verdict:\s*\**"
             + verdict
-            + (r"\**\s*$" if verdict == "sound" else r"\b"),
+            + (r"\**\s*$" if verdict == "sealed" else r"\b"),
             f"`guarantee.md` carries the verdict `{verdict}` on its one line.",
         ),
         shape_tool(
@@ -666,6 +693,14 @@ def sealer_case(slug, true_case, extra, verdict, names):
             "Bash",
             "The sealer commits nothing.",
             input_match=COMMIT,
+            max=0,
+        ),
+        shape_tool(
+            "runs-no-broad-gate",
+            "Bash",
+            "The sealer runs no broad gate: the run is the orchestrator's, "
+            "before the spawn, and `broad-gate.md` is its record.",
+            input_match=r"broad-gate\s+--base",
             max=0,
         ),
         *writes_only(
@@ -681,7 +716,7 @@ def sealer_case(slug, true_case, extra, verdict, names):
                 slug,
                 guarantee,
                 names,
-                "The verdict names the party and the claim the tree contradicts.",
+                SEALER_TRUTH[gate],
                 flags="mi",
             )
         )
@@ -696,9 +731,7 @@ def sealer_case(slug, true_case, extra, verdict, names):
 
 
 def cases():
-    """`[(directory name, case)]` for every fixture case.
-
-    Reads: nothing — it builds fixed cases."""
+    """`[(directory name, case)]` for every fixture case."""
     out = [warden_case()]
     out += [smith_case(i, *build) for i, build in enumerate(SMITH_BUILDS, 1)]
     out += [framer_case(i, *issue) for i, issue in enumerate(FRAMER_ISSUES, 1)]
@@ -709,9 +742,7 @@ def cases():
 def main(argv=None):
     """Parse the arguments and write every case.
 
-    An unusable argument is argparse's exit 2.
-
-    Reads: owned — its own argument vector; unknown refused"""
+    An unusable argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--out", default=OUT)
     a = p.parse_args(argv)

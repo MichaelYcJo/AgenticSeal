@@ -910,10 +910,11 @@ def test_the_smith_carries_its_own_half_and_not_the_questions():
 
     What stays is what a smith still does with the answer somebody else
     wrote: run to the pull request without coming back, and name an answerer
-    for anything it could not close.
+    for anything it could not close. Since #967 the first half is the first
+    line of its `## Never`.
     """
     smith = flat(read("agents", "smith.md"))
-    assert "run to the pull request" in smith
+    assert "Ask a person anything, or write `routing.md`" in smith
     assert "answerer" in smith, (
         "a deferral with nobody named is how a follow-up becomes nobody's"
     )

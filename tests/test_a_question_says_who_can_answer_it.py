@@ -96,16 +96,20 @@ def test_the_template_names_the_three_answerers_and_only_those():
 
 def test_the_template_says_the_framer_does_not_own_the_answers():
     """The other half of S7. A row is a question put to somebody else, so the
-    tick belongs to whoever answered it and not to whoever asked."""
+    status belongs to whoever answered it and not to whoever asked."""
     tpl = flat("templates", "sdd-questions.md")
     assert "opens rows and does not own their answers" in tpl, (
         "`templates/sdd-questions.md` stopped saying that the framer opens "
         "rows without owning their answers, which is what keeps a frame from "
         "answering its own questions and calling that a decision"
     )
-    assert "`Status` column is ticked by whoever answered" in tpl, (
-        "nothing says who ticks the row. The writer ticking it is the frame "
-        "closing a question nobody outside it ever saw"
+    assert (
+        "`Status` column is written by whoever answered, as "
+        "`answered <date> by <who>`" in tpl
+    ), (
+        "nothing says who writes the row's status, or in which words. The "
+        "writer closing it is the frame closing a question nobody outside it "
+        "ever saw"
     )
 
 

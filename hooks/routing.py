@@ -395,8 +395,6 @@ def round_number(name):
     The one place the ordering rule lives: `skills/code-review/scripts/chain_check.py`
     calls this rather than writing the pattern again, so records sort by
     number and `round-10.md` comes after `round-9.md`.
-
-    Reads: owned — a record's file name, spelled by this plugin's convention; unknown refused
     """
     m = ROUND_RE.fullmatch(os.path.basename(name))
     return int(m.group(1)) if m else None

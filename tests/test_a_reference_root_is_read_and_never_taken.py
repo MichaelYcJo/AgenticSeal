@@ -189,7 +189,7 @@ SHIPPED = {
     "mutation-check": (NO_WALK, "breaks and restores the one file it is named"),
     "deferral-check": (NO_WALK, "reads the pull request body and round records"),
     "seal": (NOT_A_CHECK, "the mode command, writing seal/config.md"),
-    "seal-stamp": (NOT_A_CHECK, "draws the sealer's stamp"),
+    "seal-stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
     "session-cost": (NOT_A_CHECK, "measures a transcript"),
     "payload-meter": (NOT_A_CHECK, "measures a spawn's payload"),
     "test": (NOT_A_CHECK, "this repository's own suite runner"),
@@ -351,6 +351,14 @@ def paragraph_naming(text, phrase):
     return " ".join(text[start : end if end >= 0 else None].split())
 
 
+# A definition written in #957's shape keeps what it never does in `## Never`,
+# so the reader's never-write half is that list's line rather than a clause
+# of the paragraph that points at the row (#967).
+NEVER_LINE = {
+    "agents/smith.md": "- Write in a reference root, or move, edit or copy a file out of one.",
+}
+
+
 def test_each_reader_says_when_it_reads_a_reference_root_and_where_it_cites_it():
     for rel, (act, where) in READERS.items():
         text = open(os.path.join(ROOT, rel), encoding="utf-8").read()
@@ -358,7 +366,11 @@ def test_each_reader_says_when_it_reads_a_reference_root_and_where_it_cites_it()
         said = paragraph_naming(text, POINTER)
         assert "touches what" in said and "describes" in said, (rel, said)
         assert act in said and where in said, (rel, said)
-        assert re.search(r"\bnever writ", said), (rel, said)
+        if rel in NEVER_LINE:
+            never = text[text.index("\n## Never\n") :].split("\n## ", 2)[1]
+            assert NEVER_LINE[rel] in never, (rel, never)
+        else:
+            assert re.search(r"\bnever writ", said), (rel, said)
 
 
 def test_the_seal_readme_says_nothing_writes_the_old_names():

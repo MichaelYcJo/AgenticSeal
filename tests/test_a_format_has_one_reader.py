@@ -44,9 +44,9 @@ COORDINATE_EXEMPT = {
 
 def test_no_shipped_script_spells_the_coordinate_grammar_again():
     """S12 of #867, the coordinate's grep. Three scripts each kept a pattern
-    ending `@[0-9a-f]{6,…}`, and `.github/scripts/rider_check.py`, the one
-    left, reads `coordinates.py#ANCHOR_LOCATOR` and `#ANCHOR_HASH`. Seen
-    red against 5623d728, where it names those three."""
+    ending `@[0-9a-f]{6,…}`, and none does now: the one grammar is
+    `coordinates.py`'s. Seen red against 5623d728, where it names those
+    three."""
     found = []
     for rel, path in shipped_scripts():
         if rel in COORDINATE_EXEMPT:
@@ -104,14 +104,6 @@ HEADING_EXEMPT = {
         "skills/verify/scripts/deferral_check.py",
         'stripped.startswith("#")',
     ): "a YAML or shell comment in a workflow's run lines",
-    (
-        ".github/scripts/rider_check.py",
-        'stripped.startswith("#") and',
-    ): "a Python or shell comment, where a rider lives",
-    (
-        ".github/scripts/rider_check.py",
-        'lines[j + 1].lstrip().startswith("#")',
-    ): "a Python or shell comment, where a rider lives",
 }
 
 

@@ -67,10 +67,7 @@ Boundaries, each pinned in `tests/test_the_root_migrates_itself.py`:
 # `specs/` — and of nothing under `seal/specs/<id>/`. It can be deleted once
 # no repository is left to migrate, and nothing else has to change when it
 # goes; `hooks/dispatch.py`'s session-start group is the one place that names
-# it. A comment rather than a docstring line on purpose: a docstring survives
-# into the `.pyc`, and the rider test greps `hooks/` where a stale
-# `__pycache__` then answers for a file.
-# Verified 2026-10-14 against moves@53dab5b0.
+# it.
 
 import json
 import os
@@ -301,8 +298,6 @@ def old_items(root):
 def moves(root):
     """The units still to move, in the spec's order, as (kind, src, dst).
 
-    Reads: observed — what `git ls-files` lists under the old roots, through `entries` and `old_items`; unknown refused
-
     Computed from what git tracks as it stands, which is what makes a stopped
     move resume: a unit that already moved is not there to be listed.
     """
@@ -454,10 +449,7 @@ def say(message):
 
 
 def main():
-    """Move the old roots once, and say in one line what moved.
-
-    Reads: observed — the session-start event's `cwd`, and what git tracks under the old roots; unknown refused
-    """
+    """Move the old roots once, and say in one line what moved."""
     try:
         event = json.load(sys.stdin) or {}
         cwd = event.get("cwd")

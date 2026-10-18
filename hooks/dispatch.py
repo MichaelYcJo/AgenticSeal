@@ -112,8 +112,9 @@ GROUPS = {
         "root-migrate.py",
         "hook-install.py",
     ),
-    # The end of a main-session turn, where a sealed run's stamp is drawn
-    # after the text it belongs under (#400). One gate, like `post-agent`,
+    # The end of a main-session turn, where the stamp a `sealed` guarantee's
+    # commit queued is drawn after the text it belongs under (#400, #975).
+    # One gate, like `post-agent`,
     # because nothing else here has anything to say when a turn ends.
     "stop": ("sealer-stamp.py",),
 }

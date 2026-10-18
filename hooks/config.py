@@ -115,7 +115,7 @@ CONFIG_SEPARATOR = re.compile(r"^\|[\s:|-]+\|$")
 # the outer one's close and leave the live table inside a fence.
 #
 # The pattern lives in `hooks/blocks.py` since #667, which the routing reader
-# and the rider check read as well; this name is that one.
+# reads as well; this name is that one.
 FENCE = blocks.FENCE
 
 # The one escape this reader undoes, spelled as the two characters it is.
@@ -159,8 +159,6 @@ def fence_map(lines, text=None):
     arriving one shape over. A second fence rule written for that question is
     the split this module exists to prevent.
 
-    Reads: guess — the lines of a person's markdown its caller hands it, through `hidden_lines`; unknown mixed
-
     Nothing here refuses and nothing acts on the second value. It is a fact
     about the file, for the one caller that has somebody to tell --
     `skills/verify/scripts/broad_gate.py#fence_left_open` -- exactly as
@@ -186,8 +184,6 @@ def fence_map(lines, text=None):
 def hidden_lines(lines, text=None):
     """({index: "fence" or "comment"} for every line of LINES no walk of the
     table is shown, the index of a fence opener never closed or None).
-
-    Reads: guess — the lines of `seal/config.md`, `seal/pact.md` and the machine-local pact path map, through `unfenced`, `fence_map` or directly, and `hooks/blocks.py#walk`; unknown mixed
 
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers
@@ -253,8 +249,6 @@ def unfenced(lines, text=None):
     were written for the fence half, and hold for the comment half word for
     word.
 
-    Reads: guess — the lines of a person's markdown its caller hands it, through `fence_map`; unknown mixed
-
     **One fence rule, in front of the one walk of every table.** A line
     inside a fenced code block is not part of any table: not a header, not a
     delimiter row, not a row, and not a line somebody wrote as a row.
@@ -276,8 +270,8 @@ def unfenced(lines, text=None):
     position for it. So a fenced example above the live table, or above a
     table that has no parseable row yet, is a shape this plugin's own
     documented procedure produces; before this rule the example's rows were
-    the rows every gate got, and the sealer's seal was taken over a command
-    nobody chose.
+    the rows every gate got, and the broad run ran a command nobody
+    chose.
 
     **It yields positions, not surviving text alone.** `gfm_table` returns
     each row's line, `config_table` hands that index on, and `with_row`
@@ -322,8 +316,6 @@ def config_table(text):
     """(rows, refusals) for the `| Item | Value |` table of TEXT -- the one
     walk of `seal/config.md`, which is `gfm_table`'s (#871).
 
-    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
-
       rows      [(index, item, value)] for every row the walk read, in order:
                 INDEX is the row's line in `text.splitlines()`, and ITEM and
                 VALUE are the cells as `table_cells` returns them, stripped
@@ -365,12 +357,9 @@ def config_rows(text):
     """Every `| Item | Value |` row the walk read, as (item, value), in order
     -- `config_table`'s rows without their places or its refusals.
 
-    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
-
-    **Rows alone are not an answer about an item**, and that is why the
-    direction is read at the callers: a row the walk did not read is absent
-    from this list whether the table ended or the walk refused the line, and
-    only `config_table`'s refusals tell the two apart. A caller asking for
+    **Rows alone are not an answer about an item**: a row the walk did not
+    read is absent from this list whether the table ended or the walk
+    refused the line, and only `config_table`'s refusals tell the two apart. A caller asking for
     one item asks `config_value`; a caller holding these rows asks
     `config_table` for the refusals (#871).
 
@@ -432,8 +421,6 @@ def config_text(home):
     HOME is the seal root; a falsy one is no file. A name that `lexists` but
     will not open -- a symbolic link to nowhere -- is the second state: the
     name is there.
-
-    Reads: observed — the bytes of `<home>/config.md`, decoded as UTF-8; unknown refused
     """
     if not home:
         return None, None
@@ -461,17 +448,13 @@ def unreadable_config(path, exc):
 
 def doubled_row(item, count):
     """The sentence `config_value` refuses a row written COUNT times in, the
-    one sentence for every item.
-
-    Reads: owned — an item name and a count its caller holds; unknown passed"""
+    one sentence for every item."""
     return f"`{item}` appears {count} times — one value"
 
 
 def config_value(text, item):
     """(value, refusal) for ITEM in the `| Item | Value |` table of TEXT —
     the one answer every reader of one config row gives (#867, #871).
-
-    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
 
       (None, None)     no row names ITEM in a table the walk read whole, or
                        TEXT holds no such table, or TEXT is None (no file)
@@ -533,9 +516,7 @@ def rows_named_below(text, index, item):
     heading, of those the walk is shown, name ITEM in their first cell --
     the stretch `gfm_table` calls rows nobody reads. A piece is a line here
     only where it begins a GFM line (`gfm_line_starts`), as it is to the
-    walk.
-
-    Reads: guess — the lines of a person's `config.md` below the last row the walk read; unknown refused"""
+    walk."""
     begins = gfm_line_starts(text)
     count = 0
     for at, line in unfenced(text.splitlines(), text):
@@ -564,8 +545,6 @@ def declared_value(home, item):
     `config_value`, so an unreadable file, a doubled row and a table the
     walker refused above ITEM reach the caller the same way -- as a refusal
     it acts on by its own kind.
-
-    Reads: guess — a person's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
     """
     text, refusal = config_text(home)
     if refusal is not None:
@@ -586,8 +565,6 @@ def declared_mode(home):
       "refused"  the file is there and will not read, the row is written
                  more than once, or the walk refused the table without
                  reading the row (#871); VALUE is `declared_value`'s sentence
-
-    Reads: guess — the `Mode` row of a person's `| Item | Value |` table, through `declared_value`; unknown refused
 
     **There is no default.** Every other item in `config.md` falls back to
     what every repository got before the row existed; for the mode that is
@@ -663,9 +640,7 @@ def reference_roots(home):
     gives no value. Its caller, `unverified-check`, is not among the commands
     `config_text` names as refusing: what a refusal costs it is the reading
     every repository had before the row existed, and no record is written or
-    lost on it.
-
-    Reads: guess — the `Reference specs` row of a person's `config.md`; unknown passed"""
+    lost on it."""
     if not home:
         return ()
     # A refusal carries no value, so it lands with no row and an empty one.
@@ -859,8 +834,6 @@ def pact_declaration(text):
     about a pact, a `Pact notify` row an earlier release read included
     (`templates/config.md` §*Pact*).
 
-    Reads: guess — a signer's `| Item | Value |` table, read as cmark-gfm renders it; unknown refused
-
     **A table the walker refuses is refused here too** (#871). Its
     sentences are appended after every other refusal: a `Pact` row below
     the line it stopped at is one the walk never read. `pact-check` exits 2
@@ -899,9 +872,7 @@ def declared_pacts(home):
 
     Since #867 every command reading a row takes this reader's side, and
     `config_text` is where the two states are told apart for all of them;
-    this is that answer in the shape `pact-check` reads.
-
-    Reads: guess — a signer's `| Item | Value |` table, through `config_text` and `pact_declaration`; unknown refused"""
+    this is that answer in the shape `pact-check` reads."""
     text, refusal = config_text(home)
     if refusal is not None:
         return None
@@ -1084,9 +1055,7 @@ def gfm_line_starts(text):
     """One bool per `text.splitlines()` piece: whether that piece begins a
     line GFM begins. `str.splitlines` also ends a line at eight characters
     GFM reads as part of the line -- a form feed, U+2028 and six more -- so
-    a piece after one of them is more of the GFM line above it.
-
-    Reads: guess — the text of a person's markdown, split as `str.splitlines` splits it; unknown passed"""
+    a piece after one of them is more of the GFM line above it."""
     pieces = text.splitlines(keepends=True)
     return [
         at == 0 or pieces[at - 1].endswith(GFM_LINE_ENDS) for at in range(len(pieces))
@@ -1096,8 +1065,6 @@ def gfm_line_starts(text):
 def gfm_table(text, header):
     """(rows, refusals) for the first GFM table in TEXT whose header row's
     cells are HEADER, a tuple of names.
-
-    Reads: guess — a person's markdown table under the header its caller names, read as cmark-gfm renders it; unknown refused
 
       rows      [(line number, cells)] for every body row read, each cells a
                 tuple as wide as HEADER, in order

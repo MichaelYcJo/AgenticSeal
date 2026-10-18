@@ -32,6 +32,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 WARDEN = os.path.join(ROOT, "agents", "warden.md")
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
+REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
 VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
 CLONE = "<scratchpad>/<work-item-id>/round-<n>/clone"
@@ -60,9 +61,9 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     probe, capture or fixture the round makes outside the clone sits beside
     it, which is also what makes *every one of them is gone* (§7) answerable
     by the agent that made them."""
-    where = section(WARDEN, "Where you work")
+    where = section(WARDEN, "Rules")
     assert CLONE in where, (
-        "agents/warden.md §Where you work does not name the clone directory "
+        "agents/warden.md §Rules does not name the clone directory "
         f"as `{CLONE}`, so two parallel wardens can clone to one name"
     )
     assert ROUND_HOME in where, (
@@ -75,23 +76,30 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     )
 
 
-def test_the_sealers_capture_file_carries_the_work_item_id():
-    """A13. Where the sealer redirects the gate's output to a file to read,
-    the file is named for the work item; and the gate's own `outputs kept
-    under broad-gate-<random>/` line is quoted in the report, so a capture
-    that was overwritten can still be told apart — which is how the 0.15.0
-    sealers were not misread."""
-    command = section(SEALER, "Order of work") + section(SEALER, "Rules")
-    assert "<scratchpad>/<work-item-id>/broad-gate.log" in command, (
-        "agents/sealer.md §Order of work names no capture file carrying the "
-        "work item id, so two parallel sealers write one file over each other"
+def test_the_gates_capture_file_carries_the_work_item_id():
+    """A13, moved by #969 with the run. Where the orchestrator redirects the
+    gate's output to a file to read, the file is named for the work item; and
+    the gate's own `outputs kept under broad-gate-<random>/` line is quoted,
+    so a capture that was overwritten can still be told apart — which is how
+    the 0.15.0 runs were not misread. Two work items run in parallel by one
+    session would otherwise write one log over each other. The sealer keeps
+    its own scratch: the clone a `seen red` is re-run in."""
+    command = section(
+        REVIEW_ORCH,
+        "Orchestrator: the pull request opens before round 1, and a phase is re-run",
     )
-    assert "<scratchpad>/<work-item-id>/at-base/" in command, (
-        "the clone a `seen red` is re-run in is not named for the work item"
+    assert "<scratchpad>/<work-item-id>/broad-gate.log" in command, (
+        "the orchestration names no capture file carrying the work item id, "
+        "so two work items' runs write one file over each other"
     )
     assert "outputs kept under" in command, (
-        "the section does not tell the sealer to quote the gate's `outputs "
-        "kept under` line, which is the one name per run the gate itself makes"
+        "the section does not tell the orchestrator to quote the gate's "
+        "`outputs kept under` line, which is the one name per run the gate "
+        "itself makes"
+    )
+    sealer = section(SEALER, "Rules")
+    assert "<scratchpad>/<work-item-id>/at-base/" in sealer, (
+        "the clone a `seen red` is re-run in is not named for the work item"
     )
 
 

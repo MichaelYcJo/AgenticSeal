@@ -24,7 +24,7 @@ this file is for people. -->
 
 <!-- Review — `through the review chain` or `straight to the PR`. The first
      owes a committed `rounds/round-N.md` at the pull request; the second
-     turns off the reviewer alone and owes the sealer's `broad-gate.md` in
+     turns off the reviewer alone and owes the broad run's `broad-gate.md` in
      this directory at a ready pull request — the one broad run, at a SHA,
      against the base. Neither is *no enforcement*: a change belonging to no
      work item is the routing question's `no work item` answer, recorded as
@@ -34,8 +34,8 @@ this file is for people. -->
      `plan.md` and the questions: the `framer` subagent, or this session
      itself. OPTIONAL, on exactly the terms the `Implementation` row below
      has, and for the same reasons — read them there. A second copy of that
-     reasoning here is how the two rows drift apart, which is the failure the
-     contract records under §11 and §16.
+     reasoning here is how the two rows drift apart, which is the failure
+     contract §11 was written to end.
      HOW TO ANSWER IT — nobody is asked. `skills/implement/SKILL.md` §3's
      ladder decides whether a frame is drawn at all, so this row RECORDS which
      way it went rather than putting a fourth box in the routing question

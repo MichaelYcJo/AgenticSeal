@@ -33,10 +33,10 @@ first divergence, closed in phase 4, the reframe after round 4. -->
 
 | Item | Who must answer |
 |---|---|
-| ✅ GitHub runs the workflow as written: four `test-durations-<4…7>` parts, one `test-durations` union, the summary, and the Windows job names | run 38475370013, every job green, the five artifacts listed and downloaded 2026-10-14; the summary reproduced byte-for-byte from the parts (`phases/phase-1.md`) |
-| ✅ `gh run download <id> -n test-durations` writes over a `.test_durations` already in the directory | it does not: exit 1, `file exists`, the old file kept — executed 2026-10-14 against run 38475370013 |
+| closed GitHub runs the workflow as written: four `test-durations-<4…7>` parts, one `test-durations` union, the summary, and the Windows job names | run 38475370013, every job green, the five artifacts listed and downloaded 2026-10-14; the summary reproduced byte-for-byte from the parts (`phases/phase-1.md`) |
+| closed `gh run download <id> -n test-durations` writes over a `.test_durations` already in the directory | it does not: exit 1, `file exists`, the old file kept — executed 2026-10-14 against run 38475370013 |
 | The full suite, lint and typecheck at the branch's tip | the sealer, after the review rounds |
-| ✅ The test rows of the fragment pass in the sealed run; without a suite record `evidence-check` reads them for existence alone | moot: the fragment and `evidence-check` left with #944, and the branch was rebased onto 5b1f6fae; the cases themselves are the full suite's row above |
+| closed The test rows of the fragment pass in the sealed run; without a suite record `evidence-check` reads them for existence alone | moot: the fragment and `evidence-check` left with #944, and the branch was rebased onto 5b1f6fae; the cases themselves are the full suite's row above |
 
 ## Not done
 

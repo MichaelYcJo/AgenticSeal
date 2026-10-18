@@ -1,10 +1,10 @@
 """Whether a line is live is asked by what the line does (#872).
 
-Five readers decide whether a record line is live, and they give three
+Four readers decide whether a record line is live, and they give three
 answers, because they read three kinds of line:
 `docs/the-record-layout.md` §*The fold, and what tells it from a deletion*
 states the rule under the marker of work item 1791852615. This module is the
-one place the five stand side by side. Each per-reader module owns that
+one place the four stand side by side. Each per-reader module owns that
 reader's edges; this one pins only the answer each reader's docstring, or the
 statement, already gives on a small corpus of shapes, so a reader whose answer
 moves on one shape is a red cell naming the reader and the shape.
@@ -42,7 +42,6 @@ checker = _load("specseal_checker_for_liveness", "skills/verify/scripts/coordina
 reader = _load(
     "specseal_reader_for_liveness", "skills/verify/scripts/unverified_check.py"
 )
-riders = _load("specseal_riders_for_liveness", ".github/scripts/rider_check.py")
 config = load_hook_module("config.py", "specseal_config_for_liveness")
 
 WORK_ITEM = "1700000001-alpha"
@@ -83,7 +82,7 @@ SHAPES = {
     # A fence opened at two spaces: the shared delimiter rule closes it, and
     # `hooks/blocks.py#walk` is not sure of it, because a list item's end can
     # end a construct indented that way. It is the first of three shapes here
-    # on which the checker's `quoted_lines` and the rider check's part.
+    # on which the shared delimiter rule and the walk part.
     "a fence the walk is not sure of": [
         "intro",
         "",
@@ -143,11 +142,6 @@ def checker_quoted_lines(lines, tmp_path):
     return row_index(lines) not in checker.quoted_lines(lines)
 
 
-def rider_quoted_lines(lines, tmp_path):
-    """Read where the index is absent from the rider check's quoted set."""
-    return row_index(lines) not in riders.quoted_lines(lines, as_text(lines))
-
-
 def unverified_live_lines(lines, tmp_path):
     """Read where the flag beside the row's line is True."""
     return list(reader.live_lines(lines))[row_index(lines)][1]
@@ -177,12 +171,6 @@ TABLE = {
         HOLDS,
         "kernel's `quoted_lines`",
         (N, R, R, R, R, R, R, N, N, R),
-    ),
-    "rider_check.py#quoted_lines": (
-        rider_quoted_lines,
-        HOLDS,
-        "rider check's `quoted_lines`",
-        (N, R, R, R, R, R, R, R, R, N),
     ),
     "unverified_check.py#live_lines": (
         unverified_live_lines,

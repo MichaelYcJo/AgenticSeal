@@ -210,6 +210,18 @@ sed "s/BUILD_SHA/$build/" 'seal/specs/1790000030-guarantee-untrue-body/phases/ph
 sed "s/BUILD_SHA/$build/" 'seal/specs/1790000030-guarantee-untrue-body/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-untrue-body/rounds/round-1.md'
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'docs: the phase record, round 1 and the changelog'
+run=$(git rev-parse HEAD)
+mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-untrue-body/broad-gate.md')"
+cat > 'seal/specs/1790000030-guarantee-untrue-body/broad-gate.md' <<'SPECSEAL_EOF'
+# 1790000030-guarantee-untrue-body — broad gate
+
+| Field | Value |
+|---|---|
+| Broad gate | RUN_SHA against BASE_SHA |
+SPECSEAL_EOF
+sed "s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" 'seal/specs/1790000030-guarantee-untrue-body/broad-gate.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-untrue-body/broad-gate.md'
+git add -A
+git -c user.name=eval -c user.email=eval@example.com commit -q -m 'docs: the broad run on record'
 mkdir -p "$(dirname '.git/specseal-eval/issue-101.md')"
 cat > '.git/specseal-eval/issue-101.md' <<'SPECSEAL_EOF'
 # #101 shout turns empty text into a lone mark

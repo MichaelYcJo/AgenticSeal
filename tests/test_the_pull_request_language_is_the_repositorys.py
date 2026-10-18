@@ -1049,26 +1049,42 @@ def test_the_templates_check_reads_prose_only_and_descends(repo):
     )
 
 
-# Hand-copied from `templates/sdd-round.md` and checked against it, so this
-# list is the EXPECTATION and the template is what is checked.
-ROUND_RECORD_FIELDS = [
-    "target:",
-    "## Findings",
-    "severity:",
-    "must",
-    "should",
-    "location:",
-    "verdict:",
-    "regression:",
-    "reopens:",
-    "answer:",
-    "## Confirmations",
-    "confirms:",
-    "none",
-    "round-<N>#<n>",
-    "## Not judged",
-    "## Probes",
-]
+def _checker(name, *parts):
+    """Import a checker by path, the way this repository's own cases do."""
+    import importlib.util
+
+    path = os.path.join(ROOT, *parts)
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _chain():
+    """`chain_check.py`, whose grammar table is loaded at its import."""
+    return _checker("chain_check", "skills", "code-review", "scripts", "chain_check.py")
+
+
+# The headings of a round record the parties and the eval graders read and
+# the check does not, so no row of the grammar table holds them.
+GRADED_HEADINGS = ["## Not judged", "## Probes"]
+
+
+def _round_record_fields():
+    """What a round record carries: every label and section of the grammar
+    table `chain_check.py` loads, read from the table rather than copied,
+    and the two graded headings. The finding heading's `Line` cell is a
+    pattern, and an old spelling's row is what no record carries."""
+    chain = _chain()
+    rows = chain.GRAMMAR.items()
+    return [
+        key
+        for key, row in rows
+        if row.where != chain.NOWHERE and key != chain.HEADING_ROW
+    ] + GRADED_HEADINGS
+
+
+ROUND_RECORD_FIELDS = _round_record_fields()
 
 
 @pytest.mark.parametrize("field", ROUND_RECORD_FIELDS)
@@ -1164,17 +1180,6 @@ def test_the_layout_lists_the_config(parts):
 # --- the exclusion list, derived rather than compared ----------------------
 
 
-def _checker(name, *parts):
-    """Import a checker by path, the way this repository's own cases do."""
-    import importlib.util
-
-    path = os.path.join(ROOT, *parts)
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 def _governs_nothing():
     """The `What no row governs` section of the template, flattened."""
     text = read(*TEMPLATE)
@@ -1190,34 +1195,48 @@ def _literal_strings():
     hand-written list that had been copied into three documents — and the
     list's own grounds are *what a checker reads*, so a second source of it
     is a second source of the truth it claims to state.
+
+    The round record's literals are not among them: the list names the
+    grammar table that holds them (`test_the_exclusion_list_points_at_the_
+    grammar_table_and_restates_none_of_it`), so a checker's constant here is
+    one outside that table.
     """
-    chain = _checker(
-        "chain_check", "skills", "code-review", "scripts", "chain_check.py"
-    )
+    chain = _chain()
     unverified = _checker(
         "unverified_check", "skills", "verify", "scripts", "unverified_check.py"
     )
     found = {
-        chain.FINDINGS_HEADING,
-        chain.VERDICT,
-        chain.LOCATION,
-        chain.REGRESSION,
-        chain.REOPENS,
-        chain.CONFIRMATIONS_HEADING,
-        chain.CONFIRMS,
-        chain.NONE,
-        chain.RECORD_TARGET,
         chain.TARGET,
         chain.BROAD_GATE,
-        chain.OPEN,
-        chain.FIXED,
-        chain.REJECTED,
-        chain.DEFERRED,
         unverified.HEADING,
         unverified.CLOSED,
         *unverified.HEADER,
     }
     return sorted(found)
+
+
+GRAMMAR_TABLE = "`docs/the-review-record.md` §*The round record*"
+
+
+def test_the_exclusion_list_points_at_the_grammar_table_and_restates_none_of_it():
+    """S4. The round record's labels, headings and values have one statement,
+    the grammar table `chain_check.py` loads, so the list names the table and
+    copies no cell of it: a copy here is a second source that drifts, and
+    a repository told the copy reads a list the check no longer holds.
+
+    Protects: the label list coming back into `templates/config.md`, which
+    is where it drifted before; no other case reads the list for a cell of
+    the table."""
+    said = _governs_nothing()
+    assert GRAMMAR_TABLE in said, (
+        "the exclusion list no longer names the table that holds a round "
+        "record's literals"
+    )
+    copied = [key for key in _chain().GRAMMAR if f"`{key}`" in said]
+    assert not copied, (
+        f"the exclusion list restates the grammar table's rows {copied}; it names "
+        "the table instead"
+    )
 
 
 @pytest.mark.parametrize("literal", _literal_strings())
@@ -1280,10 +1299,11 @@ def test_every_document_that_names_a_language_row_names_the_shipped_one(parts):
     )
 
 
-@pytest.mark.parametrize("field", ROUND_RECORD_FIELDS)
+@pytest.mark.parametrize("field", GRADED_HEADINGS)
 def test_the_exclusion_list_holds_every_field_a_pinned_case_reads(field):
     """The list's grounds are *a checker OR a pinned case*, and this is the
-    pinned case.
+    pinned case: the headings a party or a grader reads that the grammar
+    table, which the list names, holds no row of.
 
     `_literal_strings()` reaches only what a checker holds in a module
     constant, so the second half of those grounds had nothing checking it —

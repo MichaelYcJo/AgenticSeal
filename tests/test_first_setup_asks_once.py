@@ -369,7 +369,7 @@ def test_a_bare_specs_is_asked_and_only_the_plugins_marks_are_told():
         # Phases 3 and 4 of #107 re-pointed both definitions' rows here. The
         # sentence was in two of them verbatim and in the third not at all,
         # and the agent without it is the one that reads `seal/parity.md`. It
-        # is §16 of the contract now, which every agent receives at startup.
+        # is §11 of the contract now, which every agent receives at startup.
         ("skills", "agent-contract", "SKILL.md"),
     ],
 )
@@ -382,7 +382,7 @@ def test_the_session_rule_appears_once(parts):
 @pytest.mark.parametrize("agent", ["warden.md", "smith.md"])
 def test_no_definition_carries_its_own_copy_of_the_root_rule(agent):
     """The move has to be a move. A definition that keeps the sentence beside
-    the contract's is the duplication §16 was written to end, and it is
+    the contract's is the duplication §11 was written to end, and it is
     invisible in a diff that only adds."""
     assert SESSION_RULE not in read("agents", agent), (
         f"agents/{agent} still spells the root rule out, so the tree holds "

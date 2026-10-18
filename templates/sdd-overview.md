@@ -6,11 +6,6 @@ the diff cannot show goes here, and each part is written when it happens rather
 than reconstructed at the end. A rule that must outlive this work item goes
 to its home under `docs/` with the test that holds it, not here. -->
 
-📋 implement applied
-· spec:     <policy/SDD files and clauses actually read>
-· tests:    <the cases this work added or changed, and how each was seen red>
-· verified: <what was executed vs. what was only read>
-
 ## Scope confirmation
 
 <Second-rung work only — it alters nothing observable and is more than one
@@ -33,13 +28,19 @@ it. Not a walk through the diff.>
 line starting `none — <why>`. Leaving the placeholder row below fails the
 check — fill it in or write the `none` line instead.
 
-An item is closed by marking it, never by deleting the row:
+An item is closed by marking it, never by deleting the row: the Item cell
+opens with the word `closed`, lower case, then the item.
 
-    | ✅ <the item, kept> | <what closed it: the run, the session, the date> |
+    | closed <the item, kept> | <what closed it: the run, the session, the date> |
 
-An unmarked row counts open. Deleting the row — or this whole file — fails the
-next pull request, which is what keeps "I verified it" and "I tidied it away"
-from being the same edit.
+So an open item never opens with that word. An open item whose own text
+begins with the word `closed` reads as closed, and nothing refuses it:
+
+    | closed issues are not re-read | the owner |
+
+Word such an item to open with another word. An unmarked row counts open.
+Deleting the row — or this whole file — fails the next pull request, which is
+what keeps "I verified it" and "I tidied it away" from being the same edit.
 
 What the check compares is the NUMBER of rows, not their text, so the second
 cell is read by people rather than by it: a closing that leaves the original

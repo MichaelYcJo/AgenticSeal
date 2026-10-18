@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
-"""Stop hook: draw the sealer's stamp in the session that spawned the sealer.
+"""Stop hook: draw the sealer's stamp in the session that committed its verdict.
 
-Issue #400, work item 1790562543. A sealer's stdout is a pipe into a report
-that reaches the person folded behind `ctrl+o`, so a stamp drawn there was
-never seen. The broad gate therefore draws nothing on a pipe: a recorded seal
-writes its panel's rows to a values file under
-`<git-common-dir>/specseal-stamp/<session>/`, keyed by
+Issue #400, work item 1790562543, and #975. A Bash call's stdout is a pipe
+into a tool result that reaches the person folded behind `ctrl+o`, so a stamp
+drawn there was never seen. The stamp means every party verified the work
+item, the sealer last, so since #975 it is drawn once per work item from the
+sealer's `guarantee.md` reading `sealed`, and never from the broad gate's
+run, which draws nothing. git's `post-commit` runs after the commit that
+carries that file, in the worktree it landed in, and
+`seal_stamp.queue_for_guarantee` writes the stamp's rows to a values file
+under `<git-common-dir>/specseal-stamp/<session>/`, keyed by
 `CLAUDE_CODE_SESSION_ID`, which every Bash call of a session and of its
-subagents carries as the MAIN session's id.
+subagents carries as the MAIN session's id and git hands its hooks.
 
 This hook draws each undrawn file of its own session once, as a JSON
 `systemMessage` from `Stop`. That surface was measured on the owner's screen
@@ -18,11 +22,11 @@ line 1 is a label naming what was sealed and the drawing starts on line 2.
 **Only the main session's `Stop`.** `SubagentStop` carries the same
 `session_id` — the parent's — and differs by `agent_id` alone (`questions.md`
 Q2, measured 2026-09-28), so a payload carrying `agent_id` is a subagent's
-end and draws nothing: the sealer's own end must not take its own stamp. So
-does any event that is not `Stop`.
+end and draws nothing: a subagent's end must not take the session's stamp.
+So does any event that is not `Stop`.
 
 **Which repository.** The payload's `cwd`, which is the main checkout while
-the sealer ran in a linked worktree of the same clone; the git COMMON dir is
+the commit landed in a linked worktree of the same clone; the git COMMON dir is
 the one place both resolve alike. It is found by walking up from `cwd` to the
 `.git` entry, and where that entry is a directory the common dir IS it, with
 no process started. The hook fires at the end of every turn, so a session
@@ -47,14 +51,14 @@ drawing rather than repeating one.
 
 **Silent on every failure**, the shape `implementer-notice.py` has: a payload
 that is not JSON, a repository that is not opted in, a file that is not a
-run's values. That includes a `python3` that cannot load `seal_stamp.py` —
+stamp's values. That includes a `python3` that cannot load `seal_stamp.py` —
 a hook runs under whatever `python3` the harness finds, and no launcher
-stands in front of it — where this draws nothing and the `SEALED` line in the
-sealer's report, which names the file and `seal-stamp --from` wherever a
-values file was written, is what remains. The same line is what remains where
-the main session's working directory is outside the sealed clone, and where
-its plugin predates this hook; `docs/the-broad-gate.md` §*Where the stamp is
-drawn* states all three.
+stands in front of it — where this draws nothing and the line `post-commit`
+printed into the commit's output, which names the file and `seal-stamp
+--from`, is what remains. The same line is what remains where the main
+session's working directory is outside the clone the commit landed in, and
+where its plugin predates this hook; `docs/the-review-record.md` §*The
+stamp* states these and the places no file is written at all.
 
 It draws; it never stops anything. `hooks/implementer.py`'s stance holds: a
 values file somebody wrote by hand would be drawn, because this catches a
@@ -92,9 +96,7 @@ def toplevel(cwd):
 
 def load_stamp():
     """`seal_stamp.py`, or None where it cannot be imported, whatever its
-    import raises.
-
-    Reads: owned — the module this plugin ships beside the hook; unknown passed"""
+    import raises."""
     try:
         spec = importlib.util.spec_from_file_location(
             "specseal_seal_stamp_for_the_stop_hook", STAMP
@@ -109,15 +111,16 @@ def load_stamp():
 def drawings(stamp, directory):
     """The message block for every undrawn file in `directory`, oldest
     first. Each block is built whole, label included, before its file is
-    claimed, so a file that is not a run's values — whatever it fails on — is
+    claimed, so a file that is not a stamp's values — whatever it fails on — is
     left where it is and takes no other file's drawing with it.
 
     It used to catch `ValueError` alone and build the label after the claim,
     and `label` raises `TypeError` on an `item` that is not a string. So one
     bad file after a good one left both renamed and nothing printed (round
-    1's 🟡 2). The file is written by the gate the TREE ships and read by the
-    hook the INSTALLED plugin ships, so a format one side does not know is an
-    ordinary state, not only a hand-written file.
+    1's 🟡 2). The file can be written by one copy of the plugin and read by
+    another — one an older gate wrote and left pending, or one the commit's
+    stub wrote from a copy other than the session's — so a format one side
+    does not know is an ordinary state, not only a hand-written file.
 
     A block is `(label, rows)`, which `seal_stamp.fitted` draws (#717). It
     is still drawn whole here, with its disc, before the claim: that is what

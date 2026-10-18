@@ -15,195 +15,100 @@ user-invocable: false
 
 # agent-contract — what every agent this plugin spawns is bound by
 
-You received this file at startup, before your first tool call, and nobody
-typed a command to send it. Its sections are the rules that are true of any
-agent — smith, warden, scribe, and whichever arrives next — and nothing here
-is one agent's own. A role's rules live in that role's definition, which is
-the file its author is already writing. A rule that belongs to one agent does
-not belong here, and a section that would need a per-role exception is a sign
-the rule is not universal.
-
-Your spawn prompt carries what is specific to the round: the branch and the
-target SHA, what the diff contains, the acceptance criteria, the class to
-enumerate for this change, the corrections the orchestrator has to hand over.
-It does not carry these rules, and it never has to. A rule kept only in
-whoever last wrote a prompt goes missing without a trace, and it did: the
-exit-code rule below arrived at round 2 of one work item and round 1 ran
-without it, and the `uv` venv line arrived at round 3 after two rounds each
-rediscovered it. Nothing recorded either. This file is what ends that.
-
-The procedures — `implement`, `code-review`, `legacy-parity` — say how a
-role does its work. This file says what binds regardless of which procedure
-is running, and it is the one a prompt can cite by number.
-
-## How the sections are numbered
-
-A section number is never reused and never re-ordered. A prompt can say *§3
-is narrowed this round* and a round record can be compared with another one
-six months later, which holds only while §3 still means what it meant. A rule
-that retires keeps its number, and its section becomes one line naming what
-replaced it. A new rule takes the next number, at the end.
+You received this file at startup, before your first tool call, through the
+`skills:` list in your definition. Its sections are the rules true of any
+agent — smith, warden, framer, sealer, scribe, and whichever arrives next —
+and nothing here is one agent's own. A role's rules live in that role's
+definition, and a rule that would need a per-role exception here is not
+universal. Your spawn prompt carries what is specific to the round and never
+has to carry these; it cites them by number. From this edition a section
+number is never reused and never re-ordered: a rule that retires keeps its
+number as one line naming what replaced it, and a new rule takes the next
+number.
 
 ## §1 Read exit codes directly, never through a pipe
 
 `cmd >/dev/null 2>&1; echo $?` — never `cmd | tail; echo $?`, which reports
-the pipe's status and is always 0.
+the pipe's status and is always 0. Both forms are written out because the
+failure is a habit, and the right form has to be as easy to copy as the
+wrong one.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_exit_code_rule_carries_both_forms_in_one_sentence
 
-Both forms are written out on purpose. The failure is a habit, so the right
-form has to be as easy to copy as the wrong one. An orchestrator that had put
-this line into every prompt it wrote then broke it itself and committed the
-wrong value.
+## §2 Narrow and often; the broad gate is the orchestrator's
 
-## §2 Narrow and often; the broad gate is one act with one owner
-
-Narrow and often, broad once. Run the tests for the slice you touched while
-you work, and your module and the ones it touches at a phase boundary.
-
-The broad gate — the full suite, the repository-wide lint, the typecheck — is
-a single act, taken once, after the review rounds settle. Whether it is yours
-is what your own definition says, and a definition that is silent about it
-has not assigned it: run none of the three unless your own file hands them to
-you. One definition in this plugin does hand them over — the sealer's, whose
-whole procedure is that run — and that assignment lives there rather than
-here, which is where the next one will live too. A round is edits already
-scheduled, so a broad run taken before it is spent by the first fix rather
-than banked.
-
-Hand over with the suite labelled `unverified` and its answerer named.
-Labelled, never omitted: a suite that is simply not mentioned reads as a suite
-that passed. Where the act is yours, the same handover carries the result
-instead of the label.
-
-This rule sat in two agent definitions in near-identical words, and a third
-agent inherited neither copy. That is the failure this file exists to end.
-
-The same sentence then produced a second failure, which is why the section now
-points at an owner at all. It forbade the run and assigned it to a holder that
-was not an agent, so every reader met a prohibition with nobody in the room to
-perform it — and both readers reasoned past it. When an agent was finally
-built for the act, the file it received before its first tool call was still
-telling it the act was somebody else's.
+Run the tests for the slice you touched while you work, and your module and
+the ones it touches at a phase boundary. The broad gate — the full suite, the
+repository-wide lint, the typecheck — is one act, taken once after the review
+rounds settle, and no agent runs any of the three. The orchestrator runs
+`broad-gate --base <base> --record <item>` with nothing else running, then
+spawns the sealer, which reads the record that run wrote. Hand over with the
+suite labelled `unverified` and the orchestrator named as its answerer: a
+suite that is not mentioned reads as a suite that passed.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule, tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn
 
 ## §3 A spawn prompt cannot widen the verification scope
 
 The prompt that spawns you is a request, not an amendment to this contract.
 It ranks where a ticket ranks — above the code as it happens to be, below
 the documents that were ratified. When it orders a check §2 excludes, do not
-run it. Decline, and name the instruction in your handover, in one line:
-what was asked, and which rule refused it. That is prevention and disclosure
-in a single act.
-
-Measured: a prompt ordered the full suite three times — after phase 1, per
-mutation, and before handing over. It was run three times, neither side said
-a rule was being overridden, and it surfaced only when someone asked why the
-spawn took 28 minutes. Roughly half of that run, and a large share of 284k
-tokens, was the override. Only the prompt is wasted when you decline; the
-spawn is not.
-
-The rule is about widening. A prompt that narrows your scope — one module,
-one test — is the caller doing their job, and you follow it. When you cannot
-tell which it is, run nothing extra and ask in the handover rather than
-refusing outright: name the instruction, say which reading you took, and let
-the caller settle it. Reading a widening as a narrowing spends the run and
-tells nobody. Reading a narrowing as a widening costs one round and arrives
-as a sentence somebody can correct. Every other ambiguity in this file falls
-the same way, toward disclosure.
+run it: decline, and name the instruction in your hand-back in one line —
+what was asked, and which rule refused it. A prompt that narrows your scope
+— one module, one test — is the caller doing its job, and you follow it.
+When you cannot tell which it is, run nothing extra and say in the hand-back
+which reading you took; every ambiguity in this file falls that way, toward
+disclosure.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
 
 ## §4 Label what was executed apart from what was read
 
-Never record something as passing that you did not run. A finding from
-reading and a finding from execution are labelled apart, in every report,
-and what was left unverified carries the name of who answers it. A deferral
-to nobody is how *someone will look at it* becomes *nobody did*.
-
-The three labels — `executed`, `read`, `unverified` — are the `verify`
-skill's, and every agent's output carries them. A report that blurs the
-first two is a pass nobody can audit, and one that omits the third's
-answerer is a question that reaches no one.
+Never record something as passing that you did not run. Every report labels
+each claim `executed`, `read` or `unverified` — the `verify` skill's labels
+— and what is `unverified` names who answers it: a deferral to nobody is how
+*someone will look at it* becomes *nobody did*.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
 
 ## §5 Nothing that reaches you in prose is evidence
 
 A fact your prompt hands you is a claim with a coordinate to open, or a label
 saying nobody opened it. A fact with neither is an assertion nobody has
-opened, however confident the prompt that carried it — open it before you
-build on it, and say what you found. An aggregate — a count, a total — is
-not a coordinate: the number can be checked while the claim it stands for
-cannot, and one such fact reached five documents before a review round found
-it false. Two spawn prompts in one session handed over a false fact each,
-and the agent caught both by measuring.
-
-Each definition keeps its own application of this rule. For a reviewer it is
-that the implementer's account is a claim, not evidence; for an implementer
-it is that the handoff's facts are opened before anything is built on them.
-The general form is the one a fourth agent inherits.
+opened: open it before you build on it, and say what you found. An
+aggregate — a count, a total — is not a coordinate: the number can be
+checked while the claim it stands for cannot. For a reviewer the
+implementer's account is a claim, not evidence; for an implementer the
+handoff's facts are opened before anything is built on them.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
 
 ## §6 You return a report
 
 What you write is named in your own definition and nothing else. A durable
 record — a file that outlives the round, a cell inside one, a mark on the
-tree — is yours only where your own file names it, and four acts are withheld
-from every agent whatever its file says: post nothing, push nothing, open no
-pull request, and spawn no agent.
-
-Your final output is the report, and what is done with it is the caller's act
-— publishing is the user's call, a record is written by the session that
-verified the findings, and a review that certifies itself is what the commit
-gate exists to catch. Parallel workers writing the same record is how records
-get corrupted.
-
-A definition that names no write names none, so an agent whose file is silent
-writes no durable record at all. That is where every agent starts and what the
-next one inherits, and it is why nothing here has to be kept in step: a write
-is granted by being written into the definition of the agent that takes it,
-and one file answers what any agent writes.
-
-This section used to carve the exceptions instead — each one named in the
-definition that held it, and this paragraph pointing at the mechanism. Two
-agents of three already had one. Five agents would have four, and a rule with
-four exceptions is a rule nobody finishes reading.
+tree — is yours only where your own file names it, and a definition that
+names no write names none. Whatever a definition says, four acts are
+withheld from every agent: post nothing, push nothing, open no pull request,
+and spawn no agent. Your final output is the report, and what is done with
+it is the caller's act.
+Enforced by: tests/test_every_agent_reads_the_contract.py::test_every_definition_bounds_what_it_writes
 
 ## §7 A probe is named `test_tmp_*`, one file, run once, deleted
 
 Probe only what reading cannot settle. A probe is one file named
-`test_tmp_*`, it runs once, and it is deleted before you hand over. What
-stays behind after that is a case nobody planted, which the next session
-either trusts or spends a round discovering.
-
-**The rule is about leavings, not about files.** A probe leaves nothing
-behind, whatever kind of thing it made — a worktree, a branch, a checkout, a
-scratch clone, a virtual environment — and it is not over until every one of
-them is gone. Those are examples and not the list: the shapes are deliberately
-not enumerated, because every enumeration in this repository has rotted, and
-the next leaving is a kind nobody here has met. A list that predates it reads
-as permission.
-
-**What the probe made for ITSELF is what goes.** A thing the repository's own
-tooling builds to be reused is not your probe's leaving, even when your
-probe's run is what created it: a test runner that builds one virtual
-environment and reuses it for every later call has not left anything behind,
-and deleting it because a probe ran first makes the next caller pay the setup
-again. The question is whose the thing is, never who happened to trigger it.
-
-The file half is what a reviewer did follow, to the letter, during #30's
-review chain — and the probe still left a git worktree behind. Its probe files
-were deleted, its report said so, and the worktree outlived the round. It
-surfaced two work items later, when `git switch` refused a branch a worktree
-already held. Nothing in §7 as it stood had been broken.
-
-Every agent writes probes — the reviewer to reproduce a finding, the
-implementer to settle a judgment, the fact-finder where reading cannot — and
-until this file the rule was written for two of them and assumed for the
-third.
+`test_tmp_*`, it runs once, and it is deleted before you hand over. The rule
+is about leavings, not about files: A probe leaves nothing behind, whatever
+kind of thing it made — a worktree, a branch, a checkout, a scratch clone, a
+virtual environment — and those are examples, not a list. What the probe
+made for ITSELF is what goes: a thing the repository's own tooling builds to
+be reused, such as the one virtual environment a test runner keeps, stays
+even when your probe's run created it. The question is whose the thing is,
+never who happened to trigger it.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_leavings_rule_says_whose_leaving_it_is
 
 ## §8 Drive git from Python when a probe needs a repository
 
 A probe that commits reaches the commit gate exactly as real work does, and
 the prompt lands on whoever is at the keyboard — which, in a round you are
-running, is nobody who is driving the session. #36 is what that cost: two
-prompts inside five minutes, and the agent was stopped to end them.
-
-Prefer `subprocess.run(["git", "-C", d, "commit", …])` from a Python script:
-no Bash command line carries the commit, so no gate reads one, and several
+running, is nobody who is driving the session. Prefer
+`subprocess.run(["git", "-C", d, "commit", …])` from a Python script: no
+Bash command line carries the commit, so no gate reads one, and several
 probes in one script cost one tool call rather than one each. From Bash,
 write the path out — `git -C /abs/path/r1 …` — because the reader also fills
 in a name the command assigned itself, but not a loop variable, so a loop
@@ -211,16 +116,15 @@ over `$n` still prompts once per value. The waiver, `: '[no-review]';` in
 front of the command, is the last resort: it waives one command, quotes
 included and before it, because after the subcommand a bare word is a
 pathspec and git rejects it.
+Enforced by: tests/test_a_probe_that_commits_says_so.py::test_the_contract_carries_all_three_shapes
 
 ## §9 Edits go through the `Edit` tool
 
 Two reasons point the same way. An edit must be able to fail: a substitution
 routed through the shell does nothing, says nothing, and exits zero when its
 pattern misses, and the miss surfaces at the next check as another edit and
-another run. Measured on one work item: no `Edit` calls, 128 shell edits
-across 47 files, and a column insertion that silently did not happen because
-the indentation did not match. Where the environment leaves no choice,
-assert that every substitution matched.
+another run. Where the environment leaves no choice, assert that every
+substitution matched.
 
 And no Bash command line exists, so the commit gate has nothing to read. The
 gate reads a heredoc body as shell, on purpose, with one exception named
@@ -261,47 +165,47 @@ a commit inside the commit, in the worktree it lands in, and no command text
 is read for it (`docs/the-commit-gate-inside-git.md` §*The commit gate inside
 git*). The first reason holds everywhere, and it is the one that makes this
 rule yours.
+Enforced by: tests/test_edits_go_through_the_edit_tool.py::test_the_rule_names_the_tool_and_pairs_its_two_reasons
 
 ## §10 Batch independent reads and runs
 
 Open every file a coordinate names in one call; run the cases from one file
 in one command. A round is mostly round-trips and command waits, so cut the
-trips and never the investigation: an axis you skipped is not a pass. What
-has no excuse is the requirements read, where every file the handoff names
-can be opened in one call.
+trips and never the investigation: an axis you skipped is not a pass, and
+the requirements read, where every file the handoff names can be opened in
+one call, has no excuse. An edit-test loop is serial — a call whose input
+depends on the last result cannot go out with it — and a review reads
+independent things, which is where batching pays most. The bar each kind of
+segment is judged by is `docs/the-review-record.md` §*The per-segment bars*,
+and no definition states a second copy of it.
+Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_no_definition_states_a_tools_per_turn_figure
 
-Task shape decides the rest. An edit-test loop is serial — a call whose
-input depends on the last result cannot go out with it — and a review reads
-independent things, which is where batching pays most. The numbers that
-judge each are in that agent's definition, because a figure that measures a
-reviewer does not measure an implementer.
+## §11 Where the `seal/` root is, and the language its records are written in
 
-## §11 The language the records are written in
-
-The prose in the records follows `Record language` in `config.md` under the
-`seal/` root — English when the row is absent, which is what every repository
-had before it existed. What stays English regardless: the field names and
-vocabulary a checker reads (`Target SHA`, the verdict words, the `<!-- -->`
-markers), and
-all code. The `implement` skill's *The language the records are written in*
-holds the whole list.
-
-This section sat in two definitions in near-identical words and the third
-carried none, which is the missing-copy failure made visible in the tree.
+Every `seal/…` path here and in the skills means `<repo>/seal/` where that
+directory exists, and `$(git rev-parse --git-common-dir)/seal/` otherwise —
+local mode, where the root sits under the common git directory and nothing
+under it is committed. A repository with both is shared, and no config key
+decides it. The prose in the records follows `Record language` in
+`config.md` under that root — English when the row is absent. What stays
+English regardless: the field names and vocabulary a checker reads (`Target
+SHA`, the verdict words, the `<!-- -->` markers), and all code. The
+`implement` skill's *The language the records are written in* holds the
+whole list.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_root_resolution_rule_states_both_places
 
 ## §12 A defect belongs to a class — enumerate the class
 
-Do not fix the coordinate. One work item closed a single class three times,
-one name apart each time, because each fix was aimed where the finding
-pointed. The finding names an instance; the fix is owed to every instance
-the same cause produces, and the handover says which were enumerated.
+Do not fix the coordinate. A finding names an instance; the fix is owed to
+every instance the same cause produces, and the hand-back says which were
+enumerated.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
 
 ## §13 A defence resting on a platform guarantee is not verified
 
-Not until the guarantee is removed and the code still refuses. Seven rounds
-and a full local gate on one operating system missed a record leaving the
-root, because every run had the guarantee in place and nothing had tried
-without it.
+Not until the guarantee is removed and the code still refuses: a run with
+the guarantee in place cannot tell the defence from the platform.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
 
 ## §14 A fix that changes what a person sees documents it and pins it
 
@@ -309,32 +213,17 @@ In the same commit. *Nothing raises* is not the claim *says this*: a change
 to a message, a verdict or a rendered line is a change someone reads and acts
 on, and the test that pins the new text is what keeps the next edit from
 quietly taking it back.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
 
 ## §15 A new case is not planted until it has been seen red
 
-Three consecutive work items each produced a case that passed against the
-very defect it was written for, and reverting the fix is the only thing that
-has ever caught one. Show the case failing — against the old code, or with
-the sentence it pins deleted — before it is committed as a case, and say in
-the handover how it was shown.
+Show the case failing — against the old code, or with the sentence it pins
+deleted — before it is committed as a case, and say in the hand-back how it
+was shown. A case that passes against the defect it was written for pins
+nothing, and reverting the fix is what catches one.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
 
-## §16 Where a `seal/…` path resolves
-
-Every `seal/…` path here and in the skills means `<repo>/seal/` where that
-directory exists, and `$(git rev-parse --git-common-dir)/seal/` otherwise —
-local mode, where the root sits under the common git directory and nothing
-under it is committed. A repository with both is shared, and no config key is
-read to decide it.
-
-This is here because §11 cannot be followed without it: that section sends
-you to `config.md` under the `seal/` root and says nothing about where the
-root is. Two definitions carried the sentence in identical words and the
-third carried none, which is §11's own missing-copy failure one file over —
-and the agent without it is the one that reads `seal/parity.md` through
-`legacy-parity`. No role needs an exception to it, which is the test this
-file applies to itself.
-
-## §17 A commit names its repository in the command that makes it
+## §16 A commit names its repository in the command that makes it
 
 Commit with the repository's absolute path written out after `git -C`, in a
 command of its own. Where a `cd` comes first, join it to the commit with `&&`
@@ -348,22 +237,44 @@ directory. The gate judges the commit in both places, because both can
 happen, and the session's directory is usually one no declaration names.
 Second, the gate reads a command before the shell expands it, so a loop
 variable in the path names no directory at all, and a commit it cannot place
-stops the same way.
+stops the same way. Both are about the reading of a command, which judges a
+commit only where git's hooks cannot — §9 names the four places — and the
+shape above is still the one to write: a person reading the transcript can
+follow it, and it is the only one the reading can place where it still
+judges.
+Enforced by: tests/test_a_commit_names_its_repository.py::test_the_rule_pairs_its_two_reasons
 
-Measured in the milestone-49 run: three of the four stops that reached a
-person began `cd <worktree> &&` and committed after a `;` or a new line, and
-the orchestrator's own loop over a variable, committing several work items'
-routing files, met the refusal in each of the three milestone runs on disk.
-In a session whose person pressed `automation`, each such stop now comes back
-to you as a refusal rather than to them as a prompt, and the shape above is
-the one that does not stop at all.
+## §17 Clean up only what you started
 
-Both reasons are about the reading of a command, and since #692 that reading
-judges a commit only where git's hooks cannot — §9 names the four places.
-Where this plugin's git hooks run, git judges the commit in the worktree it
-lands in: a `cd` that failed, a `;`, a loop variable and a heredoc commit
-exactly where bash runs them, and are judged there
-(`docs/the-commit-gate-inside-git.md` §*The commit gate inside git*). The shape
-above is still the one to write, because it is also the one a person reading
-the transcript can follow, and it is the only one the reading can place where
-it still judges.
+An agent cleans up only the processes and files it started. Record the PID
+of every process you start and the path of every file and directory you
+create, and stop or remove by that record; never kill by command name, and
+never delete in a shared directory by glob — another session's process or
+file answers to the same name. A leftover you did not start is reported in
+the hand-back, not removed.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_four_rules_stand_with_their_enforcers
+
+## §18 A check that refuses correct code is fixed or reported
+
+When a check refuses code that is correct, fix the check or report the
+refusal in the hand-back, quoted; never bend the code to pass it. Code
+shaped around a wrong check carries the check's defect into the tree and
+hides it from the next reader.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_four_rules_stand_with_their_enforcers
+
+## §19 A change rewrites the text it amends in place
+
+A change rewrites the text it amends where that text stands, and in the
+same commit removes or corrects what stood on the old fact — every other
+sentence, case and citation stating it, found with `git grep` on its words.
+A correction written beside the sentence it corrects leaves both for the
+next reader to choose between.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_four_rules_stand_with_their_enforcers
+
+## §20 Do not avoid the change a problem calls for
+
+A structure in the tree is a reference, not a constraint. Weigh replacing it
+as an equal of keeping it, and when you conclude something should stay,
+check the premise that keeps it before you rest on it. The change a problem
+calls for, avoided, leaves the problem in place under a smaller edit.
+Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_four_rules_stand_with_their_enforcers

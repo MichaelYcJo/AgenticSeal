@@ -40,12 +40,6 @@ def read_at(path):
         return f.read()
 
 
-# U+2013 EN DASH, built rather than typed. The definitions spell every ratio
-# range with one, so a hyphen would match nothing; a typed one is what the
-# linter reads as an ambiguous character.
-DASH = chr(0x2013)
-
-
 def test_verify_says_when_not_only_what():
     scope = read("skills", "verify", "SKILL.md")
     assert "## Scope" in scope, "verify lost the section that bounds the moment"
@@ -57,14 +51,15 @@ def test_verify_says_when_not_only_what():
     ):
         assert row in scope, f"the Scope table lost its `{row}` row"
     assert "against the base commit" in scope
-    assert "Nothing edits between the broad seal and the PR" in scope
+    assert "Nothing edits between the broad run and the PR" in scope
+    assert "broad seal" not in scope
 
 
 def test_the_broad_gate_section_states_its_own_timing():
     """The Scope table settles when the gate fires; the section did not repeat
     it, and a session that jumped to the section by its heading ran the whole
     suite before review. Two sessions did exactly that, 22 minutes between
-    them, and both seals were void by the first review finding.
+    them, and both runs were void by the first review finding.
 
     The baseline is the same failure one step further in: it is reached for
     once an unexplained failure appears, not before one exists."""
@@ -95,15 +90,6 @@ def test_the_owner_names_the_row_the_phrase_stood_for():
     )
 
 
-def test_the_seal_block_asks_for_the_row_too():
-    """The `broad gate` row of the proof block is filled by a session that
-    may load nothing else. It used to read `due after the rounds settle`,
-    which is the phrase this change exists to replace."""
-    block = flat("skills", "verify", "SKILL.md")
-    assert "due when the last round record has no finding open" in block
-    assert "not yet — due after the rounds settle" not in block
-
-
 def test_verify_prices_the_run_that_repeats():
     """Scope decides how often; it says nothing about what each run costs, and
     the narrow run is the one that multiplies."""
@@ -115,31 +101,18 @@ def test_verify_prices_the_run_that_repeats():
     )
 
 
-def test_the_smith_carries_the_batching_rule_it_actually_spends():
-    """Re-pointed in phase 4 of #107; it used to read the prohibition here.
-
-    The old premise was that the agent file is always in front of the smith
-    while the skill may not be. That premise stopped separating the two: the
-    contract arrives through the same `skills:` frontmatter the definition
-    does, so it is in front of the smith exactly as often. What is left for
-    the definition is the half the contract sends BACK to it -- §10 says the
-    numbers that judge each agent live in that agent's definition, because a
-    figure that measures a reviewer does not measure an implementer.
-
-    A number with no home is the failure here, not a rule with no copy. An
-    edit-test loop that is judged by the reviewer's 1.8 bar is being asked
-    for something a serial loop cannot give, which is how a rule stops being
-    read at all."""
-    smith = flat("agents", "smith.md")
-    assert f"1.08{DASH}1.17" in smith, (
-        "the implementer's own measured ratio went, and the only number left "
-        "in the tree is the one that judges a reviewer"
+def test_the_implementers_bar_is_not_the_reviewers_and_has_one_home():
+    """Contract §10 points each kind of segment at its bar in
+    `docs/the-review-record.md` §*The per-segment bars*, and the implementing
+    row is not judged by tools per turn: an edit-test loop judged by the
+    reviewer's bar is asked for what a serial loop cannot give. Since #957
+    no definition carries a second copy of a bar."""
+    contract = flat("skills", "agent-contract", "SKILL.md")
+    assert "`docs/the-review-record.md` §*The per-segment bars*" in contract
+    bars = flat("docs", "the-review-record.md")
+    assert "never tools per turn" in bars, (
+        "the implementing row lost the sentence that keeps it off the reviewer's bar"
     )
-    assert f"1.29{DASH}1.89" in smith, (
-        "the comparison went; a bare 1.08-1.17 reads as a target rather than "
-        "as what a serial loop can give"
-    )
-    assert "§10" in smith, "the implementer can no longer reach the rule"
 
 
 def test_the_smith_puts_both_answers_in_the_hand_back():
@@ -160,7 +133,7 @@ def test_the_smith_puts_both_answers_in_the_hand_back():
     assert "§2" in smith and "§3" in smith, (
         "the implementer can no longer reach the rules its hand-back answers"
     )
-    assert "labeled `unverified`" in smith, (
+    assert "the suite labelled `unverified`" in smith, (
         "the suite stopped going over labelled, and a suite that is simply "
         "not mentioned reads as a suite that passed"
     )
@@ -168,7 +141,7 @@ def test_the_smith_puts_both_answers_in_the_hand_back():
         "the label lost its answerer, and a deferral to nobody is how "
         "`someone will look at it` becomes `nobody did`"
     )
-    assert "what was asked, and which rule refused it" in smith, (
+    assert "saying what was asked and which rule refused it" in smith, (
         "the declined instruction stopped being disclosed, which is how an "
         "override stays invisible"
     )
@@ -195,156 +168,70 @@ def contract_section(number):
     raise AssertionError(f"the contract has no §{number}")
 
 
-def test_the_prohibition_itself_has_one_home_and_it_is_the_contract():
-    """Phase 3 of #107 re-pointed this case; it used to read `agents/warden.md`.
+# What a definition says when it hands its agent the run: the command typed
+# with a base, or the sentence the sealer carried until #969. Matched over the
+# whole glob, so a sixth definition is read the day it lands.
+TAKES_THE_RUN = (
+    "broad-gate --base",
+    "the broad gate is yours",
+    "spawned for exactly that",
+)
+RUN = "broad-gate --base <base> --record <item>"
 
-    The prohibition was stated in two definitions in near-identical words and
-    a third agent inherited neither, which is the duplication the contract
-    exists to end. The rule moved; the case moved with it rather than being
-    deleted, because a moved rule with no case is a rule that can be moved
-    again into nothing.
 
-    #120 re-pointed it a second time. §2 named the orchestrator, which is not
-    an agent, so the section forbade the run and assigned it to nobody in the
-    room -- and when `agents/sealer.md` arrived to take it, the contract every
-    agent reads first still said the act was somebody else's. Both halves are
-    asserted: the owner the section now names, and the sentence that named the
-    old one, absent. A contract carrying both owners is the state
-    `test_the_definition_names_the_sealer_as_the_suites_owner` already refuses
-    one file over, and presence alone cannot see it."""
+def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn():
+    """S2 of #969. Contract §2 says no agent runs the broad gate and names the
+    orchestrator's command; no file under `agents/` hands its agent the run;
+    and the orchestration names the preflight, the run, its log and its commit
+    before the sentence that spawns the sealer.
+
+    Protects: a definition taking the run back, which is the second run of a
+    suite #957 measured at 240K tokens; and the orchestration spawning the
+    sealer before the run, which leaves it a record that is absent or stale.
+    It replaces the three cases that pinned the interim §2, the count of
+    silent definitions and the preflight's order, because each held one third
+    of one fact and none held the run's place in the order."""
     contract = " ".join(read("skills", "agent-contract", "SKILL.md").split())
     body = contract_section(2)
-    assert "the sealer's, whose whole procedure is that run" in body, (
-        "§2 stopped naming the agent the one broad act is assigned to, which "
-        "is the prohibition-with-no-owner #30 opens on"
+    assert "no agent runs any of the three" in body, (
+        "§2 stopped forbidding the broad gate to every agent"
     )
-    assert "Whether it is yours is what your own definition says" in body, (
-        "the universal form went. Naming the sealer without it makes §2 a "
-        "rule about one agent, which is what this file's opening refuses"
+    assert RUN in body and "orchestrator" in body, (
+        "§2 stopped naming the orchestrator's command"
     )
-    assert "is the orchestrator's, run once, after the review rounds settle" not in (
-        contract
-    ), "the old owner is still in the contract, so §2 now names two of them"
-    assert "orchestrator" not in body, (
-        "§2 names the orchestrator again. It is not an agent, so it cannot "
-        "hold an act this file assigns; the answerer of a handover is the "
-        "caller and belongs in the definition that hands over"
+    assert body.index(RUN) < body.index("spawns the sealer"), (
+        "§2 names the spawn before the run it waits for"
     )
+    for named in ("but the sealer", "Where the run is yours"):
+        assert named not in body, f"§2 still names an agent as runner: {named!r}"
     assert "Hand over with the suite labelled `unverified`" in contract, (
         "the label went, and a suite that is simply not mentioned reads as a "
         "suite that passed"
     )
-
-
-# §2's own count, and the marker a definition carries when it takes the act.
-# Both are read out of the tree below rather than trusted here: the word is
-# checked against §2's sentence, and the marker against the definition the
-# sentence points at, so neither can be edited without the other going red.
-COUNT_WORD = "One definition in this plugin does hand them over"
-ASSIGNS_THE_GATE = "spawned for exactly that"
-
-
-def test_only_one_definition_assigns_the_broad_gate():
-    """Round 1, finding 6 of #120. §2 says `One definition in this plugin does
-    hand them over`, and `One` is an aggregate -- which §5 of the same file
-    says is not a coordinate: the number can be checked while the claim it
-    stands for cannot.
-
-    So it is checked, from the glob rather than from a list.
-    `test_the_prohibition_itself_has_one_home_and_it_is_the_contract` pins the
-    sentence PRESENT; nothing counted the definitions to confirm the number is
-    still true. `questions.md` Q2 names the framer as arriving in 0.11.0, and
-    if its file assigns any of the three checks, §2 says `One` and is false
-    with nothing red.
-
-    **The direction this can still miss, stated rather than left to be
-    found.** It counts definitions carrying the marker below. A definition that
-    takes the broad gate in different words is invisible here -- the same
-    verbatim-versus-semantic trade
-    `tests/test_a_moved_rule_leaves_its_definition.py` makes and states, for
-    the same reason: no constant can decide when two sentences say the same
-    thing. What closes that direction is the other assertion, which fails if
-    the marker leaves the one definition that has it -- so the marker cannot
-    quietly stop being the thing this counts."""
     agents = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
     assert len(agents) >= 4, f"agents/*.md matched {len(agents)} files"
-    assigning = [
-        os.path.basename(path)
+    taking = [
+        (os.path.basename(path), marker)
         for path in agents
-        if ASSIGNS_THE_GATE in " ".join(read_at(path).split())
+        for marker in TAKES_THE_RUN
+        if marker in " ".join(read_at(path).split()).lower()
     ]
-    # The tree fact first, and §2's sentence after it. Round 2, finding 8:
-    # with the order reversed, the document assertion fired first and named
-    # only itself, where the 0.11.0 arrival moves THREE things together --
-    # §2's prose, `COUNT_WORD`, and the list this compares against. Whichever
-    # of the two fails now, the reader is told about all three.
-    assert assigning == ["sealer.md"], (
-        f"{len(assigning)} definitions assign the broad gate ({assigning}) "
-        "and §2 says `One definition in this plugin does hand them over`. "
-        "Either that sentence needs the new count, or a definition took the "
-        "gate and the contract's sentence did not follow it. Three things "
-        "move together when it does: §2's prose, `COUNT_WORD` here, and this "
-        "comparison"
+    assert not taking, f"a definition hands its agent the broad run: {taking}"
+    order = joined(
+        section(read("skills", "code-review", "orchestration.md"), SPAWN_SECTION)
     )
-    assert COUNT_WORD in flat("skills", "agent-contract", "SKILL.md"), (
-        "§2 no longer states the count this case checks, so the number and "
-        "the sentence have come apart. If the count changed, `COUNT_WORD` and "
-        f"the comparison against {assigning} move with it; if it did not, §2 "
-        "lost the sentence that makes this case worth running"
-    )
-
-
-# The sealer's own sentence counts the definitions that say nothing about the
-# broad gate, and a count written as a word is the same aggregate §5 refuses
-# to take on trust. Spelled out to the sizes an agent set can plausibly reach;
-# a set larger than this has outgrown one sentence naming a number at all.
-SILENT_IN_WORDS = {
-    1: "one",
-    2: "two",
-    3: "three",
-    4: "four",
-    5: "five",
-    6: "six",
-    7: "seven",
-}
-STAY_SILENT = "definitions that stay silent"
-
-
-def test_the_sealer_counts_the_silent_definitions_from_the_glob():
-    """S11 of #84. `agents/sealer.md` read *the three definitions that stay
-    silent run none of the three checks, and yours does not* -- true while the
-    set was four, false the moment `agents/framer.md` landed, and nothing in
-    the tree was red about it.
-
-    The failure is the one `test_only_one_definition_assigns_the_broad_gate`
-    names one sentence over: a count is an aggregate, so §5 says it is a
-    number a reader can check standing in for a claim they cannot. This counts
-    it, from the same glob and the same marker, so the number and the agent
-    set cannot come apart again.
-
-    It never counts from a list. A list of four names here would be a second
-    copy of the agent set, going stale on the same day the sentence does --
-    which is the failure with the extra step of looking correct."""
-    agents = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
-    assert len(agents) >= 4, f"agents/*.md matched {len(agents)} files"
-    assigning = [
-        os.path.basename(path)
-        for path in agents
-        if ASSIGNS_THE_GATE in " ".join(read_at(path).split())
+    steps = [
+        PREFLIGHT,
+        RUN,
+        "<scratchpad>/<work-item-id>/broad-gate.log",
+        "commit `broad-gate.md`",
+        "spawn `sealer`",
     ]
-    silent = len(agents) - len(assigning)
-    assert silent in SILENT_IN_WORDS, (
-        f"{len(agents)} definitions, {len(assigning)} of which assign the "
-        "gate. A set this size has outgrown a sentence that names the count "
-        "in words -- change the sentence rather than extending `SILENT_IN_WORDS`"
-    )
-    sealer = flat("agents", "sealer.md")
-    assert f"the {SILENT_IN_WORDS[silent]} {STAY_SILENT}" in sealer, (
-        f"`agents/sealer.md` does not say `the {SILENT_IN_WORDS[silent]} "
-        f"{STAY_SILENT}`, and the glob holds {len(agents)} definitions of "
-        f"which {len(assigning)} assign the gate ({assigning}). Either the "
-        "agent set grew and the sentence did not follow it, or the sentence "
-        "was reworded and this is the case that reads it"
+    missing = [step for step in steps if step not in order]
+    assert not missing, f"the orchestration does not name: {missing}"
+    at = [order.index(step) for step in steps]
+    assert at == sorted(at), (
+        f"the orchestration's order is not preflight, run, log, commit, spawn: {steps}"
     )
 
 
@@ -355,9 +242,9 @@ def test_no_definition_promises_the_suite_once_the_rounds_settle():
 
     Under the old §2 that was a harmless imprecision about a prohibition with
     a holder who was not an agent. Under the new one it is false in a way a
-    reader can act on: the gate goes to whichever definition assigns it, this
-    file assigns none of the three, and `agents/sealer.md` says its file is the
-    only one that does. The hazard is live rather than theoretical --
+    reader can act on: this file assigns none of the three, and since #969 no
+    definition does, because the orchestrator runs the gate. The hazard is
+    live rather than theoretical --
     `agents/warden.md`'s own bullet on the broad-gate state puts a reviewer in
     exactly the moment the sentence appears to release.
 
@@ -369,9 +256,8 @@ def test_no_definition_promises_the_suite_once_the_rounds_settle():
     It matches one spelling. A definition that promises the suite in other
     words -- *yours once the rounds have settled* -- is invisible here, which
     round 2 of #120 measured by rewording the corrected sentence and watching
-    this case stay green. That is the same verbatim-versus-semantic trade
-    `test_only_one_definition_assigns_the_broad_gate` states above, for the
-    same reason: no constant decides when two sentences say the same thing.
+    this case stay green. That is a verbatim-versus-semantic trade: no
+    constant decides when two sentences say the same thing.
     What narrows it is that the wrong sentence had exactly one idiom in this
     tree, and the glob is what catches that idiom arriving in a second file --
     which is the copy this shape actually spreads by."""
@@ -415,17 +301,16 @@ def test_the_refusal_is_stated_once_and_names_both_directions():
         "the refusal half went; the principle and the disclosure alone read "
         "as `run it, but say so`"
     )
-    assert "Decline, and name the instruction in your handover" in contract, (
+    assert "decline, and name the instruction in your hand-back" in contract, (
         "`Decline` became separable from `name`, which is the state that was "
         "measured -- the run happened and the caller believed the prompt was "
         "honoured"
     )
-    assert "run nothing extra and ask in the handover" in contract, (
+    assert "run nothing extra and say in the hand-back" in contract, (
         "the contract lost the default for an instruction it cannot classify, "
         "so the rule above it decides nothing in the one case that needed "
         "deciding"
     )
-    assert "rather than refusing outright" in contract
 
 
 def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
@@ -452,14 +337,6 @@ def test_the_broad_gate_state_survives_a_handoff():
         "the record lost the file that tells the next session whether the one "
         "broad run already happened"
     )
-    assert "broad gate:" in read("skills", "verify", "SKILL.md"), (
-        "the seal block stopped carrying the state the record needs"
-    )
-
-
-def test_the_seal_reports_what_the_checks_cost():
-    """Nobody notices the runner eating the session from inside it."""
-    assert "· cost:" in read("skills", "verify", "SKILL.md")
 
 
 def test_the_preset_block_states_the_rule_the_loaded_files_assume():
@@ -502,29 +379,10 @@ def joined(lines):
     return " ".join(" ".join(lines).split())
 
 
-def test_the_orchestrator_runs_the_preflight_before_it_spawns_the_sealer():
-    """S8. The step is a paragraph inside the section that already holds the
-    spawn, ahead of the words `spawn `sealer``, so the acts table needs no new
-    row — and the section gains no heading of its own, which would need one."""
-    body = section(read("skills", "code-review", "orchestration.md"), SPAWN_SECTION)
-    headings = [line for line in body if line.startswith("#")]
-    assert headings == [f"## {SPAWN_SECTION}"], (
-        f"the section gained a heading: {headings}"
-    )
-    text = joined(body)
-    assert PREFLIGHT in text, "the section does not name the preflight"
-    assert text.index(PREFLIGHT) < text.index("spawn `sealer`"), (
-        "the preflight is named after the spawn it comes before"
-    )
-    assert "spawn only on" in text and "exit code" in text, (
-        "the section does not say the spawn waits for the preflight's exit 0"
-    )
-
-
 def test_the_acts_table_row_names_the_preflight_and_stays_a_sentence():
     """S8's other half. The row for that section keeps `still a sentence` —
     a session that skips the preflight loses time and nothing else, because
-    the sealer asks the same arms — and its grounds name the step."""
+    the broad run asks the same arms — and its grounds name the step."""
     rows = [
         line
         for line in read("skills", "implement", "orchestration.md").splitlines()
@@ -586,7 +444,7 @@ def test_the_skill_says_the_preflight_is_not_the_broad_gate():
     assert PREFLIGHT in text, "the broad gate section does not name the preflight"
     at = text.index(PREFLIGHT)
     said = text[max(0, at - 300) : at + 500]
-    assert "runs no suite" in said and "seals nothing" in said, said
+    assert "runs no suite" in said and "writes nothing" in said, said
     assert "orchestrator" in said, said
     assert "--preflight" not in read("agents", "sealer.md"), (
         "the sealer's definition names the preflight"

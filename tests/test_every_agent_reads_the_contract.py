@@ -1,25 +1,17 @@
-"""Every agent definition opens by naming the contract that binds it.
+"""Every agent definition has one shape and preloads the contract alone.
 
-Phase 2 of #107. `skills/agent-contract/SKILL.md` holds the rules every agent
-is bound by, and a contract nothing delivers is a contract that arrives for
-whoever remembers it. The delivery is two facts in one file: the opening
-paragraph names the contract, and the `skills:` frontmatter list is what the
-harness actually preloads. Either one alone is silent — a paragraph naming a
-skill nobody lists reaches no agent, and a listed skill the definition never
-mentions is a rule set the definition does not admit it is under.
+`spec.md` §*The shape of a definition* of #957: frontmatter whose `skills:`
+list is `agent-contract` and nothing else, one opening sentence naming the
+contract, identical in every definition, then `## Job`, `## Order of work`,
+`## Never` and `## Rules`, in that order. Every other skill is opened at the
+step that needs it, by its path, so a path a definition names has to be a
+file in the tree.
 
-#107's stated reason for landing this before the framer and the sealer is
-that a fifth agent should inherit the contract without anyone deciding to
-give it one. So the check globs `agents/*.md` rather than naming the three
-that exist: a fourth definition arriving without the line is red on the day
-it lands, and that is the miss with no other symptom.
-
-The pins are BODY sentences of the opening paragraph, matched inside that
-paragraph and nowhere else. Scoping is not tidiness here. A contract line
-that drifts to the bottom of a definition still satisfies a whole-file
-search, while the agent reads it after the rules it was meant to precede;
-and phase 1's first draft pinned eight headings, where a heading outliving
-its rule passed.
+The checks glob `agents/*.md` rather than naming the five, so a sixth
+definition arriving in another shape is red on the day it lands. The three not
+yet written anew are skipped by name from the shape case until the issue that
+rewrites each, #968 to #970; every definition, rewritten or not, is held to
+preloading the contract.
 """
 
 import glob
@@ -33,21 +25,20 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
 
-# The sentence as `spec.md` decided it, split into the four claims it makes.
-# Identical in every definition so that a fourth agent's author copies it
-# without thinking, which is what the identity case below holds it to.
-PINS = (
-    "The agent contract binds you, and you already have it",
-    "so it arrived at startup, before your first tool call",
-    "how to read an exit code, what you must not run, what you must not "
-    "write, and how a probe is written",
-    "This file adds only what is yours",
-)
+CONTRACT = "skills/agent-contract/SKILL.md"
+SENTENCE = f"`{CONTRACT}` binds you, and it arrived before your first tool call."
+SECTIONS = ("## Job", "## Order of work", "## Never", "## Rules")
 
-# A backtick-quoted token that could be a contract: a skill name or a path.
-# `skills:` is not one of them — the colon is outside the character class,
-# which is what keeps the name of the MECHANISM out of the answer.
-TOKEN = re.compile(r"`([A-Za-z0-9][A-Za-z0-9._/-]*)`")
+# Skipped by name from the shape case alone, each until the issue that writes
+# it anew deletes its entry; the preload case below skips none.
+NOT_YET_REWRITTEN = {
+    "agents/framer.md": "#968",
+    "agents/scribe.md": "#970",
+}
+
+# A backticked path into the plugin's own tree. A placeholder (`<…>`), a glob,
+# a `path::name` target and a `path#anchor` are not paths and are not read.
+PLUGIN_PATH = re.compile(r"`((?:skills|templates|docs|agents)/[A-Za-z0-9._/-]*)`")
 
 
 def read(path):
@@ -55,68 +46,60 @@ def read(path):
         return handle.read()
 
 
-def frontmatter(text):
-    return text.split("\n---\n", 1)[0]
-
-
-def listed_skills(text):
-    """The `skills:` entries the harness preloads, in order."""
-    return re.findall(r"^  - (\S+)", frontmatter(text), re.M)
-
-
-def opening_block(text):
-    """Everything between the `# <name>` heading and the first `## ` heading."""
-    body = text.split("\n---\n", 1)[1] if text.startswith("---\n") else text
-    heading = re.search(r"^# \S.*$", body, re.M)
-    assert heading, "no `# <name>` heading"
-    rest = body[heading.end() :]
-    following = re.search(r"^## ", rest, re.M)
-    return rest[: following.start()] if following else rest
-
-
-def contract_paragraph(text):
-    """The FIRST paragraph under the `# <name>` heading, and only that.
-
-    `spec.md`: the line stands immediately under the heading and before
-    anything else. A paragraph that is merely somewhere in the file is not
-    the thing that was decided."""
-    return opening_block(text).strip("\n").split("\n\n", 1)[0]
-
-
-def flat(text):
-    return " ".join(text.split())
-
-
-def missing_pins(text):
-    """Every pin that is not inside the definition's contract paragraph."""
-    paragraph = flat(contract_paragraph(text))
-    return [phrase for phrase in PINS if phrase not in paragraph]
-
-
-def named_contracts(text):
-    """What the contract paragraph points at — skill names or paths."""
-    return TOKEN.findall(contract_paragraph(text))
-
-
-def resolves(token):
-    """Whether the named contract is a file in this tree.
-
-    A bare name is a skill, reached through the frontmatter; a token with a
-    separator or a suffix is a path from the repository root. Both forms are
-    resolved, because Q1 weighed both and a later answer could move it."""
-    if "/" in token or token.endswith(".md"):
-        return os.path.exists(os.path.join(ROOT, token))
-    return os.path.exists(os.path.join(ROOT, "skills", token, "SKILL.md"))
-
-
-def contract_path(token):
-    if "/" in token or token.endswith(".md"):
-        return os.path.join(ROOT, token)
-    return os.path.join(ROOT, "skills", token, "SKILL.md")
-
-
 def name(path):
     return posix_id(os.path.relpath(path, ROOT))
+
+
+def split(text):
+    """`(frontmatter, body)`, or `(None, text)` where none opens the file."""
+    m = re.match(r"---\n(.*?)\n---\n", text, re.S)
+    return (m.group(1), text[m.end() :]) if m else (None, text)
+
+
+def listed_skills(head):
+    """The `skills:` entries the harness preloads, in order."""
+    block = re.search(r"^skills:[ \t]*\n((?:[ \t]+- .*\n?)+)", head + "\n", re.M)
+    inline = re.search(r"^skills:[ \t]*\[(.*)\][ \t]*$", head, re.M)
+    if block:
+        return re.findall(r"- (\S+)", block.group(1))
+    if inline:
+        return [s.strip() for s in inline.group(1).split(",") if s.strip()]
+    return []
+
+
+def opening_paragraph(body):
+    """The first paragraph under the `# <name>` heading, and only that."""
+    heading = re.search(r"^# \S.*$", body, re.M)
+    if not heading:
+        return None
+    return body[heading.end() :].strip("\n").split("\n\n", 1)[0]
+
+
+def shape_problems(text):
+    """Every way TEXT departs from the shape, each as a sentence."""
+    head, body = split(text)
+    if head is None:
+        return ["no frontmatter"]
+    problems = []
+    skills = listed_skills(head)
+    if skills != ["agent-contract"]:
+        problems.append(f"`skills:` lists {skills}, not `agent-contract` alone")
+    opening = opening_paragraph(body)
+    if opening != SENTENCE:
+        problems.append(f"the opening paragraph is {opening!r}, not the sentence")
+    headings = tuple(re.findall(r"^## .*$", body, re.M))
+    if headings != SECTIONS:
+        problems.append(f"the `## ` headings are {headings}, not {SECTIONS}")
+    return problems
+
+
+def missing_paths(text):
+    """Every backticked plugin path TEXT names that is not in the tree."""
+    return [
+        p
+        for p in PLUGIN_PATH.findall(text)
+        if not os.path.exists(os.path.join(ROOT, p))
+    ]
 
 
 # --- there is something to check -------------------------------------------
@@ -124,33 +107,59 @@ def name(path):
 
 def test_the_glob_finds_the_definitions():
     """A glob that matches nothing passes every case parametrised on it."""
-    assert len(AGENTS) >= 3, f"agents/*.md matched {len(AGENTS)} files"
+    assert len(AGENTS) >= 5, f"agents/*.md matched {len(AGENTS)} files"
 
 
-# --- the line --------------------------------------------------------------
+def test_the_sentence_names_the_contract():
+    """The sentence names a file that is the contract, so a sentence pointing
+    at another skill that happens to exist is red here rather than nowhere."""
+    with open(os.path.join(ROOT, CONTRACT), encoding="utf-8") as handle:
+        assert "## §1 " in handle.read(), f"{CONTRACT} carries no numbered rules"
 
 
-# The ways a definition is allowed to CLOSE its own list of durable writes.
-# A vocabulary rather than a list of files: a fifth agent has to pick one of
-# these or add a fourth deliberately, and either way somebody wrote the bound.
-#
-# Round 1, finding 4 of #120. Old §6 was a blanket prohibition with deliberate
-# carve-outs named elsewhere, so a definition's prose about what it produces
-# was decorative -- a reader looking for permission was looking for an
-# exception and would not find one here. New §6 asks a weaker question, *is
-# this write named in your own definition*, which turns any loose sentence
-# about leaving durable evidence into a grant. The bound is what closes it.
-# Round 2, finding 1: the fourth entry used to read `you don't write them
-# anywhere`, and in `agents/scribe.md` that matched a PARENTHETICAL whose
-# subject is worker findings being pre-verification — a sentence about whose
-# judgment a verdict is, not a bound on a list of writes. That file states no
-# list of writes at all, so the case passed on it for a reason unrelated to
-# what it checks, and a fifth definition copying the parenthetical into
-# unrelated prose passed with no bound either. Rewording the parenthetical
-# alone turned the case red, which is what showed the pass rested on it.
-#
-# Every entry here now names WRITING as its subject, so a phrase can only be
-# matched by a sentence that is about what the file's agent writes.
+# --- the shape ---------------------------------------------------------------
+
+
+@pytest.mark.parametrize("path", AGENTS, ids=name)
+def test_every_definition_has_the_shape_and_preloads_the_contract_alone(path):
+    """A definition preloads `agent-contract` alone, opens with the one
+    sentence and carries the four sections in order (S1).
+
+    It catches a second skill creeping back into a `skills:` list, which no
+    eval sees while the output is right, and a section lost or added in a
+    later edit; no other case reads a definition's frontmatter or headings."""
+    if name(path) in NOT_YET_REWRITTEN:
+        pytest.skip(f"{name(path)} is written anew in {NOT_YET_REWRITTEN[name(path)]}")
+    assert shape_problems(read(path)) == [], name(path)
+
+
+@pytest.mark.parametrize("path", AGENTS, ids=name)
+def test_every_definition_preloads_the_contract(path):
+    """The contract arrives by the `skills:` list, rewritten definition or
+    not, and every rule it carries rests on that arrival. The shape case
+    above skips the ones #968 to #970 rewrite; this one skips none, so
+    a definition that drops `agent-contract` is red whatever its shape
+    (#957 round 1, finding 3)."""
+    head, _body = split(read(path))
+    assert head is not None and "agent-contract" in listed_skills(head), name(path)
+
+
+@pytest.mark.parametrize("path", AGENTS, ids=name)
+def test_every_file_a_step_names_exists(path):
+    """Every `skills/`, `templates/`, `docs/` or `agents/` path a definition
+    names is a file or directory in the tree (S2).
+
+    A step opens a skill by its path, so a renamed skill leaves an
+    instruction an agent meets as *file not found* mid-run; `rules --check`
+    reads only `Enforced by:` targets, and no other case reads the paths a
+    step names."""
+    assert missing_paths(read(path)) == [], name(path)
+
+
+# The ways a definition is allowed to close its own list of durable writes.
+# Under the contract's §6 a definition's named writes are its permission, so
+# every definition says where that list stops, and each phrase names WRITING
+# as its subject so only a sentence about what the agent writes can match it.
 BOUNDS = (
     "a write not below is a write you do not make",
     "a write not named here is a write you do not make",
@@ -161,126 +170,86 @@ BOUNDS = (
 
 @pytest.mark.parametrize("path", AGENTS, ids=name)
 def test_every_definition_bounds_what_it_writes(path):
-    """Under §6 a definition's named writes ARE its permission, so every
-    definition has to say where that list stops.
-
-    Enumerated by construction over the glob rather than over the file the
-    finding named: `agents/sealer.md` and `agents/warden.md` already closed
-    theirs, `agents/scribe.md` says it writes nothing anywhere, and
-    `agents/smith.md` -- whose opening claims it leaves durable evidence and
-    stamps a mark, two things §6 itself lists as durable records -- had no
-    closing sentence at all. A definition that names writes and never says
-    `and no others` reads its own examples as a floor."""
-    text = flat(read(path))
+    """A definition that names writes and never says where the list stops
+    reads its own examples as a floor, and under §6 every sentence about
+    producing something becomes a grant."""
+    text = " ".join(read(path).split())
     assert any(bound in text for bound in BOUNDS), (
-        f"{name(path)} never says where its list of durable writes stops. "
-        "Under §6 what a definition names IS what its agent may write, so a "
-        "file with no bound turns every sentence about producing something "
-        "into a grant. Close it the way the others do, or add the form this "
-        "one uses to BOUNDS with the reason"
+        f"{name(path)} never says where its list of durable writes stops"
     )
-
-
-@pytest.mark.parametrize("path", AGENTS, ids=name)
-def test_every_definition_opens_with_the_contract_line(path):
-    absent = missing_pins(read(path))
-    assert not absent, f"{name(path)}'s opening paragraph no longer says: {absent}"
-
-
-@pytest.mark.parametrize("path", AGENTS, ids=name)
-def test_the_contract_it_names_resolves_to_a_file_in_the_tree(path):
-    named = named_contracts(read(path))
-    assert len(named) == 1, (
-        f"{name(path)}'s contract line names {named}; it names exactly one"
-    )
-    assert resolves(named[0]), (
-        f"{name(path)} points at `{named[0]}`, which is not in this tree"
-    )
-
-
-@pytest.mark.parametrize("path", AGENTS, ids=name)
-def test_the_file_it_names_is_a_contract(path):
-    """Pointing the line at some other skill that happens to exist is the
-    quieter half of the same miss: it resolves and delivers nothing."""
-    named = named_contracts(read(path))[0]
-    assert "## §1 " in read(contract_path(named)), (
-        f"{name(path)} points at `{named}`, which carries no numbered sections"
-    )
-
-
-@pytest.mark.parametrize("path", AGENTS, ids=name)
-def test_a_bare_name_is_delivered_by_the_frontmatter(path):
-    """Q1 answered B-prime: the harness preloads what the `skills:` list holds.
-
-    The work item's records spell that answer `B` followed by U+2032 PRIME.
-    Written out here instead, because `ruff check .` runs over `tests/` in CI
-    and reads a prime in a docstring as an ambiguous character — phase 2
-    shipped one and the branch has been failing that step since.
-
-    A definition that names the contract in prose but does not list it has
-    written down an intention, not a delivery."""
-    text = read(path)
-    named = named_contracts(text)[0]
-    if "/" in named:
-        pytest.skip("named as a path, which the frontmatter does not deliver")
-    assert named in listed_skills(text), (
-        f"{name(path)} names `{named}` but its `skills:` list holds "
-        f"{listed_skills(text)}"
-    )
-
-
-def test_the_line_is_identical_in_every_definition():
-    """So the author of a fourth agent copies it without thinking."""
-    paragraphs = {name(p): flat(contract_paragraph(read(p))) for p in AGENTS}
-    assert len(set(paragraphs.values())) == 1, paragraphs
 
 
 # --- the check can fail ----------------------------------------------------
 
 
-FOURTH = """---
-name: fourth
+GOOD = f"""---
+name: sixth
 description: |
-  A fourth agent, arriving with no contract line.
+  A sixth agent.
 skills:
-  - writing-style
+  - agent-contract
 ---
 
-# fourth
+# sixth
 
-You do a fourth thing. This file says what it is.
+{SENTENCE}
 
-## Role
+## Job
 
-- Something.
+It does a sixth thing; a write not named here is a write you do not make.
+
+## Order of work
+
+1. Open `skills/code-review/SKILL.md` and follow it.
+
+## Never
+
+- Push.
+
+## Rules
+
+**A rule.** It holds.
+Enforced by: nothing — a planted definition
 """
 
 
-def test_a_definition_with_no_contract_line_is_caught():
-    assert missing_pins(FOURTH) == list(PINS)
+def test_the_planted_definition_has_the_shape():
+    """The cases below break one thing each, so the one they start from has
+    to pass, or a break that changes nothing would read as caught."""
+    assert shape_problems(GOOD) == []
+    assert missing_paths(GOOD) == []
 
 
-def test_a_line_pointing_at_a_path_that_does_not_exist_is_caught():
-    text = read(AGENTS[0])
-    named = named_contracts(text)[0]
-    broken = text.replace(f"`{named}`", "`docs/agent-contract.md`", 1)
-    assert named_contracts(broken) == ["docs/agent-contract.md"]
-    assert not resolves("docs/agent-contract.md")
+def test_a_second_preload_is_caught():
+    broken = GOOD.replace(
+        "  - agent-contract\n", "  - agent-contract\n  - code-review\n"
+    )
+    assert broken != GOOD
+    assert any("`skills:`" in p for p in shape_problems(broken))
+    inline = GOOD.replace(
+        "skills:\n  - agent-contract\n", "skills: [agent-contract, implement]\n"
+    )
+    assert any("`skills:`" in p for p in shape_problems(inline))
 
 
-def test_a_line_that_drifts_out_of_the_opening_is_caught():
-    """The pin is scoped to the first paragraph, so a line that survives in
-    the file while the definition opens without it is red."""
-    text = read(AGENTS[0])
-    paragraph = contract_paragraph(text)
-    moved = text.replace(paragraph + "\n\n", "", 1).rstrip("\n") + "\n\n" + paragraph
-    assert paragraph in moved, "the mutation deleted the line instead of moving it"
-    assert missing_pins(moved) == list(PINS)
+def test_a_missing_or_extra_section_is_caught():
+    gone = GOOD.replace("## Order of work\n", "")
+    assert any("headings" in p for p in shape_problems(gone))
+    extra = GOOD + "\n## Report\n\nMore.\n"
+    assert any("headings" in p for p in shape_problems(extra))
+    swapped = GOOD.replace("## Never", "## Tmp").replace("## Job", "## Never")
+    assert any("headings" in p for p in shape_problems(swapped))
 
 
-def test_a_name_dropped_from_the_frontmatter_is_caught():
-    text = read(AGENTS[0])
-    named = named_contracts(text)[0]
-    stripped = re.sub(rf"^  - {re.escape(named)}\n", "", text, count=1, flags=re.M)
-    assert stripped != text, "the frontmatter never listed it"
-    assert named not in listed_skills(stripped)
+def test_a_sentence_anywhere_but_the_opening_is_caught():
+    moved = GOOD.replace(f"{SENTENCE}\n\n", "", 1) + f"\n{SENTENCE}\n"
+    assert SENTENCE in moved
+    assert any("opening paragraph" in p for p in shape_problems(moved))
+    wrapped = GOOD.replace(SENTENCE, SENTENCE.replace(" binds", "\nbinds"))
+    assert any("opening paragraph" in p for p in shape_problems(wrapped))
+
+
+def test_a_path_that_does_not_resolve_is_caught():
+    for path in ("skills/code-reviews/SKILL.md", "docs/no-such-document.md"):
+        broken = GOOD.replace("skills/code-review/SKILL.md", path)
+        assert missing_paths(broken) == [path]

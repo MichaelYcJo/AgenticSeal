@@ -39,7 +39,7 @@ anchor written out, and a quoted line's region is its paragraph.
 |---|---|
 | The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
 | How many rows of a consuming repository's ledger change verdict on upgrade (`questions.md` Q3) | that repository's installer, by `evidence-check --strict .` at 0.21.0; the one known instance is #848's reporter, whose rows citing TypeScript units by name all read `BROKEN` with the remedy |
-| ✅ The walk against real code of each family beyond the fixtures — a large TypeScript or JSX codebase, C with preprocessor branches, Rust with macros | moot: the walk and its lexer left the tree in phase 5 of the redesign (1e00f933), so there is no walk to misread anything |
+| closed The walk against real code of each family beyond the fixtures — a large TypeScript or JSX codebase, C with preprocessor branches, Rust with macros | moot: the walk and its lexer left the tree in phase 5 of the redesign (1e00f933), so there is no walk to misread anything |
 
 ## Not done
 

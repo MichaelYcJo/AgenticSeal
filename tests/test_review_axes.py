@@ -80,17 +80,28 @@ def test_the_preset_block_carries_the_routing_decision():
 def test_a_later_round_inherits_no_verdict_anywhere():
     """A sentence saying axes carry "without re-walking" outranks a corrected
     sentence twenty lines below it; the old handoff protocol had both at once.
-    The record's documents now say only what carries: where to look."""
+    The record's documents now say only what carries: where to look. The
+    warden's definition carries the table of which facts may be carried, and
+    a verdict is on its re-derived side."""
     skill = " ".join(read("skills", "code-review", "SKILL.md").split())
     record = " ".join(read("docs", "the-review-record.md").split())
+    warden = " ".join(read("agents", "warden.md").split())
     for stale in ("inherit judged axes", "without re-walking"):
-        for where, text in (("SKILL.md", skill), ("the-review-record.md", record)):
+        for where, text in (
+            ("SKILL.md", skill),
+            ("the-review-record.md", record),
+            ("warden.md", warden),
+        ):
             assert stale not in text, (
                 f"verdict inheritance came back as `{stale}` in {where}"
             )
     assert "What carries is **where to look, not what was concluded**" in skill, (
         "the cross-session records stopped saying what actually carries"
     )
+    assert (
+        "| Where a subsystem lives, what a helper is for | Any verdict, on any axis |"
+        in warden
+    ), "the warden's table no longer puts every verdict on the re-derived side"
 
 
 def test_implement_and_the_preset_block_do_not_drift():

@@ -35,8 +35,6 @@ is the harness's word for blocking the call.
 
 Exit codes: 2 for an interpreter below the floor or no script named, with
 nothing read and nothing written; otherwise the script's own.
-
-Reads: owned — the command line its wrapper writes, the script's path first; unknown passed
 """
 
 import os
@@ -57,8 +55,6 @@ USAGE = "usage: launch.py <script> [arguments...]\n"
 
 def refusal(script, version, executable):
     """The sentence for `script` on an interpreter below the floor.
-
-    Reads: nothing — formats the version and path its caller read off `sys`
 
     The command is the script's name the way its wrapper spells it,
     `broad_gate.py` as `broad-gate`, so a reader who typed the wrapper
@@ -83,8 +79,6 @@ def refusal(script, version, executable):
 
 def main(argv):
     """Refuse below the floor, else run `argv[1]` as `__main__`.
-
-    Reads: owned — the script path its wrapper wrote; unknown passed
 
     `sys.path[0]` is the script's directory with links resolved, which is
     what the interpreter puts there for a script it runs itself.

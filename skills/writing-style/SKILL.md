@@ -42,6 +42,11 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 
 ## 문장 규칙
 
+**이 절만 열었다면**: 어느 언어로 쓰든 위의 `## 먼저` 표와 아래의 `## 구성 규칙` 이
+함께 적용되고, 쓰는 글의 절이 그 위에 더해진다. 리뷰 코멘트면
+`## 리뷰 코멘트에만 해당하는 것` 이고, PR 본문·다른 팀에 답하는 코멘트·사용자와의
+대화면 `outside-the-review.md` 의 절이다.
+
 ### 완전한 문장으로 쓴다
 
 **압축체·명사 나열·전보문을 쓰지 않는다.** 무엇이 문제고, 왜 문제고, 어떻게 고치는지가 문장으로 드러나야 한다.
@@ -222,7 +227,7 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 
 | 나쁨 | 좋음 |
 |---|---|
-| the seal | the smith's seal · the sealer's seal · the warden's review mark |
+| the seal | the sealer's seal · the warden's review mark · the smith's labels |
 | 리뷰 표시 | warden 이 남기는 리뷰 표시 |
 
 판단 기준은 **그 문장에서 주인이 둘 이상일 수 있는가**다. 찾아야 할 모양은 한
@@ -257,7 +262,7 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 대신하는 것이 아니다.
 
 - **통과를 먼저 증명하려 하지 않는다.** "이 코드에는 결함이 있다"를 기본 가정으로 시작한다. 근거 없는 통과(LGTM)는 금지 — 확신이 없으면 통과가 아니라 질문이다.
-- **심각도 이름에 행동을 담는다.** `🔴 CRITICAL` 같은 일반 등급보다 "무엇을 해야 하는지"가 이름에 있는 것이 낫다 (`code-review` 스킬의 등급 체계를 따른다).
+- **심각도 이름에 행동을 담는다.** `CRITICAL` 같은 일반 등급보다 "무엇을 해야 하는지"가 이름에 있는 것이 낫다 (`code-review` 스킬의 등급 체계를 따른다).
 - **수정 제안은 붙여 넣을 수 있게** 쓴다. 왜 그렇게 고치는지는 코드 옆 주석이 아니라 본문 문장으로 설명한다.
 
 ## 리뷰 코멘트가 아닌 글은 `outside-the-review.md` 에 있다
@@ -271,6 +276,13 @@ PR 본문·다른 팀에 답하는 코멘트·사용자와의 대화, 이 셋의
 나머지 셋은 스폰마다 함께 도착할 이유가 없었다 (#265).
 
 ## English prose rules
+
+**If you opened this section alone**: the table under `## 먼저` and the
+structure rules under `## 구성 규칙` apply in every language, and the section
+for the text being written adds to them. That is
+`## 리뷰 코멘트에만 해당하는 것` for a review comment, and
+`outside-the-review.md` for a PR body, a reply to another team or a
+conversation.
 
 Independent norms for English output (PR bodies and commit messages are often
 English even when reviews are Korean). The structure rules above apply as-is.

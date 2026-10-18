@@ -130,9 +130,7 @@ def live_markers(changelog_text):
     Lines are split by the shared reader's `gfm_lines`, so this file is read
     in the lines GFM renders: a marker standing after a U+2028 or a form feed
     on its line is not a line of its own (#664). Every other split of this file's text and
-    of a fragment below reads the same function, for the same reason.
-
-    Reads: guess — a changelog's text its caller hands it, through `unverified_check.py#live_lines`; unknown passed"""
+    of a fragment below reads the same function, for the same reason."""
     return [
         line[len("<!-- specs/") : -len(" -->")]
         for line, live in reader.live_lines(reader.gfm_lines(changelog_text))

@@ -211,8 +211,6 @@ def try_run(*args):
     durable log's lookup, and the best-effort arguments to the create. None
     of them touches the exactly-one-open invariant, which is the thing worth
     failing a release over.
-
-    Reads: observed — a command's exit code and output; unknown passed
     """
     out = subprocess.run(args, capture_output=True, encoding="utf-8")
     return None if out.returncode else out.stdout
@@ -379,8 +377,6 @@ def find_baseline_issue(repo):
     exactly-one-open rule and says a broken invariant is named rather than
     guessed at, and a body carrying one of two numbers looks exactly like a
     body carrying the only one.
-
-    Reads: observed — the JSON `gh issue list` writes, through `try_run`; unknown passed
     """
     out = try_run(
         "gh",
@@ -415,8 +411,6 @@ def issue_body(shipped, closed_number, baseline_number, notes=(), comments=None)
     three places that say the predecessor closed empty (#198): the new log is
     the one the next session opens to write in, and a reader there is the
     one who can still do something about a cycle that measured nothing.
-
-    Reads: nothing — it writes the body from the values its caller hands it
     """
     baseline = (
         f"Baselines and the observations that span versions live in "
@@ -470,10 +464,7 @@ def landed_create(repo, closed_number):
 
 
 def open_issue(repo, shipped, closed_number, comments=None):
-    """Open the next log, dropping on each rung what the rung above could not set.
-
-    Reads: observed — what `gh` answers, through `find_baseline_issue`, `try_run` and `landed_create`; unknown mixed
-    """
+    """Open the next log, dropping on each rung what the rung above could not set."""
     title = log_title(shipped)
     baseline, baseline_note = find_baseline_issue(repo)
     baseline_notes = (baseline_note,) if baseline_note else ()

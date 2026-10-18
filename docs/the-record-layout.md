@@ -120,7 +120,7 @@ into `docs/` (#517). **One condition narrows it: nothing in the record may
 still be open.** An open `## Not verified` row is a claim with an answerer
 rather than a rule, so a directory holding one
 is kept and named with its rows, and closing each row — a row re-homed is
-closed too, ✅ naming where it went — in a pull request merged before the one
+closed too, `closed` naming where it went — in a pull request merged before the one
 that retires the directory is what lets the next retirement take it. The CI
 readers ask the rule of the merge base, so a closure in the same pull request
 as the removal is still open where they look. `settle` asks it at the merge
@@ -196,27 +196,18 @@ paragraph says what its English one says is review's to read.
 Enforced by: tests/test_both_editions_carry_the_same_folds.py::disagreements
 
 <!-- specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules -->
-**Whether a line is live is asked by what the line does, and the five
-readers that ask it give three answers.** These are all five readers, grouped
+**Whether a line is live is asked by what the line does, and the four
+readers that ask it give three answers.** These are all four readers, grouped
 by the kind of line they read, with the cost each answer is chosen against.
 Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_the_statement_names_each_reader_under_its_answer, tests/test_routing_is_recorded.py::test_the_routing_shapes_read_as_the_frame_expects, tests/test_routing_is_recorded.py::test_a_declaration_below_a_comment_opener_nobody_closed_still_reads
 
-- **A line that HOLDS something — a claim, an anchor, a rider — is read on
+- **A line that HOLDS something — a claim or an anchor — is read on
   doubt.** The coordinate kernel's `quoted_lines`, which its `unquoted` and
-  `markdown_lines` read through, and the rider check's `quoted_lines`. A
-  fence nobody closed is a malformed file whose lines are read, and a
-  commented-out row is a parked claim and is read. What this protects is
-  that a claim never leaves a record in silence. The wrong answer is loud
-  instead: `BROKEN`, a refused name or exit 2, and a person answers it with
-  an edit or a marker. The rider check reads a different amount from the
-  kernel, for a reason its own docstring holds: it reads by
-  `hooks/blocks.py#walk` rather than by the delimiter rule, and parts from
-  the kernel three ways: it reads a fence its walk is not
-  sure of, one opened at one to three spaces, which the delimiter rule
-  closes, because a rider the walk cannot place is read as it was before the
-  walk; it reads a fence inside a line-start comment that closes, which a
-  renderer reads as comment text, not as a fence; and it skips a fence that
-  closes below a fence nobody closed, which a renderer hides either way.
+  `markdown_lines` read through. A fence nobody closed is a malformed file
+  whose lines are read, and a commented-out row is a parked claim and is
+  read. What this protects is that a claim never leaves a record in silence.
+  The wrong answer is loud instead: `BROKEN`, a refused name or exit 2, and a
+  person answers it with an edit or a marker.
   Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_each_reader_gives_its_stated_answer_on_each_shape
 - **A line that EXCUSES or DECLARES something — a fold marker, a
   `seal/config.md` row, a `routing.md` row — is not taken on doubt, except
@@ -229,7 +220,7 @@ Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
   comment opener nobody closed still declares unless a fence that closes
   holds it, because that reading never hid one and work item 1790645290
   was bound to miss no row the older reading saw. `hooks/routing.py#shown`,
-  which reads a `routing.md` and is not one of the five, keeps the reading
+  which reads a `routing.md` and is not one of the four, keeps the reading
   it gave before the walk the same way, and that reading hid nothing: a row
   below a fence or a comment opener nobody closed still declares there,
   unless a fence that closes holds it. Those rows are the places a line
@@ -297,7 +288,7 @@ a work item that finds one wrong corrects it.
 | `docs/the-agent-set.md` | how the rules are split between the agents a work item spawns |
 | `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
 | `docs/the-commit-gate-inside-git.md` | what git decides inside a commit, what its hooks cannot see, and which reading judges each state of a repository |
-| `docs/the-reader-registry.md` | what class of input each unit of shipped Python declares, who must declare, and how a frame names what its work removes |
+| `docs/the-reader-registry.md` | how a frame names what its work removes |
 | `docs/the-record-layout.md` | this index: where each kind of record lives, which file a change writes, when a later commit brings the changelog fragment along, and the fold's values and what tells it from a deletion |
 | `docs/the-review-and-parity-arms.md` | what each opt-in arm of the commit gate wants, and the routing declaration that moves the review arm's check to the pull request |
 | `docs/the-review-record.md` | what a review round leaves in the tree, what the pull-request check reads of it, the run's bound and end, and how work is handed to an agent |
@@ -335,8 +326,8 @@ retires the directory. Which file each agent writes is
 | `phases/phase-N.md` | what one build phase was asked, found and removed |
 | `rounds/round-N.md` | what one review round read, found and closed |
 | `changelog.md` | this work item's entry in the next release's notes |
-| `broad-gate.md` | the sealer's one broad run, on either routing answer |
-| `guarantee.md` | whether the sealer found the work sound, against the issue and the tree |
+| `broad-gate.md` | the orchestrator's one broad run, on either routing answer |
+| `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
 
 **The files keep these paths and stop mattering at two different times.**
 `routing.md` and the SDD set (`spec.md`, `plan.md`, `questions.md`,

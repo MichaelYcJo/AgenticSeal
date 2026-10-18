@@ -206,17 +206,15 @@ def test_the_implementer_keeps_the_half_that_makes_the_rule_its_own():
     """What stayed in `agents/smith.md` when §9 took the rest.
 
     The reviewer's half answers *are my acts edits at all*. The smith never
-    had that doubt — it is the agent that edits — so its half is the other
-    end of the same reason: which of the documents in front of it is the one
-    the gate reads a commit out of. Its own routing paragraph is that
-    document, and the RIDER beside it is why the example stays.
+    had that doubt — it is the agent that edits — so its half is the act
+    itself, named in its `## Never` with the forms a shell edit takes. Its
+    waiver example and the RIDER beside it left with its rewrite (#967).
     """
     smith = flat(*SMITH)
     assert "§9" in smith, "the implementer can no longer reach the rule"
-    assert "waiver" in smith and "RIDER" in smith, (
-        "the smith stopped being told that its own waiver example is the "
-        "patch the gate reads a commit out of, which is the one instance of "
-        "§9 that is nobody else's"
+    assert "Edit through the shell: no `sed -i`, no heredoc" in smith, (
+        "the smith stopped being told which of its acts §9 rules out, and it "
+        "is the agent that edits most"
     )
 
 

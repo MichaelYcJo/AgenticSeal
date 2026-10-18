@@ -15,7 +15,8 @@ description: |
 # implement — spec-driven implementation
 
 Methodology for implementing against written specs, leaving a case behind
-each rule, and closing the loop with review. Loaded by the `smith` agent; usable directly.
+each rule, and closing the loop with review. Opened by the `smith` agent at
+its first step; usable directly.
 
 **`skills/agent-contract/SKILL.md` binds this session too, and only if you
 load it.** A session driving the work directly reads this skill and never
@@ -24,27 +25,10 @@ reaches it by being opened rather than by arriving — `user-invocable: false`
 permits the load and does not oblige it. #107's headline failure is an
 orchestrator breaking a rule it had put into every prompt it sent.
 
-## The orchestrator's half is a file of its own
-
 **If you are orchestrating a work item rather than building it, read
-`skills/implement/orchestration.md` before the first edit.** The three
-sections this file used to carry for the session that spawns agents are
-there, verbatim and under an `Orchestrator:` prefix: how the `seal/` root is
-created the first time a repository opts in, how parity mode is set up, and
-how the routing question — question 1 alone, the boxes only under `per
-axis`, one declaration — is asked and written into `routing.md` before
-anything is built.
-
-**An implementer never opens it**, and that is why it is a path rather than
-an entry in a `skills:` list. Asking a person and writing `routing.md` are
-acts `agents/smith.md` leaves to the session that spawned it, so 14,949
-characters of procedure reached every `smith` spawn with no act of its own to
-apply them to (#292). `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py`
-is what keeps a marked section out of a preloaded file.
-
-Everything else in this file is the implementer's, and the orchestrator reads
-it too: a work item is judged against the same precedence and the same file
-set as the code it builds.
+`skills/implement/orchestration.md` before the first edit**; an implementer
+never opens it, and everything below is the implementer's and the
+orchestrator's alike.
 
 ## The language the records are written in
 
@@ -76,8 +60,9 @@ rather than by a person: every field name, section heading and vocabulary
 word the checkers match, listed in `templates/config.md` under *What no row
 governs* — that list is derived from the checkers' own constants, so it
 cannot drift from them; `<!-- specs/<work-item-id> -->` and the other
-markers; a `drained` line and a ✅; and all code — identifiers, comments, docstrings, file names, test function
-names. A translated field name is not a translation, it is a checker that
+markers; a `drained` line and the `closed` that opens a closed row; and all
+code — identifiers, comments, docstrings, file names, test function names. A
+translated field name is not a translation, it is a checker that
 stops reading.
 
 ## Document layout — two roots, three lifetimes
@@ -292,9 +277,7 @@ not match is an error you see immediately. When the environment routes edits
 through the shell instead — `sed -i`, a heredoc, a short script — a
 substitution whose pattern misses does nothing, says nothing, and exits zero.
 The miss surfaces at the next check, and the cost is another edit and another
-run of whatever you had already run. Measured on one work item here: no `Edit`
-calls, 128 shell edits across 47 files, 2.7 edits per file, and a column
-insertion that silently did not happen because the indentation did not match.
+run of whatever you had already run.
 
 So assert the landing. Every shell substitution states what it expected to
 match and fails loudly when it did not:
@@ -312,8 +295,7 @@ unverified edit, and reporting it as made is the same claim as reporting a
 
 **When a work item is required** — the same threshold the Design Gate uses,
 because they are the same judgment. Drawing no line is how the set quietly
-stops being written; this repo's own history has two features that shipped
-without one and nothing noticed.
+stops being written.
 
 | Work | What to write |
 |---|---|
@@ -326,22 +308,16 @@ used to read *6+ files, a new module, or an architectural choice*, and two of
 those three conditions measured size.
 
 - **One file, and it qualifies.** A change to an agent's persona is two files
-  of wording, and wording is what a session reads and acts on. Measured here:
-  `warden-persona-accuracy` opened as exactly that, wrote no `spec.md`, and
-  finished at eight files with five of them arriving in review rounds 2 and 3.
-  Under the behaviour test it needed a plan at file one.
+  of wording, and wording is what a session reads and acts on, so it needs a
+  plan at file one.
 - **Many files, and it does not.** Copying test repositories instead of
   running `git init` for each touched more files than that and altered nothing
   anyone can observe — no verdict, no output, no instruction. The suite runs
   faster and says the same things.
 
-The count also never said **when** it was taken (issue #35). The gate it
-guards — plan approval — exists only before the first edit, so the number had
-to be the estimate; nothing said so, and nothing said what to do when the
-estimate was passed. Seven branches were measured for that issue and two
-missed the rung by growing past it after the gate had already gone by. A test
-with no number has no moment at which the number is taken, so the question
-stops being answerable and stops needing an answer.
+A count also has to say **when** it is taken, and the gate it guards — plan
+approval — exists only before the first edit (issue #35); a test with no
+number has no such moment, so the question stops needing an answer.
 
 What it costs: *does this alter observable behaviour* is a judgment where
 *six files* was a count, and two people can disagree about a borderline case.
@@ -373,8 +349,7 @@ without a registry — take it from `date +%s` when creating the directory.
 The `Starts from` column is not decoration. A template that no shipped
 document names is a template a session cannot find: it reads *bootstrapped
 from `templates/`*, cannot tell which file that means, and writes one from
-scratch. Two of the original four — before `phases/phase-N.md` joined the
-table — were in exactly that state.
+scratch.
 
 `Written by` is the same kind of column, for the same kind of reason. The
 split it records is what `agents/framer.md` exists for: a `spec.md` written by
@@ -403,23 +378,8 @@ build.
 **`plan.md`'s Phases table is the task list, and there is no other.** Each
 phase carries a **Verified by** column, so it cannot be called done the way a
 checkbox can be ticked, and a **Status** column that is empty or holds the
-commit that closed the phase.
-
-The objection that sent task lists elsewhere is real and it is about form
-rather than location: mutable progress inside the contract asserts a state
-that is not true, which is the failure a stale record always is.
-A commit is not mutable progress. It asserts a **past** state that someone can
-open — the same trick that lets a round record sit beside the contract — so a
-tick and the word `done` are refused where a hash is not. Both of those can be
-typed without anything having happened.
-
-What this gives up, stated rather than left to be found: the finer structure
-`feature-planner` produces — per-task dependencies, what can run in parallel —
-does not fit in a phase row and is not kept anywhere between sessions. Phases
-are already ordered and already vertical slices, so what is lost is the
-parallel marker, and the judgment is that a list nobody ever wrote had no
-structure to lose. It had a home under the plugin's own root for three
-releases, no code ever read it, and it was never once created.
+commit that closed the phase. A commit asserts a **past** state that someone
+can open, so a tick and the word `done` are refused where a hash is not.
 
 ### 4. The closing memo — only what the diff cannot show
 
@@ -452,22 +412,25 @@ A memo whose last three sections are empty is correct and four lines long.
 spelling of the heading or the header row fails the check rather than reporting
 zero, because zero reads as "everything has been closed".
 
-An item is closed by marking it, never by deleting it:
+An item is closed by marking it, never by deleting it: the Item cell opens
+with the word `closed`, lower case, then the item.
 
 ```
-| ✅ how the gates render in a TUI | seen on screen, session of 2026-08-25 |
+| closed how the gates render in a TUI | seen on screen, session of 2026-08-25 |
 ```
 
-An unmarked row counts open, so the silent direction is always "still open",
-and a bare check mark with nothing after it is refused the same way a ticked
-checkbox is. Deleting the row — or the whole file — fails the next pull
+An unmarked row counts open, so the silent direction is "still open", except
+for an open item whose own text begins with the word `closed`, which reads as
+closed and which only a reader catches: word such an item to open with
+another word. A bare `closed` with nothing after it is refused the same way a
+ticked checkbox is. Deleting the row — or the whole file — fails the next pull
 request (`unverified-check --baseline origin/<base>`), which is what keeps "I
 verified it" and "I tidied it away" from being the same edit.
 
 What that check reads is the **number** of rows, not their text. So the second
 cell saying what closed the item is a convention it cannot enforce: swapping
 one row for another keeps the count and passes. Leaving the original answerer
-in place beside a check mark is how a closing goes out unproven, and only a
+in place beside the word is how a closing goes out unproven, and only a
 reader catches it.
 
 Never record something as passing that you did not run. Findings from reading
@@ -513,26 +476,4 @@ Before the PR merges, every unresolved row must move out:
 
 Each finding that moves out reads `deferred <home>` in its round record. The
 records themselves stay through the merge. `settle --retire-process` removes
-them after the release, when no round is left to inherit from them. The
-directory used to be deleted here, and deletion was buying
-one thing worth keeping — a deadline that forced the draining — while costing
-more than it bought: rows left for durable homes because the directory was
-about to disappear, and those homes are outside what the next reviewer reads.
-A deferral that leaves the round records leaves the inheritance range with
-it, and comes back as a finding next round.
-
-## Proof block
-
-End the response with this block whenever the skill was applied. Its values
-cannot be filled without actually opening the documents — that is the point.
-Never invent them; write `none — <reason>` for anything not actually read.
-
-```
-📋 implement applied
-· spec:     <policy/SDD files and clauses actually read>
-· tests:    <the cases this work added or changed, and how each was seen red>
-· verified: <what was executed vs. what was only read>
-```
-
-When the skill matched but did not apply, say so explicitly with the reason —
-silence is indistinguishable from failure to trigger.
+them after the release, when no round is left to inherit from them.

@@ -300,7 +300,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
 
     # The bootstrap and the parity setup are the orchestrator's half of the
     # skill since #292, so the file that has to point at the template is
-    # `orchestration.md`, not the `SKILL.md` every smith spawn preloads.
+    # `orchestration.md`, not the `SKILL.md` every smith spawn opens.
     implement = open(
         os.path.join(ROOT, "skills", "implement", "orchestration.md"),
         encoding="utf-8",
@@ -1349,7 +1349,7 @@ def test_the_cycle_is_bounded_and_ends_at_a_pull_request():
     assert "follow-up.md" in record, "no home recorded for what is left"
     with open(os.path.join(ROOT, "agents", "smith.md"), encoding="utf-8") as f:
         smith = f.read()
-    assert "never at a merge" in smith
+    assert "The chain ends at a pull request, never a merge." in smith
 
 
 # The two skills a definition calls rather than preloads. Neither is in any
@@ -1434,9 +1434,9 @@ def test_the_smith_says_whether_the_frame_holds_before_building_to_it():
     document -- which makes it a habit, and a habit is what the next spawn
     does not inherit.
 
-    The home is pinned as well as the sentence, and it is the Requirements
-    phase. There the check runs on what was just read and a `no` costs the
-    reading; below the design gate it arrives after the question batch has
+    The home is pinned as well as the sentence, and it is the step after the
+    requirements read. There the check runs on what was just read and a `no`
+    costs the reading; after the build starts it arrives once the build has
     already been spent on a frame that does not hold.
 
     A `no` needs a destination or it becomes a second interruption. The one
@@ -1447,29 +1447,31 @@ def test_the_smith_says_whether_the_frame_holds_before_building_to_it():
     smith = " ".join(
         open(os.path.join(ROOT, "agents", "smith.md"), encoding="utf-8").read().split()
     )
-    holds = "say whether the frame holds before you build to it"
+    holds = "Say whether the frame holds before you build to it"
     assert holds in smith, (
         "`agents/smith.md` no longer tells the builder to judge the frame "
         "before building to it. It happened twice unprompted and was recorded "
         "nowhere, which is exactly what a written instruction is for"
     )
-    start = smith.index("1. **Requirements**")
-    # Bounded by the NEXT phase, found by its number rather than by its
-    # title. Phase 2 stopped being the design gate when the act moved
-    # (#419), and a slice keyed on the old title raises rather than
-    # reporting — which is the one failure shape a reader cannot read.
-    requirements = smith[start : smith.index("2. **")]
-    assert holds in requirements, (
-        "the drawing-holds check moved out of the Requirements phase. Below "
-        "the design gate it fires after the question batch, so a frame that "
-        "does not hold has already cost the one interruption"
+    # Since #967 the home is a step of `## Order of work`: after the step
+    # that reads the work item, before the step that builds. Found by the
+    # steps' own words rather than their numbers, so a step inserted above
+    # them moves nothing here.
+    read_at = smith.index("Read the work item:")
+    build_at = smith.index("Build the phase as a vertical slice")
+    assert read_at < smith.index(holds) < build_at, (
+        "the drawing-holds check moved out from between the requirements read "
+        "and the build. After the build starts, a frame that does not hold "
+        "has already been spent on"
     )
+    rule = smith[smith.index("**The frame is judged before it is built to.**") :]
+    rule = rule[: rule.index("Enforced by:")]
     for named in ("phases/phase-N.md", "## What this phase found", "the hand-back"):
-        assert named in requirements, (
-            f"the sentence no longer names `{named}` as where a `no` goes. A "
+        assert named in rule, (
+            f"the rule no longer names `{named}` as where a `no` goes. A "
             "`no` with no destination is a finding that reaches nobody"
         )
-    assert "never back to the framer" in requirements, (
+    assert "never back to the framer" in rule, (
         "the sentence stopped ruling out the route back to the framer, which "
         "is the second interruption that phase exists to spend once"
     )

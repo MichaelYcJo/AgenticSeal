@@ -18,21 +18,44 @@ tree's `bin/` first.
 
 **A rewrite of an agent's preload is proved not worse by running this suite
 on the old tree and on the new one, judged on outcome first and then on
-cost.** `scripts/noninferiority.py run` runs one agent's cases on one side
-and records, per run, the graders, the report's finding rows and the cost
-its trace's `result` event carries (spend, seconds, tokens), beside the
-preload's bytes. `compare` writes the record the five pass rules of
-`noninferiority.py#verdict` judge, and
-`tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes it.
-Nothing in the tree makes a later edit owe a run.
+cost, each against the baseline and none against an absolute.**
+`scripts/noninferiority.py run` runs one agent's cases on one side and
+records, per run, the graders, the report's finding rows and the cost its
+trace's `result` event carries (spend, seconds and `modelUsage`, every
+model's tokens) and its tool calls (every `tool_use` block in the trace,
+the session's and the agent's), beside the preload's bytes. `compare` writes
+the record the five pass rules of `noninferiority.py#verdict` judge:
+
+1. recall has not fallen, except by one find where every truth grader that
+   lost it is still found by at least one new run;
+2. the false-finding rate is within `FALSE_MARGIN` of the baseline's;
+3. each shape and reach grader passes on the new side at least as often as
+   on the baseline, and one the baseline lacks passes every new run;
+4. the preload is fewer bytes than the baseline's;
+5. the tokens read across every model, the spawned agent's included, per
+   tool call are fewer than the baseline's. The rewrite controls the context
+   each call carries, and how many calls an agent makes is its behaviour,
+   which rules 1 to 3 judge (`noninferiority.py#tool_calls`).
+
+Total tokens, tokens per true find, spend and wall seconds are written in
+the record and judge nothing. A side cut short, a case the baseline ran and
+the new side did not, whatever its graders, a case run a different number
+of times, a run whose `modelUsage` is missing or short of a count, or
+one whose trace cannot be read or holds no tool call is no result, never a
+pass.
+`tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes the
+record. Nothing in the tree makes a later edit owe a run.
 
 **Every grader reads an outcome, never a sentence of a definition.** A
 `truth-` grader is a real or seeded defect the report names, a `shape-`
 grader is the work in the shape its next reader needs, and a `reach-` grader
 is the session spawning the agent. No judge scores anything.
 
-The cases are generated, never edited by hand. `--list` shows what a
-generator can write, and `--case NAME` writes one case:
+The cases are generated, never edited by hand. `replay_targets.py` and
+`seed_defects.py` take `--list` for what they can write, `--count N` for the
+N smallest and `--case NAME` for one committed case again, read at every
+release tag; `rule_cases.py` takes no selection and writes every fixture
+case:
 
 | Generator | Cases |
 |---|---|

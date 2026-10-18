@@ -6,10 +6,8 @@ The coordinate kernel: it resolves a `path#unit` coordinate. No command runs
 it: the readers that name a place in a file by its content load this module
 by path and call it. They are `skills/settle/scripts/fold_check.py`, which
 resolves an `Enforced by:` target through `named_unit` for `fold-check` and
-`rules --check`; `.github/scripts/rider_check.py`, whose
-stamp is a locator and a hash; `pact_check.py` beside it and
-`chain_check.py`, which read pact anchors; and `tests/reader_registry.py`,
-whose census line is a unit's hash.
+`rules --check`; and `pact_check.py` beside it and `chain_check.py`, which
+read pact anchors.
 
 A place is named by content, never by position. The locator is a **symbol
 name** where the language offers one, `.py` read with the stdlib `ast`, and
@@ -27,15 +25,6 @@ import os
 import re
 import sys
 
-# A locator: a dotted symbol name or a quoted line of text, where `\|` inside
-# the quotes is an escaped pipe, so a locator naming a markdown table line does
-# not split the table it lives in, and `\"` is an escaped double quote,
-# because a bare one ends the quoted line. `.github/scripts/rider_check.py`
-# builds its stamp from `ANCHOR_LOCATOR` and `ANCHOR_HASH`.
-ANCHOR_NAME = r"[A-Za-z_][A-Za-z0-9_.]*"
-ANCHOR_QUOTED = r"\"(?:[^\"\n]|\\\")+\""
-ANCHOR_LOCATOR = ANCHOR_QUOTED + r"|" + ANCHOR_NAME
-ANCHOR_HASH = r"[0-9a-f]{6,12}"
 HASH_LEN = 8
 # A clause of a pact held in another repository, cited from a signer
 # (#647, `docs/the-pact.md`): `pact:<name>/"<heading path>"@<hash>`. The name
@@ -61,8 +50,6 @@ READER = os.path.join(HERE, "unverified_check.py")
 def shared_reader():
     """The shared reader's module, loaded once by path.
 
-    Reads: observed — `skills/verify/scripts/unverified_check.py`, executed by the interpreter; unknown refused
-
     A reader that is not there, or will not load, raises: a plugin whose
     shared reader is broken has every other gate broken too, and a fallback
     would hide that here alone.
@@ -76,8 +63,6 @@ def shared_reader():
 def quoted_lines(lines):
     """The indices of LINES inside a fenced block that CLOSES, delimiters
     included — the lines `unquoted` blanks.
-
-    Reads: guess — a markdown file's lines, by the shared fence rule; unknown refused
 
     A line that holds a claim is read on doubt, the first of the three
     answers `docs/the-record-layout.md` §*The fold, and what tells it from
@@ -109,8 +94,6 @@ def gfm_lines(text, keepends=False):
     otherwise: no trailing empty line, and each line's end kept only when
     KEEPENDS asks.
 
-    Reads: guess — a person's text its caller hands it, by `unverified_check.py#gfm_lines`; unknown passed
-
     `ast` numbers a `.py` file's lines at LF, CR and CRLF alone, and so does
     GFM, while `str.splitlines` also ends a line at a form feed, NEL, U+2028
     and five more characters. So every walk of lines here, the lines a hash
@@ -121,8 +104,6 @@ def gfm_lines(text, keepends=False):
 
 def unquoted(text):
     """TEXT with every line inside a closed fence blanked to spaces.
-
-    Reads: guess — a person's markdown text its caller hands it, by `quoted_lines`; unknown passed
 
     **Every character offset is kept**: a blanked line is the same length,
     so a position found in this text is the same position in TEXT.
@@ -155,8 +136,6 @@ def content_hash(lines):
 def py_spans(text):
     """{qualified name: [(start, end)]} for defs, classes and constants — or
     None for a file that will not parse.
-
-    Reads: observed — the Python text it is handed, parsed by the running interpreter's `ast`; unknown refused
 
     Decorators are part of the span: a decorator carries behaviour, and a
     locator naming the function it decorates should notice one being added
@@ -226,8 +205,6 @@ def parsed_spans(text):
 def heading_level(line):
     """The level of the markdown heading LINE is, or None: CommonMark 4.2's
     ATX heading, by `unverified_check.py#heading_level` (#867).
-
-    Reads: guess — a markdown line its caller hands it, by `unverified_check.py#heading_level`; unknown passed
     """
     return shared_reader().heading_level(line)
 
@@ -274,8 +251,6 @@ def text_regions(lines, anchor, markdown=False, shown=None):
     file. A `## B` quoted in a closed fence opens no section and ends none.
     The text is still matched on LINES as written, so an anchor on a line
     inside a fence finds its paragraph as it did.
-
-    Reads: guess — a file's lines its caller hands it and a person's anchor, sections by `heading_level`; unknown passed
     """
     shown = lines if shown is None else shown
     want = " ".join(anchor.split())
@@ -354,13 +329,12 @@ def bounding_rule(path):
     """The rule that bounds a unit in PATH: "ast", "heading", or None where
     no rule does (#870).
 
-    A unit is bounded only where a real parser decides its extent. In #835's
-    words, "ast" is OBSERVED, the running interpreter's own parse, and
-    "heading" is an OWNED locator over a person's document, read by
-    CommonMark's heading rule (#867). None is the refusal: a bare symbol in
-    any other file is BROKEN with the quoted-line anchor's shape on its line,
-    never read through a rule that imitates a language's grammar without its
-    parser. A quoted locator needs no rule — the run of non-blank lines it
+    A unit is bounded only where a real parser decides its extent. "ast" is
+    the running interpreter's own parse, and "heading" is a locator over a
+    person's document, read by CommonMark's heading rule (#867). None is the
+    refusal: a bare symbol in any other file is BROKEN with the quoted-line
+    anchor's shape on its line, never read through a rule that imitates a
+    language's grammar without its parser. A quoted locator needs no rule — the run of non-blank lines it
     sits in is a structure the file itself shows.
     """
     suffix = os.path.splitext(path)[1]
@@ -374,8 +348,6 @@ def bounding_rule(path):
 def unbounded(path, rule, text):
     """The sentence a refused bare-symbol locator in PATH reads, naming why
     no unit can be bounded and the anchor to write instead (#870).
-
-    Reads: owned — a text a caller already failed to bound, parsed again only to name the parser's error; unknown refused
     """
     remedy = "anchor a quoted line instead"
     if rule == "ast":
@@ -433,8 +405,6 @@ def resolve_unit(path, locator, text, shown=None):
     """`Resolution(places, refused)` — the places the locator resolves to,
     and why no unit could be bounded, or None.
 
-    Reads: owned — a locator a person wrote, against the text of the file it names; unknown refused
-
     SHOWN is the path the caller's own record writes, where it differs from
     PATH: the refusal's remedy is the edit to make, so it is written on that
     path (round 2 of #870).
@@ -448,10 +418,6 @@ def resolve_unit(path, locator, text, shown=None):
     hand-written lexer, each imitating a grammar without its parser. Both
     now come back with no places and the reason, which a caller prints with
     the quoted-line anchor's shape on the line.
-
-    Its input class is the rule's, in #835's words: OBSERVED for `ast`, and
-    an OWNED locator for a markdown heading path and for a quoted line,
-    whose region is the paragraph it sits in (`text_regions`).
 
     **A locator's job is to put a reader in the right logic, not to pin a
     line.** So the address is the enclosing unit: the function for code, the
@@ -530,8 +496,6 @@ def named_unit(text, names):
     path -- name in the Python TEXT: the kinds of every definition of that
     qualified name, `()` where there is none, or None where TEXT will not
     parse.
-
-    Reads: observed — the Python text it is handed, parsed by the running interpreter's `ast`; unknown refused
 
     **The one resolver of `path::name`** (#836): `fold_check.py#target_problem`
     reads an `Enforced by:` target through it, for `fold-check` and for

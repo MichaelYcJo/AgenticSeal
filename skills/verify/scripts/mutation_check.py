@@ -295,8 +295,6 @@ def mutation_run(
     """Run the cases against the file as it is, then write one mutation, run
     them again, and restore. `(verdict, detail, output)`.
 
-    Reads: observed — the file it mutates, as bytes, and the exit of the cases' command; unknown refused
-
     `Refused` before any run; `NO_BASELINE` when the cases fail before the
     write; `NotRestored` when the restore did not land, which replaces
     whatever the run said."""
@@ -388,10 +386,7 @@ def mutation_run(
 
 
 def main(argv=None) -> int:
-    """Run one mutation from the command line and print its verdict.
-
-    Reads: observed — the command line, and what `mutation_run` returns; unknown refused
-    """
+    """Run one mutation from the command line and print its verdict."""
     parser = argparse.ArgumentParser(
         prog="mutation-check",
         description=(

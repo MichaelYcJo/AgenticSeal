@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """session_cost — where a session's minutes actually went.
 
-The `cost` row in the seal block asks for a number nobody can produce from
-inside the session: how long the checks took, and how much of the wall clock
-was spent waiting on the model between them. The transcript already holds
-both. This reads it.
+Nobody can produce two numbers from inside a session: how long the checks
+took, and how much of the wall clock was spent waiting on the model between
+them. The transcript already holds both. This reads it.
 
 What it separates, because each has a different fix:
 
@@ -1888,9 +1887,7 @@ def token_totals(paths):
     opened and yielded nothing is counted here and is invisible in the totals —
     so a line covering one file for a run that spawned six is visibly wrong to
     the person who spawned them, and `turns` is where a run's messages being
-    counted twice would show. They are the only reader who can tell either.
-
-    Reads: observed — the harness's transcript files; unknown passed"""
+    counted twice would show. They are the only reader who can tell either."""
     totals = {
         "transcripts": 0,
         "turns": 0,
@@ -2521,9 +2518,7 @@ def report_grades(rows):
 
     It refuses nothing and the exit code stays 0. The bar is a lens, and a
     grade that failed a run would be the refusal threshold the protocol says
-    it never is.
-
-    Reads: owned — the segment rows this script built; unknown passed"""
+    it never is."""
     graded = [row for row in rows if row["bar"] is not None and row["numbers"]]
     under = [
         row for row in graded if round(row["numbers"]["tools_per_turn"], 2) < row["bar"]

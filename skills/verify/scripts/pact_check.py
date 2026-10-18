@@ -115,8 +115,6 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
     `ntpath` is what a case passes, so the Windows spelling is exercised on
     every platform rather than resting on a POSIX guarantee
     (`agent-contract` §13).
-
-    Reads: owned — the path strings its caller built from the filesystem, split on the platform's separators; unknown passed
     """
     seps = "".join(s for s in (flavour.sep, flavour.altsep) if s)
 
@@ -327,8 +325,6 @@ def checkout(config, signer, root, mapped, home_dir=None):
 def anchor_files(home):
     """Every file of a signer's root its pact anchors are read from: every
     work item's `spec.md`.
-
-    Reads: observed — the names under a signer's `seal/specs/`, by `glob`; unknown passed
     """
     return sorted(glob.glob(os.path.join(home, "specs", "*", "spec.md")))
 
@@ -447,10 +443,7 @@ def grade(checker, pact_text, history, locator, want):
 
 
 def check(root, out=sys.stdout, home_dir=None):
-    """Read the pact at ROOT and every signer; print; return the exit.
-
-    Reads: guess — the pact, each signer's config and specs, and git's answers, through `hooks/config.py` and `coordinates.py`; unknown refused
-    """
+    """Read the pact at ROOT and every signer; print; return the exit."""
     config = load(os.path.join(HOOKS, "config.py"), "specseal_config_for_pact")
     optin = load(os.path.join(HOOKS, "optin.py"), "specseal_optin_for_pact")
     checker = load(CHECKER, "specseal_evidence_for_pact")

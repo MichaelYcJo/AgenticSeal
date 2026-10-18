@@ -138,8 +138,6 @@ def load(path, name):
     """Import a sibling script by path, or refuse with a sentence saying what
     the missing file is for — its `PURPOSES` entry — and exit 2.
 
-    Reads: owned — a module this plugin ships beside this script; unknown refused
-
     Not a bare `exec_module`: `spec_from_file_location` hands back a spec for
     any path ending in `.py`, present or not, so a missing reader reaches the
     loader and raises `FileNotFoundError` — a traceback where this file's
@@ -225,7 +223,7 @@ RULE_HEADING = (
 )
 RULE_KEPT_HEADING = (
     "kept by the rule — no `spec.md`, but the record still holds an open "
-    "row, which\nleaves by being closed (✅ with what closed it) in a pull "
+    "row, which\nleaves by being closed (`closed` with what closed it) in a pull "
     "request merged before the\none that retires the directory, and merged "
     "to the branch the release merges to,\nnever with it:"
 )
@@ -327,9 +325,7 @@ def survey(root, ref):
     with `HEAD`, the dict holds `base` None and nothing else is classified:
     the rule arm asks its predicate of the base, and asking it of `None`
     would ask the working tree instead, which is the one answer #602 exists
-    to stop `settle` from giving alone.
-
-    Reads: observed — the tree and git's answer at `ref`, through the units above; unknown refused"""
+    to stop `settle` from giving alone."""
     present = work_items(root)
     on_base = released(root, ref)
     if on_base is None:
@@ -488,9 +484,7 @@ def report(found, ref, out=sys.stdout):
 
     A survey with no base is refused at exit 2 with `retire`'s sentence, for
     `retire`'s reason: a caller that skips `main` would otherwise meet a
-    `KeyError` on the keys such a survey does not carry (round 1, ⬜ 4).
-
-    Reads: owned — the survey this module built; unknown passed"""
+    `KeyError` on the keys such a survey does not carry (round 1, ⬜ 4)."""
     if not found.get("base"):
         out.write(NO_BASE_SAYS)
         return 2
@@ -592,9 +586,7 @@ def retire(found, root, out=sys.stdout):
     `found["base"]`, the merge base of `--released-at` and `HEAD`. It takes
     the base from `found` as it takes *released*, and asks the predicate
     itself. A `found` with no base is refused at exit 2 before anything is
-    read, because the predicate asked of `None` is asked of the tree alone.
-
-    Reads: observed — the work item directories on disk and the fold record, through `unverified_check.py`; unknown refused"""
+    read, because the predicate asked of `None` is asked of the tree alone."""
     base = found.get("base")
     if not base:
         out.write(NO_BASE_SAYS)
@@ -756,8 +748,6 @@ def is_process_record(name, is_dir):
 def process_plan(root, work_item_ids):
     """`[ProcessItem]` for each of these directories still on disk.
 
-    Reads: observed — the work item directories' listings; unknown refused
-
     Read from the tree each time it is asked. The report asks it for its
     section and the retirement asks it again, for `retire`'s reason: a
     classification made for a printed list is not a guard on a destructive
@@ -820,9 +810,7 @@ def cites_a_process_record(rest):
 
 def write_process_section(found, out):
     """The dry run's section: what `settle --retire-process` would take now,
-    and what it would keep.
-
-    Reads: owned — the plan this module built; unknown passed"""
+    and what it would keep."""
     plan = found["process"]
     takeable = [p for p in plan if p.take]
     files = sum(p.files for p in takeable)
@@ -854,9 +842,7 @@ def retire_process(found, root, out=sys.stdout):
     directories a fold retired.
 
     Exit 0, including when nothing is left to remove, which is the state a
-    previous run leaves, not work still to do.
-
-    Reads: observed — the work item directories on disk, through `process_plan`; unknown refused"""
+    previous run leaves, not work still to do."""
     present = set(work_items(root))
     ids = sorted(present & set(found["released"]))
     plan = process_plan(root, ids)
@@ -901,9 +887,7 @@ def retire_process(found, root, out=sys.stdout):
 
 
 def main(argv=None):
-    """Survey, retire or retire the process record; the exit code is the verdict.
-
-    Reads: guess — the arguments and the tree, through the units above; unknown refused"""
+    """Survey, retire or retire the process record; the exit code is the verdict."""
     ap = argparse.ArgumentParser(
         prog="settle",
         description="Name the released work items a `docs/` policy has yet to absorb.",

@@ -70,7 +70,7 @@ def test_a_marked_row_counts_closed_and_keeps_its_text(tmp_path):
     """Closing is marking, so the item stays legible after it is closed."""
     section = CANONICAL.replace(
         "| how the gate renders in a TUI | user, on the next session |",
-        "| ✅ how the gate renders in a TUI | seen on screen 2026-08-25, session log |",
+        "| closed how the gate renders in a TUI | seen on screen 2026-08-25, session log |",
     )
     op, cl, err = uc.check_file(write(tmp_path, section))
     assert not err
@@ -78,16 +78,209 @@ def test_a_marked_row_counts_closed_and_keeps_its_text(tmp_path):
     assert cl[0][1] == "how the gate renders in a TUI"
 
 
-def test_a_bare_check_mark_does_not_close_anything(tmp_path):
-    """A tick with nothing after it is the checkbox this repo refuses
+def test_a_bare_closing_word_does_not_close_anything(tmp_path):
+    """A word with nothing after it is the checkbox this repo refuses
     everywhere else — `plan.md`'s Verified-by column exists for the same
     reason."""
     section = CANONICAL.replace(
         "| how the gate renders in a TUI | user, on the next session |",
-        "| ✅ | done |",
+        "| closed | done |",
     )
     _, _, err = uc.check_file(write(tmp_path, section))
     assert err and "bare" in err[0][1]
+
+
+# Spelt by code point, so the three stay legible in the source and no emoji
+# stands in it.
+OLD_MARK = chr(0x2705)
+ZERO_WIDTH_SPACE = chr(0x200B)
+EMOJI_SELECTOR = chr(0xFE0F)
+CLOSED_ROW_CASES = {
+    # name: (row, (what the reader makes of it, the item or the refusal's words))
+    "the word and the item": (
+        "| closed how the gate renders in a TUI | seen on screen |",
+        ("closed", "how the gate renders in a TUI"),
+    ),
+    "the word, a tab, the item": (
+        "| closed\thow the gate renders in a TUI | seen on screen |",
+        ("closed", "how the gate renders in a TUI"),
+    ),
+    "a word that only begins with it": (
+        "| closed-loop control on Windows | a maintainer |",
+        ("open", None),
+    ),
+    "a word that only contains it": (
+        "| enclosed paths on Windows | a maintainer |",
+        ("open", None),
+    ),
+    "the bare word": ("| closed | done |", ("refused", "bare")),
+    "the bare word and a zero-width space": (
+        f"| closed{ZERO_WIDTH_SPACE} | done |",
+        ("refused", "bare"),
+    ),
+    "the old mark and the item": (
+        f"| {OLD_MARK} how the gate renders in a TUI | seen on screen |",
+        ("refused", "U+2705"),
+    ),
+    "the old mark as a keyboard emits it": (
+        f"| {OLD_MARK}{EMOJI_SELECTOR} how the gate renders in a TUI | seen on screen |",
+        ("refused", "U+2705"),
+    ),
+    "the bare old mark": (f"| {OLD_MARK} | done |", ("refused", "U+2705")),
+    "capitalised": (
+        "| Closed how the gate renders in a TUI | seen on screen |",
+        ("refused", "`Closed`"),
+    ),
+    "upper case": (
+        "| CLOSED how the gate renders in a TUI | seen on screen |",
+        ("refused", "`CLOSED`"),
+    ),
+    "with a colon": (
+        "| closed: how the gate renders in a TUI | seen on screen |",
+        ("refused", "`closed:`"),
+    ),
+}
+
+
+class TestClosedRow:
+    """T4 of `1792129100-the-mechanics-leave-before-the-agents-are-rewritten`.
+
+    A closed row opens with the word `closed`, exact spelling, and the item
+    after it. The emoji that used to close a row is refused naming the row
+    and the edit, and so is a bare word and any other spelling of it.
+
+    Protects: the emoji mark read by a gate, the class #923 found four
+    times, and a closing that a capital letter or a colon would quietly turn
+    back into an open row. No other case reads a row's first word."""
+
+    @pytest.mark.parametrize(
+        "row, expected", CLOSED_ROW_CASES.values(), ids=CLOSED_ROW_CASES.keys()
+    )
+    def test_the_word_closes_and_the_mark_and_the_bare_word_are_refused(
+        self, tmp_path, row, expected
+    ):
+        section = CANONICAL.replace(
+            "| how the gate renders in a TUI | user, on the next session |", row
+        )
+        op, cl, err = uc.check_file(write(tmp_path, section))
+        kind, said = expected
+        if kind == "refused":
+            assert err, f"{row!r} was accepted"
+            assert said in err[0][1], err
+            return
+        assert not err, err
+        if kind == "closed":
+            assert [c[1] for c in cl] == [said] and len(op) == 1
+        else:
+            assert not cl and len(op) == 2
+
+    def test_the_old_marks_refusal_names_the_edit(self, tmp_path):
+        """§14: the sentence a person reads when their overview still carries
+        the old mark, pinned whole, because the edit it names is the whole of
+        what they have to do."""
+        section = CANONICAL.replace(
+            "| how the gate renders in a TUI | user, on the next session |",
+            f"| {OLD_MARK} how the gate renders in a TUI | seen on screen |",
+        )
+        _, _, err = uc.check_file(write(tmp_path, section))
+        assert err[0] == (
+            11,
+            "the row opens with U+2705, which no longer closes a row: a closed "
+            "row opens with the word `closed`, so write "
+            "`| closed how the gate renders in a TUI | <what closed it> |`",
+        )
+
+    def test_a_base_closed_with_the_old_mark_is_still_compared(self, tmp_path, capsys):
+        """A base revision cannot be edited, so it is read the way it was
+        written: a row there opening with the old mark is a closed row. Read
+        as a refusal, every base written before the word would be `not
+        compared`, and a row deleted against it would pass.
+
+        Protects: the deletion check going blind on every repository's base
+        at the release that brings the word."""
+        old = CANONICAL.replace(
+            "| whether Windows hooks fire", f"| {OLD_MARK} whether Windows hooks fire"
+        )
+        d, p = git_repo(tmp_path, old)
+        text = open(p, encoding="utf-8").read()
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(text.replace(f"| {OLD_MARK} whether", "| closed whether"))
+        assert run([str(d), "--baseline", "HEAD"]) == 0
+        assert "not compared" not in capsys.readouterr().out
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(
+                "\n".join(ln for ln in text.splitlines() if "Windows" not in ln) + "\n"
+            )
+        assert run([str(d), "--baseline", "HEAD"]) == 1
+        assert "2 rows at HEAD, 1 here" in capsys.readouterr().out
+
+
+# Every shipped text that tells a session how a `## Not verified` row closes.
+CLOSING_TEXTS = [
+    ("templates", "sdd-overview.md"),
+    ("templates", "config.md"),
+    ("docs", "the-record-layout.md"),
+    ("skills", "implement", "SKILL.md"),
+    ("skills", "verify", "SKILL.md"),
+    ("skills", "settle", "SKILL.md"),
+    ("skills", "settle", "scripts", "settle.py"),
+    ("skills", "verify", "scripts", "unverified_check.py"),
+]
+
+
+@pytest.mark.parametrize("parts", CLOSING_TEXTS, ids=lambda p: "/".join(p))
+def test_no_text_that_states_the_closing_shows_the_old_mark(parts):
+    """A text that still shows the emoji sends whoever follows it to a row
+    the check refuses. Protects: one of these quietly keeping the old mark
+    when the others moved, which is how a rule stated in five places drifts;
+    no other case reads them for it."""
+    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
+        assert OLD_MARK not in f.read()
+
+
+def test_the_template_shows_the_word():
+    """The template is what a session copies, so its example row is the one
+    the check accepts."""
+    with open(
+        os.path.join(ROOT, "templates", "sdd-overview.md"), encoding="utf-8"
+    ) as f:
+        text = f.read()
+    assert "| closed <the item, kept> | <what closed it" in text
+
+
+# Every shipped text that says which way an unmarked row reads.
+OPEN_BY_DEFAULT_TEXTS = [
+    ("templates", "sdd-overview.md"),
+    ("skills", "implement", "SKILL.md"),
+    ("skills", "verify", "scripts", "unverified_check.py"),
+]
+
+
+@pytest.mark.parametrize("parts", OPEN_BY_DEFAULT_TEXTS, ids=lambda p: "/".join(p))
+def test_a_text_saying_a_row_counts_open_names_the_open_item_that_reads_closed(
+    tmp_path, parts
+):
+    """§14, round 1's finding 1: an open item whose own text begins with the
+    word `closed` reads as closed, and the reader cannot tell it from a
+    closing. So each text that says an unmarked row counts open names that
+    row too, and the reader's reading of it is checked beside the sentence.
+
+    Protects: a text promising that the silent direction is always "still
+    open" while `| closed issues are not re-read | the owner |` closes
+    itself, and a reader that changes how it reads that row while the
+    sentence stays. The closing-word cases read the row's first word and no
+    text; no other case reads these texts for the exception."""
+    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
+        text = " ".join(f.read().split())
+    assert "whose own text begins with the word `closed`" in text
+    assert 'always "still open"' not in text
+    section = CANONICAL.replace(
+        "| how the gate renders in a TUI | user, on the next session |",
+        "| closed issues are not re-read | the owner |",
+    )
+    op, cl, err = uc.check_file(write(tmp_path, section))
+    assert not err and len(op) == 1
+    assert [c[1] for c in cl] == ["issues are not re-read"]
 
 
 def test_a_row_with_an_empty_cell_fails(tmp_path):
@@ -339,7 +532,7 @@ def test_closing_a_row_passes_the_baseline(tmp_path):
     d, p = git_repo(tmp_path, CANONICAL)
     text = open(p, encoding="utf-8").read()
     with open(p, "w", encoding="utf-8") as f:
-        f.write(text.replace("| whether Windows", "| ✅ whether Windows"))
+        f.write(text.replace("| whether Windows", "| closed whether Windows"))
     assert run([str(d), "--baseline", "HEAD"]) == 0
 
 
@@ -459,13 +652,14 @@ def test_the_memo_keeps_one_line_of_purpose():
 def test_the_ladder_does_not_still_say_at_the_end():
     """Three of the four parts are written when they happen. A ladder that
     still says `overview.md at the end` contradicts the step above it, and the
-    contradiction is what sessions resolve by reconstructing at the end."""
+    contradiction is what sessions resolve by reconstructing at the end. The
+    smith's copy of the ladder left with #967; it opens the skill instead."""
     skill = collapsed("skills", "implement", "SKILL.md")
     assert "`overview.md` at the end" not in skill
     assert (
         "opened at the first divergence, unverified item, or fed-back clause" in skill
     )
-    assert "only the closing memo, kept as you go" in collapsed("agents", "smith.md")
+    assert "`overview.md` at the end" not in collapsed("agents", "smith.md")
 
 
 def test_the_skill_states_the_closing_convention():
@@ -479,7 +673,7 @@ def test_a_comment_beside_the_section_is_not_read_as_content(tmp_path):
     """The template ships its guidance as a comment in this section, and an
     overview keeps it. Reading it as prose would fail every filled-in copy."""
     section = (
-        "## Not verified\n\n<!-- guidance:\n| ✅ <item> | <what closed it> |\n-->\n\n"
+        "## Not verified\n\n<!-- guidance:\n| closed <item> | <what closed it> |\n-->\n\n"
         + CANONICAL.split("\n", 2)[2]
     )
     op, _, err = uc.check_file(write(tmp_path, section))
@@ -587,11 +781,11 @@ def test_a_baseline_ref_that_does_not_resolve_exits_2(tmp_path, capsys):
 
 
 @pytest.mark.parametrize("invisible", ["️", "​", "⁠"])
-def test_an_invisible_character_does_not_turn_a_bare_mark_into_a_closing(
+def test_an_invisible_character_does_not_turn_a_bare_word_into_a_closing(
     tmp_path, invisible
 ):
-    """`| ✅️ | done |` is what many keyboards emit, and on screen it is the
-    bare mark this refuses. `.strip()` does not remove any of these."""
+    """`| closed\\u200b | done |` pastes in from anywhere, and on screen it is
+    the bare word this refuses. `.strip()` does not remove any of these."""
     section = CANONICAL.replace(
         "| how the gate renders in a TUI | user, on the next session |",
         f"| {CLOSED_MARK}{invisible} | done |",
@@ -829,7 +1023,9 @@ def test_both_deletion_reports_name_paths_on_the_same_footing(
     os.remove(p)  # the file check reports this one
     text = open(other / "overview.md", encoding="utf-8").read()
     with open(other / "overview.md", "w", encoding="utf-8") as f:
-        f.write(text.replace("| whether Windows hooks fire", "| ✅ whether Windows"))
+        f.write(
+            text.replace("| whether Windows hooks fire", "| closed whether Windows")
+        )
         # closed, not deleted -- now drop a row so the row check reports too
     with open(other / "overview.md", "w", encoding="utf-8") as f:
         f.write(
@@ -2026,7 +2222,7 @@ CLOSED_SECTION = """## Not verified
 
 | Item | Who must answer |
 |---|---|
-| ✅ how the gate renders in a TUI | seen on screen, 2026-01-01 |
+| closed how the gate renders in a TUI | seen on screen, 2026-01-01 |
 """
 
 

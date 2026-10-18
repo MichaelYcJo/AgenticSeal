@@ -52,7 +52,7 @@ RULES = {
             "Pick the other one and something downstream stops resolving, so "
             "this table is the whole rule and the paragraphs below are why.",
             "A hotfix was squashed in once, and it cost nothing only because no "
-            "rider stamp and no round record named its commits",
+            "round record named its commits",
         ),
     ),
     "identifiers": (
