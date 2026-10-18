@@ -8,7 +8,7 @@ target: 2ed98c29, fixes 3957339e..2ed98c29
 
 severity: should
 location: `skills/code-review/orchestration.md:209-221`, `agents/sealer.md:48-49`
-verdict: open
+verdict: fixed e7e5574a
 
 The unit is the orchestration's paragraph on what to do with a verdict
 other than `sealed`, which phase 3 wrote (`plan.md` row 3 names
@@ -59,13 +59,13 @@ clone you named carries none of the base's refs, so spawn the sealer again in
 the branch worktree, where `origin/<base>` resolves, or fetch the base there.
 ```
 
-answer:
+answer: Rung 1, the branch owns the paragraph. The orchestrator appended the sentence as written after the `undecided` line of `skills/code-review/orchestration.md` §*Commit `guarantee.md`*, in e7e5574a; the modules naming the file with `test_one_word_one_meaning`, `test_no_real_identifiers`, `test_docs_line_wrap` and `test_unverified_rows_close`: 430 passed, 6 skipped, exit 0; `rules --check` exit 0.
 
 ### 2. The overview credits e15490c5 with the base read as a commit and withheld, which 3e6d3896 wrote
 
 severity: should
 location: `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/overview.md:26`
-verdict: open
+verdict: fixed e7e5574a
 regression: round-3#2
 
 The unit is the departure cell of the row *The base the sealer's steps read
@@ -100,7 +100,7 @@ none resolving is `withheld` (e15490c5; the commit and `withheld` in 3e6d3896, r
 The line replaces the text from "none resolving is `withheld`" to the
 closing parenthesis of the departure cell; the rest of the row stands.
 
-answer:
+answer: Rung 1, the branch owns the record. The orchestrator replaced the cell's tail with the line as written, in e7e5574a.
 
 ## Confirmations
 
