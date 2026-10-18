@@ -3015,6 +3015,22 @@ def test_a_recorded_run_on_a_terminal_prints_the_same_report(a_recorded_run, tmp
     assert not (copy / ".git" / VALUES_DIR).exists(), values_files(copy)
 
 
+@pytest.mark.parametrize(
+    "shape, env",
+    [(True, UTF8_PIPE), (False, {"PYTHONIOENCODING": "latin-1"})],
+    ids=["--shape", "a-console-that-is-not-utf8"],
+)
+def test_the_marks_go_out_in_ascii_where_utf8_cannot(repo, tmp_path, shape, env):
+    """#975 S3: the owner's `✓`, `·` and `→` are written as the letter twin
+    writes them — `+`, `.` and `>` — under `--shape`, and on a stream whose
+    encoding is not UTF-8 without it; the rows are otherwise the same."""
+    out = run_gate(repo, keep=tmp_path / "out", shape=shape, env=env)
+    assert out.returncode == 0, f"{out.stdout}\n{out.stderr}"
+    lines = out.stdout.splitlines()
+    assert "suite   + 1 passed" in lines and "chain   + exit 0" in lines, lines
+    assert not any(mark in out.stdout for mark in ("✓", "·", "→")), out.stdout
+
+
 def test_a_terminal_run_with_no_record_draws_nothing(repo, tmp_path):
     """#975 S2, without `--record`, on a terminal: the head and the rows, no
     disc, no values file — the same as a pipe."""
