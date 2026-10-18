@@ -8,9 +8,9 @@ target: e4a55b7d, fixes 83baeb91..e4a55b7d
 
 severity: must
 location: `agents/sealer.md:42-47`, `agents/sealer.md:113-116`, `tests/test_the_sealer_guarantees.py:348-362`
-verdict: open
+verdict: fixed 3e6d3896
 reopens: round-2#1
-answer:
+answer: 3e6d3896 takes the paste-ready block: the resolution sentence now says every `<base>` below is the commit `git -C <root> rev-parse --verify --quiet` prints, never the ref, so step 1's range, step 2's diff and the at-base restore all read a commit; `agents/sealer.md:113-116` keeps `<base>` and inherits the definition. `test_step_1_reads_the_record_and_runs_nothing` takes the record's replacement assertions; `mutation-check` of "is the commit it prints" to "is the ref it prints" gave red. Probed read-only: in a `git clone --no-local -q` of the worktree at 3e6d3896, `git show 2fc33333bcfef5f0fa9e7d6d7bc6469366c6f2ff:agents/sealer.md` exits 0 and `git show origin/release/v0.22.1:agents/sealer.md` exits 128. The reference still measures the text at 6f76b0b0; whether it is re-run is the orchestrator's call, as the round's Not judged says.
 
 Why round 2's close does not hold. Finding 1 named three places the plain
 branch name fails: step 1's range, step 2's diff and the at-base restore
@@ -88,9 +88,9 @@ call, as round 2 said.
 
 severity: should
 location: `agents/sealer.md:46-47`, `seal/specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran/overview.md:26`, `tests/test_the_sealer_guarantees.py:362`
-verdict: open
+verdict: fixed 3e6d3896
 regression: round-2#1
-answer:
+answer: 3e6d3896 makes a base that resolves to no commit `Verdict: withheld — the base <name> resolves to no commit here`, written to `guarantee.md` before the sealer returns, in the same sentence as finding 1; the test line is the record's, and `overview.md`'s row *The base the sealer's steps read (round 2)* reads "that ref's commit; none resolving is `withheld`" with round 3's grounds. `mutation-check` of `withheld` back to `undecided` in that line gave red. `git grep -F` of `undecided` over `tests`, `evals` and `agents/sealer.md` finds only the verdict word's general uses; the old sentence survives only in `rounds/round-2.md`, a record of its state.
 
 The unit is the clause e15490c5 added to the paragraph before
 `## Order of work`: "where none answers the verdict is `undecided — the base
