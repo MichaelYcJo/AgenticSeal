@@ -7,7 +7,7 @@ build side's counterpart of `rounds/round-N.md`. -->
 | Field | Value |
 |---|---|
 | Phase | 1 |
-| Commit | not closed: b4e72dbe holds the smith's side; the warden's side was cut short and the framer's was not taken |
+| Commit | adbbea77, the framer's side; b4e72dbe the smith's, dc8991c2 the warden's |
 
 ## What this phase was asked
 
@@ -26,12 +26,33 @@ answer `questions.md` Q4; fill `plan.md` phase 1's Status.
 
 ## What this phase found
 
-**The phase did not close.** The smith's side is taken and committed. The
-warden's side was cut short by the host going to sleep, and the framer's
-was stopped after a minute for the same reason. Neither is a result, and
-neither was rerun, because the cause was still in force when this phase
-handed back. So `plan.md`'s Status for phase 1 stays empty and Q4 stays
-open.
+**The phase closed on its second attempt.** The smith's side was taken
+first and stands. The warden's and the framer's first sides were cut short
+by the host going to sleep, lid closed, and are no result. The orchestrator
+took both again on 2026-10-18 between 09:28 and 10:17 KST with the lid open
+(`ioreg` read `AppleClamshellState = No` before and after; `pmset -g log`
+shows no sleep after 05:47 KST), each once, none cut short:
+
+| Figure | smith (b4e72dbe) | warden (dc8991c2) | framer (adbbea77) |
+|---|---|---|---|
+| Cases / runs | 4 / 8 | 9 / 18 | 4 / 8 |
+| Cut short | no | no | no |
+| Spend USD (`total_cost_usd`) | 6.6210 | 42.2333 | 16.9055 |
+| Session seconds | 1,360.8 | 8,177.8 | 2,018.5 |
+| Eval wall seconds | 383 | 2,303 | 617 |
+| Tool calls | 222 | 936 | 120 |
+| Tokens read, all models | 9,561,086 | 81,616,964 | 3,275,602 |
+| Tokens per tool call | 43,068.0 | 87,197.6 | 27,296.7 |
+| Preload bytes (agent share) | 90,728 | 27,198 | 89,444 |
+| Graders passed | 48 of 48 | 86 of 96, truths 14 of 24 | 64 of 64 |
+| Report rows / false rows | — | 43 / 29 | — |
+
+Figures from `noninferiority.py#side_numbers` over the committed files.
+These three are the references phase 4 compares against; #957's phase-3
+sides are not, since the contract differs (below).
+
+The account of the first attempt follows, kept because the lost spend is
+part of this phase's cost.
 
 **The host slept through the warden's side, lid closed (executed).**
 
@@ -117,14 +138,14 @@ one.
 warden 40,516 B (12,662), framer 102,762 B (32,113). The agent shares are
 90,728, 27,198 and 89,444, the same as the frame's readings.
 
-**Spend for this phase, eval `costUsd`:** smith 6.6210, warden 34.5493
-(cut short), framer 3.8361 (stopped), **45.0064 in all**. The sum stayed
-under $75 after each agent, so the stop rule never fired. $38.3854 of the
-total bought no result.
-
-**What remains for phase 1.** The warden's and the framer's sides, each
-taken once with the lid open or a display attached. At #957's prices that
-is about $36 and $17. The smith's committed side stands and is not retaken.
+**Spend for this phase, eval `costUsd`:** the three sides that stand,
+smith 6.6210, warden 42.2333, framer 16.9055, **65.7598**, which answers
+`questions.md` Q4 against its estimate of about $60. The first attempt's
+warden 34.5493 (cut short) and framer 3.8361 (stopped) bought no result:
+**38.3854**. The phase spent **104.1452** in all. The orchestrator read the
+plan's $75 stop as a bound on the sides that stand, since the $38.39 was
+lost to the host and not to the agents measured, and took the second
+attempt under the night's $200 budget (`questions.md` Q1).
 
 ### Commands, each with its exit code
 
@@ -146,3 +167,6 @@ scratch directory's `967-phase-1/`, `$K` is
 | `bin/payload-meter --root . --agent <a>` for smith, warden, framer | 0 each |
 | `git diff --stat 2fc33333 HEAD -- agents skills evals CLAUDE.md bin` | 0, empty |
 | `pmset -g log`; `ioreg -r -k AppleClamshellState` | 0 |
+| second attempt: `run --agent warden --rev 2fc33333 --suite-rev af9c924b --out $S2/baseline-warden.json --runs 2 -j 4 --max-cost-usd 50`, `$S2` the scratch `967-phase-1b/` | 0, `partial: false` |
+| `cp -R $S2/baseline-warden.raw $K/warden`, `diff -r`; `run --from-raw $K/warden --out $E/baseline-warden.json`; `cmp` | 0, 0, 0, 0 |
+| the same `run` for `framer` with `--max-cost-usd 30`, then its `cp -R`, `diff -r`, `--from-raw`, `cmp` | 0, 0, 0, 0, 0 |
