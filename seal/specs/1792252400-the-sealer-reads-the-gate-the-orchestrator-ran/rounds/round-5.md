@@ -8,7 +8,7 @@ target: 166ff329, fixes 5386f4e3..166ff329
 
 severity: should
 location: `skills/code-review/orchestration.md:222-224`
-verdict: open
+verdict: fixed a5d4d32c
 regression: round-4#1
 
 The unit is the sentence e7e5574a appended to the paragraph on a verdict
@@ -56,7 +56,7 @@ fetched. Not applied or run here: this round wrote no file but this record.
 its clone, where `origin/<base>` or, with no remote, `<base>` resolves.
 ```
 
-answer:
+answer: The orchestrator replaced the sentence with the text above as written, in a5d4d32c. Probed first: in a `git clone --no-local` of the worktree, `rev-parse --verify --quiet` exits 1 for all three spellings of `release/v0.22.1`; in the worktree it exits 0 for `origin/release/v0.22.1`. The modules naming the file with `test_one_word_one_meaning`, `test_docs_line_wrap` and `test_no_real_identifiers`: 208 passed, 6 skipped, exit 0; `rules --check` exit 0.
 
 ## Confirmations
 
