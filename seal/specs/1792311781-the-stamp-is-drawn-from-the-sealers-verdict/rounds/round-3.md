@@ -8,7 +8,7 @@ target: 6429ce35, fixes 15b7fa76..6429ce35
 
 severity: must
 location: `tests/test_a_script_says_which_interpreter_it_needs.py:433`, `ruff.toml:46`, `skills/code-review/scripts/chain_check.py:893`
-verdict: open
+verdict: fixed 4d777c78
 
 Why it matters. `test_what_runs_before_any_floor_needs_nothing_its_python3_lacks`
 fails on this branch, so the pull request's test legs fail on it. The case
@@ -62,13 +62,13 @@ asks for `strict=` once the file is linted at 3.9:
     return (start, end), list(zip(heads, [*heads[1:], end])), None
 ```
 
-answer:
+answer: `ruff.toml`'s `per-file-target-version` gains `chain_check.py` and `unverified_check.py` at `py39`, and `chain_check.py:893`'s `zip` drops `strict=`, as the record gives them. The class beyond what ruff reads, enumerated over the post-commit path (`hooks/commitgate.py`, `seal_stamp.py`, `chain_check.py`, `unverified_check.py`): `uvx vermin --target=3.9- --violations --eval-annotations` reports a minimum of 3.8 and no target missed, and the same command over HEAD's `chain_check.py` reports 3.10 and `Target versions not met`, so it can fail; and `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py` with `tests/test_chain_check.py` run under `/usr/bin/python3` 3.9.6 gave 122 passed and 4 failed, each failure a `zip(..., strict=True)` in a test file (`tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:983`, `tests/test_chain_check.py:1000`, `:1132`, `:1412`), which no floor covers since tests run on the runner's interpreter, and none in the four modules. executed: `test_what_runs_before_any_floor_needs_nothing_its_python3_lacks` red at b81de037 naming the two files, green after; `bin/test tests/test_a_script_says_which_interpreter_it_needs.py tests/test_chain_check.py -q` 84 passed; `uvx ruff check` of `ruff.toml` and the three scripts, and `uvx ruff format --check` of the two, exit 0
 
 ### 2. A second clone of the same branch draws the work item's stamp again for a commit that edits a sealed guarantee or re-seals with a fresh row
 
 severity: should
 location: `skills/verify/scripts/seal_stamp.py:1071-1083`, `docs/the-review-record.md:281-291`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`
-verdict: open
+verdict: fixed 076b1ee4
 reopens: round-1#3
 
 Why the close does not hold. Round 1's finding 3 was that once per work item
@@ -194,7 +194,7 @@ chain reads `sealed`, was stamped then, which holds across clones. The stamp
 carries what the records at the
 ```
 
-answer:
+answer: `seal_stamp.sealed_before` and its call in `_queue_one` are added as the record gives them, `queue_for_guarantee`'s docstring names the condition, and the module's once comment now names four facts and the amend left out. `docs/the-review-record.md` §*The stamp* carries the record's sentence and the case on its `Enforced by:` line. That section states how once is held and lists no limits of it, so the amend of the sealing commit in a second clone is stated in `overview.md` §*Where spec and implementation diverged* as a limit, by the orchestrator's decision, and not in the document. `overview.md`'s third `## Not verified` row opens with `closed` rather than being removed, since `unverified-check` counts rows, and §*Fed back into the spec* gains the fact. The fragment says a stamped work item draws nothing more in another clone of the same branch too, with the amend as its one exception. executed: `test_a_sealed_item_recommitted_in_another_clone_queues_nothing` red at b81de037 (the body edit queued a line), green after; `mutation-check` of `sealed_before` five ways (the call made `if False:`, the verdict word, the path, `-n0` on the log, and `HEAD^` made `HEAD` against `test_a_reseal_after_withheld_queues_the_stamp`), each `red`; the stamp, commit-gate, reader, interpreter-floor, line-wrap, pasted-passage, changelog, record-words, one-word, release-hygiene and real-identifier modules 440 passed; `bin/rules --check` exit 0; `uvx ruff check` and `uvx ruff format --check` exit 0. Not seen red alone: the case's second commit, the fresh-row re-seal, since the body edit before it queues first at b81de037; the record's probe row 2 saw that shape queue on its own
 
 ## Confirmations
 

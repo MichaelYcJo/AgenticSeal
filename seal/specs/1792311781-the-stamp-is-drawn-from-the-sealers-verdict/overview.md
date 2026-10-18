@@ -33,7 +33,7 @@ gate's run prints `BROAD GATE PASSED` or `BROAD GATE FAILED` and draws nothing.
 |---|---|
 | The full suite, the repository-wide lint and the typecheck at the last round's commit | the orchestrator's `broad-gate --base release/v0.22.1 --record <item>`, after the rounds settle |
 | A stamp drawn from a real `sealed` guarantee in a person's session: this item's own run draws none, because the installed plugin's `post-commit` is 0.22.0's (`plan.md` §*Operational impact*) | the owner, on the first run after updating to 0.22.1 |
-| ✅ Once per work item for a commit touching a `sealed` guarantee in a second clone of the same branch with no new run, held only by the sealer's `; earlier run:` row | executed: `test_a_sealed_item_recommitted_in_another_clone_queues_nothing` red at b81de037, green with `seal_stamp.sealed_before` (`rounds/round-3.md` finding 2); the amend of the sealing commit it leaves is a stated limit above |
+| closed Once per work item for a commit touching a `sealed` guarantee in a second clone of the same branch with no new run, held only by the sealer's `; earlier run:` row | executed: `test_a_sealed_item_recommitted_in_another_clone_queues_nothing` red at b81de037, green with `seal_stamp.sealed_before` (`rounds/round-3.md` finding 2); the amend of the sealing commit it leaves is a stated limit above |
 | CI on its three legs at the pull request's head | the orchestrator, at the pull request |
 
 ## Not done
