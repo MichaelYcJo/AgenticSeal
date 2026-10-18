@@ -535,6 +535,25 @@ def test_the_model_is_decided_by_the_truths_and_the_spend(tmp_path, capsys):
     assert ni.main(["model", str(tmp_path / "absent.md")]) == 2
 
 
+def test_a_record_with_no_truth_grader_decides_opus(tmp_path, capsys):
+    """Round 1 of #969, finding 6. S7 decides the model by every truth
+    grader, so a record that carries none measured no outcome: `sonnet` there
+    is a drop decided by cost alone, the defect S7 names. No graders at all,
+    and a lone shape grader, both print `opus` and a reason saying so."""
+    shape = {("c1", "shape-commits-nothing"): ("shape", 2, 2)}
+    for graders in ({}, shape):
+        code, out = model_of(tmp_path, capsys, graders, graders)
+        assert (code, out[0]) == (0, "opus"), (graders, out)
+        assert len(out) == 2 and "no truth grader" in out[1], (graders, out)
+    # Either side alone: a truth grader the other side never ran counts zero
+    # runs there, which the lost-grader rule cannot see.
+    truth = {**shape, ("c1", "truth-1"): ("truth", 2, 2)}
+    for old, new, side in ((truth, shape, "Sonnet"), (shape, truth, "Opus")):
+        code, out = model_of(tmp_path, capsys, old, new)
+        assert (code, out[0]) == (0, "opus"), (side, out)
+        assert f"no truth grader on the {side} side" in out[1], (side, out)
+
+
 # --- what a side's run saves and records -------------------------------------
 
 

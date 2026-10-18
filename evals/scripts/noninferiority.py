@@ -915,10 +915,19 @@ def cheaper_model(numbers):
     reach, passes on the Sonnet side less often and its spend is lower.
 
     A side cut short, or any other no result, is `opus`; so is a spend
-    either side does not record."""
+    either side does not record, and a side on which no truth grader ran,
+    since that side measured no outcome and `sonnet` would rest on cost
+    alone."""
     result, reasons = verdict(numbers)
     if result == "no result":
         return "opus", "; ".join(reasons)
+    truths = [v for v in numbers["graders"].values() if v[0] == "truth"]
+    for side, runs in (("Opus", 2), ("Sonnet", 4)):
+        if not any(v[runs] for v in truths):
+            return "opus", (
+                f"the record carries no truth grader on the {side} side, "
+                "so no outcome was measured"
+            )
     lost = [
         f"{k} grader {case}/{name} passed {np_}/{nruns} on Sonnet, {op}/{oruns} on Opus"
         for (case, name), (k, op, oruns, np_, nruns) in sorted(
