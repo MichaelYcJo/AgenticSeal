@@ -808,6 +808,49 @@ def test_a_sealed_item_rebased_in_another_clone_queues_nothing(tmp_path):
     assert queued(other) == []
 
 
+def test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing(tmp_path):
+    """#975 round 6, once per work item. The guarantee was stamped in one
+    clone, which then rebased the branch onto a moved base. A fresh clone
+    of the rebased branch does not hold the commit the first `sealed`
+    audited, and the sealer's re-run there writes its row fresh. The
+    rewritten `sealed` still counts, so nothing is queued. Red with
+    `sealed_before` counting a `sealed` only where its target resolves in
+    the clone (`plan.md` B4): the fresh clone queued a second stamp."""
+    repo, target, _base = guaranteed(tmp_path)
+    assert after_the_commit(repo)
+    git(repo, "switch", "-q", "main")
+    (repo / "base.txt").write_text("the base moved\n", encoding="utf-8")
+    commit_all(repo, "the base moved")
+    git(repo, "switch", "-q", "feat/x")
+    git(
+        repo,
+        "-c",
+        "user.name=e",
+        "-c",
+        "user.email=e@example.com",
+        "rebase",
+        "-q",
+        "main",
+    )
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+    )
+    held = subprocess.run(
+        ["git", "-C", str(other), "cat-file", "-e", target], capture_output=True
+    )
+    assert held.returncode != 0, "the fresh clone holds the pre-rebase commit"
+    (other / "x.txt").write_text("a fix after the rebase\n", encoding="utf-8")
+    commit_all(other, "a fix")
+    new = git(other, "rev-parse", "--short", "HEAD").stdout.strip()
+    base = git(other, "rev-parse", "--short", "origin/main").stdout.strip()
+    item = other / "seal" / "specs" / ITEM_NAME / "guarantee.md"
+    item.write_text(guarantee_text(new, base, "sealed"), encoding="utf-8")
+    commit_all(other, "the sealer again in a fresh clone, its row written fresh")
+    assert after_the_commit(other) == ""
+    assert queued(other) == []
+
+
 def test_the_guarantee_stamps_rows_are_read_from_the_records(tmp_path):
     """#975 S9, `questions.md` Q1's answer (a). The stamp carries what the
     records at the commit say and nothing re-measured: its title, the
