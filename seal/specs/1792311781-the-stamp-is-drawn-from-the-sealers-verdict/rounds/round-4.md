@@ -8,7 +8,7 @@ target: 988d3555, fixes b81de037..988d3555
 
 severity: should
 location: `skills/verify/scripts/seal_stamp.py:1058`, `docs/the-review-record.md:287`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`
-verdict: open
+verdict: fixed a226da11
 regression: round-3#2
 
 The unit is `seal_stamp.sealed_before`, which 076b1ee4 added. The frame
@@ -102,7 +102,7 @@ whose `Target SHA` row's `; earlier run:` chain reads `sealed`, was stamped
 then, which holds across clones. The stamp
 ```
 
-answer:
+answer: `sealed_before`'s loop body is the record's: an earlier `sealed` counts only where `merge-base --is-ancestor <its target> <that commit>` holds, the condition `_queue_one` draws under, so a `sealed` that queued nothing is skipped and every commit that drew still counts. Its docstring, `queue_for_guarantee`'s docstring and the module's once comment say that condition. `docs/the-review-record.md` §*The stamp* carries the record's sentence and the case on its `Enforced by:` line; `git grep -n -F` of the changed sentence finds no pin under `tests/`. `overview.md`'s round-3 row and §*Fed back into the spec* carry the narrowing, and the fragment says a `sealed` over a commit the branch does not hold draws nothing and a later commit correcting that row in place draws the stamp. The cost the round left open: one `merge-base` per earlier commit that read `sealed`, reached only after every cheaper refusal in `_queue_one`, and the loop returns at the first that counts. The class, enumerated over the three facts that hold once: a values file exists only where a stamp was queued, so `already_queued` cannot count an unqueued `sealed`; the `Target SHA` row's `; earlier run: <sha> sealed` can, and does where the sealer re-runs after a `sealed` over a commit the clone does not hold and keeps that verdict on the row, so that re-run draws no stamp. That instance is left as it stands: it predates round 3, `spec.md` S7 says any earlier run reading `sealed` queues nothing, and `test_a_second_sealed_verdict_queues_nothing` holds it with `bbb2222`, a SHA its repository does not hold, so narrowing it changes the frame and is the owner's call. executed: `test_a_seal_that_queued_nothing_does_not_count_as_stamped` red at eb4303b4 (`assert after_the_commit(repo)` got `''`), green after; `mutation-check` of the new condition: `if True:` turned the new case red, and `if False:` turned `test_a_sealed_item_recommitted_in_another_clone_queues_nothing` red; the stamp, commit-gate, interpreter-floor, line-wrap and reader modules 303 passed; the real-identifier, record-words, changelog, one-word and pasted-passage modules 92 passed; `bin/rules --check` exit 0; `uvx ruff check` and `uvx ruff format --check` of the two Python files exit 0
 
 ## Confirmations
 
