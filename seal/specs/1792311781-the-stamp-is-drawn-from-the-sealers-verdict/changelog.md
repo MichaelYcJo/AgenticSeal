@@ -16,9 +16,11 @@
   the one exception is a second clone amending the sealing commit itself,
   which draws the stamp again there. A squash or a cherry-pick of the
   guarantee onto another branch draws nothing either, and neither does a
-  `sealed` whose `Target SHA` names a commit the branch does not hold; a
-  later commit that corrects that row in place draws the stamp. The stamp's rows are
-  what the records at that commit say: the audited commit and its branch,
+  `sealed` whose `Target SHA` names a commit the branch does not hold. That
+  `sealed` still counts as the work item's one stamp, so a later commit that
+  corrects the row draws none either: the history cannot tell it from a
+  stamp drawn before a rebase, and #976 carries that gap. The stamp's rows
+  are what the records at that commit say: the audited commit and its branch,
   the base, the work item, the newest broad run, and the count of round
   records. The suite's counts are no longer on it.
 

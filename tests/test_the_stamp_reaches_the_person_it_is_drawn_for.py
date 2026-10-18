@@ -769,23 +769,43 @@ def test_a_sealed_item_recommitted_in_another_clone_queues_nothing(tmp_path):
     assert queued(other) == []
 
 
-def test_a_seal_that_queued_nothing_does_not_count_as_stamped(tmp_path):
-    """#975 round 4, once per work item. A `sealed` guarantee whose audited
-    commit is not in its own history queued nothing, so the later commit
-    that repairs the row is the first that can draw the stamp, and draws
-    it. Red at 988d3555: `sealed_before` counted the unqueued `sealed` as
-    a stamp, and the work item drew none."""
-    repo, target, base = guaranteed(tmp_path, verdict="withheld — x")
-    assert after_the_commit(repo) == ""
-    item = repo / "seal" / "specs" / ITEM_NAME / "guarantee.md"
-    item.write_text(guarantee_text("deadbee", base, "sealed"), encoding="utf-8")
-    commit_all(repo, "sealed over a commit this clone does not hold")
-    assert after_the_commit(repo) == ""
-    item.write_text(guarantee_text(target, base, "sealed"), encoding="utf-8")
-    commit_all(repo, "the row repaired")
+def test_a_sealed_item_rebased_in_another_clone_queues_nothing(tmp_path):
+    """#975 round 5, once per work item. The guarantee was stamped in one
+    clone. A second clone rebases the branch, so the sealed commit is
+    rewritten over a history that no longer holds its audited commit, and
+    the sealer's re-run writes its row fresh. The rewritten `sealed` is the
+    stamp's trace, so nothing is queued. Red at 5943f1d7: `sealed_before`
+    skipped the rewritten commit and the second clone queued a second
+    stamp."""
+    repo, _target, _base = guaranteed(tmp_path)
     assert after_the_commit(repo)
-    (path,) = queued(repo)
-    assert path.endswith(f"-{ITEM_ID}-{target}.json"), path
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+    )
+    git(other, "switch", "-q", "main")
+    (other / "base.txt").write_text("the base moved\n", encoding="utf-8")
+    commit_all(other, "the base moved")
+    git(other, "switch", "-q", "feat/x")
+    git(
+        other,
+        "-c",
+        "user.name=e",
+        "-c",
+        "user.email=e@example.com",
+        "rebase",
+        "-q",
+        "main",
+    )
+    (other / "x.txt").write_text("a fix after the rebase\n", encoding="utf-8")
+    commit_all(other, "a fix")
+    new = git(other, "rev-parse", "--short", "HEAD").stdout.strip()
+    base = git(other, "rev-parse", "--short", "main").stdout.strip()
+    item = other / "seal" / "specs" / ITEM_NAME / "guarantee.md"
+    item.write_text(guarantee_text(new, base, "sealed"), encoding="utf-8")
+    commit_all(other, "the sealer again after the rebase, its row written fresh")
+    assert after_the_commit(other) == ""
+    assert queued(other) == []
 
 
 def test_the_guarantee_stamps_rows_are_read_from_the_records(tmp_path):
@@ -1393,6 +1413,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     for silence in (
         "where git's hooks slot is somebody else's",
         "in local mode",
+        "already read `sealed` and that verdict drew nothing",
         "cannot load `seal_stamp.py`",
         "outside the clone the commit landed in",
         "predates the hook",

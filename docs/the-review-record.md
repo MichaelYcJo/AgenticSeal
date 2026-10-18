@@ -283,13 +283,12 @@ by what the clone and the tree carry, with no count beside them: a values
 file already named for the work item, pending or drawn, under any session's
 directory is not written twice, whatever commit it named; a commit whose
 audited commit is not in its own history, a squash or a cherry-pick of the
-guarantee elsewhere, queues nothing; and a guarantee that read `sealed`,
-over a commit then in its history, at an earlier commit of that history, or
-whose `Target SHA` row's `; earlier run:` chain reads `sealed`, was stamped
-then, which holds across clones. The stamp
+guarantee elsewhere, queues nothing; and a guarantee that read `sealed` at an
+earlier commit of that history, or whose `Target SHA` row's `; earlier run:`
+chain reads `sealed`, was stamped then, which holds across clones. The stamp
 carries what the records at the commit say: the audited commit and its branch, the base, the work item, the
 newest broad run and the count of round records.
-Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_guarantees_commit_queues_one_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_withheld_or_undecided_guarantee_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_after_withheld_queues_the_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_second_sealed_verdict_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_recommit_of_the_same_guarantee_queues_no_second_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_recommitted_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_that_queued_nothing_does_not_count_as_stamped, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_stamps_rows_are_read_from_the_records, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_main_sessions_stop_draws_each_undrawn_file_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_end_draws_nothing_and_leaves_the_file, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_guarantees_commit_queues_one_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_withheld_or_undecided_guarantee_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_after_withheld_queues_the_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_second_sealed_verdict_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_recommit_of_the_same_guarantee_queues_no_second_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_recommitted_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_stamps_rows_are_read_from_the_records, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_main_sessions_stop_draws_each_undrawn_file_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_end_draws_nothing_and_leaves_the_file, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output
 
 <!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
 **The hook holds its whole message under a budget named in the code, and
@@ -332,7 +331,11 @@ nothing is said, where git's hooks slot is somebody else's (`core.hooksPath`,
 or a hook file the plugin did not write), since none of its stubs runs there;
 in local mode, where the `seal/` root sits under the git directory and no
 commit carries `guarantee.md`; or for a person's own commit with no Claude
-session behind it, which has no turn to draw at. The hook draws nothing and
+session behind it, which has no turn to draw at. No stamp is queued either
+where the guarantee's history already read `sealed` and that verdict drew
+nothing, a `sealed` over a commit the branch does not hold among them: once
+per work item reads the history, and the work item's stamp is then the
+gap #976 carries. The hook draws nothing and
 says nothing where the main session's `python3` cannot load `seal_stamp.py`,
 since no launcher stands in front of a hook; where that session's working
 directory is outside the clone the commit landed in; or where its plugin
