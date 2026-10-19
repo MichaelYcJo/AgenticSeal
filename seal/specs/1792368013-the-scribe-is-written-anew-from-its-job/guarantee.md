@@ -7,7 +7,7 @@ sealer alone and committed by the orchestrator beside `broad-gate.md`.
 
 | Field | Value |
 |---|---|
-| Target SHA | e128244f against b196fe9b |
+| Target SHA | 11b7ffd9 against b196fe9b; earlier run: e128244f withheld |
 | Broad gate | d9fac6ed against b196fe9b |
 
 ## Claims re-run
@@ -16,16 +16,21 @@ sealer alone and committed by the orchestrator beside `broad-gate.md`.
 per thing the act checks. `Result` reads `holds`, or `does not hold — <what
 came back>`, and a `does not hold` is what the verdict names. -->
 
-Every `executed` row ran in a `git clone --no-local` of the branch at
-e128244f under the scratchpad, removed after; the tree under audit was only
-read. The base is `release/v0.22.2@{upstream}`, b196fe9b. "At base" means
+This run audits 11b7ffd9. The one commit since the earlier run's e128244f is
+11b7ffd9, and it touches only this file (`git log --no-merges --name-only
+d9fac6ed..HEAD`, executed), so no claim's coordinate moved and the rows
+executed at e128244f stand for 11b7ffd9's code unchanged. What changed is the
+pull request body, outside the tree; its rows were read again against the
+records. Every `executed` row of the earlier run ran in a `git clone
+--no-local` of the branch at e128244f under the scratchpad, removed after;
+the tree under audit was only read. The base is `release/v0.22.2@{upstream}`, b196fe9b. "At base" means
 that clone with `agents/scribe.md`, `skills/legacy-parity/SKILL.md` and
 `skills/implement/scripts/seal.py` checked out from b196fe9b and every test
 at HEAD.
 
 | Claim | Source | Command | Result |
 |---|---|---|---|
-| The broad run is at HEAD, followed only by this item's records | `broad-gate.md:5` | `git log --no-merges --name-only d9fac6ed..HEAD ^b196fe9b`; `git merge-base --is-ancestor d9fac6ed HEAD` | holds, executed: ancestor (exit 0); d47d39c1 touches `broad-gate.md` alone and e128244f `overview.md` alone, both under `seal/specs/1792368013-…/` |
+| The broad run is at HEAD, followed only by this item's records | `broad-gate.md:5` | `git log --no-merges --name-only d9fac6ed..HEAD ^b196fe9b`; `git merge-base --is-ancestor d9fac6ed HEAD` | holds, executed, re-run at 11b7ffd9: ancestor (exit 0); d47d39c1 touches `broad-gate.md` alone, e128244f `overview.md` alone and 11b7ffd9 `guarantee.md` alone, all under `seal/specs/1792368013-…/` |
 | Every case the build planted or re-pointed is green at HEAD | `phases/phase-1.md:113`, `phases/phase-2.md:122`, `rounds/round-2.md:61` | `bin/test -p no:xdist -q` over `test_every_agent_reads_the_contract.py`, T3, `test_the_record_is_written_in_words.py`, `test_review_axes.py`, the `seal` refusal case, `test_absence_claims.py`, the probe pin, `test_docs_line_wrap.py` | holds, executed: exit 0, 86 passed, 1 skipped (the framer's `NOT_YET_REWRITTEN` entry) |
 | T4 was seen red before the rewrite: it read the labels as the four emoji | `phases/phase-1.md:88-89` | the same command, at base | holds, executed: `the labels are ['🔴', '🟡', '🟢', '❓'], not ['differs', 'grounded', 'equivalent', 'unread']` |
 | T5 was seen red: it lost *the warden in a review round* | `phases/phase-1.md:89` | the same command, at base | holds, executed: `the record of a comparison lost 'the warden in a review round'` |
@@ -41,8 +46,9 @@ at HEAD.
 | `## Removes`: both skip entries, the line-wrap docstring lines, the follow-up row | `spec.md:217-220` | `git grep` of `NOT_YET_REWRITTEN`, `^SKIP`, `#968 to #970`, `scribe.md   160` over `tests/`; the diff of `seal/follow-up.md` | holds: `NOT_YET_REWRITTEN` holds `agents/framer.md` alone, the other greps exit 1 (executed); the follow-up row is deleted (read) |
 | `## Removes`: the README cells and *the smith asks* (S10) | `spec.md:221-222`, `:148` | S10's `git grep`; a wider `git grep -i -E 'smith (builds\|creates\|asks)\|smith 가 …'` over the READMEs, `skills`, `hooks`, `bin`, `templates`, `docs` | holds, executed: both exit 1; the scribe's rows list `agent-contract` alone and the counts read three and thirteen (read) |
 | No hook, script or test reads the old parity labels | PR body `:31`, changelog `:18` | `git grep -P '(🔴\|🟡\|🟢\|❓) *(differs\|equivalent\|out of)'` over the tree outside records; `git grep -E 'differs from original\|out of verified scope'` over `hooks bin skills .github tests evals/scripts templates` | holds, executed: both exit 1 |
-| Narration pins on the scribe were removed | PR body `:30` | read `phases/phase-2.md:71-72`, `phases/phase-1.md:77-84`, `questions.md:48` | does not hold — read: phase 2 says *No pin on the scribe pinned narration, so no case was removed*, phase 1's table removes no pin, and Q3's answer says *none was removed* |
-| The new cases were each seen red, *then by `mutation-check`* | PR body `:29` | read the phase records, both rounds, `overview.md` and d3a59161's message | holds for T3, T4, T5 and the resolution-order case (phase 1 and 2 tables, round 1's answer, read); the `seal` refusal case has a recorded red against the old line and no recorded `mutation-check` run (unverified; the orchestrator, who made d3a59161, answers it). T1, named as *the scribe's shape*, is an existing case whose skip left, not a new one (read) |
+| None of the scribe's pins pinned narration, so none was removed; the rule pins were re-pointed (the body as rewritten) | PR body `:30` | read `phases/phase-2.md:71-83`, `phases/phase-1.md:77-84`, `questions.md:48` | holds, read: phase 2 says *No pin on the scribe pinned narration, so no case was removed* and its table re-points the absence and probe pins; Q3's answer says *none was removed*. The earlier run's *narration pins removed* is gone |
+| The READMEs said in eight places that the smith asks where `seal/` lives and whether the project ports an original, and creates the layout (the body as rewritten) | PR body `:11` | read the diff of `README.md` and `README.ko.md` against b196fe9b, `changelog.md:11-13` | holds, read: the eight changed sentences are, in each README, the parity question, the `seal/` creation, the creation from `templates/` and the *Shared or local* question; the wording is the changelog's |
+| The new cases and the shape case were each seen failing against the tree before the change; the records name a `mutation-check` run for each unit of phases 1 and 2 and for the resolution order; the `seal` refusal case claims only its red (the body as rewritten) | PR body `:29` | the at-base run above (executed at e128244f, the code unchanged at 11b7ffd9); read `phases/phase-1.md:95-102`, `phases/phase-2.md:95-105`, `rounds/round-1.md:73` | holds: every named case was red at base (executed). Phase 1's table covers T4, T5, T6 and phase 2's T1, T2, T3 and the two pins (read). The resolution order's `mutation-check` runs are named in the fix pass's answer at `rounds/round-1.md:73` rather than in a `phases/` file; the fact the line states holds (read) |
 | #988 is filed in 0.22.3 | PR body `:36`, `questions.md:46` | `gh issue view 988 --json title,state,milestone` | holds, executed: open, milestone `release: 0.22.3`, the title the row describes |
 
 ## The parties
@@ -53,10 +59,10 @@ at HEAD.
 | the build | Phases 1–3 at c6738f51, c8391342, ef570495; d3a59161 (the `seal` line) and 22187f49 (round 1's fixes) after them | the spec, the tree, every red and byte figure re-run above | none |
 | the last round | Round 2 at 98c5729d confirms round 1's three closes and opens nothing | the tree at HEAD: the three fixed sentences stand (read) and the resolution-order case is red under both mutations (executed) | none |
 | the changelog | Five `### Changed` items; preload 40,466 → 34,697, read set 40,466 → 40,392, agent share 25,691 → 25,617; outcome `unverified`, the owner at the first parity run | the tree and the meter at HEAD; the issue body's measure | none. Its README item says the smith asked *where `seal/` lives and whether the project ports an original*, which matches the eight README sentences |
-| the pull request body | What changes, the byte table, the verification table, #988 left for later | the changelog, the tree and the meter on every figure and every line of *What changes* but `:11` | `:30` says *narration pins removed*; `phases/phase-2.md:71-72` and `questions.md:48` say none was. `:11` says the READMEs said *in eight places* that the smith asks where `seal/` lives and creates the layout; two of the eight (`README.md:240`, `README.ko.md:231` at HEAD) were the parity question, which the changelog's item names and the body drops. `:29` claims `mutation-check` for the `seal` refusal case, which no record shows |
+| the pull request body | What changes, the byte table, the verification table, #988 left for later; `:11`, `:29` and `:30` rewritten after the earlier run | the changelog, the tree, the meter, the phase records, `questions.md` Q3 and both rounds, line by line | none. Each of the earlier run's three lines now says what the records say. One looseness stays and changes no fact: `:29` credits *the phase records* with the resolution order's `mutation-check`, which `rounds/round-1.md:73`'s fix-pass answer records |
 
 <!-- One line: `sealed`, `withheld — <the claim, its party, its coordinate>`
 or `undecided — <the question, for the owner>`. An owner's answer is a line
 under it, `Answered <date> by <who>: <answer>`, which the next run keeps. -->
 
-Verdict: withheld — the pull request body is untrue at three lines: `:30` claims narration pins were removed, where `phases/phase-2.md:71-72` and `questions.md:48` say no pin pinned narration and none was removed; `:11` says the READMEs said in eight places that the smith asks where `seal/` lives, where two of the eight (`README.md:240`, `README.ko.md:231`) asked the parity question, as `changelog.md:11-13` says; `:29` claims `mutation-check` for the `seal` refusal case, which no record shows. The tree, the gate's record, the spec, the build, round 2 and the changelog hold.
+Verdict: sealed
