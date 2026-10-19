@@ -41,6 +41,7 @@ import argparse
 import ast
 import functools
 import importlib.util
+import json
 import os
 import re
 import subprocess
@@ -68,6 +69,12 @@ LOCATION = re.compile(
 )
 WINDOW = 15
 MODEL = "claude-opus-5-5"
+# What every truth's pattern opens with: a finding's `location:` line.
+LOCATION_LINE = "^location: .*"
+# The truths a run recurred on, which the three generators add (#971).
+TRUTHS = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "recurred_truths.json"
+)
 
 
 def git(*args, check=True):
@@ -356,6 +363,15 @@ def truth_pattern(location, target):
     `path#unit`, which `chain_check.py` refuses in a `location:` line.
 
     A location naming no backticked path gives None."""
+    option = truth_option(location, target)
+    return None if option is None else f"{LOCATION_LINE}(?:{option})"
+
+
+def truth_option(location, target):
+    """`truth_pattern`'s alternative for LOCATION, without the `location:`
+    line around it.
+
+    A location naming no backticked path gives None."""
     m = LOCATION.search(location)
     if not m:
         return None
@@ -371,10 +387,66 @@ def truth_pattern(location, target):
             lines = (span[0] - WINDOW, span[1] + WINDOW)
     if lines:
         numbers = "|".join(str(n) for n in range(max(1, lines[0]), lines[1] + 1))
-        option = f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)"
-    else:
-        option = f"{behaviour.js_escape(path)}(?![\\w./#-])"
-    return "^location: .*(?:" + option + ")"
+        return f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)"
+    return f"{behaviour.js_escape(path)}(?![\\w./#-])"
+
+
+def recurred_truths():
+    """`{case: [entry]}` from the input file at TRUTHS: the truths a run
+    recurred on, each a new grader or an existing one widened. An entry is
+    `case`, `grader` (`truth-<slug>`), `finding` (a new grader's body),
+    `locations` (`path`, `path:line` or `path:first-last` at the case's
+    target), `from` (the classing rows it came from) and, for a widening,
+    `widens: true`.
+
+    An entry naming a case the warden's suite does not hold stops the run
+    with exit 1, so the file cannot outlive its cases silently."""
+    with open(TRUTHS, encoding="utf-8") as f:
+        entries = json.load(f)
+    out = {}
+    for e in entries:
+        if not os.path.isdir(os.path.join(OUT, e["case"])):
+            raise SystemExit(f"{TRUTHS}: an entry names {e['case']}, no case of {OUT}")
+        out.setdefault(e["case"], []).append(e)
+    return out
+
+
+def truths_with(case, truths, target):
+    """TRUTHS, the `[(name, pattern, body)]` a generator derived for CASE
+    (NAME without its `truth-` prefix), with the input file's entries for
+    CASE applied at TARGET: a widening adds each of its locations to the
+    named truth's pattern as an alternative and keeps its body; a new truth
+    is one more `(name, pattern, finding)`.
+
+    An entry widening a truth CASE does not have, adding one it already has,
+    or naming a location outside `path`, `path:line` and `path:first-last`
+    stops the run with exit 1."""
+    out = list(truths)
+    for e in recurred_truths().get(case, []):
+        name = e["grader"].removeprefix("truth-")
+        options = []
+        for location in e["locations"]:
+            m = LOCATION.fullmatch(f"`{location}`")
+            if not m or m["unit"]:
+                raise SystemExit(
+                    f"{case}: {e['grader']} names `{location}`, no coordinate"
+                )
+            options.append(truth_option(f"`{location}`", target))
+        names = [n for n, _pattern, _body in out]
+        if e.get("widens"):
+            if name not in names:
+                raise SystemExit(f"{case}: no {e['grader']} to widen")
+            i = names.index(name)
+            _n, pattern, body = out[i]
+            if not pattern.startswith(LOCATION_LINE):
+                raise SystemExit(f"{case}: {e['grader']} reads no `location:` line")
+            rest = pattern[len(LOCATION_LINE) :]
+            out[i] = (name, f"{LOCATION_LINE}(?:{rest}|{'|'.join(options)})", body)
+        elif name in names:
+            raise SystemExit(f"{case}: {e['grader']} is already a truth of the case")
+        else:
+            out.append((name, f"{LOCATION_LINE}(?:{'|'.join(options)})", e["finding"]))
+    return out
 
 
 def targets(tags, items=None):
@@ -497,17 +569,17 @@ def scaffold(t, url):
 def graders(t):
     """Reach, shape and truth graders for one target."""
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
-    out = behaviour.report_shape("warden", report)
-    for truth in t["truths"]:
-        out.append(
-            behaviour.report_regex(
-                "truth",
-                f"{truth['k']}",
-                report,
-                truth["pattern"],
-                f"Round {t['n']}'s finding {truth['k']}: {truth['finding']}",
-            )
+    own = [
+        (
+            f"{truth['k']}",
+            truth["pattern"],
+            f"Round {t['n']}'s finding {truth['k']}: {truth['finding']}",
         )
+        for truth in t["truths"]
+    ]
+    out = behaviour.report_shape("warden", report)
+    for name, pattern, body in truths_with(case_name(t), own, t["target"]):
+        out.append(behaviour.report_regex("truth", name, report, pattern, body))
     return out
 
 

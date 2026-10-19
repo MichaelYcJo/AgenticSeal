@@ -1682,6 +1682,146 @@ def test_a_truth_never_matches_a_coordinate_the_check_refuses(monkeypatch):
     assert not bare.search("location: `docs/x.md#unit`")
 
 
+# --- a truth a run recurred on, added through the generators (#971) ---------
+
+RULE = "rule-warden-one-finding"
+SHOUT_BODY = "`shout_twice` joins the two shouts with no space, against S2.\n"
+
+
+def recurred_file(tmp_path, *entries):
+    """The input file of added truths holding ENTRIES, and its path."""
+    path = tmp_path / "recurred_truths.json"
+    path.write_text(json.dumps(list(entries)), encoding="utf-8")
+    return str(path)
+
+
+def entry(**over):
+    """One entry of the input file: a new truth of the rule case, unless
+    OVER says otherwise."""
+    base = {
+        "case": RULE,
+        "grader": "truth-no-case",
+        "finding": "No case covers `shout_twice`.",
+        "locations": ["tests/test_textutil.py"],
+        "from": ["baseline rule-warden-one-finding 0 1"],
+    }
+    base.update(over)
+    return base
+
+
+def rule_truths(tmp_path, monkeypatch, *entries):
+    """`{file name: text}` of the truth graders `rule_cases.py` writes for
+    the warden's rule case with ENTRIES as its input file."""
+    rc = load_script("rule_cases")
+    monkeypatch.setattr(rc.rt, "TRUTHS", recurred_file(tmp_path, *entries))
+    out = tmp_path / "out"
+    assert rc.main(["--out", str(out)]) == 0
+    graders = out / "warden" / RULE / "graders"
+    return {p.name: p.read_text(encoding="utf-8") for p in graders.glob("truth-*.md")}
+
+
+def truth_regex(name, text):
+    return re.compile(
+        ni.grader_from(f"graders/{name}", text)["config"]["pattern"], re.M
+    )
+
+
+def test_an_entry_adds_a_truth_its_case_is_written_with(tmp_path, monkeypatch):
+    """Guards S6's added truth: an entry naming a new grader writes it beside
+    the case's own truths, its body the entry's finding and its pattern
+    `truth_pattern`'s for each location."""
+    truths = rule_truths(tmp_path, monkeypatch, entry())
+    assert sorted(truths) == ["truth-no-case.md", "truth-shout-twice.md"]
+    text = truths["truth-no-case.md"]
+    assert text.endswith("No case covers `shout_twice`.\n")
+    found = truth_regex("truth-no-case.md", text)
+    assert found.search("location: `tests/test_textutil.py`")
+    assert not found.search("location: `src/textutil.py:8`")
+    assert truths["truth-shout-twice.md"].endswith(SHOUT_BODY)
+
+
+def test_an_entry_widens_a_truth_and_keeps_what_it_found(tmp_path, monkeypatch):
+    """Guards S6's widened truth: an entry that widens a grader adds its
+    locations as alternatives, the grader still finds what it found, and its
+    body stays the defect it was written for."""
+    widen = entry(grader="truth-shout-twice", widens=True)
+    truths = rule_truths(tmp_path, monkeypatch, widen)
+    assert sorted(truths) == ["truth-shout-twice.md"]
+    text = truths["truth-shout-twice.md"]
+    assert text.endswith(SHOUT_BODY)
+    found = truth_regex("truth-shout-twice.md", text)
+    assert found.search("location: `src/textutil.py:8`")
+    assert found.search("location: tests/test_textutil.py")
+    assert not found.search("location: `src/other.py:8`")
+
+
+@pytest.mark.parametrize(
+    "over, named",
+    [
+        ({"case": "replay-0-r1"}, "replay-0-r1"),
+        ({"grader": "truth-9", "widens": True}, "truth-9"),
+        ({"grader": "truth-shout-twice"}, "truth-shout-twice"),
+        ({"locations": ["src/textutil.py#shout"]}, "src/textutil.py#shout"),
+        ({"locations": ["no path here"]}, "no path here"),
+    ],
+    ids=[
+        "a-case-no-generator-writes",
+        "a-widening-of-a-truth-the-case-lacks",
+        "a-new-truth-the-case-already-has",
+        "a-coordinate-the-grammar-refuses",
+        "no-coordinate",
+    ],
+)
+def test_an_entry_the_case_cannot_take_stops_the_generator(
+    tmp_path, monkeypatch, over, named
+):
+    """Guards S6's stale entry: an entry naming a case the suite does not
+    hold, a truth to widen that the case lacks, a new truth whose name the
+    case already has, or a location outside `path`, `path:line` and
+    `path:first-last` stops the generator with exit 1, naming it, so the
+    file cannot go stale silently."""
+    with pytest.raises(SystemExit) as stopped:
+        rule_truths(tmp_path, monkeypatch, entry(**over))
+    assert named in str(stopped.value.code)
+
+
+def test_the_replay_and_seeded_generators_read_the_entries_too(tmp_path, monkeypatch):
+    """Guards S6 for the other two generators: each writes an entry's truth
+    for the case it names, beside its own."""
+    rt = load_script("replay_targets")
+    sd = load_script("seed_defects")
+    replay = "replay-1791382684-r2"
+    seeded = "seeded-279a580b"
+    path = recurred_file(
+        tmp_path, entry(case=replay, locations=["x.py"]), entry(case=seeded)
+    )
+    monkeypatch.setattr(rt, "TRUTHS", path)
+    monkeypatch.setattr(sd.rt, "TRUTHS", path)
+    t = {
+        "item": "1791382684-every-reader-and-record-is-inventoried",
+        "n": 2,
+        "target": "HEAD",
+        "truths": [{"k": 1, "finding": "f", "pattern": TRUTH}],
+    }
+    assert [name for name, _ in rt.graders(t) if name.startswith("truth-")] == [
+        "truth-1.md",
+        "truth-no-case.md",
+    ]
+    s = {
+        "commit": "279a580b" + "0" * 32,
+        "item": "1791384154-a-records-finding-closes-once-at-the-runs-end",
+        "path": "a.py",
+        "unit": "f",
+        "old": "a == b",
+        "new": "a != b",
+        "pattern": TRUTH,
+    }
+    assert [name for name, _ in sd.graders(s) if name.startswith("truth-")] == [
+        "truth-seeded.md",
+        "truth-no-case.md",
+    ]
+
+
 def test_a_seed_lands_on_a_code_token_and_never_in_a_string():
     sd = load_script("seed_defects")
     source = 'def f(a):\n    """a == b"""\n    return a == 1\n'

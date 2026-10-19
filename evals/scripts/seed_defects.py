@@ -260,6 +260,21 @@ def case_name(t):
     return f"seeded-{t['commit'][:8]}"
 
 
+def graders(t):
+    """Reach, shape and truth graders for one seeded case: the seeded line,
+    and whatever the input file of recurred truths adds for the case."""
+    report = f"seal/specs/{t['item']}/rounds/round-1.md"
+    seeded = (
+        "seeded",
+        t["pattern"],
+        f"The seeded defect: {t['old'].strip()!r} made {t['new'].strip()!r} in `{t['path']}#{t['unit']}`.",
+    )
+    out = behaviour.report_shape("warden", report)
+    for name, pattern, body in rt.truths_with(case_name(t), [seeded], t["commit"]):
+        out.append(behaviour.report_regex("truth", name, report, pattern, body))
+    return out
+
+
 def main(argv=None):
     """Parse the arguments, then list or write. `--case` reads every release
     tag's shipped commits; the rest reads the last three tags'.
@@ -292,24 +307,13 @@ def main(argv=None):
         a.count = len(a.case)
     url = rt.origin_url()
     for t in chosen:
-        report = f"seal/specs/{t['item']}/rounds/round-1.md"
-        graders = [
-            *behaviour.report_shape("warden", report),
-            behaviour.report_regex(
-                "truth",
-                "seeded",
-                report,
-                t["pattern"],
-                f"The seeded defect: {t['old'].strip()!r} made {t['new'].strip()!r} in `{t['path']}#{t['unit']}`.",
-            ),
-        ]
         behaviour.write_case(
             os.path.join(a.out, case_name(t)),
             name=f"warden {case_name(t)}",
             tags=["behaviour", "warden", "seeded"],
             prompt=prompt(t),
             scaffold=scaffold(t, url),
-            graders=graders,
+            graders=graders(t),
             max_turns=12,
             timeout_seconds=a.timeout,
             model=a.model,
