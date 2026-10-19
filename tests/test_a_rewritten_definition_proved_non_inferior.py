@@ -1605,7 +1605,23 @@ def test_a_labelled_record_is_read_by_the_grammar_of_the_commit_that_wrote_it(
         (1, "a fixed defect", "`src/a.py:12`, `docs/a.md`", True),
         (2, "a finding that does not hold", "`src/b.py:3`", False),
     ]
-    assert rt.confirmed(LABELLED_ROUND_2, 1, at=written) == {1, 2}
+    nxt = LABELLED_ROUND_2.replace(
+        "## Findings\n",
+        "## Findings\n\n### 1. a deferred defect\n\nseverity: should\n"
+        "location: `src/c.py:1`\nverdict: deferred #9\n\nanswer: filed\n",
+    )
+    assert rt.confirmed(nxt, 1) == set()
+    assert rt.confirmed(nxt, 1, at=written) == {1, 2}
+
+    seen = []
+
+    def stub(_text, rel, _n, at=None):
+        seen.append((rel, at))
+        return None, "stubbed"
+
+    monkeypatch.setattr(rt, "labelled_round", stub)
+    assert rt.targets([]) == ([], [("i", 1, "stubbed")])
+    assert seen == [(rel, written)]
 
     git("rm", "-q", rel)
     git("commit", "-qm", "settled")
