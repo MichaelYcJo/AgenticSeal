@@ -34,12 +34,8 @@ PROOF_BLOCK = re.compile(
     r"^[^\w\n]*[a-z][\w-]* applied[ \t]*$|\bsealed @", re.MULTILINE
 )
 
-# The files an agent reads as instruction.
+# The files an agent reads as instruction, every one of them read.
 CORPUS = ("agents/*.md", "skills/*/SKILL.md", "templates/*.md")
-
-# A file whose marks another issue owns, and the issue. The entry leaves with
-# its issue, the way `NOT_YET_REWRITTEN` skips a definition not yet rewritten.
-SKIP = {"skills/legacy-parity/SKILL.md": "#970"}
 
 
 def read(rel):
@@ -69,20 +65,8 @@ def section(text, heading):
 
 
 def test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block():
-    files = corpus()
-    for rel, issue in SKIP.items():
-        assert re.fullmatch(r"#\d+", issue), (
-            f"the skip entry for {rel} names no issue ({issue!r}): a skip with "
-            "nobody to end it is a hole in the corpus"
-        )
-        assert rel in files, f"the skip entry {rel} names no file the corpus reads"
-        assert EMOJI.search(read(rel)), (
-            f"{rel} carries no mark any more: its skip entry leaves with {issue}"
-        )
     found = []
-    for rel in files:
-        if rel in SKIP:
-            continue
+    for rel in corpus():
         text = read(rel)
         for n, line in enumerate(text.split("\n"), 1):
             if EMOJI.search(line):
@@ -94,6 +78,32 @@ def test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block():
         "a mark or a proof block in a file an agent reads; write the word:\n"
         + "\n".join(found)
     )
+
+
+PARITY_REVIEW = ("skills/legacy-parity/SKILL.md", "## Parity review")
+PARITY_WORDS = ["differs", "grounded", "equivalent", "unread"]
+
+
+def test_the_parity_verdicts_are_four_words():
+    """T4 of #970: a parity review labels a verdict with one of four
+    lowercase words at the start of its line, and the section says so once.
+
+    The labels were four emoji nobody read, and no case read the section, so
+    a mark or a fifth label could come back with every other case green."""
+    rel, heading = PARITY_REVIEW
+    lines, _ = section(read(rel), heading)
+    fences = [i for i, line in enumerate(lines) if line.startswith("```")]
+    assert len(fences) == 2, f"{rel} {heading} holds no one block of labels"
+    labels = [
+        line.split()[0] for line in lines[fences[0] + 1 : fences[1]] if line.strip()
+    ]
+    assert labels == PARITY_WORDS, (
+        f"{rel} {heading}: the labels are {labels}, not {PARITY_WORDS}"
+    )
+    said = " ".join(" ".join(lines).split())
+    assert "A verdict is one of four words, lowercase, at the start of its line" in (
+        said
+    ), f"{rel} {heading} no longer says the four words are the only labels"
 
 
 def sentences(lines):

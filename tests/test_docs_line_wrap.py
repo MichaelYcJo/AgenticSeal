@@ -155,6 +155,8 @@ COVERED = [
     "agents/smith.md",
     "skills/implement/SKILL.md",
     "skills/code-review/SKILL.md",
+    # Written anew and wrapped in #970.
+    "skills/legacy-parity/SKILL.md",
     # The orchestrator's half of the same file (#265). It arrives
     # already wrapped, because it was wrapped as part of the file it
     # was cut from — dropping it here would lose coverage 418 lines

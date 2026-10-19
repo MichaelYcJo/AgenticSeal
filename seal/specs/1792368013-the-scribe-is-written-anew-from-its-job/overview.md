@@ -1,0 +1,38 @@
+# 1792368013-the-scribe-is-written-anew-from-its-job — overview
+
+<!-- The closing memo (implement skill, step 4). Not a summary of the work:
+`git diff --stat` holds the file list and the diff holds the detail. Only what
+the diff cannot show goes here, and each part is written when it happens rather
+than reconstructed at the end. A rule that must outlive this work item goes
+to its home under `docs/` with the test that holds it, not here. -->
+
+## Why this work exists
+
+The scribe preloads the contract alone and opens `legacy-parity` at its first
+step, and `legacy-parity` writes its verdicts as four words and names who
+writes the parity mark, so no agent reading it takes itself for that writer.
+
+## Where spec and implementation diverged
+
+Opened at phase 1, where `tests/test_chain_hooks_hardening.py` asked for this
+file once the frame was in the tree.
+
+| Divergence | Spec says / code did | Chosen | Grounds |
+|---|---|---|---|
+| Line coordinates moved after the frame (phase 1) | the frame was drawn at d7691951, before #976 and #943 merged; `## Removes` and S7 name `skills/implement/orchestration.md:240` and `:54`, `README.md:234`, `:421` and `README.ko.md:226`, `:379` | the same sentences at `orchestration.md:238` and `:52`, `README.md:240`, `:427` and `README.ko.md:231`, `:384`, found by the greps the frame names | the spawn prompt said the orchestration file moved under #943; each sentence was found by its words, not its number (`phases/phase-1.md`) |
+| `tests/test_review_axes.py`'s module docstring rewritten (phase 1) | `## Removes` does not name it; it said *`❓ out of verified scope` records that you looked and could not decide* | it now names a row of `## Not judged`, the label `code-review` writes for that today | the docstring quoted a label this item removes from the last file that carried it; contract §19, a change removes what stood on the old fact |
+
+## Not verified
+
+| Item | Who must answer |
+|---|---|
+| Whether a scribe spawn opens `legacy-parity` at step 1, returns facts and no verdict, and returns `original not found` where the original does not resolve: no case runs the scribe (#957's Q3) | the repository owner, at the first parity run |
+| the full suite on this branch | the orchestrator's broad gate, after the review rounds settle |
+
+## Not done
+
+nothing
+
+## Fed back into the spec
+
+none

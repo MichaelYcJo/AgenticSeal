@@ -39,8 +39,9 @@ predates the question, or when the original repo changes.
    original (`apps/foo`), not the whole repo. Ask when the original has an
    obvious multi-module layout.
 
-5. **Policy root.** `docs/policies/` if present; otherwise propose it and say
-   it will be created on first use.
+5. **Policy root.** Read it from the tree: the directory where this repository
+   already keeps ratified policy, such as `docs/`, or `none` where it keeps
+   none. Never propose creating one.
 
 6. **Write two files.**
    - `seal/parity.md` from `templates/parity.md`, committed. Coordinate-trust
