@@ -24,8 +24,14 @@
 
   A record written before the row lacks the line, and that is no finding.
   The check reads only the records of the work items a pull request
-  carries, so no merged record is read again or rewritten. Two readers
-  still read old records at a release tag. v0.22.2's release panel shows
-  its `deferred` row as `not read`, by the owner's decision. And
-  `evals/scripts/replay_targets.py` leaves out every labelled record
-  written before the row, listing 13 replay targets where it listed 31.
+  carries, so no merged record is read again or rewritten. The release
+  panel reads every record of a release by this grammar, so v0.22.2's
+  panel shows its `deferred` row as `not read`, by the owner's decision.
+
+- **The replay generator reads each record by the grammar of its own time
+  (#985).** `evals/scripts/replay_targets.py` judges a labelled record
+  through the `chain_check.py` of the commit that last wrote it, with the
+  grammar table that commit holds, and reads a record no commit wrote
+  through the tree's. So the `evidence:` row does not cost it the rounds
+  written before it: `--list` names the same 31 replay targets it named
+  before the row.
