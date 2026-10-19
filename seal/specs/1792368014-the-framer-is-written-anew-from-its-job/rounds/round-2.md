@@ -17,7 +17,7 @@ again on the tree at fecbb137, in a `git clone --no-local` of the branch.
 severity: should
 location: `seal/specs/1792368014-the-framer-is-written-anew-from-its-job/overview.md:11-14`
 evidence: executed `git grep -n -E '26,?027|26,?604' fecbb137 -- seal/specs/1792368014-the-framer-is-written-anew-from-its-job`, `wc -c agents/framer.md skills/agent-contract/SKILL.md`
-verdict: open
+verdict: fixed c1d02bb3
 
 The overview's opening paragraph says, in the present tense, that *a framer
 spawn carries 26,027 bytes at startup instead of 86,353* (`overview.md:11-14`).
@@ -55,7 +55,7 @@ section at the steps that need them.
 | Round 1's fix, not measured again (5bdad9db) | phase 2's side measured the definition at b434e145, a 26,027-byte preload; round 1's fix adds 577 bytes to `agents/framer.md` | no second side: the preload that ships is 26,604 bytes, and the side stands at b434e145 | the orchestrator's decision, under the owner's word that a side is not run again for the measurement alone (`phases/phase-4.md`, the addendum) |
 ```
 
-answer:
+answer: Fixed by the orchestrator in the record it owns, with the round's two paste-ready blocks as written: the overview's opening paragraph now reads 26,604 bytes, and the divergence table gains the row *Round 1's fix, not measured again (5bdad9db)*.
 
 ## Confirmations
 
