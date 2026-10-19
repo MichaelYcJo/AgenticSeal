@@ -1771,6 +1771,7 @@ def test_an_entry_widens_a_truth_and_keeps_what_it_found(tmp_path, monkeypatch):
         ({"locations": ["no path here"]}, "no path here"),
         ({"locations": []}, "names no location"),
         ({"window": "2"}, "is no count"),
+        ({"locations": ["src/x.py:100-10"]}, "src/x.py:100-10"),
     ],
     ids=[
         "a-case-no-generator-writes",
@@ -1780,6 +1781,7 @@ def test_an_entry_widens_a_truth_and_keeps_what_it_found(tmp_path, monkeypatch):
         "no-coordinate",
         "no-location",
         "a-window-that-is-no-count",
+        "a-range-that-ends-before-it-starts",
     ],
 )
 def test_an_entry_the_case_cannot_take_stops_the_generator(

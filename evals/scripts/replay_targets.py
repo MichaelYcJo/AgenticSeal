@@ -432,8 +432,8 @@ def truths_with(case, truths, target):
 
     An entry widening a truth CASE does not have, adding one it already has,
     naming no location, a location outside `path`, `path:line` and
-    `path:first-last`, or a window that is no count stops the run with
-    exit 1."""
+    `path:first-last`, a range that ends before it starts, or a window that
+    is no count stops the run with exit 1."""
     out = list(truths)
     for e in recurred_truths().get(case, []):
         name = e["grader"].removeprefix("truth-")
@@ -450,6 +450,11 @@ def truths_with(case, truths, target):
             last = re.search(r"[-\N{EN DASH}](\d+)$", location) if m["line"] else None
             if last:
                 first = int(m["line"])
+                if int(last[1]) < first:
+                    raise SystemExit(
+                        f"{case}: {e['grader']} names `{location}`, a range "
+                        "that ends before it starts"
+                    )
                 options.append(
                     lines_option(m["path"], first - window, int(last[1]) + window)
                 )
