@@ -23,7 +23,7 @@ Everything else below was re-run at b52e3d25.
 
 severity: should
 location: `evals/scripts/replay_targets.py:450-456`, `tests/test_a_rewritten_definition_proved_non_inferior.py:1766-1784`
-verdict: open
+verdict: fixed acc86196
 regression: round-1#2
 
 The unit is `truths_with`'s range branch at `replay_targets.py:450-456`,
@@ -67,7 +67,7 @@ empty, and nothing downstream refuses an empty line list.
         "a-range-that-ends-before-it-starts",
 ```
 
-answer:
+answer: Fixed test first at acc86196. `truths_with` refuses a `path:first-last` location whose last line is below its first, exit 1, naming the location and "a range that ends before it starts", and its docstring names the refusal. The stale-entry test gained the row `a-range-that-ends-before-it-starts` (`src/x.py:100-10`), red against the branch before the code (`DID NOT RAISE SystemExit`, executed) and green after; its message check names the location, which the refusal prints. `mutation-check` with the refusal's condition made `False` was red (executed). The test module and `tests/test_evals_layout.py` passed 118, the regenerated suite left `git status --porcelain evals/behaviour` empty, and no committed entry holds a range that is reversed, so no truth moved (executed).
 
 ## Confirmations
 
