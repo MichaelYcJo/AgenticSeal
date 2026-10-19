@@ -72,10 +72,11 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
   sealer step and stamp paragraph, `hooks/git/pre-commit.py`'s and
   `hooks/sealer-stamp.py`'s docstrings, `seal_stamp.py`'s comments and
   docstrings, both READMEs' hook tables and side-effect sentences, and the
-  changelog fragment (S7, S8). And the mark's grammar: this item's own foot
-  carries `Reframed … after phase 6.`, which `chain_check.REFRAME_RE` does
-  not read, so the check, the policy sentence and the template widen to the
-  route this run took (`plan.md` row 8, `questions.md` head item 12).
+  changelog fragment (S7, S8). The mark's grammar is not widened: the
+  correction after phase 6 came from the build, not from the review chain
+  sending the item back, so it carries no `Reframed` line and is recorded in
+  `overview.md` (the orchestrator's decision, `plan.md`'s last `Approved`
+  line).
 - The sealer measured once against #975's phase-4 side, because one word of
   its definition changed in phase 4 (S9, closed in phase 5).
 
