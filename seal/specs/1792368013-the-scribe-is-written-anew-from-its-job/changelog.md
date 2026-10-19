@@ -7,6 +7,11 @@
   your session, not by the smith, and where it cannot find the original it
   returns `original not found` with what it tried, leaving the question to
   your session.
+- **The README and `seal` name your session as the one that sets up a
+  repository (#970).** Both READMEs said the smith asks where `seal/` lives
+  and whether the project ports an original, and creates the layout; a
+  `seal` subcommand run where no `seal/` exists said the same. Your session
+  asks and creates, and each of them now says so.
 - **A parity review's verdicts are four words (#970).** `differs`,
   `grounded`, `equivalent` and `unread` replace the four emoji, one word at
   the start of each line. A round record or report written with the emoji is

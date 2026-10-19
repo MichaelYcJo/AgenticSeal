@@ -33,12 +33,14 @@ file once the frame was in the tree.
 
 ## Not done
 
-`skills/implement/scripts/seal.py:678` prints *The first time the smith works
-in a repository it asks which one, and creates it.* to a person who runs a
-`seal` subcommand where no `seal/` exists. It states the fact the eight README
-sentences above stated, and it is left: it is a script's output, which
-contract §14 changes only with a case pinning the new text, no case reads it
-today, and the frame names no script. The orchestrator is the one to file it.
+nothing. `skills/implement/scripts/seal.py:678` printed *The first time the
+smith works in a repository it asks which one, and creates it.* to a person
+who runs a `seal` subcommand where no `seal/` exists, the fact the eight
+README sentences above stated. It was left at phase 2 because no case read
+it, and was fixed after phase 3 at the orchestrator's request: the line now
+names *your session*, and
+`tests/test_the_mode_is_a_row_and_a_command.py::test_the_refusal_names_the_session_as_the_one_that_asks`
+reads it, seen red against the old line first.
 
 ## Fed back into the spec
 
