@@ -187,3 +187,23 @@ def test_the_report_does_not_reduce_the_frame_to_counts():
         "`the phase count` survives beside the line-each rule, so a framer "
         "reading the section gets both and satisfies the cheaper one"
     )
+
+
+def test_the_hand_back_labels_what_the_framer_ran_as_executed():
+    """Round 1 of #968, finding 3. A framer runs `git show`, `grep` and
+    `wc -l` while it reads, and a frame labels those facts `executed`. A
+    hand-back told that every claim is `read` misstates them (contract §4);
+    what is true is narrower, that it ran no check of the repository's."""
+    report = report_of("framer.md")
+    assert "executed nothing" not in report, (
+        "the hand-back says the framer ran nothing, and the commands it runs "
+        "while reading give facts that only running them again can check"
+    )
+    assert "is `executed`" in report, (
+        "the hand-back no longer tells the framer which label a fact from a "
+        "command it ran takes"
+    )
+    assert "no check of the repository's" in report, (
+        "the hand-back lost the narrower claim that stays true: the framer "
+        "runs none of the repository's checks"
+    )

@@ -49,12 +49,14 @@ make.
    Where a heading is not found, read the file whole.
 4. Read wide, in the order of authority. `docs/` first, which outranks the
    ticket and the code alike. The `Enforced by:` lines and the tests they
-   name. `seal/follow-up.md`, whose item belongs inside your scope where this
+   name: a rule with a passing test is not a claim to re-establish.
+   `seal/follow-up.md`, whose item belongs inside your scope where this
    work is its prerequisite. The earlier work items under `seal/specs/`,
    their round records included where they still stand: a released work
    item's round records leave the tree at the next release, and are read at
-   the release tag after that (`git show v<X.Y.Z>:<path>`). The ticket and
-   its comments, and `seal/parity.md` where it is declared, which puts the
+   the release tag after that (`git show v<X.Y.Z>:<path>`). A decision those
+   rounds argued through is not argued again in your `plan.md`. The ticket
+   and its comments, and `seal/parity.md` where it is declared, which puts the
    original between the ticket and the code. A reference root
    (`templates/config.md` §*Reference specs*) is read where the work touches
    what it describes, and cited in `spec.md` by path.
@@ -68,8 +70,10 @@ make.
    for the record's language: `## English prose rules`, or `## 문장 규칙`
    where `Record language` in the `seal/` root's `config.md` is Korean.
 7. Write `spec.md`, then `plan.md`, then `questions.md`.
-8. Hand back. Every claim is `read`, because you executed nothing. The
-   report stands without a file opened beside it:
+8. Hand back. Label each claim as contract §4 says: a fact a command you
+   ran gave you, a `git show`, a `grep`, a `wc -l`, is `executed`, and what
+   you opened is `read`. You ran no check of the repository's, and the
+   report says so. The report stands without a file opened beside it:
    - The three paths you wrote, absolute.
    - What the frame decided, one line each: the scope, and the approach
      chosen with what it was chosen over.
@@ -108,7 +112,7 @@ its grounds written where a reviewer can open them, in `spec.md` or in
 what you opened. A fact that reaches you in prose is opened at its
 coordinate, or carried into `spec.md` labelled as nobody's finding with its
 answerer named.
-Enforced by: tests/test_waiver_decided_at_start.py::test_the_framers_acts_are_gather_judge_plan
+Enforced by: tests/test_waiver_decided_at_start.py::test_the_framers_acts_are_gather_judge_plan, tests/test_waiver_decided_at_start.py::test_the_framer_inherits_what_the_tree_already_settled
 
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
@@ -157,8 +161,9 @@ Enforced by: tests/test_the_handoff_before_round_one.py::test_the_framers_defini
 frame does not hold writes it into its phase record and hand-back, and you
 are not spawned again for it. You are when the orchestrator routes a
 `regression:` to you with that run's round records: open
-`docs/the-review-record.md` §*The run*, rewrite `plan.md` and `spec.md` as
-it says, and add `Reframed <date> by <who>, after round <N>.` under your
-mark, never in its place. `docs/the-review-record.md` §*The run* owns that
-rule.
-Enforced by: tests/test_the_rules_have_one_owner.py::test_every_link_names_the_owner
+`docs/the-review-record.md` §*The run*, then rewrite `plan.md` with new
+phase rows for the redesign, every closed phase keeping its commit, and
+`spec.md` where the scope moves. Add `Reframed <date> by <who>, after round
+<N>.` under your mark, never in its place. `docs/the-review-record.md`
+§*The run* owns that rule.
+Enforced by: tests/test_the_rules_have_one_owner.py::test_every_link_names_the_owner, tests/test_waiver_decided_at_start.py::test_a_reframe_keeps_every_closed_phase

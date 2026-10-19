@@ -719,6 +719,39 @@ def test_the_framer_weighs_replacing_a_structure_as_an_equal_of_keeping_it():
     )
 
 
+def test_the_framer_inherits_what_the_tree_already_settled():
+    """Round 1 of #968, finding 1. The reading list says what two of its
+    sources settle, not only that they are read: a rule with a passing test,
+    and a decision earlier rounds argued through, are not re-opened in the
+    frame. The rewrite kept both sources and dropped both consequences."""
+    framer = flat(read(*FRAMER))
+    assert "a rule with a passing test is not a claim to re-establish" in framer, (
+        "the framer reads the `Enforced by:` lines with nothing saying a rule "
+        "they hold is settled, so a frame can set out to prove it again"
+    )
+    assert "is not argued again in your `plan.md`" in framer, (
+        "the framer reads earlier rounds with nothing saying what they "
+        "settled stands, so its Alternatives table can re-open a closed "
+        "decision"
+    )
+
+
+def test_a_reframe_keeps_every_closed_phase():
+    """Round 1 of #968, finding 2. A reframe adds phase rows and keeps each
+    closed phase's commit. `docs/the-review-record.md` §*The run* owns the
+    route back and does not say how `plan.md` is rewritten, so the
+    definition says it."""
+    framer = flat(read(*FRAMER))
+    assert "new phase rows for the redesign" in framer, (
+        "a reframing framer is told to rewrite `plan.md` and not that the "
+        "redesign arrives as new rows"
+    )
+    assert "every closed phase keeping its commit" in framer, (
+        "a reframe can replace the Phases table, and a closed phase's Status "
+        "cell is the one record of what was built before it"
+    )
+
+
 def test_questions_md_is_the_residue_and_every_row_says_why():
     """S11's second half. What changes is not that `questions.md` goes, but
     what belongs in it: the residue after judging, never a collection.
