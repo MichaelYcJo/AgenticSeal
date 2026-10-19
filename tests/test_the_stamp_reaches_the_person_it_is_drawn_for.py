@@ -1588,12 +1588,16 @@ def _the_sequencers_commit(tmp_path, commitgate, monkeypatch):
     return repo, None
 
 
-def _copied(*bring):
+def _copied(*bring, pruned=False):
     """Round 1's shapes: the item sealed and stamped in one clone, its
     `routing.md` committed after, then brought onto `main` of a second
     clone by a plain command, where the audited commit is not in HEAD's
     history. `cherry-pick -n` takes the sealing commit alone, so its copy
-    carries no `routing.md`."""
+    carries no `routing.md`. With `pruned`, round 2's finding 2: every ref
+    that held the sealing commit is deleted first, as `fetch --prune` after
+    the merge leaves it, and the commit is picked by its SHA. Red at
+    1e956838 for that shape: `post-commit` wrote a record, and the re-seal
+    drew a second stamp."""
 
     def given(tmp_path, commitgate, monkeypatch):
         repo, target, _base = guaranteed(tmp_path)
@@ -1605,7 +1609,16 @@ def _copied(*bring):
             ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
         )
         git(other, "switch", "-q", "main")
-        git(other, *SIGNED, *bring)
+        picked = bring
+        if pruned:
+            sha = git(other, "rev-parse", "origin/feat/x~1").stdout.strip()
+            git(other, "branch", "-q", "-D", "feat/x")
+            git(other, "remote", "set-head", "origin", "-d")
+            git(other, "update-ref", "-d", "refs/remotes/origin/feat/x")
+            held = git(other, "for-each-ref", f"--contains={sha}").stdout
+            assert held == "", held
+            picked = (*bring, sha)
+        git(other, *SIGNED, *picked)
         reviewed(other)
 
         def lands_and_queues_nothing(other, loads):
@@ -1645,6 +1658,7 @@ def _copied(*bring):
         _copied("merge", "--squash", "origin/feat/x"),
         _copied("cherry-pick", "-n", "origin/feat/x~1"),
         _copied("checkout", "origin/feat/x", "--", f"seal/specs/{ITEM_NAME}"),
+        _copied("cherry-pick", "-n", pruned=True),
     ],
     ids=[
         "the target is HEAD",
@@ -1663,6 +1677,7 @@ def _copied(*bring):
         "merge --squash onto main",
         "cherry-pick -n onto main",
         "checkout of the item onto main",
+        "cherry-pick -n of a commit no ref holds",
     ],
 )
 def test_the_guarantee_refusal_is_quiet_off_its_one_fact(tmp_path, given, monkeypatch):
@@ -1738,6 +1753,40 @@ def test_a_refused_row_over_a_drawn_seal_does_not_draw_again(tmp_path):
     commit_all(other, "the sealer again at HEAD")
     assert after_the_commit(other) == ""
     assert queued(other) == []
+
+
+def test_a_tracking_ref_left_by_a_rebase_withholds_nothing(tmp_path):
+    """1792363231 S11 after a push and a rebase, round 2's finding 1. The
+    `withheld` guarantee was pushed, then the branch was rebased onto a
+    moved base, so `origin/feat/x` still holds the pre-rebase commit that
+    changed the guarantee. A wrong row over `deadbee` is refused at its
+    commit and recorded; the gate reads no other ref. The new audit then
+    draws the work item's one stamp, since the rebased history holds the
+    `withheld` and no `sealed`. Red at 1e956838: the gate recorded nothing,
+    so the repair drew nothing."""
+    commitgate = commitgate_module()
+    repo, _target, _base = declared_guaranteed(tmp_path)
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+    )
+    git(other, "switch", "-q", "main")
+    (other / "base.txt").write_text("the base moved\n", encoding="utf-8")
+    commit_all(other, "the base moved")
+    git(other, "switch", "-q", "feat/x")
+    git(other, *SIGNED, "rebase", "-q", "main")
+    moved = git(other, "log", "-1", "--format=%H", "--all", "--not", "HEAD", "--")
+    assert moved.stdout.strip(), "no ref outside HEAD's history"
+    base = short(other, "main")
+    staged(other, guarantee_text("deadbee", base, "sealed"))
+    code, _said = before_the_commit(other, commitgate)
+    assert code == 1 and refusals(other) == [f"{ITEM_ID}-deadbee"]
+    head = short(other)
+    staged(other, guarantee_text(head, base, "sealed", "; earlier run: deadbee sealed"))
+    assert before_the_commit(other, commitgate) == (0, "")
+    commit_all(other, "the sealer again at HEAD")
+    assert after_the_commit(other)
+    assert len(queued(other)) == 1, queued(other)
 
 
 def test_a_sealed_committed_past_the_stub_keeps_the_gap(tmp_path):
