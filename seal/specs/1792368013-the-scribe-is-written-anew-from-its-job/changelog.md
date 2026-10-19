@@ -28,13 +28,13 @@
 
   | Agent | Preload bytes | Read-set bytes | Outcome |
   |---|---|---|---|
-  | scribe | 40,466 → 34,697 | 40,466 → 40,385 | unverified: no case runs the scribe, and the repository owner answers it at the first parity run |
+  | scribe | 40,466 → 34,697 | 40,466 → 40,392 | unverified: no case runs the scribe, and the repository owner answers it at the first parity run |
 
-  Each pair is the tree at `1d665d48` → the tree at `c8391342`, measured by
-  `payload-meter --agent scribe`, whose figures include the `CLAUDE.md` pair
-  on the measuring machine (14,775 B on both sides). The read set adds the
-  bytes of `skills/legacy-parity/SKILL.md`, which the scribe opens at its
-  first step: 0 at `1d665d48`, where the skill was preloaded and already in
-  the figure, and 5,688 at `c8391342`. The agent's own share of the read set
-  is 25,691 → 25,610 B.
+  Each pair is the tree at `1d665d48` → the branch after review round 1's
+  fix pass, measured by `payload-meter --agent scribe`, whose figures
+  include the `CLAUDE.md` pair on the measuring machine (14,775 B on both
+  sides). The read set adds the bytes of `skills/legacy-parity/SKILL.md`,
+  which the scribe opens at its first step: 0 at `1d665d48`, where the skill
+  was preloaded and already in the figure, and 5,695 after the fix pass. The
+  agent's own share of the read set is 25,691 → 25,617 B.
   (`1792368013-the-scribe-is-written-anew-from-its-job`, #970)

@@ -84,6 +84,24 @@ def test_the_record_of_a_comparison_names_its_writer():
         assert clause in body, f"the record of a comparison lost {clause!r}"
 
 
+def test_the_resolution_order_ends_with_the_caller_asking():
+    """S4 of #970, the skill's half (round 1, finding 1): the order ends with
+    the caller asking and recording, and a reader that cannot ask returns
+    `original not found`. T3 holds the scribe's half; this is the text every
+    reader of the skill opens, and the base's wording made the reader ask."""
+    text = read("skills", "legacy-parity", "SKILL.md")
+    heading = "\n## The migration config\n"
+    assert heading in text, "`legacy-parity` lost its migration-config section"
+    body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
+    for clause in (
+        "it lives in `~/.claude/specseal/parity-paths.md`",
+        "the caller asks the user and records the answer",
+        "a reader that cannot ask returns `original not found` with what it tried",
+        "A comparison against a guessed original proves nothing.",
+    ):
+        assert clause in body, f"the resolution order lost {clause!r}"
+
+
 def test_the_preset_block_carries_the_routing_decision():
     """The rule lived only in `implement`, which loads when the skill is invoked.
 

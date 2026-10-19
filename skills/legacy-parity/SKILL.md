@@ -35,7 +35,7 @@ the current repository, then a check by `git remote -v` against the declared
 original. Where none resolves, the caller asks the user and records the
 answer, and a reader that cannot ask returns `original not found` with what it
 tried. A comparison against a guessed original proves nothing.
-Enforced by: tests/test_chain_hooks_hardening.py::test_parity_declaration_is_bootstrappable_not_hand_written
+Enforced by: tests/test_review_axes.py::test_the_resolution_order_ends_with_the_caller_asking
 
 ## Three-way judgment
 
@@ -57,16 +57,16 @@ Enforced by: nothing — a judgment the parity review reads
 Where storage, query conditions and response assembly disagree inside the
 original, its behavior is what it sends the client. Trace from the endpoint to
 the finished response; a mid-layer condition that never changes the response
-needs no reproduction. Where the original later fixed a behavior, the fix is
-its intent, and cloning the version before it preserves nothing.
+is reported as such and needs no reproduction. Read the original's history: a
+later fix is its intent, and cloning the version before it preserves nothing.
 Enforced by: nothing — no case declares `seal/parity.md`
 
 ## The original's coordinates
 
 A spec's Grounding cites the original's coordinates for the clauses in scope.
-Start every comparison there instead of searching the original, and pin what
-it settles with a test. A suspect coordinate is opened at the baseline:
-`git show <baseline>:<path>`.
+Start every comparison there instead of searching the original; the caller
+pins what it settles with a test. A suspect coordinate is opened at the
+baseline: `git show <baseline>:<path>`.
 Enforced by: nothing — no case declares `seal/parity.md`
 
 ## Replacement annotation
