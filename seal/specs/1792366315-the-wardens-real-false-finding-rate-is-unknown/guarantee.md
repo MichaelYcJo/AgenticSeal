@@ -7,30 +7,39 @@ sealer alone and committed by the orchestrator beside `broad-gate.md`.
 
 | Field | Value |
 |---|---|
-| Target SHA | f29e6b89 against 43cbc361 |
+| Target SHA | 3a38f1dd against 43cbc361; earlier run: f29e6b89 withheld |
 | Broad gate | daaaacd0 against 43cbc361 |
 
 The base `release/v0.22.2` resolves through `release/v0.22.2@{upstream}`
 to 43cbc361. The branch's merge base with it is 8a100e13, so every diff
-below is `git diff 43cbc361...HEAD`. This is the first run, and no earlier
-`guarantee.md` stands.
+below is `git diff 43cbc361...HEAD`.
+
+This is the second run. The first, at f29e6b89, was withheld on one line of
+the pull request body: its figures table labelled #957's phase-3 side
+`0.22.1 warden`. The only commit since then is 3a38f1dd, and it adds this
+file and nothing else (`git diff --stat f29e6b89 3a38f1dd`, executed). So no
+claim the first run re-ran rests on a coordinate a later commit touched.
+The rows the first run executed stand as run at f29e6b89, and this run
+re-ran none of them. This run read the gate's record and the pull request
+body again, and compared the parties again.
 
 The broad gate was not run here. `broad-gate.md` names daaaacd0 against
 43cbc361, and daaaacd0 is an ancestor of HEAD.
-`git log --no-merges --name-only daaaacd0..HEAD ^43cbc361` lists one
-commit, f29e6b89. It touches only `broad-gate.md` and `overview.md` of this
-work item (executed).
+`git log --no-merges --name-only daaaacd0..HEAD ^43cbc361` lists two
+commits. f29e6b89 touches only `broad-gate.md` and `overview.md` of this
+work item, and 3a38f1dd only its `guarantee.md` (executed at 3a38f1dd).
 
-The audit ran in two scratch clones made with `git clone --shared` from
-the worktree: one at f29e6b89 and one at f29e6b89 with the changed code
-restored from the base. Both were removed afterwards. The tree under audit
-was not changed, apart from this file.
+The first run's audit ran in two scratch clones made with `git clone
+--shared` from the worktree. One was at f29e6b89, and the other was at
+f29e6b89 with the changed code restored from the base. Both were removed
+afterwards. The tree under audit was not changed, apart from this file.
 
 ## Claims re-run
 
 | Claim | Source | Command | Result |
 |---|---|---|---|
-| The gate's record is at HEAD, or only this item's records follow it | `broad-gate.md:5` | `git merge-base --is-ancestor daaaacd0 HEAD`; `git log --no-merges --name-only daaaacd0..HEAD ^43cbc361` | holds — ancestor (exit 0); only f29e6b89 follows, touching `broad-gate.md` and `overview.md` of this item |
+| The gate's record is at HEAD, or only this item's records follow it | `broad-gate.md:5` | `git merge-base --is-ancestor daaaacd0 HEAD`; `git log --no-merges --name-only daaaacd0..HEAD ^43cbc361`, at 3a38f1dd | holds — ancestor (exit 0). f29e6b89 follows, touching this item's `broad-gate.md` and `overview.md`, and 3a38f1dd follows, touching its `guarantee.md` alone |
+| Nothing but this file changed since the first run | the coordinator's message; `guarantee.md`'s earlier `Target SHA` | `git diff --stat f29e6b89 3a38f1dd`, at 3a38f1dd | holds — one file, `guarantee.md`, 67 insertions |
 | S1: the classing table covers the 74 false rows one to one, every `location:` byte for byte, and the totals match | `phases/phase-1.md:122-128`; PR body:9, :32 | the join in `phases/phase-1.md:33-119`, run as written from the clone's root | holds — `false rows: 43 baseline, 31 phase 3; table rows: 74; problems: 0`, exit 0 |
 | S3: `regrade` onto af9c924b gives back 55/43 and 47/31 and every recorded result | `phases/phase-2.md:73-79`; `changelog.md:16-17`; PR body:33 | `noninferiority.py regrade --side <#957 side> --suite-rev af9c924b --out <scratch>` for both sides | holds — `55 rows, 43 false` and `47 rows, 31 false`, both exit 0. Exit 0 means the self-check found every truth result, score and aggregate reproduced |
 | The committed new-suite sides are what `regrade` onto 11ebe8f4 writes | `phases/phase-4.md:41-47` | `regrade --suite-rev 11ebe8f4` for both sides, then `cmp` with `evals/*-11ebe8f4.json` | holds — `55 rows, 19 false` and `47 rows, 12 false`, exit 0, both `cmp` exit 0. Both committed sides hold `regraded_from` af9c924b. A regrade onto HEAD differs from the committed baseline only in `suite_rev` (`diff` of the sorted JSON) |
@@ -51,7 +60,7 @@ was not changed, apart from this file.
 | The classing's tree facts, sampled | `evals/false-rows.md:81`, `:86`, `:117`, `:127`; `overview.md:25`; round 1's S2 confirmation | `git cat-file -e 7ef6abbf:docs/the-review-record.md`; `git grep -n -e 'TARGET = ' 7ef6abbf -- skills/code-review/scripts/chain_check.py`; `git diff --quiet 7608d82c 97c910d5 -- '*.py' tests/undeclared_readers.txt` and the same at ef8fb33c; `git show 97c910d5:<item>/changelog.md \| wc -l`; `git cat-file -t 2dfa53a9`; `git grep -n -e 'NOTES_FROM = ' 279a580b`; `git show 9b644676:.github/scripts/plugin_directory_check.py` at :293-300 | holds — 128; `:379 TARGET = "Target SHA"`; 1 and 0; 17 lines; 128; `NOTES_FROM = 1791384163` against `1791384154` at spec.md:92 and :161; `except (OSError, ValueError, KeyError)` at :297 |
 | Five new credits rest on rows no entry's `from` names | `rounds/round-1.md:396`; PR body:40 | a scratch script over both 11ebe8f4 sides: for each entry's grader that passes in a run, the rows it matches against the entry's `from` | holds at 11ebe8f4 — the baseline's replay-1791382684-r2 run 1 truth-step-refused (row 0); phase 3's replay-1791382684-r2 runs 0 and 1 truth-2 (rows 0 and 2, row 0); phase 3's seeded-9b644676 runs 0 and 1 truth-no-commit-unpinned (row 0). Two more, the baseline's run 1 truth-1 and truth-2, passed under the old suite already |
 | Removes: nothing | `spec.md:213-218`; the changelog names no removal | `git diff --stat 43cbc361...HEAD`; `ls evals/` of this item | holds — the diff deletes 52 lines, all in amended text; no reader, check or rule leaves. The 864798a4 sides and record that round 1's fix replaced are absent from the tree |
-| The PR body's side "0.22.1 warden" is the 0.22.1 release's warden | PR body:18 | `git show v0.22.1:agents/warden.md \| shasum -a 256` and the same for `skills/agent-contract/SKILL.md`, against `specseal.preload` of `seal/specs/1792126889-every-agent-is-written-anew-from-its-job/evals/warden-phase-3.json` | does not hold — the side measured `agents/warden.md` ad823e75 and the contract e4f679e3. v0.22.1 ships 9506b562 and 642b0da6, the same as 8a100e13. f6ae6db6 (#967), 4a6e24f6 (#969) and f1c9932d (#975) changed the warden's read set after #957 and are in v0.22.1 (`git merge-base --is-ancestor`, exit 0 each) |
+| The PR body's figures table names the phase-3 side truly | PR body:18 | at f29e6b89: `git show v0.22.1:agents/warden.md \| shasum -a 256` and the same for `skills/agent-contract/SKILL.md`, against `specseal.preload` of `seal/specs/1792126889-every-agent-is-written-anew-from-its-job/evals/warden-phase-3.json`. At 3a38f1dd: the body file read whole, and `grep -n '0\.22\.1'` over it | holds — line 18 now reads `#957 phase-3 warden`, which is the side `warden-phase-3.json` holds, and `grep` finds no `0.22.1` (exit 1). At f29e6b89 the row read `0.22.1 warden`, which did not hold. That side measured `agents/warden.md` ad823e75 and the contract e4f679e3, and v0.22.1 ships 9506b562 and 642b0da6. Every other line of the body is the one the first run read |
 | #985 is in 0.22.2 and #986 in 0.22.3; #968, #970 and #985 measure on af9c924b | PR body:24, :44-45; `changelog.md:48-54` | `gh issue view 985`, `986`; body line 11 of `gh issue view 968` and `970`; body line 19 of 985 | holds — 985 `release: 0.22.2`, 986 `release: 0.22.3`, both open. 968 and 970 say `--suite-rev af9c924b`, and 985 says "on af9c924b's suite" |
 
 ## The parties
@@ -62,6 +71,6 @@ was not changed, apart from this file.
 | the build | Phases 1-4 at c1a2f8a5, cd39630a, 864798a4 and 837ee9bc. Round 1's fixes are at 11ebe8f4 and 4116d2a5, round 2's at acc86196. The figures are 43→19 of 55 and 31→12 of 47, and the recall 13/24→39/54 and 16/24→40/54 | the tree on every claim re-run above, and the spec | none on what was re-run. The `mutation-check` counts stand as the records' own and were not re-run |
 | the last round | Round 3 at 037cfda7 confirms round 2's one close and opens nothing. Rounds 1-3 leave three owner rows standing: the finding wording, the five credits, and truth-direction-unplaced as "the weakest candidate" | the tree: the reversed-range refusal was seen red and is green, and the module passes 104 at HEAD | none. `overview.md` §*Not verified* carries only the wording row of the three. The other two stand in the rounds' *Not judged* and in PR body:40, which names the five credits, so none is lost |
 | the changelog | `regrade` and its four refusals; 15 truths added and 2 widened from `recurred_truths.json`; the figures at 11ebe8f4; 0.22.2 decides nothing on the new suite; the regraded phase-3 side "measured a preload that is no longer the tree's, so it is a record and not a baseline" | the tree on every figure and count, and the issue's `## Decision` | none |
-| the pull request body | The same story as the changelog, with the figures table labelling the phase-3 side "0.22.1 warden" | the tree on every other line re-run: :9-11, :17, :20, :24-26, :32-36, :38, :40, :44-45, and :37's red-first half. :37's `mutation-check` half is the phase records' own, not re-run | its own line 18. The tree (`v0.22.1:agents/warden.md` 9506b562 against the side's ad823e75) and the changelog (`changelog.md:56-58`) both say the side's warden is not the tree's. `plan.md:53-59` gives the same reason, naming 8a100e13, whose preload is v0.22.1's. A reader of :18 takes 12/47 and 40/54 as the shipped 0.22.1 warden's figures, the baseline misuse `plan.md:71-73` warns against |
+| the pull request body | The same story as the changelog. Its figures table names the sides `baseline warden` and `#957 phase-3 warden` | the tree on every line re-run: :9-11, :17-18, :20, :24-26, :32-36, :38, :40, :44-45, and the red-first half of :37. The `mutation-check` half of :37 is the phase records' own and was not re-run. Line 18 now agrees with `changelog.md:46` and `:56-58`, which call the side phase 3 and not the tree's warden | none. The first run's disagreement, `0.22.1 warden` at :18, is gone at 3a38f1dd |
 
-Verdict: withheld — the pull request body's figures table labels #957's phase-3 side "0.22.1 warden" (`971-pr.md:18`), but that side measured `agents/warden.md` ad823e75 and the contract e4f679e3, and v0.22.1 ships 9506b562 and 642b0da6 (`git show v0.22.1:<f> | shasum -a 256` against `warden-phase-3.json`'s `specseal.preload`); relabel the row, for example "#957 phase-3 warden", as `changelog.md:46` does with "phase 3"
+Verdict: sealed
