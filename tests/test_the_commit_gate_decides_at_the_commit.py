@@ -1635,6 +1635,81 @@ def test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output(world)
     assert f"`seal-stamp --from {quoted}`" in said, said
 
 
+# The refusal of a `sealed` the history does not hold, as a person reads it
+# (work item 1792363231, `spec.md` S11). It is no arm: no question, no waiver.
+GUARANTEE_TEXT = (
+    "SpecSeal stopped this commit; nothing was committed.\n\n"
+    "{path} reads `sealed` over {target}, a commit the history of this one "
+    "does not hold: it is neither HEAD of `{branch}`, {head}, nor an ancestor "
+    "of it. Committed, that verdict would draw no stamp, and the pull "
+    "request's check would refuse it as stale.\n\n"
+    "The way on is a new audit: spawn the sealer again at HEAD. Its `Target "
+    "SHA` row then names {head} and keeps this verdict as `; earlier run: "
+    "{target} sealed`. Do not edit the row by hand: a row the sealer did not "
+    "write is a verdict nobody gave.\n\n"
+    "Re-issuing this commit unchanged meets this same refusal.\n"
+)
+
+
+@pytest.mark.parametrize(
+    "shape",
+    [
+        "add, then commit",
+        "commit -a",
+        "commit <pathspec>",
+        "a pathspec that leaves it out",
+    ],
+)
+def test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit(world, shape):
+    """1792363231 S11 through the stubs `hooks/hook-install.py` wrote, and
+    `questions.md` Q6. On the declared branch, a commit carrying a
+    `guarantee.md` that reads `sealed` over `deadbee` is refused inside the
+    commit, HEAD unmoved, whether the guarantee was staged first, taken by
+    `-a`, or named by a pathspec, where git hands the hook a temporary index
+    through `GIT_INDEX_FILE`. A pathspec commit of another file carries an
+    index without the staged guarantee, so it lands. Red at 37f96f7a: every
+    shape landed."""
+    item = world.w / "seal" / "specs" / "1790000000-x"
+    rel = "seal/specs/1790000000-x/guarantee.md"
+
+    def written(target, verdict):
+        (item / "guarantee.md").write_text(
+            "| Field | Value |\n|---|---|\n"
+            f"| Target SHA | {target} against release |\n\nVerdict: {verdict}\n",
+            encoding="utf-8",
+        )
+
+    written(world.head(world.w)[:8], "withheld — x")
+    g(world.w, "add", "-A", home=world.home, session="")
+    g(world.w, "commit", "-q", "-m", "withheld", home=world.home, session="")
+    written("deadbee", "sealed")
+    before = world.head(world.w)
+    args = {
+        "add, then commit": ("commit", "-q", "-m", "the seal"),
+        "commit -a": ("commit", "-q", "-a", "-m", "the seal"),
+        "commit <pathspec>": ("commit", "-q", "-m", "the seal", "--", rel),
+        "a pathspec that leaves it out": ("commit", "-q", "-m", "f", "--", "f.py"),
+    }[shape]
+    if shape in ("add, then commit", "a pathspec that leaves it out"):
+        g(world.w, "add", rel, home=world.home, session="")
+    if shape == "a pathspec that leaves it out":
+        world.change(world.w)
+    got = g(world.w, *args, home=world.home, check=False)
+    if shape == "a pathspec that leaves it out":
+        assert got.returncode == 0, got.stderr
+        assert gate.HEADER not in got.stderr, got.stderr
+        assert world.head(world.w) != before
+        staged = g(world.w, "diff", "--cached", "--name-only", home=world.home)
+        assert staged.stdout.split() == [rel], staged.stdout
+        return
+    assert got.returncode != 0, got.stderr
+    assert world.head(world.w) == before
+    short = g(world.w, "rev-parse", "--short", "HEAD", home=world.home).stdout.strip()
+    assert got.stderr == GUARANTEE_TEXT.format(
+        path=rel, target="deadbee", branch="feat", head=short
+    ), got.stderr
+
+
 def test_the_post_tool_use_notice_stands_aside_where_git_says_it(world, monkeypatch):
     notice = load_hook_module("implementer-notice.py", "notice_beside_post_commit")
     routing_md = world.w / "seal" / "specs" / "1790000000-x" / "routing.md"

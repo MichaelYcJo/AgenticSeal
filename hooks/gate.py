@@ -36,6 +36,13 @@ is put at all, as before (#662, #665).
 shell history keeps it, and inside a commit message it is prose rather than a
 waiver. The older `: '[no-review]'; git commit …` keeps working through
 `hooks/answers.py` (P3, answer (a)), and every refusal names it second.
+
+**One refusal is no arm** (work item 1792363231). A commit that stages a work
+item's `guarantee.md` reading `sealed` over a commit its own history does not
+hold, on the branch the item declares, is refused with `guarantee_refusal`'s
+text. `hooks/commitgate.py#guarantee_off_history` reads that fact from the
+index, inside git alone: it has no opt-in beyond `seal/`, no mark, no waiver
+and no question, and the PreToolUse reading does not judge it.
 """
 
 import os
@@ -282,6 +289,21 @@ AUTOMATION = (
 
 UNCHANGED = "Re-issuing this commit unchanged meets this same refusal."
 
+# A commit staging a `sealed` the history does not hold (work item
+# 1792363231): what it is, then the one way on. No arm and no question.
+GUARANTEE_STATE = (
+    "{path} reads `sealed` over {target}, a commit the history of this one "
+    "does not hold: it is neither HEAD of `{branch}`, {head}, nor an ancestor "
+    "of it. Committed, that verdict would draw no stamp, and the pull "
+    "request's check would refuse it as stale."
+)
+GUARANTEE_WAY_ON = (
+    "The way on is a new audit: spawn the sealer again at HEAD. Its `Target "
+    "SHA` row then names {head} and keeps this verdict as `; earlier run: "
+    "{target} sealed`. Do not edit the row by hand: a row the sealer did not "
+    "write is a verdict nobody gave."
+)
+
 
 def refusal(arms, top, branch, pressed, backstop=False):
     """The whole text a refused commit prints, for `arms` in `top`."""
@@ -318,3 +340,24 @@ def refusal(arms, top, branch, pressed, backstop=False):
     lines.append("")
     lines.append(UNCHANGED)
     return "\n".join(lines)
+
+
+def guarantee_refusal(path, target, branch, head):
+    """The whole text a commit prints when it stages `path`, a work item's
+    `guarantee.md` reading `sealed` over `target`, which `branch` at `head`
+    does not hold. It is the same whoever pressed what: it puts no question
+    and names no waiver, because nothing a person rightly has gets past it,
+    and the pull request's check refuses the same file (`questions.md` Q5
+    of work item 1792363231, answered (a))."""
+    facts = {"path": path, "target": target, "branch": branch, "head": head}
+    return "\n".join(
+        [
+            HEADER,
+            "",
+            GUARANTEE_STATE.format(**facts),
+            "",
+            GUARANTEE_WAY_ON.format(**facts),
+            "",
+            UNCHANGED,
+        ]
+    )

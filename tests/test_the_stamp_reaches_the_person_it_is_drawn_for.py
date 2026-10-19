@@ -1677,6 +1677,284 @@ def test_guard_two_reads_what_post_commit_sees_in_the_reflog(tmp_path):
         assert mod.plain_commit(seen[kind]) == (kind in ("initial", "plain")), kind
 
 
+# --- 1792363231 S11-S12: a `sealed` the branch does not hold, at its commit ---------
+#
+# `plan.md` A14. `pre-commit` reads each staged `seal/specs/<id>/guarantee.md`
+# from the index. Where it reads one `sealed` whose `Target SHA` names a commit
+# HEAD's history does not hold, on the branch the item's `routing.md` declares,
+# the commit is refused before the verdict is a fact of the history. The arms
+# are quiet in every case here: the declaration on disk names the branch, or a
+# review mark names HEAD.
+
+GUARANTEE_REL = f"seal/specs/{ITEM_NAME}/guarantee.md"
+ROUTING_REL = f"seal/specs/{ITEM_NAME}/routing.md"
+
+
+def declared_guaranteed(tmp_path, verdict="withheld — x"):
+    """`guaranteed`'s repository with the work item's `routing.md` naming
+    `feat/x` committed on top. Returns (repo, target, base)."""
+    repo, target, base = guaranteed(tmp_path, verdict=verdict)
+    (repo / ROUTING_REL).write_text(routing_text(), encoding="utf-8")
+    commit_all(repo, "the routing")
+    return repo, target, base
+
+
+def staged(repo, text, name="guarantee.md"):
+    """The work item's `name` rewritten to `text` and staged, uncommitted."""
+    (repo / "seal" / "specs" / ITEM_NAME / name).write_text(text, encoding="utf-8")
+    git(repo, "add", "-A")
+
+
+def reviewed(repo):
+    """A review mark naming HEAD, so the review arm is quiet off a declared
+    branch."""
+    head = git(repo, "rev-parse", "HEAD").stdout.strip()
+    (repo / ".git" / "specseal-reviewed").write_text(head, encoding="utf-8")
+
+
+def before_the_commit(repo, commitgate=None, session="s-1"):
+    """(exit status, what it wrote) of `pre-commit` in `repo` for a Claude
+    session, over the index as it stands."""
+    import io
+
+    out = io.StringIO()
+    commitgate = commitgate or commitgate_module()
+    environ = {"CLAUDE_CODE_SESSION_ID": session}
+    return commitgate.pre_commit(str(repo), environ, out), out.getvalue()
+
+
+@pytest.mark.parametrize(
+    "wrong",
+    [lambda repo: "deadbee", off_branch_commit],
+    ids=["the target does not resolve", "the target is off the branch"],
+)
+def test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit(
+    tmp_path, wrong
+):
+    """1792363231 S11. On the declared branch, a commit staging a `sealed`
+    over `deadbee` (#975 round 4's measured shape) or over a commit no
+    branch holds is refused by `pre-commit`: exit 1, HEAD and the index as
+    they were, and a text naming the file, the commit named, the branch,
+    HEAD and the one way on, a new audit of the sealer at HEAD, with no
+    question and no waiver. The new audit's commit then lands.
+
+    It draws nothing. The new row keeps the refused run as `; earlier run:
+    <sha> sealed`, as `agents/sealer.md` says a re-run does, and
+    `_queue_one`'s chain counts that entry as the stamp. That is the limit
+    `phases/phase-6.md` hands back, pinned so the change that closes it is
+    seen. Red at 37f96f7a: `pre-commit` exited 0, so the wrong row became
+    history."""
+    commitgate = commitgate_module()
+    repo, _target, base = declared_guaranteed(tmp_path)
+    off = wrong(repo)
+    staged(repo, guarantee_text(off, base, "sealed"))
+    head = short(repo)
+    index = git(repo, "write-tree").stdout.strip()
+    code, said = before_the_commit(repo, commitgate)
+    assert code == 1, said
+    gate = commitgate.gate
+    assert said == gate.guarantee_refusal(GUARANTEE_REL, off, "feat/x", head) + "\n"
+    assert said.startswith(gate.HEADER + "\n\n"), said
+    for fact in (
+        GUARANTEE_REL,
+        off,
+        "`feat/x`",
+        head,
+        "spawn the sealer again at HEAD",
+    ):
+        assert fact in said, fact
+    assert "AskUserQuestion" not in said and "waive" not in said, said
+    assert said.rstrip().endswith(gate.UNCHANGED), said
+    assert (short(repo), git(repo, "write-tree").stdout.strip()) == (head, index)
+    staged(repo, guarantee_text(head, base, "sealed", f"; earlier run: {off} sealed"))
+    assert before_the_commit(repo, commitgate) == (0, "")
+    commit_all(repo, "the sealer again at HEAD")
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == []
+
+
+def _at_head(tmp_path, commitgate, monkeypatch):
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text(short(repo), base, "sealed"))
+
+    def loaded(repo, loads):
+        assert loads == [1], "a staged guarantee did not reach the loader"
+
+    return repo, loaded
+
+
+def _at_an_ancestor(tmp_path, commitgate, monkeypatch):
+    repo, target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text(target, base, "sealed"))
+    return repo, None
+
+
+def _reading(written):
+    def given(tmp_path, commitgate, monkeypatch):
+        repo, _target, base = declared_guaranteed(tmp_path)
+        staged(repo, written("deadbee", base))
+        return repo, None
+
+    return given
+
+
+def _a_stale_chain(tmp_path, commitgate, monkeypatch):
+    repo, target, base = declared_guaranteed(tmp_path)
+    staged(
+        repo, guarantee_text(target, base, "sealed", "; earlier run: deadbee sealed")
+    )
+    return repo, None
+
+
+def _no_routing_in_the_index(tmp_path, commitgate, monkeypatch):
+    """The declaration stands on disk, which quiets the review arm, and not
+    in the index the commit is made from."""
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text("deadbee", base, "sealed"))
+    git(repo, "rm", "-q", "--cached", ROUTING_REL)
+    return repo, None
+
+
+def _no_branch_row_in_the_index(tmp_path, commitgate, monkeypatch):
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, routing_text(None), name="routing.md")
+    staged(repo, guarantee_text("deadbee", base, "sealed"))
+    (repo / ROUTING_REL).write_text(routing_text(), encoding="utf-8")
+    return repo, None
+
+
+def _no_guarantee_staged(tmp_path, commitgate, monkeypatch):
+    repo, _target, _base = declared_guaranteed(tmp_path)
+    (repo / "x.txt").write_text("more work\n", encoding="utf-8")
+    git(repo, "add", "-A")
+
+    def nothing_loaded(repo, loads):
+        assert loads == [], "a commit staging no guarantee loaded seal_stamp.py"
+
+    return repo, nothing_loaded
+
+
+def _an_unborn_branch(tmp_path, commitgate, monkeypatch):
+    """No branch name reads on an unborn HEAD, so the review arm is waived
+    by `specseal.waive`, the way a first commit's is."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", "feat/x")
+    git(repo, "config", "specseal.waive", "review")
+    item = repo / "seal" / "specs" / ITEM_NAME
+    item.mkdir(parents=True)
+    (item / "routing.md").write_text(routing_text(), encoding="utf-8")
+    (item / "guarantee.md").write_text(
+        guarantee_text("deadbee", "main", "sealed"), encoding="utf-8"
+    )
+    git(repo, "add", "-A")
+    return repo, None
+
+
+def _the_sequencers_commit(tmp_path, commitgate, monkeypatch):
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text("deadbee", base, "sealed"))
+    monkeypatch.setattr(commitgate, "_sequencer_commit", lambda cwd, commit=None: True)
+    return repo, None
+
+
+def _copied(*bring):
+    """Round 1's shapes: the item sealed and stamped in one clone, its
+    `routing.md` committed after, then brought onto `main` of a second
+    clone by a plain command, where the audited commit is not in HEAD's
+    history. `cherry-pick -n` takes the sealing commit alone, so its copy
+    carries no `routing.md`."""
+
+    def given(tmp_path, commitgate, monkeypatch):
+        repo, target, _base = guaranteed(tmp_path)
+        assert after_the_commit(repo)
+        (repo / ROUTING_REL).write_text(routing_text(), encoding="utf-8")
+        commit_all(repo, "the routing")
+        other = tmp_path / "other"
+        subprocess.run(
+            ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+        )
+        git(other, "switch", "-q", "main")
+        git(other, *SIGNED, *bring)
+        reviewed(other)
+
+        def lands_and_queues_nothing(other, loads):
+            git(other, *SIGNED, "commit", "-qm", "the item brought over")
+            assert after_the_commit(other) == ""
+            seal_and_commit(
+                other,
+                a_fix(other),
+                short(other, "origin/main"),
+                "the sealer again",
+                earlier=f"; earlier run: {target} sealed",
+            )
+            assert after_the_commit(other) == ""
+            assert queued(other) == []
+
+        return other, lands_and_queues_nothing
+
+    return given
+
+
+@pytest.mark.parametrize(
+    "given",
+    [
+        _at_head,
+        _at_an_ancestor,
+        _reading(lambda t, b: guarantee_text(t, b, "withheld — the README is stale")),
+        _reading(lambda t, b: guarantee_text(t, b, "undecided — does #12 ask?")),
+        _reading(lambda t, b: guarantee_text(t, b, "sealed") + "\nVerdict: withheld\n"),
+        _reading(lambda t, b: open(GUARANTEE_TEMPLATE, encoding="utf-8").read()),
+        _a_stale_chain,
+        _no_routing_in_the_index,
+        _no_branch_row_in_the_index,
+        _no_guarantee_staged,
+        _an_unborn_branch,
+        _the_sequencers_commit,
+        _copied("merge", "--squash", "origin/feat/x"),
+        _copied("cherry-pick", "-n", "origin/feat/x~1"),
+        _copied("checkout", "origin/feat/x", "--", f"seal/specs/{ITEM_NAME}"),
+    ],
+    ids=[
+        "the target is HEAD",
+        "the target is an ancestor",
+        "withheld",
+        "undecided",
+        "two verdicts",
+        "the unfilled template",
+        "an earlier run the clone does not hold",
+        "no routing.md in the index",
+        "no Branch row in the index",
+        "no guarantee staged",
+        "an unborn branch",
+        "the sequencer's own commit",
+        "merge --squash onto main",
+        "cherry-pick -n onto main",
+        "checkout of the item onto main",
+    ],
+)
+def test_the_guarantee_refusal_is_quiet_off_its_one_fact(tmp_path, given, monkeypatch):
+    """1792363231 S12. The refusal reads one fact: a staged `sealed`, read
+    from the index, whose newest `Target SHA` HEAD's history does not hold,
+    on the branch the item's own `routing.md` in the index names. Every
+    other commit is let through with nothing said: the normal flow, a
+    verdict that is not one `sealed`, a stale `; earlier run:` chain, which
+    is never read, an item with no declaration, an unborn branch, and the
+    commit git makes for its own rebase or cherry-pick. A copy of a sealed
+    item onto `main` lands and, as #975 had it, queues nothing, nor does its
+    re-seal. A commit that stages no guarantee loads no `seal_stamp.py`, and
+    so no `chain_check.py`; the loader is replaced by a recorder, and a
+    staged guarantee at HEAD is the control that it is reached."""
+    commitgate = commitgate_module()
+    loads = []
+    real = commitgate._stamp_module
+    monkeypatch.setattr(commitgate, "_stamp_module", lambda: loads.append(1) or real())
+    repo, then = given(tmp_path, commitgate, monkeypatch)
+    assert before_the_commit(repo, commitgate) == (0, "")
+    if then:
+        then(repo, loads)
+
+
 # --- #717: the hook's whole message is held under a budget --------------------
 
 # What `broad_gate.panel` returns for a real run since #832 — `full_values()`'s

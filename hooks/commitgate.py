@@ -1,5 +1,7 @@
 """The commit gate as git runs it: `pre-commit`, its `reference-transaction`
-backstop, and `post-commit`'s notice (#692) and stamp (#975).
+backstop, and `post-commit`'s notice (#692) and stamp (#975). Since work item
+1792363231 `pre-commit` also refuses a `sealed` guarantee whose audited
+commit the history does not hold (`guarantee_off_history`).
 
 `hooks/git/*.py` are thin entry points into this module, so that a case can
 drive one hook in-process and the stubs run the same code from a shell. What
@@ -223,6 +225,78 @@ def _refuse(stream, arms, top, cwd, session, backstop=False):
     return 1
 
 
+GUARANTEE_FILE = "guarantee.md"
+
+
+def guarantee_off_history(cwd, head, paths):
+    """The refusal's text where this commit stages a work item's
+    `guarantee.md` reading one `Verdict:` of `sealed` whose `Target SHA`
+    names a commit `head`'s history does not hold, on the branch the item's
+    own `routing.md` declares; else None (work item 1792363231, `spec.md`
+    S11 and S12).
+
+    Both files are read from the index (`git show :<path>`), which is the
+    commit git is about to make: `GIT_INDEX_FILE` names it for `-a` and for
+    a pathspec commit as it does for the paths. The `; earlier run:` chain
+    is not read, so a `sealed` that drew and went stale under a rebase is
+    never stopped, and a commit on any other branch, a squash onto `main`
+    among them, is not judged. `paths` is `pre_commit`'s one listing of the
+    staged paths. `seal_stamp.py`, and through it `chain_check.py`, is
+    loaded only once a staged path is shaped like a work item's guarantee,
+    and `seal_stamp.GUARANTEE_PATH` decides which are. An unborn branch has
+    no history to hold anything, and nothing is judged there."""
+    if not head:
+        return None
+    shaped = [
+        path
+        for path in paths() or []
+        if path.startswith(f"{routing.WORK_ITEMS}/")
+        and path.endswith(f"/{GUARANTEE_FILE}")
+    ]
+    if not shaped:
+        return None
+    stamp = _stamp_module()
+    chain = None
+    branch = None
+    for path in shaped:
+        found = stamp.GUARANTEE_PATH.match(path)
+        # A deleted guarantee is staged too, and `git show` finds none.
+        text = gate.git(["show", f":{path}"], cwd) if found else None
+        if text is None:
+            continue
+        chain = chain or stamp._chain_check()
+        reader = chain.SHARED_READER
+        verdicts = chain.verdicts_of(reader, text)
+        if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
+            continue
+        target = chain.target_of(reader, text)
+        if target is None:
+            continue
+        rel = f"{routing.WORK_ITEMS}/{found.group(1)}/{routing.FILENAME}"
+        declared = routing.parse(gate.git(["show", f":{rel}"], cwd) or "")
+        if branch is None:
+            branch = routing.current_branch(cwd)
+        if not declared or not branch or declared["branch"] != branch:
+            continue
+        # A target that does not resolve exits 128 here, and one off the
+        # branch exits 1: either way HEAD's history does not hold it.
+        if gate.git(["merge-base", "--is-ancestor", target, head], cwd) is not None:
+            continue
+        short = gate.git(["rev-parse", "--short", head], cwd) or head
+        return gate.guarantee_refusal(path, target, branch, short)
+    return None
+
+
+def _guarantee_refused(cwd, head, paths):
+    """`guarantee_off_history`, and None where reading it failed: the
+    refusal stops a commit on a fact it read, never on a reading that
+    broke, and the pull request's check still refuses the same file."""
+    try:
+        return guarantee_off_history(cwd, head, paths)
+    except (Exception, SystemExit):
+        return None
+
+
 def pre_commit(cwd, environ, stream):
     context = _context(cwd, environ)
     if context is None:
@@ -230,16 +304,26 @@ def pre_commit(cwd, environ, stream):
     top, _common, session = context
     # An unborn branch exits non-zero: no HEAD is git's ordinary no.
     head = gate.git(["rev-parse", "--verify", "--quiet", "HEAD"], cwd) or ""
-    arms = gate.arms_missing(
-        cwd,
-        top,
-        waived(cwd, session),
-        # None where `git diff` failed, which the parity arm asks about (#868).
-        lambda: gate.lines(gate.git(["diff", "--cached", "--name-only"], cwd)),
-        head=head,
-    )
-    if arms and not _sequencer_commit(cwd):
-        return _refuse(stream, arms, top, cwd, session)
+    listed = []
+
+    def paths():
+        # Read once for both readers. None where `git diff` failed, which
+        # the parity arm asks about (#868).
+        if not listed:
+            listed.append(
+                gate.lines(gate.git(["diff", "--cached", "--name-only"], cwd))
+            )
+        return listed[0]
+
+    arms = gate.arms_missing(cwd, top, waived(cwd, session), paths, head=head)
+    if arms:
+        if not _sequencer_commit(cwd):
+            return _refuse(stream, arms, top, cwd, session)
+    else:
+        refused = _guarantee_refused(cwd, head, paths)
+        if refused and not _sequencer_commit(cwd):
+            stream.write(refused + "\n")
+            return 1
     _leave_mark(cwd, head, environ.get("GIT_AUTHOR_DATE", ""))
     return 0
 
