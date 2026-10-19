@@ -883,6 +883,933 @@ def test_the_guarantee_stamps_rows_are_read_from_the_records(tmp_path):
     assert said["session"] == "s-1" and said["pr"] is None, said
 
 
+# --- 1792363231: in local mode the stamp is queued at the write ---------------------
+#
+# A local-mode root sits under the git common dir and no commit carries it,
+# so `post-commit` never sees its `guarantee.md`. `queue_for_local_guarantee`
+# reads the file the sealer wrote, from disk, and queues the same values file
+# the shared writer would; the `Stop` hook above draws it.
+
+GUARANTEE_TEMPLATE = os.path.join(ROOT, "templates", "sdd-guarantee.md")
+
+
+def routing_text(branch="feat/x"):
+    """A `routing.md` in `templates/sdd-routing.md`'s shape, naming `branch`
+    in its `Branch` row, or with no `Branch` row where `branch` is None."""
+    rows = (
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+    )
+    return rows + (f"| Branch | {branch} |\n" if branch else "")
+
+
+def local_guaranteed(tmp_path, verdict="sealed", earlier="", linked=False):
+    """A repository in local mode — no `seal/` in its tree, its root under
+    the git common dir (contract §11) — whose branch `feat/x` carries the
+    audited commit, checked out in the main checkout or, with `linked`, in a
+    linked worktree of it. The work item under that root holds `routing.md`
+    naming the branch, two round records, `broad-gate.md` naming the audited
+    commit and `guarantee.md` reading `verdict` over it. Returns (repo,
+    target, base, the guarantee's path)."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", "main")
+    (repo / "README.md").write_text("x\n", encoding="utf-8")
+    commit_all(repo, "x")
+    where = repo
+    if linked:
+        where = tmp_path / "linked"
+        git(repo, "worktree", "add", "-q", str(where), "-b", "feat/x")
+    else:
+        git(repo, "switch", "-qc", "feat/x")
+    (where / "work.txt").write_text("the work\n", encoding="utf-8")
+    commit_all(where, "the work")
+    target = git(where, "rev-parse", "--short", "HEAD").stdout.strip()
+    base = git(repo, "rev-parse", "--short", "main").stdout.strip()
+    item = repo / ".git" / "seal" / "specs" / ITEM_NAME
+    (item / "rounds").mkdir(parents=True)
+    for n in (1, 2):
+        (item / "rounds" / f"round-{n}.md").write_text("x\n", encoding="utf-8")
+    (item / "routing.md").write_text(routing_text(), encoding="utf-8")
+    (item / "broad-gate.md").write_text(
+        f"| Field | Value |\n|---|---|\n| Broad gate | {target} against {base} |\n",
+        encoding="utf-8",
+    )
+    path = item / "guarantee.md"
+    path.write_text(guarantee_text(target, base, verdict, earlier), encoding="utf-8")
+    return repo, target, base, path
+
+
+def queue_local(path, session="s-1"):
+    """What the local writer returned for the `guarantee.md` at `path`."""
+    return stamp_module().queue_for_local_guarantee(str(path), session)
+
+
+@pytest.mark.parametrize("linked", [False, True], ids=["main checkout", "linked"])
+def test_a_local_mode_sealed_guarantee_queues_one_stamp(tmp_path, linked):
+    """1792363231 S1. A local-mode `guarantee.md` reading `sealed` over a commit on
+    the `Branch` row's branch, with no earlier run reading `sealed`, queues
+    one values file for the session under the common dir, named by the work
+    item's id and the audited commit, with the rows the shared writer
+    builds from the same records, and returns the one line `post-commit`
+    prints in shared mode. The main session's `Stop` then draws it once.
+    The same from a linked worktree, whose common dir is the main
+    checkout's `.git`. Red at d8f9eaef: `seal_stamp` had no local writer."""
+    mod = stamp_module()
+    repo, target, base, path = local_guaranteed(tmp_path, linked=linked)
+    said = queue_local(path)
+    (written,) = queued(repo)
+    assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
+    assert os.path.basename(written).endswith(f"-{ITEM_ID}-{target}.json"), written
+    real = os.path.realpath(written)
+    assert said == [mod.QUEUED.format(id=ITEM_ID, path=real, command=mod.quote(real))]
+    values = mod.read_values(written)
+    assert values["rows"] == [
+        ("SEALED", ""),
+        ("tree", target),
+        ("", "feat/x"),
+        ("base", base),
+        ("item", ITEM_ID),
+        None,
+        ("gate", f"✓ {target}"),
+        ("rounds", "2"),
+    ], values["rows"]
+    assert (values["tree"], values["base"], values["from"], values["branch"]) == (
+        target,
+        base,
+        None,
+        "feat/x",
+    ), values
+    assert values["item"] == os.path.realpath(path.parent), values
+    assert values["session"] == "s-1" and values["pr"] is None, values
+    lines = message(stop(repo))
+    assert lines[0] == f"SEALED feat/x @ {target} against {base} · {ITEM_NAME}", lines
+    assert stop(repo) == "", "the stamp was drawn twice"
+
+
+@pytest.mark.parametrize(
+    "written",
+    [
+        lambda t, b: guarantee_text(t, b, "withheld — the README is stale"),
+        lambda t, b: guarantee_text(t, b, "undecided — does #12 ask for the flag?"),
+        lambda t, b: guarantee_text(t, b, "sealed") + "\nVerdict: withheld — x\n",
+        lambda t, b: open(GUARANTEE_TEMPLATE, encoding="utf-8").read(),
+    ],
+    ids=["withheld", "undecided", "two verdicts", "the unfilled template"],
+)
+def test_a_local_mode_withheld_or_undecided_guarantee_queues_nothing(tmp_path, written):
+    """1792363231 S2. The finished-work stamp is not drawn over unfinished work in
+    local mode either: a guarantee that does not read one `Verdict:` of
+    `sealed` queues nothing and returns no line."""
+    repo, target, base, path = local_guaranteed(tmp_path)
+    path.write_text(written(target, base), encoding="utf-8")
+    assert queue_local(path) == []
+    assert queued(repo) == []
+
+
+def test_a_local_mode_reseal_after_withheld_queues_the_stamp(tmp_path):
+    """1792363231 S3. The sealer withheld, the work was fixed, and its second run
+    reads `sealed` with the earlier verdict kept on the row: that write
+    queues the stamp. A work item whose review went straight to the pull
+    request holds no `rounds/`, and its stamp reads `0` rounds."""
+    repo, target, _base, path = local_guaranteed(
+        tmp_path, earlier="; earlier run: abc1234 withheld — the README is stale"
+    )
+    for name in ("round-1.md", "round-2.md"):
+        (path.parent / "rounds" / name).unlink()
+    (path.parent / "rounds").rmdir()
+    assert queue_local(path)
+    (written,) = queued(repo)
+    assert written.endswith(f"-{ITEM_ID}-{target}.json"), written
+    assert stamp_module().read_values(written)["rows"][-1] == ("rounds", "0")
+
+
+def test_a_local_mode_second_sealed_queues_nothing(tmp_path):
+    """1792363231 S3, once per work item. A row whose earlier-run chain reads
+    `sealed` was stamped at that run, so it queues nothing. A values file
+    for the work item under any session's directory of the clone, pending
+    or drawn, is a complete record in local mode, since the root and the
+    values directory share the common dir: a second write queues nothing
+    beside it."""
+    repo, target, base, path = local_guaranteed(
+        tmp_path,
+        earlier="; earlier run: bbb2222 sealed; earlier run: abc1234 withheld — x",
+    )
+    assert queue_local(path) == []
+    assert queued(repo) == []
+    path.write_text(guarantee_text(target, base, "sealed"), encoding="utf-8")
+    assert queue_local(path, session="s-1")
+    assert queue_local(path, session="s-2") == []
+    assert len(queued(repo)) == 1, queued(repo)
+    stop(repo)
+    (drawn_file,) = queued(repo)
+    assert drawn_file.endswith(".drawn.json"), drawn_file
+    assert queue_local(path, session="s-3") == []
+    assert queued(repo) == [drawn_file]
+
+
+def _unresolved(repo, item, target, base):
+    (item / "guarantee.md").write_text(
+        guarantee_text("dead0000", base, "sealed"), encoding="utf-8"
+    )
+    return "dead0000"
+
+
+def _off_the_branch(repo, item, target, base):
+    off = off_branch_commit(repo)
+    (item / "guarantee.md").write_text(
+        guarantee_text(off, base, "sealed"), encoding="utf-8"
+    )
+    return off
+
+
+def _no_target(repo, item, target, base):
+    (item / "guarantee.md").write_text(
+        "# an item — guarantee\n\nVerdict: sealed\n", encoding="utf-8"
+    )
+
+
+def _no_routing(repo, item, target, base):
+    (item / "routing.md").unlink()
+
+
+def _no_branch_row(repo, item, target, base):
+    (item / "routing.md").write_text(routing_text(None), encoding="utf-8")
+
+
+def _a_branch_gone(repo, item, target, base):
+    (item / "routing.md").write_text(routing_text("feat/merged"), encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    "given",
+    [
+        _no_target,
+        _unresolved,
+        _off_the_branch,
+        _no_routing,
+        _no_branch_row,
+        _a_branch_gone,
+    ],
+    ids=[
+        "no Target SHA row",
+        "the target does not resolve",
+        "the target is off the branch",
+        "no routing.md",
+        "no Branch row",
+        "a branch the clone no longer holds",
+    ],
+)
+def test_a_local_mode_guarantee_off_its_branch_queues_nothing(tmp_path, given):
+    """1792363231 S4. `settle` never retires a local-mode work item, so a `sealed`
+    the clone wrote long ago still stands under its root. A verdict over a
+    commit the work item's branch does not hold — or one whose branch cannot
+    be named or is gone — queues nothing, so editing an old guarantee draws
+    no stamp for work finished long ago. Where the branch stands and does
+    not hold the commit named, the writer says so in one line, since no
+    pull request's check reads a local guarantee; where no branch can be
+    read, nothing is said. Red at 37f96f7a on the line: the writer was
+    silent."""
+    repo, target, base, path = local_guaranteed(tmp_path)
+    named = given(repo, path.parent, target, base)
+    said = queue_local(path)
+    assert queued(repo) == []
+    if named:
+        line = stamp_module().NOT_ON_BRANCH
+        assert said == [line.format(id=ITEM_ID, target=named, branch="feat/x")], said
+    else:
+        assert said == [], said
+
+
+def test_the_edit_gate_leaves_shared_mode_to_post_commit(tmp_path):
+    """1792363231 S5, the writer's half. A `guarantee.md` reading `sealed` under
+    `<repo>/seal/` is shared mode's, whose stamp `post-commit` queues at the
+    commit; and a root under the git common dir of a repository that also
+    has `<repo>/seal/` is shared too (contract §11). The local writer queues
+    nothing for either, where every other fact would queue; nor for the
+    same `sealed` text under a local work item in a file that is not its
+    `guarantee.md`."""
+    for name in ("shared", "both", "local"):
+        (tmp_path / name).mkdir()
+    shared, _target, _base = guaranteed(tmp_path / "shared")
+    item = shared / "seal" / "specs" / ITEM_NAME
+    (item / "routing.md").write_text(routing_text(), encoding="utf-8")
+    assert queue_local(item / "guarantee.md") == []
+    assert queued(shared) == []
+    both, _target, _base, path = local_guaranteed(tmp_path / "both")
+    (both / "seal").mkdir()
+    assert queue_local(path) == []
+    assert queued(both) == []
+    local, _target, _base, path = local_guaranteed(tmp_path / "local")
+    notes = path.parent / "notes.md"
+    notes.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
+    assert queue_local(notes) == []
+    assert queued(local) == []
+    # The gate's half: a `Write` of the shared guarantee says nothing.
+    assert post_edit(edit_payload(item / "guarantee.md", shared), shared) == ""
+    assert queued(shared) == []
+
+
+# --- 1792363231 S6: the `post-edit` gate queues it at the write ---------------------
+
+QUEUE_GATE = "sealer-stamp-queue.py"
+
+
+def post_edit(body, cwd):
+    """`dispatch.py post-edit` as the harness runs it after a file edit:
+    `body` on stdin, a dict sent as JSON and a string as it is, and what the
+    group printed."""
+    r = subprocess.run(
+        [sys.executable, DISPATCH, "post-edit"],
+        input=body if isinstance(body, str) else json.dumps(body),
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=60,
+        cwd=str(cwd),
+    )
+    assert r.returncode == 0, r.stderr
+    return r.stdout
+
+
+def edit_payload(path, cwd, tool="Write", session="s-1", **extra):
+    """A `PostToolUse` payload for `tool` on the file at `path`."""
+    body = {
+        "hook_event_name": "PostToolUse",
+        "tool_name": tool,
+        "tool_input": {"file_path": str(path)},
+        "cwd": str(cwd),
+    }
+    if session:
+        body["session_id"] = session
+    body.update(extra)
+    return body
+
+
+@pytest.mark.parametrize("tool", ["Write", "Edit"])
+def test_the_edit_gate_queues_a_local_mode_sealed_guarantee(tmp_path, tool):
+    """1792363231 S6. A `Write` or `Edit` that leaves a local-mode `guarantee.md`
+    reading `sealed` runs the `post-edit` group, whose gate queues the work
+    item's one values file for the payload's session and prints one JSON
+    object whose `systemMessage` is the writer's line. The repository is
+    found from the edited file, never from the payload's `cwd`, which here
+    is outside it. The main session's `Stop` then draws the file this gate
+    wrote, once. Red at f6ad0b2c: no gate in the group queued anything."""
+    mod = stamp_module()
+    repo, target, base, path = local_guaranteed(tmp_path)
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    out = post_edit(edit_payload(path, elsewhere, tool=tool), elsewhere)
+    (written,) = queued(repo)
+    real = os.path.realpath(written)
+    line = mod.QUEUED.format(id=ITEM_ID, path=real, command=mod.quote(real))
+    assert json.loads(out) == {"systemMessage": line}, out
+    lines = message(stop(repo))
+    assert lines[0] == f"SEALED feat/x @ {target} against {base} · {ITEM_NAME}", lines
+    assert stop(repo) == "", "the stamp was drawn twice"
+
+
+def test_a_subagents_write_queues_and_draws_nothing(tmp_path):
+    """1792363231 S6. The sealer writes its own `guarantee.md`, so the payload
+    carries its `agent_id` beside the main session's `session_id`
+    (`questions.md` Q1). Queueing is not drawing: the gate queues the same
+    file for the main session, the subagent's end draws nothing and leaves
+    it, and the main session's `Stop` draws it."""
+    repo, _target, _base, path = local_guaranteed(tmp_path)
+    sealer = {"agent_id": "a-1", "agent_type": "specseal:sealer"}
+    assert json.loads(post_edit(edit_payload(path, repo, **sealer), repo))
+    (written,) = queued(repo)
+    assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
+    assert stop(repo, agent_id="a-1") == ""
+    assert queued(repo) == [written]
+    assert message(stop(repo))[0].startswith("SEALED feat/x @ ")
+
+
+@pytest.mark.parametrize(
+    "given",
+    [
+        lambda path, cwd: edit_payload(path.parent / "notes.md", cwd),
+        lambda path, cwd: edit_payload(cwd / "docs" / "guarantee.md", cwd),
+        lambda path, cwd: edit_payload(path, cwd, tool="NotebookEdit"),
+        lambda path, cwd: edit_payload(path, cwd, session=None),
+        lambda path, cwd: "a payload that is not JSON",
+    ],
+    ids=[
+        "another file of the item",
+        "a guarantee.md outside seal/specs",
+        "NotebookEdit",
+        "no session_id",
+        "not JSON",
+    ],
+)
+def test_the_edit_gate_is_silent_off_a_guarantee(tmp_path, given, monkeypatch):
+    """1792363231 S6. The gate runs after every file edit in every repository, so
+    for any other edit it says nothing and writes nothing, and it loads
+    `seal_stamp.py`, its only way to `git`, only once the edit has matched:
+    a `Write` or `Edit`, with a session, of `…/seal/specs/<id>/guarantee.md`.
+    The order is asked of the gate itself, with its loader replaced, and the
+    guarantee's own `Write` is the control that the loader is reached."""
+    repo, _target, _base, path = local_guaranteed(tmp_path)
+    (path.parent / "notes.md").write_text(
+        path.read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    body = given(path, repo)
+    assert post_edit(body, repo) == ""
+    assert queued(repo) == []
+    gate = _load(
+        "specseal_queue_gate_for_its_order", os.path.join(HOOKS_DIR, QUEUE_GATE)
+    )
+    loads = []
+    monkeypatch.setattr(gate, "load_stamp", lambda: loads.append(1))
+    for sent, expected in ((body, []), (edit_payload(path, repo), [1])):
+        text = sent if isinstance(sent, str) else json.dumps(sent)
+        monkeypatch.setattr(sys, "stdin", __import__("io").StringIO(text))
+        gate.main()
+        assert loads == expected, (sent, loads)
+
+
+# --- 1792363231 S14: a `sealed` this clone refused leaves a refusal record --------
+#
+# `questions.md` Q2, answered (b): a `sealed` refused because its audited
+# commit is not on the branch leaves an empty file in the clone's common dir,
+# and the chain readers skip a `sealed` this clone refused, so the repair
+# draws the work item's one stamp. The local writer writes it here; in shared
+# mode the commit gate does (S11, below).
+
+REFUSED = "specseal-stamp-refused"
+SIGNED = ("-c", "user.name=e", "-c", "user.email=e@example.com")
+
+
+def refusals(repo):
+    """The refusal records under `repo`'s git common dir, by name."""
+    try:
+        return sorted(os.listdir(repo / ".git" / REFUSED))
+    except OSError:
+        return []
+
+
+def short(repo, ref="HEAD"):
+    return git(repo, "rev-parse", "--short", ref).stdout.strip()
+
+
+def seal_and_commit(repo, target, base, message, earlier="", verdict="sealed"):
+    """`guarantee.md` rewritten to read `verdict` over `target`, committed."""
+    item = repo / "seal" / "specs" / ITEM_NAME / "guarantee.md"
+    item.write_text(guarantee_text(target, base, verdict, earlier), encoding="utf-8")
+    commit_all(repo, message)
+
+
+def a_fix(repo, message="a fix after the seal"):
+    """One commit of work after the seal; its short SHA."""
+    (repo / "x.txt").write_text(message + "\n", encoding="utf-8")
+    commit_all(repo, message)
+    return short(repo)
+
+
+def off_branch_commit(repo):
+    """A commit on top of `main` that no branch holds; its short SHA."""
+    tree = git(repo, "rev-parse", "main^{tree}").stdout.strip()
+    sha = git(
+        repo,
+        *SIGNED,
+        "commit-tree",
+        tree,
+        "-p",
+        "main",
+        "-m",
+        "a commit no branch holds",
+    ).stdout.strip()
+    return sha[:7]
+
+
+@pytest.mark.parametrize(
+    "recorded, earlier",
+    [
+        (("1700000000", "deadbee"), "deadbee"),
+        ((ITEM_ID, "deadbe"), "deadbee"),
+        ((ITEM_ID, "deadbee"), "dea0bee"),
+    ],
+    ids=[
+        "a record of another work item",
+        "a record spelled shorter than seven characters",
+        "another commit",
+    ],
+)
+def test_a_refusal_record_skips_only_its_own_verdict(tmp_path, recorded, earlier):
+    """1792363231 S14, the reader half. A record answers for one work item
+    and one commit spelled at least seven characters long, so it skips
+    nothing else, and the earlier `sealed` the row names then counts as the
+    stamp: a record another work item left over the same commit, a record
+    spelled shorter than the floor, of which the row's SHA is an extension,
+    and a record of another commit. Red with `_same_commit`'s floor
+    deleted: the six-character record was matched and the re-seal queued a
+    stamp."""
+    repo, _target, _base, path = local_guaranteed(
+        tmp_path, earlier=f"; earlier run: {earlier} sealed"
+    )
+    stamp_module().record_refusal(str(repo / ".git"), *recorded)
+    assert queue_local(path) == []
+    assert queued(repo) == []
+
+
+def test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once(tmp_path):
+    """1792363231 S14. In local mode a `sealed` over a commit the `Branch` row's
+    branch does not hold, while that branch exists, queues nothing, records
+    the refusal and says the line; the re-seal whose row keeps that run as
+    `sealed` then queues one file. Where the refusal is for a missing
+    `Branch` row or a branch the clone no longer holds, nothing is recorded.
+    Red at f6ad0b2c: the re-seal's chain counted the refused run as
+    stamped. Red at 37f96f7a on the line, which the writer did not say."""
+    (tmp_path / "held").mkdir()
+    repo, target, base, path = local_guaranteed(tmp_path / "held")
+    off = off_branch_commit(repo)
+    path.write_text(guarantee_text(off, base, "sealed"), encoding="utf-8")
+    assert queue_local(path) == [
+        f"specseal: no stamp was queued for {ITEM_ID}: its guarantee.md names "
+        f"{off}, which feat/x does not hold; a new audit at the head of feat/x "
+        "draws it"
+    ]
+    assert queued(repo) == [] and refusals(repo) == [f"{ITEM_ID}-{off}"]
+    path.write_text(
+        guarantee_text(target, base, "sealed", f"; earlier run: {off} sealed"),
+        encoding="utf-8",
+    )
+    assert queue_local(path)
+    assert len(queued(repo)) == 1, queued(repo)
+    for given in (_no_branch_row, _a_branch_gone):
+        (tmp_path / given.__name__).mkdir()
+        repo, target, base, path = local_guaranteed(tmp_path / given.__name__)
+        off = off_branch_commit(repo)
+        path.write_text(guarantee_text(off, base, "sealed"), encoding="utf-8")
+        given(repo, path.parent, target, base)
+        assert queue_local(path) == []
+        assert refusals(repo) == [], given.__name__
+
+
+# --- 1792363231 S11-S12: a `sealed` the branch does not hold, at its commit ---------
+#
+# `plan.md` A14. `pre-commit` reads each staged `seal/specs/<id>/guarantee.md`
+# from the index. Where it reads one `sealed` whose `Target SHA` names a commit
+# HEAD's history does not hold, on the branch the item's `routing.md` declares,
+# the commit is refused before the verdict is a fact of the history. The arms
+# are quiet in every case here: the declaration on disk names the branch, or a
+# review mark names HEAD.
+
+GUARANTEE_REL = f"seal/specs/{ITEM_NAME}/guarantee.md"
+ROUTING_REL = f"seal/specs/{ITEM_NAME}/routing.md"
+
+
+def declared_guaranteed(tmp_path, verdict="withheld — x"):
+    """`guaranteed`'s repository with the work item's `routing.md` naming
+    `feat/x` committed on top. Returns (repo, target, base)."""
+    repo, target, base = guaranteed(tmp_path, verdict=verdict)
+    (repo / ROUTING_REL).write_text(routing_text(), encoding="utf-8")
+    commit_all(repo, "the routing")
+    return repo, target, base
+
+
+def staged(repo, text, name="guarantee.md"):
+    """The work item's `name` rewritten to `text` and staged, uncommitted."""
+    (repo / "seal" / "specs" / ITEM_NAME / name).write_text(text, encoding="utf-8")
+    git(repo, "add", "-A")
+
+
+def reviewed(repo):
+    """A review mark naming HEAD, so the review arm is quiet off a declared
+    branch."""
+    head = git(repo, "rev-parse", "HEAD").stdout.strip()
+    (repo / ".git" / "specseal-reviewed").write_text(head, encoding="utf-8")
+
+
+def before_the_commit(repo, commitgate=None, session="s-1"):
+    """(exit status, what it wrote) of `pre-commit` in `repo` for a Claude
+    session, over the index as it stands."""
+    import io
+
+    out = io.StringIO()
+    commitgate = commitgate or commitgate_module()
+    environ = {"CLAUDE_CODE_SESSION_ID": session}
+    return commitgate.pre_commit(str(repo), environ, out), out.getvalue()
+
+
+@pytest.mark.parametrize(
+    "wrong",
+    [lambda repo: "deadbee", off_branch_commit],
+    ids=["the target does not resolve", "the target is off the branch"],
+)
+def test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit(
+    tmp_path, wrong
+):
+    """1792363231 S11. On the declared branch, a commit staging a `sealed`
+    over `deadbee` (#975 round 4's measured shape) or over a commit no
+    branch holds is refused by `pre-commit`: exit 1, HEAD and the index as
+    they were, and a text naming the file, the commit named, the branch,
+    HEAD and the one way on, a new audit of the sealer at HEAD, with no
+    question and no waiver. The gate records the refusal it made, in this
+    clone, and nothing else on the refused path.
+
+    The new audit's commit then lands and draws the work item's one stamp.
+    Its row keeps the refused run as `; earlier run: <sha> sealed`, as
+    `agents/sealer.md` says a re-run does, and `_queue_one`'s chain skips
+    that entry because this clone recorded refusing it. Red at 37f96f7a:
+    `pre-commit` exited 0, so the wrong row became history. Red at
+    de80c2c2 on the stamp: no record was written, so the chain counted the
+    refused run and the repair drew nothing (`phases/phase-6.md`)."""
+    commitgate = commitgate_module()
+    repo, _target, base = declared_guaranteed(tmp_path)
+    off = wrong(repo)
+    staged(repo, guarantee_text(off, base, "sealed"))
+    head = short(repo)
+    index = git(repo, "write-tree").stdout.strip()
+    code, said = before_the_commit(repo, commitgate)
+    assert code == 1, said
+    gate = commitgate.gate
+    assert said == gate.guarantee_refusal(GUARANTEE_REL, off, "feat/x", head) + "\n"
+    assert said.startswith(gate.HEADER + "\n\n"), said
+    for fact in (
+        GUARANTEE_REL,
+        off,
+        "`feat/x`",
+        head,
+        "spawn the sealer again at HEAD",
+    ):
+        assert fact in said, fact
+    assert "AskUserQuestion" not in said and "waive" not in said, said
+    assert said.rstrip().endswith(gate.UNCHANGED), said
+    assert (short(repo), git(repo, "write-tree").stdout.strip()) == (head, index)
+    assert refusals(repo) == [f"{ITEM_ID}-{off}"] and queued(repo) == []
+    staged(repo, guarantee_text(head, base, "sealed", f"; earlier run: {off} sealed"))
+    assert before_the_commit(repo, commitgate) == (0, "")
+    commit_all(repo, "the sealer again at HEAD")
+    assert after_the_commit(repo)
+    (path,) = queued(repo)
+    assert path.endswith(f"-{ITEM_ID}-{head}.json"), path
+    assert refusals(repo) == [f"{ITEM_ID}-{off}"]
+
+
+def _at_head(tmp_path, commitgate, monkeypatch):
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text(short(repo), base, "sealed"))
+
+    def loaded(repo, loads):
+        assert loads == [1], "a staged guarantee did not reach the loader"
+
+    return repo, loaded
+
+
+def _at_an_ancestor(tmp_path, commitgate, monkeypatch):
+    repo, target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text(target, base, "sealed"))
+    return repo, None
+
+
+def _reading(written):
+    def given(tmp_path, commitgate, monkeypatch):
+        repo, _target, base = declared_guaranteed(tmp_path)
+        staged(repo, written("deadbee", base))
+        return repo, None
+
+    return given
+
+
+def _a_stale_chain(tmp_path, commitgate, monkeypatch):
+    repo, target, base = declared_guaranteed(tmp_path)
+    staged(
+        repo, guarantee_text(target, base, "sealed", "; earlier run: deadbee sealed")
+    )
+    return repo, None
+
+
+def _no_routing_in_the_index(tmp_path, commitgate, monkeypatch):
+    """The declaration stands on disk, which quiets the review arm, and not
+    in the index the commit is made from."""
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text("deadbee", base, "sealed"))
+    git(repo, "rm", "-q", "--cached", ROUTING_REL)
+    return repo, None
+
+
+def _no_branch_row_in_the_index(tmp_path, commitgate, monkeypatch):
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, routing_text(None), name="routing.md")
+    staged(repo, guarantee_text("deadbee", base, "sealed"))
+    (repo / ROUTING_REL).write_text(routing_text(), encoding="utf-8")
+    return repo, None
+
+
+def _no_guarantee_staged(tmp_path, commitgate, monkeypatch):
+    repo, _target, _base = declared_guaranteed(tmp_path)
+    (repo / "x.txt").write_text("more work\n", encoding="utf-8")
+    git(repo, "add", "-A")
+
+    def nothing_loaded(repo, loads):
+        assert loads == [], "a commit staging no guarantee loaded seal_stamp.py"
+
+    return repo, nothing_loaded
+
+
+def _an_unborn_branch(tmp_path, commitgate, monkeypatch):
+    """No branch name reads on an unborn HEAD, so the review arm is waived
+    by `specseal.waive`, the way a first commit's is."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", "feat/x")
+    git(repo, "config", "specseal.waive", "review")
+    item = repo / "seal" / "specs" / ITEM_NAME
+    item.mkdir(parents=True)
+    (item / "routing.md").write_text(routing_text(), encoding="utf-8")
+    (item / "guarantee.md").write_text(
+        guarantee_text("deadbee", "main", "sealed"), encoding="utf-8"
+    )
+    git(repo, "add", "-A")
+
+    def nothing_loaded(repo, loads):
+        assert loads == [], "an unborn branch loaded seal_stamp.py"
+
+    return repo, nothing_loaded
+
+
+def _a_stamp_module_that_will_not_load(tmp_path, commitgate, monkeypatch):
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text("deadbee", base, "sealed"))
+
+    def broken():
+        raise SyntaxError("a seal_stamp.py this python cannot load")
+
+    monkeypatch.setattr(commitgate, "_stamp_module", broken)
+    return repo, None
+
+
+def _the_sequencers_commit(tmp_path, commitgate, monkeypatch):
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text("deadbee", base, "sealed"))
+    monkeypatch.setattr(commitgate, "_sequencer_commit", lambda cwd, commit=None: True)
+    return repo, None
+
+
+def _copied(*bring, pruned=False):
+    """Round 1's shapes: the item sealed and stamped in one clone, its
+    `routing.md` committed after, then brought onto `main` of a second
+    clone by a plain command, where the audited commit is not in HEAD's
+    history. `cherry-pick -n` takes the sealing commit alone, so its copy
+    carries no `routing.md`. With `pruned`, round 2's finding 2: every ref
+    that held the sealing commit is deleted first, as `fetch --prune` after
+    the merge leaves it, and the commit is picked by its SHA. Red at
+    1e956838 for that shape: `post-commit` wrote a record, and the re-seal
+    drew a second stamp."""
+
+    def given(tmp_path, commitgate, monkeypatch):
+        repo, target, _base = guaranteed(tmp_path)
+        assert after_the_commit(repo)
+        (repo / ROUTING_REL).write_text(routing_text(), encoding="utf-8")
+        commit_all(repo, "the routing")
+        other = tmp_path / "other"
+        subprocess.run(
+            ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+        )
+        git(other, "switch", "-q", "main")
+        picked = bring
+        if pruned:
+            sha = git(other, "rev-parse", "origin/feat/x~1").stdout.strip()
+            git(other, "branch", "-q", "-D", "feat/x")
+            git(other, "remote", "set-head", "origin", "-d")
+            git(other, "update-ref", "-d", "refs/remotes/origin/feat/x")
+            held = git(other, "for-each-ref", f"--contains={sha}").stdout
+            assert held == "", held
+            picked = (*bring, sha)
+        git(other, *SIGNED, *picked)
+        reviewed(other)
+
+        def lands_and_queues_nothing(other, loads):
+            git(other, *SIGNED, "commit", "-qm", "the item brought over")
+            assert after_the_commit(other) == ""
+            seal_and_commit(
+                other,
+                a_fix(other),
+                short(other, "origin/main"),
+                "the sealer again",
+                earlier=f"; earlier run: {target} sealed",
+            )
+            assert after_the_commit(other) == ""
+            assert queued(other) == []
+
+        return other, lands_and_queues_nothing
+
+    return given
+
+
+@pytest.mark.parametrize(
+    "given",
+    [
+        _at_head,
+        _at_an_ancestor,
+        _reading(lambda t, b: guarantee_text(t, b, "withheld — the README is stale")),
+        _reading(lambda t, b: guarantee_text(t, b, "undecided — does #12 ask?")),
+        _reading(lambda t, b: guarantee_text(t, b, "sealed") + "\nVerdict: withheld\n"),
+        _reading(lambda t, b: open(GUARANTEE_TEMPLATE, encoding="utf-8").read()),
+        _a_stale_chain,
+        _no_routing_in_the_index,
+        _no_branch_row_in_the_index,
+        _no_guarantee_staged,
+        _an_unborn_branch,
+        _a_stamp_module_that_will_not_load,
+        _the_sequencers_commit,
+        _copied("merge", "--squash", "origin/feat/x"),
+        _copied("cherry-pick", "-n", "origin/feat/x~1"),
+        _copied("checkout", "origin/feat/x", "--", f"seal/specs/{ITEM_NAME}"),
+        _copied("cherry-pick", "-n", pruned=True),
+    ],
+    ids=[
+        "the target is HEAD",
+        "the target is an ancestor",
+        "withheld",
+        "undecided",
+        "two verdicts",
+        "the unfilled template",
+        "an earlier run the clone does not hold",
+        "no routing.md in the index",
+        "no Branch row in the index",
+        "no guarantee staged",
+        "an unborn branch",
+        "a seal_stamp.py that will not load",
+        "the sequencer's own commit",
+        "merge --squash onto main",
+        "cherry-pick -n onto main",
+        "checkout of the item onto main",
+        "cherry-pick -n of a commit no ref holds",
+    ],
+)
+def test_the_guarantee_refusal_is_quiet_off_its_one_fact(tmp_path, given, monkeypatch):
+    """1792363231 S12. The refusal reads one fact: a staged `sealed`, read
+    from the index, whose newest `Target SHA` HEAD's history does not hold,
+    on the branch the item's own `routing.md` in the index names. Every
+    other commit is let through with nothing said and no refusal recorded,
+    before the commit and after what follows it: the normal flow, a
+    verdict that is not one `sealed`, a stale `; earlier run:` chain, which
+    is never read, an item with no declaration, an unborn branch, a
+    `seal_stamp.py` that will not load, which stops nothing because the
+    pull request's check refuses the same file, and the commit git makes
+    for its own rebase or cherry-pick. A copy of a sealed
+    item onto `main` lands and, as #975 had it, queues nothing, nor does its
+    re-seal. A commit that stages no guarantee loads no `seal_stamp.py`, and
+    so no `chain_check.py`; the loader is replaced by a recorder, and a
+    staged guarantee at HEAD is the control that it is reached."""
+    commitgate = commitgate_module()
+    loads = []
+    real = commitgate._stamp_module
+    monkeypatch.setattr(commitgate, "_stamp_module", lambda: loads.append(1) or real())
+    repo, then = given(tmp_path, commitgate, monkeypatch)
+    assert before_the_commit(repo, commitgate) == (0, "")
+    assert refusals(repo) == []
+    if then:
+        then(repo, loads)
+        assert refusals(repo) == []
+
+
+def test_a_refused_row_over_a_drawn_seal_does_not_draw_again(tmp_path):
+    """1792363231 S11's second case. The item was sealed and stamped in one
+    clone, whose branch was then rebased onto a moved base, so a fresh clone
+    of it does not hold the commit the rewritten `sealed` names. There a
+    plain commit editing that guarantee is refused as the stale row it is,
+    and recorded. The new audit's chain entry is then skipped, and
+    `sealed_before` still finds the rewritten `sealed` in HEAD's history,
+    which drew where it was made, so nothing is drawn twice. Red with
+    `sealed_before` replaced by `False`: the fresh clone drew a second
+    stamp."""
+    commitgate = commitgate_module()
+    repo, target, base = declared_guaranteed(tmp_path)
+    seal_and_commit(repo, target, base, "the seal")
+    assert after_the_commit(repo)
+    git(repo, "switch", "-q", "main")
+    (repo / "base.txt").write_text("the base moved\n", encoding="utf-8")
+    commit_all(repo, "the base moved")
+    git(repo, "switch", "-q", "feat/x")
+    git(repo, *SIGNED, "rebase", "-q", "main")
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+    )
+    held = subprocess.run(
+        ["git", "-C", str(other), "cat-file", "-e", target], capture_output=True
+    )
+    assert held.returncode != 0, "the fresh clone holds the pre-rebase commit"
+    item = other / GUARANTEE_REL
+    item.write_text(item.read_text(encoding="utf-8") + "\na note\n", encoding="utf-8")
+    git(other, "add", "-A")
+    code, _said = before_the_commit(other, commitgate)
+    assert code == 1 and refusals(other) == [f"{ITEM_ID}-{target}"]
+    head = short(other)
+    staged(
+        other,
+        guarantee_text(
+            head,
+            short(other, "origin/main"),
+            "sealed",
+            f"; earlier run: {target} sealed",
+        ),
+    )
+    assert before_the_commit(other, commitgate) == (0, "")
+    commit_all(other, "the sealer again at HEAD")
+    assert after_the_commit(other) == ""
+    assert queued(other) == []
+
+
+def test_a_tracking_ref_left_by_a_rebase_withholds_nothing(tmp_path):
+    """1792363231 S11 after a push and a rebase, round 2's finding 1. The
+    `withheld` guarantee was pushed, then the branch was rebased onto a
+    moved base, so `origin/feat/x` still holds the pre-rebase commit that
+    changed the guarantee. A wrong row over `deadbee` is refused at its
+    commit and recorded; the gate reads no other ref. The new audit then
+    draws the work item's one stamp, since the rebased history holds the
+    `withheld` and no `sealed`. Red at 1e956838: the gate recorded nothing,
+    so the repair drew nothing."""
+    commitgate = commitgate_module()
+    repo, _target, _base = declared_guaranteed(tmp_path)
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+    )
+    git(other, "switch", "-q", "main")
+    (other / "base.txt").write_text("the base moved\n", encoding="utf-8")
+    commit_all(other, "the base moved")
+    git(other, "switch", "-q", "feat/x")
+    git(other, *SIGNED, "rebase", "-q", "main")
+    moved = git(other, "log", "-1", "--format=%H", "--all", "--not", "HEAD", "--")
+    assert moved.stdout.strip(), "no ref outside HEAD's history"
+    base = short(other, "main")
+    staged(other, guarantee_text("deadbee", base, "sealed"))
+    code, _said = before_the_commit(other, commitgate)
+    assert code == 1 and refusals(other) == [f"{ITEM_ID}-deadbee"]
+    head = short(other)
+    staged(other, guarantee_text(head, base, "sealed", "; earlier run: deadbee sealed"))
+    assert before_the_commit(other, commitgate) == (0, "")
+    commit_all(other, "the sealer again at HEAD")
+    assert after_the_commit(other)
+    assert len(queued(other)) == 1, queued(other)
+
+
+def test_a_sealed_committed_past_the_stub_keeps_the_gap(tmp_path):
+    """1792363231 S13. A `sealed` over a commit nobody has, committed where
+    `pre-commit` does not judge it (`--no-verify`, a foreign hooks slot, a
+    person's own commit; here a plain commit with no hook), lands.
+    `post-commit` queues nothing and writes no record, and the repair that
+    keeps the run on its row queues nothing: the chain and `sealed_before`
+    count the earlier `sealed`. The gap stays for that item, a missing
+    stamp, which is Q8's direction, and is pinned as a limit so that a
+    change closing it is seen. Red at de80c2c2: `post-commit` recorded the
+    refusal under its guards, and the repair drew."""
+    repo, target, base = declared_guaranteed(tmp_path)
+    seal_and_commit(repo, "deadbee", base, "the wrong row, past the stub")
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == [] and refusals(repo) == []
+    seal_and_commit(
+        repo, target, base, "the row repaired", earlier="; earlier run: deadbee sealed"
+    )
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == [] and refusals(repo) == []
+
+
 # --- #717: the hook's whole message is held under a budget --------------------
 
 # What `broad_gate.panel` returns for a real run since #832 — `full_values()`'s
@@ -1379,14 +2306,33 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     result text comes first, the orchestrator draws none — by `seal-stamp` or
     by relaying a log, which 0.15.6 did — the broad run's lines are quoted as
     `BROAD GATE PASSED` and `BROAD GATE FAILED`, and no line of the run says
-    `SEALED`."""
+    `SEALED`. 1792363231 S7: in local mode the stamp is drawn at the end of
+    the turn in which the sealer's report arrives. Round 1's finding 2: the
+    edit hook's line is shown to the person at the sealer's write and never
+    reaches the orchestrator, so it is not told to quote that line; where no
+    stamp appeared, it names the values file and leaves the command to the
+    person. 1792363231 S11: a commit of the guarantee refused for a row
+    naming a commit the branch does not hold is answered by the sealer again
+    at HEAD, never by an edit of the row; red against 2759a60d's sealer
+    step."""
     text = flat("skills", "code-review", "orchestration.md")
     section = text.split("## Orchestrator: the pull request opens before round 1", 1)[1]
     section = section.split("## Orchestrator: verify before posting", 1)[0]
     for said in (
+        "Where `pre-commit` refuses the commit of `guarantee.md` because its row "
+        "names a commit the branch does not hold, spawn the sealer again at HEAD "
+        "and commit what it writes; never edit the row by hand.",
         "**The stamp is drawn for you at the end of the turn in which "
-        "`guarantee.md` reading `sealed` is committed, and you never draw one "
-        "(#975).**",
+        "`guarantee.md` reading `sealed` is committed, or in local mode the turn "
+        "in which the sealer's report arrives, and you never draw one (#975).**",
+        "In local mode no commit carries `guarantee.md`: the sealer's own "
+        "`Write` of it queues the values. The line naming them is the edit "
+        "hook's message, shown to the person at that write. It is not in the "
+        "sealer's report and does not reach you.",
+        "In local mode no such line reaches you. Where no stamp appeared, name "
+        "the file under `<git-common-dir>/specseal-stamp/<session>/` whose name "
+        "holds the work item's id, and leave `seal-stamp --from <that file>` to "
+        "the person.",
         "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
         "`BROAD GATE FAILED`",
         "So put the result text first",
@@ -1398,6 +2344,9 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "stands: that command is the person's to type, and never yours.",
     ):
         assert said in section, said
+    assert "the edit hook's message names" not in section, (
+        "the orchestrator is told to quote a line it never receives"
+    )
     assert "SEALED" not in section, "a line of the broad run is quoted as SEALED"
 
 
@@ -1405,13 +2354,16 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
     """S16, `verify`'s half, and #975 S13. The **Form** bullet said
     `broad-gate` draws the stamp when every check passed; the stamp is the
     sealer's now, drawn once per work item from its `sealed` guarantee at
-    that file's commit, and the gate draws nothing."""
+    that file's commit, and the gate draws nothing. 1792363231 S7: in local
+    mode, at its write."""
     text = flat("skills", "verify", "SKILL.md")
     assert "`broad-gate` prints the disc on success alone" not in text
     assert "`broad-gate` draws the stamp" not in text
     for said in (
         "the stamp is drawn from the sealer's `guarantee.md` reading `sealed`, "
         "once per work item",
+        "git's `post-commit` writes the values it is drawn from, or in local "
+        "mode the edit hook does at the file's write",
         "the `Stop` hook draws them in the orchestrator's session",
         "The broad gate draws nothing",
     ):
@@ -1424,9 +2376,20 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     with an `Enforced by:` line naming the cases that queue and draw it, and
     a second statement saying what the screen shows is enforced by nothing.
     That statement names every place the hook is silent — a foreign hooks
-    slot, a local-mode root, a `python3` that cannot load `seal_stamp.py`, a
-    main session outside the clone, a plugin older than the hook — and
-    `seal-stamp --from <path>` for where a file was written."""
+    slot, a `python3` that cannot load `seal_stamp.py`, a main session
+    outside the clone, a plugin older than the hook — and `seal-stamp --from
+    <path>` for where a file was written.
+
+    1792363231 S7 and S8: the rule names both triggers, the commit in shared
+    mode and the write in local mode, with the local facts that hold once
+    per work item. The unchecked paragraph no longer names local mode among
+    the silences, and no longer hands the never-twice gap to an issue: it
+    names a local guarantee that arrived other than by `Write` or `Edit`, a
+    local verdict whose branch cannot be read, and the limits the commit
+    gate leaves (`spec.md` §*Scope*), the coincidence `plan.md`'s path walk
+    found among them, and none of `post-commit`'s removed guards. Red
+    against the paragraph at 769f2aa4, and against 2759a60d's, which still
+    named the guards."""
     text = stamp_section()
     marker = "<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->"
     ours = "<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->"
@@ -1435,8 +2398,29 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     rule, unchecked = text.split(marker)[1:3]
     assert (
         "**The stamp is drawn once per work item, from the sealer's `sealed`, at "
-        "the end of the turn in which `guarantee.md` reading it was committed.**"
+        "the end of the turn in which `guarantee.md` came to read it: at its "
+        "commit in shared mode, and at its write in local mode.**"
     ) in rule
+    for local in (
+        "`hooks/sealer-stamp-queue.py`",
+        "after each `Write` or `Edit` of "
+        "`<git-common-dir>/seal/specs/<id>/guarantee.md`",
+        "an ancestor of the branch the work item's `routing.md` names in its "
+        "`Branch` row",
+        "the root and the values directory share the common dir",
+        "`settle` retires no local-mode work item",
+    ):
+        assert local in rule, local
+    for case in (
+        "::test_a_local_mode_sealed_guarantee_queues_one_stamp",
+        "::test_a_local_mode_second_sealed_queues_nothing",
+        "::test_a_local_mode_guarantee_off_its_branch_queues_nothing",
+        "::test_the_edit_gate_leaves_shared_mode_to_post_commit",
+        "::test_the_edit_gate_queues_a_local_mode_sealed_guarantee",
+        "::test_a_subagents_write_queues_and_draws_nothing",
+        "::test_the_edit_gate_is_silent_off_a_guarantee",
+    ):
+        assert case in rule, case
     # #975 round 6's finding 1: the double-stamp limit is stated where the
     # rule is, as the class `sealed_before` cannot see, with its reason.
     assert "draws the stamp again in that clone" in rule, (
@@ -1451,6 +2435,21 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     assert "in a clone that holds no values file for the work item" in rule, (
         "the limit names the clone it holds in"
     )
+    # 1792363231 round 2's finding 2: the class no longer names the copy from
+    # a commit no ref holds, which writes no record now. Round 3's finding
+    # 1: it names any copy onto a copy of the declared branch, whatever made
+    # it, and that the refusal's own way on draws the second stamp. The
+    # history reader skips nothing; only the chain skips a recorded refusal.
+    assert (
+        "A `sealed` that drew in another clone, brought onto a copy of its "
+        "declared branch that does not hold its audited commit, by hand or by "
+        "`checkout`, `cherry-pick -n` or `merge --squash`, is refused at its "
+        "commit and recorded, and the new audit the refusal asks for draws "
+        "again there; it joins that class."
+    ) in rule
+    assert "no ref of that clone holds" not in rule
+    assert "copied here by hand" not in text
+    assert "the earlier-run chain alone skips a `sealed` this clone recorded" in rule
     for case in (
         "::test_a_sealed_guarantees_commit_queues_one_stamp",
         "::test_a_withheld_or_undecided_guarantee_queues_nothing",
@@ -1469,31 +2468,116 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     assert "**Nor is the hook's silence where it cannot draw.**" in unchecked
     for silence in (
         "where git's hooks slot is somebody else's",
-        "in local mode",
-        "already read `sealed` and that verdict drew nothing",
+        "by a shell write or `seal import`",
+        "names no branch, or a branch the clone no longer holds",
+        "committed past the commit gate",
+        "a clone no session has reached",
+        "never the `; earlier run:` chain",
+        "a values directory emptied by hand",
+        "by coincidence, the very commit a copy of the item on another branch "
+        "was sealed and drawn over",
+        # Round 3's findings 1 and 3 of work item 1792363231.
+        "brought onto a copy of its declared branch that does not hold its "
+        "audited commit",
+        "where an amend folded the guarantee into the very commit it audited",
+        "a commit that concludes a conflicted merge bringing in a side's "
+        "`sealed` is refused",
         "cannot load `seal_stamp.py`",
-        "outside the clone the commit landed in",
+        "outside the clone the stamp was queued in",
         "predates the hook",
     ):
         assert silence in unchecked, silence
+    for guard in (
+        "reflog",
+        "patch-equivalent",
+        "in a clone other than the one that refused",
+        "brought from another branch of the clone",
+    ):
+        assert guard not in unchecked, guard
     assert "names `seal-stamp --from <path>`" in unchecked
+    assert (
+        "In local mode the line reaches the person as the edit hook's message, "
+        "and nobody has watched that message on a screen yet."
+    ) in unchecked
+    for gone in (
+        # Spelled in two pieces, so S8's `git grep` for the pointer finds the
+        # policy clean and not this check on it.
+        "#" + "976",
+        "in local mode, where the `seal/` root sits under the git directory",
+        "already read `sealed` and that verdict drew nothing",
+    ):
+        assert gone not in text, gone
     assert "`SEALED` line" not in text, "the gate's line is quoted as SEALED"
     assert "the stamp says which copy drew it" not in text
+
+
+def test_the_policy_states_the_refusal_record_and_names_its_cases():
+    """1792363231 S8. §*The stamp* carries the refusal record as a rule of
+    its own under this work item's marker: a `sealed` refused because its
+    audited commit is not on the branch leaves a record in the clone that
+    refused it, and the earlier-run chain skips it, so the sealer's new
+    audit draws the work item's one stamp. It names the two writers, the
+    commit gate in shared mode and the local writer in local mode, the
+    matcher's floor, and that `sealed_before` and `post-commit` ask and
+    write no record; it names none of the guards `post-commit`'s record
+    had; and its `Enforced by:` line names the cases that hold each. Red at
+    1e956838, whose paragraph described `post-commit`'s record and its
+    four facts."""
+    text = stamp_section()
+    marker = "<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->"
+    assert marker in text
+    rule = text.split(
+        "**A `sealed` refused because its audited commit is not on the branch "
+        "leaves a refusal record",
+        1,
+    )[1].split("<!--", 1)[0]
+    for said in (
+        "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
+        "`; earlier run: <sha> sealed`",
+        "In shared mode the commit gate writes it when it refuses the commit "
+        "of that row",
+        "In local mode the local writer writes it where the `Branch` row's "
+        "branch stands",
+        "at least seven characters",
+        "`sealed_before` asks no record",
+        "`post-commit` writes none",
+    ):
+        assert said in rule, said
+    for gone in ("reflog", "patch-equivalent", "No ref of the clone", "must hold"):
+        assert gone not in rule, gone
+    for case in (
+        "::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
+        "::test_a_refused_row_over_a_drawn_seal_does_not_draw_again",
+        "::test_a_tracking_ref_left_by_a_rebase_withholds_nothing",
+        "::test_the_guarantee_refusal_is_quiet_off_its_one_fact",
+        "::test_a_sealed_committed_past_the_stub_keeps_the_gap",
+        "::test_a_refusal_record_skips_only_its_own_verdict",
+        "::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once",
+        "::test_a_local_mode_guarantee_off_its_branch_queues_nothing",
+        "::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
+    ):
+        assert case in rule, case
 
 
 def test_both_readmes_list_the_stamp_hook():
     """Round 1's 🟡 4. The hook inventory a user reads to learn what runs on
     their machine did not list the `Stop` hook, in either edition: the gate
     table, the opt-in list, the count of gates that wake on a condition, and
-    the side effects. The editions move together, so both are read."""
+    the side effects. The editions move together, so both are read.
+
+    1792363231 S7: the gate that queues a local-mode stamp at the write has its own
+    row, and the count and the opt-in list that row made false say twelve
+    gates and two stamp hooks. Its round 1's finding 3: the side effects
+    gained the refusal record's directory, and the count before them went
+    stale, so the sentence carries no count."""
     for edition, count, opt_in, effects, clause in (
         (
             "README.md",
-            "Eight of the eleven gates",
+            "Nine of the twelve gates",
             # The opt-in list's own words: the count sentence names the stamp
-            # hook too, so the bare name would pass with the list unchanged.
-            "the two implementer hooks, the stamp hook and the version check.",
-            "Four side effects",
+            # hooks too, so the bare name would pass with the list unchanged.
+            "the two implementer hooks, the two stamp hooks and the version check.",
+            "These side effects are worth stating outright",
             # The clause's own words (round 2's ⬜ 2): the gate-table row
             # carries `specseal-stamp/` too, so the bare directory passed
             # with the side effect deleted.
@@ -1502,39 +2586,73 @@ def test_both_readmes_list_the_stamp_hook():
         ),
         (
             "README.ko.md",
-            "게이트 열하나 중 여덟",
-            "구현자 훅 둘, 도장 훅, 버전 확인이다.",
-            "네 가지 부수 효과",
+            "게이트 열둘 중 아홉",
+            "구현자 훅 둘, 도장 훅 둘, 버전 확인이다.",
+            "다음 부수 효과는 밝혀 둡니다",
             "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
         ),
     ):
         text = flat(edition)
-        table = [ln for ln in text.split("| ") if ln.startswith("sealer-stamp ")]
-        assert table, f"{edition}'s gate table has no `sealer-stamp` row"
+        for gate in ("sealer-stamp", "sealer-stamp-queue"):
+            table = [ln for ln in text.split("| ") if ln.startswith(f"{gate} ")]
+            assert table, f"{edition}'s gate table has no `{gate}` row"
         assert count in text, (edition, count)
         assert opt_in in text, (edition, opt_in)
         assert effects in text and clause in text, (edition, effects, clause)
-        assert "Seven of the ten" not in text and "게이트 열 중 일곱" not in text
+        for gone in (
+            "Seven of the ten",
+            "게이트 열 중 일곱",
+            "Eight of the eleven",
+            "Four side effects",
+            "네 가지 부수 효과",
+        ):
+            assert gone not in text, (edition, gone)
+        assert "게이트 열하나 중 여덟" not in text, edition
     # #975 S11: both editions say the stamp's values are written at the
     # commit of a sealed guarantee, and neither says the broad gate leaves
-    # them.
+    # them. 1792363231 S7: or, in local mode, at its write; and the refusal
+    # record's directory stands beside the values' among the side effects.
     for edition, said, gone in (
         (
             "README.md",
             (
-                "queued at the commit of a work item's `guarantee.md` reading `sealed`",
-                "the commit of a `guarantee.md` reading `sealed` writes the stamp's "
-                "values under",
+                "queued at the commit of a work item's `guarantee.md` reading "
+                "`sealed`, or in local mode at its write",
+                "the commit of a `guarantee.md` reading `sealed`, or in local mode "
+                "its write, writes the stamp's values under",
+                "a `sealed` refused because its audited commit is not on the work "
+                "item's branch leaves an empty file under "
+                "`<git-common-dir>/specseal-stamp-refused/`, written by the commit "
+                "gate in shared mode and by the edit hook in local mode",
+                "Beside the arms, `pre-commit` refuses the commit of a work item's "
+                "`guarantee.md` reading `sealed` over a commit the branch does not "
+                "hold",
             ),
-            ("the broad gate left for this session", "a sealed broad-gate run writes"),
+            (
+                "the broad gate left for this session",
+                "a sealed broad-gate run writes",
+                "a `sealed` the plugin refused leaves",
+            ),
         ),
         (
             "README.ko.md",
             (
-                "작업 항목의 `guarantee.md` 가 `sealed` 로 커밋될 때 남는",
-                "`sealed` 로 읽히는 `guarantee.md` 를 커밋하면 도장에 들어갈 값을",
+                "작업 항목의 `guarantee.md` 가 `sealed` 로 커밋될 때, local 모드에서는 "
+                "그렇게 쓰일 때 남는",
+                "`sealed` 로 읽히는 `guarantee.md` 를 커밋하면, local 모드에서는 그렇게 "
+                "쓰면 도장에 들어갈 값을",
+                "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 "
+                "`<git-common-dir>/specseal-stamp-refused/` 아래에 빈 파일을 "
+                "남깁니다. shared 모드에서는 커밋 게이트가, local 모드에서는 편집 "
+                "훅이 씁니다.",
+                "팔과 별도로, `pre-commit` 은 브랜치에 없는 커밋을 감사한 `sealed` "
+                "`guarantee.md` 의 커밋을 거부하고",
             ),
-            ("광역 관문이 이 세션 앞으로", "광역 관문 실행은 도장에 들어갈 값을"),
+            (
+                "광역 관문이 이 세션 앞으로",
+                "광역 관문 실행은 도장에 들어갈 값을",
+                "플러그인이 거절한 `sealed`",
+            ),
         ),
     ):
         text = flat(edition)
@@ -1563,9 +2681,11 @@ def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
     text = flat("agents", "sealer.md")
     for said in (
         "or draw a stamp",
-        "a stamp is drawn once from your committed `sealed`.",
+        "a stamp is drawn once from your `sealed`.",
     ):
         assert said in text, said
+    # 1792363231 S9: a local-mode verdict is never committed.
+    assert "your committed `sealed`" not in text
     assert "from its own run" not in text, "the stamp is not the run's"
     assert "seal-stamp --from" not in text, (
         "the sealer is told to pass on a stamp command from a run it did not take"

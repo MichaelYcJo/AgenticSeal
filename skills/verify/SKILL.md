@@ -252,8 +252,9 @@ run.
 - **Form.** The sealer's seal is the only mark drawn, and only over a verdict
   that earned it: the stamp is drawn from the sealer's `guarantee.md` reading
   `sealed`, once per work item, at the end of the turn in which that file is
-  committed. git's `post-commit` writes the values it is drawn from, and the
-  `Stop` hook draws them in the orchestrator's session
+  committed, or in local mode written. git's `post-commit` writes the values
+  it is drawn from, or in local mode the edit hook does at the file's write,
+  and the `Stop` hook draws them in the orchestrator's session
   (`docs/the-review-record.md` §*The stamp*). The broad gate draws nothing:
   its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges
   nothing. So seeing the drawing means the last seal was earned.
