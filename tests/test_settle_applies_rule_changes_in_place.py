@@ -577,3 +577,59 @@ def test_the_retired_flags_are_an_argument_error(repo, flag, capfd):
     with pytest.raises(SystemExit) as raised:
         settle.main(["--root", str(repo), "--released-at", "main", flag])
     assert raised.value.code == 2
+
+
+def test_a_section_that_does_not_parse_keeps_its_directory(repo, capfd):
+    """A parse error leaves the spec no operations, which must not read as a
+    spec with nothing to apply."""
+    item(repo, "1700000001-a", "- rename\n  file: docs/a.md\n  to: x")
+    commit(repo, "a")
+    code, text = apply(repo, capfd)
+    assert code == 1, text
+    assert specs_dir(repo, "1700000001-a").exists(), text
+    assert "`rename` is not one of" in text, text
+
+
+def test_the_text_applied_is_the_spec_as_released(repo, capfd):
+    """An edit on disk after the release is not what was reviewed."""
+    item(repo, "1700000001-a", op("add", "U", new="Released."))
+    commit(repo, "a")
+    item(repo, "1700000001-a", op("add", "U", new="Edited later."))
+    code, text = apply(repo, capfd)
+    assert code == 0, text
+    after = (repo / "docs" / "a.md").read_text(encoding="utf-8")
+    assert after.endswith("Last.\n\nReleased.\n"), after
+
+
+def test_a_spec_moved_into_place_is_ordered_by_the_commit_that_moved_it(repo, capfd):
+    """git reads a moved directory as a rename, never as an add, unless it is
+    told not to; the spec would then have no place in the order."""
+    item(repo, "1700000001-old", op("add", "U", new="Rule."))
+    commit(repo, "old")
+    git(repo, "mv", "seal/specs/1700000001-old", "seal/specs/1700000002-new")
+    commit(repo, "renamed")
+    code, text = apply(repo, capfd)
+    assert code == 0, text
+    assert not specs_dir(repo, "1700000002-new").exists(), text
+
+
+def test_a_spec_no_commit_adds_is_held(repo, capfd, monkeypatch):
+    """Where the history cannot place a spec, it has no place in the order,
+    and it is held rather than applied first or last."""
+    item(repo, "1700000001-a", op("add", "U", new="Rule."))
+    commit(repo, "a")
+    real = settle.load
+
+    def load(path, name):
+        module = real(path, name)
+        if path == settle.RULES:
+            monkeypatch.setattr(
+                module, "order", lambda r, f, ids, s: [(i, None) for i in ids]
+            )
+        return module
+
+    monkeypatch.setattr(settle, "load", load)
+    code, text = apply(repo, capfd)
+    assert code == 1, text
+    assert "no commit on main adds its spec.md" in text, text
+    assert specs_dir(repo, "1700000001-a").exists()

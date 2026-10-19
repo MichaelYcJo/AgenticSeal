@@ -306,11 +306,13 @@ def replay(read, specs, held):
 def order(root, ref, ids, specs="seal/specs"):
     """`[(id, commit)]` for IDS in merge order: the first commit reachable from
     REF that adds the id's `spec.md`, in `git log --topo-order --reverse`
-    order. An id no such commit adds comes last, with commit None."""
+    order, a moved directory counting as added where it lands. An id no such
+    commit adds comes last, with commit None."""
     r = subprocess.run(
         [
             "git", "-C", root, "log", "--full-history", "--topo-order",
-            "--reverse", "--diff-filter=A", "--name-only", "--format=%x00%H",
+            "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
+            "--format=%x00%H",
             ref, "--", specs,
         ],
         capture_output=True,
