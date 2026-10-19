@@ -112,7 +112,8 @@ def test_the_skills_example_reads_as_the_skill_says():
         row = next(
             line for line in section.splitlines() if line.startswith(f"| `{kind}`")
         )
-        assert all(f"`{name}`" in row for name in need + may), row
+        fields = row.split("|")[2]
+        assert all(f"`{name}`" in fields for name in need + may), row
 
 
 def test_nothing_with_a_reason_is_a_section_with_no_operation():
