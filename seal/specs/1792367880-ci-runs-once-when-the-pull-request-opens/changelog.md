@@ -30,6 +30,19 @@
   longer labels the pull request `chain: reframed`: it runs before any pull
   request exists, and nothing read the label.
 
+  The sealer's definition changed, so it was measured against #976's side
+  on the same five-case suite:
+
+  | Agent | Tree | Preload bytes | Tokens per tool call | Spend USD | Graders passed | Verdict |
+  |---|---|---|---|---|---|---|
+  | sealer | `f99ab3a9` → `95ab5fd0`, one suite (`5c3e8119`) | 24,690 → 24,505 | 35,600.6 → 35,906.3 | 3.3379 → 3.0371 | 68 → 68 of 68 | fail, rule 5 alone |
+
+  The rule-5 fail is 0.9%, with total tokens down 10% and tool calls down
+  from 81 to 72; the first side of the same change, 117 bytes longer, read
+  35,060.4 per call. It is recorded as it reads and shipped, the owner's
+  rule for a rule-5-only fail with every outcome grader holding.
+  `evals/sealer-phase-3.md` and `evals/sealer-phase-3b.md` hold both sides.
+
 - **`tests` no longer runs when a draft is marked ready, and a newer push
   cancels the older run (#943).** `.github/workflows/test.yml` dropped
   `ready_for_review` and `converted_to_draft`: nothing in it reads draft
