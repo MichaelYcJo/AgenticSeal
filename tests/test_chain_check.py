@@ -78,17 +78,20 @@ def finding(
     location="`f.txt:1`",
     regression=None,
     reopens=None,
+    evidence="read `f.txt:1`",
 ):
     """One `### ` section of `## Findings`, in `templates/sdd-round.md`'s
-    shape, its `verdict:` line reading `verdict`."""
+    shape, its `verdict:` line reading `verdict` and its `evidence:` line
+    `evidence`, or none where that is None."""
     return (
         f"### {n}. {title}\n\n"
         f"severity: {severity}\n"
         f"location: {location}\n"
-        f"verdict: {verdict}\n"
+        + (f"evidence: {evidence}\n" if evidence is not None else "")
+        + f"verdict: {verdict}\n"
         + (f"regression: {regression}\n" if regression else "")
         + (f"reopens: {reopens}\n" if reopens else "")
-        + "\nWhy it matters. read: `f.txt:1`.\n\n"
+        + "\nWhy it matters.\n\n"
         "```python\nx = 1\n```\n\n"
         "answer: \n"
     )
@@ -125,8 +128,9 @@ def rounds_of(*texts):
     return out, errors
 
 
-# The table the old generator's records carried, which nothing reads again:
-# a merged item keeps one in the fixture, and the check must never open it.
+# The table the old generator's records carried, which the check never judges
+# again: a merged item keeps one in the fixture, and the check must never open
+# it.
 OLD_RECORD = (
     "# 1788999999-a-merged-item — review round 1\n\n"
     "| Field | Value |\n|---|---|\n"
@@ -422,7 +426,7 @@ class TestGrammar:
         self, monkeypatch, tmp_path
     ):
         """S4 (T2): the table in `docs/the-review-record.md` §*The round
-        record* is what the check reads. Its rows are the eight labels, the
+        record* is what the check reads. Its rows are the nine labels, the
         finding heading, the two sections and the three old spellings, and
         the module's grammar is the document's, read again here. Every line
         `templates/sdd-round.md` writes of a row matches it whole, and the
@@ -442,6 +446,7 @@ class TestGrammar:
             "target:",
             "severity:",
             "location:",
+            "evidence:",
             "verdict:",
             "regression:",
             "reopens:",
@@ -517,6 +522,32 @@ class TestGrammar:
         )
         monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(wider), reader))
         assert chain.record_findings(reader, could, "r.md")[1] == []
+
+    def test_the_warden_and_the_review_skill_name_every_line_a_finding_needs(self):
+        """S8 (#985): `agents/warden.md` step 7 and `skills/code-review/SKILL.md`
+        §*The record* each list the lines a finding carries, and each names
+        every row the table places in a finding as `one`, read from the table.
+
+        Protects: a row added to the table and missed in either list, which
+        tells the warden to write a finding the check then refuses at the
+        pull request. `evidence:` is the row #985 added."""
+        needed = [
+            key
+            for key, row in chain.GRAMMAR.items()
+            if row.where == chain.IN_FINDING and row.many == chain.ONE
+        ]
+        assert "evidence:" in needed, needed
+        warden = " ".join((ROOT / "agents" / "warden.md").read_text("utf-8").split())
+        step = warden.split("7. Write the record", 1)[1].split("## Never", 1)[0]
+        skill = " ".join(
+            (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8").split()
+        )
+        record = skill.split("## The record ", 1)[1]
+        record = record.split("Each finding carries one line of each row", 1)[1]
+        record = record.split("The check refuses a finding missing any.", 1)[0]
+        for where, text in (("warden.md step 7", step), ("§*The record*", record)):
+            missing = [key for key in needed if f"`{key}" not in text]
+            assert missing == [], f"{where} does not name {missing}"
 
     @pytest.mark.parametrize(
         "old, new, said",
@@ -1023,7 +1054,7 @@ class TestFindings:
 
     def test_a_label_in_another_spelling_is_refused_by_line(self):
         """S24 (T32): a line whose first word, case-folded and stripped of
-        emphasis, is one of the grammar table's eight labels or one of the
+        emphasis, is one of the grammar table's nine labels or one of the
         old spellings its `nowhere` rows name, `fix of a fix`, `refixes` and
         `Target SHA`, and which is not the exact lowercase form, is refused
         at its line naming the label the check reads — never skipped as
@@ -1045,6 +1076,9 @@ class TestFindings:
             ("**reopens:** round-1#1", "`reopens:`"),
             ("Severity: must", "`severity:`"),
             ("Location: `f.txt:1`", "`location:`"),
+            ("Evidence: read `a.py:1`", "`evidence:`"),
+            ("**evidence:** read `a.py:1`", "`evidence:`"),
+            ("evidence : read `a.py:1`", "`evidence:`"),
             ("Answer: done", "`answer:`"),
             ("  answer : done", "`answer:`"),
             ("Confirms: round-1#1", "`confirms:`"),
@@ -1171,6 +1205,96 @@ class TestFindings:
         assert found == [], errors
         assert any("`reopens:` line" in why for _r, _l, why in errors), errors
 
+    def test_an_evidence_line_missing_twice_or_malformed_is_refused(self):
+        """S1, S3, S4 (#985): a finding carries one `evidence:` line, matched
+        whole against its row. A finding with none is refused at its heading,
+        one with two at the second, and each value the row does not hold at
+        its line with the row's `Refused as`: a `read` coordinate with no
+        line or no backticks, an `executed` command with no backticks, a
+        word other than the two, nothing after the label, and a word after
+        the last backtick. A refused finding is left out of the list, and
+        the record's other findings still read.
+
+        Protects: a finding whose claim names nothing it rests on passing
+        the check, the trait #971's two `wrong` findings shared."""
+        malformed = (
+            "read `a.py`",
+            "read a.py:1",
+            "executed pytest",
+            "ran `x`",
+            None,
+            "executed `x` and more",
+        )
+        sections = [
+            finding(1, "open", evidence=None),
+            finding(2, "open").replace(
+                "evidence: read `f.txt:1`\n",
+                "evidence: read `f.txt:1`\nevidence: executed `git grep -n x`\n",
+            ),
+            *(
+                finding(n, "open").replace(
+                    "evidence: read `f.txt:1`",
+                    f"evidence: {value}" if value else "evidence:",
+                )
+                for n, value in enumerate(malformed, 3)
+            ),
+            finding(9, "open"),
+        ]
+        lines = reader.readable(record("abc1234", sections))
+        found, errors = chain.findings(reader, lines, "r.md")
+        assert [f.number for f in found] == [9], errors
+        heads = [i + 1 for i, ln in enumerate(lines) if ln.startswith("### ")]
+        said = [i + 1 for i, ln in enumerate(lines) if ln.startswith("evidence:")]
+        assert [(rel, line) for rel, line, _why in errors] == [
+            ("r.md", heads[0]),
+            ("r.md", said[1]),
+            *(("r.md", line) for line in said[2:8]),
+        ], errors
+        why = [w for _rel, _line, w in errors]
+        shape = "`executed` and each command run, or `read` and each `path:line`"
+        assert "no `evidence:` line: a finding carries one" in why[0], why[0]
+        assert shape in why[0], why[0]
+        assert "2 `evidence:` lines; a finding carries one" in why[1], why[1]
+        for n, w in enumerate(why[2:], 3):
+            assert f"### {n}. the parser drops a row" in w, w
+            assert "which the check cannot read" in w and shape in w, w
+
+    def test_both_evidence_forms_and_their_lists_read(self):
+        """S5 (#985): `executed` with one or more backticked commands, and
+        `read` with one or more backticked `path:line` or `path:first-last`
+        coordinates, each list joined by `, `, match the row whole, and the
+        finding carrying one is read and decided by its `verdict:` as
+        before. The line decides nothing. A backtick ends a command on the
+        line, and the record document names the spelling for a command that
+        holds one, `$(printf '\\140')`, which the row reads.
+
+        Protects: the row refusing a line a warden writes as the grammar
+        says, which would stop every round at the pull request, and a
+        warden whose search holds a backtick left with no way to name it
+        but a different command or a `read` line."""
+        stand_in = "$(printf '\\140')"
+        said = f"with `{stand_in}` in place of the character"
+        assert said in " ".join(DOC.read_text(encoding="utf-8").split()), said
+        values = (
+            "executed `git grep -n x -- tests`",
+            "executed `a`, `b`",
+            "read `a.py:3`",
+            "read `a.py:3-9`, `docs/b.md:12`",
+            f'executed `grep -n "{stand_in}evidence:" docs/x.md`',
+        )
+        row = chain.GRAMMAR["evidence:"]
+        for value in values:
+            assert row.shape.fullmatch(f"evidence: {value}"), value
+        text = record(
+            "abc1234",
+            [finding(n, "rejected", evidence=v) for n, v in enumerate(values, 1)],
+        )
+        found, errors = chain.findings(reader, reader.readable(text), "r.md")
+        assert errors == []
+        assert [(f.number, f.verdict) for f in found] == [
+            (n, (chain.REJECTED, None)) for n in range(1, 6)
+        ]
+
     def test_a_target_or_confirms_line_out_of_its_place_is_refused(self):
         """A `target:` or `confirms:` line inside a finding, and a
         `confirms:` line outside `## Confirmations`, is refused at its line:
@@ -1201,7 +1325,8 @@ class TestFindings:
     def test_the_template_is_the_record_the_check_reads(self):
         """S1 (T29, T38): `templates/sdd-round.md` is a record the check reads
         — one `target:` line and no table above the findings; one finding at
-        `open`, located at one coordinate, naming the regression `round-1#1`;
+        `open`, located at one coordinate, resting on one `evidence:` line
+        (#985), naming the regression `round-1#1`;
         a `verdict:` written inside its fix block not read as a line;
         `## Confirmations` holding its two example entries, `confirms:
         round-1#2` read and `confirms: none`; its comments naming the
@@ -1214,6 +1339,8 @@ class TestFindings:
         assert [(f.verdict, f.paths, f.regression, f.reopens) for f in found] == [
             ((chain.OPEN, None), ["path"], (1, 1), None)
         ]
+        said = [ln for ln in lines if chain.label_of(ln) == "evidence:"]
+        assert len(said) == 1, said
         comments = text.split(chain.FINDINGS_HEADING)[1].split("### 1. ")[0]
         assert "`reopens:`" in comments and "  reopens:  " in comments, comments
         assert not any(ln.startswith(chain.REOPENS_ROW) for ln in lines)

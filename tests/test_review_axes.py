@@ -141,6 +141,44 @@ def test_a_later_round_inherits_no_verdict_anywhere():
     ), "the warden's table no longer puts every verdict on the re-derived side"
 
 
+def test_a_later_round_re_runs_an_executed_line():
+    """S9 (#985): an `evidence: executed` line is a command a later round can
+    run again, and it carries where a verdict does not. Re-deriving the claim
+    instead spends the round on a search the earlier one already named, and
+    a deleted probe is the case that needs saying: it comes back from its
+    `## Probes` row. The record's document states it beside the line, and
+    the review skill's §*Earlier rounds*, which the warden follows, says it
+    where a round reads the earlier records."""
+    record = " ".join(read("docs", "the-review-record.md").split())
+    for said in (
+        "**A later round re-runs an `executed` line rather than re-deriving "
+        "the claim.**",
+        "writes it again from its `## Probes` row",
+    ):
+        assert said in record, f"the-review-record.md lost `{said}`"
+    skill = " ".join(read("skills", "code-review", "SKILL.md").split())
+    rounds = skill.split("## Earlier rounds", 1)[1].split("## The record", 1)[0]
+    said = (
+        "Where you weigh an earlier finding, re-run its `evidence: executed` "
+        "line rather than re-deriving the claim"
+    )
+    assert said in rounds, f"§*Earlier rounds* lost `{said}`"
+
+
+def test_a_record_written_before_a_line_was_added_is_no_finding():
+    """S10 (#985): a record written before the grammar gained a line lacks
+    it, and a later round that judges it by the new grammar reports a defect
+    nobody could have avoided. #971's `false-rows.md:117` is that class: a
+    0.21 record judged by 0.22's grammar, counted a `wrong` finding."""
+    record = " ".join(read("docs", "the-review-record.md").split())
+    for said in (
+        "an added line is never supplied after the round that would have written it",
+        "A record written before a line was added lacks it, and the lack is "
+        "no finding for a later round.",
+    ):
+        assert said in record, f"the-review-record.md lost `{said}`"
+
+
 def test_implement_and_the_preset_block_do_not_drift():
     """Both state the same decision; only one of them is always loaded.
 

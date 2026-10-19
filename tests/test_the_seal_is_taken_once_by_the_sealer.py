@@ -1160,8 +1160,9 @@ def finding(n, verdict, what="the parser drops a row", location="`f.py:1`"):
     """One `### ` section of `## Findings`, its `verdict:` line `verdict`."""
     return (
         f"### {n}. {what}\n\n"
-        f"severity: must\nlocation: {location}\nverdict: {verdict}\n\n"
-        "executed\n\nanswer: \n\n"
+        f"severity: must\nlocation: {location}\n"
+        f"evidence: executed `pytest tests/test_one.py -q`\nverdict: {verdict}\n\n"
+        "why\n\nanswer: \n\n"
     )
 
 
@@ -8190,7 +8191,9 @@ def test_a_runners_event_payload_is_what_judges_the_fixture(
 # Both were written anew since (#957, #967) and name no runner: the run's
 # owner moves from the sealer to the orchestrator in #969, and contract §2 is
 # where a reader finds it. What each definition still owes is the coverage
-# probe, in its own words.
+# probe, in its own words. The warden's words are #985's absence rule: a
+# claim that nothing catches a finding is a probe, named on the finding's
+# `evidence: executed` line.
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 PROBE = {
     "smith.md": (
@@ -8199,8 +8202,10 @@ PROBE = {
         "report it as a probe."
     ),
     "warden.md": (
-        "a coverage probe — nothing in the suite catches this — is a different "
-        "act: run it, and report it as a probe, never as a seal"
+        "A claim of absence, such as nothing in the suite catching this, is a "
+        "probe: run it over the module that should catch it, report it as a "
+        "probe, never as a seal, and name it on the finding's `evidence: "
+        "executed` line."
     ),
 }
 

@@ -1460,6 +1460,7 @@ target: 1a2b3c4 against main
 
 severity: must
 location: `src/a.py:12`, `docs/a.md`
+evidence: read `src/a.py:12`
 verdict: fixed abc1234
 
 why it matters.
@@ -1470,6 +1471,7 @@ answer: fixed
 
 severity: should
 location: `src/b.py:3`
+evidence: executed `git grep -n b -- src`
 verdict: rejected
 
 answer: it holds
@@ -1535,10 +1537,140 @@ def test_a_labelled_record_the_check_refuses_gives_no_truth():
     bad = LABELLED_ROUND_1.replace("fixed abc1234", "fixed abc1234 and more")
     read, why = rt.labelled_round(bad, rel, 1)
     assert read is None
-    assert why.startswith("the check refuses the record at line 11: ")
+    assert why.startswith("the check refuses the record at line 12: ")
     assert "reads `verdict: fixed abc1234 and more`" in why
     worse = LABELLED_ROUND_2.replace("round-1#1\n", "round-1#1 and more\n")
     assert rt.confirmed(worse, 1) == set()
+
+
+def test_a_labelled_record_is_read_by_the_grammar_of_the_commit_that_wrote_it(
+    tmp_path, monkeypatch
+):
+    """Guards the owner's decision on #985: a record is judged by the grammar
+    in force when it was written. A round written before the table gained
+    its `evidence:` row lacks the line, so the tree's check refuses it, and
+    the replay set lost 18 of its 31 rounds that way. Read through the check
+    of the commit that last wrote it, in the tree or at a release tag, it is
+    read as its pull request accepted it. A record no commit wrote is read
+    by the tree's check."""
+    rt = load_script("replay_targets")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+
+    who = ["-c", "user.name=x", "-c", "user.email=x@example.com"]
+
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(repo), *who, *args],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout.strip()
+
+    def put(rel, text):
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    git("init", "-q")
+    for rel in (
+        "skills/code-review/scripts/chain_check.py",
+        "skills/verify/scripts/unverified_check.py",
+    ):
+        with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
+            put(rel, f.read())
+    with open(
+        os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
+    ) as f:
+        doc = f.read()
+    row = next(ln + "\n" for ln in doc.splitlines() if ln.startswith("| `evidence:` |"))
+    put("docs/the-review-record.md", doc.replace(row, ""))
+    rel = "seal/specs/i/rounds/round-1.md"
+    text = re.sub(r"^evidence: .*\n", "", LABELLED_ROUND_1, flags=re.M)
+    put(rel, text)
+    git("add", "-A")
+    git("commit", "-qm", "a round written before the evidence row")
+    written = git("rev-parse", "HEAD")
+    put("docs/the-review-record.md", doc)
+    git("commit", "-qam", "the evidence row")
+    git("tag", "v1.0.0")
+    monkeypatch.setattr(rt, "ROOT", str(repo))
+
+    assert rt.written_at(rel, []) == written
+    refused, why = rt.labelled_round(text, rel, 1)
+    assert refused is None and "no `evidence:` line" in why, why
+    read, why = rt.labelled_round(text, rel, 1, at=written)
+    assert why == ""
+    assert read["findings"] == [
+        (1, "a fixed defect", "`src/a.py:12`, `docs/a.md`", True),
+        (2, "a finding that does not hold", "`src/b.py:3`", False),
+    ]
+    nxt = LABELLED_ROUND_2.replace(
+        "## Findings\n",
+        "## Findings\n\n### 1. a deferred defect\n\nseverity: should\n"
+        "location: `src/c.py:1`\nverdict: deferred #9\n\nanswer: filed\n",
+    )
+    assert rt.confirmed(nxt, 1) == set()
+    assert rt.confirmed(nxt, 1, at=written) == {1, 2}
+
+    seen = []
+
+    def stub(_text, rel, _n, at=None):
+        seen.append((rel, at))
+        return None, "stubbed"
+
+    monkeypatch.setattr(rt, "labelled_round", stub)
+    assert rt.targets([]) == ([], [("i", 1, "stubbed")])
+    assert seen == [(rel, written)]
+
+    git("rm", "-q", rel)
+    git("commit", "-qm", "settled")
+    assert rt.written_at(rel, ["v1.0.0"]) == written
+    assert rt.written_at("seal/specs/i/rounds/round-9.md", ["v1.0.0"]) is None
+
+
+def test_targets_reads_the_next_round_by_the_commit_that_wrote_it(monkeypatch):
+    """Guards the owner's decision on #985 where `targets` reads the round
+    after a fixed finding: that round is judged by the check of the commit
+    that wrote it, so a round written before the `evidence:` row still
+    confirms the fix it names, and the replay keeps the target."""
+    rt = load_script("replay_targets")
+    two = "seal/specs/i/rounds/round-2.md"
+    monkeypatch.setattr(
+        rt,
+        "records",
+        lambda _tags, _items=None: {
+            ("i", 1): LABELLED_ROUND_1,
+            ("i", 2): LABELLED_ROUND_2,
+        },
+    )
+    monkeypatch.setattr(rt, "written_at", lambda rel, _tags: f"at {rel}")
+    monkeypatch.setattr(
+        rt,
+        "labelled_round",
+        lambda _text, _rel, _n, at=None: (
+            {
+                "sha": "abc1234",
+                "value": "abc1234 against main",
+                "findings": [(1, "x", "`src/a.py:12`", True)],
+                "confirms": set(),
+            },
+            "",
+        ),
+    )
+    monkeypatch.setattr(rt, "resolve", lambda _rev: True)
+    monkeypatch.setattr(rt, "target_base", lambda _value, _target: ("abc1234", "main"))
+    # The one git call left before `confirmed`: routing.md at the target.
+    monkeypatch.setattr(rt, "git", lambda *_args, check=True: "| Branch | b |\n")
+    asked = []
+
+    def spy(_text, n, rel, at=None):
+        asked.append((n, rel, at))
+        return set()
+
+    monkeypatch.setattr(rt, "confirmed", spy)
+    rt.targets([])
+    assert asked == [(1, two, f"at {two}")], asked
 
 
 def test_a_labelled_target_names_its_base(monkeypatch):
