@@ -8,7 +8,7 @@ target: d3a59161 against release/v0.22.2
 
 severity: should
 location: `skills/legacy-parity/SKILL.md:33-38`, `tests/test_review_axes.py`
-verdict: open
+verdict: fixed 22187f49
 
 The rule under *The migration config* is the half of S4 every reader of the
 skill opens: where no original resolves, the caller asks the user, and a
@@ -70,13 +70,13 @@ The second block replaces `skills/legacy-parity/SKILL.md:38`. Precondition:
 see the new case red first (contract §15), for example with the mutation
 above, before it is committed.
 
-answer:
+answer: Holds: the named case reads the template and never the skill. The round's case is added to `tests/test_review_axes.py` beside T5 as `test_the_resolution_order_ends_with_the_caller_asking`, and the rule's `Enforced by:` line names it alone. Seen red with `mutation-check` twice, exit 0 and `red` each: before the commit, the base's *ask the user and record the answer* in place of the last three sentences (*lost 'the caller asks the user and records the answer'*); at 22187f49, *A comparison against a guessed original proves nothing.* deleted.
 
 ### 2. A section the scribe is told to read tells its reader to write a test
 
 severity: should
 location: `skills/legacy-parity/SKILL.md:66-69`, `agents/scribe.md:27-28`
-verdict: open
+verdict: fixed 22187f49
 
 The scribe's step 1 sends it to read *The original's coordinates*
 (`agents/scribe.md:27-28`). The skill's opening says those sections "find and
@@ -105,13 +105,13 @@ pins what it settles with a test. A suspect coordinate is opened at the baseline
 `git show <baseline>:<path>`.
 ```
 
-answer:
+answer: Holds: the scribe's `## Never` forbids the write the section asked of its reader. The section now reads *the caller pins what it settles with a test*, wrapped inside 88 columns; `agents/scribe.md` is unchanged, since its step 1 is right once the section is. No case pins the sentence: the section's rule reads `Enforced by: nothing — no case declares seal/parity.md`, as before.
 
 ### 3. Two steps of the trace to the response were dropped, and `## Removes` names neither
 
 severity: should
 location: `skills/legacy-parity/SKILL.md:57-61`, `agents/scribe.md:33`
-verdict: open
+verdict: fixed 22187f49
 
 Two instructions the old texts stated are not moved anywhere and are not
 listed under `spec.md` §*Removes*:
@@ -148,7 +148,7 @@ is reported as such and needs no reproduction. Read the original's history: a
 later fix is its intent, and cloning the version before it preserves nothing.
 ```
 
-answer:
+answer: Holds: neither step is in `## Removes`. *What the original sends* now says a mid-layer condition that never changes the response *is reported as such and needs no reproduction*, and *Read the original's history: a later fix is its intent*, the round's text. `agents/scribe.md` is unchanged, because its step 4 sends the scribe into this section. The three fixes add 7 B: `skills/legacy-parity/SKILL.md` is 5,695 B, and `bin/payload-meter --agent scribe` at 22187f49 printed 3,319 for the scribe and 16,603 for the contract, so the agent's share of the read set is 25,617 B against 25,691 (executed). `changelog.md` carries the new figures in the same commit.
 
 ## Confirmations
 
