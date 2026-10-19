@@ -16,13 +16,15 @@ Each line names where the answer was read.
   1000-line `Document line ceiling` row (`seal/config.md`;
   `docs/the-record-layout.md` §*The size a reader takes whole*). The reading
   tool's own limits are 2000 lines per call (its description) and 25,000
-  tokens per call (measured in this session; it reported "cap 25000"). The
-  token figure becomes a new optional row, `Document token ceiling`
-  (`spec.md` *Data & interfaces*).
-- *Does this item set this repository's ceilings?* No. Declaring the token
-  row now would refuse `docs/worktree-guard-spec.md` and
-  `docs/one-root-by-lifetime.ko.md` at once, and splitting them belongs to
-  #941's rewrite (#941: "split to fit one read").
+  tokens per call (measured in this session; it reported "cap 25000").
+  Tokens bind first at every line density `docs/` has, so one row,
+  `Document token ceiling`, replaces the line row (`spec.md`, *The one-read
+  row*; reframed 2026-10-20 at the orchestrator's direction).
+- *What does this repository declare until #941?* The largest estimate its
+  tree holds when phase 4 lands, 37,178 at 52c3e56d. Declaring 25,000 would
+  refuse `docs/worktree-guard-spec.md` and `docs/one-root-by-lifetime.ko.md`
+  at once, and splitting them belongs to #941's rewrite. Leaving the row out
+  would check nothing meanwhile. #941 sets 25,000 when it splits them.
 - *Does `target_problem` move?* No. `fold_check.py` stays the module, so
   `bin/rules` → `.github/scripts/rules.py#target_problem` →
   `fold_check.py#target_problem` is unchanged (`plan.md` A7).

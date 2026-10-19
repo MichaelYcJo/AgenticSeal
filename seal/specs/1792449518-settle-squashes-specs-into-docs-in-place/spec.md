@@ -19,7 +19,7 @@ no marker paragraph is written.
 | `docs/one-root-by-lifetime.md` §*What keeps `settle` light* and its table row *What `settle` is* (§*Decided when `settle` was built*) | Overturned in part. "It moves and does not verify" still holds. "The command reads and groups; the session judges and writes" stops holding: under this model the judgment happens when the spec is written and reviewed, so applying it judges nothing. Both editions are rewritten in place where they state the old split |
 | `docs/one-root-by-lifetime.md` §*The dependency rule* | `settle` stays the one sanctioned reader of a released work item. The CI readers that refuse a removed directory still need a way to tell a settle from a deletion, and this item gives them one with no marker |
 | `docs/the-record-layout.md` §*The fold, and what tells it from a deletion* | Rewritten to the new model. Kept: one predicate for every asker (#602), *nothing open* still keeps a directory, and a population floor is replaced, never lowered. Gone: the marker as fold record and the frozen-marker ceiling. The live-line rule stays for the markers #941 has yet to remove |
-| `docs/the-record-layout.md` §*The size a reader takes whole* | The line ceiling stays a `seal/config.md` row. This item adds a token ceiling beside it, because the reading tool cuts on tokens too |
+| `docs/the-record-layout.md` §*The size a reader takes whole* | One `seal/config.md` row in tokens replaces the line row. The reading tool cuts on tokens first, at every line density `docs/` has (*Data & interfaces*, *The one-read row*) |
 | `docs/the-record-layout.md` §*docs/* | Its table already lists every `docs/` file and the question each answers. It moves to `docs/README.md`, so the index has one home |
 | `docs/release-checklist.md` §*2b. Settle what earlier releases left behind — when the owner calls it* | Already says `settle` runs when the owner calls it (read at lines 99–104: "not at every release"), so that half of the issue's item 6 holds today. Its sequence (`settle --retire-process`, prose by hand, `fold-check`, `settle --retire`) is rewritten to the new commands |
 | `docs/the-review-and-parity-arms.md` (lines 133–160, the retired declarations) | `chain-check` accepts a removed declaration through `folded_items` or `retired_by_rule`. Both are replaced by the one new predicate |
@@ -27,7 +27,7 @@ no marker paragraph is written.
 | `CONTRIBUTING.md` §*What a change to a gate must carry* | The CI readers are gates. The pull request states the failure direction (Q2), the prompt budget (zero) and what is removed |
 | `skills/settle/SKILL.md` (whole) | The procedure, rewritten from "write one standing statement per rule" to "apply each spec's rule changes" |
 | `skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes* (line 75) | Says "The one writer that does is `settle`". Rewritten to the model: `docs/` is the baseline, a spec's rule changes are the migration, and the source is both, read in merge order |
-| `templates/config.md` §*The fold's values* and §*Reference specs* | Rows change here: `Policy root` and `Document token ceiling` are added, `Over the ceiling` goes. The reference-root rule is untouched, and `settle` still writes under the policy root and `seal/specs/` only |
+| `templates/config.md` §*The fold's values* and §*Reference specs* | Rows change here. `Policy root` is added, as the issue requires. `Document token ceiling` replaces `Document line ceiling`, so the count of rows does not grow. `Over the ceiling` goes. The reference-root rule is untouched |
 
 ## Scope
 
@@ -36,8 +36,8 @@ no marker paragraph is written.
 1. **A spec states its rule changes in `## Rule changes`.** The section is
    added to `templates/sdd-spec.md` and read by one parser. Each item is one of
    `add`, `change` or `remove`, with its place in the policy root and the rule
-   as it will read (grammar in *Data & interfaces*). A spec that changes no rule
-   writes `nothing — <why>`, the way `## Removes` does. The debate, the
+   as it will read. The grammar is stated once, in `skills/settle/SKILL.md`
+   §*Rule changes*, and every other file points there. The debate, the
    alternatives and the measurements stay in the spec's other sections and in
    `plan.md`, and `settle` reads none of them.
 2. **A pull request does not edit the policy root.** The model replaces "the
@@ -49,19 +49,11 @@ no marker paragraph is written.
    `templates/sdd-questions.md`'s "Answered rows feed back into docs/" becomes
    "into `spec.md`'s `## Rule changes`". This item adds no gate for the rule
    (Q3).
-3. **`settle --apply` applies the operations in place.** It works in merge
-   order, one spec at a time, all of a spec's operations or none. `change`
-   rewrites the quoted text where it stands. `add` places the rule at the end of
-   the named section, never at the end of the document. `remove` deletes the
-   quoted text, or the whole section. No marker is written. A missing place, or
-   quoted text that is not there, refuses that spec, and its directory stays.
-   Two specs whose order ancestry cannot decide, and which name one place, are a
-   conflict: both are refused for it and printed for the owner. An applied
-   spec's directory goes whole, the process record included. A released
-   directory with no spec and nothing open goes too, as the rule arm takes it
-   today. `settle` with no flag is the dry run: the pending operations by
-   document and section in merge order, then the refusals, then what
-   `--apply` would remove.
+3. **`settle --apply` applies the operations in place**, in merge order,
+   all of a spec or none of it. It writes no marker, refuses a place or a text
+   that is not there, prints a conflict for the owner, and removes each
+   applied directory whole. `settle` with no flag is the dry run.
+   `skills/settle/SKILL.md` §*What `--apply` does* states the rules.
 4. **A removal is told from a deletion without a marker.** One predicate
    replaces `unverified_check.py#folded_items` and widens `#retired_by_rule`. A
    removed directory is settled when three things hold. It was released at the
@@ -70,10 +62,10 @@ no marker paragraph is written.
    `settle`, `unverified-check --baseline`, `chain-check` and
    `tests/conftest.py#cutoff_item_is_traceable` all ask it.
 5. **Every document stays within one read.** `fold-check`'s ceiling arm
-   checks lines against `Document line ceiling` and estimated tokens against a
-   new `Document token ceiling`. An absent row is a check not run, as today.
-   The `Over the ceiling` row and its marker freeze go. After applying,
-   `settle --apply` names every document past either ceiling. The skill tells
+   checks one row, `Document token ceiling`, against estimated tokens. It
+   replaces `Document line ceiling`. An absent row is a check not run, as
+   today. The `Over the ceiling` row and its marker freeze go. After applying,
+   `settle --apply` names every document past the ceiling. The skill tells
    the session to split it by topic along its own headings in the same pull
    request, and never to trim it.
 6. **`<policy root>/README.md` is the index.** Each line names one topic and
@@ -104,11 +96,10 @@ no marker paragraph is written.
   `tests/test_both_editions_carry_the_same_folds.py`, which compares markers,
   are left untouched. They keep reading the legacy markers until #941 removes
   them.
-- This repository's values for the two ceilings. `Document line ceiling`
-  stays `1000`, and `Document token ceiling` is not declared here. Declared
-  today, it would refuse `docs/worktree-guard-spec.md` and
-  `docs/one-root-by-lifetime.ko.md` at once, and splitting those is #941's
-  rewrite.
+- This repository's final ceiling value. Until #941 splits the two documents
+  already past one read, this repository declares the lowest value its tree
+  passes (*The one-read row*). #941 lowers it to the reading tool's figure
+  when it splits them.
 - `settle` in local mode: #955. It keeps refusing local mode.
 - Templates and skills an agent opens on demand, beyond the four files the
   issue names: #940.
@@ -125,18 +116,18 @@ cannot wait for a `settle` to apply it (see `## Rule changes`).
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
-| S1 change in place | Given a released spec with `change · docs/a.md §S › "old sentence." · New rule.`, when `settle --apply` runs, then `docs/a.md` reads `New rule.` where `old sentence.` stood, the rest of the file is byte-identical, no `<!-- specs/` line is added, and the spec's directory is gone | fixture repo case, seen red against the current `settle` (which has no `--apply`) |
-| S2 add inside its section | Given `add · docs/a.md §S · Rule.`, where §S is followed by §T, when applied, then `Rule.` ends §S, comes before §T's heading, and is not at the end of the file | fixture case |
-| S3 remove | Given `remove · docs/a.md §S › "x."` and `remove · docs/a.md §T`, when applied, then `x.` is gone from §S, and §T's heading and body are gone up to the next heading of the same or higher level | fixture case |
-| S4 refused, never guessed | Given a `change` whose quoted text is not in its section, or a `§` heading that does not exist, or one that appears twice, when `settle --apply` runs, then that spec applies nothing, its directory stays, the refusal names the spec, the line and the reason, and the run exits non-zero | fixture case per reason |
-| S5 merge order, the later wins | Given spec A changes `x.`→`y.` and spec B, added in a later commit on the same line of history, changes `y.`→`z.`, when applied, then the document reads `z.` and both directories are gone | fixture repo with two commits |
-| S6 a conflict is shown | Given specs A and B added on parallel branches merged into the base, both naming §S › `"x."`, when applied, then neither is applied for that place, and both are printed as a conflict for the owner | fixture repo with a merge |
+| S1 change in place | Given a released spec that changes the sentence `old sentence.` in section S of `docs/a.md` to `New rule.`, when `settle --apply` runs, then `docs/a.md` reads `New rule.` where `old sentence.` stood, the rest of the file is byte-identical, no `<!-- specs/` line is added, and the spec's directory is gone | fixture repo case, seen red against the `settle` before `--apply` |
+| S2 add inside its section | Given an `add` of `Rule.` to section S, followed by section T, when applied, then `Rule.` ends S's own text, comes before T's heading, and is not at the end of the file | fixture case |
+| S3 remove | Given a `remove` of the sentence `x.` from section S and a `remove` of section T, when applied, then `x.` is gone from S, and T's heading and body are gone up to the next heading of the same or higher level | fixture case |
+| S4 refused, never guessed | Given a `change` whose sentence is not in its section, or a section that does not exist, or one that appears twice, or a block that does not parse whole, when `settle --apply` runs, then that spec applies nothing, its directory stays, the refusal names the spec, the line and the reason, and the run exits non-zero | fixture case per reason |
+| S5 merge order, the later wins | Given spec A changes `x.` to `y.` and spec B, added in a later commit on the same line of history, changes `y.` to `z.`, when applied, then the document reads `z.` and both directories are gone | fixture repo with two commits |
+| S6 a conflict is shown | Given specs A and B added on parallel branches merged into the base, both changing `x.` in section S, when applied, then neither is applied for that place, and both are printed as a conflict for the owner | fixture repo with a merge |
 | S7 atomic per spec | Given spec A with two operations, the second refused, when applied, then neither applies and A's directory stays whole | fixture case |
 | S8 dry run | Given pending specs, when `settle` runs with no flag, then it prints each document's pending operations in merge order, the refusals, and what `--apply` would remove, and writes nothing | fixture case: the tree is unchanged |
 | S9 a settle passes the readers | Given a branch that ran `settle --apply`, when `unverified-check --baseline` and `chain-check` run against the base, then each removed directory is named as settled, not reported as a deletion | the two readers' cases, re-pointed from markers |
 | S10 a deletion still fails | Given a branch that deletes a released spec's directory and leaves the policy root unchanged although the spec states an `add`, when the readers run, then the removal is refused | same cases, seen red with the replay disabled |
 | S11 pre-model spec | Given a released spec with no `## Rule changes` section and nothing open, when it is removed, then the readers accept it (Q2) | reader cases |
-| S12 one read | Given `Document token ceiling` 25000 and a document whose estimate is 25001, when `fold-check` runs, then it names the document and exits 1; with the row absent it checks nothing and says so in one line | fold-check cases |
+| S12 one read | Given `Document token ceiling` 25000 and a document whose estimate is 25001, when `fold-check` runs, then it names the document and exits 1; with the row absent it checks nothing and says so in one line; a `Document line ceiling` row is no longer read | fold-check cases |
 | S13 the index | Given `docs/README.md` missing a top-level file, or naming one twice, or holding a line that names no file, when `fold-check` runs, then each is named and it exits 1; this repository's own tree passes | fold-check cases and the existing `test_this_repository_passes_the_command_with_no_flags` |
 | S14 policy root | Given `Policy root` names `policy/`, when `settle --apply` runs with no such directory, then it creates `policy/`, writes there, and touches no `docs/` | fixture case |
 | S15 the model is stated | Given the implement skill, the framer definition, the spec template and the settle skill, when read, then each states the model, and no carrier still says "the one writer that does is `settle`" or tells a session to write a marker | pins rewritten and seen red against today's text; `git grep` for the old phrases comes back empty outside `seal/specs/` and `changelog/` |
@@ -144,56 +135,16 @@ cannot wait for a `settle` to apply it (see `## Rule changes`).
 
 ## Data & interfaces
 
-**The section's grammar.** Operation names, `·`, `§` and `›` are vocabulary a
-checker reads, so they stay English and literal.
+**The grammar, merge order and the commands have one home:**
+`skills/settle/SKILL.md` §*Rule changes* and §*What `--apply` does*, with
+`skills/settle/scripts/rule_changes.py` the one reader (Q1, answered). This
+file does not restate them. Phases 3–5 point there too, and add no symbol or
+constant of their own.
 
-```
-## Rule changes
-
-- add · <file> §<heading> · <the rule as it will read>
-- change · <file> §<heading> › "<the text as it reads now>" · <the rule as it will read>
-- remove · <file> §<heading> › "<the text as it reads now>"
-- remove · <file> §<heading>
-- add · <file> · <the whole new document>
-```
-
-- `<file>` is a path under the policy root. `§<heading>` matches a heading's
-  text exactly, trimmed, at any level, and must match exactly once in that
-  file.
-- `› "<text>"` must match exactly once inside that section, compared with
-  runs of whitespace collapsed, so a re-wrapped paragraph still matches.
-- An item's text runs from its first line through the lines indented under
-  it. A multi-line rule (a bold opening, its grounds, its `Enforced by:` line)
-  is written as indented continuation lines and lands de-indented.
-- `add` with no `§` creates the file, and is refused where the file exists.
-- `nothing — <why>` replaces the list where the spec changes no rule. The
-  reason is not empty.
-- Q1 records that the quoted-text anchor and the two extra shapes go beyond
-  the issue's three-field example. The issue's own words ("a `change`/`remove`
-  whose sentence is not there") say a sentence is named. They do not say how.
-
-**Merge order.** A spec's position is that of the first commit on
-`--released-at` (default `origin/main`) whose tree adds its `spec.md`, in
-`git rev-list --topo-order --reverse` order. Two specs are ordered only where
-one adding commit is an ancestor of the other (`git merge-base
---is-ancestor`). Two that are not, and that name one place, are the conflict
-of S6. The text applied is the spec as `--released-at` holds it.
-
-**Commands.** `settle` (dry run), `settle --apply`, `settle --released-at
-REF`, `settle --root DIR`. `--retire` and `--retire-process` go (*Removes*).
-Exit codes keep today's three meanings: 0 done or nothing to do, 1 something
-refused, 2 unusable arguments or tree.
-
-**One module reads the section.** A new `skills/settle/scripts/rule_changes.py`
-holds the parser and the replay, and its import is the only spelling of the
-grammar. `settle.py` and `unverified_check.py` load it by path, as they load
-each other today. `chain_check.py` reaches it through `unverified_check`.
-Headings and live lines are read through the existing readers
-(`unverified_check.py#live_lines`, `#gfm_lines`). The build does not spell a
-second fence rule.
-
-**The settled predicate.** It replaces `folded_items` and absorbs
-`retired_by_rule`: `settled(root, base, directories)` answers for the set of
+**The settled predicate** (phase 3; once built, its rule is stated in
+`docs/the-record-layout.md` §*The fold, and what tells it from a deletion*
+and this paragraph stops being its home). It replaces `folded_items` and
+absorbs `retired_by_rule`. It answers for the set of
 directories a pull request removes, because a later spec can supersede an
 earlier one inside one settle. The replay starts from the policy root at
 `base` and applies the removed specs in merge order. Every text the replay
@@ -204,23 +155,36 @@ request still passes. A text the base already held twice is a limit. Removing
 one copy reads as not applied, and the reader refuses it, which keeps the
 directory: the cheaper mistake.
 
-**The token estimate.** It is `ceil(UTF-8 bytes / 2)`. Measured 2026-10-20
-in this session's Read tool, which reports "cap 25000" tokens: an English
-`docs/` file read at 2.85 bytes a token, a Korean one at 2.15
-(`executed`: `docs/worktree-guard-spec.md` doubled, 148,710 bytes, read as
-52,121 tokens; `docs/one-root-by-lifetime.ko.md` doubled, 116,632 bytes, as
-54,209). Halving the bytes overestimates both. On today's tree it refuses
-exactly the two documents the tool already cuts:
-`docs/worktree-guard-spec.md` (74,355 bytes, about 26,060 tokens) and
-`docs/one-root-by-lifetime.ko.md` (58,316 bytes, about 27,100). Q4 asks for
-the denser case. The Read tool's own description gives 2000 lines per call,
-which is the line figure `templates/config.md` recommends. This
-repository's row stays at `1000` (*Scope*, out).
+**The one-read row.** `Document token ceiling` is the one size row, and the
+estimate is UTF-8 bytes halved, rounded up. Both are stated once, in
+`templates/config.md`, and the one constant lives in `fold_check.py`.
 
-**Config rows** (`templates/config.md`, `skills/config/SKILL.md`):
-`Policy root` (default `docs`), `Document token ceiling` (absent: not
-checked), `Document line ceiling` (unchanged), `Fold shape from` (unchanged,
-#941's), `Over the ceiling` (removed).
+- *Why tokens alone.* The Read tool cuts at 25,000 tokens (measured
+  2026-10-20: it reported "cap 25000") and at 2000 lines. Lines bind first
+  only where a document averages under about 25 bytes a line under the
+  estimate. No top-level `docs/` file averages under 57.9 (`executed`:
+  `awk` over `docs/*.md`; lowest is `docs/release-checklist.md`), so 2000
+  lines there run to some 58,000 estimated tokens. `docs/worktree-guard-spec.md`
+  is under the 1000-line row and past one read. The line row protects
+  nothing the token row does not, so it goes.
+- *Why bytes halved.* Measured English ran 2.85 bytes a token, mixed Korean
+  2.15 (`executed`: `docs/worktree-guard-spec.md` doubled, 148,710 bytes,
+  read as 52,121 tokens; `docs/one-root-by-lifetime.ko.md` doubled, 116,632
+  bytes, as 54,209). Halving overestimates both. Q4 asks about denser text.
+- *What this repository declares until #941.* The largest estimate any
+  top-level document holds when phase 4 lands: 37,178 at HEAD 52c3e56d
+  (`docs/worktree-guard-spec.md`; `executed`). That is the lowest value
+  today's tree passes. It stops every document from growing past the
+  largest one now, with no exception list, and refuses nothing #941 has
+  yet to split. Leaving the row undeclared would check nothing until #941.
+  Declaring 25,000 would refuse two documents that only #941's split
+  fixes. #941 sets 25,000 when it splits them.
+
+**Config rows** (`templates/config.md`, `skills/config/SKILL.md`): added,
+`Policy root` (default `docs`, issue-required). Replaced, `Document line
+ceiling` by `Document token ceiling`. Removed, `Over the ceiling`. Unchanged,
+`Fold shape from` (#941's). Prose names a row and never restates its value,
+so no pin is needed to hold a copy of the value to the row.
 
 **What the build answers from the tree, already looked up.**
 
@@ -245,6 +209,8 @@ checked), `Document line ceiling` (unchanged), `Fold shape from` (unchanged,
 | the process-record arm and its flag | `skills/settle/scripts/settle.py#retire_process`, `#process_plan`, `#write_process_section`, `PROCESS_DIRS`, `PROCESS_FILES`, `DURABLE`, `--retire-process` | the process record leaves with its spec's directory (issue item 6). Both arms run at the one moment the owner calls `settle`, so a separate arm has no moment of its own left |
 | the arm's tests | `tests/test_settle_retires_the_process_record.py`, `tests/test_a_process_record_drop_passes_the_readers.py` | the property they still hold, that a released directory removed whole passes the readers, moves to the settled predicate's cases (S9) |
 | the marker freeze | `skills/settle/scripts/fold_check.py#parse_over`, `#marker_digest`, the freeze half of `#ceiling_problems`, `OVER_ROW`, `OVER_ENTRY`, `OVER_SHAPE`, `NONE_LISTED`; the `Over the ceiling` row in `seal/config.md`, `templates/config.md` §*The fold's values* and `skills/config/SKILL.md`; the listed-document cases in `tests/test_a_document_has_room_for_the_next_fold.py` | a document over a ceiling is refused, never frozen. Splits happen inside `settle`, and this repository declares `none` |
+| the line row | `Document line ceiling` in `seal/config.md`, `templates/config.md`, `skills/config/SKILL.md` and `tests/test_the_settings_have_a_front_door.py`'s row list; `skills/settle/scripts/fold_check.py`'s `CEILING_ROW` and the line count in `#ceiling_problems` | `Document token ceiling`, the one size row (*The one-read row*) |
+| a value stated twice | `docs/the-record-layout.md`'s restated cutoff and ceiling values; `tests/test_a_document_has_room_for_the_next_fold.py#test_the_record_layout_states_the_values_the_config_rows_hold`, `#prose_disagreements` and `#test_the_prose_pin_fails_when_either_side_moves_alone` | the rows alone; the prose names each row without repeating its value, so no pin has a copy to hold |
 | the docs index table | `docs/the-record-layout.md#"docs/"` (its table and the `docs/experiments/` sentence under it) | `docs/README.md` |
 | "the one writer is `settle`" | `skills/implement/SKILL.md:75` (the `docs/` row of the lifetime table); `README.md:116`; `README.ko.md:111`; `docs/one-root-by-lifetime.md:655` and its `.ko.md` row; `tests/test_settle_reads_before_it_removes.py#test_the_implement_skill_names_the_one_writer_of_docs` | the model sentence in each place; the pin is rewritten to it |
 | the session-writes split | `skills/settle/SKILL.md#"The command reads and lists; you judge and write."`, its §*2. Write one standing statement per rule* and §*4. Retire what the policy absorbed*; `docs/one-root-by-lifetime.md:651` (*What `settle` is*) and §*What keeps `settle` light*'s "replaces by provenance id" bullet, both editions; `settle.py`'s module docstring paragraphs on the provenance comment; `README.md:263`/`README.ko.md:253` (the `settle [--retire]` rows) | the applying model in each; `tests/test_settle_reads_before_it_removes.py#test_the_skill_says_who_judges_and_who_reads`, `#test_the_skill_states_the_destination_rule`, `#test_the_skill_says_the_retirement_is_the_second_half_of_the_fold`, `#test_both_cheat_sheets_carry_the_command`, `#test_the_seal_readme_says_the_step_exists`, `#test_the_release_checklist_carries_the_by_hand_step` and `tests/test_a_document_has_room_for_the_next_fold.py#test_settle_owns_the_placement_rule` are rewritten to the new text |
@@ -263,6 +229,10 @@ there is nothing left for a later `settle` to apply.
 
 Anything a planner must answer lives in questions.md, not inline — unanswered
 questions buried in prose read as decided.
+
+The framer revised this frame on 2026-10-20 after phase 2, outside any
+review round, at the owner's direction relayed by the orchestrator. The
+grammar now points to the skill, and one token row replaces the line row.
 
 <!-- The line below is the framer's mark, and it is the only evidence in the
      TREE that the framing happened — the existing framer mark lives in the
