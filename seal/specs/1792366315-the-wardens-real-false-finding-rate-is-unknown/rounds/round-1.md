@@ -17,7 +17,7 @@ re-established here.
 
 severity: must
 location: `evals/scripts/recurred_truths.json:90-130`, `evals/behaviour/warden/replay-1791382684-r5/graders/truth-changelog-history.md`, `evals/behaviour/warden/replay-1791382684-r5/graders/truth-old-phrase-kept.md`, `evals/scripts/replay_targets.py:372-393`, `evals/scripts/replay_targets.py:416-451`, `tests/test_a_rewritten_definition_proved_non_inferior.py`, `seal/specs/1792366315-the-wardens-real-false-finding-rate-is-unknown/evals/false-rows.md:183-185`, `seal/specs/1792366315-the-wardens-real-false-finding-rate-is-unknown/evals/971-warden-phase-3-864798a4.md:55`, `seal/specs/1792366315-the-wardens-real-false-finding-rate-is-unknown/changelog.md:42-43`, `seal/specs/1792366315-the-wardens-real-false-finding-rate-is-unknown/overview.md:18-24`
-verdict: open
+verdict: fixed 11ebe8f4
 
 Why it matters. `spec.md` §*Scope*, *Decided here*, makes a different defect
 its own grader so that one find is never counted as another. A truth is
@@ -156,13 +156,13 @@ def test_no_two_truths_of_a_warden_case_accept_one_location():
     assert not shared, shared[:3]
 ```
 
-answer:
+answer: Fixed as the round proposed, test first. At 11ebe8f4, `truth_option` takes a `window` and `truths_with` reads an entry's `window` (15 where it names none). truth-changelog-history now reads `changelog.md:12-17` and truth-old-phrase-kept `changelog.md:7` and the test's `:6`, each with window 2. Only those two grader files of replay-1791382684-r5 changed (`git diff --name-only 864798a4 11ebe8f4 -- evals/behaviour`, executed). `test_no_two_truths_of_a_warden_case_accept_one_location` was red at f9f53f3c, naming this pair, and is green at 11ebe8f4; `test_an_entry_window_narrows_the_lines_its_truth_accepts` pins the field, and `test_an_entry_the_case_cannot_take_stops_the_generator[a-window-that-is-no-count]` (05715164) its refusal, seen red by mutation. In 4116d2a5 both sides were regraded onto 11ebe8f4 and `compare` wrote `971-warden-phase-3-11ebe8f4.md`: truth-old-phrase-kept passes 1 of 2 new runs, `check` exits 0. Phase 3's recall is 40/54 in `false-rows.md`, the changelog fragment's table and `phases/phase-4.md`; the 864798a4 sides and record were removed. The S5 join, the figures check and the phase 1 join exit 0 as written. `overview.md` carries the divergence row and the `window` clause under Fed back into the spec, marked inferred during implementation. The S5 join and the figures check in `phases/phase-3.md` and `phases/phase-4.md` now name 11ebe8f4, and those records say why.
 
 ### 2. An input-file entry with no locations becomes a truth every row matches, and a range keeps only its first line
 
 severity: should
 location: `evals/scripts/replay_targets.py:416-451`, `tests/test_a_rewritten_definition_proved_non_inferior.py:1758-1775`
-verdict: open
+verdict: fixed 11ebe8f4
 
 Why it matters. The input file is where the next truth will be added by
 hand, and `truths_with` is the only check between that file and the suite.
@@ -229,13 +229,13 @@ def test_an_entry_range_is_read_to_its_last_line(tmp_path, monkeypatch):
     assert not found.search("location: `src/x.py:200`")
 ```
 
-answer:
+answer: Fixed test first at 11ebe8f4. `truths_with` refuses an entry with no location, exit 1 with `names no location`. A `path:first-last` location accepts every line of its range and the window either side, through the new `lines_option`, which `truth_option` uses too, so no committed truth's bytes moved. The stale-entry test gained the `no-location` row, and `test_an_entry_range_is_read_to_its_last_line` pins the range at lines 60, 115 and not 116 of `src/x.py:10-100`. Both were red at f9f53f3c and green at 11ebe8f4 (executed). The docstrings of `recurred_truths` and `truths_with` and the README's paragraph state both.
 
 ### 3. A side regraded twice says it ran the suite it was first regraded onto
 
 severity: should
 location: `evals/scripts/noninferiority.py:1324-1329`, `tests/test_a_rewritten_definition_proved_non_inferior.py:1228-1252`
-verdict: open
+verdict: fixed 11ebe8f4
 
 Why it matters. `specseal.regraded_from` is how a regraded side is kept
 from passing for a side that ran the suite it now names. `overview.md:84`
@@ -271,13 +271,13 @@ Grounds, read. `regrade` sets `regraded_from=own`, and `own` is the side's
     assert second["specseal"]["regraded_from"] == commits["own"]
 ```
 
-answer:
+answer: Fixed test first at 11ebe8f4: `regrade` writes `regraded_from=meta.get("regraded_from") or own`, with a comment saying why. The second regrade the round proposed closes `test_a_side_regraded_onto_a_wider_truth_counts_the_row_it_now_matches`, red at f9f53f3c and green at 11ebe8f4 (executed). Both committed sides at 11ebe8f4 hold `regraded_from` af9c924b (executed). The README's `regrade` paragraph, the changelog fragment and `overview.md`'s clause now say the first suite is kept.
 
 ### 4. The changelog fragment says one of 0.22.2's comparisons passes --suite-rev af9c924b, where two do
 
 severity: should
 location: `seal/specs/1792366315-the-wardens-real-false-finding-rate-is-unknown/changelog.md:45-51`
-verdict: open
+verdict: fixed 4116d2a5
 
 Why it matters. The paragraph tells a release reader which of 0.22.2's
 comparisons the new suite cannot reach. It names four, then says "One of
@@ -301,7 +301,7 @@ and #970 name `--suite-rev af9c924b` in their bodies".
   passes the default `HEAD` meets the new suite, and `compare` refuses it.
 ```
 
-answer:
+answer: Fixed at 4116d2a5 with the round's sentence: #968's and #970's bodies pass `--suite-rev af9c924b`, and #985's measures on af9c924b's suite, so each is unaffected (`gh issue view 968`, `970` and `985`, executed: line 11, line 11 and line 19). No other text of the branch says one of them does (`git grep -n -i -e "one of them passes"` exits 1, executed).
 
 ## Confirmations
 
