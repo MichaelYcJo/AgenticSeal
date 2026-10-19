@@ -1629,6 +1629,50 @@ def test_a_labelled_record_is_read_by_the_grammar_of_the_commit_that_wrote_it(
     assert rt.written_at("seal/specs/i/rounds/round-9.md", ["v1.0.0"]) is None
 
 
+def test_targets_reads_the_next_round_by_the_commit_that_wrote_it(monkeypatch):
+    """Guards the owner's decision on #985 where `targets` reads the round
+    after a fixed finding: that round is judged by the check of the commit
+    that wrote it, so a round written before the `evidence:` row still
+    confirms the fix it names, and the replay keeps the target."""
+    rt = load_script("replay_targets")
+    two = "seal/specs/i/rounds/round-2.md"
+    monkeypatch.setattr(
+        rt,
+        "records",
+        lambda _tags, _items=None: {
+            ("i", 1): LABELLED_ROUND_1,
+            ("i", 2): LABELLED_ROUND_2,
+        },
+    )
+    monkeypatch.setattr(rt, "written_at", lambda rel, _tags: f"at {rel}")
+    monkeypatch.setattr(
+        rt,
+        "labelled_round",
+        lambda _text, _rel, _n, at=None: (
+            {
+                "sha": "abc1234",
+                "value": "abc1234 against main",
+                "findings": [(1, "x", "`src/a.py:12`", True)],
+                "confirms": set(),
+            },
+            "",
+        ),
+    )
+    monkeypatch.setattr(rt, "resolve", lambda _rev: True)
+    monkeypatch.setattr(rt, "target_base", lambda _value, _target: ("abc1234", "main"))
+    # The one git call left before `confirmed`: routing.md at the target.
+    monkeypatch.setattr(rt, "git", lambda *_args, check=True: "| Branch | b |\n")
+    asked = []
+
+    def spy(_text, n, rel, at=None):
+        asked.append((n, rel, at))
+        return set()
+
+    monkeypatch.setattr(rt, "confirmed", spy)
+    rt.targets([])
+    assert asked == [(1, two, f"at {two}")], asked
+
+
 def test_a_labelled_target_names_its_base(monkeypatch):
     """Guards where a labelled replay's clone starts: a fix range's first
     commit, an `against <sha>` commit, or the merge-base with

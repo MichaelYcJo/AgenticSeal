@@ -182,7 +182,13 @@ def written_at(rel, tags):
     """The commit that last wrote record REL: in the working tree's history
     where the tree holds it, else in the history of the first of TAGS that
     holds it, the order `records` reads them in. None where no commit wrote
-    it, a record the tree has not committed among them."""
+    it, a record the tree has not committed among them.
+
+    The last write and not the first, because a commit that rewrites a record
+    into a renamed label's new spelling moves it to that commit's grammar on
+    purpose, and the record is then judged by the grammar it was rewritten
+    into (#985, the orchestrator's decision under the owner's automation
+    answer)."""
     if os.path.isfile(os.path.join(ROOT, rel)):
         return git("log", "-1", "--format=%H", "--", rel, check=False).strip() or None
     for tag in tags:
