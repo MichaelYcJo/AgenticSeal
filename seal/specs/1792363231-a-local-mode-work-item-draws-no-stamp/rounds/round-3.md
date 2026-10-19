@@ -8,7 +8,7 @@ target: 68a67d6b, fixes 339ac7dc..68a67d6b
 
 severity: should
 location: `docs/the-review-record.md:302-304`, `docs/the-review-record.md:398-403`, `skills/verify/scripts/seal_stamp.py:945-947`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`
-verdict: open
+verdict: fixed 26f78ba2
 reopens: round-2#2
 
 Why the close does not hold. Round 2's finding 2 was a `sealed` brought by a
@@ -76,13 +76,13 @@ the coincidence. A case pins the limit the way
 probe's `checkout` shape, asserting the record and the second file, so that
 a change which closes it is seen.
 
-answer:
+answer: Fixed as a stated limit, with no code change and no new case, on the repository owner's instruction of 2026-10-19: "each shape needs a commit merged with another that was sealed before — a copy from another clone, a conflicted merge of a side branch's `sealed`, an amend folding the guarantee into the audited commit — and none arises in the flow this plugin runs, one issue under `automation` on its own branch; the owner accepts them as limits rather than lengthening the work". In 26f78ba2, `docs/the-review-record.md` §*The stamp*'s first rule, its unchecked paragraph and `seal_stamp.py`'s once comment state the copy in #975 Q9's class, in place of "copied here by hand". That copy is any `sealed` that drew in another clone and was brought onto a copy of its declared branch lacking its audited commit, by hand, `checkout`, `cherry-pick -n` or `merge --squash`. The gate refuses it and records it, and the new audit the refusal asks for draws again there. The paragraph also says no guard can tell this copy from the same clone's stale row after a push and a rebase, as the round argued. The pins are the existing cases beside the paragraph: `test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does` asserts the class sentence, the unchecked sentence, and that "copied here by hand" is gone. The class sentence was seen red against 68a67d6b's text, and the unchecked sentence with its words deleted by `mutation-check`. The probe case the round proposed is not planted, because the owner asked for no new probe cases.
 
 ### 2. A conflicted merge that brings a correct sealed from the merged branch is refused, and the refusal's only way on cannot be taken mid-merge
 
 severity: should
 location: `hooks/commitgate.py:283`, `docs/the-commit-gate-inside-git.md:109-110`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`
-verdict: open
+verdict: fixed 26f78ba2
 
 Why it matters. `guarantee_off_history` asks whether the target is an
 ancestor of `HEAD` (`commitgate.py:283`). A commit that concludes a merge
@@ -133,13 +133,13 @@ being concluded, `MERGE_HEAD`". The probe's merge shape is planted as a
 given of `test_the_guarantee_refusal_is_quiet_off_its_one_fact`, red at
 68a67d6b.
 
-answer:
+answer: Fixed as a stated limit, with no code change, on the repository owner's instruction of 2026-10-19: "each shape needs a commit merged with another that was sealed before … none arises in the flow this plugin runs, one issue under `automation` on its own branch; the owner accepts them as limits rather than lengthening the work". The owner also gave this ground for this finding: "in this flow a conflict with the base is resolved before the broad run and the sealer, so a `sealed` guarantee is never what a conflicted merge brings in". `hooks/commitgate.py:283` still asks `HEAD` alone. The fix pass first built the round's `MERGE_HEAD` read and a red given, then backed both out before committing, on the owner's change of instruction. In 26f78ba2, `docs/the-commit-gate-inside-git.md` states the limit beside the refusal: a commit concluding a conflicted merge is judged against `HEAD` alone, the way on is `git commit --no-verify`, and the plugin's flow never meets the shape. `docs/the-review-record.md`'s unchecked paragraph points to that sentence rather than copying it, since `test_no_passage_is_pasted_into_a_second_file` refused a copy, and `seal_stamp.py`'s once comment names it. It is stated in neither the doubling class nor the missing-stamp class: the side's `sealed` drew where it was made, and this clone's merged history carries it for `sealed_before`, so the merge neither doubles nor loses a stamp. The pins are the existing cases beside each paragraph: `test_the_policy_states_the_guarantee_refusal_beside_the_arms` and the `silence` tuple of `test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does`. Each was seen red with its sentence deleted by `mutation-check`. An octopus merge is not stated, because the gate reads no `MERGE_HEAD`.
 
 ### 3. An amend that folds the guarantee into the audited commit passes the gate, lands a row its history does not hold, and no stated limit names it
 
 severity: should
 location: `docs/the-review-record.md:392-394`, `docs/the-commit-gate-inside-git.md:122-123`
-verdict: open
+verdict: fixed 26f78ba2
 
 Why it matters. `pre-commit` runs before an amend with `HEAD` still at the
 commit being replaced, and nothing in its environment says the commit is an
@@ -175,7 +175,7 @@ The same clause joins `docs/the-commit-gate-inside-git.md:122` ("Where the
 stub does not run, … the row lands"), as the one shape where the stub runs
 and the row still lands.
 
-answer:
+answer: Fixed as a stated limit in the missing-stamp class, on the repository owner's instruction of 2026-10-19: "each shape needs a commit merged with another that was sealed before … an amend folding the guarantee into the audited commit — and none arises in the flow this plugin runs, one issue under `automation` on its own branch; the owner accepts them as limits rather than lengthening the work". In 26f78ba2, the round's clause joins `docs/the-review-record.md` §*The stamp*'s unchecked paragraph, together with the sentence that the pull request's check refuses the landed row as stale. `docs/the-commit-gate-inside-git.md` names it after "Where the stub does not run", as the one shape where the stub runs and the row still lands, and `seal_stamp.py`'s once comment names it beside the past-the-gate row. The pins are the existing cases beside the paragraphs: the `silence` tuple asserts "where an amend folded the guarantee into the very commit it audited", and `test_the_policy_states_the_guarantee_refusal_beside_the_arms` asserts "a row an amend folds into the very commit it audited". Each was seen red with its sentence deleted by `mutation-check`.
 
 ## Confirmations
 
