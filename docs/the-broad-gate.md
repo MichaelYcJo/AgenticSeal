@@ -2,7 +2,7 @@
 
 Narrow and often, broad once. The full suite, the repository-wide lint and
 the typecheck are a **single act**, taken after the review rounds settle and
-before a pull request is marked ready. This document is the standing account
+before the pull request opens. This document is the standing account
 of who takes it, what it runs, and what it is allowed to say.
 
 It is a policy document: it outranks the SDD set, and a work item that finds

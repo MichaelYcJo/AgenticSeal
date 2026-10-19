@@ -2316,7 +2316,9 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     at HEAD, never by an edit of the row; red against 2759a60d's sealer
     step."""
     text = flat("skills", "code-review", "orchestration.md")
-    section = text.split("## Orchestrator: the pull request opens before round 1", 1)[1]
+    section = text.split(
+        "## Orchestrator: the pull request opens once the sealer seals", 1
+    )[1]
     section = section.split("## Orchestrator: verify before posting", 1)[0]
     for said in (
         "Where `pre-commit` refuses the commit of `guarantee.md` because its row "
