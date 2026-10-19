@@ -38,12 +38,21 @@ this record and the Status cell. No paid runs.
   0. #957's own af9c924b record, `warden-phase-3.md`, also checks with exit
   0.
 
-**The figures** (`evals/false-rows.md`, *The figures under both suites*):
+**Review round 1's fix pass replaced those three files.** Finding 1
+narrowed two truths of replay-1791382684-r5, and that moved the suite to
+11ebe8f4. The fix pass regraded both sides onto it, wrote
+`baseline-warden-11ebe8f4.json`, `warden-phase-3-11ebe8f4.json` and
+`971-warden-phase-3-11ebe8f4.md` (`Verdict: pass`, `check` exit 0), and
+removed the 864798a4 files, whose phase-3 recall held a credit for a
+finding the run did not report (executed).
 
-| Side | False rows, af9c924b → 864798a4 | Recall, af9c924b → 864798a4 |
+**The figures** (`evals/false-rows.md`, *The figures under both suites*), at
+11ebe8f4:
+
+| Side | False rows, af9c924b → 11ebe8f4 | Recall, af9c924b → 11ebe8f4 |
 |---|---|---|
 | baseline | 43/55 → 19/55 | 13/24 → 39/54 |
-| phase 3 | 31/47 → 12/47 | 16/24 → 41/54 |
+| phase 3 | 31/47 → 12/47 | 16/24 → 40/54 |
 
 The real false rate, `wrong` over rows, is 1/55 and 1/47 under both
 suites. Under the new suite, what stays false is mostly what no suite can
@@ -55,8 +64,10 @@ the table's figures. Neither prints recall or the false rows by class, so
 this phase adds a third command. It recomputes every figure line of the two
 new tables from the four committed sides and the phase 1 classes, and exits
 0 only when each line is in `false-rows.md` byte for byte. At 837ee9bc it
-printed `figures: 11; not in the table: 0` and exited 0 (executed). Run it
-from the repository root:
+printed `figures: 11; not in the table: 0` and exited 0 over the 864798a4
+sides. As written below it reads the 11ebe8f4 sides, and after review round
+1's fix pass it printed the same and exited 0 (executed). Run it from the
+repository root:
 
 ```sh
 python3 - <<'PY'
@@ -73,8 +84,8 @@ import noninferiority as ni
 E = "seal/specs/1792126889-every-agent-is-written-anew-from-its-job/evals/"
 I = "seal/specs/1792366315-the-wardens-real-false-finding-rate-is-unknown/evals/"
 SIDES = {
-    "baseline": {"af9c924b": E + "baseline-warden.json", "864798a4": I + "baseline-warden-864798a4.json"},
-    "phase 3": {"af9c924b": E + "warden-phase-3.json", "864798a4": I + "warden-phase-3-864798a4.json"},
+    "baseline": {"af9c924b": E + "baseline-warden.json", "11ebe8f4": I + "baseline-warden-11ebe8f4.json"},
+    "phase 3": {"af9c924b": E + "warden-phase-3.json", "11ebe8f4": I + "warden-phase-3-11ebe8f4.json"},
 }
 CLASSES = ("real", "real (truth-miss)", "remark", "remark (artefact)", "remark (fenced)", "wrong", "unclear")
 classes = {}
@@ -111,7 +122,7 @@ for side, suites in SIDES.items():
         for cls in CLASSES:
             by_class[(cls, side, rev)] = sum(1 for k in keys if classes[(side, *k)] == cls)
 for cls in CLASSES:
-    cells = [by_class[(cls, s, r)] for s in SIDES for r in ("af9c924b", "864798a4")]
+    cells = [by_class[(cls, s, r)] for s in SIDES for r in ("af9c924b", "11ebe8f4")]
     want.append(f"| {cls} | " + " | ".join(str(c) for c in cells) + " |")
 with open(I + "false-rows.md", encoding="utf-8") as f:
     held = set(f.read().split("\n"))

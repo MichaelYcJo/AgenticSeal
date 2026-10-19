@@ -5,7 +5,8 @@
   IN.json --suite-rev REV --out OUT.json` grades each run of a committed
   side on REV's `truth-` graders, searching each grader's regex over the
   run's report rows. It writes the side again with the scores following, and
-  names the suite it ran in `specseal.regraded_from`. It exits 2, naming the
+  names the suite its runs answered in `specseal.regraded_from`, kept
+  through any number of regrades. It exits 2, naming the
   case, in these cases:
   - the side's own suite does not give back from its rows what it recorded;
   - REV differs from the side's suite in anything but `truth-` graders;
@@ -32,23 +33,25 @@
   regex missed is widened with that coordinate: 2 widened. Both come from
   one input file, `evals/scripts/recurred_truths.json`. All three
   generators read it, and an entry the case cannot take stops them with
-  exit 1. No other file of any case changed, and no other agent's suite
-  moved.
+  exit 1. An entry may narrow the lines its truth accepts, and no two
+  truths of one case accept the same `location:` line, so one finding is
+  never counted as two. No other file of any case changed, and no other
+  agent's suite moved.
 
-  Under the new suite, at 864798a4, the same two sides read:
+  Under the new suite, at 11ebe8f4, the same two sides read:
 
-  | Side | False rows, af9c924b | False rows, 864798a4 | Recall, af9c924b | Recall, 864798a4 |
+  | Side | False rows, af9c924b | False rows, 11ebe8f4 | Recall, af9c924b | Recall, 11ebe8f4 |
   |---|---|---|---|---|
   | baseline | 43/55 | 19/55 | 13/24 | 39/54 |
-  | phase 3 | 31/47 | 12/47 | 16/24 | 41/54 |
+  | phase 3 | 31/47 | 12/47 | 16/24 | 40/54 |
 
 - **The new suite is the one a warden comparison uses from the release
   after 0.22.2, and 0.22.2 decides nothing on it.** By the owner's
   decision in #971, 0.22.2's comparisons stay on af9c924b's suite: #968,
-  #970, #985 and the milestone's closing verdict. One of them passes
-  `--suite-rev af9c924b` and is unaffected. A comparison against an
-  af9c924b baseline that passes the default `HEAD` meets the new suite, and
-  `compare` refuses it.
+  #970, #985 and the milestone's closing verdict. #968's and #970's bodies
+  pass `--suite-rev af9c924b`, and #985's measures on af9c924b's suite, so
+  each is unaffected. A comparison against an af9c924b baseline that
+  passes the default `HEAD` meets the new suite, and `compare` refuses it.
 
   From the release after 0.22.2, a warden baseline is still a run of the
   tree it starts from. The regraded phase-3 side measured a preload that is

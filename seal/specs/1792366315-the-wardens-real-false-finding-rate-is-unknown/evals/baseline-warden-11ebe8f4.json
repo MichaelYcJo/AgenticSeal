@@ -508,7 +508,7 @@
        "source": "file",
        "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
       },
-      "pattern": "^location: .*(?:seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/changelog\\.md:(?:1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27)(?!\\d))",
+      "pattern": "^location: .*(?:seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/changelog\\.md:(?:10|11|12|13|14|15|16|17|18|19)(?!\\d))",
       "flags": "m",
       "match": "contains"
      }
@@ -550,7 +550,7 @@
        "source": "file",
        "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
       },
-      "pattern": "^location: .*(?:tests\\/test_a_reader_declares_its_input_class\\.py:(?:1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21)(?!\\d)|seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/changelog\\.md:(?:1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22)(?!\\d))",
+      "pattern": "^location: .*(?:tests\\/test_a_reader_declares_its_input_class\\.py:(?:4|5|6|7|8)(?!\\d)|seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/changelog\\.md:(?:5|6|7|8|9)(?!\\d))",
       "flags": "m",
       "match": "contains"
      }
@@ -2771,8 +2771,8 @@
   "preload_bytes": 76019,
   "cut_short": false,
   "rev": "af9c924b",
-  "suite_rev": "864798a466d9b7c6e40d89a5ba9d2b4c2b7189aa",
-  "suite_tree": "98e3a6e34674b83ba237a8f5986c13677977697d",
+  "suite_rev": "11ebe8f48224d8d8d0d1b30953f00ae2968f2c02",
+  "suite_tree": "95b4041e9ae847715ec18e29b52d5e9aeba0090d",
   "regraded_from": "af9c924b7c5b03af5291017c226842655a8d83dd"
  }
 }

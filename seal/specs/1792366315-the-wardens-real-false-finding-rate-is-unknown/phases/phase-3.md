@@ -97,7 +97,8 @@ it never meets the file.
   --porcelain evals/behaviour/` empty (S6).
 
 **The S5 join (executed: it printed `problems: 0` and exited 0 at
-864798a4).** It regrades both committed sides onto the new suite with
+864798a4, and again at 11ebe8f4, the suite review round 1's fix pass
+left).** It regrades both committed sides onto the new suite with
 `noninferiority.py#regrade`, in a temporary directory. Then it holds two
 conditions. Every row that turns from false to found must be classed `real`
 or `real (truth-miss)` in `evals/false-rows.md`, and no row may go from
@@ -110,7 +111,7 @@ import argparse, json, os, re, sys, tempfile
 sys.path.insert(0, "evals/scripts")
 import noninferiority as ni
 
-REV = "864798a4"
+REV = "11ebe8f4"
 E = "seal/specs/1792126889-every-agent-is-written-anew-from-its-job/evals/"
 SIDES = {"baseline": E + "baseline-warden.json", "phase 3": E + "warden-phase-3.json"}
 TABLE = "seal/specs/1792366315-the-wardens-real-false-finding-rate-is-unknown/evals/false-rows.md"
@@ -175,10 +176,12 @@ sys.exit(1 if problems else 0)
 PY
 ```
 
-It printed `baseline: 55 rows, 19 false on 864798a4` and `phase 3: 47 rows,
-12 false on 864798a4`. Of the 17 graders, 4 passed in two runs, 6 in three
-and 7 in four. These are figures to record; phase 4 commits the sides and
-their record. Two mutations through `mutation-check` showed the join can
+At 11ebe8f4 it printed `baseline: 55 rows, 19 false on 11ebe8f4` and
+`phase 3: 47 rows, 12 false on 11ebe8f4`. Of the 17 graders, 4 passed in two
+runs, 7 in three and 6 in four. At 864798a4 the counts were 4, 6 and 7:
+truth-old-phrase-kept passed a fourth run there on a credit that finding 1
+of review round 1 removed. These are figures to record; phase 4 commits the
+sides and their record. Two mutations through `mutation-check` showed the join can
 fail, and both were red (executed):
 
 - `truth-host-prefix` renamed in the input file, so its grader matches no
@@ -186,14 +189,18 @@ fail, and both were red (executed):
 - a turned row of `false-rows.md` (baseline seeded-9b644676, run 0, row 2)
   reclassed `remark`.
 
-**What the ±15 window does to two truths of replay-1791382684-r5.**
-`truth_pattern` reads a line within ±15 of the location. So
-truth-changelog-history at `changelog.md:12` also accepts `changelog.md:7`,
-the coordinate of truth-old-phrase-kept. A run that named only the
-first-bullet defect is credited with both. Every row involved is `real`,
-so S5 holds. The spec's rule, *locations through `truth_pattern`*, is
-followed as it stands. A narrower window is a change to every truth the
-generators write, and this phase does not make it.
+**Two truths of replay-1791382684-r5 are narrowed to 2 lines.** At ±15,
+truth-changelog-history (`changelog.md:12`) and truth-old-phrase-kept
+(`changelog.md:7`) each accepted every line of the 17-line changelog. So a
+run that named only one of the two defects was credited with both. S5
+cannot see this, because it reads a row's class and never which defect the
+class was given for. Review round 1's finding 1 found it.
+
+The fix pass gave an entry an optional `window` and set it to 2 on both
+entries. truth-changelog-history now reads `changelog.md:12-17` and accepts
+lines 10-19. truth-old-phrase-kept accepts lines 5-9, and lines 4-8 of the
+test's docstring. No other committed truth moved. The divergence is
+recorded in `overview.md`.
 
 **One defect row stays false by choice.** The baseline's replay-1791382684-r2,
 run 1, row 2 gives a bare `plan.md` for the mapping-rule defect. A bare-path
@@ -218,7 +225,8 @@ alternative would also credit phase 3's fenced row (run 0, row 6), a
 
 **For phase 4.**
 
-- The suite's commit is 864798a4, so the regraded sides are
-  `baseline-warden-864798a4.json` and `warden-phase-3-864798a4.json`.
-- The S5 join above holds for that commit, and its false counts are the
+- The suite's commit was 864798a4, and since review round 1's fix pass it
+  is 11ebe8f4. The regraded sides are now `baseline-warden-11ebe8f4.json`
+  and `warden-phase-3-11ebe8f4.json`.
+- The S5 join above holds for 11ebe8f4, and its false counts are the
   new-suite figures: 19 of 55 and 12 of 47.

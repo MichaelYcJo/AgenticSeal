@@ -4,10 +4,10 @@
 |---|---|
 | Agent | warden |
 | Phase | 3 |
-| Baseline run | 2026-10-17T01:17:39.397Z 1bd61e5cdd61 |
-| New run | 2026-10-17T14:04:30.177Z 7b13eba1c8a7 |
-| Baseline suite | 864798a466d9b7c6e40d89a5ba9d2b4c2b7189aa 98e3a6e34674b83ba237a8f5986c13677977697d |
-| New suite | 864798a466d9b7c6e40d89a5ba9d2b4c2b7189aa 98e3a6e34674b83ba237a8f5986c13677977697d |
+| Baseline run | 2026-10-17T01:17:39.397Z faca482bf149 |
+| New run | 2026-10-17T14:04:30.177Z 8c9c9dba85a6 |
+| Baseline suite | 11ebe8f48224d8d8d0d1b30953f00ae2968f2c02 95b4041e9ae847715ec18e29b52d5e9aeba0090d |
+| New suite | 11ebe8f48224d8d8d0d1b30953f00ae2968f2c02 95b4041e9ae847715ec18e29b52d5e9aeba0090d |
 | Baseline cut short | no |
 | New cut short | no |
 | Baseline report rows | 55 |
@@ -27,7 +27,7 @@
 | Baseline tokens per tool call | 89100.4 |
 | New tokens per tool call | 80940.4 |
 | Baseline tokens per true find | 1704330 |
-| New tokens per true find | 1644473 |
+| New tokens per true find | 1685584 |
 
 ## Graders
 
@@ -52,7 +52,7 @@
 | truth | warden replay-1791382684-r5 | truth-changelog-history | 2 | 2 | 2 | 2 |
 | truth | warden replay-1791382684-r5 | truth-direction-quoted | 2 | 2 | 2 | 2 |
 | truth | warden replay-1791382684-r5 | truth-direction-unplaced | 2 | 2 | 1 | 2 |
-| truth | warden replay-1791382684-r5 | truth-old-phrase-kept | 2 | 2 | 2 | 2 |
+| truth | warden replay-1791382684-r5 | truth-old-phrase-kept | 2 | 2 | 1 | 2 |
 | reach | warden replay-1791384160-r2 | reach-warden | 2 | 2 | 2 | 2 |
 | shape | warden replay-1791384160-r2 | shape-findings | 1 | 2 | 2 | 2 |
 | shape | warden replay-1791384160-r2 | shape-report-exists | 2 | 2 | 2 | 2 |

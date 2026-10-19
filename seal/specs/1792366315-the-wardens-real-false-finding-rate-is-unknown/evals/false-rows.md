@@ -162,17 +162,20 @@ above. The baseline side has 55 rows in all and the phase-3 side 47
 
 ## The figures under both suites
 
-Each side was run once, on af9c924b's suite. Under 864798a4's suite it is
+Each side was run once, on af9c924b's suite. Under 11ebe8f4's suite it is
 the same side regraded from its committed rows by `noninferiority.py
-regrade`, with no new run: `baseline-warden-864798a4.json` and
-`warden-phase-3-864798a4.json` in this directory. 864798a4's suite is
+regrade`, with no new run: `baseline-warden-11ebe8f4.json` and
+`warden-phase-3-11ebe8f4.json` in this directory. 11ebe8f4's suite is
 af9c924b's plus the 15 truths and 2 widenings of
 `evals/scripts/recurred_truths.json`, and no other file of any case changed.
+Its two `changelog.md` truths of replay-1791382684-r5 accept 2 lines either
+side of their locations, so no line of that changelog is accepted by both
+(review round 1, finding 1).
 
-**Nothing in 0.22.2 is decided on 864798a4's suite.** The owner's decision
+**Nothing in 0.22.2 is decided on 11ebe8f4's suite.** The owner's decision
 in #971's body keeps 0.22.2's comparisons on af9c924b's suite: #968, #970,
 #985 and the milestone's closing verdict. These figures stand side by side
-and decide nothing. `971-warden-phase-3-864798a4.md` is `compare`'s record
+and decide nothing. `971-warden-phase-3-11ebe8f4.md` is `compare`'s record
 of the two regraded sides. It says `Verdict: pass`, `noninferiority.py
 check` recomputes that verdict from its numbers (exit 0), and it decides
 nothing either.
@@ -180,9 +183,9 @@ nothing either.
 | Side | Suite | Rows | False rows | Harness false rate | Truth finds | Recall |
 |---|---|---|---|---|---|---|
 | baseline | af9c924b | 55 | 43 | 0.782 | 13/24 | 0.542 |
-| baseline | 864798a4 | 55 | 19 | 0.345 | 39/54 | 0.722 |
+| baseline | 11ebe8f4 | 55 | 19 | 0.345 | 39/54 | 0.722 |
 | phase 3 | af9c924b | 47 | 31 | 0.660 | 16/24 | 0.667 |
-| phase 3 | 864798a4 | 47 | 12 | 0.255 | 41/54 | 0.759 |
+| phase 3 | 11ebe8f4 | 47 | 12 | 0.255 | 40/54 | 0.741 |
 
 The harness false rate is false rows over rows, the number `verdict`'s rule 2
 reads. Truth finds are the passes of every `truth-` grader over every run,
@@ -190,7 +193,7 @@ and recall is the one over the other, the measure rule 1 reads.
 
 The false rows that remain, by the class phase 1 gave them:
 
-| Class | baseline, af9c924b | baseline, 864798a4 | phase 3, af9c924b | phase 3, 864798a4 |
+| Class | baseline, af9c924b | baseline, 11ebe8f4 | phase 3, af9c924b | phase 3, 11ebe8f4 |
 |---|---|---|---|---|
 | real | 28 | 6 | 21 | 3 |
 | real (truth-miss) | 3 | 1 | 1 | 0 |
@@ -203,7 +206,7 @@ The false rows that remain, by the class phase 1 gave them:
 **The real false rate**, `wrong` rows over rows, is the same under both
 suites, because a truth never credits a `wrong` row: 1/55 = 0.018 on the
 baseline and 1/47 = 0.021 on phase 3. A `wrong` row and an `unclear` row
-together are 2/55 = 0.036 and 1/47 = 0.021. Under 864798a4's suite, what
+together are 2/55 = 0.036 and 1/47 = 0.021. Under 11ebe8f4's suite, what
 stays false is mostly what no suite can make true:
 
 - `remark` rows, which name no defect.

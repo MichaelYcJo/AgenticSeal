@@ -51,8 +51,9 @@ record. Nothing in the tree makes a later edit owe a run.
 **A side already paid for is read again under another suite's truths
 without a run.** `noninferiority.py regrade --side IN.json --suite-rev REV
 --out OUT.json` grades each run of IN on REV's `truth-` graders, the
-grader's regex searched over the run's report rows, and writes OUT naming
-REV's suite and the one IN ran. It refuses, naming the case, a side whose
+grader's regex searched over the run's report rows. It writes OUT naming
+REV's suite and the one IN's runs answered, which a side regraded again
+keeps. It refuses, naming the case, a side whose
 own suite does not give back from its rows the truth results it recorded,
 and a suite at REV that differs from IN's in anything but `truth-` graders
 or holds other cases: a change to a prompt, a scaffold or a `shape-` grader
@@ -81,8 +82,10 @@ did not list, named by at least two of the case's classed runs, is a
 `truth-` grader of that case. A listed truth that a run found at a
 coordinate its regex missed is widened with that coordinate. Each entry
 names its case, the grader it adds or widens, its locations and the
-classing rows it came from, and an entry the case cannot take stops the
-generator with exit 1.
+classing rows it came from. Where the ±15 lines around a location would
+reach another truth of the case, it also names a narrower `window`, because
+no two truths of one case may accept the same `location:` line. An entry
+the case cannot take stops the generator with exit 1.
 
 ```bash
 python3 evals/scripts/noninferiority.py run --agent warden --rev <merge base> \

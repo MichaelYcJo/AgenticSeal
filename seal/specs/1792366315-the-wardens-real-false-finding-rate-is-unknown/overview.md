@@ -21,6 +21,7 @@ figures side by side.
 | The finding's wording is marked once, not row by row | the spawn of phase 1: "the rows whose finding text is only in #971's first comment marked as such" / the Finding column's header and *How to read a row* say it once | the code | Every row is such a row: the committed sides keep only `location:` lines and the traces are gone (`spec.md` §*What the issue's step 1 stands on, opened*). A tag on all 74 rows would be the same word 74 times |
 | `regrade` sits after the record's recomputation in `evals/README.md`, not beside `run --from-raw` | `spec.md` §*Scope* item 5: "`evals/README.md` (… `regrade` beside `run --from-raw`)" / the README names no `run --from-raw` (`git grep -n -e 'from-raw' b5f93d94 -- evals/README.md` exits 1, executed 2026-10-19); the paragraph follows the sentence that the test module recomputes the record, and the module docstring carries `regrade` beside `run --from-raw` | the code | There is no `run --from-raw` sentence in the README to sit beside; the docstring is where both subcommands are listed |
 | replay-1791382684-r2's truth-1 and truth-2 are widened by the input file, not by a generator rule (`questions.md` Q2) | Q2: "**In the cell:** `truth_pattern` takes every coordinate the cell names, a generator rule. **Only in the text:** the input file widens the two graders with the coordinates the classing rows gave" / the historical round 2 record's Location cells hold one coordinate each, `correction_check.py:780` and `hooks/routing.py:415`; the units sit in the finding text and the fix block (`git show b914a1c7^:seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md`, lines 28-29 and 42-95, executed 2026-10-19) | only in the text: `recurred_truths.json` widens truth-1 with the eight listed units the runs cited and truth-2 with `unverified_check.py:767`, the unit whose class the record puts in its finding 2 | Q2's own rule for this answer. A unit the runs cited that the record does not list, such as `hooks/dispatch.py:449`, is not added |
+| Two truths of replay-1791382684-r5 accept 2 lines either side of their locations, not ±15 (review round 1, finding 1; inferred during implementation) | `spec.md` §*Data & interfaces*: each location "turned into a pattern by `replay_targets.py#truth_pattern`", which reads ±15 lines, beside §*Scope*, *Decided here*: "A different defect at another coordinate is its own grader" / at ±15, truth-changelog-history and truth-old-phrase-kept each accepted every line of the 17-line changelog, so one finding counted as both; an entry now takes an optional `window`, and the two entries carry 2 | the second clause | Counting one finding as two breaks what *its own grader* is for, and `window` changes only the entries that carry it, so no other committed truth moves. The choice was made in phase 3's record alone and belonged here; `tests/test_a_rewritten_definition_proved_non_inferior.py#test_no_two_truths_of_a_warden_case_accept_one_location` now holds every warden case to it |
 | Two of the comment's facts have moved | #971's first comment: "is in no agent-contract at 4d316179 or at 2dfa53a9 (read)", and "`gh issue view` (executed) shows #873 closed and #877 open" / `git cat-file -t 2dfa53a9` fails in this clone, and `gh issue view 877` shows it closed (executed 2026-10-19) | the classes stand, and both rows record the fact as found | Neither fact decides a class: the §19 rule is absent at 4d316179 alone, and #873 and #877 share a subject whichever is open (`evals/false-rows.md`, phase 3 seeded-4d316179 r1.F2 and seeded-ad447367 r1.F2) |
 
 ## Not verified
@@ -51,13 +52,20 @@ figures side by side.
 
 ## Fed back into the spec
 
-Inferred during implementation (phase 3), so a planner may overturn it:
-an entry of `recurred_truths.json` that widens a truth carries `widens:
-true`, beyond the five fields `spec.md` §*Data & interfaces* lists. Without
-it a widening whose truth has left the case would read as a new truth of
-the same name and pass silently. With it, that entry stops the generator,
-and so does a new entry that names an existing truth. A widening keeps the
-truth's body, so its `finding` is for the reader of the file.
+Inferred during implementation (phase 3 and review round 1's fix pass), so
+a planner may overturn each: two fields of a `recurred_truths.json` entry
+beyond the five `spec.md` §*Data & interfaces* lists, and two refusals.
+
+- **`widens: true`** marks a widening. Without it, a widening whose truth
+  has left the case would read as a new truth of the same name and pass
+  silently. With it, that entry stops the generator, and so does a new
+  entry that names an existing truth. A widening keeps the truth's body, so
+  its `finding` is for the reader of the file.
+- **`window`**, a count of lines, replaces the ±15 lines either side of each
+  of the entry's locations. A location `path:first-last` accepts its whole
+  range, and the window either side of it.
+- **Two refusals.** An entry naming no location stops the generator. Its
+  pattern would match every row. So does a window that is not a count.
 
 Inferred during implementation (phase 2), so a planner may overturn each.
 `spec.md` §*Data & interfaces* describes `regrade` as replacing the truth
@@ -83,4 +91,5 @@ build adds four things to it:
   case or the file.
 - **The written side says it was regraded.** `specseal.regraded_from`
   holds the suite the side ran, so a regraded side cannot pass for one run
-  on the new suite.
+  on the new suite. A side regraded again keeps the first suite there
+  (review round 1, finding 3).
