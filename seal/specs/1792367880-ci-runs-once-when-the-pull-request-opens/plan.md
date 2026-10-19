@@ -4,7 +4,7 @@
 artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-19 by the orchestrator, under the owner's `automation` answer, when `smith` was spawned for phase 1 only. Phase 2 edits `agents/sealer.md`, which #985 may also edit; it starts once #985's frame shows whether the two meet, and a change to the sealer's definition owes the sealer one measurement (about $4), run by the orchestrator.
 
 ## Summary
 
