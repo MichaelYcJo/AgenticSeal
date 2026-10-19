@@ -8,7 +8,9 @@
   finding with no such line, with two, with the label spelt another way, or
   with a value of another shape, at its line and with the reason. The line
   is one row of the grammar table in `docs/the-review-record.md` §*The round
-  record*, and the check's code did not change.
+  record*, and the check's code did not change. A backtick ends a command
+  on the line, so a command that holds one is written and run with
+  `$(printf '\140')` in place of the character.
 
   A claim of absence, that nothing catches, calls or states something, is
   `executed` only, because no line opened can show an absence. The check
