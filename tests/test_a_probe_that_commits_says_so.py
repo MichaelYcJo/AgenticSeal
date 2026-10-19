@@ -125,8 +125,9 @@ def test_the_procedure_a_reviewer_follows_carries_the_leavings_rule_too():
 
 
 def test_the_fact_finder_points_at_the_rule_it_no_longer_restates():
-    """`agents/scribe.md` step 4 carried the three shapes verbatim. It now
-    says what reading settles for an original, and points at §7 and §8."""
+    """`agents/scribe.md` once carried the three shapes verbatim. Its rule
+    *Constraints, enums and defaults are read, not probed* says what reading
+    settles for an original, and points at §8 for a probe that commits."""
     scribe = " ".join(read("agents", "scribe.md").split())
     assert "§8" in scribe, "the fact-finder can no longer reach the shapes"
     assert "read, not probed" in scribe, (

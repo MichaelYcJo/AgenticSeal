@@ -20,6 +20,8 @@ file once the frame was in the tree.
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
 | Line coordinates moved after the frame (phase 1) | the frame was drawn at d7691951, before #976 and #943 merged; `## Removes` and S7 name `skills/implement/orchestration.md:240` and `:54`, `README.md:234`, `:421` and `README.ko.md:226`, `:379` | the same sentences at `orchestration.md:238` and `:52`, `README.md:240`, `:427` and `README.ko.md:231`, `:384`, found by the greps the frame names | the spawn prompt said the orchestration file moved under #943; each sentence was found by its words, not its number (`phases/phase-1.md`) |
+| Eight README sentences, where the frame names four (phase 2) | `## Removes` names *The smith asks* at `README.md:234`, `:421` and `README.ko.md:226`, `:379`; those four are not two pairs of twins, and each README states the bootstrap as the smith's act three times, plus once more as *the smith creates from `templates/`* | all eight now name the user's session: `README.md:240`, `:393`, `:420`, `:427` and `README.ko.md:231`, `:384`, `:413`, `:421` | contract §12, the class and not the coordinate; `skills/implement/orchestration.md` §*Orchestrator: Bootstrap — create what's missing* gives both the question and the creation to the orchestrating session |
+| `tests/test_chain_hooks_hardening.py#test_the_readme_group_counts_are_derived_too` gains two spellings (phase 2) | the frame does not name the case; the README's group counts became three and thirteen, and the case held no spelling for either | `3: ("three", "세")` and `13: ("Thirteen", "열세")` added | the case derives each count from the tree and says to add a spelling rather than loosen the check |
 | `tests/test_review_axes.py`'s module docstring rewritten (phase 1) | `## Removes` does not name it; it said *`❓ out of verified scope` records that you looked and could not decide* | it now names a row of `## Not judged`, the label `code-review` writes for that today | the docstring quoted a label this item removes from the last file that carried it; contract §19, a change removes what stood on the old fact |
 
 ## Not verified
@@ -31,7 +33,12 @@ file once the frame was in the tree.
 
 ## Not done
 
-nothing
+`skills/implement/scripts/seal.py:678` prints *The first time the smith works
+in a repository it asks which one, and creates it.* to a person who runs a
+`seal` subcommand where no `seal/` exists. It states the fact the eight README
+sentences above stated, and it is left: it is a script's output, which
+contract §14 changes only with a case pinning the new text, no case reads it
+today, and the frame names no script. The orchestrator is the one to file it.
 
 ## Fed back into the spec
 

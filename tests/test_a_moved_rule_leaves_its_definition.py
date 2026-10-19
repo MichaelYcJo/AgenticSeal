@@ -548,6 +548,56 @@ def test_the_smiths_hand_back_carries_what_it_may_not_record_and_ends_in_no_bloc
     assert "end the hand-back with a block of any kind, whoever asks for one" in never
 
 
+# --- the scribe's own rules from its rewrite (#970) --------------------------
+
+SCRIBE = os.path.join(ROOT, "agents", "scribe.md")
+
+# The three rules S3 and S4 of #970 name, each by its lead and the clause that
+# makes it the rule rather than its title. The scribe's other two rules have
+# pins of their own: `tests/test_absence_claims.py` and
+# `tests/test_a_probe_that_commits_says_so.py`.
+SCRIBES_RULES = {
+    "Facts, never verdicts.": ("is your caller's judgment",),
+    "A guessed original proves nothing.": (
+        "return `original not found` naming what was tried, and no findings",
+    ),
+    "Start from the spec's coordinates, and report the axis nobody looked at.": (
+        "reads like one that came back empty",
+    ),
+}
+
+
+def test_the_scribes_rules_stand_with_their_enforcers():
+    """T3 of #970: the scribe's rules keep their paragraphs, their clauses and
+    an `Enforced by:` line, it opens `legacy-parity` at step 1, and where no
+    original resolves it returns `original not found` instead of asking.
+
+    No case runs the scribe (#957's Q3), so a trim could drop any of these
+    with every grader green. The last is S4: the skill's resolution order
+    ends with the caller asking the user, and a subagent has nobody to ask."""
+    text = read(SCRIBE)
+    assert "\n## Rules\n" in text, "`agents/scribe.md` has no `## Rules` section"
+    rules = text[text.index("\n## Rules\n") :]
+    for lead, clauses in SCRIBES_RULES.items():
+        paragraph = next(
+            (p for p in rules.split("\n\n") if p.startswith(f"**{lead}**")), ""
+        )
+        assert paragraph, f"`agents/scribe.md` lost the rule {lead!r}"
+        assert re.search(r"^Enforced by: \S", paragraph, re.M), (
+            f"{lead!r} has no `Enforced by:` line, so nothing names what holds it"
+        )
+        said = flat(paragraph)
+        for clause in clauses:
+            assert clause in said, f"{lead!r} lost {clause!r}"
+    order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
+    never = flat(text[text.index("\n## Never\n") : text.index("\n## Rules\n")])
+    assert order.startswith("## Order of work 1. Open `skills/legacy-parity/SKILL.md`")
+    assert "return `original not found` with what you tried" in order, (
+        "step 2 no longer says what the scribe returns where no original resolves"
+    )
+    assert "Ask a person anything, or record an answer for one." in never
+
+
 # A batching figure: a number within a few words of "tools per turn", either
 # side, in any spelling of the phrase.
 TOOLS_PER_TURN = re.compile(

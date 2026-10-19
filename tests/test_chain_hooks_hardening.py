@@ -865,6 +865,7 @@ def test_the_readme_group_counts_are_derived_too():
         "user invoked": (len(user_invoked), ("%s you invoke by name", "나머지 %s은")),
     }
     spellings = {
+        3: ("three", "세"),
         4: ("four", "네"),
         5: ("five", "다섯"),
         6: ("Six", "여섯"),
@@ -872,6 +873,7 @@ def test_the_readme_group_counts_are_derived_too():
         10: ("Ten", "열"),
         11: ("Eleven", "열한"),
         12: ("Twelve", "열두"),
+        13: ("Thirteen", "열세"),
     }
     for group, (count, phrases) in groups.items():
         assert count in spellings, (

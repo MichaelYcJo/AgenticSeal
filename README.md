@@ -38,9 +38,9 @@ works outside the context entirely (hooks).
 | **framer** (subagent) | `agent-contract` · `implement` · `writing-style` | Writes the work item's `spec.md`, `plan.md` and `questions.md` before anybody builds, and is spawned where the SDD ladder already calls for a spec. It reads the repository widely and collects everything a person has to answer into one batch, so approving `plan.md` is the run's one interruption. It writes no code — the party that draws the contract is not the party that executes it, which is what gives the warden's *spec compliance first* a document somebody else wrote to check against |
 | **smith** (Claude Code subagent) | `agent-contract` | Builds one phase of a work item against the spec, or runs one fix pass over a round record. It opens `implement` at its first step and `writing-style` before it writes a record, and hands back each claim labelled `executed`, `read` or `unverified`, with the full suite labelled `unverified` and its answerer named |
 | **warden** (subagent) | `agent-contract` | Reviews spec compliance first, then quality. It opens `code-review` at its first step and `writing-style` before it writes its round record. Once its report is verified the orchestrator writes the reviewed HEAD sha to `.git/specseal-reviewed`, which is what the commit gate looks for — the reviewer never writes its own mark |
-| **scribe** (subagent) | `agent-contract` · `legacy-parity` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. Appears only in repos that declare `seal/parity.md` |
+| **scribe** (subagent) | `agent-contract` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. It opens `legacy-parity` at its first step. Appears only in repos that declare `seal/parity.md` |
 | **sealer** (subagent, Opus) | `agent-contract` | The final, independent guarantor. After the rounds settle, the pull request body and changelog are written, and the orchestrator has run the one broad gate (`broad-gate`, which writes `broad-gate.md`), it reads that record and runs nothing broad itself, re-runs a sample of the implementer's claims, and reads the spec, the build, the last review, the changelog and the pull request body against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
-| Skills | — | Twenty-two, in three groups. The four the agents follow from their first tool call are in the column to the left. Twelve more a session loads on its own when the work calls for them — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `learn`, `settle`, `verify`. Six you invoke by name; they are in the cheat sheet below |
+| Skills | — | Twenty-two, in three groups. The three the agents follow from their first tool call are in the column to the left. Thirteen more a session loads on its own when the work calls for them — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `learn`, `legacy-parity`, `settle`, `verify`. Six you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
 | CLAUDE.md block | — | 12 always-on lines — four section headings (`Tooling`, `Safety`, `Session cost`, `Git`) over eight rules: one on tooling, three on safety, one on session cost, three on git. No response-language rule — that stays yours. Its one source is `templates/claude-md-block.md`; the repository's own `CLAUDE.md` carries a generated copy, and CI fails a pull request where the two differ |
 
@@ -237,7 +237,7 @@ three-way judgment — policy ↔ original ↔ new, with *preserve the original*
 as the fallback — and the scribe fetches the original's facts. Repos without
 the config never see any of it.
 
-You do not write that file by hand. The smith asks once, the first time it
+You do not write that file by hand. Your session asks once, the first time it
 sets up a repo's layout: *does this project port behavior from an existing
 codebase?* Answer no and it never asks again. Answer yes and it proposes
 candidates for the original — sibling checkouts, an upstream in `git remote
@@ -390,8 +390,8 @@ Nine of the twelve gates wake only under a condition: the commit gate, the
 mode gate, the review-history reminder, the two implementer hooks, the
 review-skill gate, the two stamp hooks and the version check act in a
 repo that has a `seal/` directory at its root or under its git directory, and
-stay silent everywhere else. You never create it by hand — the smith builds it
-the first time it works in a repo, after asking one question (*Shared or
+stay silent everywhere else. You never create it by hand — your session builds
+it the first time it works in a repo, after asking one question (*Shared or
 local*, below), and it is the only directory this plugin adds to your tree —
 plus, in shared mode, one workflow file under `.github/workflows/`; in local
 mode, nothing at all.
@@ -417,14 +417,14 @@ prose works the same way, if you prefer it:
 The smith reads the spec chain, implements, verifies, and hands off to the
 warden for review — you decide what happens to the report. Anything the
 layout needs and the repo lacks (`seal/README.md` carrying the export rules)
-the smith creates from `templates/` as it goes.
+your session creates from `templates/` as it goes.
 
 Two things work with no agent at all: `fold-check` and every gate in the
 table.
 
 ### Shared or local
 
-The first time the smith works in a repository it asks one question, once,
+The first time your session works in a repository it asks one question, once,
 and never again: where `seal/` lives. Whichever place holds the folder is the
 mode; there is no config key, and a repository with `seal/` at either place
 is not asked.
