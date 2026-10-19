@@ -1250,6 +1250,12 @@ def test_a_side_regraded_onto_a_wider_truth_counts_the_row_it_now_matches(
     assert meta["suite_rev"] == commits["wide"]
     assert meta["suite_tree"] == ni.suite_tree(commits["wide"], "warden")
     assert meta["regraded_from"] == commits["own"]
+    # A regraded side graded again still names the suite its runs answered
+    # (#971 round 1 finding 3).
+    again = tmp_path / "again.json"
+    assert regrade(str(out), commits["wide"], again) == 0
+    second = json.loads(again.read_text(encoding="utf-8"))
+    assert second["specseal"]["regraded_from"] == commits["own"]
 
 
 def run_score_off(result):
@@ -1763,6 +1769,7 @@ def test_an_entry_widens_a_truth_and_keeps_what_it_found(tmp_path, monkeypatch):
         ({"grader": "truth-shout-twice"}, "truth-shout-twice"),
         ({"locations": ["src/textutil.py#shout"]}, "src/textutil.py#shout"),
         ({"locations": ["no path here"]}, "no path here"),
+        ({"locations": []}, "names no location"),
     ],
     ids=[
         "a-case-no-generator-writes",
@@ -1770,6 +1777,7 @@ def test_an_entry_widens_a_truth_and_keeps_what_it_found(tmp_path, monkeypatch):
         "a-new-truth-the-case-already-has",
         "a-coordinate-the-grammar-refuses",
         "no-coordinate",
+        "no-location",
     ],
 )
 def test_an_entry_the_case_cannot_take_stops_the_generator(
@@ -1777,12 +1785,70 @@ def test_an_entry_the_case_cannot_take_stops_the_generator(
 ):
     """Guards S6's stale entry: an entry naming a case the suite does not
     hold, a truth to widen that the case lacks, a new truth whose name the
-    case already has, or a location outside `path`, `path:line` and
-    `path:first-last` stops the generator with exit 1, naming it, so the
-    file cannot go stale silently."""
+    case already has, a location outside `path`, `path:line` and
+    `path:first-last`, or no location at all, which would be a truth every
+    row matches, stops the generator with exit 1, naming it, so the file
+    cannot go stale silently."""
     with pytest.raises(SystemExit) as stopped:
         rule_truths(tmp_path, monkeypatch, entry(**over))
     assert named in str(stopped.value.code)
+
+
+def test_an_entry_range_is_read_to_its_last_line(tmp_path, monkeypatch):
+    """Guards #971 round 1 finding 2: a `path:first-last` location credits a
+    row anywhere in the range, its last line too, and nothing past the
+    window after it."""
+    truths = rule_truths(tmp_path, monkeypatch, entry(locations=["src/x.py:10-100"]))
+    found = truth_regex("truth-no-case.md", truths["truth-no-case.md"])
+    assert found.search("location: `src/x.py:60`")
+    assert found.search("location: `src/x.py:115`")
+    assert not found.search("location: `src/x.py:116`")
+
+
+def test_an_entry_window_narrows_the_lines_its_truth_accepts(tmp_path, monkeypatch):
+    """Guards #971 round 1 finding 1's repair: an entry's `window` replaces
+    the ±15 lines around each of its locations, for a line and for a range."""
+    narrow = entry(locations=["src/x.py:10", "src/y.py:20-22"], window=2)
+    truths = rule_truths(tmp_path, monkeypatch, narrow)
+    found = truth_regex("truth-no-case.md", truths["truth-no-case.md"])
+    for line in ("src/x.py:8", "src/x.py:12", "src/y.py:18", "src/y.py:24"):
+        assert found.search(f"location: `{line}`"), line
+    for line in ("src/x.py:7", "src/x.py:13", "src/y.py:17", "src/y.py:25"):
+        assert not found.search(f"location: `{line}`"), line
+
+
+# An alternative of a generated truth's pattern: an escaped path and the
+# line list it accepts, or a bare escaped path.
+OPTION = re.compile(
+    r"((?:[\w-]|\\[./-])+):\(\?:([\d|]+)\)\(\?!\\d\)|((?:[\w-]|\\[./-])+)\(\?!\["
+)
+
+
+def test_no_two_truths_of_a_warden_case_accept_one_location():
+    """Guards #971 round 1 finding 1: a `location:` line one truth of a
+    committed warden case accepts is accepted by no other truth of that
+    case, so one finding is never counted as two. Every line each
+    generated alternative lists is tried against every other truth."""
+    root = os.path.join(ROOT, "evals", "behaviour", "warden")
+    shared = []
+    for case in sorted(os.listdir(root)):
+        graders = os.path.join(root, case, "graders")
+        truths = {}
+        for name in sorted(os.listdir(graders)):
+            if name.startswith("truth-"):
+                with open(os.path.join(graders, name), encoding="utf-8") as f:
+                    truths[name] = truth_regex(name, f.read())
+        for name, found in truths.items():
+            for m in OPTION.finditer(found.pattern):
+                path = (m[1] or m[3]).replace("\\", "")
+                for n in m[2].split("|") if m[2] else [None]:
+                    row = f"location: `{path}:{n}`" if n else f"location: `{path}`"
+                    others = [
+                        o for o, g in truths.items() if o != name and g.search(row)
+                    ]
+                    if others:
+                        shared.append((case, name, row, others))
+    assert not shared, shared[:3]
 
 
 def test_the_replay_and_seeded_generators_read_the_entries_too(tmp_path, monkeypatch):

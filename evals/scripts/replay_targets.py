@@ -369,9 +369,10 @@ def truth_pattern(location, target):
     return None if option is None else f"{LOCATION_LINE}(?:{option})"
 
 
-def truth_option(location, target):
+def truth_option(location, target, window=WINDOW):
     """`truth_pattern`'s alternative for LOCATION, without the `location:`
-    line around it.
+    line around it: a line within WINDOW of the one LOCATION names, or of
+    its unit's span.
 
     A location naming no backticked path gives None."""
     m = LOCATION.search(location)
@@ -381,16 +382,22 @@ def truth_option(location, target):
     lines = None
     if m["line"]:
         line = int(m["line"])
-        lines = (line - WINDOW, line + WINDOW)
+        lines = (line - window, line + window)
     if m["unit"] and path.endswith(".py"):
         source = git("show", f"{target}:{path}", check=False)
         span = unit_span(source, m["unit"]) if source else None
         if span:
-            lines = (span[0] - WINDOW, span[1] + WINDOW)
+            lines = (span[0] - window, span[1] + window)
     if lines:
-        numbers = "|".join(str(n) for n in range(max(1, lines[0]), lines[1] + 1))
-        return f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)"
+        return lines_option(path, *lines)
     return f"{behaviour.js_escape(path)}(?![\\w./#-])"
+
+
+def lines_option(path, first, last):
+    """The alternative for PATH at any line from FIRST to LAST, the line
+    numbers before 1 dropped."""
+    numbers = "|".join(str(n) for n in range(max(1, first), last + 1))
+    return f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)"
 
 
 def recurred_truths():
@@ -398,8 +405,9 @@ def recurred_truths():
     recurred on, each a new grader or an existing one widened. An entry is
     `case`, `grader` (`truth-<slug>`), `finding` (a new grader's body),
     `locations` (`path`, `path:line` or `path:first-last` at the case's
-    target), `from` (the classing rows it came from) and, for a widening,
-    `widens: true`.
+    target), `from` (the classing rows it came from), for a widening
+    `widens: true`, and where ±15 lines would reach another truth of the
+    case, `window`, the lines either side its locations accept.
 
     An entry naming a case the warden's suite does not hold stops the run
     with exit 1, so the file cannot outlive its cases silently."""
@@ -418,14 +426,20 @@ def truths_with(case, truths, target):
     (NAME without its `truth-` prefix), with the input file's entries for
     CASE applied at TARGET: a widening adds each of its locations to the
     named truth's pattern as an alternative and keeps its body; a new truth
-    is one more `(name, pattern, finding)`.
+    is one more `(name, pattern, finding)`. A location's alternative accepts
+    its line, or every line of its range, and the entry's `window` (15
+    where it names none) either side.
 
     An entry widening a truth CASE does not have, adding one it already has,
-    or naming a location outside `path`, `path:line` and `path:first-last`
-    stops the run with exit 1."""
+    naming no location, a location outside `path`, `path:line` and
+    `path:first-last`, or a window that is no count stops the run with
+    exit 1."""
     out = list(truths)
     for e in recurred_truths().get(case, []):
         name = e["grader"].removeprefix("truth-")
+        window = e.get("window", WINDOW)
+        if type(window) is not int or window < 0:
+            raise SystemExit(f"{case}: {e['grader']}'s window {window!r} is no count")
         options = []
         for location in e["locations"]:
             m = LOCATION.fullmatch(f"`{location}`")
@@ -433,7 +447,16 @@ def truths_with(case, truths, target):
                 raise SystemExit(
                     f"{case}: {e['grader']} names `{location}`, no coordinate"
                 )
-            options.append(truth_option(f"`{location}`", target))
+            last = re.search(r"[-\N{EN DASH}](\d+)$", location) if m["line"] else None
+            if last:
+                first = int(m["line"])
+                options.append(
+                    lines_option(m["path"], first - window, int(last[1]) + window)
+                )
+            else:
+                options.append(truth_option(f"`{location}`", target, window))
+        if not options:
+            raise SystemExit(f"{case}: {e['grader']} names no location")
         names = [n for n, _pattern, _body in out]
         if e.get("widens"):
             if name not in names:

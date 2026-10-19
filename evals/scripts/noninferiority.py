@@ -1325,7 +1325,8 @@ def regrade(a):
         out.get("specseal", {}),
         suite_rev=target,
         suite_tree=suite_tree(target, agent),
-        regraded_from=own,
+        # The suite the runs answered, kept through any number of regrades.
+        regraded_from=meta.get("regraded_from") or own,
     )
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=1, ensure_ascii=False)

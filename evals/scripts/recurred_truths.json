@@ -91,8 +91,9 @@
     "case": "replay-1791382684-r5",
     "grader": "truth-changelog-history",
     "finding": "The changelog's second bullet tells a release reader a definition changed that no release had shipped.",
+    "window": 2,
     "locations": [
-      "seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:12"
+      "seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:12-17"
     ],
     "from": [
       "baseline replay-1791382684-r5 0 4",
@@ -118,6 +119,7 @@
     "case": "replay-1791382684-r5",
     "grader": "truth-old-phrase-kept",
     "finding": "The changelog's first bullet and the registry test's docstring keep the replaced phrase.",
+    "window": 2,
     "locations": [
       "tests/test_a_reader_declares_its_input_class.py:6",
       "seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:7"
