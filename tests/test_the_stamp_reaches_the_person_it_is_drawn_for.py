@@ -1855,6 +1855,17 @@ def _an_unborn_branch(tmp_path, commitgate, monkeypatch):
     return repo, nothing_loaded
 
 
+def _a_stamp_module_that_will_not_load(tmp_path, commitgate, monkeypatch):
+    repo, _target, base = declared_guaranteed(tmp_path)
+    staged(repo, guarantee_text("deadbee", base, "sealed"))
+
+    def broken():
+        raise SyntaxError("a seal_stamp.py this python cannot load")
+
+    monkeypatch.setattr(commitgate, "_stamp_module", broken)
+    return repo, None
+
+
 def _the_sequencers_commit(tmp_path, commitgate, monkeypatch):
     repo, _target, base = declared_guaranteed(tmp_path)
     staged(repo, guarantee_text("deadbee", base, "sealed"))
@@ -1914,6 +1925,7 @@ def _copied(*bring):
         _no_branch_row_in_the_index,
         _no_guarantee_staged,
         _an_unborn_branch,
+        _a_stamp_module_that_will_not_load,
         _the_sequencers_commit,
         _copied("merge", "--squash", "origin/feat/x"),
         _copied("cherry-pick", "-n", "origin/feat/x~1"),
@@ -1931,6 +1943,7 @@ def _copied(*bring):
         "no Branch row in the index",
         "no guarantee staged",
         "an unborn branch",
+        "a seal_stamp.py that will not load",
         "the sequencer's own commit",
         "merge --squash onto main",
         "cherry-pick -n onto main",
@@ -1943,8 +1956,10 @@ def test_the_guarantee_refusal_is_quiet_off_its_one_fact(tmp_path, given, monkey
     on the branch the item's own `routing.md` in the index names. Every
     other commit is let through with nothing said: the normal flow, a
     verdict that is not one `sealed`, a stale `; earlier run:` chain, which
-    is never read, an item with no declaration, an unborn branch, and the
-    commit git makes for its own rebase or cherry-pick. A copy of a sealed
+    is never read, an item with no declaration, an unborn branch, a
+    `seal_stamp.py` that will not load, which stops nothing because the
+    pull request's check refuses the same file, and the commit git makes
+    for its own rebase or cherry-pick. A copy of a sealed
     item onto `main` lands and, as #975 had it, queues nothing, nor does its
     re-seal. A commit that stages no guarantee loads no `seal_stamp.py`, and
     so no `chain_check.py`; the loader is replaced by a recorder, and a
