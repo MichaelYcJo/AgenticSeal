@@ -162,7 +162,7 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|
-| git 훅 (`pre-commit`, `reference-transaction`, `post-commit`) | git 안에서, 세션이 닿은 opt-in 클론마다 | 커밋을 실제로 들어가는 worktree 에서 판정한다. 명령 글자를 읽어 짐작하지 않고 커밋 안에서 판정하므로, 어떤 셸 구성도 커밋을 판정 밖으로 빼내지 못한다. worktree 생성과 브랜치 전환은 여전히 명령이 실행되기 전에 아래 worktree 가드가 판정한다. 커밋 쪽 팔은 다음 행과 같다. 멈출 때는 훅이 거부하고 갈 수 있는 길을 명령 출력에 남기며, `git -c specseal.waive=review commit …` 이 git 표기로 쓴 같은 면제다. Claude 세션 없이 사람이 직접 한 커밋은 판정하지 않는다. 클론의 공용 `hooks/` 디렉터리에 표시를 달아 설치하고, 다른 쪽이 쓴 훅은 덮어쓰지 않는다 — 그런 훅이 있거나 `core.hooksPath` 가 설정된 클론은 다음 행의 방식으로 판정한다 | `docs/the-commit-gate-inside-git.md` §The commit gate inside git |
+| git 훅 (`pre-commit`, `reference-transaction`, `post-commit`) | git 안에서, 세션이 닿은 opt-in 클론마다 | 커밋을 실제로 들어가는 worktree 에서 판정한다. 명령 글자를 읽어 짐작하지 않고 커밋 안에서 판정하므로, 어떤 셸 구성도 커밋을 판정 밖으로 빼내지 못한다. worktree 생성과 브랜치 전환은 여전히 명령이 실행되기 전에 아래 worktree 가드가 판정한다. 커밋 쪽 팔은 다음 행과 같다. 멈출 때는 훅이 거부하고 갈 수 있는 길을 명령 출력에 남기며, `git -c specseal.waive=review commit …` 이 git 표기로 쓴 같은 면제다. 팔과 별도로, `pre-commit` 은 브랜치에 없는 커밋을 감사한 `sealed` `guarantee.md` 의 커밋을 거부하고, HEAD 에서 sealer 를 다시 돌리는 것을 갈 길로 알리며, 그 감사가 도장을 그리도록 거부를 기록한다. 이 거부에는 면제가 없다. Claude 세션 없이 사람이 직접 한 커밋은 판정하지 않는다. 클론의 공용 `hooks/` 디렉터리에 표시를 달아 설치하고, 다른 쪽이 쓴 훅은 덮어쓰지 않는다 — 그런 훅이 있거나 `core.hooksPath` 가 설정된 클론은 다음 행의 방식으로 판정한다 | `docs/the-commit-gate-inside-git.md` §The commit gate inside git |
 | commit-review-gate | `git commit` 직전 | `.git/specseal-reviewed` 가 현재 HEAD 와 다르면 커밋을 세우고, 갈 수 있는 두 길을 선택지로 띄운다 — 리뷰 체인을 돌리거나, `[no-review]` 를 붙여 커밋하거나(그 표시는 명령에 그대로 남는다). `seal/parity.md` 를 선언한 레포에서는 코드를 커밋할 때 이번 HEAD 의 `.git/specseal-parity` 가 없으면 같은 방식으로 원본 대조와 `[no-parity]` 를 함께 묻는다. 둘 다 걸리면 질문 두 개를 한 번에 낸다. **세션·레포당 한 번**만 이렇게 묻고, 그 다음부터는 승인이 곧 면제인 일반 확인창이다. 라우팅 질문에서 `automation` 을 눌렀다면 확인창은 한 번도 뜨지 않는다. 멈출 때마다 모델에게 거절로 돌아가고, 그 거절이 사람 없이 갈 수 있는 길을 알려 준다. 판정 대상은 셸이 있는 레포가 아니라 **커밋이 들어가는** 레포다 — `git -C <경로> commit` 은 `<경로>` 기준으로 본다. `-C` 값이 레포로 풀리지 않으면(게이트는 셸이 확장하기 전의 명령을 보므로 셸 변수가 그대로 온다) 통과시키지 않고 커밋을 세운다. 아무것도 안 본 것인데, 그동안은 보고 통과시킨 것과 구분되지 않았다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다. 이관 설정은 그 디렉터리 안에 있으므로 그것을 선언하면 두 팔 다 켜진다 — 리뷰 쪽만 빼려면 명령 **앞에** `[no-review]` 를 붙인다. 따옴표까지 그대로 `: '[no-review]'; git commit …` 이고, `git commit` 뒤에 쓰면 git 이 경로 인자로 읽어 거부한다 |
 | review-skill-gate | 모델이 `code-review` 라는 이름의 스킬을 열기 직전 | 고르지 않고 사용자에게 고르게 한다. 그 이름은 Claude Code 내장이지 이 플러그인 것이 아니다. 내장은 diff 에서 버그와 중복을 훑고, `specseal:code-review` 는 스펙 준수를 먼저 본 뒤 이전 회차 판정을 이어받는다. **세션·작업트리당 한 번**만 물으므로, 내장을 골라 다시 부르면 그대로 통과한다. 사용자가 직접 부른 스킬은 여기를 거치지 않는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | worktree-guard | `git checkout`·`switch`·`worktree add` 와 `isolation: "worktree"` 로 부른 Agent 직전 | 한 규칙의 두 방향이다. 다른 세션이 이 트리에서 작업 중이면 전환을 막고, 반대로 혼자 작업 중이면 Bash 의 `git worktree add` 를 막는다. 멈춘 세션뿐이거나 판정 자체가 불가능한 환경에서는 Bash 생성에 갈 수 있는 두 길을 선택지로 띄운다 — 이 트리에서 전환하거나, worktree 로 분리하거나. **세션·레포·방향당 한 번**만 이렇게 묻고 그 다음부터는 일반 확인창이며, 고른 답은 `[worktree-ok]` 와 `[shared-tree-ok]` 가 재시도 때 그대로 실어 나른다. `isolation: "worktree"` 로 부른 Agent 는 세션을 세지 않는다. 이 agent 는 이 세션과 나란히 도는 동시 작업이므로 확인창을 한 번 띄운다. 한 세션에서 생성이 한 번 실행된 뒤에는 다시 묻지 않고, 라우팅 질문에서 `automation` 을 눌렀다면 그 답을 받은 클론에서는 처음부터 묻지 않는다. 그 답을 눌렀다면 멈춘 세션뿐이거나 판정이 불가능한 트리의 전환도 선택지로 묻지 않는다. 모델의 전환을 매번 거부하고, 그 답을 받은 클론이거나 이 세션이 이미 worktree 를 만든 클론이면 worktree 로 분리하는 길을 알려 준다. 다른 클론에서 멈춘 세션뿐이거나 판정이 불가능한 트리에 worktree 를 만들려 할 때도 모델에게 매번 거부하며, 갈 길은 알려 주지 않는다. 두 방향을 따로 세므로 한 세션이 이 질문을 두 번 만나는 것은 정상이다. 사유에는 상대 세션의 호스트 앱, 신호별 경과 시간, 마지막 메시지가 함께 나온다 | 모든 git 레포 |
@@ -201,9 +201,11 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 version-check 는 `~/.claude/specseal/` 아래에 시각 파일을 씁니다.
 `sealed` 로 읽히는 `guarantee.md` 를 커밋하면, local 모드에서는 그렇게
 쓰면 도장에 들어갈 값을 `<git-common-dir>/specseal-stamp/` 아래에 쓰고,
-도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다. 플러그인이
-거절한 `sealed` 는 `<git-common-dir>/specseal-stamp-refused/` 아래에 빈
-파일을 남깁니다. 이 파일도 지우는 것이 없습니다. lint-python 은
+도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이
+작업 항목 브랜치에 없어 거절된 `sealed` 는
+`<git-common-dir>/specseal-stamp-refused/` 아래에 빈 파일을 남깁니다. shared
+모드에서는 커밋 게이트가, local 모드에서는 편집 훅이 씁니다. 이 파일도
+지우는 것이 없습니다. lint-python 은
 방금 저장한 `.py` 파일을 고쳐 씁니다 — ruff 를 설정한 프로젝트에서만입니다.
 
 네트워크를 타는 훅은 둘입니다. lint-python 은 `uvx ruff` 로 넘어갈 때 uv 가 처음

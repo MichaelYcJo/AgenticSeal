@@ -280,8 +280,8 @@ commit carries a work item's `guarantee.md` whose one `Verdict:` reads
 `<git-common-dir>/specseal-stamp/<session>/` and prints one line naming the
 file and `seal-stamp --from <path>`. In local mode the `seal/` root sits under
 the git common dir and no commit carries `guarantee.md`. So a `post-edit`
-gate, `hooks/sealer-stamp-queue.py`, runs after each `Write` or `Edit` of a
-local root's `specs/<id>/guarantee.md`. It writes the same values for the
+gate, `hooks/sealer-stamp-queue.py`, runs after each `Write` or `Edit` of
+`<git-common-dir>/seal/specs/<id>/guarantee.md`. It writes the same values for the
 payload's session, which a subagent's write carries as the main session's,
 and says the same line as its message. A `Stop` hook draws each undrawn file
 of its own session once, after that turn's text, and a subagent's end draws
@@ -339,7 +339,7 @@ committed where no gate judged it, and either way it counts. `post-commit`
 writes none. So a `sealed` that drew, went stale under a rebase and was
 refused when its row was edited still holds the work item's stamp, and its
 repair draws nothing.
-Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refused_row_over_a_drawn_seal_does_not_draw_again, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_refusal_is_quiet_off_its_one_fact, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_committed_past_the_stub_keeps_the_gap, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refusal_record_skips_only_its_own_verdict, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_guarantee_off_its_branch_queues_nothing, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refused_row_over_a_drawn_seal_does_not_draw_again, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_tracking_ref_left_by_a_rebase_withholds_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_refusal_is_quiet_off_its_one_fact, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_committed_past_the_stub_keeps_the_gap, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refusal_record_skips_only_its_own_verdict, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_guarantee_off_its_branch_queues_nothing, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit
 
 <!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
 **The hook holds its whole message under a budget named in the code, and
@@ -386,13 +386,21 @@ or a hook file the plugin did not write), since none of its stubs runs there;
 for a person's own commit with no Claude session behind it, which has no turn
 to draw at; for a local-mode `guarantee.md` that arrived by a shell write or
 `seal import` rather than by `Write` or `Edit`, which no edit hook sees; or
-for a verdict over a commit off the work item's branch. A `sealed` that drew
-nothing still counts as the work item's stamp, so its repair draws none,
-wherever no refusal record stands for it: a repair committed in a clone
-other than the one that refused, a refusal no writer judged, one introduced
-by an amend, a rebase or a cherry-pick, one whose target has a
-patch-equivalent copy in the history, one brought from another branch of the
-clone, and a clone whose reflog is off. The
+for a local-mode verdict whose work item names no branch, or a branch the
+clone no longer holds. A `sealed` over a commit the branch does not hold
+still counts as the work item's stamp, so its repair draws none, where it
+was committed past the commit gate: under `--no-verify`, in a foreign hooks
+slot, under a plugin older than the gate, as a person's own commit, or in a
+clone no session has reached (`docs/the-commit-gate-inside-git.md`). The
+gate judges a commit's newest verdict alone, never the `; earlier run:`
+chain, so a `sealed` that drew and whose audited commit a later rebase, amend
+or cherry-pick moved out of the history counts as stamped, which it is. In
+local mode the record is the clone's own: a values directory emptied by hand,
+or a guarantee brought by `seal import` from a clone that drew and re-sealed
+here, draws again. A wrong row that names, by coincidence, the very commit a
+copy of the item on another branch was sealed and drawn over draws a second
+time once the gate refuses and records it, the class #975 accepts as a
+second run of the item. The
 hook draws nothing and says nothing where the main session's `python3`
 cannot load `seal_stamp.py`, since no launcher stands in front of a hook;
 where that session's working directory is outside the clone the stamp was

@@ -2311,11 +2311,17 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     edit hook's line is shown to the person at the sealer's write and never
     reaches the orchestrator, so it is not told to quote that line; where no
     stamp appeared, it names the values file and leaves the command to the
-    person."""
+    person. 1792363231 S11: a commit of the guarantee refused for a row
+    naming a commit the branch does not hold is answered by the sealer again
+    at HEAD, never by an edit of the row; red against 2759a60d's sealer
+    step."""
     text = flat("skills", "code-review", "orchestration.md")
     section = text.split("## Orchestrator: the pull request opens before round 1", 1)[1]
     section = section.split("## Orchestrator: verify before posting", 1)[0]
     for said in (
+        "Where `pre-commit` refuses the commit of `guarantee.md` because its row "
+        "names a commit the branch does not hold, spawn the sealer again at HEAD "
+        "and commit what it writes; never edit the row by hand.",
         "**The stamp is drawn for you at the end of the turn in which "
         "`guarantee.md` reading `sealed` is committed, or in local mode the turn "
         "in which the sealer's report arrives, and you never draw one (#975).**",
@@ -2379,8 +2385,11 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     per work item. The unchecked paragraph no longer names local mode among
     the silences, and no longer hands the never-twice gap to an issue: it
     names a local guarantee that arrived other than by `Write` or `Edit`, a
-    verdict over a commit off the work item's branch, and the limits the
-    refusal record leaves. Red against the paragraph at 769f2aa4."""
+    local verdict whose branch cannot be read, and the limits the commit
+    gate leaves (`spec.md` §*Scope*), the coincidence `plan.md`'s path walk
+    found among them, and none of `post-commit`'s removed guards. Red
+    against the paragraph at 769f2aa4, and against 2759a60d's, which still
+    named the guards."""
     text = stamp_section()
     marker = "<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->"
     ours = "<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->"
@@ -2394,7 +2403,8 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     ) in rule
     for local in (
         "`hooks/sealer-stamp-queue.py`",
-        "after each `Write` or `Edit` of a local root's `specs/<id>/guarantee.md`",
+        "after each `Write` or `Edit` of "
+        "`<git-common-dir>/seal/specs/<id>/guarantee.md`",
         "an ancestor of the branch the work item's `routing.md` names in its "
         "`Branch` row",
         "the root and the values directory share the common dir",
@@ -2455,17 +2465,25 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     for silence in (
         "where git's hooks slot is somebody else's",
         "by a shell write or `seal import`",
-        "a verdict over a commit off the work item's branch",
-        "in a clone other than the one that refused",
-        "introduced by an amend, a rebase or a cherry-pick",
-        "a patch-equivalent copy in the history",
-        "one brought from another branch of the clone",
-        "a clone whose reflog is off",
+        "names no branch, or a branch the clone no longer holds",
+        "committed past the commit gate",
+        "a clone no session has reached",
+        "never the `; earlier run:` chain",
+        "a values directory emptied by hand",
+        "by coincidence, the very commit a copy of the item on another branch "
+        "was sealed and drawn over",
         "cannot load `seal_stamp.py`",
         "outside the clone the stamp was queued in",
         "predates the hook",
     ):
         assert silence in unchecked, silence
+    for guard in (
+        "reflog",
+        "patch-equivalent",
+        "in a clone other than the one that refused",
+        "brought from another branch of the clone",
+    ):
+        assert guard not in unchecked, guard
     assert "names `seal-stamp --from <path>`" in unchecked
     assert (
         "In local mode the line reaches the person as the edit hook's message, "
@@ -2520,6 +2538,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     for case in (
         "::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
         "::test_a_refused_row_over_a_drawn_seal_does_not_draw_again",
+        "::test_a_tracking_ref_left_by_a_rebase_withholds_nothing",
         "::test_the_guarantee_refusal_is_quiet_off_its_one_fact",
         "::test_a_sealed_committed_past_the_stub_keeps_the_gap",
         "::test_a_refusal_record_skips_only_its_own_verdict",
@@ -2591,10 +2610,19 @@ def test_both_readmes_list_the_stamp_hook():
                 "`sealed`, or in local mode at its write",
                 "the commit of a `guarantee.md` reading `sealed`, or in local mode "
                 "its write, writes the stamp's values under",
-                "a `sealed` the plugin refused leaves an empty file under "
-                "`<git-common-dir>/specseal-stamp-refused/`",
+                "a `sealed` refused because its audited commit is not on the work "
+                "item's branch leaves an empty file under "
+                "`<git-common-dir>/specseal-stamp-refused/`, written by the commit "
+                "gate in shared mode and by the edit hook in local mode",
+                "Beside the arms, `pre-commit` refuses the commit of a work item's "
+                "`guarantee.md` reading `sealed` over a commit the branch does not "
+                "hold",
             ),
-            ("the broad gate left for this session", "a sealed broad-gate run writes"),
+            (
+                "the broad gate left for this session",
+                "a sealed broad-gate run writes",
+                "a `sealed` the plugin refused leaves",
+            ),
         ),
         (
             "README.ko.md",
@@ -2603,10 +2631,18 @@ def test_both_readmes_list_the_stamp_hook():
                 "그렇게 쓰일 때 남는",
                 "`sealed` 로 읽히는 `guarantee.md` 를 커밋하면, local 모드에서는 그렇게 "
                 "쓰면 도장에 들어갈 값을",
-                "플러그인이 거절한 `sealed` 는 `<git-common-dir>/specseal-stamp-refused/` "
-                "아래에 빈 파일을 남깁니다",
+                "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 "
+                "`<git-common-dir>/specseal-stamp-refused/` 아래에 빈 파일을 "
+                "남깁니다. shared 모드에서는 커밋 게이트가, local 모드에서는 편집 "
+                "훅이 씁니다.",
+                "팔과 별도로, `pre-commit` 은 브랜치에 없는 커밋을 감사한 `sealed` "
+                "`guarantee.md` 의 커밋을 거부하고",
             ),
-            ("광역 관문이 이 세션 앞으로", "광역 관문 실행은 도장에 들어갈 값을"),
+            (
+                "광역 관문이 이 세션 앞으로",
+                "광역 관문 실행은 도장에 들어갈 값을",
+                "플러그인이 거절한 `sealed`",
+            ),
         ),
     ):
         text = flat(edition)

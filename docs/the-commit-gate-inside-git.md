@@ -97,6 +97,32 @@ moment is its own command and is judged, and another agent's call starting or
 ending leaves the answer alone.
 Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_s4_under_the_press_the_refusal_names_no_question_tool, tests/test_the_commit_gate_decides_at_the_commit.py::test_s5_an_attended_session_is_told_to_ask_and_the_second_attempt_is_the_same, tests/test_the_commit_gate_decides_at_the_commit.py::test_s5_both_spellings_the_refusal_names_actually_commit, tests/test_the_commit_gate_decides_at_the_commit.py::test_s6_inside_a_message_the_waiver_is_prose, tests/test_the_commit_gate_decides_at_the_commit.py::test_an_old_spelling_waives_no_other_agents_commit, tests/test_the_old_spellings_reach_the_hook.py::test_an_answer_is_given_to_the_call_that_carried_it_and_no_other, tests/test_the_old_spellings_reach_the_hook.py::test_another_call_neither_replaces_nor_clears_an_answer, tests/test_the_old_spellings_reach_the_hook.py::test_a_token_is_a_bare_word_and_nothing_else, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s6_neither_read_honours_a_token_the_base_did_not
 
+<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
+**Beside the arms, `pre-commit` refuses a commit that stages a work item's
+`sealed` over a commit its own history does not hold, and records the
+refusal; it is no arm.** Where no arm is missing,
+`hooks/commitgate.py#guarantee_off_history` reads each staged
+`seal/specs/<item>/guarantee.md` and that item's `routing.md` from the index,
+with `git show :<path>`, so a `commit -a` and a pathspec commit are read as
+git will commit them. It refuses where the guarantee reads one `Verdict:` of
+`sealed`, the `Branch` row names the branch being committed on, and
+`git merge-base --is-ancestor <target> HEAD` does not exit 0, which covers a
+target that does not resolve and one off the history alike. The text names
+the file, the commit the row names, the branch and HEAD, and one way on: a
+new audit of the sealer at HEAD, whose `Target SHA` row keeps the refused
+verdict as `; earlier run: <sha> sealed`, and never a row edited by hand.
+Before it prints, the hook writes the refusal record
+`<git-common-dir>/specseal-stamp-refused/<id>-<target>`, so that the new
+audit draws the work item's stamp (`docs/the-review-record.md` §*The
+stamp*). It does not read the `; earlier run:` chain, judge a commit on any
+other branch, or judge a commit git makes for its own rebase or cherry-pick.
+It has no opt-in beyond `seal/`, no mark, no waiver and no question, because
+the pull request's check refuses the same file. A commit that stages no
+guarantee loads nothing for it, and a reading that fails stops nothing.
+Where the stub does not run, as under `--no-verify` or in a foreign hooks
+slot, the row lands, and its work item draws no stamp.
+Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_refusal_is_quiet_off_its_one_fact, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_tracking_ref_left_by_a_rebase_withholds_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_committed_past_the_stub_keeps_the_gap, tests/test_the_commit_gate_decides_at_the_commit.py::test_the_policy_states_the_guarantee_refusal_beside_the_arms
+
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **`--no-verify` is met where the branch moves, and nothing else that moves a
 branch is.**
@@ -241,8 +267,13 @@ Enforced by: tests/test_the_hook_surface_git_offers.py::test_no_git_refuses_a_sw
   `guarantee.md`. Measured by #975's phase 2 on one machine, as medians of 11
   commits: 343 ms an ordinary judged commit against 333 ms without that
   duty, and 375 ms against 336 ms for the commit that adds a `sealed`
-  guarantee. A ref update that is not a commit, a fetch's among them, starts
-  none, and so does a person's own commit where no lease file stands in the
+  guarantee. Since work item 1792363231 `pre-commit` lists the staged paths
+  once for the arms and the guarantee refusal together, and reads further
+  only where one is a work item's `guarantee.md`. Measured by that item's
+  phase 6 the same way, on another day: 268 ms an ordinary judged commit
+  against 260 ms without it, and 310 ms against 283 ms for one that stages a
+  `sealed` guarantee. A ref update that is not a commit, a fetch's among
+  them, starts none, and so does a person's own commit where no lease file stands in the
   clone. A lease
   stands for up to a day after its session's last tool call
   (`hooks/session-lease.py` prunes files older than that), and while one does

@@ -1873,6 +1873,46 @@ def test_the_policy_names_the_one_session_reader():
         assert sentence in text, sentence
 
 
+def test_the_policy_states_the_guarantee_refusal_beside_the_arms():
+    """§14 of the agent contract, for `spec.md` S7 and S11-S13 of work item
+    1792363231. `docs/the-commit-gate-inside-git.md` states the refusal of a
+    `sealed` the history does not hold under that item's marker, beside the
+    arms and as no arm: what it reads and from where, the record it writes,
+    the one way on, what it does not judge, and where it does not run; and
+    its latency bullet carries phase 6's figures. Red against 2759a60d's
+    text, which named no such refusal."""
+    path = Path(__file__).resolve().parent.parent / "docs"
+    raw = (path / "the-commit-gate-inside-git.md").read_text(encoding="utf-8")
+    text = " ".join(raw.split())
+    marker = "<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->"
+    assert marker in raw
+    rule = text.split(marker, 1)[1].split("<!--", 1)[0]
+    for sentence in (
+        "**Beside the arms, `pre-commit` refuses a commit that stages a work "
+        "item's `sealed` over a commit its own history does not hold, and "
+        "records the refusal; it is no arm.**",
+        "from the index, with `git show :<path>`",
+        "`git merge-base --is-ancestor <target> HEAD` does not exit 0",
+        "a new audit of the sealer at HEAD",
+        "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
+        "It does not read the `; earlier run:` chain",
+        "no mark, no waiver and no question",
+        "Where the stub does not run",
+    ):
+        assert sentence in rule, sentence
+    for case in (
+        "::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
+        "::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
+        "::test_the_guarantee_refusal_is_quiet_off_its_one_fact",
+        "::test_a_sealed_committed_past_the_stub_keeps_the_gap",
+    ):
+        assert case in rule, case
+    assert (
+        "268 ms an ordinary judged commit against 260 ms without it, and 310 ms "
+        "against 283 ms for one that stages a `sealed` guarantee"
+    ) in text
+
+
 def test_a_lease_in_a_linked_worktree_is_read(tmp_path):
     common = tmp_path / "git"
     leases = common / "worktrees" / "wt" / "specseal-leases"

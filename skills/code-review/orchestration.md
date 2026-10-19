@@ -223,6 +223,11 @@ as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
 `git clone` of the branch worktree copies its branches and none of its
 `origin/` refs, so spawn the sealer again with the branch worktree itself as
 its clone, where `origin/<base>` or, with no remote, `<base>` resolves.
+Where `pre-commit` refuses the commit of `guarantee.md` because its row names
+a commit the branch does not hold, spawn the sealer again at HEAD and commit
+what it writes; never edit the row by hand. The hook recorded the refusal,
+so the new audit, which keeps the refused verdict on its row, draws the
+work item's stamp (`docs/the-commit-gate-inside-git.md`).
 
 **The preflight is yours, and it is not the broad gate (#638).** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
