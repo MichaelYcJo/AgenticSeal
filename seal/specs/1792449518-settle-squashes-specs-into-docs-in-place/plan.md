@@ -4,7 +4,7 @@
 artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-20 by the orchestrator, under the owner's `automation` answer and on `questions.md` Q1–Q5's stated assumptions, when `smith` was spawned for phases 1 and 2; phases 3–5 follow in a second spawn.
 
 <!-- The line above is the record that the gate happened. Fill it in at the
 spawn: reading this plan and spawning the builder IS the approval, so nothing
