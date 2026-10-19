@@ -325,9 +325,14 @@ def test_a_decline_leaves_no_trace_and_the_asymmetry_with_the_mode_is_stated():
 
 
 def test_the_sentence_that_said_nowhere_else_is_gone():
-    """The 0.4.0 sentence wraps as "and\nnowhere else", so the words are
-    matched one at a time rather than as a phrase a line break can hide."""
-    assert "nowhere else" not in both_halves()
+    """The 0.4.0 sentence said the root is created at `<repo>/seal/` and
+    nowhere else. Both files are read with their whitespace folded, so a
+    line break inside the sentence cannot hide it.
+
+    What is refused is that claim, not the two words: `skills/implement/
+    SKILL.md` says the closing memo holds what is *nowhere else*, which is
+    about something else and stays."""
+    assert "`<repo>/seal/` and nowhere else" not in flat(both_halves())
 
 
 def test_an_unmoved_old_layout_is_not_asked_but_told():

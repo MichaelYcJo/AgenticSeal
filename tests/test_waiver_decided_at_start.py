@@ -610,7 +610,7 @@ def test_the_framer_asks_nobody_and_writes_no_declaration():
     gave, which is #151's shape arriving through the door this work opened.
     """
     framer = flat(read(*FRAMER))
-    assert "You have no interactive phase" in framer, (
+    assert "You ask nobody anything" in framer, (
         "the framer's definition no longer says it asks nobody, so the next "
         "reader restores an interactive phase the harness cannot give it"
     )
@@ -622,7 +622,7 @@ def test_the_framer_asks_nobody_and_writes_no_declaration():
         "`routing.md` is back among the framer's writes, and a framer that "
         "cannot ask can only write it from a guess"
     )
-    assert "a thing to report,\nnever a thing to write" in read(*FRAMER), (
+    assert "a thing to report, never a thing to write" in framer, (
         "the framer meeting a missing declaration has no instruction, so the "
         "obvious repair is the one that records an answer nobody gave"
     )
@@ -700,6 +700,58 @@ def test_the_framers_acts_are_gather_judge_plan():
     )
 
 
+def test_the_framer_weighs_replacing_a_structure_as_an_equal_of_keeping_it():
+    """S6 of #968. #957 gave the framer the replace-or-keep rule, and the
+    file stated it nowhere: a framer that judges only among ways of keeping a
+    structure writes an Alternatives table in which the change the problem
+    calls for never stands. The rule is the framer's application of contract
+    §20 to that table, so the case reads the replacing row and the weight it
+    is given beside the kept one."""
+    framer = flat(read(*FRAMER))
+    assert "the alternative that replaces the structure" in framer, (
+        "the framer is no longer told to put the replacing alternative in "
+        "`plan.md`'s Alternatives table, so a frame can weigh only ways of "
+        "keeping what stands"
+    )
+    assert "as an equal of the one that keeps it" in framer, (
+        "the replacing row is asked for without its weight, so it can stand "
+        "in the table as a straw alternative"
+    )
+
+
+def test_the_framer_inherits_what_the_tree_already_settled():
+    """Round 1 of #968, finding 1. The reading list says what two of its
+    sources settle, not only that they are read: a rule with a passing test,
+    and a decision earlier rounds argued through, are not re-opened in the
+    frame. The rewrite kept both sources and dropped both consequences."""
+    framer = flat(read(*FRAMER))
+    assert "a rule with a passing test is not a claim to re-establish" in framer, (
+        "the framer reads the `Enforced by:` lines with nothing saying a rule "
+        "they hold is settled, so a frame can set out to prove it again"
+    )
+    assert "is not argued again in your `plan.md`" in framer, (
+        "the framer reads earlier rounds with nothing saying what they "
+        "settled stands, so its Alternatives table can re-open a closed "
+        "decision"
+    )
+
+
+def test_a_reframe_keeps_every_closed_phase():
+    """Round 1 of #968, finding 2. A reframe adds phase rows and keeps each
+    closed phase's commit. `docs/the-review-record.md` §*The run* owns the
+    route back and does not say how `plan.md` is rewritten, so the
+    definition says it."""
+    framer = flat(read(*FRAMER))
+    assert "new phase rows for the redesign" in framer, (
+        "a reframing framer is told to rewrite `plan.md` and not that the "
+        "redesign arrives as new rows"
+    )
+    assert "every closed phase keeping its commit" in framer, (
+        "a reframe can replace the Phases table, and a closed phase's Status "
+        "cell is the one record of what was built before it"
+    )
+
+
 def test_questions_md_is_the_residue_and_every_row_says_why():
     """S11's second half. What changes is not that `questions.md` goes, but
     what belongs in it: the residue after judging, never a collection.
@@ -753,8 +805,8 @@ def test_the_framer_leaves_a_mark_in_the_tree():
 
 def test_the_planning_row_is_a_record_and_not_a_checkbox():
     """#88, cited rather than re-argued: the question grows only where a
-    decision is genuinely a person's, and `agents/framer.md`'s `## When you
-    run` says the SDD ladder decides this one.
+    decision is genuinely a person's, and `agents/framer.md`'s `## Job` says
+    the SDD ladder decides this one.
 
     Both halves are asserted, because either alone passes over the state that
     matters. The row has to be IN the orchestrator's routing section — an axis

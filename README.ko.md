@@ -34,12 +34,12 @@ Claude Code **플러그인**으로 배포됩니다. 인계 규약과 `fold-check
 
 | 누구/무엇 | 따르는 스킬 | 실제로 무엇인가 |
 |---|---|---|
-| **framer** (서브에이전트) | `agent-contract` · `implement` · `writing-style` | 아무도 만들기 시작하기 전에 그 작업 항목의 `spec.md` · `plan.md` · `questions.md` 를 쓴다. SDD 사다리가 이미 `spec.md` 를 요구하는 자리에서 띄운다. 저장소를 넓게 읽고 사람이 답해야 하는 것을 한 묶음으로 모으므로, `plan.md` 승인이 그 작업에서 사람을 부르는 유일한 지점이 된다. 코드는 쓰지 않는다. 계약서를 쓴 쪽과 그것을 실행하는 쪽이 달라야 warden 의 "스펙 준수 먼저" 가 대조할 문서를 갖는다 |
+| **framer** (서브에이전트) | `agent-contract` | 아무도 만들기 시작하기 전에 그 작업 항목의 `spec.md` · `plan.md` · `questions.md` 를 쓴다. SDD 사다리가 이미 `spec.md` 를 요구하는 자리에서 띄운다. 저장소를 넓게 읽고, 사다리와 파일 묶음을 정하는 단계에서 `implement` 를 열고, 쓰기 전에 `writing-style` 을 연다. 트리가 답할 수 있는 것은 직접 답하고, 나머지만 `questions.md` 에 남긴다. 라우팅 질문은 framer 를 띄우기 전에 세션이 이미 물었으므로, 그 뒤로는 `plan.md` 승인이 그 작업에서 사람을 부르는 유일한 지점이다. 코드는 쓰지 않는다. 계약서를 쓴 쪽과 그것을 실행하는 쪽이 달라야 warden 의 "스펙 준수 먼저" 가 대조할 문서를 갖는다 |
 | **smith** (Claude Code 서브에이전트) | `agent-contract` | 작업 항목의 한 단계를 스펙에 맞춰 만들거나, 회차 기록 하나를 놓고 수정을 한 번 돈다. 첫 단계에서 `implement` 를 열고, 기록을 쓰기 전에 `writing-style` 을 연다. 돌려주는 보고에는 주장마다 `executed`·`read`·`unverified` 를 붙이고, 전체 스위트는 `unverified` 로 두고 누가 답할지 적는다 |
 | **warden** (서브에이전트) | `agent-contract` | 스펙 준수를 먼저 보고 그다음 품질을 본다. 첫 단계에서 `code-review` 를 열고, 회차 기록을 쓰기 전에 `writing-style` 을 연다. 보고서가 검증되면 오케스트레이터가 리뷰 시점의 HEAD sha 를 `.git/specseal-reviewed` 에 적고, 커밋 게이트는 그 파일을 확인한다. 리뷰어가 자기 표시를 직접 쓰지는 않는다 |
 | **scribe** (서브에이전트) | `agent-contract` | 원본 코드가 실제로 하는 일을 `경로#앵커` 좌표로 기록하고, 판정이 아니라 사실만 돌려준다. 첫 단계에서 `legacy-parity` 를 연다. `seal/parity.md` 를 선언한 레포에서만 등장한다 |
 | **sealer** (서브에이전트, Opus) | `agent-contract` | 마지막에 독립적으로 보증하는 쪽이다. 회차가 끝나고 PR 본문과 changelog 가 쓰이고 오케스트레이터가 광역 관문을 한 번 돌린 뒤(`broad-gate` 가 `broad-gate.md` 를 쓴다), 그 기록을 읽는다. 광역 검사는 직접 돌리지 않는다. 구현자가 실행했다고 적은 주장 가운데 일부를 다시 돌려 보고, 스펙·구현·마지막 리뷰·changelog·PR 본문을 이슈와 실제 트리에 견주어 읽는다. 판정은 작업 항목의 `guarantee.md` 에 남는다. `sealed`, 트리와 어긋난 곳을 짚은 `withheld`, 또는 소유자에게 넘기는 질문을 단 `undecided` 셋 중 하나다. 설계나 코드 품질을 다시 판정하지는 않는다 |
-| 스킬 | — | 스물두 개이고 세 묶음이다. 에이전트가 첫 도구 호출 전부터 따르는 세 개는 왼쪽 열에 있다. 열세 개는 작업이 그것을 요구할 때 세션이 알아서 로드한다 — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `learn`, `legacy-parity`, `settle`, `verify`. 나머지 여섯은 사용자가 이름을 불러야 움직이며 아래 치트시트에 있다 |
+| 스킬 | — | 스물두 개이고 세 묶음이다. 에이전트가 첫 도구 호출 전부터 따르는 한 개는 왼쪽 열에 있다. 열다섯 개는 작업이 그것을 요구할 때 세션이 알아서 로드하고, 에이전트는 그중 자기 단계가 가리키는 것을 그 단계에서 연다 — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `implement`, `learn`, `legacy-parity`, `settle`, `verify`, `writing-style`. 나머지 여섯은 사용자가 이름을 불러야 움직이며 아래 치트시트에 있다 |
 | 훅 | — | 게이트 그 자체. 플러그인이 자동으로 등록하므로 설정을 따로 만질 필요가 없다 |
 | CLAUDE.md 블록 | — | 늘 로드되는 12줄 — 절 제목 넷(`Tooling`·`Safety`·`Session cost`·`Git`)에 규칙 여덟이다. 툴링 하나, 안전 셋, 세션 비용 하나, git 셋. 응답 언어 규칙은 없다. 그것은 사용자 몫이다. 정본은 `templates/claude-md-block.md` 하나이고, 저장소의 `CLAUDE.md` 에는 거기서 생성한 사본이 들어 있으며, 둘이 다르면 CI 가 PR 을 막는다 |
 

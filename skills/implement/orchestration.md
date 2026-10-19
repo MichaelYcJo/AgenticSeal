@@ -377,9 +377,8 @@ has now broken something a reader can point at.
 
 It is a record, not a checkbox. #88 holds the rule a box here would break
 — the question grows only where a decision is genuinely a person's — and this
-one is not a person's: `agents/framer.md`'s `## When you run` says the SDD
-ladder decides, so the framer runs where §3 calls for a `spec.md` and nowhere
-else.
+one is not a person's: `agents/framer.md`'s `## Job` says the SDD ladder
+decides, so the framer runs only where §3 calls for a `spec.md`.
 
 So fill the row from what happened. `framer` where the frame was drawn by the
 subagent, `the session` where this session drew it, and no row at all where
@@ -412,10 +411,10 @@ the framer : read, judge, write spec / plan / questions
 you        : read plan.md and spawn the build         ← the approval
 ```
 
-`agents/framer.md` §*You have no interactive phase* is the other half of this,
-and it tells a framer that arrives to a missing `routing.md` to report it
-rather than write one — a declaration written from a guess is a recorded answer
-nobody gave.
+`agents/framer.md`'s rule *You ask nobody anything* is the other half of this,
+and its `## Job` tells a framer that arrives to a missing `routing.md` to
+report it rather than write one — a declaration written from a guess is a
+recorded answer nobody gave.
 
 **Write the answer down before the first edit**, in
 `seal/specs/<work-item-id>/routing.md`, from `templates/sdd-routing.md`. Committed,

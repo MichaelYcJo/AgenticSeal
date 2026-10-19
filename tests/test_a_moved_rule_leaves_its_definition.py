@@ -46,7 +46,8 @@ with any section is 10 words (`agents/smith.md`'s `a bare word is a pathspec
 and git rejects it`, which §8 and the design gate's waiver paragraph both
 spelled because both were about the same git fact; the warden's 9-word echo
 of §6 was the next). Both left with their rewrites (#957, #967), and the
-widest kept run since is 8 words, `agents/framer.md` with §5. The smallest run a REAL duplication produced, measured on
+widest kept run since is 8 words, `agents/sealer.md` with §2 (the framer's
+8 with §5 left with its rewrite, #968). The smallest run a REAL duplication produced, measured on
 the same files before phase 4 removed them, is 25 words (§10), then 31 (§9),
 37 (the old §16, now part of §11), 59 (§11) and 66 (§3). Fifteen sits between 10 and 25 with margin
 on both sides, and both ends of that margin are printed by
