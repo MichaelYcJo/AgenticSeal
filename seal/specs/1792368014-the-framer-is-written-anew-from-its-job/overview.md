@@ -32,7 +32,7 @@ Opened at phase 1 and closed at phase 4. Each row is one divergence;
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the typecheck on this branch | the orchestrator's broad gate, after the review rounds settle |
+| closed the full suite, the repository-wide lint and the typecheck on this branch | the orchestrator's `broad-gate --base release/v0.22.2 --record <item>` at 113ae699, exit 0: 7604 passed, 12 skipped, chain exit 0 (`broad-gate.md`) |
 | closed the framer's eval side on the rewritten tree (S3, S9, S10) | phase 2, 5dc581c9: the side at b434e145 reads `pass`, 64 of 64 graders, and all eight runs opened both skills by section (`phases/phase-2.md`) |
 
 ## Not done
