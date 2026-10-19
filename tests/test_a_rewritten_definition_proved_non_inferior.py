@@ -1564,7 +1564,7 @@ def test_a_labelled_record_is_read_by_the_grammar_of_the_commit_that_wrote_it(
             ["git", "-C", str(repo), *who, *args],
             check=True,
             capture_output=True,
-            text=True,
+            encoding="utf-8",
         ).stdout.strip()
 
     def put(rel, text):
