@@ -310,4 +310,3 @@ questions buried in prose read as decided.
 
 Framed 2026-10-19 by framer, before the build.
 Reframed 2026-10-19 by framer, after round 2.
-Reframed 2026-10-19 by framer, after phase 6.
