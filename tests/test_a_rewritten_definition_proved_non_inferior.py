@@ -1770,6 +1770,7 @@ def test_an_entry_widens_a_truth_and_keeps_what_it_found(tmp_path, monkeypatch):
         ({"locations": ["src/textutil.py#shout"]}, "src/textutil.py#shout"),
         ({"locations": ["no path here"]}, "no path here"),
         ({"locations": []}, "names no location"),
+        ({"window": "2"}, "is no count"),
     ],
     ids=[
         "a-case-no-generator-writes",
@@ -1778,6 +1779,7 @@ def test_an_entry_widens_a_truth_and_keeps_what_it_found(tmp_path, monkeypatch):
         "a-coordinate-the-grammar-refuses",
         "no-coordinate",
         "no-location",
+        "a-window-that-is-no-count",
     ],
 )
 def test_an_entry_the_case_cannot_take_stops_the_generator(
