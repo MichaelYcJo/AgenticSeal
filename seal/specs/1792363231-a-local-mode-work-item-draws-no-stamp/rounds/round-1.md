@@ -8,7 +8,7 @@ target: 601245af against release/v0.22.2
 
 severity: must
 location: `skills/verify/scripts/seal_stamp.py:1240-1241`, `skills/verify/scripts/seal_stamp.py:1178`, `docs/the-review-record.md:331-340`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`
-verdict: open
+verdict: fixed e8b71bc2
 
 Why it matters. The owner's rule is one stamp per work item, and `spec.md`
 S13 says no refusal record is written "where the refused `sealed` may have
@@ -135,13 +135,13 @@ verdict was not brought from a branch where it may have been stamped (a
 The case's name joins the rule's `Enforced by:` line, and
 `_stamped_nowhere_else`'s docstring names the third condition.
 
-answer:
+answer: Fixed, and narrowed from the proposal. `_guarantee_on_another_ref` withholds the record wherever some ref of the clone holds, outside HEAD's history, any commit that changed the guarantee (`git log -1 --all --not HEAD -- <path>`). The proposed form, which read each such commit's verdict and target, was built at d244ece6 without the target comparison, which I dropped on reading because no case holds another ref with a `sealed` over a different target. The rest was dropped at e8b71bc2: replacing its verdict check with `True` survived `mutation-check`, so no case told a `sealed` there from any other change. Withholding a record keeps the gap rather than drawing twice. `test_a_seal_brought_from_another_ref_writes_no_refusal`, in three forms, was red at 601245af on the record assertion and is green. Replacing the guard's call, its `return` with `False`, and its `return` with `True` each turned cases red. §*The stamp*'s rule now says four things must hold; its unchecked paragraph and `seal_stamp.py`'s once comment add "one brought from another branch of the clone" to the gap; and a copy from a commit no ref holds joins the hand-copied class. The fragment and `overview.md` say the same. Weighed against `CLAUDE.md`'s subtraction rule, the record stays. This guard reads one fact that covers a copy from any ref, whatever command made it, so it does not grow with each operation. What stays outside it, a source no ref holds, joins the class Q9 already states. If a later round finds a double-stamp path that no fact in the clone can read, that is the moment to put the record itself back to the owner, whose Q2 (b) asked for a mechanism.
 
 ### 2. The orchestration tells the orchestrator to quote a local-mode line it never receives
 
 severity: should
 location: `skills/code-review/orchestration.md:241-243`, `skills/code-review/orchestration.md:250-252`, `skills/code-review/orchestration.md:263-265`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:2144-2157`
-verdict: open
+verdict: fixed d244ece6
 
 Why it matters. The orchestrator acts on this paragraph. It says that in
 local mode "the line arrives as the edit hook's message in the turn its
@@ -182,13 +182,13 @@ under `<git-common-dir>/specseal-stamp/<session>/` whose name holds the work
 item's id, and leave `seal-stamp --from <that file>` to the person.
 ```
 
-answer:
+answer: Fixed as proposed. The paragraph now says the edit hook's line is shown to the person at the sealer's write and does not reach the orchestrator. The rule on quoting names the commit's line alone. Where no stamp appeared, the orchestrator names the values file and leaves `seal-stamp --from` to the person. I rewrote the case's two pins and saw them red against the old paragraph; a third pin asserts that "the edit hook's message names" appears nowhere in the section. Swept: `docs/the-review-record.md:387,406` and `hooks/sealer-stamp.py:61` say the person sees the line, which holds, so they stand. `spec.md` S7 still says the line to quote is the edit hook's message; that is the frame's text, recorded as a divergence in `overview.md`.
 
 ### 3. Both READMEs still count four side effects after adding a fifth
 
 severity: should
 location: `README.md:207`, `README.ko.md:200`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:2343`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py:2354`
-verdict: open
+verdict: fixed d244ece6
 
 Why it matters. This paragraph is the inventory a user reads to learn what
 the plugin writes on their machine. Phase 4 added the refusal record's
@@ -226,13 +226,13 @@ effects are worth stating outright: session-lease writes a timestamp file under
             assert gone not in text, (edition, gone)
 ```
 
-answer:
+answer: Fixed as proposed. Both editions drop the number: "These side effects are worth stating outright" and "다음 부수 효과는 밝혀 둡니다". The case pins the new words and asserts both old counts are gone; I saw it red before the READMEs changed. The gate counts in the same READMEs ("Nine of the twelve", "게이트 열둘 중 아홉") are true at this commit, so they stand.
 
 ### 4. phases/phase-5.md carries a real absolute home path, which the repository's identifier scan refuses
 
 severity: must
 location: `seal/specs/1792363231-a-local-mode-work-item-draws-no-stamp/phases/phase-5.md:32`
-verdict: open
+verdict: fixed d244ece6
 
 Why it matters. `CONTRIBUTING.md` §*House rules* allows a user path only as
 `/Users/x/`, and `tests/test_no_real_identifiers.py` enforces it on every
@@ -250,7 +250,7 @@ the phase record by the smith.
 kept the raw output in a sibling of the branch worktree, `976-phase-5-raw`,
 ```
 
-answer:
+answer: Fixed. The sentence names the raw directory as a sibling of the branch worktree, `SpecSeal-worktrees/976-phase-5-raw`, with no home prefix. `tests/test_no_real_identifiers.py` now exits 0, and `git grep` for `/Users/` outside the fixture path finds only two inventory rows that describe the check itself.
 
 ## Confirmations
 
