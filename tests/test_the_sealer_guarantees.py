@@ -419,6 +419,9 @@ class TestDefinition:
             between(SEALER, "You work in the clone", "## Order of work").split()
         )
         assert "a file holding the pull request body" in intro, intro
+        # Round 1 of #943, finding 1: on the stated limit's path the sealer
+        # runs again with the pull request already open.
+        assert "or is given it where already open" in intro, intro
         assert "gh pr view" not in text, "the sealer still reads an open pull request"
 
     def test_the_guarantee_rule_exempts_only_the_closing_records(self):

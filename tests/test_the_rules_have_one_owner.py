@@ -174,7 +174,47 @@ def test_a_draft_is_tolerated_and_still_owes_the_record():
     exemption.
     """
     assert "A repository that still opens a draft is not refused." in flat(*ORCH)
+    assert (
+        "`ready_for_review` event re-runs it when the draft is marked ready, "
+        "so the record is still owed then"
+    ) in flat(*ORCH)
     assert "Nothing that can reach `main` is exempt" in flat(*ORCH)
+
+
+def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
+    """S8 of #943, the orchestrator's half. `agents/sealer.md` reads the pull
+    request body from a file the spawn prompt names, because no pull request
+    exists when the sealer runs. The owner section writes that file, names it
+    in the spawn, opens the pull request with it, and gives a repaired body to
+    a pull request already open on the stated limit's path. Round 1 of #943
+    reverted each of the first three and this module stayed green."""
+    text = flat(*ORCH)
+    assert "once the pull request body is written to a file" in text
+    assert "the issue and the file holding the pull request body" in text
+    assert "`gh pr create --body-file <that file>`" in text
+    assert "`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`" in text
+    gate = flat("docs", "the-broad-gate.md")
+    assert "before the pull request opens" in gate
+    assert "before a pull request is marked ready" not in gate
+
+
+def test_a_run_that_stops_before_the_pull_request_pushes_nothing():
+    """Round 1 of #943, finding 2. `Destination | stop before the pull
+    request` hands the branch back committed and unpushed, and the review
+    chain still runs under it, so both of the owner section's pushes are
+    conditioned on the destination."""
+    text = flat(*ORCH)
+    assert (
+        "Where `Destination` reads `open the pull request`, push the branch"
+    ) in text
+    assert (
+        "Under `stop before the pull request` nothing is pushed, and the "
+        "branch is handed back committed and unpushed."
+    ) in text
+    assert (
+        "Under `stop before the pull request` push nothing: name the "
+        "platform risk in the handback"
+    ) in text
 
 
 def test_the_owner_states_the_dispatch_step_and_the_limit():

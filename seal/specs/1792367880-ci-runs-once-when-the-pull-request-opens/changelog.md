@@ -7,14 +7,17 @@
   a commit it had already run. Now the branch is pushed freely while it is
   built and reviewed, and a branch with no pull request runs nothing. The
   pull request opens ready after `guarantee.md` reading `sealed` is
-  committed, with the body the sealer read. Where the work's risk is
+  committed, with the body the sealer read. A run whose routing says
+  `stop before the pull request` pushes nothing and hands the branch back
+  committed and unpushed, as before. Where the work's risk is
   specific to one platform, the orchestrator runs
   `gh workflow run tests --ref <branch>` once the build's last phase closes
   and reads the result before its broad run. The stated limit: a defect that
   only one platform shows, in work nobody expected to be platform-specific,
   is found when the pull request opens, after the sealer. Its fix takes the
   existing repair path: a verifying round, the broad run again and the
-  sealer again. A repository whose people still open drafts is not refused,
+  sealer again, and a repaired body is given to the open pull request with
+  `gh api -X PATCH`. A repository whose people still open drafts is not refused,
   because `chain_check` still excuses a draft and `hygiene` re-runs it when
   the draft is marked ready.
 
@@ -23,7 +26,9 @@
   is re-run*, and every document citing it moved with it. The sealer is
   spawned before the pull request exists and reads its body from a file the
   prompt names. `broad-gate --record`'s last line now reads
-  `CI reads HEAD, so commit it before you push`.
+  `CI reads HEAD, so commit it before you push`. The framer's route no
+  longer labels the pull request `chain: reframed`: it runs before any pull
+  request exists, and nothing read the label.
 
 - **`tests` no longer runs when a draft is marked ready, and a newer push
   cancels the older run (#943).** `.github/workflows/test.yml` dropped

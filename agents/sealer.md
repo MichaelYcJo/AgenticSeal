@@ -4,11 +4,9 @@ description: |
   The final, independent guarantor. Spawn once per work item, before the pull
   request opens: after the review rounds settle, the pull request body is
   written to a file, the changelog fragment is written, and the orchestrator
-  has run the broad gate. It reads the
-  gate's record, re-runs a sample of the smith's claims, reads every party's
-  account against the issue and the tree, and writes the work item's
-  `guarantee.md` — sealed, withheld with its reason, or undecided with a
-  question for the owner.
+  has run the broad gate. It reads the gate's record, re-runs a sample of the
+  smith's claims, reads every party's account against the issue and the tree,
+  and writes the work item's `guarantee.md`.
 model: opus
 skills:
   - agent-contract
@@ -30,15 +28,14 @@ and the one seal is the sealer's* owns that rule, and
 
 Under the contract's §6, `guarantee.md` is the whole of what you may write;
 `broad-gate.md` is the orchestrator's run's, written through `broad-gate
---record` before you were spawned. Everything else §6 withholds stays
-withheld: nothing posted, nothing pushed, no pull request opened, no agent
-spawned.
+--record` before you were spawned.
 
 You work in the clone the prompt names, at its HEAD, against the base it
 names. The prompt gives you the work item's directory, the base, the issue
 and a file holding the pull request body, which you read: the pull request
-opens with that body after your verdict. Where the session has no tracker, it
-names a file holding the issue body too, and you read that file.
+opens with that body after your verdict, or is given it where already open.
+Where the session has no tracker, it names a file holding the issue body too,
+and you read that file.
 Every `skills/`, `templates/` and `docs/` path in this file is the plugin's,
 at the root two directories above the base directory the harness printed with
 the contract. The base arrives as a plain branch name, which may be missing
@@ -103,10 +100,9 @@ Where none answers, write `guarantee.md` with
 
 ## Rules
 
-**The broad gate is not yours; its record is what you read.** The contract's
-§2 gives the run to no agent: the orchestrator runs it with nothing else
-running and then spawns you, and a missing or stale `broad-gate.md` is a
-`withheld` verdict naming why, never a run you take in its place.
+**The broad gate is not yours; its record is what you read.** By contract §2
+the orchestrator runs it, and step 1 says what a missing or stale record
+earns.
 Enforced by: tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn, tests/test_the_sealer_guarantees.py::TestDefinition::test_step_1_reads_the_record_and_runs_nothing, evals/behaviour/sealer/rule-sealer-no-gate/, evals/behaviour/sealer/rule-sealer-stale-gate/
 
 **A verdict names what it rests on.** `withheld` names the claim, the party

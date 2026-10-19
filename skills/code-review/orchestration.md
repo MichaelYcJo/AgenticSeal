@@ -150,33 +150,40 @@ The framer's route:
 | Step | What |
 |---|---|
 | The record | every open finding closes `deferred the frame` |
-| The pull request | labelled `chain: reframed` |
 | The framer | spawned again with the run's round records as its input — they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `spec.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Under `Automation \| yes` the spawn asks nobody |
 | The redesign | approved by a second `Approved` line in `plan.md` when `smith` is spawned for it, built, and reviewed, its first finding round starting the cap's count again |
 
 ## Orchestrator: the pull request opens once the sealer seals, and a phase is re-run
 
 **The pull request opens ready, once the sealer has sealed, and CI runs
-then.** Push the branch as often as you like while the work is built and
-reviewed: a branch with no pull request runs nothing. Once `guarantee.md`
-reading `sealed` is committed, open the pull request with the body the sealer
-read, `gh pr create --body-file <that file>`. CI runs then, and again on
-every push to it. A pull request opened before round 1 ran the suite on three
-platforms at every push of every round, and marking its draft ready ran it
-once more on a commit it had already run (#943).
+then.** Where `Destination` reads `open the pull request`, push the branch as
+often as you like while the work is built and reviewed: a branch with no
+pull request runs nothing. Under `stop before the pull request` nothing is
+pushed, and the branch is handed back committed and unpushed. Once
+`guarantee.md` reading `sealed` is committed, open the pull request with the
+body the sealer read, `gh pr create --body-file <that file>`. CI runs then,
+and again on every push to it. A pull request opened before round 1 ran the
+suite on three platforms at every push of every round, and marking its draft
+ready ran it once more on a commit it had already run (#943).
 
 **Where the work's risk is platform-specific, run the other platforms before
 your broad run.** Line endings, the shell and the Python version are such
 risks. Push the branch once the build's last phase closes and run
 `gh workflow run tests --ref <branch>`, then read that run's result before
 you take the broad run. A leg that fails there is a defect like any a round
-finds, and it is repaired before the rounds settle.
+finds, and it is repaired before the rounds settle. Under `stop before the
+pull request` push nothing: name the platform risk in the handback, for
+whoever opens the pull request.
 
 **The stated limit: a defect that only one platform shows, in work nobody
 expected to be platform-specific, is found when the pull request opens,
 after the sealer.** Its fix is a commit outside the work item's records, so
 it takes the repair path below: a verifying round on its diff, the broad run
-again, and the sealer again. Nothing else is built for it.
+again, and the sealer again. Nothing else is built for it. The pull request
+stays open through that repair, and a body the repair changes is written to
+the file again and given to the open pull request with
+`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`
+(`docs/release-checklist.md` names why not `gh pr edit`).
 
 **A repository that still opens a draft is not refused.** On a draft
 `chain_check` prints what it would refuse and exits 0, and `hygiene`'s
@@ -220,7 +227,8 @@ each is a fact a reader learns from nowhere else.
 request.** `withheld` names the claim and the coordinate. Where the repair
 touches only the work item's own records — a phase record, the changelog
 fragment — or the pull request body, make it, commit, and spawn the sealer
-again at the new HEAD: the record commits after the run leave it standing.
+again at the new HEAD, giving a repaired body to a pull request already open
+as the stated limit above says: the record commits after the run leave it standing.
 Where it touches any other file it is a fix nobody reviewed: commit it, spawn
 a verifying round on its diff, and once that round's record is committed run
 the broad gate again, commit its record, and spawn the sealer. Your broad run
