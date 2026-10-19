@@ -8,6 +8,7 @@
       --out RECORD.md
   noninferiority.py check RECORD.md
   noninferiority.py model RECORD.md
+  noninferiority.py regrade --side IN.json --suite-rev REV --out OUT.json
 
 `run` copies the plugin tree at REV (or DIR) into a temporary directory,
 puts the suite at SUITE-REV's `evals/behaviour/` into it, and runs
@@ -19,15 +20,22 @@ additions under `specseal`: the preload's hashes and bytes, each run's
 report rows, cost (its trace's `result` event: `total_cost_usd`,
 `duration_ms`, `modelUsage`) and tool calls (every `tool_use` block in its
 trace), and whether the side was cut short. `run --from-raw` writes `--out`
-again from a saved side, with no eval run. `compare` writes the record the
+again from a saved side, with no eval run. `regrade` writes a saved side
+again under the `truth-` graders of the suite at REV, with no eval run:
+each run's truth result is the grader's regex searched over its report
+rows, and the scores follow. It refuses a side whose own suite does not
+give back from its rows what it recorded, and a suite at REV that differs
+from the side's in anything but `truth-` graders or holds other cases.
+`compare` writes the record the
 five pass rules judge, outcome first and then cost, each against the
 baseline: recall not fallen, except by one find where every truth grader
 that lost it is still found by at least one new run, the false-finding rate
 within `FALSE_MARGIN`
-of the baseline's, each shape and reach grader passing on the new side at
-least as often as on the baseline, the preload's bytes below the
-baseline's, and the tokens read across every model per tool call below the
-baseline's. Total tokens, tokens per true find, spend and wall seconds are
+of the baseline's, the shape and reach graders both sides ran passing,
+pooled, no fewer runs on the new side than on the baseline, with none of
+them failing every new run where the baseline passed it, the preload's
+bytes below the baseline's, and the tokens read across every model per
+tool call below the baseline's. Total tokens, tokens per true find, spend and wall seconds are
 written and judge nothing.
 `check` recomputes a record's verdict from its numbers.
 `model` reads a record whose `--old` was the Opus side and `--new` the
@@ -37,11 +45,13 @@ then one line saying why. The record's own verdict does not decide it.
 
 Exit codes: 0 written, the record's verdict holds, or a model was decided ·
 1 the record's verdict is not `pass`, or it disagrees with its numbers · 2
-nothing ran (arguments, a missing tool, an unreadable input), or `model` was
-handed a record that disagrees with its numbers or ran two suites.
+nothing ran (arguments, a missing tool, an unreadable input), `model` was
+handed a record that disagrees with its numbers or ran two suites, or
+`regrade` refused a side, naming the case.
 """
 
 import argparse
+import copy
 import hashlib
 import io
 import json
@@ -583,8 +593,10 @@ def verdict(numbers):
     Each rule reads the new side against the baseline: 1 recall not fallen,
     except by one find where every truth grader that lost it is still found
     by at least one new run, 2 the false-finding rate within `FALSE_MARGIN`
-    of the baseline's, 3 each shape and reach grader passing at least as
-    often, 4 the preload's bytes below the baseline's, 5 the tokens read
+    of the baseline's, 3 the shape and reach graders both sides ran passing,
+    pooled, no fewer runs, none of them failing every new run where the
+    baseline passed it, and one the baseline lacks passing every new run, 4
+    the preload's bytes below the baseline's, 5 the tokens read
     across every model per tool call below the baseline's (`tool_calls` says
     why per call). A missing key raises. A side cut short, a case the
     baseline ran and the new side did not, whatever its graders, a case run
@@ -654,18 +666,38 @@ def verdict(numbers):
     )
     if new_rate > old_rate + FALSE_MARGIN + 1e-9:
         reasons.append(f"false-finding rate rose from {old_rate:.3f} to {new_rate:.3f}")
-    for (case, name), (k, op, oruns, np_, nruns) in sorted(g.items()):
-        if k not in ("shape", "reach") or not nruns:
-            continue
-        if not oruns and np_ < nruns:
+    # Rule 3 judges the agent, not one run (#966): the passes of every shape
+    # and reach grader both sides ran are pooled into one total a side, and
+    # a grader the new side failed on every run, where the baseline passed
+    # it at least once, is named whatever the totals say. Each grader in the
+    # totals ran as many times on both sides, or the check above returned.
+    common = sorted(
+        (key, v) for key, v in g.items() if v[0] in ("shape", "reach") and v[2] and v[4]
+    )
+    old_total = sum(v[1] for _key, v in common)
+    new_total = sum(v[3] for _key, v in common)
+    runs = sum(v[4] for _key, v in common)
+    if new_total < old_total:
+        fell = ", ".join(
+            f"{c}/{n} {v[3]}/{v[4]} against {v[1]}/{v[2]}"
+            for (c, n), v in common
+            if v[3] < v[1]
+        )
+        reasons.append(
+            f"shape and reach graders passed {new_total}/{runs} runs on the new "
+            f"side, fewer than the baseline's {old_total}/{runs} (rule 3): {fell}"
+        )
+    for (case, name), (k, op, oruns, np_, nruns) in common:
+        if op and not np_:
+            reasons.append(
+                f"{k} grader {case}/{name} failed every new run (0/{nruns}) where "
+                f"the baseline passed it {op}/{oruns} (rule 3)"
+            )
+    for (case, name), (k, _op, oruns, np_, nruns) in sorted(g.items()):
+        if k in ("shape", "reach") and nruns and not oruns and np_ < nruns:
             reasons.append(
                 f"{k} grader {case}/{name}, which the baseline lacks, failed on "
                 f"the new side ({np_}/{nruns}) (rule 3)"
-            )
-        elif oruns and np_ * oruns < op * nruns:
-            reasons.append(
-                f"{k} grader {case}/{name} passed {np_}/{nruns} on the new side, "
-                f"less often than the baseline's {op}/{oruns} (rule 3)"
             )
     if numbers["new_bytes"] >= numbers["old_bytes"]:
         reasons.append(
@@ -1004,6 +1036,306 @@ def model(a):
     return 0
 
 
+# --- regrade: a side read again under another suite's truths ----------------
+
+# One scalar of the front matter `behaviour.grader` writes: single-quoted, a
+# quote doubled inside, or a bare word up to the next `,` or `}`.
+SCALAR = r"'(?:[^']|'')*'|[^,}]+"
+REGEX_FLAGS = {"m": re.M, "i": re.I, "s": re.S}
+# The float error two sums of the same scores in another order can leave.
+SCORE_ERROR = 1e-9
+
+
+def scalar(text):
+    """The value of one front-matter scalar of a truth grader: a one-level
+    flow map, a single-quoted string, or an integer; anything else is kept
+    as its text."""
+    text = text.strip()
+    if text.startswith("{"):
+        return {k: scalar(v) for k, v in re.findall(rf"(\w+): ({SCALAR})", text[1:-1])}
+    if text.startswith("'"):
+        return text[1:-1].replace("''", "'")
+    return int(text) if re.fullmatch(r"-?\d+", text) else text
+
+
+def grader_at(rev, path):
+    """The grader file REV:PATH, read by `grader_from`."""
+    return grader_from(path, git_bytes("show", f"{rev}:{path}").decode("utf-8"))
+
+
+def grader_from(path, text):
+    """The grader file PATH holding TEXT in the shape a side records it:
+    `name`, `type`, `weight` (1 where the file names none) and `config`,
+    every other front-matter field, with `match` `contains` where the file
+    names none.
+
+    A file with no front matter raises ValueError."""
+    m = re.match(r"---\n(?P<head>.*?)\n---\n", text, re.S)
+    if not m:
+        raise ValueError(f"{path} has no front matter")
+    fields = {}
+    for line in m["head"].split("\n"):
+        key, _, value = line.partition(": ")
+        fields[key] = scalar(value)
+    config = {k: v for k, v in fields.items() if k not in ("type", "weight")}
+    config.setdefault("match", "contains")
+    return {
+        "name": path.rsplit("/", 1)[-1][: -len(".md")],
+        "type": fields.get("type"),
+        "weight": fields.get("weight", 1),
+        "config": config,
+    }
+
+
+def suite_files(rev, agent):
+    """`{case dir: {path: blob}}`: every file of every case of AGENT's suite
+    at REV."""
+    out = {}
+    listing = git_bytes("ls-tree", "-r", "-z", rev, "--", f"{SUITE}/{agent}/")
+    for entry in listing.decode("utf-8").split("\0"):
+        if entry:
+            mode_type_blob, path = entry.split("\t", 1)
+            case = "/".join(path.split("/")[:4])
+            out.setdefault(case, {})[path] = mode_type_blob.split()[2]
+    return out
+
+
+def is_truth_file(path):
+    """True for a case's `graders/truth-*` file."""
+    parts = path.split("/")
+    return len(parts) > 1 and parts[-2] == "graders" and parts[-1].startswith("truth-")
+
+
+def truths_at(rev, files):
+    """`{case dir: [truth grader]}` of the suite at REV, FILES its
+    `suite_files`."""
+    return {
+        case: [grader_at(rev, p) for p in sorted(paths) if is_truth_file(p)]
+        for case, paths in files.items()
+    }
+
+
+def grade(grader, rows):
+    """A run's entry for the truth GRADER: its regex searched over the run's
+    report ROWS joined by newlines, which is what the grader reads in the
+    report, since a `truth-` pattern matches a `location:` line.
+
+    A grader that is not a regex the report must contain, or that carries a
+    flag this module does not know, raises ValueError."""
+    config = grader.get("config") or {}
+    if grader.get("type") != "regex" or config.get("match") != "contains":
+        raise ValueError(f"{grader['name']} is not a regex the report must contain")
+    flags = 0
+    for letter in config.get("flags", ""):
+        if letter not in REGEX_FLAGS:
+            raise ValueError(f"{grader['name']} carries the flag {letter!r}")
+        flags |= REGEX_FLAGS[letter]
+    found = re.search(config["pattern"], "\n".join(rows), flags) is not None
+    return {
+        "name": grader["name"],
+        "passed": found,
+        "weight": grader.get("weight", 1),
+        "explanation": "regraded from the report rows: "
+        + ("found" if found else "not found"),
+        "withOnly": False,
+        "scored": True,
+    }
+
+
+def mean(values):
+    """The mean of VALUES, or 0 where there are none."""
+    values = list(values)
+    return sum(values) / len(values) if values else 0
+
+
+def case_runs(case):
+    """Every run of CASE, arm by arm."""
+    return [r for arm in case.get("arms", {}).values() for r in arm]
+
+
+def regraded(result, truths):
+    """RESULT with each case's truth graders TRUTHS[case dir], every run
+    graded on them from its report rows, and the scores recomputed the way
+    the eval writes them: a run's score is its passed graders' weight over
+    every scored grader's, passing at the suite's threshold; a case's score
+    and pass rate are its runs' means; the side's are its cases' means, and
+    its cases passed are those whose every run passed.
+
+    A truth grader `grade` cannot read raises ValueError naming the case."""
+    out = copy.deepcopy(result)
+    threshold = (out.get("suite") or {}).get("threshold", 1)
+    cases = out.get("cases", [])
+    for case in cases:
+        new = truths[case["dir"]]
+        kept = [g for g in case.get("graders", []) if kind(g["name"]) != "truth"]
+        case["graders"] = kept + new
+        runs = case_runs(case)
+        for run in runs:
+            rows = (run.get("specseal") or {}).get("report_rows", [])
+            others = [g for g in run.get("graders", []) if kind(g["name"]) != "truth"]
+            try:
+                run["graders"] = others + [grade(g, rows) for g in new]
+            except ValueError as e:
+                raise ValueError(f"{case['name']}: {e}") from None
+            scored = [g for g in run["graders"] if g.get("scored", True)]
+            weight = sum(g.get("weight", 1) for g in scored)
+            passed = sum(g.get("weight", 1) for g in scored if g.get("passed"))
+            run["score"] = passed / weight if weight else 0
+            run["passed"] = run["score"] >= threshold
+        if runs:
+            case["aggregates"] = dict(
+                case.get("aggregates", {}),
+                score=mean(r["score"] for r in runs),
+                passRate=mean(r["passed"] for r in runs),
+            )
+    rated = [c["aggregates"] for c in cases if "aggregates" in c]
+    out["aggregates"] = dict(
+        out.get("aggregates", {}),
+        casesTotal=len(cases),
+        casesPassed=sum(1 for g in rated if g["passRate"] >= 1),
+        overallScore=mean(g["score"] for g in rated),
+        overallPassRate=mean(g["passRate"] for g in rated),
+    )
+    return out
+
+
+def differs(recorded, again, keys):
+    """The KEYS whose values RECORDED holds and AGAIN does not give, a
+    number to `SCORE_ERROR`."""
+    out = []
+    for key in keys:
+        if key not in recorded:
+            continue
+        a, b = recorded[key], again.get(key)
+        same = (
+            abs(a - b) <= SCORE_ERROR
+            if isinstance(a, (int, float)) and isinstance(b, (int, float))
+            else a == b
+        )
+        if not same:
+            out.append(f"{key} {a!r}, not {b!r}")
+    return out
+
+
+def unreproduced(result, again):
+    """`[problem]`, each naming its case: where AGAIN, RESULT graded once
+    more on the suite it ran, does not give what RESULT recorded, its truth
+    graders, each run's truth results and scores, and its aggregates."""
+    problems = []
+    for case, mine in zip(result.get("cases", []), again["cases"], strict=True):
+        name = case["name"]
+
+        def truths(graders):
+            return sorted(
+                (g["name"], g.get("type"), g.get("weight", 1), g.get("config"))
+                for g in graders
+                if kind(g["name"]) == "truth"
+            )
+
+        if truths(case.get("graders", [])) != truths(mine["graders"]):
+            problems.append(f"{name}: its truth graders are not its suite's files")
+            continue
+        pairs = zip(case_runs(case), case_runs(mine), strict=True)
+        for i, (run, re_run) in enumerate(pairs):
+            was = {
+                g["name"]: bool(g.get("passed"))
+                for g in run.get("graders", [])
+                if kind(g["name"]) == "truth"
+            }
+            now = {
+                g["name"]: g["passed"]
+                for g in re_run["graders"]
+                if kind(g["name"]) == "truth"
+            }
+            if was != now:
+                problems.append(
+                    f"{name}, run {i}: it recorded {was} and its report rows give {now}"
+                )
+            off = differs(run, re_run, ("score", "passed"))
+            if was == now and off:
+                problems.append(f"{name}, run {i}: it recorded " + ", ".join(off))
+        off = differs(
+            case.get("aggregates", {}),
+            mine.get("aggregates", {}),
+            ("score", "passRate"),
+        )
+        if off:
+            problems.append(f"{name}: its aggregates are " + ", ".join(off))
+    off = differs(
+        result.get("aggregates", {}),
+        again["aggregates"],
+        ("casesTotal", "casesPassed", "overallScore", "overallPassRate"),
+    )
+    if off:
+        problems.append("the side's aggregates are " + ", ".join(off))
+    return problems
+
+
+def regrade(a):
+    """`regrade`: write the side A.side holds, graded on the `truth-` graders
+    of the suite at A.suite_rev from its report rows, with no eval run.
+
+    Refused with exit 2, naming the case, where the side's own suite does not
+    give back from its rows what it recorded, where the target suite and the
+    side's differ in a case's files other than its `truth-` graders, or where
+    the two hold different cases. A REV git does not resolve stops the run."""
+    with open(a.side, encoding="utf-8") as f:
+        result = json.load(f)
+    meta = result.get("specseal") or {}
+    agent, own = meta.get("agent"), meta.get("suite_rev")
+    if agent not in AGENTS or not own:
+        print(
+            "the side records no agent or no suite_rev, so its suite is unknown",
+            file=sys.stderr,
+        )
+        return 2
+    target = git_bytes("rev-parse", f"{a.suite_rev}^{{commit}}").decode("utf-8").strip()
+    mine, theirs = suite_files(own, agent), suite_files(target, agent)
+    ran = {c["dir"]: c["name"] for c in result.get("cases", [])}
+    at = f"the suite at {target[:8]}"
+    problems = [
+        f"{d}: {at} holds this case, and the side never ran it"
+        for d in sorted(set(theirs) - set(ran))
+    ]
+    for d in sorted(ran):
+        if d not in theirs:
+            problems.append(f"{ran[d]}: {at} does not hold this case")
+        elif d not in mine:
+            problems.append(
+                f"{ran[d]}: the suite it ran, at {own[:8]}, does not hold it"
+            )
+        elif {p: b for p, b in mine[d].items() if not is_truth_file(p)} != {
+            p: b for p, b in theirs[d].items() if not is_truth_file(p)
+        }:
+            problems.append(
+                f"{ran[d]}: {at} changes more than its truth- graders, so the "
+                "side's runs did not answer it"
+            )
+    try:
+        if not problems:
+            problems = unreproduced(result, regraded(result, truths_at(own, mine)))
+        if not problems:
+            out = regraded(result, truths_at(target, theirs))
+    except ValueError as e:
+        problems.append(str(e))
+    if problems:
+        print("\n".join(problems), file=sys.stderr)
+        return 2
+    out["specseal"] = dict(
+        out.get("specseal", {}),
+        suite_rev=target,
+        suite_tree=suite_tree(target, agent),
+        # The suite the runs answered, kept through any number of regrades.
+        regraded_from=meta.get("regraded_from") or own,
+    )
+    with open(a.out, "w", encoding="utf-8") as f:
+        json.dump(out, f, indent=1, ensure_ascii=False)
+        f.write("\n")
+    numbers = side_numbers(out)
+    print(f"graded on {target[:8]}: {numbers['rows']} rows, {numbers['false']} false")
+    return 0
+
+
 def main(argv=None):
     """Parse the arguments and run one subcommand.
 
@@ -1032,8 +1364,18 @@ def main(argv=None):
     k.add_argument("record")
     m = sub.add_parser("model")
     m.add_argument("record")
+    g = sub.add_parser("regrade")
+    g.add_argument("--side", required=True)
+    g.add_argument("--suite-rev", required=True)
+    g.add_argument("--out", required=True)
     a = p.parse_args(argv)
-    commands = {"run": run_side, "compare": compare, "check": check, "model": model}
+    commands = {
+        "run": run_side,
+        "compare": compare,
+        "check": check,
+        "model": model,
+        "regrade": regrade,
+    }
     return commands[a.command](a)
 
 

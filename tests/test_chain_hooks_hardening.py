@@ -828,7 +828,7 @@ def test_every_shipped_skill_is_named_in_both_readmes():
 
 
 def test_the_readme_group_counts_are_derived_too():
-    """21 = 4 + 11 + 6, and all four numbers were prose.
+    """22 = 1 + 15 + 6, and all four numbers were prose.
 
     Round 1: the total was pinned and the split was not, so a skill could
     move between groups, or the middle count could go stale against its own
@@ -865,6 +865,9 @@ def test_the_readme_group_counts_are_derived_too():
         "user invoked": (len(user_invoked), ("%s you invoke by name", "나머지 %s은")),
     }
     spellings = {
+        1: ("one", "한"),
+        2: ("two", "두"),
+        3: ("three", "세"),
         4: ("four", "네"),
         5: ("five", "다섯"),
         6: ("Six", "여섯"),
@@ -872,6 +875,9 @@ def test_the_readme_group_counts_are_derived_too():
         10: ("Ten", "열"),
         11: ("Eleven", "열한"),
         12: ("Twelve", "열두"),
+        13: ("Thirteen", "열세"),
+        14: ("Fourteen", "열네"),
+        15: ("Fifteen", "열다섯"),
     }
     for group, (count, phrases) in groups.items():
         assert count in spellings, (
@@ -1253,11 +1259,11 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     # WHAT IT STILL CANNOT TELL APART, written down rather than left to be
     # found: *you collect the batch* from *your caller collects the batch*.
     # The second is true and a definition may need to say it — `agents/
-    # framer.md` does, in its diagram's first line (*asks question 1; boxes
-    # only if per axis*), which stays clear of this. A definition that needs
-    # the other wording will
-    # meet this assertion and should reword rather than widen it, because one
-    # word is all that separates the true sentence from the instruction.
+    # framer.md` does, in its rule that its caller *asks the routing batch*,
+    # which stays clear of this. A definition that needs the other wording
+    # will meet this assertion and should reword rather than widen it,
+    # because one word is all that separates the true sentence from the
+    # instruction.
     #
     # THE REST OF THE RESIDUE, for the same reason — these are what the window
     # cannot see, and each has a direction rather than a fix:

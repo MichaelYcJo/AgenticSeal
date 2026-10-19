@@ -3,20 +3,22 @@ name: tests
 on:
   push:
     branches: [main]
+  # GitHub's default events. Nothing below reads draft state; `hygiene.yml` does.
   pull_request:
-    # `ready_for_review` and `converted_to_draft` are NOT in the default set
-    # (`opened`, `synchronize`, `reopened`), and leaving them out made the
-    # draft excuse a permanent way past every check below. Open the pull
-    # request as a draft while a review is still running, let the checks pass
-    # on the draft's terms, then press Ready for review: no commit follows, so
-    # no `synchronize` fires, nothing re-runs, and the draft's green stays on
-    # that SHA through the merge. Two clicks, no commit.
-    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   # A pushed branch measured without a pull request (#841): a branch whose
   # routing stops before the pull request runs nothing on push, and the
   # Windows leg's own `--durations` table and the `durations` job's
   # `test-durations` artifact are the only per-case figures for it.
   workflow_dispatch:
+
+# A newer push to an open pull request cancels this workflow's run of the
+# commit before it. Any other run takes a group of its own: a `push` to
+# `main` is what `release-report` below reads for a release tag, and GitHub
+# cancels an older pending run in a shared group whatever
+# `cancel-in-progress` says.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:

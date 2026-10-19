@@ -10,7 +10,9 @@ whether the work came out in the shape the next reader needs, never
 whether a sentence of today's definition was followed:
 
   warden   one review of a diff with one defect against its spec: the
-           defect found, the round record in the template's shape
+           defect found, the round record in the template's shape, and
+           any truth `recurred_truths.json` adds for the case
+           (`replay_targets.py#truths_with`)
   smith    four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind
   framer   four issues to frame: the three documents with the mark and a
@@ -37,6 +39,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import behaviour
+import replay_targets as rt
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
@@ -212,6 +215,7 @@ def writes_only(name, allowed, body):
 # --- warden --------------------------------------------------------------------
 
 WARDEN_ITEM = "1790000001-shout-ends-with-one-exclamation-mark"
+WARDEN_CASE = "rule-warden-one-finding"
 
 
 def warden_case():
@@ -255,17 +259,16 @@ def warden_case():
         f"`{branch}` at HEAD; the base is `main`. Write the report to `{report}` and return its "
         f"path. Review the whole build for spec compliance first, then quality. {HERE}"
     )
-    graders = [
-        *behaviour.report_shape("warden", report),
-        behaviour.report_regex(
-            "truth",
-            "shout-twice",
-            report,
-            r"^location: .*src\/textutil\.py:(?:[4-9]|1[0-9])(?!\d)",
-            "`shout_twice` joins the two shouts with no space, against S2.",
-        ),
-    ]
-    return "rule-warden-one-finding", {
+    shout = (
+        "shout-twice",
+        r"^location: .*src\/textutil\.py:(?:[4-9]|1[0-9])(?!\d)",
+        "`shout_twice` joins the two shouts with no space, against S2.",
+    )
+    graders = behaviour.report_shape("warden", report)
+    # A fixture has no commit, and an entry's location never needs one.
+    for name, pattern, body in rt.truths_with(WARDEN_CASE, [shout], None):
+        graders.append(behaviour.report_regex("truth", name, report, pattern, body))
+    return WARDEN_CASE, {
         "agent": "warden",
         "prompt": orchestrate(
             "warden",

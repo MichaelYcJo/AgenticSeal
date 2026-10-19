@@ -4,11 +4,18 @@
 A replay case is a historical review target: the clone at the commit a
 round record reviewed and the base it was reviewed against. Its truth is
 every finding the round closed `fixed` that the next round confirmed
-closed; each is a `truth-` grader over the `location:` lines of the round
-record the warden writes today. A record comes in one of two shapes:
+closed, and every truth `recurred_truths.json` adds for the case or widens
+(`truths_with`, which the other two generators read too); each is a
+`truth-` grader over the `location:` lines of the round record the warden
+writes today. A record comes in one of two shapes:
 
   labelled   0.22.0's record (`docs/the-review-record.md` §*The round
-             record*), read through `chain_check.py`'s own reader: the
+             record*), read through the `chain_check.py` of the commit that
+             last wrote it, with the grammar that commit's
+             `docs/the-review-record.md` holds, so each record is judged by
+             the grammar in force when it was written (the owner's decision
+             on #985) and a line the grammar gained later is not owed; a
+             record no commit wrote is read by this tree's check. The
              commit and the base are its `target:` line, a finding is a
              `### <n>. ` section at `verdict: fixed <commit>`, and the next
              round confirms it on a `confirms: round-<N>#<n>` line. It
@@ -39,12 +46,16 @@ named case no release tag's records hold · 2 the arguments were unusable.
 
 import argparse
 import ast
+import atexit
 import functools
 import importlib.util
+import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import behaviour
@@ -68,6 +79,12 @@ LOCATION = re.compile(
 )
 WINDOW = 15
 MODEL = "claude-opus-5-5"
+# What every truth's pattern opens with: a finding's `location:` line.
+LOCATION_LINE = "^location: .*"
+# The truths a run recurred on, which the three generators add (#971).
+TRUTHS = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "recurred_truths.json"
+)
 
 
 def git(*args, check=True):
@@ -126,18 +143,83 @@ def records(tags, items=None):
     return found
 
 
-@functools.cache
-def record_reader():
-    """`(chain_check, its shared reader)`: the one reader of a labelled
-    record, `chain_check.py` beside this tree, loaded once.
+def load_check(path, name):
+    """The `chain_check.py` at PATH, imported as NAME.
 
     A script that will not load stops the run naming it."""
-    spec = importlib.util.spec_from_file_location("specseal_chain_check", CHECK)
+    spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
-        raise SystemExit(f"replay_targets: cannot load {CHECK}")
+        raise SystemExit(f"replay_targets: cannot load {path}")
     check = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(check)
+    try:
+        spec.loader.exec_module(check)
+    except Exception as exc:
+        raise SystemExit(f"replay_targets: {path} will not load: {exc}") from None
+    return check
+
+
+@functools.cache
+def record_reader():
+    """`(chain_check, its shared reader)`: the reader of a labelled record's
+    lines, `chain_check.py` beside this tree, loaded once."""
+    check = load_check(CHECK, "specseal_chain_check")
     return check, check.SHARED_READER
+
+
+# What a commit's check needs beside it to load: the script, the reader it
+# loads when imported, and the document whose grammar table it reads. A
+# check from before the table carries its grammar in its code, and that
+# commit holds no table for it to read.
+CHECK_FILES = (
+    "skills/code-review/scripts/chain_check.py",
+    "skills/verify/scripts/unverified_check.py",
+    "docs/the-review-record.md",
+)
+CHECKS = {}
+
+
+def written_at(rel, tags):
+    """The commit that last wrote record REL: in the working tree's history
+    where the tree holds it, else in the history of the first of TAGS that
+    holds it, the order `records` reads them in. None where no commit wrote
+    it, a record the tree has not committed among them.
+
+    The last write and not the first, because a commit that rewrites a record
+    into a renamed label's new spelling moves it to that commit's grammar on
+    purpose, and the record is then judged by the grammar it was rewritten
+    into (#985, the orchestrator's decision under the owner's automation
+    answer)."""
+    if os.path.isfile(os.path.join(ROOT, rel)):
+        return git("log", "-1", "--format=%H", "--", rel, check=False).strip() or None
+    for tag in tags:
+        if git("ls-tree", "--name-only", tag, "--", rel, check=False).strip():
+            return git("log", "-1", "--format=%H", tag, "--", rel).strip() or None
+    return None
+
+
+def checks_at(at):
+    """`(chain_check, its reader)` as commit AT holds them, loaded from a
+    copy of `CHECK_FILES` at AT, once for each set of their contents; this
+    tree's where AT is None. The copies are removed when the run ends."""
+    if at is None:
+        return record_reader()
+    blobs = tuple(
+        git("rev-parse", "-q", "--verify", f"{at}:{rel}", check=False).strip()
+        for rel in CHECK_FILES
+    )
+    if blobs not in CHECKS:
+        held = tempfile.mkdtemp(prefix="specseal-replay-check-")
+        atexit.register(shutil.rmtree, held, True)
+        for rel, blob in zip(CHECK_FILES, blobs, strict=True):
+            if blob:
+                path = os.path.join(held, *rel.split("/"))
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(git("show", blob))
+        name = f"specseal_chain_check_{blobs[0][:12]}_{len(CHECKS)}"
+        check = load_check(os.path.join(held, *CHECK_FILES[0].split("/")), name)
+        CHECKS[blobs] = (check, check.load(check.READER, f"{name}_reader"))
+    return CHECKS[blobs]
 
 
 def labelled(text):
@@ -149,17 +231,21 @@ def labelled(text):
     )
 
 
-def labelled_round(text, rel, n):
-    """`(round, why)` for record N in labelled lines, read through
-    `chain_check.py#round_of`: `round` is `{"sha", "value", "findings",
-    "confirms"}` — the `target:` commit and the line's whole value, each
-    finding as `(n, symptom, its location value, fixed or not)`, and the
-    `(round, finding)` pairs its `confirms:` lines name.
+def labelled_round(text, rel, n, at=None):
+    """`(round, why)` for record N in labelled lines, judged by
+    `chain_check.py#round_of` as commit AT holds it, the commit that wrote
+    the record (`written_at`), or this tree's where AT is None: `round` is
+    `{"sha", "value", "findings", "confirms"}` — the `target:` commit and
+    the line's whole value, each finding as `(n, symptom, its location
+    value, fixed or not)`, and the `(round, finding)` pairs its `confirms:`
+    lines name.
 
-    A record the check refuses is `(None, the first refusal)`, so a replay
-    reads only what the pull request accepted."""
+    A record that check refuses is `(None, the first refusal)`, so a replay
+    reads only what the pull request accepted, by the grammar it was
+    accepted under."""
+    judge, judged_by = checks_at(at)
+    found, errors = judge.round_of(judged_by, text, rel, n)
     check, reader = record_reader()
-    found, errors = check.round_of(reader, text, rel, n)
     if errors:
         _rel, line, why = errors[0]
         return None, f"the check refuses the record at line {line}: {why}"
@@ -279,15 +365,15 @@ def findings(text):
     return rows
 
 
-def confirmed(text, n, rel="the next round's record"):
+def confirmed(text, n, rel="the next round's record", at=None):
     """The finding numbers of round N a record confirms closed: its
     `confirms: round-<N>#<n>` lines where it is labelled, its 🟢 rows where
     it is a table.
 
     A line or row that names no round N finding confirms nothing, and a
-    labelled record the check refuses confirms nothing at all."""
+    labelled record the check of AT refuses confirms nothing at all."""
     if labelled(text):
-        read, _why = labelled_round(text, rel, n + 1)
+        read, _why = labelled_round(text, rel, n + 1, at)
         return {k for r, k in read["confirms"] if r == n} if read else set()
     done = set()
     for line in text.split("\n"):
@@ -356,6 +442,16 @@ def truth_pattern(location, target):
     `path#unit`, which `chain_check.py` refuses in a `location:` line.
 
     A location naming no backticked path gives None."""
+    option = truth_option(location, target)
+    return None if option is None else f"{LOCATION_LINE}(?:{option})"
+
+
+def truth_option(location, target, window=WINDOW):
+    """`truth_pattern`'s alternative for LOCATION, without the `location:`
+    line around it: a line within WINDOW of the one LOCATION names, or of
+    its unit's span.
+
+    A location naming no backticked path gives None."""
     m = LOCATION.search(location)
     if not m:
         return None
@@ -363,18 +459,101 @@ def truth_pattern(location, target):
     lines = None
     if m["line"]:
         line = int(m["line"])
-        lines = (line - WINDOW, line + WINDOW)
+        lines = (line - window, line + window)
     if m["unit"] and path.endswith(".py"):
         source = git("show", f"{target}:{path}", check=False)
         span = unit_span(source, m["unit"]) if source else None
         if span:
-            lines = (span[0] - WINDOW, span[1] + WINDOW)
+            lines = (span[0] - window, span[1] + window)
     if lines:
-        numbers = "|".join(str(n) for n in range(max(1, lines[0]), lines[1] + 1))
-        option = f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)"
-    else:
-        option = f"{behaviour.js_escape(path)}(?![\\w./#-])"
-    return "^location: .*(?:" + option + ")"
+        return lines_option(path, *lines)
+    return f"{behaviour.js_escape(path)}(?![\\w./#-])"
+
+
+def lines_option(path, first, last):
+    """The alternative for PATH at any line from FIRST to LAST, the line
+    numbers before 1 dropped."""
+    numbers = "|".join(str(n) for n in range(max(1, first), last + 1))
+    return f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)"
+
+
+def recurred_truths():
+    """`{case: [entry]}` from the input file at TRUTHS: the truths a run
+    recurred on, each a new grader or an existing one widened. An entry is
+    `case`, `grader` (`truth-<slug>`), `finding` (a new grader's body),
+    `locations` (`path`, `path:line` or `path:first-last` at the case's
+    target), `from` (the classing rows it came from), for a widening
+    `widens: true`, and where ±15 lines would reach another truth of the
+    case, `window`, the lines either side its locations accept.
+
+    An entry naming a case the warden's suite does not hold stops the run
+    with exit 1, so the file cannot outlive its cases silently."""
+    with open(TRUTHS, encoding="utf-8") as f:
+        entries = json.load(f)
+    out = {}
+    for e in entries:
+        if not os.path.isdir(os.path.join(OUT, e["case"])):
+            raise SystemExit(f"{TRUTHS}: an entry names {e['case']}, no case of {OUT}")
+        out.setdefault(e["case"], []).append(e)
+    return out
+
+
+def truths_with(case, truths, target):
+    """TRUTHS, the `[(name, pattern, body)]` a generator derived for CASE
+    (NAME without its `truth-` prefix), with the input file's entries for
+    CASE applied at TARGET: a widening adds each of its locations to the
+    named truth's pattern as an alternative and keeps its body; a new truth
+    is one more `(name, pattern, finding)`. A location's alternative accepts
+    its line, or every line of its range, and the entry's `window` (15
+    where it names none) either side.
+
+    An entry widening a truth CASE does not have, adding one it already has,
+    naming no location, a location outside `path`, `path:line` and
+    `path:first-last`, a range that ends before it starts, or a window that
+    is no count stops the run with exit 1."""
+    out = list(truths)
+    for e in recurred_truths().get(case, []):
+        name = e["grader"].removeprefix("truth-")
+        window = e.get("window", WINDOW)
+        if type(window) is not int or window < 0:
+            raise SystemExit(f"{case}: {e['grader']}'s window {window!r} is no count")
+        options = []
+        for location in e["locations"]:
+            m = LOCATION.fullmatch(f"`{location}`")
+            if not m or m["unit"]:
+                raise SystemExit(
+                    f"{case}: {e['grader']} names `{location}`, no coordinate"
+                )
+            last = re.search(r"[-\N{EN DASH}](\d+)$", location) if m["line"] else None
+            if last:
+                first = int(m["line"])
+                if int(last[1]) < first:
+                    raise SystemExit(
+                        f"{case}: {e['grader']} names `{location}`, a range "
+                        "that ends before it starts"
+                    )
+                options.append(
+                    lines_option(m["path"], first - window, int(last[1]) + window)
+                )
+            else:
+                options.append(truth_option(f"`{location}`", target, window))
+        if not options:
+            raise SystemExit(f"{case}: {e['grader']} names no location")
+        names = [n for n, _pattern, _body in out]
+        if e.get("widens"):
+            if name not in names:
+                raise SystemExit(f"{case}: no {e['grader']} to widen")
+            i = names.index(name)
+            _n, pattern, body = out[i]
+            if not pattern.startswith(LOCATION_LINE):
+                raise SystemExit(f"{case}: {e['grader']} reads no `location:` line")
+            rest = pattern[len(LOCATION_LINE) :]
+            out[i] = (name, f"{LOCATION_LINE}(?:{rest}|{'|'.join(options)})", body)
+        elif name in names:
+            raise SystemExit(f"{case}: {e['grader']} is already a truth of the case")
+        else:
+            out.append((name, f"{LOCATION_LINE}(?:{'|'.join(options)})", e["finding"]))
+    return out
 
 
 def targets(tags, items=None):
@@ -382,13 +561,14 @@ def targets(tags, items=None):
     round left out, over the records `records` reads at TAGS for ITEMS.
 
     A round whose SHAs or branch do not resolve, or a labelled record the
-    check refuses, is left out with the reason."""
+    check of the commit that wrote it refuses, is left out with the
+    reason."""
     found = records(tags, items)
     kept, left = [], []
     for (item, n), text in sorted(found.items()):
         rel = f"seal/specs/{item}/rounds/round-{n}.md"
         if labelled(text):
-            read, why = labelled_round(text, rel, n)
+            read, why = labelled_round(text, rel, n, written_at(rel, tags))
             if read is None:
                 left.append((item, n, why))
                 continue
@@ -419,7 +599,8 @@ def targets(tags, items=None):
         if not branch:
             left.append((item, n, "routing.md at the target names no branch"))
             continue
-        done = confirmed(nxt, n, f"seal/specs/{item}/rounds/round-{n + 1}.md")
+        following = f"seal/specs/{item}/rounds/round-{n + 1}.md"
+        done = confirmed(nxt, n, following, written_at(following, tags))
         truths = []
         for k, finding, location, fixed in rows:
             if fixed and k in done:
@@ -497,17 +678,17 @@ def scaffold(t, url):
 def graders(t):
     """Reach, shape and truth graders for one target."""
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
-    out = behaviour.report_shape("warden", report)
-    for truth in t["truths"]:
-        out.append(
-            behaviour.report_regex(
-                "truth",
-                f"{truth['k']}",
-                report,
-                truth["pattern"],
-                f"Round {t['n']}'s finding {truth['k']}: {truth['finding']}",
-            )
+    own = [
+        (
+            f"{truth['k']}",
+            truth["pattern"],
+            f"Round {t['n']}'s finding {truth['k']}: {truth['finding']}",
         )
+        for truth in t["truths"]
+    ]
+    out = behaviour.report_shape("warden", report)
+    for name, pattern, body in truths_with(case_name(t), own, t["target"]):
+        out.append(behaviour.report_regex("truth", name, report, pattern, body))
     return out
 
 

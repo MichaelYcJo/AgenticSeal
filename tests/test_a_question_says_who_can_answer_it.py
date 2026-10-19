@@ -15,10 +15,11 @@ Two documents carry the consequence and this module pins both.
                  into. The column has to be in the shipped table, because a
                  session bootstraps from the template and never reads the
                  argument for it
-  the report     `agents/framer.md`'s `## Report` splits on the same three
-                 values. A row a PERSON answers goes to the orchestrator in
-                 full; the other two are a path and a count, because there is
-                 nothing in them for the reader to act on
+  the report     `agents/framer.md`'s hand-back step and its person-row rule
+                 split on the same three values. A row a PERSON answers goes
+                 to the orchestrator in full; the other two are a path and a
+                 count, because there is nothing in them for the reader to
+                 act on
 
 The report half is the one that is easy to get backwards, and it was
 backwards: the rule read *never the rows' text*, unconditionally, resting on
@@ -117,9 +118,18 @@ def test_the_template_says_the_framer_does_not_own_the_answers():
 
 
 def report_of(agent):
-    text = flat("agents", agent)
-    start = text.index("## Report")
-    return text[start:]
+    """The definition's hand-back step and its person-row rule, flattened.
+
+    Since #968 the report is the last step of `## Order of work`, and the
+    rule for a person's row is a paragraph of `## Rules`; the two together
+    are what a framer reads when it writes the report."""
+    text = read("agents", agent)
+    step = re.search(r"^\d+\. Hand back\.(.*?)^## ", text, re.M | re.S)
+    assert step, f"agents/{agent} has no `Hand back.` step"
+    lead = "**A row only a person can answer"
+    start = text.index(lead)
+    rule = text[start : text.index("Enforced by:", start)]
+    return " ".join((step.group(1) + rule).split())
 
 
 def test_a_person_answerable_row_reaches_the_report_in_full():
@@ -179,16 +189,21 @@ def test_the_report_does_not_reduce_the_frame_to_counts():
     )
 
 
-def test_the_bound_on_section_five_is_stated_rather_than_assumed():
-    """§5 is not overturned by the split, and a definition that simply stops
-    citing it leaves the next reader to re-derive the old rule from the
-    contract. The bound is written down instead."""
+def test_the_hand_back_labels_what_the_framer_ran_as_executed():
+    """Round 1 of #968, finding 3. A framer runs `git show`, `grep` and
+    `wc -l` while it reads, and a frame labels those facts `executed`. A
+    hand-back told that every claim is `read` misstates them (contract §4);
+    what is true is narrower, that it ran no check of the repository's."""
     report = report_of("framer.md")
-    assert "§5" in report, (
-        "the report stopped naming the rule it is bounding, so the split "
-        "reads as a contradiction of the contract rather than a reading of it"
+    assert "executed nothing" not in report, (
+        "the hand-back says the framer ran nothing, and the commands it runs "
+        "while reading give facts that only running them again can check"
     )
-    assert "is not a claim" in report, (
-        "the bound itself is gone: §5 is about a claim a reader might act on "
-        "without opening it, and a question put to a person is not one"
+    assert "is `executed`" in report, (
+        "the hand-back no longer tells the framer which label a fact from a "
+        "command it ran takes"
+    )
+    assert "no check of the repository's" in report, (
+        "the hand-back lost the narrower claim that stays true: the framer "
+        "runs none of the repository's checks"
     )

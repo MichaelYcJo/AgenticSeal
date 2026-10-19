@@ -1160,8 +1160,9 @@ def finding(n, verdict, what="the parser drops a row", location="`f.py:1`"):
     """One `### ` section of `## Findings`, its `verdict:` line `verdict`."""
     return (
         f"### {n}. {what}\n\n"
-        f"severity: must\nlocation: {location}\nverdict: {verdict}\n\n"
-        "executed\n\nanswer: \n\n"
+        f"severity: must\nlocation: {location}\n"
+        f"evidence: executed `pytest tests/test_one.py -q`\nverdict: {verdict}\n\n"
+        "why\n\nanswer: \n\n"
     )
 
 
@@ -3130,7 +3131,7 @@ def test_a_recorded_run_says_the_file_is_written_and_not_committed(a_recorded_ru
     assert lines[-1] == gate_module().CELL_UNCOMMITTED.format(path=rel), lines
     assert lines[-1] == (
         f"broad-gate: the run is written to {rel} and not committed. CI reads "
-        "HEAD, so commit it before the pull request is marked ready"
+        "HEAD, so commit it before you push"
     )
     assert git(repo, "status", "--porcelain", "--", rel).stdout.strip(), (
         "the line says the file is uncommitted over a file git calls clean"
@@ -3220,7 +3221,7 @@ def test_the_documents_name_the_line_that_says_to_commit_the_cell():
     )
     assert (
         "the report's last line says `broad-gate.md` is written and not committed: "
-        "CI reads HEAD, so commit it before the pull request is marked ready"
+        "CI reads HEAD, so commit it before you push"
     ) in orchestration
 
 
@@ -8190,7 +8191,9 @@ def test_a_runners_event_payload_is_what_judges_the_fixture(
 # Both were written anew since (#957, #967) and name no runner: the run's
 # owner moves from the sealer to the orchestrator in #969, and contract §2 is
 # where a reader finds it. What each definition still owes is the coverage
-# probe, in its own words.
+# probe, in its own words. The warden's words are #985's absence rule: a
+# claim that nothing catches a finding is a probe, named on the finding's
+# `evidence: executed` line.
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 PROBE = {
     "smith.md": (
@@ -8199,8 +8202,10 @@ PROBE = {
         "report it as a probe."
     ),
     "warden.md": (
-        "a coverage probe — nothing in the suite catches this — is a different "
-        "act: run it, and report it as a probe, never as a seal"
+        "A claim of absence, such as nothing in the suite catching this, is a "
+        "probe: run it over the module that should catch it, report it as a "
+        "probe, never as a seal, and name it on the finding's `evidence: "
+        "executed` line."
     ),
 }
 
@@ -8351,39 +8356,23 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     )
 
 
-def test_the_sealer_recites_the_four_acts_s6_actually_withholds():
-    """Round 1, finding 10 of #120. The definition recited §6's withheld acts
-    as *no pull request, no push, no commit, no agent spawned* -- it dropped
-    `post` and added `commit`, which §6 withholds from nobody.
+def test_the_sealer_leaves_s6s_withheld_acts_to_s6():
+    """Round 1, finding 10 of #120 found the definition reciting §6's
+    withheld acts one short and one over, and this case held the recitation
+    to §6's own list. #943 removed the recitation: §6 binds every agent
+    whatever its file says, and the copy cost the sealer's preload bytes its
+    measurement refused (round 1 of #943).
 
-    Nothing shipped broken, and that is why it is a correction rather than a
-    fix: §6 now binds its four `whatever its file says`, so the sealer could
-    not have granted itself posting either way. What the branch changed is
-    that §6's list became explicit and countable, and a loose recitation
-    beside a countable list is a second source that disagrees with the first.
-
-    The four words are checked against §6's own sentence before they are
-    checked against the definition, so the two cannot drift apart silently:
-    change §6's list and this case names the word that left."""
-    withheld = next(part for part in section(6).split(". ") if "post nothing" in part)
-    recital = next(
-        part
-        for part in " ".join(sealer_text().split()).split(". ")
-        if "§6 withholds stays withheld" in part
+    Rewritten rather than deleted, for the reason the case below gives: a
+    case removed with the passage it pinned leaves nothing to notice the
+    passage coming back. A recitation that returns is a second source beside
+    a countable list, so the assertions invert."""
+    text = " ".join(sealer_text().split())
+    assert "§6 withholds stays withheld" not in text, (
+        "the sealer recites §6's withheld acts again; §6 is their one source"
     )
-    for act in ("post", "push", "pull request", "spawn"):
-        assert act in withheld, (
-            f"§6's own list no longer withholds `{act}`, so this case is "
-            "measuring the definition against a sentence that moved"
-        )
-        assert act in recital, (
-            f"the sealer's recitation of §6 drops `{act}`. The list is "
-            "countable now, and a recitation one short reads as permission"
-        )
-    assert "commit" not in recital, (
-        "the recitation adds an act §6 withholds from nobody. A definition "
-        "that over-recites teaches the next reader a rule the contract does "
-        "not have, which is the same defect as under-reciting"
+    assert "nothing posted, nothing pushed" not in text, (
+        "the sealer recites §6's withheld acts again; §6 is their one source"
     )
 
 

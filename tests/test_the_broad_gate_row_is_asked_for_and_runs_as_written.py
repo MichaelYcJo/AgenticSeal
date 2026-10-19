@@ -571,11 +571,11 @@ def test_the_row_refusal_is_a_persons_and_the_sealer_chooses_no_command():
 
 def test_the_review_orchestrator_stops_the_run_rather_than_filling_the_row_in():
     """The other party in the room when the refusal lands. The sealer reports
-    it; whoever spawned the sealer is the one holding a draft pull request and
-    a reason to get past it."""
+    it; whoever spawned the sealer is the one holding finished work with no
+    pull request open and a reason to get past it."""
     orchestrator = flat(read(*REVIEW_ORCH))
     assert "A refusal about the `Broad gate` row goes to a person" in orchestrator
-    assert "leave the pull request as a draft until they have" in orchestrator
+    assert "open no pull request until they have" in orchestrator
     assert "/specseal:config" in orchestrator
     assert "#401" in orchestrator, (
         "the instruction is asserted without the measurement behind it"

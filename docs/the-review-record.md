@@ -43,6 +43,7 @@ Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_ev
 | `### <n>. <symptom>` | `### (?P<number>[1-9][0-9]*)\. .+` | `## Findings` | each number once | no number: a finding's heading reads `### <n>. <symptom>`, and a later round names it by that `n` |
 | `severity:` | `severity: (?:must\|should)` | a finding | one | a severity is `must` or `should` |
 | `location:` | `` location: `[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`(?:, `[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`)* `` | a finding | one | a location is one or more of `path`, `path:line` or `path:first-last`, each backticked, joined by `, ` |
+| `evidence:` | `` evidence: (?:executed `[^`]+`(?:, `[^`]+`)*\|read `[^`\s:/#][^`\s:#]*:[0-9]+(?:-[0-9]+)?`(?:, `[^`\s:/#][^`\s:#]*:[0-9]+(?:-[0-9]+)?`)*) `` | a finding | one | evidence is `executed` and each command run, or `read` and each `path:line` or `path:first-last` opened, each backticked, joined by `, ` |
 | `verdict:` | `verdict: (?:open\|rejected\|fixed (?P<commit>[0-9a-f]{7,40})\|deferred (?P<home>\S(?:.*\S)?))` | a finding | one | a verdict is `open`, `fixed <commit>`, `rejected` or `deferred <home>` |
 | `regression:` | `regression: round-(?P<round>[1-9][0-9]*)(?:#(?P<finding>[1-9][0-9]*))?` | a finding | at most one | a reference is `round-<N>#<n>` or `round-<N>` |
 | `reopens:` | `reopens: round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*)` | a finding | at most one | a reopened close is a finding's, so the reference is `round-<N>#<n>` |
@@ -97,6 +98,31 @@ whether a fix that touched one of three is complete is the verifying round's
 to judge. It errs where a commit touches a named path and fixes nothing,
 which the verifying round reads.
 Enforced by: tests/test_chain_check.py::TestLocationOf::test_one_or_more_backticked_coordinates_read_and_nothing_else_does, tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused
+
+**A finding's `evidence:` line names what its claim rests on.** `executed`
+names each command the round ran for it, and `read` each `path:line` it
+opened, so a later reader repeats the act instead of trusting the prose. A
+claim resting on neither is no finding but a row of `## Not judged`. The
+check holds the line to its row and reads nothing out of it. A backtick
+ends a command on the line, so a command that holds one is written and run
+with `$(printf '\140')` in place of the character, and the line names the
+command the round ran.
+Enforced by: tests/test_chain_check.py::TestFindings::test_an_evidence_line_missing_twice_or_malformed_is_refused, tests/test_chain_check.py::TestFindings::test_both_evidence_forms_and_their_lists_read, tests/test_chain_check.py::TestFindings::test_a_label_in_another_spelling_is_refused_by_line
+
+**A claim of absence is `executed` only.** A finding that says something is
+missing, that nothing catches, calls or states it, names the search that
+found nothing, because no coordinate opened can show an absence. The check
+reads the line's shape and never whether a claim is one of absence; the
+warden who writes the line and the round that reads it judge that.
+Enforced by: nothing — whether a claim is one of absence is read from its prose, which the reviewer and the next round judge.
+
+**A later round re-runs an `executed` line rather than re-deriving the
+claim.** Where it weighs an earlier finding, it runs the commands the line
+names again. A probe the line names was deleted under
+`skills/agent-contract/SKILL.md` §7, so the round writes it again from its
+`## Probes` row. The sealer weighs no finding: a finding's verdict is the
+check's to read (`agents/sealer.md` step 3).
+Enforced by: tests/test_review_axes.py::test_a_later_round_re_runs_an_executed_line
 
 **The fix pass writes two lines per finding and nothing else in the file.**
 It rewrites the finding's `verdict:` line, with the commit for `fixed`, and
@@ -206,14 +232,23 @@ a ready pull request its newest run is HEAD, or only the work item's records
 follow it.
 Enforced by: tests/test_broad_gate.py::TestGate, tests/test_broad_gate.py::TestKeptRuns, tests/test_chain_check.py::TestMain
 
-**Nothing reads a record of the old table's shape.** The check opens the
+**The check reads no record of the old table's shape.** It opens the
 records of the work items this pull request's own commits declare or change
-and no other, so a record a merged pull request left behind is read by
-nothing again, whatever its shape. One of the old shape under an item this
-pull request carries has no `## Findings` section, and is refused by name. A
-work item in flight across the update rewrites its records into the shape
-before its pull request goes ready.
-Enforced by: tests/test_chain_check.py::TestMain::test_a_reviewed_branch_passes_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_an_old_shape_record_under_the_declared_item_is_refused
+and no other, so a record a merged pull request left behind is never judged
+at a pull request again, whatever its shape. Two readers outside the check
+still open merged records: `.github/scripts/release_seal.py#chain_counts`
+reads every record of a release with the `chain_check` of the tree it runs
+from, and `evals/scripts/replay_targets.py` reads each labelled record with
+the `chain_check` of the commit that last wrote it. One of the old shape
+under an item this pull request carries has no `## Findings` section, and is
+refused by name. A
+work item in flight across a change to the table meets the change as its
+records stand: a renamed line is rewritten into its new spelling, and an
+added line is never supplied after the round that would have written it, so
+an item whose records predate an added line merges before the change or has
+its rounds written after it. A record written before a line was added lacks
+it, and the lack is no finding for a later round.
+Enforced by: tests/test_chain_check.py::TestMain::test_a_reviewed_branch_passes_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_an_old_shape_record_under_the_declared_item_is_refused, tests/test_review_axes.py::test_a_record_written_before_a_line_was_added_is_no_finding
 
 **The check reads the diff as declarations, not as file identity.** It diffs
 without rename detection, so a deleted declaration beside a similar added one
@@ -266,18 +301,25 @@ Enforced by: nothing — the guarantee's own tables are what a reader audits
 
 <!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
 <!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
+<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
 **The stamp is drawn once per work item, from the sealer's `sealed`, at the
-end of the turn in which `guarantee.md` reading it was committed.** The stamp
-means every party verified the work item, the sealer last, and the work is
-done (#975), so it is drawn from that verdict and never from the broad
-gate's run, which comes before the sealer has read anything and draws
-nothing (`docs/the-broad-gate.md` §*One act, one owner*). git's
+end of the turn in which `guarantee.md` came to read it: at its commit in
+shared mode, and at its write in local mode.** The stamp means every party
+verified the work item, the sealer last, and the work is done (#975), so it
+is drawn from that verdict and never from the broad gate's run, which comes
+before the sealer has read anything and draws nothing
+(`docs/the-broad-gate.md` §*One act, one owner*). In shared mode git's
 `post-commit` runs after the commit, in the worktree it landed in. Where the
 commit carries a work item's `guarantee.md` whose one `Verdict:` reads
 `sealed`, it writes the stamp's values under
 `<git-common-dir>/specseal-stamp/<session>/` and prints one line naming the
-file and `seal-stamp --from <path>`. A `Stop` hook draws each undrawn file of
-its own session once, after that turn's text, and a subagent's end draws
+file and `seal-stamp --from <path>`. In local mode the `seal/` root sits under
+the git common dir and no commit carries `guarantee.md`. So a `post-edit`
+gate, `hooks/sealer-stamp-queue.py`, runs after each `Write` or `Edit` of
+`<git-common-dir>/seal/specs/<id>/guarantee.md`. It writes the same values for the
+payload's session, which a subagent's write carries as the main session's,
+and says the same line as its message. A `Stop` hook draws each undrawn file
+of its own session once, after that turn's text, and a subagent's end draws
 nothing. `withheld` and `undecided` queue nothing. Once per work item is held
 by what the clone and the tree carry, with no count beside them: a values
 file already named for the work item, pending or drawn, under any session's
@@ -285,17 +327,56 @@ directory is not written twice, whatever commit it named; a commit whose
 audited commit is not in its own history, a squash or a cherry-pick of the
 guarantee elsewhere, queues nothing; and a guarantee that read `sealed` at an
 earlier commit of that history, or whose `Target SHA` row's `; earlier run:`
-chain reads `sealed`, counts as stamped then, which holds across clones. It
-does not hold for a `sealed` committed over a history that carries no earlier
+chain reads `sealed`, counts as stamped then, which holds across clones; the
+earlier-run chain alone skips a `sealed` this clone recorded refusing (the
+next rule). It does
+not hold for a `sealed` committed over a history that carries no earlier
 `sealed` in a clone that holds no values file for the work item, which draws
 the stamp again in that clone: the sealing commit amended or rewritten there
 over its own parent, or a second seal on a copy of the branch that had not
-fetched the first. The clone that drew the stamp keeps its values file, so an
-amend there draws nothing. That is a stated limit, since across
-clones the history is the only record the rule reads, and nothing beside the
-tree counts stamps. The stamp carries what the records at the commit say: the audited commit and its branch, the base, the work item, the
-newest broad run and the count of round records.
-Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_guarantees_commit_queues_one_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_withheld_or_undecided_guarantee_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_after_withheld_queues_the_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_second_sealed_verdict_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_recommit_of_the_same_guarantee_queues_no_second_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_recommitted_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_stamps_rows_are_read_from_the_records, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_main_sessions_stop_draws_each_undrawn_file_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_end_draws_nothing_and_leaves_the_file, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output
+fetched the first. A `sealed` that drew in another clone, brought onto a
+copy of its declared branch that does not hold its audited commit, by hand
+or by `checkout`, `cherry-pick -n` or `merge --squash`, is refused at its
+commit and recorded, and the new audit the refusal asks for draws again
+there; it joins that class. The
+clone that drew the stamp keeps its values file, so an amend there draws
+nothing. That is a stated limit, since across clones the history is the only
+record the rule reads, and nothing beside the tree counts stamps. In local
+mode no history is read, because none exists: the root and the values
+directory share the common dir, so a values file for the work item, pending
+or drawn, is a complete record of its stamp in that clone. There once is
+held by that, by the `Target SHA` row's earlier-run chain, and by the audited
+commit being an ancestor of the branch the work item's `routing.md` names in
+its `Branch` row, a branch the clone must still hold. That last keeps a
+`sealed` written long ago quiet, since `settle` retires no local-mode work
+item; one whose branch still stands draws late, once, at its first edit. The
+stamp carries what the records say: the audited commit and its branch, the
+base, the work item, the newest broad run and the count of round records.
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_sealed_guarantee_queues_one_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_withheld_or_undecided_guarantee_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_reseal_after_withheld_queues_the_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_second_sealed_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_guarantee_off_its_branch_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_edit_gate_leaves_shared_mode_to_post_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_edit_gate_queues_a_local_mode_sealed_guarantee, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_write_queues_and_draws_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_edit_gate_is_silent_off_a_guarantee, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_guarantees_commit_queues_one_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_withheld_or_undecided_guarantee_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_after_withheld_queues_the_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_second_sealed_verdict_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_recommit_of_the_same_guarantee_queues_no_second_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_recommitted_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_stamps_rows_are_read_from_the_records, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_main_sessions_stop_draws_each_undrawn_file_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_end_draws_nothing_and_leaves_the_file, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output
+
+<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
+**A `sealed` refused because its audited commit is not on the branch leaves
+a refusal record in the clone that refused it, and the earlier-run chain
+skips a `sealed` this clone recorded, so the sealer's new audit draws the
+work item's one stamp.** The new audit keeps the refused verdict on its
+`Target SHA` row as `; earlier run: <sha> sealed`, and without a record the
+chain would count that entry as the stamp. The record is an empty file,
+`<git-common-dir>/specseal-stamp-refused/<id>-<target>`, beside the values
+directory and never listed with it. Two writers leave it, each for a row
+that stands in its own clone and nowhere else. In shared mode the commit gate
+writes it when it refuses the commit of that row
+(`docs/the-commit-gate-inside-git.md`), so the row never became history. In
+local mode the local writer writes it where the `Branch` row's branch stands,
+and says one line naming the commit and the branch, since no pull request's
+check reads a local guarantee. A recorded target matches a SHA when one is a
+prefix of the other and both are at least seven characters long; any other
+spelling finds no record, and the verdict counts as stamped. `sealed_before`
+asks no record: a `sealed` in the history drew where it was made, or was
+committed where no gate judged it, and either way it counts. `post-commit`
+writes none. So a `sealed` that drew, went stale under a rebase and was
+refused when its row was edited still holds the work item's stamp, and its
+repair draws nothing.
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refused_row_over_a_drawn_seal_does_not_draw_again, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_tracking_ref_left_by_a_rebase_withholds_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_refusal_is_quiet_off_its_one_fact, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_committed_past_the_stub_keeps_the_gap, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refusal_record_skips_only_its_own_verdict, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_guarantee_off_its_branch_queues_nothing, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit
 
 <!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
 **The hook holds its whole message under a budget named in the code, and
@@ -323,6 +404,7 @@ Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_th
 <!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
 <!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
 <!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
+<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
 **What the person's screen shows is not checked, and neither is the order of
 the text above it.** The cases prove that the hook emits the right bytes for
 the right payload. A screenshot of the probe proved once that such bytes
@@ -332,21 +414,45 @@ the turn the stamp closed, are read by the person and by nobody else. So is
 how the stamp reads on a light background as well as a dark one. Nothing
 outside the disc is painted, so its text is in the terminal's own colours and
 theme — dim labels, a green `✓`, the title in the stamp's red — and the owner
-reads the first real stamp on each background.
+reads the first real stamp on each background. In local mode the line
+reaches the person as the edit hook's message, and nobody has watched that
+message on a screen yet.
 **Nor is the hook's silence where it cannot draw.** No stamp is queued, and
 nothing is said, where git's hooks slot is somebody else's (`core.hooksPath`,
 or a hook file the plugin did not write), since none of its stubs runs there;
-in local mode, where the `seal/` root sits under the git directory and no
-commit carries `guarantee.md`; or for a person's own commit with no Claude
-session behind it, which has no turn to draw at. No stamp is queued either
-where the guarantee's history already read `sealed` and that verdict drew
-nothing, a `sealed` over a commit the branch does not hold among them: once
-per work item reads the history, and the work item's stamp is then the
-gap #976 carries. The hook draws nothing and
-says nothing where the main session's `python3` cannot load `seal_stamp.py`,
-since no launcher stands in front of a hook; where that session's working
-directory is outside the clone the commit landed in; or where its plugin
-predates the hook. Where a file was written, the line `post-commit` printed
+for a person's own commit with no Claude session behind it, which has no turn
+to draw at; for a local-mode `guarantee.md` that arrived by a shell write or
+`seal import` rather than by `Write` or `Edit`, which no edit hook sees; or
+for a local-mode verdict whose work item names no branch, or a branch the
+clone no longer holds. A `sealed` over a commit the branch does not hold
+still counts as the work item's stamp, so its repair draws none, where it
+was committed past the commit gate: under `--no-verify`, in a foreign hooks
+slot, under a plugin older than the gate, as a person's own commit, or in a
+clone no session has reached (`docs/the-commit-gate-inside-git.md`); or
+where an amend folded the guarantee into the very commit it audited, which
+`pre-commit` sees as that commit's child and cannot tell from a plain one.
+The pull request's check still refuses that landed row as stale. Likewise
+a commit that concludes a conflicted merge bringing in a side's `sealed` is
+refused; `docs/the-commit-gate-inside-git.md` gives its way on and why this
+plugin's flow never meets it. The gate judges a commit's newest verdict
+alone, never the `; earlier run:` chain, so a `sealed` that drew and whose
+audited commit a later rebase, amend or cherry-pick moved out of the history
+counts as stamped, which it is. In
+local mode the record is the clone's own: a values directory emptied by hand,
+or a guarantee brought by `seal import` from a clone that drew and re-sealed
+here, draws again. A wrong row that names, by coincidence, the very commit a
+copy of the item on another branch was sealed and drawn over draws a second
+time once the gate refuses and records it, the class #975 accepts as a
+second run of the item. So does a `sealed` that drew in another clone and
+was brought onto a copy of its declared branch that does not hold its
+audited commit, whatever brought it: the gate refuses and records it, and the
+new audit it asks for draws again. No guard can tell that copy from a stale
+row the same clone wrote after a push and a rebase. The
+hook draws nothing and says nothing where the main session's `python3`
+cannot load `seal_stamp.py`, since no launcher stands in front of a hook;
+where that session's working directory is outside the clone the stamp was
+queued in; or where its plugin predates the hook. Where a file was written,
+the line `post-commit` printed, or in local mode the edit hook's message,
 names `seal-stamp --from <path>`, and a stamp that did not appear is drawn by
 hand from it, once. Where none was, the pull request's check is what says the
 work item was sealed.

@@ -4,10 +4,9 @@ The stamp is the sealer's. It is drawn once per work item, at the commit of
 a `guarantee.md` reading `sealed` (`docs/the-review-record.md` §*The
 stamp*): the panel of what the records at that commit say, and a wax disc
 with an emblem pressed into it. Before #975 the broad gate's run drew it
-when the run passed. It drew the gold lily and the red lily below, and from
-0.20.0 through 0.22.0 the placeholder S that §*Candidates for #857*
-describes, which has no entry here yet. The emblem has changed since #30
-first drew it. This directory keeps each version as the terminal drew it,
+when the run passed. It drew the gold lily, the red lily and, from 0.20.0
+through 0.22.0, the placeholder S below, which the sealer's stamp still
+carries. The emblem has changed since #30 first drew it. This directory keeps each version as the terminal drew it,
 so a reader can see an earlier one without checking out an old tag.
 
 Each entry is two files, and no code reads either of them:
@@ -17,13 +16,22 @@ Each entry is two files, and no code reads either of them:
   Print it with `cat` in a terminal that draws truecolour.
 - **`<name>.png`** — a preview of the same cells for a page that cannot
   print ANSI codes. Each cell is 12 × 24 pixels, a half-block is drawn as
-  its two halves, and a cell nothing paints is transparent.
+  its two halves, and a cell nothing paints is transparent. A character is
+  Menlo at 19 pixels, centred in its cell. A 256-colour code is read
+  through xterm's table, and the terminal's own foreground is grey, (128,
+  128, 128). The placeholder S's text adds three styles: bold is Menlo
+  Bold, dim is drawn at half opacity, and the terminal's green is xterm's
+  (0, 205, 0). Redrawn by this rule with Pillow 12.3.0, the five previews
+  made before the placeholder S's match their files pixel for pixel.
 
 The source of each entry is its tag, not a copy of the old code. The
 command under each entry draws it again from the tag. It loads that tag's
-`skills/verify/scripts/seal_stamp.py` and calls `stamp(SAMPLE_ROWS,
-DEFAULT_SCALE)` directly, because `seal-stamp` on a pipe prints the letter
-twin rather than the colours.
+`skills/verify/scripts/seal_stamp.py` and calls `stamp` over the module's
+`SAMPLE_ROWS` directly, because `seal-stamp` on a pipe prints the letter
+twin rather than the colours. Each lily's command passes `DEFAULT_SCALE`
+as well. From 0.20.0 the module reads its mark from `seal-mark.txt` beside
+it, so the placeholder S's command writes the tag's chart into a temporary
+directory and points the module there.
 
 ## The gold lily — 0.10.0 to 0.16.0
 
@@ -65,23 +73,38 @@ twin rather than the colours.
 - **Bytes:** `red-lily.ans` is exactly what the command writes, 6,455
   bytes.
 
+## The placeholder S — from 0.20.0
+
+![The placeholder S: Georgia Bold's S in three red tones with a drop shadow on a 28-cell red wax disc lit from the upper left, beside a bold red SEALED and the panel's text in the terminal's own colours](placeholder-s.png)
+
+- **Releases:** 0.20.0 onward. The disc is the same at every tag from
+  v0.20.0 to v0.22.1. The sample panel beside it lost its `ledger` row in
+  0.22.0 (#944) and became the sealer's shorter panel in 0.22.1 (#975).
+  The file is v0.22.1's, the last tag when this entry was written.
+- **Issue:** #832, through pull request #859. #832 settled the 28-cell
+  frame and left the mark a placeholder: Georgia Bold's S, held in
+  `skills/verify/scripts/seal-mark.txt`. What the mark becomes is #857.
+- **Draw it again:**
+
+  ```
+  python3 -c 'import os, subprocess, tempfile, types; show = lambda p: subprocess.run(["git", "show", "v0.22.1:skills/verify/scripts/" + p], capture_output=True, encoding="utf-8", check=True).stdout; d = tempfile.TemporaryDirectory(); open(os.path.join(d.name, "seal-mark.txt"), "w", encoding="utf-8").write(show("seal-mark.txt")); m = types.ModuleType("seal_stamp"); m.__file__ = os.path.join(d.name, "seal_stamp.py"); exec(show("seal_stamp.py"), m.__dict__); print("\n".join(m.stamp(m.SAMPLE_ROWS)))' > placeholder-s.ans
+  ```
+
+- **Bytes:** `placeholder-s.ans` is exactly what the command writes, 5,498
+  bytes.
+
 ## The next entry
 
-The emblem that follows the red lily, the placeholder S, has been on every
-release's stamp since 0.20.0 and has no entry yet.
-The version check in `tests/test_release_hygiene.py` refuses a version at
-or above the running one unless a tag names it, so an entry written before
-its tag cannot name its release.
+The mark that replaces the placeholder S gets its entry once a tag carries
+it, because an entry is drawn from its tag.
 
 ## Candidates for #857
 
-The stamp that follows the red lily keeps a disc whose frame the owner
-settled on 2026-10-07: 28 cells across, a wax edge, a rim lit from the
-upper left, a groove and the field. Its mark is a placeholder, Georgia
-Bold's S, held as one chart: `skills/verify/scripts/seal-mark.txt`, 28 lines
-of 28 characters over `.M`. What the mark becomes is #857. The owner looked
-at these three the same day and shipped none of them; they wait here for
-#857.
+The placeholder S above stands on the disc whose frame the owner settled
+on 2026-10-07: 28 cells across, a wax edge, a rim lit from the upper left,
+a groove and the field. Its chart is 28 lines of 28 characters over `.M`.
+The owner looked at these three marks the same day and shipped none of
+them; they wait here for #857.
 
 Each candidate is three files, and no code reads any of them:
 

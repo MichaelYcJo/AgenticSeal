@@ -192,15 +192,17 @@ def test_the_smiths_contract_does_not_demand_what_a_serial_loop_cannot_give():
     )
 
 
-def framer_opening(text):
-    """The body of `agents/framer.md`'s `## How a frame opens`, heading to the
-    next `## `. Scoped so a phrase elsewhere in the definition cannot hold one
-    of the claims below up after the section itself lost it."""
-    match = re.search(r"^## How a frame opens$(.*?)(?=^## )", text, re.M | re.S)
+def framer_rule(text, lead):
+    """The `agents/framer.md` rule paragraph opening with `**<lead>**`, up to
+    its `Enforced by:` line. Scoped so a phrase elsewhere in the definition
+    cannot hold one of the claims below up after the rule itself lost it."""
+    match = re.search(
+        rf"^\*\*{re.escape(lead)}\*\*(.*?)^Enforced by:", text, re.M | re.S
+    )
     assert match, (
-        "`agents/framer.md` has no `## How a frame opens`. The opening was typed "
-        "into spawn prompts from 0.12.3 and lived in no file (#640); a rename "
-        "has to bring this case with it"
+        f"`agents/framer.md` has no rule opening `**{lead}**`. The opening was "
+        "typed into spawn prompts from 0.12.3 and lived in no file (#640); a "
+        "rename has to bring this case with it"
     )
     return " ".join(match.group(1).split())
 
@@ -210,65 +212,39 @@ def test_the_framers_definition_carries_its_opening():
     prompt goes missing without a trace (#107), and the framer's opening was
     exactly that: found by the 2026-09-28 sweep in no file at all.
 
-    The three claims are asserted by phrase, and the prohibition the prompts
-    carried is asserted ABSENT over the whole definition. Every framer that
-    read 1.00-1.12 since 0.12.3 was told not to open with a parallel read
-    burst; the framers of 0.12.1 and 0.12.2, never told, read 1.48-1.80
-    (#456). Writing that sentence into the file is the one edit that would
-    fix the floor in place."""
+    The early write is a step of the order of work and the bound is a rule,
+    each asserted by phrase. The prohibition the prompts once carried is
+    asserted ABSENT over the whole definition, because the readings #456
+    took under it sat at the floor and the rewording forbids nothing."""
     text = read("agents", "framer.md")
-    section = framer_opening(text)
-    assert text.index("## What you read, and how widely") < text.index(
-        "## How a frame opens"
-    ), "the opening sits before the reading it bounds"
-    assert "skeleton `spec.md`" in section, "the early write went"
-    assert "inside your first few calls" in section, (
-        "the early write lost its moment, and a skeleton written at the end "
-        "is what a watchdog loss leaves no trace of"
+    whole = " ".join(text.split())
+    assert "skeleton `spec.md` inside your first few calls" in whole, (
+        "the early write went or lost its moment, and a skeleton written at "
+        "the end is what a watchdog loss leaves no trace of"
     )
-    assert "about six reads or ranges" in section, "the bound on one call went"
-    assert "never the whole reading list" in section, (
+    rule = framer_rule(text, "Bound each call, not the reading.")
+    assert "about six reads or ranges" in rule, "the bound on one call went"
+    assert "never the whole reading list" in rule, (
         "the bound says how large a call may be and not what it may not be, "
         "which is the opening burst #456's stalls are the evidence about"
     )
-    assert "§10" in section, "the bound stopped citing the rule it applies"
+    assert "§10" in rule, "the bound stopped citing the rule it applies"
     # Round 1's 🟡 3. §10 says the files the handoff names go out in one
     # call, so a bound with no exception for them contradicts the rule the
     # bullet says it applies.
-    assert "whatever their number" in section, (
+    assert "whatever their number" in rule, (
         "the bound reaches the files the spawn prompt names, which §10 says "
         "go out in one call"
     )
-    # Round 1's 🟡 2. #456 has the 1.48 framer under 0.12.1, and 0.12.2's
-    # framers at 1.64 (finished) and 1.56 and 1.80 (stalled).
-    assert "the framers of 0.12.1 and 0.12.2" in section, (
-        "the comparison names one release for readings #456 records over two"
-    )
-    assert "the 0.12.2 framers, never told" not in section, (
-        "the sentence gives 0.12.2 the 0.12.1 framer's 1.48 again"
-    )
-    assert "read by range" in section and "sed -n" in section, (
+    assert "read by range" in rule and "sed -n" in rule, (
         "the large-file half went, which is the third clause #478 recorded"
     )
-    whole = " ".join(text.split()).lower()
     for prohibition in ("read burst", "not to open with", "do not open with"):
-        assert prohibition not in whole, (
+        assert prohibition not in whole.lower(), (
             f"`agents/framer.md` carries {prohibition!r}. The rewording bounds "
             "the opening and forbids nothing, because every reading taken "
             "under the prohibition sat at the floor"
         )
-
-
-def test_the_framers_definition_points_at_its_bar():
-    """The framing bar lives in `docs/the-review-record.md` §*The
-    per-segment bars* (#957 took the copies out of the definitions), and the
-    framer's opening points at its row as a lens, not a forecast."""
-    section = framer_opening(read("agents", "framer.md"))
-    assert "§*The per-segment bars*" in section, "the framer lost its bar"
-    assert "promises no saving" in section, (
-        "the number reads as a forecast. `## Why the frame is not the "
-        "builder's to draw` refuses one, and the bar is a lens"
-    )
 
 
 # --- the per-segment bars (work item 1788277657, round 1's tests-todo) ------

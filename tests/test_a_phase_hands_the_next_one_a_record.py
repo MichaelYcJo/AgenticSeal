@@ -190,12 +190,11 @@ def test_the_spec_template_carries_the_removes_section_above_the_mark():
 
 
 def test_the_framer_is_told_it_writes_the_removes_section():
-    """S8 of #835. The framer's writes table and its report name the
-    section, because a frame that does not know it owes one ships without
-    it."""
+    """S8 of #835. The framer's writes and its report name the section,
+    because a frame that does not know it owes one ships without it."""
     flat = " ".join(read(FRAMER_AGENT).split())
     assert "what the work removes (`## Removes`)" in flat
-    assert "**What the frame says the work removes.**" in flat
+    assert "What the frame says the work removes" in flat
 
 
 # --- each section's comment names the measured failure it answers -----------

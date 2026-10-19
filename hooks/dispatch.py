@@ -104,7 +104,10 @@ GROUPS = {
     # RAN, which is the whole of why the record is evidence a command text
     # cannot forge.
     "post-agent": ("worktree_consent.py",),
-    "post-edit": ("lint-python.py", "session-lease.py"),
+    # `sealer-stamp-queue.py` queues a local-mode stamp at the write of its
+    # `sealed` guarantee, which no commit carries (work item 1792363231);
+    # `sealer-stamp.py` in `stop` draws it.
+    "post-edit": ("lint-python.py", "session-lease.py", "sealer-stamp-queue.py"),
     # The git hooks are installed last, into the root the migration above may
     # just have moved.
     "session-start": (
@@ -627,10 +630,9 @@ def main():
 if __name__ == "__main__":
     # THE entry point, and the only one that matters in production: `hooks.json`
     # spawns this file and nothing else, and it loads each gate with
-    # `exec_module` and calls `main()` in-process. Seven of the eleven
-    # `__main__` blocks in this tree are therefore unreachable when Claude Code
-    # runs them -- so this block is where the streams get fixed, not each
-    # gate's.
+    # `exec_module` and calls `main()` in-process. The `__main__` block of
+    # every gate `GROUPS` names is therefore unreachable when Claude Code runs
+    # it -- so this block is where the streams get fixed, not each gate's.
     #
     # A console whose encoding is not UTF-8 cannot encode the em dash, arrow
     # and middle dot these gates print, and the UnicodeEncodeError leaves

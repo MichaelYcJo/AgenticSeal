@@ -35,6 +35,10 @@ each of its labels means:
   location:    where the defect shows, and the file the fix changes where
                that is elsewhere, each path from the root. A `fixed` commit
                must change one of these paths or a path under one
+  evidence:    what the claim rests on: `executed` and each command run, or
+               `read` and each `path:line` opened. A claim of absence,
+               that nothing catches, calls or states something, is
+               `executed` only, naming the search that found nothing
   verdict:     the line the check decides on:
                  open               what the warden writes
                  fixed <commit>     the commit that fixed it, on this branch
@@ -59,7 +63,7 @@ each of its labels means:
                otherwise
   answer:      the fix pass: what was done, why the finding does not hold,
                or where it went
-Then why it matters and the grounds, executed and read labelled apart (where
+Then why it matters and the grounds (where
 `regression:` stands, the unit, first; where `reopens:` stands, why the
 earlier close does not hold, first); the paste-ready fix in a fenced
 block, the artefact itself; and `answer:`. A fix that went to a path
@@ -72,10 +76,11 @@ line the table refuses, and for what `docs/the-review-record.md`
 
 severity: must
 location: `path:12`
+evidence: read `path:12`
 verdict: open
 regression: round-1#1
 
-<why it matters and the grounds, executed and read labelled apart>
+<why it matters and the grounds>
 
 ```<lang>
 <the paste-ready fix: the artefact, not a description of it>

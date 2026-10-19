@@ -34,12 +34,10 @@ half: `<repo>/seal/` where that directory exists, and
 ## Orchestrator: the order inside a ticket
 
 1. Branch from the release branch; write `routing.md` before the first edit.
-2. spec · plan (framer) → smith → the draft pull request opens
+2. spec · plan (framer) → smith → warden rounds → `broad-gate --preflight`,
+   yours → `broad-gate --record`, yours → sealer → the pull request opens
    (`skills/code-review/orchestration.md` §*Orchestrator: the pull request
-   opens before round 1, and a phase is re-run* owns when) → warden rounds →
-   `broad-gate --preflight`, yours → `broad-gate --record`, yours → sealer →
-   the pull request is marked
-   ready.
+   opens once the sealer seals, and a phase is re-run* owns when).
 3. The pull request body carries `Closes #N`; the release workflow closes the
    ticket when the release reaches `main`.
 
@@ -237,7 +235,8 @@ Never guess the original: a comparison against a guessed repo proves nothing.
    relation in `git remote -v`, and repos whose paths overlap this one's.
    Present what you found and let the user pick or give a path.
 2. **Baseline commit** — read `HEAD` of the confirmed original checkout.
-3. **Policy root** — `docs/policies/` if it exists, else propose it.
+3. **Policy root** — the ratified-policy directory the tree already has, or
+   `none`; never propose one.
 4. **Coordinate-trust exceptions** — leave empty. Rows arrive from real work.
 
 Write `seal/parity.md` from `templates/parity.md` with those values, and
@@ -378,9 +377,8 @@ has now broken something a reader can point at.
 
 It is a record, not a checkbox. #88 holds the rule a box here would break
 — the question grows only where a decision is genuinely a person's — and this
-one is not a person's: `agents/framer.md`'s `## When you run` says the SDD
-ladder decides, so the framer runs where §3 calls for a `spec.md` and nowhere
-else.
+one is not a person's: `agents/framer.md`'s `## Job` says the SDD ladder
+decides, so the framer runs only where §3 calls for a `spec.md`.
 
 So fill the row from what happened. `framer` where the frame was drawn by the
 subagent, `the session` where this session drew it, and no row at all where
@@ -413,10 +411,10 @@ the framer : read, judge, write spec / plan / questions
 you        : read plan.md and spawn the build         ← the approval
 ```
 
-`agents/framer.md` §*You have no interactive phase* is the other half of this,
-and it tells a framer that arrives to a missing `routing.md` to report it
-rather than write one — a declaration written from a guess is a recorded answer
-nobody gave.
+`agents/framer.md`'s rule *You ask nobody anything* is the other half of this,
+and its `## Job` tells a framer that arrives to a missing `routing.md` to
+report it rather than write one — a declaration written from a guess is a
+recorded answer nobody gave.
 
 **Write the answer down before the first edit**, in
 `seal/specs/<work-item-id>/routing.md`, from `templates/sdd-routing.md`. Committed,
@@ -636,7 +634,7 @@ not a closed-looking one.
 | Orchestrator: a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A resumed fix pass and a fresh spawn leave identical trees, so nothing at the pull request can tell them apart, and the measured difference between them is 282 calls against 30, and the choice of session is in no file |
 | Orchestrator: the run ends with a verifying round | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It fails a ready pull request when a commit touching a file outside the work item's records follows the commit on the last record's `target:` line, or a finding of that record reads `fixed <commit>` or `rejected`, which is the run whose own last fixes nobody opened; on a draft it prints and names the verifying round. What it cannot read is the cap: the extension lines are the warden's, and the sealer reads the count |
 | A regression is routed by comparing the fix with the frame | `skills/code-review/orchestration.md` | still a sentence | The warden's `regression:` line routes nothing mechanical, and neither does the sentence of its grounds the route reads: `skills/code-review/scripts/chain_check.py` reads the line only as a reference to an earlier finding, and the `Reframed` line only for its author against the declaration, and the sealer reads the records |
-| Orchestrator: the pull request opens before round 1, and a phase is re-run | `skills/code-review/orchestration.md` | still a sentence | A pull request opened after the rounds leaves the same tree as one opened before them, so nothing reads the timing, and nothing records that a closed phase's suite and lint were re-run before the next phase spawned. What is delivered is the step the section ends on: `skills/code-review/scripts/chain_check.py` fails a ready pull request whose `broad-gate.md` is absent or names a commit other than HEAD, which is what makes the orchestrator's broad run and the sealer's spawn after it happen. The step before that run, `broad-gate --preflight` (#638), is recorded nowhere either, and a session that skips it loses time and nothing else: the broad run asks the same arms and refuses the same way |
+| Orchestrator: the pull request opens once the sealer seals, and a phase is re-run | `skills/code-review/orchestration.md` | still a sentence | A pull request opened before the sealer leaves the same tree as one opened after it, so nothing reads the timing, nothing records that a platform-specific change ran `gh workflow run tests` before the broad run, and nothing records that a closed phase's suite and lint were re-run before the next phase spawned. What is delivered is the step the section ends on: `skills/code-review/scripts/chain_check.py` fails a ready pull request whose `broad-gate.md` is absent or names a commit other than HEAD, which is what makes the orchestrator's broad run and the sealer's spawn after it happen. The step before that run, `broad-gate --preflight` (#638), is recorded nowhere either, and a session that skips it loses time and nothing else: the broad run asks the same arms and refuses the same way |
 | Orchestrator: verify before posting | `skills/code-review/orchestration.md` | still a sentence | The four checks are readings the orchestrator takes before posting, and nothing in the tree records that any of them happened. The one part a record carries is the new HEAD on the next round's `target:` line where HEAD moved |
 | Orchestrator: closing the cycle | `skills/code-review/orchestration.md` | check: `hooks/commit-review-gate.py` | The review arm quiets on a mark standing at HEAD, so a cycle left unclosed meets the gate at the next commit. On a branch with a routing declaration in force the declaration quiets that arm first, and that is every branch this workflow routes, so for those the missing mark is never noticed |
 

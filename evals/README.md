@@ -29,8 +29,10 @@ the record the five pass rules of `noninferiority.py#verdict` judge:
 1. recall has not fallen, except by one find where every truth grader that
    lost it is still found by at least one new run;
 2. the false-finding rate is within `FALSE_MARGIN` of the baseline's;
-3. each shape and reach grader passes on the new side at least as often as
-   on the baseline, and one the baseline lacks passes every new run;
+3. the shape and reach graders both sides ran, pooled, pass no fewer runs
+   on the new side than on the baseline; one of them the new side failed on
+   every run, where the baseline passed it at least once, fails the side by
+   name; and one the baseline lacks passes every new run;
 4. the preload is fewer bytes than the baseline's;
 5. the tokens read across every model, the spawned agent's included, per
    tool call are fewer than the baseline's. The rewrite controls the context
@@ -46,6 +48,18 @@ pass.
 `tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes the
 record. Nothing in the tree makes a later edit owe a run.
 
+**A side already paid for is read again under another suite's truths
+without a run.** `noninferiority.py regrade --side IN.json --suite-rev REV
+--out OUT.json` grades each run of IN on REV's `truth-` graders, the
+grader's regex searched over the run's report rows. It writes OUT naming
+REV's suite and the one IN's runs answered, which a side regraded again
+keeps. It refuses, naming the case, a side whose
+own suite does not give back from its rows the truth results it recorded,
+and a suite at REV that differs from IN's in anything but `truth-` graders
+or holds other cases: a change to a prompt, a scaffold or a `shape-` grader
+asks the agent something its runs never answered, and only a run measures
+that.
+
 **Every grader reads an outcome, never a sentence of a definition.** A
 `truth-` grader is a real or seeded defect the report names, a `shape-`
 grader is the work in the shape its next reader needs, and a `reach-` grader
@@ -60,8 +74,18 @@ case:
 | Generator | Cases |
 |---|---|
 | `scripts/replay_targets.py` | `warden/replay-*`: a round record's target, each finding the next round confirmed fixed a `truth-` grader |
-| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped diff with one mutation in a unit it touched |
+| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped diff with one mutation in a unit it touched, the mutated line its `truth-` grader |
 | `scripts/rule_cases.py` | `<agent>/rule-*`: a fixture repository the agent works in, graded on what it produced |
+
+All three also read `scripts/recurred_truths.json`. A real defect a case
+did not list, named by at least two of the case's classed runs, is a
+`truth-` grader of that case. A listed truth that a run found at a
+coordinate its regex missed is widened with that coordinate. Each entry
+names its case, the grader it adds or widens, its locations and the
+classing rows it came from. Where the ±15 lines around a location would
+reach another truth of the case, it also names a narrower `window`, because
+no two truths of one case may accept the same `location:` line. An entry
+the case cannot take stops the generator with exit 1.
 
 ```bash
 python3 evals/scripts/noninferiority.py run --agent warden --rev <merge base> \

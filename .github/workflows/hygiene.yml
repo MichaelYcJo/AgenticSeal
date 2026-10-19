@@ -4,17 +4,22 @@ on:
   pull_request:
     # `ready_for_review` and `converted_to_draft` are NOT in the default set
     # (`opened`, `synchronize`, `reopened`), and leaving them out made the
-    # draft excuse a permanent way past every check below. Open the pull
-    # request as a draft while a review is still running, let the checks pass
-    # on the draft's terms, then press Ready for review: no commit follows, so
-    # no `synchronize` fires, nothing re-runs, and the draft's green stays on
-    # that SHA through the merge. Two clicks, no commit.
+    # draft excuse a permanent way past every check below. `chain_check.py`
+    # fails nothing on a draft, and pressing Ready for review makes no
+    # commit, so without them no `synchronize` fires, nothing re-runs, and
+    # the draft's green stays on that SHA through the merge.
     #
     # `edited` is here for the issue-claims step below, which reads the pull
     # request body. Rewriting the body is an edit and no commit, and a re-run
     # replays the event the run began with, body and all, so without it the
     # split it reports is the old body's until the next push.
     types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
+
+# A newer run cancels this workflow's run still in progress for the same pull
+# request. The group is the one `test.yml` declares, so the two read alike.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 # Stated rather than inherited, since #359. Before it this file declared no
 # block and used no `gh`, so its token was whatever an enterprise,
@@ -173,10 +178,9 @@ jobs:
       # §*What the check reads at the pull request*).
       #
       # The draft state comes from GITHUB_EVENT_PATH, which this runner
-      # already sets. A review still running opens its pull request as a
-      # draft, where every refusal prints and none fails. A round's `target:`
-      # commit is read only as HEAD or an ancestor of it, so the check needs no
-      # ref the checkout does not already carry.
+      # already sets. On a draft every refusal prints and none fails. A
+      # round's `target:` commit is read only as HEAD or an ancestor of it, so
+      # the check needs no ref the checkout does not already carry.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |

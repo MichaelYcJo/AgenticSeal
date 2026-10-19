@@ -75,6 +75,11 @@ def test_the_broad_gate_section_states_its_own_timing():
     assert "once an unexplained failure appears" in flat, (
         "the baseline stopped naming the event that calls for it"
     )
+    # #943 renamed the section that owns when the run comes; a citation left
+    # at the old name points at a heading no file has.
+    assert f"`skills/code-review/orchestration.md` §*{SPAWN_SECTION}* owns when" in (
+        flat
+    ), "the broad gate section no longer names the owner of when the run comes"
 
 
 def test_the_owner_names_the_row_the_phrase_stood_for():
@@ -359,7 +364,7 @@ def test_the_preset_block_states_the_rule_the_loaded_files_assume():
 
 PREFLIGHT = "broad-gate --preflight"
 SPAWN_SECTION = (
-    "Orchestrator: the pull request opens before round 1, and a phase is re-run"
+    "Orchestrator: the pull request opens once the sealer seals, and a phase is re-run"
 )
 
 
