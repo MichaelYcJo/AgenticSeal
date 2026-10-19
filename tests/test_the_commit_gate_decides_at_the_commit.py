@@ -1710,8 +1710,15 @@ def test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit(world, s
         assert got.returncode == 0, got.stderr
         assert gate.HEADER not in got.stderr, got.stderr
         assert world.head(world.w) != before
-        staged = g(world.w, "diff", "--cached", "--name-only", home=world.home)
-        assert staged.stdout.split() == [rel], staged.stdout
+
+        # The guarantee is still staged, and nothing else is: `--quiet`
+        # answers by its exit status alone, so no path list is read.
+        def differs(*pathspec):
+            quiet = ("diff", "--cached", "--quiet", "--", *pathspec)
+            return g(world.w, *quiet, home=world.home, check=False).returncode
+
+        assert differs(rel) == 1, "the staged guarantee was committed"
+        assert differs(".", f":(exclude){rel}") == 0, "more than it is staged"
         return
     assert got.returncode != 0, got.stderr
     assert world.head(world.w) == before
