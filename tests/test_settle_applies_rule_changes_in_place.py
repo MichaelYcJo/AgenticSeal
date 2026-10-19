@@ -454,3 +454,126 @@ def test_two_specs_on_parallel_branches_at_one_place_are_a_conflict(repo, capfd)
         assert name in refused, text
     assert "conflict" in refused, text
     assert "would remove" not in text, text
+
+
+# --- settle --apply ----------------------------------------------------------------
+
+
+def apply(repo, capfd):
+    return dry_run(repo, capfd, "--apply")
+
+
+def specs_dir(repo, name):
+    return repo / "seal" / "specs" / name
+
+
+def test_apply_rewrites_in_place_and_removes_the_directory(repo, capfd):
+    """S1: the change lands where the text stood, the rest is byte-identical,
+    no marker is written, and the directory goes whole, its process record
+    included."""
+    item(repo, "1700000001-a", op("change", "S", "old sentence.", "New rule."))
+    rounds = specs_dir(repo, "1700000001-a") / "rounds"
+    rounds.mkdir()
+    (rounds / "round-1.md").write_text("# round 1\n", encoding="utf-8")
+    commit(repo, "a")
+    code, text = apply(repo, capfd)
+    assert code == 0, text
+    after = (repo / "docs" / "a.md").read_text(encoding="utf-8")
+    assert after == DOC.replace("old sentence.", "New rule."), after
+    assert "<!-- specs/" not in after
+    assert not specs_dir(repo, "1700000001-a").exists(), text
+    assert "removed seal/specs/1700000001-a/" in text, text
+
+
+def test_apply_follows_merge_order(repo, capfd):
+    """S5: B was added after A on one line of history, so B applies over A
+    although its id sorts first."""
+    item(repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
+    commit(repo, "a")
+    item(repo, "1700000001-b", op("change", "S", "y.", "z."))
+    commit(repo, "b")
+    code, text = apply(repo, capfd)
+    assert code == 0, text
+    assert "Before. z. After." in (repo / "docs" / "a.md").read_text(encoding="utf-8")
+    assert not specs_dir(repo, "1700000009-a").exists()
+    assert not specs_dir(repo, "1700000001-b").exists()
+
+
+def test_apply_refuses_a_conflict_and_keeps_both(repo, capfd):
+    """S6."""
+    for branch, name, change in (
+        ("one", "1700000001-a", op("change", "S", "old sentence.", "y.")),
+        ("two", "1700000002-b", op("add", "S", new="Rule.")),
+    ):
+        git(repo, "switch", "-qc", branch, "main")
+        item(repo, name, change)
+        commit(repo, name)
+    git(repo, "switch", "-q", "main")
+    git(repo, "merge", "-q", "--no-ff", "-m", "one", "one")
+    git(repo, "merge", "-q", "--no-ff", "-m", "two", "two")
+    code, text = apply(repo, capfd)
+    assert code == 1, text
+    assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
+    assert specs_dir(repo, "1700000001-a").exists()
+    assert specs_dir(repo, "1700000002-b").exists()
+    assert "conflict" in text, text
+
+
+def test_apply_writes_nothing_of_a_refused_spec(repo, capfd):
+    """S4 and S7: the first operation would apply, the second cannot, so
+    neither does; the refusal names the spec, the line and the reason."""
+    both = op("change", "S", "old sentence.", "y.") + "\n" + op("remove", "Nowhere")
+    item(repo, "1700000001-a", both)
+    commit(repo, "a")
+    code, text = apply(repo, capfd)
+    assert code == 1, text
+    assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
+    assert specs_dir(repo, "1700000001-a").exists()
+    line = line_of(spec(both), "- remove")
+    assert f"1700000001-a  spec.md:{line}  no heading `Nowhere`" in text, text
+
+
+OPEN = (
+    "# x — overview\n\n## Not verified\n\n| Item | Who must answer |\n"
+    "|---|---|\n| a claim nobody ran | the repository owner |\n"
+)
+
+
+def test_an_open_record_row_holds_its_spec(repo, capfd):
+    """Nothing open is one of the three things a settled directory holds; a
+    row still open is a claim with an answerer, and it never leaves with the
+    directory."""
+    item(repo, "1700000001-a", op("add", "S", new="Rule."))
+    (specs_dir(repo, "1700000001-a") / "overview.md").write_text(OPEN, encoding="utf-8")
+    commit(repo, "a")
+    code, text = apply(repo, capfd)
+    assert code == 1, text
+    assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
+    assert specs_dir(repo, "1700000001-a").exists()
+    assert "a claim nobody ran" in text, text
+
+
+def test_nothing_to_apply_leaves_and_a_spec_with_no_section_stays(repo, capfd):
+    """A `nothing — <why>` spec states that no rule changes, so its directory
+    goes. A spec with no section was written before it existed, so there is
+    nothing to replay and it is kept and named, which is not a refusal."""
+    item(repo, "1700000001-a", "nothing — a release entry.")
+    old = specs_dir(repo, "1700000002-old")
+    old.mkdir(parents=True)
+    (old / "spec.md").write_text("# old\n\n## Scope\n\nIn.\n", encoding="utf-8")
+    commit(repo, "a and old")
+    code, text = apply(repo, capfd)
+    assert code == 0, text
+    assert not specs_dir(repo, "1700000001-a").exists(), text
+    assert old.exists(), text
+    assert "1700000002-old" in text.split("no `## Rule changes`")[1], text
+    assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
+
+
+@pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
+def test_the_retired_flags_are_an_argument_error(repo, flag, capfd):
+    """A script that still calls either gets exit 2, which the changelog
+    fragment says."""
+    with pytest.raises(SystemExit) as raised:
+        settle.main(["--root", str(repo), "--released-at", "main", flag])
+    assert raised.value.code == 2

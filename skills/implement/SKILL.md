@@ -107,8 +107,8 @@ seal/
     │                 the framer's where one runs, the session's where none does
     ├── spec.md · plan.md · questions.md · overview.md
     ├── rounds/
-    │   └── round-N.md    one review round — closed at merge, removed by
-    │                     `settle --retire-process` after its release
+    │   └── round-N.md    one review round — closed at merge, removed with
+    │                     its spec at the settle that applies it
     ├── broad-gate.md     the one broad run, written by `broad-gate --record`
     └── guarantee.md      the sealer's verdict, from `templates/sdd-guarantee.md`
 ```
@@ -475,5 +475,5 @@ Before the PR merges, every unresolved row must move out:
 | Needs a decision | The policy document's open-questions section |
 
 Each finding that moves out reads `deferred <home>` in its round record. The
-records themselves stay through the merge. `settle --retire-process` removes
-them after the release, when no round is left to inherit from them.
+records themselves stay through the merge, and leave with their spec at the
+settle that applies it.

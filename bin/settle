@@ -6,7 +6,7 @@
 #
 # Resolves the script relative to this file, not the caller's cwd, so it works
 # from any directory. Arguments pass straight through:
-#   settle                         settle --retire
+#   settle                         settle --apply
 #   settle --released-at origin/main
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 exec python3 "$here/../hooks/launch.py" "$here/../skills/settle/scripts/settle.py" "$@"

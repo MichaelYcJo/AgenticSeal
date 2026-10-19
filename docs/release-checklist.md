@@ -99,58 +99,27 @@ Enforced by: tests/test_release_hygiene.py, tests/test_the_changelog_is_gathered
 ## 2b. Settle what earlier releases left behind — when the owner calls it
 
 **`settle` runs when the owner calls it, not at every release.** A release
-whose owner has not called it skips this step whole, the process record
-included, and the work items wait on disk for the settle the owner calls.
-When it runs, the process record goes first:
+whose owner has not called it skips this step, and the work items wait on
+disk for the settle the owner calls.
 
 ```bash
 settle
-settle --retire-process
-```
-
-The first command ends with what the second would take. The second removes
-`rounds/`, `phases/` and the files written only for a pull
-request from every work item already on `main`, which is every release before
-this one, and leaves `routing.md` and the SDD set for the fold below. No
-check reads that part after its release, and removing it judges nothing, so
-it runs at every settle, including one that skips the fold. What the SDD set
-still cites of it is read at the release tag. It is a branch and a
-pull request of its own, as the fold is, and it is not a work item either: its
-commit carries `: '[no-review]';` in front of the command. It exits 1 when a
-guard keeps an item: close an open todo row in a pull request of its own
-first.
-`skills/settle/SKILL.md` §*The process record leaves first, fold or no fold*
-is its procedure.
-
-**Then the fold.** `settle` names the released work items whose `spec.md`
-no `docs/` policy has absorbed yet. Read it, write one standing statement per
-rule into `docs/`, and hold what you wrote to the fold's two rules:
-
-```bash
+settle --apply
 fold-check
 ```
 
-It reads this repository's cutoff and ceiling from `seal/config.md` and names
-every statement out of shape and every document over the ceiling. Fix what it
-names while the specs are still on disk, and then:
+The first prints the rule changes the released specs state, in merge order,
+what it refuses and what the second would remove. The second applies them to
+`docs/` in place and removes each applied spec's directory whole, and each
+released directory with no `spec.md` and nothing open. A refused spec
+applies nothing and waits for a later settle. `fold-check` then reads the
+documents the second wrote; a document past its ceiling is split along its
+headings in the same pull request.
 
-```bash
-settle --retire
-```
-
-**This is a separate branch and a separate pull request from step 2.** Writing
-policy prose is a judgment act, and step 2 is two dry runs somebody reads
-followed by one mechanical commit; a release that stops for a person to write
-documentation is a release that stops. Nothing fails a build for an unsettled
-work item, so the honest answer on a busy settle is to skip the fold and run
-it on its own later. The process record's removal above is not part of what
-a settle skips, because it waits on no judgment.
-
-`skills/settle/SKILL.md` is the procedure. **A fold is not a work item**: it
-opens no directory under `seal/specs/`, the routing question is not asked for
-it, every commit carries `: '[no-review]';` in front of the command, and its
-pull request is where the prose is judged. It owes an answer for every check
-in this repository carrying a population floor over `seal/specs/`.
+`skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
+it opens no directory under `seal/specs/`, and its commit carries
+`: '[no-review]';` in front of the command. It owes an answer for every
+check in this repository carrying a population floor over `seal/specs/`.
 
 ## 3. Verify before committing — all of it, here
 

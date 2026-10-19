@@ -1,54 +1,39 @@
 ---
 name: settle
 description: |
-  Retire a released work item by folding what is still true out of its
-  `spec.md` into a `docs/` policy document, then removing the directory.
+  Apply the rule changes each released work item's `spec.md` states to the
+  `docs/` policy documents, in place and in merge order, then remove the
+  work item's directory.
   Use when: preparing a release and the work items have accumulated; a
   session asks what `seal/specs/` is still holding, or runs `settle`.
   NOT for: gathering changelog fragments, which release preparation
   already does; anything in a work item that has not shipped.
 ---
 
-# settle — the fold a shipped spec has been waiting for
+# settle — apply what released specs decided
 
-A work item's directory is written to be read while its pull request is open.
-After the merge nothing mechanical reads it and people rarely do, and it stays
-on disk forever: 98 work items, 1,338 files, 15M on the tree this shipped
-from. `seal/README.md` has said each one "waits until a later `settle` folds
-it" since the root existed, and until now nothing folded anything. Most of
-that weight was never the fold's to wait for: two thirds of it is the
-process record, which no check reads after the release, and
-`settle --retire-process` takes it at every release whether or not anything
-is folded (§*The process record leaves first, fold or no fold*).
-
-**The command reads and lists; you judge and write.**
-`docs/one-root-by-lifetime.md` §*What keeps `settle` light* fixes the split —
-the step "moves and does not verify" — and folding *only what is still true*
-is a judgment about truth. So `settle` supplies the corpus and never writes a
-sentence into `docs/`; every standing statement below is written by the
-session, and the command's second arm removes only what one of them already
-absorbed.
+A spec states the rules its work changes in its `## Rule changes` section.
+The section is reviewed with the spec, and `settle --apply` applies it to
+`docs/` after the release. **The spec decides; the command applies.**
+`docs/one-root-by-lifetime.md` §*What keeps `settle` light* says the step
+"moves and does not verify": what a spec decided is not judged again here,
+and whether a rule still holds is the suite's to say.
 
 ```
-settle                            what would fold
-settle --retire                   remove the directories whose fold docs/ records
-settle --retire-process           remove every released work item's process record,
-                                  fold or no fold
-settle --released-at REF          what counts as released, and the base the rule is
-                                  asked at (default origin/main)
+settle                       the dry run: pending changes, refusals, and what
+                             --apply would remove
+settle --apply               apply the changes and remove what they settle
+settle --released-at REF     what counts as released, and the base the records
+                             are asked at (default origin/main)
 ```
 
 The script is `skills/settle/scripts/settle.py`, and `bin/settle` is on the
-Bash tool's PATH while the plugin is enabled. It needs python 3.12 or newer
-and says so at entry rather than dying partway through.
+Bash tool's PATH while the plugin is enabled. It needs python 3.12 or newer.
 
-**It refuses to run in local mode, and that is the one layout it will not
-touch.** A `seal/` root under the common git directory is never committed, so
-no ref holds the work item directories, nothing in them reads as released, and
+**It refuses to run in local mode.** A `seal/` root under the common git
+directory is never committed, so no ref holds the work item directories and
 nothing removed from them could be recovered. `seal mode shared` moves the
-root into the tree and `settle` works from there. Every other command in this
-plugin reads both places; this is the one that stops, because it is the one
-that deletes.
+root into the tree and `settle` works from there.
 
 ## Rule changes
 
@@ -83,349 +68,120 @@ line, indented two spaces:
 
 `skills/settle/scripts/rule_changes.py` is the one reader.
 
+## A rule has one shape
+
+**A rule has one shape: the rule, its grounds, and what enforces it.** A
+`to` value that states a rule opens with the rule as one bold sentence, gives
+its grounds as prose, and ends with one line naming what reads it:
+`Enforced by: <target>[, …]`, where a target is a repository path with an
+optional `::<name>` for a `def` or `class`, or `Enforced by: nothing — <why>`
+with a reason. `Enforced by:` stays English in every edition.
+
+**What this plugin checks, and what it does not.** It ships `fold-check`
+(`skills/settle/scripts/fold_check.py`), which reads that shape over the top
+level of `docs/` from the `Fold shape from` row in `seal/config.md`, and a
+row a repository does not write is a check it does not run
+(`templates/config.md` §*The fold's values*). Whether a target really
+enforces its rule, and whether two rules contradict each other, it cannot
+read: that is review's, and it is review's to find.
+
 ## When it runs
 
-**By hand, named as a step in the release checklist.** It is invoked, never
-triggered: no hook runs it, no gate refuses a branch over an unfolded work
-item, and it is not part of the release-preparation commit that gathers the
-changelog fragments. Folding writes policy prose, which is a
-judgment act, and a release that stops for somebody to write documentation is
-a release that stops.
+**When the owner calls it, as `docs/release-checklist.md` §*2b* says.** It
+is invoked, never triggered: no hook runs it and no gate refuses a branch
+over an unsettled work item.
 
-## A fold is not a work item
+## What `--apply` does
 
-**A fold opens no directory under `seal/specs/`** — no `routing.md`, no
-`spec.md` or `plan.md`, no round records — and the routing question is not
-asked for it. This skill is its spec. It runs outside the review chain: every
-commit carries `: '[no-review]';` in front of the command, quotes included,
-and the one judgment it makes — which `docs/` file a rule goes to, and whether
-the rule is still true — is reviewed at its pull request.
+- **In merge order, and the later spec wins.** A spec's place is the first
+  commit on `--released-at` that adds its `spec.md`. Two specs whose adding
+  commits no ancestry orders, and that name one file and section, are a
+  conflict: neither applies, and both are printed for the owner.
+- **Whole or not at all.** A spec whose section does not parse, whose
+  section or `from` text is not there, or whose record holds an open
+  `## Not verified` row applies nothing, and its directory stays. A later
+  spec at one of its places waits with it.
+- **In place.** Each change lands where its text stands, and the rest of
+  the document is byte-identical. No marker is written.
+- **A directory goes only with the rule changes it applied**, whole, its
+  process record included. A `nothing — <why>` spec has nothing to apply and
+  goes. A spec with no `## Rule changes` was written before the section
+  existed; it is named and stays.
+- The documents are written before any directory is removed.
 
-That is what ends the regress. A fold that opened a work item left a
-directory behind for the next fold to retire, and that fold opened one of its
-own, so no fold could ever finish. Nor does a fold keep a log of folds, under
-`seal/` or anywhere else: a log is a record of a moment that would need
-folding in turn. What a fold has to leave already has a home — what went
-where is the `<!-- specs/<work-item-id> -->` marker in `docs/`, who checked
-the prose is the pull request, and the removed text is git history, reachable
-from the marker's id.
+It exits 0 when nothing was refused or kept, 1 when something was, and 2 when
+the arguments or the tree are unusable.
 
-## The process record leaves first, fold or no fold
+**A reference root is history, never input.** A project's own `specs/`, as
+`templates/config.md` §*Reference specs* says, is read where the work touches
+what it describes and cited in the `spec.md` whose rule changes it informed.
+`settle` never writes there: `--apply` writes `docs/` and removes only under
+`seal/specs/`.
 
-```
-settle --retire-process
-```
+## A released work item with no `spec.md`
 
-A work item's directory holds two kinds of file, and they stop mattering at
-different times. The **SDD set** — `spec.md`, `plan.md`, `questions.md`,
-`overview.md`, `changelog.md` — and `routing.md` say what was decided and why,
-and they stay until the fold absorbs them and `settle --retire` takes the
-directory. The **process record** is read by no check after the release that
-ships the item, and this arm removes it from every released work item:
-
-- `rounds/` and `phases/`, whole;
-- `broad-gate.md`, `guarantee.md`, `handoff.md` and `pr.*.md`, the files
-  written for a pull request that has merged.
-
-Measured when it shipped, that part was 62% of the files under `seal/specs/`
-and 67% of the bytes, and it had waited seven releases on a fold it does not
-need.
-
-**It is not the fold, and the fold does not gate it.** It writes no prose and
-judges nothing, so it runs as the first act of the release checklist's step 2b
-on every release, including one that skips the fold. It is not a work item
-either, for the reason above: its commit carries `: '[no-review]';` in front
-of the command, and somebody reads what it removed in its pull request.
-Run `settle` first; its last section is this arm's dry run.
-
-**Released means what it means for the fold**: present at `--released-at`.
-The items of the release being prepared are not on `main` yet, so they are
-not taken. Their records are still read when the release seal is drawn, and
-the release pull request into `main` carries them without judging them again:
-each item was judged at its own pull request (`docs/the-review-record.md`
-§*What the check reads at the pull request*). They leave at the next
-release's step 2b. After that they are in git history, at the release tag.
-
-**The SDD set that stays still points into what left.** A released item's
-`overview.md`, `questions.md`, `plan.md` and `spec.md` name its own
-`rounds/round-N.md` and `phases/phase-N.md` by relative path. Measured when
-this arm shipped, 381 lines in 157 of those files did, across 51 items. The
-arm does not list them, because the files that hold them stay and no check
-follows them: they are pointers a person reads. Each resolves at the tag of
-the release that shipped the item, as
-`git show v<X.Y.Z>:seal/specs/<id>/phases/phase-2.md`, and that is where the
-fold reads them.
-
-**It is an allow-list, because removal is the destructive direction.** A file
-on neither list is kept and named, never guessed at. A new kind of
-pull-request-only file is therefore printed on every run until somebody adds
-it to `PROCESS_FILES` in `skills/settle/scripts/settle.py`, and a file that
-was in fact durable is never lost.
-
-**A path outside `seal/specs/` that cites into a removed file is listed and
-never refused.** It resolves in git history at the release tag, which is the
-state a citation into a retired directory is already in.
-
-It prints each removal, then each heading below that applies, then one count:
-
-```
-removed seal/specs/<id>/rounds/  (12 files)
-removed seal/specs/<id>/broad-gate.md
-
-not a process record — on neither of `settle`'s lists, so it is kept rather than
-guessed at:
-    seal/specs/<id>/notes.md
-
-cited from outside seal/specs/ — each of these now resolves only in git history, at
-the tag of the release that shipped it:
-    <id>
-        cited from docs/<file>.md:<line>
-
-retired the process record of 1 work item (13 files)
-```
-
-Exit 0. A run with nothing left to remove exits 0 as well, because that is
-the state a previous run leaves rather than work still to do, and it says so:
-
-```
-nothing left to retire: no released work item still holds a process record.
-```
-
-`settle` with no flag ends with this arm's dry run. It counts the files and
-items the arm would take, and names each file on neither list:
-
-```
-the process record — no check reads it after its work item's release, so
-`settle --retire-process` takes it now, fold or no fold:
-    525 files in 54 released work items
-```
-
-Local mode is refused, as it is for every arm.
-
-## The procedure
-
-### 1. Read what is waiting
-
-```
-settle
-```
-
-It prints the released work items no `docs/` policy has absorbed yet, and
-lists beside them the ones already folded and waiting to be retired. Which
-document each rule belongs in is yours to decide, from what its `spec.md`
-decided.
-
-Where a released item's SDD set cites one of its own round or phase records,
-`settle --retire-process` may already have taken it: read it at the tag of
-the release that shipped the item, `git show v<X.Y.Z>:<path>`.
-
-**A released work item with no `spec.md` is not yours to place.** It states
-no rule, so there is nothing to fold out of it, and `settle` prints it under
-its own heading: *retired by the rule* when nothing in its record is open,
-*kept by the rule* when something is, with every open `## Not verified` row
-named. Such a row is a claim with an answerer, not a
-rule, so it leaves by being closed (`closed` with what closed it) and never
-with the directory. A row re-homed — to `seal/follow-up.md`, to an issue — is
-closed the same way, `closed` naming where it went, because a row deleted from
-`overview.md` is refused on any pull request.
+A released work item with no `spec.md` states no rule, and `--apply` removes
+it when nothing in its record is open; the dry run lists it as *retired by
+the rule*. One whose record holds an open row is *kept by the rule*, with
+every row named. The row leaves by being closed (`closed` with what closed
+it), a row re-homed being closed too with where it went, and never with the
+directory. A spec's directory is held by an open row the same way.
 
 **Close it in a pull request of its own, and let that one merge first.** The
 CI readers ask the rule of the merge base, so a row closed and its directory
-retired in one pull request is still open where they look, and
-`unverified-check` and `chain-check` refuse the removal that `settle --retire`
-just made. Merged first, the closing also stays in the release branch's history,
-where a closure made and removed in one squash would leave nothing. Once the
-closure has merged, the next `settle --retire` takes the directory.
+removed in one pull request is still open where they look.
 
-**Merged first means merged to the branch the release merges to, and `settle`
-holds you to it.** The CI readers on the release pull request ask the rule of
-the merge base of that pull request's base and its merge ref, which is the
-base's tip. A closure merged only into the release branch is not there yet, so
-a retirement in the same release turns the release pull request red. That is
-what happened in 0.15.3 (#602). So `settle` asks the predicate of the merge
-base of `--released-at` and `HEAD` as well as of the working tree. That is the
-same commit as CI's until `--released-at` moves past the commit this branch
-forked from. Once it has, the heading says so, and where `--released-at`
-already holds the closure, merging it into this branch and running `settle`
-again is what lets the directory go. A directory whose record is closed in the
-tree and open at that base is listed under *kept until the closure reaches
-<base>*, or, where `--released-at` has moved, *kept: the closure has not
-reached <base>*, with every row open there, and `settle --retire` keeps it
-and exits 1.
-It goes in a later pull request, once the closure has reached the branch
-`--released-at` names, which for a closure made on a release branch is the
-next release. A `--released-at` that shares no commit with `HEAD` has no merge
-base, and both arms refuse it at exit 2 rather than asking the tree alone.
+**Merged first means merged to the branch the release merges to.** The CI
+readers on the release pull request ask at the merge base of its base and its
+merge ref, which is the base's tip. So `settle` asks the merge base of
+`--released-at` and `HEAD` as well as the working tree, which is CI's commit
+until `--released-at` moves past this branch's fork. A directory closed here
+and open there is listed under *kept until the closure reaches <base>*, or,
+once `--released-at` has moved, *kept: the closure has not reached <base>*.
+Where `--released-at` already holds the closure, merging it into this branch
+and running `settle` again lets the directory go. A `--released-at` sharing
+no commit with `HEAD` is refused at exit 2.
 
-For every directory a retirement would take, by either arm, the report also
-lists what would go with it: the open `## Not verified` rows in its overview,
-and the paths outside `seal/specs/` that cite into it, which stop resolving
-when it goes. Once for the run it lists every `tests/` file that reads
-`seal/specs`, which is §3's grep done for you.
+## Answer every check that reads the corpus
 
-A work item is **released** when its directory is present on the branch the
-release merges to. `--released-at` names that branch.
-
-### 2. Write one standing statement per rule
-
-Read the `spec.md` of every work item listed and write **what is still true**
-into `docs/`.
-
-- **Only what is still true.** A spec is the spec of one change, and what a
-  later work item overturned goes nowhere. Deciding which sentence is which is
-  the whole reason this half is yours.
-- **One standing statement, not spliced sentences.** The output is a rule a
-  reader can act on, not 97 quoted fragments under their provenance comments.
-- **Merge into a document that already exists**; create one only for an area
-  that has none. `docs/` is flat — there is no `docs/policy/` directory — and
-  the file is named for its subject where a new one is needed.
-- **The newest work item wins** where two say different things.
-- **A reference root is history to read, never input to fold.** A project's
-  own `specs/`, as `templates/config.md` §*Reference specs* says, may say how
-  the area came to be: read it where the work item touches what it describes,
-  and cite what you read by path in the standing statement's grounds. It
-  carries no marker, so nothing in it is folded, and the
-  plugin never writes there — `settle --retire` removes under `seal/specs/`
-  alone.
-- **Every folded sentence carries its work item's comment**, on a line of its
-  own:
-
-```markdown
-<!-- specs/1788302682-the-release-check-never-watched-bin -->
-`bin/` ships, so a change to a wrapper moves the version like a change to a
-skill does.
-```
-
-That comment is the provenance a reader traces back through git history once
-the directory is gone, and it is **also the fold's record**: `settle` reads it
-to know what has been folded, so there is no second file to keep in step and a
-run interrupted between writing the prose and removing the directory picks up
-where it left off. It is the same marker `.github/scripts/gather_changelog.py`
-already writes, and it is read on a line
-of its own — a marker quoted inside a sentence is a description, not a fold.
-
-**A standing statement has one shape: the rule, its grounds, and what enforces
-it.** It opens with the rule as one bold sentence, and the grounds follow as
-prose. It carries exactly one line of its own that names what reads the rule,
-and that line is written last:
-
-```markdown
-<!-- specs/<work-item-id> -->
-**A cell may carry an escaped pipe.** A reader that stopped at one silently
-took every row below it out of the config.
-Enforced by: tests/test_config_rows.py::test_an_escaped_pipe_is_content
-```
-
-- **A target is a repository path**, relative to the root, optionally followed
-  by `::<name>` for a `def` or `class` in that file. Several are separated by
-  commas, and each may be written in backticks.
-- **A rule nothing reads says so:** `Enforced by: nothing — <why>`, and the
-  reason is not empty. Writing it is always possible, so it is the line a
-  reviewer reads first; a check can make the choice visible and cannot make it
-  right.
-- **Stacked markers share one statement.** Consecutive marker lines are one
-  group, and a statement runs from its markers to the next marker, the next
-  heading or the end of the file.
-- `Enforced by:` is a field name, so it stays English in every edition of a
-  document, like every other name a checker matches.
-
-**What this plugin checks, and what it does not.** It ships
-`fold-check` (`skills/settle/scripts/fold_check.py`), which reads the shape
-over the top level of `docs/`: the bold opening, one `Enforced by:` line, and
-that each target names a file, and a `def` or `class` where it says `::name`.
-It sets no value. A repository says where the shape starts to bind, because
-statements folded before it will not carry the line, as a `Fold shape from`
-row in `seal/config.md`; `templates/config.md` §*The fold's values* says what
-each row accepts, and a row a repository does not write is a check it does not
-run. Whether a target really enforces the rule is not read, the same way
-*only what is still true* is not. Nor can any check tell that two standing
-statements contradict each other. That takes a reader who knows what both
-mean, and it is review's to find.
-
-**One subject, one document, and a document over its ceiling takes no new
-statement.** A rule goes into the document that owns its subject, so a reader
-looking for it, and a reviewer looking for what contradicts it, opens one
-file. A repository may set a ceiling on how large a document grows. A document
-above that ceiling takes no new standing statement: the fold either splits it
-first, along the headings it already has, or places the rule in the document
-for the rule's own sub-subject, created only where none exists. The plugin sets
-no ceiling; the repository states its value as a `Document line ceiling` row,
-which `fold-check` holds every top-level `docs/*.md` to, and says what the
-value is in the document that describes its own fold. A document already over
-it is listed in an `Over the ceiling` row with its fold markers frozen until
-the home it names splits it.
-
-### 3. Answer every check that reads the corpus
-
-**A fold is not finished until every check in your own repository that carries
-a population floor over `seal/specs/` has been answered.** This is the step
-that is easy to skip and expensive to skip, and it is general rather than one
-repository's circumstance: any project running this methodology accumulates
-checks over its own records, and a floor is exactly the shape a check takes
-when its author worried about a vacuous pass.
-
-`docs/one-root-by-lifetime.md` §*The dependency rule* names two such readers.
-**That list is not the whole list**, and it was never meant to be read as one:
-it was written when the repository had thirteen work items and most of the
-cases did not exist. Measured on this repository before the mechanism shipped,
-**fourteen test modules read the real corpus and at least six carry a
-population floor a fold turns red** — assertions of the shape
-`assert len(records) > 200` over a walk of `seal/specs/`, and non-empty
-assertions over globs of `routing.md` and `pr.*.md`. Eight
-more read it with no floor and would silently assert less.
-
-So before anything is removed, find them:
-
-```bash
-grep -rn "seal/specs" tests/
-```
-
-Each one gets one of three answers, and the answer is written down:
+**A settle is not finished until every check in your repository that carries
+a population floor over `seal/specs/` has been answered.** A floor is an
+assertion like `len(records) > 200` over a walk of `seal/specs/`, and a
+settle shrinks the corpus by design. `docs/one-root-by-lifetime.md` §*The
+dependency rule* names two such readers, and that list is not the whole list.
+The dry run lists every `tests/` file that reads `seal/specs`, and every path
+outside it that cites into what `--apply` removes. Each check gets one answer,
+written down:
 
 | Answer | When it fits |
 |---|---|
-| **retire the case** | it was about a shape the fold removes, and nothing is left for it to be about |
+| **retire the case** | it was about a shape the settle removes, and nothing is left for it to be about |
 | **re-point it at a fixture corpus** | the property is still worth checking, and a built tree checks it better than whatever the repository happens to hold |
-| **decline** | the case is right and the floor is right, and the fold waits for that population to exist again |
+| **decline** | the case and the floor are right, and the settle waits for that population to exist again |
 
-A fourth answer — lowering the floor until the run passes — is the one that
-turns a check into a comment.
+Lowering the floor until the run passes is not an answer: it turns a check
+into a comment.
 
-### 4. Retire what the policy absorbed
+## A document past its ceiling is split, never trimmed
 
-```
-settle --retire
-```
+After `--apply`, run `fold-check`. A document past the `Document line
+ceiling` row in `seal/config.md` is split by topic along its own headings in
+the same pull request, and nothing is cut to fit. The plugin sets no
+ceiling; a repository states its own.
 
-It removes the directory of every released work item whose fold is recorded,
-and of every released one with no `spec.md` and nothing open in its record,
-and nothing else.
+## A settle is not a work item
 
-**The retirement is the second half of the fold and never its own act.** A
-directory removed before a policy document absorbed it takes the reasoning
-with it, and that is the one loss nothing can undo. The marker is what makes
-the order enforceable rather than remembered. The rule arm is not an
-exception: a directory with no `spec.md` holds no reasoning for a document to
-absorb, which is the whole of why it needs no marker.
-
-## What a fold branch owes
-
-**An answer for every check that reads the corpus** (§3).
-
-**A clean `fold-check` where either row is declared.** Run it after the prose
-is written and before `settle --retire`: it reads the statements this fold
-just wrote, and a statement out of shape or a document the fold took past its
-ceiling is cheaper to fix while the spec it came from is still on disk. Where
-the repository declares neither row, the command says so and checks nothing,
-which is not a finding.
+**A settle opens no directory under `seal/specs/`**: no `routing.md`, no
+frame, no round records, and the routing question is not asked for it. Every
+commit carries `: '[no-review]';` in front of the command, quotes included,
+and what it applied is reviewed at its pull request. It keeps no log: what
+changed is the diff, and the removed specs are in git history. A settle that
+opened a work item would leave a directory for the next settle to remove, and
+settling would never end.
 
 ## What this does not do
 
 - It does not verify. Whether a rule still holds is the suite's job, through
   the test its `Enforced by:` line names.
-- It does not judge whether a sentence is still true, and it cannot: that is
-  step 2, and it is why this ships as a skill with a command beside it rather
-  than as a script alone.
-- It does not fail a build. No gate refuses a branch for an unfolded work
-  item, and a repository that never runs this is in exactly the state every
-  repository was in before it shipped.
+- It does not fail a build. No gate refuses a branch for an unsettled work
+  item.

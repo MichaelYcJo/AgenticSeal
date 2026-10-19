@@ -2,18 +2,13 @@
 
 This directory exists for AI sessions to hand work to each other. It is one
 root laid out by lifetime: the rows that outlive a work item at the top, and
-each work item whole under `seal/specs/<work-item-id>/`, where it waits until
-`settle` folds it. **That step exists now**: `settle` names the released work
-items whose `spec.md` no `docs/` policy has absorbed yet, a session writes one
-standing statement per rule, and `settle --retire` then removes the
-directories that statement covers, along with every released one that wrote
-no `spec.md` and holds nothing open, which states no rule to fold. A
-released work item's process record does not wait for that: `rounds/`,
-`phases/` and the files written only for its pull request are
-removed by `settle --retire-process` at the next release, fold or no fold,
-and `routing.md` and the SDD set stay for the fold. A fold is
-not a work item and opens no directory here. `skills/settle/SKILL.md` is the
-procedure and `skills/settle/scripts/settle.py` is the reader behind it. It is safe to
+each work item whole under `seal/specs/<work-item-id>/`, where it stays until
+its release is settled. `settle --apply` applies the `## Rule changes` each
+released `spec.md` states to `docs/` and removes the directory whole, along
+with every released one that wrote no `spec.md` and holds nothing open. A
+settle is not a work item and opens no directory here.
+`skills/settle/SKILL.md` is the procedure and `skills/settle/scripts/settle.py`
+the command behind it. It is safe to
 delete a work item's directory wholesale **after the export rules below have
 run** — nothing that must survive is allowed to live only there.
 

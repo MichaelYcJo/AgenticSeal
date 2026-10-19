@@ -157,10 +157,9 @@ Enforced by: tests/test_chain_check.py::TestReferenceOf::test_a_round_and_a_find
 
 **Every round file stays, so a finding can be followed from the round that
 found it to the commit that closed it.** The next round's warden reads the
-earlier records directly; nothing summarises them. `settle --retire-process`
-removes them after the release that ships the work item, when no round is
-left to read them.
-Enforced by: tests/test_settle_retires_the_process_record.py::test_the_process_record_leaves_and_the_sdd_set_stays
+earlier records directly; nothing summarises them. They leave with their
+spec, at the settle that applies it.
+Enforced by: tests/test_settle_applies_rule_changes_in_place.py::test_apply_rewrites_in_place_and_removes_the_directory
 
 **`target:` names a commit, not a content anchor, because a round records a
 moment.** The record's one `target:` line names the reviewed commit, with

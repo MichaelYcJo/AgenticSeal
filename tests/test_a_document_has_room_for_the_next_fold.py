@@ -182,15 +182,14 @@ def test_settle_owns_the_placement_rule():
         os.path.join(ROOT, "skills", "settle", "SKILL.md"), encoding="utf-8"
     ) as f:
         text = f.read()
-    section = text.split("### 2. Write one standing statement per rule")[1]
-    section = section.split("### 3.")[0]
+    section = text.split("\n## A document past its ceiling is split, never trimmed\n")
+    section = " ".join(section[1].split("\n## ")[0].split())
     for phrase in (
-        "**One subject, one document, and a document over its ceiling takes no new\n"
-        "statement.**",
-        "along the headings it already has",
-        "The plugin sets\nno ceiling",
+        "split by topic along its own headings in the same pull request",
+        "nothing is cut to fit",
+        "The plugin sets no ceiling",
     ):
-        assert phrase in section, f"settle §2 no longer says: {phrase!r}"
+        assert phrase in section, f"settle no longer says: {phrase!r}"
 
 
 def layout_prose():

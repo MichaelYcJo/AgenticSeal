@@ -338,7 +338,7 @@ READERS = {
     "agents/framer.md": ("cite", "spec.md"),
     "agents/smith.md": ("cite", "spec.md"),
     "agents/warden.md": ("stage 1", "spec.md"),
-    "skills/settle/SKILL.md": ("cite", "standing statement"),
+    "skills/settle/SKILL.md": ("cite", "spec.md"),
     "skills/implement/SKILL.md": ("cite", "spec.md"),
 }
 

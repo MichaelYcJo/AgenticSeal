@@ -113,10 +113,9 @@ and a scratch file quoting one excused a removal nothing had absorbed.
 **A released work item that wrote no `spec.md` states no rule, and it is
 retired by that rule, with no marker.** Such an item was below the SDD
 ladder: a release entry, a renumbering, a CI repair, a pull request's record.
-Those are records of a moment, and a moment states nothing to fold — which is
-also why nothing has to be carried out of one, so `settle` prints these under
-their own heading and `settle --retire` removes them without writing a marker
-into `docs/` (#517). **One condition narrows it: nothing in the record may
+Those are records of a moment, and a moment states no rule, so nothing has
+to be carried out of one: `settle` prints these under their own heading and
+`settle --apply` removes them without writing into `docs/` (#517). **One condition narrows it: nothing in the record may
 still be open.** An open `## Not verified` row is a claim with an answerer
 rather than a rule, so a directory holding one
 is kept and named with its rows, and closing each row — a row re-homed is
@@ -133,35 +132,28 @@ cannot disagree about one tree. Whether the item wrote a
 `spec.md` is asked of its history, so a spec deleted in one commit, or in an
 earlier pull request, and the directory in the next is still a deletion. That
 condition is a judgment the repository owner may overturn. An item that did
-write a `spec.md` is folded where that spec's rule belongs.
+write a `spec.md` leaves when `settle --apply` applies its rule changes.
 Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_rule_arm_removes_it_with_no_marker, tests/test_settle_reads_before_it_removes.py::test_a_closure_the_base_has_not_seen_keeps_the_directory
 
 <!-- specs/1790027178-a-shipped-spec-waits-for-a-settle-that-was-never-built -->
-**A released work item's directory is folded into a policy document and then
-removed, and the removal is the second half of the fold, never its own act.**
-Removed first, a directory would take with it reasoning no document had
-absorbed, and nothing recovers that. The command reads and lists;
-the session judges and writes. Folding *only what is still true* is a
-judgment about truth, so the tool writes no sentence into a policy document
-and its second arm removes only what one of them already absorbed. The
-marker is the fold's record, and there is no second file: a folded sentence
-carries `<!-- specs/<work-item-id> -->` on a line of its own, and that comment
-is read to know what has been folded, so no second record has to agree with
-it, and an interrupted run resumes from what `docs/` already holds. The removal of a directory and a branch deleting one
-are otherwise byte-identical to every reader; the marker is what tells them
-apart, which is why a reader of removed work reports a fold rather than a
-deletion.
-Enforced by: tests/test_settle_reads_before_it_removes.py::test_retire_removes_only_what_docs_records
+**A released spec's rule changes are applied to `docs/` in place, and its
+directory goes with them, never before.** `settle --apply` replays each
+released spec's `## Rule changes` in merge order, writes what applies, and
+removes each applied directory whole; a spec it cannot place applies nothing
+and its directory stays. The judgment was made when the spec was written and
+reviewed, so applying it judges nothing, and no sentence is written by hand.
+No marker is written.
+Enforced by: tests/test_settle_applies_rule_changes_in_place.py::test_apply_rewrites_in_place_and_removes_the_directory, tests/test_settle_reads_before_it_removes.py::test_apply_removes_only_what_it_applied
 
 <!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
-**A fold is not a work item.** It opens no directory under `seal/specs/`. Its
-commits are waived one command at a time and its judgment is reviewed at its
-pull request (#517). What it leaves already has a home — the marker, the pull
-request, git history — so it keeps no log of its own. Were it a work item,
-each fold would leave a directory for the next one to retire, and the folds
-would never end; `skills/settle/SKILL.md` §*A fold is not a work item* is the
-procedure.
-Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_skill_says_a_fold_is_not_a_work_item_and_owes_no_range_row
+**A settle is not a work item.** It opens no directory under `seal/specs/`.
+Its commits are waived one command at a time and what it applied is reviewed
+at its pull request (#517). What it leaves already has a home, the pull
+request and git history, so it keeps no log of its own. Were it a work item,
+each settle would leave a directory for the next one to remove, and settling
+would never end; `skills/settle/SKILL.md` §*A settle is not a work item* is
+the procedure.
+Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row
 
 <!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
 <!-- specs/1790119502-four-shipped-work-items-wait-unfolded -->
@@ -173,7 +165,8 @@ compares the walk against an independent listing of the same tree —
 `git ls-tree HEAD` — which holds at any size, and a property the real corpus no
 longer exercises moves to a record built in `tmp_path`. A repair is green
 before the fold and after it; one green only once the directories are gone is
-a lowering. `skills/settle/SKILL.md` §3 gives the three answers.
+a lowering. `skills/settle/SKILL.md` §*Answer every check that reads the
+corpus* gives the three answers.
 Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_skill_names_the_floors_a_fold_has_to_answer
 
 <!-- specs/1791384153-a-ledger-rows-claim-is-the-test-that-enforces-it -->
@@ -245,7 +238,7 @@ fourth answer, and it is argued against these three.
 <!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
 **A `seal/` root with no work item under it is the state a complete fold ends
 in, and it reads as settled, never as unusable.** Git keeps no empty
-directory, so the state is two: the tree that ran `settle --retire` holds an
+directory, so the state is two: the tree that ran `settle --apply` holds an
 empty `seal/specs/`, and a fresh checkout of that commit holds none. Read as
 unusable, `settle` exited 2 on its own finished work, and `unverified-check
 --baseline` read the root's own `specs` path as a typo, which would turn every
@@ -330,16 +323,14 @@ retires the directory. Which file each agent writes is
 | `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
 
 **The files keep these paths and stop mattering at two different times.**
-`routing.md` and the SDD set (`spec.md`, `plan.md`, `questions.md`,
-`overview.md`, `changelog.md`) stay until the `settle` fold retires the
-directory. The process record (`rounds/`, `phases/`, `broad-gate.md`,
-`guarantee.md`, and a `handoff.md` or `pr.*.md` where one was written) is
-read by no check after
-the release that ships the work item, and `settle --retire-process` removes
-it at the next release, fold or no fold, as the first act of
-`docs/release-checklist.md` §*2b*. What the SDD set still cites of it
-resolves at the tag of that release.
-Enforced by: tests/test_settle_retires_the_process_record.py::test_the_process_record_leaves_and_the_sdd_set_stays
+`routing.md`, the SDD set (`spec.md`, `plan.md`, `questions.md`,
+`overview.md`, `changelog.md`) and the process record (`rounds/`, `phases/`,
+`broad-gate.md`, `guarantee.md`, and a `handoff.md` or `pr.*.md` where one
+was written) stay until `settle --apply` applies the spec's rule changes,
+and then the directory goes whole (`docs/release-checklist.md` §*2b*). What
+a document still cites of it resolves at the tag of the release that
+shipped it.
+Enforced by: tests/test_settle_applies_rule_changes_in_place.py::test_apply_rewrites_in_place_and_removes_the_directory
 
 ## The root records
 

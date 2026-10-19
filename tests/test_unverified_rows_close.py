@@ -1693,24 +1693,6 @@ def test_every_fence_shape_a_policy_document_can_carry(tmp_path, body, found):
     assert uc.folded_items(str(tmp_path)) == found
 
 
-def test_the_shipped_skill_copied_into_docs_records_no_fold(tmp_path):
-    """The class rather than the instance. `skills/settle/SKILL.md` is what a
-    session reads before it writes the policy, and its worked example carries
-    a real released work item id. Pasting the skill itself into `docs/` is the
-    worst case a copy can produce, and it must record nothing."""
-    docs = tmp_path / "docs"
-    docs.mkdir()
-    skill = os.path.join(ROOT, "skills", "settle", "SKILL.md")
-    with open(skill, encoding="utf-8") as f:
-        text = f.read()
-    assert "<!-- specs/" in text, (
-        "the skill no longer shows the marker, so this case is vacuous — it "
-        "exists because the skill's own example is the reachable path"
-    )
-    (docs / "pasted.md").write_text(text, encoding="utf-8")
-    assert uc.folded_items(str(tmp_path)) == set()
-
-
 def test_a_marker_below_the_top_level_of_docs_is_not_a_fold_record(tmp_path):
     """`spec.md` G2 and `skills/settle/SKILL.md` §2 fix the destination as a
     flat `docs/`, so a fold never writes below the top level and a marker
