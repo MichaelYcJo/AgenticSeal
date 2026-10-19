@@ -14,6 +14,19 @@
   over on its path alone, before anything is loaded or any `git` runs.
   Shared mode is unchanged. A local guarantee that arrives by a shell write
   or `seal import` queues nothing.
+
+  The sealer's definition lost one word, `committed`, since a local-mode
+  verdict is never committed. So it was measured again against #975's
+  phase-4 side on the same five-case suite:
+
+  | Agent | Tree | Preload bytes | Tokens per tool call | Spend USD | Graders passed | Verdict |
+  |---|---|---|---|---|---|---|
+  | sealer | `981b0acc` → `f99ab3a9`, one suite (`5c3e8119`) | 24,700 → 24,690 | 35,992.6 → 35,600.6 | 3.5731 → 3.3379 | 68 → 68 of 68 | pass |
+
+  Each figure is read from `evals/sealer-phase-5.md`, which compares #975's
+  `evals/sealer-phase-4.json` with this work item's
+  `evals/sealer-phase-5.json`. Both sides are 10 runs, two of each case, and
+  neither was cut short.
   (`1792363231-a-local-mode-work-item-draws-no-stamp`, #976)
 - **A `sealed` the plugin refused no longer takes the place of the stamp it
   never drew (#976).** Since #975, a `sealed` whose audited commit was not on

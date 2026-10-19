@@ -24,7 +24,7 @@ it never drew.
 | Windows path comparison: the edit gate's `os.sep` mapping and the local writer's two `realpath` comparisons (`questions.md` Q3) | CI's Windows leg, read by the orchestrator at the pull request |
 | The reflog subjects guard 2 reads, on git versions other than 2.50.1 | CI's legs, through `test_guard_two_reads_what_post_commit_sees_in_the_reflog`, read by the orchestrator |
 | A local-mode stamp drawn on a person's screen from the edit hook's line; this repository runs in shared mode, and its run draws through the installed plugin's hooks (`plan.md` §*Operational impact*) | the owner, on the first local-mode run after updating to the release that carries this work |
-| The sealer measured against #975's phase-4 side after its one-word change (`spec.md` S9) | the orchestrator, phase 5 |
+| closed The sealer measured against #975's phase-4 side after its one-word change (`spec.md` S9) | executed by the orchestrator: `noninferiority.py` run, compare and check each exit 0, `evals/sealer-phase-5.md` reads `Verdict: pass`, committed at 11b90191 (`phases/phase-5.md`) |
 
 ## Not done
 
