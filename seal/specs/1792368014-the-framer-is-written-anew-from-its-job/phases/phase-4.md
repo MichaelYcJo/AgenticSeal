@@ -70,3 +70,23 @@ Three divergence rows were added: the two merges, the emptied exemption
 with the preload case, and the check phase 1 turned red. `## Not done`
 names the replace-or-keep grader that `questions.md` Q5 holds for the
 owner.
+
+**Addendum: review round 1's fix pass (5bdad9db).** Round 1 found three
+`should`s, and 5bdad9db fixes all three in `agents/framer.md`, with a pin
+for each.
+
+- Step 4's two reading rules are restored.
+- The reframe rule gains the clause *new phase rows for the redesign, every
+  closed phase keeping its commit*.
+- Step 8 labels what a command gave `executed`.
+
+Each pin was seen red on the definition before the fix and turned red again
+under a `mutation-check` of its sentence (`executed`).
+
+`bin/payload-meter --agent framer` now reads 10,001 bytes for
+`agents/framer.md`, against 9,424 at b434e145, and 16,603 for the contract.
+So the fix adds 577 bytes, and the preload that ships is 26,604 bytes
+(`executed`). The orchestrator decided not to take a second side, under the
+owner's word that a side is not run again for the measurement alone. The
+measured side stays b434e145, and the changelog row says the fix was not
+re-measured. The rest of the read set is as the table above records it.

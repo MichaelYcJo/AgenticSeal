@@ -35,5 +35,8 @@
   ranged call, so most of the fall in tokens per call is the larger call
   count. Each figure is read from `evals/baseline-framer.json` and
   `evals/framer-phase-2.json`. The verdict is `evals/framer-phase-2.md`,
-  committed at `5dc581c9`.
+  committed at `5dc581c9`. The side measured the definition at `b434e145`.
+  Review round 1's fix (`5bdad9db`) adds 577 bytes to `agents/framer.md`,
+  so the preload that ships is 26,604 bytes. That tree was not measured
+  again.
   (`1792368014-the-framer-is-written-anew-from-its-job`, #968)

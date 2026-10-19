@@ -16,7 +16,7 @@ an earlier record: every coordinate below was opened or run this round, in a
 severity: should
 location: `agents/framer.md:50-60`, `tests/test_waiver_decided_at_start.py`
 evidence: executed `git show 2ff7b963:agents/framer.md`, `git grep -n -i -E 'passing test is not|not a claim to re-establish|argued through|already argued|re-?argue' -- . ':!seal/specs' ':!changelog' ':!.test_durations'`
-verdict: open
+verdict: fixed 5bdad9db
 
 The old reading list told the framer what to do with two of the sources it
 reads, not only to read them. Under the `Enforced by:` lines it said *a rule
@@ -75,14 +75,14 @@ def test_the_framer_inherits_what_the_tree_already_settled():
     assert "is not argued again in your `plan.md`" in framer
 ```
 
-answer:
+answer: Both rules are back in step 4 as the round worded them: *a rule with a passing test is not a claim to re-establish* under the `Enforced by:` lines, and *a decision those rounds argued through is not argued again in your `plan.md`* under the earlier work items. The pin is `tests/test_waiver_decided_at_start.py::test_the_framer_inherits_what_the_tree_already_settled`, seen red on the definition at 1bdbb586 and named in the judging rule's `Enforced by:`. A `mutation-check` of each sentence turned it red. No other file states either rule (`git grep`).
 
 ### 2. The reframe rule says to rewrite `plan.md` as §*The run* says, and §*The run* does not say how
 
 severity: should
 location: `agents/framer.md:156-164`, `tests/test_waiver_decided_at_start.py`
 evidence: executed `git grep -n -i -E 'closed phase|new phase rows|reframe' -- skills docs agents templates`, `sed -n 462,536p docs/the-review-record.md`
-verdict: open
+verdict: fixed 5bdad9db
 
 The new rule reads: *open `docs/the-review-record.md` §The run, rewrite
 `plan.md` and `spec.md` as it says* (`agents/framer.md:159-161`). §*The run*
@@ -135,14 +135,14 @@ def test_a_reframe_keeps_every_closed_phase():
     assert "every closed phase keeping its commit" in framer
 ```
 
-answer:
+answer: The reframe rule now says to open §*The run*, then rewrite `plan.md` with new phase rows for the redesign, every closed phase keeping its commit, and `spec.md` where the scope moves. It still ends with the sentence naming `docs/the-review-record.md` §*The run* as the rule's owner, so `RUN_OWNS_THE_RULE` holds. The pin is `tests/test_waiver_decided_at_start.py::test_a_reframe_keeps_every_closed_phase`, seen red first, named in the rule's `Enforced by:`, and red under a `mutation-check` that drops the clause. The one other statement of the rule, `skills/code-review/orchestration.md:153`, agrees with it and stands.
 
 ### 3. The hand-back step tells the framer to label every claim `read`, and the framer runs commands
 
 severity: should
 location: `agents/framer.md:71-72`, `tests/test_a_question_says_who_can_answer_it.py`
 evidence: read `agents/framer.md:71-72`, `agents/framer.md:52-57`, `agents/framer.md:148-153`, `skills/agent-contract/SKILL.md:62-70`, `seal/specs/1792368014-the-framer-is-written-anew-from-its-job/spec.md:78-158`
-verdict: open
+verdict: fixed 5bdad9db
 
 Step 8 reads: *Every claim is `read`, because you executed nothing*
 (`agents/framer.md:71`). The same file tells the framer to run commands: a
@@ -183,7 +183,7 @@ def test_the_hand_back_labels_what_the_framer_ran_as_executed():
     assert "is `executed`" in report
 ```
 
-answer:
+answer: Step 8 now labels claims as contract §4 does: a fact a command gave, such as a `git show`, a `grep` or a `wc -l`, is `executed`, and what was opened is `read`. It says the framer ran no check of the repository's, which is the narrower claim that stays true. The pin is `tests/test_a_question_says_who_can_answer_it.py::test_the_hand_back_labels_what_the_framer_ran_as_executed`, seen red first and red under a `mutation-check` that relabels the command's fact `read`. No other definition says every claim is `read` (`git grep`).
 
 ## Confirmations
 
