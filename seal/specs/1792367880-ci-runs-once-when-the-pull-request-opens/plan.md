@@ -5,6 +5,7 @@ artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
 Approved 2026-10-19 by the orchestrator, under the owner's `automation` answer, when `smith` was spawned for phase 1 only. Phase 2 edits `agents/sealer.md`, which #985 may also edit; it starts once #985's frame shows whether the two meet, and a change to the sealer's definition owes the sealer one measurement (about $4), run by the orchestrator.
+Approved 2026-10-19 by the orchestrator, when `smith` was resumed for phase 2: #985's frame (8c857134) leaves `agents/sealer.md` alone. It does edit `tests/test_the_seal_is_taken_once_by_the_sealer.py`, so #985's build waits until this item merges, and this item's rounds, written before #985's `evidence:` line exists, are not refused by it.
 
 ## Summary
 
