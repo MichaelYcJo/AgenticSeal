@@ -8,7 +8,7 @@ target: 40952942, fixes 3e28e664..40952942
 
 severity: should
 location: `seal/specs/1792363231-a-local-mode-work-item-draws-no-stamp/changelog.md:44-50`
-verdict: open
+verdict: fixed f74b2f98
 
 Why it matters. The fragment is what a user reads at the release. The
 sentence "Three limits are stated, none of which arises in this plugin's
@@ -40,7 +40,7 @@ Read: `changelog.md:44-50` at 40952942, against
   machine,
 ```
 
-answer:
+answer: Fixed by the orchestrator after the last round, in the record it owns: the fragment now states the foreign-slot and `--no-verify` limit first, as one that does arise, then "Three more limits are stated, none of which arises in this plugin's own flow" over the amend, the second-clone copy and the conflicted merge, close to the round's rewrite.
 
 ## Confirmations
 
