@@ -401,8 +401,8 @@ sentences by whichever session remembered them, differently each time. No
 agent runs it: `broad-gate --base <base> --record <item>` is the command the
 orchestrator types, with nothing else running, and
 `skills/code-review/orchestration.md` §*Orchestrator: the pull request opens
-before round 1, and a phase is re-run* owns when, before the sealer is
-spawned. The run judges no failure and fixes none; the sealer reads its
+once the sealer seals, and a phase is re-run* owns when, before the
+sealer is spawned. The run judges no failure and fixes none; the sealer reads its
 record, and what it guarantees after it is `docs/the-review-record.md`
 §*The guarantee*.
 `broad-gate --preflight`, which the orchestrator runs before the broad run,

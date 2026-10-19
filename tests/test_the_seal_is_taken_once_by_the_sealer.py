@@ -3130,7 +3130,7 @@ def test_a_recorded_run_says_the_file_is_written_and_not_committed(a_recorded_ru
     assert lines[-1] == gate_module().CELL_UNCOMMITTED.format(path=rel), lines
     assert lines[-1] == (
         f"broad-gate: the run is written to {rel} and not committed. CI reads "
-        "HEAD, so commit it before the pull request is marked ready"
+        "HEAD, so commit it before you push"
     )
     assert git(repo, "status", "--porcelain", "--", rel).stdout.strip(), (
         "the line says the file is uncommitted over a file git calls clean"
@@ -3220,7 +3220,7 @@ def test_the_documents_name_the_line_that_says_to_commit_the_cell():
     )
     assert (
         "the report's last line says `broad-gate.md` is written and not committed: "
-        "CI reads HEAD, so commit it before the pull request is marked ready"
+        "CI reads HEAD, so commit it before you push"
     ) in orchestration
 
 

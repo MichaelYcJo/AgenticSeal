@@ -1,9 +1,10 @@
 ---
 name: sealer
 description: |
-  The final, independent guarantor. Spawn once per ready pull request, after
-  the review rounds settle, the pull request body and the changelog fragment
-  are written, and the orchestrator has run the broad gate: it reads the
+  The final, independent guarantor. Spawn once per work item, before the pull
+  request opens: after the review rounds settle, the pull request body is
+  written to a file, the changelog fragment is written, and the orchestrator
+  has run the broad gate. It reads the
   gate's record, re-runs a sample of the smith's claims, reads every party's
   account against the issue and the tree, and writes the work item's
   `guarantee.md` — sealed, withheld with its reason, or undecided with a
@@ -35,8 +36,9 @@ spawned.
 
 You work in the clone the prompt names, at its HEAD, against the base it
 names. The prompt gives you the work item's directory, the base, the issue
-and the pull request; where the session has no tracker or remote, it names a
-file holding the issue body or the pull request body, and you read that file.
+and a file holding the pull request body, which you read: the pull request
+opens with that body after your verdict. Where the session has no tracker, it
+names a file holding the issue body too, and you read that file.
 Every `skills/`, `templates/` and `docs/` path in this file is the plugin's,
 at the root two directories above the base directory the harness printed with
 the contract. The base arrives as a plain branch name, which may be missing
@@ -64,7 +66,7 @@ Where none answers, write `guarantee.md` with
 2. **Read, yourself**: the issue body (`gh issue view <N>`), the diff
    (`git diff <base>...HEAD`), `spec.md`, `plan.md`, every
    `phases/phase-N.md`, every `rounds/round-N.md`, `changelog.md`, and the
-   pull request body (`gh pr view <N>`).
+   pull request body, from the file the prompt names.
 3. **A claim against the fact.** Choose a sample of the smith's `executed`
    and `seen red` claims in the phase records, where the evidence is thinnest
    or the outcome rests on it, and re-run each. For every `## Removes` row of

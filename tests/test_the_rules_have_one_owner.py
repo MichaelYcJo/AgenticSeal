@@ -40,10 +40,11 @@ ONE_SEAL_IS_FINAL = (
     "`skills/verify/SKILL.md` §*The hand-back's labels carry the claims, and "
     "the one seal is the sealer's* owns that rule"
 )
-BEFORE_ROUND_ONE = (
+AFTER_THE_SEAL = (
     "`skills/code-review/orchestration.md` §*Orchestrator: the pull request "
-    "opens before round 1, and a phase is re-run* owns"
+    "opens once the sealer seals, and a phase is re-run* owns"
 )
+CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = (
     "`templates/config.md` §*Choosing a value — the criterion* owns the criterion"
 )
@@ -73,10 +74,15 @@ RULES = {
         "a defect the release would ship",
         {},
     ),
-    "6 the draft pull request opens before round 1": (
+    # #943: a pull request opened before round 1 ran the suite on three
+    # platforms at every push of every round, and its Ready press once more.
+    "6 the pull request opens once the sealer has sealed": (
         ORCH,
-        "The draft pull request opens at the end of the build, before round 1.",
-        {ORCH_IMPL: f"the draft pull request opens ({BEFORE_ROUND_ONE} when)"},
+        "The pull request opens ready, once the sealer has sealed, and CI runs then.",
+        {
+            ORCH_IMPL: f"the pull request opens ({AFTER_THE_SEAL} when)",
+            CONTRIBUTING: f"{AFTER_THE_SEAL} the order a maintainer's run follows",
+        },
     ),
     "7 a compacted session hands the next round to a fresh one": (
         ORCH,
@@ -158,36 +164,34 @@ def test_every_link_names_the_owner(rule):
         )
 
 
-def test_the_release_leg_is_no_longer_red_until_round_ones_record_commits():
-    """#296 closed the window in which the `release` leg was red from the
-    draft's opening until round 1's record committed.
+def test_a_draft_is_tolerated_and_still_owes_the_record():
+    """#943 stopped telling an orchestrator to open a draft, and did not
+    refuse a repository whose people still open one.
 
-    BOTH halves are asserted: the state prints on a draft rather than
-    failing, and the record is still owed. Requiring only the first would go
+    BOTH halves are asserted: a draft is not refused, and the record is
+    still owed once it is marked ready. Requiring only the first would go
     green over a document that had quietly turned the draft into a permanent
     exemption.
     """
-    assert "That window used to be red and is not any more" in flat(*ORCH)
-    assert "on a draft the missing record prints and the run exits 0" in flat(*ORCH)
+    assert "A repository that still opens a draft is not refused." in flat(*ORCH)
     assert "Nothing that can reach `main` is exempt" in flat(*ORCH)
 
 
-def test_the_order_opens_the_draft_between_the_build_and_the_rounds():
+def test_the_order_opens_the_pull_request_after_the_sealer():
     """`skills/implement/orchestration.md` §*Orchestrator: the order inside a
-    ticket* is what a session reads to know what comes after the smith; a
-    pull request listed last there is the dozen-rounds-on-one-platform shape
-    the owner's section measured."""
+    ticket* is what a session reads to know what comes after the smith. #943
+    moved the pull request from between the build and the rounds to after
+    the sealer, so no step of the order opens, keeps or readies a draft."""
     text = flat(*ORCH_IMPL)
     step = text[text.index("2. spec · plan") : text.index("3. The pull request body")]
-    assert "smith → the draft pull request opens (" in step
     # 1790815611 (#638) wrote the orchestrator's preflight in as the step
     # before the sealer's spawn, and #969 the broad run after it: the sealer
     # reads the run's record, so the run comes before the spawn.
     assert (
-        ") → warden rounds → `broad-gate --preflight`, yours → `broad-gate "
-        "--record`, yours → sealer → the pull request is marked ready." in step
-    )
-    assert step.index("the draft pull request opens") < step.index("warden rounds")
+        "smith → warden rounds → `broad-gate --preflight`, yours → `broad-gate "
+        "--record`, yours → sealer → the pull request opens (" in step
+    ), step
+    assert "draft" not in step, step
 
 
 def test_the_order_no_longer_defers_the_framer_to_a_ticket():

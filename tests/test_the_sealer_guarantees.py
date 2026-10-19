@@ -403,6 +403,24 @@ class TestDefinition:
         never = " ".join(between(SEALER, "## Never", "## Rules").split())
         assert "the typecheck or `broad-gate`" in never, never
 
+    def test_the_sealer_is_spawned_before_the_pull_request_and_reads_its_body_from_a_file(
+        self,
+    ):
+        """S8 of #943. The pull request opens once the sealer has sealed, so
+        no pull request exists when the sealer runs: the description no
+        longer spawns it per ready pull request, and the body it audits is
+        the file the prompt names, the one the pull request then opens
+        with."""
+        text = SEALER.read_text(encoding="utf-8")
+        head = " ".join(text.split("---")[1].split())
+        assert "once per ready pull request" not in head, head
+        assert "before the pull request opens" in head, head
+        intro = " ".join(
+            between(SEALER, "You work in the clone", "## Order of work").split()
+        )
+        assert "a file holding the pull request body" in intro, intro
+        assert "gh pr view" not in text, "the sealer still reads an open pull request"
+
     def test_the_guarantee_rule_exempts_only_the_closing_records(self):
         """Round 1 of #969, finding 1. `chain_check.py#guarantee` lets only
         `broad-gate.md` and `guarantee.md` follow the commit the guarantee
