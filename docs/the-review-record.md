@@ -292,15 +292,16 @@ directory is not written twice, whatever commit it named; a commit whose
 audited commit is not in its own history, a squash or a cherry-pick of the
 guarantee elsewhere, queues nothing; and a guarantee that read `sealed` at an
 earlier commit of that history, or whose `Target SHA` row's `; earlier run:`
-chain reads `sealed`, counts as stamped then, which holds across clones,
-unless this clone recorded refusing that `sealed` (the next rule). It does
+chain reads `sealed`, counts as stamped then, which holds across clones; the
+earlier-run chain alone skips a `sealed` this clone recorded refusing (the
+next rule). It does
 not hold for a `sealed` committed over a history that carries no earlier
 `sealed` in a clone that holds no values file for the work item, which draws
 the stamp again in that clone: the sealing commit amended or rewritten there
 over its own parent, or a second seal on a copy of the branch that had not
-fetched the first. A `sealed` copied by hand into a clone, or brought there
-from a commit no ref of that clone holds, then committed and repaired there,
-joins that class. The
+fetched the first. A `sealed` that drew in another clone, copied here by hand
+over a commit this history does not hold, refused at its commit and then
+repaired, joins that class. The
 clone that drew the stamp keeps its values file, so an amend there draws
 nothing. That is a stated limit, since across clones the history is the only
 record the rule reads, and nothing beside the tree counts stamps. In local

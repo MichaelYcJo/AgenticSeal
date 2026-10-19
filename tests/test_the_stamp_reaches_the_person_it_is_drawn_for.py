@@ -2376,14 +2376,17 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     assert "in a clone that holds no values file for the work item" in rule, (
         "the limit names the clone it holds in"
     )
-    # 1792363231 round 1's finding 1: a verdict brought from another ref
-    # writes no record, and one brought from a commit no ref holds joins the
-    # hand-copied shape in that class.
+    # 1792363231 round 2's finding 2: the class names the one shape the
+    # gate's record can still double, and no longer the copy from a commit
+    # no ref holds, which writes no record now. The history reader skips
+    # nothing; only the chain skips a refusal this clone recorded.
     assert (
-        "A `sealed` copied by hand into a clone, or brought there from a "
-        "commit no ref of that clone holds, then committed and repaired "
-        "there, joins that class."
+        "A `sealed` that drew in another clone, copied here by hand over a "
+        "commit this history does not hold, refused at its commit and then "
+        "repaired, joins that class."
     ) in rule
+    assert "no ref of that clone holds" not in rule
+    assert "the earlier-run chain alone skips a `sealed` this clone recorded" in rule
     for case in (
         "::test_a_sealed_guarantees_commit_queues_one_stamp",
         "::test_a_withheld_or_undecided_guarantee_queues_nothing",
