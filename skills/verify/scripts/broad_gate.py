@@ -3080,7 +3080,7 @@ INVOKED_AS_VAR = "SPECSEAL_BROAD_GATE_INVOKED_AS"
 # `broad-gate.md` into the working tree and commits nothing, and CI reads HEAD.
 CELL_UNCOMMITTED = (
     "broad-gate: the run is written to {path} and not committed. CI reads "
-    "HEAD, so commit it before the pull request is marked ready"
+    "HEAD, so commit it before you push"
 )
 
 

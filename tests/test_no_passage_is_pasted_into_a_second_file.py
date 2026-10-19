@@ -206,7 +206,10 @@ BASELINE = {
     # sentence saying whose `skills/` paths are, the step opening
     # `writing-style` by section, and with the smith the reference-root
     # sentence and its `## Never` line, each the same words in every
-    # definition of #957's shape.
+    # definition of #957's shape. framer-scribe was measured again at the
+    # merge of `release/v0.22.2`, once #970 gave the scribe the same
+    # step sentence.
+    ("agents/framer.md", "agents/scribe.md"): 4,
     ("agents/framer.md", "agents/sealer.md"): 14,
     ("agents/framer.md", "agents/smith.md"): 24,
     ("agents/framer.md", "agents/warden.md"): 31,

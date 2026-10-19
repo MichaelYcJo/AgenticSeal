@@ -1,6 +1,7 @@
-"""Two workflow settings decide whether the checks below them mean anything.
+"""Three workflow settings decide whether the checks below them mean anything,
+and how often they are paid for.
 
-Neither is visible from the checks themselves, and both failed silently.
+None is visible from the checks themselves, and the first two failed silently.
 
 **Checkout depth.** `actions/checkout@v4` fetches one commit unless told
 otherwise. A case in this suite resolves a commit this repository's own
@@ -9,12 +10,26 @@ records name — `tests/test_the_frozen_reading_never_grows.py` shows
 at all, so the case skips where it should have answered.
 
 **Which pull-request events run.** `on: pull_request:` with no `types:` runs
-on `opened`, `synchronize` and `reopened` — and on nothing else. A review that
-has not finished opens its pull request as a DRAFT, on which `chain_check.py`
-prints its refusals and fails nothing. Pressing *Ready for review* adds no
-commit, so `synchronize` never fires, the workflow never re-runs, and the green
-the draft earned stays on that SHA through the merge. Every refusal the check
-holds for a ready pull request is voided by two clicks and no commit.
+on `opened`, `synchronize` and `reopened` — and on nothing else. On a DRAFT
+pull request `chain_check.py` prints its refusals and fails nothing. Pressing
+*Ready for review* adds no commit, so `synchronize` never fires, and without
+`ready_for_review` the workflow that runs the check never re-runs: the green
+the draft earned stays on that SHA through the merge, and every refusal the
+check holds for a ready pull request is voided by two clicks and no commit.
+A workflow whose steps read no draft state gains nothing from those events
+but a second run of the same commit. So the two events are required where a
+workflow runs `chain_check.py`, the one script here that reads draft state,
+and refused everywhere else. A later step that reads draft state through
+another script is not seen by this, and naming the reader once is what keeps
+that fix to one string.
+
+**Which runs a newer one cancels.** A push to an open pull request starts
+every workflow again, and the runs of the commit before it are spent. Each
+workflow that runs on `pull_request` cancels its own runs still in progress
+for the same pull request, and touches nothing else: a `push` to `main` is
+the run `release-report` reads for a release tag's minutes, and GitHub keeps
+one pending run per concurrency group and cancels any older pending one,
+whatever `cancel-in-progress` says.
 
 These are assertions about YAML, which is not this repository's usual shape
 for a test. They are here because the alternative is a comment in the workflow
@@ -30,10 +45,16 @@ from conftest import _unquote, code_lines
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 WORKFLOWS = os.path.join(ROOT, ".github", "workflows")
 
-# Events GitHub does NOT include by default and that this repository needs,
-# because a draft is the documented way past `chain_check.py`'s refusals
-# (`docs/the-review-record.md` §*What the check reads at the pull request*).
+# Events GitHub does NOT include by default, and that a workflow needs where
+# it runs the one script that reads draft state: `chain_check.py` excuses a
+# draft (`docs/the-review-record.md` §*What the check reads at the pull
+# request*), so leaving draft state has to re-run it.
 DRAFT_EVENTS = ("ready_for_review", "converted_to_draft")
+DRAFT_READER = "chain_check.py"
+
+# What `cancel-in-progress` reads in a workflow that also runs on an event
+# other than `pull_request`: a newer pull-request run cancels, nothing else.
+CANCEL_ON_PULL_REQUEST = "${{ github.event_name == 'pull_request' }}"
 
 
 def strip_comments(text):
@@ -59,6 +80,44 @@ def read(name):
 
 def workflows():
     return sorted(n for n in os.listdir(WORKFLOWS) if n.endswith((".yml", ".yaml")))
+
+
+def top_level(text, key):
+    """The lines under a workflow's top-level `key:`, or `None` where it has
+    no such block. Comments are already off."""
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if line.rstrip() == f"{key}:":
+            block = []
+            for follow in lines[i + 1 :]:
+                if follow.strip() and not follow.startswith(" "):
+                    break
+                block.append(follow)
+            return block
+    return None
+
+
+def events(text):
+    """{event: the lines under it} from a workflow's `on:` block."""
+    out, name = {}, None
+    for line in top_level(text, "on") or []:
+        m = re.match(r"^  ([A-Za-z_]+):\s*$", line)
+        if m:
+            name = m.group(1)
+            out[name] = []
+        elif name and line.startswith("   "):
+            out[name].append(line)
+    return out
+
+
+def concurrency(text):
+    """{key: value} of a workflow's top-level `concurrency:` block, or
+    `None` where it declares none."""
+    block = top_level(text, "concurrency")
+    if block is None:
+        return None
+    pairs = (re.match(r"^  ([a-z-]+):\s*(.*?)\s*$", line) for line in block)
+    return dict(m.groups() for m in pairs if m)
 
 
 def jobs(text):
@@ -403,23 +462,84 @@ def test_every_job_that_runs_pytest_has_the_whole_history():
     )
 
 
-def test_a_pull_request_workflow_reruns_when_a_draft_becomes_ready():
-    """Otherwise the draft excuse is permanent rather than temporary.
+def test_the_draft_events_run_where_draft_state_is_read_and_nowhere_else():
+    """Otherwise the draft excuse is permanent, or a ready press re-runs a
+    suite on the commit it already ran.
 
-    `chain_check.py` lets a draft pull request through with an open finding
-    because a review still running has to have somewhere to be. That excuse is
-    meant to end when the pull request stops being a draft. Without these two
-    event types it never does — no commit is needed to leave draft state, and
-    no commit means no `synchronize`.
+    `chain_check.py` lets a draft pull request through with an open finding.
+    That excuse is meant to end when the pull request stops being a draft,
+    and without these two event types it never does — no commit is needed to
+    leave draft state, and no commit means no `synchronize`. A workflow that
+    does not run the check reads nothing a ready press changes, so the two
+    events there buy one more run of the same commit and nothing else.
     """
     for name in workflows():
         text = read(name)
-        if "\n  pull_request:" not in text:
-            continue
-        trigger = text.split("\n  pull_request:", 1)[1].split("\njobs:", 1)[0]
+        trigger = "\n".join(events(text).get("pull_request", []))
         for event in DRAFT_EVENTS:
-            assert event in trigger, (
-                f"{name}: `on.pull_request` does not list `{event}`. The "
-                "default set is opened/synchronize/reopened, so leaving draft "
-                "state re-runs nothing and the draft's green is what merges"
+            if DRAFT_READER in text:
+                assert event in trigger, (
+                    f"{name}: runs `{DRAFT_READER}` and `on.pull_request` "
+                    f"does not list `{event}`. The default set is "
+                    "opened/synchronize/reopened, so leaving draft state "
+                    "re-runs nothing and the draft's green is what merges"
+                )
+            else:
+                assert event not in trigger, (
+                    f"{name}: `on.pull_request` lists `{event}` and nothing "
+                    f"in the workflow runs `{DRAFT_READER}`, the one script "
+                    "that reads draft state, so a ready press re-runs every "
+                    "job on a commit they already ran"
+                )
+
+
+def test_a_newer_pull_request_run_cancels_the_older_and_no_other_run_waits():
+    """A push to an open pull request spends the runs of the commit before
+    it, and nothing outside that pull request is held or cancelled.
+
+    Concurrency groups are the repository's, not the workflow's, so a group
+    without the workflow's name makes one pull request's `tests` and
+    `hygiene` cancel each other. And GitHub keeps one pending run per group,
+    cancelling any older pending one whatever `cancel-in-progress` says: a
+    `push` run grouped by its ref waits behind the run before it, and a third
+    push to `main` cancels it while it waits. That run is the one
+    `release-report` reads for a release tag, so a run that is not a pull
+    request's takes a group of its own, `github.run_id`.
+    """
+    for name in workflows():
+        text = read(name)
+        on = events(text)
+        if "pull_request" not in on:
+            continue
+        block = concurrency(text)
+        assert block is not None, (
+            f"{name}: runs on `pull_request` and declares no `concurrency:`, "
+            "so every push to an open pull request leaves the last commit's "
+            "runs to finish"
+        )
+        group = block.get("group", "")
+        for part in ("github.workflow", "github.event.pull_request.number"):
+            assert part in group, (
+                f"{name}: the concurrency group {group!r} does not name "
+                f"`{part}`; it has to be one workflow's runs of one pull "
+                "request"
             )
+        cancel = block.get("cancel-in-progress")
+        if set(on) == {"pull_request"}:
+            assert cancel in ("true", CANCEL_ON_PULL_REQUEST), (
+                f"{name}: `cancel-in-progress` reads {cancel!r}, so a newer "
+                "push leaves the older run to finish"
+            )
+            continue
+        assert "|| github.run_id }}" in group, (
+            f"{name}: the concurrency group {group!r} does not fall back to "
+            "`github.run_id`, so a run that is not a pull request's shares a "
+            "group with the next one on its ref, waits behind it, and is "
+            "cancelled while pending by the one after"
+        )
+        assert cancel == CANCEL_ON_PULL_REQUEST, (
+            f"{name}: also runs on {sorted(set(on) - {'pull_request'})} and "
+            f"`cancel-in-progress` reads {cancel!r}; only "
+            f"`{CANCEL_ON_PULL_REQUEST}` cancels a pull request's run and "
+            "no other"
+        )

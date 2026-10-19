@@ -180,11 +180,6 @@ one label that is not a topic at all. A bare `now` was the name proposed, and
 it is not the name — standing alone it is a schedule answer with no subject,
 and it reads as the ordinary adverb this document itself uses.
 
-`chain: reframed` takes the same shape beside `chain: capped`: the pull request
-of a run a regression routed back to the framer, and nothing reads it
-(`skills/code-review/orchestration.md` §*A regression is routed by
-comparing the fix with the frame*).
-
 **Nothing schedules from this label** — no workflow, no check and no script
 reads it to decide what happens next — so a stale one costs a reader a wrong
 answer about what has to go next and costs no automation anything.

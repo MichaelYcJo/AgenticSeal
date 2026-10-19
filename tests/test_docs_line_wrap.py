@@ -16,13 +16,13 @@ depends on it.
 Scope is narrower than `agents/*.md` + `skills/*/SKILL.md`, which do not hold
 the limit today. These are their current prose maxima, re-derived 2026-09-16
 with `prose_lines` and `display_width` below — a number written by hand goes
-stale silently, and two of these four had (#422 reported one of them):
+stale silently, and two of the four once listed here had (#422 reported one):
 
-    agents/scribe.md               160
     skills/writing-style/SKILL.md  209
 
 `agents/smith.md` and `skills/implement/SKILL.md` were on this list until
-#967 wrote them anew, wrapped, and they joined `COVERED`.
+#967 wrote them anew, wrapped, and they joined `COVERED`; `agents/scribe.md`
+was until #970 did the same.
 
 `skills/commit-pr-convention/SKILL.md` is covered: it was written wrapped, so
 it never had a maximum to bring down.
@@ -143,18 +143,18 @@ COVERED = [
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under. It was
     # the first `agents/*.md` file to arrive that way; `framer.md` below is
-    # the second. `scribe.md` sits at 160, which is why the docstring lists it
-    # instead of this list holding it.
+    # the second.
     "agents/sealer.md",
     # The fifth definition (#84), on the sealer's terms exactly: a file
     # written wrapped has no sweep to owe, so it goes in at birth.
     "agents/framer.md",
-    # Written anew and wrapped in #967, alone rather than with the scribe:
-    # `questions.md` Q2 of work item 1792251842 took the default, and the
-    # follow-up row is narrowed to the scribe for #970.
+    # Written anew and wrapped in #967.
     "agents/smith.md",
     "skills/implement/SKILL.md",
     "skills/code-review/SKILL.md",
+    # Written anew and wrapped in #970.
+    "agents/scribe.md",
+    "skills/legacy-parity/SKILL.md",
     # The orchestrator's half of the same file (#265). It arrives
     # already wrapped, because it was wrapped as part of the file it
     # was cut from — dropping it here would lose coverage 418 lines

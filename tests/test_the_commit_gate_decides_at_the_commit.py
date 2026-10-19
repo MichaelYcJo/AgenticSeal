@@ -1635,6 +1635,99 @@ def test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output(world)
     assert f"`seal-stamp --from {quoted}`" in said, said
 
 
+# The refusal of a `sealed` the history does not hold, as a person reads it
+# (work item 1792363231, `spec.md` S11). It is no arm: no question, no waiver.
+GUARANTEE_TEXT = (
+    "SpecSeal stopped this commit; nothing was committed.\n\n"
+    "{path} reads `sealed` over {target}, a commit the history of this one "
+    "does not hold: it is neither HEAD of `{branch}`, {head}, nor an ancestor "
+    "of it. Committed, that verdict would draw no stamp, and the pull "
+    "request's check would refuse it as stale.\n\n"
+    "The way on is a new audit: spawn the sealer again at HEAD. Its `Target "
+    "SHA` row then names {head} and keeps this verdict as `; earlier run: "
+    "{target} sealed`. Do not edit the row by hand: a row the sealer did not "
+    "write is a verdict nobody gave.\n\n"
+    "Re-issuing this commit unchanged meets this same refusal.\n"
+)
+
+
+@pytest.mark.parametrize(
+    "shape",
+    [
+        "add, then commit",
+        "commit -a",
+        "commit <pathspec>",
+        "staged, then put back on disk",
+        "a pathspec that leaves it out",
+    ],
+)
+def test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit(world, shape):
+    """1792363231 S11 through the stubs `hooks/hook-install.py` wrote, and
+    `questions.md` Q6. On the declared branch, a commit carrying a
+    `guarantee.md` that reads `sealed` over `deadbee` is refused inside the
+    commit, HEAD unmoved, whether the guarantee was staged first, taken by
+    `-a`, or named by a pathspec, where git hands the hook a temporary index
+    through `GIT_INDEX_FILE`. What is read is the index, not the disk: the
+    `sealed` staged and then put back to `withheld` on disk is still what
+    the commit carries, and is refused. A pathspec commit of another file
+    carries an index without the staged guarantee, so it lands. Red at
+    37f96f7a: every shape landed."""
+    item = world.w / "seal" / "specs" / "1790000000-x"
+    rel = "seal/specs/1790000000-x/guarantee.md"
+
+    def written(target, verdict):
+        (item / "guarantee.md").write_text(
+            "| Field | Value |\n|---|---|\n"
+            f"| Target SHA | {target} against release |\n\nVerdict: {verdict}\n",
+            encoding="utf-8",
+        )
+
+    withheld = world.head(world.w)[:8]
+    written(withheld, "withheld — x")
+    g(world.w, "add", "-A", home=world.home, session="")
+    g(world.w, "commit", "-q", "-m", "withheld", home=world.home, session="")
+    written("deadbee", "sealed")
+    before = world.head(world.w)
+    args = {
+        "add, then commit": ("commit", "-q", "-m", "the seal"),
+        "commit -a": ("commit", "-q", "-a", "-m", "the seal"),
+        "commit <pathspec>": ("commit", "-q", "-m", "the seal", "--", rel),
+        "staged, then put back on disk": ("commit", "-q", "-m", "the seal"),
+        "a pathspec that leaves it out": ("commit", "-q", "-m", "f", "--", "f.py"),
+    }[shape]
+    if shape in (
+        "add, then commit",
+        "staged, then put back on disk",
+        "a pathspec that leaves it out",
+    ):
+        g(world.w, "add", rel, home=world.home, session="")
+    if shape == "staged, then put back on disk":
+        written(withheld, "withheld — x")
+    if shape == "a pathspec that leaves it out":
+        world.change(world.w)
+    got = g(world.w, *args, home=world.home, check=False)
+    if shape == "a pathspec that leaves it out":
+        assert got.returncode == 0, got.stderr
+        assert gate.HEADER not in got.stderr, got.stderr
+        assert world.head(world.w) != before
+
+        # The guarantee is still staged, and nothing else is: `--quiet`
+        # answers by its exit status alone, so no path list is read.
+        def differs(*pathspec):
+            quiet = ("diff", "--cached", "--quiet", "--", *pathspec)
+            return g(world.w, *quiet, home=world.home, check=False).returncode
+
+        assert differs(rel) == 1, "the staged guarantee was committed"
+        assert differs(".", f":(exclude){rel}") == 0, "more than it is staged"
+        return
+    assert got.returncode != 0, got.stderr
+    assert world.head(world.w) == before
+    short = g(world.w, "rev-parse", "--short", "HEAD", home=world.home).stdout.strip()
+    assert got.stderr == GUARANTEE_TEXT.format(
+        path=rel, target="deadbee", branch="feat", head=short
+    ), got.stderr
+
+
 def test_the_post_tool_use_notice_stands_aside_where_git_says_it(world, monkeypatch):
     notice = load_hook_module("implementer-notice.py", "notice_beside_post_commit")
     routing_md = world.w / "seal" / "specs" / "1790000000-x" / "routing.md"
@@ -1785,6 +1878,53 @@ def test_the_policy_names_the_one_session_reader():
         "switch does",
     ):
         assert sentence in text, sentence
+
+
+def test_the_policy_states_the_guarantee_refusal_beside_the_arms():
+    """§14 of the agent contract, for `spec.md` S7 and S11-S13 of work item
+    1792363231. `docs/the-commit-gate-inside-git.md` states the refusal of a
+    `sealed` the history does not hold under that item's marker, beside the
+    arms and as no arm: what it reads and from where, the record it writes,
+    the one way on, what it does not judge, and where it does not run; and
+    its latency bullet carries phase 6's figures. Red against 2759a60d's
+    text, which named no such refusal."""
+    path = Path(__file__).resolve().parent.parent / "docs"
+    raw = (path / "the-commit-gate-inside-git.md").read_text(encoding="utf-8")
+    text = " ".join(raw.split())
+    marker = "<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->"
+    assert marker in raw
+    rule = text.split(marker, 1)[1].split("<!--", 1)[0]
+    for sentence in (
+        "**Beside the arms, `pre-commit` refuses a commit that stages a work "
+        "item's `sealed` over a commit its own history does not hold, and "
+        "records the refusal; it is no arm.**",
+        "from the index, with `git show :<path>`",
+        "`git merge-base --is-ancestor <target> HEAD` does not exit 0",
+        # Round 3 of work item 1792363231, finding 2, a stated limit: a
+        # conflicted merge that brings a side's `sealed` is refused, and its
+        # way on is `--no-verify`.
+        "A commit that concludes a conflicted merge is judged against `HEAD` alone",
+        "the way on is `git commit --no-verify`",
+        "a new audit of the sealer at HEAD",
+        "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
+        "It does not read the `; earlier run:` chain",
+        "no mark, no waiver and no question",
+        "Where the stub does not run",
+        # Finding 3: the one shape where the stub runs and the row lands.
+        "a row an amend folds into the very commit it audited",
+    ):
+        assert sentence in rule, sentence
+    for case in (
+        "::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
+        "::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
+        "::test_the_guarantee_refusal_is_quiet_off_its_one_fact",
+        "::test_a_sealed_committed_past_the_stub_keeps_the_gap",
+    ):
+        assert case in rule, case
+    assert (
+        "268 ms an ordinary judged commit against 260 ms without it, and 310 ms "
+        "against 283 ms for one that stages a `sealed` guarantee"
+    ) in text
 
 
 def test_a_lease_in_a_linked_worktree_is_read(tmp_path):

@@ -86,7 +86,8 @@ def test_the_gates_capture_file_carries_the_work_item_id():
     its own scratch: the clone a `seen red` is re-run in."""
     command = section(
         REVIEW_ORCH,
-        "Orchestrator: the pull request opens before round 1, and a phase is re-run",
+        "Orchestrator: the pull request opens once the sealer seals, and a "
+        "phase is re-run",
     )
     assert "<scratchpad>/<work-item-id>/broad-gate.log" in command, (
         "the orchestration names no capture file carrying the work item id, "

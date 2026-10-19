@@ -26,6 +26,14 @@ checks, and one of them asks for `.claude-plugin/plugin.json` to move. A
 contribution is not a release and must not touch that file. Change the base
 instead, and the refusal goes with it.
 
+**Open the pull request when the work is done, and open it ready.** Every
+push to an open pull request runs the suite on Linux, macOS and Windows, and
+a branch with no pull request runs nothing. So push your branch as often as
+you like, and open the pull request once nothing is left to push.
+`skills/code-review/orchestration.md` §*Orchestrator: the pull request opens
+once the sealer seals, and a phase is re-run* owns the order a
+maintainer's run follows.
+
 ### What a contribution is asked for
 
 - A branch cut from the open release branch, and a pull request based on it.

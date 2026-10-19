@@ -8,7 +8,10 @@ construct -- a `cd` behind a redirection, a loop variable, an `eval` -- can
 route the commit somewhere this did not judge.
 
 What it judges is `hooks/gate.py#arms_missing`, the judgment the PreToolUse
-fallback shares. What it reads to judge:
+fallback shares, and, where no arm is missing, a staged work item's
+`guarantee.md` reading `sealed` over a commit the history does not hold
+(`hooks/commitgate.py#guarantee_off_history`, work item 1792363231), which
+nothing but this hook judges. What it reads to judge:
 
   * the session, from `hooks/hooksession.py` -- none is a person's own commit,
     which is theirs (P2, answer (a));
@@ -17,13 +20,18 @@ fallback shares. What it reads to judge:
     over from the Bash call (P3, answer (a));
   * the paths, from the index git is about to commit -- `GIT_INDEX_FILE`
     names it for `-a` and for a pathspec commit alike (M2);
+  * a staged guarantee and its item's `routing.md`, from that index
+    (`git show :<path>`), only where a staged path is shaped like one;
   * the press, from the session's own transcript
     (`hooks/worktree_consent.py#automation_answered`), only once a refusal is
     decided.
 
 A commit it lets through leaves a one-shot mark for `reference-transaction`,
 keyed by the old HEAD, the tree and the commit's `GIT_AUTHOR_DATE` (M12), so
-the backstop refuses only a commit that never came through here.
+the backstop refuses only a commit that never came through here. A guarantee
+it refuses leaves a refusal record under the common git directory
+(`skills/verify/scripts/seal_stamp.py#record_refusal`), so the sealer's new
+audit, which keeps the refused row on its chain, still draws the stamp.
 
 A refusal is the exit status and the text on stderr; git prints it into the
 command's output and aborts the commit.

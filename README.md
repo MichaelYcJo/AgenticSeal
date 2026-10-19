@@ -38,9 +38,9 @@ works outside the context entirely (hooks).
 | **framer** (subagent) | `agent-contract` | Writes the work item's `spec.md`, `plan.md` and `questions.md` before anybody builds, and is spawned where the SDD ladder already calls for a spec. It reads the repository widely, opens `implement` at the step that decides the ladder and the file set and `writing-style` before it writes, answers from the tree what the tree can answer, and leaves only the rest to `questions.md`. The session asks the routing batch before the framer is spawned, so after that, approving `plan.md` is the run's one interruption. It writes no code — the party that draws the contract is not the party that executes it, which is what gives the warden's *spec compliance first* a document somebody else wrote to check against |
 | **smith** (Claude Code subagent) | `agent-contract` | Builds one phase of a work item against the spec, or runs one fix pass over a round record. It opens `implement` at its first step and `writing-style` before it writes a record, and hands back each claim labelled `executed`, `read` or `unverified`, with the full suite labelled `unverified` and its answerer named |
 | **warden** (subagent) | `agent-contract` | Reviews spec compliance first, then quality. It opens `code-review` at its first step and `writing-style` before it writes its round record. Once its report is verified the orchestrator writes the reviewed HEAD sha to `.git/specseal-reviewed`, which is what the commit gate looks for — the reviewer never writes its own mark |
-| **scribe** (subagent) | `agent-contract` · `legacy-parity` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. Appears only in repos that declare `seal/parity.md` |
+| **scribe** (subagent) | `agent-contract` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. It opens `legacy-parity` at its first step. Appears only in repos that declare `seal/parity.md` |
 | **sealer** (subagent, Opus) | `agent-contract` | The final, independent guarantor. After the rounds settle, the pull request body and changelog are written, and the orchestrator has run the one broad gate (`broad-gate`, which writes `broad-gate.md`), it reads that record and runs nothing broad itself, re-runs a sample of the implementer's claims, and reads the spec, the build, the last review, the changelog and the pull request body against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
-| Skills | — | Twenty-two, in three groups. The two the agents follow from their first tool call are in the column to the left. Fourteen more a session loads on its own when the work calls for them, and an agent opens at the step that names one — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `implement`, `learn`, `settle`, `verify`, `writing-style`. Six you invoke by name; they are in the cheat sheet below |
+| Skills | — | Twenty-two, in three groups. The one the agents follow from their first tool call is in the column to the left. Fifteen more a session loads on its own when the work calls for them, and an agent opens at the step that names one — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `implement`, `learn`, `legacy-parity`, `settle`, `verify`, `writing-style`. Six you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
 | CLAUDE.md block | — | 12 always-on lines — four section headings (`Tooling`, `Safety`, `Session cost`, `Git`) over eight rules: one on tooling, three on safety, one on session cost, three on git. No response-language rule — that stays yours. Its one source is `templates/claude-md-block.md`; the repository's own `CLAUDE.md` carries a generated copy, and CI fails a pull request where the two differ |
 
@@ -111,7 +111,7 @@ Cross-session memory lives in the repo, not the session:
 
 | Root | Lifetime | Holds |
 |---|---|---|
-| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence is also what opts the repository in, for the hooks that read it — the commit gate, the mode gate, the review-skill gate, the review-history guard, the two implementer hooks, the stamp hook and the version check. worktree-guard and session-lease act in every git repo regardless, and lint-python follows ruff (see Where below) |
+| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence is also what opts the repository in, for the hooks that read it — the commit gate, the mode gate, the review-skill gate, the review-history guard, the two implementer hooks, the two stamp hooks and the version check. worktree-guard and session-lease act in every git repo regardless, and lint-python follows ruff (see Where below) |
 | `seal/specs/<id>/` | one work item | SDD set: spec, plan, questions, and a closing memo holding only what the diff cannot show. A human approves `plan.md`, which is why this is a repository document and not tool state |
 | `docs/` | permanent | whatever policy documents the repository already keeps. A work item does not create one — the documentation convention is the project's. `settle` is the one writer that does: it folds a released work item's spec into a policy document here and then retires the directory |
 
@@ -168,7 +168,7 @@ tables:
 
 | Gate | Fires | Does | Where |
 |---|---|---|---|
-| git hooks (`pre-commit`, `reference-transaction`, `post-commit`) | inside git, in every opted-in clone a session reaches | judge a commit in the worktree it lands in, from inside the commit rather than from the command's text, so no shell construct moves one around the judgment. A worktree creation and a branch switch are still judged before the command runs, by the worktree guard below. The commit gate's arms are the ones in the next row; a stop is the hook refusing with the ways on in the command's output, and `git -c specseal.waive=review commit …` is the waiver in git's own spelling. A person's own commit, with no Claude session behind it, is not judged. Installed into the clone's common `hooks/` directory, marked so a hook somebody else wrote is never overwritten — where one is, or `core.hooksPath` is set, the clone keeps the next row's reading | `docs/the-commit-gate-inside-git.md` §The commit gate inside git |
+| git hooks (`pre-commit`, `reference-transaction`, `post-commit`) | inside git, in every opted-in clone a session reaches | judge a commit in the worktree it lands in, from inside the commit rather than from the command's text, so no shell construct moves one around the judgment. A worktree creation and a branch switch are still judged before the command runs, by the worktree guard below. The commit gate's arms are the ones in the next row; a stop is the hook refusing with the ways on in the command's output, and `git -c specseal.waive=review commit …` is the waiver in git's own spelling. Beside the arms, `pre-commit` refuses the commit of a work item's `guarantee.md` reading `sealed` over a commit the branch does not hold, names the sealer's new audit at HEAD as the way on, and records the refusal so that audit draws the stamp; that refusal has no waiver. A person's own commit, with no Claude session behind it, is not judged. Installed into the clone's common `hooks/` directory, marked so a hook somebody else wrote is never overwritten — where one is, or `core.hooksPath` is set, the clone keeps the next row's reading | `docs/the-commit-gate-inside-git.md` §The commit gate inside git |
 | commit-review-gate | before `git commit` | stops the commit when `.git/specseal-reviewed` does not hold the current HEAD sha, and puts the two ways on to you as options: run the review chain, or commit with `[no-review]` (which stays visible in the command). In a repo that declares `seal/parity.md` it also stops a code commit with no `.git/specseal-parity` for this HEAD — compare against the original, or `[no-parity]`. Both arms are put up together, in one question each. **Once per session per repository** — after that it is the plain confirmation, where approving is the waiver. Where you pressed `automation` on the routing question, no prompt reaches you at all: every stop goes back to the model as a refusal naming the ways on that need nobody. The repository judged is the one the command commits **into** — `git -C <path> commit` is judged at `<path>`, not where the shell sits. A `-C` the gate cannot resolve to a repository (a shell variable, since the gate reads the command before the shell expands it) stops the commit rather than passing it: it was never looked at, and that used to be indistinguishable from having passed | `seal/` at the root, or under the common git dir in local mode — silent elsewhere. A migration config lives inside it, so declaring one opts into both arms; waive the review arm per command with `[no-review]`, typed in FRONT of the command — `: '[no-review]'; git commit …`, quotes included |
 | implementer-mark | before an Agent/Task call whose `subagent_type` is `framer` or `smith` (`specseal:smith`, or a project-local `smith`) | writes the checked-out branch name to `.git/specseal-planner` or `.git/specseal-implementer`, one file per axis. It prints nothing, so it can neither deny nor ask; it is the trace the notice below reads. Written before the group decides, so a spawn the worktree guard then stops still leaves one | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
 | implementer-notice | after a command that actually runs `git commit` | where this branch's `routing.md` answers `Planning` with `framer` or `Implementation` with `smith` and no mark of that axis stands for this branch, prints one line naming the file — **one line for both axes**, never one each. Nothing is said for an axis whose mark stands, whose row is absent or unreadable, or which answers `the session`. **Once per session per repository**, and it never blocks — a declared agent nobody spawned is a session forgetting its own answer, and a reminder is what that costs | same opt-in |
@@ -177,7 +177,8 @@ tables:
 | session-lease | after repo-touching tool calls (Bash · file edits) | writes a timestamp, host, and owning session pid to `.git/specseal-leases/<session-id>`. The guard's process heuristics miss sessions not named `claude`; a lease says outright which session is working here. Nothing removes the file at session end, so the owner is recorded: a lease whose session has exited is retired rather than counted, and one that cannot be attributed becomes a question instead of a block | any git repo |
 | mode-gate | before a Bash call, so in practice the session's first one | names a root nobody chose a mode for: `seal/` exists and `seal/config.md` carries no `Mode` row, so nothing records whether this repository's review records travel with it or stay on this machine — and a root somebody chose is byte-identical to one that appeared because a session followed the routing rule. Denies once with the three ways on as options — `seal mode` records where the folder already is and moves nothing, `seal mode shared` / `seal mode local` move it — then the plain confirmation, where approving proceeds and records nothing. **Once per session per repository**, and nothing at all once the row exists. The repository judged is the one the SESSION sits in, not one a `-C` names: this is a fact about the workspace, not a verdict about a change | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and silent wherever the row is written. There is no waiver token: the way on is one command |
 | version-check | at session start | asks this repository for its newest release tag and, when the running plugin is behind, shows a short notice naming `/specseal:update` and the two moves that load a release. Once a day, and a lookup that fails retries about twenty minutes later. It never installs anything — telling you a release exists and installing it are different acts | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
-| sealer-stamp | when the main session's turn ends (`Stop`) | draws, once and after the turn's text, each stamp waiting for this session under `<git-common-dir>/specseal-stamp/<session>/` — queued at the commit of a work item's `guarantee.md` reading `sealed`, once per work item — and renames the file `.drawn.json`. Nothing at a subagent's end, for another session's file, or under a `python3` older than 3.12; `seal-stamp --from <file>` draws one by hand | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
+| sealer-stamp | when the main session's turn ends (`Stop`) | draws, once and after the turn's text, each stamp waiting for this session under `<git-common-dir>/specseal-stamp/<session>/` — queued at the commit of a work item's `guarantee.md` reading `sealed`, or in local mode at its write (the next row), once per work item — and renames the file `.drawn.json`. Nothing at a subagent's end, for another session's file, or under a `python3` older than 3.12; `seal-stamp --from <file>` draws one by hand | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
+| sealer-stamp-queue | after a Write or Edit of a work item's `guarantee.md` | in local mode, where no commit ever carries the root, queues the work item's stamp for the main session's `Stop` when the write leaves `guarantee.md` reading `sealed` over a commit on the branch its `routing.md` names, once per work item, and prints the line naming the queued file and `seal-stamp --from`. Any other edit is passed over on its path alone, before anything is loaded or any `git` runs | `seal/` under the common git dir (local mode) — silent elsewhere, shared mode included, where git's `post-commit` queues the stamp |
 | lint-python | after Write/Edit/NotebookEdit on a `.py` file | runs `ruff check --fix` then `ruff format` on that file — autofixes included, so code changes, not just layout (uv → uvx → global ruff; skips silently if none). `SPECSEAL_LINT=off` disables it | **a project that configures ruff** — `ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`, searched up to the repo root. Silent everywhere else |
 
 The commit gate is not the only place the review chain is enforced any more,
@@ -203,13 +204,18 @@ that record reads `fixed` or `rejected` — a review cannot have passed while
 the fixes that closed its findings went unread. On a draft it prints and
 names the verifying round.
 
-No gate transmits your code, your paths, or your prompts anywhere. Four side
+No gate transmits your code, your paths, or your prompts anywhere. These side
 effects are worth stating outright: session-lease writes a timestamp file under
 `.git/specseal-leases/`, version-check writes one under
-`~/.claude/specseal/`, the commit of a `guarantee.md` reading `sealed` writes
-the stamp's values under `<git-common-dir>/specseal-stamp/`, which the stamp
-hook renames once drawn and nothing prunes, and lint-python rewrites the
-`.py` file you just saved — in ruff-configured projects only.
+`~/.claude/specseal/`, the commit of a `guarantee.md` reading `sealed`, or in
+local mode its write, writes the stamp's values under
+`<git-common-dir>/specseal-stamp/`, which the stamp hook renames once drawn
+and nothing prunes, and a `sealed` refused because its audited commit is not
+on the work item's branch leaves an empty file under
+`<git-common-dir>/specseal-stamp-refused/`, written by the commit gate in
+shared mode and by the edit hook in local mode, which nothing prunes either,
+and lint-python rewrites the `.py` file you just saved — in
+ruff-configured projects only.
 
 Two hooks reach the network. lint-python falls back to `uvx ruff`, and uv
 fetches ruff from PyPI on first use. version-check runs one `git ls-remote
@@ -231,7 +237,7 @@ three-way judgment — policy ↔ original ↔ new, with *preserve the original*
 as the fallback — and the scribe fetches the original's facts. Repos without
 the config never see any of it.
 
-You do not write that file by hand. The smith asks once, the first time it
+You do not write that file by hand. Your session asks once, the first time it
 sets up a repo's layout: *does this project port behavior from an existing
 codebase?* Answer no and it never asks again. Answer yes and it proposes
 candidates for the original — sibling checkouts, an upstream in `git remote
@@ -380,12 +386,12 @@ rmdir .specseal specs                        # git mv leaves them empty on disk;
 
 ## First run
 
-Eight of the eleven gates wake only under a condition: the commit gate, the
+Nine of the twelve gates wake only under a condition: the commit gate, the
 mode gate, the review-history reminder, the two implementer hooks, the
-review-skill gate, the stamp hook and the version check act in a
+review-skill gate, the two stamp hooks and the version check act in a
 repo that has a `seal/` directory at its root or under its git directory, and
-stay silent everywhere else. You never create it by hand — the smith builds it
-the first time it works in a repo, after asking one question (*Shared or
+stay silent everywhere else. You never create it by hand — your session builds
+it the first time it works in a repo, after asking one question (*Shared or
 local*, below), and it is the only directory this plugin adds to your tree —
 plus, in shared mode, one workflow file under `.github/workflows/`; in local
 mode, nothing at all.
@@ -411,14 +417,14 @@ prose works the same way, if you prefer it:
 The smith reads the spec chain, implements, verifies, and hands off to the
 warden for review — you decide what happens to the report. Anything the
 layout needs and the repo lacks (`seal/README.md` carrying the export rules)
-the smith creates from `templates/` as it goes.
+your session creates from `templates/` as it goes.
 
 Two things work with no agent at all: `fold-check` and every gate in the
 table.
 
 ### Shared or local
 
-The first time the smith works in a repository it asks one question, once,
+The first time your session works in a repository it asks one question, once,
 and never again: where `seal/` lives. Whichever place holds the folder is the
 mode; there is no config key, and a repository with `seal/` at either place
 is not asked.

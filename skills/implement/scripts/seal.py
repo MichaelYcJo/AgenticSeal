@@ -675,7 +675,7 @@ def no_root(repo, shared, local):
     print(f"  {shared}   (shared mode)")
     print(f"  {local}   (local mode)")
     print(
-        "\nThe first time the smith works in a repository it asks which one, "
+        "\nThe first time your session works in a repository it asks which one, "
         "and creates it."
     )
     return 1

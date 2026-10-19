@@ -8,10 +8,10 @@ step that needs it, by its path, so a path a definition names has to be a
 file in the tree.
 
 The checks glob `agents/*.md` rather than naming the five, so a sixth
-definition arriving in another shape is red on the day it lands. The one not
-yet written anew, `agents/scribe.md`, is skipped by name from the shape case
-until #970 rewrites it; every definition, rewritten or not, is held to
-preloading the contract.
+definition arriving in another shape is red on the day it lands. Every
+definition is written in that shape, so the shape case skips none, and its
+`skills:` check is what holds each definition to preloading the contract
+alone.
 """
 
 import glob
@@ -28,12 +28,6 @@ AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
 CONTRACT = "skills/agent-contract/SKILL.md"
 SENTENCE = f"`{CONTRACT}` binds you, and it arrived before your first tool call."
 SECTIONS = ("## Job", "## Order of work", "## Never", "## Rules")
-
-# Skipped by name from the shape case alone, each until the issue that writes
-# it anew deletes its entry; the preload case below skips none.
-NOT_YET_REWRITTEN = {
-    "agents/scribe.md": "#970",
-}
 
 # A backticked path into the plugin's own tree. A placeholder (`<…>`), a glob,
 # a `path::name` target and a `path#anchor` are not paths and are not read.
@@ -126,21 +120,10 @@ def test_every_definition_has_the_shape_and_preloads_the_contract_alone(path):
 
     It catches a second skill creeping back into a `skills:` list, which no
     eval sees while the output is right, and a section lost or added in a
-    later edit; no other case reads a definition's frontmatter or headings."""
-    if name(path) in NOT_YET_REWRITTEN:
-        pytest.skip(f"{name(path)} is written anew in {NOT_YET_REWRITTEN[name(path)]}")
+    later edit; no other case reads a definition's frontmatter or headings.
+    With no definition skipped, it is also what keeps a definition that
+    drops `agent-contract` red (#957 round 1, finding 3)."""
     assert shape_problems(read(path)) == [], name(path)
-
-
-@pytest.mark.parametrize("path", AGENTS, ids=name)
-def test_every_definition_preloads_the_contract(path):
-    """The contract arrives by the `skills:` list, rewritten definition or
-    not, and every rule it carries rests on that arrival. The shape case
-    above skips the one #970 rewrites; this one skips none, so
-    a definition that drops `agent-contract` is red whatever its shape
-    (#957 round 1, finding 3)."""
-    head, _body = split(read(path))
-    assert head is not None and "agent-contract" in listed_skills(head), name(path)
 
 
 @pytest.mark.parametrize("path", AGENTS, ids=name)

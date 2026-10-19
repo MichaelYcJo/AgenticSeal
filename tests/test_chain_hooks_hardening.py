@@ -828,7 +828,7 @@ def test_every_shipped_skill_is_named_in_both_readmes():
 
 
 def test_the_readme_group_counts_are_derived_too():
-    """22 = 2 + 14 + 6, and all four numbers were prose.
+    """22 = 1 + 15 + 6, and all four numbers were prose.
 
     Round 1: the total was pinned and the split was not, so a skill could
     move between groups, or the middle count could go stale against its own
@@ -865,7 +865,9 @@ def test_the_readme_group_counts_are_derived_too():
         "user invoked": (len(user_invoked), ("%s you invoke by name", "나머지 %s은")),
     }
     spellings = {
+        1: ("one", "한"),
         2: ("two", "두"),
+        3: ("three", "세"),
         4: ("four", "네"),
         5: ("five", "다섯"),
         6: ("Six", "여섯"),
@@ -873,7 +875,9 @@ def test_the_readme_group_counts_are_derived_too():
         10: ("Ten", "열"),
         11: ("Eleven", "열한"),
         12: ("Twelve", "열두"),
+        13: ("Thirteen", "열세"),
         14: ("Fourteen", "열네"),
+        15: ("Fifteen", "열다섯"),
     }
     for group, (count, phrases) in groups.items():
         assert count in spellings, (
