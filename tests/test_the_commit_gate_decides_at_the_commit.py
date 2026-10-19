@@ -1893,11 +1893,18 @@ def test_the_policy_states_the_guarantee_refusal_beside_the_arms():
         "records the refusal; it is no arm.**",
         "from the index, with `git show :<path>`",
         "`git merge-base --is-ancestor <target> HEAD` does not exit 0",
+        # Round 3 of work item 1792363231, finding 2, a stated limit: a
+        # conflicted merge that brings a side's `sealed` is refused, and its
+        # way on is `--no-verify`.
+        "A commit that concludes a conflicted merge is judged against `HEAD` alone",
+        "the way on is `git commit --no-verify`",
         "a new audit of the sealer at HEAD",
         "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
         "It does not read the `; earlier run:` chain",
         "no mark, no waiver and no question",
         "Where the stub does not run",
+        # Finding 3: the one shape where the stub runs and the row lands.
+        "a row an amend folds into the very commit it audited",
     ):
         assert sentence in rule, sentence
     for case in (

@@ -299,9 +299,11 @@ not hold for a `sealed` committed over a history that carries no earlier
 `sealed` in a clone that holds no values file for the work item, which draws
 the stamp again in that clone: the sealing commit amended or rewritten there
 over its own parent, or a second seal on a copy of the branch that had not
-fetched the first. A `sealed` that drew in another clone, copied here by hand
-over a commit this history does not hold, refused at its commit and then
-repaired, joins that class. The
+fetched the first. A `sealed` that drew in another clone, brought onto a
+copy of its declared branch that does not hold its audited commit, by hand
+or by `checkout`, `cherry-pick -n` or `merge --squash`, is refused at its
+commit and recorded, and the new audit the refusal asks for draws again
+there; it joins that class. The
 clone that drew the stamp keeps its values file, so an amend there draws
 nothing. That is a stated limit, since across clones the history is the only
 record the rule reads, and nothing beside the tree counts stamps. In local
@@ -391,16 +393,26 @@ clone no longer holds. A `sealed` over a commit the branch does not hold
 still counts as the work item's stamp, so its repair draws none, where it
 was committed past the commit gate: under `--no-verify`, in a foreign hooks
 slot, under a plugin older than the gate, as a person's own commit, or in a
-clone no session has reached (`docs/the-commit-gate-inside-git.md`). The
-gate judges a commit's newest verdict alone, never the `; earlier run:`
-chain, so a `sealed` that drew and whose audited commit a later rebase, amend
-or cherry-pick moved out of the history counts as stamped, which it is. In
+clone no session has reached (`docs/the-commit-gate-inside-git.md`); or
+where an amend folded the guarantee into the very commit it audited, which
+`pre-commit` sees as that commit's child and cannot tell from a plain one.
+The pull request's check still refuses that landed row as stale. Likewise
+a commit that concludes a conflicted merge bringing in a side's `sealed` is
+refused; `docs/the-commit-gate-inside-git.md` gives its way on and why this
+plugin's flow never meets it. The gate judges a commit's newest verdict
+alone, never the `; earlier run:` chain, so a `sealed` that drew and whose
+audited commit a later rebase, amend or cherry-pick moved out of the history
+counts as stamped, which it is. In
 local mode the record is the clone's own: a values directory emptied by hand,
 or a guarantee brought by `seal import` from a clone that drew and re-sealed
 here, draws again. A wrong row that names, by coincidence, the very commit a
 copy of the item on another branch was sealed and drawn over draws a second
 time once the gate refuses and records it, the class #975 accepts as a
-second run of the item. The
+second run of the item. So does a `sealed` that drew in another clone and
+was brought onto a copy of its declared branch that does not hold its
+audited commit, whatever brought it: the gate refuses and records it, and the
+new audit it asks for draws again. No guard can tell that copy from a stale
+row the same clone wrote after a push and a rebase. The
 hook draws nothing and says nothing where the main session's `python3`
 cannot load `seal_stamp.py`, since no launcher stands in front of a hook;
 where that session's working directory is outside the clone the stamp was

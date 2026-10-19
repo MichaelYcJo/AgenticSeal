@@ -934,17 +934,23 @@ def label(values):
 # work item's one stamp. `sealed_before` skips nothing. A `sealed` in the
 # history drew where it was made, or was committed where no gate judged it,
 # and the history cannot tell the two apart, so it counts (#975
-# `questions.md` Q8): a wrong row committed past the gate leaves its work
-# item with no stamp. A `sealed` committed over a history that carries no
+# `questions.md` Q8): a wrong row committed past the gate, or folded by an
+# amend into the very commit it audited, which `pre-commit` cannot tell from
+# a plain commit, leaves its work item with no stamp. A conflicted merge
+# that brings in a side's `sealed` is refused, since the gate asks HEAD
+# alone, and its way on is `--no-verify`; in this plugin's flow a conflict
+# with the base is resolved before the sealer runs. A `sealed` committed
+# over a history that carries no
 # earlier `sealed` is caught by neither, so it queues again in a clone that
 # holds no values file for the work item: the sealing commit amended or
 # rewritten there over its own parent, or a second seal on a copy of the
 # branch that had not fetched the first. Its row is the one just written.
 # That is a stated limit (`questions.md` Q9): across clones the history is
 # the only record read, and nothing beside the tree counts stamps. A
-# `sealed` that drew in another clone, copied here by hand over a commit
-# this history does not hold, refused by the gate and then repaired, joins
-# it.
+# `sealed` that drew in another clone, brought onto a copy of its declared
+# branch that does not hold its audited commit (by hand, `checkout`,
+# `cherry-pick -n` or `merge --squash`), refused by the gate and recorded,
+# draws again at the new audit the refusal asks for, and joins it.
 
 # A committed guarantee's path, in shared mode, where a commit carries it. A
 # local-mode root sits under the git directory and no commit ever carries

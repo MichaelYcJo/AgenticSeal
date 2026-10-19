@@ -41,9 +41,13 @@
   skips a `sealed` that file names, so the new audit, which keeps the
   refused verdict on its row, draws the stamp. In local mode the edit hook
   writes the same record and says one line naming the commit and the branch.
+  Three limits are stated, none of which arises in this plugin's own flow.
   A wrong row committed where the gate does not run, under `--no-verify` or
-  in a foreign hooks slot, still leaves its work item with no stamp, as
-  `docs/the-review-record.md` §*The stamp* states. On one machine, as medians
-  of 11 commits, an ordinary judged commit takes 268 ms against 260 ms
+  in a foreign hooks slot, or one an amend folds into the commit it audited,
+  still leaves its work item with no stamp. A sealed item copied onto its
+  branch in a second clone draws a second stamp there. A conflicted merge
+  that brings in a side's `sealed` is refused, and `--no-verify` is its way
+  on. `docs/the-review-record.md` §*The stamp* states each. On one machine,
+  as medians of 11 commits, an ordinary judged commit takes 268 ms against 260 ms
   before, and one staging a `sealed` guarantee 310 ms against 283 ms.
   (`1792363231-a-local-mode-work-item-draws-no-stamp`, #976)

@@ -2435,16 +2435,20 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     assert "in a clone that holds no values file for the work item" in rule, (
         "the limit names the clone it holds in"
     )
-    # 1792363231 round 2's finding 2: the class names the one shape the
-    # gate's record can still double, and no longer the copy from a commit
-    # no ref holds, which writes no record now. The history reader skips
-    # nothing; only the chain skips a refusal this clone recorded.
+    # 1792363231 round 2's finding 2: the class no longer names the copy from
+    # a commit no ref holds, which writes no record now. Round 3's finding
+    # 1: it names any copy onto a copy of the declared branch, whatever made
+    # it, and that the refusal's own way on draws the second stamp. The
+    # history reader skips nothing; only the chain skips a recorded refusal.
     assert (
-        "A `sealed` that drew in another clone, copied here by hand over a "
-        "commit this history does not hold, refused at its commit and then "
-        "repaired, joins that class."
+        "A `sealed` that drew in another clone, brought onto a copy of its "
+        "declared branch that does not hold its audited commit, by hand or by "
+        "`checkout`, `cherry-pick -n` or `merge --squash`, is refused at its "
+        "commit and recorded, and the new audit the refusal asks for draws "
+        "again there; it joins that class."
     ) in rule
     assert "no ref of that clone holds" not in rule
+    assert "copied here by hand" not in text
     assert "the earlier-run chain alone skips a `sealed` this clone recorded" in rule
     for case in (
         "::test_a_sealed_guarantees_commit_queues_one_stamp",
@@ -2472,6 +2476,12 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "a values directory emptied by hand",
         "by coincidence, the very commit a copy of the item on another branch "
         "was sealed and drawn over",
+        # Round 3's findings 1 and 3 of work item 1792363231.
+        "brought onto a copy of its declared branch that does not hold its "
+        "audited commit",
+        "where an amend folded the guarantee into the very commit it audited",
+        "a commit that concludes a conflicted merge bringing in a side's "
+        "`sealed` is refused",
         "cannot load `seal_stamp.py`",
         "outside the clone the stamp was queued in",
         "predates the hook",

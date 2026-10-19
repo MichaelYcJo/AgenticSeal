@@ -107,7 +107,12 @@ with `git show :<path>`, so a `commit -a` and a pathspec commit are read as
 git will commit them. It refuses where the guarantee reads one `Verdict:` of
 `sealed`, the `Branch` row names the branch being committed on, and
 `git merge-base --is-ancestor <target> HEAD` does not exit 0, which covers a
-target that does not resolve and one off the history alike. The text names
+target that does not resolve and one off the history alike. A commit that
+concludes a conflicted merge is judged against `HEAD` alone, so a `sealed` the
+merged side brings in over that side's own commit is refused, and the way on
+is `git commit --no-verify`. In this plugin's flow a conflict with the base is
+resolved before the broad run and the sealer, so a sealed guarantee is never
+what such a merge brings in. The text names
 the file, the commit the row names, the branch and HEAD, and one way on: a
 new audit of the sealer at HEAD, whose `Target SHA` row keeps the refused
 verdict as `; earlier run: <sha> sealed`, and never a row edited by hand.
@@ -120,7 +125,10 @@ It has no opt-in beyond `seal/`, no mark, no waiver and no question, because
 the pull request's check refuses the same file. A commit that stages no
 guarantee loads nothing for it, and a reading that fails stops nothing.
 Where the stub does not run, as under `--no-verify` or in a foreign hooks
-slot, the row lands, and its work item draws no stamp.
+slot, the row lands, and its work item draws no stamp. So does a row an
+amend folds into the very commit it audited: `pre-commit` runs with HEAD
+still at that commit and cannot tell an amend from a plain commit, and the
+pull request's check refuses the landed row as stale.
 Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_refusal_is_quiet_off_its_one_fact, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_tracking_ref_left_by_a_rebase_withholds_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_committed_past_the_stub_keeps_the_gap, tests/test_the_commit_gate_decides_at_the_commit.py::test_the_policy_states_the_guarantee_refusal_beside_the_arms
 
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
