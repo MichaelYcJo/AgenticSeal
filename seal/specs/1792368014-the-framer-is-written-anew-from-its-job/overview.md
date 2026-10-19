@@ -10,7 +10,7 @@ to its home under `docs/` with the test that holds it, not here. -->
 
 The framer's definition is written to the shape the smith and the warden
 already have and preloads the contract alone, so a framer spawn carries
-26,027 bytes at startup instead of 86,353 and opens the two skills by
+26,604 bytes at startup instead of 86,353 and opens the two skills by
 section at the steps that need them.
 
 ## Where spec and implementation diverged
@@ -26,6 +26,7 @@ Opened at phase 1 and closed at phase 4. Each row is one divergence;
 | The release branch merged in twice (461f00c6, ae3f6ccf) | the plan names no merge; Q2 has phase 2 wait for #976 and #985 | two merge commits, so the phase commits keep the SHAs `plan.md` names; the side was measured at b434e145, after the first merge, and the second merge changed only `docs/the-review-record.md`'s round-record sections, which the framer does not open | the orchestrator's instruction for each merge; `phases/phase-4.md` compares the read set at the measured commit and at HEAD |
 | The exemption and the preload case removed (461f00c6) | `## Removes` names the framer's `NOT_YET_REWRITTEN` entry; once #970 had removed the scribe's, the merge left the dict empty | the dict, the shape case's skip and `tests/test_every_agent_reads_the_contract.py::test_every_definition_preloads_the_contract` removed | the preload case existed only to cover definitions the shape case skipped; with none skipped, the shape case's `skills:` check covers it, and no `Enforced by:` line named it |
 | A check phase 1 turned red, fixed (6fe805e1) | the frame does not name `tests/test_first_setup_asks_once.py`; 2cb43374 re-wrapped *and nowhere else* onto one line of `skills/implement/orchestration.md`, and phase 1 did not run that module | the sentence reworded at the merge, and the case made to do what its docstring says: whitespace folded, and the 0.4.0 claim refused rather than the two words | the case read the raw text, so a line break hid the phrase (`mutation-check`: SURVIVED). Contract §18, and the orchestrator's instruction to fix the defect where it was found |
+| Round 1's fix, not measured again (5bdad9db) | phase 2's side measured the definition at b434e145, a 26,027-byte preload; round 1's fix adds 577 bytes to `agents/framer.md` | no second side: the preload that ships is 26,604 bytes, and the side stands at b434e145 | the orchestrator's decision, under the owner's word that a side is not run again for the measurement alone (`phases/phase-4.md`, the addendum) |
 
 ## Not verified
 
