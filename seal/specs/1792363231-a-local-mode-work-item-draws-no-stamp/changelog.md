@@ -37,8 +37,8 @@
   refused, so the repair draws the stamp. A record is written only where the
   verdict cannot have been stamped in another clone. The commit must
   introduce the verdict as a plain commit, not an amend, a rebase, a
-  cherry-pick or a merge. No other branch of the clone may hold a `sealed`
-  guarantee for the work item, as one does after a `merge --squash`, a
+  cherry-pick or a merge. No other branch of the clone may hold a change to
+  the work item's guarantee, as one does after a `merge --squash`, a
   `cherry-pick -n` or a `checkout` of the work item's directory. And its target must have no
   patch-equivalent copy in the history. The gap stays where no record can
   settle it: a repair committed in another clone, a refusal no hook judged,

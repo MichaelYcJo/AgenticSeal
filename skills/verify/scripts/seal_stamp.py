@@ -1175,27 +1175,20 @@ def plain_commit(subject):
     return (subject or "").startswith(PLAIN_COMMITS)
 
 
-def _sealed_on_another_ref(chain, top, path):
-    """Whether a commit some ref of this clone holds, outside HEAD's
-    history, has `path` reading one `sealed`, over any target. HEAD may then
-    have brought its verdict from that branch by a plain commit, whatever
-    the command (`merge --squash`, `cherry-pick -n`, `checkout <rev> --
-    <path>`), and the work item may have been stamped where that branch
-    holds its audited commit. Over any target, because a work item stamped
-    there is stamped once whatever commit its verdict named."""
-    reader = chain.SHARED_READER
-    listed = _git(top, "log", "--format=%H", "--all", "--not", "HEAD", "--", path)
-    for sha in (listed or "").split():
-        text = _git(top, "show", f"{sha}:{path}")
-        if not text:
-            continue
-        verdicts = chain.verdicts_of(reader, text)
-        if len(verdicts) == 1 and chain.verdict_word(verdicts[0][1]) == chain.SEALED:
-            return True
-    return False
+def _guarantee_on_another_ref(top, path):
+    """Whether some ref of this clone holds, outside HEAD's history, a
+    commit that changed `path`. HEAD may then have brought its verdict from
+    that branch by a plain commit, whatever the command (`merge --squash`,
+    `cherry-pick -n`, `checkout <rev> -- <path>`), and the work item may
+    have been stamped where that branch holds its audited commit. What that
+    commit's guarantee reads is not asked: withholding a record keeps the
+    gap and never draws twice, and no case told a `sealed` there from any
+    other verdict (round 1 of work item 1792363231)."""
+    listed = _git(top, "log", "-1", "--format=%H", "--all", "--not", "HEAD", "--", path)
+    return bool((listed or "").strip())
 
 
-def _stamped_nowhere_else(chain, top, path, target):
+def _stamped_nowhere_else(top, path, target):
     """Whether HEAD's `sealed` over `target`, refused because `target` is
     not in HEAD's history, cannot have been stamped in another clone, so
     that this clone may record the refusal. The caller asks only at the
@@ -1204,14 +1197,14 @@ def _stamped_nowhere_else(chain, top, path, target):
     HEAD introduced this one: `HEAD^`'s guarantee reads no `sealed` this
     clone did not already refuse. Then three facts must hold. HEAD's newest
     reflog entry is a plain or an initial commit (`plain_commit`). No ref of
-    the clone holds, outside HEAD's history, a commit whose `path` reads
-    `sealed` (`_sealed_on_another_ref`), so the verdict was not brought from
-    a branch where the work item may have been stamped. And `target`
-    does not resolve, or HEAD's side holds no patch-equivalent copy of it,
-    so the verdict was not audited before a rebase that moved the commit."""
+    the clone holds, outside HEAD's history, a commit that changed `path`
+    (`_guarantee_on_another_ref`), so the verdict was not brought from a
+    branch where the work item may have been stamped. And `target` does not
+    resolve, or HEAD's side holds no patch-equivalent copy of it, so the
+    verdict was not audited before a rebase that moved the commit."""
     if not plain_commit(_git(top, "reflog", "-1", "--format=%gs", "HEAD")):
         return False
-    if _sealed_on_another_ref(chain, top, path):
+    if _guarantee_on_another_ref(top, path):
         return False
     full = (
         _git(top, "rev-parse", "--verify", "-q", f"{target}^{{commit}}") or ""
@@ -1261,7 +1254,7 @@ def _queue_one(chain, top, common, session, name, now):
     # Precondition: `target` resolves in this clone; where it does not,
     # `merge-base` exits 128 and nothing is queued.
     if _git(top, "merge-base", "--is-ancestor", target, "HEAD") is None:
-        if _stamped_nowhere_else(chain, top, f"{rel}/guarantee.md", target):
+        if _stamped_nowhere_else(top, f"{rel}/guarantee.md", target):
             record_refusal(common, ident, target)
         return None
     gate_text = _git(top, "show", f"HEAD:{rel}/{chain.BROAD_GATE_FILE}")

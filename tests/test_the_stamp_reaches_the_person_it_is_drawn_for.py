@@ -2366,8 +2366,8 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         "at least seven characters",
         "four things must hold",
         "a plain `commit:` or `commit (initial):`",
-        "No ref of the clone holds, outside HEAD's history, a commit whose "
-        "guarantee reads `sealed`, over any target",
+        "No ref of the clone holds, outside HEAD's history, a commit that "
+        "changed the guarantee",
         "HEAD's side holds no patch-equivalent copy of it",
         "where the `Branch` row's branch stands",
     ):

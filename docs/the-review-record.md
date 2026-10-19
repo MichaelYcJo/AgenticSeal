@@ -337,10 +337,9 @@ files let it through, so that commit introduced the verdict. `HEAD`'s newest
 reflog entry, which inside `post-commit` already names that commit, is a
 plain `commit:` or `commit (initial):`, so not an amend, a rebase, a
 cherry-pick or a merge. No ref of the clone holds, outside HEAD's history, a
-commit whose guarantee reads `sealed`, over any target, so the verdict was
-not brought by a plain commit from a branch where the work item may have
-been stamped: a `merge --squash`, a `cherry-pick -n` or a `checkout` of the
-path. And the
+commit that changed the guarantee, so the verdict was not brought by a plain
+commit from a branch where the work item may have been stamped: a
+`merge --squash`, a `cherry-pick -n` or a `checkout` of the path. And the
 target does not resolve, or HEAD's side holds no patch-equivalent copy of
 it, so the verdict was not audited before a rebase moved its commit. In
 local mode the record is written where the
