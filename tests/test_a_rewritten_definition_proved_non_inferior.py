@@ -1029,12 +1029,13 @@ CASE = "evals/behaviour/warden/c1"
 
 
 def suite_commits(tmp_path, monkeypatch):
-    """A repository whose history holds six warden suites, with `ni` reading
-    it: `own` (case c1, its truth-1 TRUTH), `wide` (truth-1 widened to line
-    40), and four from `wide`: `prompt` (c1's case.yaml changed), `more` (a
-    case c2 added), `kind` (truth-1 a file test, which no report row
-    answers) and `flag` (truth-1 carrying a flag Python's `re` has no
-    letter for). `{name: commit}`."""
+    """A repository whose history holds seven warden suites, with `ni`
+    reading it: `own` (case c1, its truth-1 TRUTH), `wide` (truth-1 widened
+    to line 40), and five from `wide`: `prompt` (c1's case.yaml changed),
+    `more` (a case c2 added), `kind` (truth-1 a file test, which no report
+    row answers), `flag` (truth-1 carrying a flag Python's `re` has no
+    letter for) and `plain` (truth-1 with no front matter).
+    `{name: commit}`."""
     bh = load_script("behaviour")
     d = tmp_path / "suites"
     d.mkdir()
@@ -1091,6 +1092,9 @@ def suite_commits(tmp_path, monkeypatch):
     git("reset", "-q", "--hard", commits["wide"])
     truth(WIDE, flags="mu")
     commits["flag"] = commit("flag")
+    git("reset", "-q", "--hard", commits["wide"])
+    write(f"{CASE}/graders/truth-1.md", "A defect, with no front matter.\n")
+    commits["plain"] = commit("plain")
     monkeypatch.setattr(ni, "ROOT", str(d))
     return commits
 
@@ -1248,61 +1252,87 @@ def test_a_side_regraded_onto_a_wider_truth_counts_the_row_it_now_matches(
     assert meta["regraded_from"] == commits["own"]
 
 
-def score_off(result):
+def run_score_off(result):
+    result["cases"][0]["arms"]["with"][0]["score"] = 0.5
+
+
+def case_score_off(result):
     result["cases"][0]["aggregates"]["score"] = 0.5
+
+
+def side_score_off(result):
+    result["aggregates"]["overallScore"] = 0.5
+
+
+def truth_not_its_suites(result):
+    result["cases"][0]["graders"][1]["config"]["pattern"] = WIDE
 
 
 def no_suite(result):
     result["specseal"]["suite_rev"] = None
 
 
-def a_case_its_suite_lacks(result):
+def with_c2(result):
     case = json.loads(json.dumps(result["cases"][0]))
     case.update(name="warden c2", dir="evals/behaviour/warden/c2")
     result["cases"].append(case)
 
 
 @pytest.mark.parametrize(
-    "rev, found, spoil, named",
+    "own, rev, found, spoil, named",
     [
         # Its second run recorded truth-1 found, and its rows do not find it.
-        ("wide", [True, True], None, "warden c1"),
-        # Its truth results come back, and its recorded score does not.
-        ("wide", [True, False], score_off, "warden c1"),
+        ("own", "wide", [True, True], None, "warden c1, run 1: it recorded"),
+        # Its truth results come back, and a score it recorded does not.
+        ("own", "wide", [True, False], run_score_off, "warden c1, run 0: it recorded"),
+        ("own", "wide", [True, False], case_score_off, "warden c1: its aggregates"),
+        ("own", "wide", [True, False], side_score_off, "the side's aggregates"),
+        # The truth it recorded is not the one its suite's file holds.
+        ("own", "wide", [True, False], truth_not_its_suites, "warden c1: its truth"),
         # The side names no suite it ran.
-        ("wide", [True, False], no_suite, "suite is unknown"),
+        ("own", "wide", [True, False], no_suite, "suite is unknown"),
         # It ran a case the suite it names does not hold.
-        ("more", [True, False], a_case_its_suite_lacks, "warden c2"),
+        ("own", "more", [True, False], with_c2, "warden c2: the suite it ran"),
+        # The target suite does not hold a case the side ran.
+        ("more", "wide", [True, False], with_c2, "warden c2: the suite at"),
         # The target suite asks the case otherwise, not only its truths.
-        ("prompt", [True, False], None, "warden c1"),
+        ("own", "prompt", [True, False], None, "warden c1: the suite at"),
         # The target suite holds a case the side never ran.
-        ("more", [True, False], None, "c2"),
+        ("own", "more", [True, False], None, "warden/c2: the suite at"),
         # The target's truth is a file test, which no report row answers.
-        ("kind", [True, False], None, "warden c1"),
+        ("own", "kind", [True, False], None, "warden c1: truth-1 is not"),
         # The target's truth carries a flag `re` has no letter for.
-        ("flag", [True, False], None, "warden c1"),
+        ("own", "flag", [True, False], None, "warden c1: truth-1 carries"),
+        # The target's truth file has no front matter to read.
+        ("own", "plain", [True, False], None, "c1/graders/truth-1.md has no"),
     ],
     ids=[
         "rows-do-not-reproduce",
-        "scores-do-not-reproduce",
+        "a-run-score-does-not-reproduce",
+        "a-case-score-does-not-reproduce",
+        "the-side-score-does-not-reproduce",
+        "a-truth-not-its-suites",
         "no-suite",
         "a-case-its-own-suite-lacks",
+        "a-case-the-target-lacks",
         "a-non-truth-file-differs",
         "another-case",
         "a-truth-no-row-answers",
         "an-unknown-flag",
+        "no-front-matter",
     ],
 )
 def test_regrade_refuses_what_it_cannot_stand_in_for(
-    tmp_path, monkeypatch, capsys, rev, found, spoil, named
+    tmp_path, monkeypatch, capsys, own, rev, found, spoil, named
 ):
-    """Guards S4: a side whose rows do not give back what it recorded, or
-    that names no suite or a suite short of its cases, or a target suite
-    that changes a case beyond its `truth-` graders, holds other cases, or
-    holds a truth no report row can answer, is refused with exit 2, naming
-    the case, and nothing is written."""
+    """Guards S4: a side whose rows or scores do not give back what it
+    recorded, whose truths are not its suite's, or that names no suite or a
+    suite short of its cases, or a target suite short of its cases, that
+    changes a case beyond its `truth-` graders, holds other cases, or holds
+    a truth no report row can answer, is refused with exit 2, naming the
+    case, and nothing is written."""
     commits = suite_commits(tmp_path, monkeypatch)
-    side = graded_side(tmp_path, commits["own"], ROWS, found, spoil)
+    side = graded_side(tmp_path, commits[own], ROWS, found, spoil)
     out = tmp_path / "out.json"
     assert regrade(side, commits[rev], out) == 2
     assert not out.exists(), "a side was written that regrade cannot stand in for"
