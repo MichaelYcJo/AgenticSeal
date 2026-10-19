@@ -227,3 +227,45 @@ modules in one `bin/test` command. They exit 0 with
 `3998 passed, 9 skipped`. `bin/rules --check` exits 0 with 541 targets.
 `uvx ruff check` and `uvx ruff format --check` over the three resolved
 test files exit 0.
+
+Before the second merge, 6fe805e1 fixed the check that phase 1's
+re-wrap had turned red. `tests/test_first_setup_asks_once.py::test_the_sentence_that_said_nowhere_else_is_gone`
+said a line break could not hide its phrase, but it read the raw text, and
+the 0.4.0 sentence wrapped between *nowhere* and *else* survived it
+(`mutation-check`: SURVIVED). The case now folds whitespace and refuses the
+claim `` `<repo>/seal/` and nowhere else ``, not the two words, because
+`skills/implement/SKILL.md`'s closing-memo sentence says *nowhere else*
+about something else. It is red on both wraps and green on the tree
+(`executed`).
+
+**Addendum: the second merge of `release/v0.22.2` (ae3f6ccf).** The
+orchestrator asked for it after #985 merged. ae3f6ccf merges 2ff7b963 into
+6fe805e1. git merged it without a conflict and wrote its default message.
+
+- **The framer's read set.** Of the files the frame names, only
+  `docs/the-review-record.md` changed (blob 2c489b42 to 6cb90e68). Its
+  hunks sit in `## The round record` and `## What the check reads at the
+  pull request`. The framer opens only §*The run*, on a reframe, and that
+  section hashes the same on both sides (`204f7f6e…`). Ten files keep
+  their blobs: `agents/framer.md`, the contract, `implement`,
+  `writing-style`, the three templates, `confidence-check`,
+  `feature-planner` and `templates/config.md`. The seven preload and
+  template files keep the sha256 values recorded above.
+  `bin/payload-meter --agent framer` still reads 9,424 and 16,603 bytes
+  (`executed`).
+- **The evidence line.** #985 gives every finding an `evidence:` line. This
+  work item has no `rounds/`, and no file this branch changed carries a
+  finding, so nothing here needed the line. Every round record the grep
+  found came in with the release (`executed`, `git ls-files`, and a grep
+  for `severity:`, `verdict:` and `location:` over this branch's changed
+  files).
+- **Narrow runs.** 74 modules ran in one `bin/test` command. They are the
+  test modules the merge changed, every module naming `agents/warden.md`,
+  `docs/the-review-record.md`, `replay_targets`, `code-review`'s skill,
+  `templates/sdd-round.md`, `seal/specs` or the `agents/*.md` glob, and
+  this phase's modules. The run gave `3879 passed, 6 skipped` and one
+  failure: `tests/test_no_shape_the_base_stops_reads_silent.py` ran 108.3 s,
+  over its 90 s ceiling, with the load average at 104. Run alone, that
+  module exits 0 (`executed`, twice, the second reading the exit code
+  directly).
+
