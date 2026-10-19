@@ -43,6 +43,7 @@ Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_ev
 | `### <n>. <symptom>` | `### (?P<number>[1-9][0-9]*)\. .+` | `## Findings` | each number once | no number: a finding's heading reads `### <n>. <symptom>`, and a later round names it by that `n` |
 | `severity:` | `severity: (?:must\|should)` | a finding | one | a severity is `must` or `should` |
 | `location:` | `` location: `[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`(?:, `[^`\s:/#][^`\s:#]*(?::[0-9]+(?:-[0-9]+)?)?`)* `` | a finding | one | a location is one or more of `path`, `path:line` or `path:first-last`, each backticked, joined by `, ` |
+| `evidence:` | `` evidence: (?:executed `[^`]+`(?:, `[^`]+`)*\|read `[^`\s:/#][^`\s:#]*:[0-9]+(?:-[0-9]+)?`(?:, `[^`\s:/#][^`\s:#]*:[0-9]+(?:-[0-9]+)?`)*) `` | a finding | one | evidence is `executed` and each command run, or `read` and each `path:line` or `path:first-last` opened, each backticked, joined by `, ` |
 | `verdict:` | `verdict: (?:open\|rejected\|fixed (?P<commit>[0-9a-f]{7,40})\|deferred (?P<home>\S(?:.*\S)?))` | a finding | one | a verdict is `open`, `fixed <commit>`, `rejected` or `deferred <home>` |
 | `regression:` | `regression: round-(?P<round>[1-9][0-9]*)(?:#(?P<finding>[1-9][0-9]*))?` | a finding | at most one | a reference is `round-<N>#<n>` or `round-<N>` |
 | `reopens:` | `reopens: round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*)` | a finding | at most one | a reopened close is a finding's, so the reference is `round-<N>#<n>` |
@@ -97,6 +98,31 @@ whether a fix that touched one of three is complete is the verifying round's
 to judge. It errs where a commit touches a named path and fixes nothing,
 which the verifying round reads.
 Enforced by: tests/test_chain_check.py::TestLocationOf::test_one_or_more_backticked_coordinates_read_and_nothing_else_does, tests/test_chain_check.py::TestMain::test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused
+
+**A finding's `evidence:` line names what its claim rests on.** `executed`
+names each command the round ran for it, and `read` each `path:line` it
+opened, so a later reader repeats the act instead of trusting the prose. A
+claim resting on neither is no finding but a row of `## Not judged`. The
+check holds the line to its row and reads nothing out of it. A backtick
+ends a command on the line, so a command that holds one is written and run
+with `$(printf '\140')` in place of the character, and the line names the
+command the round ran.
+Enforced by: tests/test_chain_check.py::TestFindings::test_an_evidence_line_missing_twice_or_malformed_is_refused, tests/test_chain_check.py::TestFindings::test_both_evidence_forms_and_their_lists_read, tests/test_chain_check.py::TestFindings::test_a_label_in_another_spelling_is_refused_by_line
+
+**A claim of absence is `executed` only.** A finding that says something is
+missing, that nothing catches, calls or states it, names the search that
+found nothing, because no coordinate opened can show an absence. The check
+reads the line's shape and never whether a claim is one of absence; the
+warden who writes the line and the round that reads it judge that.
+Enforced by: nothing — whether a claim is one of absence is read from its prose, which the reviewer and the next round judge.
+
+**A later round re-runs an `executed` line rather than re-deriving the
+claim.** Where it weighs an earlier finding, it runs the commands the line
+names again. A probe the line names was deleted under
+`skills/agent-contract/SKILL.md` §7, so the round writes it again from its
+`## Probes` row. The sealer weighs no finding: a finding's verdict is the
+check's to read (`agents/sealer.md` step 3).
+Enforced by: tests/test_review_axes.py::test_a_later_round_re_runs_an_executed_line
 
 **The fix pass writes two lines per finding and nothing else in the file.**
 It rewrites the finding's `verdict:` line, with the commit for `fixed`, and
@@ -206,14 +232,23 @@ a ready pull request its newest run is HEAD, or only the work item's records
 follow it.
 Enforced by: tests/test_broad_gate.py::TestGate, tests/test_broad_gate.py::TestKeptRuns, tests/test_chain_check.py::TestMain
 
-**Nothing reads a record of the old table's shape.** The check opens the
+**The check reads no record of the old table's shape.** It opens the
 records of the work items this pull request's own commits declare or change
-and no other, so a record a merged pull request left behind is read by
-nothing again, whatever its shape. One of the old shape under an item this
-pull request carries has no `## Findings` section, and is refused by name. A
-work item in flight across the update rewrites its records into the shape
-before its pull request goes ready.
-Enforced by: tests/test_chain_check.py::TestMain::test_a_reviewed_branch_passes_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_an_old_shape_record_under_the_declared_item_is_refused
+and no other, so a record a merged pull request left behind is never judged
+at a pull request again, whatever its shape. Two readers outside the check
+still open merged records: `.github/scripts/release_seal.py#chain_counts`
+reads every record of a release with the `chain_check` of the tree it runs
+from, and `evals/scripts/replay_targets.py` reads each labelled record with
+the `chain_check` of the commit that last wrote it. One of the old shape
+under an item this pull request carries has no `## Findings` section, and is
+refused by name. A
+work item in flight across a change to the table meets the change as its
+records stand: a renamed line is rewritten into its new spelling, and an
+added line is never supplied after the round that would have written it, so
+an item whose records predate an added line merges before the change or has
+its rounds written after it. A record written before a line was added lacks
+it, and the lack is no finding for a later round.
+Enforced by: tests/test_chain_check.py::TestMain::test_a_reviewed_branch_passes_a_ready_pull_request, tests/test_chain_check.py::TestMain::test_an_old_shape_record_under_the_declared_item_is_refused, tests/test_review_axes.py::test_a_record_written_before_a_line_was_added_is_no_finding
 
 **The check reads the diff as declarations, not as file identity.** It diffs
 without rename detection, so a deleted declaration beside a similar added one

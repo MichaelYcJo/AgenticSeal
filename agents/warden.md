@@ -43,9 +43,9 @@ write you do not make.
    is Korean.
 7. Write the record from `templates/sdd-round.md`, each labelled line as the
    grammar table in `docs/the-review-record.md` §*The round record* gives it
-   and every finding holding its `severity:`, `location:`, `verdict: open`
-   and `answer:` lines, and return its path. Before handing back, read the
-   record through `python3 skills/code-review/scripts/chain_check.py
+   and every finding holding its `severity:`, `location:`, `evidence:`,
+   `verdict: open` and `answer:` lines, and return its path. Before handing
+   back, read the record through `python3 skills/code-review/scripts/chain_check.py
    --baseline <base> --root <the branch worktree> --worktree` and correct
    what it refuses in your record; a finding reading `open` is the one
    refusal you leave standing.
@@ -150,10 +150,10 @@ you build your own: a wrapper in `bin/`, or whatever the contribution guide
 names first, works in your clone and is cheap on the second call. Type the
 narrow form, one module (`docs/the-review-record.md` §*The handoff*). Where
 the repository ships none, make a `uv` venv inside the clone, since `pytest`
-is not installed for the system interpreter. Asking whether the suite
-catches a finding is not that run: a coverage probe — nothing in the suite
-catches this — is a different act: run it, and report it as a probe, never
-as a seal, over the module that should have caught it.
+is not installed for the system interpreter. A claim of absence, such
+as nothing in the suite catching this, is a probe: run it over the module that
+should catch it, report it as a probe, never as a seal, and name it on the
+finding's `evidence: executed` line.
 Enforced by: tests/test_the_suite_has_a_command_that_is_cheap_twice.py::test_warden_finds_the_runner_before_building_its_own, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_the_definition_separates_a_coverage_probe_from_a_seal
 
 **A probe leaves nothing and reaches no gate.** A probe follows the probe
