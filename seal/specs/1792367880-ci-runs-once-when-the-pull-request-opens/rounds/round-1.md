@@ -7,8 +7,8 @@ target: 3ba50b9f against release/v0.22.2
 ### 1. Two places still assume a pull request exists, or does not, at the wrong moment
 
 severity: should
-location: `skills/code-review/orchestration.md:153`, `skills/code-review/orchestration.md:175-179`, `skills/code-review/orchestration.md:220-223`, `agents/sealer.md:39-40`
-verdict: open
+location: `skills/code-review/orchestration.md:153`, `skills/code-review/orchestration.md:175-179`, `skills/code-review/orchestration.md:220-223`, `agents/sealer.md:39-40`, `docs/issues-and-milestones.md:183-186`
+verdict: fixed 95ab5fd0
 
 The new order moves the moment the pull request exists. Sentences written
 for the old moment now give an instruction that cannot be followed, or
@@ -67,13 +67,13 @@ open. Where the session has no tracker, it names a file holding the issue
 body too, and you read that file.
 ```
 
-answer:
+answer: Fixed, and the label step is removed rather than moved. A `git grep` for `chain: reframed` outside the records found only the step and the sentence in `docs/issues-and-milestones.md` that said nothing reads the label. No workflow, script or case reads it (`.github/scripts/tracker_labels.py` defines `size: now` alone), so the step and that sentence are gone. A reframe is still recorded by the `Reframed … after round <N>.` line in `spec.md`. The stated limit now says the pull request stays open through its repair, and that a repaired body is written to the file again and given to the open pull request. It uses the command `docs/release-checklist.md:209-211` names, `gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`, not `gh pr edit`, which that checklist says can fail silently. The records-only repair sentence points there. `agents/sealer.md` says the body "opens with that body after your verdict, or is given it where already open". Pins: `test_the_orchestrator_writes_the_body_file_the_sealer_reads` holds the PATCH command, and the S8 case holds the sealer's clause. Each was seen red under `mutation-check` (executed). The same commit cuts three restatements from `agents/sealer.md` for the coordinator's failed measurement: the copy of §6's withheld acts, §2's assignment copied into a Rule body, and step 5's verdicts copied into the description. The file goes from 8,204 to 7,902 bytes, against 8,087 at 75502328 (executed, `wc -c`). That removal changed two cases in `tests/test_the_seal_is_taken_once_by_the_sealer.py`. `test_the_window_the_sealer_shipped_under_is_closed` still finds "the orchestrator runs it". `test_the_sealer_recites_the_four_acts_s6_actually_withholds` held the copy in step with §6, so it is inverted as `test_the_sealer_leaves_s6s_withheld_acts_to_s6`, and it went red with the recitation put back (executed).
 
 ### 2. The owner section tells a run that stops before the pull request to push the branch
 
 severity: should
 location: `skills/code-review/orchestration.md:159-173`, `skills/implement/orchestration.md:327`, `skills/implement/orchestration.md:447`
-verdict: open
+verdict: fixed 95ab5fd0
 
 The person's answer `Destination | stop before the pull request` means the
 branch is handed back "committed and unpushed"
@@ -113,13 +113,13 @@ pull request` push nothing: name the platform risk in the handback, for
 whoever opens the pull request.
 ```
 
-answer:
+answer: Fixed as proposed, in `skills/code-review/orchestration.md` alone. The push to build and review on is conditioned on `Destination` reading `open the pull request`. Under `stop before the pull request` nothing is pushed, and the branch is handed back committed and unpushed. The platform step pushes nothing under that answer and names the risk in the handback instead. `skills/implement/orchestration.md:327` and `:447` already say this, so they stand unchanged. `test_a_run_that_stops_before_the_pull_request_pushes_nothing` pins the three sentences, and deleting each one turned it red (executed). The changelog fragment says a stop-before-PR run pushes nothing.
 
 ### 3. Nothing pins the orchestrator's half of the body file, so the file the sealer reads can lose its writer without a case going red
 
 severity: should
 location: `tests/test_the_rules_have_one_owner.py`, `skills/code-review/orchestration.md:162-163`, `skills/code-review/orchestration.md:181-184`, `skills/code-review/orchestration.md:186-188`, `skills/code-review/orchestration.md:196-197`, `docs/the-broad-gate.md:5`
-verdict: open
+verdict: fixed 95ab5fd0
 
 S8's case pins the sealer's half: the definition says the spawn prompt
 names a file holding the body (`tests/test_the_sealer_guarantees.py:406-422`,
@@ -194,7 +194,7 @@ Each assertion above was read against the tree at `3ba50b9f` and holds
 there (executed, a `python3 -c` that flattens the two files). Each still has
 to be seen red against its mutation (contract §15).
 
-answer:
+answer: Fixed as proposed, in `tests/test_the_rules_have_one_owner.py`. `test_the_orchestrator_writes_the_body_file_the_sealer_reads` holds the body file's writer, its spawn and its open command, and `docs/the-broad-gate.md:5`. It also holds the PATCH command finding 1 added. `test_a_draft_is_tolerated_and_still_owes_the_record` now asserts the `ready_for_review` clause its docstring names. The round's five mutations were rerun against 95ab5fd0, and each went red (executed): the spawn sentence, "written to a file", `--body-file <that file>`, the draft clause and the policy line. The pins finding 1 and finding 2 added were also seen red.
 
 ## Confirmations
 
