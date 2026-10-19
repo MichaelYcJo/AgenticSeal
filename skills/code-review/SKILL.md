@@ -96,8 +96,11 @@ axis round 1 found clean. Every finding the round before closed
 `fixed <commit>` or `rejected` is answered this round, by a `confirms:` line
 where the close holds, and where it does not by a finding naming it on a
 `reopens:` line, or on a `regression:` line where a fix pass's commit
-introduced the defect.
-Enforced by: tests/test_review_axes.py::test_a_later_round_inherits_no_verdict_anywhere, tests/test_the_rules_have_one_owner.py::test_a_close_that_does_not_hold_reopens_it
+introduced the defect. Where you weigh an earlier finding, re-run its
+`evidence: executed` line rather than re-deriving the claim; a probe it names
+is written again from its `## Probes` row. A record written before the
+`evidence:` row lacks the line, and that is no finding.
+Enforced by: tests/test_review_axes.py::test_a_later_round_inherits_no_verdict_anywhere, tests/test_the_rules_have_one_owner.py::test_a_close_that_does_not_hold_reopens_it, tests/test_review_axes.py::test_a_later_round_re_runs_an_executed_line
 
 ## The record
 
@@ -117,11 +120,15 @@ is absent; field names, headings and vocabulary words stay English
 - `location:` names every place the defect shows, and the path the fix
   changes where that is elsewhere, because a `fixed` commit must touch one.
 - Each finding carries one line of each row the table places in a finding
-  as `one`: `severity:`, `location:`, `verdict: open` and `answer:`, the last
-  left empty for the fix pass. The check refuses a finding missing any.
-- Each finding gives why it matters and its grounds, executed and read
-  labelled apart, then the paste-ready fix in a fenced block, then its
-  `answer:` line.
+  as `one`: `severity:`, `location:`, `evidence:`, `verdict: open` and
+  `answer:`, the last left empty for the fix pass. The check refuses a
+  finding missing any.
+- `evidence:` names what the claim rests on, in the forms its row gives. A
+  claim that something is absent rests on a search, so its line is
+  `executed`. The check cannot tell such a claim from another; the round
+  reading the record does.
+- Each finding gives why it matters and its grounds, then the paste-ready
+  fix in a fenced block, then its `answer:` line.
 - What this round confirmed holds is a `confirms:` entry, and what it could
   not judge a row of `## Not judged` naming who answers it; neither is a
   finding.
@@ -129,7 +136,7 @@ is absent; field names, headings and vocabulary words stay English
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.
 
-Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_every_line_matches_its_row_whole, tests/test_the_record_is_written_in_words.py::test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block, evals/behaviour/warden/rule-warden-one-finding/
+Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_every_line_matches_its_row_whole, tests/test_chain_check.py::TestGrammar::test_the_warden_and_the_review_skill_name_every_line_a_finding_needs, tests/test_the_record_is_written_in_words.py::test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block, evals/behaviour/warden/rule-warden-one-finding/
 
 **Paste-ready means the snippet cannot mislead on its own.** Mark a name the
 tree does not have at the line that uses it:

@@ -109,7 +109,9 @@ def test_a_later_round_re_runs_an_executed_line():
     run again, and it carries where a verdict does not. Re-deriving the claim
     instead spends the round on a search the earlier one already named, and
     a deleted probe is the case that needs saying: it comes back from its
-    `## Probes` row. The record's document states it beside the line."""
+    `## Probes` row. The record's document states it beside the line, and
+    the review skill's §*Earlier rounds*, which the warden follows, says it
+    where a round reads the earlier records."""
     record = " ".join(read("docs", "the-review-record.md").split())
     for said in (
         "**A later round re-runs an `executed` line rather than re-deriving "
@@ -117,6 +119,13 @@ def test_a_later_round_re_runs_an_executed_line():
         "writes it again from its `## Probes` row",
     ):
         assert said in record, f"the-review-record.md lost `{said}`"
+    skill = " ".join(read("skills", "code-review", "SKILL.md").split())
+    rounds = skill.split("## Earlier rounds", 1)[1].split("## The record", 1)[0]
+    said = (
+        "Where you weigh an earlier finding, re-run its `evidence: executed` "
+        "line rather than re-deriving the claim"
+    )
+    assert said in rounds, f"§*Earlier rounds* lost `{said}`"
 
 
 def test_a_record_written_before_a_line_was_added_is_no_finding():

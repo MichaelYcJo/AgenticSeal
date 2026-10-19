@@ -522,6 +522,30 @@ class TestGrammar:
         monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(wider), reader))
         assert chain.record_findings(reader, could, "r.md")[1] == []
 
+    def test_the_warden_and_the_review_skill_name_every_line_a_finding_needs(self):
+        """S8 (#985): `agents/warden.md` step 7 and `skills/code-review/SKILL.md`
+        §*The record* each list the lines a finding carries, and each names
+        every row the table places in a finding as `one`, read from the table.
+
+        Protects: a row added to the table and missed in either list, which
+        tells the warden to write a finding the check then refuses at the
+        pull request. `evidence:` is the row #985 added."""
+        needed = [
+            key
+            for key, row in chain.GRAMMAR.items()
+            if row.where == chain.IN_FINDING and row.many == chain.ONE
+        ]
+        assert "evidence:" in needed, needed
+        warden = " ".join((ROOT / "agents" / "warden.md").read_text("utf-8").split())
+        step = warden.split("7. Write the record", 1)[1].split("## Never", 1)[0]
+        skill = (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8")
+        record = " ".join(
+            skill.split("\n## The record\n", 1)[1].split("\n## ")[0].split()
+        )
+        for where, text in (("warden.md step 7", step), ("§*The record*", record)):
+            missing = [key for key in needed if f"`{key}" not in text]
+            assert missing == [], f"{where} does not name {missing}"
+
     @pytest.mark.parametrize(
         "old, new, said",
         [
