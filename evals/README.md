@@ -48,6 +48,17 @@ pass.
 `tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes the
 record. Nothing in the tree makes a later edit owe a run.
 
+**A side already paid for is read again under another suite's truths
+without a run.** `noninferiority.py regrade --side IN.json --suite-rev REV
+--out OUT.json` grades each run of IN on REV's `truth-` graders, the
+grader's regex searched over the run's report rows, and writes OUT naming
+REV's suite and the one IN ran. It refuses, naming the case, a side whose
+own suite does not give back from its rows the truth results it recorded,
+and a suite at REV that differs from IN's in anything but `truth-` graders
+or holds other cases: a change to a prompt, a scaffold or a `shape-` grader
+asks the agent something its runs never answered, and only a run measures
+that.
+
 **Every grader reads an outcome, never a sentence of a definition.** A
 `truth-` grader is a real or seeded defect the report names, a `shape-`
 grader is the work in the shape its next reader needs, and a `reach-` grader

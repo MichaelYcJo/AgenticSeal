@@ -22,6 +22,7 @@ import ntpath
 import os
 import posixpath
 import re
+import subprocess
 import types
 
 import pytest
@@ -1019,6 +1020,220 @@ def test_a_side_counts_a_finding_row_no_truth_matches_as_false():
     assert (numbers["rows"], numbers["false"]) == (2, 1)
     assert numbers["graders"][("c1", "truth-1")] == ["truth", 1, 1]
     assert numbers["graders"][("c1", "shape-x")] == ["shape", 1, 1]
+
+
+# --- regrade: a committed side read again under another suite's truths (#971)
+
+WIDE = r"^location: .*(?:src\/a\.py:(?:10|11|12|40)(?!\d))"
+CASE = "evals/behaviour/warden/c1"
+
+
+def suite_commits(tmp_path, monkeypatch):
+    """A repository whose history holds four warden suites, with `ni` reading
+    it: `own` (case c1, its truth-1 TRUTH), `wide` (truth-1 widened to line
+    40), `prompt` (`wide` with c1's case.yaml changed) and `more` (`wide` with
+    a case c2 added). `{name: commit}`."""
+    bh = load_script("behaviour")
+    d = tmp_path / "suites"
+    d.mkdir()
+
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(d), *args],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout.strip()
+
+    def write(rel, text):
+        path = d / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    def commit(name):
+        git("add", "-A")
+        git("commit", "-qm", name)
+        return git("rev-parse", "HEAD")
+
+    def truth(pattern):
+        write(
+            f"{CASE}/graders/truth-1.md",
+            bh.report_regex("truth", "1", "r.md", pattern, "A defect.")[1],
+        )
+
+    git("init", "-q")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "t")
+    write(f"{CASE}/case.yaml", "name: c1\n")
+    write(
+        f"{CASE}/graders/shape-x.md",
+        bh.grader("shape", "x", "The report exists.", type="file_exists", path="r.md")[
+            1
+        ],
+    )
+    truth(TRUTH)
+    commits = {"own": commit("own")}
+    truth(WIDE)
+    commits["wide"] = commit("wide")
+    write(f"{CASE}/case.yaml", "name: c1, asked otherwise\n")
+    commits["prompt"] = commit("prompt")
+    git("reset", "-q", "--hard", commits["wide"])
+    write("evals/behaviour/warden/c2/case.yaml", "name: c2\n")
+    commits["more"] = commit("more")
+    monkeypatch.setattr(ni, "ROOT", str(d))
+    return commits
+
+
+def graded_side(tmp_path, rev, rows, found):
+    """A side of case c1 run on the suite at REV, its run I having printed
+    ROWS[I] and recorded truth-1 as FOUND[I], its scores the ones a run of
+    two graders gets. The path it is written to."""
+    truth = {
+        "name": "truth-1",
+        "type": "regex",
+        "weight": 1,
+        "config": {
+            "target": {"source": "file", "path": "r.md"},
+            "pattern": TRUTH,
+            "flags": "m",
+            "match": "contains",
+        },
+    }
+    shape = {
+        "name": "shape-x",
+        "type": "file_exists",
+        "weight": 1,
+        "config": {"path": "r.md"},
+    }
+    runs = []
+    for printed, passed in zip(rows, found, strict=True):
+        score = (1 + passed) / 2
+        graders = [
+            {"name": "shape-x", "passed": True, "weight": 1, "scored": True},
+            {"name": "truth-1", "passed": passed, "weight": 1, "scored": True},
+        ]
+        runs.append(
+            {
+                "score": score,
+                "passed": score >= 1,
+                "graders": graders,
+                "specseal": {"report_rows": printed},
+            }
+        )
+    score = sum(r["score"] for r in runs) / len(runs)
+    rate = sum(r["passed"] for r in runs) / len(runs)
+    result = {
+        "startedAt": "2026-10-19T00:00:00Z",
+        "suite": {"threshold": 1},
+        "cases": [
+            {
+                "name": "warden c1",
+                "dir": CASE,
+                "graders": [shape, truth],
+                "arms": {"with": runs},
+                "aggregates": {"score": score, "passRate": rate},
+            }
+        ],
+        "aggregates": {
+            "casesTotal": 1,
+            "casesPassed": int(rate >= 1),
+            "overallScore": score,
+            "overallPassRate": rate,
+        },
+        "specseal": {
+            "agent": "warden",
+            "preload": {},
+            "cut_short": False,
+            "suite_rev": rev,
+            "suite_tree": ni.suite_tree(rev, "warden"),
+        },
+    }
+    path = tmp_path / "side.json"
+    path.write_text(json.dumps(result), encoding="utf-8")
+    return str(path)
+
+
+ROWS = (
+    ["location: `src/a.py:11`", "location: `src/a.py:40`"],
+    ["location: `src/a.py:40`"],
+)
+
+
+def regrade(side, rev, out):
+    return ni.main(["regrade", "--side", side, "--suite-rev", rev, "--out", str(out)])
+
+
+def test_a_side_regraded_onto_its_own_suite_is_unchanged(tmp_path, monkeypatch):
+    """Guards S3: under the suite it ran, a side's rows give back every
+    truth result it recorded, so the rows, the false count, each grader's
+    passes and the scores are the ones it was written with."""
+    commits = suite_commits(tmp_path, monkeypatch)
+    side = graded_side(tmp_path, commits["own"], ROWS, [True, False])
+    out = tmp_path / "out.json"
+    assert regrade(side, commits["own"], out) == 0
+    with open(side, encoding="utf-8") as f:
+        before = json.load(f)
+    after = json.loads(out.read_text(encoding="utf-8"))
+    old, new = ni.side_numbers(before), ni.side_numbers(after)
+    assert (new["rows"], new["false"]) == (old["rows"], old["false"]) == (3, 2)
+    assert new["graders"] == old["graders"]
+    assert after["cases"][0]["aggregates"] == before["cases"][0]["aggregates"]
+    assert after["aggregates"] == before["aggregates"]
+    assert after["specseal"]["suite_rev"] == commits["own"]
+
+
+def test_a_side_regraded_onto_a_wider_truth_counts_the_row_it_now_matches(
+    tmp_path, monkeypatch
+):
+    """Guards the re-read itself: under a suite whose truth-1 also accepts
+    line 40, the same rows find truth-1 on both runs and no row is false,
+    the scores follow, and the side names the suite it is now graded on and
+    the one it ran."""
+    commits = suite_commits(tmp_path, monkeypatch)
+    side = graded_side(tmp_path, commits["own"], ROWS, [True, False])
+    out = tmp_path / "out.json"
+    assert regrade(side, commits["wide"], out) == 0
+    after = json.loads(out.read_text(encoding="utf-8"))
+    numbers = ni.side_numbers(after)
+    assert (numbers["rows"], numbers["false"]) == (3, 0)
+    assert numbers["graders"][("warden c1", "truth-1")] == ["truth", 2, 2]
+    case = after["cases"][0]
+    truths = [g["config"]["pattern"] for g in case["graders"] if g["name"] == "truth-1"]
+    assert truths == [WIDE]
+    assert [r["passed"] for r in case["arms"]["with"]] == [True, True]
+    assert case["aggregates"] == {"score": 1.0, "passRate": 1.0}
+    assert after["aggregates"]["casesPassed"] == 1
+    meta = after["specseal"]
+    assert meta["suite_rev"] == commits["wide"]
+    assert meta["suite_tree"] == ni.suite_tree(commits["wide"], "warden")
+    assert meta["regraded_from"] == commits["own"]
+
+
+@pytest.mark.parametrize(
+    "rev, found, named",
+    [
+        # Its second run recorded truth-1 found, and its rows do not find it.
+        ("wide", [True, True], "warden c1"),
+        # The target suite asks the case otherwise, not only its truths.
+        ("prompt", [True, False], "warden c1"),
+        # The target suite holds a case the side never ran.
+        ("more", [True, False], "c2"),
+    ],
+    ids=["rows-do-not-reproduce", "a-non-truth-file-differs", "another-case"],
+)
+def test_regrade_refuses_what_it_cannot_stand_in_for(
+    tmp_path, monkeypatch, capsys, rev, found, named
+):
+    """Guards S4: a side whose rows do not give back its own truth results,
+    or a target suite that changes a case beyond its `truth-` graders or
+    holds other cases, is refused with exit 2, naming the case, and nothing
+    is written."""
+    commits = suite_commits(tmp_path, monkeypatch)
+    side = graded_side(tmp_path, commits["own"], ROWS, found)
+    out = tmp_path / "out.json"
+    assert regrade(side, commits[rev], out) == 2
+    assert not out.exists(), "a side was written that regrade cannot stand in for"
+    assert named in capsys.readouterr().err
 
 
 def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
