@@ -29,7 +29,7 @@ file once the frame was in the tree.
 | Item | Who must answer |
 |---|---|
 | Whether a scribe spawn opens `legacy-parity` at step 1, returns facts and no verdict, and returns `original not found` where the original does not resolve: no case runs the scribe (#957's Q3) | the repository owner, at the first parity run |
-| the full suite on this branch | the orchestrator's broad gate, after the review rounds settle |
+| closed the full suite on this branch | the orchestrator's `broad-gate --base release/v0.22.2 --record <item>` at d9fac6ed, exit 0: 7598 passed, 13 skipped, chain exit 0 (`broad-gate.md`); the run at b9de905c failed on a real user path in `plan.md`, fixed at d9fac6ed |
 
 ## Not done
 
