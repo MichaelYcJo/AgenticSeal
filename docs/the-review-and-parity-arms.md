@@ -130,34 +130,17 @@ Enforced by: tests/test_chain_check.py::TestMain::test_a_straight_to_the_pr_item
 one it only renamed. Both are ways a `routing.md` leaves a diff without
 anybody declaring anything, and both are excluded: the rename because the
 root move renames every declaration in the repository at once, the
-retirement because `settle --retire` removes a released work item's directory
-after a `docs/` policy has absorbed its spec, and that work item was reviewed
-at its own pull request. The first fold put 88 retired declarations in one
-diff, and this check failed all 88.
+retirement because `settle --apply` removes a released work item's directory
+once `docs/` holds its rule changes, and that work item was reviewed at its
+own pull request. The first fold put 88 retired declarations in one diff, and
+this check failed all 88.
 
-**The marker is what tells a retirement from a deletion**, because both leave
-the file absent at `HEAD` and nothing else can. Where `docs/` carries the
-work item's `<!-- specs/<work-item-id> -->` comment on a live line, the check
-prints `retired: …` and reads no further; where it does not, the refusal stands —
-that is a directory removed with nothing absorbing it, which is what the
-refusal was written for. It is the same distinction
-`unverified_check.folded_items` draws for a removed `overview.md`, and this
-reader had not grown it.
-
-**The rule is the other way a declaration is retired, and it carries no
-marker.** `settle --retire` also removes a released directory that held no
-`spec.md` and nothing open in its record, because a record of a moment states
-no rule to fold (#517). So a declaration absent at `HEAD` whose directory is
-gone is asked one more question of the merge base: did the directory hold no
-`spec.md` there, and nothing open in its `overview.md`? Where it did not, the
-check prints `retired: by the rule — …`; where the merge base held a spec or
-an open row, the refusal stands. The question is
-`unverified_check.retired_by_rule`, the one predicate `settle`, and
-`unverified_check.py --baseline` ask too, so the three cannot disagree about
-the same tree the way the marker arm once did. Asked of the merge base rather
-than of the tree the branch left, and asked whether the directory's history
-ever held a `spec.md`, a spec deleted in one commit — or in an earlier pull
-request — and the directory in the next is still a deletion.
+**A settle is what tells a retirement from a deletion**, because both leave
+the file absent at `HEAD`. A declaration whose directory is gone is asked
+`unverified_check.py#settled` at the merge base, the predicate
+`docs/the-record-layout.md` §*The fold, and what tells it from a deletion*
+states. Where it holds, the check prints `retired: a settle — …`; where it
+does not, the refusal stands.
 
 Every record is read as git carries it at `HEAD`, never as the working tree
 holds it: a tree that differs from `HEAD` is what CI never sees, and a local
@@ -201,7 +184,7 @@ What it costs, stated rather than buried:
 - Deleting the routing file restores today's behavior exactly, because the
   fallback for a missing declaration is today's decision table.
 
-Enforced by: tests/test_chain_check.py::TestRetired::test_a_declaration_a_fold_retired_is_not_one_this_branch_made, tests/test_chain_check.py::TestRetired::test_a_declaration_deleted_with_nothing_absorbing_it_is_refused
+Enforced by: tests/test_chain_check.py::TestRetired::test_a_declaration_a_settle_removed_is_not_one_this_branch_made, tests/test_chain_check.py::TestRetired::test_a_declaration_deleted_with_nothing_absorbing_it_is_refused
 
 ### Parity arm — opt-in: `seal/parity.md` at the repo root
 

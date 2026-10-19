@@ -1767,18 +1767,21 @@ def declared_for_this_branch(root, routing):
     return matching, ""
 
 
-def retired(reader, root, fork, item):
-    """The sentence a removed declaration is accepted with, or None."""
-    name = os.path.basename(item)
-    if name in reader.folded_items(root):
-        return f"retired: `docs/` carries <!-- specs/{name} -->"
-    if (
-        fork
-        and not os.path.isdir(os.path.join(root, item))
-        and reader.retired_by_rule(root, fork, item)
-    ):
-        return "retired: by the rule — nothing open at the merge base"
-    return None
+RETIRED_SAYS = (
+    "retired: a settle — nothing open at the merge base, and `docs/` holds "
+    "every rule change its spec states"
+)
+
+
+def retired(reader, root, fork, records):
+    """The work item directories of the removed declarations a settle
+    removed whole, asked of the one predicate, `unverified_check.py#settled`,
+    at the merge base. RECORDS maps each declaration to its text at HEAD."""
+    gone = [os.path.dirname(rel) for rel, text in records.items() if text is None]
+    gone = [d for d in gone if not os.path.isdir(os.path.join(root, d))]
+    if not fork or not gone:
+        return set()
+    return reader.settled(root, fork, gone, None if WORKTREE else "HEAD")
 
 
 def main(argv=None):
@@ -1850,13 +1853,14 @@ def main(argv=None):
 
     fork = reader.merge_base(root, args.baseline)
     problems, notices = [], []
+    texts = {rel: read_record(root, rel) for rel in declarations}
+    by_settle = retired(reader, root, fork, texts)
     for rel in declarations:
         item = os.path.dirname(rel)
-        text = read_record(root, rel)
+        text = texts[rel]
         if text is None:
-            said = retired(reader, root, fork, item)
-            if said:
-                notices.append((rel, 0, said))
+            if item in by_settle:
+                notices.append((rel, 0, RETIRED_SAYS))
             else:
                 problems.append(
                     (

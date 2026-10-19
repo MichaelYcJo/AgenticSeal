@@ -21,7 +21,7 @@ nothing.
 
 **The rule arm.** A released work item that wrote no `spec.md` states no rule,
 and it goes when nothing in its record is open (#517's D3). Whether a
-directory qualifies is `unverified_check.py#retired_by_rule`, the predicate
+directory qualifies is `unverified_check.py#settled`, the predicate
 every CI reader asks of the merge base, asked here of the working tree and of
 the merge base of `--released-at` and `HEAD` (#602). A CI reader on a pull
 request stands on the merge ref, so its merge base is the base branch's tip:
@@ -250,11 +250,13 @@ def rule_arm(root, base, ids, reader):
     under *kept by the rule*; then the base, since a closure the base has not
     seen passes the tree and fails the release pull request (#602)."""
     retired, kept, base_kept = [], [], []
+    dirs = [f"{SPECS}/{work_item_id}" for work_item_id in ids]
+    here, at_base = reader.settled(root, None, dirs), reader.settled(root, base, dirs)
     for work_item_id in ids:
         directory = f"{SPECS}/{work_item_id}"
-        if not reader.retired_by_rule(root, None, directory):
+        if directory not in here:
             kept.append((work_item_id, reader.open_record_rows(root, None, directory)))
-        elif not reader.retired_by_rule(root, base, directory):
+        elif directory not in at_base:
             base_kept.append(
                 (work_item_id, reader.open_record_rows(root, base, directory))
             )

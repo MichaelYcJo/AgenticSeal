@@ -553,22 +553,31 @@ def test_the_report_lists_what_an_apply_would_remove(tree):
 
 @pytest.mark.parametrize("ref", [None, "HEAD"])
 def test_the_predicate_asks_every_condition_itself(tree, ref):
-    """`settle` checks `spec.md` before the predicate can decide, so through
-    `settle` alone the predicate's own conditions are never seen. The CI readers ask it of a merge-base where
-    neither check has run, so each condition is asked here directly, of the
-    working tree and of a ref."""
+    """`settle` sorts by `spec.md` before the predicate decides, so through
+    `settle` alone the predicate's own conditions are never seen. The CI
+    readers ask it of a merge-base where neither check has run, so each
+    condition is asked here directly, of the working tree and of a ref."""
     reader = settle.load(settle.READER, "specseal_unverified_reader_rule")
     moment(tree, overview=OVERVIEW_CLOSED)
     moment(tree, name="1700000008-with-memo", overview=OVERVIEW_OPEN)
+    unapplied = tree / "seal" / "specs" / "1700000002-beta" / "spec.md"
+    unapplied.write_text(
+        "# beta\n\n## Rule changes\n\n- add\n  file: docs/one-root.md\n"
+        "  section: a policy\n  to: A rule nobody applied.\n",
+        encoding="utf-8",
+    )
+    git(tree, "commit", "-qam", "beta states a rule")
     root = str(tree)
-    assert reader.retired_by_rule(root, ref, f"seal/specs/{MOMENT}")
-    assert not reader.retired_by_rule(root, ref, "seal/specs/1700000001-alpha"), (
-        "a directory holding a spec.md read as a rule retirement"
-    )
-    assert not reader.retired_by_rule(root, ref, "seal/specs/1700000008-with-memo")
-    assert not reader.retired_by_rule(root, ref, "seal/specs/1700009999-nowhere"), (
-        "a directory that never existed read as retired by the rule"
-    )
+
+    def ok(name):
+        directory = f"seal/specs/{name}"
+        return reader.settled(root, ref, [directory]) == {directory}
+
+    assert ok(MOMENT)
+    assert ok("1700000001-alpha"), "a spec with no `## Rule changes` was refused"
+    assert not ok("1700000002-beta"), "a rule the tree does not hold read as applied"
+    assert not ok("1700000008-with-memo")
+    assert not ok("1700009999-nowhere"), "a directory that never existed was settled"
     # Round 1's finding 3: a spec an earlier commit deleted was still written.
     dropped = moment(tree, name="1700000009-spec-dropped")
     (dropped / "spec.md").write_text("# a spec\n\nA rule.\n", encoding="utf-8")
@@ -576,18 +585,18 @@ def test_the_predicate_asks_every_condition_itself(tree, ref):
     git(tree, "commit", "-qm", "a spec")
     git(tree, "rm", "-q", "seal/specs/1700000009-spec-dropped/spec.md")
     git(tree, "commit", "-qm", "the spec, dropped")
-    assert not reader.retired_by_rule(
-        root, ref, "seal/specs/1700000009-spec-dropped"
-    ), "a directory whose spec.md an earlier commit deleted read as one that wrote none"
+    assert not ok("1700000009-spec-dropped"), (
+        "a directory whose spec.md an earlier commit deleted read as one that wrote none"
+    )
 
 
 def test_the_predicate_is_what_settle_asks(tree, monkeypatch):
-    """`plan.md` §*What breaks in six months*: one predicate, asked by every
-    reader. With it answering False, the rule arm lists nothing."""
+    """One predicate, asked by every reader. With it answering nothing, the
+    rule arm lists nothing."""
     moment(tree)
     reader = settle.load(settle.READER, "specseal_unverified_reader")
     real_load = settle.load
-    monkeypatch.setattr(reader, "retired_by_rule", lambda root, ref, d: False)
+    monkeypatch.setattr(reader, "settled", lambda root, ref, dirs, here=None: set())
     monkeypatch.setattr(
         settle,
         "load",

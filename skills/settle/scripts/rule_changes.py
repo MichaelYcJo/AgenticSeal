@@ -176,8 +176,9 @@ def parse(text, policy_root="docs"):
 # --- applying one operation to one document ------------------------------------
 
 
-def _pattern(old):
-    """OLD as a pattern: whitespace runs collapsed, and no match inside a word."""
+def pattern(old):
+    """OLD as a pattern: whitespace runs collapsed, and no match inside a word.
+    `unverified_check.py#settled` counts texts with it too."""
     words = old.split()
     pat = r"\s+".join(re.escape(w) for w in words)
     if re.match(r"\w", words[0]):
@@ -246,7 +247,7 @@ def apply_op(text, op):
 
     offset = len("".join(lines[: h + 1]))
     region = "".join(lines[h + 1 : end])
-    hits = list(_pattern(op.old).finditer(region))
+    hits = list(pattern(op.old).finditer(region))
     if not hits:
         return None, f"the `from` text is not in section `{op.section}` of {op.file}"
     if len(hits) > 1:
@@ -324,9 +325,9 @@ def order(root, ref, ids, specs="seal/specs"):
         if line.startswith("\0"):
             commit = line[1:]
             continue
-        parts = line.split("/")
-        if len(parts) == 4 and "/".join(parts[:2]) == specs and parts[3] == "spec.md":
-            first.setdefault(parts[2], commit)
+        parts = line[len(specs) + 1 :].split("/")
+        if line.startswith(specs + "/") and len(parts) == 2 and parts[1] == "spec.md":
+            first.setdefault(parts[0], commit)
     known = [i for i in first if i in ids]
     return [(i, first[i]) for i in known] + [(i, None) for i in ids if i not in first]
 

@@ -114,15 +114,6 @@ def test_fold_check_keeps_no_copy_of_its_own():
 MARKED = f"# A policy\n\nprose{LS}<!-- specs/1700000000-a -->\n\n**A rule.**\n"
 
 
-def test_a_marker_after_a_separator_is_not_a_fold(tmp_path):
-    """S3. The marker is line-anchored, and GFM renders it mid-line, so no
-    fold wrote it there. Read as a fold, it excused the removal of a
-    directory nothing absorbed."""
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "x.md").write_text(MARKED, encoding="utf-8")
-    assert reader.folded_items(str(tmp_path)) == set()
-
-
 def test_the_ceiling_and_the_fold_agree_about_that_marker():
     """S4. `fold-check` counts what the fold reads, so it counts no marker
     there either: the frozen count, the digest and the statements."""
@@ -133,11 +124,12 @@ def test_the_ceiling_and_the_fold_agree_about_that_marker():
 
 
 @pytest.mark.parametrize("char", SPLITLINES_ONLY, **BY_CODE_POINT)
-def test_no_one_of_the_eight_makes_a_marker_a_line(tmp_path, char):
+def test_no_one_of_the_eight_makes_a_marker_a_line(char):
+    """S3. The marker is line-anchored, and GFM renders it mid-line, so no
+    fold wrote it there."""
+    fold_check = _load("specseal_fold_check_s3", FOLD_CHECK)
     text = MARKED.replace(LS, char)
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "x.md").write_text(text, encoding="utf-8")
-    assert reader.folded_items(str(tmp_path)) == set(), repr(char)
+    assert fold_check.numbered_statements(text) == [], repr(char)
 
 
 # --- S5-S8: the changelog readers and their partner ---------------------------
@@ -423,6 +415,7 @@ OUT_OF_CLASS = {
     ("skills/implement/scripts/seal.py", "with_row"): (1, F),
     ("skills/implement/scripts/seal.py", "write_row"): (1, F),
     ("skills/settle/scripts/settle.py", "released"): (1, GIT),
+    ("skills/settle/scripts/rule_changes.py", "order"): (1, GIT),
     ("skills/verify/scripts/broad_gate.py", "Check.first_lines"): (1, TOOL),
     ("skills/verify/scripts/broad_gate.py", "fence_left_open"): (1, F),
     ("skills/verify/scripts/broad_gate.py", "hidden_row_at"): (1, F),

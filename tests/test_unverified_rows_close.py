@@ -1551,124 +1551,100 @@ def test_the_baseline_help_names_both_places(capsys):
     )
 
 
-# --- a fold is not this branch's deletion ----------------------------------
+# --- a settle is not this branch's deletion ---------------------------------
+
+DOC = "# a\n\n## S\n\nAn old rule.\n"
 
 
-def fold_into_docs(repo, work_item_id, document="a-segment.md"):
-    """Record `work_item_id` as folded, the way `settle`'s procedure does.
-
-    The fold record is the provenance comment the folded prose carries in
-    `docs/`, which is the marker `.github/scripts/fold_ledger.py#marker` and
-    `.github/scripts/gather_changelog.py#marker` already write. Nothing else
-    is written: a record derived from the destination cannot disagree with
-    it, which is why there is no second file to keep in step.
-    """
-    docs = repo / "docs"
-    docs.mkdir(exist_ok=True)
-    (docs / document).write_text(
-        f"# a segment\n\nOne standing statement.\n<!-- specs/{work_item_id} -->\n",
-        encoding="utf-8",
-    )
+def rule(text):
+    return f"- add\n  file: docs/a.md\n  section: S\n  to: {text}\n"
 
 
-def test_a_folded_work_item_is_not_read_as_this_branchs_deletion(tmp_path, capsys):
-    """A1. `settle` removes a released work item's directory after its SDD set
-    has been folded into `docs/`, and this arm used to call that a deletion —
-    97 of them in one commit, which is what made the fold impossible rather
-    than merely noisy.
-
-    The discriminator is the fold record, not the removal: a directory whose
-    work item carries no marker anywhere in `docs/` is still this branch's
-    deletion and still fails."""
-    d, p = git_repo(tmp_path, CANONICAL)
-    other = d / "specs" / "1780000001-other"
-    other.mkdir(parents=True)
-    (other / "overview.md").write_text("# o\n\n" + CANONICAL, encoding="utf-8")
+def settle_repo(tmp_path, changes):
+    """Work items with a closed memo and a spec, committed over `docs/a.md`.
+    CHANGES maps each id to its `## Rule changes` body, or None for a spec
+    written before the section existed. Returns the repository."""
+    d = tmp_path / "repo"
+    shutil.copytree(_bare_inited_repo_template(), d)
+    (d / "docs").mkdir()
+    (d / "docs" / "a.md").write_text(DOC, encoding="utf-8")
+    for name, body in changes.items():
+        item = d / "specs" / name
+        item.mkdir(parents=True)
+        (item / "overview.md").write_text(f"# o\n\n{CLOSED_SECTION}", encoding="utf-8")
+        section = "" if body is None else f"\n## Rule changes\n\n{body}"
+        (item / "spec.md").write_text(f"# {name}\n{section}", encoding="utf-8")
     subprocess.run(["git", "-C", str(d), "add", "-A"], check=True, capture_output=True)
     subprocess.run(
-        ["git", "-C", str(d), "commit", "-qm", "two"], check=True, capture_output=True
+        ["git", "-C", str(d), "commit", "-qm", "specs"], check=True, capture_output=True
     )
-    shutil.rmtree(os.path.dirname(p))
-    fold_into_docs(d, "1780000000-work")
+    return d
+
+
+def remove(d, *names, docs=DOC):
+    """Remove each work item's directory whole, and write `docs/a.md` as DOCS."""
+    for name in names:
+        shutil.rmtree(d / "specs" / name)
+    (d / "docs" / "a.md").write_text(docs, encoding="utf-8")
+
+
+def test_a_settled_work_item_is_not_read_as_this_branchs_deletion(tmp_path, capsys):
+    """S9. A released directory removed whole, with nothing open, whose rule
+    changes `docs/` holds, is a settle and not this branch's deletion. It is
+    named rather than passed over in silence."""
+    d = settle_repo(tmp_path, {"1780000001-a": rule("A new rule.")})
+    remove(d, "1780000001-a", docs=DOC + "\nA new rule.\n")
     assert run([str(d), "--baseline", "HEAD"]) == 0
     out = capsys.readouterr().out
-    assert "present at HEAD and not here" not in out
-    assert "1780000000-work" in out and "folded" in out, (
-        f"the run says nothing about the directory it stopped reporting: {out}"
-    )
+    assert "present at HEAD and not here" not in out, out
+    assert "1 settled" in out and "1780000001-a" in out.split("settled —")[1], out
 
 
-def test_an_unfolded_removal_beside_a_folded_one_still_fails(tmp_path, capsys):
-    """The other half of A1, and the one that keeps the exemption from being
-    a way past the check: two directories leave in one commit and only one of
-    them has been absorbed by a policy document."""
-    d, p = git_repo(tmp_path, CANONICAL)
-    for name in ("1780000001-other", "1780000002-third"):
-        other = d / "specs" / name
-        other.mkdir(parents=True)
-        (other / "overview.md").write_text("# o\n\n" + CANONICAL, encoding="utf-8")
-    subprocess.run(["git", "-C", str(d), "add", "-A"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "-C", str(d), "commit", "-qm", "three"], check=True, capture_output=True
+def test_a_removal_whose_rule_docs_does_not_hold_still_fails(tmp_path, capsys):
+    """S10, and the half that keeps the predicate from being a way past the
+    check: two directories leave together, and `docs/` holds only one of
+    their rules."""
+    d = settle_repo(
+        tmp_path,
+        {"1780000001-a": rule("A new rule."), "1780000002-b": rule("Another rule.")},
     )
-    shutil.rmtree(os.path.dirname(p))
-    shutil.rmtree(str(d / "specs" / "1780000001-other"))
-    fold_into_docs(d, "1780000000-work")
+    remove(d, "1780000001-a", "1780000002-b", docs=DOC + "\nA new rule.\n")
     assert run([str(d), "--baseline", "HEAD"]) == 1
     out = capsys.readouterr().out
-    assert "1780000001-other" in out and "present at HEAD and not here" in out
-    assert "1780000000-work/overview.md" not in out.split("rows left the record")[-1]
+    deleted = out.split("rows left the record")[1]
+    assert "1780000002-b" in deleted and "1780000001-a" not in deleted, out
 
 
-def test_a_marker_quoted_in_prose_is_not_a_fold_record(tmp_path, capsys):
-    """The line-anchored test `fold_ledger.py#is_marked` already pays for: a
-    document that quotes the marker's shape inline, which every document
-    describing the convention does, must not read as a fold."""
-    d, p = git_repo(tmp_path, CANONICAL)
-    other = d / "specs" / "1780000001-other"
-    other.mkdir(parents=True)
-    (other / "overview.md").write_text("# o\n\n" + CANONICAL, encoding="utf-8")
-    subprocess.run(["git", "-C", str(d), "add", "-A"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "-C", str(d), "commit", "-qm", "two"], check=True, capture_output=True
-    )
-    shutil.rmtree(os.path.dirname(p))
-    docs = d / "docs"
-    docs.mkdir()
-    (docs / "how-it-works.md").write_text(
-        "Each folded sentence carries `<!-- specs/1780000000-work -->` inline.\n",
-        encoding="utf-8",
-    )
-    assert run([str(d), "--baseline", "HEAD"]) == 1
-    assert "present at HEAD and not here" in capsys.readouterr().out
+def test_a_spec_with_no_rule_changes_and_nothing_open_is_settled(tmp_path, capsys):
+    """S11, Q2's answer (a): a spec written before the section existed states
+    nothing to replay, so its removal with nothing open passes."""
+    d = settle_repo(tmp_path, {"1780000001-a": None})
+    remove(d, "1780000001-a")
+    assert run([str(d), "--baseline", "HEAD"]) == 0, capsys.readouterr().out
 
 
-def test_a_marker_inside_a_fenced_block_is_not_a_fold_record(tmp_path):
-    """Round 1's 🔴. The line anchor says the marker stands alone on its line
-    and never says the line is prose, so a document that QUOTES the convention
-    in a fenced block satisfied the removal guard.
+def test_the_settled_line_reads_as_a_sentence(tmp_path, capsys):
+    """§14: the line a person reads in the hygiene workflow's output."""
+    d = settle_repo(tmp_path, {"1780000001-a": rule("A new rule.")})
+    remove(d, "1780000001-a", docs=DOC + "\nA new rule.\n")
+    run([str(d), "--baseline", "HEAD"])
+    out = " ".join(capsys.readouterr().out.split())
+    assert (
+        "settled: at HEAD nothing in its record was open, and `docs/` holds "
+        "every rule change its spec states"
+    ) in out, out
 
-    The shape is the project's own: `skills/settle/SKILL.md` §2 — the one
-    document a session reads before it folds — shows the marker inside a
-    fenced block with a real released work item id, so a session copying that
-    example into the policy it is writing hands `settle --retire` a real
-    directory to delete. Measured before the fix: the retirement removed it at
-    exit 0."""
-    docs = tmp_path / "docs"
-    docs.mkdir()
-    (docs / "a-policy.md").write_text(
-        "# a segment\n\nEach folded sentence carries its comment:\n\n"
-        "```markdown\n<!-- specs/1780000000-work -->\nA standing statement.\n```\n",
-        encoding="utf-8",
-    )
-    assert uc.folded_items(str(tmp_path)) == set()
-    # Positive direction in the same fixture, so the fix cannot be "find
-    # nothing ever": a marker outside the fence is still a fold record.
-    (docs / "b-policy.md").write_text(
-        "# another\n\n<!-- specs/1780000001-other -->\nA standing statement.\n",
-        encoding="utf-8",
-    )
-    assert uc.folded_items(str(tmp_path)) == {"1780000001-other"}
+
+def live_markers(body):
+    """The marker ids on the live lines of BODY, read the way
+    `fold_check.py#numbered_statements` reads them: `live_lines`, the one
+    rule for whether a line is live, and the line-anchored marker."""
+    return {
+        found
+        for line, live in uc.live_lines(uc.gfm_lines(body))
+        if live
+        for found in uc.FOLD_MARKER.findall(line)
+    }
 
 
 @pytest.mark.parametrize(
@@ -1686,72 +1662,8 @@ def test_a_marker_inside_a_fenced_block_is_not_a_fold_record(tmp_path):
         ("see `<!-- specs/x-7 -->` here\n", set()),
     ],
 )
-def test_every_fence_shape_a_policy_document_can_carry(tmp_path, body, found):
-    docs = tmp_path / "docs"
-    docs.mkdir()
-    (docs / "a.md").write_text(body, encoding="utf-8")
-    assert uc.folded_items(str(tmp_path)) == found
-
-
-def test_a_marker_below_the_top_level_of_docs_is_not_a_fold_record(tmp_path):
-    """`spec.md` G2 and `skills/settle/SKILL.md` §2 fix the destination as a
-    flat `docs/`, so a fold never writes below the top level and a marker
-    below it is somebody's notes. This repository's own `docs/experiments/` is
-    four scratch files, and a quoted marker in one of them excused a removal
-    nothing absorbed."""
-    docs = tmp_path / "docs"
-    (docs / "experiments").mkdir(parents=True)
-    (docs / "experiments" / "2026-09-03-a-note.md").write_text(
-        "<!-- specs/1780000000-work -->\n", encoding="utf-8"
-    )
-    assert uc.folded_items(str(tmp_path)) == set()
-    (docs / "a-policy.md").write_text(
-        "<!-- specs/1780000000-work -->\n", encoding="utf-8"
-    )
-    assert uc.folded_items(str(tmp_path)) == {"1780000000-work"}
-
-
-def test_the_folded_line_reads_as_a_sentence(tmp_path, capsys):
-    """§14: the line a person reads in the hygiene workflow's output. It
-    carried a space before its comma and nothing pinned it, so nothing would
-    have caught it changing either."""
-    d, p = git_repo(tmp_path, CANONICAL)
-    other = d / "specs" / "1780000001-other"
-    other.mkdir(parents=True)
-    (other / "overview.md").write_text("# o\n\n" + CANONICAL, encoding="utf-8")
-    subprocess.run(["git", "-C", str(d), "add", "-A"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "-C", str(d), "commit", "-qm", "two"], check=True, capture_output=True
-    )
-    shutil.rmtree(os.path.dirname(p))
-    fold_into_docs(d, "1780000000-work")
-    assert run([str(d), "--baseline", "HEAD"]) == 0
-    out = capsys.readouterr().out
-    assert "<!-- specs/1780000000-work -->, so what this" in out, out
-    assert " --> ," not in out, f"a space before the comma: {out}"
-
-
-def test_a_marker_inside_a_commented_out_draft_is_not_a_fold_record(tmp_path):
-    """Round 2's 🔴, and the other half of round 1's. A line stops being live
-    three ways: a fence is a quotation, an enclosing comment is a parked draft
-    and a code span is a quotation too. Round 1 closed the first; this closes
-    the second, and round 4 of this work item's own chain closed the third.
-
-    Measured before the fix: a `docs/` document with a draft section commented
-    out around a real marker made `settle --retire` remove the directory at
-    exit 0, nothing having absorbed it."""
-    docs = tmp_path / "docs"
-    docs.mkdir()
-    (docs / "a-policy.md").write_text(
-        "# a segment\n\n<!-- a draft section, parked\n\n"
-        "<!-- specs/1780000000-work -->\nA statement nobody has agreed to.\n\n-->\n",
-        encoding="utf-8",
-    )
-    assert uc.folded_items(str(tmp_path)) == set()
-    (docs / "b-policy.md").write_text(
-        "<!-- specs/1780000001-other -->\nA standing statement.\n", encoding="utf-8"
-    )
-    assert uc.folded_items(str(tmp_path)) == {"1780000001-other"}
+def test_every_fence_shape_a_policy_document_can_carry(body, found):
+    assert live_markers(body) == found
 
 
 @pytest.mark.parametrize(
@@ -1778,17 +1690,13 @@ def test_a_marker_inside_a_commented_out_draft_is_not_a_fold_record(tmp_path):
         # inside a comment nothing is markdown and the quotation really does
         # end the draft. So the marker below it is live and this IS a fold
         # record — the one shape where the narrowed pass reads MORE than the
-        # pass that blanked every span, and `settle --retire` removes the
-        # directory at exit 0. Deliberate, and pinned here so that a later
-        # edit cannot take the direction back in silence.
+        # pass that blanked every span. Deliberate, and pinned here so that a
+        # later edit cannot take the direction back in silence.
         ("<!-- parked\nprose with `-->` in it\n<!-- specs/c-8 -->\n-->\n", {"c-8"}),
     ],
 )
-def test_every_comment_shape_a_policy_document_can_carry(tmp_path, body, found):
-    docs = tmp_path / "docs"
-    docs.mkdir()
-    (docs / "a.md").write_text(body, encoding="utf-8")
-    assert uc.folded_items(str(tmp_path)) == found
+def test_every_comment_shape_a_policy_document_can_carry(body, found):
+    assert live_markers(body) == found
 
 
 def test_strip_comments_reads_through_the_one_comment_scanner(monkeypatch):
@@ -2091,10 +1999,9 @@ def test_the_scan_never_reads_live_what_the_format_parks():
     wherever they differ, so it deliberately parks lines the format calls
     live, and a case demanding agreement would forbid the thing that ends
     this class. What may never happen is the other direction — the scan
-    calling a line live that the format parks — because that is the line a
-    marker sits on when `settle --retire` removes a work item's directory
-    with nothing having absorbed it. Five review rounds each found one shape
-    of exactly that.
+    calling a line live that the format parks — because a line read live
+    there excuses or declares what nobody wrote live. Five review rounds each
+    found one shape of exactly that.
     """
     unsafe, live_seen = [], 0
     for lines in documents_with_several_spans_on_a_line(2000):
@@ -2160,9 +2067,8 @@ def test_the_scan_never_reads_live_what_the_format_parks():
         # Round 6. A fence delimiter indented four spaces is an indented code
         # block, not a delimiter. One of them inverts the fence state for the
         # rest of the file, and the marker quoted inside the real fenced
-        # example below becomes a fold record — `settle --retire` removing
-        # the work item's directory at exit 0 with nothing having absorbed
-        # it. The generator builds no indentation, so this arrives as a row.
+        # example below reads live. The generator builds no indentation, so
+        # this arrives as a row.
         (
             "a marker in a fenced example under an indented delimiter",
             "A fence opens with\n\n    ```python\n\nand closes with a run "
@@ -2178,15 +2084,11 @@ def test_the_scan_never_reads_live_what_the_format_parks():
         ),
     ],
 )
-def test_every_shape_five_review_rounds_named(tmp_path, name, body, found):
+def test_every_shape_five_review_rounds_named(name, body, found):
     """One row per shape a review round of this work item found, and the two
-    controls. Each of the five was a directory removed at exit 0 or a row
-    filed under another work item's id, and each was found by a round rather
-    than by a case, which is what this family exists to change."""
-    docs = tmp_path / "docs"
-    docs.mkdir()
-    (docs / "a.md").write_text(body, encoding="utf-8")
-    assert uc.folded_items(str(tmp_path)) == found, name
+    controls. Each was found by a round rather than by a case, which is what
+    this family exists to change."""
+    assert live_markers(body) == found, name
 
 
 def test_readable_would_erase_every_fold_record():
@@ -2228,31 +2130,18 @@ def moment_repo(tmp_path, section, spec=False, name="1780000009-release-0-1-0"):
 
 
 def test_a_rule_retirement_is_not_this_branchs_deletion(tmp_path, capsys):
-    """A6. `settle --retire` removes a released directory that held no
-    `spec.md` and nothing open, with no marker anywhere — and this arm used to
-    call that a deletion, so the first fold under the rule arm would have been
-    refused for every directory it removed."""
+    """A6. `settle --apply` removes a released directory that held no
+    `spec.md` and nothing open, and this arm used to call that a deletion."""
     d, item = moment_repo(tmp_path, CLOSED_SECTION)
     shutil.rmtree(item)
     assert run([str(d), "--baseline", "HEAD"]) == 0
     out = capsys.readouterr().out
     assert "present at HEAD and not here" not in out, out
-    assert "retired by the rule" in out and item.name in out, out
-    assert "1 retired by the rule" in out, out
-    assert "folded into" not in out, "a rule retirement is named as a fold"
+    assert "1 settled" in out and item.name in out.split("settled —")[1], out
 
 
 def test_a_rule_retirement_with_an_open_row_at_the_base_still_fails(tmp_path, capsys):
     d, item = moment_repo(tmp_path, CANONICAL)
-    shutil.rmtree(item)
-    assert run([str(d), "--baseline", "HEAD"]) == 1
-    assert "present at HEAD and not here" in capsys.readouterr().out
-
-
-def test_a_spec_at_the_base_is_still_a_deletion(tmp_path, capsys):
-    """The merge-base is asked, not the tree the branch left: a spec deleted in
-    one commit and its directory in the next is a deletion."""
-    d, item = moment_repo(tmp_path, CLOSED_SECTION, spec=True)
     shutil.rmtree(item)
     assert run([str(d), "--baseline", "HEAD"]) == 1
     assert "present at HEAD and not here" in capsys.readouterr().out
@@ -2272,7 +2161,7 @@ def test_a_spec_deleted_by_an_earlier_merge_is_still_a_deletion(tmp_path, capsys
     assert run([str(d), "--baseline", "HEAD"]) == 1
     out = capsys.readouterr().out
     assert "present at HEAD and not here" in out, out
-    assert "retired by the rule" not in out, out
+    assert "settled —" not in out, out
 
 
 def test_a_spec_dropped_on_the_far_side_of_a_merge_is_still_written(tmp_path):
@@ -2310,7 +2199,7 @@ def test_a_spec_dropped_on_the_far_side_of_a_merge_is_still_written(tmp_path):
     assert uc.wrote_a_spec(str(d), "HEAD", "seal/specs/1780000009-x"), (
         "a spec dropped before a merge commit read as never written"
     )
-    assert not uc.retired_by_rule(str(d), "HEAD", "seal/specs/1780000009-x")
+    assert not uc.settled(str(d), "HEAD", ["seal/specs/1780000009-x"])
 
 
 def test_a_history_git_cannot_read_counts_as_a_spec_written(tmp_path):
@@ -2329,14 +2218,13 @@ def test_a_removed_memo_in_a_directory_that_stays_is_not_a_retirement(tmp_path, 
 
 
 def test_the_baseline_arm_asks_the_one_predicate(tmp_path, capsys, monkeypatch):
-    """`plan.md` §*What breaks in six months*: the reader calls
-    `retired_by_rule` rather than re-deriving it, so the next condition added
-    to the predicate reaches this reader too."""
+    """The reader calls `settled` rather than re-deriving it, so the next
+    condition added to the predicate reaches this reader too."""
     d, item = moment_repo(tmp_path, CLOSED_SECTION)
     shutil.rmtree(item)
     asked = []
     monkeypatch.setattr(
-        uc, "retired_by_rule", lambda root, ref, directory: asked.append(directory)
+        uc, "settled", lambda root, ref, dirs, here=None: asked.extend(dirs) or set()
     )
     assert run([str(d), "--baseline", "HEAD"]) == 1
     assert asked == [f"specs/{item.name}"], asked
@@ -2350,12 +2238,12 @@ def test_the_baseline_arm_asks_the_one_predicate(tmp_path, capsys, monkeypatch):
     ],
 )
 def test_every_reader_of_a_retirement_calls_the_one_predicate(script):
-    """`plan.md` §*What breaks in six months*: four parties ask whether a
-    removed directory was retired, and a predicate spelled in each would take
-    the next condition in one and not the others. The behaviour is pinned per
-    reader in its own module; this pins that each one reaches the answer by
-    calling `retired_by_rule` on the module that owns it, so a reader that
-    re-derives the rule inline goes red here even while it agrees today."""
+    """Three parties ask whether a removed directory was settled, and a
+    predicate spelled in each would take the next condition in one and not
+    the others. The behaviour is pinned per reader in its own module; this
+    pins that each one reaches the answer by calling `settled` on the module
+    that owns it, so a reader that re-derives the rule inline goes red here
+    even while it agrees today."""
     import ast
 
     with open(os.path.join(ROOT, *script), encoding="utf-8") as f:
@@ -2365,16 +2253,14 @@ def test_every_reader_of_a_retirement_calls_the_one_predicate(script):
         for node in ast.walk(tree)
         if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Attribute)
-        and node.func.attr == "retired_by_rule"
+        and node.func.attr == "settled"
     ]
-    assert calls, (
-        f"{'/'.join(script)} decides a retirement without asking the predicate"
-    )
+    assert calls, f"{'/'.join(script)} decides a removal without asking the predicate"
     assert not [
         node
         for node in ast.walk(tree)
-        if isinstance(node, ast.FunctionDef) and node.name == "retired_by_rule"
-    ], f"{'/'.join(script)} defines a second `retired_by_rule`"
+        if isinstance(node, ast.FunctionDef) and node.name == "settled"
+    ], f"{'/'.join(script)} defines a second `settled`"
 
 
 # --- G7: the root's own seal/specs/, empty or absent, is a settled state ----

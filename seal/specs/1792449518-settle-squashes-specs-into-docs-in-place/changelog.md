@@ -16,3 +16,12 @@
   calls either gets an argument error, exit 2. A spec with no
   `## Rule changes` section was written before it existed: `settle` names it
   and keeps it.
+
+- **The CI readers tell a settle from a deletion without a marker (#953).**
+  `unverified-check --baseline` and `chain-check` accept a directory removed
+  whole when, at the merge base, nothing in its record is open and either it
+  states no rule (no `spec.md`, or a spec with no `## Rule changes`) or its
+  rule changes, replayed over the base's `docs/` in merge order, are what
+  `docs/` holds. A `<!-- specs/<id> -->` marker no longer excuses a removal.
+  `unverified-check` names such a directory `settled`, where it said
+  `folded` or `retired by the rule`.

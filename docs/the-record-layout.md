@@ -85,28 +85,20 @@ section to the same numbers.
 Enforced by: skills/settle/scripts/fold_check.py::ceiling_problems, tests/test_a_document_has_room_for_the_next_fold.py::test_the_record_layout_states_the_values_the_config_rows_hold
 
 <!-- specs/1790039346-settle-reads-a-marker-inside-a-commented-out-draft -->
-**A marker counts only on a live line, and one function decides what live
-means.** A line begins live when it begins outside a fenced block, outside an
-HTML comment and outside a code span. A marker quoted inside a fence is a
-description; one inside a commented-out draft is a parked one; neither
-records a fold, and both used to excuse a removal nothing had absorbed. Every
-reader of the fold record asks the same function,
-`unverified_check.py#live_lines`, so the rule cannot be spelled twice and
-drift.
-Enforced by: tests/test_unverified_rows_close.py::test_a_marker_inside_a_commented_out_draft_is_not_a_fold_record, tests/test_unverified_rows_close.py::test_a_marker_inside_a_fenced_block_is_not_a_fold_record, tests/test_unverified_rows_close.py::test_a_marker_below_the_top_level_of_docs_is_not_a_fold_record
-
-Where markdown will not answer without a block model — a backtick run with no
-partner on its own line is literal text if the paragraph ends first and a code
-span if it does not — both readings are computed and a line is live only
-where both call it live. Nothing decides where the block ends; the
-disagreement is resolved toward keeping a work item's directory. The cost is
-a fold reported as a deletion, which a person sees at exit 1 and can act on,
-and that is the cheaper of the two mistakes.
-
-The fold reads the top level of `docs/` and no deeper. A fold writes into a
-flat policy directory — merge into a document that exists, create one only
-for an area with none — so a marker below the top level is somebody's notes,
-and a scratch file quoting one excused a removal nothing had absorbed.
+**A removed work item directory is a settle, not a deletion, when replaying
+it gives what the tree holds.** Each directory a pull request removes whole
+is judged as it stood at the merge base: nothing in its record open, and
+either no rule to replay (it wrote no `spec.md`, or its spec has no
+`## Rule changes` or says `nothing`) or the replay holds. The replay applies
+every removed spec's rule changes, in merge order, over the merge base's
+`docs/`, and each text an applied operation names must occur as often across
+the top-level documents at HEAD as in the replay, whitespace collapsed. So a
+later spec may rewrite what an earlier one placed, and a split along headings
+in the same pull request passes. One predicate,
+`unverified_check.py#settled`, answers `settle`, `unverified-check
+--baseline` and `chain-check`, and a refusal keeps the directory, the cheaper
+mistake.
+Enforced by: tests/test_unverified_rows_close.py::test_a_settled_work_item_is_not_read_as_this_branchs_deletion, tests/test_unverified_rows_close.py::test_a_removal_whose_rule_docs_does_not_hold_still_fails, tests/test_unverified_rows_close.py::test_a_spec_with_no_rule_changes_and_nothing_open_is_settled, tests/test_settle_applies_rule_changes_in_place.py::test_what_apply_removed_is_settled_for_the_readers
 
 <!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
 <!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
@@ -125,10 +117,7 @@ readers ask the rule of the merge base, so a closure in the same pull request
 as the removal is still open where they look. `settle` asks it at the merge
 base of `--released-at` and `HEAD`, which is where they look until the base
 moves past the fork and earlier after, and keeps a directory whose closure
-has reached the working branch and not that base (#602). One predicate
-decides the rule,
-and `settle`, `unverified-check` and `chain-check` all ask it, so the three
-cannot disagree about one tree. Whether the item wrote a
+has reached the working branch and not that base (#602). Whether the item wrote a
 `spec.md` is asked of its history, so a spec deleted in one commit, or in an
 earlier pull request, and the directory in the next is still a deletion. That
 condition is a judgment the repository owner may overturn. An item that did
@@ -219,8 +208,8 @@ Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
   unless a fence that closes holds it. Those rows are the places a line
   nobody wrote live declares something; at every other fence or comment,
   what this protects is that nothing is excused or declared by a line
-  nobody wrote live. The wrong answer is a fold reported as a deletion at
-  exit 1, a hook that says nothing, or a gate that asks.
+  nobody wrote live. The wrong answer is a statement left unbound, a hook
+  that says nothing, or a gate that asks.
   Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_each_reader_gives_its_stated_answer_on_each_shape
 - **A line a record's rows are COUNTED on is blanked the same way on both
   sides of a comparison.** `unverified_check.py#readable` blanks comment text
@@ -231,7 +220,7 @@ Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
   Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_each_reader_gives_its_stated_answer_on_each_shape
 
 No one rule serves all three kinds. The holding bias would let a fold marker
-quoted in an example excuse a removal nothing absorbed, and the excusing bias
+quoted in an example bind a statement nobody wrote, and the excusing bias
 would drop a parked row without a word. A reader of a new kind of line is a
 fourth answer, and it is argued against these three.
 

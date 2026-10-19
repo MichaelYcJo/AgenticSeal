@@ -499,6 +499,23 @@ def test_apply_follows_merge_order(repo, capfd):
     assert not specs_dir(repo, "1700000001-b").exists()
 
 
+def test_what_apply_removed_is_settled_for_the_readers(repo, capfd):
+    """S9 from `settle`'s side: the CI readers ask
+    `unverified_check.py#settled` of the base, and what `--apply` removed
+    passes it. It answers for the set one pull request removes: B rewrote
+    the text A placed, so A asked alone does not hold."""
+    item(repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
+    commit(repo, "a")
+    item(repo, "1700000001-b", op("change", "S", "y.", "z."))
+    commit(repo, "b")
+    code, text = apply(repo, capfd)
+    assert code == 0, text
+    reader = settle.load(settle.READER, "specseal_reader_for_settled")
+    both = {"seal/specs/1700000009-a", "seal/specs/1700000001-b"}
+    assert reader.settled(str(repo), "HEAD", sorted(both)) == both
+    assert reader.settled(str(repo), "HEAD", ["seal/specs/1700000009-a"]) == set()
+
+
 def test_apply_refuses_a_conflict_and_keeps_both(repo, capfd):
     """S6."""
     for branch, name, change in (
