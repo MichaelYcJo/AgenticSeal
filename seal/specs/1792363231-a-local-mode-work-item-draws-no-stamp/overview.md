@@ -23,7 +23,7 @@ it never drew.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at the last round's commit | the orchestrator's `broad-gate --base <base> --record <item>`, after the rounds settle |
+| closed The full suite, the repository-wide lint and the typecheck at the last round's commit | the orchestrator's `broad-gate --base release/v0.22.2 --record <item>` at 4415c5db, exit 0: 7547 passed, 14 skipped, chain exit 0 (`broad-gate.md`); the run at 59732199 failed on the census module, fixed at 20ea0280 and reviewed in round 6 |
 | Windows path comparison: the edit gate's `os.sep` mapping and the local writer's two `realpath` comparisons (`questions.md` Q3) | CI's Windows leg, read by the orchestrator at the pull request |
 | closed The reflog subjects guard 2 reads, on git versions other than 2.50.1 | 061dfdc2 deletes guard 2 and `test_guard_two_reads_what_post_commit_sees_in_the_reflog`; nothing reads the reflog, so no git version's subjects matter |
 | A local-mode stamp drawn on a person's screen from the edit hook's line; this repository runs in shared mode, and its run draws through the installed plugin's hooks (`plan.md` §*Operational impact*) | the owner, on the first local-mode run after updating to the release that carries this work |
