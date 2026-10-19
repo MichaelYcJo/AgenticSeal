@@ -204,7 +204,7 @@ that record reads `fixed` or `rejected` — a review cannot have passed while
 the fixes that closed its findings went unread. On a draft it prints and
 names the verifying round.
 
-No gate transmits your code, your paths, or your prompts anywhere. Four side
+No gate transmits your code, your paths, or your prompts anywhere. These side
 effects are worth stating outright: session-lease writes a timestamp file under
 `.git/specseal-leases/`, version-check writes one under
 `~/.claude/specseal/`, the commit of a `guarantee.md` reading `sealed`, or in

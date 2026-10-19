@@ -298,8 +298,9 @@ not hold for a `sealed` committed over a history that carries no earlier
 `sealed` in a clone that holds no values file for the work item, which draws
 the stamp again in that clone: the sealing commit amended or rewritten there
 over its own parent, or a second seal on a copy of the branch that had not
-fetched the first. A `sealed` copied by hand into a clone that never fetched
-its audited commit, committed and repaired there, joins that class. The
+fetched the first. A `sealed` copied by hand into a clone, or brought there
+from a commit no ref of that clone holds, then committed and repaired there,
+joins that class. The
 clone that drew the stamp keeps its values file, so an amend there draws
 nothing. That is a stated limit, since across clones the history is the only
 record the rule reads, and nothing beside the tree counts stamps. In local
@@ -329,18 +330,23 @@ row's earlier-run chain skip a `sealed` over a target this clone recorded. A
 recorded target matches a SHA when one is a prefix of the other and both are
 at least seven characters long; any other spelling finds no record, and the
 verdict counts as stamped. The record is written only where the refused
-verdict cannot have been stamped in another clone, and in shared mode three
+verdict cannot have been stamped in another clone, and in shared mode four
 things must hold. The refusal is the ancestry refusal of the committing
 commit's own verdict, reached after the chain, the history and the values
 files let it through, so that commit introduced the verdict. `HEAD`'s newest
 reflog entry, which inside `post-commit` already names that commit, is a
 plain `commit:` or `commit (initial):`, so not an amend, a rebase, a
-cherry-pick or a merge. And the target does not resolve, or HEAD's side holds
-no patch-equivalent copy of it, so the verdict was not audited before a
-rebase moved its commit. In local mode the record is written where the
+cherry-pick or a merge. No ref of the clone holds, outside HEAD's history, a
+commit whose guarantee reads `sealed`, over any target, so the verdict was
+not brought by a plain commit from a branch where the work item may have
+been stamped: a `merge --squash`, a `cherry-pick -n` or a `checkout` of the
+path. And the
+target does not resolve, or HEAD's side holds no patch-equivalent copy of
+it, so the verdict was not audited before a rebase moved its commit. In
+local mode the record is written where the
 `Branch` row's branch stands: the root never leaves its clone, so the values
 files already say whether the work item was stamped.
-Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_this_clone_refused_does_not_count_as_stamped, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refusal_record_skips_only_its_own_verdict, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_over_a_commit_off_the_branch_then_repaired_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_conflicted_rebase_in_another_clone_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_an_amend_in_a_fresh_clone_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_body_edit_over_a_rewritten_seal_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_whose_target_has_a_copy_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_guard_two_reads_what_post_commit_sees_in_the_reflog
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_this_clone_refused_does_not_count_as_stamped, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refusal_record_skips_only_its_own_verdict, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_over_a_commit_off_the_branch_then_repaired_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_conflicted_rebase_in_another_clone_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_an_amend_in_a_fresh_clone_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_body_edit_over_a_rewritten_seal_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_whose_target_has_a_copy_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_brought_from_another_ref_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_guard_two_reads_what_post_commit_sees_in_the_reflog
 
 <!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
 **The hook holds its whole message under a budget named in the code, and
@@ -392,7 +398,8 @@ nothing still counts as the work item's stamp, so its repair draws none,
 wherever no refusal record stands for it: a repair committed in a clone
 other than the one that refused, a refusal no writer judged, one introduced
 by an amend, a rebase or a cherry-pick, one whose target has a
-patch-equivalent copy in the history, and a clone whose reflog is off. The
+patch-equivalent copy in the history, one brought from another branch of the
+clone, and a clone whose reflog is off. The
 hook draws nothing and says nothing where the main session's `python3`
 cannot load `seal_stamp.py`, since no launcher stands in front of a hook;
 where that session's working directory is outside the clone the stamp was

@@ -197,7 +197,7 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 띄우라고 알려 줍니다.
 
 어떤 게이트도 사용자의 코드나 경로, 프롬프트를 바깥으로 보내지 않습니다. 다만
-네 가지 부수 효과는 밝혀 둡니다. session-lease 는 `.git/specseal-leases/` 아래에,
+다음 부수 효과는 밝혀 둡니다. session-lease 는 `.git/specseal-leases/` 아래에,
 version-check 는 `~/.claude/specseal/` 아래에 시각 파일을 씁니다.
 `sealed` 로 읽히는 `guarantee.md` 를 커밋하면, local 모드에서는 그렇게
 쓰면 도장에 들어갈 값을 `<git-common-dir>/specseal-stamp/` 아래에 쓰고,

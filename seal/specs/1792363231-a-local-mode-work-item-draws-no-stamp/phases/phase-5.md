@@ -29,8 +29,8 @@ alone:
 **What the orchestrator ran (executed by the orchestrator; read here from
 its report).** It ran `noninferiority.py run --agent sealer --rev f99ab3a9
 --suite-rev 981b0acc --runs 2 -j 4 --max-cost-usd 10`, which exited 0. It
-kept the raw output at `/Users/michael/Documents/GitHub/SpecSeal-worktrees/976-phase-5-raw`,
-and `diff -r` against it was clean. It then ran `compare --agent sealer
+kept the raw output in a sibling of the branch worktree,
+`SpecSeal-worktrees/976-phase-5-raw`, and `diff -r` against it was clean. It then ran `compare --agent sealer
 --phase 5`, with #975's `evals/sealer-phase-4.json` as the old side and this
 directory's `evals/sealer-phase-5.json` as the new one. That exited 0 and
 wrote `evals/sealer-phase-5.md`. Finally, `check` on that record exited 0.

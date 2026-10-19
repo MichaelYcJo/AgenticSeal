@@ -1544,6 +1544,47 @@ def test_a_seal_whose_target_has_a_copy_writes_no_refusal(tmp_path):
     resealed_draws_nothing(repo, "main")
 
 
+@pytest.mark.parametrize(
+    "bring",
+    [
+        ("merge", "--squash", "origin/feat/x"),
+        ("cherry-pick", "-n", "origin/feat/x"),
+        ("checkout", "origin/feat/x", "--", f"seal/specs/{ITEM_NAME}"),
+    ],
+    ids=["merge --squash", "cherry-pick -n", "checkout a path"],
+)
+def test_a_seal_brought_from_another_ref_writes_no_refusal(tmp_path, bring):
+    """1792363231 S13, round 1's finding 1. The guarantee was stamped in one
+    clone. A second clone brings it onto `main` by a plain commit from the
+    branch it fetched, so the audited commit is not in HEAD's history and
+    has no copy there, and the reflog reads `commit: `. Another ref still
+    holds the sealing commit, which may have been stamped, so no record is
+    written and the re-seal that keeps the copied run queues nothing. Red at
+    601245af: each of the three wrote a record, and the re-seal queued a
+    second stamp."""
+    repo, target, _base = guaranteed(tmp_path)
+    assert after_the_commit(repo)
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+    )
+    git(other, "switch", "-q", "main")
+    git(other, *SIGNED, *bring)
+    git(other, *SIGNED, "commit", "-qm", "the item brought over")
+    assert after_the_commit(other) == ""
+    assert refusals(other) == []
+    new = a_fix(other)
+    seal_and_commit(
+        other,
+        new,
+        short(other, "origin/main"),
+        "the sealer again",
+        earlier=f"; earlier run: {target} sealed",
+    )
+    assert after_the_commit(other) == ""
+    assert queued(other) == []
+
+
 def test_guard_two_reads_what_post_commit_sees_in_the_reflog(tmp_path):
     """1792363231 S13 guard 2, `questions.md` Q4. A real `post-commit` hook logs
     `git reflog -1 --format=%gs HEAD` for each kind of commit git runs it
@@ -2133,8 +2174,11 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     by relaying a log, which 0.15.6 did — the broad run's lines are quoted as
     `BROAD GATE PASSED` and `BROAD GATE FAILED`, and no line of the run says
     `SEALED`. 1792363231 S7: in local mode the stamp is drawn at the end of
-    the turn in which the sealer's report arrives, and the line to quote is
-    the edit hook's message."""
+    the turn in which the sealer's report arrives. Round 1's finding 2: the
+    edit hook's line is shown to the person at the sealer's write and never
+    reaches the orchestrator, so it is not told to quote that line; where no
+    stamp appeared, it names the values file and leaves the command to the
+    person."""
     text = flat("skills", "code-review", "orchestration.md")
     section = text.split("## Orchestrator: the pull request opens before round 1", 1)[1]
     section = section.split("## Orchestrator: verify before posting", 1)[0]
@@ -2143,8 +2187,13 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "`guarantee.md` reading `sealed` is committed, or in local mode the turn "
         "in which the sealer's report arrives, and you never draw one (#975).**",
         "In local mode no commit carries `guarantee.md`: the sealer's own "
-        "`Write` of it queues the values, and the line arrives as the edit "
-        "hook's message",
+        "`Write` of it queues the values. The line naming them is the edit "
+        "hook's message, shown to the person at that write. It is not in the "
+        "sealer's report and does not reach you.",
+        "In local mode no such line reaches you. Where no stamp appeared, name "
+        "the file under `<git-common-dir>/specseal-stamp/<session>/` whose name "
+        "holds the work item's id, and leave `seal-stamp --from <that file>` to "
+        "the person.",
         "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
         "`BROAD GATE FAILED`",
         "So put the result text first",
@@ -2152,11 +2201,13 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "On a red run relay the `BROAD GATE FAILED` lines.",
         # Round 1's 🟡 1 of #400: the command is named on the line that points
         # at a values file, and it stays the person's wherever it appears.
-        "Wherever the commit's line or the edit hook's message names "
-        "`seal-stamp --from`, quote it as it stands: that command is the "
-        "person's to type, and never yours.",
+        "Wherever the commit's line names `seal-stamp --from`, quote it as it "
+        "stands: that command is the person's to type, and never yours.",
     ):
         assert said in section, said
+    assert "the edit hook's message names" not in section, (
+        "the orchestrator is told to quote a line it never receives"
+    )
     assert "SEALED" not in section, "a line of the broad run is quoted as SEALED"
 
 
@@ -2241,6 +2292,14 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     assert "in a clone that holds no values file for the work item" in rule, (
         "the limit names the clone it holds in"
     )
+    # 1792363231 round 1's finding 1: a verdict brought from another ref
+    # writes no record, and one brought from a commit no ref holds joins the
+    # hand-copied shape in that class.
+    assert (
+        "A `sealed` copied by hand into a clone, or brought there from a "
+        "commit no ref of that clone holds, then committed and repaired "
+        "there, joins that class."
+    ) in rule
     for case in (
         "::test_a_sealed_guarantees_commit_queues_one_stamp",
         "::test_a_withheld_or_undecided_guarantee_queues_nothing",
@@ -2264,6 +2323,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "in a clone other than the one that refused",
         "introduced by an amend, a rebase or a cherry-pick",
         "a patch-equivalent copy in the history",
+        "one brought from another branch of the clone",
         "a clone whose reflog is off",
         "cannot load `seal_stamp.py`",
         "outside the clone the stamp was queued in",
@@ -2291,8 +2351,9 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     """1792363231 S8. §*The stamp* carries the refusal record as a rule of
     its own under this work item's marker: a `sealed` a writer refused
     leaves a record in the clone, the once readers skip it, so the repair
-    draws the work item's one stamp. It names the guards the build holds,
-    three, and its `Enforced by:` line names the cases phase 3 planted."""
+    draws the work item's one stamp. It names what the build holds, the
+    refusal's place and three facts, the one round 1 added among them, and
+    its `Enforced by:` line names the cases that hold each."""
     text = stamp_section()
     marker = "<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->"
     assert marker in text
@@ -2303,13 +2364,15 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
         "`sealed_before` and the `Target SHA` row's earlier-run chain skip",
         "at least seven characters",
-        "three things must hold",
+        "four things must hold",
         "a plain `commit:` or `commit (initial):`",
+        "No ref of the clone holds, outside HEAD's history, a commit whose "
+        "guarantee reads `sealed`, over any target",
         "HEAD's side holds no patch-equivalent copy of it",
         "where the `Branch` row's branch stands",
     ):
         assert said in rule, said
-    assert "four guards" not in rule, "the build holds three"
+    assert "four guards" not in rule, "guard 3 of the frame was not built"
     for case in (
         "::test_a_seal_this_clone_refused_does_not_count_as_stamped",
         "::test_a_refusal_record_skips_only_its_own_verdict",
@@ -2319,6 +2382,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         "::test_an_amend_in_a_fresh_clone_writes_no_refusal",
         "::test_a_body_edit_over_a_rewritten_seal_writes_no_refusal",
         "::test_a_seal_whose_target_has_a_copy_writes_no_refusal",
+        "::test_a_seal_brought_from_another_ref_writes_no_refusal",
         "::test_guard_two_reads_what_post_commit_sees_in_the_reflog",
     ):
         assert case in rule, case
@@ -2332,7 +2396,9 @@ def test_both_readmes_list_the_stamp_hook():
 
     1792363231 S7: the gate that queues a local-mode stamp at the write has its own
     row, and the count and the opt-in list that row made false say twelve
-    gates and two stamp hooks."""
+    gates and two stamp hooks. Its round 1's finding 3: the side effects
+    gained the refusal record's directory, and the count before them went
+    stale, so the sentence carries no count."""
     for edition, count, opt_in, effects, clause in (
         (
             "README.md",
@@ -2340,7 +2406,7 @@ def test_both_readmes_list_the_stamp_hook():
             # The opt-in list's own words: the count sentence names the stamp
             # hooks too, so the bare name would pass with the list unchanged.
             "the two implementer hooks, the two stamp hooks and the version check.",
-            "Four side effects",
+            "These side effects are worth stating outright",
             # The clause's own words (round 2's ⬜ 2): the gate-table row
             # carries `specseal-stamp/` too, so the bare directory passed
             # with the side effect deleted.
@@ -2351,7 +2417,7 @@ def test_both_readmes_list_the_stamp_hook():
             "README.ko.md",
             "게이트 열둘 중 아홉",
             "구현자 훅 둘, 도장 훅 둘, 버전 확인이다.",
-            "네 가지 부수 효과",
+            "다음 부수 효과는 밝혀 둡니다",
             "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
         ),
     ):
@@ -2362,7 +2428,13 @@ def test_both_readmes_list_the_stamp_hook():
         assert count in text, (edition, count)
         assert opt_in in text, (edition, opt_in)
         assert effects in text and clause in text, (edition, effects, clause)
-        for gone in ("Seven of the ten", "게이트 열 중 일곱", "Eight of the eleven"):
+        for gone in (
+            "Seven of the ten",
+            "게이트 열 중 일곱",
+            "Eight of the eleven",
+            "Four side effects",
+            "네 가지 부수 효과",
+        ):
             assert gone not in text, (edition, gone)
         assert "게이트 열하나 중 여덟" not in text, edition
     # #975 S11: both editions say the stamp's values are written at the

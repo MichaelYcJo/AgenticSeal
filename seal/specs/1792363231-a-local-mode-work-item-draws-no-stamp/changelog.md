@@ -37,9 +37,11 @@
   refused, so the repair draws the stamp. A record is written only where the
   verdict cannot have been stamped in another clone. The commit must
   introduce the verdict as a plain commit, not an amend, a rebase, a
-  cherry-pick or a merge, and its target must have no patch-equivalent copy
-  in the history. The gap stays where no record can settle it: a repair
-  committed in another clone, a refusal no hook judged, a verdict a rewrite
-  introduced, a target with a copy in the history, and a clone whose reflog
-  is off. Each is stated in `docs/the-review-record.md` §*The stamp*.
+  cherry-pick or a merge. No other branch of the clone may hold a `sealed`
+  guarantee for the work item, as one does after a `merge --squash`, a
+  `cherry-pick -n` or a `checkout` of the work item's directory. And its target must have no
+  patch-equivalent copy in the history. The gap stays where no record can
+  settle it: a repair committed in another clone, a refusal no hook judged,
+  a verdict a rewrite introduced, one brought from another branch, a target
+  with a copy in the history, and a clone whose reflog is off. Each is stated in `docs/the-review-record.md` §*The stamp*.
   (`1792363231-a-local-mode-work-item-draws-no-stamp`, #976)
