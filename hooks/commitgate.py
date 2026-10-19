@@ -1,7 +1,8 @@
 """The commit gate as git runs it: `pre-commit`, its `reference-transaction`
 backstop, and `post-commit`'s notice (#692) and stamp (#975). Since work item
 1792363231 `pre-commit` also refuses a `sealed` guarantee whose audited
-commit the history does not hold (`guarantee_off_history`).
+commit the history does not hold (`guarantee_off_history`), and records the
+refusal it made (`_record_refusal`).
 
 `hooks/git/*.py` are thin entry points into this module, so that a case can
 drive one hook in-process and the stubs run the same code from a shell. What
@@ -229,11 +230,12 @@ GUARANTEE_FILE = "guarantee.md"
 
 
 def guarantee_off_history(cwd, head, paths):
-    """The refusal's text where this commit stages a work item's
-    `guarantee.md` reading one `Verdict:` of `sealed` whose `Target SHA`
-    names a commit `head`'s history does not hold, on the branch the item's
-    own `routing.md` declares; else None (work item 1792363231, `spec.md`
-    S11 and S12).
+    """(the refusal's text, the work item's id, the target) where this
+    commit stages a work item's `guarantee.md` reading one `Verdict:` of
+    `sealed` whose `Target SHA` names a commit `head`'s history does not
+    hold, on the branch the item's own `routing.md` declares; else None
+    (work item 1792363231, `spec.md` S11 and S12). The id and the target
+    are what `pre_commit` records the refusal under.
 
     Both files are read from the index (`git show :<path>`), which is the
     commit git is about to make: `GIT_INDEX_FILE` names it for `-a` and for
@@ -256,7 +258,8 @@ def guarantee_off_history(cwd, head, paths):
     ]
     if not items:
         return None
-    chain = _stamp_module()._chain_check()
+    stamp = _stamp_module()
+    chain = stamp._chain_check()
     reader = chain.SHARED_READER
     for item in items:
         path = f"{prefix}{item}{suffix}"
@@ -280,7 +283,8 @@ def guarantee_off_history(cwd, head, paths):
         if gate.git(["merge-base", "--is-ancestor", target, head], cwd) is not None:
             continue
         short = gate.git(["rev-parse", "--short", head], cwd) or head
-        return gate.guarantee_refusal(path, target, branch, short)
+        text = gate.guarantee_refusal(path, target, branch, short)
+        return text, stamp.item_value(item), target
     return None
 
 
@@ -294,11 +298,24 @@ def _guarantee_refused(cwd, head, paths):
         return None
 
 
+def _record_refusal(common, ident, target):
+    """`seal_stamp.record_refusal` for the row this commit refused, so the
+    sealer's new audit, which keeps that row on its chain as `; earlier
+    run: <target> sealed`, is not counted as stamped (`spec.md` S11). The
+    row stands uncommitted in this clone alone, so the record answers for
+    every clone. A record that cannot be written leaves the refusal
+    standing, and that work item then draws no stamp, Q8's direction."""
+    try:
+        _stamp_module().record_refusal(common, ident, target)
+    except (Exception, SystemExit):
+        pass
+
+
 def pre_commit(cwd, environ, stream):
     context = _context(cwd, environ)
     if context is None:
         return 0
-    top, _common, session = context
+    top, common, session = context
     # An unborn branch exits non-zero: no HEAD is git's ordinary no.
     head = gate.git(["rev-parse", "--verify", "--quiet", "HEAD"], cwd) or ""
     listed = []
@@ -319,7 +336,9 @@ def pre_commit(cwd, environ, stream):
     else:
         refused = _guarantee_refused(cwd, head, paths)
         if refused and not _sequencer_commit(cwd):
-            stream.write(refused + "\n")
+            text, ident, target = refused
+            _record_refusal(common, ident, target)
+            stream.write(text + "\n")
             return 1
     _leave_mark(cwd, head, environ.get("GIT_AUTHOR_DATE", ""))
     return 0

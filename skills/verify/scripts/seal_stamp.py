@@ -925,24 +925,26 @@ def label(values):
 # the guarantee elsewhere queues nothing; the guarantee reading `sealed` at
 # an earlier commit of that history (`sealed_before`); and the `Target SHA`
 # row's `; earlier run: <sha> <verdict>` chain — a `sealed` after a `sealed`
-# was stamped at the first. The last two hold across clones. Both skip a
-# `sealed` this clone refused (`refused_here`): its writer recorded the
-# refusal under the guards `_stamped_nowhere_else` holds, so the repair in
-# this clone draws the work item's one stamp. Where no record stands, a
-# `sealed` that drew nothing still counts as stamped, because the history
-# cannot tell it from one stamped before a rebase. That leaves these stated
-# limits: a repair in another clone than the one that refused, a refusal no
-# writer judged, one introduced by an amend, a rebase or a cherry-pick, one
-# whose target has a patch-equivalent copy in the history, one brought from
-# another branch of the clone, and a clone whose reflog is off. A `sealed` committed over a history that carries no earlier
-# `sealed` is caught by neither, so it queues again in a clone that holds no
-# values file for the work item: the sealing commit amended or rewritten
-# there over its own parent, or a second seal on a copy of the branch that
-# had not fetched the first. Its row is the one just written. That is a
-# stated limit (`questions.md` Q9): across clones the history is the only
-# record read, and nothing beside the tree counts stamps. A `sealed` copied
-# by hand into a clone, or brought there from a commit no ref of that clone
-# holds, then committed and repaired there, joins it.
+# was stamped at the first. The last two hold across clones. The chain skips
+# one kind of entry, a `sealed` this clone recorded refusing
+# (`refused_here`). In shared mode the commit gate writes that record when it
+# refuses a `sealed` over a commit the history does not hold
+# (`hooks/commitgate.py#guarantee_off_history`): the row never became
+# history, and the sealer's new audit, which keeps it on its chain, draws the
+# work item's one stamp. `sealed_before` skips nothing. A `sealed` in the
+# history drew where it was made, or was committed where no gate judged it,
+# and the history cannot tell the two apart, so it counts (#975
+# `questions.md` Q8): a wrong row committed past the gate leaves its work
+# item with no stamp. A `sealed` committed over a history that carries no
+# earlier `sealed` is caught by neither, so it queues again in a clone that
+# holds no values file for the work item: the sealing commit amended or
+# rewritten there over its own parent, or a second seal on a copy of the
+# branch that had not fetched the first. Its row is the one just written.
+# That is a stated limit (`questions.md` Q9): across clones the history is
+# the only record read, and nothing beside the tree counts stamps. A
+# `sealed` that drew in another clone, copied here by hand over a commit
+# this history does not hold, refused by the gate and then repaired, joins
+# it.
 
 # A committed guarantee's path, in shared mode, where a commit carries it. A
 # local-mode root sits under the git directory and no commit ever carries
@@ -967,6 +969,15 @@ CHAIN_CHECK = os.path.join(
 QUEUED = (
     "specseal: the stamp for {id} is drawn at the end of this turn from "
     "{path}; where none appears, `seal-stamp --from {command}` draws it"
+)
+# The line the local writer returns where its `guarantee.md` names a commit
+# the work item's branch does not hold. No pull request's check reads a
+# local guarantee, so this is the only place the wrong row is seen. It names
+# no command: nothing was queued to draw.
+NOT_ON_BRANCH = (
+    "specseal: no stamp was queued for {id}: its guarantee.md names "
+    "{target}, which {branch} does not hold; a new audit at the head of "
+    "{branch} draws it"
 )
 
 
@@ -1056,11 +1067,11 @@ def queue_for_guarantee(top, common, session, now=None):
     no `sealed` at an earlier commit of HEAD's history, has no values file
     in the clone already, and audited a commit in HEAD's history. Each
     writes one values file for `session` under `common` first. An earlier
-    `sealed` this clone refused does not count (`refused_here`); one that
-    drew nothing anywhere else still does, as the once comment above says.
-    Where the audited commit is not in HEAD's history, the refusal is
-    recorded under `_stamped_nowhere_else`'s guards. Raises whatever
-    reading or writing raises; the caller is silent on every failure."""
+    run on the row whose `sealed` the commit gate refused in this clone does
+    not count (`refused_here`); a `sealed` in the history always does, as
+    the once comment above says. Nothing here writes a record. Raises
+    whatever reading or writing raises; the caller is silent on every
+    failure."""
     touched = _git(
         top, "diff-tree", "--no-commit-id", "--name-only", "-r", "--root", "HEAD"
     )
@@ -1081,17 +1092,17 @@ def queue_for_guarantee(top, common, session, now=None):
     return said
 
 
-def sealed_before(chain, top, path, common, ident):
+def sealed_before(chain, top, path):
     """True where `path` read one `Verdict:` of `sealed` at a commit before
-    HEAD in HEAD's history, over any target but one this clone refused
-    (`refused_here`). That commit was stamped where it was made, in this
-    clone or another, so what the history carries holds across clones, a
-    rebase among them, and asks nothing of the row an agent writes. The
-    history alone cannot tell such a `sealed` from one that drew nothing
-    (#975 round 5, `questions.md` Q8); the refusal record is what tells
-    them apart, in the clone that refused, and the target is read only to
-    ask it. A root commit has no parent: `git log` exits 128 and the
-    history is empty."""
+    HEAD in HEAD's history, whatever that verdict's `Target SHA` named. That
+    commit was stamped where it was made, in this clone or another, so what
+    the history carries holds across clones, a rebase among them, and asks
+    nothing of the row an agent writes. The history cannot tell such a
+    `sealed` from one committed where no gate judged it, over a commit the
+    branch does not hold, so that one counts too, and its work item draws no
+    stamp (#975 round 5, `questions.md` Q8). A row the commit gate refused
+    never entered the history, so no refusal record is asked here. A root
+    commit has no parent: `git log` exits 128 and the history is empty."""
     reader = chain.SHARED_READER
     for sha in (_git(top, "log", "--format=%H", "HEAD^", "--", path) or "").split():
         text = _git(top, "show", f"{sha}:{path}")
@@ -1099,30 +1110,27 @@ def sealed_before(chain, top, path, common, ident):
             continue
         verdicts = chain.verdicts_of(reader, text)
         if len(verdicts) == 1 and chain.verdict_word(verdicts[0][1]) == chain.SEALED:
-            if refused_here(common, ident, chain.target_of(reader, text)):
-                continue
             return True
     return False
 
 
 # --- a `sealed` this clone refused (work item 1792363231) -------------------
 #
-# `questions.md` Q2 of work item 1792363231, answered (b). A `sealed` that a
-# writer refuses because its audited commit is not on the branch drew
-# nothing, and without a record of that the once readers count it as
-# stamped, so the repair that follows draws nothing either. The refusing
-# writer therefore leaves an empty file in the clone's common dir, and the
-# once readers skip a `sealed` this clone refused. The record is written at
-# the moment of refusal and read later in the same clone only, so it asks
-# nothing of ancestry at read time, which is what #975's rounds 3 to 6 kept
-# regressing on.
+# `questions.md` Q2 of work item 1792363231, answered (b). A `sealed` over a
+# commit the work item's branch does not hold drew nothing. The sealer's new
+# audit keeps it on its row as `; earlier run: <sha> sealed`, and without a
+# record of the refusal the chain readers count that entry as the stamp, so
+# the repair draws nothing either. Two writers leave the record, each for a
+# row that stands in its own clone and nowhere else: the commit gate, for a
+# row it refused before it was history (`hooks/commitgate.py#pre_commit`),
+# and the local writer, under a root that never leaves its clone. Each mode's
+# chain reader skips a `sealed` the record names. Nothing infers a record
+# after the fact, so nothing asks ancestry at read time, which is what
+# #975's rounds 3 to 6 kept regressing on.
 
 REFUSED_DIR = "specseal-stamp-refused"
 # The shortest SHA a record is matched on; shorter spellings find none.
 SHORTEST_SHA = 7
-# The reflog subjects of a commit git made as a plain or an initial commit
-# (`questions.md` Q4, measured by the cases on real git).
-PLAIN_COMMITS = ("commit: ", "commit (initial): ")
 
 
 def _same_commit(one, other):
@@ -1138,12 +1146,13 @@ def _same_commit(one, other):
 def record_refusal(common, ident, target):
     """Record that this clone refused work item `ident`'s `sealed` over
     `target` and drew nothing for it: an empty file
-    `<common>/specseal-stamp-refused/<ident>-<target>`. Beside `VALUES_DIR`
-    and not in it, so neither `pending`, `already_queued` nor the `Stop`
-    hook lists it. Per clone, not per session, because the question it
-    answers is whether this clone drew for that verdict. A record that
-    cannot be written is skipped, and that verdict then counts as stamped,
-    which is #975 Q8's direction."""
+    `<common>/specseal-stamp-refused/<ident>-<target>`, written by the
+    commit gate at its refusal and by the local writer at its branch
+    refusal. Beside `VALUES_DIR` and not in it, so neither `pending`,
+    `already_queued` nor the `Stop` hook lists it. Per clone, not per
+    session, because the refused row stands in this clone alone. A record
+    that cannot be written is skipped, and that verdict then counts as
+    stamped, which is #975 Q8's direction."""
     directory = os.path.join(common, REFUSED_DIR)
     try:
         os.makedirs(directory, exist_ok=True)
@@ -1155,7 +1164,9 @@ def record_refusal(common, ident, target):
 
 def refused_here(common, ident, sha):
     """True where this clone recorded refusing work item `ident`'s `sealed`
-    over a target `_same_commit` matches with `sha`."""
+    over a target `_same_commit` matches with `sha`. Asked by the chain
+    readers alone, `_queue_one`'s and the local writer's, of each earlier
+    run reading `sealed`."""
     try:
         names = os.listdir(os.path.join(common, REFUSED_DIR))
     except OSError:
@@ -1165,61 +1176,6 @@ def refused_here(common, ident, sha):
         if owner == ident and _same_commit(recorded, sha):
             return True
     return False
-
-
-def plain_commit(subject):
-    """Whether a `HEAD` reflog subject is a plain or an initial commit's,
-    which rewrote no commit another clone may have stamped. An amend, a
-    rebase, a cherry-pick and a merge each write another subject, and so
-    does a subject this does not know."""
-    return (subject or "").startswith(PLAIN_COMMITS)
-
-
-def _guarantee_on_another_ref(top, path):
-    """Whether some ref of this clone holds, outside HEAD's history, a
-    commit that changed `path`. HEAD may then have brought its verdict from
-    that branch by a plain commit, whatever the command (`merge --squash`,
-    `cherry-pick -n`, `checkout <rev> -- <path>`), and the work item may
-    have been stamped where that branch holds its audited commit. What that
-    commit's guarantee reads is not asked: withholding a record keeps the
-    gap and never draws twice, and no case told a `sealed` there from any
-    other verdict (round 1 of work item 1792363231)."""
-    listed = _git(top, "log", "-1", "--format=%H", "--all", "--not", "HEAD", "--", path)
-    return bool((listed or "").strip())
-
-
-def _stamped_nowhere_else(top, path, target):
-    """Whether HEAD's `sealed` over `target`, refused because `target` is
-    not in HEAD's history, cannot have been stamped in another clone, so
-    that this clone may record the refusal. The caller asks only at the
-    ancestry refusal, after the chain, `sealed_before` and `already_queued`
-    let the verdict through. So no `sealed` in HEAD's history counts, and
-    HEAD introduced this one: `HEAD^`'s guarantee reads no `sealed` this
-    clone did not already refuse. Then three facts must hold. HEAD's newest
-    reflog entry is a plain or an initial commit (`plain_commit`). No ref of
-    the clone holds, outside HEAD's history, a commit that changed `path`
-    (`_guarantee_on_another_ref`), so the verdict was not brought from a
-    branch where the work item may have been stamped. And `target` does not
-    resolve, or HEAD's side holds no patch-equivalent copy of it, so the
-    verdict was not audited before a rebase that moved the commit."""
-    if not plain_commit(_git(top, "reflog", "-1", "--format=%gs", "HEAD")):
-        return False
-    if _guarantee_on_another_ref(top, path):
-        return False
-    full = (
-        _git(top, "rev-parse", "--verify", "-q", f"{target}^{{commit}}") or ""
-    ).strip()
-    if not full:
-        return True
-    listed = _git(
-        top,
-        "rev-list",
-        "--cherry-pick",
-        "--right-only",
-        "--no-merges",
-        f"HEAD...{full}",
-    )
-    return full in (listed or "").split()
 
 
 def _queue_one(chain, top, common, session, name, now):
@@ -1244,7 +1200,7 @@ def _queue_one(chain, top, common, session, name, now):
         for sha, word in chain.earlier_verdicts(cell)
     ):
         return None
-    if sealed_before(chain, top, f"{rel}/guarantee.md", common, ident):
+    if sealed_before(chain, top, f"{rel}/guarantee.md"):
         return None
     if already_queued(common, ident):
         return None
@@ -1254,8 +1210,6 @@ def _queue_one(chain, top, common, session, name, now):
     # Precondition: `target` resolves in this clone; where it does not,
     # `merge-base` exits 128 and nothing is queued.
     if _git(top, "merge-base", "--is-ancestor", target, "HEAD") is None:
-        if _stamped_nowhere_else(top, f"{rel}/guarantee.md", target):
-            record_refusal(common, ident, target)
         return None
     gate_text = _git(top, "show", f"HEAD:{rel}/{chain.BROAD_GATE_FILE}")
     listed = _git(top, "ls-tree", "--name-only", "HEAD", f"{rel}/rounds/") or ""
@@ -1316,7 +1270,8 @@ def _read(path):
 
 def queue_for_local_guarantee(path, session, now=None):
     """The lines a write of the local-mode `guarantee.md` at `path` says:
-    one where it queued the work item's stamp for `session`, else none.
+    one where it queued the work item's stamp for `session`, one where its
+    audited commit is off the work item's branch, else none.
 
     A local-mode root sits under the git common dir and no commit carries
     it, so this reads the file from disk where `queue_for_guarantee` reads
@@ -1333,6 +1288,9 @@ def queue_for_local_guarantee(path, session, now=None):
     a values file for the id, pending or drawn, is a complete record of the
     work item's stamp in this clone. The branch is what keeps a `sealed`
     written long ago quiet, since `settle` retires no local-mode work item.
+    Where the branch stands and does not hold the audited commit, the
+    refusal is recorded (`record_refusal`) and the one line returned is
+    `NOT_ON_BRANCH`; a branch that is gone or unnamed says nothing.
     Raises whatever reading the records or writing the values raises; the
     caller is silent on every failure."""
     real = os.path.realpath(path)
@@ -1380,15 +1338,15 @@ def queue_for_local_guarantee(path, session, now=None):
         return []
     # Precondition: `target` and the branch resolve in this clone; where
     # either does not, `merge-base` exits 128 and nothing is queued. Where
-    # the branch stands, the refusal is recorded. Shared mode's other
-    # guards do not apply: a local root never leaves its clone, so
-    # `already_queued` above already says whether the work item was
-    # stamped.
+    # the branch stands, the refusal is recorded and said. No guard
+    # applies: a local root never leaves its clone, so `already_queued`
+    # above already says whether the work item was stamped.
     ref = f"refs/heads/{branch}"
     if _git(common, "merge-base", "--is-ancestor", target, ref) is None:
-        if _git(common, "rev-parse", "--verify", "-q", ref) is not None:
-            record_refusal(common, ident, target)
-        return []
+        if _git(common, "rev-parse", "--verify", "-q", ref) is None:
+            return []
+        record_refusal(common, ident, target)
+        return [NOT_ON_BRANCH.format(id=ident, target=target, branch=branch)]
     try:
         rounds = os.listdir(os.path.join(item, "rounds"))
     except OSError:

@@ -317,35 +317,28 @@ base, the work item, the newest broad run and the count of round records.
 Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_sealed_guarantee_queues_one_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_withheld_or_undecided_guarantee_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_reseal_after_withheld_queues_the_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_second_sealed_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_guarantee_off_its_branch_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_edit_gate_leaves_shared_mode_to_post_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_edit_gate_queues_a_local_mode_sealed_guarantee, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_write_queues_and_draws_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_edit_gate_is_silent_off_a_guarantee, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_guarantees_commit_queues_one_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_withheld_or_undecided_guarantee_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_after_withheld_queues_the_stamp, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_second_sealed_verdict_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_recommit_of_the_same_guarantee_queues_no_second_file, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_recommitted_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_in_another_clone_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_stamps_rows_are_read_from_the_records, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_main_sessions_stop_draws_each_undrawn_file_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_subagents_end_draws_nothing_and_leaves_the_file, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output
 
 <!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
-**A `sealed` a writer refused leaves a refusal record in the clone, and the
-once readers skip a `sealed` this clone refused, so the repair draws the work
-item's one stamp.** A `sealed` whose audited commit is not in the committing
-commit's history, or in local mode not on the `Branch` row's branch, queues
-nothing. Without a record, the history and the earlier-run chain would count
-it as the work item's stamp, and the corrected re-seal would draw nothing. So
-the refusing writer writes an empty file,
+**A `sealed` refused because its audited commit is not on the branch leaves
+a refusal record in the clone that refused it, and the earlier-run chain
+skips a `sealed` this clone recorded, so the sealer's new audit draws the
+work item's one stamp.** The new audit keeps the refused verdict on its
+`Target SHA` row as `; earlier run: <sha> sealed`, and without a record the
+chain would count that entry as the stamp. The record is an empty file,
 `<git-common-dir>/specseal-stamp-refused/<id>-<target>`, beside the values
-directory and never listed with it. Then `sealed_before` and the `Target SHA`
-row's earlier-run chain skip a `sealed` over a target this clone recorded. A
-recorded target matches a SHA when one is a prefix of the other and both are
-at least seven characters long; any other spelling finds no record, and the
-verdict counts as stamped. The record is written only where the refused
-verdict cannot have been stamped in another clone, and in shared mode four
-things must hold. The refusal is the ancestry refusal of the committing
-commit's own verdict, reached after the chain, the history and the values
-files let it through, so that commit introduced the verdict. `HEAD`'s newest
-reflog entry, which inside `post-commit` already names that commit, is a
-plain `commit:` or `commit (initial):`, so not an amend, a rebase, a
-cherry-pick or a merge. No ref of the clone holds, outside HEAD's history, a
-commit that changed the guarantee, so the verdict was not brought by a plain
-commit from a branch where the work item may have been stamped: a
-`merge --squash`, a `cherry-pick -n` or a `checkout` of the path. And the
-target does not resolve, or HEAD's side holds no patch-equivalent copy of
-it, so the verdict was not audited before a rebase moved its commit. In
-local mode the record is written where the
-`Branch` row's branch stands: the root never leaves its clone, so the values
-files already say whether the work item was stamped.
-Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_this_clone_refused_does_not_count_as_stamped, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refusal_record_skips_only_its_own_verdict, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_over_a_commit_off_the_branch_then_repaired_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_conflicted_rebase_in_another_clone_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_an_amend_in_a_fresh_clone_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_body_edit_over_a_rewritten_seal_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_whose_target_has_a_copy_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_seal_brought_from_another_ref_writes_no_refusal, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_guard_two_reads_what_post_commit_sees_in_the_reflog
+directory and never listed with it. Two writers leave it, each for a row
+that stands in its own clone and nowhere else. In shared mode the commit gate
+writes it when it refuses the commit of that row
+(`docs/the-commit-gate-inside-git.md`), so the row never became history. In
+local mode the local writer writes it where the `Branch` row's branch stands,
+and says one line naming the commit and the branch, since no pull request's
+check reads a local guarantee. A recorded target matches a SHA when one is a
+prefix of the other and both are at least seven characters long; any other
+spelling finds no record, and the verdict counts as stamped. `sealed_before`
+asks no record: a `sealed` in the history drew where it was made, or was
+committed where no gate judged it, and either way it counts. `post-commit`
+writes none. So a `sealed` that drew, went stale under a rebase and was
+refused when its row was edited still holds the work item's stamp, and its
+repair draws nothing.
+Enforced by: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refused_row_over_a_drawn_seal_does_not_draw_again, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_refusal_is_quiet_off_its_one_fact, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_committed_past_the_stub_keeps_the_gap, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_refusal_record_skips_only_its_own_verdict, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_local_mode_guarantee_off_its_branch_queues_nothing, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit
 
 <!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
 **The hook holds its whole message under a budget named in the code, and

@@ -28,7 +28,10 @@ nothing but this hook judges. What it reads to judge:
 
 A commit it lets through leaves a one-shot mark for `reference-transaction`,
 keyed by the old HEAD, the tree and the commit's `GIT_AUTHOR_DATE` (M12), so
-the backstop refuses only a commit that never came through here.
+the backstop refuses only a commit that never came through here. A guarantee
+it refuses leaves a refusal record under the common git directory
+(`skills/verify/scripts/seal_stamp.py#record_refusal`), so the sealer's new
+audit, which keeps the refused row on its chain, still draws the stamp.
 
 A refusal is the exit status and the text on stderr; git prints it into the
 command's output and aborts the commit.

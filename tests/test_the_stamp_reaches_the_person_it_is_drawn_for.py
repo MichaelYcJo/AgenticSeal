@@ -1053,12 +1053,15 @@ def _unresolved(repo, item, target, base):
     (item / "guarantee.md").write_text(
         guarantee_text("dead0000", base, "sealed"), encoding="utf-8"
     )
+    return "dead0000"
 
 
 def _off_the_branch(repo, item, target, base):
+    off = off_branch_commit(repo)
     (item / "guarantee.md").write_text(
-        guarantee_text(off_branch_commit(repo), base, "sealed"), encoding="utf-8"
+        guarantee_text(off, base, "sealed"), encoding="utf-8"
     )
+    return off
 
 
 def _no_target(repo, item, target, base):
@@ -1103,11 +1106,20 @@ def test_a_local_mode_guarantee_off_its_branch_queues_nothing(tmp_path, given):
     the clone wrote long ago still stands under its root. A verdict over a
     commit the work item's branch does not hold — or one whose branch cannot
     be named or is gone — queues nothing, so editing an old guarantee draws
-    no stamp for work finished long ago."""
+    no stamp for work finished long ago. Where the branch stands and does
+    not hold the commit named, the writer says so in one line, since no
+    pull request's check reads a local guarantee; where no branch can be
+    read, nothing is said. Red at 37f96f7a on the line: the writer was
+    silent."""
     repo, target, base, path = local_guaranteed(tmp_path)
-    given(repo, path.parent, target, base)
-    assert queue_local(path) == []
+    named = given(repo, path.parent, target, base)
+    said = queue_local(path)
     assert queued(repo) == []
+    if named:
+        line = stamp_module().NOT_ON_BRANCH
+        assert said == [line.format(id=ITEM_ID, target=named, branch="feat/x")], said
+    else:
+        assert said == [], said
 
 
 def test_the_edit_gate_leaves_shared_mode_to_post_commit(tmp_path):
@@ -1257,13 +1269,13 @@ def test_the_edit_gate_is_silent_off_a_guarantee(tmp_path, given, monkeypatch):
         assert loads == expected, (sent, loads)
 
 
-# --- 1792363231 S11-S14: a `sealed` this clone refused leaves a refusal record ------
+# --- 1792363231 S14: a `sealed` this clone refused leaves a refusal record --------
 #
-# `questions.md` Q2, answered (b): a `sealed` a writer refuses because its
-# audited commit is not on the branch leaves an empty file in the clone's
-# common dir, and the once readers skip a `sealed` this clone refused, so the
-# repair draws the work item's one stamp. Four guards keep a record from
-# standing where the refused `sealed` may have been stamped in another clone.
+# `questions.md` Q2, answered (b): a `sealed` refused because its audited
+# commit is not on the branch leaves an empty file in the clone's common dir,
+# and the chain readers skip a `sealed` this clone refused, so the repair
+# draws the work item's one stamp. The local writer writes it here; in shared
+# mode the commit gate does (S11, below).
 
 REFUSED = "specseal-stamp-refused"
 SIGNED = ("-c", "user.name=e", "-c", "user.email=e@example.com")
@@ -1311,131 +1323,53 @@ def off_branch_commit(repo):
     return sha[:7]
 
 
-def rebased_and_cloned_fresh(tmp_path):
-    """#975 round 6's shape: a guarantee stamped in one clone, whose branch
-    that clone then rebases onto a moved base, and a fresh clone of the
-    rebased branch, which does not hold the commit the `sealed` audited.
-    Returns (the fresh clone, the audited commit)."""
-    repo, target, _base = guaranteed(tmp_path)
-    assert after_the_commit(repo)
-    git(repo, "switch", "-q", "main")
-    (repo / "base.txt").write_text("the base moved\n", encoding="utf-8")
-    commit_all(repo, "the base moved")
-    git(repo, "switch", "-q", "feat/x")
-    git(repo, *SIGNED, "rebase", "-q", "main")
-    other = tmp_path / "other"
-    subprocess.run(
-        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
-    )
-    held = subprocess.run(
-        ["git", "-C", str(other), "cat-file", "-e", target], capture_output=True
-    )
-    assert held.returncode != 0, "the fresh clone holds the pre-rebase commit"
-    return other, target
-
-
-def resealed_draws_nothing(clone, base_ref):
-    """The sealer's re-run in `clone` after a fix, its row written fresh,
-    queues nothing, so the work item is not stamped a second time."""
-    new = a_fix(clone)
-    base = short(clone, base_ref)
-    seal_and_commit(clone, new, base, "the sealer again, its row written fresh")
-    assert after_the_commit(clone) == ""
-    assert queued(clone) == []
-
-
 @pytest.mark.parametrize(
-    "earlier",
-    ["", "; earlier run: deadbee sealed", "; earlier run: deadbee0 sealed"],
+    "recorded, earlier",
+    [
+        (("1700000000", "deadbee"), "deadbee"),
+        ((ITEM_ID, "deadbe"), "deadbee"),
+        ((ITEM_ID, "deadbee"), "dea0bee"),
+    ],
     ids=[
-        "the row written fresh",
-        "the row keeps the refused run",
-        "the row keeps it spelled longer",
+        "a record of another work item",
+        "a record spelled shorter than seven characters",
+        "another commit",
     ],
 )
-def test_a_seal_this_clone_refused_does_not_count_as_stamped(tmp_path, earlier):
-    """1792363231 S11, #975 round 4's measured shape (`rounds/round-4.md` finding
-    1, probe rows 4 and 5). The sealer withheld, then a plain commit makes
-    the guarantee read `sealed` over `deadbee`, a commit the clone does not
-    hold: nothing is queued, and this clone records that it refused that
-    verdict. The repair in the same clone, its row written fresh or keeping
-    the refused run, then queues the work item's one stamp; a later commit
-    of the guarantee queues nothing. Red at f6ad0b2c: the refused `sealed`
-    counted as stamped, so the repair queued nothing."""
-    repo, target, base = guaranteed(tmp_path, verdict="withheld — the README is stale")
-    assert after_the_commit(repo) == ""
-    seal_and_commit(repo, "deadbee", base, "the sealer's row names a commit nobody has")
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == [] and refusals(repo) == [f"{ITEM_ID}-deadbee"]
-    seal_and_commit(repo, target, base, "the row repaired", earlier=earlier)
-    assert after_the_commit(repo)
-    (path,) = queued(repo)
-    assert path.endswith(f"-{ITEM_ID}-{target}.json"), path
-    item = repo / "seal" / "specs" / ITEM_NAME / "guarantee.md"
-    item.write_text(item.read_text(encoding="utf-8") + "\na note\n", encoding="utf-8")
-    commit_all(repo, "a note in the guarantee")
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == [path]
-
-
-def test_a_refusal_record_skips_only_its_own_verdict(tmp_path):
-    """1792363231 S11's reader half. A record answers for one work item and
-    one commit spelled at least seven characters long, so it skips nothing
-    else. A record another work item left over the same commit leaves this
-    item's earlier `sealed` counted, and so does a record of this item where
-    the earlier `sealed` names no commit at all."""
-    mod = stamp_module()
-    for name in ("other item", "no target"):
-        (tmp_path / name).mkdir()
-    repo, _target, _base = guaranteed(
-        tmp_path / "other item", earlier="; earlier run: deadbee sealed"
+def test_a_refusal_record_skips_only_its_own_verdict(tmp_path, recorded, earlier):
+    """1792363231 S14, the reader half. A record answers for one work item
+    and one commit spelled at least seven characters long, so it skips
+    nothing else, and the earlier `sealed` the row names then counts as the
+    stamp: a record another work item left over the same commit, a record
+    spelled shorter than the floor, of which the row's SHA is an extension,
+    and a record of another commit. Red with `_same_commit`'s floor
+    deleted: the six-character record was matched and the re-seal queued a
+    stamp."""
+    repo, _target, _base, path = local_guaranteed(
+        tmp_path, earlier=f"; earlier run: {earlier} sealed"
     )
-    mod.record_refusal(str(repo / ".git"), "1700000000", "deadbee")
-    assert after_the_commit(repo) == ""
+    stamp_module().record_refusal(str(repo / ".git"), *recorded)
+    assert queue_local(path) == []
     assert queued(repo) == []
-    repo, target, base = guaranteed(tmp_path / "no target", verdict="withheld — x")
-    item = repo / "seal" / "specs" / ITEM_NAME / "guarantee.md"
-    item.write_text("# an item — guarantee\n\nVerdict: sealed\n", encoding="utf-8")
-    commit_all(repo, "a sealed that names no commit")
-    assert after_the_commit(repo) == ""
-    mod.record_refusal(str(repo / ".git"), ITEM_ID, "deadbee")
-    seal_and_commit(repo, target, base, "the sealer again")
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == []
-
-
-def test_a_seal_over_a_commit_off_the_branch_then_repaired_draws_once(tmp_path):
-    """1792363231 S12. A plain commit makes the guarantee read `sealed` over a
-    commit the clone holds on another branch, with no patch-equivalent copy
-    in HEAD's history: nothing is queued and the refusal is recorded. The
-    repair in the same clone queues one file. Red at f6ad0b2c: the repair
-    queued nothing."""
-    repo, target, base = guaranteed(tmp_path, verdict="withheld — x")
-    git(repo, "switch", "-qc", "elsewhere", "main")
-    (repo / "elsewhere.txt").write_text("other work\n", encoding="utf-8")
-    commit_all(repo, "work on another branch")
-    off = short(repo)
-    git(repo, "switch", "-q", "feat/x")
-    seal_and_commit(repo, off, base, "the sealer's row names another branch's commit")
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == [] and refusals(repo) == [f"{ITEM_ID}-{off}"]
-    seal_and_commit(repo, target, base, "the row repaired")
-    assert after_the_commit(repo)
-    assert len(queued(repo)) == 1, queued(repo)
 
 
 def test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once(tmp_path):
     """1792363231 S14. In local mode a `sealed` over a commit the `Branch` row's
-    branch does not hold, while that branch exists, queues nothing and
-    records the refusal; the re-seal whose row keeps that run as `sealed`
-    then queues one file. Where the refusal is for a missing `Branch` row or
-    a branch the clone no longer holds, nothing is recorded. Red at
-    f6ad0b2c: the re-seal's chain counted the refused run as stamped."""
+    branch does not hold, while that branch exists, queues nothing, records
+    the refusal and says the line; the re-seal whose row keeps that run as
+    `sealed` then queues one file. Where the refusal is for a missing
+    `Branch` row or a branch the clone no longer holds, nothing is recorded.
+    Red at f6ad0b2c: the re-seal's chain counted the refused run as
+    stamped. Red at 37f96f7a on the line, which the writer did not say."""
     (tmp_path / "held").mkdir()
     repo, target, base, path = local_guaranteed(tmp_path / "held")
     off = off_branch_commit(repo)
     path.write_text(guarantee_text(off, base, "sealed"), encoding="utf-8")
-    assert queue_local(path) == []
+    assert queue_local(path) == [
+        f"specseal: no stamp was queued for {ITEM_ID}: its guarantee.md names "
+        f"{off}, which feat/x does not hold; a new audit at the head of feat/x "
+        "draws it"
+    ]
     assert queued(repo) == [] and refusals(repo) == [f"{ITEM_ID}-{off}"]
     path.write_text(
         guarantee_text(target, base, "sealed", f"; earlier run: {off} sealed"),
@@ -1451,230 +1385,6 @@ def test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once(tmp_p
         given(repo, path.parent, target, base)
         assert queue_local(path) == []
         assert refusals(repo) == [], given.__name__
-
-
-def test_a_conflicted_rebase_in_another_clone_writes_no_refusal(tmp_path):
-    """1792363231 S13, guard 2. The guarantee was stamped in one clone. A second
-    clone rebases the branch over a base that conflicts with the audited
-    commit, so its copy has another patch, and the rewritten `sealed` over
-    the old commit is refused there. A rebase rewrites history that may have
-    been stamped elsewhere, so it writes no record, and the sealer's re-run
-    in that clone queues nothing."""
-    repo, _target, _base = guaranteed(tmp_path)
-    assert after_the_commit(repo)
-    other = tmp_path / "other"
-    subprocess.run(
-        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
-    )
-    git(other, "switch", "-q", "main")
-    rounds = other / "seal" / "specs" / ITEM_NAME / "rounds"
-    rounds.mkdir(parents=True)
-    (rounds / "round-1.md").write_text("the base wrote this first\n", encoding="utf-8")
-    commit_all(other, "the base moved under the audited commit")
-    git(other, "switch", "-q", "feat/x")
-    conflicted = subprocess.run(
-        ["git", "-C", str(other), *SIGNED, "rebase", "-q", "main"], capture_output=True
-    )
-    assert conflicted.returncode != 0, "the rebase did not conflict"
-    (rounds / "round-1.md").write_text("x\n", encoding="utf-8")
-    git(other, "add", "-A")
-    git(other, *SIGNED, "-c", "core.editor=true", "rebase", "--continue")
-    assert after_the_commit(other) == ""
-    assert refusals(other) == []
-    resealed_draws_nothing(other, "main")
-
-
-def test_an_amend_in_a_fresh_clone_writes_no_refusal(tmp_path):
-    """1792363231 S13, guard 2. In a fresh clone of a branch rebased and
-    force-pushed after its stamp, the sealing commit is amended: its
-    `sealed` names a commit the clone does not hold, and is refused. An
-    amend rewrites a commit that may have been stamped elsewhere, so it
-    writes no record, and the sealer's re-run queues nothing."""
-    other, _target = rebased_and_cloned_fresh(tmp_path)
-    git(other, *SIGNED, "commit", "--amend", "-qm", "the closing records, amended")
-    assert after_the_commit(other) == ""
-    assert refusals(other) == []
-    resealed_draws_nothing(other, "origin/main")
-
-
-def test_a_body_edit_over_a_rewritten_seal_writes_no_refusal(tmp_path):
-    """1792363231 S13, the shape `spec.md` gives guard 3. In the same fresh
-    clone a plain commit edits the body of the rewritten `sealed`, which
-    still names the commit the clone does not hold. That `sealed` was in the
-    history before the edit, so `sealed_before` refuses the edit before the
-    ancestry refusal is reached, no record is written, and the sealer's
-    re-run queues nothing. Guard 3 itself was not built: no case could fail
-    it (`phases/phase-3.md`)."""
-    other, _target = rebased_and_cloned_fresh(tmp_path)
-    item = other / "seal" / "specs" / ITEM_NAME / "guarantee.md"
-    item.write_text(item.read_text(encoding="utf-8") + "\na note\n", encoding="utf-8")
-    commit_all(other, "a note in the rewritten guarantee")
-    assert after_the_commit(other) == ""
-    assert refusals(other) == []
-    resealed_draws_nothing(other, "origin/main")
-
-
-def test_a_seal_whose_target_has_a_copy_writes_no_refusal(tmp_path):
-    """1792363231 S13, guard 4. The sealer audited a commit, the branch was then
-    rebased, and its verdict was committed after: a plain commit introducing
-    a `sealed` over a commit whose patch-equivalent copy stands in HEAD's
-    history. That verdict may have been stamped in a clone where the commit
-    was still on the branch, so it writes no record, and the re-seal queues
-    nothing."""
-    repo = opted_in(tmp_path)
-    git(repo, "switch", "-qc", "feat/x")
-    item = repo / "seal" / "specs" / ITEM_NAME
-    (item / "rounds").mkdir(parents=True)
-    (item / "rounds" / "round-1.md").write_text("x\n", encoding="utf-8")
-    commit_all(repo, "the rounds")
-    target = short(repo)
-    git(repo, "switch", "-q", "main")
-    (repo / "base.txt").write_text("the base moved\n", encoding="utf-8")
-    commit_all(repo, "the base moved")
-    git(repo, "switch", "-q", "feat/x")
-    git(repo, *SIGNED, "rebase", "-q", "main")
-    base = short(repo, "main")
-    (item / "broad-gate.md").write_text(
-        f"| Field | Value |\n|---|---|\n| Broad gate | {target} against {base} |\n",
-        encoding="utf-8",
-    )
-    seal_and_commit(repo, target, base, "the verdict, committed after a rebase")
-    assert after_the_commit(repo) == ""
-    assert refusals(repo) == []
-    resealed_draws_nothing(repo, "main")
-
-
-@pytest.mark.parametrize(
-    "bring",
-    [
-        ("merge", "--squash", "origin/feat/x"),
-        ("cherry-pick", "-n", "origin/feat/x"),
-        ("checkout", "origin/feat/x", "--", f"seal/specs/{ITEM_NAME}"),
-    ],
-    ids=["merge --squash", "cherry-pick -n", "checkout a path"],
-)
-def test_a_seal_brought_from_another_ref_writes_no_refusal(tmp_path, bring):
-    """1792363231 S13, round 1's finding 1. The guarantee was stamped in one
-    clone. A second clone brings it onto `main` by a plain commit from the
-    branch it fetched, so the audited commit is not in HEAD's history and
-    has no copy there, and the reflog reads `commit: `. Another ref still
-    holds the sealing commit, which may have been stamped, so no record is
-    written and the re-seal that keeps the copied run queues nothing. Red at
-    601245af: each of the three wrote a record, and the re-seal queued a
-    second stamp."""
-    repo, target, _base = guaranteed(tmp_path)
-    assert after_the_commit(repo)
-    other = tmp_path / "other"
-    subprocess.run(
-        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
-    )
-    git(other, "switch", "-q", "main")
-    git(other, *SIGNED, *bring)
-    git(other, *SIGNED, "commit", "-qm", "the item brought over")
-    assert after_the_commit(other) == ""
-    assert refusals(other) == []
-    new = a_fix(other)
-    seal_and_commit(
-        other,
-        new,
-        short(other, "origin/main"),
-        "the sealer again",
-        earlier=f"; earlier run: {target} sealed",
-    )
-    assert after_the_commit(other) == ""
-    assert queued(other) == []
-
-
-def test_guard_two_reads_what_post_commit_sees_in_the_reflog(tmp_path):
-    """1792363231 S13 guard 2, `questions.md` Q4. A real `post-commit` hook logs
-    `git reflog -1 --format=%gs HEAD` for each kind of commit git runs it
-    after, which is what guard 2 reads there. A plain commit and an initial
-    one carry the two subjects the guard accepts; an amend, a cherry-pick, a
-    rebase's pick and its continue, and a concluded merge each carry another,
-    so none of them writes a refusal record. Run on every CI leg, so a git
-    whose subjects differ fails here and names the subject."""
-    mod = stamp_module()
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    git(repo, "init", "-q", "-b", "main")
-    hooks = tmp_path / "hooks"
-    hooks.mkdir()
-    log = tmp_path / "subjects.log"
-    hook = hooks / "post-commit"
-    hook.write_text(
-        f'#!/bin/sh\ngit reflog -1 --format=%gs HEAD >> "{log.as_posix()}"\n',
-        encoding="utf-8",
-    )
-    hook.chmod(0o755)
-    git(repo, "config", "core.hooksPath", hooks.as_posix())
-
-    def put(name, text):
-        (repo / name).write_text(text, encoding="utf-8")
-        git(repo, "add", "-A")
-
-    def said():
-        return log.read_text(encoding="utf-8").split("\n")[-2]
-
-    seen = {}
-    put("a.txt", "a\n")
-    git(repo, *SIGNED, "commit", "-qm", "initial")
-    seen["initial"] = said()
-    put("b.txt", "b\n")
-    git(repo, *SIGNED, "commit", "-qm", "plain")
-    seen["plain"] = said()
-    git(repo, *SIGNED, "commit", "--amend", "-qm", "amended")
-    seen["amend"] = said()
-    git(repo, "switch", "-qc", "side")
-    put("c.txt", "c\n")
-    git(repo, *SIGNED, "commit", "-qm", "on side")
-    git(repo, "switch", "-q", "main")
-    # Main moves first: a cherry-pick onto the side commit's own parent in
-    # the same second is that commit, byte for byte, and the rebase below
-    # would then have nothing to pick.
-    put("m.txt", "m\n")
-    git(repo, *SIGNED, "commit", "-qm", "main moves")
-    git(repo, *SIGNED, "cherry-pick", "side")
-    seen["cherry-pick"] = said()
-    git(repo, "switch", "-q", "side")
-    put("d.txt", "d\n")
-    git(repo, *SIGNED, "commit", "-qm", "more on side")
-    git(repo, *SIGNED, "rebase", "-q", "main")
-    seen["rebase pick"] = said()
-    put("f.txt", "side\n")
-    git(repo, *SIGNED, "commit", "-qm", "f on side")
-    git(repo, "switch", "-q", "main")
-    put("f.txt", "main\n")
-    git(repo, *SIGNED, "commit", "-qm", "f on main")
-    git(repo, "switch", "-q", "side")
-    stopped = subprocess.run(
-        ["git", "-C", str(repo), *SIGNED, "rebase", "-q", "main"], capture_output=True
-    )
-    assert stopped.returncode != 0, "the rebase did not conflict"
-    put("f.txt", "both\n")
-    git(repo, *SIGNED, "-c", "core.editor=true", "rebase", "--continue")
-    seen["rebase continue"] = said()
-    git(repo, "switch", "-q", "main")
-    put("f.txt", "main again\n")
-    git(repo, *SIGNED, "commit", "-qm", "f on main again")
-    stopped = subprocess.run(
-        ["git", "-C", str(repo), *SIGNED, "merge", "-q", "side"], capture_output=True
-    )
-    assert stopped.returncode != 0, "the merge did not conflict"
-    put("f.txt", "merged\n")
-    git(repo, *SIGNED, "commit", "-q", "--no-edit")
-    seen["merge"] = said()
-    prefixes = {
-        "initial": "commit (initial): ",
-        "plain": "commit: ",
-        "amend": "commit (amend): ",
-        "cherry-pick": "cherry-pick: ",
-        "rebase pick": "rebase (pick): ",
-        "rebase continue": "rebase (continue): ",
-        "merge": "commit (merge): ",
-    }
-    for kind, prefix in prefixes.items():
-        assert seen[kind].startswith(prefix), (kind, seen[kind])
-        assert mod.plain_commit(seen[kind]) == (kind in ("initial", "plain")), kind
 
 
 # --- 1792363231 S11-S12: a `sealed` the branch does not hold, at its commit ---------
@@ -1736,14 +1446,16 @@ def test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commi
     branch holds is refused by `pre-commit`: exit 1, HEAD and the index as
     they were, and a text naming the file, the commit named, the branch,
     HEAD and the one way on, a new audit of the sealer at HEAD, with no
-    question and no waiver. The new audit's commit then lands.
+    question and no waiver. The gate records the refusal it made, in this
+    clone, and nothing else on the refused path.
 
-    It draws nothing. The new row keeps the refused run as `; earlier run:
-    <sha> sealed`, as `agents/sealer.md` says a re-run does, and
-    `_queue_one`'s chain counts that entry as the stamp. That is the limit
-    `phases/phase-6.md` hands back, pinned so the change that closes it is
-    seen. Red at 37f96f7a: `pre-commit` exited 0, so the wrong row became
-    history."""
+    The new audit's commit then lands and draws the work item's one stamp.
+    Its row keeps the refused run as `; earlier run: <sha> sealed`, as
+    `agents/sealer.md` says a re-run does, and `_queue_one`'s chain skips
+    that entry because this clone recorded refusing it. Red at 37f96f7a:
+    `pre-commit` exited 0, so the wrong row became history. Red at
+    de80c2c2 on the stamp: no record was written, so the chain counted the
+    refused run and the repair drew nothing (`phases/phase-6.md`)."""
     commitgate = commitgate_module()
     repo, _target, base = declared_guaranteed(tmp_path)
     off = wrong(repo)
@@ -1766,11 +1478,14 @@ def test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commi
     assert "AskUserQuestion" not in said and "waive" not in said, said
     assert said.rstrip().endswith(gate.UNCHANGED), said
     assert (short(repo), git(repo, "write-tree").stdout.strip()) == (head, index)
+    assert refusals(repo) == [f"{ITEM_ID}-{off}"] and queued(repo) == []
     staged(repo, guarantee_text(head, base, "sealed", f"; earlier run: {off} sealed"))
     assert before_the_commit(repo, commitgate) == (0, "")
     commit_all(repo, "the sealer again at HEAD")
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == []
+    assert after_the_commit(repo)
+    (path,) = queued(repo)
+    assert path.endswith(f"-{ITEM_ID}-{head}.json"), path
+    assert refusals(repo) == [f"{ITEM_ID}-{off}"]
 
 
 def _at_head(tmp_path, commitgate, monkeypatch):
@@ -1954,7 +1669,8 @@ def test_the_guarantee_refusal_is_quiet_off_its_one_fact(tmp_path, given, monkey
     """1792363231 S12. The refusal reads one fact: a staged `sealed`, read
     from the index, whose newest `Target SHA` HEAD's history does not hold,
     on the branch the item's own `routing.md` in the index names. Every
-    other commit is let through with nothing said: the normal flow, a
+    other commit is let through with nothing said and no refusal recorded,
+    before the commit and after what follows it: the normal flow, a
     verdict that is not one `sealed`, a stale `; earlier run:` chain, which
     is never read, an item with no declaration, an unborn branch, a
     `seal_stamp.py` that will not load, which stops nothing because the
@@ -1970,8 +1686,79 @@ def test_the_guarantee_refusal_is_quiet_off_its_one_fact(tmp_path, given, monkey
     monkeypatch.setattr(commitgate, "_stamp_module", lambda: loads.append(1) or real())
     repo, then = given(tmp_path, commitgate, monkeypatch)
     assert before_the_commit(repo, commitgate) == (0, "")
+    assert refusals(repo) == []
     if then:
         then(repo, loads)
+        assert refusals(repo) == []
+
+
+def test_a_refused_row_over_a_drawn_seal_does_not_draw_again(tmp_path):
+    """1792363231 S11's second case. The item was sealed and stamped in one
+    clone, whose branch was then rebased onto a moved base, so a fresh clone
+    of it does not hold the commit the rewritten `sealed` names. There a
+    plain commit editing that guarantee is refused as the stale row it is,
+    and recorded. The new audit's chain entry is then skipped, and
+    `sealed_before` still finds the rewritten `sealed` in HEAD's history,
+    which drew where it was made, so nothing is drawn twice. Red with
+    `sealed_before` replaced by `False`: the fresh clone drew a second
+    stamp."""
+    commitgate = commitgate_module()
+    repo, target, base = declared_guaranteed(tmp_path)
+    seal_and_commit(repo, target, base, "the seal")
+    assert after_the_commit(repo)
+    git(repo, "switch", "-q", "main")
+    (repo / "base.txt").write_text("the base moved\n", encoding="utf-8")
+    commit_all(repo, "the base moved")
+    git(repo, "switch", "-q", "feat/x")
+    git(repo, *SIGNED, "rebase", "-q", "main")
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
+    )
+    held = subprocess.run(
+        ["git", "-C", str(other), "cat-file", "-e", target], capture_output=True
+    )
+    assert held.returncode != 0, "the fresh clone holds the pre-rebase commit"
+    item = other / GUARANTEE_REL
+    item.write_text(item.read_text(encoding="utf-8") + "\na note\n", encoding="utf-8")
+    git(other, "add", "-A")
+    code, _said = before_the_commit(other, commitgate)
+    assert code == 1 and refusals(other) == [f"{ITEM_ID}-{target}"]
+    head = short(other)
+    staged(
+        other,
+        guarantee_text(
+            head,
+            short(other, "origin/main"),
+            "sealed",
+            f"; earlier run: {target} sealed",
+        ),
+    )
+    assert before_the_commit(other, commitgate) == (0, "")
+    commit_all(other, "the sealer again at HEAD")
+    assert after_the_commit(other) == ""
+    assert queued(other) == []
+
+
+def test_a_sealed_committed_past_the_stub_keeps_the_gap(tmp_path):
+    """1792363231 S13. A `sealed` over a commit nobody has, committed where
+    `pre-commit` does not judge it (`--no-verify`, a foreign hooks slot, a
+    person's own commit; here a plain commit with no hook), lands.
+    `post-commit` queues nothing and writes no record, and the repair that
+    keeps the run on its row queues nothing: the chain and `sealed_before`
+    count the earlier `sealed`. The gap stays for that item, a missing
+    stamp, which is Q8's direction, and is pinned as a limit so that a
+    change closing it is seen. Red at de80c2c2: `post-commit` recorded the
+    refusal under its guards, and the repair drew."""
+    repo, target, base = declared_guaranteed(tmp_path)
+    seal_and_commit(repo, "deadbee", base, "the wrong row, past the stub")
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == [] and refusals(repo) == []
+    seal_and_commit(
+        repo, target, base, "the row repaired", earlier="; earlier run: deadbee sealed"
+    )
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == [] and refusals(repo) == []
 
 
 # --- #717: the hook's whole message is held under a budget --------------------
@@ -2646,41 +2433,47 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
 
 def test_the_policy_states_the_refusal_record_and_names_its_cases():
     """1792363231 S8. §*The stamp* carries the refusal record as a rule of
-    its own under this work item's marker: a `sealed` a writer refused
-    leaves a record in the clone, the once readers skip it, so the repair
-    draws the work item's one stamp. It names what the build holds, the
-    refusal's place and three facts, the one round 1 added among them, and
-    its `Enforced by:` line names the cases that hold each."""
+    its own under this work item's marker: a `sealed` refused because its
+    audited commit is not on the branch leaves a record in the clone that
+    refused it, and the earlier-run chain skips it, so the sealer's new
+    audit draws the work item's one stamp. It names the two writers, the
+    commit gate in shared mode and the local writer in local mode, the
+    matcher's floor, and that `sealed_before` and `post-commit` ask and
+    write no record; it names none of the guards `post-commit`'s record
+    had; and its `Enforced by:` line names the cases that hold each. Red at
+    1e956838, whose paragraph described `post-commit`'s record and its
+    four facts."""
     text = stamp_section()
     marker = "<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->"
     assert marker in text
     rule = text.split(
-        "**A `sealed` a writer refused leaves a refusal record in the clone", 1
+        "**A `sealed` refused because its audited commit is not on the branch "
+        "leaves a refusal record",
+        1,
     )[1].split("<!--", 1)[0]
     for said in (
         "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
-        "`sealed_before` and the `Target SHA` row's earlier-run chain skip",
+        "`; earlier run: <sha> sealed`",
+        "In shared mode the commit gate writes it when it refuses the commit "
+        "of that row",
+        "In local mode the local writer writes it where the `Branch` row's "
+        "branch stands",
         "at least seven characters",
-        "four things must hold",
-        "a plain `commit:` or `commit (initial):`",
-        "No ref of the clone holds, outside HEAD's history, a commit that "
-        "changed the guarantee",
-        "HEAD's side holds no patch-equivalent copy of it",
-        "where the `Branch` row's branch stands",
+        "`sealed_before` asks no record",
+        "`post-commit` writes none",
     ):
         assert said in rule, said
-    assert "four guards" not in rule, "guard 3 of the frame was not built"
+    for gone in ("reflog", "patch-equivalent", "No ref of the clone", "must hold"):
+        assert gone not in rule, gone
     for case in (
-        "::test_a_seal_this_clone_refused_does_not_count_as_stamped",
+        "::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
+        "::test_a_refused_row_over_a_drawn_seal_does_not_draw_again",
+        "::test_the_guarantee_refusal_is_quiet_off_its_one_fact",
+        "::test_a_sealed_committed_past_the_stub_keeps_the_gap",
         "::test_a_refusal_record_skips_only_its_own_verdict",
-        "::test_a_seal_over_a_commit_off_the_branch_then_repaired_draws_once",
         "::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once",
-        "::test_a_conflicted_rebase_in_another_clone_writes_no_refusal",
-        "::test_an_amend_in_a_fresh_clone_writes_no_refusal",
-        "::test_a_body_edit_over_a_rewritten_seal_writes_no_refusal",
-        "::test_a_seal_whose_target_has_a_copy_writes_no_refusal",
-        "::test_a_seal_brought_from_another_ref_writes_no_refusal",
-        "::test_guard_two_reads_what_post_commit_sees_in_the_reflog",
+        "::test_a_local_mode_guarantee_off_its_branch_queues_nothing",
+        "::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
     ):
         assert case in rule, case
 
