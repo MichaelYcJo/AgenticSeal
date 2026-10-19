@@ -103,7 +103,10 @@ Enforced by: tests/test_chain_check.py::TestLocationOf::test_one_or_more_backtic
 names each command the round ran for it, and `read` each `path:line` it
 opened, so a later reader repeats the act instead of trusting the prose. A
 claim resting on neither is no finding but a row of `## Not judged`. The
-check holds the line to its row and reads nothing out of it.
+check holds the line to its row and reads nothing out of it. A backtick
+ends a command on the line, so a command that holds one is written and run
+with `$(printf '\140')` in place of the character, and the line names the
+command the round ran.
 Enforced by: tests/test_chain_check.py::TestFindings::test_an_evidence_line_missing_twice_or_malformed_is_refused, tests/test_chain_check.py::TestFindings::test_both_evidence_forms_and_their_lists_read, tests/test_chain_check.py::TestFindings::test_a_label_in_another_spelling_is_refused_by_line
 
 **A claim of absence is `executed` only.** A finding that says something is

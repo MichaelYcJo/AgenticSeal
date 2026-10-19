@@ -1264,15 +1264,23 @@ class TestFindings:
         `read` with one or more backticked `path:line` or `path:first-last`
         coordinates, each list joined by `, `, match the row whole, and the
         finding carrying one is read and decided by its `verdict:` as
-        before. The line decides nothing.
+        before. The line decides nothing. A backtick ends a command on the
+        line, and the record document names the spelling for a command that
+        holds one, `$(printf '\\140')`, which the row reads.
 
         Protects: the row refusing a line a warden writes as the grammar
-        says, which would stop every round at the pull request."""
+        says, which would stop every round at the pull request, and a
+        warden whose search holds a backtick left with no way to name it
+        but a different command or a `read` line."""
+        stand_in = "$(printf '\\140')"
+        said = f"with `{stand_in}` in place of the character"
+        assert said in " ".join(DOC.read_text(encoding="utf-8").split()), said
         values = (
             "executed `git grep -n x -- tests`",
             "executed `a`, `b`",
             "read `a.py:3`",
             "read `a.py:3-9`, `docs/b.md:12`",
+            f'executed `grep -n "{stand_in}evidence:" docs/x.md`',
         )
         row = chain.GRAMMAR["evidence:"]
         for value in values:
@@ -1284,7 +1292,7 @@ class TestFindings:
         found, errors = chain.findings(reader, reader.readable(text), "r.md")
         assert errors == []
         assert [(f.number, f.verdict) for f in found] == [
-            (n, (chain.REJECTED, None)) for n in range(1, 5)
+            (n, (chain.REJECTED, None)) for n in range(1, 6)
         ]
 
     def test_a_target_or_confirms_line_out_of_its_place_is_refused(self):
