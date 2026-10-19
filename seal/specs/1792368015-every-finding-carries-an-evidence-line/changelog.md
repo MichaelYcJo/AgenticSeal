@@ -22,6 +22,18 @@
   `skills/code-review/SKILL.md` carry the line in place of the old
   "executed and read labelled apart".
 
+  | Agent | Preload bytes | Tokens per tool call | Spend USD | Recall | False rate | Verdict |
+  |---|---|---|---|---|---|---|
+  | warden | 27,173 → 27,168 | 87,862.4 → 85,306.7 | 41.7424 → 39.7893 | 19 → 13 | 0.558 → 0.641 | fail on rules 1 and 2, recorded as noise and shipped by the owner |
+
+  The pair is #967's last warden side, at `af716289`, and this item's, at
+  `ba2a3187`, on one suite (`af9c924b`), eighteen runs a side, none cut
+  short. Every lost find is in a replay case. The largest loss is both runs
+  of one case declining the prompt's wider read under the warden's
+  verifying-round rule, which this item did not change. The baseline's 19
+  is the highest of six sides measured on this suite. All 39 findings of
+  the new side carry an `evidence:` line, 28 of them `executed`.
+
   A record written before the row lacks the line, and that is no finding.
   The check reads only the records of the work items a pull request
   carries, so no merged record is read again or rewritten. The release
