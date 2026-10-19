@@ -355,6 +355,7 @@ def paragraph_naming(text, phrase):
 # so the reader's never-write half is that list's line rather than a clause
 # of the paragraph that points at the row (#967).
 NEVER_LINE = {
+    "agents/framer.md": "- Write in a reference root, or move, edit or copy a file out of one.",
     "agents/smith.md": "- Write in a reference root, or move, edit or copy a file out of one.",
 }
 

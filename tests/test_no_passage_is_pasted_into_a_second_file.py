@@ -201,11 +201,15 @@ BASELINE = {
     # Sanctioned: the opening paragraph every agent definition carries,
     # which tests/test_every_agent_reads_the_contract.py requires word for
     # word. framer-smith adds the shared `skills:` list, and smith-warden
-    # adds debt of its own (cluster b of the remainder issue).
-    ("agents/framer.md", "agents/scribe.md"): 65,
-    ("agents/framer.md", "agents/sealer.md"): 65,
-    ("agents/framer.md", "agents/smith.md"): 72,
-    ("agents/framer.md", "agents/warden.md"): 67,
+    # adds debt of its own (cluster b of the remainder issue). The framer's
+    # entries were measured on its rewrite (#968): the opening, the step
+    # sentence saying whose `skills/` paths are, the step opening
+    # `writing-style` by section, and with the smith the reference-root
+    # sentence and its `## Never` line, each the same words in every
+    # definition of #957's shape.
+    ("agents/framer.md", "agents/sealer.md"): 14,
+    ("agents/framer.md", "agents/smith.md"): 24,
+    ("agents/framer.md", "agents/warden.md"): 31,
     ("agents/scribe.md", "agents/sealer.md"): 65,
     ("agents/scribe.md", "agents/smith.md"): 65,
     ("agents/scribe.md", "agents/warden.md"): 65,
@@ -223,9 +227,6 @@ BASELINE = {
     ("README.md", "skills/parity-setup/SKILL.md"): 1,
     ("README.md", "skills/update/SKILL.md"): 9,
     ("README.md", "templates/seal-README.md"): 1,
-    ("agents/framer.md", "skills/implement/orchestration.md"): 7,
-    ("agents/framer.md", "templates/sdd-questions.md"): 4,
-    ("agents/framer.md", "templates/sdd-spec.md"): 8,
     ("agents/sealer.md", "skills/code-review/orchestration.md"): 3,
     ("agents/sealer.md", "skills/verify/SKILL.md"): 1,
     ("agents/smith.md", "skills/code-review/orchestration.md"): 14,
