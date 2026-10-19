@@ -167,9 +167,9 @@ once more on a commit it had already run (#943).
 
 **Where the work's risk is platform-specific, run the other platforms before
 your broad run.** Line endings, the shell and the Python version are such
-risks. Push the branch once the build's last phase closes and run `gh
-workflow run tests --ref <branch>`, then read that run's result before you
-take the broad run. A leg that fails there is a defect like any a round
+risks. Push the branch once the build's last phase closes and run
+`gh workflow run tests --ref <branch>`, then read that run's result before
+you take the broad run. A leg that fails there is a defect like any a round
 finds, and it is repaired before the rounds settle.
 
 **The stated limit: a defect that only one platform shows, in work nobody

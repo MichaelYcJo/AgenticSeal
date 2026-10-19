@@ -177,6 +177,20 @@ def test_a_draft_is_tolerated_and_still_owes_the_record():
     assert "Nothing that can reach `main` is exempt" in flat(*ORCH)
 
 
+def test_the_owner_states_the_dispatch_step_and_the_limit():
+    """S4 of #943. Opening the pull request after the sealer moves the other
+    platforms to the end, so the owner section says how a platform-specific
+    change pays for them earlier, and states what is left: a defect only one
+    platform shows is met at the pull request and takes the repair path."""
+    text = flat(*ORCH)
+    assert "run `gh workflow run tests --ref <branch>`" in text
+    assert (
+        "**The stated limit: a defect that only one platform shows, in work "
+        "nobody expected to be platform-specific, is found when the pull "
+        "request opens, after the sealer.**"
+    ) in text
+
+
 def test_the_order_opens_the_pull_request_after_the_sealer():
     """`skills/implement/orchestration.md` §*Orchestrator: the order inside a
     ticket* is what a session reads to know what comes after the smith. #943
