@@ -18,7 +18,7 @@ that the spec says is stated and that no document states.
 severity: should
 location: `docs/the-review-record.md:232-235`
 evidence: read `docs/the-review-record.md:232-235`, `.github/scripts/release_seal.py:287-295`, `.github/scripts/release_seal.py:305-323`, `evals/scripts/replay_targets.py:553-566`
-verdict: open
+verdict: fixed e4837c2b
 
 The paragraph this item rewrote opens "Nothing reads a record of the old
 table's shape" and says a record a merged pull request left behind "is read
@@ -59,14 +59,14 @@ before a line was added lacks it, and the lack is no finding for a later
 round.
 ```
 
-answer:
+answer: The finding holds. e4837c2b rewrites the paragraph in place with the round's text: the check judges no merged record at a pull request again, and the paragraph names `release_seal.py#chain_counts` and `replay_targets.py` as the two readers that still open merged records. The two sentences `tests/test_review_axes.py::test_a_record_written_before_a_line_was_added_is_no_finding` pins stand unchanged, and the module passes (executed). The class, enumerated by `git grep` for "nothing reads", "no reader reads", "read again" and "old table's shape": the fragment's "no merged record is read again" now says "judged at a pull request again" (`seal/specs/1792368015-every-finding-carries-an-evidence-line/changelog.md`). The fixture comments saying the old table "no reader reads" or "nothing reads again" now say the check's reader refuses it, or the check never judges it again (`tests/test_broad_gate.py:125`, `tests/test_the_release_seal_is_drawn.py:412`, `tests/test_chain_check.py:131`). `.github/scripts/release_seal.py:317` already says the reader refuses the old shape, and it stands. No other hit is about round records (executed).
 
 ### 2. No test fails when the replay generator reads the next round with the tree's check again
 
 severity: should
 location: `tests/test_a_rewritten_definition_proved_non_inferior.py:1546-1630`, `evals/scripts/replay_targets.py:596-597`
 evidence: executed `bin/test tests/test_a_rewritten_definition_proved_non_inferior.py -q -p no:xdist`, `git grep -n -l replay_targets -- tests`
-verdict: open
+verdict: fixed 8b9aa8a6
 
 `targets` reads two records for each round. It reads the round itself at
 `:565` and the round after it at `:597`, and the round after it decides
@@ -136,14 +136,14 @@ def test_targets_reads_the_next_round_by_the_commit_that_wrote_it(monkeypatch):
     assert asked == [(1, two, f"at {two}")], asked
 ```
 
-answer:
+answer: The finding holds, and 0a5d3445's "now holds both" was wrong for the next round. 8b9aa8a6 adds the round's case unchanged after `test_a_labelled_record_is_read_by_the_grammar_of_the_commit_that_wrote_it`, and the module passes, 106 tests (executed). It was seen red: `mutation-check` changed `evals/scripts/replay_targets.py:597` to `confirmed(nxt, n, following)`, and the case failed with `[(1, 'seal/specs/i/rounds/round-2.md', None)]`, exit 0 (executed). The same commit adds the sentence the orchestrator decided to `written_at`'s docstring: the commit that last wrote a record is the right one, because a record rewritten into a renamed label's spelling was moved to the newer grammar on purpose. That settles the round's second `## Not judged` row. The first is settled too: the orchestrator ran `--list` in this worktree, where the target commits resolve, and it lists 31 targets with 56 left out (executed by the orchestrator).
 
 ### 3. A command holding a backtick cannot stand on an `evidence: executed` line, and the limit the spec calls stated is stated nowhere
 
 severity: should
 location: `docs/the-review-record.md:102-107`
 evidence: executed `grep -n "backtick" docs/the-review-record.md templates/sdd-round.md`, `grep -n -i "backtick\|\$( " agents/warden.md skills/code-review/SKILL.md templates/sdd-round.md`
-verdict: open
+verdict: fixed 04de490b
 
 The row's `executed` form is `` `[^`]+` ``, so a backtick ends the command
 (`docs/the-review-record.md:46`). `spec.md:150-151` accepts that as "a stated
@@ -174,7 +174,7 @@ shell makes it, with `$(printf '\140')` in place of the character, and it
 runs as the command the round ran.
 ```
 
-answer:
+answer: The finding holds. 04de490b adds one sentence to the paragraph the warden opens at step 7, and `agents/warden.md` is unchanged: a command that holds a backtick is written and run with `$(printf '\140')` in place of the character, so the line names the command the round ran. `grep -n "$(printf '\140')y"` finds a line holding a backtick (executed, a scratch file, removed). `tests/test_chain_check.py::TestFindings::test_both_evidence_forms_and_their_lists_read` now reads the sentence from the document and holds that the row reads a command spelt that way. It was seen red twice: before the sentence existed, and under `mutation-check` removing it, exit 0 (executed). The case's file is outside `location:`, so it is named here. The row already names this case on its `Enforced by:` line.
 
 ## Confirmations
 
