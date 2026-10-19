@@ -173,3 +173,57 @@ show whether a framer read the three sections by range or the file whole,
 which is the context half of rule 5 that `spec.md` §*What moves rule 5*
 reads. The batching rule stays as the rule *Bound each call, not the
 reading.*
+
+**Addendum: the merge of `release/v0.22.2` (461f00c6).** The orchestrator
+asked for a merge commit after #976, #971, #943 and #970 landed, so that
+2cb43374 and 14867ace keep the SHAs `plan.md` names. 461f00c6 merges
+c26a791e into 91ada4be. Four files conflicted, and each resolution keeps
+both sides' facts.
+
+- `tests/test_every_agent_reads_the_contract.py`: #970 left the framer as
+  the one entry in `NOT_YET_REWRITTEN`, and this branch left the scribe.
+  With both rewritten, the dict is empty. The dict, the shape case's skip
+  and `test_every_definition_preloads_the_contract` were removed. That case
+  existed only to hold the skipped definitions to the contract. With
+  nothing skipped, the shape case's `skills: == [agent-contract]` holds
+  every definition, and its docstring now says so. No `Enforced by:` line
+  named the removed case (`executed`, `git grep`).
+- `README.md` and `README.ko.md`, the skills row: this branch said two
+  preloaded and fourteen on demand, and #970 said three and thirteen.
+  Recounted from the rows at the merge, every agent's `Follows` cell reads
+  `agent-contract` alone. So one skill is preloaded, and fifteen are on
+  demand: the twelve, plus `implement`, `legacy-parity` and
+  `writing-style`. Six are typed. The two agent rows merged without a
+  conflict.
+- `tests/test_chain_hooks_hardening.py#test_the_readme_group_counts_are_derived_too`:
+  both sides' spellings are kept (2, 3, 13, 14), 1 and 15 are added, and
+  the docstring reads `22 = 1 + 15 + 6`.
+
+Two changes outside the conflicts went into the merge commit.
+
+- `tests/test_no_passage_is_pasted_into_a_second_file.py#BASELINE` gained
+  framer–scribe at 4. #970's scribe carries the step sentence saying whose
+  `skills/` paths are, so the pair shares four 15-word runs. The framer's
+  other pairs measure as before (14, 24, 31) (`executed`).
+- `skills/implement/orchestration.md:381` now reads *the framer runs only
+  where §3 calls for a `spec.md`*. 2cb43374 had re-wrapped *and nowhere
+  else* onto one line, and `tests/test_first_setup_asks_once.py::test_the_sentence_that_said_nowhere_else_is_gone`
+  refuses that phrase in `implement`'s two files. Phase 1 did not run that
+  module, so 2cb43374 left it red. The check reads the raw text, so a line
+  break still hides the phrase, although its docstring says the words are
+  matched one at a time. The check was not changed here.
+
+After the merge, the framer's read set is unchanged. `agents/framer.md`,
+the contract, `implement`, `writing-style` and the three templates hash as
+they did at 2cb43374. `bin/payload-meter --agent framer` reads 9,424 and
+16,603 bytes, so the preload is still 26,027 bytes (`executed`). The
+release did not touch any of the seven files (`executed`,
+`git diff --stat 43cbc361 c26a791e`, empty).
+
+Narrow runs on the merged tree (`executed`). The test modules the release
+changed, plus every module naming the framer, a README, an
+`orchestration.md` or the `agents/*.md` glob, plus phase 1's modules: 72
+modules in one `bin/test` command. They exit 0 with
+`3998 passed, 9 skipped`. `bin/rules --check` exits 0 with 541 targets.
+`uvx ruff check` and `uvx ruff format --check` over the three resolved
+test files exit 0.
