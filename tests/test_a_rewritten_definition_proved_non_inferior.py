@@ -22,6 +22,7 @@ import ntpath
 import os
 import posixpath
 import re
+import subprocess
 import types
 
 import pytest
@@ -1021,6 +1022,329 @@ def test_a_side_counts_a_finding_row_no_truth_matches_as_false():
     assert numbers["graders"][("c1", "shape-x")] == ["shape", 1, 1]
 
 
+# --- regrade: a committed side read again under another suite's truths (#971)
+
+WIDE = r"^location: .*(?:src\/a\.py:(?:10|11|12|40)(?!\d))"
+CASE = "evals/behaviour/warden/c1"
+
+
+def suite_commits(tmp_path, monkeypatch):
+    """A repository whose history holds seven warden suites, with `ni`
+    reading it: `own` (case c1, its truth-1 TRUTH), `wide` (truth-1 widened
+    to line 40), and five from `wide`: `prompt` (c1's case.yaml changed),
+    `more` (a case c2 added), `kind` (truth-1 a file test, which no report
+    row answers), `flag` (truth-1 carrying a flag Python's `re` has no
+    letter for) and `plain` (truth-1 with no front matter).
+    `{name: commit}`."""
+    bh = load_script("behaviour")
+    d = tmp_path / "suites"
+    d.mkdir()
+
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(d), *args],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout.strip()
+
+    def write(rel, text):
+        path = d / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    def commit(name):
+        git("add", "-A")
+        git("commit", "-qm", name)
+        return git("rev-parse", "HEAD")
+
+    def truth(pattern, flags="m"):
+        write(
+            f"{CASE}/graders/truth-1.md",
+            bh.report_regex("truth", "1", "r.md", pattern, "A defect.", flags)[1],
+        )
+
+    git("init", "-q")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "t")
+    write(f"{CASE}/case.yaml", "name: c1\n")
+    write(
+        f"{CASE}/graders/shape-x.md",
+        bh.grader("shape", "x", "The report exists.", type="file_exists", path="r.md")[
+            1
+        ],
+    )
+    truth(TRUTH)
+    commits = {"own": commit("own")}
+    truth(WIDE)
+    commits["wide"] = commit("wide")
+    write(f"{CASE}/case.yaml", "name: c1, asked otherwise\n")
+    commits["prompt"] = commit("prompt")
+    git("reset", "-q", "--hard", commits["wide"])
+    write("evals/behaviour/warden/c2/case.yaml", "name: c2\n")
+    commits["more"] = commit("more")
+    git("reset", "-q", "--hard", commits["wide"])
+    write(
+        f"{CASE}/graders/truth-1.md",
+        bh.grader("truth", "1", "A defect.", type="file_exists", path="r.md")[1],
+    )
+    commits["kind"] = commit("kind")
+    git("reset", "-q", "--hard", commits["wide"])
+    truth(WIDE, flags="mu")
+    commits["flag"] = commit("flag")
+    git("reset", "-q", "--hard", commits["wide"])
+    write(f"{CASE}/graders/truth-1.md", "A defect, with no front matter.\n")
+    commits["plain"] = commit("plain")
+    monkeypatch.setattr(ni, "ROOT", str(d))
+    return commits
+
+
+def graded_side(tmp_path, rev, rows, found, spoil=None):
+    """A side of case c1 run on the suite at REV, its run I having printed
+    ROWS[I] and recorded truth-1 as FOUND[I], its scores the ones a run of
+    two graders gets, and SPOIL applied to it where one is given. The path
+    it is written to."""
+    truth = {
+        "name": "truth-1",
+        "type": "regex",
+        "weight": 1,
+        "config": {
+            "target": {"source": "file", "path": "r.md"},
+            "pattern": TRUTH,
+            "flags": "m",
+            "match": "contains",
+        },
+    }
+    shape = {
+        "name": "shape-x",
+        "type": "file_exists",
+        "weight": 1,
+        "config": {"path": "r.md"},
+    }
+    runs = []
+    for printed, passed in zip(rows, found, strict=True):
+        score = (1 + passed) / 2
+        graders = [
+            {"name": "shape-x", "passed": True, "weight": 1, "scored": True},
+            {"name": "truth-1", "passed": passed, "weight": 1, "scored": True},
+        ]
+        runs.append(
+            {
+                "score": score,
+                "passed": score >= 1,
+                "graders": graders,
+                "specseal": {"report_rows": printed},
+            }
+        )
+    score = sum(r["score"] for r in runs) / len(runs)
+    rate = sum(r["passed"] for r in runs) / len(runs)
+    result = {
+        "startedAt": "2026-10-19T00:00:00Z",
+        "suite": {"threshold": 1},
+        "cases": [
+            {
+                "name": "warden c1",
+                "dir": CASE,
+                "graders": [shape, truth],
+                "arms": {"with": runs},
+                "aggregates": {"score": score, "passRate": rate},
+            }
+        ],
+        "aggregates": {
+            "casesTotal": 1,
+            "casesPassed": int(rate >= 1),
+            "overallScore": score,
+            "overallPassRate": rate,
+        },
+        "specseal": {
+            "agent": "warden",
+            "preload": {},
+            "cut_short": False,
+            "suite_rev": rev,
+            "suite_tree": ni.suite_tree(rev, "warden"),
+        },
+    }
+    if spoil:
+        spoil(result)
+    path = tmp_path / "side.json"
+    path.write_text(json.dumps(result), encoding="utf-8")
+    return str(path)
+
+
+# Run 0's truth row is its second line, so it is found only where the
+# grader's `m` flag reaches the regex.
+ROWS = (
+    ["location: `src/a.py:40`", "location: `src/a.py:11`"],
+    ["location: `src/a.py:40`"],
+)
+
+
+def regrade(side, rev, out):
+    return ni.main(["regrade", "--side", side, "--suite-rev", rev, "--out", str(out)])
+
+
+def test_a_truth_grader_file_reads_back_to_what_behaviour_wrote():
+    """Guards `regrade`'s reader of a grader file: what `behaviour.grader`
+    writes reads back field for field, a doubled quote, a comma and a brace
+    inside a quoted value and an integer weight among them, with `match`
+    `contains` where the file names none."""
+    bh = load_script("behaviour")
+    pattern = r"^location: .*it's(?:a|b)"
+    name, text = bh.report_regex(
+        "truth", "q", "it's, {a}.md", pattern, "A defect.", "m", weight=2
+    )
+    assert ni.grader_from(f"graders/{name}", text) == {
+        "name": "truth-q",
+        "type": "regex",
+        "weight": 2,
+        "config": {
+            "target": {"source": "file", "path": "it's, {a}.md"},
+            "pattern": pattern,
+            "flags": "m",
+            "match": "contains",
+        },
+    }
+
+
+def test_a_side_regraded_onto_its_own_suite_is_unchanged(tmp_path, monkeypatch):
+    """Guards S3: under the suite it ran, a side's rows give back every
+    truth result it recorded, so the rows, the false count, each grader's
+    passes and the scores are the ones it was written with."""
+    commits = suite_commits(tmp_path, monkeypatch)
+    side = graded_side(tmp_path, commits["own"], ROWS, [True, False])
+    out = tmp_path / "out.json"
+    assert regrade(side, commits["own"], out) == 0
+    with open(side, encoding="utf-8") as f:
+        before = json.load(f)
+    after = json.loads(out.read_text(encoding="utf-8"))
+    old, new = ni.side_numbers(before), ni.side_numbers(after)
+    assert (new["rows"], new["false"]) == (old["rows"], old["false"]) == (3, 2)
+    assert new["graders"] == old["graders"]
+    assert after["cases"][0]["aggregates"] == before["cases"][0]["aggregates"]
+    assert after["aggregates"] == before["aggregates"]
+    assert after["specseal"]["suite_rev"] == commits["own"]
+
+
+def test_a_side_regraded_onto_a_wider_truth_counts_the_row_it_now_matches(
+    tmp_path, monkeypatch
+):
+    """Guards the re-read itself: under a suite whose truth-1 also accepts
+    line 40, the same rows find truth-1 on both runs and no row is false,
+    the scores follow, and the side names the suite it is now graded on and
+    the one it ran."""
+    commits = suite_commits(tmp_path, monkeypatch)
+    side = graded_side(tmp_path, commits["own"], ROWS, [True, False])
+    out = tmp_path / "out.json"
+    assert regrade(side, commits["wide"], out) == 0
+    after = json.loads(out.read_text(encoding="utf-8"))
+    numbers = ni.side_numbers(after)
+    assert (numbers["rows"], numbers["false"]) == (3, 0)
+    assert numbers["graders"][("warden c1", "truth-1")] == ["truth", 2, 2]
+    case = after["cases"][0]
+    truths = [g["config"]["pattern"] for g in case["graders"] if g["name"] == "truth-1"]
+    assert truths == [WIDE]
+    assert [r["passed"] for r in case["arms"]["with"]] == [True, True]
+    assert case["aggregates"] == {"score": 1.0, "passRate": 1.0}
+    assert after["aggregates"]["casesPassed"] == 1
+    meta = after["specseal"]
+    assert meta["suite_rev"] == commits["wide"]
+    assert meta["suite_tree"] == ni.suite_tree(commits["wide"], "warden")
+    assert meta["regraded_from"] == commits["own"]
+    # A regraded side graded again still names the suite its runs answered
+    # (#971 round 1 finding 3).
+    again = tmp_path / "again.json"
+    assert regrade(str(out), commits["wide"], again) == 0
+    second = json.loads(again.read_text(encoding="utf-8"))
+    assert second["specseal"]["regraded_from"] == commits["own"]
+
+
+def run_score_off(result):
+    result["cases"][0]["arms"]["with"][0]["score"] = 0.5
+
+
+def case_score_off(result):
+    result["cases"][0]["aggregates"]["score"] = 0.5
+
+
+def side_score_off(result):
+    result["aggregates"]["overallScore"] = 0.5
+
+
+def truth_not_its_suites(result):
+    result["cases"][0]["graders"][1]["config"]["pattern"] = WIDE
+
+
+def no_suite(result):
+    result["specseal"]["suite_rev"] = None
+
+
+def with_c2(result):
+    case = json.loads(json.dumps(result["cases"][0]))
+    case.update(name="warden c2", dir="evals/behaviour/warden/c2")
+    result["cases"].append(case)
+
+
+@pytest.mark.parametrize(
+    "own, rev, found, spoil, named",
+    [
+        # Its second run recorded truth-1 found, and its rows do not find it.
+        ("own", "wide", [True, True], None, "warden c1, run 1: it recorded"),
+        # Its truth results come back, and a score it recorded does not.
+        ("own", "wide", [True, False], run_score_off, "warden c1, run 0: it recorded"),
+        ("own", "wide", [True, False], case_score_off, "warden c1: its aggregates"),
+        ("own", "wide", [True, False], side_score_off, "the side's aggregates"),
+        # The truth it recorded is not the one its suite's file holds.
+        ("own", "wide", [True, False], truth_not_its_suites, "warden c1: its truth"),
+        # The side names no suite it ran.
+        ("own", "wide", [True, False], no_suite, "suite is unknown"),
+        # It ran a case the suite it names does not hold.
+        ("own", "more", [True, False], with_c2, "warden c2: the suite it ran"),
+        # The target suite does not hold a case the side ran.
+        ("more", "wide", [True, False], with_c2, "warden c2: the suite at"),
+        # The target suite asks the case otherwise, not only its truths.
+        ("own", "prompt", [True, False], None, "warden c1: the suite at"),
+        # The target suite holds a case the side never ran.
+        ("own", "more", [True, False], None, "warden/c2: the suite at"),
+        # The target's truth is a file test, which no report row answers.
+        ("own", "kind", [True, False], None, "warden c1: truth-1 is not"),
+        # The target's truth carries a flag `re` has no letter for.
+        ("own", "flag", [True, False], None, "warden c1: truth-1 carries"),
+        # The target's truth file has no front matter to read.
+        ("own", "plain", [True, False], None, "c1/graders/truth-1.md has no"),
+    ],
+    ids=[
+        "rows-do-not-reproduce",
+        "a-run-score-does-not-reproduce",
+        "a-case-score-does-not-reproduce",
+        "the-side-score-does-not-reproduce",
+        "a-truth-not-its-suites",
+        "no-suite",
+        "a-case-its-own-suite-lacks",
+        "a-case-the-target-lacks",
+        "a-non-truth-file-differs",
+        "another-case",
+        "a-truth-no-row-answers",
+        "an-unknown-flag",
+        "no-front-matter",
+    ],
+)
+def test_regrade_refuses_what_it_cannot_stand_in_for(
+    tmp_path, monkeypatch, capsys, own, rev, found, spoil, named
+):
+    """Guards S4: a side whose rows or scores do not give back what it
+    recorded, whose truths are not its suite's, or that names no suite or a
+    suite short of its cases, or a target suite short of its cases, that
+    changes a case beyond its `truth-` graders, holds other cases, or holds
+    a truth no report row can answer, is refused with exit 2, naming the
+    case, and nothing is written."""
+    commits = suite_commits(tmp_path, monkeypatch)
+    side = graded_side(tmp_path, commits[own], ROWS, found, spoil)
+    out = tmp_path / "out.json"
+    assert regrade(side, commits[rev], out) == 2
+    assert not out.exists(), "a side was written that regrade cannot stand in for"
+    assert named in capsys.readouterr().err
+
+
 def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
     """Guards where the false rows come from: the `location:` lines of the
     session's own `cat` of the report, the last one winning, and never a
@@ -1362,6 +1686,210 @@ def test_a_truth_never_matches_a_coordinate_the_check_refuses(monkeypatch):
     assert bare.search("location: `docs/x.md`")
     assert bare.search("location: `docs/x.md:7`")
     assert not bare.search("location: `docs/x.md#unit`")
+
+
+# --- a truth a run recurred on, added through the generators (#971) ---------
+
+RULE = "rule-warden-one-finding"
+SHOUT_BODY = "`shout_twice` joins the two shouts with no space, against S2.\n"
+
+
+def recurred_file(tmp_path, *entries):
+    """The input file of added truths holding ENTRIES, and its path."""
+    path = tmp_path / "recurred_truths.json"
+    path.write_text(json.dumps(list(entries)), encoding="utf-8")
+    return str(path)
+
+
+def entry(**over):
+    """One entry of the input file: a new truth of the rule case, unless
+    OVER says otherwise."""
+    base = {
+        "case": RULE,
+        "grader": "truth-no-case",
+        "finding": "No case covers `shout_twice`.",
+        "locations": ["tests/test_textutil.py"],
+        "from": ["baseline rule-warden-one-finding 0 1"],
+    }
+    base.update(over)
+    return base
+
+
+def rule_truths(tmp_path, monkeypatch, *entries):
+    """`{file name: text}` of the truth graders `rule_cases.py` writes for
+    the warden's rule case with ENTRIES as its input file."""
+    rc = load_script("rule_cases")
+    monkeypatch.setattr(rc.rt, "TRUTHS", recurred_file(tmp_path, *entries))
+    out = tmp_path / "out"
+    assert rc.main(["--out", str(out)]) == 0
+    graders = out / "warden" / RULE / "graders"
+    return {p.name: p.read_text(encoding="utf-8") for p in graders.glob("truth-*.md")}
+
+
+def truth_regex(name, text):
+    return re.compile(
+        ni.grader_from(f"graders/{name}", text)["config"]["pattern"], re.M
+    )
+
+
+def test_an_entry_adds_a_truth_its_case_is_written_with(tmp_path, monkeypatch):
+    """Guards S6's added truth: an entry naming a new grader writes it beside
+    the case's own truths, its body the entry's finding and its pattern
+    `truth_pattern`'s for each location."""
+    truths = rule_truths(tmp_path, monkeypatch, entry())
+    assert sorted(truths) == ["truth-no-case.md", "truth-shout-twice.md"]
+    text = truths["truth-no-case.md"]
+    assert text.endswith("No case covers `shout_twice`.\n")
+    found = truth_regex("truth-no-case.md", text)
+    assert found.search("location: `tests/test_textutil.py`")
+    assert not found.search("location: `src/textutil.py:8`")
+    assert truths["truth-shout-twice.md"].endswith(SHOUT_BODY)
+
+
+def test_an_entry_widens_a_truth_and_keeps_what_it_found(tmp_path, monkeypatch):
+    """Guards S6's widened truth: an entry that widens a grader adds its
+    locations as alternatives, the grader still finds what it found, and its
+    body stays the defect it was written for."""
+    widen = entry(grader="truth-shout-twice", widens=True)
+    truths = rule_truths(tmp_path, monkeypatch, widen)
+    assert sorted(truths) == ["truth-shout-twice.md"]
+    text = truths["truth-shout-twice.md"]
+    assert text.endswith(SHOUT_BODY)
+    found = truth_regex("truth-shout-twice.md", text)
+    assert found.search("location: `src/textutil.py:8`")
+    assert found.search("location: tests/test_textutil.py")
+    assert not found.search("location: `src/other.py:8`")
+
+
+@pytest.mark.parametrize(
+    "over, named",
+    [
+        ({"case": "replay-0-r1"}, "replay-0-r1"),
+        ({"grader": "truth-9", "widens": True}, "truth-9"),
+        ({"grader": "truth-shout-twice"}, "truth-shout-twice"),
+        ({"locations": ["src/textutil.py#shout"]}, "src/textutil.py#shout"),
+        ({"locations": ["no path here"]}, "no path here"),
+        ({"locations": []}, "names no location"),
+        ({"window": "2"}, "is no count"),
+        ({"locations": ["src/x.py:100-10"]}, "src/x.py:100-10"),
+    ],
+    ids=[
+        "a-case-no-generator-writes",
+        "a-widening-of-a-truth-the-case-lacks",
+        "a-new-truth-the-case-already-has",
+        "a-coordinate-the-grammar-refuses",
+        "no-coordinate",
+        "no-location",
+        "a-window-that-is-no-count",
+        "a-range-that-ends-before-it-starts",
+    ],
+)
+def test_an_entry_the_case_cannot_take_stops_the_generator(
+    tmp_path, monkeypatch, over, named
+):
+    """Guards S6's stale entry: an entry naming a case the suite does not
+    hold, a truth to widen that the case lacks, a new truth whose name the
+    case already has, a location outside `path`, `path:line` and
+    `path:first-last`, or no location at all, which would be a truth every
+    row matches, stops the generator with exit 1, naming it, so the file
+    cannot go stale silently."""
+    with pytest.raises(SystemExit) as stopped:
+        rule_truths(tmp_path, monkeypatch, entry(**over))
+    assert named in str(stopped.value.code)
+
+
+def test_an_entry_range_is_read_to_its_last_line(tmp_path, monkeypatch):
+    """Guards #971 round 1 finding 2: a `path:first-last` location credits a
+    row anywhere in the range, its last line too, and nothing past the
+    window after it."""
+    truths = rule_truths(tmp_path, monkeypatch, entry(locations=["src/x.py:10-100"]))
+    found = truth_regex("truth-no-case.md", truths["truth-no-case.md"])
+    assert found.search("location: `src/x.py:60`")
+    assert found.search("location: `src/x.py:115`")
+    assert not found.search("location: `src/x.py:116`")
+
+
+def test_an_entry_window_narrows_the_lines_its_truth_accepts(tmp_path, monkeypatch):
+    """Guards #971 round 1 finding 1's repair: an entry's `window` replaces
+    the ±15 lines around each of its locations, for a line and for a range."""
+    narrow = entry(locations=["src/x.py:10", "src/y.py:20-22"], window=2)
+    truths = rule_truths(tmp_path, monkeypatch, narrow)
+    found = truth_regex("truth-no-case.md", truths["truth-no-case.md"])
+    for line in ("src/x.py:8", "src/x.py:12", "src/y.py:18", "src/y.py:24"):
+        assert found.search(f"location: `{line}`"), line
+    for line in ("src/x.py:7", "src/x.py:13", "src/y.py:17", "src/y.py:25"):
+        assert not found.search(f"location: `{line}`"), line
+
+
+# An alternative of a generated truth's pattern: an escaped path and the
+# line list it accepts, or a bare escaped path.
+OPTION = re.compile(
+    r"((?:[\w-]|\\[./-])+):\(\?:([\d|]+)\)\(\?!\\d\)|((?:[\w-]|\\[./-])+)\(\?!\["
+)
+
+
+def test_no_two_truths_of_a_warden_case_accept_one_location():
+    """Guards #971 round 1 finding 1: a `location:` line one truth of a
+    committed warden case accepts is accepted by no other truth of that
+    case, so one finding is never counted as two. Every line each
+    generated alternative lists is tried against every other truth."""
+    root = os.path.join(ROOT, "evals", "behaviour", "warden")
+    shared = []
+    for case in sorted(os.listdir(root)):
+        graders = os.path.join(root, case, "graders")
+        truths = {}
+        for name in sorted(os.listdir(graders)):
+            if name.startswith("truth-"):
+                with open(os.path.join(graders, name), encoding="utf-8") as f:
+                    truths[name] = truth_regex(name, f.read())
+        for name, found in truths.items():
+            for m in OPTION.finditer(found.pattern):
+                path = (m[1] or m[3]).replace("\\", "")
+                for n in m[2].split("|") if m[2] else [None]:
+                    row = f"location: `{path}:{n}`" if n else f"location: `{path}`"
+                    others = [
+                        o for o, g in truths.items() if o != name and g.search(row)
+                    ]
+                    if others:
+                        shared.append((case, name, row, others))
+    assert not shared, shared[:3]
+
+
+def test_the_replay_and_seeded_generators_read_the_entries_too(tmp_path, monkeypatch):
+    """Guards S6 for the other two generators: each writes an entry's truth
+    for the case it names, beside its own."""
+    rt = load_script("replay_targets")
+    sd = load_script("seed_defects")
+    replay = "replay-1791382684-r2"
+    seeded = "seeded-279a580b"
+    path = recurred_file(
+        tmp_path, entry(case=replay, locations=["x.py"]), entry(case=seeded)
+    )
+    monkeypatch.setattr(rt, "TRUTHS", path)
+    monkeypatch.setattr(sd.rt, "TRUTHS", path)
+    t = {
+        "item": "1791382684-every-reader-and-record-is-inventoried",
+        "n": 2,
+        "target": "HEAD",
+        "truths": [{"k": 1, "finding": "f", "pattern": TRUTH}],
+    }
+    assert [name for name, _ in rt.graders(t) if name.startswith("truth-")] == [
+        "truth-1.md",
+        "truth-no-case.md",
+    ]
+    s = {
+        "commit": "279a580b" + "0" * 32,
+        "item": "1791384154-a-records-finding-closes-once-at-the-runs-end",
+        "path": "a.py",
+        "unit": "f",
+        "old": "a == b",
+        "new": "a != b",
+        "pattern": TRUTH,
+    }
+    assert [name for name, _ in sd.graders(s) if name.startswith("truth-")] == [
+        "truth-seeded.md",
+        "truth-no-case.md",
+    ]
 
 
 def test_a_seed_lands_on_a_code_token_and_never_in_a_string():

@@ -1,0 +1,2778 @@
+{
+ "schemaVersion": 1,
+ "claudeVersion": "2.1.302",
+ "startedAt": "2026-10-17T01:17:39.397Z",
+ "durationSeconds": 1602,
+ "costUsd": 36.0352154,
+ "partial": false,
+ "suite": {
+  "root": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-_0hlqfaz/tree",
+  "ablation": "none",
+  "threshold": 1,
+  "concurrency": 4,
+  "plugins": [
+   {
+    "name": "specseal",
+    "version": "0.22.0",
+    "path": "/private/var/folders/xc/qk591x7x7zx2g6840j1wvxvw0000gn/T/specseal-eval-_0hlqfaz/tree"
+   }
+  ]
+ },
+ "cases": [
+  {
+   "name": "warden replay-1791382684-r2",
+   "dir": "evals/behaviour/warden/replay-1791382684-r2",
+   "source": "mixed",
+   "promptMarkdown": "You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md` once and reply with the report's path.\n\nBEGIN PROMPT\n\nReview round 2 of work item `1791382684-every-reader-and-record-is-inventoried`. The clone is the current directory, on branch `chore/834-every-reader-and-record-is-inventoried` at `7ef6abbf3f7413e68761ea2046723f9093f3ff38`; the base is `a6b0ac200865f1b12662c2a6b5f1f448338d529c`. Write the report to `seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md` and return its path. Round 2 of #834's build, the verifying round, target 7ef6abbf. It was asked to inherit round 1's verdicts and check each fix (fix range a6b0ac20..bf1e425a) against the code, to judge the six \"front\" units the fix pass left alone, to check that `plan.md`'s corrected mapping rule would not reproduce round 1's 🟡 1 in phase 4, and then to read the rest of the build `7608d82c..HEAD` fresh.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 2400,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-warden",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:warden\""
+     }
+    },
+    {
+     "name": "shape-findings",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md"
+      },
+      "pattern": "^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-report-exists",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-words-only",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md"
+      },
+      "pattern": "\\uD83C[\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDFFF]|\\uD83E[\\uDC00-\\uDEFF]|[☀-➿⬀-⯿️]",
+      "flags": "m",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "truth-1",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md"
+      },
+      "pattern": "^location: .*(?:(?:skills\\/evidence-check\\/scripts\\/correction_check\\.py:(?:765|766|767|768|769|770|771|772|773|774|775|776|777|778|779|780|781|782|783|784|785|786|787|788|789|790|791|792|793|794|795)(?!\\d))|skills\\/verify\\/scripts\\/session_cost\\.py:(?:2823|2824|2825|2826|2827|2828|2829|2830|2831|2832|2833|2834|2835|2836|2837|2838|2839|2840|2841|2842|2843|2844|2845|2846|2847|2848|2849|2850|2851|2852|2853)(?!\\d)|hooks\\/version-check\\.py:(?:50|51|52|53|54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70|71|72|73|74|75|76|77|78|79|80)(?!\\d)|hooks\\/routing\\.py:(?:433|434|435|436|437|438|439|440|441|442|443|444|445|446|447|448|449|450|451|452|453|454|455|456|457|458|459|460|461|462|463)(?!\\d)|hooks\\/routing\\.py:(?:511|512|513|514|515|516|517|518|519|520|521|522|523|524|525|526|527|528|529|530|531|532|533|534|535|536|537|538|539|540|541)(?!\\d)|skills\\/code-review\\/scripts\\/round_record\\.py:(?:3553|3554|3555|3556|3557|3558|3559|3560|3561|3562|3563|3564|3565|3566|3567|3568|3569|3570|3571|3572|3573|3574|3575|3576|3577|3578|3579|3580|3581|3582|3583)(?!\\d)|skills\\/verify\\/scripts\\/arm_check\\.py:(?:393|394|395|396|397|398|399|400|401|402|403|404|405|406|407|408|409|410|411|412|413|414|415|416|417|418|419|420|421|422|423)(?!\\d)|tests\\/conftest\\.py:(?:737|738|739|740|741|742|743|744|745|746|747|748|749|750|751|752|753|754|755|756|757|758|759|760|761|762|763|764|765|766|767)(?!\\d)|tests\\/conftest\\.py:(?:797|798|799|800|801|802|803|804|805|806|807|808|809|810|811|812|813|814|815|816|817|818|819|820|821|822|823|824|825|826|827)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-2",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md"
+      },
+      "pattern": "^location: .*(?:(?:hooks\\/routing\\.py:(?:400|401|402|403|404|405|406|407|408|409|410|411|412|413|414|415|416|417|418|419|420|421|422|423|424|425|426|427|428|429|430)(?!\\d))|skills\\/verify\\/scripts\\/unverified_check\\.py:(?:752|753|754|755|756|757|758|759|760|761|762|763|764|765|766|767|768|769|770|771|772|773|774|775|776|777|778|779|780|781|782)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-3",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md"
+      },
+      "pattern": "^location: .*(?:skills\\/verify\\/scripts\\/unverified_check\\.py:(?:867|868|869|870|871|872|873|874|875|876|877|878|879|880|881|882|883|884|885|886|887|888|889|890|891|892|893|894|895|896|897)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-inspect-reads",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md"
+      },
+      "pattern": "^location: .*(?:skills\\/verify\\/scripts\\/deferral_check\\.py:(?:176|177|178|179|180|181|182|183|184|185|186|187|188|189|190|191|192|193|194|195|196|197|198|199|200|201|202|203|204|205|206)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-mapping-same-script",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md"
+      },
+      "pattern": "^location: .*(?:seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/plan\\.md:(?:41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70|71)(?!\\d)|seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/plan\\.md:(?:119|120|121|122|123|124|125|126|127|128|129|130|131|132|133|134|135|136|137|138|139|140|141|142|143|144|145|146|147|148|149)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-step-refused",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md"
+      },
+      "pattern": "^location: .*(?:hooks\\/cmdline\\.py:(?:2639|2640|2641|2642|2643|2644|2645|2646|2647|2648|2649|2650|2651|2652|2653|2654|2655|2656|2657|2658|2659|2660|2661|2662|2663|2664|2665|2666|2667|2668|2669)(?!\\d)|hooks\\/cmdline\\.py:(?:2657|2658|2659|2660|2661|2662|2663|2664|2665|2666|2667|2668|2669|2670|2671|2672|2673|2674|2675|2676|2677|2678|2679|2680|2681|2682|2683|2684|2685|2686|2687)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.8,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 2.8713292000000004,
+      "judgeCostUsd": 0,
+      "durationSeconds": 475,
+      "startedAt": "2026-10-17T01:17:39.464Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-1TswNP/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-1",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-2",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-3",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-inspect-reads",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-mapping-same-script",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-step-refused",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: skills/verify/scripts/session_cost.py:2838, skills/code-review/scripts/round_record.py:3436, skills/code-review/scripts/round_record.py:3457, skills/code-review/scripts/round_record.py:3568, hooks/version-check.py:65, hooks/dispatch.py:449, hooks/routing.py:448, hooks/routing.py:526, seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:17",
+        "location: skills/verify/scripts/unverified_check.py:767, seal/specs/1791382684-every-reader-and-record-is-inventoried/survivors.md:27",
+        "location: hooks/cmdline.py:2654, hooks/cmdline.py:2672",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md:56, seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md:134"
+       ],
+       "cost": {
+        "total_cost_usd": 2.8713292000000004,
+        "duration_ms": 463491,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 102,
+          "outputTokens": 43279,
+          "cacheReadInputTokens": 5727506,
+          "cacheCreationInputTokens": 157982,
+          "webSearchRequests": 0,
+          "costUSD": 2.8713292000000004,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 18774,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 58
+      }
+     },
+     {
+      "score": 0.8,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 2.6944178,
+      "judgeCostUsd": 0,
+      "durationSeconds": 409,
+      "startedAt": "2026-10-17T01:17:39.464Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-k4WgYY/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-2.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-1",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-2",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-3",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-inspect-reads",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-mapping-same-script",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-step-refused",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: hooks/dispatch.py:446, skills/evidence-check/scripts/correction_check.py:777, skills/evidence-check/scripts/correction_check.py:791, tests/conftest.py:749, tests/conftest.py:809, skills/code-review/scripts/round_record.py:3565, hooks/routing.py:412, hooks/routing.py:445, hooks/routing.py:523, skills/implement/scripts/seal.py:1784, hooks/cmdline.py:2649, seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md",
+        "location: skills/verify/scripts/deferral_check.py:188, skills/verify/scripts/unverified_check.py:764, seal/specs/1791382684-every-reader-and-record-is-inventoried/survivors.md",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md",
+        "location: hooks/optin.py:221, seal/specs/1791382684-every-reader-and-record-is-inventoried/overview.md"
+       ],
+       "cost": {
+        "total_cost_usd": 2.6944178,
+        "duration_ms": 399144,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 82,
+          "outputTokens": 38638,
+          "cacheReadInputTokens": 4361849,
+          "cacheCreationInputTokens": 196244,
+          "webSearchRequests": 0,
+          "costUSD": 2.6944178,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 18277,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 43
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.8,
+    "passRate": 0.0
+   }
+  },
+  {
+   "name": "warden replay-1791382684-r5",
+   "dir": "evals/behaviour/warden/replay-1791382684-r5",
+   "source": "mixed",
+   "promptMarkdown": "You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md` once and reply with the report's path.\n\nBEGIN PROMPT\n\nReview round 5 of work item `1791382684-every-reader-and-record-is-inventoried`. The clone is the current directory, on branch `chore/834-every-reader-and-record-is-inventoried` at `97c910d5bdaddf61aece9018c465857883978d37`; the base is `602fb87b709abe077db23ec520df331284754242`. Write the report to `seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md` and return its path. Round 5 of #834, the redesign's verifying round, target 97c910d5. It was asked to inherit round 4's verdicts and check each fix in 602fb87b..9ceba9a3 — above all the direction definition now in `docs/the-reader-registry.md`: that it is the inventory's meaning, unambiguous, consistent with #835's spec and with every `Reads:` line already on the release branch, with the document's `Enforced by:` lines and fold markers intact — and whether the changelog's second bullet under `### Added` reads true, then the rest of the item fresh. The owner's choice to withdraw the backfill was not to be reopened.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 2400,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-warden",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:warden\""
+     }
+    },
+    {
+     "name": "shape-findings",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
+      },
+      "pattern": "^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-report-exists",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-words-only",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
+      },
+      "pattern": "\\uD83C[\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDFFF]|\\uD83E[\\uDC00-\\uDEFF]|[☀-➿⬀-⯿️]",
+      "flags": "m",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "truth-2",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
+      },
+      "pattern": "^location: .*(?:docs\\/the-reader-registry\\.md:(?:144|145|146|147|148|149|150|151|152|153|154|155|156|157|158|159|160|161|162|163|164|165|166|167|168|169|170|171|172|173|174)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-acceptance-exits-1",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
+      },
+      "pattern": "^location: .*(?:seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/spec\\.md:(?:313|314|315|316|317|318|319|320|321|322|323|324|325|326|327|328|329|330|331|332|333|334|335|336|337|338|339|340|341|342|343)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-changelog-history",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
+      },
+      "pattern": "^location: .*(?:seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/changelog\\.md:(?:10|11|12|13|14|15|16|17|18|19)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-direction-quoted",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
+      },
+      "pattern": "^location: .*(?:seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/spec\\.md:(?:218|219|220|221|222|223|224|225|226|227|228|229|230|231|232|233|234|235|236|237|238|239|240|241|242|243|244|245|246|247|248)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-direction-unplaced",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
+      },
+      "pattern": "^location: .*(?:docs\\/the-reader-registry\\.md:(?:16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-old-phrase-kept",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md"
+      },
+      "pattern": "^location: .*(?:tests\\/test_a_reader_declares_its_input_class\\.py:(?:4|5|6|7|8)(?!\\d)|seal\\/specs\\/1791382684-every-reader-and-record-is-inventoried\\/changelog\\.md:(?:5|6|7|8|9)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.9,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 2.8314478000000003,
+      "judgeCostUsd": 0,
+      "durationSeconds": 521,
+      "startedAt": "2026-10-17T01:17:39.465Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-WRHQnm/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-2",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-acceptance-exits-1",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-changelog-history",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-direction-quoted",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-direction-unplaced",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-old-phrase-kept",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: docs/the-reader-registry.md:31",
+        "location: skills/evidence-check/scripts/evidence_check.py:6038, skills/evidence-check/scripts/evidence_check.py:6070, seal/specs/1791382684-every-reader-and-record-is-inventoried/overview.md",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:233, seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:244",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:328, seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:207",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:12, seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:7"
+       ],
+       "cost": {
+        "total_cost_usd": 2.8314478000000003,
+        "duration_ms": 510908,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 104,
+          "outputTokens": 42981,
+          "cacheReadInputTokens": 5201864,
+          "cacheCreationInputTokens": 172592,
+          "webSearchRequests": 0,
+          "costUSD": 2.8314478000000003,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 22438,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 57
+      }
+     },
+     {
+      "score": 0.9,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 2.7681775999999996,
+      "judgeCostUsd": 0,
+      "durationSeconds": 538,
+      "startedAt": "2026-10-17T01:17:39.465Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-BP4lrV/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-2",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-acceptance-exits-1",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-changelog-history",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-direction-quoted",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-direction-unplaced",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-old-phrase-kept",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:233, seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:244",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:7, tests/test_a_reader_declares_its_input_class.py:6",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/changelog.md:11-16",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/spec.md:328",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/plan.md:105",
+        "location: seal/specs/1791382684-every-reader-and-record-is-inventoried/handoff.md:12, seal/specs/1791382684-every-reader-and-record-is-inventoried/handoff.md:37, seal/specs/1791382684-every-reader-and-record-is-inventoried/handoff.md:38, seal/specs/1791382684-every-reader-and-record-is-inventoried/handoff.md:41",
+        "location: docs/the-reader-registry.md:31-36"
+       ],
+       "cost": {
+        "total_cost_usd": 2.7681775999999996,
+        "duration_ms": 529557,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 110,
+          "outputTokens": 39818,
+          "cacheReadInputTokens": 5134998,
+          "cacheCreationInputTokens": 174931,
+          "webSearchRequests": 0,
+          "costUSD": 2.7681775999999996,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 19639,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 56
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.9,
+    "passRate": 0.0
+   }
+  },
+  {
+   "name": "warden replay-1791384160-r2",
+   "dir": "evals/behaviour/warden/replay-1791384160-r2",
+   "source": "mixed",
+   "promptMarkdown": "You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md` once and reply with the report's path.\n\nBEGIN PROMPT\n\nReview round 2 of work item `1791384160-a-fix-range-is-its-own-commits-across-a-merge`. The clone is the current directory, on branch `fix/860-a-fix-range-is-its-own-commits-across-a-merge` at `1923d2049d604a4684995f33cdb87f819b060aff`; the base is `d2b765876c8ba9e1ef1f8f5b9518767f5c2f718f`. Write the report to `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md` and return its path. Verifying round 2 of round 1's fixes: d2b76587..27920e58 (e6fc73f9, 27920e58), plus the fix table at 4933eba5 and the close at 1923d204. The job was the answers to round 1's fixed and answered verdicts; round 1's New units row read none. The spawn asked three things. First, whether every coordinate stating the limit-free claim now carries the limit, searching the tree rather than only the five the smith named. Second, whether the limit sentences are true of own_commits as written, re-running round 1's probes A and B. Third, whether spec.md §In, left as the framer wrote it, is a sentence a reader acts on. It also ran the eight suite-wide guard modules once. Facts arrived labelled. Executed by the orchestrator: bin/test over two modules (132 passed) and the close (2 fixed, 3 answered). Read from the smith: the fixes, evidence-check --strict and survivor-check. Read: release/v0.21.0 moved to 9b644676, which the branch has not merged yet.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 2400,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-warden",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:warden\""
+     }
+    },
+    {
+     "name": "shape-findings",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md"
+      },
+      "pattern": "^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-report-exists",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-words-only",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md"
+      },
+      "pattern": "\\uD83C[\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDFFF]|\\uD83E[\\uDC00-\\uDEFF]|[☀-➿⬀-⯿️]",
+      "flags": "m",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "truth-1",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md"
+      },
+      "pattern": "^location: .*(?:docs\\/the-record-layout\\.md:(?:133|134|135|136|137|138|139|140|141|142|143|144|145|146|147|148|149|150|151|152|153|154|155|156|157|158|159|160|161|162|163)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-2",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md"
+      },
+      "pattern": "^location: .*(?:skills\\/code-review\\/orchestration\\.md:(?:355|356|357|358|359|360|361|362|363|364|365|366|367|368|369|370|371|372|373|374|375|376|377|378|379|380|381|382|383|384|385)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.3333333333333333,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 2.4545717999999996,
+      "judgeCostUsd": 0,
+      "durationSeconds": 422,
+      "startedAt": "2026-10-17T01:24:28.825Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-OOKJMH/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": false,
+        "weight": 1,
+        "explanation": "pattern not found in file seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": false,
+        "weight": 1,
+        "explanation": "pattern found (expected absent)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-1",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-2",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 2.4545717999999996,
+        "duration_ms": 414893,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 102,
+          "outputTokens": 35560,
+          "cacheReadInputTokens": 4707199,
+          "cacheCreationInputTokens": 147145,
+          "webSearchRequests": 0,
+          "costUSD": 2.4545717999999996,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 14294,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 53
+      }
+     },
+     {
+      "score": 1.0,
+      "passed": true,
+      "turns": 3,
+      "costUsd": 2.013489,
+      "judgeCostUsd": 0,
+      "durationSeconds": 368,
+      "startedAt": "2026-10-17T01:25:34.403Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-fE6qjI/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-2.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-1",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-2",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: `docs/the-record-layout.md:148`, `skills/code-review/scripts/chain_check.py:4497` (`own_commits`' docstring), `skills/code-review/scripts/chain_check.py:4568` (`fragment_left_behind`'s docstring), `seal/ledger/1791384160-a-fix-range-is-its-own-commits-across-a-merge.md` (the S7, S8, S9 row and the `Corrected · S2, S3, S4, S6` row), `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/overview.md:24`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/phases/phase-1.md:36`",
+        "location: `skills/code-review/orchestration.md:369`, `skills/code-review/scripts/round_record.py:2351` (`fix_pass_units`' docstring), `skills/code-review/scripts/round_record.py:3391` (`touched`'s docstring), `docs/round-record-spec.md:694`, `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/changelog.md` (the first and second entries), `docs/the-record-layout.md:113`",
+        "location: `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/spec.md:72`"
+       ],
+       "cost": {
+        "total_cost_usd": 2.013489,
+        "duration_ms": 360599,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 90,
+          "outputTokens": 34099,
+          "cacheReadInputTokens": 3350725,
+          "cacheCreationInputTokens": 117751,
+          "webSearchRequests": 0,
+          "costUSD": 2.013489,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 13472,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 45
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.6666666666666666,
+    "passRate": 0.5
+   }
+  },
+  {
+   "name": "warden replay-1791779434-r5",
+   "dir": "evals/behaviour/warden/replay-1791779434-r5",
+   "source": "mixed",
+   "promptMarkdown": "You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md` once and reply with the report's path.\n\nBEGIN PROMPT\n\nReview round 5 of work item `1791779434-under-automation-the-guard-asks-nobody`. The clone is the current directory, on branch `fix/894-under-automation-the-guard-asks-nobody` at `cdd0ce137490ab1092f44da2baee7f633408dd39`; the base is `5e2e9ad5d4a3b5add6a7c3d83a74363cd11a10b7`. Write the report to `seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md` and return its path. Round 5 of #894 (PR #897), verifying round 4's fixes at 5e2e9ad5..7bc54620 (`rounds/round-4-fixes.md`). Attack in this order: 1. **🟡 1's fix (b6851ffb):** the deny now says \"This row of the guard stops a branch switch …\", in English and Korean, in the hook and in `dirty_deny`. Read the whole pressed text again, sentence by sentence. Is every claim now a fact about this row or about what the guard read, with nothing about git's behaviour? 2. **🟡 2's fix (927497cc):** the clause about git's output is gone from the hook EN/KO, `dirty_deny`, the policy paragraph, the changelog, spec.md (lines 102 and 247) and ledger S1. Grep for any remaining twin. W3's closed row in `questions.md` keeps it as history: is that acceptable? 3. **⬜ 3's correction (97ee27c4):** `option_words` strips `git -C <path>` and `restore --staged` before scanning. Can the strip hide a real per-form clause? Plant one through `mutation-check` that uses `-C` inside a clause and see whether S12 still catches it. 4. **Record markers (7bc54620)** on `round-4.md:152,157`: markers only, no verdict text changed. 5. **S2 and S8** still hold. Facts arriving as coordinates: `round_record.py close` exit 0 for round 4. The smith re-ran only the record module after 7bc54620, not the full set of nine guards; unverified.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 2400,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-warden",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:warden\""
+     }
+    },
+    {
+     "name": "shape-findings",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md"
+      },
+      "pattern": "^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-report-exists",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-words-only",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md"
+      },
+      "pattern": "\\uD83C[\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDFFF]|\\uD83E[\\uDC00-\\uDEFF]|[☀-➿⬀-⯿️]",
+      "flags": "m",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "truth-1",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md"
+      },
+      "pattern": "^location: .*(?:docs\\/worktree-guard-spec\\.md:(?:22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.6,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 3.2744334,
+      "judgeCostUsd": 0,
+      "durationSeconds": 627,
+      "startedAt": "2026-10-17T01:26:20.383Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-12VbN1/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": false,
+        "weight": 1,
+        "explanation": "pattern not found in file seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-1",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 3.2744334,
+        "duration_ms": 619331,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 122,
+          "outputTokens": 49168,
+          "cacheReadInputTokens": 6623992,
+          "cacheCreationInputTokens": 179490,
+          "webSearchRequests": 0,
+          "costUSD": 3.2744334,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 22438,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 68
+      }
+     },
+     {
+      "score": 0.4,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 1.7179724,
+      "judgeCostUsd": 0,
+      "durationSeconds": 325,
+      "startedAt": "2026-10-17T01:26:37.567Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-LvhbgE/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": false,
+        "weight": 1,
+        "explanation": "pattern not found in file seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791779434-under-automation-the-guard-asks-nobody/rounds/round-5.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": false,
+        "weight": 1,
+        "explanation": "pattern found (expected absent)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-1",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [],
+       "cost": {
+        "total_cost_usd": 1.7179724,
+        "duration_ms": 316415,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 66,
+          "outputTokens": 27750,
+          "cacheReadInputTokens": 2707167,
+          "cacheCreationInputTokens": 112024,
+          "webSearchRequests": 0,
+          "costUSD": 1.7179724,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 11770,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 34
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.5,
+    "passRate": 0.0
+   }
+  },
+  {
+   "name": "warden rule-warden-one-finding",
+   "dir": "evals/behaviour/warden/rule-warden-one-finding",
+   "source": "mixed",
+   "promptMarkdown": "You are the orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, run `cat seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md` once and reply with the report's path.\n\nBEGIN PROMPT\n\nReview round 1 of work item `1790000001-shout-ends-with-one-exclamation-mark`. The clone is the current directory, on branch `feat/shout-exclaims` at HEAD; the base is `main`. Write the report to `seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md` and return its path. Review the whole build for spec compliance first, then quality. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 1800,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-warden",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:warden\""
+     }
+    },
+    {
+     "name": "shape-findings",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md"
+      },
+      "pattern": "^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-report-exists",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-words-only",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md"
+      },
+      "pattern": "\\uD83C[\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDFFF]|\\uD83E[\\uDC00-\\uDEFF]|[☀-➿⬀-⯿️]",
+      "flags": "m",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "truth-shout-twice-uncovered",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:tests\\/test_textutil\\.py(?![\\w./#-]))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-shout-twice",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md"
+      },
+      "pattern": "^location: .*src\\/textutil\\.py:(?:[4-9]|1[0-9])(?!\\d)",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1.0,
+      "passed": true,
+      "turns": 3,
+      "costUsd": 0.4795518,
+      "judgeCostUsd": 0,
+      "durationSeconds": 57,
+      "startedAt": "2026-10-17T01:31:31.213Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-SPcMFD/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-shout-twice-uncovered",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-shout-twice",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: `src/textutil.py:6-8`",
+        "location: `tests/test_textutil.py`"
+       ],
+       "cost": {
+        "total_cost_usd": 0.4795518,
+        "duration_ms": 55134,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 20,
+          "outputTokens": 4886,
+          "cacheReadInputTokens": 328989,
+          "cacheCreationInputTokens": 53976,
+          "webSearchRequests": 0,
+          "costUSD": 0.4795518,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 892,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 8
+      }
+     },
+     {
+      "score": 1.0,
+      "passed": true,
+      "turns": 3,
+      "costUsd": 0.44312200000000007,
+      "judgeCostUsd": 0,
+      "durationSeconds": 53,
+      "startedAt": "2026-10-17T01:31:42.833Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-qp6Bw0/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1790000001-shout-ends-with-one-exclamation-mark/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-shout-twice-uncovered",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-shout-twice",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: src/textutil.py:8",
+        "location: tests/test_textutil.py"
+       ],
+       "cost": {
+        "total_cost_usd": 0.44312200000000007,
+        "duration_ms": 51582,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 20,
+          "outputTokens": 4185,
+          "cacheReadInputTokens": 325595,
+          "cacheCreationInputTokens": 49562,
+          "webSearchRequests": 0,
+          "costUSD": 0.44312200000000007,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 367,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 8
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1.0,
+    "passRate": 1.0
+   }
+  },
+  {
+   "name": "warden seeded-279a580b",
+   "dir": "evals/behaviour/warden/seeded-279a580b",
+   "source": "mixed",
+   "promptMarkdown": "You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md` once and reply with the report's path.\n\nBEGIN PROMPT\n\nReview round 1 of work item `1791384154-a-records-finding-closes-once-at-the-runs-end`. The clone is the current directory, on branch `feat/837-a-records-finding-closes-once-at-the-runs-end` at HEAD; the base is `d712a63243f6135fc2ed7d8fdc0bf0a9e424c45c`, so the diff is `d712a632..HEAD`. Write the report to `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md` and return its path. This round reviews the whole build — feat: a ⬜ note cost a fix pass and a reader in every round, and is now closed once at the run's end (#837) (#879) — for spec compliance first, then quality.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 2400,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-warden",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:warden\""
+     }
+    },
+    {
+     "name": "shape-findings",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md"
+      },
+      "pattern": "^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-report-exists",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-words-only",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md"
+      },
+      "pattern": "\\uD83C[\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDFFF]|\\uD83E[\\uDC00-\\uDEFF]|[☀-➿⬀-⯿️]",
+      "flags": "m",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "truth-cutoff-in-docs",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:skills\\/code-review\\/orchestration\\.md:(?:221|222|223|224|225|226|227|228|229|230|231|232|233|234|235|236|237|238|239|240|241|242|243|244|245|246|247|248|249|250|251)(?!\\d)|skills\\/implement\\/orchestration\\.md:(?:635|636|637|638|639|640|641|642|643|644|645|646|647|648|649|650|651|652|653|654|655|656|657|658|659|660|661|662|663|664|665)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-sdd-cutoff",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:seal\\/specs\\/1791384154-a-records-finding-closes-once-at-the-runs-end\\/spec\\.md:(?:77|78|79|80|81|82|83|84|85|86|87|88|89|90|91|92|93|94|95|96|97|98|99|100|101|102|103|104|105|106|107)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-seeded",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:skills\\/code-review\\/scripts\\/chain_check\\.py:(?:1862|1863|1864|1865|1866|1867|1868|1869|1870|1871|1872|1873|1874|1875|1876|1877|1878|1879|1880|1881|1882|1883|1884|1885|1886|1887|1888|1889|1890|1891|1892)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.5714285714285714,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 2.1279207999999996,
+      "judgeCostUsd": 0,
+      "durationSeconds": 294,
+      "startedAt": "2026-10-17T01:32:02.134Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-nkv9bb/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": false,
+        "weight": 1,
+        "explanation": "pattern found (expected absent)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-cutoff-in-docs",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-sdd-cutoff",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-seeded",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: skills/code-review/scripts/chain_check.py#note_rows (line 1876), reached from round_record.py#close, #build, #carried_ids, #record_notes, #notes and chain_check.py#carried_notes",
+        "location: tests/test_a_note_closes_once_at_the_runs_end.py#test_note_rows_reads_the_marker_and_the_id_and_nothing_else",
+        "location: skills/code-review/orchestration.md:236, skills/implement/orchestration.md:650, skills/code-review/scripts/chain_check.py#NOTES_FROM"
+       ],
+       "cost": {
+        "total_cost_usd": 2.1279207999999996,
+        "duration_ms": 285148,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 88,
+          "outputTokens": 24646,
+          "cacheReadInputTokens": 4319634,
+          "cacheCreationInputTokens": 142976,
+          "webSearchRequests": 0,
+          "costUSD": 2.1279207999999996,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 10478,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 45
+      }
+     },
+     {
+      "score": 1.0,
+      "passed": true,
+      "turns": 3,
+      "costUsd": 2.3253648,
+      "judgeCostUsd": 0,
+      "durationSeconds": 341,
+      "startedAt": "2026-10-17T01:32:28.177Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-LxJC4K/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-cutoff-in-docs",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-sdd-cutoff",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-seeded",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: `skills/code-review/scripts/chain_check.py:1877`",
+        "location: `skills/code-review/scripts/chain_check.py:858`, `skills/code-review/scripts/chain_check.py:865`, `skills/code-review/scripts/round_record.py:2621`, `tests/test_a_note_closes_once_at_the_runs_end.py:48`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/overview.md:34`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/survivors.md:3`",
+        "location: `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:92`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/spec.md:136`, `seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/overview.md:22`",
+        "location: `skills/code-review/orchestration.md:236`, `skills/implement/orchestration.md:650`",
+        "location: `skills/code-review/scripts/chain_check.py:4647`, `skills/code-review/scripts/chain_check.py:4672`"
+       ],
+       "cost": {
+        "total_cost_usd": 2.3253648,
+        "duration_ms": 332521,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 76,
+          "outputTokens": 30480,
+          "cacheReadInputTokens": 3987634,
+          "cacheCreationInputTokens": 171795,
+          "webSearchRequests": 0,
+          "costUSD": 2.3253648,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 15471,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 43
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.7857142857142857,
+    "passRate": 0.5
+   }
+  },
+  {
+   "name": "warden seeded-4d316179",
+   "dir": "evals/behaviour/warden/seeded-4d316179",
+   "source": "mixed",
+   "promptMarkdown": "You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md` once and reply with the report's path.\n\nBEGIN PROMPT\n\nReview round 1 of work item `1791781864-the-idle-session-rows-ask-nobody`. The clone is the current directory, on branch `fix/896-the-idle-session-rows-ask-nobody` at HEAD; the base is `34fc36e9f69c4675772e4d08a629846e12b95375`, so the diff is `34fc36e9..HEAD`. Write the report to `seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md` and return its path. This round reviews the whole build — fix: under automation the idle-session and cannot-tell rows asked a person on every switch; they now deny to the model (#896) (#902) — for spec compliance first, then quality.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 2400,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-warden",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:warden\""
+     }
+    },
+    {
+     "name": "shape-findings",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md"
+      },
+      "pattern": "^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-report-exists",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-words-only",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md"
+      },
+      "pattern": "\\uD83C[\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDFFF]|\\uD83E[\\uDC00-\\uDEFF]|[☀-➿⬀-⯿️]",
+      "flags": "m",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "truth-seeded",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:hooks\\/worktree-guard\\.py:(?:3139|3140|3141|3142|3143|3144|3145|3146|3147|3148|3149|3150|3151|3152|3153|3154|3155|3156|3157|3158|3159|3160|3161|3162|3163|3164|3165|3166|3167|3168|3169)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1.0,
+      "passed": true,
+      "turns": 3,
+      "costUsd": 2.0249256,
+      "judgeCostUsd": 0,
+      "durationSeconds": 300,
+      "startedAt": "2026-10-17T01:32:36.150Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-4edNJO/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-seeded",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: hooks/worktree-guard.py:3154 (`main`, inner function `unattended_text`)",
+        "location: hooks/worktree-guard.py:3134 (comment \"round 1 of work item 1791781864\"), tests/test_the_idle_session_rows_ask_nobody.py (docstrings of `elsewhere`, `test_the_press_is_read_from_the_sessions_own_root`, `test_a_switch_into_another_clone_names_no_split_it_cannot_consent`, `test_a_clone_this_session_already_split_is_named_the_split`), seal/ledger/1791781864-the-idle-session-rows-ask-nobody.md (rows S11 and R1), seal/specs/1791781864-the-idle-session-rows-ask-nobody/overview.md:27, seal/specs/1791781864-the-idle-session-rows-ask-nobody/handoff.md:12"
+       ],
+       "cost": {
+        "total_cost_usd": 2.0249256,
+        "duration_ms": 290734,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 96,
+          "outputTokens": 21769,
+          "cacheReadInputTokens": 4223163,
+          "cacheCreationInputTokens": 138062,
+          "webSearchRequests": 0,
+          "costUSD": 2.0249256,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 7324,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 50
+      }
+     },
+     {
+      "score": 1.0,
+      "passed": true,
+      "turns": 3,
+      "costUsd": 1.6093179999999998,
+      "judgeCostUsd": 0,
+      "durationSeconds": 218,
+      "startedAt": "2026-10-17T01:36:47.839Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-FO5TYB/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791781864-the-idle-session-rows-ask-nobody/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-seeded",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: hooks/worktree-guard.py:3154",
+        "location: seal/specs/1791781864-the-idle-session-rows-ask-nobody/overview.md:27, seal/specs/1791781864-the-idle-session-rows-ask-nobody/handoff.md:12"
+       ],
+       "cost": {
+        "total_cost_usd": 1.6093179999999998,
+        "duration_ms": 209173,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 76,
+          "outputTokens": 19257,
+          "cacheReadInputTokens": 2864635,
+          "cacheCreationInputTokens": 119309,
+          "webSearchRequests": 0,
+          "costUSD": 1.6093179999999998,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 6483,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 41
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1.0,
+    "passRate": 1.0
+   }
+  },
+  {
+   "name": "warden seeded-9b644676",
+   "dir": "evals/behaviour/warden/seeded-9b644676",
+   "source": "mixed",
+   "promptMarkdown": "You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md` once and reply with the report's path.\n\nBEGIN PROMPT\n\nReview round 1 of work item `1791384161-the-plugin-directory-check-reads-the-directory`. The clone is the current directory, on branch `fix/858-the-plugin-directory-check-reads-the-directory` at HEAD; the base is `5623d7282eddd20b5949c4643ca9ee2808d143dd`, so the diff is `5623d728..HEAD`. Write the report to `seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md` and return its path. This round reviews the whole build — fix: the plugin directory check said not listed about a directory it never read, and the release box said resubmit (#858) (#875) — for spec compliance first, then quality.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 2400,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-warden",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:warden\""
+     }
+    },
+    {
+     "name": "shape-findings",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md"
+      },
+      "pattern": "^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-report-exists",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-words-only",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md"
+      },
+      "pattern": "\\uD83C[\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDFFF]|\\uD83E[\\uDC00-\\uDEFF]|[☀-➿⬀-⯿️]",
+      "flags": "m",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "truth-docstring-pipeline",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:tests\\/test_the_plugin_directory_answers_the_box\\.py:(?:3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-host-prefix",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:tests\\/test_no_real_identifiers\\.py:(?:57|58|59|60|61|62|63|64|65|66|67|68|69|70|71|72|73|74|75|76|77|78|79|80|81|82|83|84|85|86|87)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-manifest-not-object",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:\\.github\\/scripts\\/plugin_directory_check\\.py:(?:282|283|284|285|286|287|288|289|290|291|292|293|294|295|296|297|298|299|300|301|302|303|304|305|306|307|308|309|310|311|312)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-no-commit-unpinned",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:tests\\/test_the_plugin_directory_answers_the_box\\.py:(?:167|168|169|170|171|172|173|174|175|176|177|178|179|180|181|182|183|184|185|186|187|188|189|190|191|192|193|194|195|196|197)(?!\\d)|tests\\/test_the_plugin_directory_answers_the_box\\.py:(?:184|185|186|187|188|189|190|191|192|193|194|195|196|197|198|199|200|201|202|203|204|205|206|207|208|209|210|211|212|213|214)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "truth-seeded",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:\\.github\\/scripts\\/plugin_directory_check\\.py:(?:221|222|223|224|225|226|227|228|229|230|231|232|233|234|235|236|237|238|239|240|241|242|243|244|245|246|247|248|249|250|251)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 0.7777777777777778,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 1.6906854000000002,
+      "judgeCostUsd": 0,
+      "durationSeconds": 231,
+      "startedAt": "2026-10-17T01:36:55.986Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-MWX4Dp/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-docstring-pipeline",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-host-prefix",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-manifest-not-object",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-no-commit-unpinned",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-seeded",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: .github/scripts/plugin_directory_check.py:236",
+        "location: tests/test_the_plugin_directory_answers_the_box.py:182",
+        "location: tests/test_no_real_identifiers.py:72"
+       ],
+       "cost": {
+        "total_cost_usd": 1.6906854000000002,
+        "duration_ms": 222798,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 70,
+          "outputTokens": 20311,
+          "cacheReadInputTokens": 2885917,
+          "cacheCreationInputTokens": 130013,
+          "webSearchRequests": 0,
+          "costUSD": 1.6906854000000002,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 6217,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 38
+      }
+     },
+     {
+      "score": 0.8888888888888888,
+      "passed": false,
+      "turns": 3,
+      "costUsd": 1.7147144000000003,
+      "judgeCostUsd": 0,
+      "durationSeconds": 254,
+      "startedAt": "2026-10-17T01:37:36.245Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-4dBczJ/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-docstring-pipeline",
+        "passed": false,
+        "weight": 1,
+        "explanation": "regraded from the report rows: not found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-host-prefix",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-manifest-not-object",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-no-commit-unpinned",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-seeded",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: .github/scripts/plugin_directory_check.py:236",
+        "location: tests/test_the_plugin_directory_answers_the_box.py:199",
+        "location: tests/test_no_real_identifiers.py:77",
+        "location: .github/scripts/plugin_directory_check.py:297",
+        "location: tests/test_the_plugin_directory_answers_the_box.py:368, tests/test_the_release_tail_does_not_end_at_the_tag.py:173, tests/test_no_real_identifiers.py:188, seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/overview.md:17, seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/survivors.md:3",
+        "location: seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/spec.md:47, seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/plan.md:56"
+       ],
+       "cost": {
+        "total_cost_usd": 1.7147144000000003,
+        "duration_ms": 245188,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 66,
+          "outputTokens": 20996,
+          "cacheReadInputTokens": 2724992,
+          "cacheCreationInputTokens": 138072,
+          "webSearchRequests": 0,
+          "costUSD": 1.7147144000000003,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 6874,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 35
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 0.8333333333333333,
+    "passRate": 0.0
+   }
+  },
+  {
+   "name": "warden seeded-ad447367",
+   "dir": "evals/behaviour/warden/seeded-ad447367",
+   "source": "mixed",
+   "promptMarkdown": "You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-1.md` once and reply with the report's path.\n\nBEGIN PROMPT\n\nReview round 1 of work item `1791384160-a-fix-range-is-its-own-commits-across-a-merge`. The clone is the current directory, on branch `fix/860-a-fix-range-is-its-own-commits-across-a-merge` at HEAD; the base is `b6c81a838de4134d97d6dc33ca7f82acf211ac30`, so the diff is `b6c81a83..HEAD`. Write the report to `seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-1.md` and return its path. This round reviews the whole build — fix: a merge of the base inside a fix range filled the round record with a sibling's units (#860, #805) (#878) — for spec compliance first, then quality.\n\nEND PROMPT",
+   "model": "claude-opus-5-5",
+   "runsPerCase": 2,
+   "timeoutSeconds": 2400,
+   "maxTurns": 12,
+   "graders": [
+    {
+     "name": "reach-warden",
+     "type": "tool_used",
+     "weight": 1,
+     "config": {
+      "tool": "Agent",
+      "input_match": "\"subagent_type\"\\s*:\\s*\"specseal:warden\""
+     }
+    },
+    {
+     "name": "shape-findings",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-1.md"
+      },
+      "pattern": "^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+      "flags": "m",
+      "match": "contains"
+     }
+    },
+    {
+     "name": "shape-report-exists",
+     "type": "file_exists",
+     "weight": 1,
+     "config": {
+      "path": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-1.md",
+      "exists": true
+     }
+    },
+    {
+     "name": "shape-words-only",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-1.md"
+      },
+      "pattern": "\\uD83C[\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDFFF]|\\uD83E[\\uDC00-\\uDEFF]|[☀-➿⬀-⯿️]",
+      "flags": "m",
+      "match": "not_contains"
+     }
+    },
+    {
+     "name": "truth-seeded",
+     "type": "regex",
+     "weight": 1,
+     "config": {
+      "target": {
+       "source": "file",
+       "path": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-1.md"
+      },
+      "pattern": "^location: .*(?:skills\\/code-review\\/scripts\\/chain_check\\.py:(?:4632|4633|4634|4635|4636|4637|4638|4639|4640|4641|4642|4643|4644|4645|4646|4647|4648|4649|4650|4651|4652|4653|4654|4655|4656|4657|4658|4659|4660|4661|4662)(?!\\d))",
+      "flags": "m",
+      "match": "contains"
+     }
+    }
+   ],
+   "arms": {
+    "with": [
+     {
+      "score": 1.0,
+      "passed": true,
+      "turns": 3,
+      "costUsd": 1.494658,
+      "judgeCostUsd": 0,
+      "durationSeconds": 253,
+      "startedAt": "2026-10-17T01:38:08.963Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-fdL8dx/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-seeded",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: skills/code-review/scripts/chain_check.py:4647",
+        "location: skills/code-review/scripts/round_record.py:3445",
+        "location: skills/code-review/scripts/round_record.py:4583, skills/code-review/scripts/round_record.py:4607, skills/code-review/scripts/round_record.py:2382, skills/code-review/scripts/round_record.py:3467, skills/code-review/scripts/round_record.py:2448",
+        "location: skills/code-review/scripts/round_record.py:2412",
+        "location: tests/test_a_range_owns_what_git_lists_for_it.py"
+       ],
+       "cost": {
+        "total_cost_usd": 1.494658,
+        "duration_ms": 245405,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 56,
+          "outputTokens": 22087,
+          "cacheReadInputTokens": 2041505,
+          "cacheCreationInputTokens": 117025,
+          "webSearchRequests": 0,
+          "costUSD": 1.494658,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 9060,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 29
+      }
+     },
+     {
+      "score": 1.0,
+      "passed": true,
+      "turns": 3,
+      "costUsd": 1.4991156000000005,
+      "judgeCostUsd": 0,
+      "durationSeconds": 235,
+      "startedAt": "2026-10-17T01:40:25.692Z",
+      "error": null,
+      "tracePath": "/private/tmp/e-3azuds/out/trace.jsonl",
+      "skippedPaidGraders": false,
+      "graders": [
+       {
+        "name": "reach-warden",
+        "passed": true,
+        "weight": 1,
+        "explanation": "Agent called 1x (expected 1..∞)",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-findings",
+        "passed": true,
+        "weight": 1,
+        "explanation": "matched ^## Findings[ \\t]*\\n(?:(?!^## )[\\s\\S])*?^### \\d+\\. [^\\n]+\\n(?:(?!^##)[\\s\\S])*?^verdict: \\S",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-report-exists",
+        "passed": true,
+        "weight": 1,
+        "explanation": "seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-1.md exists as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "shape-words-only",
+        "passed": true,
+        "weight": 1,
+        "explanation": "pattern absent as expected",
+        "withOnly": false,
+        "scored": true
+       },
+       {
+        "name": "truth-seeded",
+        "passed": true,
+        "weight": 1,
+        "explanation": "regraded from the report rows: found",
+        "withOnly": false,
+        "scored": true
+       }
+      ],
+      "specseal": {
+       "report_rows": [
+        "location: skills/code-review/scripts/chain_check.py:4647",
+        "location: skills/code-review/scripts/round_record.py:4583, skills/code-review/scripts/round_record.py:4607, skills/code-review/scripts/round_record.py:2382, skills/code-review/scripts/round_record.py:3467"
+       ],
+       "cost": {
+        "total_cost_usd": 1.4991156000000005,
+        "duration_ms": 227492,
+        "modelUsage": {
+         "claude-opus-5-5": {
+          "inputTokens": 68,
+          "outputTokens": 18821,
+          "cacheReadInputTokens": 2517843,
+          "cacheCreationInputTokens": 113301,
+          "webSearchRequests": 0,
+          "costUSD": 1.4991156000000005,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 7454,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+         }
+        }
+       },
+       "tool_calls": 35
+      }
+     }
+    ]
+   },
+   "aggregates": {
+    "score": 1.0,
+    "passRate": 1.0
+   }
+  }
+ ],
+ "aggregates": {
+  "casesTotal": 9,
+  "casesPassed": 3,
+  "overallScore": 0.8317460317460318,
+  "overallPassRate": 0.4444444444444444
+ },
+ "specseal": {
+  "agent": "warden",
+  "preload": {
+   "agents/warden.md": "171c05699a934eb586719badb6008c8b94eddcb097bcda65d5e555d1c86acafc",
+   "skills/agent-contract/SKILL.md": "a58c7a0541cc25660929a41f7bee1fe9e9976463e38397d74fd001764925ffa9",
+   "skills/code-review/SKILL.md": "d67fb2d218812c89ab65921492fdfc48f4575c9619ebfa0e3c4cca294b347781",
+   "skills/writing-style/SKILL.md": "f509dfeeaec143e9c4d6580e77c919b885629da5bd28186db3bf569210dcd33e"
+  },
+  "preload_bytes": 76019,
+  "cut_short": false,
+  "rev": "af9c924b",
+  "suite_rev": "11ebe8f48224d8d8d0d1b30953f00ae2968f2c02",
+  "suite_tree": "95b4041e9ae847715ec18e29b52d5e9aeba0090d",
+  "regraded_from": "af9c924b7c5b03af5291017c226842655a8d83dd"
+ }
+}

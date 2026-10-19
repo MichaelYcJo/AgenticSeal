@@ -4,8 +4,10 @@
 A replay case is a historical review target: the clone at the commit a
 round record reviewed and the base it was reviewed against. Its truth is
 every finding the round closed `fixed` that the next round confirmed
-closed; each is a `truth-` grader over the `location:` lines of the round
-record the warden writes today. A record comes in one of two shapes:
+closed, and every truth `recurred_truths.json` adds for the case or widens
+(`truths_with`, which the other two generators read too); each is a
+`truth-` grader over the `location:` lines of the round record the warden
+writes today. A record comes in one of two shapes:
 
   labelled   0.22.0's record (`docs/the-review-record.md` §*The round
              record*), read through `chain_check.py`'s own reader: the
@@ -41,6 +43,7 @@ import argparse
 import ast
 import functools
 import importlib.util
+import json
 import os
 import re
 import subprocess
@@ -68,6 +71,12 @@ LOCATION = re.compile(
 )
 WINDOW = 15
 MODEL = "claude-opus-5-5"
+# What every truth's pattern opens with: a finding's `location:` line.
+LOCATION_LINE = "^location: .*"
+# The truths a run recurred on, which the three generators add (#971).
+TRUTHS = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "recurred_truths.json"
+)
 
 
 def git(*args, check=True):
@@ -356,6 +365,16 @@ def truth_pattern(location, target):
     `path#unit`, which `chain_check.py` refuses in a `location:` line.
 
     A location naming no backticked path gives None."""
+    option = truth_option(location, target)
+    return None if option is None else f"{LOCATION_LINE}(?:{option})"
+
+
+def truth_option(location, target, window=WINDOW):
+    """`truth_pattern`'s alternative for LOCATION, without the `location:`
+    line around it: a line within WINDOW of the one LOCATION names, or of
+    its unit's span.
+
+    A location naming no backticked path gives None."""
     m = LOCATION.search(location)
     if not m:
         return None
@@ -363,18 +382,101 @@ def truth_pattern(location, target):
     lines = None
     if m["line"]:
         line = int(m["line"])
-        lines = (line - WINDOW, line + WINDOW)
+        lines = (line - window, line + window)
     if m["unit"] and path.endswith(".py"):
         source = git("show", f"{target}:{path}", check=False)
         span = unit_span(source, m["unit"]) if source else None
         if span:
-            lines = (span[0] - WINDOW, span[1] + WINDOW)
+            lines = (span[0] - window, span[1] + window)
     if lines:
-        numbers = "|".join(str(n) for n in range(max(1, lines[0]), lines[1] + 1))
-        option = f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)"
-    else:
-        option = f"{behaviour.js_escape(path)}(?![\\w./#-])"
-    return "^location: .*(?:" + option + ")"
+        return lines_option(path, *lines)
+    return f"{behaviour.js_escape(path)}(?![\\w./#-])"
+
+
+def lines_option(path, first, last):
+    """The alternative for PATH at any line from FIRST to LAST, the line
+    numbers before 1 dropped."""
+    numbers = "|".join(str(n) for n in range(max(1, first), last + 1))
+    return f"{behaviour.js_escape(path)}:(?:{numbers})(?!\\d)"
+
+
+def recurred_truths():
+    """`{case: [entry]}` from the input file at TRUTHS: the truths a run
+    recurred on, each a new grader or an existing one widened. An entry is
+    `case`, `grader` (`truth-<slug>`), `finding` (a new grader's body),
+    `locations` (`path`, `path:line` or `path:first-last` at the case's
+    target), `from` (the classing rows it came from), for a widening
+    `widens: true`, and where ±15 lines would reach another truth of the
+    case, `window`, the lines either side its locations accept.
+
+    An entry naming a case the warden's suite does not hold stops the run
+    with exit 1, so the file cannot outlive its cases silently."""
+    with open(TRUTHS, encoding="utf-8") as f:
+        entries = json.load(f)
+    out = {}
+    for e in entries:
+        if not os.path.isdir(os.path.join(OUT, e["case"])):
+            raise SystemExit(f"{TRUTHS}: an entry names {e['case']}, no case of {OUT}")
+        out.setdefault(e["case"], []).append(e)
+    return out
+
+
+def truths_with(case, truths, target):
+    """TRUTHS, the `[(name, pattern, body)]` a generator derived for CASE
+    (NAME without its `truth-` prefix), with the input file's entries for
+    CASE applied at TARGET: a widening adds each of its locations to the
+    named truth's pattern as an alternative and keeps its body; a new truth
+    is one more `(name, pattern, finding)`. A location's alternative accepts
+    its line, or every line of its range, and the entry's `window` (15
+    where it names none) either side.
+
+    An entry widening a truth CASE does not have, adding one it already has,
+    naming no location, a location outside `path`, `path:line` and
+    `path:first-last`, a range that ends before it starts, or a window that
+    is no count stops the run with exit 1."""
+    out = list(truths)
+    for e in recurred_truths().get(case, []):
+        name = e["grader"].removeprefix("truth-")
+        window = e.get("window", WINDOW)
+        if type(window) is not int or window < 0:
+            raise SystemExit(f"{case}: {e['grader']}'s window {window!r} is no count")
+        options = []
+        for location in e["locations"]:
+            m = LOCATION.fullmatch(f"`{location}`")
+            if not m or m["unit"]:
+                raise SystemExit(
+                    f"{case}: {e['grader']} names `{location}`, no coordinate"
+                )
+            last = re.search(r"[-\N{EN DASH}](\d+)$", location) if m["line"] else None
+            if last:
+                first = int(m["line"])
+                if int(last[1]) < first:
+                    raise SystemExit(
+                        f"{case}: {e['grader']} names `{location}`, a range "
+                        "that ends before it starts"
+                    )
+                options.append(
+                    lines_option(m["path"], first - window, int(last[1]) + window)
+                )
+            else:
+                options.append(truth_option(f"`{location}`", target, window))
+        if not options:
+            raise SystemExit(f"{case}: {e['grader']} names no location")
+        names = [n for n, _pattern, _body in out]
+        if e.get("widens"):
+            if name not in names:
+                raise SystemExit(f"{case}: no {e['grader']} to widen")
+            i = names.index(name)
+            _n, pattern, body = out[i]
+            if not pattern.startswith(LOCATION_LINE):
+                raise SystemExit(f"{case}: {e['grader']} reads no `location:` line")
+            rest = pattern[len(LOCATION_LINE) :]
+            out[i] = (name, f"{LOCATION_LINE}(?:{rest}|{'|'.join(options)})", body)
+        elif name in names:
+            raise SystemExit(f"{case}: {e['grader']} is already a truth of the case")
+        else:
+            out.append((name, f"{LOCATION_LINE}(?:{'|'.join(options)})", e["finding"]))
+    return out
 
 
 def targets(tags, items=None):
@@ -497,17 +599,17 @@ def scaffold(t, url):
 def graders(t):
     """Reach, shape and truth graders for one target."""
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
-    out = behaviour.report_shape("warden", report)
-    for truth in t["truths"]:
-        out.append(
-            behaviour.report_regex(
-                "truth",
-                f"{truth['k']}",
-                report,
-                truth["pattern"],
-                f"Round {t['n']}'s finding {truth['k']}: {truth['finding']}",
-            )
+    own = [
+        (
+            f"{truth['k']}",
+            truth["pattern"],
+            f"Round {t['n']}'s finding {truth['k']}: {truth['finding']}",
         )
+        for truth in t["truths"]
+    ]
+    out = behaviour.report_shape("warden", report)
+    for name, pattern, body in truths_with(case_name(t), own, t["target"]):
+        out.append(behaviour.report_regex("truth", name, report, pattern, body))
     return out
 
 
