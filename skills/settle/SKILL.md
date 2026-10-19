@@ -50,6 +50,39 @@ root into the tree and `settle` works from there. Every other command in this
 plugin reads both places; this is the one that stops, because it is the one
 that deletes.
 
+## Rule changes
+
+A spec states the rules it changes in its `## Rule changes` section, one
+item per operation. The operation's line comes first, then one field per
+line, indented two spaces:
+
+```
+- change
+  file: docs/the-review-record.md
+  section: The round record
+  from: the sentence as it reads now.
+  to: the sentence as it will read.
+```
+
+| Operation | Fields | What it does |
+|---|---|---|
+| `add` | `file`, `to`; `section` optional | puts `to` at the end of the section's own text, before its first sub-heading. With no `section` it creates `file`, and is refused where `file` exists |
+| `change` | `file`, `section`, `from`, `to` | rewrites `from` where it stands |
+| `remove` | `file`, `section`; `from` optional | deletes `from`, or with no `from` the whole section, up to the next heading of its level or higher |
+
+- `file` is a top-level `.md` file of `docs/`. `section` is a heading's
+  text at any level, and appears once in the file. `from` appears once in
+  the section, compared with runs of whitespace collapsed; every other
+  character, emoji included, is matched as itself.
+- A value continues on the lines below it indented four spaces, and lands
+  with that indent removed.
+- A spec that changes no rule writes `nothing — <why>` in place of the
+  items.
+- A block that does not match whole is refused at its line, and its spec
+  applies nothing.
+
+`skills/settle/scripts/rule_changes.py` is the one reader.
+
 ## When it runs
 
 **By hand, named as a step in the release checklist.** It is invoked, never

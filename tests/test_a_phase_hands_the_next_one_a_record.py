@@ -189,6 +189,20 @@ def test_the_spec_template_carries_the_removes_section_above_the_mark():
     assert "`nothing — <why>`" in " ".join(raw.split())
 
 
+def test_the_spec_template_carries_the_rule_changes_section_above_removes():
+    """#953. The section ships outside comments, above `## Removes`, and
+    points at the one statement of its grammar rather than restating it."""
+    raw = read(SPEC_TEMPLATE)
+    lines = reader_module().strip_comments(raw.splitlines())
+    assert section_body(lines, "## Rule changes") == []
+    assert raw.index("## Rule changes") < raw.index("## Removes")
+    assert "`skills/settle/SKILL.md` §*Rule changes*" in " ".join(raw.split())
+    assert (
+        "## Rule changes"
+        in read(os.path.join(ROOT, "skills", "settle", "SKILL.md")).splitlines()
+    )
+
+
 def test_the_framer_is_told_it_writes_the_removes_section():
     """S8 of #835. The framer's writes and its report name the section,
     because a frame that does not know it owes one ships without it."""

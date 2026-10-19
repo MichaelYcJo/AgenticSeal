@@ -110,11 +110,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
+RULES = os.path.join(HERE, "rule_changes.py")
 
 # What each sibling is for, in the sentence `load` prints when it is missing.
 PURPOSES = {
     READER: "it is where the fold record is read from",
     OPTIN: "it is what finds the repository's seal/ root",
+    RULES: "it is what reads a spec's `## Rule changes`",
 }
 
 SPECS = "seal/specs"
@@ -381,6 +383,9 @@ def survey(root, ref):
             continue
         survey["unfolded"].append(work_item_id)
 
+    survey["plan"] = rule_plan(root, ref, base, survey["unfolded"], reader)
+    survey["unfolded"] = survey["plan"]["premodel"]
+
     # What a retirement here would take with it, by either arm: D1's table,
     # the three things #514's frame found by hand and the command should
     # report by itself.
@@ -395,6 +400,97 @@ def survey(root, ref):
     # or not, since that arm does not wait for the fold.
     survey["process"] = process_plan(root, survey["released"])
     return survey
+
+
+def read_text(root, rel):
+    """A file's text as it stands, line ends kept, or None where it is absent."""
+    try:
+        with open(under(root, rel), encoding="utf-8", newline="") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def rule_plan(root, ref, base, ids, reader):
+    """What `--apply` does with the released specs IDS, replayed in memory.
+
+    Each spec is read as REF holds it. One with no `## Rule changes` is
+    `premodel`. One whose section does not parse, whose record holds an open
+    row here or at BASE, whose adding commit is not on REF, or that conflicts
+    with another at one place is held, and `rule_changes.replay` refuses it
+    and waits every later spec at its places."""
+    rules = load(RULES, "specseal_rule_changes")
+    parsed, premodel = {}, []
+    for work_item_id in ids:
+        text = reader.show(root, ref, f"{SPECS}/{work_item_id}/spec.md") or ""
+        found = rules.parse(text)
+        if found.ops is None:
+            premodel.append(work_item_id)
+        else:
+            parsed[work_item_id] = found
+    ordered = rules.order(root, ref, list(parsed), SPECS)
+    held = {i: list(p.errors) for i, p in parsed.items() if p.errors}
+    for work_item_id, commit in ordered:
+        why = held.setdefault(work_item_id, [])
+        if commit is None:
+            why.append((0, f"no commit on {ref} adds its spec.md"))
+        directory = f"{SPECS}/{work_item_id}"
+        rows = reader.open_record_rows(root, None, directory) or (
+            reader.open_record_rows(root, base, directory)
+        )
+        if rows:
+            why.append((0, f"its record holds an open row: {rows[0][1]}"))
+    held = {i: why for i, why in held.items() if why}
+    entries = [(i, c, parsed[i].ops) for i, c in ordered if i not in held]
+    for work_item_id, (other, (file, section)) in rules.conflicts(
+        root, entries
+    ).items():
+        held[work_item_id] = [
+            (0, f"a conflict with {other} at {file} section `{section}`: "
+                "merge order cannot decide them")
+        ]  # fmt: skip
+    documents, applied, refused = rules.replay(
+        lambda rel: read_text(root, rel),
+        [(i, parsed[i].ops) for i, _ in ordered],
+        held,
+    )
+    return {
+        "order": [i for i, _ in ordered],
+        "parsed": parsed,
+        "premodel": premodel,
+        "documents": documents,
+        "applied": applied,
+        "refused": refused,
+    }
+
+
+def write_plan(plan, rule, out):
+    """The dry run's sections for the rule changes: pending, refused, and what
+    `--apply` would remove."""
+    pending = {}
+    for work_item_id in plan["applied"]:
+        for op in plan["parsed"][work_item_id].ops:
+            where = f"section `{op.section}`" if op.section else "a new document"
+            pending.setdefault(op.file, []).append(
+                f"        {op.kind} {where}  {work_item_id} spec.md:{op.line}"
+            )
+    if pending:
+        out.write("\npending rule changes, in merge order:\n")
+        for file, lines in pending.items():
+            out.write(f"    {file}\n" + "\n".join(lines) + "\n")
+    if plan["refused"]:
+        out.write("\nrefused — nothing of the spec applies, and its directory stays:\n")
+        for work_item_id, line, why in plan["refused"]:
+            where = f"spec.md:{line}" if line else "spec.md"
+            out.write(f"    {work_item_id}  {where}  {why}\n")
+    nothing = [i for i in plan["applied"] if not plan["parsed"][i].ops]
+    if nothing:
+        out.write("\nno rule to apply (`nothing — <why>`):\n")
+        out.write("".join(f"    {i}\n" for i in nothing))
+    removes = plan["applied"] + rule
+    if removes:
+        out.write("\nwhat `settle --apply` would remove:\n")
+        out.write("".join(f"    {SPECS}/{i}/\n" for i in removes))
 
 
 def has_spec(root, work_item_id):
@@ -501,6 +597,9 @@ def report(found, ref, out=sys.stdout):
         f"{len(found['rule_base_kept'])} kept because the closure has not "
         f"reached {found['base_label']}\n"
     )
+
+    if "plan" in found:
+        write_plan(found["plan"], found["rule"], out)
 
     if found["unfolded"]:
         write(
@@ -1039,7 +1138,7 @@ def main(argv=None):
         return retire(found, root)
     if args.retire_process:
         return retire_process(found, root)
-    return report(found, args.released_at)
+    return report(found, args.released_at, out=sys.stdout)
 
 
 if __name__ == "__main__":
