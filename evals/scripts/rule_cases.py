@@ -10,7 +10,9 @@ whether the work came out in the shape the next reader needs, never
 whether a sentence of today's definition was followed:
 
   warden   one review of a diff with one defect against its spec: the
-           defect found, the round record in the template's shape
+           defect found, the round record in the template's shape, and
+           any truth `recurred_truths.json` adds for the case
+           (`replay_targets.py#truths_with`)
   smith    four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind
   framer   four issues to frame: the three documents with the mark and a

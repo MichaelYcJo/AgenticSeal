@@ -73,8 +73,16 @@ case:
 | Generator | Cases |
 |---|---|
 | `scripts/replay_targets.py` | `warden/replay-*`: a round record's target, each finding the next round confirmed fixed a `truth-` grader |
-| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped diff with one mutation in a unit it touched |
+| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped diff with one mutation in a unit it touched, the mutated line its `truth-` grader |
 | `scripts/rule_cases.py` | `<agent>/rule-*`: a fixture repository the agent works in, graded on what it produced |
+
+All three also read `scripts/recurred_truths.json`. A real defect a case
+did not list, named by at least two of the case's classed runs, is a
+`truth-` grader of that case. A listed truth that a run found at a
+coordinate its regex missed is widened with that coordinate. Each entry
+names its case, the grader it adds or widens, its locations and the
+classing rows it came from, and an entry the case cannot take stops the
+generator with exit 1.
 
 ```bash
 python3 evals/scripts/noninferiority.py run --agent warden --rev <merge base> \

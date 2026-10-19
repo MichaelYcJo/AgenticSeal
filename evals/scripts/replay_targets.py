@@ -4,8 +4,10 @@
 A replay case is a historical review target: the clone at the commit a
 round record reviewed and the base it was reviewed against. Its truth is
 every finding the round closed `fixed` that the next round confirmed
-closed; each is a `truth-` grader over the `location:` lines of the round
-record the warden writes today. A record comes in one of two shapes:
+closed, and every truth `recurred_truths.json` adds for the case or widens
+(`truths_with`, which the other two generators read too); each is a
+`truth-` grader over the `location:` lines of the round record the warden
+writes today. A record comes in one of two shapes:
 
   labelled   0.22.0's record (`docs/the-review-record.md` §*The round
              record*), read through `chain_check.py`'s own reader: the

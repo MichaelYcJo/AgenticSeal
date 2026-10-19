@@ -6,8 +6,11 @@ scaffold clone as one commit on its first parent with one mutation applied
 to a line the diff added inside a Python unit, and the work item's
 `rounds/` taken out so no earlier verdict is inherited. Its truth is the
 mutated line: a `truth-` grader over the report's `location:` lines for
-`path:<line>` within ±15 of it. The operators are `mutation-check`'s vocabulary, a
-replacement that lands exactly once in the file.
+`path:<line>` within ±15 of it. A real defect of the shipped diff that runs
+recurred on is a truth of the case too, where `recurred_truths.json` adds
+it (`replay_targets.py#truths_with`). The operators are
+`mutation-check`'s vocabulary, a replacement that lands exactly once in the
+file.
 
 Usage:
   seed_defects.py --list                 every shipped commit and the
