@@ -69,6 +69,37 @@ Each is argued in `plan.md` §*Alternatives considered* or `spec.md`.
 10. *Whether the guard-2 measurement Q4 recorded still holds a rule.* It
     does not after phase 7: nothing reads the reflog. The row stays as the
     record of a measurement that was made.
+11. *Why the repair after a refused commit drew nothing, and what completes
+    the gate* (phase 6, `phases/phase-6.md`). The sealer's new audit keeps
+    the refused verdict on its row as `; earlier run: <sha> sealed`, and the
+    chain reader counts every earlier `sealed` no record names; the gate
+    had refused the row, so `post-commit` never ran for it and nothing was
+    recorded. The gate now records the refusal it makes, and the chain
+    reader skips a `sealed` this clone recorded (`plan.md` A14 as
+    completed). That record is a fact and not an inference: the refused row
+    never became history and reaches no other clone, so no guard is needed
+    and none of rounds 1 and 2's paths applies (`plan.md` §*Technical
+    context*, the walk). Weighed and rejected: telling the session to
+    restore `guarantee.md` to HEAD before the new audit (A19, an act a
+    session must perform, whose omission is the gap itself), telling the
+    sealer to keep only committed verdicts on its row (A20, a written rule
+    to an agent plus a re-measurement, where the gate already holds the
+    fact), and a stated limit (A21, the answer the owner refused for Q2).
+12. *How a reframe after a build phase is marked.* The orchestrator asked
+    for `Reframed 2026-10-19 by framer, after phase 6.` under the mark, and
+    the line is there. `chain_check.REFRAME_RE` reads `after round <N>`
+    alone, so at 8b685982's tree the check refuses the declaration
+    (executed by the framer, `chain_check.py --baseline
+    origin/release/v0.22.2 --worktree`): "`spec.md` does not end with
+    `Framed <date> by <who>, before the build.`, with any `Reframed <date>
+    by <who>, after round <N>.` lines under it". `agents/framer.md` says a
+    builder finding the frame not holding comes back as a record, not as a
+    route to the framer, and `docs/the-review-record.md` §*The run* names the
+    review chain's route alone; this run took the second route anyway, which
+    is the fact the line records. So the grammar widens in phase 8 (`plan.md`
+    row 8) rather than the line narrowing to a round it did not follow. The
+    orchestrator can take the other way with one edit, `after round 2.`
+    written twice, which the check reads and which says less than happened.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
@@ -77,8 +108,8 @@ Each is argued in `plan.md` §*Alternatives considered* or `spec.md`.
 | Q4 | Does `git reflog -1 --format=%gs HEAD`, read inside `post-commit`, already show the commit that triggered it, and with which subjects across the git versions CI runs: `commit:` for a plain commit, `commit (amend):`, `rebase (pick):` or `rebase (continue):`, `cherry-pick:`, `commit (merge):`? Guard 2 reads it, and a subject it does not know must write no record | a measurement — phase 3's guard-2 cases run each of those commands against real git in the fixtures, on every CI leg | — | — | answered 2026-10-19 by the orchestrator, from `phases/phase-3.md`: on git 2.50.1 (Apple Git-155) the reflog's newest entry inside a real `post-commit` already names the triggering commit, with the subjects `commit (initial): `, `commit: `, `commit (amend): `, `cherry-pick: `, `rebase (pick): `, `rebase (continue): ` and `commit (merge): `. After phase 7 nothing reads the reflog, and `test_guard_two_reads_what_post_commit_sees_in_the_reflog` goes with the guard (head item 10) |
 | Q3 | On Windows, does `os.path.realpath` on the payload's `file_path` and on `git rev-parse --git-common-dir` give two strings that compare equal, given drive-letter case and separators? | the work — phase 2 meets it in the Windows leg of CI and normalizes with `os.path.normcase` where the leg says so | — | — | open |
 | Q5 | The refusal at the commit (`plan.md` A14) has no waiver: a `sealed` whose `Target SHA` names a commit the declared branch does not hold cannot be committed on that branch while the stub judges, and the only way on the text names is a new audit of the sealer at HEAD. The tree argues for none: the pull request's check refuses the same file (`docs/the-review-record.md` §*The guarantee*), the arms' waivers exist because a declaration or a parity record is something a person may rightly not have yet, and here there is nothing a person rightly has. But a refusal with no way past is a product decision, and the owner has asked that a question name its paths. Does the refusal offer a waiver? | a person (the repository owner) | (a) no waiver: the text names the sealer's new audit as the one way on, and `--no-verify` stays git's own flag, a stated limit (S13); (b) `git -c specseal.waive=stamp commit …` and `: '[no-stamp]';`, read by `commitgate.waived` as the arms' are, which commits the wrong row and leaves the gap for that item as #975 left it | (a); phase 6 builds it so, and an answer of (b) is one later change to `gate.py`'s token tables and the text, with its own case | answered (a) 2026-10-19 by the repository owner: no waiver |
-| Q7 | What does the one `git diff --cached --name-only` on every judged commit, and the `git show` plus the `chain_check.py` import on a commit that stages a `sealed` guarantee, add to a judged commit's latency? `docs/the-commit-gate-inside-git.md`'s bullet reads 209–400 ms a commit under load, and #975's phase 2 measured its `diff-tree` at about 10 ms as medians of 11 commits | a measurement — phase 6 times `git commit` with and without the refusal on the same fixture, as #975's phase 2 did, and the phase record and the latency bullet carry both figures | — (the work measures it) | — | open |
-| Q6 | Does `git show :<path>` inside `pre-commit` read the index the commit will write for every commit shape the stub judges: a plain `git add` then `commit`, `commit -a`, and `commit <pathspec>`, where git hands the hook a temporary index through `GIT_INDEX_FILE` (#692's M2 measured that for the paths listing)? | the work — phase 6's S12 case runs each shape against real git, on every CI leg, and a shape whose index the hook misreads fails there naming the shape | — | — | open |
+| Q7 | What does the one `git diff --cached --name-only` on every judged commit, and the `git show` plus the `chain_check.py` import on a commit that stages a `sealed` guarantee, add to a judged commit's latency? `docs/the-commit-gate-inside-git.md`'s bullet reads 209–400 ms a commit under load, and #975's phase 2 measured its `diff-tree` at about 10 ms as medians of 11 commits | a measurement — phase 6 times `git commit` with and without the refusal on the same fixture, as #975's phase 2 did, and the phase record and the latency bullet carry both figures | — (the work measures it) | — | answered 2026-10-19 by the work (`phases/phase-6.md`, executed on git 2.50.1, medians of 11 commits, not under load): an ordinary judged commit 260 → 268 ms, inside the spread of the 11 runs; a commit staging a `sealed` guarantee over HEAD 283 → 310 ms, which is `seal_stamp.py` and `chain_check.py` loaded in `pre-commit`, two `git show` calls, one `rev-parse --abbrev-ref`, one `merge-base` and one `rev-parse --short`. Phase 8 writes both figures into `docs/the-commit-gate-inside-git.md`'s latency bullet |
+| Q6 | Does `git show :<path>` inside `pre-commit` read the index the commit will write for every commit shape the stub judges: a plain `git add` then `commit`, `commit -a`, and `commit <pathspec>`, where git hands the hook a temporary index through `GIT_INDEX_FILE` (#692's M2 measured that for the paths listing)? | the work — phase 6's S12 case runs each shape against real git, on every CI leg, and a shape whose index the hook misreads fails there naming the shape | — | — | answered 2026-10-19 by the work (`phases/phase-6.md`, executed on git 2.50.1 through the stubs `hooks/hook-install.py` wrote): `test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit` is refused for `git add` then `commit`, for `commit -a` and for `commit -- <path>`; a `sealed` staged and then put back to `withheld` on disk is refused too, so the index is what is read; a pathspec commit of another file lands with the guarantee still staged, because git's temporary index for that commit does not carry it. CI's other legs run the same case |
 
 **`Who can answer` takes one of three values and nothing else.** They were one
 shape on the page before this, and #84's second comment measured all three
