@@ -9,7 +9,8 @@
     sections of `skills/implement/SKILL.md`: the record language, §1 and §3.
   - Before it writes, it reads the section of
     `skills/writing-style/SKILL.md` for the record's language.
-  - Where a heading is not found, it reads the file whole.
+  - Where one of `implement`'s headings is not found, it reads that file
+    whole.
   - It now weighs the alternative that replaces a structure as an equal of
     the one that keeps it, in `plan.md`'s Alternatives table.
   - Its incident histories and release readings are gone.
