@@ -657,6 +657,22 @@ def test_a_spec_moved_into_place_is_ordered_by_the_commit_that_moved_it(repo, ca
     assert not specs_dir(repo, "1700000002-new").exists(), text
 
 
+def test_merge_order_is_the_commit_that_adds_the_spec(repo):
+    """A work item's directory is born with its `routing.md`, often well
+    before its `spec.md`; the order is the spec's, not the directory's."""
+    early = specs_dir(repo, "1700000001-a")
+    early.mkdir(parents=True)
+    (early / "routing.md").write_text("# a — routing\n", encoding="utf-8")
+    commit(repo, "a is declared")
+    item(repo, "1700000002-b", op("add", "U", new="B."))
+    commit(repo, "b")
+    item(repo, "1700000001-a", op("add", "U", new="A."))
+    commit(repo, "a is framed")
+    ids = ["1700000001-a", "1700000002-b"]
+    found = [i for i, _ in rules.order(str(repo), "HEAD", ids)]
+    assert found == ["1700000002-b", "1700000001-a"], found
+
+
 def test_a_spec_no_commit_adds_is_held(repo, capfd, monkeypatch):
     """Where the history cannot place a spec, it has no place in the order,
     and it is held rather than applied first or last."""
