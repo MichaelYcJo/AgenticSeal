@@ -15,25 +15,31 @@ section at the steps that need them.
 
 ## Where spec and implementation diverged
 
-Opened at phase 1. Each row is one divergence; `phases/phase-1.md` holds the
-detail.
+Opened at phase 1 and closed at phase 4. Each row is one divergence;
+`phases/phase-1.md`, with its two merge addenda, holds the detail.
 
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
 | Removals `## Removes` did not name (phase 1) | `## Removes` names the sections and sentences that leave `agents/framer.md`; phase 1 also removed the clause *`sealer` runs the broad gate over what is left*, the paragraph saying `smith` reads narrowly by comparison, the #263 reading under the reading list, the paragraph on what a mark is worth (`hooks/implementer.py`), the sentence keeping the two utility skills off the `skills:` list (#292), and the section *The frame is a drawing, and a phase prompt points at a row* | removed | the first is false since #969 moved the broad gate to the orchestrator; the rest are narration or address the orchestrator, and `spec.md` §*Data & interfaces* lists every section the new file keeps. The #292 reason stands in `tests/test_chain_hooks_hardening.py`'s comment above `UTILITY_SKILLS` |
-| The README skills row and its count check (phase 1) | `## Removes` names the framer's row in each README edition; the skills row of each said *the four the agents follow from their first tool call are in the column to the left*, which the rewrite makes false | both rows now say two are preloaded and fourteen are loaded on demand, `implement` and `writing-style` in the list; `tests/test_chain_hooks_hardening.py::test_the_readme_group_counts_are_derived_too` gained the spellings for 2 and 14 | that case derives each group from the `skills:` lists and went red on the rewrite with *the `preloaded` group holds 2 skills and no spelling is recorded -- add it rather than loosening the check* |
+| The README skills row and its count check (phase 1) | `## Removes` names the framer's row in each README edition; the skills row of each said *the four the agents follow from their first tool call are in the column to the left*, which the rewrite makes false | both rows said two preloaded and fourteen on demand at 2cb43374. After #970 merged in at 461f00c6, they say one preloaded and fifteen on demand, with `implement`, `legacy-parity` and `writing-style` in the list. `tests/test_chain_hooks_hardening.py::test_the_readme_group_counts_are_derived_too` holds the spellings for 1, 2, 14 and 15 | that case derives each group from the `skills:` lists and went red on the rewrite with *the `preloaded` group holds 2 skills and no spelling is recorded -- add it rather than loosening the check* |
 | Two citations in `skills/implement/orchestration.md` (phase 1) | the frame does not name the file; `:381` cited the framer's `## When you run` and `:416` its §*You have no interactive phase*, both sections the rewrite removes | re-pointed to `## Job` and the rule *You ask nobody anything* | contract §19: a change corrects what stood on the old fact in the same commit. The lines are outside the ranges #943 and #976 edit (`spec.md` §*The read set after the rewrite*) |
+| The release branch merged in twice (461f00c6, ae3f6ccf) | the plan names no merge; Q2 has phase 2 wait for #976 and #985 | two merge commits, so the phase commits keep the SHAs `plan.md` names; the side was measured at b434e145, after the first merge, and the second merge changed only `docs/the-review-record.md`'s round-record sections, which the framer does not open | the orchestrator's instruction for each merge; `phases/phase-4.md` compares the read set at the measured commit and at HEAD |
+| The exemption and the preload case removed (461f00c6) | `## Removes` names the framer's `NOT_YET_REWRITTEN` entry; once #970 had removed the scribe's, the merge left the dict empty | the dict, the shape case's skip and `tests/test_every_agent_reads_the_contract.py::test_every_definition_preloads_the_contract` removed | the preload case existed only to cover definitions the shape case skipped; with none skipped, the shape case's `skills:` check covers it, and no `Enforced by:` line named it |
+| A check phase 1 turned red, fixed (6fe805e1) | the frame does not name `tests/test_first_setup_asks_once.py`; 2cb43374 re-wrapped *and nowhere else* onto one line of `skills/implement/orchestration.md`, and phase 1 did not run that module | the sentence reworded at the merge, and the case made to do what its docstring says: whitespace folded, and the 0.4.0 claim refused rather than the two words | the case read the raw text, so a line break hid the phrase (`mutation-check`: SURVIVED). Contract §18, and the orchestrator's instruction to fix the defect where it was found |
 
 ## Not verified
 
 | Item | Who must answer |
 |---|---|
 | the full suite, the repository-wide lint and the typecheck on this branch | the orchestrator's broad gate, after the review rounds settle |
-| the framer's eval side on the rewritten tree (S3, S9, S10) | phase 2, which the orchestrator schedules after #976 and #985 merge (`questions.md` Q2) |
+| closed the framer's eval side on the rewritten tree (S3, S9, S10) | phase 2, 5dc581c9: the side at b434e145 reads `pass`, 64 of 64 graders, and all eight runs opened both skills by section (`phases/phase-2.md`) |
 
 ## Not done
 
-Nothing in phase 1.
+The replace-or-keep grader (`questions.md` Q5) is not added. The suite
+stays at `af9c924b` through 0.22.x, so no side here could run a new
+grader, and a test pin holds the sentence. The owner answers Q5 when the
+suite next moves.
 
 ## Fed back into the spec
 
