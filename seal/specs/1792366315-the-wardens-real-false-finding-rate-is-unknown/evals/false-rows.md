@@ -158,5 +158,62 @@ match the rows.
 
 These are the comment's totals, and the join recomputes them from the rows
 above. The baseline side has 55 rows in all and the phase-3 side 47
-(`side_numbers`, executed 2026-10-19). The rates under both suites are phase
-4's, beside these totals.
+(`side_numbers`, executed 2026-10-19). The figures under both suites follow.
+
+## The figures under both suites
+
+Each side was run once, on af9c924b's suite. Under 864798a4's suite it is
+the same side regraded from its committed rows by `noninferiority.py
+regrade`, with no new run: `baseline-warden-864798a4.json` and
+`warden-phase-3-864798a4.json` in this directory. 864798a4's suite is
+af9c924b's plus the 15 truths and 2 widenings of
+`evals/scripts/recurred_truths.json`, and no other file of any case changed.
+
+**Nothing in 0.22.2 is decided on 864798a4's suite.** The owner's decision
+in #971's body keeps 0.22.2's comparisons on af9c924b's suite: #968, #970,
+#985 and the milestone's closing verdict. These figures stand side by side
+and decide nothing. `971-warden-phase-3-864798a4.md` is `compare`'s record
+of the two regraded sides. It says `Verdict: pass`, `noninferiority.py
+check` recomputes that verdict from its numbers (exit 0), and it decides
+nothing either.
+
+| Side | Suite | Rows | False rows | Harness false rate | Truth finds | Recall |
+|---|---|---|---|---|---|---|
+| baseline | af9c924b | 55 | 43 | 0.782 | 13/24 | 0.542 |
+| baseline | 864798a4 | 55 | 19 | 0.345 | 39/54 | 0.722 |
+| phase 3 | af9c924b | 47 | 31 | 0.660 | 16/24 | 0.667 |
+| phase 3 | 864798a4 | 47 | 12 | 0.255 | 41/54 | 0.759 |
+
+The harness false rate is false rows over rows, the number `verdict`'s rule 2
+reads. Truth finds are the passes of every `truth-` grader over every run,
+and recall is the one over the other, the measure rule 1 reads.
+
+The false rows that remain, by the class phase 1 gave them:
+
+| Class | baseline, af9c924b | baseline, 864798a4 | phase 3, af9c924b | phase 3, 864798a4 |
+|---|---|---|---|---|
+| real | 28 | 6 | 21 | 3 |
+| real (truth-miss) | 3 | 1 | 1 | 0 |
+| remark | 6 | 6 | 2 | 2 |
+| remark (artefact) | 4 | 4 | 4 | 4 |
+| remark (fenced) | 0 | 0 | 2 | 2 |
+| wrong | 1 | 1 | 1 | 1 |
+| unclear | 1 | 1 | 0 | 0 |
+
+**The real false rate**, `wrong` rows over rows, is the same under both
+suites, because a truth never credits a `wrong` row: 1/55 = 0.018 on the
+baseline and 1/47 = 0.021 on phase 3. A `wrong` row and an `unclear` row
+together are 2/55 = 0.036 and 1/47 = 0.021. Under 864798a4's suite, what
+stays false is mostly what no suite can make true:
+
+- `remark` rows, which name no defect.
+- The 8 artefact rows. The scaffold makes them, and the fix for them is the
+  owner's issue for the release after 0.22.2 (`spec.md` §*Scope*, *Out*).
+- The fenced rows.
+- 6 and 3 `real` rows that no second run named. A truth needs two of a
+  case's four runs (`spec.md` §*Scope*).
+- The baseline's `real (truth-miss)` row at `chain_check.py#note_rows (line
+  1876)`. Its form is one the grammar refuses, so no truth credits it.
+
+Every figure here is recomputed from the committed sides by the script
+named in `../phases/phase-4.md`.
