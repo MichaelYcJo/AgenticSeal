@@ -128,8 +128,9 @@ def rounds_of(*texts):
     return out, errors
 
 
-# The table the old generator's records carried, which nothing reads again:
-# a merged item keeps one in the fixture, and the check must never open it.
+# The table the old generator's records carried, which the check never judges
+# again: a merged item keeps one in the fixture, and the check must never open
+# it.
 OLD_RECORD = (
     "# 1788999999-a-merged-item — review round 1\n\n"
     "| Field | Value |\n|---|---|\n"

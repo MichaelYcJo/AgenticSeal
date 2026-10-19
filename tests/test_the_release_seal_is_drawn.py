@@ -409,7 +409,8 @@ target: abc1234 against base
 {findings}
 ## Probes
 """
-# The table the old generator's records carried, which no reader reads.
+# The table the old generator's records carried, which the check's reader
+# refuses.
 OLD_ROUND = """# round {n}
 
 ## Verdicts

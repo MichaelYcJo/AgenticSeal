@@ -36,7 +36,8 @@
 
   A record written before the row lacks the line, and that is no finding.
   The check reads only the records of the work items a pull request
-  carries, so no merged record is read again or rewritten. The release
+  carries, so no merged record is judged at a pull request again, and none
+  is rewritten. The release
   panel reads every record of a release by this grammar, so v0.22.2's
   panel shows its `deferred` row as `not read`, by the owner's decision.
 

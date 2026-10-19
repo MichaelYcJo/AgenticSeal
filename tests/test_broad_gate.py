@@ -122,7 +122,8 @@ def a_record(*verdicts):
     )
 
 
-# The table the old generator's records carried, which no reader reads.
+# The table the old generator's records carried, which the check's reader
+# refuses.
 OLD_RECORD = (
     "# r — review round 1\n\n## Verdicts\n\n"
     "| # | Finding | Location | Verdict | Grounds |\n|---|---|---|---|---|\n"

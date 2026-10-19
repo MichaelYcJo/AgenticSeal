@@ -229,11 +229,16 @@ a ready pull request its newest run is HEAD, or only the work item's records
 follow it.
 Enforced by: tests/test_broad_gate.py::TestGate, tests/test_broad_gate.py::TestKeptRuns, tests/test_chain_check.py::TestMain
 
-**Nothing reads a record of the old table's shape.** The check opens the
+**The check reads no record of the old table's shape.** It opens the
 records of the work items this pull request's own commits declare or change
-and no other, so a record a merged pull request left behind is read by
-nothing again, whatever its shape. One of the old shape under an item this
-pull request carries has no `## Findings` section, and is refused by name. A
+and no other, so a record a merged pull request left behind is never judged
+at a pull request again, whatever its shape. Two readers outside the check
+still open merged records: `.github/scripts/release_seal.py#chain_counts`
+reads every record of a release with the `chain_check` of the tree it runs
+from, and `evals/scripts/replay_targets.py` reads each labelled record with
+the `chain_check` of the commit that last wrote it. One of the old shape
+under an item this pull request carries has no `## Findings` section, and is
+refused by name. A
 work item in flight across a change to the table meets the change as its
 records stand: a renamed line is rewritten into its new spelling, and an
 added line is never supplied after the round that would have written it, so
