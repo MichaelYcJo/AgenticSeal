@@ -1657,6 +1657,7 @@ GUARANTEE_TEXT = (
         "add, then commit",
         "commit -a",
         "commit <pathspec>",
+        "staged, then put back on disk",
         "a pathspec that leaves it out",
     ],
 )
@@ -1666,9 +1667,11 @@ def test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit(world, s
     `guarantee.md` that reads `sealed` over `deadbee` is refused inside the
     commit, HEAD unmoved, whether the guarantee was staged first, taken by
     `-a`, or named by a pathspec, where git hands the hook a temporary index
-    through `GIT_INDEX_FILE`. A pathspec commit of another file carries an
-    index without the staged guarantee, so it lands. Red at 37f96f7a: every
-    shape landed."""
+    through `GIT_INDEX_FILE`. What is read is the index, not the disk: the
+    `sealed` staged and then put back to `withheld` on disk is still what
+    the commit carries, and is refused. A pathspec commit of another file
+    carries an index without the staged guarantee, so it lands. Red at
+    37f96f7a: every shape landed."""
     item = world.w / "seal" / "specs" / "1790000000-x"
     rel = "seal/specs/1790000000-x/guarantee.md"
 
@@ -1679,7 +1682,8 @@ def test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit(world, s
             encoding="utf-8",
         )
 
-    written(world.head(world.w)[:8], "withheld — x")
+    withheld = world.head(world.w)[:8]
+    written(withheld, "withheld — x")
     g(world.w, "add", "-A", home=world.home, session="")
     g(world.w, "commit", "-q", "-m", "withheld", home=world.home, session="")
     written("deadbee", "sealed")
@@ -1688,10 +1692,17 @@ def test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit(world, s
         "add, then commit": ("commit", "-q", "-m", "the seal"),
         "commit -a": ("commit", "-q", "-a", "-m", "the seal"),
         "commit <pathspec>": ("commit", "-q", "-m", "the seal", "--", rel),
+        "staged, then put back on disk": ("commit", "-q", "-m", "the seal"),
         "a pathspec that leaves it out": ("commit", "-q", "-m", "f", "--", "f.py"),
     }[shape]
-    if shape in ("add, then commit", "a pathspec that leaves it out"):
+    if shape in (
+        "add, then commit",
+        "staged, then put back on disk",
+        "a pathspec that leaves it out",
+    ):
         g(world.w, "add", rel, home=world.home, session="")
+    if shape == "staged, then put back on disk":
+        written(withheld, "withheld — x")
     if shape == "a pathspec that leaves it out":
         world.change(world.w)
     got = g(world.w, *args, home=world.home, check=False)
