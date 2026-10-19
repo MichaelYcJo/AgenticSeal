@@ -1029,10 +1029,12 @@ CASE = "evals/behaviour/warden/c1"
 
 
 def suite_commits(tmp_path, monkeypatch):
-    """A repository whose history holds four warden suites, with `ni` reading
+    """A repository whose history holds six warden suites, with `ni` reading
     it: `own` (case c1, its truth-1 TRUTH), `wide` (truth-1 widened to line
-    40), `prompt` (`wide` with c1's case.yaml changed) and `more` (`wide` with
-    a case c2 added). `{name: commit}`."""
+    40), and four from `wide`: `prompt` (c1's case.yaml changed), `more` (a
+    case c2 added), `kind` (truth-1 a file test, which no report row
+    answers) and `flag` (truth-1 carrying a flag Python's `re` has no
+    letter for). `{name: commit}`."""
     bh = load_script("behaviour")
     d = tmp_path / "suites"
     d.mkdir()
@@ -1055,10 +1057,10 @@ def suite_commits(tmp_path, monkeypatch):
         git("commit", "-qm", name)
         return git("rev-parse", "HEAD")
 
-    def truth(pattern):
+    def truth(pattern, flags="m"):
         write(
             f"{CASE}/graders/truth-1.md",
-            bh.report_regex("truth", "1", "r.md", pattern, "A defect.")[1],
+            bh.report_regex("truth", "1", "r.md", pattern, "A defect.", flags)[1],
         )
 
     git("init", "-q")
@@ -1080,14 +1082,24 @@ def suite_commits(tmp_path, monkeypatch):
     git("reset", "-q", "--hard", commits["wide"])
     write("evals/behaviour/warden/c2/case.yaml", "name: c2\n")
     commits["more"] = commit("more")
+    git("reset", "-q", "--hard", commits["wide"])
+    write(
+        f"{CASE}/graders/truth-1.md",
+        bh.grader("truth", "1", "A defect.", type="file_exists", path="r.md")[1],
+    )
+    commits["kind"] = commit("kind")
+    git("reset", "-q", "--hard", commits["wide"])
+    truth(WIDE, flags="mu")
+    commits["flag"] = commit("flag")
     monkeypatch.setattr(ni, "ROOT", str(d))
     return commits
 
 
-def graded_side(tmp_path, rev, rows, found):
+def graded_side(tmp_path, rev, rows, found, spoil=None):
     """A side of case c1 run on the suite at REV, its run I having printed
     ROWS[I] and recorded truth-1 as FOUND[I], its scores the ones a run of
-    two graders gets. The path it is written to."""
+    two graders gets, and SPOIL applied to it where one is given. The path
+    it is written to."""
     truth = {
         "name": "truth-1",
         "type": "regex",
@@ -1148,19 +1160,46 @@ def graded_side(tmp_path, rev, rows, found):
             "suite_tree": ni.suite_tree(rev, "warden"),
         },
     }
+    if spoil:
+        spoil(result)
     path = tmp_path / "side.json"
     path.write_text(json.dumps(result), encoding="utf-8")
     return str(path)
 
 
+# Run 0's truth row is its second line, so it is found only where the
+# grader's `m` flag reaches the regex.
 ROWS = (
-    ["location: `src/a.py:11`", "location: `src/a.py:40`"],
+    ["location: `src/a.py:40`", "location: `src/a.py:11`"],
     ["location: `src/a.py:40`"],
 )
 
 
 def regrade(side, rev, out):
     return ni.main(["regrade", "--side", side, "--suite-rev", rev, "--out", str(out)])
+
+
+def test_a_truth_grader_file_reads_back_to_what_behaviour_wrote():
+    """Guards `regrade`'s reader of a grader file: what `behaviour.grader`
+    writes reads back field for field, a doubled quote, a comma and a brace
+    inside a quoted value and an integer weight among them, with `match`
+    `contains` where the file names none."""
+    bh = load_script("behaviour")
+    pattern = r"^location: .*it's(?:a|b)"
+    name, text = bh.report_regex(
+        "truth", "q", "it's, {a}.md", pattern, "A defect.", "m", weight=2
+    )
+    assert ni.grader_from(f"graders/{name}", text) == {
+        "name": "truth-q",
+        "type": "regex",
+        "weight": 2,
+        "config": {
+            "target": {"source": "file", "path": "it's, {a}.md"},
+            "pattern": pattern,
+            "flags": "m",
+            "match": "contains",
+        },
+    }
 
 
 def test_a_side_regraded_onto_its_own_suite_is_unchanged(tmp_path, monkeypatch):
@@ -1209,27 +1248,61 @@ def test_a_side_regraded_onto_a_wider_truth_counts_the_row_it_now_matches(
     assert meta["regraded_from"] == commits["own"]
 
 
+def score_off(result):
+    result["cases"][0]["aggregates"]["score"] = 0.5
+
+
+def no_suite(result):
+    result["specseal"]["suite_rev"] = None
+
+
+def a_case_its_suite_lacks(result):
+    case = json.loads(json.dumps(result["cases"][0]))
+    case.update(name="warden c2", dir="evals/behaviour/warden/c2")
+    result["cases"].append(case)
+
+
 @pytest.mark.parametrize(
-    "rev, found, named",
+    "rev, found, spoil, named",
     [
         # Its second run recorded truth-1 found, and its rows do not find it.
-        ("wide", [True, True], "warden c1"),
+        ("wide", [True, True], None, "warden c1"),
+        # Its truth results come back, and its recorded score does not.
+        ("wide", [True, False], score_off, "warden c1"),
+        # The side names no suite it ran.
+        ("wide", [True, False], no_suite, "suite is unknown"),
+        # It ran a case the suite it names does not hold.
+        ("more", [True, False], a_case_its_suite_lacks, "warden c2"),
         # The target suite asks the case otherwise, not only its truths.
-        ("prompt", [True, False], "warden c1"),
+        ("prompt", [True, False], None, "warden c1"),
         # The target suite holds a case the side never ran.
-        ("more", [True, False], "c2"),
+        ("more", [True, False], None, "c2"),
+        # The target's truth is a file test, which no report row answers.
+        ("kind", [True, False], None, "warden c1"),
+        # The target's truth carries a flag `re` has no letter for.
+        ("flag", [True, False], None, "warden c1"),
     ],
-    ids=["rows-do-not-reproduce", "a-non-truth-file-differs", "another-case"],
+    ids=[
+        "rows-do-not-reproduce",
+        "scores-do-not-reproduce",
+        "no-suite",
+        "a-case-its-own-suite-lacks",
+        "a-non-truth-file-differs",
+        "another-case",
+        "a-truth-no-row-answers",
+        "an-unknown-flag",
+    ],
 )
 def test_regrade_refuses_what_it_cannot_stand_in_for(
-    tmp_path, monkeypatch, capsys, rev, found, named
+    tmp_path, monkeypatch, capsys, rev, found, spoil, named
 ):
-    """Guards S4: a side whose rows do not give back its own truth results,
-    or a target suite that changes a case beyond its `truth-` graders or
-    holds other cases, is refused with exit 2, naming the case, and nothing
-    is written."""
+    """Guards S4: a side whose rows do not give back what it recorded, or
+    that names no suite or a suite short of its cases, or a target suite
+    that changes a case beyond its `truth-` graders, holds other cases, or
+    holds a truth no report row can answer, is refused with exit 2, naming
+    the case, and nothing is written."""
     commits = suite_commits(tmp_path, monkeypatch)
-    side = graded_side(tmp_path, commits["own"], ROWS, found)
+    side = graded_side(tmp_path, commits["own"], ROWS, found, spoil)
     out = tmp_path / "out.json"
     assert regrade(side, commits[rev], out) == 2
     assert not out.exists(), "a side was written that regrade cannot stand in for"

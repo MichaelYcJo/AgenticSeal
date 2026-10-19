@@ -1047,27 +1047,32 @@ SCORE_ERROR = 1e-9
 
 
 def scalar(text):
-    """The value of one front-matter scalar or one-level flow map."""
+    """The value of one front-matter scalar of a truth grader: a one-level
+    flow map, a single-quoted string, or an integer; anything else is kept
+    as its text."""
     text = text.strip()
     if text.startswith("{"):
         return {k: scalar(v) for k, v in re.findall(rf"(\w+): ({SCALAR})", text[1:-1])}
     if text.startswith("'"):
         return text[1:-1].replace("''", "'")
-    if text in ("true", "false"):
-        return text == "true"
     return int(text) if re.fullmatch(r"-?\d+", text) else text
 
 
 def grader_at(rev, path):
-    """The grader file REV:PATH in the shape a side records it: `name`,
-    `type`, `weight` (1 where the file names none) and `config`, every other
-    front-matter field, with `match` `contains` where the file names none.
+    """The grader file REV:PATH, read by `grader_from`."""
+    return grader_from(path, git_bytes("show", f"{rev}:{path}").decode("utf-8"))
+
+
+def grader_from(path, text):
+    """The grader file PATH holding TEXT in the shape a side records it:
+    `name`, `type`, `weight` (1 where the file names none) and `config`,
+    every other front-matter field, with `match` `contains` where the file
+    names none.
 
     A file with no front matter raises ValueError."""
-    text = git_bytes("show", f"{rev}:{path}").decode("utf-8")
     m = re.match(r"---\n(?P<head>.*?)\n---\n", text, re.S)
     if not m:
-        raise ValueError(f"{path} at {rev[:8]} has no front matter")
+        raise ValueError(f"{path} has no front matter")
     fields = {}
     for line in m["head"].split("\n"):
         key, _, value = line.partition(": ")
