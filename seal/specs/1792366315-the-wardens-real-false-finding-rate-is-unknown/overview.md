@@ -32,7 +32,22 @@ figures side by side.
 
 ## Not done
 
-nothing
+- **Step 3 of #971, a rule for the warden.** Phase 5 was not built. The
+  owner's answer to `questions.md` Q1 moved the shared trait to #985, as a
+  shape a check reads. This work adds no line to `agents/warden.md`.
+- **The scaffold's artefacts and the harness reader's two faults.** These
+  are the 8 artefact rows, a fenced `location:` line counted as a row, and
+  a finding written only into a verdict table that goes uncounted. They
+  stay as they were. Each changes what a run reads or how its rows are
+  extracted. So a side run before the fix cannot be regraded after it, and
+  the side-by-side figures would need two paid baselines. `spec.md`
+  §*Scope*, *Out*, names the repository owner as the one to file it for the
+  release after 0.22.2.
+- **Six and three `real` rows stay false under the new suite.** No second
+  run of their case named them, and a truth needs two of four runs. The
+  baseline's `chain_check.py#note_rows (line 1876)` row stays false too,
+  because its form is one the grammar refuses (`evals/false-rows.md`, *The
+  figures under both suites*).
 
 ## Fed back into the spec
 
