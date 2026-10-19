@@ -29,7 +29,7 @@ figures side by side.
 | Item | Who must answer |
 |---|---|
 | The finding wording of all 74 rows, which only #971's first comment holds now that the traces are gone | the repository owner, who wrote the comment; no command can re-check it |
-| The full suite, the repository-wide lint and the typecheck over this branch | the orchestrator, through `broad-gate` |
+| closed The full suite, the repository-wide lint and the typecheck over this branch | the orchestrator's `broad-gate --base release/v0.22.2 --record` at daaaacd0, exit 0: 7529 passed, 14 skipped, chain exit 0 (`broad-gate.md`) |
 
 ## Not done
 
