@@ -1460,6 +1460,7 @@ target: 1a2b3c4 against main
 
 severity: must
 location: `src/a.py:12`, `docs/a.md`
+evidence: read `src/a.py:12`
 verdict: fixed abc1234
 
 why it matters.
@@ -1470,6 +1471,7 @@ answer: fixed
 
 severity: should
 location: `src/b.py:3`
+evidence: executed `git grep -n b -- src`
 verdict: rejected
 
 answer: it holds
@@ -1535,7 +1537,7 @@ def test_a_labelled_record_the_check_refuses_gives_no_truth():
     bad = LABELLED_ROUND_1.replace("fixed abc1234", "fixed abc1234 and more")
     read, why = rt.labelled_round(bad, rel, 1)
     assert read is None
-    assert why.startswith("the check refuses the record at line 11: ")
+    assert why.startswith("the check refuses the record at line 12: ")
     assert "reads `verdict: fixed abc1234 and more`" in why
     worse = LABELLED_ROUND_2.replace("round-1#1\n", "round-1#1 and more\n")
     assert rt.confirmed(worse, 1) == set()

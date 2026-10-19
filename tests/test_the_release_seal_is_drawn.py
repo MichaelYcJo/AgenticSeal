@@ -424,7 +424,7 @@ def finding(i, verdict):
     """One finding of `templates/sdd-round.md`'s shape, at `verdict`."""
     return (
         f"### {i}. a finding\n\nseverity: should\nlocation: `f.py:{i}`\n"
-        f"verdict: {verdict}\n\nwhy\n\nanswer: \n\n"
+        f"evidence: read `f.py:{i}`\nverdict: {verdict}\n\nwhy\n\nanswer: \n\n"
     )
 
 

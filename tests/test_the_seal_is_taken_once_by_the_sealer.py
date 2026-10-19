@@ -1160,8 +1160,9 @@ def finding(n, verdict, what="the parser drops a row", location="`f.py:1`"):
     """One `### ` section of `## Findings`, its `verdict:` line `verdict`."""
     return (
         f"### {n}. {what}\n\n"
-        f"severity: must\nlocation: {location}\nverdict: {verdict}\n\n"
-        "executed\n\nanswer: \n\n"
+        f"severity: must\nlocation: {location}\n"
+        f"evidence: executed `pytest tests/test_one.py -q`\nverdict: {verdict}\n\n"
+        "why\n\nanswer: \n\n"
     )
 
 

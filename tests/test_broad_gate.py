@@ -112,7 +112,7 @@ def a_record(*verdicts):
     `verdict:` value."""
     found = "".join(
         f"### {n}. x\n\nseverity: should\nlocation: `a:{n}`\n"
-        f"verdict: {verdict}\n\nwhy\n\nanswer: \n\n"
+        f"evidence: read `a:{n}`\nverdict: {verdict}\n\nwhy\n\nanswer: \n\n"
         for n, verdict in enumerate(verdicts, 1)
     )
     return (
