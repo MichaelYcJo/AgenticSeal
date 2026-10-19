@@ -8,7 +8,7 @@ target: 68d51801, fixes e7439437..68d51801
 
 severity: must
 location: `skills/verify/scripts/seal_stamp.py:1178-1188`, `skills/verify/scripts/seal_stamp.py:1191-1207`, `skills/verify/scripts/seal_stamp.py:1257`, `docs/the-review-record.md:339-342`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`
-verdict: open
+verdict: fixed 061dfdc2
 regression: round-1#1
 
 The unit is `_guarantee_on_another_ref` (`seal_stamp.py:1178-1188`), which
@@ -139,13 +139,13 @@ The new case joins the rule's `Enforced by:` line. The pinned phrase in
 `test_the_policy_states_the_refusal_record_and_names_its_cases` follows the
 sentence.
 
-answer:
+answer: Fixed by the redesign after this round, not by restoring the verdict read. 061dfdc2 deletes `_guarantee_on_another_ref`, `_stamped_nowhere_else`, `plain_commit` and the record write in `_queue_one`, so no guard reads another ref at all. The record is now written by the commit gate when it refuses the wrong row (`hooks/commitgate.py#pre_commit`, `spec.md` S11 as corrected at 59c65527): that row never becomes history, and an uncommitted row stands in one clone only, so a tracking ref left by a rebase has nothing to withhold. `test_a_tracking_ref_left_by_a_rebase_withholds_nothing` (2759a60d) runs this finding's probe shape under the gate: push, a rebase onto a moved base, a wrong row over `deadbee` refused and recorded, and then the new audit draws one stamp. It was red at 1e956838, where the gate recorded nothing, and it passes at 2759a60d. The policy paragraph at `docs/the-review-record.md:339-342` is rewritten in 061dfdc2 to the gate's record and names no guard; its pin asserts that the guards' words are gone.
 
 ### 2. A sealed brought by a plain commit from a commit no ref holds still writes a record and draws a second stamp, and the fix pass accepted that in the policy without the frame or the owner
 
 severity: should
 location: `skills/verify/scripts/seal_stamp.py:1191-1215`, `docs/the-review-record.md:301-303`, `seal/specs/1792363231-a-local-mode-work-item-draws-no-stamp/overview.md`
-verdict: open
+verdict: fixed 061dfdc2
 reopens: round-1#1
 
 Why the close does not hold. Round 1's finding 1 was "a sealed guarantee
@@ -214,7 +214,7 @@ accept. Then `overview.md` gains a divergence row naming
 `docs/the-review-record.md:301-303` against `spec.md` §*Scope*, for the
 owner to answer, and the record gains no code.
 
-answer:
+answer: Fixed by the redesign, without the proposed `_target_on_no_ref` guard. 061dfdc2 removes `post-commit`'s record and every guard at `seal_stamp.py:1191-1215`. A `sealed` brought onto `main` by `cherry-pick -n` of a commit no ref holds now lands with no record: `main` is not the item's declared branch, so the commit gate does not judge it, and `post-commit` meets #975's ancestry refusal and writes nothing. The re-seal that keeps `; earlier run: <target> sealed` is then counted by the chain, and nothing is queued. `test_the_guarantee_refusal_is_quiet_off_its_one_fact[cherry-pick -n of a commit no ref holds]` (2759a60d) runs this finding's probe shape, with the local branch, `origin/HEAD` and `origin/feat/x` deleted and the sealing commit picked by its SHA. It was red at 1e956838, where `post-commit` wrote a record and the re-seal drew a second stamp. The widened sentence at `docs/the-review-record.md:301-303` is rewritten in cf0e60e8. The class it names is now the one shape the gate's record can still double, a `sealed` that drew in another clone, copied here by hand over a commit this history does not hold, refused at its commit and then repaired, as `plan.md` §*Technical context*'s path walk states. Its pin asserts that "no ref of that clone holds" is gone. `overview.md`'s row for the other-ref guard is closed as the unit goes.
 
 ## Confirmations
 
