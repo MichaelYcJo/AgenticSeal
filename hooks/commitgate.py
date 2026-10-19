@@ -242,40 +242,37 @@ def guarantee_off_history(cwd, head, paths):
     never stopped, and a commit on any other branch, a squash onto `main`
     among them, is not judged. `paths` is `pre_commit`'s one listing of the
     staged paths. `seal_stamp.py`, and through it `chain_check.py`, is
-    loaded only once a staged path is shaped like a work item's guarantee,
-    and `seal_stamp.GUARANTEE_PATH` decides which are. An unborn branch has
-    no history to hold anything, and nothing is judged there."""
+    loaded only once a staged path is `seal/specs/<item>/guarantee.md`, and
+    an item whose index holds no declaring `routing.md` beside it is no work
+    item this judges. An unborn branch has no history to hold anything, and
+    nothing is judged there."""
     if not head:
         return None
-    shaped = [
-        path
+    prefix, suffix = f"{routing.WORK_ITEMS}/", f"/{GUARANTEE_FILE}"
+    items = [
+        path[len(prefix) : -len(suffix)]
         for path in paths() or []
-        if path.startswith(f"{routing.WORK_ITEMS}/")
-        and path.endswith(f"/{GUARANTEE_FILE}")
+        if path.startswith(prefix) and path.endswith(suffix)
     ]
-    if not shaped:
+    if not items:
         return None
-    stamp = _stamp_module()
-    chain = None
-    branch = None
-    for path in shaped:
-        found = stamp.GUARANTEE_PATH.match(path)
+    chain = _stamp_module()._chain_check()
+    reader = chain.SHARED_READER
+    for item in items:
+        path = f"{prefix}{item}{suffix}"
         # A deleted guarantee is staged too, and `git show` finds none.
-        text = gate.git(["show", f":{path}"], cwd) if found else None
+        text = gate.git(["show", f":{path}"], cwd)
         if text is None:
             continue
-        chain = chain or stamp._chain_check()
-        reader = chain.SHARED_READER
         verdicts = chain.verdicts_of(reader, text)
         if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
             continue
         target = chain.target_of(reader, text)
         if target is None:
             continue
-        rel = f"{routing.WORK_ITEMS}/{found.group(1)}/{routing.FILENAME}"
+        rel = f"{prefix}{item}/{routing.FILENAME}"
         declared = routing.parse(gate.git(["show", f":{rel}"], cwd) or "")
-        if branch is None:
-            branch = routing.current_branch(cwd)
+        branch = routing.current_branch(cwd)
         if not declared or not branch or declared["branch"] != branch:
             continue
         # A target that does not resolve exits 128 here, and one off the

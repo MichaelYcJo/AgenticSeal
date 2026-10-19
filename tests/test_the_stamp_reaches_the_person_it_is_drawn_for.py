@@ -1848,7 +1848,11 @@ def _an_unborn_branch(tmp_path, commitgate, monkeypatch):
         guarantee_text("deadbee", "main", "sealed"), encoding="utf-8"
     )
     git(repo, "add", "-A")
-    return repo, None
+
+    def nothing_loaded(repo, loads):
+        assert loads == [], "an unborn branch loaded seal_stamp.py"
+
+    return repo, nothing_loaded
 
 
 def _the_sequencers_commit(tmp_path, commitgate, monkeypatch):
