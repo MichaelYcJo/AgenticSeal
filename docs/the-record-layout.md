@@ -92,7 +92,7 @@ either no rule to replay (it wrote no `spec.md`, or its spec has no
 `## Rule changes` or says `nothing`) or the replay holds. The replay applies
 every removed spec's rule changes, in merge order, over the merge base's
 `docs/`, and each text an applied operation names must occur as often across
-the top-level documents at HEAD as in the replay, whitespace collapsed. So a
+`docs/` at HEAD as in the replay, whitespace collapsed. So a
 later spec may rewrite what an earlier one placed, and a split along headings
 in the same pull request passes. One predicate,
 `unverified_check.py#settled`, answers `settle`, `unverified-check

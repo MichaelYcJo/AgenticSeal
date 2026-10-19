@@ -1247,13 +1247,9 @@ def rule_changes():
 
 
 def policy_documents(root, ref):
-    """`{path: text}` for each top-level `.md` of the policy root at REF, the
-    disk when None."""
-    return {
-        rel: _text_at(root, ref, rel) or ""
-        for rel in tree_at(root, ref, DOCS)
-        if rel.count("/") == 1 and rel.endswith(".md")
-    }
+    """`{path: text}` for each file of the policy root at REF, the disk when
+    None."""
+    return {rel: _text_at(root, ref, rel) or "" for rel in tree_at(root, ref, DOCS)}
 
 
 def settled(root, ref, directories, here=None):
@@ -1271,10 +1267,10 @@ def settled(root, ref, directories, here=None):
     (`wrote_a_spec`), or when its `spec.md` at REF has no `## Rule changes`
     or one that says `nothing`. Otherwise `rule_changes.py` replays every
     such directory here in merge order over REF's policy root, and each text
-    an applied operation names occurs as often across the top-level
-    documents at HERE as in the replay. Asked of the set, a later spec may
-    rewrite what an earlier one placed; counted across documents, a split
-    along headings passes."""
+    an applied operation names occurs as often across the policy root at
+    HERE as in the replay. Asked of the set, a later spec may rewrite what an
+    earlier one placed; counted across files, a split along headings
+    passes."""
     rules = rule_changes()
     out, pending = set(), {}
     for directory in directories:

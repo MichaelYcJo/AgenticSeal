@@ -516,6 +516,33 @@ def test_what_apply_removed_is_settled_for_the_readers(repo, capfd):
     assert reader.settled(str(repo), "HEAD", ["seal/specs/1700000009-a"]) == set()
 
 
+@pytest.mark.parametrize(
+    "change, half",
+    [
+        (op("remove", "T"), lambda doc: doc),
+        (
+            op("change", "S", "old sentence.", "New rule."),
+            lambda doc: doc.replace("old sentence.", "old sentence. New rule."),
+        ),
+    ],
+    ids=["a section left in place", "the old text left beside the new"],
+)
+def test_a_rule_change_half_applied_is_not_settled(repo, capfd, change, half):
+    """S10 per operation: each text an operation names is counted, the
+    heading of a removed section and the `from` of a change included."""
+    item(repo, "1700000001-a", change)
+    commit(repo, "a")
+    reader = settle.load(settle.READER, "specseal_reader_for_half")
+    directory = "seal/specs/1700000001-a"
+    doc = repo / "docs" / "a.md"
+    doc.write_text(half(DOC), encoding="utf-8")
+    assert reader.settled(str(repo), "HEAD", [directory]) == set()
+    doc.write_text(DOC, encoding="utf-8")
+    code, text = apply(repo, capfd)
+    assert code == 0, text
+    assert reader.settled(str(repo), "HEAD", [directory]) == {directory}
+
+
 def test_apply_refuses_a_conflict_and_keeps_both(repo, capfd):
     """S6."""
     for branch, name, change in (

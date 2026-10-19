@@ -2152,9 +2152,10 @@ class TestMain:
 OLD_ITEM = "seal/specs/1788000000-an-earlier-item"
 
 
-def remove_an_earlier_item(root, applied):
+def remove_an_earlier_item(root, applied, whole=True):
     """Declare an earlier work item on `main`, bring it into the branch, and
-    remove its directory there, with or without its rule change applied."""
+    remove its directory there, or only its declaration, with or without its
+    rule change applied."""
     git(root, "switch", "-q", "main")
     # Close enough to the branch's own declaration for git's rename detection
     # to pair the two, which `changed` reads without.
@@ -2171,7 +2172,7 @@ def remove_an_earlier_item(root, applied):
     commit(root, "an earlier item, declared")
     git(root, "switch", "-q", "feature/x")
     git(root, "merge", "-q", "--no-edit", "main")
-    git(root, "rm", "-rq", OLD_ITEM)
+    git(root, "rm", "-rq", OLD_ITEM if whole else f"{OLD_ITEM}/routing.md")
     if applied:
         write(root, "docs/policy.md", "A rule.\n")
     commit(root, "the earlier item leaves")
@@ -2196,6 +2197,29 @@ class TestRetired:
     ):
         root, _code = branch
         remove_an_earlier_item(root, applied=False)
+        _code, out = check(root, capsys)
+        assert "does not carry this file at HEAD" in out
+        assert "retired:" not in out
+
+    def test_a_declaration_removed_from_a_directory_that_stays_is_refused(
+        self, branch, draft, capsys
+    ):
+        """A settle takes the whole directory, so a `routing.md` deleted
+        beside a `spec.md` that stays is a deletion, its rule applied or not."""
+        root, _code = branch
+        remove_an_earlier_item(root, applied=True, whole=False)
+        _code, out = check(root, capsys)
+        assert "does not carry this file at HEAD" in out
+        assert "retired:" not in out
+
+    def test_a_rule_change_only_the_working_tree_holds_is_not_read(
+        self, branch, draft, capsys
+    ):
+        """CI reads HEAD, so a rule change written and not committed applies
+        nothing there."""
+        root, _code = branch
+        remove_an_earlier_item(root, applied=False)
+        write(root, "docs/policy.md", "A rule.\n")
         _code, out = check(root, capsys)
         assert "does not carry this file at HEAD" in out
         assert "retired:" not in out

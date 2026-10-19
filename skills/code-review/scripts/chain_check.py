@@ -1779,8 +1779,6 @@ def retired(reader, root, fork, records):
     at the merge base. RECORDS maps each declaration to its text at HEAD."""
     gone = [os.path.dirname(rel) for rel, text in records.items() if text is None]
     gone = [d for d in gone if not os.path.isdir(os.path.join(root, d))]
-    if not fork or not gone:
-        return set()
     return reader.settled(root, fork, gone, None if WORKTREE else "HEAD")
 
 
