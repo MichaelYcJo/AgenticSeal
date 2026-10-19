@@ -21,7 +21,10 @@ That shape is `templates/sdd-routing.md`'s, whose `Answered <date> by <who>,
 before the first edit.` line records the other batch the same way: the verb,
 the date, who, and the moment it was given. The two are pinned against each
 other, so neither spelling can drift into a second convention for one kind of
-fact. -->
+fact.
+
+The reframe after round 2 owes a third line here, written by the orchestrator
+at the spawn of phase 6, in the same shape. -->
 
 ## Summary
 
@@ -33,131 +36,115 @@ local-mode `guarantee.md` reading `sealed`. The existing `Stop` hook draws it.
 Shared mode keeps `post-commit` unchanged. Once per work item in local mode is
 held by the values files, which share the local root's common directory, by
 the `Target SHA` row's earlier-run chain, and by the audited commit standing
-on the work item's branch.
+on the work item's branch. Phases 1, 2 and 5 built and measured that, and
+their commits stand.
 
 The owner answered `questions.md` Q2 with (b), so this plan also closes the
-#975 Q7 gap with a mechanism. Today a `sealed` that a writer refused, because
-its audited commit is not on the branch, still counts as stamped, and the
-repair that follows draws nothing. From this work, the refusing writer leaves
-a refusal record in the clone, under four guards. The once readers skip a
-`sealed` this clone refused, so the repair draws the work item's one stamp.
+#975 Q7 gap with a mechanism. Phases 3 and 4 built one: a refusal record each
+clone kept of the `sealed` it had refused, under guards, which the once
+readers skipped. Rounds 1 and 2 found the record failing in both directions
+wherever a guarantee travelled between branches or clones, one new path per
+guard, and the owner chose a redesign over a third guard ("설계를 다시").
+
+**The redesign, after round 2.** A `sealed` over a commit the branch does not
+hold is a wrong verdict: the pull request's check refuses it as stale, and the
+stamp writer refuses it as off the history. Today both refuse after the fact,
+and the writer's refusal is silent, so the wrong `sealed` becomes a fact of
+the history that every clone then reads as a stamp drawn. The redesign refuses
+it one step earlier, in `pre-commit`, inside the commit that would make it a
+fact, with the way on in the command's output: a new audit of the sealer at
+HEAD. Nothing is recorded, nothing is inferred later, and the once readers are
+#975's again. In local mode no commit exists to refuse, and no pull request
+ever reads the guarantee, so the local writer keeps its record, which there
+answers the whole question because a local root never leaves its clone, and
+it says the line a person needs at the write. Phases 6 to 8 build that and
+take the shared-mode record out.
 
 ## Technical context
 
-**What this builds on** (all `read` at 769f2aa4):
+**What this builds on** (all `read` at 339ac7dc unless a commit is named):
 
-- `skills/verify/scripts/seal_stamp.py:1037-1150`. `queue_for_guarantee`
-  finds committed guarantees with `git diff-tree`. `_queue_one` judges one
-  with `chain_check.py`'s readers, refuses in a fixed order, builds the
-  values and calls `write_values`. `already_queued` (990-1015) matches
-  `<ns>-<id>-<target>.json` under any session's directory.
-  `guarantee_rows` (1018-1034) builds the rows.
-- `hooks/commitgate.py:315-352`. `_stamp_module()` loads `seal_stamp.py` by
-  path, and `post_commit` calls the writer silently on every failure. The new
-  gate copies that loader shape.
-- `hooks/dispatch.py:80-120`. `GROUPS["post-edit"]` is
-  `("lint-python.py", "session-lease.py")`. `merge` (224-280) carries a
-  gate's `systemMessage` through. `hooks/hooks.json` runs `post-edit` at
-  `PostToolUse` for `Write|Edit|NotebookEdit`.
-- `hooks/session-lease.py`'s docstring: a `post-edit` gate resolves the
-  repository from the edited file, because the session's `cwd` may be
-  elsewhere.
-- `hooks/optin.py#home_at` (166-200) is the one reader of where the root is,
-  shared first. `hooks/routing.py#parse` reads the `Branch` row.
-  `chain_check.py:73` already loads `routing.py` as `ROUTING`.
-- `hooks/sealer-stamp.py` draws each undrawn file of the main session's
-  directory at `Stop`, and nothing at a subagent's end. It needs no change
-  beyond its docstring.
+- `hooks/commitgate.py#pre_commit` (226-244): `_context` resolves the
+  repository, the common dir and the session, and returns None for a
+  repository that does not opt in or a commit with no session behind it;
+  `gate.arms_missing` judges the arms with the staged paths read lazily by
+  `git diff --cached --name-only`; `_sequencer_commit` leaves a rebase's or
+  a cherry-pick's child commit alone; `_leave_mark` passes the backstop.
+  `_stamp_module()` (315-328) loads `seal_stamp.py` by path, and
+  `seal_stamp._chain_check()` loads `chain_check.py`'s readers.
+- `hooks/gate.py`: `HEADER`, `STATES`, `UNCHANGED`, `refusal` (286-320),
+  the texts the arms print; `routing.current_branch(cwd)` and
+  `routing.parse(text)` (the `Branch` row).
+- `docs/the-commit-gate-inside-git.md`: a commit is judged inside the commit,
+  from the index, in the worktree it lands in; a refusal is the exit status
+  and the stderr text git prints into the command's output; `--no-verify`
+  is met by `reference-transaction` for the arms; a commit git makes for its
+  own rebase or cherry-pick is not judged.
+- `skills/verify/scripts/seal_stamp.py:1052-1420`: `queue_for_guarantee`,
+  `sealed_before`, the record section (1106-1222), `_queue_one`,
+  `_queue_values`, `queue_for_local_guarantee`. `GUARANTEE_PATH` (950) is
+  the shared-mode path's pattern.
+- `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`: the
+  fixtures `guaranteed`, `seal_and_commit`, `a_fix`, `after_the_commit`,
+  `queued`, `refusals`, `local_guaranteed`, `queue_local`, and
+  `commitgate_module()` (518), which loads `hooks/commitgate.py` for a case
+  to call its hooks directly.
+- `tests/test_the_commit_gate_decides_at_the_commit.py`: the `world`
+  fixture (120-170) installs the stubs and runs real commits through the
+  Bash tool's shell shape, asserting HEAD and `gate.HEADER` in stderr.
+- `hooks/sealer-stamp-queue.py`, `hooks/dispatch.py`, `hooks/optin.py`,
+  `hooks/routing.py`, as phases 1 and 2 found them (`phases/phase-1.md`,
+  `phases/phase-2.md`).
 
-**Why local mode can hold "once" exactly where shared mode cannot.** Shared
-mode needed the history (`sealed_before`) because a guarantee travels between
-clones and the values files do not. A local root never leaves its clone, and
-the values directory sits in the same common directory. So a values file for
-the id, pending or drawn, is a complete record of whether this work item was
-stamped. The history readers have nothing to read in local mode and are not
-used there.
+**Why the judgment moves to the commit.** The once readers answer "was this
+work item's stamp drawn" from the history, because a guarantee travels
+between clones and the values files do not. A `sealed` in the history is read
+as drawn where it was made. That reading is wrong exactly when the writer
+refused it, and the refusal was silent, so the history records a verdict and
+not the refusal. #975's rounds 3 to 6 tried to tell the two apart at read
+time by ancestry and failed one direction each time; this item's phases 3 and
+4 recorded the refusal per clone and rounds 1 and 2 found that a guarantee
+copied, rebased or pruned under the record defeats a per-clone answer. The
+one moment the fact is known to the party that can act is the commit of the
+wrong verdict, in the clone that commits it, before it is history. The commit
+gate already runs there, already reads the index, and already prints into
+the command's output the orchestrator reads. So the wrong verdict is stopped,
+the next commit carries the right one, and nothing downstream has to tell
+them apart.
 
-**The guard that keeps old items quiet.** `settle` refuses local mode, so a
-local root holds every `sealed` guarantee the clone ever wrote. Those written
-before this release have no values file. Without a guard, the first edit of
-such a file would draw a stamp for a work item finished months ago. The guard
-is that the audited commit is an ancestor of `refs/heads/<Branch row>`. A
-merged work item's branch is usually deleted, and then nothing is queued. One
-whose branch still stands can still draw late, once, on its first edit. That
-is stated in §*The stamp*, and its fail direction is one late stamp, never a
-second one.
+**What the gate judges, and what it does not.** One fact: the commit's newest
+`sealed` names a commit the commit's own history will not hold, on the branch
+the item declares. It does not read the `; earlier run:` chain, because a
+`sealed` that drew and then went stale under a rebase is rightly counted as
+drawn, and its re-seal must not be stopped. It does not judge a commit on
+another branch, because a `merge --squash` or a `cherry-pick -n` of a sealed
+item onto `main` is a copy a person meant, and #975's ancestry refusal
+already keeps `post-commit` from drawing for it. It does not judge a commit
+git makes for its own rebase or cherry-pick, which `_sequencer_commit` already
+excludes for the arms. It is not an arm: no opt-in beyond `seal/`, no mark,
+no waiver, because there is no commit of this shape a person wants that the
+pull request would accept (`questions.md` Q5 holds that default).
 
-**Path resolution is the part most likely to go wrong.** On macOS a temporary
-directory resolves through `/private`. A linked worktree's common directory is
-the main checkout's `.git`. On Windows the path's separators and case differ.
-The gate compares `os.path.realpath` on both sides and derives `<common>` from
-the path, never from the payload's `cwd`. The cases build both a main checkout
-and a linked worktree.
+**The limits the gate leaves, stated once.** Where the stub does not run, the
+wrong `sealed` lands as it did under #975: a foreign hooks slot,
+`--no-verify`, a plugin older than this release, a person's own commit, a
+clone no session has reached. Each is a missing stamp for that item, Q8's
+direction, and the backstop is not extended for it (A14's failure scenario,
+`spec.md` S13). In local mode the record stays and is sound: the clone that
+refused is the clone that re-seals, because no other clone has the root. Its
+own limits are a values directory emptied by hand and a `seal import` of a
+guarantee that drew elsewhere.
+
+**Path resolution is the part most likely to go wrong** in the local writer,
+as phase 1 found; the gate reads the index by path relative to the worktree
+root, which `pre-commit` runs in, and derives nothing from `cwd`.
 
 **What fails in six months.** A harness change could make a subagent's
-`PostToolUse` carry its own `session_id`. The values file would then land in a
-directory no main `Stop` reads, and the stamp would go missing.
-`questions.md` Q1 measures today's behaviour. The hand-command line in the
-edit hook's message is what a person uses then.
-
-**The refusal record, and the readers it meets.** #975's rounds 3 to 6 moved
-one reader back and forth. Round 3 added `sealed_before`: any earlier
-`sealed` in the history counts as stamped. Round 4 narrowed it to a `sealed`
-whose target was an ancestor of its own commit, and the round 4 fix drew a
-second stamp after a rebase in another clone (round 5). The reframe after
-round 5 went back to round 3's rule and accepted the gap. Round 6 found the
-amend of the sealing commit in a second clone and left it a stated limit
-(#975 Q9). The lesson is that **any condition evaluated over ancestry at read
-time** fails one direction. A rebase changes ancestry after the fact, so the
-reader cannot tell a verdict that was never stamped from one stamped before
-the rewrite.
-
-The record avoids that by asking a different question at a different time.
-It is written once, at the moment a writer refuses, in the clone that
-refused. It is read later only in that same clone. Its claim is narrow: this
-clone refused this verdict, so this clone drew nothing for it. Here is what
-each reader does with it.
-
-- **`already_queued`** (round 1). Unchanged. It runs before the ancestry
-  refusal, so a record is only ever written in a clone that holds no values
-  file for the work item. The record lives in its own directory, so it never
-  counts as queued and is never drawn.
-- **The ancestry refusal** (round 1). Unchanged as a decision. In shared mode
-  it becomes the record's only write site.
-- **`sealed_before`** (rounds 3 to 5). It gains one skip, keyed on the
-  record and never on ancestry. Round 4's failure cannot come back through
-  it, because no rebase writes a record (guard 2).
-- **The earlier-run chain** (#975 S7). The same skip.
-- **Q9's limit** (round 6). An amend or a rewrite writes no record (guard 2),
-  so the limit neither widens nor narrows.
-
-**The guard, stated once.** A second stamp needs a second clone that drew
-for this work item. That clone drew from a `sealed` whose audited commit was
-an ancestor there. So the same verdict text can be refused here only where
-the two histories differ for that commit. Each guard closes one way they can
-differ.
-
-1. The refusal is the committing commit's own verdict, at the ancestry
-   refusal and nowhere earlier.
-2. `HEAD`'s newest reflog entry is a plain `commit:` or `commit (initial):`.
-   A rebase, a cherry-pick, an amend or a merge rewrites history that may
-   have been stamped elsewhere, so none of them writes a record.
-3. The guarantee at `HEAD^` did not already read one `sealed` over the same
-   target. A body edit over a rewritten `sealed` therefore writes nothing.
-4. The target does not resolve, or HEAD's side holds no patch-equivalent copy
-   of it (`git rev-list --cherry-pick --right-only --no-merges
-   HEAD...<target>` still lists the target). This is where patch-equivalence,
-   the fourth reading Q2 named, enters. It runs only on the refusal path,
-   after guards 1 to 3, so it can only withhold a record, never write one and
-   never queue a stamp.
-
-What is left is a `sealed` copied by hand from another clone into a clone
-that never fetched its audited commit, then committed and repaired there.
-That joins Q9's stated class, and its fail direction is one more stamp in
-that clone. Local mode needs none of guards 2 to 4. A local root never leaves
-its clone, so `already_queued` there already says whether the work item was
-stamped, and a record only unblocks the chain reader for a verdict the
-branch refusal turned away.
+`PostToolUse` carry its own `session_id`; `questions.md` Q1 measured today's
+behaviour. A git version whose `pre-commit` no longer exports
+`GIT_INDEX_FILE` for a pathspec commit would make `git show :<path>` read the
+wrong index; #692's M2 measured four gits, and `questions.md` Q6 names the
+case that would show it.
 
 **Found while framing and left for the orchestrator to file.** `seal mode
 shared` moves a local root into the tree, and the commit that adds it carries
@@ -167,38 +154,49 @@ quiet. An item sealed before this release whose audited commit is an ancestor
 of HEAD would draw then. That happens only where its branch was merged with a
 merge commit, since a squash leaves the audited commit off the base. That is
 #975's behaviour at a mode switch, not a local-mode trigger, and it is out of
-this scope (`spec.md` §*Scope*).
+this scope (`spec.md` §*Scope*). The new refusal does not wake on that commit
+unless an item's `Branch` row names the branch it lands on.
 
 ## Alternatives considered
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| **A1** A `post-edit` gate queues a local-mode `guarantee.md` at the `Write` or `Edit` that leaves it reading `sealed`. `post-commit` stays the shared-mode trigger | A sealer that writes the file through the shell, or a guarantee brought in by `seal import`, queues nothing. That is a missing stamp, never a false one, and contract §9 already sends the sealer's write through the tools. If the sealer wrote `sealed` and then edited the verdict away in the same run, the stamp would already be queued. `agents/sealer.md` step 5 writes the verdict once and step 6 returns, so that requires the sealer to break its own order | **Chosen.** It needs no act of a session, keys on the path the verdict was written to, and leaves the tested shared trigger alone |
-| **A2** Replace `post-commit` with A1's gate for both modes, weighed as an equal (contract §20) | What it gains is real. A foreign git hooks slot stops being silent, and an amend or rebase in a second clone stops drawing again, because history operations write no file through a tool. What fails: in shared mode the sealer works in the clone its prompt names (`agents/sealer.md:36`), which can be a `git clone` of the branch worktree (`skills/code-review/orchestration.md:221-225`). The values file would land in that clone's git directory, where no main session's `Stop` reads, so a stamp drawn today goes missing. The stamp would also come before the orchestrator commits the verdict, which is the file the pull request's check reads. The orchestrator would lose the line in the commit's output that it is told to quote. And it re-derives ten rounds of #975's once rules on a new event | Rejected. Its gains are in shared mode, which this issue does not ask about, and its first failure is a lost stamp in the mode that works today |
-| **A3** The `Stop` hook scans the local root for `sealed` guarantees with no values file | `settle` never retires a local-mode item (`skills/settle/SKILL.md:45-46`), so the first `Stop` after the upgrade draws every work item the clone ever sealed. A guard would need a marker of "seen before", which is a record kept beside the tree | Rejected |
-| **A4** `post-commit` also scans the local root on every commit | The same flood as A3. Local mode may also never commit after the sealer, since there is nothing of the sealer's to commit | Rejected |
-| **A5** A `SubagentStop` hook at the sealer's end | The payload names no file, so the hook would have to guess which guarantee from the transcript or from file times. Whether it carries the agent's type is unmeasured. That is a reading guessed from words | Rejected |
+| **A1** A `post-edit` gate queues a local-mode `guarantee.md` at the `Write` or `Edit` that leaves it reading `sealed`. `post-commit` stays the shared-mode trigger | A sealer that writes the file through the shell, or a guarantee brought in by `seal import`, queues nothing. That is a missing stamp, never a false one, and contract §9 already sends the sealer's write through the tools | **Chosen** for the trigger; built in phases 1 and 2 |
+| **A2** Replace `post-commit` with A1's gate for both modes, weighed as an equal (contract §20) | In shared mode the sealer works in the clone its prompt names (`agents/sealer.md:36`), which can be a `git clone` of the branch worktree. The values file would land in that clone's git directory, where no main session's `Stop` reads, so a stamp drawn today goes missing. It would also draw before the orchestrator commits the verdict the pull request's check reads | Rejected |
+| **A3** The `Stop` hook scans the local root for `sealed` guarantees with no values file | `settle` never retires a local-mode item, so the first `Stop` after the upgrade draws every work item the clone ever sealed | Rejected |
+| **A4** `post-commit` also scans the local root on every commit | The same flood as A3. Local mode may also never commit after the sealer | Rejected |
+| **A5** A `SubagentStop` hook at the sealer's end | The payload names no file, so the hook would have to guess which guarantee from the transcript or from file times | Rejected |
 | **A6** The orchestrator runs `seal-stamp --queue <item>` after the sealer in local mode | It is an act a session must remember. `CLAUDE.md` §*The goal a design is chosen against* and #975's grounding chose the trigger that needs none | Rejected |
-| **A7** Extend A1's gate to shared mode where git's hooks do not run (a foreign hooks slot) | A2's scratch-clone failure applies, and it doubles with `post-commit` wherever `githooks.decides` misjudges the slot. #975's A3 left that silence stated | Rejected for this item |
-| **A8** Close the #975 Q7/Q8 gap in `sealed_before` alone: count an earlier `sealed` as stamped only where its target, or a patch-equivalent copy of it, is in the history of its own commit | It is still a condition over ancestry evaluated at read time, which is round 4's shape. A rebase with a conflict on the audited commit changes its patch, so a verdict stamped in another clone reads as never stamped, and the re-seal draws a second stamp. It also leaves round 4's measured shape open: `deadbee` does not resolve, so nothing can be compared, and the fresh clone of a force-pushed branch looks the same | Rejected as the mechanism. Patch-equivalence is kept as guard 4 of A11, where it can only withhold a record |
-| **A11** A refusal record written by the refusing writer under four guards, and skipped by the once readers in the clone that holds it (`spec.md` S11–S14) | A repair committed in a clone other than the one that refused still draws nothing. A refused verdict introduced by an amend, a rebase or a cherry-pick, or one whose target has a copy in the history, writes no record and keeps the gap. A hand-copied `sealed` in an unfetched clone can draw a second stamp there, which joins Q9's class. A clone with its reflog off writes no record | **Chosen** under `questions.md` Q2 (b). It closes round 4's measured shape and the off-branch shape in the clone that refused, which is the orchestrator's own clone in this repository's flow, and keeps both of round 5's rebase cases green |
-| **A12** A11 without guards 2 to 4 | An amend of the rewritten guarantee commit in a fresh clone of a force-pushed branch refuses a verdict over a target the clone does not hold, writes a record, and the re-seal draws a second stamp. A body edit over a rewritten `sealed` does the same. These are the cases S13 pins, seen red with each guard deleted | Rejected |
-| **A13** Tell a rebased copy by its committer date running later than its author date | A reading of timestamps, which a fixture made inside one second, a clock skew, or `--committer-date-is-author-date` defeats. `CLAUDE.md` keeps a check to facts it reads | Rejected |
-| **A9** Queue from `hooks/sealer-stamp.py` itself, registered at both `Stop` and `post-edit` | `test_the_hook_is_registered_for_stop_and_nothing_else` holds the drawing hook to `Stop`, so that nothing draws inside a subagent. One file answering two events would loosen that pin | Rejected. A separate gate, `hooks/sealer-stamp-queue.py`, keeps one event per file |
+| **A7** Extend A1's gate to shared mode where git's hooks do not run (a foreign hooks slot) | A2's scratch-clone failure applies, and it doubles with `post-commit` wherever `githooks.decides` misjudges the slot | Rejected for this item |
+| **A8** Close the #975 Q7/Q8 gap in `sealed_before` alone: count an earlier `sealed` as stamped only where its target, or a patch-equivalent copy of it, is in the history of its own commit | A condition over ancestry evaluated at read time, which is round 4's shape. A rebase with a conflict on the audited commit changes its patch, so a verdict stamped in another clone reads as never stamped, and the re-seal draws a second stamp. `deadbee` does not resolve, so nothing can be compared | Rejected |
+| **A9** Queue from `hooks/sealer-stamp.py` itself, registered at both `Stop` and `post-edit` | `test_the_hook_is_registered_for_stop_and_nothing_else` holds the drawing hook to `Stop`, so that nothing draws inside a subagent | Rejected. A separate gate, `hooks/sealer-stamp-queue.py`, keeps one event per file |
 | **A10** Local "once" read from history like shared mode | A local root has no history to read. `git log` over a path under `.git/` returns nothing | Rejected; S3 and S4's four facts instead |
+| **A11** A refusal record written by the refusing writer under guards, and skipped by the once readers in the clone that holds it | Built in phases 3 and 4 and reviewed twice. Round 1: a `sealed` brought to another branch of a second clone by `merge --squash`, `cherry-pick -n` or a `checkout` of the path is refused there, recorded, and its re-seal draws a second stamp. Round 2, after the other-ref guard: the branch's own tracking ref, left behind by a rebase over a `withheld`, withholds the record, so the repair of a wrong row in the orchestrator's own clone draws nothing, which is the gap again; and a source no ref holds (`fetch --prune`, `FETCH_HEAD`) still draws twice. The record answers "did this clone draw", and the rule asks "did any clone" | **Taken out of shared mode by phase 7**, on the owner's "설계를 다시" after round 2. **Kept in local mode**, where the two questions are one: a local root never leaves its clone, so the clone that refused is the only clone that reads the record (`spec.md` S14) |
+| **A12** A11 without guards 2 to 4 | An amend of the rewritten guarantee commit in a fresh clone of a force-pushed branch refuses a verdict over a target the clone does not hold, writes a record, and the re-seal draws a second stamp | Rejected, and moot under A14 |
+| **A13** Tell a rebased copy by its committer date running later than its author date | A reading of timestamps, which a fixture made inside one second, a clock skew, or `--committer-date-is-author-date` defeats | Rejected |
+| **A14** Refuse the wrong verdict at its commit. `pre-commit` reads each staged `seal/specs/<id>/guarantee.md`; where it reads one `sealed` whose `Target SHA` names a commit HEAD does not hold (unresolved, or not an ancestor), and the item's `Branch` row names the current branch, the commit is refused with the way on: a new audit of the sealer at HEAD. No record, no new reader; the once readers are #975's | Where the stub does not judge, the wrong `sealed` lands and the gap stays for that item: a foreign hooks slot, `--no-verify` (the backstop judges the arms alone), a plugin older than this release, a person's own commit with no session, a clone no session has reached. Each is a missing stamp, Q8's direction, and `seal-stamp --from` cannot repair it because nothing was queued; the repair is a new audit, which the pull request's check forces anyway in shared mode. A sealer whose row is wrong twice meets the refusal twice, and the orchestrator reads it twice. One `git diff --cached --name-only` is added to every judged commit, and one `git show` plus the `chain_check.py` import to a commit that stages a guarantee (`questions.md` Q7 measures it) | **Chosen.** It closes round 4's `deadbee` shape and the off-branch shape in the clone that commits them, which in this repository's flow is the orchestrator's own clone and the only clone that ever commits a verdict. It leaves no per-clone inference for a git operation to defeat, because the fact it reads is the commit's own history at the moment the commit is made, and that history is what the commit will carry everywhere. Round 1's three copy shapes and round 2's two shapes each either are refused (a wrong row on the declared branch) or land and queue nothing by #975's rules (a copy onto another branch), with no record in either |
+| **A15** Keep A11 with round 2's two guards: read the verdict on the other ref (finding 1) and withhold where no ref contains the resolved target (finding 2) | The next shape in the same class, read from the tree: the branch pushed with a `sealed` that drew, the base moved, the branch rebased, so the tracking ref holds a `sealed` over the old target; then the sealer writes a wrong row. The verdict-reading guard finds a `sealed` on another ref and withholds the record, and the repair of that wrong row in the orchestrator's own clone draws nothing. That is round 2's finding 1 with `sealed` in place of `withheld`, and it is this repository's own flow. Each guard reads one more fact of the clone to approximate "did any clone draw", and rounds 1 and 2 are two guards and two new paths | Rejected. The structure, not the guard count, is what each round found (`CLAUDE.md` §*The rule a mechanism is kept against*) |
+| **A16** Remove A11 and state the gap as a limit | The owner rejected a stated limit on 2026-10-19 ("한계만 적으면 계속 공백인 거잖아"), and the cost is concrete: round 4's measured shape, a wrong row in the orchestrator's clone, leaves the work item unstamped with nothing to draw by hand, since no values file exists. What the owner asked is whether anything cheaper than A11 closes the common case; A14 does, with less code than A11 and no new reader at read time | Rejected as the mechanism; its words are what A14's limits keep for the cases the stub cannot reach |
+| **A17** Record "stamped" or "refused" where every clone reads it: `pre-commit` writes a line under the verdict into the index's `guarantee.md`, or `post-commit` writes it into the working tree for the next commit to carry | A positive marker ("drawn") makes its absence read as "not drawn", so every `sealed` committed under a plugin without the marker, and every work item in flight across the upgrade, draws again on its re-seal: the doubled direction Q8 forbids. A negative marker ("refused") written into a copy of a guarantee that drew on its own branch (`merge --squash` onto `main`, then a plain commit) says the verdict never drew, which is false, and the re-seal there draws twice: round 1's shape again. Either marker has a hook rewrite the sealer's document, which the sealer's next run must preserve, and that is a change to `agents/sealer.md` and an evaluation. The post-commit form leaves the working tree dirty after the orchestrator's commit | Rejected. A record that travels with the file is read everywhere, but it has to be written by the party that knows, and the only party that knows at a copy is the branch the copy came from |
+| **A18** The sealer writes the marker itself, or `git notes` carry it | The sealer cannot know whether a stamp was drawn, and a value it writes for that is an answer nobody gave. Notes are a ref each clone keeps and git neither pushes, fetches nor carries across a rebase by default, so they are the per-clone record of A11 keyed to a SHA the rewrite destroys | Rejected |
 
 ## Phases
 
 Vertical slices, built test-first: each case is seen red against the tree as
-it stands before the code that makes it green (contract §15).
+it stands before the code that makes it green (contract §15). Phases 1 to 5
+closed before the reframe and keep their commits; the shared-mode half of
+phase 3 is what phase 7 takes out.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | The local writer. Extract `_queue_one`'s values composition (`key` through `write_values`) into one helper both writers call, with no change to the shared cases. Add `queue_for_local_guarantee(path, session, now=None)` with S1–S5's refusals in `spec.md` §*Data & interfaces*' order. Fixtures build a local root under a main checkout and under a linked worktree, with `routing.md`'s `Branch` row and a real branch | `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`: `test_a_local_mode_sealed_guarantee_queues_one_stamp`, `test_a_local_mode_withheld_or_undecided_guarantee_queues_nothing`, `test_a_local_mode_reseal_after_withheld_queues_the_stamp`, `test_a_local_mode_second_sealed_queues_nothing`, `test_a_local_mode_guarantee_off_its_branch_queues_nothing`, `test_the_edit_gate_leaves_shared_mode_to_post_commit` (writer half), each seen red first; the fourteen shared cases on §*The stamp*'s `Enforced by:` line green with their bodies untouched (S10) | b701bb53 |
 | 2 | The gate. `hooks/sealer-stamp-queue.py` in `GROUPS["post-edit"]`, returning on a path that does not match before any `git` call or import, and printing the `systemMessage`. A `sealer-stamp-queue` row in both READMEs' hook tables, written now because the gate and its row ship together | `test_the_edit_gate_queues_a_local_mode_sealed_guarantee`, `test_a_subagents_write_queues_and_draws_nothing`, `test_the_edit_gate_is_silent_off_a_guarantee`, through `hooks/dispatch.py post-edit`; `test_the_main_sessions_stop_draws_each_undrawn_file_once` over a file this gate wrote; `tests/test_dispatch.py`, `tests/test_a_gate_that_fails_says_so.py` green; `test_both_readmes_list_the_stamp_hook` extended to the new row | bf996b89 |
-| 3 | The refusal record (`questions.md` Q2 (b), A11). The two record functions in `seal_stamp.py` and the sibling directory `specseal-stamp-refused/`. The write in `_queue_one` at the ancestry refusal under the four guards of `spec.md` S13, and in the local writer at the branch-ancestry refusal where the branch exists. The skip in `sealed_before`, in `_queue_one`'s chain refusal and in the local writer's chain refusal. Each guard has its own case, seen red with that guard deleted, and the hand-back names which guard turned which case red | `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`: `test_a_seal_this_clone_refused_does_not_count_as_stamped` (both row forms), `test_a_seal_over_a_commit_off_the_branch_then_repaired_draws_once`, `test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once`, each seen red at fa0a9488; `test_a_conflicted_rebase_in_another_clone_writes_no_refusal`, `test_an_amend_in_a_fresh_clone_writes_no_refusal` (guard 2), `test_a_body_edit_over_a_rewritten_seal_writes_no_refusal` (guard 3), `test_a_seal_whose_target_has_a_copy_writes_no_refusal` (guard 4); round 5's `test_a_sealed_item_rebased_in_another_clone_queues_nothing` and `test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing` and the other shared cases on §*The stamp*'s `Enforced by:` line green with bodies untouched (S10); `git diff --stat 769f2aa4 HEAD -- hooks/git/ hooks/commitgate.py` empty | 9ad38d66 |
-| 4 | The words, each rewritten in place (contract §19): `docs/the-review-record.md` §*The stamp* (the rule with the local trigger and the refusal record, its `Enforced by:` line gaining the phase 1 to 3 cases, and the unchecked paragraph naming only the limits `spec.md` §*Scope* leaves); `skills/code-review/orchestration.md:241-265`; `hooks/sealer-stamp.py:1-14`; `seal_stamp.py`'s once comment, `GUARANTEE_PATH` comment, and the `queue_for_guarantee` and `sealed_before` docstrings (S8: the mechanism in place of "#976 carries" and "a `sealed` that drew nothing counts too"); both READMEs' side-effect sentences, which gain the refusal record's directory beside `specseal-stamp/`; `agents/sealer.md:99-100` and its pin. The changelog fragment `changelog.md` in this directory | `test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does` (its `silence` tuple rewritten, red against 769f2aa4's paragraph), `test_the_policy_states_the_refusal_record_and_names_its_cases` (new), `test_the_orchestrator_is_told_the_stamp_is_drawn_for_it`, `test_both_readmes_list_the_stamp_hook`, `test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it` (pin rewritten), `tests/test_one_word_one_meaning.py`, `tests/test_docs_line_wrap.py`; `bin/rules --check` exit 0; `git grep -n "#976"` as S8 states | 12855a96 |
-| 5 | The sealer measured, run by the orchestrator: one side of the sealer's behaviour cases at this branch, compared by `evals/scripts/noninferiority.py` with #975's phase-4 side (`seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/evals/sealer-phase-4.json`), the record written as `evals/sealer-phase-5.md` and `.json` under this directory | `noninferiority.py check` exit 0 on the record; `tests/test_a_rewritten_definition_proved_non_inferior.py::test_the_verdict_is_recomputed_from_the_records_numbers`. A `fail` on rule 4 or 5 alone is recorded as it reads | 11b90191 |
+| 3 | The refusal record (`questions.md` Q2 (b), A11). The two record functions in `seal_stamp.py` and the sibling directory `specseal-stamp-refused/`. The write in `_queue_one` at the ancestry refusal under the guards of `spec.md` S13 as it then read, and in the local writer at the branch-ancestry refusal where the branch exists. The skip in `sealed_before`, in `_queue_one`'s chain refusal and in the local writer's chain refusal | As the row read at a7572788; `phases/phase-3.md` records which guard turned which case red, and `overview.md` records guard 3 not built. Phase 7 removes the shared-mode half | 9ad38d66 |
+| 4 | The words, each rewritten in place (contract §19), as the row read at a7572788: `docs/the-review-record.md` §*The stamp*, `skills/code-review/orchestration.md`'s stamp paragraph, `hooks/sealer-stamp.py:1-14`, `seal_stamp.py`'s comments and docstrings, both READMEs, `agents/sealer.md:99-100` and its pin, the changelog fragment | As the row read at a7572788; phase 8 rewrites the refusal record's sentences again | 12855a96 |
+| 5 | The sealer measured, run by the orchestrator: one side of the sealer's behaviour cases at this branch, compared by `evals/scripts/noninferiority.py` with #975's phase-4 side, the record written as `evals/sealer-phase-5.md` and `.json` under this directory | `noninferiority.py check` exit 0 on the record; `tests/test_a_rewritten_definition_proved_non_inferior.py::test_the_verdict_is_recomputed_from_the_records_numbers` | 11b90191 |
+| 6 | The refusal at the commit (A14, `spec.md` S11–S13). In `hooks/commitgate.py#pre_commit`, after `arms_missing` and before `_leave_mark`, one function over the staged paths: for each `seal_stamp.GUARANTEE_PATH` match, `git show :<path>`, the `chain_check.py` readers through `_stamp_module()._chain_check()`, the index's `routing.md` through `routing.parse`, `routing.current_branch(cwd)`, `git rev-parse --verify -q <target>^{commit}` and `git merge-base --is-ancestor <target> <head>`; the text's constants in `hooks/gate.py` beside `STATES` (`gate.HEADER` first, the file, the commit named, the branch, HEAD's short SHA, the way on, `gate.UNCHANGED` last; no question tool); exit 1 unless `_sequencer_commit`. Loaded only after a staged path matched; nothing on an unborn branch. `hooks/git/pre-commit.py`'s docstring gains the third thing it judges, in the same commit (contract §19) | New, each seen red at 339ac7dc: `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit` (parametrized: unresolved target, off-branch target; asserts exit 1, `gate.HEADER` and the four named facts in the text, no question tool, HEAD and index unmoved, then the repaired row's commit queues one file), `…::test_the_guarantee_refusal_is_quiet_off_its_one_fact` (parametrized over S12's givens, the "stages no guarantee" given with the loader replaced by a recorder), `…::test_a_sealed_committed_past_the_stub_keeps_the_gap` (S13, `--no-verify`), `tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit` (through the installed stubs); the module that pins the arms' texts extended to the new text; `tests/test_the_commit_gate_decides_at_the_commit.py` and `tests/test_the_hooks_are_installed_where_git_runs_them.py` green; the latency of a judged commit with and without the new listing, measured as #975's phase 2 measured it and written into the phase record (`questions.md` Q7) | |
+| 7 | The shared-mode record taken out, and the local line (`spec.md` S4, S10, S14, `## Removes`). In `seal_stamp.py`: `PLAIN_COMMITS`, `plain_commit`, `_guarantee_on_another_ref`, `_stamped_nowhere_else` and the `record_refusal` call in `_queue_one` deleted; the `refused_here` skips in `sealed_before` and in `_queue_one`'s chain refusal deleted, so both read as at 769f2aa4; the record section's comment and the docstrings of `record_refusal`, `refused_here`, `_same_commit`, `queue_for_guarantee` and `sealed_before` rewritten to local mode alone; `NOT_ON_BRANCH` added beside `QUEUED` and returned by the local writer at its branch refusal where the branch stands. The ten shared-mode cases and the fixtures only they call deleted; `test_a_refusal_record_skips_only_its_own_verdict` rewritten over `local_guaranteed`; `test_a_local_mode_guarantee_off_its_branch_queues_nothing` and `test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once` gain the line assertion. `overview.md`'s divergence rows that describe guard 3 and the other-ref guard are closed by the builder, since the units they describe are gone | `test_a_local_mode_guarantee_off_its_branch_queues_nothing` and `test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once` seen red on the line at 339ac7dc; `test_a_refusal_record_skips_only_its_own_verdict` seen red with the matcher's floor deleted; the fourteen #975 cases and phases 1 and 2's nine cases green with bodies untouched (an AST comparison against 769f2aa4 for the fourteen); `bin/mutation-check` over the local write site, the local skip and the line, one run each; `git diff --stat 769f2aa4 HEAD -- hooks/git/` empty; `git grep -n -e plain_commit -e _stamped_nowhere_else -e _guarantee_on_another_ref -e PLAIN_COMMITS` exit 1 | |
+| 8 | The words, each rewritten in place (contract §19), to the redesign (`spec.md` S7, S8): `docs/the-review-record.md` §*The stamp*, the second rule rewritten to the refusal at the commit in shared mode (pointing at `docs/the-commit-gate-inside-git.md`) and the record in local mode, its `Enforced by:` line carrying phases 6 and 7's cases and none of the deleted ones, and the unchecked paragraph naming only the limits `spec.md` §*Scope* leaves; `docs/the-commit-gate-inside-git.md`, a new rule under this item's marker stating the refusal beside the arms, what it reads, what it does not judge, and that it is no arm, with its `Enforced by:` line, and the latency bullet gaining phase 6's figures; `skills/code-review/orchestration.md`'s sealer step (line 209's paragraph) gaining the sentence that a commit refused for a row naming a commit the branch does not hold is answered by spawning the sealer again at HEAD, never by editing the row; `hooks/sealer-stamp.py`'s docstring where it names the record; both READMEs' side-effect sentences (the record's directory, local mode) and the git-hooks row (the third refusal); `changelog.md`'s second entry in this directory; the pins: `test_the_policy_states_the_refusal_record_and_names_its_cases` rewritten, `test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does`'s `silence` tuple rewritten, `test_both_readmes_list_the_stamp_hook` extended, and a pin for the new rule in `docs/the-commit-gate-inside-git.md` where that document's test module keeps them | Each pin seen red against the documents at the start of the phase; `bin/rules --check` exit 0; `tests/test_docs_line_wrap.py`, `tests/test_one_word_one_meaning.py`, `tests/test_no_real_identifiers.py` green; S8's two `git grep` runs as stated; `git diff --stat 11b90191 HEAD -- agents/` empty (S9) | |
 
 This table is also where the work records how far it got. There is no separate
 task list: a list of tasks is mutable progress, and a stale one asserts a state
@@ -229,20 +227,26 @@ nowhere else. That is tolerable because nothing measures from this column.
 
 ## Operational impact
 
-- No migration, environment variable or dependency. `hooks/hooks.json` is
-  unchanged, because the `post-edit` matcher already covers `Write` and
-  `Edit`.
-- Every `Write` and `Edit` in every repository now runs one more gate in the
+- No migration, environment variable or dependency. `hooks/hooks.json` and
+  `hooks/git/` are unchanged: the refusal runs inside the `pre-commit` stub
+  the installer already writes.
+- Every `Write` and `Edit` in every repository runs one more gate in the
   `post-edit` group. It returns on the path's shape before any `git` call or
-  import. A process start per edit is the cost the group's two gates already
-  pay.
-- The refusal record adds one more clone-local write,
-  `<git-common-dir>/specseal-stamp-refused/<id>-<target>`, an empty file
-  that nothing prunes, the same stance `specseal-stamp/` has. It is written
-  only where a writer refused a `sealed`. Its two extra `git` calls (the
-  reflog entry and the cherry-pick listing) run only on that path.
+  import.
+- Every judged commit in an opted-in clone now lists its staged paths once
+  (`git diff --cached --name-only`), where before only a commit the parity
+  arm asked about did. A commit that stages a work item's `guarantee.md`
+  reading `sealed` pays one `git show`, the `chain_check.py` import, one
+  `git rev-parse` and one `git merge-base` more. Phase 6 measures both
+  against `docs/the-commit-gate-inside-git.md`'s latency bullet
+  (`questions.md` Q7).
+- The refusal record's directory, `<git-common-dir>/specseal-stamp-refused/`,
+  is written in local mode alone from phase 7. A shared-mode clone that
+  wrote one under 339ac7dc keeps the empty files; nothing reads them and
+  nothing prunes them, the stance `specseal-stamp/` has.
 - The installed gate is not the tree. This work item's own run draws its
-  stamp through the plugin cache's 0.22.1 hooks, and this repository is in
-  shared mode, so no run here exercises the local trigger end to end. The
-  first real local-mode stamp is read by the owner after updating to 0.22.2
-  (`spec.md` S7's unchecked sentence).
+  stamp and judges its commits through the plugin cache's 0.22.1 hooks, so
+  no run here exercises the new refusal or the local trigger end to end. The
+  first real refusal is read by the owner after updating to the release
+  that carries this work (`spec.md` S7's unchecked sentence; `overview.md`
+  §*Not verified*).
