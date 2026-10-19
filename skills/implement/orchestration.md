@@ -235,7 +235,8 @@ Never guess the original: a comparison against a guessed repo proves nothing.
    relation in `git remote -v`, and repos whose paths overlap this one's.
    Present what you found and let the user pick or give a path.
 2. **Baseline commit** — read `HEAD` of the confirmed original checkout.
-3. **Policy root** — `docs/policies/` if it exists, else propose it.
+3. **Policy root** — the ratified-policy directory the tree already has, or
+   `none`; never propose one.
 4. **Coordinate-trust exceptions** — leave empty. Rows arrive from real work.
 
 Write `seal/parity.md` from `templates/parity.md` with those values, and

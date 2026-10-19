@@ -2,8 +2,8 @@
 
 Eight axes each settled by reading one request end to end. A defect that needs
 a second actor — a reservation mutated while an external call is in flight —
-matched none of them, and an axis nobody listed leaves no trace: `❓ out of
-verified scope` records that you looked and could not decide, not that nobody
+matched none of them, and an axis nobody listed leaves no trace: a row of
+`## Not judged` records that you looked and could not decide, not that nobody
 looked. Two documents share this table; drift between them is the bug.
 """
 
@@ -63,6 +63,43 @@ def test_legacy_parity_still_points_at_that_table():
 
     A copy would be two answers shipping at once."""
     assert "the same comparison axes" in read("skills", "legacy-parity", "SKILL.md")
+
+
+def test_the_record_of_a_comparison_names_its_writer():
+    """T5 of #970 (C5 of #2): the parity mark is written by the party that
+    compared, the warden in a review round and a session that compared
+    without one, and the scribe and the smith write none.
+
+    The section said *you*, so a smith or a scribe opening the skill read
+    itself as the writer of a mark its definition does not name."""
+    text = read("skills", "legacy-parity", "SKILL.md")
+    heading = "\n## Recording the comparison\n"
+    assert heading in text, "`legacy-parity` lost its section on the record"
+    body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
+    for clause in (
+        "the warden in a review round",
+        "a session where it compared without one",
+        "The scribe and the smith write none.",
+    ):
+        assert clause in body, f"the record of a comparison lost {clause!r}"
+
+
+def test_the_resolution_order_ends_with_the_caller_asking():
+    """S4 of #970, the skill's half (round 1, finding 1): the order ends with
+    the caller asking and recording, and a reader that cannot ask returns
+    `original not found`. T3 holds the scribe's half; this is the text every
+    reader of the skill opens, and the base's wording made the reader ask."""
+    text = read("skills", "legacy-parity", "SKILL.md")
+    heading = "\n## The migration config\n"
+    assert heading in text, "`legacy-parity` lost its migration-config section"
+    body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
+    for clause in (
+        "it lives in `~/.claude/specseal/parity-paths.md`",
+        "the caller asks the user and records the answer",
+        "a reader that cannot ask returns `original not found` with what it tried",
+        "A comparison against a guessed original proves nothing.",
+    ):
+        assert clause in body, f"the resolution order lost {clause!r}"
 
 
 def test_the_preset_block_carries_the_routing_decision():

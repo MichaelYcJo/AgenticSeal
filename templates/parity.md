@@ -13,7 +13,7 @@ would be wrong for everyone else. They live in
 |---|---|
 | Original repo | `<org/repo>`, module `<path within it, or "whole repo">` |
 | Baseline commit | `<SHA>` — the commit the original's coordinates refer to |
-| Policy root | `docs/policies/` |
+| Policy root | `<the directory the repository keeps its ratified policy in, such as docs/, or none>` |
 | Coordinate-trust exceptions | none |
 
 ## Coordinate-trust exceptions
@@ -30,4 +30,5 @@ coordinate that moved without anybody noticing.
 
 What this migration does and does not cover, when that is not obvious from the
 original repo alone. For example: endpoints being ported in a later phase, or
-behavior deliberately left behind with the decision recorded in `docs/policies/`.
+behavior deliberately left behind with the decision recorded under the policy
+root.
