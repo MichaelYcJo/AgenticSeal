@@ -177,7 +177,7 @@ tables:
 | session-lease | after repo-touching tool calls (Bash · file edits) | writes a timestamp, host, and owning session pid to `.git/specseal-leases/<session-id>`. The guard's process heuristics miss sessions not named `claude`; a lease says outright which session is working here. Nothing removes the file at session end, so the owner is recorded: a lease whose session has exited is retired rather than counted, and one that cannot be attributed becomes a question instead of a block | any git repo |
 | mode-gate | before a Bash call, so in practice the session's first one | names a root nobody chose a mode for: `seal/` exists and `seal/config.md` carries no `Mode` row, so nothing records whether this repository's review records travel with it or stay on this machine — and a root somebody chose is byte-identical to one that appeared because a session followed the routing rule. Denies once with the three ways on as options — `seal mode` records where the folder already is and moves nothing, `seal mode shared` / `seal mode local` move it — then the plain confirmation, where approving proceeds and records nothing. **Once per session per repository**, and nothing at all once the row exists. The repository judged is the one the SESSION sits in, not one a `-C` names: this is a fact about the workspace, not a verdict about a change | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and silent wherever the row is written. There is no waiver token: the way on is one command |
 | version-check | at session start | asks this repository for its newest release tag and, when the running plugin is behind, shows a short notice naming `/specseal:update` and the two moves that load a release. Once a day, and a lookup that fails retries about twenty minutes later. It never installs anything — telling you a release exists and installing it are different acts | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
-| sealer-stamp | when the main session's turn ends (`Stop`) | draws, once and after the turn's text, each stamp waiting for this session under `<git-common-dir>/specseal-stamp/<session>/` — queued at the commit of a work item's `guarantee.md` reading `sealed`, once per work item — and renames the file `.drawn.json`. Nothing at a subagent's end, for another session's file, or under a `python3` older than 3.12; `seal-stamp --from <file>` draws one by hand | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
+| sealer-stamp | when the main session's turn ends (`Stop`) | draws, once and after the turn's text, each stamp waiting for this session under `<git-common-dir>/specseal-stamp/<session>/` — queued at the commit of a work item's `guarantee.md` reading `sealed`, or in local mode at its write (the next row), once per work item — and renames the file `.drawn.json`. Nothing at a subagent's end, for another session's file, or under a `python3` older than 3.12; `seal-stamp --from <file>` draws one by hand | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | sealer-stamp-queue | after a Write or Edit of a work item's `guarantee.md` | in local mode, where no commit ever carries the root, queues the work item's stamp for the main session's `Stop` when the write leaves `guarantee.md` reading `sealed` over a commit on the branch its `routing.md` names, once per work item, and prints the line naming the queued file and `seal-stamp --from`. Any other edit is passed over on its path alone, before anything is loaded or any `git` runs | `seal/` under the common git dir (local mode) — silent elsewhere, shared mode included, where git's `post-commit` queues the stamp |
 | lint-python | after Write/Edit/NotebookEdit on a `.py` file | runs `ruff check --fix` then `ruff format` on that file — autofixes included, so code changes, not just layout (uv → uvx → global ruff; skips silently if none). `SPECSEAL_LINT=off` disables it | **a project that configures ruff** — `ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`, searched up to the repo root. Silent everywhere else |
 
@@ -207,10 +207,13 @@ names the verifying round.
 No gate transmits your code, your paths, or your prompts anywhere. Four side
 effects are worth stating outright: session-lease writes a timestamp file under
 `.git/specseal-leases/`, version-check writes one under
-`~/.claude/specseal/`, the commit of a `guarantee.md` reading `sealed` writes
-the stamp's values under `<git-common-dir>/specseal-stamp/`, which the stamp
-hook renames once drawn and nothing prunes, and lint-python rewrites the
-`.py` file you just saved — in ruff-configured projects only.
+`~/.claude/specseal/`, the commit of a `guarantee.md` reading `sealed`, or in
+local mode its write, writes the stamp's values under
+`<git-common-dir>/specseal-stamp/`, which the stamp hook renames once drawn
+and nothing prunes, and a `sealed` the plugin refused leaves an empty file
+under `<git-common-dir>/specseal-stamp-refused/`, which nothing prunes
+either, and lint-python rewrites the `.py` file you just saved — in
+ruff-configured projects only.
 
 Two hooks reach the network. lint-python falls back to `uvx ruff`, and uv
 fetches ruff from PyPI on first use. version-check runs one `git ls-remote

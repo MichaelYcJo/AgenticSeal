@@ -33,8 +33,9 @@ Its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED` over the branch,
 the tree and the base it measured; a passing run prints its panel's rows as
 text under that line, the same bytes on a terminal as on a pipe, and writes
 no values file and no drawing. The verdict word `sealed` is the sealer's,
-and the stamp is drawn from that verdict at its commit
-(`docs/the-review-record.md` §*The stamp*), so a green suite is never read
+and the stamp is drawn from that verdict at its commit, or in local mode at
+its write (`docs/the-review-record.md` §*The stamp*), so a green suite is
+never read
 as a sealed work item.
 Enforced by: tests/test_one_word_one_meaning.py::test_the_gate_never_says_sealed, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_recorded_run_on_a_pipe_writes_no_values_file, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_recorded_run_on_a_terminal_prints_the_same_report
 

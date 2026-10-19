@@ -49,9 +49,12 @@ owner's marks) and `sealed_names` for its head.
 `queue_for_guarantee` after every judged commit; where the commit carries a
 `guarantee.md` reading `sealed` and stamped by no earlier run or commit, it
 writes the stamp's rows to a values file under the git common dir, keyed by
-the Claude Code session, and `hooks/sealer-stamp.py` draws each undrawn file
-once, at the end of that session's turn. This module owns the file:
-`queue_for_guarantee` and `write_values`, `read_values`, `pending` and
+the Claude Code session. In local mode, where no commit carries the root,
+`hooks/sealer-stamp-queue.py` calls `queue_for_local_guarantee` at the
+guarantee's `Write` or `Edit` instead (work item 1792363231).
+`hooks/sealer-stamp.py` draws each undrawn file once, at the end of that
+session's turn. This module owns the file: `queue_for_guarantee`,
+`queue_for_local_guarantee` and `write_values`, `read_values`, `pending` and
 `claim`. Drawing claims the file first, by renaming it to `.drawn.json`, so
 a file is drawn once whoever draws it.
 
@@ -62,7 +65,8 @@ Usage:
 
 The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
 `text_lines`, `TWIN_ASCII` and the panel's text rules; the commit hook
-imports `queue_for_guarantee`; the hook imports `pending`, `read_values`,
+imports `queue_for_guarantee`; the edit gate imports
+`queue_for_local_guarantee`; the hook imports `pending`, `read_values`,
 `claim` and `stamp`.
 `.github/scripts/release_seal.py`, which the tag push runs, drew a
 release's seal from this module's cells as a PNG, one cell to one rectangle
@@ -745,11 +749,12 @@ def is_terminal(stream):
 #
 # A Bash call's stdout is a pipe into a tool result nobody sees unfolded
 # (#400), so the stamp's rows are written here — since #975 by the commit of
-# a `sealed` guarantee (`queue_for_guarantee`) — and a `Stop` hook in the
-# session that made the commit draws them. The directory is under the git
-# COMMON dir because the worktree the commit landed in and that session's
-# cwd can be different worktrees of one clone, and the common dir is the one
-# place both resolve alike. It is keyed by session so that a concurrent
+# a `sealed` guarantee (`queue_for_guarantee`), and in local mode by its
+# write (`queue_for_local_guarantee`) — and a `Stop` hook in the session they
+# were queued for draws them. The directory is under the git COMMON dir
+# because the worktree the commit landed in and that session's cwd can be
+# different worktrees of one clone, and the common dir is the one place both
+# resolve alike; a local root sits in the same directory. It is keyed by session so that a concurrent
 # session of the same clone does not draw, and take, a stamp that is not its
 # own.
 
@@ -902,14 +907,15 @@ def label(values):
     return f"SEALED {names}{f' · {pr}' if pr else ''}{where}"
 
 
-# --- the stamp, queued at a sealed guarantee's commit (#975) ---------------
+# --- the stamp, queued at a sealed guarantee's commit or write -------------
 #
 # The owner's rule of 2026-10-18: the stamp means every party verified the
 # work item, the sealer last, and the work is done. So it is drawn once per
 # work item, from `guarantee.md` reading `sealed`, never from the broad
 # gate's run. git's `post-commit` (`hooks/commitgate.py#post_commit`) runs
 # after every judged commit, in the worktree the commit landed in, and calls
-# `queue_for_guarantee`; the `Stop` hook draws what it queued.
+# `queue_for_guarantee`; the `Stop` hook draws what it queued. In local mode
+# the edit gate calls `queue_for_local_guarantee` (below) instead.
 #
 # Once per work item is held by four facts the tree and the clone carry,
 # and no count kept beside them: a values file whose name,
@@ -952,7 +958,8 @@ CHAIN_CHECK = os.path.join(
     "chain_check.py",
 )
 # The line `post-commit` prints on stdout, which git prints into the commit
-# command's output. It names the way to draw the stamp by hand, because the
+# command's output, and the edit gate prints as its message in local mode.
+# It names the way to draw the stamp by hand, because the
 # hook draws nothing, and says nothing, where it cannot: a `python3` that
 # cannot load this file, a main session whose working directory is outside
 # this clone, a plugin older than the hook (`docs/the-review-record.md`

@@ -2132,14 +2132,19 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     result text comes first, the orchestrator draws none — by `seal-stamp` or
     by relaying a log, which 0.15.6 did — the broad run's lines are quoted as
     `BROAD GATE PASSED` and `BROAD GATE FAILED`, and no line of the run says
-    `SEALED`."""
+    `SEALED`. 1792363231 S7: in local mode the stamp is drawn at the end of
+    the turn in which the sealer's report arrives, and the line to quote is
+    the edit hook's message."""
     text = flat("skills", "code-review", "orchestration.md")
     section = text.split("## Orchestrator: the pull request opens before round 1", 1)[1]
     section = section.split("## Orchestrator: verify before posting", 1)[0]
     for said in (
         "**The stamp is drawn for you at the end of the turn in which "
-        "`guarantee.md` reading `sealed` is committed, and you never draw one "
-        "(#975).**",
+        "`guarantee.md` reading `sealed` is committed, or in local mode the turn "
+        "in which the sealer's report arrives, and you never draw one (#975).**",
+        "In local mode no commit carries `guarantee.md`: the sealer's own "
+        "`Write` of it queues the values, and the line arrives as the edit "
+        "hook's message",
         "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
         "`BROAD GATE FAILED`",
         "So put the result text first",
@@ -2147,8 +2152,9 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "On a red run relay the `BROAD GATE FAILED` lines.",
         # Round 1's 🟡 1 of #400: the command is named on the line that points
         # at a values file, and it stays the person's wherever it appears.
-        "Wherever the commit's line names `seal-stamp --from`, quote it as it "
-        "stands: that command is the person's to type, and never yours.",
+        "Wherever the commit's line or the edit hook's message names "
+        "`seal-stamp --from`, quote it as it stands: that command is the "
+        "person's to type, and never yours.",
     ):
         assert said in section, said
     assert "SEALED" not in section, "a line of the broad run is quoted as SEALED"
@@ -2158,13 +2164,16 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
     """S16, `verify`'s half, and #975 S13. The **Form** bullet said
     `broad-gate` draws the stamp when every check passed; the stamp is the
     sealer's now, drawn once per work item from its `sealed` guarantee at
-    that file's commit, and the gate draws nothing."""
+    that file's commit, and the gate draws nothing. 1792363231 S7: in local
+    mode, at its write."""
     text = flat("skills", "verify", "SKILL.md")
     assert "`broad-gate` prints the disc on success alone" not in text
     assert "`broad-gate` draws the stamp" not in text
     for said in (
         "the stamp is drawn from the sealer's `guarantee.md` reading `sealed`, "
         "once per work item",
+        "git's `post-commit` writes the values it is drawn from, or in local "
+        "mode the edit hook does at the file's write",
         "the `Stop` hook draws them in the orchestrator's session",
         "The broad gate draws nothing",
     ):
@@ -2177,9 +2186,17 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     with an `Enforced by:` line naming the cases that queue and draw it, and
     a second statement saying what the screen shows is enforced by nothing.
     That statement names every place the hook is silent — a foreign hooks
-    slot, a local-mode root, a `python3` that cannot load `seal_stamp.py`, a
-    main session outside the clone, a plugin older than the hook — and
-    `seal-stamp --from <path>` for where a file was written."""
+    slot, a `python3` that cannot load `seal_stamp.py`, a main session
+    outside the clone, a plugin older than the hook — and `seal-stamp --from
+    <path>` for where a file was written.
+
+    1792363231 S7 and S8: the rule names both triggers, the commit in shared
+    mode and the write in local mode, with the local facts that hold once
+    per work item. The unchecked paragraph no longer names local mode among
+    the silences, and no longer hands the never-twice gap to an issue: it
+    names a local guarantee that arrived other than by `Write` or `Edit`, a
+    verdict over a commit off the work item's branch, and the limits the
+    refusal record leaves. Red against the paragraph at 769f2aa4."""
     text = stamp_section()
     marker = "<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->"
     ours = "<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->"
@@ -2188,8 +2205,28 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     rule, unchecked = text.split(marker)[1:3]
     assert (
         "**The stamp is drawn once per work item, from the sealer's `sealed`, at "
-        "the end of the turn in which `guarantee.md` reading it was committed.**"
+        "the end of the turn in which `guarantee.md` came to read it: at its "
+        "commit in shared mode, and at its write in local mode.**"
     ) in rule
+    for local in (
+        "`hooks/sealer-stamp-queue.py`",
+        "after each `Write` or `Edit` of a local root's `specs/<id>/guarantee.md`",
+        "an ancestor of the branch the work item's `routing.md` names in its "
+        "`Branch` row",
+        "the root and the values directory share the common dir",
+        "`settle` retires no local-mode work item",
+    ):
+        assert local in rule, local
+    for case in (
+        "::test_a_local_mode_sealed_guarantee_queues_one_stamp",
+        "::test_a_local_mode_second_sealed_queues_nothing",
+        "::test_a_local_mode_guarantee_off_its_branch_queues_nothing",
+        "::test_the_edit_gate_leaves_shared_mode_to_post_commit",
+        "::test_the_edit_gate_queues_a_local_mode_sealed_guarantee",
+        "::test_a_subagents_write_queues_and_draws_nothing",
+        "::test_the_edit_gate_is_silent_off_a_guarantee",
+    ):
+        assert case in rule, case
     # #975 round 6's finding 1: the double-stamp limit is stated where the
     # rule is, as the class `sealed_before` cannot see, with its reason.
     assert "draws the stamp again in that clone" in rule, (
@@ -2222,16 +2259,69 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     assert "**Nor is the hook's silence where it cannot draw.**" in unchecked
     for silence in (
         "where git's hooks slot is somebody else's",
-        "in local mode",
-        "already read `sealed` and that verdict drew nothing",
+        "by a shell write or `seal import`",
+        "a verdict over a commit off the work item's branch",
+        "in a clone other than the one that refused",
+        "introduced by an amend, a rebase or a cherry-pick",
+        "a patch-equivalent copy in the history",
+        "a clone whose reflog is off",
         "cannot load `seal_stamp.py`",
-        "outside the clone the commit landed in",
+        "outside the clone the stamp was queued in",
         "predates the hook",
     ):
         assert silence in unchecked, silence
     assert "names `seal-stamp --from <path>`" in unchecked
+    assert (
+        "In local mode the line reaches the person as the edit hook's message, "
+        "and nobody has watched that message on a screen yet."
+    ) in unchecked
+    for gone in (
+        # Spelled in two pieces, so S8's `git grep` for the pointer finds the
+        # policy clean and not this check on it.
+        "#" + "976",
+        "in local mode, where the `seal/` root sits under the git directory",
+        "already read `sealed` and that verdict drew nothing",
+    ):
+        assert gone not in text, gone
     assert "`SEALED` line" not in text, "the gate's line is quoted as SEALED"
     assert "the stamp says which copy drew it" not in text
+
+
+def test_the_policy_states_the_refusal_record_and_names_its_cases():
+    """1792363231 S8. §*The stamp* carries the refusal record as a rule of
+    its own under this work item's marker: a `sealed` a writer refused
+    leaves a record in the clone, the once readers skip it, so the repair
+    draws the work item's one stamp. It names the guards the build holds,
+    three, and its `Enforced by:` line names the cases phase 3 planted."""
+    text = stamp_section()
+    marker = "<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->"
+    assert marker in text
+    rule = text.split(
+        "**A `sealed` a writer refused leaves a refusal record in the clone", 1
+    )[1].split("<!--", 1)[0]
+    for said in (
+        "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
+        "`sealed_before` and the `Target SHA` row's earlier-run chain skip",
+        "at least seven characters",
+        "three things must hold",
+        "a plain `commit:` or `commit (initial):`",
+        "HEAD's side holds no patch-equivalent copy of it",
+        "where the `Branch` row's branch stands",
+    ):
+        assert said in rule, said
+    assert "four guards" not in rule, "the build holds three"
+    for case in (
+        "::test_a_seal_this_clone_refused_does_not_count_as_stamped",
+        "::test_a_refusal_record_skips_only_its_own_verdict",
+        "::test_a_seal_over_a_commit_off_the_branch_then_repaired_draws_once",
+        "::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once",
+        "::test_a_conflicted_rebase_in_another_clone_writes_no_refusal",
+        "::test_an_amend_in_a_fresh_clone_writes_no_refusal",
+        "::test_a_body_edit_over_a_rewritten_seal_writes_no_refusal",
+        "::test_a_seal_whose_target_has_a_copy_writes_no_refusal",
+        "::test_guard_two_reads_what_post_commit_sees_in_the_reflog",
+    ):
+        assert case in rule, case
 
 
 def test_both_readmes_list_the_stamp_hook():
@@ -2277,22 +2367,30 @@ def test_both_readmes_list_the_stamp_hook():
         assert "게이트 열하나 중 여덟" not in text, edition
     # #975 S11: both editions say the stamp's values are written at the
     # commit of a sealed guarantee, and neither says the broad gate leaves
-    # them.
+    # them. 1792363231 S7: or, in local mode, at its write; and the refusal
+    # record's directory stands beside the values' among the side effects.
     for edition, said, gone in (
         (
             "README.md",
             (
-                "queued at the commit of a work item's `guarantee.md` reading `sealed`",
-                "the commit of a `guarantee.md` reading `sealed` writes the stamp's "
-                "values under",
+                "queued at the commit of a work item's `guarantee.md` reading "
+                "`sealed`, or in local mode at its write",
+                "the commit of a `guarantee.md` reading `sealed`, or in local mode "
+                "its write, writes the stamp's values under",
+                "a `sealed` the plugin refused leaves an empty file under "
+                "`<git-common-dir>/specseal-stamp-refused/`",
             ),
             ("the broad gate left for this session", "a sealed broad-gate run writes"),
         ),
         (
             "README.ko.md",
             (
-                "작업 항목의 `guarantee.md` 가 `sealed` 로 커밋될 때 남는",
-                "`sealed` 로 읽히는 `guarantee.md` 를 커밋하면 도장에 들어갈 값을",
+                "작업 항목의 `guarantee.md` 가 `sealed` 로 커밋될 때, local 모드에서는 "
+                "그렇게 쓰일 때 남는",
+                "`sealed` 로 읽히는 `guarantee.md` 를 커밋하면, local 모드에서는 그렇게 "
+                "쓰면 도장에 들어갈 값을",
+                "플러그인이 거절한 `sealed` 는 `<git-common-dir>/specseal-stamp-refused/` "
+                "아래에 빈 파일을 남깁니다",
             ),
             ("광역 관문이 이 세션 앞으로", "광역 관문 실행은 도장에 들어갈 값을"),
         ),
@@ -2323,9 +2421,11 @@ def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
     text = flat("agents", "sealer.md")
     for said in (
         "or draw a stamp",
-        "a stamp is drawn once from your committed `sealed`.",
+        "a stamp is drawn once from your `sealed`.",
     ):
         assert said in text, said
+    # 1792363231 S9: a local-mode verdict is never committed.
+    assert "your committed `sealed`" not in text
     assert "from its own run" not in text, "the stamp is not the run's"
     assert "seal-stamp --from" not in text, (
         "the sealer is told to pass on a stamp command from a run it did not take"
