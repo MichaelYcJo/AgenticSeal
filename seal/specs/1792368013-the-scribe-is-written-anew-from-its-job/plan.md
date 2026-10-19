@@ -4,7 +4,7 @@
 artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-19 by the orchestrator, under the owner's `automation` answer and Q1's answer (#988), when `smith` was spawned after #943 merged (b196fe9b). This item lands before #968, which shares `tests/test_every_agent_reads_the_contract.py` and the README agent rows and rebases over it before its measurement.
 
 ## Summary
 
