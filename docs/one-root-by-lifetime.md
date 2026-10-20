@@ -30,7 +30,7 @@ check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
 
 **Anything that must outlive a release may not read `seal/specs/<id>/` after
 the merge.** `settle` removes the directory, so every permanent purpose
-treats it as already gone. A round record's `Target SHA` is read only while
+treats it as already gone. A round record's `target:` line is read only while
 its pull request is open. A comment naming a work item, above a released
 changelog entry, is a pointer rather than a read, and it still resolves
 through git history once the folder is gone. Every check in a repository
@@ -45,7 +45,7 @@ for edits unrelated to the claim, so the citation has to be re-anchored, and
 a squash orphans it. `settle` rewrites `docs/` and removes directories at
 every release it is called for, so anything coupled to a path or a position
 inside a work item breaks the same way. The coupling left is a round
-record's `Target SHA`, read while its pull request is open and gone with the
+record's `target:` line, read while its pull request is open and gone with the
 record.
 
 ## The opt-in signal is the root itself

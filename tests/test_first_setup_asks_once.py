@@ -419,7 +419,7 @@ def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     assert "skills/code-review/scripts/chain_check.py" in t
     assert t.count("--baseline") >= 2
     assert "seal/specs/" in t
-    # The check reads a record's `Target SHA` as an ancestor of HEAD only,
+    # The check reads a round record's `target:` line as an ancestor of HEAD only,
     # so the template fetches no pull-request heads (#923).
     assert "refs/pull/" not in t
     assert "v<version>" in t, "the plugin is not pinned to its tag"

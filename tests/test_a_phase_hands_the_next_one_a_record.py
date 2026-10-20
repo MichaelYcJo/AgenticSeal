@@ -13,7 +13,7 @@ per-segment record the review chain already has in `templates/sdd-round.md`
 (`docs/the-review-record.md` §*The round record*). This module pins:
 
   the field table    `Phase`, `Commit` — nothing more, because a phase has
-                     no `Target SHA` to squash away
+                     no `target:` commit to squash away
   the two sections    ship outside HTML comments, as placeholders rather
                      than filled claims — a template whose only mention of
                      a section is commented out ships a record that is
@@ -122,7 +122,7 @@ def test_the_field_table_is_phase_and_commit():
     names = [line.split("|")[1].strip() for line in field_rows]
     assert names == ["Phase", "Commit"], (
         f"the field table carries {names}, not Phase/Commit — a phase has no "
-        "Target SHA to squash away, and `Ran by` left with the round record's "
+        "`target:` commit to squash away, and `Ran by` left with the round record's "
         "in 0.22.0 (#923)"
     )
     for name, row in zip(names, field_rows, strict=True):
