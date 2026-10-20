@@ -29,8 +29,10 @@ words with one reader that refuses every other spelling at its line. `## Not
 verified` takes the no-change block the spec sections already use. The
 sealer's verdict takes a sub-label on its one line, as `check: none reader:`
 does. The round record's three old-spelling rows leave the grammar table for
-a two-column table of their own. No live record carries an old form, so
-nothing is converted.
+a two-column table of their own. The release pull request's title line
+takes a `symptoms:` sub-label, and its reader and the docs a release session
+copies from change with it. No live record carries an old form, so nothing
+is converted.
 
 ## Technical context
 
@@ -59,6 +61,12 @@ nothing is converted.
   change to those three is the stamp's change.
 - `docs/the-review-record.md` lines 22-37 and 39-56 are the grammar's prose
   and table; lines 274-279 the guarantee's verdict sentence.
+- `.github/scripts/publish_release_note.py#title_line_re` (line 122) reads
+  `release: <version>\s+—\s*<symptoms>` from the tagged commit's `%B`
+  (`commit_message`, line 185), and `title_from` (line 173) falls back to the
+  tag name with a log line. `main` (line 507) leaves a release that exists.
+  The pins are `tests/test_a_release_publishes_its_note.py` lines 10, 159-166,
+  255-260 and 265-295.
 
 **What breaks in six months.** An installed repository whose overviews carry
 `none — <why>` goes red at its next pull request after upgrading, every such
@@ -86,6 +94,9 @@ changelog fragment says so, and `## Operational impact` below.
 | A6a. Every `docs/` edit in this diff, as #941 did | Breaks "a pull request does not edit the policy root" (`skills/implement/SKILL.md` §*Document layout*) for text no reader loads | Rejected for §*The guarantee* |
 | A6b. Every `docs/` edit through `## Rule changes` | The release ships the new loader beside the old table, and every installed repository's chain check stops at exit 2 until a later settle | Rejected for §*The round record* |
 | A6c. Split: the section the loader reads changes in the diff, the guarantee sentence through `## Rule changes` | §*The guarantee* states the old spelling until the owner's next settle | **Chosen.** The loader paragraph states that the table and its loader change in one commit; the sealer writes from the template and its definition, both changed here, so nothing acts on the stale sentence |
+| A8a. The release title takes `release: X.Y.Z symptoms: <…>`, read whole, falling back to the tag name with a log line naming the expected shape and the line found | A release session that types the old dash line publishes under the tag name; the job stays green and its log says why, and one `gh release edit` repairs the title | **Chosen**, on the owner's answer to Q1. The sub-label is the verdict's and #941's shape. The fallback stays rather than a failure: the job runs after `main` has moved, and the module's own reasoning (a failed job there is a release stopped half-way) still holds |
+| A8b. Fail the publish job on a malformed title line | A typo at the last step leaves a tagged release with no note until someone re-runs the job | Rejected for that reason |
+| A8c. Keep reading the dash line too, for the history | Two spellings read, so a near miss of either passes; and no old line is ever read again, because every `vX.Y.Z` tag already has its release and a release that exists is never republished | Rejected |
 | A7. Leave the verdict's earlier-run entries free text after the word | `<sha> withheld — x` reads as `withheld` by prefix, and a misspelt `Sealed` counts as no earlier stamp | Rejected: the entry carries the word alone, which every one of the 13 live entries already does |
 
 ## Phases
@@ -96,7 +107,8 @@ Vertical slices — each phase ends with something runnable and verified.
 |---|---|---|---|
 | 1 | `## Not verified` reads the no-change block (S1 to S4). The block's word, field and reading move into `unverified_check.py`; `rule_changes.py` and `settle.py` read them from there; the old line is refused in the working tree and read at a base; `templates/sdd-overview.md`, `skills/implement/SKILL.md` §4 and `templates/config.md` §*What no row governs* rewritten; the 9 fixture lines and `evals/scripts/rule_cases.py` rewritten and the five sealer scaffolds regenerated | S2 and S3's cases seen red against the old reader (contract §15); the modules `tests/test_unverified_rows_close.py`, `tests/test_settle_applies_rule_changes_in_place.py`, `tests/test_evals_layout.py` and the five files whose fixtures changed; S4's grep; the overview counts re-taken at the phase's base | |
 | 2 | The verdict in field words (S5 to S9). `chain_check.py` reads the line whole, refuses a near miss at its line and an earlier run's entry that is not the word alone; `RETIRED_SAYS` names the new shapes; `templates/sdd-guarantee.md` (verdict, earlier run, `does not hold:`), `agents/sealer.md`, `skills/code-review/orchestration.md` and `templates/config.md` rewritten; the 24 verdict lines in three test files rewritten | S6 and S9's cases seen red against the old reader; the modules `tests/test_the_sealer_guarantees.py`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`, `tests/test_the_commit_gate_decides_at_the_commit.py`; the guarantee and earlier-run counts re-taken; the `bin/settle` dry run lists this spec's change as pending, not refused | |
-| 3 | The grammar's two tables (S10 to S12). `docs/the-review-record.md` §*The round record*'s three rows move to the old-spellings table and its two sentences are rewritten; `grammar` reads both tables, and `NOWHERE`, `NOT_ANY`, `meant_by` and the `nowhere` branch go; `templates/config.md`'s grammar sentence names both tables | S12's cases seen red with each branch deleted; the modules `tests/test_chain_check.py` and `tests/test_the_pull_request_language_is_the_repositorys.py`; S13's sweep | |
+| 3 | The grammar's two tables (S10 to S12). `docs/the-review-record.md` §*The round record*'s three rows move to the old-spellings table and its two sentences are rewritten; `grammar` reads both tables, and `NOWHERE`, `NOT_ANY`, `meant_by` and the `nowhere` branch go; `templates/config.md`'s grammar sentence names both tables | S12's cases seen red with each branch deleted; the modules `tests/test_chain_check.py` and `tests/test_the_pull_request_language_is_the_repositorys.py` | |
+| 4 | The release title line (S15 to S17). `publish_release_note.py#title_line_re` reads `release: X.Y.Z symptoms: <…>` whole; the fallback's log line names the expected shape and quotes the line found; the module docstring, `docs/release-checklist.md` §*5* and §*6*, and `docs/branch-and-release.md`'s bullet rewritten in the same commit as the reader | S16's cases seen red against the old reader; the module `tests/test_a_release_publishes_its_note.py`, S17's case included; S13's sweep over the whole tree, last | |
 
 This table is also where the work records how far it got. There is no separate
 task list: a list of tasks is mutable progress, and a stale one asserts a state
@@ -132,6 +144,11 @@ nowhere else. That is tolerable because nothing measures from this column.
   request, naming the line and the block to write. A `guarantee.md` written
   by an older sealer in a dash form is refused at its line; a ready pull
   request already needed `sealed`, so only the message changes there.
+- **The release that ships this item** is the first whose session types
+  `release: X.Y.Z symptoms: <…>`, from §*5* as this diff leaves it. A session
+  working from memory that types the dash line gets the tag name as the
+  title and a log line saying why. The 54 published releases are not
+  touched.
 - No migration script, no new env var, no new dependency.
 - `docs/the-review-record.md` §*The round record* changes in the plugin's
   shipped copy, which every installed `chain_check.py` loads.

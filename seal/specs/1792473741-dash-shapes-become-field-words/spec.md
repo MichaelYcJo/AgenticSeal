@@ -16,6 +16,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | `skills/implement/SKILL.md` §*4. The closing memo* | `## Not verified` is read by a machine and has one shape besides its table |
 | `skills/verify/scripts/unverified_check.py#OLD_MARK` | The precedent for a retired spelling: the working tree's reading refuses it naming the edit, and a base revision's reads it, because a commit cannot be edited |
 | `templates/config.md` §*What no row governs* | The words a checker reads stay English; the new words join that list |
+| `docs/release-checklist.md` §*5. The release pull request* and §*6. After the merge*; `docs/branch-and-release.md` (the bullet "The release note publishes itself") | The release pull request's title line, which the tagged merge commit's body carries and `publish_release_note.py` reads; the note never republishes and falls back to the tag name. These change in this diff, on the owner's answer to Q1 |
 | `CLAUDE.md` §*The rule a mechanism is kept against* | A fact has one source; a check gates only a fact it reads, not one guessed from prose |
 
 ## Scope
@@ -42,7 +43,13 @@ spelling refused at its line.
    own, `| Old spelling | Means |`, whose `Means` cell names the label as a
    code span. `meant_by`'s reading of a label out of the `Refused as` prose
    goes with them.
-4. Every template, agent definition, skill, test fixture and eval generator
+4. **The release title line.** `release: X.Y.Z — <symptoms>`, typed by the
+   release session as the release pull request's title and read from the
+   tagged merge commit's body by `.github/scripts/publish_release_note.py`,
+   becomes `release: X.Y.Z symptoms: <the symptoms the release answers>`.
+   The reader, the two `docs/` homes and the line a session copies change in
+   one commit (owner's answer to Q1).
+5. Every template, agent definition, skill, test fixture and eval generator
    that shows one of these shapes is rewritten in place to the new one.
 
 **Out.**
@@ -51,10 +58,13 @@ spelling refused at its line.
   record carries an old form (counts under *Data & interfaces*). The build
   re-takes the counts at its base and converts by hand anything a sibling
   item landed since.
-- **`release: X.Y.Z — <symptoms>`**, typed by the release session and read by
-  `.github/scripts/publish_release_note.py`. Same class, but the line a
-  session copies is `docs/release-checklist.md` §*5. The release pull
-  request*, which this pull request may not edit: `questions.md` Q1.
+- **The published release title**, `X.Y.Z — <symptoms>`, which
+  `publish_release_note.py#title_from` writes onto the releases page. Only
+  people read it, and the 54 published releases carry it.
+- **The preparation title**, `chore: release X.Y.Z — <what the fragments
+  say>` (`docs/release-checklist.md` §*4*). Its one reader,
+  `publish_release_note.py#PREPARATION_RE`, stops at the version, so the
+  dash there is prose and no near miss changes what is read.
 - **`## X.Y.Z — <date>`**, the changelog heading. Only
   `.github/scripts/gather_changelog.py` writes it and only it reads it, so
   no agent or person types a near miss, and the released `changelog/*.md`
@@ -86,7 +96,10 @@ spelling refused at its line.
 | S10 the grammar is two tables | `chain.GRAMMAR` holds the 12 rows the reader reads and no other; `chain.OLD_SPELLINGS == {"Target SHA:": "target:", "refixes:": "regression:", "fix of a fix:": "regression:"}`; neither table's cells hold an em dash | `tests/test_chain_check.py` (`TestGrammar`) |
 | S11 an old spelling is still refused as the label it means | Every case of `test_a_label_in_another_spelling_is_refused_by_line` passes unchanged | `tests/test_chain_check.py` |
 | S12 the loader refuses an old-spellings table it cannot read | No such table; a header other than `Old spelling`, `Means`; a cell that is not one code span; a `Means` that is no label of the grammar table; an `Old spelling` that is one; an old spelling twice; a grammar row whose `Where` is `nowhere`: each a GrammarError naming the document, exit 2 as a command | the parametrised loader case in `tests/test_chain_check.py` |
-| S13 no shape is left | Outside `seal/specs/` and `changelog/`, a `git grep -n` for each of `none — <`, `withheld —`, `undecided —` and `does not hold —` (no trailing space, so a sentence wrapped after the dash is found) finds only `docs/the-review-record.md` §*The guarantee*'s sentence, which `## Rule changes` rewrites at the settle; and `docs/the-review-record.md` holds no `nowhere` cell | executed at the last phase |
+| S13 no shape is left | Outside `seal/specs/` and `changelog/`, a `git grep -n` for each of `none — <`, `withheld —`, `undecided —` and `does not hold —` (no trailing space, so a sentence wrapped after the dash is found), and `release: X.Y.Z —`, finds only `docs/the-review-record.md` §*The guarantee*'s sentence, which `## Rule changes` rewrites at the settle; and `docs/the-review-record.md` holds no `nowhere` cell | executed at the last phase |
+| S15 the release title reads in its shape | Given a tagged commit whose body carries `release: 1.2.3 symptoms: the gate reads one spelling`, when the note is published for `v1.2.3`, then its title is `1.2.3 — the gate reads one spelling` and the log names the `release:` line as the source | `tests/test_a_release_publishes_its_note.py` |
+| S16 any other spelling falls back and says what it expected | `release: 1.2.3 — x`, `release: 1.2.3 - x`, `release: 1.2.3`, `release: 1.2.3 symptoms:`, `release: 1.2.3 symptoms:x`, `Release: 1.2.3 symptoms: x`, `release: 9.9.9 symptoms: x`, and no line at all: each publishes under the tag name, exit 0, and the log line names the expected `release: 1.2.3 symptoms: <…>` shape and quotes the first `release:` line it found, or says none was there | the same file, each seen red against the old reader |
+| S17 the copied line and its reader agree | The command in `docs/release-checklist.md` §*5*, filled with a version and a symptom, is read by `title_from` as S15 | a case reading the §5 block from the document |
 | S14 the eval fixtures follow | `evals/scripts/rule_cases.py` writes the block, its five sealer scaffolds are regenerated from it, and the sealer graders' patterns still match the new verdict line | `tests/test_evals_layout.py` |
 
 ## Data & interfaces
@@ -109,6 +122,7 @@ Outside `seal/specs/` and `changelog/`, the writers and pins of each shape
 | `none — <why>` | `templates/sdd-overview.md` (`## Not verified` comment); `skills/implement/SKILL.md` §4; the two refusal messages in `unverified_check.py#parse_section`; `evals/scripts/rule_cases.py` and its five `evals/behaviour/sealer/rule-sealer-*/scaffold.sh` | `unverified_check.py#parse_section`, which every other reader of the section reaches through `check_text` | 9 fixture lines in `tests/test_unverified_rows_close.py` (4), `test_broad_gate.py`, `test_the_gate_asks_the_range_ci_will_ask.py`, `test_the_gate_names_every_step_ci_runs.py`, `test_the_seal_is_taken_once_by_the_sealer.py`, `test_a_reference_root_is_read_and_never_taken.py` |
 | `withheld — ` / `undecided — ` | `templates/sdd-guarantee.md`; `agents/sealer.md` (the base sentence, steps 1, 4 and 5); `skills/code-review/orchestration.md` (two sentences); `chain_check.py#RETIRED_SAYS`; `docs/the-review-record.md` §*The guarantee* (via `## Rule changes`) | `chain_check.py#verdicts_of`, `#verdict_word`, `#earlier_verdicts`, `#guarantee`; the stamp and the commit gate reach the same three through `seal_stamp.py#_chain_check` (`queue_for_guarantee`, `sealed_before`; `hooks/commitgate.py#guarantee_off_history`) | 24 lines in `tests/test_the_sealer_guarantees.py`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`, `tests/test_the_commit_gate_decides_at_the_commit.py` |
 | `does not hold — ` | `templates/sdd-guarantee.md` (comment and placeholder) | none | `tests/test_the_sealer_guarantees.py` (the claims-table case) |
+| `release: X.Y.Z — <symptoms>` | the release session, from `docs/release-checklist.md` §*5* (line 164); stated again in §*6* (line 227) and `docs/branch-and-release.md` (line 50) | `.github/scripts/publish_release_note.py#title_line_re`, through `#title_from` | `tests/test_a_release_publishes_its_note.py` (the A4 docstring, `title_line`, the fallback cases) |
 | `—` shape cell | `docs/the-review-record.md` §*The round record* | `chain_check.py#grammar`, `#grammar_row`, `#meant_by`, `#OLD_SPELLINGS` | `tests/test_chain_check.py` (`TestGrammar`), `tests/test_the_pull_request_language_is_the_repositorys.py#_round_record_fields` |
 
 **The `## Not verified` block.** The section holds the table or, alone:
@@ -161,7 +175,31 @@ with the twelve rows it reads, and adds, after it:
 rewritten in the same commit, because the section is the grammar's one
 statement and the loader reads it.
 
-**Which `docs/` text changes where.** §*The round record* changes in this
+**The release title line.** The release pull request's title, which
+GitHub writes into the tagged merge commit's body:
+
+```
+release: X.Y.Z symptoms: <the symptoms the release answers>
+```
+
+`title_line_re` reads a whole line of the body, one space after each colon
+and after the version, the version equal to the tag's, and a non-empty
+value. Any other line yields the fallback, the tag name, with exit 0 as
+today. The log line then names the expected shape and quotes the first line
+of the body that opens `release:` in any case, or says there is none. Over
+the history (executed): 56 tags, 54 published releases (every `vX.Y.Z` tag;
+the other two are `fixture/` tags), 52 tagged commits carrying a `release:`
+line, 51 of them with the dash. The note is published once, at the tag's
+push, and a release that exists is never republished, so no old line is read
+again. A tag pushed later at an old commit gets the fallback and the log line
+that says why. The published title keeps its `X.Y.Z — <symptoms>` form
+(*Scope*, out).
+
+**Which `docs/` text changes where.** The release title's three homes,
+`docs/release-checklist.md` §*5* and §*6* and `docs/branch-and-release.md`,
+change in this diff on the owner's answer to Q1: the reader and the line a
+release session copies move in one commit, or the next release's title is
+lost. §*The round record* changes in this
 diff: the loader reads it, and a release shipping the new loader beside the
 old table stops every installed repository's chain check at exit 2. §*The
 guarantee*'s sentence changes through `## Rule changes`: the sealer writes
@@ -193,6 +231,7 @@ reads the sentence before the settle that applies it.
 | The reason after an earlier run's verdict word | `templates/sdd-guarantee.md` (`Target SHA` placeholder), `chain_check.py#earlier_verdicts` | the earlier run's own `guarantee.md` in git history |
 | `does not hold — <what came back>` | `templates/sdd-guarantee.md#"Claims re-run"` | `does not hold: <what came back>` |
 | The three `nowhere` rows and the words only they used | `docs/the-review-record.md#"The round record"` (rows `Target SHA:`, `refixes:`, `fix of a fix:`), `skills/code-review/scripts/chain_check.py#NOWHERE`, `#NOT_ANY`, `#meant_by`, `#grammar_row` (the `nowhere` branch) | the old-spellings table, whose `Means` cell is read as a code span |
+| The release title's dash form and its reader | `.github/scripts/publish_release_note.py#title_line_re`, `#title_from` (the fallback's log line), the module docstring's sentence naming the line, `docs/release-checklist.md#"5. The release pull request"`, `docs/release-checklist.md#"6. After the merge"`, `docs/branch-and-release.md#"The release note publishes itself"` (with its clause "the dash being part of the title the workflow matches") | `release: X.Y.Z symptoms: <…>`, read whole; the published title and past releases are untouched |
 | The pins of the old forms | the 9 `## Not verified` fixture lines and 24 verdict lines named under *Data & interfaces*, `tests/test_chain_check.py#TestGrammar`'s `nowhere` sets and `names no one label` cases, `tests/test_the_pull_request_language_is_the_repositorys.py#_round_record_fields`'s `NOWHERE` filter | rewritten to the new forms in the commit that changes each reader |
 
 ## Open questions → questions.md
