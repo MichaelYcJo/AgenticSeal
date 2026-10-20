@@ -36,8 +36,9 @@ whole tree runs last.
   `(\S(?:\s*\S+)*)\s*!$` the case timed out after 30 s with no verdict.
   The other four mutations went red on the first cases.
 - **S13's sweep** (executed at ebd9d3d9, `git grep -F` outside `seal/specs/`
-  and `changelog/`): `release: X.Y.Z —` and a `| nowhere |` cell are found
-  nowhere. `none — <`, `withheld —` and `undecided —` are found in
+  and `changelog/`): `release: X.Y.Z —` is found nowhere, and a `| nowhere |`
+  cell only in S12's refused-row fixtures at `tests/test_chain_check.py:631`
+  and `:636`. `none — <`, `withheld —` and `undecided —` are found in
   `docs/the-review-record.md` §*The guarantee*'s sentence, which
   `## Rule changes` rewrites at the settle; in three comments of
   `unverified_check.py` and one docstring of
