@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 3 |
-| Commit | 728091c1 |
+| Commit | 346369b7 |
 
 ## What this phase was asked
 
@@ -38,6 +38,16 @@ rewritten to it. S10's cases seen red, and `bin/settle`'s dry run listing
   orchestrator or the framer owes the two spaces, and the hand-back names
   it. #953's spec parses: the same run holds it only for its open
   `questions.md` row Q4, which is #953's own.
+- **The sweep of the three phases' facts.** A `git grep` for the old label,
+  the cutoff row, the fold marker and the em-dash form, outside `seal/specs/`
+  and `changelog/`, found five sentences still stating them: both READMEs'
+  limit bullet, two lines of `agents/framer.md`, `skills/settle/SKILL.md`'s
+  apply bullet, `docs/the-record-layout.md`'s settle sentence and a
+  docstring in `unverified_check.py`. 346369b7 rewrites each. What the grep
+  still finds is a test's planted refusal, the case pinning that the
+  template no longer says it, and
+  `evals/behaviour/warden/replay-1791382684-r5/prompt.md`, a recorded
+  review prompt replayed as it was given, left as written.
 - **The checks at the boundary (executed):** S10's cases were run red
   against 37faed02 (14 failed), then green; the settle, unverified, phase
   record, vocabulary, wrap and meta modules pass, after the vocabulary line
