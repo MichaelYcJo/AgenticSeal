@@ -922,7 +922,10 @@ def test_the_release_checklist_carries_the_by_hand_step():
     assert "skills/settle/SKILL.md" in text
     # Round 1, finding 10: a document past the ceiling is a report (Q6), and
     # the checklist points to the skill's section rather than ordering a split.
-    assert "§*A document past its ceiling is split, never trimmed*" in text
+    assert (
+        "`skills/settle/SKILL.md` *A document past its ceiling is split, never "
+        "trimmed*" in " ".join(text.split())
+    )
     assert "split along its headings in the same pull request" not in text
 
 

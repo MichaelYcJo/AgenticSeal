@@ -120,7 +120,7 @@ RULES = {
         # orchestrator's act (the ladder's own `check:` line says so), and a
         # smith hands a leftover back with its answerer (its step 10).
         {
-            TRACKER: "`docs/the-review-record.md` §*The run* owns where a filed "
+            TRACKER: "`docs/the-review-record.md` *The run* owns where a filed "
             "finding goes",
         },
     ),

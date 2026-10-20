@@ -550,7 +550,7 @@ def test_the_release_sequence_names_the_gather_step():
         "Renaming `## Unreleased`",
     ):
         assert old_rule not in doc, f"the sequence still says: {old_rule}"
-    assert "There is no accumulation section any more" in doc, (
+    assert "`CHANGELOG.md` holds no section that entries accumulate under" in doc, (
         "the document leaves a reader who knows the old rule to work out on "
         "their own that the heading is gone rather than moved"
     )

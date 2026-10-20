@@ -1745,11 +1745,6 @@ def test_the_document_says_where_an_issue_actually_closes():
         "sequence got the old answer and stopped -- and then wrote no "
         "`Closes #N` for the workflow to read"
     )
-    for pr in ("#37", "#38", "#39"):
-        assert pr in doc, (
-            f"{pr} is gone — a rule with no incident behind it is prose, and "
-            "these three are what the rule was written from"
-        )
     pointer = " ".join(read_text("CONTRIBUTING.md").split())
     assert "which issues a release closes" in pointer, (
         "CONTRIBUTING's release section stopped naming this among what "
