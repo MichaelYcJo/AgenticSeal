@@ -20,7 +20,7 @@ re-ran the four cases narrowly in its clone, where all four fail.
 severity: must
 location: `skills/code-review/scripts/chain_check.py:91`, `skills/code-review/scripts/chain_check.py:1687`, `skills/code-review/scripts/chain_check.py:1770-1773`, `skills/code-review/scripts/chain_check.py:1861`
 evidence: executed `bin/test tests/test_the_set_a_work_item_always_has.py::test_every_cited_heading_of_implement_exists tests/test_the_sealer_guarantees.py::test_the_old_words_are_refused_by_line tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py tests/test_a_script_says_which_interpreter_it_needs.py::test_what_runs_before_any_floor_needs_nothing_its_python3_lacks -q -p no:randomly`
-verdict: open
+verdict: fixed a69a1c6e
 
 The build added a second module-level `RETIRED_SAYS` at line 1770. Line 91
 already defines `RETIRED_SAYS` as the sentence a `guarantee.md` gets when it
@@ -45,14 +45,14 @@ SETTLE_SAYS = (
                 notices.append((rel, 0, SETTLE_SAYS))
 ```
 
-answer:
+answer: The settle sentence is now `SETTLE_SAYS`, and line 91's `RETIRED_SAYS` is bound once again. `tests/test_the_sealer_guarantees.py::test_the_old_words_are_refused_by_line` passes.
 
 ### 2. Two new pins cite an `implement` heading by half its title
 
 severity: must
 location: `tests/test_settle_reads_before_it_removes.py:814`, `tests/test_waiver_decided_at_start.py:713`
 evidence: executed `bin/test tests/test_the_set_a_work_item_always_has.py::test_every_cited_heading_of_implement_exists tests/test_the_sealer_guarantees.py::test_the_old_words_are_refused_by_line tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py tests/test_a_script_says_which_interpreter_it_needs.py::test_what_runs_before_any_floor_needs_nothing_its_python3_lacks -q -p no:randomly`
-verdict: open
+verdict: fixed 4e28cb9c
 
 `tests/test_the_set_a_work_item_always_has.py::test_every_cited_heading_of_implement_exists`
 reads every `§*...` citation of `skills/implement/SKILL.md`, test sources
@@ -78,14 +78,14 @@ assertion lets each pin name the whole heading.
     )
 ```
 
-answer:
+answer: Both pins name the whole heading in one string literal. The citation scan reads the source, so a literal split across two lines failed it a second time; one literal on one line passes. The helpers already collapse whitespace.
 
 ### 3. A new fixture helper runs git in the locale's encoding
 
 severity: must
 location: `tests/test_settle_applies_rule_changes_in_place.py:375`
 evidence: executed `bin/test tests/test_the_set_a_work_item_always_has.py::test_every_cited_heading_of_implement_exists tests/test_the_sealer_guarantees.py::test_the_old_words_are_refused_by_line tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py tests/test_a_script_says_which_interpreter_it_needs.py::test_what_runs_before_any_floor_needs_nothing_its_python3_lacks -q -p no:randomly`
-verdict: open
+verdict: fixed a3f37ed8
 
 The helper `git` calls `subprocess.run(..., text=True)` without
 `encoding="utf-8"`. Python then decodes git's output as cp1252 on the
@@ -103,14 +103,14 @@ def git(repo, *args):
     ).stdout
 ```
 
-answer:
+answer: The helper passes `encoding="utf-8"` in place of `text=True`, and the encoding case passes.
 
 ### 4. `rule_changes.py` now runs before any interpreter floor and is not linted at 3.9
 
 severity: must
 location: `ruff.toml:43-48`, `skills/verify/scripts/unverified_check.py:1247-1258`
 evidence: executed `bin/test tests/test_the_set_a_work_item_always_has.py::test_every_cited_heading_of_implement_exists tests/test_the_sealer_guarantees.py::test_the_old_words_are_refused_by_line tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py tests/test_a_script_says_which_interpreter_it_needs.py::test_what_runs_before_any_floor_needs_nothing_its_python3_lacks -q -p no:randomly`
-verdict: open
+verdict: fixed 641ae5bb
 
 `unverified_check.py#rule_changes` loads `skills/settle/scripts/rule_changes.py`
 by path. `unverified_check.py` is linted at `py39` because it runs on
@@ -125,14 +125,14 @@ found no construct newer than 3.9 (no `match`, no `zip(strict=)`, no
 "skills/settle/scripts/rule_changes.py" = "py39"
 ```
 
-answer:
+answer: `ruff.toml` lists `skills/settle/scripts/rule_changes.py` at `py39`, and the interpreter case passes. `fold_check.py` is not in that set: `settle.py` loads it, and `settle.py` runs only after the launcher has checked the floor.
 
 ### 5. A `file:` field is matched as a string, never as a path, so a Windows separator or a second case of one name escapes it
 
 severity: should
 location: `skills/settle/scripts/rule_changes.py:157-161`, `skills/settle/scripts/settle.py:79-81`, `skills/settle/scripts/settle.py:272-302`, `skills/settle/scripts/settle.py:574-579`
 evidence: executed `python3 tests/test_tmp_round1_probe.py`
-verdict: open
+verdict: fixed 5ccef9cc
 
 `parse` accepts any `file` matching `docs/[^/]+\.md`. A backslash and a
 drive colon both pass. `settle.py#under` then joins the value with
@@ -183,14 +183,14 @@ removed, and the run exits 0.
 A case in `tests/test_settle_applies_rule_changes_in_place.py` for each
 spelling, run through `parse` and through `rule_plan`, pins it.
 
-answer:
+answer: `parse` refuses a `file` holding `\` or `:`. `rule_plan` holds a spec whose `file` differs only in case from another name, whether that name is a document on disk or another spec's `file`. Four rows of `test_a_block_that_does_not_match_whole_is_refused_at_its_line` and `test_a_name_that_differs_only_in_case_is_held` pin both. The skill's `file` bullet states the rule.
 
 ### 6. A spec at a nested heading neither waits on nor conflicts with one at its parent
 
 severity: should
 location: `skills/settle/scripts/rule_changes.py:268-269`, `skills/settle/scripts/rule_changes.py:282-301`, `skills/settle/scripts/rule_changes.py:347-359`, `skills/settle/SKILL.md:107-114`
 evidence: executed `python3 tests/test_tmp_round1_probe.py`
-verdict: open
+verdict: fixed 56220680
 
 `place(op)` is the literal pair `(file, section)`. A `change` reads its
 `from` across the whole section, sub-sections included (line 227). So a
@@ -220,14 +220,14 @@ def place(op):
 The skill sentence then reads: "A later spec naming a document a refused
 one names waits with it."
 
-answer:
+answer: Fixed by the heading-range reading, not by making the document one place. With the document as the place, two release branches that each add a rule to different sections of one document become a conflict, and every later spec in that document waits on any refusal. `rule_changes.overlapping` reads each section's lineage from the document as it stood before the replay. Two places overlap when they are in one file and one section holds the other, or when either is the whole document. `replay` waits and `conflicts` refuses on that overlap. `test_a_spec_at_a_section_holding_or_held_by_a_refused_ones_waits` and the `S child` row of the parallel-branch conflict case were both red before the fix. The skill sentence now says a section and a sub-section it holds are one place.
 
 ### 7. The `nothing — <why>` sentinel is spelled a second time, and a near miss is refused with a sentence that does not name it
 
 severity: should
 location: `skills/settle/scripts/rule_changes.py:27`, `skills/settle/scripts/rule_changes.py:101-110`, `skills/settle/scripts/fold_check.py:96`, `skills/verify/scripts/unverified_check.py:94`
 evidence: executed `python3 tests/test_tmp_round1_probe.py`, `git grep -nE "\"nothing —|'nothing —|nothing — \"|NOTHING" -- '*.py'`
-verdict: open
+verdict: fixed 5ccef9cc
 
 `rule_changes.py:27` defines `NOTHING = "nothing — "` beside
 `fold_check.py:96`'s identical constant. Under the owner's Q1 answer a
@@ -262,14 +262,14 @@ NOTHING = "nothing — "
 of `test_a_block_that_does_not_match_whole_is_refused_at_its_line` pins
 the new sentence.
 
-answer:
+answer: `NOTHING` is defined once, in `unverified_check.py`. `rule_changes.py` and `fold_check.py` read it from there, and both of their own copies are gone. A first line that opens with `nothing` in any case, but not with the sentinel, is refused with "writes `nothing — <why>`, with an em dash (U+2014)". The `nothing-with-a-hyphen` and `nothing-capitalised` rows pin it. The two `.github/scripts/rules.py` mentions are prose that names the shape, and no other constant spells it.
 
 ### 8. `--apply` reports `0 refused or kept` while it keeps every spec with no `## Rule changes`
 
 severity: should
 location: `skills/settle/scripts/settle.py:590-596`, `skills/settle/SKILL.md:117-124`
 evidence: read `skills/settle/scripts/settle.py:590-596`, `skills/settle/SKILL.md:117-124`, `tests/test_settle_reads_before_it_removes.py:988-997`
-verdict: open
+verdict: fixed 6789ec70
 
 The overview says a spec with no section is "kept, exit 0" on purpose. The
 grounds are in the account and in the pin at
@@ -302,14 +302,14 @@ or the tree are unusable.
 The existing pin's substring `0 refused or kept` still holds. A new
 assertion on the `left in place` clause pins the count.
 
-answer:
+answer: The last line now adds `; <n> with no `## Rule changes`, left in place`. The skill's exit sentence and `settle.py`'s exit-code docstring both say such a spec is counted and is not refused. `test_an_apply_with_nothing_to_do_is_no_refusal` pins the count of 3.
 
 ### 9. Both READMEs still describe `fold-check` as a line ceiling with frozen markers
 
 severity: should
 location: `README.md:264`, `README.ko.md:254`
 evidence: executed `git grep -nE "줄 수 상한|표시 개수|two rules|두 규칙" -- ':!seal/specs' ':!changelog' ':!CHANGELOG.md'`
-verdict: open
+verdict: fixed 072f60bd
 
 The cheat-sheet row says "no document grows past the ceiling unless it is
 listed with its fold markers frozen" and calls the listing a
@@ -328,14 +328,14 @@ choosing whether to run the command reads a check that no longer exists.
 | `fold-check [--shape-from <id>] [--ceiling <n>]` | 정책 루트(`Policy root` 가 따로 정하지 않으면 `docs/`) 최상위를 세 가지로 확인합니다. 기준 id 이후의 문장은 굵은 규칙 문장으로 시작하고, 가리키는 대상이 실제로 있는 `Enforced by:` 줄을 하나 가져야 합니다. 토큰 상한을 넘은 문서는 나눌 문서로 이름만 찍고 실패시키지 않습니다. `<policy root>/README.md` 가 있으면 다른 문서마다 정확히 한 행이 그 문서를 가리켜야 합니다. 기준 id 와 상한은 레포가 `seal/config.md` 에 적는 행이며, 적지 않은 행의 검사는 돌지 않고 출력이 그렇다고 알려 줍니다. 플래그는 그 실행에서만 행을 대신하므로, `--shape-from 0` 이면 아직 형식을 갖추지 못한 문장을 전부 찍습니다 |
 ```
 
-answer:
+answer: Per the owner's direction, both rows point to the checks' one statement (`fold_check.py` and `templates/config.md` §*The fold's values*) instead of restating the three checks. `test_both_cheat_sheets_point_to_the_checks_home` was red against the old rows.
 
 ### 10. The release checklist orders a split in the same pull request, against Q6 and the skill
 
 severity: should
-location: `docs/release-checklist.md:115-117`, `templates/config.md:452-455`
+location: `docs/release-checklist.md:115-117`, `templates/config.md:452-455`, `docs/the-record-layout.md:25-29`
 evidence: read `docs/release-checklist.md:115-117`, `skills/settle/SKILL.md:176-182`, `templates/config.md:452-455`
-verdict: open
+verdict: fixed e9879bbd
 
 The checklist says "a document past its ceiling is split along its
 headings in the same pull request". `skills/settle/SKILL.md` §*A document
@@ -358,7 +358,7 @@ trimmed*).
 In `templates/config.md`, the sentence from "A document past the ceiling
 is reported" to "read in more calls." becomes the same pointer.
 
-answer:
+answer: The checklist, `templates/config.md` and the third copy, `docs/the-record-layout.md` §*The size a reader takes whole*, each point to the skill's section, so the skill is the one statement of what a document past the ceiling owes. `test_the_release_checklist_carries_the_by_hand_step` was red against the old checklist sentence.
 
 ## Confirmations
 
