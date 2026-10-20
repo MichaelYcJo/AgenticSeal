@@ -112,7 +112,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | S2 several targets | Given `check: tests/test_a.py tests/test_b.py`, then both resolve | the same module |
 | S3 a marker target | Given `check: verdict-line` and one test carrying `@pytest.mark.rule("verdict-line")`, then it resolves, and `bin/rules <doc>` prints that test's docstring first sentence; with no test carrying it, exit 1 naming the marker | the same module |
 | S4 the no-target form | Given `check: none reader: the warden at review`, then it passes; `check: none` alone, or `reader:` with nothing after it, is exit 1 at its line | the same module |
-| S5 every other spelling is refused loudly | Given a shown line opening `Enforced by:`, `Check:`, `**check:**`, `check :`, `- check:`, or a `check:` value holding `::`, a comma or `—`, then exit 1 with `<path>:<line>` and the spelling it expected; never skipped | one case per spelling, each seen red with the refusal deleted |
+| S5 every other spelling is refused loudly | Given a shown line in any spelling `skills/settle/SKILL.md` *A rule has one shape* lists as refused, then exit 1 with `<path>:<line>` and the spelling it expected; never skipped | one case per spelling, each seen red with the refusal deleted |
 | S6 a line inside a fence or a comment is not read | Given an example `check:` line in a fence, then it is neither resolved nor refused | the same module |
 | S7 no protection dropped | Given the base's 240 lines and the converted tree, then every target path the base named is named by a `check:` line, carried by a marker, or a `## Removes` row | the comparison command in `plan.md` phase 1, re-run per group |
 | S8 no marker | `git grep -c '<!-- specs/' -- docs` prints nothing | grep |
