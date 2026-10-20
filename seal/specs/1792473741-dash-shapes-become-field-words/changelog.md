@@ -26,3 +26,12 @@
   names, as before. `chain_check.py` stops at exit 2 naming the document
   where that table is missing, a cell is not one code span, a `Means` is no
   label, a spelling is a label or stands twice.
+- **The release pull request's title is `release: X.Y.Z symptoms: <the
+  symptoms the release answers>` (#1000).** `docs/release-checklist.md`
+  §*5* gives the command, and `publish-release.yml` reads the line from the
+  tagged merge commit whole, so the release that ships this is the first
+  whose session types it. Any other line, the old `release: X.Y.Z —
+  <symptoms>` among them, publishes the note under the tag name, exit 0, and
+  the job log names the shape it expected and the first `release:` line it
+  found. The published title keeps its `X.Y.Z — <symptoms>` form, and no
+  published release is touched.
