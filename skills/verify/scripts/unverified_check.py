@@ -224,6 +224,12 @@ def comment_scan(lines):
     in, which the text cannot answer — a changelog marker IS a comment, so a
     genuine one and one sitting inside a commented-out draft both come back
     with nothing kept.
+
+    **A code span opened first wins** (CommonMark 6.1): an opener inside a
+    span closed on the same line is text, as the page shows it. A backtick
+    run with no closer of its own length on its line is literal, which is
+    `_liveness`'s reading A, and the walk goes on after it. A span wrapped
+    across lines is therefore read as literal backticks.
     """
     inside = False
     for line in lines:
@@ -231,17 +237,31 @@ def comment_scan(lines):
         rest, kept = line, ""
         while rest:
             if inside:
-                end = rest.find("-->")
+                end = rest.find(CLOSER)
                 if end == -1:
                     rest = ""
                 else:
-                    rest, inside = rest[end + 3 :], False
+                    rest, inside = rest[end + len(CLOSER) :], False
+                continue
+            start = rest.find(OPENER)
+            run = BACKTICKS.search(rest)
+            if run and (start == -1 or run.start() < start):
+                width = run.end() - run.start()
+                closer = next(
+                    (
+                        m
+                        for m in BACKTICKS.finditer(rest, run.end())
+                        if m.end() - m.start() == width
+                    ),
+                    None,
+                )
+                upto = closer.end() if closer else run.end()
+                kept, rest = kept + rest[:upto], rest[upto:]
+            elif start == -1:
+                kept, rest = kept + rest, ""
             else:
-                start = rest.find("<!--")
-                if start == -1:
-                    kept, rest = kept + rest, ""
-                else:
-                    kept, rest, inside = kept + rest[:start], rest[start + 4 :], True
+                kept, rest = kept + rest[:start], rest[start + len(OPENER) :]
+                inside = True
         yield began, kept
 
 

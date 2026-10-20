@@ -1491,6 +1491,23 @@ class TestRecordFindings:
             assert why in errors[0][2] and "never closes" in errors[0][2]
             assert [f.heading for f in found] == ["### 1. the parser drops a row"]
 
+    def test_an_opener_quoted_in_a_code_span_is_no_comment(self):
+        """Round 1 of #1000, finding 2: a finding quoting the comment opener
+        in a code span is a correct record, read whole. Seen red against the
+        scan that read the opener: refused at its line, the finding below
+        it hidden."""
+        text = record(
+            "abc1234",
+            [
+                finding(1, "rejected").replace(
+                    "answer: \n", "answer: the `<!--` opener is quoted\n"
+                ),
+                finding(2, "open"),
+            ],
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert errors == [] and [f.number for f in found] == [1, 2], errors
+
 
 # --- confirmations ------------------------------------------------------------
 

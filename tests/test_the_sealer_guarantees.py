@@ -365,10 +365,46 @@ class TestGuarantee:
         assert chain.guarantee(reader, str(root), ITEM, "main") == [
             (rel, 0, "0 `Verdict:` lines; the guarantee carries one")
         ]
+        hidden = guarantee(head, "sealed").replace(
+            "## The parties", "<!-- a note\n\n## The parties"
+        )
+        write(root, rel, hidden)
+        commit(root, "a comment nobody closed")
+        opener = hidden.splitlines().index("<!-- a note") + 1
+        problems = chain.guarantee(reader, str(root), ITEM, "main")
+        assert [(p, n) for p, n, _why in problems] == [(rel, opener), (rel, 0)]
+        assert "never closes" in problems[0][2], problems
         git(root, "rm", "-q", rel)
         commit(root, "no guarantee")
         [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         assert "git carries no guarantee file" in why
+
+    def test_an_opener_quoted_in_a_code_span_hides_no_verdict(self, item):
+        """Round 1 of #1000, finding 2: a claims cell quoting the comment
+        opener in a code span, as two merged guarantees do, leaves the
+        verdict line below it read. Seen red against the scan that read the
+        opener: 0 `Verdict:` lines."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        text = guarantee(sha, "sealed").replace(
+            "|---|---|---|---|\n\n## The parties",
+            "|---|---|---|---|\n| markers | `x.md:1` | `git grep '<!-- specs/'` "
+            "| holds |\n\n## The parties",
+        )
+        write(root, rel, text)
+        commit(root, "a claim quoting the opener")
+        assert chain.guarantee(reader, str(root), ITEM, "main") == []
+
+
+def test_every_committed_guarantee_shows_its_one_verdict_line():
+    """Round 1 of #1000, finding 2: each `guarantee.md` under `seal/specs/`
+    gives the reader exactly the one `Verdict:` line it holds. Seen red at
+    565dfa24, where two gave none."""
+    found = {
+        p.parent.name: len(chain.verdicts_of(reader, p.read_text(encoding="utf-8")))
+        for p in (ROOT / "seal" / "specs").glob("*/guarantee.md")
+    }
+    assert {name: n for name, n in found.items() if n != 1} == {}, found
 
 
 # --- main: the arm at the pull request -----------------------------------------

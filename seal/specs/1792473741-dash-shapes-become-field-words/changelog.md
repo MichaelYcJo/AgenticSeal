@@ -1,3 +1,14 @@
+### Fixed
+
+- **A comment opener quoted in a code span no longer hides the rest of a
+  record (#1000).** The record readers blanked every line after a `<!--`
+  that sat inside a code span on its line, though the page shows it as code.
+  A `guarantee.md` quoting it lost its `Verdict:` line, so the stamp, the
+  commit gate and the guarantee arm read no verdict; a round record quoting
+  it was refused, and `## Not verified` rows below it went uncounted. A code
+  span opened first now wins, as in CommonMark. A comment that never closes
+  in a `guarantee.md` is refused at the line that opened it.
+
 ### Changed
 
 - **`## Not verified` says nothing is left with the no-change block (#1000).**

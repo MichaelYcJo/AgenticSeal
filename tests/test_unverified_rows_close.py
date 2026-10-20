@@ -1802,6 +1802,54 @@ def test_strip_comments_reads_through_the_one_comment_scanner(monkeypatch):
 
 
 @pytest.mark.parametrize(
+    "lines, kept",
+    [
+        # Round 1 of #1000, finding 2: a table cell quoting the opener in a
+        # code span, as two merged guarantees do. The page shows code, and
+        # the line after it is text.
+        (["| `<!-- specs/` | y |", "Verdict: sealed"], None),
+        # A double-backtick span holding a single backtick and the opener.
+        (["a ``x `<!--` y`` b", "after"], None),
+        # A run with no partner on its line is literal, so the opener after
+        # it opens a comment, as before.
+        (["a ` b <!-- c", "hidden", "--> d"], ["a ` b ", "", " d"]),
+        # A span before a real comment on the same line.
+        (["`a` <!-- c --> e", "x"], ["`a`  e", "x"]),
+        # Inside a comment backticks are ordinary characters.
+        (["<!-- `x --> y`", "z"], [" y`", "z"]),
+    ],
+)
+def test_a_comment_opener_inside_a_code_span_opens_no_comment(lines, kept):
+    """Round 1 of #1000, finding 2. CommonMark 6.1 gives a code span opened
+    first precedence over an HTML comment inside it. Seen red against the
+    scan that found the opener anywhere on a line: the first two blanked
+    every line after the span."""
+    assert uc.strip_comments(lines) == (lines if kept is None else kept)
+
+
+def test_a_row_after_an_opener_quoted_in_a_code_span_is_counted(tmp_path):
+    """Round 1 of #1000, the row it left to the fix pass: an open row of
+    `## Not verified` below a row quoting the opener in a code span is
+    counted, not hidden. Seen red against the scan that read the opener."""
+    section = CANONICAL.replace(
+        "| how the gate renders in a TUI |", "| whether `<!--` in a cell hides rows |"
+    )
+    op, _, err = uc.check_file(write(tmp_path, section))
+    assert not err and len(op) == 2, (op, err)
+
+
+def test_the_comment_scan_is_not_quadratic_in_backtick_runs():
+    """A line of backtick runs, each without a partner of its own length,
+    and one of runs that pair, are read in well under a second."""
+    import time
+
+    start = time.monotonic()
+    uc.strip_comments(["".join("`" * k + "x" for k in range(1, 400)) + "<!--"])
+    uc.strip_comments(["` " * 50000 + "<!--", "-->"])
+    assert time.monotonic() - start < 1.0
+
+
+@pytest.mark.parametrize(
     "line, opens",
     [
         # A comment opener inside a code span is a quotation and opens nothing.

@@ -1677,7 +1677,8 @@ def target_row(reader, text):
 def guarantee(reader, root, item, base):
     """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
     commit, a commit with anything but the closing records after it, an
-    earlier run that is not `EARLIER_ENTRY` whole, a word of
+    earlier run that is not `EARLIER_ENTRY` whole, a comment or fence that
+    never closes (`unclosed`), a word of
     `RETIRED_VERDICTS` on its `Verdict:` line, a verdict line in none of the
     three shapes, or one that does not read `sealed`."""
     rel = f"{item}/{GUARANTEE_FILE}"
@@ -1717,6 +1718,8 @@ def guarantee(reader, root, item, base):
                     f"an earlier run is {EARLIER_WRITTEN}, its verdict's word alone",
                 )
             )
+    # A region nobody closed hides the verdict line; name where it opened.
+    problems.extend(unclosed(reader, text, rel))
     verdicts = verdicts_of(reader, text)
     if len(verdicts) != 1:
         problems.append(
