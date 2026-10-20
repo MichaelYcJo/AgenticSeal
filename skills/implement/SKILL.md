@@ -72,7 +72,7 @@ laid out by **lifetime**, not by who wrote it:
 
 | Root | Lifetime | Test | Authority |
 |---|---|---|---|
-| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them. A work item does not create one: the documentation convention is the project's. The one writer that does is `settle`, which folds a released work item's spec into a `docs/` policy and then retires the directory — and a session running it is following `skills/settle/SKILL.md`, not this one |
+| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline, and a pull request does not edit it. A spec states its changes in `## Rule changes`, `settle --apply` applies them after the release (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the rule changes of every unsettled spec, in merge order |
 | `seal/specs/<work-item-id>/` | One work item | Its role ends when this work ships (SDD, overview, round records) | The contract this work executes against. A human approves `plan.md`, which is why this is a repository document and not tool state |
 | `seal/`, everything above `specs/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
 
@@ -153,8 +153,8 @@ it or dropping it.
   be that prerequisite.** If so, include the item in this change and delete its
   row; what remains in that file is the definition of remaining scope.
 - Verify clause numbers a ticket cites. Tickets are written before (or drift
-  from) the documents they cite; a missing clause means writing it is part of
-  this work, with a freshly allocated number.
+  from) the documents they cite; a missing clause is an `add` in the spec's
+  `## Rule changes`, with a freshly allocated number.
 - A spawn prompt's facts arrive under `docs/the-review-record.md`'s
   handoff: coordinates rather than prose, each fact labelled
   executed, read, or unverified. A fact with no coordinate and no label is an
@@ -340,7 +340,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` §*The run* owns that rule) | before implementing |
+| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes `settle` applies to the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` §*The run* owns that rule) | before implementing |
 | `plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
 | `questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `overview.md` | `templates/sdd-overview.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
@@ -472,7 +472,7 @@ Before the PR merges, every unresolved row must move out:
 |---|---|
 | Doable within this PR | Do it now — merging is the last moment anyone is looking |
 | Waiting on prerequisite work | `seal/follow-up.md` |
-| Needs a decision | The policy document's open-questions section |
+| Needs a decision | An `add` in `spec.md`'s `## Rule changes` to the policy document's open-questions section |
 
 Each finding that moves out reads `deferred <home>` in its round record. The
 records themselves stay through the merge, and leave with their spec at the

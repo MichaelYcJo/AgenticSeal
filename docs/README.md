@@ -2,7 +2,7 @@
 
 The standing policy, one row per topic. A `docs/` document outranks the work
 items' specs, and a spec that finds one wrong states the correction in its
-`## Rule changes` (`skills/settle/SKILL.md` §*The index*).
+`## Rule changes` (`skills/settle/SKILL.md` §*Rule changes*).
 
 | File | The question it answers |
 |---|---|

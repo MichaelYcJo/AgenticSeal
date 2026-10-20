@@ -793,16 +793,25 @@ def test_the_seal_readme_says_the_step_exists(parts):
     assert "retire-process" not in text and "folds it" not in text
 
 
-def test_the_implement_skill_names_the_one_writer_of_docs():
-    """G6. The layout table said `docs/` is *never created here*, and that
-    sentence stopped being true the moment `settle` wrote there —
-    `docs/one-root-by-lifetime.md` §*Decided after the thread* listed it as a
-    sentence to correct before the step existed to correct it."""
+def test_the_implement_skill_states_the_model():
+    """S15. The policy root is the baseline a pull request does not edit, and
+    the policy in force is it plus every unsettled spec's rule changes in
+    merge order. The sentence it replaced made `settle` the one writer of a
+    policy document a session wrote by hand."""
     text = document("skills", "implement", "SKILL.md")
-    assert "never created here" not in text, (
-        "the layout table still says `docs/` is never created here"
-    )
-    assert "The one writer that does is `settle`" in text
+    assert "one writer that does is `settle`" not in text
+    assert "is the baseline, and a pull request does not edit it" in text
+    assert "plus the rule changes of every unsettled spec, in merge order" in text
+
+
+@pytest.mark.parametrize(
+    "parts", [("agents", "framer.md"), ("README.md",), ("README.ko.md",)]
+)
+def test_every_other_carrier_points_to_the_model(parts):
+    """S15. The model has one home, and every other carrier links to it."""
+    text = document(*parts)
+    assert "one writer that does is `settle`" not in text, "/".join(parts)
+    assert "`skills/implement/SKILL.md` §*Document layout" in text, "/".join(parts)
 
 
 @pytest.mark.parametrize(

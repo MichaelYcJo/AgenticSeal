@@ -113,7 +113,7 @@ Cross-session memory lives in the repo, not the session:
 |---|---|---|
 | `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence is also what opts the repository in, for the hooks that read it — the commit gate, the mode gate, the review-skill gate, the review-history guard, the two implementer hooks, the two stamp hooks and the version check. worktree-guard and session-lease act in every git repo regardless, and lint-python follows ruff (see Where below) |
 | `seal/specs/<id>/` | one work item | SDD set: spec, plan, questions, and a closing memo holding only what the diff cannot show. A human approves `plan.md`, which is why this is a repository document and not tool state |
-| `docs/` | permanent | whatever policy documents the repository already keeps. A work item does not create one — the documentation convention is the project's. `settle` is the one writer that does: it folds a released work item's spec into a policy document here and then retires the directory |
+| `docs/` | permanent | whatever policy documents the repository already keeps; the documentation convention is the project's. A work item states its rule changes in its spec instead of editing them, and `settle --apply` writes those changes in after the release (`skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*) |
 
 ```
 seal/

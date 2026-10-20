@@ -4,8 +4,7 @@ A work item is built by more than one party. This document is the standing
 account of how the rules are split between them, what each one is allowed to
 write, and what it costs to spawn one.
 
-It is a policy document: it outranks the SDD set, and a work item that finds
-it wrong corrects it rather than working around it.
+It is a policy document, with the standing `docs/README.md` gives one.
 
 ## One contract every agent receives, and one definition each
 

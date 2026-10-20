@@ -700,6 +700,21 @@ def test_the_framers_acts_are_gather_judge_plan():
     )
 
 
+def test_the_framer_writes_rule_changes_from_the_index():
+    """S15 of #953. The framer states each rule change in `## Rule changes`
+    as the settle skill's section says, picks its file from the index, and
+    reads the policy in force as the implement skill states it. It points at
+    the grammar and the model and restates neither."""
+    raw = read(*FRAMER)
+    framer = flat(raw)
+    assert "as `skills/settle/SKILL.md` §*Rule changes* states it" in framer
+    assert "picked from the index, `<policy root>/README.md`" in framer
+    assert (
+        "the policy in force as `skills/implement/SKILL.md` §*Document layout" in framer
+    )
+    assert "\n  from:" not in raw, "the framer restates the grammar"
+
+
 def test_the_framer_weighs_replacing_a_structure_as_an_equal_of_keeping_it():
     """S6 of #968. #957 gave the framer the replace-or-keep rule, and the
     file stated it nowhere: a framer that judges only among ways of keeping a

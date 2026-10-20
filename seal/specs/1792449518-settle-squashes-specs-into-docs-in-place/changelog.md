@@ -38,3 +38,8 @@
   index. Where `<policy root>/README.md` exists, `fold-check` refuses a
   document no row names, one named on two rows, and a row that names none.
   This repository's index is `docs/README.md`.
+- **A pull request does not edit the policy root (#953).** The `implement`
+  skill states the model once: the policy root is the baseline, and the
+  policy in force is it plus every unsettled spec's rule changes in merge
+  order. The framer writes `## Rule changes`, picking each file from the
+  index, and nothing gates the rule yet.
