@@ -30,8 +30,8 @@ The first three rows below describe code the revert after round 3 took out; they
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and format check, run once after the review rounds settle | the sealer, spawned by the orchestrator with the base and this work item |
-| The new cases on the Windows and Linux legs — S18's two new rows print a path (S13's CRLF shape went with the revert after round 3) | CI's test matrix at the pull request |
+| closed The full suite, the repository-wide lint and format check, run once after the review rounds settle | #663, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
+| closed The new cases on the Windows and Linux legs — S18's two new rows print a path (S13's CRLF shape went with the revert after round 3) | #663's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 
 ## Not done
 

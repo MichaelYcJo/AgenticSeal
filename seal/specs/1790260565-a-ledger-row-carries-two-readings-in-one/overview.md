@@ -28,7 +28,7 @@ ledger's rules had no case holding them (#568, #501, #569).
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint and format over the finished branch | the sealer, after the review rounds settle |
+| closed The full suite, lint and format over the finished branch | #588, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 
 ## Not done
 

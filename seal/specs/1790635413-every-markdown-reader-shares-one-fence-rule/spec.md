@@ -187,6 +187,13 @@ Moving the rule into a module under `hooks/` was considered and rejected in
   `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py#headings` (1).
   The phase that edits a unit re-reads its rows.
 
+## Rule changes
+
+- nothing
+  why: internal: one fence rule, hooks/blocks.py and unverified_check.py, held by
+    tests/test_unverified_rows_close.py; written: the gather refuses an unclosed block, in
+    docs/branch-and-release.md.
+
 ## Open questions → questions.md
 
 No row needs a person. Q1 and Q2 are measurements. Q3 and Q4 are the work's.

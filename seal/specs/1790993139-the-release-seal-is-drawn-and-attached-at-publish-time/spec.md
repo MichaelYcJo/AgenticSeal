@@ -179,6 +179,12 @@ changes no decision. It does correct a sentence the smith should not copy.
   place.
 - New rows go in `seal/ledger/1790993139-the-release-seal-is-drawn-and-attached-at-publish-time.md`.
 
+## Rule changes
+
+- nothing
+  why: written: the seal job, in docs/branch-and-release.md and docs/release-checklist.md;
+    overturned: the pixel drawing, by the SVG of 149ca9ec.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered
