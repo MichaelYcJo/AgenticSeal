@@ -267,6 +267,20 @@ def test_the_routing_question_goes_through_only_until_it_is_answered(repo):
     spellings could close that second shape (round 1, finding 1)."""
     declare(repo)
     assert decision_of(run(repo, questions=(ROUTING_QUESTION,))) == "silent"
+    write_transcript(
+        repo.parent,
+        SESSION,
+        ask_entries(
+            repo,
+            answer="The short one",
+            options=("The short one", "The long one"),
+            question=FRAMER_QUESTION["question"],
+        ),
+        slug="transcripts",
+    )
+    assert decision_of(run(repo, questions=(ROUTING_QUESTION,))) == "silent", (
+        "an answer to another question is no answer to the routing question"
+    )
     for answer in ("automation (Recommended)", "per axis"):
         answer_the_routing_question(repo, answer=answer)
         for question in (ROUTING_QUESTION, DRESSED_FRAMER_QUESTION):
