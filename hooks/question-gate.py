@@ -77,8 +77,6 @@ def main():
     if routing_question_alone(event.get("tool_input")):
         return
     cwd = event.get("cwd")
-    if not isinstance(cwd, str) or not os.path.isdir(cwd):
-        return
     top = optin.repo_root(cwd)
     declared = routing.declared(cwd, top)
     if not declared or declared["automation"] != routing.AUTOMATION_YES:

@@ -222,7 +222,7 @@ def test_an_unreadable_call_is_refused(repo):
         {},
         {"questions": "How is this work routed?"},
         {"questions": [ROUTING_QUESTION["question"]]},
-        {"questions": [{**ROUTING_QUESTION, "options": "automation"}]},
+        {"questions": [{**ROUTING_QUESTION, "options": None}]},
         None,
     ):
         p = payload(repo)
@@ -242,16 +242,23 @@ def test_any_other_tool_name_is_silent(repo):
     assert decision_of(run_hook(GATE, p)) == "silent"
 
 
-def test_a_payload_that_is_no_object_is_silent(repo):
-    r = subprocess.run(
-        [sys.executable, os.path.join(HOOKS, GATE)],
-        input="[1, 2]",
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-    )
-    assert (r.returncode, r.stdout) == (0, "")
+def test_a_payload_that_names_no_directory_is_silent(repo):
+    """Run from inside a declared repository, so a gate that read its own
+    process directory for a missing `cwd` would refuse."""
+    declare(repo)
+    nameless = payload(repo)
+    del nameless["cwd"]
+    for stdin in ("[1, 2]", "not json", json.dumps(nameless)):
+        r = subprocess.run(
+            [sys.executable, os.path.join(HOOKS, GATE)],
+            input=stdin,
+            cwd=str(repo),
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+        )
+        assert (r.returncode, r.stdout) == (0, ""), stdin
 
 
 # --- S12: registered, and reached through the dispatcher -------------------
