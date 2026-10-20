@@ -93,6 +93,7 @@ GROUPS = {
     ),
     "pre-agent": ("worktree-guard.py", "implementer-mark.py"),
     "pre-skill": ("review-skill-gate.py",),
+    "pre-question": ("question-gate.py",),
     "post-bash": (
         "implementer-notice.py",
         "session-lease.py",

@@ -27,6 +27,15 @@
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" pre-skill || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" pre-skill"
           }
         ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" pre-question || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" pre-question"
+          }
+        ]
       }
     ],
     "PostToolUse": [

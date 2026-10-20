@@ -165,6 +165,24 @@ def leading_phrase(label) -> str:
     return (text[:cut] if cut >= 0 else text).strip()
 
 
+def is_routing_question(question) -> bool:
+    """True when QUESTION is an object whose options' leading phrases are the
+    three of `ROUTING_LABELS`, each once.
+
+    The one test of "this is question 1": the press reader asks it of a
+    result, and `hooks/question-gate.py` asks it of a call it would refuse.
+    """
+    if not isinstance(question, dict):
+        return False
+    options = question.get("options")
+    if not isinstance(options, list):
+        return False
+    phrases = sorted(
+        leading_phrase(o.get("label") if isinstance(o, dict) else None) for o in options
+    )
+    return phrases == sorted(ROUTING_LABELS)
+
+
 def transcript_for(session, transcript_path="") -> str:
     """This session's own MAIN transcript, or "" for every way of not having one.
 
@@ -213,14 +231,9 @@ def _routing_preset(result) -> bool:
     if not isinstance(questions, list) or not isinstance(answers, dict):
         return False
     for q in questions:
-        if not isinstance(q, dict) or q.get("multiSelect") is not False:
+        if not is_routing_question(q) or q.get("multiSelect") is not False:
             continue
-        options = q.get("options")
-        if not isinstance(options, list):
-            continue
-        labels = [o.get("label") if isinstance(o, dict) else None for o in options]
-        if sorted(leading_phrase(label) for label in labels) != sorted(ROUTING_LABELS):
-            continue
+        labels = [o.get("label") if isinstance(o, dict) else None for o in q["options"]]
         text = q.get("question")
         if not isinstance(text, str):
             continue
@@ -249,13 +262,8 @@ def _routing_answer(result):
         return True
     if not isinstance(result, dict) or not isinstance(result.get("questions"), list):
         return None
-    for q in result["questions"]:
-        options = q.get("options") if isinstance(q, dict) else None
-        if isinstance(options, list) and sorted(
-            leading_phrase(o.get("label") if isinstance(o, dict) else None)
-            for o in options
-        ) == sorted(ROUTING_LABELS):
-            return False
+    if any(is_routing_question(q) for q in result["questions"]):
+        return False
     return None
 
 
