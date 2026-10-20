@@ -12,7 +12,7 @@ opened in this round, in a `git clone --no-local` checked out at ec757244.
 severity: should
 location: `hooks/question-gate.py:61-67`, `hooks/worktree_consent.py:168-183`, `tests/test_an_automation_run_puts_no_question.py:206-217`
 evidence: executed `bin/test tests/test_tmp_question_gate_probe.py -q -s -n0`
-verdict: open
+verdict: fixed 1ccd15cf
 
 The exemption exists for one reason (`spec.md` *Scope*, `questions.md`
 "The routing question put alone passes"): a resumed run must put question 1
@@ -83,14 +83,14 @@ If the free-text half stays a limit, it goes into the rule's `to:` text in
     the routing question's three options.
 ```
 
-answer:
+answer: Both halves are closed in code, so no limit sentence is needed. `routing_question_alone` now requires the press reader's own conditions: one question, its labels, `multiSelect` False and a string text. The near-miss case adds the multi-select, the absent `multiSelect` and the missing text. For the free-text shape, the exemption is granted only while `worktree_consent.last_routing_answer` holds no answer to the routing question from this clone in this session's transcript. That reader now carries the body `automation_answered` had, and `automation_answered` reads its True. Once any answer is recorded, every question is refused under `yes`, the routing question and the dressed framer question included. That is the resume the exemption exists for, and it closes the open set without listing spellings. `test_the_routing_question_goes_through_only_until_it_is_answered` pins an exempt first call, an answer to another question that leaves it exempt (8885929b), and both shapes refused after an `automation` and after a `per axis` answer. Each new condition was mutated red; the two press-reader modules pass unedited.
 
 ### 2. The refusal prints the work item's directory twice
 
 severity: should
 location: `hooks/question-gate.py:48-58`, `tests/test_an_automation_run_puts_no_question.py:99-112`, `tests/test_gates_do_not_fail_open.py:252`
 evidence: executed `bin/test tests/test_tmp_question_gate_probe.py -q -s -n0`
-verdict: open
+verdict: fixed 1ccd15cf
 
 The owner's direction for this work is binding: no value stated twice, and
 compact. The reason prints `<item>/routing.md` and then `<item>/questions.md`,
@@ -117,14 +117,14 @@ The two cases that pin the paths whole change with it. The first pins
 `` f"`{QUESTIONS}`" `` in `test_the_refusal_says_where_the_default_goes`. The
 second pins `` f"`{item}`" `` in the fail-open case.
 
-answer:
+answer: The reason names the directory once, as `` `routing.md` in `<dir>` ``, and `` `questions.md` in the same directory ``. `test_the_refusal_says_where_the_default_goes` pins the directory in backticks, counts it once, and pins both file names; the fail-open case pins the absolute directory. A mutation that printed the joined path again was red. The rewrite also replaces "so nobody is at the keyboard to answer it" with "so this run does not stop to ask", which is the promise itself and true under `per axis` with box 1 checked (this round's *Not judged* row).
 
 ### 3. The limit for gates that tell the model to ask is stated only in spec.md, and "build on the default" points the model at choices reserved for the person
 
 severity: should
 location: `seal/specs/1792533444-automation-refuses-mid-run-questions/spec.md:186-208`, `hooks/question-gate.py:1-24`
 evidence: executed `git grep -n -i "question-gate" -- . ':!seal/specs'`, `sed -n 186,208p seal/specs/1792533444-automation-refuses-mid-run-questions/spec.md`
-verdict: open
+verdict: fixed 1ccd15cf
 
 `spec.md` *Out* (lines 91-95) covers `review-skill-gate.py`, `mode-gate.py`,
 the commit gate's first deny and the worktree guard's choice sites. It says
@@ -166,7 +166,7 @@ pick. Its pick is a waiver or a record that only the person may give.
     the commit gate's reason under `automation` says.
 ```
 
-answer:
+answer: The record's sentence now stands in the gate's docstring, and both README rows describe it. The refusal carries the instruction where the model acts on it: "A question that states no default, such as another gate's choice, is not yours to answer: take none of its ways on and hand that stop back at the end of the run." A case pins that sentence, and a mutation deleting it was red. The changelog fragment says it too. The `to:` text of `spec.md` `## Rule changes` is the framer's, so the sentence is named for the framer in this pass's hand-back, as is the exemption's new bound.
 
 ## Confirmations
 
