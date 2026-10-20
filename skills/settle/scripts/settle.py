@@ -312,17 +312,17 @@ def rule_plan(root, ref, base, ids, reader):
             why.append((0, f"its record holds an open row: {rows[0][1]}"))
     held = {i: why for i, why in held.items() if why}
     entries = [(i, c, parsed[i].ops) for i, c in ordered if i not in held]
-    for work_item_id, (other, (file, section)) in rules.conflicts(
-        root, entries
-    ).items():
+
+    def read(rel):
+        return read_text(root, rel)
+
+    for work_item_id, (other, at) in rules.conflicts(root, entries, read).items():
         held[work_item_id] = [
-            (0, f"a conflict with {other} at {file} section `{section}`: "
+            (0, f"a conflict with {other} at {rules.where(at)}: "
                 "merge order cannot decide them")
         ]  # fmt: skip
     documents, applied, refused = rules.replay(
-        lambda rel: read_text(root, rel),
-        [(i, parsed[i].ops) for i, _ in ordered],
-        held,
+        read, [(i, parsed[i].ops) for i, _ in ordered], held
     )
     return {
         "parsed": parsed,

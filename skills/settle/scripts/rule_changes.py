@@ -277,24 +277,59 @@ def place(op):
     return (op.file, op.section)
 
 
+def where(p):
+    """A place as a person reads it."""
+    return f"{p[0]} section `{p[1]}`" if p[1] else p[0]
+
+
+def overlapping(read):
+    """`same(p, q)`: whether two places can name one text. They do when they
+    are one file and one section holds the other, a section's range holding
+    its sub-sections, or either is the whole document. READ(path) is the
+    document before the replay, whose headings decide what holds what."""
+    held_by = {}
+
+    def lineage(p):
+        if p not in held_by:
+            text, found = read(p[0]), {p[1]}
+            marks = headings(reader().gfm_lines(text)) if text and p[1] else []
+            at = [n for n, (_, _, t) in enumerate(marks) if t == p[1]]
+            if len(at) == 1:
+                level = marks[at[0]][1]
+                for _, lv, t in reversed(marks[: at[0]]):
+                    if lv < level:
+                        found.add(t)
+                        level = lv
+            held_by[p] = found
+        return held_by[p]
+
+    def same(p, q):
+        if p[0] != q[0]:
+            return False
+        return None in (p[1], q[1]) or p[1] in lineage(q) or q[1] in lineage(p)
+
+    return same
+
+
 def replay(read, specs, held):
     """`(documents, applied, refused)` for SPECS, `[(id, [Op])]` in merge order.
 
     READ(path) is a document's text before the replay, or None. HELD maps an
     id to `[(line, reason)]` refused before the replay (a parse error, an open
     record, a conflict). A spec applies all of its operations or none, and a
-    spec after a refused one at one of its places waits, so a later spec never
-    applies under an earlier one. `documents` holds every changed text."""
+    spec after a refused one at a place overlapping one of its own
+    (`overlapping`) waits, so a later spec never applies under an earlier
+    one. `documents` holds every changed text."""
     documents, applied, refused, blocked = {}, [], [], {}
+    same = overlapping(read)
     for work_item, ops in specs:
         places = [place(o) for o in ops or []]
         why = list(held.get(work_item, []))
         if not why:
-            waits = [blocked[p] for p in places if p in blocked]
+            waits = [(b, w) for p in places for b, w in blocked.items() if same(p, b)]
             if waits:
-                file, section = next(p for p in places if p in blocked)
-                where = f"{file} section `{section}`" if section else file
-                why = [(0, f"waits on {waits[0]}, refused earlier at {where}")]
+                at, by = waits[0]
+                why = [(0, f"waits on {by}, refused earlier at {where(at)}")]
         trial = dict(documents)
         for o in [] if why else ops:
             current = trial[o.file] if o.file in trial else read(o.file)
@@ -352,16 +387,19 @@ def _ancestor(root, a, b):
     )
 
 
-def conflicts(root, entries):
-    """`{id: (other id, place)}` for specs that name one place where ancestry
-    cannot order their adding commits. ENTRIES is `[(id, commit, [Op])]`."""
-    out = {}
+def conflicts(root, entries, read):
+    """`{id: (other id, place)}` for specs at overlapping places
+    (`overlapping`) where ancestry cannot order their adding commits.
+    ENTRIES is `[(id, commit, [Op])]`; READ is `replay`'s."""
+    out, same = {}, overlapping(read)
     for n, (a, ca, ops_a) in enumerate(entries):
         for b, cb, ops_b in entries[n + 1 :]:
-            shared = set(map(place, ops_a)) & set(map(place, ops_b))
+            shared = sorted(
+                {p for p in map(place, ops_a) for q in map(place, ops_b) if same(p, q)},
+                key=str,
+            )
             if not shared or _ancestor(root, ca, cb) or _ancestor(root, cb, ca):
                 continue
-            where = sorted(shared, key=str)[0]
-            out.setdefault(a, (b, where))
-            out.setdefault(b, (a, where))
+            out.setdefault(a, (b, shared[0]))
+            out.setdefault(b, (a, shared[0]))
     return out

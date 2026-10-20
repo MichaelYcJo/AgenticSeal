@@ -369,6 +369,19 @@ def test_a_spec_after_a_refused_one_at_its_place_waits():
     assert "waits on a," in refused[1][2], refused
 
 
+def test_a_spec_at_a_section_holding_or_held_by_a_refused_ones_waits():
+    """A section's range holds its sub-sections, so `S` and `S child` can
+    name one text; a section beside them cannot."""
+    _, applied, refused = replay(
+        DOC,
+        ("a", op("change", "S", "not there.", "y.")),
+        ("b", op("change", "S child", "Child text.", "z.")),
+        ("c", op("add", "T", new="Rule.")),
+    )
+    assert applied == ["c"], refused
+    assert "waits on a, refused earlier at docs/a.md section `S`" in refused[1][2]
+
+
 def test_a_held_spec_applies_nothing_and_holds_its_places():
     _, applied, refused = replay(
         DOC,
@@ -455,15 +468,19 @@ def test_the_dry_run_lists_pending_changes_in_merge_order_and_writes_nothing(
     assert "1700000002-c" not in removes, text
 
 
-def test_two_specs_on_parallel_branches_at_one_place_are_a_conflict(repo, capfd):
+@pytest.mark.parametrize("section", ["S", "S child"])
+def test_two_specs_on_parallel_branches_at_one_place_are_a_conflict(
+    repo, capfd, section
+):
     """S6: ancestry cannot order them, so neither applies there, and both are
-    printed for the owner."""
+    printed for the owner. A sub-section is inside its section's range, so it
+    is the same place."""
     git(repo, "switch", "-qc", "one")
     item(repo, "1700000001-a", op("change", "S", "old sentence.", "y."))
     commit(repo, "a")
     git(repo, "switch", "-q", "main")
     git(repo, "switch", "-qc", "two")
-    item(repo, "1700000002-b", op("add", "S", new="Rule."))
+    item(repo, "1700000002-b", op("add", section, new="Rule."))
     commit(repo, "b")
     git(repo, "switch", "-q", "main")
     git(repo, "merge", "-q", "--no-ff", "-m", "one", "one")

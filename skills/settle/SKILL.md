@@ -108,8 +108,10 @@ over an unsettled work item.
 
 - **In merge order, and the later spec wins.** A spec's place is the first
   commit on `--released-at` that adds its `spec.md`. Two specs whose adding
-  commits no ancestry orders, and that name one file and section, are a
-  conflict: neither applies, and both are printed for the owner.
+  commits no ancestry orders, and that name one place, are a conflict:
+  neither applies, and both are printed for the owner. Two sections of one
+  file are one place where one holds the other, because a section's range
+  holds its sub-sections.
 - **Whole or not at all.** A spec whose section does not parse, whose
   section or `from` text is not there, or whose record holds an open
   `## Not verified` row applies nothing, and its directory stays. A later

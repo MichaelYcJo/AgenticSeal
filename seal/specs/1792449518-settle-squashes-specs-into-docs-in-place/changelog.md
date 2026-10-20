@@ -9,7 +9,8 @@
   in merge order, the later spec winning, and applies a spec whole or not at
   all. It writes no marker, and removes each applied spec's directory whole,
   its process record included. A spec it cannot place, one whose record holds
-  an open row, and two that merge order cannot decide at one place are
+  an open row, and two that merge order cannot decide at one place (a
+  section and a sub-section it holds are one place) are
   refused at their line and stay. So is a `file:` holding `\` or `:`, one
   differing from another document only in case, and a `nothing` line written
   with a hyphen, which is told to use the em dash. `settle` with no flag is
