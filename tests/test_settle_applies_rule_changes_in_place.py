@@ -39,6 +39,11 @@ def spec(changes):
     )
 
 
+def parse(text):
+    """The section of TEXT, read against a policy root of `docs/`."""
+    return rules.parse(text, "docs")
+
+
 def line_of(text, needle):
     return text.split("\n").index(needle) + 1
 
@@ -71,7 +76,7 @@ ALL_SHAPES = """\
 
 def test_each_shape_reads_into_one_operation_with_its_line():
     text = spec(ALL_SHAPES)
-    parsed = rules.parse(text)
+    parsed = parse(text)
     assert parsed.errors == [], parsed.errors
     got = [(o.kind, o.file, o.section, o.old, o.new) for o in parsed.ops]
     assert got == [
@@ -100,7 +105,7 @@ def test_the_skills_example_reads_as_the_skill_says():
     ) as f:
         section = f.read().split("\n## Rule changes\n", 1)[1]
     example = section.split("```\n", 2)[1]
-    parsed = rules.parse(spec(example.rstrip("\n")))
+    parsed = parse(spec(example.rstrip("\n")))
     assert parsed.errors == [], parsed.errors
     [only] = parsed.ops
     assert (only.kind, only.file, only.section) == (
@@ -117,7 +122,7 @@ def test_the_skills_example_reads_as_the_skill_says():
 
 
 def test_nothing_with_a_reason_is_a_section_with_no_operation():
-    parsed = rules.parse(spec("nothing — this item changes no rule."))
+    parsed = parse(spec("nothing — this item changes no rule."))
     assert (parsed.ops, parsed.errors) == ([], [])
     assert parsed.nothing == "this item changes no rule."
 
@@ -125,18 +130,18 @@ def test_nothing_with_a_reason_is_a_section_with_no_operation():
 def test_a_spec_with_no_section_is_told_apart_from_an_empty_one():
     """A spec written before the section existed has nothing to replay; an
     empty section is a frame nobody filled in, and it is refused."""
-    assert rules.parse("# old\n\n## Scope\n\nIn.\n").ops is None
-    assert rules.parse(spec("")).errors
+    assert parse("# old\n\n## Scope\n\nIn.\n").ops is None
+    assert parse(spec("")).errors
 
 
 def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
     fenced = "# x\n\n```\n## Rule changes\n\n- remove\n  file: docs/a.md\n```\n"
-    assert rules.parse(fenced).ops is None
+    assert parse(fenced).ops is None
     commented = spec(
         "<!-- the grammar is the skill's\n- remove\n  file: docs/a.md -->\n"
         "nothing — a reason."
     )
-    parsed = rules.parse(commented)
+    parsed = parse(commented)
     assert parsed.errors == [] and parsed.nothing == "a reason."
 
 
@@ -185,7 +190,7 @@ def test_a_block_that_does_not_match_whole_is_refused_at_its_line(body, bad, rea
     """Never skipped and never half-read: one error at the line, and the spec
     applies nothing."""
     text = spec(body)
-    parsed = rules.parse(text)
+    parsed = parse(text)
     assert parsed.errors, parsed
     line, why = parsed.errors[0]
     assert line == line_of(text, bad), (line, why)
@@ -221,7 +226,7 @@ def replay(doc, *specs, held=None):
     """`(documents, applied, refused)` for SPECS, `(id, changes)` in merge
     order, over one document `docs/a.md` holding DOC."""
     texts = {"docs/a.md": doc}
-    ordered = [(i, rules.parse(spec(c)).ops) for i, c in specs]
+    ordered = [(i, parse(spec(c)).ops) for i, c in specs]
     return rules.replay(texts.get, ordered, held or {})
 
 
@@ -693,3 +698,48 @@ def test_a_spec_no_commit_adds_is_held(repo, capfd, monkeypatch):
     assert code == 1, text
     assert "no commit on main adds its spec.md" in text, text
     assert specs_dir(repo, "1700000001-a").exists()
+
+
+# --- the policy root and the one read ------------------------------------------
+
+
+def configure(repo, *rows):
+    table = "".join(f"| {item} | {value} |\n" for item, value in rows)
+    (repo / "seal" / "config.md").write_text(
+        f"| Item | Value |\n|---|---|\n{table}", encoding="utf-8"
+    )
+
+
+def test_apply_creates_the_policy_root_the_config_names(repo, capfd):
+    """S14: with `Policy root` naming `policy/` and no such directory, the
+    first `--apply` creates it with its index, writes there, touches no
+    `docs/`, and names the index row the new document is owed. The readers
+    replay into the same root."""
+    configure(repo, ("Policy root", "policy"))
+    item(repo, "1700000001-a", op("add", new="# New", file="policy/new.md"))
+    commit(repo, "a")
+    before = files(repo)
+    code, text = apply(repo, capfd)
+    assert code == 0, text
+    assert (repo / "policy" / "new.md").read_text(encoding="utf-8") == "# New\n"
+    assert (repo / "policy" / "README.md").is_file(), text
+    docs = {k: v for k, v in files(repo).items() if k.startswith("docs")}
+    assert docs == {k: v for k, v in before.items() if k.startswith("docs")}
+    assert "policy/README.md has no row naming policy/new.md" in text, text
+    reader = settle.load(settle.READER, "specseal_reader_for_policy_root")
+    directory = "seal/specs/1700000001-a"
+    assert reader.settled(str(repo), "HEAD", [directory]) == {directory}
+
+
+def test_apply_names_a_document_past_the_ceiling(repo, capfd):
+    """Scope 5: after applying, each document past `Document token ceiling`
+    is named as one to split, and that refuses nothing."""
+    configure(repo, ("Document token ceiling", "10"))
+    item(repo, "1700000001-a", op("add", "U", new="Released."))
+    commit(repo, "a")
+    code, text = apply(repo, capfd)
+    assert code == 0, text
+    assert (
+        "docs/a.md is about " in text.split("past the ceiling")[0].rsplit("\n", 1)[-1]
+    ), text
+    assert "past the ceiling of 10: split it along its own headings" in text, text

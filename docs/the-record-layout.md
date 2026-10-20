@@ -16,16 +16,18 @@ is found, the copy is the defect.
 |---|---|---|---|
 | The changelog | `seal/specs/<work-item-id>/changelog.md` while a work item is open; `changelog/<X.Y.Z>.md`, the release's own file, once its release gathers it | each release file is under target, and is the unit | the file name, by version, and `CHANGELOG.md`, which heads each release newest first with a link to its file |
 | A work item's files | `seal/specs/<work-item-id>/` | each file under target | the table under *seal/specs/<work-item-id>/* below |
-| The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and the *docs/* table below |
+| The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
 | The configuration | `seal/config.md`, one row per item; `templates/config.md` documents every row | under target | the `Item` column |
 | The follow-up list | `seal/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
 
 ## The size a reader takes whole
 
-**A file a reader is meant to take whole stays at or under 1,000 lines.** The
-ceiling is `seal/config.md`'s `Document line ceiling` row, and `fold-check`
-holds every `docs/` document to it that `Over the ceiling` does not list.
-Enforced by: tests/test_a_document_has_room_for_the_next_fold.py::test_every_document_in_docs_is_under_the_ceiling_or_frozen
+**A file a reader is meant to take whole fits one read.** `fold-check` and
+`settle --apply` name each `docs/` document past `seal/config.md`'s
+`Document token ceiling` row as one to split along its own headings, and
+refuse nothing for it; `templates/config.md` §*The fold's values* states the
+row and the estimate.
+Enforced by: tests/test_a_document_has_room_for_the_next_fold.py::test_a_document_past_the_ceiling_is_named_and_the_run_exits_0, tests/test_a_document_has_room_for_the_next_fold.py::test_this_repository_passes_the_command_with_no_flags
 
 ## A change writes fragments, never a shared file
 
@@ -60,29 +62,16 @@ diff, and the sealer reads the changelog against the tree.
 
 ## The fold, and what tells it from a deletion
 
-The fold's procedure is `skills/settle/SKILL.md`. This section holds this
-repository's values for it and the rules its readers share.
+The procedure is `skills/settle/SKILL.md`. This section holds the rules its
+readers share.
 
 <!-- specs/1790154761-folded-statements-pile-into-one-spec -->
-**Every folded statement has the fold's shape: the cutoff binds every statement
-from work item `0` on.** The shape and the placement rule are stated in
-`skills/settle/SKILL.md` §*2. Write one standing statement per
-rule*, and this section holds only this repository's values for them. The
-cutoff is the id in the marker, and ids are epoch-prefixed, so it is a
-comparison rather than a list.
+**Every bound statement has the rule's shape, from the cutoff
+`seal/config.md`'s `Fold shape from` row names.** The shape is
+`skills/settle/SKILL.md` §*A rule has one shape*. The cutoff is compared with
+the id in the marker, and ids are epoch-prefixed, so it is a comparison
+rather than a list.
 Enforced by: skills/settle/scripts/fold_check.py::bound, tests/test_a_folded_statement_names_what_enforces_it.py::test_every_bound_statement_in_docs_has_the_shape
-
-<!-- specs/1790154761-folded-statements-pile-into-one-spec -->
-<!-- specs/1790208643-the-spec-is-split-and-its-sentences-are-settled -->
-**A document over the line ceiling takes no new statement.** The ceiling is
-the one §*The size a reader takes whole* states, at or under 1000 lines. A
-document the next fold would take past it is split along its own headings
-first, its fold markers carried across whole, or the rule goes to the
-document for its own sub-subject. No document is listed over the ceiling
-now. The cutoff, the ceiling and the list are rows of this repository's
-`seal/config.md`, which `fold-check` reads, and a pin holds the rows and this
-section to the same numbers.
-Enforced by: skills/settle/scripts/fold_check.py::ceiling_problems, tests/test_a_document_has_room_for_the_next_fold.py::test_the_record_layout_states_the_values_the_config_rows_hold
 
 <!-- specs/1790039346-settle-reads-a-marker-inside-a-commented-out-draft -->
 **A removed work item directory is a settle, not a deletion, when replaying
@@ -256,28 +245,7 @@ Enforced by: tests/test_unverified_rows_close.py::test_a_row_the_base_gained_aft
 
 ## docs/
 
-The standing policy. A `docs/` document outranks the work items' specs, and
-a work item that finds one wrong corrects it.
-
-| File | The question it answers |
-|---|---|
-| `docs/branch-and-release.md` | where a branch is cut from, how it merges back, and what carries the version |
-| `docs/commit-review-gate-spec.md` | how the gates are registered, what the PreToolUse reading of a commit decides where git cannot, and what the implementer mark says |
-| `docs/issues-and-milestones.md` | what the issue tracker's fields mean here, and which of them anything reads |
-| `docs/measuring-a-run.md` | what a segment of a run measures, and where the reading goes |
-| `docs/one-root-by-lifetime.md` and its `.ko.md` edition | the design 0.4.0 started from: one root, laid out by lifetime |
-| `docs/release-checklist.md` | what to type on the day of a release, in order |
-| `docs/the-agent-set.md` | how the rules are split between the agents a work item spawns |
-| `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
-| `docs/the-commit-gate-inside-git.md` | what git decides inside a commit, what its hooks cannot see, and which reading judges each state of a repository |
-| `docs/the-reader-registry.md` | how a frame names what its work removes |
-| `docs/the-record-layout.md` | this index: where each kind of record lives, which file a change writes, when a later commit brings the changelog fragment along, and the fold's values and what tells it from a deletion |
-| `docs/the-review-and-parity-arms.md` | what each opt-in arm of the commit gate wants, and the routing declaration that moves the review arm's check to the pull request |
-| `docs/the-review-record.md` | what a review round leaves in the tree, what the pull-request check reads of it, the run's bound and end, and how work is handed to an agent |
-| `docs/worktree-guard-spec.md` | what the worktree guard refuses, and why |
-
-`docs/experiments/` holds dated scratch documents and is no policy; a fold
-never writes there.
+The standing policy. Its index is `docs/README.md`.
 
 ## seal/
 

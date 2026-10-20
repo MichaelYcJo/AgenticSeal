@@ -69,8 +69,9 @@ def headings(lines):
     return out
 
 
-def parse(text, policy_root="docs"):
-    """The `## Rule changes` section of a spec's TEXT, as a `Parsed`."""
+def parse(text, policy_root):
+    """The `## Rule changes` section of a spec's TEXT, as a `Parsed`; each
+    `file` is a top-level `.md` of the directory POLICY_ROOT."""
     r = reader()
     lines = r.gfm_lines(text)
     marks = headings(lines)

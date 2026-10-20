@@ -64,6 +64,10 @@ SHIPPED_ROOTS = ("agents", "skills", "templates")
 # third state is the one `bin/` itself was in before work item 1788302682 --
 # a gap somebody notices while writing something up.
 NO_WRAPPER = {
+    "rule_changes.py": (
+        "A module `settle.py` and `unverified_check.py` load by path, with no "
+        "command line of its own: no shipped document shows it with a flag."
+    ),
     "chain_check.py": (
         "Named in four shipped documents and shown with a flag in none of "
         "them -- which is what `test_an_unwrapped_script_is_shown_in_no_"

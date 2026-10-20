@@ -102,7 +102,7 @@ def test_every_copy_of_the_splitter_is_the_readers():
 
 def test_fold_check_keeps_no_copy_of_its_own():
     """The copy `fold_check.py` held while the reader was being rewritten on
-    another branch is gone, and the ceiling counts with the reader's."""
+    another branch is gone."""
     fold_check = _load("specseal_fold_check_for_gfm_lines", FOLD_CHECK)
     assert not hasattr(fold_check, "gfm_lines")
     assert not hasattr(fold_check, "GFM_LINE_RE")
@@ -114,12 +114,9 @@ def test_fold_check_keeps_no_copy_of_its_own():
 MARKED = f"# A policy\n\nprose{LS}<!-- specs/1700000000-a -->\n\n**A rule.**\n"
 
 
-def test_the_ceiling_and_the_fold_agree_about_that_marker():
-    """S4. `fold-check` counts what the fold reads, so it counts no marker
-    there either: the frozen count, the digest and the statements."""
+def test_the_shape_arm_reads_no_marker_there():
+    """S4. `fold-check` binds no statement to a marker GFM shows mid-line."""
     fold_check = _load("specseal_fold_check_s4", FOLD_CHECK)
-    assert fold_check.markers(MARKED) == 0
-    assert fold_check.marker_digest(MARKED) == fold_check.marker_digest("")
     assert fold_check.numbered_statements(MARKED) == []
 
 

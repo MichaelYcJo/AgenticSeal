@@ -1768,8 +1768,8 @@ def declared_for_this_branch(root, routing):
 
 
 RETIRED_SAYS = (
-    "retired: a settle — nothing open at the merge base, and `docs/` holds "
-    "every rule change its spec states"
+    "retired: a settle — nothing open at the merge base, and the policy root "
+    "holds every rule change its spec states"
 )
 
 

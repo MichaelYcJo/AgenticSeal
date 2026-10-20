@@ -84,8 +84,6 @@ PLACEHOLDER = re.compile(r"^<[^>]*>$")
 # family, and the byte-order mark. None of them make a marker into a claim.
 INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
 SEPARATOR = re.compile(r"^:?-+:?$")
-# The policy root `settled` replays a spec's rule changes over.
-DOCS = "docs"
 # The provenance marker the appending fold wrote above each statement it put
 # in `docs/`. `fold_check.py`'s shape arm and
 # `tests/test_both_editions_carry_the_same_folds.py` read it until #941
@@ -944,6 +942,22 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
 
 
+def config_at(top):
+    """`(hooks/config.py, the seal/ root)` for the repository at `top`, the
+    root as `hooks/optin.py#home_at` resolves it."""
+    modules = []
+    for name in ("config", "optin"):
+        path = os.path.join(HOOKS, f"{name}.py")
+        spec = importlib.util.spec_from_file_location(
+            f"specseal_{name}_for_unverified", path
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        modules.append(module)
+    config, resolver = modules
+    return config, resolver.home_at(top, resolver.git_common_dir(top))
+
+
 def references_at(top):
     """`(hooks/config.py, roots)` for the repository at `top` — the module
     holding `under_reference_root` and what the row names under the root
@@ -955,20 +969,17 @@ def references_at(top):
     refusing a run that needed none of this. Read once per path a run is
     handed, and once more for the base, so nothing is cached."""
     try:
-        modules = []
-        for name in ("config", "optin"):
-            path = os.path.join(HOOKS, f"{name}.py")
-            spec = importlib.util.spec_from_file_location(
-                f"specseal_{name}_for_unverified", path
-            )
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            modules.append(module)
-        config, resolver = modules
-        home = resolver.home_at(top, resolver.git_common_dir(top))
+        config, home = config_at(top)
         return config, config.reference_roots(home)
     except (OSError, ImportError, AttributeError):
         return None
+
+
+def policy_root(top):
+    """The policy root of the repository at `top`, `hooks/config.py#policy_root`'s
+    answer for its `seal/` root."""
+    config, home = config_at(top)
+    return config.policy_root(home)
 
 
 def reference_rule(start):
@@ -1246,10 +1257,10 @@ def rule_changes():
     return _rules
 
 
-def policy_documents(root, ref):
-    """`{path: text}` for each file of the policy root at REF, the disk when
-    None."""
-    return {rel: _text_at(root, ref, rel) or "" for rel in tree_at(root, ref, DOCS)}
+def policy_documents(root, ref, policy):
+    """`{path: text}` for each file under the directory POLICY at REF, the
+    disk when None."""
+    return {rel: _text_at(root, ref, rel) or "" for rel in tree_at(root, ref, policy)}
 
 
 def settled(root, ref, directories, here=None):
@@ -1271,8 +1282,7 @@ def settled(root, ref, directories, here=None):
     HERE as in the replay. Asked of the set, a later spec may rewrite what an
     earlier one placed; counted across files, a split along headings
     passes."""
-    rules = rule_changes()
-    out, pending = set(), {}
+    out, pending, policy = set(), {}, None
     for directory in directories:
         paths = tree_at(root, ref, directory)
         if not paths or open_record_rows(root, ref, directory):
@@ -1281,7 +1291,9 @@ def settled(root, ref, directories, here=None):
             if not wrote_a_spec(root, ref, directory):
                 out.add(directory)
             continue
-        parsed = rules.parse(_text_at(root, ref, f"{directory}/{SPEC}") or "", DOCS)
+        # Loaded where a spec is read, so a directory with none needs neither.
+        rules, policy = rule_changes(), policy or policy_root(root)
+        parsed = rules.parse(_text_at(root, ref, f"{directory}/{SPEC}") or "", policy)
         if not parsed.errors and not parsed.ops:
             out.add(directory)
         elif not parsed.errors:
@@ -1296,8 +1308,8 @@ def settled(root, ref, directories, here=None):
     documents, applied, _ = rules.replay(
         lambda rel: _text_at(root, ref, rel), [(d, pending[d]) for d in ordered], {}
     )
-    replayed = list({**policy_documents(root, ref), **documents}.values())
-    now = list(policy_documents(root, here).values())
+    replayed = list({**policy_documents(root, ref, policy), **documents}.values())
+    now = list(policy_documents(root, here, policy).values())
 
     def count(text, texts):
         return sum(len(rules.pattern(text).findall(t)) for t in texts)
@@ -1652,6 +1664,7 @@ def main(argv=None):
             }
         )
         by_settle = settled(root, base, removed)
+        policy = policy_root(root) if by_settle else None
         for rel in gone:
             if os.path.dirname(rel) in by_settle:
                 # Named rather than passed over in silence: a removal this arm
@@ -1662,7 +1675,7 @@ def main(argv=None):
                         display_path(os.path.join(root, rel), cwd),
                         1,
                         f"settled: at {named} nothing in its record was open, "
-                        f"and `{DOCS}/` holds every rule change its spec states",
+                        f"and `{policy}/` holds every rule change its spec states",
                     )
                 )
                 continue

@@ -68,13 +68,13 @@ def read(path):
 def test_every_bound_statement_in_docs_has_the_shape():
     """A7. The walk has to have read markers, so a broken reader cannot pass
     on an empty walk; the ones folded before the cutoff are read and skipped."""
-    cutoff = fold_check.declared(fold_check.seal_home(ROOT))[0]
+    cutoff, _, policy = fold_check.declared(fold_check.seal_home(ROOT))
     assert cutoff is not None, "this repository's seal/config.md declares no cutoff"
     problems = []
     groups = 0
     # The shipped command's own listing, not a second spelling of it (round
     # 1, note 8): what this case walks is what `fold-check` walks.
-    for rel in fold_check.documents(ROOT):
+    for rel in fold_check.documents(ROOT, policy):
         text = read(os.path.join(ROOT, *rel.split("/")))
         groups += len(statements(text))
         problems += shape_problems(ROOT, rel, text, cutoff)
@@ -357,7 +357,7 @@ def test_the_command_exits_0_over_a_statement_with_the_shape(tmp_path):
     code, out, err = command("--root", root, "--shape-from", str(CUTOFF))
     assert code == 0, (code, out, err)
     assert (
-        f"fold-check: `Document line ceiling` is not declared in {root}, which has "
+        f"fold-check: `Document token ceiling` is not declared in {root}, which has "
         "no seal/ root at either place, so no document's length was checked\n"
     ) in out, out
 

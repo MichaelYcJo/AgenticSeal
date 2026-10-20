@@ -41,8 +41,8 @@ exactly those.
 | `Mode` | *the folder decides* | which of the two places the root should live at |
 | `Broad gate` | *none — `broad-gate` refuses without it* | the one shell command line `broad-gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
 | `Fold shape from` | *not declared — the shape is not checked* | the work-item id from which `fold-check` holds a folded statement to `settle`'s shape; `0` binds every statement |
-| `Document line ceiling` | *not declared — no length is checked* | how many lines a top-level `docs/*.md` may reach before a fold must split it or place its rule elsewhere |
-| `Over the ceiling` | `none` | the documents listed over that ceiling, each with its fold markers frozen until the home it names splits it |
+| `Document token ceiling` | *not declared — no length is checked* | the estimated tokens past which `fold-check` reports a top-level policy document as one to split |
+| `Policy root` | `docs` | the directory of the ratified policy documents, which `settle --apply` writes |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none — no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
 
@@ -131,8 +131,8 @@ second answer.
   which is what brings them here. `templates/config.md` §*What is refused,
   and what stays allowed* lists the three forms and the ones that stay
   legal, each with its reason, and it is where this is decided.
-- **A fold row** — `Fold shape from`, `Document line ceiling` or
-  `Over the ceiling` — is only a row too. Edit or add it in place, and point
+- **A fold row** — `Fold shape from`, `Document token ceiling` or
+  `Policy root` — is only a row too. Edit or add it in place, and point
   at `$CLAUDE_PLUGIN_ROOT/templates/config.md` §*The fold's values* for what
   each accepts and what an absent one means, rather than restating it. A
   value `fold-check` will not parse makes it exit 2 naming the row, so run it

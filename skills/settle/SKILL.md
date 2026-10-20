@@ -2,8 +2,8 @@
 name: settle
 description: |
   Apply the rule changes each released work item's `spec.md` states to the
-  `docs/` policy documents, in place and in merge order, then remove the
-  work item's directory.
+  policy documents (`docs/` unless `Policy root` names another), in place
+  and in merge order, then remove the work item's directory.
   Use when: preparing a release and the work items have accumulated; a
   session asks what `seal/specs/` is still holding, or runs `settle`.
   NOT for: gathering changelog fragments, which release preparation
@@ -55,7 +55,8 @@ line, indented two spaces:
 | `change` | `file`, `section`, `from`, `to` | rewrites `from` where it stands |
 | `remove` | `file`, `section`; `from` optional | deletes `from`, or with no `from` the whole section, up to the next heading of its level or higher |
 
-- `file` is a top-level `.md` file of `docs/`. `section` is a heading's
+- `file` is a top-level `.md` file of the policy root, `seal/config.md`'s
+  `Policy root` row (`docs` when absent). `section` is a heading's
   text at any level, and appears once in the file. `from` appears once in
   the section, compared with runs of whitespace collapsed; every other
   character, emoji included, is matched as itself.
@@ -79,11 +80,21 @@ with a reason. `Enforced by:` stays English in every edition.
 
 **What this plugin checks, and what it does not.** It ships `fold-check`
 (`skills/settle/scripts/fold_check.py`), which reads that shape over the top
-level of `docs/` from the `Fold shape from` row in `seal/config.md`, and a
-row a repository does not write is a check it does not run
+level of the policy root from the `Fold shape from` row in `seal/config.md`,
+and a row a repository does not write is a check it does not run
 (`templates/config.md` §*The fold's values*). Whether a target really
 enforces its rule, and whether two rules contradict each other, it cannot
 read: that is review's, and it is review's to find.
+
+## The index
+
+**`<policy root>/README.md` is the index: one table row per topic, naming
+its file.** A row names its documents as backticked paths, a `.ko.md`
+edition on its English edition's row. A framer picks each `file:` from it.
+Where it exists, `fold-check` refuses a top-level document no row names, one
+named on two rows, and a row that names none. `--apply` writes an empty index
+when it creates the policy root, and after applying it names the row each new
+document is owed.
 
 ## When it runs
 
@@ -115,7 +126,7 @@ the arguments or the tree are unusable.
 **A reference root is history, never input.** A project's own `specs/`, as
 `templates/config.md` §*Reference specs* says, is read where the work touches
 what it describes and cited in the `spec.md` whose rule changes it informed.
-`settle` never writes there: `--apply` writes `docs/` and removes only under
+`settle` never writes there: `--apply` writes the policy root and removes only under
 `seal/specs/`.
 
 ## A released work item with no `spec.md`
@@ -164,10 +175,11 @@ into a comment.
 
 ## A document past its ceiling is split, never trimmed
 
-After `--apply`, run `fold-check`. A document past the `Document line
-ceiling` row in `seal/config.md` is split by topic along its own headings in
-the same pull request, and nothing is cut to fit. The plugin sets no
-ceiling; a repository states its own.
+After applying, `--apply` names each document past the `Document token
+ceiling` row in `seal/config.md`, as `fold-check` does, and neither refuses
+it. Such a document is recommended to be split by topic along its own
+headings, in that pull request or a later one, and nothing is cut to fit.
+The plugin sets no ceiling; a repository states its own.
 
 ## A settle is not a work item
 

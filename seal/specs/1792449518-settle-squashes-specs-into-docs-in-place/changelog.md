@@ -25,3 +25,16 @@
   `docs/` holds. A `<!-- specs/<id> -->` marker no longer excuses a removal.
   `unverified-check` names such a directory `settled`, where it said
   `folded` or `retired by the rule`.
+
+- **One read is a token row, and a report (#953).** `Document token
+  ceiling` replaces `Document line ceiling`, and `Over the ceiling` is no
+  longer read. `fold-check` and `settle --apply` name each document whose
+  estimate (UTF-8 bytes halved) is past the row as one to split along its own
+  headings, and exit 0 on it. A repository that declared a line ceiling has
+  no size check until it declares the token row.
+- **The policy root is a row, and it has an index (#953).** `Policy root`
+  (default `docs`) names the directory `settle --apply` writes and every
+  reader of the policy reads; the first `--apply` creates it with an empty
+  index. Where `<policy root>/README.md` exists, `fold-check` refuses a
+  document no row names, one named on two rows, and a row that names none.
+  This repository's index is `docs/README.md`.

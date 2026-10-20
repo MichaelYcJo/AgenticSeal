@@ -11,7 +11,9 @@
 
 **Each released spec's `## Rule changes` is applied in merge order, whole or
 not at all.** `rule_changes.py` reads and replays the sections; this writes
-the result into `docs/` and removes each applied spec's directory whole, its
+the result into the policy root (`seal/config.md`'s `Policy root` row,
+`docs` when absent, creating it with its index where it is absent) and
+removes each applied spec's directory whole, its
 process record included. A spec it cannot place, one whose record still holds
 an open row, and two that merge order cannot decide at one place apply
 nothing, and their directories stay. A spec with no section was written before
@@ -60,12 +62,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
 RULES = os.path.join(HERE, "rule_changes.py")
+FOLD_CHECK = os.path.join(HERE, "fold_check.py")
 
 # What each sibling is for, in the sentence `load` prints when it is missing.
 PURPOSES = {
     READER: "it is where a record's open rows are read from",
     OPTIN: "it is what finds the repository's seal/ root",
     RULES: "it is what reads a spec's `## Rule changes`",
+    FOLD_CHECK: "it is what reads the index and the one read after an apply",
 }
 
 SPECS = "seal/specs"
@@ -274,10 +278,11 @@ def rule_plan(root, ref, base, ids, reader):
     with another at one place is held, and `rule_changes.replay` refuses it
     and waits every later spec at its places."""
     rules = load(RULES, "specseal_rule_changes")
+    policy = reader.policy_root(root)
     parsed, premodel = {}, []
     for work_item_id in ids:
         text = reader.show(root, ref, f"{SPECS}/{work_item_id}/spec.md") or ""
-        found = rules.parse(text)
+        found = rules.parse(text, policy)
         if found.ops is None:
             premodel.append(work_item_id)
         else:
@@ -507,9 +512,38 @@ def report(found, ref, out):
 
 # --- the apply -------------------------------------------------------------
 
+# The index `--apply` writes when it creates the policy root; `fold-check`
+# then names the row each document is owed.
+INDEX = (
+    "# {policy}\n\nThe index of this policy root: one row per topic, naming "
+    "its file.\n\n| File | The question it answers |\n|---|---|\n"
+)
+AFTER_HEADING = (
+    "after applying — the index and the one read, as `fold-check` reads them; "
+    "neither\nrefuses anything here:"
+)
+
+
+def write_after(root, policy, out):
+    """The index rows owed and the documents past `Document token ceiling`,
+    read by `fold_check.py` over what `--apply` wrote. A row it cannot read
+    is said in its own sentence, never as a traceback after the writes."""
+    fold = load(FOLD_CHECK, "specseal_fold_check_for_settle")
+    try:
+        ceiling = fold.declared(fold.seal_home(root))[1]
+        lines = list(fold.index_problems(root, policy) or [])
+        if ceiling is not None:
+            lines += fold.past_ceiling_lines(
+                fold.past_ceiling(root, policy, ceiling), ceiling
+            )
+    except fold.Unusable as refused:
+        lines = [f"not read: {refused}"]
+    if lines:
+        out.write(f"\n{AFTER_HEADING}\n" + "".join(f"    {i}\n" for i in lines))
+
 
 def apply(found, root, out):
-    """Write what the replay applies into `docs/`, then remove each applied
+    """Write what the replay applies into the policy root, then remove each applied
     directory and each spec-less one the rule arm retires.
 
     **The candidates are read from the tree again, not taken from `survey`**:
@@ -531,6 +565,12 @@ def apply(found, root, out):
     retired, kept, base_kept = rule_arm(
         root, base, [i for i in ids if not has_spec(root, i)], reader
     )
+    policy = reader.policy_root(root)
+    if plan["documents"] and not os.path.isdir(under(root, policy)):
+        os.makedirs(under(root, policy))
+        with open(under(root, f"{policy}/README.md"), "w", encoding="utf-8") as f:
+            f.write(INDEX.format(policy=policy))
+        out.write(f"wrote {policy}/README.md, the index, with the root\n")
     for rel, text in plan["documents"].items():
         path = under(root, rel)
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -545,6 +585,8 @@ def apply(found, root, out):
         out.write(f"removed {SPECS}/{work_item_id}/{why}\n")
     write_outcome(plan, out)
     write_rule_arm(found, retired, kept, base_kept, out, heading=False)
+    if plan["documents"]:
+        write_after(root, policy, out)
     applied, removed = len(plan["applied"]), len(plan["applied"]) + len(retired)
     held = len(plan["refused"]) + len(kept) + len(base_kept)
     out.write(
@@ -558,7 +600,7 @@ def main(argv=None):
     """The dry run or the apply; the exit code is the verdict."""
     ap = argparse.ArgumentParser(
         prog="settle",
-        description="Apply the rule changes released specs state to docs/.",
+        description="Apply the rule changes released specs state to the policy root.",
     )
     ap.add_argument(
         "--root", default=None, help="repository root (default: the one this is run in)"
@@ -574,7 +616,7 @@ def main(argv=None):
     ap.add_argument(
         "--apply",
         action="store_true",
-        help="apply each released spec's rule changes to docs/ in merge order, "
+        help="apply each released spec's rule changes to the policy root in merge order, "
         "whole or not at all, and remove each applied directory and each "
         "released one with no spec.md and nothing open",
     )

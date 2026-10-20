@@ -647,6 +647,7 @@ def test_the_command_is_reachable_by_the_name_a_document_gives_it():
         ("READER", "it is where a record's open rows are read from"),
         ("OPTIN", "it is what finds the repository's seal/ root"),
         ("RULES", "it is what reads a spec's `## Rule changes`"),
+        ("FOLD_CHECK", "it is what reads the index and the one read after an apply"),
     ],
 )
 def test_each_sibling_is_refused_with_its_own_purpose(

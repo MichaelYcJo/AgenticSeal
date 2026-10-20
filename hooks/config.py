@@ -678,6 +678,30 @@ def under_reference_root(rel, roots):
     return any(joined == p or joined.startswith(p + "/") for p in roots)
 
 
+# --- the policy root (#953) -------------------------------------------------
+
+POLICY_ROW = "Policy root"
+POLICY_DEFAULT = "docs"
+
+
+def policy_root(home):
+    """The repository-relative directory `<home>/config.md`'s `Policy root`
+    row names, without a leading `./` or a trailing `/`, or `docs`.
+
+    No root, no file, no such row, an empty value, a refusal and a value
+    that leaves the repository (an absolute path or a `..` part) all read as
+    `docs`, the directory every repository read before the row existed.
+    `templates/config.md` §*The fold's values* states the row."""
+    value = declared_value(home, POLICY_ROW)[0] if home else None
+    rel = (value or "").strip().replace("\\", "/")
+    while rel.startswith("./"):
+        rel = rel[2:]
+    rel = rel.rstrip("/")
+    if not rel or rel.startswith("/") or ".." in rel.split("/"):
+        return POLICY_DEFAULT
+    return rel
+
+
 # --- the pact a signer declares (#647) -------------------------------------
 #
 # A work item can commit in more than one repository, and where those
@@ -696,7 +720,6 @@ def under_reference_root(rel, roots):
 # the print and the refusal are about the same row.
 
 PACT_ROW = "Pact"
-# The separator `Over the ceiling` already uses between its entries.
 PACT_SEPARATOR = ";"
 # A pact's name in an anchor, `pact:<name>/"<heading path>"@<hash>`: the last
 # path segment of the pact's repository's normalised origin URL. The class is
