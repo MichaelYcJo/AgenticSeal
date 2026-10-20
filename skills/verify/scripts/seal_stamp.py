@@ -924,7 +924,7 @@ def label(values):
 # audited commit standing in HEAD's history, so a squash or a cherry-pick of
 # the guarantee elsewhere queues nothing; the guarantee reading `sealed` at
 # an earlier commit of that history (`sealed_before`); and the `Target SHA`
-# row's `; earlier run: <sha> <verdict>` chain — a `sealed` after a `sealed`
+# row's `; earlier run: <sha> <word>` chain — a `sealed` after a `sealed`
 # was stamped at the first. The last two hold across clones. The chain skips
 # one kind of entry, a `sealed` this clone recorded refusing
 # (`refused_here`). In shared mode the commit gate writes that record when it

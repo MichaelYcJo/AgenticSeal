@@ -628,7 +628,10 @@ def test_a_sealed_guarantees_commit_queues_one_stamp(tmp_path):
 @pytest.mark.rule("stamp-drawn-once")
 @pytest.mark.parametrize(
     "verdict",
-    ["withheld — the README is stale", "undecided — does #12 ask for the flag?"],
+    [
+        "withheld reason: the README is stale",
+        "undecided question: does #12 ask for the flag?",
+    ],
 )
 def test_a_withheld_or_undecided_guarantee_queues_nothing(tmp_path, verdict):
     """#975 S5. The finished-work stamp is not drawn over unfinished work:
@@ -643,13 +646,48 @@ def test_a_withheld_or_undecided_guarantee_queues_nothing(tmp_path, verdict):
     assert queued(repo) == []
 
 
+# S7 of #1000: lines that mean the sealer's verdict and are none of its three
+# shapes, `tests/test_the_sealer_guarantees.py#NEAR_MISSES`'s cases that would
+# otherwise read as `sealed` or near it.
+NEAR_SEALED = (
+    "Verdict: Sealed",
+    "Verdict: **sealed**",
+    "**Verdict:** sealed",
+    "verdict: sealed",
+    "Verdict: sealed reason: x",
+    "    Verdict: sealed",
+    "\tVerdict: sealed",
+)
+
+
+@pytest.mark.rule("stamp-drawn-once")
+@pytest.mark.parametrize("line", NEAR_SEALED)
+def test_a_near_miss_of_sealed_queues_nothing_and_is_no_earlier_seal(tmp_path, line):
+    """S7 of #1000. A committed guarantee whose verdict line is a near miss
+    queues no stamp, and a later commit does not find it as an earlier
+    `sealed` (`sealed_before`). Seen red against the reader that stripped
+    emphasis and folded case: `Sealed`, `**sealed**` and `**Verdict:**
+    sealed` queued a stamp and counted as sealed before."""
+    repo, target, base = guaranteed(tmp_path, verdict="withheld reason: x")
+    rel = f"seal/specs/{ITEM_NAME}/guarantee.md"
+    text = guarantee_text(target, base, "sealed").replace("Verdict: sealed", line)
+    (repo / rel).write_text(text, encoding="utf-8")
+    commit_all(repo, "a near miss of sealed")
+    assert after_the_commit(repo) == ""
+    assert queued(repo) == []
+    (repo / "README.md").write_text("x\n", encoding="utf-8")
+    commit_all(repo, "something after it")
+    mod = stamp_module()
+    assert mod.sealed_before(mod._chain_check(), str(repo), rel) is False
+
+
 @pytest.mark.rule("stamp-drawn-once")
 def test_a_reseal_after_withheld_queues_the_stamp(tmp_path):
     """#975 S6. The sealer withheld at one commit, the work was fixed, and
     the sealer's second run reads `sealed`, keeping the earlier verdict on
     the row: that commit draws the stamp."""
     repo, target, _base = guaranteed(
-        tmp_path, earlier="; earlier run: abc1234 withheld — the README is stale"
+        tmp_path, earlier="; earlier run: abc1234 withheld"
     )
     assert after_the_commit(repo)
     (path,) = queued(repo)
@@ -664,7 +702,7 @@ def test_a_second_sealed_verdict_queues_nothing(tmp_path):
     no count beside it."""
     repo, _target, _base = guaranteed(
         tmp_path,
-        earlier="; earlier run: bbb2222 sealed; earlier run: abc1234 withheld — x",
+        earlier="; earlier run: bbb2222 sealed; earlier run: abc1234 withheld",
     )
     assert after_the_commit(repo) == ""
     assert queued(repo) == []
@@ -1006,9 +1044,9 @@ def test_a_local_mode_sealed_guarantee_queues_one_stamp(tmp_path, linked):
 @pytest.mark.parametrize(
     "written",
     [
-        lambda t, b: guarantee_text(t, b, "withheld — the README is stale"),
-        lambda t, b: guarantee_text(t, b, "undecided — does #12 ask for the flag?"),
-        lambda t, b: guarantee_text(t, b, "sealed") + "\nVerdict: withheld — x\n",
+        lambda t, b: guarantee_text(t, b, "withheld reason: the README is stale"),
+        lambda t, b: guarantee_text(t, b, "undecided question: does #12 ask?"),
+        lambda t, b: guarantee_text(t, b, "sealed") + "\nVerdict: withheld reason: x\n",
         lambda t, b: open(GUARANTEE_TEMPLATE, encoding="utf-8").read(),
     ],
     ids=["withheld", "undecided", "two verdicts", "the unfilled template"],
@@ -1030,7 +1068,7 @@ def test_a_local_mode_reseal_after_withheld_queues_the_stamp(tmp_path):
     queues the stamp. A work item whose review went straight to the pull
     request holds no `rounds/`, and its stamp reads `0` rounds."""
     repo, target, _base, path = local_guaranteed(
-        tmp_path, earlier="; earlier run: abc1234 withheld — the README is stale"
+        tmp_path, earlier="; earlier run: abc1234 withheld"
     )
     for name in ("round-1.md", "round-2.md"):
         (path.parent / "rounds" / name).unlink()
@@ -1051,7 +1089,7 @@ def test_a_local_mode_second_sealed_queues_nothing(tmp_path):
     beside it."""
     repo, target, base, path = local_guaranteed(
         tmp_path,
-        earlier="; earlier run: bbb2222 sealed; earlier run: abc1234 withheld — x",
+        earlier="; earlier run: bbb2222 sealed; earlier run: abc1234 withheld",
     )
     assert queue_local(path) == []
     assert queued(repo) == []
@@ -1425,7 +1463,7 @@ GUARANTEE_REL = f"seal/specs/{ITEM_NAME}/guarantee.md"
 ROUTING_REL = f"seal/specs/{ITEM_NAME}/routing.md"
 
 
-def declared_guaranteed(tmp_path, verdict="withheld — x"):
+def declared_guaranteed(tmp_path, verdict="withheld reason: x"):
     """`guaranteed`'s repository with the work item's `routing.md` naming
     `feat/x` committed on top. Returns (repo, target, base)."""
     repo, target, base = guaranteed(tmp_path, verdict=verdict)
@@ -1673,9 +1711,17 @@ def _copied(*bring, pruned=False):
     [
         _at_head,
         _at_an_ancestor,
-        _reading(lambda t, b: guarantee_text(t, b, "withheld — the README is stale")),
-        _reading(lambda t, b: guarantee_text(t, b, "undecided — does #12 ask?")),
+        _reading(lambda t, b: guarantee_text(t, b, "withheld reason: README stale")),
+        _reading(lambda t, b: guarantee_text(t, b, "undecided question: #12?")),
         _reading(lambda t, b: guarantee_text(t, b, "sealed") + "\nVerdict: withheld\n"),
+        *(
+            _reading(
+                lambda t, b, line=line: guarantee_text(t, b, "sealed").replace(
+                    "Verdict: sealed", line
+                )
+            )
+            for line in NEAR_SEALED
+        ),
         _reading(lambda t, b: open(GUARANTEE_TEMPLATE, encoding="utf-8").read()),
         _a_stale_chain,
         _no_routing_in_the_index,
@@ -1695,6 +1741,7 @@ def _copied(*bring, pruned=False):
         "withheld",
         "undecided",
         "two verdicts",
+        *(f"near miss {line}" for line in NEAR_SEALED),
         "the unfilled template",
         "an earlier run the clone does not hold",
         "no routing.md in the index",

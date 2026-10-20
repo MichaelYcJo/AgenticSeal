@@ -7,8 +7,9 @@ so the four directions that matter are the four this module holds:
   A1  a gathered `## X.Y.Z` section becomes the release note at that tag
   A2  a release already at the tag is left exactly as it is, exit 0
   A3  a tag with no release file goes RED, naming the tag and the file
-  A4  the title is the `release: X.Y.Z — <symptoms>` line, and where no such
-      line is readable it is the tag name and the log says which was used
+  A4  the title is read from the `release: X.Y.Z symptoms: <symptoms>` line,
+      and where no such line is readable it is the tag name and the log says
+      which was used, what it expected and what it found
   A5  the note is a summary read from the release's pull requests -- counts,
       one line per change under its type with the issues it closed, every
       outside contributor thanked by handle -- over the gathered section,
@@ -163,7 +164,10 @@ def title_line(version=VERSION, symptoms=SYMPTOMS):
     is below it. That split is the measurement #386's own sentence got wrong,
     so the fixture carries it rather than a bare title line.
     """
-    return f"Merge pull request #500 from owner/release/v{version}\n\nrelease: {version} — {symptoms}\n"
+    return (
+        f"Merge pull request #500 from owner/release/v{version}\n\n"
+        f"release: {version} symptoms: {symptoms}\n"
+    )
 
 
 # --- A1: the section becomes the note --------------------------------------
@@ -251,9 +255,10 @@ def test_a_tag_that_is_not_a_version_goes_red(monkeypatch, tmp_path, capsys):
 
 
 def test_the_title_is_the_line_the_checklist_prescribes(monkeypatch, tmp_path, capsys):
-    """A4, first branch. `docs/release-checklist.md` §5 prescribes
-    `release: X.Y.Z — <symptoms>` for the release pull request, and the merge
-    commit's BODY carries it — the subject is GitHub's own line."""
+    """A4, first branch, and S15 of #1000. `docs/release-checklist.md` §5
+    prescribes `release: X.Y.Z symptoms: <symptoms>` for the release pull
+    request, and the merge commit's BODY carries it — the subject is GitHub's
+    own line. The published title keeps its `X.Y.Z — <symptoms>` form."""
     mod, tracker = wire(monkeypatch, tmp_path, message=title_line())
     assert mod.main() == 0
     args = tracker.creates()[0]
@@ -265,36 +270,97 @@ def test_the_title_is_the_line_the_checklist_prescribes(monkeypatch, tmp_path, c
 
 
 @pytest.mark.parametrize(
-    "message",
+    "line",
     [
-        pytest.param(
-            "Merge pull request #500 from owner/release/v1.2.3\n", id="absent"
-        ),
+        pytest.param(None, id="absent"),
+        # The shape every release before #1000 carried, and the hyphen typed
+        # for its dash, which dropped the symptoms there.
+        pytest.param(f"release: {VERSION} — x", id="the old dash line"),
+        pytest.param(f"release: {VERSION} - x", id="a hyphen"),
         # Measured in this repository's own history: v0.12.3's line carries no
         # symptoms. Reading a title out of it gives the version alone, which is
         # the tag name minus one character — so it is not the prescribed line
         # and takes the fallback rather than producing a near-duplicate.
-        pytest.param(f"release: {VERSION}\n", id="no symptoms"),
+        pytest.param(f"release: {VERSION}", id="no symptoms"),
+        pytest.param(f"release: {VERSION} symptoms:", id="an empty value"),
+        pytest.param(f"release: {VERSION} symptoms:x", id="no space"),
+        pytest.param(f"Release: {VERSION} symptoms: x", id="capitalised"),
         # A line for a different release, which a cherry-pick or a retag can
         # leave on the commit a tag names.
-        pytest.param("release: 9.9.9 — somebody else's symptoms\n", id="wrong version"),
+        pytest.param("release: 9.9.9 symptoms: x", id="wrong version"),
     ],
 )
 def test_without_that_line_the_title_is_the_tag_and_the_log_says_so(
-    monkeypatch, tmp_path, capsys, message
+    monkeypatch, tmp_path, capsys, line
 ):
-    """A4, second branch. Nothing holds the commit-message convention, so a
-    missing line falls back rather than failing: a wrong title is visible and
-    fixable in one edit, where a failed job at the tag is a release that stops
-    after `main` has already moved."""
+    """A4, second branch, and S16 of #1000. Nothing holds the
+    commit-message convention, so a missing line falls back rather than
+    failing: a wrong title is visible and fixable in one edit, where a failed
+    job at the tag is a release that stops after `main` has already moved.
+    The log names the shape it expected and quotes the first `release:`
+    line it found, in any case, or says there was none. Seen red against the
+    reader of the dash line, which read `the old dash line` as the title and
+    whose log named no shape."""
+    message = "Merge pull request #500 from owner/release/v1.2.3\n"
+    message += f"\n{line}\n" if line else ""
     mod, tracker = wire(monkeypatch, tmp_path, message=message)
     assert mod.main() == 0
     args = tracker.creates()[0]
     assert args[args.index("--title") + 1] == TAG
     out = capsys.readouterr().out
-    assert "the tag name" in out and "no `release:` line" in out, (
+    assert "the tag name" in out, (
         "the fallback is silent, so a title nobody chose reads as one somebody did"
     )
+    assert f"`release: {VERSION} symptoms: <" in out, out
+    found = f"`{line}`" if line else "no `release:` line"
+    assert found in out, out
+
+
+def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
+    """S17 of #1000. The command in `docs/release-checklist.md` §*5*, filled
+    with a version and a symptom, is the merge commit's body line, and
+    `title_from` reads it as S15 does. Protects: the document a release
+    session copies and the reader moving apart, which loses the next
+    release's title."""
+    doc = open(os.path.join(ROOT, "docs", "release-checklist.md"), encoding="utf-8")
+    text = doc.read()
+    doc.close()
+    step = text[text.index("## 5. The release pull request") :]
+    title = step.split('--title "', 1)[1].split('"', 1)[0]
+    filled = title.replace("X.Y.Z", VERSION).replace(
+        "<the symptoms the release answers>", SYMPTOMS
+    )
+    assert filled != title and "<" not in filled, title
+    mod = module(SCRIPT, "publish_release_note_for_the_checklist")
+    message = f"Merge pull request #500 from owner/release/v{VERSION}\n\n{filled}\n"
+    title, source = mod.title_from(message, VERSION, TAG)
+    assert (title, source) == (
+        f"{VERSION} — {SYMPTOMS}",
+        "the tagged commit's `release:` line",
+    )
+    # Trailing whitespace after the symptoms is no part of the title.
+    spaced = mod.title_from(message.replace("\n", "  \n"), VERSION, TAG)[0]
+    assert spaced == title, spaced
+
+
+def test_the_title_line_pattern_is_linear_in_the_line():
+    """#941's round 3 met a pattern that backtracked exponentially; the
+    title line's pattern repeats, so a long line is read inside the bound,
+    which is far above the linear time (under 0.1 s) and far below a
+    backtracking one (no end), so a loaded runner does not fail it."""
+    import time
+
+    mod = module(SCRIPT, "publish_release_note_for_its_pattern")
+    start = time.monotonic()
+    for line in (
+        f"release: {VERSION} symptoms: " + "x " * 50000,
+        f"release: {VERSION} symptoms: " + "x" * 100000,
+        " \t" * 50000 + "Release",
+        f"release: {VERSION} symptoms:" + " " * 100000,
+        "release: " * 20000,
+    ):
+        mod.title_from(line, VERSION, TAG)
+    assert time.monotonic() - start < 5.0
 
 
 # --- A5: the note is a summary over the section --------------------------

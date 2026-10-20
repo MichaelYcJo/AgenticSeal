@@ -26,7 +26,7 @@ to update -- and keeps the whole section beneath, folded. Nothing here
 composes prose: every line is a pull request title, a number, or a handle.
 
 **The title comes from the tagged commit's message**, which carries the
-`release: X.Y.Z -- <symptoms>` line `docs/release-checklist.md` §5
+`release: X.Y.Z symptoms: <symptoms>` line `docs/release-checklist.md` §5
 prescribes. Three other sources were measured and rejected: the merge
 commit's *subject* is GitHub's `Merge pull request #N from <owner>/...` line
 and not the title at all; the `## X.Y.Z -- <date>` changelog heading carries
@@ -111,7 +111,8 @@ TAG_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
 
 
 # The title line `docs/release-checklist.md` §5 prescribes for the release
-# pull request, which is what the merge commit's body carries.
+# pull request, which is what the merge commit's body carries: a whole line,
+# one space after each colon and after the version, read exactly so.
 #
 # **The symptoms are required, not optional.** `release: 0.12.3` with nothing
 # after it was measured in this repository's own history, and reading a title
@@ -119,9 +120,13 @@ TAG_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
 # removed, so the two branches would differ by one character and the log line
 # saying which was taken would be telling a reader nothing. A line with no
 # symptoms is not the prescribed line, so it takes the fallback and says so.
+TITLE_LABEL = "release:"
+SYMPTOMS_LABEL = "symptoms:"
+
+
 def title_line_re(version):
     return re.compile(
-        r"^release:\s*" + re.escape(version) + r"\s+—\s*(\S.*?)\s*$", re.M
+        rf"^{TITLE_LABEL} {re.escape(version)} {SYMPTOMS_LABEL} (\S.*)$", re.M
     )
 
 
@@ -178,8 +183,20 @@ def title_from(message, version, tag):
     """
     found = title_line_re(version).search(message or "")
     if found:
-        return f"{version} — {found.group(1)}", "the tagged commit's `release:` line"
-    return tag, "the tag name — the tagged commit carries no `release:` line"
+        return (
+            f"{version} — {found.group(1).strip()}",
+            f"the tagged commit's `{TITLE_LABEL}` line",
+        )
+    # The search's own line rule: `re.M` ends a line at "\n" alone, so the
+    # line quoted is a line `title_line_re` judged. Any case, any indent.
+    seen = re.search(rf"(?im)^[ \t]*{re.escape(TITLE_LABEL)}.*$", message or "")
+    first = seen.group(0).strip() if seen else None
+    said = f"its first is `{first}`" if first else f"it carries no `{TITLE_LABEL}` line"
+    expected = f"`{TITLE_LABEL} {version} {SYMPTOMS_LABEL} <the symptoms>`"
+    return (
+        tag,
+        f"the tag name — the tagged commit's title line is {expected}, and {said}",
+    )
 
 
 def commit_message(tag):

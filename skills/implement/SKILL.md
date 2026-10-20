@@ -409,9 +409,11 @@ is written, so this is
 A memo whose last three sections are empty is correct and four lines long.
 
 **`## Not verified` is read by a machine, so it has one shape** — a
-`| Item | Who must answer |` table, or the line `none — <why>`. Any other
-spelling of the heading or the header row fails the check rather than reporting
-zero, because zero reads as "everything has been closed".
+`| Item | Who must answer |` table, or alone the no-change block
+`skills/settle/SKILL.md` §*Rule changes* states, `- nothing` with its one
+field `why:`. Any other spelling of the heading, the header row or the block
+fails the check rather than reporting zero, because zero reads as "everything
+has been closed".
 
 An item is closed by marking it, never by deleting it: the Item cell opens
 with the word `closed`, lower case, then the item.

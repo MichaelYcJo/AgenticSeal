@@ -161,7 +161,7 @@ The title's count of fragments is the count `--version` gathered, not the count
 
 ```bash
 gh pr create --base main --head release/vX.Y.Z \
-  --title "release: X.Y.Z — <the symptoms the release answers>" --body-file <file>
+  --title "release: X.Y.Z symptoms: <the symptoms the release answers>" --body-file <file>
 ```
 
 Its hygiene checks fail until step 4 is squashed in, by design. Then they go
@@ -224,8 +224,8 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
 - [ ] **A GitHub Release exists at `vX.Y.Z`**, by `gh release view vX.Y.Z`.
       The tag push fires `.github/workflows/publish-release.yml`, which
       publishes it from the release's file step 2 already gathered, with
-      the title taken from the `release: X.Y.Z — <symptoms>` line step 5
-      prescribes. **This box confirms the workflow fired; it is not where the
+      the title taken from the `release: X.Y.Z symptoms: <symptoms>` line
+      step 5 prescribes. **This box confirms the workflow fired; it is not where the
       note gets written.** Nothing there means the job went red or never ran,
       and `gh run list --workflow publish-release.yml` says which. The job
       fails for a tag whose release file, `changelog/X.Y.Z.md`, is not there

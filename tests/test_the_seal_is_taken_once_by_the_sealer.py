@@ -1153,7 +1153,9 @@ ROW = "Broad gate"
 
 PASSING_TEST = "def test_one():\n    assert True\n"
 FAILING_TEST = "def test_two():\n    assert False, 'planted'\n"
-OVERVIEW = "# overview\n\n## Not verified\n\nnone — the fixture verifies nothing\n"
+OVERVIEW = (
+    "# overview\n\n## Not verified\n\n- nothing\n  why: the fixture verifies nothing\n"
+)
 
 
 def finding(n, verdict, what="the parser drops a row", location="`f.py:1`"):

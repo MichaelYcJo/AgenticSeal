@@ -47,11 +47,11 @@ maintainer's last act, fires the note, because a note has to name a tag.
 - **The release note publishes itself.** `.github/workflows/publish-release.yml`
   fires on the `v*` tag push and publishes the release's own file,
   `changelog/X.Y.Z.md`, which the preparation commit gathered, titled from the
-  tagged commit's `release: X.Y.Z — <symptoms>` line
-  (`docs/release-checklist.md` *5. The release pull request*), the dash being
-  part of the title the workflow matches. It never republishes a release that exists,
-  and falls back to the tag name when that line is missing or carries no
-  symptoms. It goes red on a tag with no release file, or one with no section
+  tagged commit's `release: X.Y.Z symptoms: <symptoms>` line
+  (`docs/release-checklist.md` *5. The release pull request*), read whole and
+  exactly so. It never republishes a release that exists, and falls back to
+  the tag name when no line reads so, logging the shape it expected and the
+  `release:` line it found. It goes red on a tag with no release file, or one with no section
   for the tag, which is the release shipping unexplained. The note opens with
   a summary read from the pull requests merged into `release/vX.Y.Z`: counts,
   one line per pull request under its conventional-commit type with the issues

@@ -45,7 +45,8 @@ here or behind its remote, so resolve it once as `broad-gate` does
 answers, and every `<base>` below is the commit it prints, never the ref,
 since the at-base clone holds the commit and not the remote-tracking ref.
 Where none answers, write `guarantee.md` with
-`Verdict: withheld — the base <name> resolves to no commit here` and return.
+`Verdict: withheld reason: the base <name> resolves to no commit here` and
+return.
 
 ## Order of work
 
@@ -58,8 +59,8 @@ Where none answers, write `guarantee.md` with
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
      or followed by any other path**: write `guarantee.md` with
-     `Verdict: withheld — no broad run at HEAD`, naming the commit and the
-     path where one follows, and return. Nothing broad is run in its place.
+     `Verdict: withheld reason: no broad run at HEAD`, naming the commit and
+     the path where one follows, and return. Nothing broad is run in its place.
 2. **Read, yourself**: the issue body (`gh issue view <N>`), the diff
    (`git diff <base>...HEAD`), `spec.md`, `plan.md`, every
    `phases/phase-N.md`, every `rounds/round-N.md`, `changelog.md`, and the
@@ -74,10 +75,12 @@ Where none answers, write `guarantee.md` with
    (the diff, the phase records), the warden's last record, the changelog
    fragment and the pull request body tell one story. Where two disagree,
    name the one the issue body and the tree contradict. Where those cannot
-   decide it, the verdict is `undecided — <the question>`, for the owner.
+   decide it, the verdict is `undecided`, with the question for the owner.
 5. **Write `guarantee.md`** from `templates/sdd-guarantee.md`, every row of
-   its two tables filled, and one `Verdict:` line: `sealed`,
-   `withheld — <reason>` or `undecided — <question>`. Keep an
+   its two tables filled, and one verdict line, exactly one of
+   `Verdict: sealed`, `Verdict: withheld reason: <reason>` or
+   `Verdict: undecided question: <question>`, at the start of its line
+   and with no emphasis. Keep an
    `Answered <date> by <who>:` line standing under an earlier verdict, and
    read the answer as the owner's.
 6. **Return the file's text** as your report, every claim labelled
@@ -135,5 +138,7 @@ at the pull request refuses the file until it has one. Where an earlier
 `guarantee.md` stands, the new audit re-runs only the claims whose
 coordinates a commit since its `Target SHA` touched, reads the parties again,
 and keeps the earlier verdict on the `Target SHA` row as
-`; earlier run: <sha> <verdict>`.
+`; earlier run: <sha> <word>`, its verdict's word alone. The row holds
+`<sha> against <base>`, each one word, then those entries, and nothing
+else; any other text is refused at the row.
 check: tests/test_the_sealer_guarantees.py

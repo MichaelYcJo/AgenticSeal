@@ -18,7 +18,8 @@ emoji stands anywhere in it. No report file stands beside it and nothing
 generates, copies or derives any part of it.
 check: tests/test_chain_check.py tests/test_the_record_is_written_in_words.py
 
-**The record's grammar is the table below, and nothing else states it.**
+**The record's grammar is the two tables below, and nothing else states
+it.**
 Each labelled line and finding heading of a record is one row's, and the
 check accepts it only where it matches the row's `Shape` whole, stands where
 `Where` says and is as many as `How many` allows. Otherwise it is refused at
@@ -27,8 +28,9 @@ line in a finding, and per record for every other line. A label is its
 `Line` cell exactly: lowercase, at the start of the line, followed by one
 space or by nothing, with no emphasis and no table cell. A line that means a
 label and is spelt another way, in another case, under emphasis, with a
-space before the colon, or as an old spelling a `nowhere` row names, is
-refused at its line, and the finding carrying it is not read past it. So a
+space before the colon, or as an old spelling the second table names, is
+refused at its line as the label its `Means` cell names, and the finding
+carrying it is not read past it. So a
 finding holding both spellings does not pass on the lowercase one. Three
 rules span rows: a finding carries at most one of a `regression:` and a
 `reopens:` line, no two findings share a heading number, and
@@ -50,17 +52,23 @@ check: tests/test_chain_check.py
 | `answer:` | `answer:(?: .*)?` | a finding | one | an answer is prose after the label |
 | `## Confirmations` | `## Confirmations` | the record | at most one | each entry is a `confirms:` line at the start of a line, then its prose |
 | `confirms:` | `confirms: (?:none\|round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*))` | `## Confirmations` | any | it is `round-<N>#<n>` or `none` |
-| `Target SHA:` | — | nowhere | none | the old spelling of `target:` |
-| `refixes:` | — | nowhere | none | an old spelling of `regression:` |
-| `fix of a fix:` | — | nowhere | none | an old spelling of `regression:` |
 
-**`chain_check.py` reads the table from this section and stops at exit 2
-where it cannot.** It loads the table once, when it is imported, from
+| Old spelling | Means |
+|---|---|
+| `Target SHA:` | `target:` |
+| `refixes:` | `regression:` |
+| `fix of a fix:` | `regression:` |
+
+**`chain_check.py` reads the two tables from this section and stops at
+exit 2 where it cannot.** It loads them once, when it is imported, from
 `docs/the-review-record.md` beside itself, which every copy of the plugin
-carries, the hygiene workflow's clone among them. It finds the table by this
+carries, the hygiene workflow's clone among them. It finds each table by this
 section's heading and the table's header row. A document it cannot open, a
 section or a header row it cannot find, and a row it cannot read stop it at
-exit 2 naming this file, never a pass. A row it cannot read is one whose
+exit 2 naming this file, never a pass. An old spelling's row it cannot read
+is one whose cell is not one code span, whose `Means` is no label of the
+first table, whose `Old spelling` is one, or which names a spelling a row
+above it names. A row of the first table it cannot read is one whose
 shape does not compile, whose `Where` or `How many` is a word the table does
 not use, a row the check reads a meaning from that is missing, one whose
 shape lacks the named part, such as `(?P<commit>…)`, the check reads out of
@@ -72,9 +80,9 @@ a finding, and since the check reads one line of each, the first two are
 `## Confirmations`. Every other row may take any `Where` and `How many` the
 table uses for its kind, because the check counts each: a section, or a
 line in a section, that the table says is `one` is refused where a record
-leaves it out, `## Confirmations` included. So a change that moves this heading or the
-table moves the loader's path in the same commit, or every check that reads a
-record stops.
+leaves it out, `## Confirmations` included. So a change that moves this
+heading or either table moves the loader's path in the same commit, or
+every check that reads a record stops.
 check: tests/test_chain_check.py
 
 **A finding's `verdict:` decides it, and severity is for people.** The
