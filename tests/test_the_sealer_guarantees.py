@@ -258,6 +258,7 @@ class TestVerdictsOf:
             chain.verdicts_of(reader, line)
         chain.earlier_verdicts("; earlier run: aaa1111 against " + "x" * 100000)
         chain.earlier_verdicts("; earlier run: aaa1111" + " against x" * 30000)
+        chain.earlier_verdicts("aaa1111 against " + "x" * 100000 + ";")
         chain.earlier_verdicts("earlier" + " " * 100000)
         chain.earlier_verdicts(" " * 100000 + "earlier runs" + " " * 100000)
         assert time.monotonic() - start < 5.0
@@ -347,17 +348,27 @@ class TestEarlierVerdicts:
             "; earlier run bbb2222 sealed",
             "; earlier runs: bbb2222 sealed",
             ", earlier run: bbb2222 sealed",
+            # Round 2 of #1000, finding 3: the row has one shape, so no
+            # spelling of the separator passes unread.
+            "; earlier-run: bbb2222 sealed",
+            "; earlier_run: bbb2222 sealed",
+            "; earlierrun: bbb2222 sealed",
+            # Any other text after the target, such as a second word of base.
+            " @ 4a6e24f6",
+            " (resolved as origin/main)",
         ],
     )
-    def test_an_entry_that_is_not_the_word_alone_reads_no_word(self, entry):
-        """S9 of #1000, and round 1's finding 4. Seen red against the reader
-        that read the word by its prefix and through emphasis, and split the
-        cell on the exact separator alone: the first three read as a word,
-        and each misspelt separator gave no entry at all."""
+    def test_text_after_the_target_that_is_no_earlier_run_reads_no_word(self, entry):
+        """S9 of #1000, and round 1's finding 4 and round 2's finding 3: the
+        `Target SHA` value is `<sha> against <base>`, then each earlier run
+        as exactly `; earlier run: <sha> <word>`, and any other text after
+        the target comes back quoted with no word, for the arm to refuse.
+        Seen red against the reader that read the word by its prefix and
+        through emphasis, and against the one that looked for the separator
+        in some spellings: a hyphen, an underscore and the joined word gave
+        no entry at all."""
         cell = f"ccc3333 against main{entry}"
-        [(said, word)] = chain.earlier_verdicts(cell)
-        # A separator with more spaces than one is found from its word on.
-        assert word is None and entry.strip().endswith(said), said
+        assert chain.earlier_verdicts(cell) == [(entry.strip(), None)]
 
     @pytest.mark.parametrize(
         "entry",
@@ -365,6 +376,7 @@ class TestEarlierVerdicts:
             "; earlier run: aaa1111 withheld — x",
             "; earlier run: aaa1111 Sealed",
             "; Earlier run: aaa1111 sealed",
+            "; earlier-run: aaa1111 sealed",
         ],
     )
     def test_the_arm_refuses_an_entry_at_the_target_row(self, item, entry):
@@ -381,7 +393,8 @@ class TestEarlierVerdicts:
         [(path, number, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         row = next(n for n, ln in enumerate(text.splitlines(), 1) if "Target SHA" in ln)
         assert (path, number) == (rel, row), why
-        assert f"`{entry.strip()}`" in why and "`<sha> <word>`" in why, why
+        assert f"`{entry.strip()}`" in why, why
+        assert "`<sha> against <base>`" in why and "<sha> <word>`" in why, why
 
 
 # --- guarantee: the arm --------------------------------------------------------

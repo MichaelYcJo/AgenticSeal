@@ -115,16 +115,19 @@ RETIRED_SAYS = (
 # What a broad-gate entry is separated from the run behind it by. The newest
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
 EARLIER_RUN = "; earlier run: "
-# An earlier run of the sealer on the `Target SHA` row: its commit, the base
-# where the run names one, and its verdict's word alone.
+# The `Target SHA` row has one shape: the commit audited `against` the base,
+# one word each, then each earlier run of the sealer as `EARLIER_RUN` and
+# its commit, the base where the run names one, and its verdict's word
+# alone. Any other text after the target is refused at the row.
+COMMIT_WORD = r"[0-9a-f]{7,40}"
+BASE_WORD = r"[^\s;,]+"
+TARGET_HEAD = re.compile(rf"{COMMIT_WORD} against {BASE_WORD}")
 EARLIER_ENTRY = re.compile(
-    rf"([0-9a-f]{{7,40}})(?: against \S+)? ({SEALED}|{WITHHELD}|{UNDECIDED})"
+    rf"({COMMIT_WORD})(?: against {BASE_WORD})? ({SEALED}|{WITHHELD}|{UNDECIDED})"
 )
-# The separator in any spelling, so a misspelt one is refused rather than
-# skipped. No leading `\s*`: on a cell of spaces it would backtrack.
-EARLIER_MEANT = re.compile(r"[;,]? ?earlier\s+runs?\b\s*:?\s*", re.IGNORECASE)
-EARLIER_WRITTEN = (
-    "`<sha> <word>`, with `against <base>` after the SHA where it names one"
+TARGET_WRITTEN = (
+    "`<sha> against <base>`, then each earlier run as `; earlier run: "
+    "<sha> <word>`, with `against <base>` after its SHA where it names one"
 )
 
 # A round record's grammar is two tables, `docs/the-review-record.md`
@@ -1394,19 +1397,28 @@ def target_of(reader, text):
 
 
 def earlier_verdicts(cell):
-    """`[(sha, word)]` for each earlier-run entry of a `guarantee.md`
-    `Target SHA` cell, in the order written (#975), where its separator is
-    `EARLIER_RUN` exactly and the entry `EARLIER_ENTRY` whole; `(entry,
-    None)` for one that is not, its separator in front, which the guarantee
-    arm refuses. A separator is found in any spelling (`EARLIER_MEANT`), so a
-    misspelt one is refused rather than read as part of the entry before it.
-    The stamp is drawn once per work item, and an earlier entry reading
-    `sealed` is how the row says it was drawn already."""
+    """`[(sha, word)]` for each earlier run of a `guarantee.md` `Target SHA`
+    cell, in the order written (#975), the cell read as one shape
+    (`TARGET_WRITTEN`): after `TARGET_HEAD`, nothing, or `EARLIER_RUN` and an
+    `EARLIER_ENTRY` whole, again and again. An entry that is not one comes
+    back as `(EARLIER_RUN + entry, None)`; text after the target that does
+    not open with `EARLIER_RUN` comes back whole as `(text, None)`. The
+    guarantee arm refuses each, so no spelling of the separator passes
+    unread. The stamp is drawn once per work item, and an earlier entry
+    reading `sealed` is how the row says it was drawn already."""
     cell = cell or ""
+    head = TARGET_HEAD.match(cell)
+    rest = cell[head.end() :] if head else cell
+    if not rest:
+        return []
+    if not rest.startswith(EARLIER_RUN):
+        return [(rest.strip(), None)]
     out = []
-    for sep, entry in zip(EARLIER_MEANT.findall(cell), EARLIER_MEANT.split(cell)[1:]):
-        m = EARLIER_ENTRY.fullmatch(entry.strip()) if sep == EARLIER_RUN else None
-        out.append((m.group(1), m.group(2)) if m else ((sep + entry).strip(), None))
+    for entry in rest.split(EARLIER_RUN)[1:]:
+        m = EARLIER_ENTRY.fullmatch(entry)
+        out.append(
+            (m.group(1), m.group(2)) if m else ((EARLIER_RUN + entry).strip(), None)
+        )
     return out
 
 
@@ -1715,15 +1727,16 @@ def guarantee(reader, root, item, base):
                     + ("; the sealer runs again" if behind[0] == "after" else ""),
                 )
             )
+    # A row with no SHA is refused above; one with a SHA is read whole.
     row, cell = target_row(reader, text)
-    for entry, word in earlier_verdicts(cell):
+    for entry, word in earlier_verdicts(cell) if sha else []:
         if word is None:
             problems.append(
                 (
                     rel,
                     row,
-                    f"the earlier run `{entry}` on its `{TARGET}` row is not read: "
-                    f"an earlier run is {EARLIER_WRITTEN}, its verdict's word alone",
+                    f"`{entry}` on its `{TARGET}` row is not read: the row is "
+                    f"{TARGET_WRITTEN}, and nothing else",
                 )
             )
     # A region nobody closed hides the verdict line; name where it opened.

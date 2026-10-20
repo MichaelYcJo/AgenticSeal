@@ -138,5 +138,7 @@ at the pull request refuses the file until it has one. Where an earlier
 `guarantee.md` stands, the new audit re-runs only the claims whose
 coordinates a commit since its `Target SHA` touched, reads the parties again,
 and keeps the earlier verdict on the `Target SHA` row as
-`; earlier run: <sha> <word>`, its verdict's word alone.
+`; earlier run: <sha> <word>`, its verdict's word alone. The row holds
+`<sha> against <base>`, each one word, then those entries, and nothing
+else; any other text is refused at the row.
 check: tests/test_the_sealer_guarantees.py

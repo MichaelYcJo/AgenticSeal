@@ -27,8 +27,10 @@
   Sealed` and `**Verdict:** sealed` among them, is refused at its line
   naming the three shapes, and neither draws the stamp nor is judged by the
   commit gate as `sealed`. An earlier run on the `Target SHA` row carries
-  its verdict's word alone, `; earlier run: <sha> <word>`, and any other
-  entry, or a separator spelt any other way, is refused at that row. A `Claims re-run` result that fails reads
+  its verdict's word alone, `; earlier run: <sha> <word>`. The row holds
+  `<sha> against <base>`, each one word, then those entries and nothing
+  else: any other text after the target, a separator spelt another way
+  among it, is refused at the row, quoted. A `Claims re-run` result that fails reads
   `does not hold: <what came back>`.
 - **The round record's old spellings are a table of their own (#1000).**
   `docs/the-review-record.md` §*The round record* keeps the grammar table
