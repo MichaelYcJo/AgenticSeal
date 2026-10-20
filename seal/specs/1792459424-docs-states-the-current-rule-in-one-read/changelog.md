@@ -17,14 +17,15 @@
   field `why:` replaces `nothing — <why>`. `settle` refuses every other
   spelling of a no-change line at its line, naming the block, and the block
   stands alone in its section.
-- **The commit gate's, the worktree guard's, the review record's, the
-  agents' and the release's documents state the current rule once (#941).**
+- **Every policy document under `docs/` states the current rule once
+  (#941).**
   `docs/commit-review-gate-spec.md`, `docs/the-commit-gate-inside-git.md`,
   `docs/the-review-and-parity-arms.md`, `docs/worktree-guard-spec.md`,
   `docs/the-review-record.md`, `docs/the-record-layout.md`,
   `docs/the-agent-set.md`, `docs/branch-and-release.md`,
-  `docs/release-checklist.md` and `docs/issues-and-milestones.md` keep each
-  rule, its grounds and its `check:` line,
+  `docs/release-checklist.md`, `docs/issues-and-milestones.md`,
+  `docs/measuring-a-run.md`, `docs/the-broad-gate.md` and `docs/the-pact.md`
+  keep each rule, its grounds and its `check:` line,
   and drop the history, the issue numbers, the section signs and the readers'
   mechanics, which the cases named on those lines hold. The guard's document
   fits one read and is not split. Headings that carried a dash, a middle dot, a pipe or an issue
