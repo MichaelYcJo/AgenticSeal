@@ -37,7 +37,8 @@ and nothing removed from them could be recovered. `seal mode shared` moves the
 root into the tree. A repository that opted out with the scratch marker, an
 empty FILE read the way `hooks/optin.py#home_at` reads it, is refused too.
 
-Exit codes: 0 the report was produced, `--apply` refused and kept nothing, or
+Exit codes: 0 the report was produced, `--apply` refused and kept nothing (a
+spec with no `## Rule changes` is left in place and counted, not refused), or
 the root holds no work item, which is the state a complete settle reaches · 1
 `--apply` refused or kept something — a spec it could not place, a record
 with an open row, or a spec-less directory whose closure has not reached the
@@ -600,9 +601,12 @@ def apply(found, root, out):
         write_after(root, policy, out)
     applied, removed = len(plan["applied"]), len(plan["applied"]) + len(retired)
     held = len(plan["refused"]) + len(kept) + len(base_kept)
+    left = len(plan["premodel"])
     out.write(
         f"\napplied {applied} spec{plural(applied)} and removed {removed} "
-        f"director{plural(removed, 'ies', 'y')}; {held} refused or kept\n"
+        f"director{plural(removed, 'ies', 'y')}; {held} refused or kept"
+        + (f"; {left} with no `## Rule changes`, left in place" if left else "")
+        + "\n"
     )
     return 1 if held else 0
 

@@ -124,8 +124,9 @@ over an unsettled work item.
   existed; it is named and stays.
 - The documents are written before any directory is removed.
 
-It exits 0 when nothing was refused or kept, 1 when something was, and 2 when
-the arguments or the tree are unusable.
+It exits 0 when nothing was refused or held by an open row, a spec with no
+`## Rule changes` left in place included, 1 when something was, and 2 when
+the arguments or the tree are unusable. Its last line counts each.
 
 **A reference root is history, never input.** A project's own `specs/`, as
 `templates/config.md` §*Reference specs* says, is read where the work touches

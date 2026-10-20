@@ -18,8 +18,8 @@
 
   `settle --retire` and `settle --retire-process` are gone, and a script that
   calls either gets an argument error, exit 2. A spec with no
-  `## Rule changes` section was written before it existed: `settle` names it
-  and keeps it.
+  `## Rule changes` section was written before it existed: `settle` names it,
+  keeps it, and counts it in its last line.
 
 - **The CI readers tell a settle from a deletion without a marker (#953).**
   `unverified-check --baseline` and `chain-check` accept a directory removed

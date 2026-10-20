@@ -996,6 +996,9 @@ def test_an_apply_with_nothing_to_do_is_no_refusal(tree):
     code, text = run(tree, "--apply")
     assert code == 0, text
     assert "applied 0 specs and removed 0 directories; 0 refused or kept" in text
+    # The summary is the line read to decide whether the settle is finished,
+    # so the specs it leaves in place are counted there too (round 1, 8).
+    assert "; 3 with no `## Rule changes`, left in place\n" in text, text
     after = sorted(str(p.relative_to(tree)) for p in tree.rglob("*") if p.is_file())
     assert before == after, text
 
