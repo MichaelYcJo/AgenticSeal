@@ -710,7 +710,11 @@ def test_the_framer_writes_rule_changes_from_the_index():
     assert "as `skills/settle/SKILL.md` §*Rule changes* states it" in framer
     assert "picked from the index, `<policy root>/README.md`" in framer
     assert (
-        "the policy in force as `skills/implement/SKILL.md` §*Document layout" in framer
+        "the policy in force as "
+        + (
+            "`skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*"
+        )
+        in framer
     )
     assert "\n  from:" not in raw, "the framer restates the grammar"
 

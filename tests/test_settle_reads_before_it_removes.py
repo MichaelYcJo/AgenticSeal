@@ -811,7 +811,10 @@ def test_every_other_carrier_points_to_the_model(parts):
     """S15. The model has one home, and every other carrier links to it."""
     text = document(*parts)
     assert "one writer that does is `settle`" not in text, "/".join(parts)
-    assert "`skills/implement/SKILL.md` §*Document layout" in text, "/".join(parts)
+    assert (
+        "`skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*"
+        in text
+    ), "/".join(parts)
 
 
 @pytest.mark.parametrize(
