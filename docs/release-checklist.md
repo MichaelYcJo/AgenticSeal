@@ -113,8 +113,9 @@ what it refuses and what the second would remove. The second applies them to
 `docs/` in place and removes each applied spec's directory whole, and each
 released directory with no `spec.md` and nothing open. A refused spec
 applies nothing and waits for a later settle. `fold-check` then reads the
-documents the second wrote; a document past its ceiling is split along its
-headings in the same pull request.
+documents the second wrote, and names each one past its ceiling as one to
+split (`skills/settle/SKILL.md` §*A document past its ceiling is split, never
+trimmed*).
 
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
 it opens no directory under `seal/specs/`, and its commit carries

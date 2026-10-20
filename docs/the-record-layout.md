@@ -22,11 +22,10 @@ is found, the copy is the defect.
 
 ## The size a reader takes whole
 
-**A file a reader is meant to take whole fits one read.** `fold-check` and
-`settle --apply` name each `docs/` document past `seal/config.md`'s
-`Document token ceiling` row as one to split along its own headings, and
-refuse nothing for it; `templates/config.md` §*The fold's values* states the
-row and the estimate.
+**A file a reader is meant to take whole fits one read.** The row and the
+estimate are `templates/config.md` §*The fold's values*, and what a document
+past it owes is `skills/settle/SKILL.md` §*A document past its ceiling is
+split, never trimmed*.
 Enforced by: tests/test_a_document_has_room_for_the_next_fold.py::test_a_document_past_the_ceiling_is_named_and_the_run_exits_0, tests/test_a_document_has_room_for_the_next_fold.py::test_this_repository_passes_the_command_with_no_flags
 
 ## A change writes fragments, never a shared file

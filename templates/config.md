@@ -449,9 +449,9 @@ plugin sets no value; these rows are where a repository states its own.
 
 **The estimate is a document's UTF-8 bytes halved, rounded up.** Measured
 English ran 2.85 bytes a token and mixed Korean 2.15, so halving
-overestimates both. A document past the ceiling is reported and never
-refused, because the number is an estimate and a document past one tool's
-per-call cap is still read in more calls.
+overestimates both. What a document past the ceiling owes is
+`skills/settle/SKILL.md` §*A document past its ceiling is split, never
+trimmed*.
 
 **An absent row means not declared, and the command says so rather than
 refusing.** A `Policy root` value that is empty, absolute or climbs out with

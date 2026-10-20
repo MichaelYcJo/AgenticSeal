@@ -919,6 +919,10 @@ def test_the_release_checklist_carries_the_by_hand_step():
     )
     assert "range-row" not in text, "the checklist still owes a settle a range row"
     assert "skills/settle/SKILL.md" in text
+    # Round 1, finding 10: a document past the ceiling is a report (Q6), and
+    # the checklist points to the skill's section rather than ordering a split.
+    assert "§*A document past its ceiling is split, never trimmed*" in text
+    assert "split along its headings in the same pull request" not in text
 
 
 @pytest.mark.parametrize("edition", ["README.md", "README.ko.md"])
