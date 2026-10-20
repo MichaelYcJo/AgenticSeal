@@ -191,7 +191,7 @@ def repo(tmp_path):
     write(
         d,
         f"{ITEM}/overview.md",
-        "# overview\n\n## Not verified\n\nnone — the fixture verifies nothing\n",
+        "# overview\n\n## Not verified\n\n- nothing\n  why: the fixture verifies nothing\n",
     )
     git(d, "add", "-A")
     git(d, "commit", "-qm", "base")

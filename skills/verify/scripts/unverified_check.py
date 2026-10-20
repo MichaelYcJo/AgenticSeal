@@ -76,6 +76,20 @@ CLOSED = "closed"
 # naming the edit; a base revision's reads it as the word, because nobody can
 # edit a commit that already happened.
 OLD_MARK = chr(0x2705)
+# A spec section's items, `skills/settle/SKILL.md` §*Rule changes*: the
+# item's line, then one field per line indented two spaces, a value continuing
+# on the lines below it indented four.
+ITEM_RE = re.compile(r"^- (\S+)\s*$")
+FIELD_RE = re.compile(r"^  ([a-z]+):(?: (.*))?$")
+CONTINUED = " " * 4
+# The item a section that holds nothing writes alone, and its one field.
+# `## Not verified` and `## Rule changes` read it through `nothing_block`.
+NOTHING = "nothing"
+WHY = "why"
+NOTHING_WRITTEN = f"the block `- {NOTHING}` with `  {WHY}: <reason>`"
+# A first line that means the block and is not it: `none` or `nothing` in any
+# case, behind any list marker. The old `none — <why>` line is one.
+NEAR_NOTHING = re.compile(r"[-*+\s]*(?:none|nothing)\b", re.IGNORECASE)
 # The closing word's other spellings, refused rather than read as open: a
 # capital or a trailing colon would otherwise turn a closing into an open row.
 NEAR_CLOSED = ":;,."
@@ -692,6 +706,77 @@ def headings(lines):
     ]
 
 
+def items(body):
+    """`(items, error)` for BODY, `[(line number, line)]`, read as a spec
+    section's items. Each item is `{"kind", "line", "fields"}`, `fields`
+    mapping a name to `[line number, [value lines]]`; ERROR is the first line
+    that is no part of an item, as `(line number, why)`, or None."""
+    found, item, last = [], None, None
+    for no, line in body:
+        m = ITEM_RE.match(line)
+        if m:
+            item, last = {"kind": m.group(1), "line": no, "fields": {}}, None
+            found.append(item)
+            continue
+        if item is None:
+            return found, (no, "a line outside an item")
+        m = FIELD_RE.match(line)
+        if m:
+            last = m.group(1)
+            if last in item["fields"]:
+                return found, (no, f"`{last}` given twice")
+            item["fields"][last] = [no, [m.group(2) or ""]]
+            continue
+        if last and (not line.strip() or line.startswith(CONTINUED)):
+            item["fields"][last][1].append(line[len(CONTINUED) :])
+            continue
+        return found, (no, "a line that is not a field of the item above")
+    return found, None
+
+
+def field_values(item, need, may):
+    """`(values, error)`: ITEM's fields as `{name: value}`, or ERROR, the
+    first field outside NEED and MAY, missing from NEED, or empty."""
+    fields, values = item["fields"], {}
+    for name, (no, _) in fields.items():
+        if name not in need + may:
+            return None, (no, f"`{name}` is not a field of `{item['kind']}`")
+    for name in need:
+        if name not in fields:
+            return None, (item["line"], f"`{item['kind']}` needs `{name}`")
+    for name, (no, parts) in fields.items():
+        values[name] = "\n".join(parts).strip("\n").rstrip()
+        if not values[name].strip():
+            return None, (no, f"`{name}` is empty")
+    return values, None
+
+
+def opens_the_block(line):
+    m = ITEM_RE.match(line)
+    return bool(m) and m.group(1) == NOTHING
+
+
+def nothing_block(body):
+    """None where BODY, a section's non-blank `[(line number, line)]`, opens
+    with neither the no-change block nor a near miss of it; else `(why,
+    error)`, WHY the block's reason or ERROR `(line number, reason)`."""
+    first_no, first = body[0]
+    if not opens_the_block(first):
+        if NEAR_NOTHING.match(first):
+            return None, (
+                first_no,
+                f"a section that holds nothing writes {NOTHING_WRITTEN}",
+            )
+        return None
+    found, error = items(body)
+    if error:
+        return None, error
+    if len(found) > 1:
+        return None, (found[1]["line"], f"`- {NOTHING}` is the section's one item")
+    values, error = field_values(found[0], (WHY,), ())
+    return (None, error) if error else (values[WHY], None)
+
+
 def parse_section(body, offset, strict_header=True):
     """(open, closed, errors) for the body lines of one section.
 
@@ -702,16 +787,17 @@ def parse_section(body, offset, strict_header=True):
 
     if not content:
         errors.append(
-            (offset, "the section is empty — write the table, or `none — <why>`")
+            (offset, f"the section is empty: write the table, or {NOTHING_WRITTEN}")
         )
         return open_rows, closed_rows, errors
 
     first_no, first = content[0]
-    if first.strip().lower().startswith("none"):
-        for line_no, line in content[1:]:
-            if line.strip().startswith("|"):
-                errors.append((line_no, "`none` and a table in the same section"))
-                break
+    if not strict_header and not opens_the_block(first) and NEAR_NOTHING.match(first):
+        # A base revision's old `none — <why>` line, read as no rows.
+        return open_rows, closed_rows, errors
+    block = nothing_block(content)
+    if block is not None:
+        errors.extend([block[1]] if block[1] else [])
         return open_rows, closed_rows, errors
 
     cells = split_row(first)
@@ -740,7 +826,7 @@ def parse_section(body, offset, strict_header=True):
     rows = content[2:]
     if not rows:
         errors.append(
-            (first_no, "a table with no rows says nothing — write `none — <why>`")
+            (first_no, f"a table with no rows says nothing: write {NOTHING_WRITTEN}")
         )
     for line_no, line in rows:
         cells = split_row(line)
@@ -869,7 +955,9 @@ def check_text(text, heading=HEADING, strict_header=True):
     opening with the old mark, U+2705, is read at a base as the word
     `closed`, where the working tree refuses it naming the edit. Read as a
     refusal there, every base written before the word would go uncompared,
-    and a row deleted against it would pass. Nothing else relaxes. A legacy
+    and a row deleted against it would pass. The old `none — <why>` line
+    relaxes the same way: a base reads it as no rows, where the working tree
+    refuses it naming the no-change block. Nothing else relaxes. A legacy
     header still has to be a two-cell row whose first column is `Item`, and
     every other row below it is read exactly as the working tree's rows are.
     The relaxation ends when every base carries the canonical wording."""

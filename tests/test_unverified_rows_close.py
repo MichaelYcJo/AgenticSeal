@@ -350,20 +350,96 @@ def test_an_empty_table_fails(tmp_path):
     assert err and "no rows" in err[0][1]
 
 
-def test_none_is_how_a_work_item_says_nothing_is_open(tmp_path):
-    """Saying it explicitly is the point — silence and "nothing open" have to
-    look different in the file, not only in the tally."""
-    section = "## Not verified\n\nnone — every claim in this item was executed.\n"
-    op, cl, err = uc.check_file(write(tmp_path, section))
+BLOCK = "the block `- nothing` with `  why: <reason>`"
+
+
+@pytest.mark.parametrize(
+    "block",
+    [
+        "- nothing\n  why: every claim in this item was executed.\n",
+        "- nothing\n  why: every claim in this item\n    was executed.\n",
+    ],
+    ids=["one line", "continued four spaces in"],
+)
+def test_the_no_change_block_is_how_a_work_item_says_nothing_is_open(tmp_path, block):
+    """S1 of #1000. Saying it explicitly is the point: silence and "nothing
+    open" have to look different in the file, not only in the tally. The
+    block is the one `## Rule changes` writes (`skills/settle/SKILL.md`
+    §*Rule changes*), read by the same function."""
+    op, cl, err = uc.check_file(write(tmp_path, f"## Not verified\n\n{block}"))
     assert not err and not op and not cl
 
 
-def test_none_and_a_table_together_fail(tmp_path):
-    section = (
-        "## Not verified\n\nnone — nothing open.\n\n" + CANONICAL.split("\n", 2)[2]
-    )
-    _, _, err = uc.check_file(write(tmp_path, section))
-    assert err and "`none` and a table" in err[0][1]
+def line_in(path, needle):
+    """The file line number of the first line of PATH that is NEEDLE."""
+    return Path(path).read_text(encoding="utf-8").split("\n").index(needle) + 1
+
+
+@pytest.mark.parametrize(
+    "first", ["none — x", "none - x", "none", "None.", "nothing — x"]
+)
+def test_the_old_line_is_refused_naming_the_block_and_read_at_a_base(tmp_path, first):
+    """S2 of #1000. The working tree refuses the old `none — <why>` line and
+    its near misses at the line, naming the block; a base revision reads the
+    same line as no rows, because a commit cannot be edited (`OLD_MARK`'s
+    precedent). Seen red against the prefix reader, which read every one of
+    them but `nothing — x` as nothing open."""
+    path = write(tmp_path, f"## Not verified\n\n{first}\n")
+    _, _, err = uc.check_file(path)
+    assert [line for line, _ in err] == [line_in(path, first)], err
+    assert BLOCK in err[0][1], err
+    text = Path(path).read_text(encoding="utf-8")
+    assert uc.check_text(text, strict_header=False) == ([], [], [])
+
+
+@pytest.mark.parametrize(
+    "body, bad, says",
+    [
+        ("- nothing\n", "- nothing", "`nothing` needs `why`"),
+        ("- nothing\n  why:\n", "  why:", "`why` is empty"),
+        ("- Nothing\n  why: x\n", "- Nothing", BLOCK),
+        ("* nothing\n  why: x\n", "* nothing", BLOCK),
+        ("-nothing\n  why: x\n", "-nothing", BLOCK),
+        ("- nothing\n   why: x\n", "   why: x", "not a field"),
+        ("- nothing\n  why: x\n  who: y\n", "  who: y", "`who` is not a field"),
+        (
+            "- nothing\n  why: x\n" + CANONICAL.split("\n", 2)[2],
+            "| Item | Who must answer |",
+            "not a field",
+        ),
+    ],
+    ids=[
+        "no why",
+        "an empty why",
+        "capitalised",
+        "another list marker",
+        "no space after the dash",
+        "why at three spaces",
+        "a second field",
+        "beside a table",
+    ],
+)
+def test_a_near_miss_of_the_block_is_refused_at_its_line(tmp_path, body, bad, says):
+    """S3 of #1000. Each spelling is refused at its line, saying what is
+    wrong with it, and read as nothing else. Seen red against the prefix
+    reader, which refused the block itself as prose at its first line."""
+    path = write(tmp_path, f"## Not verified\n\n{body}")
+    op, cl, err = uc.check_file(path)
+    assert err and err[0][0] == line_in(path, bad), err
+    assert says in err[0][1], err
+    assert not op and not cl
+
+
+def test_the_near_miss_reading_is_linear_in_the_line():
+    """#941's round 3 met a pattern that backtracked exponentially; the
+    pattern that finds a near miss of the block repeats, so a long line of
+    its repeated characters is read in well under a second."""
+    import time
+
+    start = time.monotonic()
+    for line in ("- " * 50000 + "x", " " * 100000 + "nonesuch", "-*+" * 30000):
+        uc.parse_section([line], 1)
+    assert time.monotonic() - start < 1.0
 
 
 def test_a_fenced_example_is_not_a_second_section(tmp_path):
@@ -463,7 +539,7 @@ def test_zero_open_and_unreadable_are_different_exits_and_different_words(
     closed" with "this could not be read"."""
     closed = tmp_path / "closed"
     closed.mkdir()
-    write(closed, "## Not verified\n\nnone — all executed.\n")
+    write(closed, "## Not verified\n\n- nothing\n  why: all executed.\n")
     assert run([str(closed)]) == 0
     clean = capsys.readouterr().out
     assert "open: 0" in clean

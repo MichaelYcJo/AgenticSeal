@@ -100,7 +100,8 @@ none
 
 ## Not verified
 
-none — every claim in this work item was run
+- nothing
+  why: every claim in this work item was run
 
 ## Not done
 

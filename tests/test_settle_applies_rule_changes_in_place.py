@@ -51,7 +51,7 @@ def line_of(text, needle):
 # What the reader says of a no-change line in any other spelling: the block
 # it expects, by name (S10).
 NO_CHANGE = (
-    "a spec that changes no rule writes the block `- nothing` with `  why: <reason>`"
+    "a section that holds nothing writes the block `- nothing` with `  why: <reason>`"
 )
 
 

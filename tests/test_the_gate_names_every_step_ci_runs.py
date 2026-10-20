@@ -338,7 +338,9 @@ CONFIG = (
     "# Repository config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
     f"| Broad gate | {sys.executable} -c pass |\n"
 )
-OVERVIEW = "# overview\n\n## Not verified\n\nnone — the fixture verifies nothing\n"
+OVERVIEW = (
+    "# overview\n\n## Not verified\n\n- nothing\n  why: the fixture verifies nothing\n"
+)
 ITEM = "seal/specs/1799000000-a-fixture-work-item"
 
 

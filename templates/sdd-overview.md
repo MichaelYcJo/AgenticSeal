@@ -24,9 +24,14 @@ it. Not a walk through the diff.>
 
 ## Not verified
 
-<!-- Read by `unverified-check`, so the shape is fixed: this table, or a single
-line starting `none — <why>`. Leaving the placeholder row below fails the
-check — fill it in or write the `none` line instead.
+<!-- Read by `unverified-check`, so the shape is fixed: this table, or alone
+the no-change block of `skills/settle/SKILL.md` §*Rule changes*:
+
+    - nothing
+      why: <why nothing in this work item is left unverified>
+
+Leaving the placeholder row below fails the check: fill it in, or write the
+block in place of the table.
 
 An item is closed by marking it, never by deleting the row: the Item cell
 opens with the word `closed`, lower case, then the item.

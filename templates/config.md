@@ -127,7 +127,8 @@ every repository, whatever either row says:
   headings, which the parties and the eval graders read; a
   `guarantee.md`'s `Target SHA`; a `broad-gate.md`'s `Broad gate`; an
   `overview.md`'s `## Not verified` heading with its `Item` and
-  `Who must answer` columns; a `spec.md`'s `## Removes` heading; its
+  `Who must answer` columns, or its no-change block `- nothing` with
+  `why:`; a `spec.md`'s `## Removes` heading; its
   `## Rule changes` heading, the items `add`, `change`, `remove` and
   `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`.
   A translated field name is not a translation, it is a broken gate.

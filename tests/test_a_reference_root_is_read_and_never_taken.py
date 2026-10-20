@@ -254,7 +254,10 @@ def planted(where, team):
     git("config", "user.name", "t")
     put("src/service.py", SERVICE)
     put(f"{OURS}/routing.md", "# routing\n\n| Axis | Answer |\n|---|---|\n")
-    put(f"{OURS}/overview.md", "# ours\n\n## Not verified\n\nnone — a probe\n")
+    put(
+        f"{OURS}/overview.md",
+        "# ours\n\n## Not verified\n\n- nothing\n  why: a probe\n",
+    )
     if team:
         put(f"{TEAM}/spec.md", "# the team's spec\n\nA design they own.\n")
         put(f"{TEAM}/overview.md", "# theirs\n\n## Not verified\n\nnot a table\n")

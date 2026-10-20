@@ -140,7 +140,9 @@ def clone(src, dst):
 
 ITEM = "seal/specs/1700000000-a-fixture"
 PASSING_TEST = "def test_ok():\n    assert True\n"
-OVERVIEW = "# overview\n\n## Not verified\n\nnone — the fixture verifies nothing\n"
+OVERVIEW = (
+    "# overview\n\n## Not verified\n\n- nothing\n  why: the fixture verifies nothing\n"
+)
 SUITE_ROW = f"{sys.executable} -m pytest -q -p no:cacheprovider tests"
 CONFIG = (
     "# Repository config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"

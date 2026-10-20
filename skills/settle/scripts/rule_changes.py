@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """rule_changes — the one reader of a spec's `## Rule changes` section.
 
-The grammar is `skills/settle/SKILL.md` §*Rule changes*, and `GRAMMAR` below
-is its one spelling in code. `parse` reads a section into operations,
+The grammar is `skills/settle/SKILL.md` §*Rule changes*. `GRAMMAR` below is
+the one spelling of its operations in code; the item lines, their fields and
+the no-change block are spelt once in `unverified_check.py`, which reads
+`## Not verified` with the same block. `parse` reads a section into operations,
 refusing at its line any block that does not match whole. `replay` applies
 specs to the policy root's documents in memory, in the order it is handed,
 each spec whole or not at all. `order` and `conflicts` read merge order from
@@ -24,22 +26,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 
 HEADING = "Rule changes"
-# The item a section that changes no rule holds alone.
-NO_CHANGE = "nothing"
-# Each item's fields: (required, optional).
+# Each operation's fields: (required, optional). The item lines, their fields
+# and the no-change block are `unverified_check.py`'s (`items`,
+# `field_values`, `nothing_block`).
 GRAMMAR = {
     "add": (("file", "to"), ("section",)),
     "change": (("file", "section", "from", "to"), ()),
     "remove": (("file", "section"), ("from",)),
-    NO_CHANGE: (("why",), ()),
 }
-
-ITEM_RE = re.compile(r"^- (\S+)\s*$")
-FIELD_RE = re.compile(r"^  ([a-z]+):(?: (.*))?$")
-NO_CHANGE_WRITTEN = (
-    f"a spec that changes no rule writes the block `- {NO_CHANGE}` with "
-    "`  why: <reason>`"
-)
 
 Op = collections.namedtuple("Op", "kind file section old new line")
 # `ops` is None where the spec has no section; `nothing` is the `why` of a
@@ -104,78 +98,37 @@ def parse(text, policy_root):
     if not body:
         return Parsed([], None, [(start + 1, "the section is empty")])
 
-    first_no, first = body[0]
-    if first.lower().startswith(NO_CHANGE):
-        return Parsed([], None, [(first_no, NO_CHANGE_WRITTEN)])
+    block = r.nothing_block(body)
+    if block is not None:
+        why, error = block
+        return Parsed([], None, [error]) if error else Parsed([], why, [])
 
-    ops, errors, item = [], [], None
-    for no, line in body:
-        m = ITEM_RE.match(line)
-        if m:
-            item = {"kind": m.group(1), "line": no, "fields": {}, "last": None}
-            ops.append(item)
-            if item["kind"] not in GRAMMAR:
-                errors.append(
-                    (no, f"`{item['kind']}` is not one of {', '.join(GRAMMAR)}")
-                )
+    ops, error = r.items(body)
+    # An item's kind is judged before a later line's error, in line order.
+    for item in ops:
+        if item["kind"] == r.NOTHING:
+            error = (item["line"], f"`- {r.NOTHING}` is the section's one item")
+        elif item["kind"] not in GRAMMAR:
+            kinds = ", ".join([*GRAMMAR, r.NOTHING])
+            error = (item["line"], f"`{item['kind']}` is not one of {kinds}")
+        else:
             continue
-        if item is None:
-            errors.append((no, "a line outside an item"))
-            break
-        m = FIELD_RE.match(line)
-        if m:
-            name = m.group(1)
-            if name in item["fields"]:
-                errors.append((no, f"`{name}` given twice"))
-            item["fields"][name] = [no, [m.group(2) or ""]]
-            item["last"] = name
-            continue
-        if item["last"] and (not line.strip() or line.startswith("    ")):
-            item["fields"][item["last"]][1].append(line[4:])
-            continue
-        errors.append((no, "a line that is not a field of the item above"))
-    if errors:
-        return Parsed([], None, errors[:1])
-    # The block stands alone: beside an operation, or written twice, the
-    # first item that is not the block's one occurrence is refused.
-    blocks = [item for item in ops if item["kind"] == NO_CHANGE]
-    if blocks and len(ops) > 1:
-        extra = next(item for item in ops if item is not blocks[0])
-        return Parsed(
-            [],
-            None,
-            [(extra["line"], f"`- {NO_CHANGE}` is the section's one item")],
-        )
+        break
+    if error:
+        return Parsed([], None, [error])
 
     out = []
     for item in ops:
-        need, may = GRAMMAR[item["kind"]]
-        fields = item["fields"]
-        for name, (no, _) in fields.items():
-            if name not in need + may:
-                errors.append((no, f"`{name}` is not a field of `{item['kind']}`"))
-        for name in need:
-            if name not in fields:
-                errors.append((item["line"], f"`{item['kind']}` needs `{name}`"))
-        values = {}
-        for name, (no, parts) in fields.items():
-            value = "\n".join(parts).strip("\n").rstrip()
-            if not value.strip():
-                errors.append((no, f"`{name}` is empty"))
-            values[name] = value
-        file = values.get("file", "")
+        values, error = r.field_values(item, *GRAMMAR[item["kind"]])
+        file = (values or {}).get("file", "")
         # No separator of either system and no drive colon in the name, so a
         # value joins to one file at the top level on every platform.
-        if item["kind"] != NO_CHANGE and not re.fullmatch(
+        if not error and not re.fullmatch(
             re.escape(policy_root) + r"/[^/\\:]+\.md", file
         ):
-            errors.append(
-                (item["line"], f"`{file}` is not a top-level {policy_root}/ file")
-            )
-        if errors:
-            return Parsed([], None, errors[:1])
-        if item["kind"] == NO_CHANGE:
-            return Parsed([], values["why"], [])
+            error = (item["line"], f"`{file}` is not a top-level {policy_root}/ file")
+        if error:
+            return Parsed([], None, [error])
         out.append(
             Op(
                 item["kind"],
