@@ -9,7 +9,7 @@ target: 93671fc2, fixes 75ac6203..93671fc2
 severity: should
 location: `.github/scripts/rules.py:58-65`, `skills/settle/SKILL.md:93-98`, `tests/test_the_rules_command_reads_each_rule_off_its_test.py:362`
 evidence: executed `python3 -I probe/fixes.py <clone>`, `python3 -I probe/wider.py <clone>`, `bin/rules --check`
-verdict: open
+verdict: fixed 3b01852d
 reopens: round-1#4
 
 The close at bc260d09 does not hold for the whole class. Round 1's finding
@@ -56,7 +56,7 @@ the walk's current heading in `shown_lines`, so the case checks that the
 refusal names its own line. The changelog fragment's list follows the
 skill's.
 
-answer:
+answer: holds, and is closed as a class rather than as three more markers, on the orchestrator's direction. `rules.py` keeps the markup in one constant, `BLOCK_MARK` (a heading's `#` run, a list bullet or number, a task box, a blockquote's `>`, a table's `|`), and `NEAR` refuses any line whose only content before the label is that markup, spaces or emphasis; only the exact shape is read. `skills/settle/SKILL.md` *A rule has one shape* states the class in one sentence instead of listing markers, and the changelog fragment follows. The round-1 rows for `1.` and `>` moved out of the spelling list into one parametrized case, `test_a_label_behind_block_markup_is_refused_at_its_line`, with `##`, `- [ ]` and `|`; each asserts a single refusal at line 6, so a heading row cannot move it. With the pattern at bc260d09 the three new shapes were red, and `mutation-check` reducing `BLOCK_MARK` to a bare bullet turned all five red. `bin/rules --check` reads 240 lines, exit 0, so no standing line is newly refused.
 
 ## Confirmations
 
