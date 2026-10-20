@@ -17,7 +17,7 @@ this round's own.
 severity: should
 location: `hooks/question-gate.py:97-104`, `hooks/worktree_consent.py:330-332`, `hooks/worktree_consent.py:391-392`, `tests/test_an_automation_run_puts_no_question.py:263`
 evidence: executed `bin/test tests/test_tmp_round2_probe.py -q -s -n0`
-verdict: open
+verdict: fixed c4aa0c8b
 reopens: round-1#1
 
 Round 1's finding 1 is closed `fixed 1ccd15cf`. The close holds wherever the
@@ -67,14 +67,14 @@ The cases belong beside
 `payload` currently names a path no case writes, so the existing silent case
 for the routing question put alone writes an empty transcript first.
 
-answer:
+answer: The one reader tells the two apart, so the gate makes no second read. `last_routing_answer` returns `worktree_consent.UNREAD`, an object no answer can equal, where no transcript resolves, where the clone cannot be resolved, and on a read error. It returns None only for a transcript it read that holds no answer from this clone. The gate's condition stays `is None`, so an unread transcript is refused, and `automation_answered` still reads only `is True`. `test_the_routing_question_is_refused_where_no_transcript_can_be_read` pins no `session_id` and a path that names no file as `deny`; it was red against 067a37a8. The two silent cases now write an empty transcript first. The clone half is unreachable from the gate, whose root is always a clone, so `test_the_press_reader_reads_nothing_for_a_root_that_is_no_clone` (f2cae9e4) pins it at the reader. Each of the three `UNREAD` returns was mutated to None, and each run was red. The gate's docstring states the precondition, and it now carries the limit from this round's *Not judged* row: an answer given for another work item spends the exemption too.
 
 ### 2. plan.md's summary still describes the exemption as unbounded
 
 severity: should
 location: `seal/specs/1792533444-automation-refuses-mid-run-questions/plan.md:14-16`
 evidence: read `seal/specs/1792533444-automation-refuses-mid-run-questions/plan.md:11-19`
-verdict: open
+verdict: fixed dd4e9088
 
 The framer's amendment 067a37a8 rewrote `spec.md` and `questions.md` to say
 the routing question passes only until this session has answered it. The
@@ -89,7 +89,7 @@ gate denies every call except the routing question put alone before this
 session has answered it from this clone, and its reason
 ```
 
-answer:
+answer: The orchestrator's dd4e9088 rewrote `plan.md`'s summary in place, so it bounds the exemption the way `spec.md` does: the routing question passes "only until this session has answered it from this clone". Two frame documents no longer give two exemptions.
 
 ## Confirmations
 
