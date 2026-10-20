@@ -171,8 +171,14 @@ def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
         ),
         ("- remove\n  file: src/a.md\n  section: S", "- remove", "docs/"),
         ("- remove\n  file: docs/sub/a.md\n  section: S", "- remove", "docs/"),
+        ("- add\n  file: docs/..\\..\\evil.md\n  to: x", "- add", "docs/"),
+        ("- add\n  file: docs/C:\\x\\evil.md\n  to: x", "- add", "docs/"),
+        ("- add\n  file: docs/\\evil.md\n  to: x", "- add", "docs/"),
+        ("- add\n  file: docs/sub\\b.md\n  to: x", "- add", "docs/"),
         ("- add\n  file: docs/a.md\n  section: S\n  to:", "  to:", "empty"),
         ("nothing — ", "nothing — ", "reason"),
+        ("nothing - a reason.", "nothing - a reason.", "em dash (U+2014)"),
+        ("Nothing — a reason.", "Nothing — a reason.", "em dash (U+2014)"),
     ],
     ids=[
         "unknown-op",
@@ -182,8 +188,14 @@ def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
         "outside-an-item",
         "outside-the-root",
         "below-the-top-level",
+        "windows-parent",
+        "windows-drive",
+        "windows-root",
+        "windows-subdirectory",
         "empty-value",
         "nothing-without-a-reason",
+        "nothing-with-a-hyphen",
+        "nothing-capitalised",
     ],
 )
 def test_a_block_that_does_not_match_whole_is_refused_at_its_line(body, bad, reason):
@@ -732,6 +744,22 @@ def test_apply_creates_the_policy_root_the_config_names(repo, capfd):
     reader = settle.load(settle.READER, "specseal_reader_for_policy_root")
     directory = "seal/specs/1700000001-a"
     assert reader.settled(str(repo), "HEAD", [directory]) == {directory}
+
+
+@pytest.mark.parametrize(
+    "names", [("docs/A.md",), ("docs/new.md", "docs/NEW.md")], ids=["disk", "specs"]
+)
+def test_a_name_that_differs_only_in_case_is_held(repo, capfd, names):
+    """On a case-insensitive disk two such names are one file, and the second
+    write would erase the first spec's change while its directory went."""
+    for n, name in enumerate(names, 1):
+        item(repo, f"170000000{n}-a", op("add", new="# X", file=name))
+    commit(repo, "case")
+    before = files(repo)
+    code, text = apply(repo, capfd)
+    assert code == 1, text
+    assert "differs from another document only in case" in text, text
+    assert files(repo) == before, text
 
 
 def test_apply_names_a_document_past_the_ceiling(repo, capfd):

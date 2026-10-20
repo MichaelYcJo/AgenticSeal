@@ -289,6 +289,17 @@ def rule_plan(root, ref, base, ids, reader):
             parsed[work_item_id] = found
     ordered = rules.order(root, ref, list(parsed), SPECS)
     held = {i: list(p.errors) for i, p in parsed.items() if p.errors}
+    # On a case-insensitive disk two names that differ only in case are one
+    # file, and the second write would erase the first spec's change.
+    top = under(root, policy)
+    known = {f"{policy}/{n}" for n in (os.listdir(top) if os.path.isdir(top) else [])}
+    known |= {op.file for p in parsed.values() for op in p.ops or []}
+    for work_item_id, found in parsed.items():
+        for op in found.ops or []:
+            if any(k != op.file and k.casefold() == op.file.casefold() for k in known):
+                held.setdefault(work_item_id, []).append(
+                    (op.line, f"{op.file} differs from another document only in case")
+                )
     for work_item_id, commit in ordered:
         why = held.setdefault(work_item_id, [])
         if commit is None:

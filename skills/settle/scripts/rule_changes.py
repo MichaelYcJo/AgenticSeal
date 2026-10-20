@@ -24,7 +24,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 
 HEADING = "Rule changes"
-NOTHING = "nothing — "
 # Each operation's fields: (required, optional).
 GRAMMAR = {
     "add": (("file", "to"), ("section",)),
@@ -99,15 +98,22 @@ def parse(text, policy_root):
         return Parsed([], None, [(start + 1, "the section is empty")])
 
     first_no, first = body[0]
-    if first.startswith(NOTHING.strip()):
+    nothing = r.NOTHING.strip()
+    if first.startswith(nothing):
         why = " ".join(
-            [first[len(NOTHING.strip()) :].strip()] + [t.strip() for _, t in body[1:]]
+            [first[len(nothing) :].strip()] + [t.strip() for _, t in body[1:]]
         ).strip()
         if not why or any(ITEM_RE.match(t) for _, t in body[1:]):
             return Parsed(
-                [], None, [(first_no, "`nothing — ` needs a reason and no item")]
+                [], None, [(first_no, f"`{r.NOTHING}` needs a reason and no item")]
             )
         return Parsed([], why, [])
+    if first.lower().startswith("nothing"):
+        return Parsed(
+            [], None,
+            [(first_no, f"a spec that changes no rule writes `{r.NOTHING}<why>`, "
+              "with an em dash (U+2014)")],
+        )  # fmt: skip
 
     ops, errors, item = [], [], None
     for no, line in body:
@@ -155,7 +161,9 @@ def parse(text, policy_root):
                 errors.append((no, f"`{name}` is empty"))
             values[name] = value
         file = values.get("file", "")
-        if not re.fullmatch(re.escape(policy_root) + r"/[^/]+\.md", file):
+        # No separator of either system and no drive colon in the name, so a
+        # value joins to one file at the top level on every platform.
+        if not re.fullmatch(re.escape(policy_root) + r"/[^/\\:]+\.md", file):
             errors.append(
                 (item["line"], f"`{file}` is not a top-level {policy_root}/ file")
             )

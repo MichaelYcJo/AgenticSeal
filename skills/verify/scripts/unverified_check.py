@@ -84,6 +84,10 @@ PLACEHOLDER = re.compile(r"^<[^>]*>$")
 # family, and the byte-order mark. None of them make a marker into a claim.
 INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
 SEPARATOR = re.compile(r"^:?-+:?$")
+# What a line or a section says when it states nothing, with its reason after
+# the em dash (U+2014): an `Enforced by:` line and a `## Rule changes`
+# section. `fold_check.py` and `rule_changes.py` read it here.
+NOTHING = "nothing — "
 # The provenance marker the appending fold wrote above each statement it put
 # in `docs/`. `fold_check.py`'s shape arm and
 # `tests/test_both_editions_carry_the_same_folds.py` read it until #941

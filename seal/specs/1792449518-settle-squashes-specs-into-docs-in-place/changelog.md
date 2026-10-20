@@ -10,7 +10,10 @@
   all. It writes no marker, and removes each applied spec's directory whole,
   its process record included. A spec it cannot place, one whose record holds
   an open row, and two that merge order cannot decide at one place are
-  refused at their line and stay. `settle` with no flag is the dry run.
+  refused at their line and stay. So is a `file:` holding `\` or `:`, one
+  differing from another document only in case, and a `nothing` line written
+  with a hyphen, which is told to use the em dash. `settle` with no flag is
+  the dry run.
 
   `settle --retire` and `settle --retire-process` are gone, and a script that
   calls either gets an argument error, exit 2. A spec with no

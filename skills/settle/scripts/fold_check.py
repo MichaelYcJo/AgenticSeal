@@ -93,7 +93,6 @@ BYTES_PER_TOKEN = 2
 
 BOLD_OPENING = re.compile(r"^\*{2,3}[^*\s]")
 ENFORCED = "Enforced by: "
-NOTHING = "nothing — "
 
 
 def load(path, name, purpose):
@@ -199,7 +198,7 @@ def names_targets(value):
     """Whether an `Enforced by:` value is read as targets rather than as
     `nothing — <why>`. The shape check and `enforced_lines` both ask this, so
     the lines a wrap limit skips are exactly the lines read as paths."""
-    return not value.startswith(NOTHING.strip())
+    return not value.startswith(reader().NOTHING.strip())
 
 
 def enforced_lines(text):
@@ -297,7 +296,7 @@ def shape_problems(root, name, text, cutoff):
             continue
         value = enforced[0][len(ENFORCED) :].strip()
         if not names_targets(value):
-            if not value[len(NOTHING.strip()) :].strip():
+            if not value[len(reader().NOTHING.strip()) :].strip():
                 problems.append(f"{where} says `nothing` and gives no reason")
             continue
         for target in value.split(","):

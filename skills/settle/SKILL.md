@@ -56,14 +56,16 @@ line, indented two spaces:
 | `remove` | `file`, `section`; `from` optional | deletes `from`, or with no `from` the whole section, up to the next heading of its level or higher |
 
 - `file` is a top-level `.md` file of the policy root, `seal/config.md`'s
-  `Policy root` row (`docs` when absent). `section` is a heading's
+  `Policy root` row (`docs` when absent), joined with `/` and holding no `\`
+  or `:`. A name that differs from another document's only in case is held,
+  because a case-insensitive disk reads the two as one. `section` is a heading's
   text at any level, and appears once in the file. `from` appears once in
   the section, compared with runs of whitespace collapsed; every other
   character, emoji included, is matched as itself.
 - A value continues on the lines below it indented four spaces, and lands
   with that indent removed.
 - A spec that changes no rule writes `nothing — <why>` in place of the
-  items.
+  items, with an em dash (U+2014); a hyphen is refused, naming the dash.
 - A block that does not match whole is refused at its line, and its spec
   applies nothing.
 
