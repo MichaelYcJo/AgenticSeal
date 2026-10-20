@@ -28,7 +28,7 @@ place, so no session hand-writes policy prose beside a marker.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over this branch | the orchestrator, at the broad gate |
+| closed the full suite and the repository-wide lint over this branch | the orchestrator's broad run at feb20458, `broad-gate.md`: 7311 passed, 12 skipped, ruff check and format clean. The repository runs no typecheck (#951) |
 | Q4: whether bytes halved is a safe estimate for dense Hangul or symbol-heavy text | a measurement, now a report and not a gate, so a wrong estimate names a document or misses one and refuses nothing |
 
 ## Not done
