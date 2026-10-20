@@ -28,8 +28,8 @@ every document under `docs/` states the current rule once, in one read.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over the phases built | the orchestrator, at `broad-gate` once the rounds settle |
-| `rules --check` and the marker walk on Windows, where a path inside a test's `tmp_path` is spelled with `\` | the Windows leg of CI on the pull request |
+| closed the full suite and the repository-wide lint over the phases built | the orchestrator's broad run at 47056ff3, `broad-gate.md`: 7285 passed, 13 skipped, ruff check and format clean. The repository runs no typecheck (#951) |
+| closed `rules --check` and the marker walk on Windows, where a path inside a test's `tmp_path` is spelled with `\` | `tests` run 39370135810 at 93671fc2: all four Windows splits passed, the rules module among them |
 
 ## Not done
 
