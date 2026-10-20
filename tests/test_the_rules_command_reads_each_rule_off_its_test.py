@@ -369,7 +369,7 @@ EXPECTED = "write `check: <targets>` or `check: none reader: <who reads it>`"
             f"a line naming no target names its reader: {EXPECTED}",
         ),
         (
-            "check: none reader x",
+            "check: none reader the warden",
             f"a line naming no target names its reader: {EXPECTED}",
         ),
         (f"check: {HELD}  held-rule", "targets are separated by one space"),
