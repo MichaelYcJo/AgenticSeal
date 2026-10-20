@@ -353,6 +353,7 @@ def test_the_title_line_pattern_is_linear_in_the_line():
     start = time.monotonic()
     for line in (
         f"release: {VERSION} symptoms: " + "x " * 50000,
+        f"release: {VERSION} symptoms: " + "x" * 100000,
         f"release: {VERSION} symptoms:" + " " * 100000,
         "release: " * 20000,
     ):
