@@ -152,8 +152,7 @@ emphasis and no markup before `Verdict:`. A line that means the verdict,
 found the way `chain_check.py#MEANT` finds a misspelt round-record label, and
 does not match whole is refused at its line. An owner's
 `Answered <date> by <who>: <answer>` line under it is unchanged. The
-`Target SHA` row's later-run part is `; earlier run: <sha> <word>`, with
-`against <base>` after the SHA where a run names one. The constants
+`Target SHA` row's one shape is the `## Rule changes` sentence below. The constants
 `reason:` and `question:` sit beside `WITHHELD` and `UNDECIDED` in
 `chain_check.py`, the one reader.
 
@@ -216,9 +215,11 @@ reads the sentence before the settle that applies it.
   to: and one `Verdict:` line, `sealed`,
     `withheld reason: <the claim, its party, its coordinate>` or
     `undecided question: <the question, for the owner>`, written exactly so
-    and with no emphasis. Any other spelling of the line is refused at it,
-    and so is an earlier run's verdict on the `Target SHA` row that is not
-    one of the three words alone.
+    and with no emphasis. Any other spelling of the line is refused at it.
+    The `Target SHA` row holds `<sha> against <base>`, each one word, then
+    nothing or one `; earlier run: <sha> <word>` entry per earlier run, with
+    `against <base>` after its SHA where it names one and its verdict's
+    word alone; any other text on the row is refused at it.
 
 ## Removes
 
