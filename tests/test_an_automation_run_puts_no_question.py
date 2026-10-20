@@ -129,6 +129,7 @@ def test_the_refusal_says_where_the_default_goes(repo):
         "Build on the default the question states",
         "pull request body",
         "states no default",
+        "is not yours to answer",
         "hand that stop back at the end of the run",
         "meets the same refusal",
         "The routing question put alone goes through only until this session "
@@ -245,6 +246,7 @@ def test_the_press_reader_reads_nothing_for_a_root_that_is_no_clone(tmp_path):
 
 def test_the_routing_question_with_company_is_refused(repo):
     declare(repo)
+    write_the_transcript(repo)
     for questions in (
         (ROUTING_QUESTION, FRAMER_QUESTION),
         (FRAMER_QUESTION, ROUTING_QUESTION),
@@ -258,6 +260,7 @@ def test_a_near_miss_of_the_routing_question_is_refused(repo):
     question text is not question 1 as the press reader counts it, and its
     answer would take an earlier press back (round 1, finding 1)."""
     declare(repo)
+    write_the_transcript(repo)
     options = ROUTING_QUESTION["options"]
     for changed in (
         {**ROUTING_QUESTION, "options": options[:2]},
