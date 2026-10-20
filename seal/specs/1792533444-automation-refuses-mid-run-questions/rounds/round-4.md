@@ -21,7 +21,7 @@ was read as a claim and re-run as mutations.
 severity: should
 location: `tests/test_an_automation_run_puts_no_question.py:321-332`, `hooks/worktree_consent.py:177-179`
 evidence: executed `bin/mutation-check hooks/worktree_consent.py --replace "<options guard returning False>" "<returning True>" --tests "bin/test tests/test_an_automation_run_puts_no_question.py tests/test_the_guard_asks_once_per_session.py tests/test_an_automation_run_meets_no_commit_prompt.py -q"`, `bin/mutation-check hooks/worktree_consent.py --replace "<the same>" "<the same>" --tests "bin/test tests/test_tmp_round4_probe.py -q"`
-verdict: open
+verdict: fixed a3a88a39
 regression: round-2#1
 
 The unit is `test_an_unreadable_call_is_refused`, and the defect is the one
@@ -73,7 +73,7 @@ def test_an_unreadable_call_is_refused(repo):
     for tool_input in (
 ```
 
-answer:
+answer: The orchestrator's a3a88a39 adds `write_the_transcript(repo)` after `declare(repo)` in `test_an_unreadable_call_is_refused`, the line efd90497 gave its two neighbours, so the routing-shaped input with `options` None is refused by `is_routing_question`'s options guard rather than by `UNREAD`. The guard mutated to `return True` now reads 1 failed, 22 passed against the module (`bin/mutation-check`, exit 0); the module with `tests/test_gates_do_not_fail_open.py` and `tests/test_the_guard_asks_once_per_session.py` passes, 132.
 
 ## Confirmations
 
