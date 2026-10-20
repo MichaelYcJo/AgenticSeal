@@ -17,7 +17,7 @@ round 1, the HTML comment opener is written in words, "the opener".
 severity: should
 location: `skills/verify/scripts/unverified_check.py:217-265`, `tests/test_unverified_rows_close.py:1840-1849`
 evidence: executed `python3 test_tmp_round2_probe.py`
-verdict: open
+verdict: fixed c6b7b92c
 regression: round-1#2
 
 The unit is `comment_scan`'s outside-a-comment branch, which db30d32e
@@ -84,14 +84,14 @@ searches again. The case should read 400000 characters of closed spans with
 no opener, and 400000 with an opener at the end, each in under 1 s. The
 quadratic scan takes 13 s on the first, so the case fails against it.
 
-answer:
+answer: Holds, and fixed with the record's index walk, which looks for the opener only once the walk passes it. Before the rewrite, the case's new inputs were seen failing: 2 failed in 26.7 s (executed). After it, with the walk cut back to search for the opener at every span, `mutation-check` reports the case red (executed). The orchestrator relayed `tests` run 39382007019 at 71eb87a3: the old case read 1.10 s against its 1 s bound on a loaded macOS runner. So 0763cff1 sets each of this item's four timing cases at 5 s. Those are this case, `test_the_near_miss_reading_is_linear_in_the_line`, `test_the_verdict_patterns_are_linear_in_the_line` and `test_the_title_line_pattern_is_linear_in_the_line`. The comment scan's case reads 800000 characters of closed spans, which takes under 0.2 s linear (executed). The quadratic scan took 13 s at 400000 characters and 54 s at 800000. With the walk cut back as above, the case went red at 52.7 s (executed). The other three cases run in under 0.1 s, and a backtracking pattern never ends (phase 1 to 4 records), so 5 s sits an order of magnitude from each. The case's name now states what it holds.
 
 ### 2. The template's verdict comment now opens three lines with `Verdict:`, so the sealer evals' verdict graders match the comment
 
 severity: should
 location: `templates/sdd-guarantee.md:29-36`, `evals/scripts/rule_cases.py:687-693`, `tests/test_the_sealer_guarantees.py`
 evidence: executed `python3 test_tmp_round2_probe.py`
-verdict: open
+verdict: fixed b828ac92
 regression: round-1#3
 
 The unit is the template's verdict comment, which f3362250 changed. The
@@ -127,14 +127,14 @@ verdict pattern from `evals/scripts/rule_cases.py` matches a line of
 `templates/sdd-guarantee.md`. Before the fix it fails on the two lines
 above.
 
-answer:
+answer: Holds, and fixed with the record's comment. The three shapes are code spans in one sentence, and the line under the comment reads `<one of the three shapes above>`. `test_no_sealer_grader_matches_a_line_of_the_template` reads every `pattern: '^Verdict:` line of the generated sealer graders under `evals/behaviour/sealer/`, so it reads what the graders run rather than restating the generator. It asserts at least nine patterns and that none matches a template line. It passes. Against f3362250's template the same reading matched five patterns, the four `withheld` shape graders and the `sealed` one (executed).
 
 ### 3. A hyphen for the space in `earlier run` still drops the entry unread and unrefused
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:125`, `tests/test_the_sealer_guarantees.py`
 evidence: executed `python3 test_tmp_round2_probe.py`
-verdict: open
+verdict: fixed de46b6db
 reopens: round-1#4
 
 743d3027 closed round-1#4 as fixed, and its close holds for the five
@@ -156,7 +156,12 @@ EARLIER_MEANT = re.compile(r"[;,]? ?earlier[\s_-]*runs?\b\s*:?\s*", re.IGNORECAS
 take `; earlier-run: `, `; earlier_run: ` and `; earlierrun: `. The linear
 case should take `earlier` followed by 100000 hyphens.
 
-answer:
+answer: Holds. It was fixed by deciding the row's shape once rather than with the record's wider pattern, on the orchestrator's direction: CLAUDE.md says that when fixes chase one mechanism's edge cases, you ask what it decides. The `Target SHA` value is now `TARGET_HEAD`, `<sha> against <base>` with each one word. After it comes nothing, or `; earlier run: ` and an `EARLIER_ENTRY` read exactly to the next separator, over and over. `earlier_verdicts` returns any other text after the target quoted with no word, and the arm refuses it at the row (`TARGET_WRITTEN`). `EARLIER_MEANT` is gone, so no spelling of the separator is looked for at all.
+- Cases (executed): the parametrised case holds the five round-1 separators, the hyphen, the underscore and the joined word, a second word of base (` @ 4a6e24f6`) and a parenthesis. Each was seen red before the fix: 7 failed. A further case reads an entry exactly up to the next separator.
+- Mutations (executed): returning nothing for unread text went red, and so did a base word allowed to hold `;` and the arm skipping the row. Stripping each entry survived until the exactness case was added, then went red.
+- Live rows (executed): of the 13 merged guarantees, 4 now carry text after the target that the row refuses, as ` @ <sha>` or a parenthesis naming how the base resolved: `1792251842`, `1792252400`, `1792365855` and `1792459424`. They are merged, so no pull request judges them again. Their earlier entries now read no word for the stamp, which matters only when a guarantee is committed.
+- Places stating the row, rewritten in the same commit (read): `templates/sdd-guarantee.md`'s placeholder, `agents/sealer.md`'s rule and the changelog fragment now say the row holds `<sha> against <base>`, each one word, and nothing else.
+- Stands: `spec.md` names `against <base>` and no more, and is the framer's.
 
 ## Confirmations
 
