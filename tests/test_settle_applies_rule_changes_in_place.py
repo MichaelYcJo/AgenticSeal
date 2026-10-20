@@ -246,6 +246,20 @@ def test_a_block_that_does_not_match_whole_is_refused_at_its_line(body, bad, rea
     assert reason in why, why
 
 
+def test_a_second_block_is_refused_at_its_own_line():
+    """The block stands alone, so a second `- nothing` is refused at its own
+    line rather than passed unread behind the first; its unknown field would
+    otherwise reach nobody."""
+    text = spec("- nothing\n  why: a reason.\n- nothing\n  bogus: x")
+    parsed = parse(text)
+    lines = text.split("\n")
+    second = lines.index("- nothing", lines.index("- nothing") + 1) + 1
+    assert parsed.errors, parsed
+    assert parsed.errors[0][0] == second, parsed.errors
+    assert "`- nothing` is the section's one item" in parsed.errors[0][1]
+    assert parsed.nothing is None and parsed.ops == []
+
+
 # --- the replay ---------------------------------------------------------------
 
 DOC = """\

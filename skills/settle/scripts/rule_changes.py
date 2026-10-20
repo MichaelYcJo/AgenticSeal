@@ -136,12 +136,15 @@ def parse(text, policy_root):
         errors.append((no, "a line that is not a field of the item above"))
     if errors:
         return Parsed([], None, errors[:1])
-    others = [item for item in ops if item["kind"] != NO_CHANGE]
-    if len(others) < len(ops) and others:
+    # The block stands alone: beside an operation, or written twice, the
+    # first item that is not the block's one occurrence is refused.
+    blocks = [item for item in ops if item["kind"] == NO_CHANGE]
+    if blocks and len(ops) > 1:
+        extra = next(item for item in ops if item is not blocks[0])
         return Parsed(
             [],
             None,
-            [(others[0]["line"], f"`- {NO_CHANGE}` is the section's one item")],
+            [(extra["line"], f"`- {NO_CHANGE}` is the section's one item")],
         )
 
     out = []
