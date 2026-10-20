@@ -9,6 +9,7 @@ This document is the standing account of that rule and what holds it.
 **A `spec.md`'s `## Removes` section lists what the work takes out of the
 tree, and the review reads it against the diff.** Each row names the thing,
 the coordinate it stood at, and where it lands or why it can go. A work item
-removing nothing writes `nothing — <why>`. A removal a phase makes that the
+removing nothing writes the no-change block of `skills/settle/SKILL.md`
+*Rule changes* in place of the table. A removal a phase makes that the
 frame did not name is a divergence, and it goes to `overview.md`.
 check: tests/test_a_phase_hands_the_next_one_a_record.py

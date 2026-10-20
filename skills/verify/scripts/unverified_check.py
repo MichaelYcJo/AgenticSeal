@@ -84,9 +84,6 @@ PLACEHOLDER = re.compile(r"^<[^>]*>$")
 # family, and the byte-order mark. None of them make a marker into a claim.
 INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
 SEPARATOR = re.compile(r"^:?-+:?$")
-# What a `## Rule changes` section says when it states nothing, with its
-# reason after the em dash (U+2014). `rule_changes.py` reads it here.
-NOTHING = "nothing — "
 # The two delimiters of an HTML comment. `live_lines` scans for them directly:
 # it holds the comment state itself, so neither is looked for while it is
 # inside a fence or a code span, and nothing blanks either one out of the text.

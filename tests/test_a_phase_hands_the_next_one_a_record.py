@@ -186,7 +186,9 @@ def test_the_spec_template_carries_the_removes_section_above_the_mark():
     assert raw.rstrip("\n").splitlines()[-1] == (
         "Framed <date> by <who>, before the build."
     )
-    assert "`nothing — <why>`" in " ".join(raw.split())
+    flat = " ".join(raw.split())
+    assert "removes nothing writes the no-change block in place of the table" in flat
+    assert "`nothing — <why>`" not in flat
 
 
 def test_the_spec_template_carries_the_rule_changes_section_above_removes():

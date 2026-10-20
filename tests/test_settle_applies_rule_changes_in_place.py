@@ -48,6 +48,13 @@ def line_of(text, needle):
     return text.split("\n").index(needle) + 1
 
 
+# What the reader says of a no-change line in any other spelling: the block
+# it expects, by name (S10).
+NO_CHANGE = (
+    "a spec that changes no rule writes the block `- nothing` with `  why: <reason>`"
+)
+
+
 # --- the reader ---------------------------------------------------------------
 
 ALL_SHAPES = """\
@@ -121,10 +128,24 @@ def test_the_skills_example_reads_as_the_skill_says():
         assert all(f"`{name}`" in fields for name in need + may), row
 
 
-def test_nothing_with_a_reason_is_a_section_with_no_operation():
-    parsed = parse(spec("nothing — this item changes no rule."))
+@pytest.mark.parametrize(
+    "body, why",
+    [
+        ("- nothing\n  why: this item changes no rule.", "this item changes no rule."),
+        (
+            "- nothing\n  why: this item changes\n    no rule.",
+            "this item changes\nno rule.",
+        ),
+    ],
+    ids=["one line", "continued"],
+)
+def test_the_no_change_block_is_a_section_with_no_operation(body, why):
+    """S10. `- nothing` with its one field, `why`, is a section that changes
+    no rule: no operation and no error, and the reason read as any field's
+    value is."""
+    parsed = parse(spec(body))
     assert (parsed.ops, parsed.errors) == ([], [])
-    assert parsed.nothing == "this item changes no rule."
+    assert parsed.nothing == why
 
 
 def test_a_spec_with_no_section_is_told_apart_from_an_empty_one():
@@ -139,7 +160,7 @@ def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
     assert parse(fenced).ops is None
     commented = spec(
         "<!-- the grammar is the skill's\n- remove\n  file: docs/a.md -->\n"
-        "nothing — a reason."
+        "- nothing\n  why: a reason."
     )
     parsed = parse(commented)
     assert parsed.errors == [] and parsed.nothing == "a reason."
@@ -176,9 +197,21 @@ def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
         ("- add\n  file: docs/\\evil.md\n  to: x", "- add", "docs/"),
         ("- add\n  file: docs/sub\\b.md\n  to: x", "- add", "docs/"),
         ("- add\n  file: docs/a.md\n  section: S\n  to:", "  to:", "empty"),
-        ("nothing — ", "nothing — ", "reason"),
-        ("nothing - a reason.", "nothing - a reason.", "em dash (U+2014)"),
-        ("Nothing — a reason.", "Nothing — a reason.", "em dash (U+2014)"),
+        ("nothing — a reason.", "nothing — a reason.", NO_CHANGE),
+        ("nothing - a reason.", "nothing - a reason.", NO_CHANGE),
+        ("Nothing — a reason.", "Nothing — a reason.", NO_CHANGE),
+        ("- nothing", "- nothing", "`nothing` needs `why`"),
+        ("- nothing\n  why:", "  why:", "`why` is empty"),
+        (
+            "- nothing\n  why: a reason.\n  file: docs/a.md",
+            "  file: docs/a.md",
+            "`file` is not a field of `nothing`",
+        ),
+        (
+            "- nothing\n  why: a reason.\n- remove\n  file: docs/a.md\n  section: S",
+            "- remove",
+            "`- nothing` is the section's one item",
+        ),
     ],
     ids=[
         "unknown-op",
@@ -193,9 +226,13 @@ def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
         "windows-root",
         "windows-subdirectory",
         "empty-value",
-        "nothing-without-a-reason",
-        "nothing-with-a-hyphen",
-        "nothing-capitalised",
+        "the em-dash form",
+        "the em-dash form with a hyphen",
+        "the em-dash form capitalised",
+        "the block without why",
+        "the block with an empty why",
+        "the block with another field",
+        "the block beside an operation",
     ],
 )
 def test_a_block_that_does_not_match_whole_is_refused_at_its_line(body, bad, reason):
@@ -636,10 +673,11 @@ def test_an_open_record_row_holds_its_spec(repo, capfd):
 
 
 def test_nothing_to_apply_leaves_and_a_spec_with_no_section_stays(repo, capfd):
-    """A `nothing — <why>` spec states that no rule changes, so its directory
-    goes. A spec with no section was written before it existed, so there is
-    nothing to replay and it is kept and named, which is not a refusal."""
-    item(repo, "1700000001-a", "nothing — a release entry.")
+    """A spec whose section is the no-change block states that no rule
+    changes, so its directory goes, named under the block. A spec with no
+    section was written before it existed, so there is nothing to replay and
+    it is kept and named, which is not a refusal."""
+    item(repo, "1700000001-a", "- nothing\n  why: a release entry.")
     old = specs_dir(repo, "1700000002-old")
     old.mkdir(parents=True)
     (old / "spec.md").write_text("# old\n\n## Scope\n\nIn.\n", encoding="utf-8")
@@ -647,6 +685,7 @@ def test_nothing_to_apply_leaves_and_a_spec_with_no_section_stays(repo, capfd):
     code, text = apply(repo, capfd)
     assert code == 0, text
     assert not specs_dir(repo, "1700000001-a").exists(), text
+    assert "no rule to apply (`- nothing`):\n    1700000001-a\n" in text, text
     assert old.exists(), text
     assert "1700000002-old" in text.split("no `## Rule changes`")[1], text
     assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC

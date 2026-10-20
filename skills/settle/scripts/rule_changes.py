@@ -24,19 +24,26 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 
 HEADING = "Rule changes"
-# Each operation's fields: (required, optional).
+# The item a section that changes no rule holds alone.
+NO_CHANGE = "nothing"
+# Each item's fields: (required, optional).
 GRAMMAR = {
     "add": (("file", "to"), ("section",)),
     "change": (("file", "section", "from", "to"), ()),
     "remove": (("file", "section"), ("from",)),
+    NO_CHANGE: (("why",), ()),
 }
 
 ITEM_RE = re.compile(r"^- (\S+)\s*$")
 FIELD_RE = re.compile(r"^  ([a-z]+):(?: (.*))?$")
+NO_CHANGE_WRITTEN = (
+    f"a spec that changes no rule writes the block `- {NO_CHANGE}` with "
+    "`  why: <reason>`"
+)
 
 Op = collections.namedtuple("Op", "kind file section old new line")
-# `ops` is None where the spec has no section; `nothing` is the reason of a
-# `nothing — <why>` section; `errors` is `[(line, reason)]`.
+# `ops` is None where the spec has no section; `nothing` is the `why` of a
+# section holding the no-change block; `errors` is `[(line, reason)]`.
 Parsed = collections.namedtuple("Parsed", "ops nothing errors")
 
 _reader = None
@@ -98,22 +105,8 @@ def parse(text, policy_root):
         return Parsed([], None, [(start + 1, "the section is empty")])
 
     first_no, first = body[0]
-    nothing = r.NOTHING.strip()
-    if first.startswith(nothing):
-        why = " ".join(
-            [first[len(nothing) :].strip()] + [t.strip() for _, t in body[1:]]
-        ).strip()
-        if not why or any(ITEM_RE.match(t) for _, t in body[1:]):
-            return Parsed(
-                [], None, [(first_no, f"`{r.NOTHING}` needs a reason and no item")]
-            )
-        return Parsed([], why, [])
-    if first.lower().startswith("nothing"):
-        return Parsed(
-            [], None,
-            [(first_no, f"a spec that changes no rule writes `{r.NOTHING}<why>`, "
-              "with an em dash (U+2014)")],
-        )  # fmt: skip
+    if first.lower().startswith(NO_CHANGE):
+        return Parsed([], None, [(first_no, NO_CHANGE_WRITTEN)])
 
     ops, errors, item = [], [], None
     for no, line in body:
@@ -123,7 +116,7 @@ def parse(text, policy_root):
             ops.append(item)
             if item["kind"] not in GRAMMAR:
                 errors.append(
-                    (no, f"`{item['kind']}` is not one of add, change, remove")
+                    (no, f"`{item['kind']}` is not one of {', '.join(GRAMMAR)}")
                 )
             continue
         if item is None:
@@ -143,6 +136,13 @@ def parse(text, policy_root):
         errors.append((no, "a line that is not a field of the item above"))
     if errors:
         return Parsed([], None, errors[:1])
+    others = [item for item in ops if item["kind"] != NO_CHANGE]
+    if len(others) < len(ops) and others:
+        return Parsed(
+            [],
+            None,
+            [(others[0]["line"], f"`- {NO_CHANGE}` is the section's one item")],
+        )
 
     out = []
     for item in ops:
@@ -163,12 +163,16 @@ def parse(text, policy_root):
         file = values.get("file", "")
         # No separator of either system and no drive colon in the name, so a
         # value joins to one file at the top level on every platform.
-        if not re.fullmatch(re.escape(policy_root) + r"/[^/\\:]+\.md", file):
+        if item["kind"] != NO_CHANGE and not re.fullmatch(
+            re.escape(policy_root) + r"/[^/\\:]+\.md", file
+        ):
             errors.append(
                 (item["line"], f"`{file}` is not a top-level {policy_root}/ file")
             )
         if errors:
             return Parsed([], None, errors[:1])
+        if item["kind"] == NO_CHANGE:
+            return Parsed([], values["why"], [])
         out.append(
             Op(
                 item["kind"],

@@ -214,9 +214,10 @@ so no pin is needed to hold a copy of the value to the row.
 
 ## Rule changes
 
-nothing — this item sets up the section and the `settle` that applies it, so
-its own changes to `docs/` are made in its diff, as the issue lists them, and
-there is nothing left for a later `settle` to apply.
+- nothing
+  why: this item sets up the section and the `settle` that applies it, so
+    its own changes to `docs/` are made in its diff, as the issue lists them,
+    and there is nothing left for a later `settle` to apply.
 
 ## Open questions → questions.md
 

@@ -54,6 +54,7 @@ line, indented two spaces:
 | `add` | `file`, `to`; `section` optional | puts `to` at the end of the section's own text, before its first sub-heading. With no `section` it creates `file`, and is refused where `file` exists |
 | `change` | `file`, `section`, `from`, `to` | rewrites `from` where it stands |
 | `remove` | `file`, `section`; `from` optional | deletes `from`, or with no `from` the whole section, up to the next heading of its level or higher |
+| `nothing` | `why` | changes no rule, and stands alone in the section |
 
 - `file` is a top-level `.md` file of the policy root, `seal/config.md`'s
   `Policy root` row (`docs` when absent), joined with `/` and holding no `\`
@@ -64,8 +65,9 @@ line, indented two spaces:
   character, emoji included, is matched as itself.
 - A value continues on the lines below it indented four spaces, and lands
   with that indent removed.
-- A spec that changes no rule writes `nothing — <why>` in place of the
-  items, with an em dash (U+2014); a hyphen is refused, naming the dash.
+- A spec that changes no rule writes the no-change block in place of the
+  items, `- nothing` with its one field `why:`. Any other spelling of it is
+  refused at its line, naming the block.
 - A block that does not match whole is refused at its line, and its spec
   applies nothing.
 

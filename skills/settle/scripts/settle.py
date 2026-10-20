@@ -343,7 +343,8 @@ def write_outcome(plan, out):
             out.write(f"    {work_item_id}  {where}  {why}\n")
     nothing = [i for i in plan["applied"] if not plan["parsed"][i].ops]
     if nothing:
-        out.write("\nno rule to apply (`nothing — <why>`):\n")
+        no_change = load(RULES, "specseal_rule_changes").NO_CHANGE
+        out.write(f"\nno rule to apply (`- {no_change}`):\n")
         out.write("".join(f"    {i}\n" for i in nothing))
     if plan["premodel"]:
         out.write(f"\n{PREMODEL_HEADING}\n")

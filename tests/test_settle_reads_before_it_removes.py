@@ -61,7 +61,8 @@ def no_rule(repo, work_item_id):
     commit it, so `--apply` removes its directory."""
     path = repo / "seal" / "specs" / work_item_id / "spec.md"
     path.write_text(
-        path.read_text(encoding="utf-8") + "\n## Rule changes\n\nnothing — a moment.\n",
+        path.read_text(encoding="utf-8")
+        + "\n## Rule changes\n\n- nothing\n  why: a moment.\n",
         encoding="utf-8",
     )
     git(repo, "add", "--", f"seal/specs/{work_item_id}")
