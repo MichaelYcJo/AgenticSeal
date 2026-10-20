@@ -9,7 +9,7 @@ target: 75ac6203 against release/v0.22.3
 severity: must
 location: `.test_durations`, `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:344`
 evidence: executed `bin/test tests -q -p no:xdist -k test_the_durations_file_prices_the_suite`
-verdict: open
+verdict: fixed 0398a18b
 
 The suite is red at 75ac6203 on every leg that collects the whole suite.
 `test_the_durations_file_prices_the_suite` allows 5% of the collected cases
@@ -30,14 +30,14 @@ mv /tmp/x/durations/.test_durations .test_durations
 git -C <the branch worktree> commit -m "chore: .test_durations prices the cases #941 added (#941)" -- .test_durations
 ```
 
-answer:
+answer: holds, and 0398a18b repairs it: `.test_durations` refreshed from run 39368250047's `test-durations` artifact prices the node ids the branch added. Re-run at 027ea445, `bin/test tests -q -p no:xdist -k test_the_durations_file_prices_the_suite` passes, 1 passed, exit 0.
 
 ### 2. A `## Rule changes` holding `- nothing` twice passes, and the second item is never read
 
 severity: should
 location: `skills/settle/scripts/rule_changes.py:139-175`, `tests/test_settle_applies_rule_changes_in_place.py:235`
 evidence: executed `python3 -I -c "rule_changes.parse('## Rule changes\n\n- nothing\n  why: a\n- nothing\n  bogus: x\n', 'docs')"`
-verdict: open
+verdict: fixed ca5cf133
 
 `skills/settle/SKILL.md:56` says the `nothing` item "stands alone in the
 section", and the changelog fragment says the block "stands alone in its
@@ -74,14 +74,14 @@ list beside "the block beside an operation":
 with the id `"the block twice"`. The `bad` line is the second `- nothing`,
 so the case finds it by its line number and not by its text.
 
-answer:
+answer: holds. `parse` now refuses every item beside the section's first block, a second block included, at that item's line, the paste-ready shape above. The case went in as its own function, `test_a_second_block_is_refused_at_its_own_line`, not as a row of the parametrized list: that list finds the bad line with `line_of`, which returns the first `- nothing`, so the row would have asserted the wrong line. The case was red against the old parser (`parsed.errors` empty) and is green with the fix; the module's 67 cases pass.
 
 ### 3. The rewritten one-root document says a round record carries `Target SHA`, a spelling the round grammar refuses
 
 severity: should
 location: `docs/one-root-by-lifetime.md:33`, `docs/one-root-by-lifetime.md:48`, `docs/one-root-by-lifetime.ko.md:33`, `docs/one-root-by-lifetime.ko.md:46`
 evidence: read `docs/one-root-by-lifetime.md:33`, `docs/one-root-by-lifetime.md:48`, `docs/one-root-by-lifetime.ko.md:33`, `docs/one-root-by-lifetime.ko.md:46`, `docs/the-review-record.md:41`, `docs/the-review-record.md:53`
-verdict: open
+verdict: fixed c283eb3d
 
 Scope 4 says every rewritten document states the current rule. The
 dependency rule names "a round record's `Target SHA`" twice in each edition.
@@ -110,14 +110,14 @@ record's `target:` line, read while its pull request is open and gone with the
 Both editions are re-wrapped in place. The outline is unchanged, so
 `tests/test_both_editions_carry_the_same_folds.py` is unaffected.
 
-answer:
+answer: holds. Both editions name the round record's `target:` line at the four places. The sweep over `git grep -n 'Target SHA'` found the same retired fact in two test comments, `tests/test_first_setup_asks_once.py:422` and `tests/test_a_phase_hands_the_next_one_a_record.py` (its docstring and one message), corrected in the same commit; every other `Target SHA` names the guarantee's row or the round grammar's refusal of the old spelling, and stands.
 
 ### 4. The check-line reader neither reads nor refuses a check line behind an ordered-list or blockquote marker, and it accepts extra spaces after `reader:`
 
 severity: should
 location: `.github/scripts/rules.py:60-62`, `.github/scripts/rules.py:146-154`, `tests/test_the_rules_command_reads_each_rule_off_its_test.py:399`
 evidence: executed `python3 -I -c "rules.NEAR.match(c); rules.line_problems('.', c)" over 18 spellings`
-verdict: open
+verdict: fixed bc260d09
 
 The owner's direction is that no spelling a near miss could pass. The
 branch's own S5 refuses a bullet in front (`- check:`). The same class, a
@@ -150,14 +150,14 @@ The cases to add to `test_every_other_spelling_is_refused_at_its_line`:
 `check: none reader:  review`. Each needs to be seen red against the
 current code first.
 
-answer:
+answer: holds. `NEAR` takes any run of block markers (a bullet, an ordered-list number with `.` or `)`, a blockquote's `>`) before the label, and a reader must follow `reader: ` with no space more. The three cases, `an ordered-list marker`, `a blockquote marker` and `a reader behind two spaces`, were run against the old reader first and all three failed; with the fix the module's 51 cases pass and `bin/rules --check` still reads 240 lines and exits 0, so nothing standing is newly refused. `skills/settle/SKILL.md` *A rule has one shape* and the changelog fragment, which list the refused spellings, name both refusals in the same commit.
 
 ### 5. Two worked-example issue numbers stay in a rewritten document, though Scope 4 says they leave
 
 severity: should
 location: `docs/issues-and-milestones.md:301`, `docs/issues-and-milestones.md:303`
 evidence: executed `git grep -nE '#[0-9]+' HEAD -- 'docs/*.md' ':!docs/experiments'`
-verdict: open
+verdict: fixed 027ea445
 
 Scope 4 says issue numbers that a sentence can stand without leave the
 document. Phase 7's record says its three documents dropped their issue
@@ -177,7 +177,7 @@ so they stay too. Phase 7's census has no row for either sentence.
   says which things below it have changed.
 ```
 
-answer:
+answer: holds. Both sentences lose their issue numbers as proposed. The same `git grep -nE '#[0-9]+'` over `docs/` outside `docs/experiments/` now finds only `#51`, the live log the rule describes, and the `Closes #N` syntax examples. The phase 7 census lacks the two rows, and a fix pass writes no phase record, so this answer is where they are recorded.
 
 ## Confirmations
 
