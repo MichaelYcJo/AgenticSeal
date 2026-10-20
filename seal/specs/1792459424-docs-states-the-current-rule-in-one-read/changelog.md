@@ -12,6 +12,11 @@
   repository's `Enforced by:` lines are refused until rewritten. `rules
   <doc>` prints each target's module docstring, or for a marker each test
   carrying it.
+- **A spec that changes or removes nothing writes the no-change block
+  (#941).** In `## Rule changes` and `## Removes`, `- nothing` with its one
+  field `why:` replaces `nothing — <why>`. `settle` refuses every other
+  spelling of a no-change line at its line, naming the block, and the block
+  stands alone in its section.
 - **`fold-check` no longer reads a rule's shape (#941).** The `Fold shape
   from` row is read by nothing and `--shape-from` is gone; a script that
   passes it gets an argument error, exit 2. `fold-check` holds the policy
