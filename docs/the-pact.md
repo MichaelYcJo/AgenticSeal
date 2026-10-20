@@ -6,8 +6,7 @@ another reads, a field list two of them write. This document is the standing
 account of where that contract lives, how each repository knows about it,
 and what checks it.
 
-It is a policy document: it outranks the SDD set, and a work item that finds
-it wrong corrects it rather than working around it.
+It is a policy document, with the standing `docs/README.md` gives one.
 
 ## The words
 

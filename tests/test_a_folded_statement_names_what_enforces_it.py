@@ -68,13 +68,13 @@ def read(path):
 def test_every_bound_statement_in_docs_has_the_shape():
     """A7. The walk has to have read markers, so a broken reader cannot pass
     on an empty walk; the ones folded before the cutoff are read and skipped."""
-    cutoff = fold_check.declared(fold_check.seal_home(ROOT))[0]
+    cutoff, _, policy = fold_check.declared(fold_check.seal_home(ROOT))
     assert cutoff is not None, "this repository's seal/config.md declares no cutoff"
     problems = []
     groups = 0
     # The shipped command's own listing, not a second spelling of it (round
     # 1, note 8): what this case walks is what `fold-check` walks.
-    for rel in fold_check.documents(ROOT):
+    for rel in fold_check.documents(ROOT, policy):
         text = read(os.path.join(ROOT, *rel.split("/")))
         groups += len(statements(text))
         problems += shape_problems(ROOT, rel, text, cutoff)
@@ -83,23 +83,21 @@ def test_every_bound_statement_in_docs_has_the_shape():
 
 
 def test_settle_owns_the_shape_rule():
-    """A11. The rule is stated in the fold's procedure, the document the
-    folder reads, and this module is only its reader here."""
+    """A11. The rule is stated in the settle skill, the document a spec's
+    author reads for the grammar, and this module is only its reader here."""
     text = read(SETTLE)
-    section = text.split("### 2. Write one standing statement per rule")[1]
-    section = section.split("### 3.")[0]
+    section = text.split("\n## A rule has one shape\n")[1].split("\n## ")[0]
+    section = " ".join(section.split())
     for phrase in (
-        "**A standing statement has one shape: the rule, its grounds, and what "
-        "enforces\nit.**",
+        "**A rule has one shape: the rule, its grounds, and what enforces it.**",
         "Enforced by: nothing — <why>",
-        "**Stacked markers share one statement.**",
-        "**What this plugin checks, and what it does not.** It ships\n`fold-check`",
-        "a row a repository does not write is a check it does not\nrun",
+        "**What this plugin checks, and what it does not.** It ships `fold-check`",
+        "a row a repository does not write is a check it does not run",
         "it is review's to find",
     ):
-        assert phrase in section, f"settle §2 no longer says: {phrase!r}"
+        assert phrase in section, f"settle no longer says: {phrase!r}"
     assert "ships no checker for the shape" not in section, (
-        "settle §2 still says the plugin ships no checker, beside the one it ships"
+        "settle still says the plugin ships no checker, beside the one it ships"
     )
 
 
@@ -359,7 +357,7 @@ def test_the_command_exits_0_over_a_statement_with_the_shape(tmp_path):
     code, out, err = command("--root", root, "--shape-from", str(CUTOFF))
     assert code == 0, (code, out, err)
     assert (
-        f"fold-check: `Document line ceiling` is not declared in {root}, which has "
+        f"fold-check: `Document token ceiling` is not declared in {root}, which has "
         "no seal/ root at either place, so no document's length was checked\n"
     ) in out, out
 

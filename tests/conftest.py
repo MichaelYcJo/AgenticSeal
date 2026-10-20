@@ -289,45 +289,6 @@ def decline_if_shrunken(missing, what):
         pytest.skip(shrunken_corpus(missing, what))
 
 
-def cutoff_item_is_traceable(root, reader, cutoff):
-    """`(ok, how)` for "the work item a cutoff constant names can be found".
-
-    Several rules in this suite are keyed to the id of the work item that
-    wrote them, and each pins that the id names a real work item rather than
-    a typo — a constant with a digit wrong excuses exactly the records it was
-    written to hold. The pin was `the directory is under seal/specs/`, which
-    stops being the question the moment `settle --retire` runs: the fold
-    removes a released work item's directory on purpose, and a rule whose
-    cutoff points into one would go red for the tree being TIDIED.
-
-    **So the question moves to where the fold already answers it.**
-    `skills/verify/scripts/unverified_check.py#folded_items` exists to tell a
-    fold from a deletion — both leave a directory absent — and it answers by
-    reading the `<!-- specs/<id> -->` marker off the top level of `docs/`, on
-    a live line. A work item is traceable when its directory is still there
-    OR a policy document absorbed it. A directory that is simply gone is
-    neither, and that is still a typo or a deletion, which is what these
-    cases were pinning all along.
-
-    `reader` is the caller's already-loaded `unverified_check` module, so this
-    imports nothing and every caller keeps its own loader.
-    """
-    prefix = f"{cutoff}-"
-    specs = os.path.join(root, "seal", "specs")
-    if os.path.isdir(specs):
-        if any(d.startswith(prefix) for d in os.listdir(specs)):
-            return True, "its directory is under seal/specs/"
-    folded = sorted(i for i in reader.folded_items(root) if i.startswith(prefix))
-    if folded:
-        return True, f"docs/ records the fold of {folded[0]}"
-    return False, (
-        f"no work item `{cutoff}-…` is under seal/specs/ and no top-level "
-        "docs/ file carries its `<!-- specs/<id> -->` marker on a live line, "
-        "so the cutoff names a work item this tree cannot show — a typo in "
-        "the constant, or a directory removed without a policy absorbing it"
-    )
-
-
 def gathered_entry(root, work_item_id):
     """The text a release file under `changelog/` carries for a work item
     whose fragment was gathered, or None when no marker for it is there.
@@ -335,7 +296,7 @@ def gathered_entry(root, work_item_id):
     A changelog fragment moves once, the way a ledger fragment does:
     `gather_changelog.py` writes `<!-- specs/<id> -->` above the fragment's
     body in the release's own file, `changelog/X.Y.Z.md` since #728, and
-    `settle --retire` later removes the directory the fragment lived in. So a
+    `settle --apply` later removes the directory the fragment lived in. So a
     case pinning what a fragment says reads the fragment while it exists and
     this block after. The block runs from the marker to the next marker line
     or heading, which is where the gatherer puts the next entry.

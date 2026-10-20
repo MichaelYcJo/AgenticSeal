@@ -33,5 +33,5 @@ never by whoever asked. Sorting the rows this way is also what keeps the
 batch short enough to answer in one sitting: two of the three kinds never
 needed a person at all.
 
-Answered rows feed back into docs/ (policy clause or open-questions section)
-before this directory's work merges.
+Answered rows feed back into `spec.md`'s `## Rule changes` (a policy clause
+or an open-questions section) before this directory's work merges.

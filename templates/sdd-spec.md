@@ -31,6 +31,13 @@ regression tests' skeleton.
 Schema deltas, endpoints, payload shapes. Reference the code's coordinates,
 don't duplicate them.
 
+## Rule changes
+
+<!-- The rules this work adds to, changes in or removes from the policy
+     root, which `settle --apply` applies after the release. The grammar is
+     `skills/settle/SKILL.md` §*Rule changes*. A spec that changes no rule
+     writes `nothing — <why>`. -->
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

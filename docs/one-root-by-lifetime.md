@@ -212,12 +212,11 @@ adds:
 - It moves and does not verify. Whether a rule still holds is the job of
   the test its `Enforced by:` line names, which CI runs on every pull
   request.
-- It runs incrementally. Only work items released since the last fold are
-  read, and the folded ids are recorded so a second run folds nothing twice
-  and an interrupted run resumes.
-- The `docs/` merge replaces by provenance id. A sentence carrying a work
-  item's comment is swapped for the newer one; judgment is needed only when
-  an area gets its first document.
+- It applies each released spec's `## Rule changes` in place, in merge
+  order, whole or not at all, and a directory goes only with what it
+  applied, so a second run applies nothing twice.
+- It judges nothing: a rule was decided when its spec was reviewed, and a
+  text it cannot place is refused, never guessed.
 - An item with an open `## Not verified` row is skipped and named, never
   folded or removed.
 - Its cost is measured with `session-cost`, so the release where it turns
@@ -648,11 +647,11 @@ shape *Decided after the thread* uses.
 
 | Decision | Answer | What it corrects above |
 |---|---|---|
-| What `settle` is | a skill with a command beside it, not a script. The command reads and groups; the session judges which sentences are still true and writes them. `skills/settle/SKILL.md` is the procedure, `skills/settle/scripts/settle.py` the reader, `bin/settle` the command | §*What keeps `settle` light* said the step moves and does not verify, and left open who does the moving. Nothing mechanical can decide what is still true, so the two halves have two owners |
-| Where the fold record lives | the `<!-- specs/<id> -->` comment the folded sentence already carries in its `docs/` document. No second file | §*What happens at a release* step 1 named the comment as provenance only. Deriving the record from the destination is also what makes an interrupted run resumable: folded, and folded-and-retired, are two states the tree itself answers |
+| What `settle` is | a skill with a command beside it. The spec decides and the command applies: `settle --apply` writes each released spec's `## Rule changes` into the policy root in place. `skills/settle/SKILL.md` is the procedure, `skills/settle/scripts/settle.py` the command, `bin/settle` its name | §*What keeps `settle` light* said the step moves and does not verify, and left open who does the moving |
+| Where the fold record lives | nowhere: a removed directory is told from a deletion by replaying its rule changes (`docs/the-record-layout.md` §*The fold, and what tells it from a deletion*). No second file | §*What happens at a release* step 1 named the comment as provenance only |
 | What groups | nothing: `settle` lists the released work items no fold has taken | nothing above said |
-| What a removal actually breaks | §*The dependency rule*'s two readers are **not** the whole list. Both changed — `unverified_check.py --baseline` now reads the fold record and names a folded directory instead of reporting it, and `gather_changelog.py --check` now counts the markers in `CHANGELOG.md` and refuses a corpus carrying neither. Beyond them: every check in a repository carrying a **population floor** over that corpus | §*The dependency rule* was written when this repository had 13 work items. At 98 it had 14 test modules reading the corpus and at least 6 with a floor a fold turns red. The general rule is in `skills/settle/SKILL.md`, because any repository running this methodology accumulates the same shape |
-| Who may write in `docs/` | the `implement` skill's layout table now says a work item creates no `docs/` document and `settle` is the one writer that does | the *never created here* sentence, which the table above already listed as one to correct |
+| What a removal actually breaks | §*The dependency rule*'s two readers are **not** the whole list. Both changed — `unverified_check.py --baseline` now names a settled directory instead of reporting it, and `gather_changelog.py --check` now counts the markers in `CHANGELOG.md` and refuses a corpus carrying neither. Beyond them: every check in a repository carrying a **population floor** over that corpus | §*The dependency rule* was written when this repository had 13 work items. At 98 it had 14 test modules reading the corpus and at least 6 with a floor a fold turns red. The general rule is in `skills/settle/SKILL.md`, because any repository running this methodology accumulates the same shape |
+| Who may write in `docs/` | the `implement` skill's layout table now says a pull request does not edit the policy root, and `settle --apply` applies the specs' rule changes to it | the *never created here* sentence, which the table above already listed as one to correct |
 | Whether the mechanism's own release folds this repository | no. The mechanism shipped and nothing was removed; the fold of the accumulated work items is its own work item | nothing above said. Putting both in one pull request means one review round judges a mechanism and nine segments of policy prose at once, on a tree whose suite that same commit had just shortened |
 
 ## Decided when the fold stopped being a work item (2026-09-23)
@@ -664,7 +663,7 @@ same shape.
 | Decision | Answer | What it corrects above |
 |---|---|---|
 | Whether a fold is a work item | no. A fold opens no `routing.md`, spec, plan or rounds and is not asked the routing question; every commit is waived with `: '[no-review]';` in front, and its judgment is reviewed at its pull request. `skills/settle/SKILL.md` is its spec, and it keeps no log of folds | the 2026-09-22 row that made the fold of the accumulated work items its own work item. Two folds ran that way, and each left a directory for the next fold to retire, so no fold could finish |
-| A released work item that wrote no `spec.md` | retired by the rule, with no marker, when nothing in its `overview.md` is open; kept and named with its rows when something is. One predicate beside the fold record decides it for `settle` and for every CI reader, asked of the merge base | nothing above said; ten such items had been kept by name with no way out |
+| A released work item that wrote no `spec.md` | retired by the rule, with no marker, when nothing in its `overview.md` is open; kept and named with its rows when something is. One predicate decides it for `settle` and for every CI reader, asked of the merge base | nothing above said; ten such items had been kept by name with no way out |
 
 ## Decided when a joined project's `specs/` was read and never taken (2026-10-01)
 
@@ -687,6 +686,6 @@ part of a work item's directory leaves, in the same shape.
 
 | Decision | Answer | What it corrects above |
 |---|---|---|
-| When the process record leaves | after the release that ships its work item, whether or not the fold has run. `settle --retire-process` removes it from every work item already on `main`, as the first act of the release checklist's step 2b, and writes no prose. It does not wait for the fold because it needs no judgment, and no check reads it once its release has merged to `main`; what the SDD set still cites of it is read at the release tag | §*Retention*, which removed the process record only with the whole directory, after a fold. The fold had not run since 2026-09-24, and on 2026-10-04 the process record was 525 of the 841 files under `seal/specs/` and 67% of the bytes, kept for nobody |
+| When the process record leaves | with its spec's directory, at the `settle --apply` that applies the spec. No check reads it once its release has merged to `main`, and what the SDD set still cites of it is read at the release tag | §*Retention*, which removed the process record only with the whole directory, after a fold. The fold had not run since 2026-09-24, and on 2026-10-04 the process record was 525 of the 841 files under `seal/specs/` and 67% of the bytes, kept for nobody |
 | What the process record is | `rounds/`, `phases/`, the two todo files, `broad-gate.md`, `handoff.md` and `pr.*.md`. `routing.md` is not in it: it stays with the SDD set until the fold, because `chain_check`, the release seal and the session-start migration all find a work item by it | §*Where the line between the SDD set and the process record runs* and the table in §*Retention*, which counted `routing` in the process record |
 | Whether the two halves move apart on disk | no. The paths stay as they are, and *one file per run* is rejected, because 41 of 53 runs' round records together exceed the 64 KB a reader takes whole. Only the moment each half leaves differs | §*Out of scope*, whose "They move together" still holds while a work item is in development and stops holding after its release |

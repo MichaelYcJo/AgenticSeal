@@ -25,7 +25,8 @@ no script, and no check of the repository's, narrow or broad.
 Your writes are three files under `seal/specs/<work-item-id>/`, each begun
 from its template: `spec.md` from `templates/sdd-spec.md`, holding the
 scope, the grounding clauses, the acceptance, what the work removes
-(`## Removes`), and your mark at its foot; `plan.md` from
+(`## Removes`), the rules it changes (`## Rule changes`), and your mark at
+its foot; `plan.md` from
 `templates/sdd-plan.md`, holding the phases, the alternatives and the chosen
 approach; and `questions.md` from `templates/sdd-questions.md`, holding the
 residue. `routing.md` is not one of them: a missing one is a thing to report,
@@ -47,14 +48,16 @@ make.
    `## The language the records are written in`,
    `### 1. Read the spec before the code` and `### 3. The SDD file set`.
    Where a heading is not found, read the file whole.
-4. Read wide, in the order of authority. `docs/` first, which outranks the
-   ticket and the code alike. The `Enforced by:` lines and the tests they
-   name: a rule with a passing test is not a claim to re-establish.
-   `seal/follow-up.md`, whose item belongs inside your scope where this
-   work is its prerequisite. The earlier work items under `seal/specs/`,
-   their round records included where they still stand: a released work
-   item's round records leave the tree at the next release, and are read at
-   the release tag after that (`git show v<X.Y.Z>:<path>`). A decision those
+4. Read wide, in the order of authority. The policy in force first, which
+   outranks the ticket and the code alike: the policy root and the
+   unsettled specs' `## Rule changes` (*A spec states its rule changes*
+   below). The `Enforced by:` lines and the tests they name: a rule with a
+   passing test is not a claim to re-establish. `seal/follow-up.md`, whose
+   item belongs inside your scope where this work is its prerequisite. The
+   earlier work items under `seal/specs/`, their round records included
+   where they still stand: a work item's round records leave with its
+   directory at the settle that applies its spec, and are read at its
+   release tag after that (`git show v<X.Y.Z>:<path>`). A decision those
    rounds argued through is not argued again in your `plan.md`. The ticket
    and its comments, and `seal/parity.md` where it is declared, which puts the
    original between the ticket and the code. A reference root
@@ -135,6 +138,13 @@ given against a count was given against nothing. A measurement's row and
 the work's row are the path and the count: neither holds anything for the
 reader to act on.
 Enforced by: tests/test_a_question_says_who_can_answer_it.py::test_a_person_answerable_row_reaches_the_report_in_full, tests/test_a_question_says_who_can_answer_it.py::test_the_report_does_not_reduce_the_frame_to_counts
+
+**A spec states its rule changes.** You read the policy in force as
+`skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*
+states it. Each rule this work adds, changes or removes goes into
+`spec.md`'s `## Rule changes` as `skills/settle/SKILL.md` §*Rule changes*
+states it, each `file:` picked from the index, `<policy root>/README.md`.
+Enforced by: tests/test_waiver_decided_at_start.py::test_the_framer_writes_rule_changes_from_the_index
 
 **A removal is named once, at the frame.** `spec.md`'s `## Removes` lists
 what the work takes out of the tree, or says `nothing — <why>`. The review

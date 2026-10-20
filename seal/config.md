@@ -9,5 +9,4 @@ row and what an absent one means. -->
 | Mode | shared |
 | Broad gate | uvx ruff check . && uvx ruff format --check . && bin/test -q |
 | Fold shape from | 0 |
-| Document line ceiling | 1000 |
-| Over the ceiling | none |
+| Document token ceiling | 25000 |

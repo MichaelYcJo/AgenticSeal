@@ -5,8 +5,7 @@ the typecheck are a **single act**, taken after the review rounds settle and
 before the pull request opens. This document is the standing account
 of who takes it, what it runs, and what it is allowed to say.
 
-It is a policy document: it outranks the SDD set, and a work item that finds
-it wrong corrects it rather than working around it.
+It is a policy document, with the standing `docs/README.md` gives one.
 
 ## One act, one owner, and the owner is the orchestrator
 

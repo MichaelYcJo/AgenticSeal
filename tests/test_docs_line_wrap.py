@@ -315,8 +315,8 @@ def test_a_fold_marker_is_skipped_and_the_line_beside_it_is_not():
 
 
 def test_a_marker_that_is_not_on_a_line_of_its_own_is_still_prose():
-    """A marker quoted inside a sentence is a description, not a fold record
-    — the same rule `unverified_check.folded_items` reads it by — so the
+    """A marker quoted inside a sentence is a description, not a marker —
+    the same rule `unverified_check.py#FOLD_MARKER` reads it by — so the
     sentence carrying it wraps like any other."""
     line = "The comment " + "<!-- specs/x -->" + " is what records a fold, " * 4
     assert display_width(line) > LIMIT

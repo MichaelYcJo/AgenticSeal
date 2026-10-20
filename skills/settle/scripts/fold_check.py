@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""fold-check — hold a fold's two rules over the top level of `docs/`.
+"""fold-check — hold the policy root's documents to their shape, one read
+and one index.
 
-`skills/settle/SKILL.md` §2 gives a folded statement one shape and a document
-a ceiling. Both checks lived in this plugin's own test suite, so a repository
-that folds with `settle` had the rules and nothing that reads them (#566). This
-is that reader, shipped.
+`skills/settle/SKILL.md` gives a rule one shape, a document one read and the
+policy root one index. This is the reader of all three, shipped (#566, #953).
 
-  fold-check                     both checks, with the values seal/config.md states
+  fold-check                     every check, with the values seal/config.md states
   fold-check --shape-from ID     bind the shape from this work-item id on, this run
-  fold-check --ceiling N         hold every document to N lines, this run
+  fold-check --ceiling N         report documents past N estimated tokens, this run
   fold-check --root DIR          a repository other than this one
+
+The policy root is `seal/config.md`'s `Policy root` row, `docs` when absent,
+read through `hooks/config.py#policy_root`, and every check reads its top
+level alone.
 
 **The shape.** Every statement whose marker group holds a work-item id at or
 above the cutoff opens with a bold rule sentence and carries exactly one live
@@ -21,40 +24,37 @@ id — `::Class::method` for a method — and resolved by the coordinate kernel,
 comparison and needs no list of exemptions, and `--shape-from 0` binds every
 statement there is.
 
-**The ceiling.** Every top-level `docs/*.md` is at or under the ceiling, or is
-listed over it with its fold markers frozen — how many, and which — until the
-home it names splits it. The marker count is frozen and not the line count,
-because a marker is the one thing only a fold adds.
+**One read.** Each document whose estimate (`tokens`) is past the `Document
+token ceiling` row is named as one to split along its own headings. That is a
+report and never a failure: the estimate is a guess from bytes, and a
+document past one tool's per-call cap is still read in more calls (the
+owner's answer of 2026-10-20).
+
+**One index.** Where `<policy root>/README.md` exists, each other top-level
+document is named on exactly one row of its tables, and every row names one.
 
 **What it cannot read.** Presence, count and resolution are all it checks. It
 cannot tell whether a target really enforces the rule, whether a statement is
 true, or whether two statements contradict each other; those stay review's.
 
-**It sets no value.** The plugin ships the reader and the repository states
-the values, as three rows of `seal/config.md` read through
-`hooks/config.py#config_rows`: `Fold shape from` (the cutoff),
-`Document line ceiling`, and `Over the ceiling` (`none`, or `;`-separated
-entries `<path> frozen at <n> markers <12-hex digest> until <home>`). An
-absent row means *not declared*, as every optional row of that file does: the
-check it governs is not run, and the output says so in one line rather than
-refusing, because a repository that never folds has not asked for either. A
-flag overrides its row for one run, which is how a retrofit lists every
-statement still missing the shape without editing the config first.
+**It sets no value.** The repository states the values as rows of
+`seal/config.md`, read through `hooks/config.py#config_rows`, and
+`templates/config.md` §*The fold's values* states each row once. An absent
+row means *not declared*, as every optional row of that file does: the check
+it governs is not run, and the output says so in one line rather than
+refusing. A flag overrides its row for one run, which is how a retrofit lists
+every statement still missing the shape without editing the config first.
 
-Markers and live lines come from the fold's own reader,
-`skills/verify/scripts/unverified_check.py#live_lines` and `#FOLD_MARKER`,
-loaded rather than re-spelled: a marker this counted and the fold did not, or
-the reverse, would be two answers about one document. So do the lines,
-`#gfm_lines`, which end where GFM ends one: the marker readers and the
-ceiling's count both split with it, the way the fold does (#664). This script
-kept a copy of that splitter while the reader was being rewritten on another
-branch, and the copy is gone.
+Markers, live lines and table rows come from
+`skills/verify/scripts/unverified_check.py` (`live_lines`, `FOLD_MARKER`,
+`gfm_lines`, `split_row`), loaded rather than re-spelled (#664).
 
 Typed with no `--root`, it reads the repository the current directory is in,
 so a run from a subdirectory checks that repository and not nothing.
 
-Exit codes: 0 nothing found, including the run where nothing is declared ·
-1 at least one problem, each on a line of its own · 2 the root, a value or a
+Exit codes: 0 nothing found, including the run where nothing is declared and
+one that names documents past the ceiling · 1 a statement out of shape or an
+index out of step, each on a line of its own · 2 the root, a value or a
 file it had to read was unusable — a document that is not UTF-8, a `::name`
 target that will not parse — and no result was printed, or a sibling script it
 loads is not beside it. An interpreter below the floor never reaches this file
@@ -63,7 +63,6 @@ through `bin/fold-check`: `hooks/launch.py` refuses it with 2 first.
 
 import argparse
 import ast
-import hashlib
 import importlib.util
 import io
 import os
@@ -79,31 +78,21 @@ OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
 # `Enforced by:` line in one grammar.
 COORDINATES = os.path.join(HERE, "..", "..", "verify", "scripts", "coordinates.py")
 
-DOCS = "docs"
 CONFIG = "config.md"
+INDEX = "README.md"
 
-# The three `seal/config.md` rows this reads. Each is optional, and an absent
-# one means *not declared*, which is what every optional row in
-# `templates/config.md` means: the check it governs is not run, and the
-# output says so in one line.
+# The `seal/config.md` rows this reads, each optional.
 SHAPE_ROW = "Fold shape from"
-CEILING_ROW = "Document line ceiling"
-OVER_ROW = "Over the ceiling"
-NONE_LISTED = "none"
-
-# One `Over the ceiling` entry, as a person writes it. The digest is printed
-# by this command when the count or the ids disagree, so nobody computes it
-# by hand.
-OVER_ENTRY = re.compile(
-    r"^(?P<path>\S+) frozen at (?P<count>[0-9]+) markers (?P<digest>[0-9a-f]{12}) "
-    r"until (?P<home>\S+)$"
-)
+CEILING_ROW = "Document token ceiling"
+POLICY_ROW = "Policy root"
+ROWS = (SHAPE_ROW, CEILING_ROW, POLICY_ROW)
 WHOLE = re.compile(r"[0-9]+")
-OVER_SHAPE = "<path> frozen at <n> markers <12-hex digest> until <home>"
+# The estimate's one constant, a token taken as two bytes of UTF-8;
+# `templates/config.md` §*The fold's values* states it.
+BYTES_PER_TOKEN = 2
 
 BOLD_OPENING = re.compile(r"^\*{2,3}[^*\s]")
 ENFORCED = "Enforced by: "
-NOTHING = "nothing — "
 
 
 def load(path, name, purpose):
@@ -209,7 +198,7 @@ def names_targets(value):
     """Whether an `Enforced by:` value is read as targets rather than as
     `nothing — <why>`. The shape check and `enforced_lines` both ask this, so
     the lines a wrap limit skips are exactly the lines read as paths."""
-    return not value.startswith(NOTHING.strip())
+    return not value.startswith(reader().NOTHING.strip())
 
 
 def enforced_lines(text):
@@ -307,7 +296,7 @@ def shape_problems(root, name, text, cutoff):
             continue
         value = enforced[0][len(ENFORCED) :].strip()
         if not names_targets(value):
-            if not value[len(NOTHING.strip()) :].strip():
+            if not value[len(reader().NOTHING.strip()) :].strip():
                 problems.append(f"{where} says `nothing` and gives no reason")
             continue
         for target in value.split(","):
@@ -320,36 +309,20 @@ def shape_problems(root, name, text, cutoff):
     return problems
 
 
-# --- the ceiling -----------------------------------------------------------
+# --- one read and one index --------------------------------------------------
 
 
-def markers(text):
-    """How many fold markers the fold itself would read in `text`."""
-    uc = reader()
-    return sum(
-        len(uc.FOLD_MARKER.findall(line))
-        for line, live in uc.live_lines(uc.gfm_lines(text))
-        if live
-    )
+def tokens(text):
+    """The estimate: TEXT's UTF-8 bytes over `BYTES_PER_TOKEN`, rounded up."""
+    return -(-len(text.encode("utf-8")) // BYTES_PER_TOKEN)
 
 
-def marker_digest(text):
-    """The first 12 hex digits of a SHA-256 over the sorted live marker ids."""
-    uc = reader()
-    ids = sorted(
-        found
-        for line, live in uc.live_lines(uc.gfm_lines(text))
-        if live
-        for found in uc.FOLD_MARKER.findall(line)
-    )
-    return hashlib.sha256("\n".join(ids).encode()).hexdigest()[:12]
-
-
-def documents(root):
-    """Every top-level `docs/*.md`, repo-relative with `/`, in name order."""
-    top = os.path.join(root, DOCS)
+def documents(root, policy):
+    """Every top-level `.md` of the directory POLICY, repo-relative with `/`,
+    in name order."""
+    top = os.path.join(root, *policy.split("/"))
     return [
-        f"{DOCS}/{name}"
+        f"{policy}/{name}"
         for name in sorted(os.listdir(top))
         if name.endswith(".md") and os.path.isfile(os.path.join(top, name))
     ]
@@ -375,64 +348,50 @@ def read(root, rel):
         ) from unreadable
 
 
-def ceiling_problems(root, ceiling, over, digests=None):
-    """Every way the tree at `root` breaks the ceiling or its listing.
+def past_ceiling(root, policy, ceiling):
+    """`[(document, estimate)]` for each top-level document of POLICY whose
+    estimate is past CEILING."""
+    found = [(rel, tokens(read(root, rel))) for rel in documents(root, policy)]
+    return [(rel, count) for rel, count in found if count > ceiling]
 
-    `over` maps a listed document to `(frozen marker count, home)`, and
-    `digests` maps it to the `marker_digest` its markers are frozen at."""
-    problems = []
-    names = documents(root)
-    for rel in sorted(set(over) - set(names)):
-        if os.path.exists(os.path.join(root, *rel.split("/"))):
-            # It exists, so "does not exist" would send a person looking for a
-            # deleted file; the cause is that the ceiling reads only the top
-            # level (round 1, finding 4).
-            problems.append(
-                f"{rel} is listed over the ceiling and is not a top-level "
-                f"{DOCS}/*.md, the only documents the ceiling holds"
-            )
-        else:
-            problems.append(f"{rel} is listed over the ceiling and does not exist")
+
+def past_ceiling_lines(found, ceiling):
+    """The report a person reads for `past_ceiling`'s answer, one line each."""
+    return [
+        f"{rel} is about {count} tokens, past the ceiling of {ceiling}: split "
+        "it along its own headings"
+        for rel, count in found
+    ]
+
+
+def index_problems(root, policy):
+    """What is out of step in `<policy>/README.md`, or None where it is absent.
+
+    Each row of its tables after the header names the documents it is about
+    as backticked paths, and each other top-level document of POLICY is named
+    on exactly one row."""
+    index = f"{policy}/{INDEX}"
+    if not os.path.isfile(os.path.join(root, *index.split("/"))):
+        return None
+    uc = reader()
+    names = [rel for rel in documents(root, policy) if rel != index]
+    rows, problems, in_table = {}, [], False
+    lines = uc.live_lines(uc.gfm_lines(read(root, index)))
+    for number, (line, live) in enumerate(lines, 1):
+        cells = uc.split_row(line) if live else None
+        if cells is None or not in_table or uc.is_separator(cells):
+            in_table = cells is not None
+            continue
+        named = {t for t in re.findall(r"`([^`]+)`", line) if t in names}
+        if not named:
+            problems.append(f"{index}:{number} names no document of {policy}/")
+        for rel in named:
+            rows[rel] = rows.get(rel, 0) + 1
     for rel in names:
-        text = read(root, rel)
-        lines = len(reader().gfm_lines(text))
-        if rel not in over:
-            if lines > ceiling:
-                problems.append(
-                    f"{rel} is {lines} lines, over the ceiling of {ceiling}. "
-                    "Split it along its own headings, or place the rule in the "
-                    "document for its own sub-subject"
-                )
-            continue
-        frozen, home = over[rel]
-        if lines <= ceiling:
-            problems.append(
-                f"{rel} is {lines} lines, no longer over the ceiling of "
-                f"{ceiling}. Remove its entry; {home} was its home"
-            )
-        found = markers(text)
-        now = marker_digest(text)
-        if found != frozen:
-            problems.append(
-                f"{rel} carries {found} fold markers and is frozen at {frozen} "
-                f"until {home} splits it. A new fold goes to the document for "
-                "the rule's own sub-subject; a removed marker lowers the frozen "
-                "count, so the room it made is not refilled, and sets the "
-                f"entry's digest in the `{OVER_ROW}` row to {now}, the file's "
-                "marker_digest() now, in the same commit"
-            )
-            continue
-        want = (digests or {}).get(rel)
-        if want is not None and now != want:
-            problems.append(
-                f"{rel} carries {frozen} fold markers, but not the ones frozen "
-                f"until {home} splits it: their ids no longer match the entry's "
-                f"digest in the `{OVER_ROW}` row. If a fold added a statement "
-                "here and removed another, the new rule goes to the document "
-                "for its own sub-subject. If a marker was removed on purpose, "
-                f"set the entry's digest to {now}, the file's marker_digest() "
-                "now, in the commit that lowered the count"
-            )
+        if not rows.get(rel):
+            problems.append(f"{index} has no row naming {rel}")
+        elif rows[rel] > 1:
+            problems.append(f"{index} names {rel} on {rows[rel]} rows")
     return problems
 
 
@@ -496,10 +455,10 @@ def config_rows(home):
     it as no row turned every check this command runs off at exit 0.
 
     **A table the walker refused is `Unusable` where it did not read one of
-    the three rows this command reads** (#871), in the walker's sentence: an
+    the rows this command reads** (#871), in the walker's sentence: an
     unread row may be written below the line it stopped at, so it is not
     absent, and reading it as absent is the same exit 0 an unreadable file
-    gave. A refusal below all three rows touches none of them, unless one of
+    gave. A refusal below all of them touches none of them, unless one of
     them is written again below it: `config_value` gives that row no value,
     and neither does this command."""
     if not home:
@@ -512,38 +471,21 @@ def config_rows(home):
         return []
     rows, refusals = reader.config_table(text)
     read = {item for _index, item, _value in rows}
-    if refusals and not {SHAPE_ROW, CEILING_ROW, OVER_ROW} <= read:
+    if refusals and not set(ROWS) <= read:
         raise Unusable(f"the file {refusals[0]}")
-    for item in (SHAPE_ROW, CEILING_ROW, OVER_ROW) if refusals else ():
+    for item in ROWS if refusals else ():
         refused = reader.config_value(text, item)[1]
         if refused is not None:
             raise Unusable(refused)
     return [(item, value) for _index, item, value in rows]
 
 
-def parse_over(value):
-    """`(over, digests)` from an `Over the ceiling` value, or `Unusable`."""
-    over, digests = {}, {}
-    if value is None or value.lower() == NONE_LISTED:
-        return over, digests
-    for entry in value.split(";"):
-        match = OVER_ENTRY.match(entry.strip())
-        if not match:
-            raise Unusable(
-                f"the `{OVER_ROW}` row holds `{entry.strip()}`, which is not "
-                f"`{NONE_LISTED}` and not an entry `{OVER_SHAPE}`"
-            )
-        over[match["path"]] = (int(match["count"]), match["home"])
-        digests[match["path"]] = match["digest"]
-    return over, digests
-
-
 def declared(home):
-    """`(cutoff, ceiling, over, digests)` as the root's `config.md` states
-    them, None for a row that is absent or empty, or `Unusable` naming the
-    row. Each value is the reader's own answer, `hooks/config.py#value_of`,
+    """`(cutoff, ceiling, policy root)` as the root's `config.md` states
+    them, None for a value row that is absent or empty, or `Unusable` naming
+    the row. Each value is the reader's own answer, `hooks/config.py#value_of`,
     so a row written twice is `Unusable` rather than its first (#867); the
-    local reader this module used to keep took the first."""
+    policy root is `hooks/config.py#policy_root`'s."""
     rows = config_rows(home)
     reader = config_reader()
 
@@ -567,11 +509,11 @@ def declared(home):
         if not WHOLE.fullmatch(ceiling) or int(ceiling) < 1:
             raise Unusable(
                 f"the `{CEILING_ROW}` row holds `{ceiling}`, which is not a "
-                "positive whole number of lines"
+                "positive whole number of tokens"
             )
         ceiling = int(ceiling)
-    over, digests = parse_over(stated(OVER_ROW))
-    return cutoff, ceiling, over, digests
+    stated(POLICY_ROW)
+    return cutoff, ceiling, reader.policy_root(home)
 
 
 # --- the command -----------------------------------------------------------
@@ -596,12 +538,12 @@ def plural(count, word):
 
 
 def run(root, values, where, out):
-    """Both checks over `root`, the lines they print, and the problems.
+    """Every check over `root`, the lines they print, and the problems.
 
     `where` names what the values were read from, for the line that says a
     check was not run because nothing declared its value."""
-    cutoff, ceiling, over, digests = values
-    names = documents(root)
+    cutoff, ceiling, policy = values
+    names = documents(root, policy)
     problems = []
     if cutoff is None:
         out.write(
@@ -618,7 +560,7 @@ def run(root, values, where, out):
             problems += shape_problems(root, rel, text, cutoff)
         out.write(
             f"fold-check: read {plural(groups, 'statement')} in "
-            f"{plural(len(names), 'document')} under {DOCS}/; the cutoff "
+            f"{plural(len(names), 'document')} under {policy}/; the cutoff "
             f"{cutoff} binds {bound_groups}\n"
         )
     if ceiling is None:
@@ -627,19 +569,28 @@ def run(root, values, where, out):
             "document's length was checked\n"
         )
     else:
-        problems += ceiling_problems(root, ceiling, over, digests)
+        past = past_ceiling(root, policy, ceiling)
         out.write(
-            f"fold-check: held {plural(len(names), 'document')} under {DOCS}/ "
-            f"to {ceiling} lines, {len(over)} listed over it\n"
+            f"fold-check: held {plural(len(names), 'document')} under {policy}/ "
+            f"to {ceiling} estimated tokens, {len(past)} past it\n"
         )
-    return problems
+        for line in past_ceiling_lines(past, ceiling):
+            out.write(f"fold-check: {line}\n")
+    found = index_problems(root, policy)
+    if found is None:
+        out.write(
+            f"fold-check: there is no {policy}/{INDEX}, so no index was checked\n"
+        )
+    elif not found:
+        out.write(f"fold-check: the index {policy}/{INDEX} names every document\n")
+    return problems + (found or [])
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
         prog="fold-check",
-        description="Hold the fold's statement shape and document ceiling "
-        "over the top level of docs/, with the values seal/config.md states.",
+        description="Hold the policy root's documents to their shape, one read "
+        "and one index, with the values seal/config.md states.",
     )
     ap.add_argument("--root", help="the repository to read (default: cwd)")
     ap.add_argument(
@@ -653,8 +604,8 @@ def main(argv=None):
         "--ceiling",
         type=positive,
         metavar="N",
-        help=f"hold every top-level docs/*.md to N lines, for this run only, "
-        f"over the `{CEILING_ROW}` row",
+        help=f"report each top-level document past N estimated tokens, for "
+        f"this run only, over the `{CEILING_ROW}` row",
     )
     args = ap.parse_args(argv)
 
@@ -673,7 +624,7 @@ def main(argv=None):
         root = optin().repo_root(root) or root
     home, where = located(root)
     try:
-        cutoff, ceiling, over, digests = declared(home)
+        cutoff, ceiling, policy = declared(home)
     except Unusable as refused:
         sys.stderr.write(f"fold-check: in {where}, {refused} — nothing was checked\n")
         return 2
@@ -681,22 +632,24 @@ def main(argv=None):
         cutoff = args.shape_from
     if args.ceiling is not None:
         ceiling = args.ceiling
-    if cutoff is None and ceiling is None:
+    index = os.path.join(root, *policy.split("/"), INDEX)
+    if cutoff is None and ceiling is None and not os.path.isfile(index):
         sys.stdout.write(
             f"fold-check: neither `{SHAPE_ROW}` nor `{CEILING_ROW}` is declared "
-            f"in {where}, so nothing was checked\n"
+            f"in {where}, and there is no {policy}/{INDEX}, so nothing was "
+            "checked\n"
         )
         return 0
-    if not os.path.isdir(os.path.join(root, DOCS)):
+    if not os.path.isdir(os.path.join(root, *policy.split("/"))):
         sys.stderr.write(
-            f"fold-check: {root} has no {DOCS}/ directory — nothing was checked\n"
+            f"fold-check: {root} has no {policy}/ directory — nothing was checked\n"
         )
         return 2
     # The run's lines are held until it has a result, so a file it cannot read
     # stops it with nothing on stdout that reads as one (round 1, finding 2).
     out = io.StringIO()
     try:
-        problems = run(root, (cutoff, ceiling, over, digests), where, out)
+        problems = run(root, (cutoff, ceiling, policy), where, out)
     except Unusable as refused:
         sys.stderr.write(f"fold-check: {refused} — no result was printed\n")
         return 2

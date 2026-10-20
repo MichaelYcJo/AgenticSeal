@@ -536,7 +536,7 @@ in the handback and write nothing into it.
 **One id, minted once, names the directory in every repository.** Take
 `date +%s` once, pick one slug, and use the resulting directory name in every
 repository. The id is what every share is keyed by: its changelog fragment
-and the `<!-- specs/<work-item-id> -->` marker a fold writes. A directory
+and the `<!-- specs/<work-item-id> -->` marker the changelog gather writes. A directory
 named differently in each repository would have to be renamed later, and the
 rename moves both. Nothing checks this, because
 nothing can tell an id minted twice from a signer's own work item that

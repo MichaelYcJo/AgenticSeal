@@ -36,10 +36,10 @@ ROWS = (
     "Record language",
     "Mode",
     "Broad gate",
-    # The fold's three values, read by `fold-check` (#566).
+    # The fold's values, read by `fold-check` (#566, #953).
     "Fold shape from",
-    "Document line ceiling",
-    "Over the ceiling",
+    "Document token ceiling",
+    "Policy root",
     # The reference roots (#688), missing from the skill until #647 counted
     # the table, and the row a signer declares its pact in (#647).
     "Reference specs",
