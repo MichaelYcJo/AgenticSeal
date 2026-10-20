@@ -298,10 +298,10 @@ worth keeping:
 
 - **Consolidate the body**, once the design is settled. The comments stay and
   are still part of the issue; what goes away is the need to cross-check four
-  places to learn what the ticket asks for. #136 is the worked example.
+  places to learn what the ticket asks for.
 - **Leave the body and open it with `> **Update <date>.**`**, naming what has
-  moved since it was written. #30 is the worked example: the original design
-  is preserved and the block says which two things below it have changed.
+  moved since it was written: the original design is preserved and the block
+  says which things below it have changed.
 
 The exception is an issue that is a **log rather than a ticket**: `#51`
 and the rolling `flow-measurement` log. There the body IS the current state
