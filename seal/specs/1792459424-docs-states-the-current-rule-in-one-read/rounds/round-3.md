@@ -9,7 +9,7 @@ target: 5ddc6b61, fixes 93671fc2..5ddc6b61
 severity: should
 location: `.github/scripts/rules.py:60`, `tests/test_the_rules_command_reads_each_rule_off_its_test.py:425`
 evidence: executed `python3 -I probe/near_time.py <clone>`, `python3 -I probe/near_fix.py <clone>`
-verdict: open
+verdict: fixed fcb7e8f0
 regression: round-2#1
 
 The unit is `BLOCK_MARK` at `.github/scripts/rules.py:60`, which 3b01852d
@@ -79,7 +79,7 @@ pattern that backtracks fails this one case at 10 seconds and does not stall
 the run. Precondition: none beyond the interpreter the suite runs on, since
 the child is `sys.executable`.
 
-answer:
+answer: holds. `BLOCK_MARK` takes a single `#` and the star repeats it. The timing case went in as written, with `encoding="utf-8"` and `errors="replace"` in place of `text=True`, which the encoding sweep (`tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py`) refuses. Against 3b01852d's `#{1,6}` the `#` row timed out at 10 seconds and the six other marks passed; `mutation-check` putting `#{1,6}` back reproduced the same one failure. With the fix the module's 61 cases pass, every markup spelling still matches `NEAR` (`####### check:`, `#check:`, `##`, `- [ ]`, `|`, `1.`, `1)`, `>`, `>> -`, `-check:`), and `bin/rules --check` reads 240 lines, exit 0. The one look for the same shape: `[0-9]{1,9}[.)]` in `BLOCK_MARK` is the only other bounded repeat inside a starred group in `rules.py` or `rule_changes.py`, and it is unambiguous because each piece must end at a `.` or `)`; a 5000-digit run and 2500 `1.` pieces answer in under a millisecond. Two overlaps remain quadratic, not exponential: a run of `*`, which both the bullet alternative and the emphasis after the group can take (0.30 s at 5000), and a run of spaces (0.18 s at 5000, as the finding measured). No shipped behaviour changed, so the changelog fragment stands.
 
 ## Confirmations
 
